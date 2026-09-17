@@ -585,7 +585,7 @@ func  (this *Polymarket) Describe() any  {
  * @param {int} [params.limit] max number of events to fetch when no query is given (defaults to options.fetchMarketsLimit, 200); the listing is ordered by 24h volume so the most active markets come first — outcomes on lower-volume markets are resolvable on demand by their token id (fetchOutcome)
  * @returns {object[]} an array of objects representing market data
  */
-func  (this *Polymarket) FetchMarkets(optionalArgs ...any) <- chan any {
+func  (this *Polymarket) FetchMarketsAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchMarketsBody(ch, optionalArgs...)
     return ch
@@ -601,11 +601,11 @@ func (this *Polymarket) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
         var rawEvents any = []any{}
         if ccxt.IsGreaterThan(queriesLength, 0) {
             
-        rawEvents = (<-this.FetchRawEventsBySearch(queries, rest))
+        rawEvents = (<-this.FetchRawEventsBySearchAsync(queries, rest))
                 ccxt.PanicOnError(rawEvents)
         } else {
             
-        rawEvents = (<-this.FetchRawEventsList(rest))
+        rawEvents = (<-this.FetchRawEventsListAsync(rest))
                 ccxt.PanicOnError(rawEvents)
         }
         var flatMarkets any = []any{}
@@ -639,7 +639,7 @@ func (this *Polymarket) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
  * @param {int} [params.limit] page size per search query, defaults to 50
  * @returns {object[]} an array of raw gamma event objects
  */
-func  (this *Polymarket) FetchRawEventsBySearch(queries any, optionalArgs ...any) <- chan any {
+func  (this *Polymarket) FetchRawEventsBySearchAsync(queries any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchRawEventsBySearchBody(ch, queries, optionalArgs...)
     return ch
@@ -791,7 +791,7 @@ func  (this *Polymarket) TagToSlug(tag any) any  {
  * @param {int} [params.limit] max number of events to fetch (default options.fetchMarketsLimit); the listing is ordered by 24h volume so the most active markets come first
  * @returns {object[]} an array of raw gamma event objects
  */
-func  (this *Polymarket) FetchRawEventsList(optionalArgs ...any) <- chan any {
+func  (this *Polymarket) FetchRawEventsListAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchRawEventsListBody(ch, optionalArgs...)
     return ch
@@ -836,7 +836,7 @@ func (this *Polymarket) fetchRawEventsListBody(ch chan any, optionalArgs ...any)
                 var singleTagParams map[string]any = this.Extend(map[string]any {}, params)
                 ccxt.AddElementToObject(singleTagParams, "tags", []any{ccxt.GetValue(requestedTags, ti)})
     
-                tagEvents:= (<-this.FetchRawEventsList(singleTagParams))
+                tagEvents:= (<-this.FetchRawEventsListAsync(singleTagParams))
                 ccxt.PanicOnError(tagEvents)
                 for ei := 0; ccxt.IsLessThan(ei, ccxt.GetArrayLength(tagEvents)); ei++ {
                     var rawEvent any = ccxt.GetValue(tagEvents, ei)
@@ -1181,7 +1181,7 @@ func  (this *Polymarket) ParseEventToMarkets(event any) any  {
  * @param {string} outcomeSymbol the outcome token id or handle
  * @returns {object} the resolved outcome object
  */
-func  (this *Polymarket) FetchOutcome(outcomeSymbol any) <- chan any {
+func  (this *Polymarket) FetchOutcomeAsync(outcomeSymbol any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchOutcomeBody(ch, outcomeSymbol)
     return ch
@@ -1228,7 +1228,7 @@ func (this *Polymarket) fetchOutcomeBody(ch chan any, outcomeSymbol any) any {
             }
         }
     
-            retRes90715 :=  (<-this.BaseExchange.FetchOutcome(outcomeSymbol))
+            retRes90715 :=  (<-this.BaseExchange.FetchOutcomeAsync(outcomeSymbol))
             ccxt.PanicOnError(retRes90715)
             ch <- retRes90715
             return nil
@@ -1242,7 +1242,7 @@ func (this *Polymarket) fetchOutcomeBody(ch chan any, outcomeSymbol any) any {
  * @param {string[]} outcomeSymbols outcome token ids or handles
  * @returns {object} the outcome cache
  */
-func  (this *Polymarket) FetchOutcomes(outcomeSymbols any) <- chan any {
+func  (this *Polymarket) FetchOutcomesAsync(outcomeSymbols any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchOutcomesBody(ch, outcomeSymbols)
     return ch
@@ -1304,7 +1304,7 @@ func (this *Polymarket) fetchOutcomesBody(ch chan any, outcomeSymbols any) any {
         for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(outcomeSymbols)); i++ {
             if !ccxt.EvalTruthy(this.HasOutcome(ccxt.GetValue(outcomeSymbols, i))) {
     
-                retRes96616 := (<-this.FetchOutcome(ccxt.GetValue(outcomeSymbols, i)))
+                retRes96616 := (<-this.FetchOutcomeAsync(ccxt.GetValue(outcomeSymbols, i)))
                 ccxt.PanicOnError(retRes96616)
             }
         }
@@ -1323,7 +1323,7 @@ func (this *Polymarket) fetchOutcomesBody(ch chan any, outcomeSymbols any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [prediction ticker structure](https://docs.ccxt.com/#/?id=prediction-ticker-structure)
  */
-func  (this *Polymarket) FetchTicker(outcome any, optionalArgs ...any) <- chan any {
+func  (this *Polymarket) FetchTickerAsync(outcome any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchTickerBody(ch, outcome, optionalArgs...)
     return ch
@@ -1334,7 +1334,7 @@ func (this *Polymarket) fetchTickerBody(ch chan any, outcome any, optionalArgs .
         params := ccxt.GetArg(optionalArgs, 0, map[string]any {})
         _ = params
     
-        outcomeObj:= (<-this.LoadOutcome(outcome))
+        outcomeObj:= (<-this.LoadOutcomeAsync(outcome))
         ccxt.PanicOnError(outcomeObj)
         var tokenId any = ccxt.GetValue(outcomeObj, "outcomeId")
         var promises []any = []any{this.ClobPublicGetMidpoint(map[string]any {
@@ -1401,7 +1401,7 @@ func (this *Polymarket) fetchTickerBody(ch chan any, outcome any, optionalArgs .
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a dictionary of [prediction ticker structures](https://docs.ccxt.com/#/?id=prediction-ticker-structure) indexed by outcome
  */
-func  (this *Polymarket) FetchTickers(optionalArgs ...any) <- chan any {
+func  (this *Polymarket) FetchTickersAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchTickersBody(ch, optionalArgs...)
     return ch
@@ -1418,7 +1418,7 @@ func (this *Polymarket) fetchTickersBody(ch chan any, optionalArgs ...any) any {
         }
         // batch-resolve the uncached outcomes (one gamma request per 50 token ids)
     
-        retRes10488 := (<-this.LoadOutcomes(outcomes))
+        retRes10488 := (<-this.LoadOutcomesAsync(outcomes))
         ccxt.PanicOnError(retRes10488)
         var targets any = []any{}
         for oi := 0; ccxt.IsLessThan(oi, ccxt.GetArrayLength(outcomes)); oi++ {
@@ -1601,7 +1601,7 @@ func  (this *Polymarket) ParsePredictionTicker(ticker any, optionalArgs ...any) 
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [prediction order book structure](https://docs.ccxt.com/#/?id=prediction-order-book-structure)
  */
-func  (this *Polymarket) FetchOrderBook(outcome any, optionalArgs ...any) <- chan any {
+func  (this *Polymarket) FetchOrderBookAsync(outcome any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchOrderBookBody(ch, outcome, optionalArgs...)
     return ch
@@ -1614,7 +1614,7 @@ func (this *Polymarket) fetchOrderBookBody(ch chan any, outcome any, optionalArg
         params := ccxt.GetArg(optionalArgs, 1, map[string]any {})
         _ = params
     
-        outcomeObj:= (<-this.LoadOutcome(outcome))
+        outcomeObj:= (<-this.LoadOutcomeAsync(outcome))
         ccxt.PanicOnError(outcomeObj)
         var tokenId any = ccxt.GetValue(outcomeObj, "outcomeId")
         var request map[string]any = map[string]any {
@@ -1661,7 +1661,7 @@ func (this *Polymarket) fetchOrderBookBody(ch chan any, outcome any, optionalArg
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {int[][]} a list of candles ordered as timestamp, open, high, low, close, volume
  */
-func  (this *Polymarket) FetchOHLCV(outcome any, optionalArgs ...any) <- chan any {
+func  (this *Polymarket) FetchOHLCVAsync(outcome any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchOHLCVBody(ch, outcome, optionalArgs...)
     return ch
@@ -1683,7 +1683,7 @@ func (this *Polymarket) fetchOHLCVBody(ch chan any, outcome any, optionalArgs ..
             panic(ccxt.BadRequest(ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add(this.Id, " fetchOHLCV() unsupported timeframe "), timeframe), ", supported timeframes are "), ccxt.Join(supportedKeys, ", "))))
         }
     
-        outcomeObj:= (<-this.LoadOutcome(outcome))
+        outcomeObj:= (<-this.LoadOutcomeAsync(outcome))
         ccxt.PanicOnError(outcomeObj)
         var tokenId any = ccxt.GetValue(outcomeObj, "outcomeId")
         var fidelityMin *int64 = this.SafeInteger(this.Timeframes, timeframe, 1) // fidelity in minutes
@@ -1800,7 +1800,7 @@ func  (this *Polymarket) ParseOHLCV(ohlcv any, optionalArgs ...any) any  {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {int} the current server time in milliseconds
  */
-func  (this *Polymarket) FetchTime(optionalArgs ...any) <- chan any {
+func  (this *Polymarket) FetchTimeAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchTimeBody(ch, optionalArgs...)
     return ch
@@ -1828,7 +1828,7 @@ func (this *Polymarket) fetchTimeBody(ch chan any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [status structure](https://docs.ccxt.com/#/?id=exchange-status-structure)
  */
-func  (this *Polymarket) FetchStatus(optionalArgs ...any) <- chan any {
+func  (this *Polymarket) FetchStatusAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchStatusBody(ch, optionalArgs...)
     return ch
@@ -1864,7 +1864,7 @@ func (this *Polymarket) fetchStatusBody(ch chan any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [open interest structure](https://docs.ccxt.com/#/?id=open-interest-structure)
  */
-func  (this *Polymarket) FetchOpenInterest(outcome any, optionalArgs ...any) <- chan any {
+func  (this *Polymarket) FetchOpenInterestAsync(outcome any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchOpenInterestBody(ch, outcome, optionalArgs...)
     return ch
@@ -1875,7 +1875,7 @@ func (this *Polymarket) fetchOpenInterestBody(ch chan any, outcome any, optional
         params := ccxt.GetArg(optionalArgs, 0, map[string]any {})
         _ = params
     
-        outcomeObj:= (<-this.LoadOutcome(outcome))
+        outcomeObj:= (<-this.LoadOutcomeAsync(outcome))
         ccxt.PanicOnError(outcomeObj)
         var outcomeInfo any = this.SafeDict(outcomeObj, "info", map[string]any {})
         var conditionId *string = this.SafeString(outcomeInfo, "conditionId")
@@ -1928,7 +1928,7 @@ func  (this *Polymarket) ParsePredictionOpenInterest(interest any, optionalArgs 
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [fee structure](https://docs.ccxt.com/#/?id=fee-structure)
  */
-func  (this *Polymarket) FetchTradingFee(outcome any, optionalArgs ...any) <- chan any {
+func  (this *Polymarket) FetchTradingFeeAsync(outcome any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchTradingFeeBody(ch, outcome, optionalArgs...)
     return ch
@@ -1939,7 +1939,7 @@ func (this *Polymarket) fetchTradingFeeBody(ch chan any, outcome any, optionalAr
         params := ccxt.GetArg(optionalArgs, 0, map[string]any {})
         _ = params
     
-        outcomeObj:= (<-this.LoadOutcome(outcome))
+        outcomeObj:= (<-this.LoadOutcomeAsync(outcome))
         ccxt.PanicOnError(outcomeObj)
         var tokenId *string = this.SafeString(outcomeObj, "outcomeId")
         var request map[string]any = map[string]any {
@@ -1977,7 +1977,7 @@ func (this *Polymarket) fetchTradingFeeBody(ch chan any, outcome any, optionalAr
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
  */
-func  (this *Polymarket) FetchTrades(outcome any, optionalArgs ...any) <- chan any {
+func  (this *Polymarket) FetchTradesAsync(outcome any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchTradesBody(ch, outcome, optionalArgs...)
     return ch
@@ -1992,7 +1992,7 @@ func (this *Polymarket) fetchTradesBody(ch chan any, outcome any, optionalArgs .
         params := ccxt.GetArg(optionalArgs, 2, map[string]any {})
         _ = params
     
-        outcomeObj:= (<-this.LoadOutcome(outcome))
+        outcomeObj:= (<-this.LoadOutcomeAsync(outcome))
         ccxt.PanicOnError(outcomeObj)
         var tokenId any = ccxt.GetValue(outcomeObj, "outcomeId")
         var outcomeInfo any = this.SafeDict(outcomeObj, "info", map[string]any {})
@@ -2038,7 +2038,7 @@ func (this *Polymarket) fetchTradesBody(ch chan any, outcome any, optionalArgs .
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
  */
-func  (this *Polymarket) FetchMyTrades(optionalArgs ...any) <- chan any {
+func  (this *Polymarket) FetchMyTradesAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchMyTradesBody(ch, optionalArgs...)
     return ch
@@ -2055,13 +2055,13 @@ func (this *Polymarket) fetchMyTradesBody(ch chan any, optionalArgs ...any) any 
         params := ccxt.GetArg(optionalArgs, 3, map[string]any {})
         _ = params
     
-        retRes15478 := (<-this.LoadApiCredentials())
+        retRes15478 := (<-this.LoadApiCredentialsAsync())
         ccxt.PanicOnError(retRes15478)
         var request map[string]any = map[string]any {}
         var outcomeObj any = nil
         if !ccxt.IsEqual(outcome, nil) {
             
-        outcomeObj = (<-this.LoadOutcome(outcome))
+        outcomeObj = (<-this.LoadOutcomeAsync(outcome))
                 ccxt.PanicOnError(outcomeObj)
             ccxt.AddElementToObject(request, "asset_id", ccxt.GetValue(outcomeObj, "outcomeId"))
         }
@@ -2085,7 +2085,7 @@ func (this *Polymarket) fetchMyTradesBody(ch chan any, optionalArgs ...any) any 
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
  */
-func  (this *Polymarket) FetchOrderTrades(id any, optionalArgs ...any) <- chan any {
+func  (this *Polymarket) FetchOrderTradesAsync(id any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchOrderTradesBody(ch, id, optionalArgs...)
     return ch
@@ -2104,7 +2104,7 @@ func (this *Polymarket) fetchOrderTradesBody(ch chan any, id any, optionalArgs .
         params := ccxt.GetArg(optionalArgs, 3, map[string]any {})
         _ = params
     
-        trades:= (<-this.FetchMyTrades(outcome, nil, nil, params))
+        trades:= (<-this.FetchMyTradesAsync(outcome, nil, nil, params))
         ccxt.PanicOnError(trades)
         var result any = []any{}
         for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(trades)); i++ {
@@ -2189,7 +2189,7 @@ func  (this *Polymarket) ParsePredictionTrade(trade any, optionalArgs ...any) an
  * @param {int} [params.signatureType] 0=EOA, 1=POLY_PROXY, 2=GNOSIS_SAFE, 3=POLY_1271 (deposit wallet); defaults to options.signatureType
  * @returns {object} a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
  */
-func  (this *Polymarket) FetchBalance(optionalArgs ...any) <- chan any {
+func  (this *Polymarket) FetchBalanceAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchBalanceBody(ch, optionalArgs...)
     return ch
@@ -2200,7 +2200,7 @@ func (this *Polymarket) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
         params := ccxt.GetArg(optionalArgs, 0, map[string]any {})
         _ = params
     
-        retRes16578 := (<-this.LoadApiCredentials())
+        retRes16578 := (<-this.LoadApiCredentialsAsync())
         ccxt.PanicOnError(retRes16578)
         // the collateral balance is tied to the signature type / funder that holds the USDC
         var signatureType *int64 = this.SafeInteger2(params, "signatureType", "signature_type", this.SafeInteger(this.Options, "signatureType", 3))
@@ -2250,7 +2250,7 @@ func  (this *Polymarket) ParseBalance(response any) any  {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [prediction position structures](https://docs.ccxt.com/#/?id=prediction-position-structure)
  */
-func  (this *Polymarket) FetchPositions(optionalArgs ...any) <- chan any {
+func  (this *Polymarket) FetchPositionsAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchPositionsBody(ch, optionalArgs...)
     return ch
@@ -2266,7 +2266,7 @@ func (this *Polymarket) fetchPositionsBody(ch chan any, optionalArgs ...any) any
         if !ccxt.IsEqual(outcomes, nil) {
             outcomesLength = ccxt.GetArrayLength(outcomes)
     
-            retRes170612 := (<-this.LoadOutcomes(outcomes))
+            retRes170612 := (<-this.LoadOutcomesAsync(outcomes))
             ccxt.PanicOnError(retRes170612)
         }
         // no bulk warm-up on the unfiltered path: the positions request is self-contained and
@@ -2319,7 +2319,7 @@ func (this *Polymarket) fetchPositionsBody(ch chan any, optionalArgs ...any) any
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [prediction position structure](https://docs.ccxt.com/#/?id=prediction-position-structure)
  */
-func  (this *Polymarket) FetchPosition(outcome any, optionalArgs ...any) <- chan any {
+func  (this *Polymarket) FetchPositionAsync(outcome any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchPositionBody(ch, outcome, optionalArgs...)
     return ch
@@ -2330,7 +2330,7 @@ func (this *Polymarket) fetchPositionBody(ch chan any, outcome any, optionalArgs
         params := ccxt.GetArg(optionalArgs, 0, map[string]any {})
         _ = params
     
-        positions:= (<-this.FetchPositions([]any{outcome}, params))
+        positions:= (<-this.FetchPositionsAsync([]any{outcome}, params))
         ccxt.PanicOnError(positions)
     
         ch <- this.SafeDict(positions, 0)
@@ -2400,7 +2400,7 @@ func  (this *Polymarket) ParsePredictionPosition(position any, optionalArgs ...a
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
  */
-func  (this *Polymarket) FetchOpenOrders(optionalArgs ...any) <- chan any {
+func  (this *Polymarket) FetchOpenOrdersAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchOpenOrdersBody(ch, optionalArgs...)
     return ch
@@ -2417,13 +2417,13 @@ func (this *Polymarket) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) an
         params := ccxt.GetArg(optionalArgs, 3, map[string]any {})
         _ = params
     
-        retRes18248 := (<-this.LoadApiCredentials())
+        retRes18248 := (<-this.LoadApiCredentialsAsync())
         ccxt.PanicOnError(retRes18248)
         var request map[string]any = map[string]any {}
         var outcomeObj any = nil
         if !ccxt.IsEqual(outcome, nil) {
             
-        outcomeObj = (<-this.LoadOutcome(outcome))
+        outcomeObj = (<-this.LoadOutcomeAsync(outcome))
                 ccxt.PanicOnError(outcomeObj)
             ccxt.AddElementToObject(request, "asset_id", ccxt.GetValue(outcomeObj, "outcomeId"))
         }
@@ -2445,7 +2445,7 @@ func (this *Polymarket) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) an
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
  */
-func  (this *Polymarket) FetchOrder(id any, optionalArgs ...any) <- chan any {
+func  (this *Polymarket) FetchOrderAsync(id any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchOrderBody(ch, id, optionalArgs...)
     return ch
@@ -2460,7 +2460,7 @@ func (this *Polymarket) fetchOrderBody(ch chan any, id any, optionalArgs ...any)
         params := ccxt.GetArg(optionalArgs, 1, map[string]any {})
         _ = params
     
-        retRes18498 := (<-this.LoadApiCredentials())
+        retRes18498 := (<-this.LoadApiCredentialsAsync())
         ccxt.PanicOnError(retRes18498)
         var request map[string]any = map[string]any {
             "id": id,
@@ -2579,7 +2579,7 @@ func  (this *Polymarket) ParseOrderStatus(status any) any  {
  * @param {string} [params.builderCode] builder wallet address or full bytes32 builder code attached to the order for attribution (zero fee — tracking only); defaults to options.builder
  * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
  */
-func  (this *Polymarket) CreateOrder(outcome any, typeVar any, side any, amount any, optionalArgs ...any) <- chan any {
+func  (this *Polymarket) CreateOrderAsync(outcome any, typeVar any, side any, amount any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.createOrderBody(ch, outcome, typeVar, side, amount, optionalArgs...)
     return ch
@@ -2592,10 +2592,10 @@ func (this *Polymarket) createOrderBody(ch chan any, outcome any, typeVar any, s
         params := ccxt.GetArg(optionalArgs, 1, map[string]any {})
         _ = params
     
-        retRes19628 := (<-this.LoadApiCredentials())
+        retRes19628 := (<-this.LoadApiCredentialsAsync())
         ccxt.PanicOnError(retRes19628)
     
-        retRes19638 := (<-this.LoadOutcome(outcome))
+        retRes19638 := (<-this.LoadOutcomeAsync(outcome))
         ccxt.PanicOnError(retRes19638)
         var built any = this.BuildClobOrderBody(outcome, typeVar, side, amount, price, params)
     
@@ -2618,7 +2618,7 @@ func (this *Polymarket) createOrderBody(ch chan any, outcome any, typeVar any, s
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
  */
-func  (this *Polymarket) CreateOrders(orders any, optionalArgs ...any) <- chan any {
+func  (this *Polymarket) CreateOrdersAsync(orders any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.createOrdersBody(ch, orders, optionalArgs...)
     return ch
@@ -2629,7 +2629,7 @@ func (this *Polymarket) createOrdersBody(ch chan any, orders any, optionalArgs .
         params := ccxt.GetArg(optionalArgs, 0, map[string]any {})
         _ = params
     
-        retRes19838 := (<-this.LoadApiCredentials())
+        retRes19838 := (<-this.LoadApiCredentialsAsync())
         ccxt.PanicOnError(retRes19838)
         // buildClobOrderBody resolves outcomes synchronously from the cache, so batch-warm the
         // requested outcomes first (one gamma request for all uncached token ids)
@@ -2642,7 +2642,7 @@ func (this *Polymarket) createOrdersBody(ch chan any, orders any, optionalArgs .
             }
         }
     
-        retRes19948 := (<-this.LoadOutcomes(orderOutcomes))
+        retRes19948 := (<-this.LoadOutcomesAsync(orderOutcomes))
         ccxt.PanicOnError(retRes19948)
         var bodies any = []any{}
         var outcomes any = []any{}
@@ -2855,7 +2855,7 @@ func  (this *Polymarket) BuildClobOrderBody(outcome any, typeVar any, side any, 
  * @param {object} [params] extra parameters specific to the exchange API endpoint (see createOrder)
  * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
  */
-func  (this *Polymarket) CreateMarketBuyOrderWithCost(outcome any, cost any, optionalArgs ...any) <- chan any {
+func  (this *Polymarket) CreateMarketBuyOrderWithCostAsync(outcome any, cost any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.createMarketBuyOrderWithCostBody(ch, outcome, cost, optionalArgs...)
     return ch
@@ -2869,7 +2869,7 @@ func (this *Polymarket) createMarketBuyOrderWithCostBody(ch chan any, outcome an
             "cost": cost,
         })
     
-            retRes220315 :=  (<-this.CreateOrder(outcome, "market", "buy", cost, nil, request))
+            retRes220315 :=  (<-this.CreateOrderAsync(outcome, "market", "buy", cost, nil, request))
             ccxt.PanicOnError(retRes220315)
             ch <- retRes220315
             return nil
@@ -3062,7 +3062,7 @@ func  (this *Polymarket) SignClobOrder(message any, exchangeAddress any, domainV
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
  */
-func  (this *Polymarket) CancelOrder(id any, optionalArgs ...any) <- chan any {
+func  (this *Polymarket) CancelOrderAsync(id any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.cancelOrderBody(ch, id, optionalArgs...)
     return ch
@@ -3075,7 +3075,7 @@ func (this *Polymarket) cancelOrderBody(ch chan any, id any, optionalArgs ...any
         params := ccxt.GetArg(optionalArgs, 1, map[string]any {})
         _ = params
     
-        retRes23438 := (<-this.LoadApiCredentials())
+        retRes23438 := (<-this.LoadApiCredentialsAsync())
         ccxt.PanicOnError(retRes23438)
         // cancelling by id needs no market data, so events do not have to be loaded first
         var request map[string]any = map[string]any {
@@ -3107,7 +3107,7 @@ func (this *Polymarket) cancelOrderBody(ch chan any, id any, optionalArgs ...any
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
  */
-func  (this *Polymarket) CancelOrders(ids any, optionalArgs ...any) <- chan any {
+func  (this *Polymarket) CancelOrdersAsync(ids any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.cancelOrdersBody(ch, ids, optionalArgs...)
     return ch
@@ -3120,7 +3120,7 @@ func (this *Polymarket) cancelOrdersBody(ch chan any, ids any, optionalArgs ...a
         params := ccxt.GetArg(optionalArgs, 1, map[string]any {})
         _ = params
     
-        retRes23668 := (<-this.LoadApiCredentials())
+        retRes23668 := (<-this.LoadApiCredentialsAsync())
         ccxt.PanicOnError(retRes23668)
         // the request body is the bare array of order ids (DELETE /orders), so params are not merged
     
@@ -3149,7 +3149,7 @@ func (this *Polymarket) cancelOrdersBody(ch chan any, ids any, optionalArgs ...a
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
  */
-func  (this *Polymarket) CancelAllOrders(optionalArgs ...any) <- chan any {
+func  (this *Polymarket) CancelAllOrdersAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.cancelAllOrdersBody(ch, optionalArgs...)
     return ch
@@ -3162,13 +3162,13 @@ func (this *Polymarket) cancelAllOrdersBody(ch chan any, optionalArgs ...any) an
         params := ccxt.GetArg(optionalArgs, 1, map[string]any {})
         _ = params
     
-        retRes23888 := (<-this.LoadApiCredentials())
+        retRes23888 := (<-this.LoadApiCredentialsAsync())
         ccxt.PanicOnError(retRes23888)
         var response any = nil
         if !ccxt.IsEqual(outcome, nil) {
             // scope to a single outcome token via DELETE /cancel-market-orders { asset_id }
     
-            outcomeObj:= (<-this.LoadOutcome(outcome))
+            outcomeObj:= (<-this.LoadOutcomeAsync(outcome))
             ccxt.PanicOnError(outcomeObj)
             var request map[string]any = map[string]any {
                 "asset_id": ccxt.GetValue(outcomeObj, "outcomeId"),
@@ -3215,7 +3215,7 @@ func (this *Polymarket) cancelAllOrdersBody(ch chan any, optionalArgs ...any) an
  * @param {int} [params.maxSearchPages] max search pages to fetch when no limit is given (default 5), bounding a broad query
  * @returns {object[]} an array of event structures
  */
-func  (this *Polymarket) FetchEvents(optionalArgs ...any) <- chan any {
+func  (this *Polymarket) FetchEventsAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchEventsBody(ch, optionalArgs...)
     return ch
@@ -3250,11 +3250,11 @@ func (this *Polymarket) fetchEventsBody(ch chan any, optionalArgs ...any) any {
             rawEvents = ccxt.Ternary(ccxt.EvalTruthy((responseIsArray)), response, []any{})
         } else if ccxt.IsGreaterThan(queriesLength, 0) {
             
-        rawEvents = (<-this.FetchRawEventsBySearch(queries, rest))
+        rawEvents = (<-this.FetchRawEventsBySearchAsync(queries, rest))
                 ccxt.PanicOnError(rawEvents)
         } else {
             
-        rawEvents = (<-this.FetchRawEventsList(rest))
+        rawEvents = (<-this.FetchRawEventsListAsync(rest))
                 ccxt.PanicOnError(rawEvents)
         }
         // Parse and merge into class-level caches
@@ -3331,7 +3331,7 @@ func (this *Polymarket) fetchEventsBody(ch chan any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [prediction event structure](https://docs.ccxt.com/#/?id=prediction-event-structure)
  */
-func  (this *Polymarket) FetchEvent(id any, optionalArgs ...any) <- chan any {
+func  (this *Polymarket) FetchEventAsync(id any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchEventBody(ch, id, optionalArgs...)
     return ch
@@ -3721,7 +3721,7 @@ func  (this *Polymarket) SignClobAuth(address any, timestamp any, nonce any) any
  * @param {int} [params.nonce] the nonce used to derive the credentials, defaults to 0
  * @returns {object} the api credentials { apiKey, secret, passphrase }
  */
-func  (this *Polymarket) DeriveApiKey(optionalArgs ...any) <- chan any {
+func  (this *Polymarket) DeriveApiKeyAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.deriveApiKeyBody(ch, optionalArgs...)
     return ch
@@ -3747,7 +3747,7 @@ func (this *Polymarket) deriveApiKeyBody(ch chan any, optionalArgs ...any) any {
  * @param {int} [params.nonce] the nonce used to create the credentials, defaults to 0
  * @returns {object} the api credentials { apiKey, secret, passphrase }
  */
-func  (this *Polymarket) CreateApiKey(optionalArgs ...any) <- chan any {
+func  (this *Polymarket) CreateApiKeyAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.createApiKeyBody(ch, optionalArgs...)
     return ch
@@ -3772,7 +3772,7 @@ func (this *Polymarket) createApiKeyBody(ch chan any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} the api credentials { apiKey, secret, passphrase }
  */
-func  (this *Polymarket) CreateOrDeriveApiKey(optionalArgs ...any) <- chan any {
+func  (this *Polymarket) CreateOrDeriveApiKeyAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.createOrDeriveApiKeyBody(ch, optionalArgs...)
     return ch
@@ -3794,7 +3794,7 @@ func (this *Polymarket) createOrDeriveApiKeyBody(ch chan any, optionalArgs ...an
                             ret_ = func(this *Polymarket) any {
                                 // catch block:
                                         
-            creds = (<-this.CreateApiKey(params))
+            creds = (<-this.CreateApiKeyAsync(params))
                     ccxt.PanicOnError(creds)
                                 return nil
                             }(this)
@@ -3802,7 +3802,7 @@ func (this *Polymarket) createOrDeriveApiKeyBody(ch chan any, optionalArgs ...an
                     }()
         		    // try block:
                             
-            creds = (<-this.DeriveApiKey(params))
+            creds = (<-this.DeriveApiKeyAsync(params))
                     ccxt.PanicOnError(creds)
         		    return nil
         	    }(this)
@@ -3837,7 +3837,7 @@ func  (this *Polymarket) SetApiCredentials(response any) any  {
  * @name polymarket#loadApiCredentials
  * @description ensures L2 api credentials are available for private requests — uses the provided apiKey/secret/password when present, otherwise derives them from the privateKey
  */
-func  (this *Polymarket) LoadApiCredentials() <- chan any {
+func  (this *Polymarket) LoadApiCredentialsAsync() <- chan any {
     ch := make(chan any, 1)
     go this.loadApiCredentialsBody(ch)
     return ch
@@ -3852,7 +3852,7 @@ func (this *Polymarket) loadApiCredentialsBody(ch chan any) any {
         var alreadyDerived *string = this.SafeString(this.Options, "l2ApiKey")
         if (alreadyDerived == nil) {
     
-            retRes294816 := (<-this.CreateOrDeriveApiKey())
+            retRes294816 := (<-this.CreateOrDeriveApiKeyAsync())
             ccxt.PanicOnError(retRes294816)
         }
     
@@ -4018,7 +4018,7 @@ func  (this *Polymarket) HandleTrade(client any, event any)  {
  * @param {object} [params] extra params (currently unused)
  * @returns {object} a [prediction order book structure]{@link https://docs.ccxt.com/#/?id=prediction-order-book-structure}
  */
-func  (this *Polymarket) WatchOrderBook(outcome any, optionalArgs ...any) <- chan any {
+func  (this *Polymarket) WatchOrderBookAsync(outcome any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.watchOrderBookBody(ch, outcome, optionalArgs...)
     return ch
@@ -4031,7 +4031,7 @@ func (this *Polymarket) watchOrderBookBody(ch chan any, outcome any, optionalArg
         params := ccxt.GetArg(optionalArgs, 1, map[string]any {})
         _ = params
     
-        outcomeObj:= (<-this.LoadOutcome(outcome))
+        outcomeObj:= (<-this.LoadOutcomeAsync(outcome))
         ccxt.PanicOnError(outcomeObj)
         var tokenId *string = this.SafeString(outcomeObj, "outcomeId")
         outcome = ccxt.DerefScalar(this.SafeString(outcomeObj, "outcome"))
@@ -4059,7 +4059,7 @@ func (this *Polymarket) watchOrderBookBody(ch chan any, outcome any, optionalArg
  * @param {object} [params] extra params (unused)
  * @returns {object[]} a list of [prediction trade structures]{@link https://docs.ccxt.com/#/?id=prediction-trade-structure}
  */
-func  (this *Polymarket) WatchTrades(outcome any, optionalArgs ...any) <- chan any {
+func  (this *Polymarket) WatchTradesAsync(outcome any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.watchTradesBody(ch, outcome, optionalArgs...)
     return ch
@@ -4074,7 +4074,7 @@ func (this *Polymarket) watchTradesBody(ch chan any, outcome any, optionalArgs .
         params := ccxt.GetArg(optionalArgs, 2, map[string]any {})
         _ = params
     
-        outcomeObj:= (<-this.LoadOutcome(outcome))
+        outcomeObj:= (<-this.LoadOutcomeAsync(outcome))
         ccxt.PanicOnError(outcomeObj)
         var tokenId *string = this.SafeString(outcomeObj, "outcomeId")
         outcome = ccxt.DerefScalar(this.SafeString(outcomeObj, "outcome"))
@@ -4100,7 +4100,7 @@ func (this *Polymarket) watchTradesBody(ch chan any, outcome any, optionalArgs .
  * @param {object} [params] extra params (unused)
  * @returns {object} a [prediction ticker structure]{@link https://docs.ccxt.com/#/?id=prediction-ticker-structure}
  */
-func  (this *Polymarket) WatchTicker(outcome any, optionalArgs ...any) <- chan any {
+func  (this *Polymarket) WatchTickerAsync(outcome any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.watchTickerBody(ch, outcome, optionalArgs...)
     return ch
@@ -4111,7 +4111,7 @@ func (this *Polymarket) watchTickerBody(ch chan any, outcome any, optionalArgs .
         params := ccxt.GetArg(optionalArgs, 0, map[string]any {})
         _ = params
     
-        outcomeObj:= (<-this.LoadOutcome(outcome))
+        outcomeObj:= (<-this.LoadOutcomeAsync(outcome))
         ccxt.PanicOnError(outcomeObj)
         var tokenId *string = this.SafeString(outcomeObj, "outcomeId")
         outcome = ccxt.DerefScalar(this.SafeString(outcomeObj, "outcome"))
@@ -4205,7 +4205,7 @@ func (this *Polymarket) watchTickerBody(ch chan any, outcome any, optionalArgs .
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
  */
-func  (this *Polymarket) WatchOrders(optionalArgs ...any) <- chan any {
+func  (this *Polymarket) WatchOrdersAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.watchOrdersBody(ch, optionalArgs...)
     return ch
@@ -4222,18 +4222,18 @@ func (this *Polymarket) watchOrdersBody(ch chan any, optionalArgs ...any) any {
         params := ccxt.GetArg(optionalArgs, 3, map[string]any {})
         _ = params
     
-        retRes32498 := (<-this.LoadApiCredentials())
+        retRes32498 := (<-this.LoadApiCredentialsAsync())
         ccxt.PanicOnError(retRes32498)
         var messageHash any = "orders"
         if !ccxt.IsEqual(outcome, nil) {
     
-            outcomeObj:= (<-this.LoadOutcome(outcome))
+            outcomeObj:= (<-this.LoadOutcomeAsync(outcome))
             ccxt.PanicOnError(outcomeObj)
             outcome = ccxt.DerefScalar(this.SafeString(outcomeObj, "outcome"))
             messageHash = ccxt.Add("orders::", outcome)
         }
     
-        orders:= (<-this.SubscribeUserChannel(messageHash, params))
+        orders:= (<-this.SubscribeUserChannelAsync(messageHash, params))
         ccxt.PanicOnError(orders)
         if ccxt.EvalTruthy(this.NewUpdates) {
             limit = ccxt.ToGetsLimit(orders).GetLimit(outcome, limit)
@@ -4253,7 +4253,7 @@ func (this *Polymarket) watchOrdersBody(ch chan any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
  */
-func  (this *Polymarket) WatchMyTrades(optionalArgs ...any) <- chan any {
+func  (this *Polymarket) WatchMyTradesAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.watchMyTradesBody(ch, optionalArgs...)
     return ch
@@ -4270,18 +4270,18 @@ func (this *Polymarket) watchMyTradesBody(ch chan any, optionalArgs ...any) any 
         params := ccxt.GetArg(optionalArgs, 3, map[string]any {})
         _ = params
     
-        retRes32758 := (<-this.LoadApiCredentials())
+        retRes32758 := (<-this.LoadApiCredentialsAsync())
         ccxt.PanicOnError(retRes32758)
         var messageHash any = "myTrades"
         if !ccxt.IsEqual(outcome, nil) {
     
-            outcomeObj:= (<-this.LoadOutcome(outcome))
+            outcomeObj:= (<-this.LoadOutcomeAsync(outcome))
             ccxt.PanicOnError(outcomeObj)
             outcome = ccxt.DerefScalar(this.SafeString(outcomeObj, "outcome"))
             messageHash = ccxt.Add("myTrades::", outcome)
         }
     
-        trades:= (<-this.SubscribeUserChannel(messageHash, params))
+        trades:= (<-this.SubscribeUserChannelAsync(messageHash, params))
         ccxt.PanicOnError(trades)
         if ccxt.EvalTruthy(this.NewUpdates) {
             limit = ccxt.ToGetsLimit(trades).GetLimit(outcome, limit)
@@ -4290,7 +4290,7 @@ func (this *Polymarket) watchMyTradesBody(ch chan any, optionalArgs ...any) any 
         ch <- this.FilterByOutcomeSinceLimit(trades, outcome, since, limit, true)
         return nil
 }
-func  (this *Polymarket) SubscribeUserChannel(messageHash any, optionalArgs ...any) <- chan any {
+func  (this *Polymarket) SubscribeUserChannelAsync(messageHash any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.subscribeUserChannelBody(ch, messageHash, optionalArgs...)
     return ch

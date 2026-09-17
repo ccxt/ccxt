@@ -682,7 +682,7 @@ func  (this *Kraken) FeeToPrecision(symbol any, fee any) any  {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} an array of objects representing market data
  */
-func  (this *Kraken) FetchMarkets(optionalArgs ...any) <- chan any {
+func  (this *Kraken) FetchMarketsAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchMarketsBody(ch, optionalArgs...)
     return ch
@@ -695,7 +695,7 @@ func (this *Kraken) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
         var promises any = []any{}
         AppendToArray(&promises, this.PublicGetAssetPairs(params))
         if IsEqual(GetValue(this.Options, "adjustForTimeDifference"), true) {
-            AppendToArray(&promises, this.LoadTimeDifference())
+            AppendToArray(&promises, this.LoadTimeDifferenceAsync())
         }
     
         responses:= (<-promiseAll(promises))
@@ -869,7 +869,7 @@ func (this *Kraken) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
  */
-func  (this *Kraken) FetchStatus(optionalArgs ...any) <- chan any {
+func  (this *Kraken) FetchStatusAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchStatusBody(ch, optionalArgs...)
     return ch
@@ -908,7 +908,7 @@ func (this *Kraken) fetchStatusBody(ch chan any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an associative dictionary of currencies
  */
-func  (this *Kraken) FetchCurrencies(optionalArgs ...any) <- chan any {
+func  (this *Kraken) FetchCurrenciesAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchCurrenciesBody(ch, optionalArgs...)
     return ch
@@ -1071,7 +1071,7 @@ func  (this *Kraken) SafeCurrencyCode(currencyId any, optionalArgs ...any) any  
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
  */
-func  (this *Kraken) FetchTradingFee(symbol any, optionalArgs ...any) <- chan any {
+func  (this *Kraken) FetchTradingFeeAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchTradingFeeBody(ch, symbol, optionalArgs...)
     return ch
@@ -1083,7 +1083,7 @@ func (this *Kraken) fetchTradingFeeBody(ch chan any, symbol any, optionalArgs ..
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes94912 := (<-this.LoadMarkets())
+            retRes94912 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes94912)
         }
         var market any = this.Market(symbol)
@@ -1164,7 +1164,7 @@ func  (this *Kraken) ParseOrderBookBidAsk(bidask any, optionalArgs ...any) any  
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
-func  (this *Kraken) FetchOrderBook(symbol any, optionalArgs ...any) <- chan any {
+func  (this *Kraken) FetchOrderBookAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchOrderBookBody(ch, symbol, optionalArgs...)
     return ch
@@ -1178,7 +1178,7 @@ func (this *Kraken) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes102412 := (<-this.LoadMarkets())
+            retRes102412 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes102412)
         }
         var market any = this.Market(symbol)
@@ -1283,7 +1283,7 @@ func  (this *Kraken) ParseTicker(ticker any, optionalArgs ...any) any  {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func  (this *Kraken) FetchTickers(optionalArgs ...any) <- chan any {
+func  (this *Kraken) FetchTickersAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchTickersBody(ch, optionalArgs...)
     return ch
@@ -1297,7 +1297,7 @@ func (this *Kraken) fetchTickersBody(ch chan any, optionalArgs ...any) any {
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes112612 := (<-this.LoadMarkets())
+            retRes112612 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes112612)
         }
         var request map[string]any = map[string]any {}
@@ -1339,7 +1339,7 @@ func (this *Kraken) fetchTickersBody(ch chan any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func  (this *Kraken) FetchTicker(symbol any, optionalArgs ...any) <- chan any {
+func  (this *Kraken) FetchTickerAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchTickerBody(ch, symbol, optionalArgs...)
     return ch
@@ -1351,7 +1351,7 @@ func (this *Kraken) fetchTickerBody(ch chan any, symbol any, optionalArgs ...any
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes116612 := (<-this.LoadMarkets())
+            retRes116612 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes116612)
         }
         var market any = this.Market(symbol)
@@ -1397,7 +1397,7 @@ func  (this *Kraken) ParseOHLCV(ohlcv any, optionalArgs ...any) any  {
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
-func  (this *Kraken) FetchOHLCV(symbol any, optionalArgs ...any) <- chan any {
+func  (this *Kraken) FetchOHLCVAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchOHLCVBody(ch, symbol, optionalArgs...)
     return ch
@@ -1415,7 +1415,7 @@ func (this *Kraken) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes121612 := (<-this.LoadMarkets())
+            retRes121612 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes121612)
         }
         var paginate any = false
@@ -1424,7 +1424,7 @@ func (this *Kraken) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
         params = GetValue(paginateparamsVariable,1)
         if EvalTruthy(paginate) {
     
-                retRes122119 :=  (<-this.FetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, params, 720))
+                retRes122119 :=  (<-this.FetchPaginatedCallDeterministicAsync("fetchOHLCV", symbol, since, limit, timeframe, params, 720))
                 PanicOnError(retRes122119)
                 ch <- retRes122119
                 return nil
@@ -1548,7 +1548,7 @@ func  (this *Kraken) ParseLedgerEntry(item any, optionalArgs ...any) any  {
  * @param {int} [params.end] timestamp in seconds of the latest ledger entry
  * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
  */
-func  (this *Kraken) FetchLedger(optionalArgs ...any) <- chan any {
+func  (this *Kraken) FetchLedgerAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchLedgerBody(ch, optionalArgs...)
     return ch
@@ -1567,7 +1567,7 @@ func (this *Kraken) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes134212 := (<-this.LoadMarkets())
+            retRes134212 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes134212)
         }
         var request map[string]any = map[string]any {}
@@ -1611,7 +1611,7 @@ func (this *Kraken) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
         ch <- this.ParseLedger(items, currency, since, limit)
         return nil
 }
-func  (this *Kraken) FetchLedgerEntriesByIds(ids any, optionalArgs ...any) <- chan any {
+func  (this *Kraken) FetchLedgerEntriesByIdsAsync(ids any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchLedgerEntriesByIdsBody(ch, ids, optionalArgs...)
     return ch
@@ -1626,7 +1626,7 @@ func (this *Kraken) fetchLedgerEntriesByIdsBody(ch chan any, ids any, optionalAr
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes138512 := (<-this.LoadMarkets())
+            retRes138512 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes138512)
         }
         ids = Join(ids, ",")
@@ -1658,7 +1658,7 @@ func (this *Kraken) fetchLedgerEntriesByIdsBody(ch chan any, ids any, optionalAr
         ch <- this.ParseLedger(items)
         return nil
 }
-func  (this *Kraken) FetchLedgerEntry(id any, optionalArgs ...any) <- chan any {
+func  (this *Kraken) FetchLedgerEntryAsync(id any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchLedgerEntryBody(ch, id, optionalArgs...)
     return ch
@@ -1671,7 +1671,7 @@ func (this *Kraken) fetchLedgerEntryBody(ch chan any, id any, optionalArgs ...an
         params := GetArg(optionalArgs, 1, map[string]any {})
         _ = params
     
-        items:= (<-this.FetchLedgerEntriesByIds([]any{id}, code, params))
+        items:= (<-this.FetchLedgerEntriesByIdsAsync([]any{id}, code, params))
         PanicOnError(items)
     
         ch <- GetValue(items, 0)
@@ -1840,7 +1840,7 @@ func  (this *Kraken) ParseTrade(trade any, optionalArgs ...any) any  {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
-func  (this *Kraken) FetchTrades(symbol any, optionalArgs ...any) <- chan any {
+func  (this *Kraken) FetchTradesAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchTradesBody(ch, symbol, optionalArgs...)
     return ch
@@ -1856,7 +1856,7 @@ func (this *Kraken) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes158212 := (<-this.LoadMarkets())
+            retRes158212 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes158212)
         }
         var market any = this.Market(symbol)
@@ -1932,7 +1932,7 @@ func  (this *Kraken) ParseBalance(response any) any  {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
-func  (this *Kraken) FetchBalance(optionalArgs ...any) <- chan any {
+func  (this *Kraken) FetchBalanceAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchBalanceBody(ch, optionalArgs...)
     return ch
@@ -1944,7 +1944,7 @@ func (this *Kraken) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes165512 := (<-this.LoadMarkets())
+            retRes165512 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes165512)
         }
     
@@ -1980,7 +1980,7 @@ func (this *Kraken) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Kraken) CreateMarketOrderWithCost(symbol any, side any, cost any, optionalArgs ...any) <- chan any {
+func  (this *Kraken) CreateMarketOrderWithCostAsync(symbol any, side any, cost any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.createMarketOrderWithCostBody(ch, symbol, side, cost, optionalArgs...)
     return ch
@@ -1992,7 +1992,7 @@ func (this *Kraken) createMarketOrderWithCostBody(ch chan any, symbol any, side 
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes168912 := (<-this.LoadMarkets())
+            retRes168912 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes168912)
         }
         // only buy orders are supported by the endpoint
@@ -2000,7 +2000,7 @@ func (this *Kraken) createMarketOrderWithCostBody(ch chan any, symbol any, side 
             "cost": cost,
         }
     
-            retRes169515 :=  (<-this.CreateOrder(symbol, "market", side, cost, nil, this.Extend(req, params)))
+            retRes169515 :=  (<-this.CreateOrderAsync(symbol, "market", side, cost, nil, this.Extend(req, params)))
             PanicOnError(retRes169515)
             ch <- retRes169515
             return nil
@@ -2015,7 +2015,7 @@ func (this *Kraken) createMarketOrderWithCostBody(ch chan any, symbol any, side 
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Kraken) CreateMarketBuyOrderWithCost(symbol any, cost any, optionalArgs ...any) <- chan any {
+func  (this *Kraken) CreateMarketBuyOrderWithCostAsync(symbol any, cost any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.createMarketBuyOrderWithCostBody(ch, symbol, cost, optionalArgs...)
     return ch
@@ -2027,11 +2027,11 @@ func (this *Kraken) createMarketBuyOrderWithCostBody(ch chan any, symbol any, co
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes171012 := (<-this.LoadMarkets())
+            retRes171012 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes171012)
         }
     
-            retRes171215 :=  (<-this.CreateMarketOrderWithCost(symbol, "buy", cost, params))
+            retRes171215 :=  (<-this.CreateMarketOrderWithCostAsync(symbol, "buy", cost, params))
             PanicOnError(retRes171215)
             ch <- retRes171215
             return nil
@@ -2059,7 +2059,7 @@ func (this *Kraken) createMarketBuyOrderWithCostBody(ch chan any, symbol any, co
  * @param {string} [params.trigger] *margin only* the activation price type, 'last' or 'index', default is 'last'
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Kraken) CreateOrder(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <- chan any {
+func  (this *Kraken) CreateOrderAsync(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.createOrderBody(ch, symbol, typeVar, side, amount, optionalArgs...)
     return ch
@@ -2073,7 +2073,7 @@ func (this *Kraken) createOrderBody(ch chan any, symbol any, typeVar any, side a
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes174012 := (<-this.LoadMarkets())
+            retRes174012 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes174012)
         }
         var market any = this.Market(symbol)
@@ -2116,7 +2116,7 @@ func (this *Kraken) createOrderBody(ch chan any, symbol any, typeVar any, side a
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Kraken) CreateOrders(orders any, optionalArgs ...any) <- chan any {
+func  (this *Kraken) CreateOrdersAsync(orders any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.createOrdersBody(ch, orders, optionalArgs...)
     return ch
@@ -2128,7 +2128,7 @@ func (this *Kraken) createOrdersBody(ch chan any, orders any, optionalArgs ...an
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes178112 := (<-this.LoadMarkets())
+            retRes178112 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes178112)
         }
         var ordersRequests any = []any{}
@@ -2681,7 +2681,7 @@ func  (this *Kraken) OrderRequest(method any, symbol any, typeVar any, request a
  * @param {string} [params.clientOrderId] the orders client order id
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Kraken) EditOrder(id any, symbol any, typeVar any, side any, optionalArgs ...any) <- chan any {
+func  (this *Kraken) EditOrderAsync(id any, symbol any, typeVar any, side any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.editOrderBody(ch, id, symbol, typeVar, side, optionalArgs...)
     return ch
@@ -2697,7 +2697,7 @@ func (this *Kraken) editOrderBody(ch chan any, id any, symbol any, typeVar any, 
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes232612 := (<-this.LoadMarkets())
+            retRes232612 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes232612)
         }
         var market any = this.Market(symbol)
@@ -2764,7 +2764,7 @@ func (this *Kraken) editOrderBody(ch chan any, id any, symbol any, typeVar any, 
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Kraken) FetchOrder(id any, optionalArgs ...any) <- chan any {
+func  (this *Kraken) FetchOrderAsync(id any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchOrderBody(ch, id, optionalArgs...)
     return ch
@@ -2778,7 +2778,7 @@ func (this *Kraken) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes238912 := (<-this.LoadMarkets())
+            retRes238912 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes238912)
         }
         var clientOrderId any = this.SafeValue2(params, "userref", "clientOrderId")
@@ -2853,7 +2853,7 @@ func (this *Kraken) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
-func  (this *Kraken) FetchOrderTrades(id any, optionalArgs ...any) <- chan any {
+func  (this *Kraken) FetchOrderTradesAsync(id any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchOrderTradesBody(ch, id, optionalArgs...)
     return ch
@@ -2885,7 +2885,7 @@ func (this *Kraken) fetchOrderTradesBody(ch chan any, id any, optionalArgs ...an
         }
         if IsEqual(this.Markets, nil) {
     
-            retRes247512 := (<-this.LoadMarkets())
+            retRes247512 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes247512)
         }
         if !IsEqual(symbol, nil) {
@@ -2955,7 +2955,7 @@ func (this *Kraken) fetchOrderTradesBody(ch chan any, id any, optionalArgs ...an
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Kraken) FetchOrdersByIds(ids any, optionalArgs ...any) <- chan any {
+func  (this *Kraken) FetchOrdersByIdsAsync(ids any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchOrdersByIdsBody(ch, ids, optionalArgs...)
     return ch
@@ -2969,7 +2969,7 @@ func (this *Kraken) fetchOrdersByIdsBody(ch chan any, ids any, optionalArgs ...a
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes254312 := (<-this.LoadMarkets())
+            retRes254312 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes254312)
         }
     
@@ -3006,7 +3006,7 @@ func (this *Kraken) fetchOrdersByIdsBody(ch chan any, ids any, optionalArgs ...a
  * @param {int} [params.end] timestamp in seconds of the latest trade entry
  * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
-func  (this *Kraken) FetchMyTrades(optionalArgs ...any) <- chan any {
+func  (this *Kraken) FetchMyTradesAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchMyTradesBody(ch, optionalArgs...)
     return ch
@@ -3024,7 +3024,7 @@ func (this *Kraken) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes257612 := (<-this.LoadMarkets())
+            retRes257612 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes257612)
         }
         var request map[string]any = map[string]any {}
@@ -3095,7 +3095,7 @@ func (this *Kraken) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
  * @param {int} [params.userref] the orders user reference id
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Kraken) CancelOrder(id any, optionalArgs ...any) <- chan any {
+func  (this *Kraken) CancelOrderAsync(id any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.cancelOrderBody(ch, id, optionalArgs...)
     return ch
@@ -3109,7 +3109,7 @@ func (this *Kraken) cancelOrderBody(ch chan any, id any, optionalArgs ...any) an
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes265112 := (<-this.LoadMarkets())
+            retRes265112 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes265112)
         }
         var response any = nil
@@ -3168,7 +3168,7 @@ func (this *Kraken) cancelOrderBody(ch chan any, id any, optionalArgs ...any) an
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Kraken) CancelOrders(ids any, optionalArgs ...any) <- chan any {
+func  (this *Kraken) CancelOrdersAsync(ids any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.cancelOrdersBody(ch, ids, optionalArgs...)
     return ch
@@ -3209,7 +3209,7 @@ func (this *Kraken) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any) 
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Kraken) CancelAllOrders(optionalArgs ...any) <- chan any {
+func  (this *Kraken) CancelAllOrdersAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.cancelAllOrdersBody(ch, optionalArgs...)
     return ch
@@ -3223,7 +3223,7 @@ func (this *Kraken) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes272912 := (<-this.LoadMarkets())
+            retRes272912 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes272912)
         }
     
@@ -3252,7 +3252,7 @@ func (this *Kraken) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} the api result
  */
-func  (this *Kraken) CancelAllOrdersAfter(timeout any, optionalArgs ...any) <- chan any {
+func  (this *Kraken) CancelAllOrdersAfterAsync(timeout any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.cancelAllOrdersAfterBody(ch, timeout, optionalArgs...)
     return ch
@@ -3270,7 +3270,7 @@ func (this *Kraken) cancelAllOrdersAfterBody(ch chan any, timeout any, optionalA
         }
         if IsEqual(this.Markets, nil) {
     
-            retRes276412 := (<-this.LoadMarkets())
+            retRes276412 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes276412)
         }
         if IsEqual(timeout, nil) {
@@ -3308,7 +3308,7 @@ func (this *Kraken) cancelAllOrdersAfterBody(ch chan any, timeout any, optionalA
  * @param {int} [params.userref] the orders user reference id
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Kraken) FetchOpenOrders(optionalArgs ...any) <- chan any {
+func  (this *Kraken) FetchOpenOrdersAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchOpenOrdersBody(ch, optionalArgs...)
     return ch
@@ -3326,7 +3326,7 @@ func (this *Kraken) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes280012 := (<-this.LoadMarkets())
+            retRes280012 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes280012)
         }
         var request map[string]any = map[string]any {}
@@ -3416,7 +3416,7 @@ func (this *Kraken) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
  * @param {int} [params.userref] the orders user reference id
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Kraken) FetchClosedOrders(optionalArgs ...any) <- chan any {
+func  (this *Kraken) FetchClosedOrdersAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchClosedOrdersBody(ch, optionalArgs...)
     return ch
@@ -3434,7 +3434,7 @@ func (this *Kraken) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any 
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes288612 := (<-this.LoadMarkets())
+            retRes288612 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes288612)
         }
         var request any = map[string]any {}
@@ -3671,7 +3671,7 @@ func  (this *Kraken) ParseTransactionsByType(typeVar any, transactions any, opti
  * @param {int} [params.end] timestamp in seconds of the latest transaction entry
  * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func  (this *Kraken) FetchDeposits(optionalArgs ...any) <- chan any {
+func  (this *Kraken) FetchDepositsAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchDepositsBody(ch, optionalArgs...)
     return ch
@@ -3690,7 +3690,7 @@ func (this *Kraken) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes311412 := (<-this.LoadMarkets())
+            retRes311412 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes311412)
         }
         var request map[string]any = map[string]any {}
@@ -3737,7 +3737,7 @@ func (this *Kraken) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {int} the current integer timestamp in milliseconds from the exchange server
  */
-func  (this *Kraken) FetchTime(optionalArgs ...any) <- chan any {
+func  (this *Kraken) FetchTimeAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchTimeBody(ch, optionalArgs...)
     return ch
@@ -3779,7 +3779,7 @@ func (this *Kraken) fetchTimeBody(ch chan any, optionalArgs ...any) any {
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times
  * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func  (this *Kraken) FetchWithdrawals(optionalArgs ...any) <- chan any {
+func  (this *Kraken) FetchWithdrawalsAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchWithdrawalsBody(ch, optionalArgs...)
     return ch
@@ -3797,7 +3797,7 @@ func (this *Kraken) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes318912 := (<-this.LoadMarkets())
+            retRes318912 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes318912)
         }
         var paginate any = false
@@ -3807,7 +3807,7 @@ func (this *Kraken) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
         if EvalTruthy(paginate) {
             AddElementToObject(params, "cursor", true)
     
-                retRes319519 :=  (<-this.FetchPaginatedCallCursor("fetchWithdrawals", code, since, limit, params, "next_cursor", "cursor"))
+                retRes319519 :=  (<-this.FetchPaginatedCallCursorAsync("fetchWithdrawals", code, since, limit, params, "next_cursor", "cursor"))
                 PanicOnError(retRes319519)
                 ch <- retRes319519
                 return nil
@@ -3899,7 +3899,7 @@ func  (this *Kraken) AddPaginationCursorToResult(result any) any  {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
  */
-func  (this *Kraken) CreateDepositAddress(code any, optionalArgs ...any) <- chan any {
+func  (this *Kraken) CreateDepositAddressAsync(code any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.createDepositAddressBody(ch, code, optionalArgs...)
     return ch
@@ -3913,7 +3913,7 @@ func (this *Kraken) createDepositAddressBody(ch chan any, code any, optionalArgs
             "new": "true",
         }
     
-            retRes328615 :=  (<-this.FetchDepositAddress(code, this.Extend(request, params)))
+            retRes328615 :=  (<-this.FetchDepositAddressAsync(code, this.Extend(request, params)))
             PanicOnError(retRes328615)
             ch <- retRes328615
             return nil
@@ -3927,7 +3927,7 @@ func (this *Kraken) createDepositAddressBody(ch chan any, code any, optionalArgs
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} of deposit methods
  */
-func  (this *Kraken) FetchDepositMethods(code any, optionalArgs ...any) <- chan any {
+func  (this *Kraken) FetchDepositMethodsAsync(code any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchDepositMethodsBody(ch, code, optionalArgs...)
     return ch
@@ -3939,7 +3939,7 @@ func (this *Kraken) fetchDepositMethodsBody(ch chan any, code any, optionalArgs 
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes330012 := (<-this.LoadMarkets())
+            retRes330012 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes330012)
         }
         var currency any = this.Currency(code)
@@ -3985,7 +3985,7 @@ func (this *Kraken) fetchDepositMethodsBody(ch chan any, code any, optionalArgs 
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
  */
-func  (this *Kraken) FetchDepositAddress(code any, optionalArgs ...any) <- chan any {
+func  (this *Kraken) FetchDepositAddressAsync(code any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchDepositAddressBody(ch, code, optionalArgs...)
     return ch
@@ -3997,7 +3997,7 @@ func (this *Kraken) fetchDepositAddressBody(ch chan any, code any, optionalArgs 
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes334412 := (<-this.LoadMarkets())
+            retRes334412 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes334412)
         }
         var currency any = this.Currency(code)
@@ -4015,7 +4015,7 @@ func (this *Kraken) fetchDepositAddressBody(ch chan any, code any, optionalArgs 
         // we pass it as is, otherwise we take the 'network' unified param
         if IsEqual(depositMethod, nil) {
     
-            depositMethods:= (<-this.FetchDepositMethods(code))
+            depositMethods:= (<-this.FetchDepositMethodsAsync(code))
             PanicOnError(depositMethods)
             if (network != nil) {
                 // find best matching deposit method, or fallback to the first one
@@ -4094,7 +4094,7 @@ func  (this *Kraken) ParseDepositAddress(depositAddress any, optionalArgs ...any
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func  (this *Kraken) Withdraw(code any, amount any, address any, optionalArgs ...any) <- chan any {
+func  (this *Kraken) WithdrawAsync(code any, amount any, address any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.withdrawBody(ch, code, amount, address, optionalArgs...)
     return ch
@@ -4111,7 +4111,7 @@ func (this *Kraken) withdrawBody(ch chan any, code any, amount any, address any,
         params = GetValue(tagparamsVariable,1)
         if InOp(params, "key") {
     
-            retRes343712 := (<-this.LoadMarkets())
+            retRes343712 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes343712)
             var currency any = this.Currency(code)
             var request map[string]any = map[string]any {
@@ -4149,7 +4149,7 @@ func (this *Kraken) withdrawBody(ch chan any, code any, amount any, address any,
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
  */
-func  (this *Kraken) FetchPositions(optionalArgs ...any) <- chan any {
+func  (this *Kraken) FetchPositionsAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchPositionsBody(ch, optionalArgs...)
     return ch
@@ -4163,7 +4163,7 @@ func (this *Kraken) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes347412 := (<-this.LoadMarkets())
+            retRes347412 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes347412)
         }
         var request map[string]any = map[string]any {
@@ -4293,7 +4293,7 @@ func  (this *Kraken) ParseAccountType(account any) any  {
  * @param {dict} [params] Exchange specific parameters
  * @returns a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
-func  (this *Kraken) TransferOut(code any, amount any, optionalArgs ...any) <- chan any {
+func  (this *Kraken) TransferOutAsync(code any, amount any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.transferOutBody(ch, code, amount, optionalArgs...)
     return ch
@@ -4304,7 +4304,7 @@ func (this *Kraken) transferOutBody(ch chan any, code any, amount any, optionalA
         params := GetArg(optionalArgs, 0, map[string]any {})
         _ = params
     
-            retRes360215 :=  (<-this.Transfer(code, amount, "spot", "swap", params))
+            retRes360215 :=  (<-this.TransferAsync(code, amount, "spot", "swap", params))
             PanicOnError(retRes360215)
             ch <- retRes360215
             return nil
@@ -4321,7 +4321,7 @@ func (this *Kraken) transferOutBody(ch chan any, code any, amount any, optionalA
  * @param {object} [params] Exchange specific parameters
  * @returns a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
-func  (this *Kraken) Transfer(code any, amount any, fromAccount any, toAccount any, optionalArgs ...any) <- chan any {
+func  (this *Kraken) TransferAsync(code any, amount any, fromAccount any, toAccount any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.transferBody(ch, code, amount, fromAccount, toAccount, optionalArgs...)
     return ch
@@ -4333,7 +4333,7 @@ func (this *Kraken) transferBody(ch chan any, code any, amount any, fromAccount 
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes361912 := (<-this.LoadMarkets())
+            retRes361912 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes361912)
         }
         var currency any = this.Currency(code)

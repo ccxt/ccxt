@@ -5,7 +5,7 @@ import "github.com/ccxt/ccxt/go/v4"
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 
-    func TestFetchTickers(exchange ccxt.ICoreExchange, skippedProperties any, symbol any) <- chan any {
+    func TestFetchTickersAsync(exchange ccxt.ICoreExchange, skippedProperties any, symbol any) <- chan any {
         ch := make(chan any, 1)
         go testFetchTickersBody(ch, exchange, skippedProperties, symbol)
         return ch
@@ -18,14 +18,14 @@ import "github.com/ccxt/ccxt/go/v4"
             // fetchTickers by the outcome handle instead
             if EvalTruthy(exchange.SafeBool(exchange.GetHas(), "prediction", false)) {
         
-                predictionResult:= (<-FetchTickersHelperTest(exchange, skippedProperties, []any{symbol}))
+                predictionResult:= (<-FetchTickersHelperTestAsync(exchange, skippedProperties, []any{symbol}))
                 PanicOnError(predictionResult)
         
                 ch <- []any{predictionResult}
                 return nil
             }
-            var withoutSymbol any = FetchTickersHelperTest(exchange, skippedProperties, nil)
-            var withSymbol any = FetchTickersHelperTest(exchange, skippedProperties, []any{symbol})
+            var withoutSymbol any = FetchTickersHelperTestAsync(exchange, skippedProperties, nil)
+            var withSymbol any = FetchTickersHelperTestAsync(exchange, skippedProperties, []any{symbol})
         
             results:= (<-promiseAll([]any{withoutSymbol, withSymbol}))
             PanicOnError(results)
@@ -34,7 +34,7 @@ import "github.com/ccxt/ccxt/go/v4"
             ch <- results
             return nil
     }
-    func FetchTickersHelperTest(exchange ccxt.ICoreExchange, skippedProperties any, argSymbols any, optionalArgs ...any) <- chan any {
+    func FetchTickersHelperTestAsync(exchange ccxt.ICoreExchange, skippedProperties any, argSymbols any, optionalArgs ...any) <- chan any {
         ch := make(chan any, 1)
         go fetchTickersHelperTestBody(ch, exchange, skippedProperties, argSymbols, optionalArgs...)
         return ch

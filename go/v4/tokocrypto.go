@@ -786,7 +786,7 @@ func  (this *Tokocrypto) Nonce() any  {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {int} the current integer timestamp in milliseconds from the exchange server
  */
-func  (this *Tokocrypto) FetchTime(optionalArgs ...any) <- chan any {
+func  (this *Tokocrypto) FetchTimeAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchTimeBody(ch, optionalArgs...)
     return ch
@@ -819,7 +819,7 @@ func (this *Tokocrypto) fetchTimeBody(ch chan any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} an array of objects representing market data
  */
-func  (this *Tokocrypto) FetchMarkets(optionalArgs ...any) <- chan any {
+func  (this *Tokocrypto) FetchMarketsAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchMarketsBody(ch, optionalArgs...)
     return ch
@@ -870,7 +870,7 @@ func (this *Tokocrypto) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
         //
         if IsEqual(GetValue(this.Options, "adjustForTimeDifference"), true) {
     
-            retRes77712 := (<-this.LoadTimeDifference())
+            retRes77712 := (<-this.LoadTimeDifferenceAsync())
             PanicOnError(retRes77712)
         }
         var data any = this.SafeValue(response, "data", map[string]any {})
@@ -999,7 +999,7 @@ func (this *Tokocrypto) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
-func  (this *Tokocrypto) FetchOrderBook(symbol any, optionalArgs ...any) <- chan any {
+func  (this *Tokocrypto) FetchOrderBookAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchOrderBookBody(ch, symbol, optionalArgs...)
     return ch
@@ -1013,7 +1013,7 @@ func (this *Tokocrypto) fetchOrderBookBody(ch chan any, symbol any, optionalArgs
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes90612 := (<-this.LoadMarkets())
+            retRes90612 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes90612)
         }
         var market any = this.Market(symbol)
@@ -1229,7 +1229,7 @@ func  (this *Tokocrypto) ParseTrade(trade any, optionalArgs ...any) any  {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
-func  (this *Tokocrypto) FetchTrades(symbol any, optionalArgs ...any) <- chan any {
+func  (this *Tokocrypto) FetchTradesAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchTradesBody(ch, symbol, optionalArgs...)
     return ch
@@ -1245,7 +1245,7 @@ func (this *Tokocrypto) fetchTradesBody(ch chan any, symbol any, optionalArgs ..
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes111712 := (<-this.LoadMarkets())
+            retRes111712 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes111712)
         }
         var market any = this.Market(symbol)
@@ -1446,7 +1446,7 @@ func  (this *Tokocrypto) ParseTicker(ticker any, optionalArgs ...any) any  {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func  (this *Tokocrypto) FetchTickers(optionalArgs ...any) <- chan any {
+func  (this *Tokocrypto) FetchTickersAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchTickersBody(ch, optionalArgs...)
     return ch
@@ -1460,7 +1460,7 @@ func (this *Tokocrypto) fetchTickersBody(ch chan any, optionalArgs ...any) any {
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes131412 := (<-this.LoadMarkets())
+            retRes131412 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes131412)
         }
         // the binance backed host is the only source of 24hr statistics, so the
@@ -1521,7 +1521,7 @@ func  (this *Tokocrypto) GetMarketIdByType(market any) any  {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func  (this *Tokocrypto) FetchTicker(symbol any, optionalArgs ...any) <- chan any {
+func  (this *Tokocrypto) FetchTickerAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchTickerBody(ch, symbol, optionalArgs...)
     return ch
@@ -1533,7 +1533,7 @@ func (this *Tokocrypto) fetchTickerBody(ch chan any, symbol any, optionalArgs ..
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes137312 := (<-this.LoadMarkets())
+            retRes137312 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes137312)
         }
         var market any = this.Market(symbol)
@@ -1565,7 +1565,7 @@ func (this *Tokocrypto) fetchTickerBody(ch chan any, symbol any, optionalArgs ..
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func  (this *Tokocrypto) FetchBidsAsks(optionalArgs ...any) <- chan any {
+func  (this *Tokocrypto) FetchBidsAsksAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchBidsAsksBody(ch, optionalArgs...)
     return ch
@@ -1579,7 +1579,7 @@ func (this *Tokocrypto) fetchBidsAsksBody(ch chan any, optionalArgs ...any) any 
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes140112 := (<-this.LoadMarkets())
+            retRes140112 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes140112)
         }
     
@@ -1642,7 +1642,7 @@ func  (this *Tokocrypto) ParseOHLCV(ohlcv any, optionalArgs ...any) any  {
  * @param {int} [params.until] timestamp in ms of the latest candle to fetch
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
-func  (this *Tokocrypto) FetchOHLCV(symbol any, optionalArgs ...any) <- chan any {
+func  (this *Tokocrypto) FetchOHLCVAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchOHLCVBody(ch, symbol, optionalArgs...)
     return ch
@@ -1660,7 +1660,7 @@ func (this *Tokocrypto) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes146812 := (<-this.LoadMarkets())
+            retRes146812 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes146812)
         }
         var market any = this.Market(symbol)
@@ -1758,7 +1758,7 @@ func (this *Tokocrypto) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...
  * @param {string[]|undefined} [params.symbols] unified market symbols, only used in isolated margin mode
  * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
-func  (this *Tokocrypto) FetchBalance(optionalArgs ...any) <- chan any {
+func  (this *Tokocrypto) FetchBalanceAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchBalanceBody(ch, optionalArgs...)
     return ch
@@ -1770,7 +1770,7 @@ func (this *Tokocrypto) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes156212 := (<-this.LoadMarkets())
+            retRes156212 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes156212)
         }
         var defaultType *string = this.SafeString2(this.Options, "fetchBalance", "defaultType", "spot")
@@ -2032,7 +2032,7 @@ func  (this *Tokocrypto) ParseOrderType(status any) any  {
  * @param {float} [params.cost] for spot market buy orders, the quote quantity that can be used as an alternative for the amount
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Tokocrypto) CreateOrder(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <- chan any {
+func  (this *Tokocrypto) CreateOrderAsync(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.createOrderBody(ch, symbol, typeVar, side, amount, optionalArgs...)
     return ch
@@ -2046,7 +2046,7 @@ func (this *Tokocrypto) createOrderBody(ch chan any, symbol any, typeVar any, si
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes182012 := (<-this.LoadMarkets())
+            retRes182012 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes182012)
         }
         var market any = this.Market(symbol)
@@ -2226,7 +2226,7 @@ func (this *Tokocrypto) createOrderBody(ch chan any, symbol any, typeVar any, si
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Tokocrypto) FetchOrder(id any, optionalArgs ...any) <- chan any {
+func  (this *Tokocrypto) FetchOrderAsync(id any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchOrderBody(ch, id, optionalArgs...)
     return ch
@@ -2292,7 +2292,7 @@ func (this *Tokocrypto) fetchOrderBody(ch chan any, id any, optionalArgs ...any)
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Tokocrypto) FetchOrders(optionalArgs ...any) <- chan any {
+func  (this *Tokocrypto) FetchOrdersAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchOrdersBody(ch, optionalArgs...)
     return ch
@@ -2313,7 +2313,7 @@ func (this *Tokocrypto) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
         }
         if IsEqual(this.Markets, nil) {
     
-            retRes205112 := (<-this.LoadMarkets())
+            retRes205112 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes205112)
         }
         var market any = this.Market(symbol)
@@ -2379,7 +2379,7 @@ func (this *Tokocrypto) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Tokocrypto) FetchOpenOrders(optionalArgs ...any) <- chan any {
+func  (this *Tokocrypto) FetchOpenOrdersAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchOpenOrdersBody(ch, optionalArgs...)
     return ch
@@ -2399,7 +2399,7 @@ func (this *Tokocrypto) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) an
             "type": 1,
         } // -1 = all, 1 = open, 2 = closed
     
-            retRes212215 :=  (<-this.FetchOrders(symbol, since, limit, this.Extend(request, params)))
+            retRes212215 :=  (<-this.FetchOrdersAsync(symbol, since, limit, this.Extend(request, params)))
             PanicOnError(retRes212215)
             ch <- retRes212215
             return nil
@@ -2415,7 +2415,7 @@ func (this *Tokocrypto) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) an
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Tokocrypto) FetchClosedOrders(optionalArgs ...any) <- chan any {
+func  (this *Tokocrypto) FetchClosedOrdersAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchClosedOrdersBody(ch, optionalArgs...)
     return ch
@@ -2435,7 +2435,7 @@ func (this *Tokocrypto) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) 
             "type": 2,
         } // -1 = all, 1 = open, 2 = closed
     
-            retRes213815 :=  (<-this.FetchOrders(symbol, since, limit, this.Extend(request, params)))
+            retRes213815 :=  (<-this.FetchOrdersAsync(symbol, since, limit, this.Extend(request, params)))
             PanicOnError(retRes213815)
             ch <- retRes213815
             return nil
@@ -2450,7 +2450,7 @@ func (this *Tokocrypto) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) 
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Tokocrypto) CancelOrder(id any, optionalArgs ...any) <- chan any {
+func  (this *Tokocrypto) CancelOrderAsync(id any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.cancelOrderBody(ch, id, optionalArgs...)
     return ch
@@ -2511,7 +2511,7 @@ func (this *Tokocrypto) cancelOrderBody(ch chan any, id any, optionalArgs ...any
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
-func  (this *Tokocrypto) FetchMyTrades(optionalArgs ...any) <- chan any {
+func  (this *Tokocrypto) FetchMyTradesAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchMyTradesBody(ch, optionalArgs...)
     return ch
@@ -2532,7 +2532,7 @@ func (this *Tokocrypto) fetchMyTradesBody(ch chan any, optionalArgs ...any) any 
         }
         if IsEqual(this.Markets, nil) {
     
-            retRes220312 := (<-this.LoadMarkets())
+            retRes220312 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes220312)
         }
         var market any = this.Market(symbol)
@@ -2593,7 +2593,7 @@ func (this *Tokocrypto) fetchMyTradesBody(ch chan any, optionalArgs ...any) any 
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
  */
-func  (this *Tokocrypto) FetchDepositAddress(code any, optionalArgs ...any) <- chan any {
+func  (this *Tokocrypto) FetchDepositAddressAsync(code any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchDepositAddressBody(ch, code, optionalArgs...)
     return ch
@@ -2605,7 +2605,7 @@ func (this *Tokocrypto) fetchDepositAddressBody(ch chan any, code any, optionalA
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes226212 := (<-this.LoadMarkets())
+            retRes226212 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes226212)
         }
         var currency any = this.Currency(code)
@@ -2668,7 +2668,7 @@ func (this *Tokocrypto) fetchDepositAddressBody(ch chan any, code any, optionalA
  * @param {int} [params.until] the latest time in ms to fetch deposits for
  * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func  (this *Tokocrypto) FetchDeposits(optionalArgs ...any) <- chan any {
+func  (this *Tokocrypto) FetchDepositsAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchDepositsBody(ch, optionalArgs...)
     return ch
@@ -2686,7 +2686,7 @@ func (this *Tokocrypto) fetchDepositsBody(ch chan any, optionalArgs ...any) any 
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes232412 := (<-this.LoadMarkets())
+            retRes232412 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes232412)
         }
         var currency any = nil
@@ -2751,7 +2751,7 @@ func (this *Tokocrypto) fetchDepositsBody(ch chan any, optionalArgs ...any) any 
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func  (this *Tokocrypto) FetchWithdrawals(optionalArgs ...any) <- chan any {
+func  (this *Tokocrypto) FetchWithdrawalsAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchWithdrawalsBody(ch, optionalArgs...)
     return ch
@@ -2769,7 +2769,7 @@ func (this *Tokocrypto) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) a
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes238712 := (<-this.LoadMarkets())
+            retRes238712 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes238712)
         }
         var request map[string]any = map[string]any {}
@@ -2970,7 +2970,7 @@ func  (this *Tokocrypto) ParseTransaction(transaction any, optionalArgs ...any) 
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func  (this *Tokocrypto) Withdraw(code any, amount any, address any, optionalArgs ...any) <- chan any {
+func  (this *Tokocrypto) WithdrawAsync(code any, amount any, address any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.withdrawBody(ch, code, amount, address, optionalArgs...)
     return ch
@@ -2987,7 +2987,7 @@ func (this *Tokocrypto) withdrawBody(ch chan any, code any, amount any, address 
         params = GetValue(tagparamsVariable,1)
         if IsEqual(this.Markets, nil) {
     
-            retRes258512 := (<-this.LoadMarkets())
+            retRes258512 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes258512)
         }
         this.CheckAddress(address)

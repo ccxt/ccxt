@@ -5,7 +5,7 @@ import "github.com/ccxt/ccxt/go/v4"
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 
-    func TestWatchOrderBookForSymbols(exchange ccxt.ICoreExchange, skippedProperties any, symbols any) <- chan any {
+    func TestWatchOrderBookForSymbolsAsync(exchange ccxt.ICoreExchange, skippedProperties any, symbols any) <- chan any {
         ch := make(chan any, 1)
         go testWatchOrderBookForSymbolsBody(ch, exchange, skippedProperties, symbols)
         return ch

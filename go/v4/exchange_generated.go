@@ -960,7 +960,7 @@ func  (this *BaseExchange) Sign(path any, optionalArgs ...any) any  {
         "body": nil,
     }
 }
-func  (this *BaseExchange) FetchAccounts(optionalArgs ...any) <- chan any {
+func  (this *BaseExchange) FetchAccountsAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchAccountsBody(ch, optionalArgs...)
     return ch
@@ -972,7 +972,7 @@ func (this *BaseExchange) fetchAccountsBody(ch chan any, optionalArgs ...any) an
         _ = params
         panic(NotSupported(Add(this.Id, " fetchAccounts() is not supported yet")))
 }
-func  (this *BaseExchange) WatchLiquidations(symbol any, optionalArgs ...any) <- chan any {
+func  (this *BaseExchange) WatchLiquidationsAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.watchLiquidationsBody(ch, symbol, optionalArgs...)
     return ch
@@ -988,14 +988,14 @@ func (this *BaseExchange) watchLiquidationsBody(ch chan any, symbol any, optiona
         _ = params
         if !IsEqual(GetValue(this.Has, "watchLiquidationsForSymbols"), nil) && !IsEqual(GetValue(this.Has, "watchLiquidationsForSymbols"), false) {
     
-                retRes367119 :=  (<-this.WatchLiquidationsForSymbols([]any{symbol}, since, limit, params))
+                retRes367119 :=  (<-this.WatchLiquidationsForSymbolsAsync([]any{symbol}, since, limit, params))
                 PanicOnError(retRes367119)
                 ch <- retRes367119
                 return nil
         }
         panic(NotSupported(Add(this.Id, " watchLiquidations() is not supported yet")))
 }
-func  (this *BaseExchange) WatchLiquidationsForSymbols(symbols any, optionalArgs ...any) <- chan any {
+func  (this *BaseExchange) WatchLiquidationsForSymbolsAsync(symbols any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.watchLiquidationsForSymbolsBody(ch, symbols, optionalArgs...)
     return ch
@@ -1011,7 +1011,7 @@ func (this *BaseExchange) watchLiquidationsForSymbolsBody(ch chan any, symbols a
         _ = params
         panic(NotSupported(Add(this.Id, " watchLiquidationsForSymbols() is not supported yet")))
 }
-func  (this *BaseExchange) WatchMyLiquidations(symbol any, optionalArgs ...any) <- chan any {
+func  (this *BaseExchange) WatchMyLiquidationsAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.watchMyLiquidationsBody(ch, symbol, optionalArgs...)
     return ch
@@ -1032,7 +1032,7 @@ func (this *BaseExchange) watchMyLiquidationsBody(ch chan any, symbol any, optio
         }
         panic(NotSupported(Add(this.Id, " watchMyLiquidations() is not supported yet")))
 }
-func  (this *BaseExchange) WatchMyLiquidationsForSymbols(symbols any, optionalArgs ...any) <- chan any {
+func  (this *BaseExchange) WatchMyLiquidationsForSymbolsAsync(symbols any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.watchMyLiquidationsForSymbolsBody(ch, symbols, optionalArgs...)
     return ch
@@ -1048,7 +1048,7 @@ func (this *BaseExchange) watchMyLiquidationsForSymbolsBody(ch chan any, symbols
         _ = params
         panic(NotSupported(Add(this.Id, " watchMyLiquidationsForSymbols() is not supported yet")))
 }
-func  (this *BaseExchange) UnWatchOrders(optionalArgs ...any) <- chan any {
+func  (this *BaseExchange) UnWatchOrdersAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.unWatchOrdersBody(ch, optionalArgs...)
     return ch
@@ -1062,7 +1062,7 @@ func (this *BaseExchange) unWatchOrdersBody(ch chan any, optionalArgs ...any) an
         _ = params
         panic(NotSupported(Add(this.Id, " unWatchOrders() is not supported yet")))
 }
-func  (this *BaseExchange) UnWatchTrades(symbol any, optionalArgs ...any) <- chan any {
+func  (this *BaseExchange) UnWatchTradesAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.unWatchTradesBody(ch, symbol, optionalArgs...)
     return ch
@@ -1074,7 +1074,7 @@ func (this *BaseExchange) unWatchTradesBody(ch chan any, symbol any, optionalArg
         _ = params
         panic(NotSupported(Add(this.Id, " unWatchTrades() is not supported yet")))
 }
-func  (this *BaseExchange) UnWatchTradesForSymbols(symbols any, optionalArgs ...any) <- chan any {
+func  (this *BaseExchange) UnWatchTradesForSymbolsAsync(symbols any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.unWatchTradesForSymbolsBody(ch, symbols, optionalArgs...)
     return ch
@@ -1086,7 +1086,7 @@ func (this *BaseExchange) unWatchTradesForSymbolsBody(ch chan any, symbols any, 
         _ = params
         panic(NotSupported(Add(this.Id, " unWatchTradesForSymbols() is not supported yet")))
 }
-func  (this *BaseExchange) WatchOHLCVForSymbols(symbolsAndTimeframes any, optionalArgs ...any) <- chan any {
+func  (this *BaseExchange) WatchOHLCVForSymbolsAsync(symbolsAndTimeframes any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.watchOHLCVForSymbolsBody(ch, symbolsAndTimeframes, optionalArgs...)
     return ch
@@ -1102,7 +1102,7 @@ func (this *BaseExchange) watchOHLCVForSymbolsBody(ch chan any, symbolsAndTimefr
         _ = params
         panic(NotSupported(Add(this.Id, " watchOHLCVForSymbols() is not supported yet")))
 }
-func  (this *BaseExchange) UnWatchOHLCVForSymbols(symbolsAndTimeframes any, optionalArgs ...any) <- chan any {
+func  (this *BaseExchange) UnWatchOHLCVForSymbolsAsync(symbolsAndTimeframes any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.unWatchOHLCVForSymbolsBody(ch, symbolsAndTimeframes, optionalArgs...)
     return ch
@@ -1114,7 +1114,7 @@ func (this *BaseExchange) unWatchOHLCVForSymbolsBody(ch chan any, symbolsAndTime
         _ = params
         panic(NotSupported(Add(this.Id, " unWatchOHLCVForSymbols() is not supported yet")))
 }
-func  (this *BaseExchange) UnWatchOrderBookForSymbols(symbols any, optionalArgs ...any) <- chan any {
+func  (this *BaseExchange) UnWatchOrderBookForSymbolsAsync(symbols any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.unWatchOrderBookForSymbolsBody(ch, symbols, optionalArgs...)
     return ch
@@ -1126,7 +1126,7 @@ func (this *BaseExchange) unWatchOrderBookForSymbolsBody(ch chan any, symbols an
         _ = params
         panic(NotSupported(Add(this.Id, " unWatchOrderBookForSymbols() is not supported yet")))
 }
-func  (this *BaseExchange) UnWatchPositions(optionalArgs ...any) <- chan any {
+func  (this *BaseExchange) UnWatchPositionsAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.unWatchPositionsBody(ch, optionalArgs...)
     return ch
@@ -1140,7 +1140,7 @@ func (this *BaseExchange) unWatchPositionsBody(ch chan any, optionalArgs ...any)
         _ = params
         panic(NotSupported(Add(this.Id, " unWatchPositions() is not supported yet")))
 }
-func  (this *BaseExchange) UnWatchTicker(symbol any, optionalArgs ...any) <- chan any {
+func  (this *BaseExchange) UnWatchTickerAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.unWatchTickerBody(ch, symbol, optionalArgs...)
     return ch
@@ -1152,7 +1152,7 @@ func (this *BaseExchange) unWatchTickerBody(ch chan any, symbol any, optionalArg
         _ = params
         panic(NotSupported(Add(this.Id, " unWatchTicker() is not supported yet")))
 }
-func  (this *BaseExchange) UnWatchMarkPrice(symbol any, optionalArgs ...any) <- chan any {
+func  (this *BaseExchange) UnWatchMarkPriceAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.unWatchMarkPriceBody(ch, symbol, optionalArgs...)
     return ch
@@ -1164,7 +1164,7 @@ func (this *BaseExchange) unWatchMarkPriceBody(ch chan any, symbol any, optional
         _ = params
         panic(NotSupported(Add(this.Id, " unWatchMarkPrice() is not supported yet")))
 }
-func  (this *BaseExchange) UnWatchMarkPrices(optionalArgs ...any) <- chan any {
+func  (this *BaseExchange) UnWatchMarkPricesAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.unWatchMarkPricesBody(ch, optionalArgs...)
     return ch
@@ -1178,7 +1178,7 @@ func (this *BaseExchange) unWatchMarkPricesBody(ch chan any, optionalArgs ...any
         _ = params
         panic(NotSupported(Add(this.Id, " unWatchMarkPrices() is not supported yet")))
 }
-func  (this *BaseExchange) FetchDepositAddresses(optionalArgs ...any) <- chan any {
+func  (this *BaseExchange) FetchDepositAddressesAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchDepositAddressesBody(ch, optionalArgs...)
     return ch
@@ -1192,7 +1192,7 @@ func (this *BaseExchange) fetchDepositAddressesBody(ch chan any, optionalArgs ..
         _ = params
         panic(NotSupported(Add(this.Id, " fetchDepositAddresses() is not supported yet")))
 }
-func  (this *BaseExchange) FetchMarginMode(symbol any, optionalArgs ...any) <- chan any {
+func  (this *BaseExchange) FetchMarginModeAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchMarginModeBody(ch, symbol, optionalArgs...)
     return ch
@@ -1213,7 +1213,7 @@ func (this *BaseExchange) fetchMarginModeBody(ch chan any, symbol any, optionalA
             panic(NotSupported(Add(this.Id, " fetchMarginMode() is not supported yet")))
         }
 }
-func  (this *BaseExchange) FetchMarginModes(optionalArgs ...any) <- chan any {
+func  (this *BaseExchange) FetchMarginModesAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchMarginModesBody(ch, optionalArgs...)
     return ch
@@ -1227,7 +1227,7 @@ func (this *BaseExchange) fetchMarginModesBody(ch chan any, optionalArgs ...any)
         _ = params
         panic(NotSupported(Add(this.Id, " fetchMarginModes () is not supported yet")))
 }
-func  (this *BaseExchange) UnWatchOrderBook(symbol any, optionalArgs ...any) <- chan any {
+func  (this *BaseExchange) UnWatchOrderBookAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.unWatchOrderBookBody(ch, symbol, optionalArgs...)
     return ch
@@ -1239,7 +1239,7 @@ func (this *BaseExchange) unWatchOrderBookBody(ch chan any, symbol any, optional
         _ = params
         panic(NotSupported(Add(this.Id, " unWatchOrderBook() is not supported yet")))
 }
-func  (this *BaseExchange) FetchTime(optionalArgs ...any) <- chan any {
+func  (this *BaseExchange) FetchTimeAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchTimeBody(ch, optionalArgs...)
     return ch
@@ -1251,7 +1251,7 @@ func (this *BaseExchange) fetchTimeBody(ch chan any, optionalArgs ...any) any {
         _ = params
         panic(NotSupported(Add(this.Id, " fetchTime() is not supported yet")))
 }
-func  (this *BaseExchange) FetchTradingLimits(optionalArgs ...any) <- chan any {
+func  (this *BaseExchange) FetchTradingLimitsAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchTradingLimitsBody(ch, optionalArgs...)
     return ch
@@ -1334,7 +1334,7 @@ func  (this *BaseExchange) ParseOrder(order any, optionalArgs ...any) any  {
     _ = market
     panic(NotSupported(Add(this.Id, " parseOrder() is not supported yet")))
 }
-func  (this *BaseExchange) FetchCrossBorrowRates(optionalArgs ...any) <- chan any {
+func  (this *BaseExchange) FetchCrossBorrowRatesAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchCrossBorrowRatesBody(ch, optionalArgs...)
     return ch
@@ -1346,7 +1346,7 @@ func (this *BaseExchange) fetchCrossBorrowRatesBody(ch chan any, optionalArgs ..
         _ = params
         panic(NotSupported(Add(this.Id, " fetchCrossBorrowRates() is not supported yet")))
 }
-func  (this *BaseExchange) FetchIsolatedBorrowRates(optionalArgs ...any) <- chan any {
+func  (this *BaseExchange) FetchIsolatedBorrowRatesAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchIsolatedBorrowRatesBody(ch, optionalArgs...)
     return ch
@@ -1363,7 +1363,7 @@ func  (this *BaseExchange) ParseMarketLeverageTiers(info any, optionalArgs ...an
     _ = market
     panic(NotSupported(Add(this.Id, " parseMarketLeverageTiers() is not supported yet")))
 }
-func  (this *BaseExchange) FetchLeverageTiers(optionalArgs ...any) <- chan any {
+func  (this *BaseExchange) FetchLeverageTiersAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchLeverageTiersBody(ch, optionalArgs...)
     return ch
@@ -1417,7 +1417,7 @@ func  (this *BaseExchange) ParseWsOHLCV(ohlcv any, optionalArgs ...any) any  {
     _ = market
     return this.DerivedExchange.ParseOHLCV(ohlcv, market)
 }
-func  (this *BaseExchange) FetchFundingRates(optionalArgs ...any) <- chan any {
+func  (this *BaseExchange) FetchFundingRatesAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchFundingRatesBody(ch, optionalArgs...)
     return ch
@@ -1431,7 +1431,7 @@ func (this *BaseExchange) fetchFundingRatesBody(ch chan any, optionalArgs ...any
         _ = params
         panic(NotSupported(Add(this.Id, " fetchFundingRates() is not supported yet")))
 }
-func  (this *BaseExchange) FetchFundingIntervals(optionalArgs ...any) <- chan any {
+func  (this *BaseExchange) FetchFundingIntervalsAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchFundingIntervalsBody(ch, optionalArgs...)
     return ch
@@ -1445,7 +1445,7 @@ func (this *BaseExchange) fetchFundingIntervalsBody(ch chan any, optionalArgs ..
         _ = params
         panic(NotSupported(Add(this.Id, " fetchFundingIntervals() is not supported yet")))
 }
-func  (this *BaseExchange) WatchFundingRate(symbol any, optionalArgs ...any) <- chan any {
+func  (this *BaseExchange) WatchFundingRateAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.watchFundingRateBody(ch, symbol, optionalArgs...)
     return ch
@@ -1457,7 +1457,7 @@ func (this *BaseExchange) watchFundingRateBody(ch chan any, symbol any, optional
         _ = params
         panic(NotSupported(Add(this.Id, " watchFundingRate() is not supported yet")))
 }
-func  (this *BaseExchange) WatchFundingRates(optionalArgs ...any) <- chan any {
+func  (this *BaseExchange) WatchFundingRatesAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.watchFundingRatesBody(ch, optionalArgs...)
     return ch
@@ -1471,7 +1471,7 @@ func (this *BaseExchange) watchFundingRatesBody(ch chan any, optionalArgs ...any
         _ = params
         panic(NotSupported(Add(this.Id, " watchFundingRates() is not supported yet")))
 }
-func  (this *BaseExchange) UnWatchFundingRates(optionalArgs ...any) <- chan any {
+func  (this *BaseExchange) UnWatchFundingRatesAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.unWatchFundingRatesBody(ch, optionalArgs...)
     return ch
@@ -1485,7 +1485,7 @@ func (this *BaseExchange) unWatchFundingRatesBody(ch chan any, optionalArgs ...a
         _ = params
         panic(NotSupported(Add(this.Id, " unWatchFundingRates() is not supported yet")))
 }
-func  (this *BaseExchange) WatchFundingRatesForSymbols(symbols any, optionalArgs ...any) <- chan any {
+func  (this *BaseExchange) WatchFundingRatesForSymbolsAsync(symbols any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.watchFundingRatesForSymbolsBody(ch, symbols, optionalArgs...)
     return ch
@@ -1496,12 +1496,12 @@ func (this *BaseExchange) watchFundingRatesForSymbolsBody(ch chan any, symbols a
         params := GetArg(optionalArgs, 0, map[string]any {})
         _ = params
     
-            retRes389415 :=  (<-this.WatchFundingRates(symbols, params))
+            retRes389415 :=  (<-this.WatchFundingRatesAsync(symbols, params))
             PanicOnError(retRes389415)
             ch <- retRes389415
             return nil
 }
-func  (this *BaseExchange) Transfer(code any, amount any, fromAccount any, toAccount any, optionalArgs ...any) <- chan any {
+func  (this *BaseExchange) TransferAsync(code any, amount any, fromAccount any, toAccount any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.transferBody(ch, code, amount, fromAccount, toAccount, optionalArgs...)
     return ch
@@ -1513,7 +1513,7 @@ func (this *BaseExchange) transferBody(ch chan any, code any, amount any, fromAc
         _ = params
         panic(NotSupported(Add(this.Id, " transfer() is not supported yet")))
 }
-func  (this *BaseExchange) Withdraw(code any, amount any, address any, optionalArgs ...any) <- chan any {
+func  (this *BaseExchange) WithdrawAsync(code any, amount any, address any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.withdrawBody(ch, code, amount, address, optionalArgs...)
     return ch
@@ -1527,7 +1527,7 @@ func (this *BaseExchange) withdrawBody(ch chan any, code any, amount any, addres
         _ = params
         panic(NotSupported(Add(this.Id, " withdraw() is not supported yet")))
 }
-func  (this *BaseExchange) CreateDepositAddress(code any, optionalArgs ...any) <- chan any {
+func  (this *BaseExchange) CreateDepositAddressAsync(code any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.createDepositAddressBody(ch, code, optionalArgs...)
     return ch
@@ -1539,7 +1539,7 @@ func (this *BaseExchange) createDepositAddressBody(ch chan any, code any, option
         _ = params
         panic(NotSupported(Add(this.Id, " createDepositAddress() is not supported yet")))
 }
-func  (this *BaseExchange) SetLeverage(leverage any, optionalArgs ...any) <- chan any {
+func  (this *BaseExchange) SetLeverageAsync(leverage any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.setLeverageBody(ch, leverage, optionalArgs...)
     return ch
@@ -1553,7 +1553,7 @@ func (this *BaseExchange) setLeverageBody(ch chan any, leverage any, optionalArg
         _ = params
         panic(NotSupported(Add(this.Id, " setLeverage() is not supported yet")))
 }
-func  (this *BaseExchange) FetchLeverage(symbol any, optionalArgs ...any) <- chan any {
+func  (this *BaseExchange) FetchLeverageAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchLeverageBody(ch, symbol, optionalArgs...)
     return ch
@@ -1574,7 +1574,7 @@ func (this *BaseExchange) fetchLeverageBody(ch chan any, symbol any, optionalArg
             panic(NotSupported(Add(this.Id, " fetchLeverage() is not supported yet")))
         }
 }
-func  (this *BaseExchange) FetchLeverages(optionalArgs ...any) <- chan any {
+func  (this *BaseExchange) FetchLeveragesAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchLeveragesBody(ch, optionalArgs...)
     return ch
@@ -1588,7 +1588,7 @@ func (this *BaseExchange) fetchLeveragesBody(ch chan any, optionalArgs ...any) a
         _ = params
         panic(NotSupported(Add(this.Id, " fetchLeverages() is not supported yet")))
 }
-func  (this *BaseExchange) SetPositionMode(hedged any, optionalArgs ...any) <- chan any {
+func  (this *BaseExchange) SetPositionModeAsync(hedged any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.setPositionModeBody(ch, hedged, optionalArgs...)
     return ch
@@ -1602,7 +1602,7 @@ func (this *BaseExchange) setPositionModeBody(ch chan any, hedged any, optionalA
         _ = params
         panic(NotSupported(Add(this.Id, " setPositionMode() is not supported yet")))
 }
-func  (this *BaseExchange) AddMargin(symbol any, amount any, optionalArgs ...any) <- chan any {
+func  (this *BaseExchange) AddMarginAsync(symbol any, amount any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.addMarginBody(ch, symbol, amount, optionalArgs...)
     return ch
@@ -1614,7 +1614,7 @@ func (this *BaseExchange) addMarginBody(ch chan any, symbol any, amount any, opt
         _ = params
         panic(NotSupported(Add(this.Id, " addMargin() is not supported yet")))
 }
-func  (this *BaseExchange) ReduceMargin(symbol any, amount any, optionalArgs ...any) <- chan any {
+func  (this *BaseExchange) ReduceMarginAsync(symbol any, amount any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.reduceMarginBody(ch, symbol, amount, optionalArgs...)
     return ch
@@ -1626,7 +1626,7 @@ func (this *BaseExchange) reduceMarginBody(ch chan any, symbol any, amount any, 
         _ = params
         panic(NotSupported(Add(this.Id, " reduceMargin() is not supported yet")))
 }
-func  (this *BaseExchange) SetMargin(symbol any, amount any, optionalArgs ...any) <- chan any {
+func  (this *BaseExchange) SetMarginAsync(symbol any, amount any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.setMarginBody(ch, symbol, amount, optionalArgs...)
     return ch
@@ -1638,7 +1638,7 @@ func (this *BaseExchange) setMarginBody(ch chan any, symbol any, amount any, opt
         _ = params
         panic(NotSupported(Add(this.Id, " setMargin() is not supported yet")))
 }
-func  (this *BaseExchange) FetchLongShortRatio(symbol any, optionalArgs ...any) <- chan any {
+func  (this *BaseExchange) FetchLongShortRatioAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchLongShortRatioBody(ch, symbol, optionalArgs...)
     return ch
@@ -1652,7 +1652,7 @@ func (this *BaseExchange) fetchLongShortRatioBody(ch chan any, symbol any, optio
         _ = params
         panic(NotSupported(Add(this.Id, " fetchLongShortRatio() is not supported yet")))
 }
-func  (this *BaseExchange) FetchLongShortRatioHistory(optionalArgs ...any) <- chan any {
+func  (this *BaseExchange) FetchLongShortRatioHistoryAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchLongShortRatioHistoryBody(ch, optionalArgs...)
     return ch
@@ -1672,7 +1672,7 @@ func (this *BaseExchange) fetchLongShortRatioHistoryBody(ch chan any, optionalAr
         _ = params
         panic(NotSupported(Add(this.Id, " fetchLongShortRatioHistory() is not supported yet")))
 }
-func  (this *BaseExchange) FetchMarginAdjustmentHistory(optionalArgs ...any) <- chan any {
+func  (this *BaseExchange) FetchMarginAdjustmentHistoryAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchMarginAdjustmentHistoryBody(ch, optionalArgs...)
     return ch
@@ -1692,7 +1692,7 @@ func (this *BaseExchange) fetchMarginAdjustmentHistoryBody(ch chan any, optional
         _ = params
         panic(NotSupported(Add(this.Id, " fetchMarginAdjustmentHistory() is not supported yet")))
 }
-func  (this *BaseExchange) SetMarginMode(marginMode any, optionalArgs ...any) <- chan any {
+func  (this *BaseExchange) SetMarginModeAsync(marginMode any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.setMarginModeBody(ch, marginMode, optionalArgs...)
     return ch
@@ -1706,7 +1706,7 @@ func (this *BaseExchange) setMarginModeBody(ch chan any, marginMode any, optiona
         _ = params
         panic(NotSupported(Add(this.Id, " setMarginMode() is not supported yet")))
 }
-func  (this *BaseExchange) FetchDepositAddressesByNetwork(code any, optionalArgs ...any) <- chan any {
+func  (this *BaseExchange) FetchDepositAddressesByNetworkAsync(code any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchDepositAddressesByNetworkBody(ch, code, optionalArgs...)
     return ch
@@ -1718,7 +1718,7 @@ func (this *BaseExchange) fetchDepositAddressesByNetworkBody(ch chan any, code a
         _ = params
         panic(NotSupported(Add(this.Id, " fetchDepositAddressesByNetwork() is not supported yet")))
 }
-func  (this *BaseExchange) FetchOpenInterestHistory(symbol any, optionalArgs ...any) <- chan any {
+func  (this *BaseExchange) FetchOpenInterestHistoryAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchOpenInterestHistoryBody(ch, symbol, optionalArgs...)
     return ch
@@ -1736,7 +1736,7 @@ func (this *BaseExchange) fetchOpenInterestHistoryBody(ch chan any, symbol any, 
         _ = params
         panic(NotSupported(Add(this.Id, " fetchOpenInterestHistory() is not supported yet")))
 }
-func  (this *BaseExchange) FetchOpenInterests(optionalArgs ...any) <- chan any {
+func  (this *BaseExchange) FetchOpenInterestsAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchOpenInterestsBody(ch, optionalArgs...)
     return ch
@@ -1750,7 +1750,7 @@ func (this *BaseExchange) fetchOpenInterestsBody(ch chan any, optionalArgs ...an
         _ = params
         panic(NotSupported(Add(this.Id, " fetchOpenInterests() is not supported yet")))
 }
-func  (this *BaseExchange) SignIn(optionalArgs ...any) <- chan any {
+func  (this *BaseExchange) SignInAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.signInBody(ch, optionalArgs...)
     return ch
@@ -1762,7 +1762,7 @@ func (this *BaseExchange) signInBody(ch chan any, optionalArgs ...any) any {
         _ = params
         panic(NotSupported(Add(this.Id, " signIn() is not supported yet")))
 }
-func  (this *BaseExchange) FetchPaymentMethods(optionalArgs ...any) <- chan any {
+func  (this *BaseExchange) FetchPaymentMethodsAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchPaymentMethodsBody(ch, optionalArgs...)
     return ch
@@ -3283,7 +3283,7 @@ func  (this *BaseExchange) SafeTicker(ticker any, optionalArgs ...any) any  {
         "markPrice": this.SafeNumber(ticker, "markPrice"),
     })
 }
-func  (this *BaseExchange) FetchBorrowRate(code any, amount any, optionalArgs ...any) <- chan any {
+func  (this *BaseExchange) FetchBorrowRateAsync(code any, amount any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchBorrowRateBody(ch, code, amount, optionalArgs...)
     return ch
@@ -3295,7 +3295,7 @@ func (this *BaseExchange) fetchBorrowRateBody(ch chan any, code any, amount any,
         _ = params
         panic(NotSupported(Add(this.Id, " fetchBorrowRate is deprecated, please use fetchCrossBorrowRate or fetchIsolatedBorrowRate instead")))
 }
-func  (this *BaseExchange) RepayCrossMargin(code any, amount any, optionalArgs ...any) <- chan any {
+func  (this *BaseExchange) RepayCrossMarginAsync(code any, amount any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.repayCrossMarginBody(ch, code, amount, optionalArgs...)
     return ch
@@ -3307,7 +3307,7 @@ func (this *BaseExchange) repayCrossMarginBody(ch chan any, code any, amount any
         _ = params
         panic(NotSupported(Add(this.Id, " repayCrossMargin is not support yet")))
 }
-func  (this *BaseExchange) RepayIsolatedMargin(symbol any, code any, amount any, optionalArgs ...any) <- chan any {
+func  (this *BaseExchange) RepayIsolatedMarginAsync(symbol any, code any, amount any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.repayIsolatedMarginBody(ch, symbol, code, amount, optionalArgs...)
     return ch
@@ -3319,7 +3319,7 @@ func (this *BaseExchange) repayIsolatedMarginBody(ch chan any, symbol any, code 
         _ = params
         panic(NotSupported(Add(this.Id, " repayIsolatedMargin is not support yet")))
 }
-func  (this *BaseExchange) BorrowCrossMargin(code any, amount any, optionalArgs ...any) <- chan any {
+func  (this *BaseExchange) BorrowCrossMarginAsync(code any, amount any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.borrowCrossMarginBody(ch, code, amount, optionalArgs...)
     return ch
@@ -3331,7 +3331,7 @@ func (this *BaseExchange) borrowCrossMarginBody(ch chan any, code any, amount an
         _ = params
         panic(NotSupported(Add(this.Id, " borrowCrossMargin is not support yet")))
 }
-func  (this *BaseExchange) BorrowIsolatedMargin(symbol any, code any, amount any, optionalArgs ...any) <- chan any {
+func  (this *BaseExchange) BorrowIsolatedMarginAsync(symbol any, code any, amount any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.borrowIsolatedMarginBody(ch, symbol, code, amount, optionalArgs...)
     return ch
@@ -3343,7 +3343,7 @@ func (this *BaseExchange) borrowIsolatedMarginBody(ch chan any, symbol any, code
         _ = params
         panic(NotSupported(Add(this.Id, " borrowIsolatedMargin is not support yet")))
 }
-func  (this *BaseExchange) BorrowMargin(code any, amount any, optionalArgs ...any) <- chan any {
+func  (this *BaseExchange) BorrowMarginAsync(code any, amount any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.borrowMarginBody(ch, code, amount, optionalArgs...)
     return ch
@@ -3357,7 +3357,7 @@ func (this *BaseExchange) borrowMarginBody(ch chan any, code any, amount any, op
         _ = params
         panic(NotSupported(Add(this.Id, " borrowMargin is deprecated, please use borrowCrossMargin or borrowIsolatedMargin instead")))
 }
-func  (this *BaseExchange) RepayMargin(code any, amount any, optionalArgs ...any) <- chan any {
+func  (this *BaseExchange) RepayMarginAsync(code any, amount any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.repayMarginBody(ch, code, amount, optionalArgs...)
     return ch
@@ -3371,7 +3371,7 @@ func (this *BaseExchange) repayMarginBody(ch chan any, code any, amount any, opt
         _ = params
         panic(NotSupported(Add(this.Id, " repayMargin is deprecated, please use repayCrossMargin or repayIsolatedMargin instead")))
 }
-func  (this *BaseExchange) FetchOHLCV(symbol any, optionalArgs ...any) <- chan any {
+func  (this *BaseExchange) FetchOHLCVAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchOHLCVBody(ch, symbol, optionalArgs...)
     return ch
@@ -3393,7 +3393,7 @@ func (this *BaseExchange) fetchOHLCVBody(ch chan any, symbol any, optionalArgs .
         }
         panic(NotSupported(Add(Add(this.Id, " fetchOHLCV() is not supported yet"), message)))
 }
-func  (this *BaseExchange) FetchSpotOHLCV(symbol any, optionalArgs ...any) <- chan any {
+func  (this *BaseExchange) FetchSpotOHLCVAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchSpotOHLCVBody(ch, symbol, optionalArgs...)
     return ch
@@ -3411,7 +3411,7 @@ func (this *BaseExchange) fetchSpotOHLCVBody(ch chan any, symbol any, optionalAr
         _ = params
         panic(NotSupported(Add(this.Id, " fetchSpotOHLCV() is not supported yet")))
 }
-func  (this *BaseExchange) FetchContractOHLCV(symbol any, optionalArgs ...any) <- chan any {
+func  (this *BaseExchange) FetchContractOHLCVAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchContractOHLCVBody(ch, symbol, optionalArgs...)
     return ch
@@ -3429,7 +3429,7 @@ func (this *BaseExchange) fetchContractOHLCVBody(ch chan any, symbol any, option
         _ = params
         panic(NotSupported(Add(this.Id, " fetchContractOHLCV() is not supported yet")))
 }
-func  (this *BaseExchange) FetchOHLCVWs(symbol any, optionalArgs ...any) <- chan any {
+func  (this *BaseExchange) FetchOHLCVWsAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchOHLCVWsBody(ch, symbol, optionalArgs...)
     return ch
@@ -3451,7 +3451,7 @@ func (this *BaseExchange) fetchOHLCVWsBody(ch chan any, symbol any, optionalArgs
         }
         panic(NotSupported(Add(Add(this.Id, " fetchOHLCVWs() is not supported yet. Try using fetchOHLCV instead."), message)))
 }
-func  (this *BaseExchange) WatchOHLCV(symbol any, optionalArgs ...any) <- chan any {
+func  (this *BaseExchange) WatchOHLCVAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.watchOHLCVBody(ch, symbol, optionalArgs...)
     return ch
@@ -3535,7 +3535,7 @@ func  (this *BaseExchange) ConvertOHLCVToTradingView(ohlcvs any, optionalArgs ..
     }
     return result
 }
-func  (this *BaseExchange) FetchWebEndpoint(method any, endpointMethod any, returnAsJson any, optionalArgs ...any) <- chan any {
+func  (this *BaseExchange) FetchWebEndpointAsync(method any, endpointMethod any, returnAsJson any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchWebEndpointBody(ch, method, endpointMethod, returnAsJson, optionalArgs...)
     return ch
@@ -4151,7 +4151,7 @@ func  (this *BaseExchange) ParseLeverageTiers(response any, optionalArgs ...any)
     }
     return tiers
 }
-func  (this *BaseExchange) LoadTradingLimits(optionalArgs ...any) <- chan any {
+func  (this *BaseExchange) LoadTradingLimitsAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.loadTradingLimitsBody(ch, optionalArgs...)
     return ch
@@ -4168,7 +4168,7 @@ func (this *BaseExchange) loadTradingLimitsBody(ch chan any, optionalArgs ...any
         if !IsEqual(GetValue(this.Has, "fetchTradingLimits"), nil) && !IsEqual(GetValue(this.Has, "fetchTradingLimits"), false) {
             if EvalTruthy(reload) || !(InOp(this.Options, "limitsLoaded")) {
     
-                response:= (<-this.FetchTradingLimits(symbols))
+                response:= (<-this.FetchTradingLimitsAsync(symbols))
                 PanicOnError(response)
                 var symbolsArray any = this.RequireValue(symbols, "loadTradingLimits() requires a symbols argument")
                 var markets any = this.Markets
@@ -4589,7 +4589,7 @@ func  (this *BaseExchange) FilterOutByArray(objects any, key any, optionalArgs .
     }
     return results
 }
-func  (this *BaseExchange) Fetch2(path any, optionalArgs ...any) <- chan any {
+func  (this *BaseExchange) Fetch2Async(path any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetch2Body(ch, path, optionalArgs...)
     return ch
@@ -4682,7 +4682,7 @@ func (this *BaseExchange) fetch2Body(ch chan any, path any, optionalArgs ...any)
                         }
                         this.SetLastRequest(request)
             
-                        response:= (<-this.Fetch(GetValue(request, "url"), GetValue(request, "method"), GetValue(request, "headers"), GetValue(request, "body")))
+                        response:= (<-this.FetchAsync(GetValue(request, "url"), GetValue(request, "method"), GetValue(request, "headers"), GetValue(request, "body")))
                         PanicOnError(response)
                         if !IsEqual(fetchData, nil) {
                             AddElementToObject(GetValue(fetchData, "response"), "body", response)
@@ -4704,7 +4704,7 @@ func (this *BaseExchange) fetch2Body(ch chan any, path any, optionalArgs ...any)
         
         return nil
 }
-func  (this *BaseExchange) Request(path any, optionalArgs ...any) <- chan any {
+func  (this *BaseExchange) RequestAsync(path any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.requestBody(ch, path, optionalArgs...)
     return ch
@@ -4725,12 +4725,12 @@ func (this *BaseExchange) requestBody(ch chan any, path any, optionalArgs ...any
         config := GetArg(optionalArgs, 5, map[string]any {})
         _ = config
     
-            retRes646215 :=  (<-this.Fetch2(path, api, method, params, headers, body, config))
+            retRes646215 :=  (<-this.Fetch2Async(path, api, method, params, headers, body, config))
             PanicOnError(retRes646215)
             ch <- retRes646215
             return nil
 }
-func  (this *BaseExchange) LoadAccounts(optionalArgs ...any) <- chan any {
+func  (this *BaseExchange) LoadAccountsAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.loadAccountsBody(ch, optionalArgs...)
     return ch
@@ -4840,7 +4840,7 @@ func  (this *BaseExchange) ParseTradingViewOHLCV(ohlcvs any, optionalArgs ...any
     var result any = this.ConvertTradingViewToOHLCV(ohlcvs)
     return this.ParseOHLCVs(result, market, timeframe, since, limit)
 }
-func  (this *BaseExchange) FetchBorrowInterest(optionalArgs ...any) <- chan any {
+func  (this *BaseExchange) FetchBorrowInterestAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchBorrowInterestBody(ch, optionalArgs...)
     return ch
@@ -4860,7 +4860,7 @@ func (this *BaseExchange) fetchBorrowInterestBody(ch chan any, optionalArgs ...a
         _ = params
         panic(NotSupported(Add(this.Id, " fetchBorrowInterest() is not supported yet")))
 }
-func  (this *BaseExchange) FetchLedger(optionalArgs ...any) <- chan any {
+func  (this *BaseExchange) FetchLedgerAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchLedgerBody(ch, optionalArgs...)
     return ch
@@ -4878,7 +4878,7 @@ func (this *BaseExchange) fetchLedgerBody(ch chan any, optionalArgs ...any) any 
         _ = params
         panic(NotSupported(Add(this.Id, " fetchLedger() is not supported yet")))
 }
-func  (this *BaseExchange) FetchLedgerEntry(id any, optionalArgs ...any) <- chan any {
+func  (this *BaseExchange) FetchLedgerEntryAsync(id any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchLedgerEntryBody(ch, id, optionalArgs...)
     return ch
@@ -5042,7 +5042,7 @@ func  (this *BaseExchange) Oath() any  {
         panic(ExchangeError(Add(this.Id, " exchange.twofa has not been set for 2FA Two-Factor Authentication")))
     }
 }
-func  (this *BaseExchange) FetchBalance(optionalArgs ...any) <- chan any {
+func  (this *BaseExchange) FetchBalanceAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchBalanceBody(ch, optionalArgs...)
     return ch
@@ -5054,7 +5054,7 @@ func (this *BaseExchange) fetchBalanceBody(ch chan any, optionalArgs ...any) any
         _ = params
         panic(NotSupported(Add(this.Id, " fetchBalance() is not supported yet")))
 }
-func  (this *BaseExchange) FetchBalanceWs(optionalArgs ...any) <- chan any {
+func  (this *BaseExchange) FetchBalanceWsAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchBalanceWsBody(ch, optionalArgs...)
     return ch
@@ -5069,7 +5069,7 @@ func (this *BaseExchange) fetchBalanceWsBody(ch chan any, optionalArgs ...any) a
 func  (this *BaseExchange) ParseBalance(response any) any  {
     panic(NotSupported(Add(this.Id, " parseBalance() is not supported yet")))
 }
-func  (this *BaseExchange) WatchBalance(optionalArgs ...any) <- chan any {
+func  (this *BaseExchange) WatchBalanceAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.watchBalanceBody(ch, optionalArgs...)
     return ch
@@ -5081,7 +5081,7 @@ func (this *BaseExchange) watchBalanceBody(ch chan any, optionalArgs ...any) any
         _ = params
         panic(NotSupported(Add(this.Id, " watchBalance() is not supported yet")))
 }
-func  (this *BaseExchange) FetchPartialBalance(part any, optionalArgs ...any) <- chan any {
+func  (this *BaseExchange) FetchPartialBalanceAsync(part any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchPartialBalanceBody(ch, part, optionalArgs...)
     return ch
@@ -5098,7 +5098,7 @@ func (this *BaseExchange) fetchPartialBalanceBody(ch chan any, part any, optiona
         ch <- GetValue(balance, part)
         return nil
 }
-func  (this *BaseExchange) FetchFreeBalance(optionalArgs ...any) <- chan any {
+func  (this *BaseExchange) FetchFreeBalanceAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchFreeBalanceBody(ch, optionalArgs...)
     return ch
@@ -5109,12 +5109,12 @@ func (this *BaseExchange) fetchFreeBalanceBody(ch chan any, optionalArgs ...any)
         params := GetArg(optionalArgs, 0, map[string]any {})
         _ = params
     
-            retRes671615 :=  (<-this.FetchPartialBalance("free", params))
+            retRes671615 :=  (<-this.FetchPartialBalanceAsync("free", params))
             PanicOnError(retRes671615)
             ch <- retRes671615
             return nil
 }
-func  (this *BaseExchange) FetchUsedBalance(optionalArgs ...any) <- chan any {
+func  (this *BaseExchange) FetchUsedBalanceAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchUsedBalanceBody(ch, optionalArgs...)
     return ch
@@ -5125,12 +5125,12 @@ func (this *BaseExchange) fetchUsedBalanceBody(ch chan any, optionalArgs ...any)
         params := GetArg(optionalArgs, 0, map[string]any {})
         _ = params
     
-            retRes672015 :=  (<-this.FetchPartialBalance("used", params))
+            retRes672015 :=  (<-this.FetchPartialBalanceAsync("used", params))
             PanicOnError(retRes672015)
             ch <- retRes672015
             return nil
 }
-func  (this *BaseExchange) FetchTotalBalance(optionalArgs ...any) <- chan any {
+func  (this *BaseExchange) FetchTotalBalanceAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchTotalBalanceBody(ch, optionalArgs...)
     return ch
@@ -5141,12 +5141,12 @@ func (this *BaseExchange) fetchTotalBalanceBody(ch chan any, optionalArgs ...any
         params := GetArg(optionalArgs, 0, map[string]any {})
         _ = params
     
-            retRes672415 :=  (<-this.FetchPartialBalance("total", params))
+            retRes672415 :=  (<-this.FetchPartialBalanceAsync("total", params))
             PanicOnError(retRes672415)
             ch <- retRes672415
             return nil
 }
-func  (this *BaseExchange) FetchStatus(optionalArgs ...any) <- chan any {
+func  (this *BaseExchange) FetchStatusAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchStatusBody(ch, optionalArgs...)
     return ch
@@ -5158,7 +5158,7 @@ func (this *BaseExchange) fetchStatusBody(ch chan any, optionalArgs ...any) any 
         _ = params
         panic(NotSupported(Add(this.Id, " fetchStatus() is not supported yet")))
 }
-func  (this *BaseExchange) FetchTransactionFee(code any, optionalArgs ...any) <- chan any {
+func  (this *BaseExchange) FetchTransactionFeeAsync(code any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchTransactionFeeBody(ch, code, optionalArgs...)
     return ch
@@ -5172,12 +5172,12 @@ func (this *BaseExchange) fetchTransactionFeeBody(ch chan any, code any, optiona
             panic(NotSupported(Add(this.Id, " fetchTransactionFee() is not supported yet")))
         }
     
-            retRes673515 :=  (<-this.FetchTransactionFees([]any{code}, params))
+            retRes673515 :=  (<-this.FetchTransactionFeesAsync([]any{code}, params))
             PanicOnError(retRes673515)
             ch <- retRes673515
             return nil
 }
-func  (this *BaseExchange) FetchTransactionFees(optionalArgs ...any) <- chan any {
+func  (this *BaseExchange) FetchTransactionFeesAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchTransactionFeesBody(ch, optionalArgs...)
     return ch
@@ -5191,7 +5191,7 @@ func (this *BaseExchange) fetchTransactionFeesBody(ch chan any, optionalArgs ...
         _ = params
         panic(NotSupported(Add(this.Id, " fetchTransactionFees() is not supported yet")))
 }
-func  (this *BaseExchange) FetchDepositWithdrawFees(optionalArgs ...any) <- chan any {
+func  (this *BaseExchange) FetchDepositWithdrawFeesAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchDepositWithdrawFeesBody(ch, optionalArgs...)
     return ch
@@ -5205,7 +5205,7 @@ func (this *BaseExchange) fetchDepositWithdrawFeesBody(ch chan any, optionalArgs
         _ = params
         panic(NotSupported(Add(this.Id, " fetchDepositWithdrawFees() is not supported yet")))
 }
-func  (this *BaseExchange) FetchDepositWithdrawFee(code any, optionalArgs ...any) <- chan any {
+func  (this *BaseExchange) FetchDepositWithdrawFeeAsync(code any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchDepositWithdrawFeeBody(ch, code, optionalArgs...)
     return ch
@@ -5234,7 +5234,7 @@ func  (this *BaseExchange) GetSupportedMapping(key any, optionalArgs ...any) any
         panic(NotSupported(Add(Add(Add(this.Id, " "), key), " does not have a value in mapping")))
     }
 }
-func  (this *BaseExchange) FetchCrossBorrowRate(code any, optionalArgs ...any) <- chan any {
+func  (this *BaseExchange) FetchCrossBorrowRateAsync(code any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchCrossBorrowRateBody(ch, code, optionalArgs...)
     return ch
@@ -5245,13 +5245,13 @@ func (this *BaseExchange) fetchCrossBorrowRateBody(ch chan any, code any, option
         params := GetArg(optionalArgs, 0, map[string]any {})
         _ = params
     
-        retRes67638 := (<-this.LoadMarkets())
+        retRes67638 := (<-this.LoadMarketsAsync())
         PanicOnError(retRes67638)
         if IsEqual(GetValue(this.Has, "fetchBorrowRates"), nil) || IsEqual(GetValue(this.Has, "fetchBorrowRates"), false) {
             panic(NotSupported(Add(this.Id, " fetchCrossBorrowRate() is not supported yet")))
         }
     
-        borrowRates:= (<-this.FetchCrossBorrowRates(params))
+        borrowRates:= (<-this.FetchCrossBorrowRatesAsync(params))
         PanicOnError(borrowRates)
         var rate any = this.SafeValue(borrowRates, code)
         if IsEqual(rate, nil) {
@@ -5261,7 +5261,7 @@ func (this *BaseExchange) fetchCrossBorrowRateBody(ch chan any, code any, option
         ch <- rate
         return nil
 }
-func  (this *BaseExchange) FetchIsolatedBorrowRate(symbol any, optionalArgs ...any) <- chan any {
+func  (this *BaseExchange) FetchIsolatedBorrowRateAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchIsolatedBorrowRateBody(ch, symbol, optionalArgs...)
     return ch
@@ -5272,13 +5272,13 @@ func (this *BaseExchange) fetchIsolatedBorrowRateBody(ch chan any, symbol any, o
         params := GetArg(optionalArgs, 0, map[string]any {})
         _ = params
     
-        retRes67768 := (<-this.LoadMarkets())
+        retRes67768 := (<-this.LoadMarketsAsync())
         PanicOnError(retRes67768)
         if IsEqual(GetValue(this.Has, "fetchBorrowRates"), nil) || IsEqual(GetValue(this.Has, "fetchBorrowRates"), false) {
             panic(NotSupported(Add(this.Id, " fetchIsolatedBorrowRate() is not supported yet")))
         }
     
-        borrowRates:= (<-this.FetchIsolatedBorrowRates(params))
+        borrowRates:= (<-this.FetchIsolatedBorrowRatesAsync(params))
         PanicOnError(borrowRates)
         var rate any = this.SafeDict(borrowRates, symbol)
         if IsEqual(rate, nil) {
@@ -5487,7 +5487,7 @@ func  (this *BaseExchange) CalculateRateLimiterCost(api any, method any, path an
     _ = config
     return this.SafeValue(config, "cost", 1)
 }
-func  (this *BaseExchange) FetchSpotTickers(optionalArgs ...any) <- chan any {
+func  (this *BaseExchange) FetchSpotTickersAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchSpotTickersBody(ch, optionalArgs...)
     return ch
@@ -5501,7 +5501,7 @@ func (this *BaseExchange) fetchSpotTickersBody(ch chan any, optionalArgs ...any)
         _ = params
         panic(NotSupported(Add(this.Id, " fetchSpotTickers() is not supported yet")))
 }
-func  (this *BaseExchange) FetchContractTickers(optionalArgs ...any) <- chan any {
+func  (this *BaseExchange) FetchContractTickersAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchContractTickersBody(ch, optionalArgs...)
     return ch
@@ -5515,7 +5515,7 @@ func (this *BaseExchange) fetchContractTickersBody(ch chan any, optionalArgs ...
         _ = params
         panic(NotSupported(Add(this.Id, " fetchContractTickers() is not supported yet")))
 }
-func  (this *BaseExchange) FetchOrderBooks(optionalArgs ...any) <- chan any {
+func  (this *BaseExchange) FetchOrderBooksAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchOrderBooksBody(ch, optionalArgs...)
     return ch
@@ -5531,7 +5531,7 @@ func (this *BaseExchange) fetchOrderBooksBody(ch chan any, optionalArgs ...any) 
         _ = params
         panic(NotSupported(Add(this.Id, " fetchOrderBooks() is not supported yet")))
 }
-func  (this *BaseExchange) UnWatchTickers(optionalArgs ...any) <- chan any {
+func  (this *BaseExchange) UnWatchTickersAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.unWatchTickersBody(ch, optionalArgs...)
     return ch
@@ -5545,7 +5545,7 @@ func (this *BaseExchange) unWatchTickersBody(ch chan any, optionalArgs ...any) a
         _ = params
         panic(NotSupported(Add(this.Id, " unWatchTickers() is not supported yet")))
 }
-func  (this *BaseExchange) UnWatchFundingRate(symbol any, optionalArgs ...any) <- chan any {
+func  (this *BaseExchange) UnWatchFundingRateAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.unWatchFundingRateBody(ch, symbol, optionalArgs...)
     return ch
@@ -5557,7 +5557,7 @@ func (this *BaseExchange) unWatchFundingRateBody(ch chan any, symbol any, option
         _ = params
         panic(NotSupported(Add(this.Id, " unWatchFundingRate() is not supported yet")))
 }
-func  (this *BaseExchange) CreateTwapOrder(symbol any, side any, amount any, duration any, optionalArgs ...any) <- chan any {
+func  (this *BaseExchange) CreateTwapOrderAsync(symbol any, side any, amount any, duration any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.createTwapOrderBody(ch, symbol, side, amount, duration, optionalArgs...)
     return ch
@@ -5569,7 +5569,7 @@ func (this *BaseExchange) createTwapOrderBody(ch chan any, symbol any, side any,
         _ = params
         panic(NotSupported(Add(this.Id, " createTwapOrder() is not supported yet")))
 }
-func  (this *BaseExchange) CreateConvertTrade(id any, fromCode any, toCode any, optionalArgs ...any) <- chan any {
+func  (this *BaseExchange) CreateConvertTradeAsync(id any, fromCode any, toCode any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.createConvertTradeBody(ch, id, fromCode, toCode, optionalArgs...)
     return ch
@@ -5583,7 +5583,7 @@ func (this *BaseExchange) createConvertTradeBody(ch chan any, id any, fromCode a
         _ = params
         panic(NotSupported(Add(this.Id, " createConvertTrade() is not supported yet")))
 }
-func  (this *BaseExchange) FetchConvertTrade(id any, optionalArgs ...any) <- chan any {
+func  (this *BaseExchange) FetchConvertTradeAsync(id any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchConvertTradeBody(ch, id, optionalArgs...)
     return ch
@@ -5597,7 +5597,7 @@ func (this *BaseExchange) fetchConvertTradeBody(ch chan any, id any, optionalArg
         _ = params
         panic(NotSupported(Add(this.Id, " fetchConvertTrade() is not supported yet")))
 }
-func  (this *BaseExchange) FetchConvertTradeHistory(optionalArgs ...any) <- chan any {
+func  (this *BaseExchange) FetchConvertTradeHistoryAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchConvertTradeHistoryBody(ch, optionalArgs...)
     return ch
@@ -5615,7 +5615,7 @@ func (this *BaseExchange) fetchConvertTradeHistoryBody(ch chan any, optionalArgs
         _ = params
         panic(NotSupported(Add(this.Id, " fetchConvertTradeHistory() is not supported yet")))
 }
-func  (this *BaseExchange) FetchPositionMode(optionalArgs ...any) <- chan any {
+func  (this *BaseExchange) FetchPositionModeAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchPositionModeBody(ch, optionalArgs...)
     return ch
@@ -5629,7 +5629,7 @@ func (this *BaseExchange) fetchPositionModeBody(ch chan any, optionalArgs ...any
         _ = params
         panic(NotSupported(Add(this.Id, " fetchPositionMode() is not supported yet")))
 }
-func  (this *BaseExchange) FetchADLRank(symbol any, optionalArgs ...any) <- chan any {
+func  (this *BaseExchange) FetchADLRankAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchADLRankBody(ch, symbol, optionalArgs...)
     return ch
@@ -5641,7 +5641,7 @@ func (this *BaseExchange) fetchADLRankBody(ch chan any, symbol any, optionalArgs
         _ = params
         panic(NotSupported(Add(this.Id, " fetchADLRank() is not supported yet")))
 }
-func  (this *BaseExchange) FetchPositionsADLRank(optionalArgs ...any) <- chan any {
+func  (this *BaseExchange) FetchPositionsADLRankAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchPositionsADLRankBody(ch, optionalArgs...)
     return ch
@@ -5655,7 +5655,7 @@ func (this *BaseExchange) fetchPositionsADLRankBody(ch chan any, optionalArgs ..
         _ = params
         panic(NotSupported(Add(this.Id, " fetchPositionsADLRank() is not supported yet")))
 }
-func  (this *BaseExchange) FetchPositionADLRank(symbol any, optionalArgs ...any) <- chan any {
+func  (this *BaseExchange) FetchPositionADLRankAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchPositionADLRankBody(ch, symbol, optionalArgs...)
     return ch
@@ -5667,7 +5667,7 @@ func (this *BaseExchange) fetchPositionADLRankBody(ch chan any, symbol any, opti
         _ = params
         if !IsEqual(GetValue(this.Has, "fetchPositionsADLRank"), nil) && !IsEqual(GetValue(this.Has, "fetchPositionsADLRank"), false) {
     
-            retRes701712 := (<-this.LoadMarkets())
+            retRes701712 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes701712)
     
             var market any = this.DerivedExchange.Market(symbol)
@@ -5745,7 +5745,7 @@ func  (this *BaseExchange) SetTakeProfitAndStopLossParams(symbol any, typeVar an
     params = this.Omit(params, []any{"takeProfitType", "takeProfitPriceType", "takeProfitLimitPrice", "takeProfitAmount", "stopLossType", "stopLossPriceType", "stopLossLimitPrice", "stopLossAmount"})
     return params
 }
-func  (this *BaseExchange) CreateSpotOrders(orders any, optionalArgs ...any) <- chan any {
+func  (this *BaseExchange) CreateSpotOrdersAsync(orders any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.createSpotOrdersBody(ch, orders, optionalArgs...)
     return ch
@@ -5757,7 +5757,7 @@ func (this *BaseExchange) createSpotOrdersBody(ch chan any, orders any, optional
         _ = params
         panic(NotSupported(Add(this.Id, " createSpotOrders() is not supported yet")))
 }
-func  (this *BaseExchange) CreateContractOrders(orders any, optionalArgs ...any) <- chan any {
+func  (this *BaseExchange) CreateContractOrdersAsync(orders any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.createContractOrdersBody(ch, orders, optionalArgs...)
     return ch
@@ -5769,7 +5769,7 @@ func (this *BaseExchange) createContractOrdersBody(ch chan any, orders any, opti
         _ = params
         panic(NotSupported(Add(this.Id, " createContractOrders() is not supported yet")))
 }
-func  (this *BaseExchange) CancelSpotOrder(id any, optionalArgs ...any) <- chan any {
+func  (this *BaseExchange) CancelSpotOrderAsync(id any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.cancelSpotOrderBody(ch, id, optionalArgs...)
     return ch
@@ -5783,7 +5783,7 @@ func (this *BaseExchange) cancelSpotOrderBody(ch chan any, id any, optionalArgs 
         _ = params
         panic(NotSupported(Add(this.Id, " cancelSpotOrder() is not supported yet")))
 }
-func  (this *BaseExchange) CancelContractOrder(id any, optionalArgs ...any) <- chan any {
+func  (this *BaseExchange) CancelContractOrderAsync(id any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.cancelContractOrderBody(ch, id, optionalArgs...)
     return ch
@@ -5797,7 +5797,7 @@ func (this *BaseExchange) cancelContractOrderBody(ch chan any, id any, optionalA
         _ = params
         panic(NotSupported(Add(this.Id, " cancelContractOrder() is not supported yet")))
 }
-func  (this *BaseExchange) CancelAllSpotOrders(optionalArgs ...any) <- chan any {
+func  (this *BaseExchange) CancelAllSpotOrdersAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.cancelAllSpotOrdersBody(ch, optionalArgs...)
     return ch
@@ -5811,7 +5811,7 @@ func (this *BaseExchange) cancelAllSpotOrdersBody(ch chan any, optionalArgs ...a
         _ = params
         panic(NotSupported(Add(this.Id, " cancelAllSpotOrders() is not supported yet")))
 }
-func  (this *BaseExchange) CancelAllContractOrders(optionalArgs ...any) <- chan any {
+func  (this *BaseExchange) CancelAllContractOrdersAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.cancelAllContractOrdersBody(ch, optionalArgs...)
     return ch
@@ -5825,7 +5825,7 @@ func (this *BaseExchange) cancelAllContractOrdersBody(ch chan any, optionalArgs 
         _ = params
         panic(NotSupported(Add(this.Id, " cancelAllContractOrders() is not supported yet")))
 }
-func  (this *BaseExchange) CancelAllOrdersAfter(timeout any, optionalArgs ...any) <- chan any {
+func  (this *BaseExchange) CancelAllOrdersAfterAsync(timeout any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.cancelAllOrdersAfterBody(ch, timeout, optionalArgs...)
     return ch
@@ -5837,7 +5837,7 @@ func (this *BaseExchange) cancelAllOrdersAfterBody(ch chan any, timeout any, opt
         _ = params
         panic(NotSupported(Add(this.Id, " cancelAllOrdersAfter() is not supported yet")))
 }
-func  (this *BaseExchange) CancelOrdersForSymbols(orders any, optionalArgs ...any) <- chan any {
+func  (this *BaseExchange) CancelOrdersForSymbolsAsync(orders any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.cancelOrdersForSymbolsBody(ch, orders, optionalArgs...)
     return ch
@@ -5849,7 +5849,7 @@ func (this *BaseExchange) cancelOrdersForSymbolsBody(ch chan any, orders any, op
         _ = params
         panic(NotSupported(Add(this.Id, " cancelOrdersForSymbols() is not supported yet")))
 }
-func  (this *BaseExchange) FetchMyLiquidations(optionalArgs ...any) <- chan any {
+func  (this *BaseExchange) FetchMyLiquidationsAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchMyLiquidationsBody(ch, optionalArgs...)
     return ch
@@ -5867,7 +5867,7 @@ func (this *BaseExchange) fetchMyLiquidationsBody(ch chan any, optionalArgs ...a
         _ = params
         panic(NotSupported(Add(this.Id, " fetchMyLiquidations() is not supported yet")))
 }
-func  (this *BaseExchange) FetchLiquidations(symbol any, optionalArgs ...any) <- chan any {
+func  (this *BaseExchange) FetchLiquidationsAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchLiquidationsBody(ch, symbol, optionalArgs...)
     return ch
@@ -5883,7 +5883,7 @@ func (this *BaseExchange) fetchLiquidationsBody(ch chan any, symbol any, optiona
         _ = params
         panic(NotSupported(Add(this.Id, " fetchLiquidations() is not supported yet")))
 }
-func  (this *BaseExchange) FetchGreeks(symbol any, optionalArgs ...any) <- chan any {
+func  (this *BaseExchange) FetchGreeksAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchGreeksBody(ch, symbol, optionalArgs...)
     return ch
@@ -5895,7 +5895,7 @@ func (this *BaseExchange) fetchGreeksBody(ch chan any, symbol any, optionalArgs 
         _ = params
         panic(NotSupported(Add(this.Id, " fetchGreeks() is not supported yet")))
 }
-func  (this *BaseExchange) FetchAllGreeks(optionalArgs ...any) <- chan any {
+func  (this *BaseExchange) FetchAllGreeksAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchAllGreeksBody(ch, optionalArgs...)
     return ch
@@ -5909,7 +5909,7 @@ func (this *BaseExchange) fetchAllGreeksBody(ch chan any, optionalArgs ...any) a
         _ = params
         panic(NotSupported(Add(this.Id, " fetchAllGreeks() is not supported yet")))
 }
-func  (this *BaseExchange) FetchOptionChain(code any, optionalArgs ...any) <- chan any {
+func  (this *BaseExchange) FetchOptionChainAsync(code any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchOptionChainBody(ch, code, optionalArgs...)
     return ch
@@ -5921,7 +5921,7 @@ func (this *BaseExchange) fetchOptionChainBody(ch chan any, code any, optionalAr
         _ = params
         panic(NotSupported(Add(this.Id, " fetchOptionChain() is not supported yet")))
 }
-func  (this *BaseExchange) FetchOption(symbol any, optionalArgs ...any) <- chan any {
+func  (this *BaseExchange) FetchOptionAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchOptionBody(ch, symbol, optionalArgs...)
     return ch
@@ -5933,7 +5933,7 @@ func (this *BaseExchange) fetchOptionBody(ch chan any, symbol any, optionalArgs 
         _ = params
         panic(NotSupported(Add(this.Id, " fetchOption() is not supported yet")))
 }
-func  (this *BaseExchange) FetchConvertQuote(fromCode any, toCode any, optionalArgs ...any) <- chan any {
+func  (this *BaseExchange) FetchConvertQuoteAsync(fromCode any, toCode any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchConvertQuoteBody(ch, fromCode, toCode, optionalArgs...)
     return ch
@@ -5947,7 +5947,7 @@ func (this *BaseExchange) fetchConvertQuoteBody(ch chan any, fromCode any, toCod
         _ = params
         panic(NotSupported(Add(this.Id, " fetchConvertQuote() is not supported yet")))
 }
-func  (this *BaseExchange) FetchDepositsWithdrawals(optionalArgs ...any) <- chan any {
+func  (this *BaseExchange) FetchDepositsWithdrawalsAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchDepositsWithdrawalsBody(ch, optionalArgs...)
     return ch
@@ -5965,7 +5965,7 @@ func (this *BaseExchange) fetchDepositsWithdrawalsBody(ch chan any, optionalArgs
         _ = params
         panic(NotSupported(Add(this.Id, " fetchDepositsWithdrawals() is not supported yet")))
 }
-func  (this *BaseExchange) FetchDeposits(optionalArgs ...any) <- chan any {
+func  (this *BaseExchange) FetchDepositsAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchDepositsBody(ch, optionalArgs...)
     return ch
@@ -5983,7 +5983,7 @@ func (this *BaseExchange) fetchDepositsBody(ch chan any, optionalArgs ...any) an
         _ = params
         panic(NotSupported(Add(this.Id, " fetchDeposits() is not supported yet")))
 }
-func  (this *BaseExchange) FetchWithdrawals(optionalArgs ...any) <- chan any {
+func  (this *BaseExchange) FetchWithdrawalsAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchWithdrawalsBody(ch, optionalArgs...)
     return ch
@@ -6001,7 +6001,7 @@ func (this *BaseExchange) fetchWithdrawalsBody(ch chan any, optionalArgs ...any)
         _ = params
         panic(NotSupported(Add(this.Id, " fetchWithdrawals() is not supported yet")))
 }
-func  (this *BaseExchange) FetchDepositsWs(optionalArgs ...any) <- chan any {
+func  (this *BaseExchange) FetchDepositsWsAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchDepositsWsBody(ch, optionalArgs...)
     return ch
@@ -6019,7 +6019,7 @@ func (this *BaseExchange) fetchDepositsWsBody(ch chan any, optionalArgs ...any) 
         _ = params
         panic(NotSupported(Add(this.Id, " fetchDepositsWs() is not supported yet")))
 }
-func  (this *BaseExchange) FetchWithdrawalsWs(optionalArgs ...any) <- chan any {
+func  (this *BaseExchange) FetchWithdrawalsWsAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchWithdrawalsWsBody(ch, optionalArgs...)
     return ch
@@ -6037,7 +6037,7 @@ func (this *BaseExchange) fetchWithdrawalsWsBody(ch chan any, optionalArgs ...an
         _ = params
         panic(NotSupported(Add(this.Id, " fetchWithdrawalsWs() is not supported yet")))
 }
-func  (this *BaseExchange) FetchFundingRateHistory(optionalArgs ...any) <- chan any {
+func  (this *BaseExchange) FetchFundingRateHistoryAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchFundingRateHistoryBody(ch, optionalArgs...)
     return ch
@@ -6055,7 +6055,7 @@ func (this *BaseExchange) fetchFundingRateHistoryBody(ch chan any, optionalArgs 
         _ = params
         panic(NotSupported(Add(this.Id, " fetchFundingRateHistory() is not supported yet")))
 }
-func  (this *BaseExchange) FetchFundingHistory(optionalArgs ...any) <- chan any {
+func  (this *BaseExchange) FetchFundingHistoryAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchFundingHistoryBody(ch, optionalArgs...)
     return ch
@@ -6078,7 +6078,7 @@ func  (this *BaseExchange) ParseLastPrice(price any, optionalArgs ...any) any  {
     _ = market
     panic(NotSupported(Add(this.Id, " parseLastPrice() is not supported yet")))
 }
-func  (this *BaseExchange) FetchDepositAddress(code any, optionalArgs ...any) <- chan any {
+func  (this *BaseExchange) FetchDepositAddressAsync(code any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchDepositAddressBody(ch, code, optionalArgs...)
     return ch
@@ -6090,7 +6090,7 @@ func (this *BaseExchange) fetchDepositAddressBody(ch chan any, code any, optiona
         _ = params
         if !IsEqual(GetValue(this.Has, "fetchDepositAddresses"), nil) && !IsEqual(GetValue(this.Has, "fetchDepositAddresses"), false) {
     
-            depositAddresses:= (<-this.FetchDepositAddresses([]any{code}, params))
+            depositAddresses:= (<-this.FetchDepositAddressesAsync([]any{code}, params))
             PanicOnError(depositAddresses)
             var depositAddress any = this.SafeValue(depositAddresses, code)
             if IsEqual(depositAddress, nil) {
@@ -6121,7 +6121,7 @@ func (this *BaseExchange) fetchDepositAddressBody(ch chan any, code any, optiona
             panic(NotSupported(Add(this.Id, " fetchDepositAddress() is not supported yet")))
         }
 }
-func  (this *BaseExchange) FetchContractDepositAddress(code any, optionalArgs ...any) <- chan any {
+func  (this *BaseExchange) FetchContractDepositAddressAsync(code any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchContractDepositAddressBody(ch, code, optionalArgs...)
     return ch
@@ -6403,7 +6403,7 @@ func  (this *BaseExchange) IntegerPrecisionToAmount(precision any) any  {
         return Add(parsedPrecision, "0")
     }
 }
-func  (this *BaseExchange) LoadTimeDifference(optionalArgs ...any) <- chan any {
+func  (this *BaseExchange) LoadTimeDifferenceAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.loadTimeDifferenceBody(ch, optionalArgs...)
     return ch
@@ -6430,7 +6430,7 @@ func  (this *BaseExchange) ImplodeHostname(url any) any  {
         "hostname": this.Hostname,
     })
 }
-func  (this *BaseExchange) FetchMarketLeverageTiers(symbol any, optionalArgs ...any) <- chan any {
+func  (this *BaseExchange) FetchMarketLeverageTiersAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchMarketLeverageTiersBody(ch, symbol, optionalArgs...)
     return ch
@@ -6457,7 +6457,7 @@ func (this *BaseExchange) fetchMarketLeverageTiersBody(ch chan any, symbol any, 
             panic(NotSupported(Add(this.Id, " fetchMarketLeverageTiers() is not supported yet")))
         }
 }
-func  (this *BaseExchange) CreateSubAccount(name any, optionalArgs ...any) <- chan any {
+func  (this *BaseExchange) CreateSubAccountAsync(name any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.createSubAccountBody(ch, name, optionalArgs...)
     return ch
@@ -6875,7 +6875,7 @@ func  (this *BaseExchange) HandlePostOnly(isMarketOrder any, exchangeSpecificPos
     }
     return []any{false, params}
 }
-func  (this *BaseExchange) FetchLastPrices(optionalArgs ...any) <- chan any {
+func  (this *BaseExchange) FetchLastPricesAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchLastPricesBody(ch, optionalArgs...)
     return ch
@@ -6889,7 +6889,7 @@ func (this *BaseExchange) fetchLastPricesBody(ch chan any, optionalArgs ...any) 
         _ = params
         panic(NotSupported(Add(this.Id, " fetchLastPrices() is not supported yet")))
 }
-func  (this *BaseExchange) FetchTradingFees(optionalArgs ...any) <- chan any {
+func  (this *BaseExchange) FetchTradingFeesAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchTradingFeesBody(ch, optionalArgs...)
     return ch
@@ -6901,7 +6901,7 @@ func (this *BaseExchange) fetchTradingFeesBody(ch chan any, optionalArgs ...any)
         _ = params
         panic(NotSupported(Add(this.Id, " fetchTradingFees() is not supported yet")))
 }
-func  (this *BaseExchange) FetchTradingFeesWs(optionalArgs ...any) <- chan any {
+func  (this *BaseExchange) FetchTradingFeesWsAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchTradingFeesWsBody(ch, optionalArgs...)
     return ch
@@ -6913,7 +6913,7 @@ func (this *BaseExchange) fetchTradingFeesWsBody(ch chan any, optionalArgs ...an
         _ = params
         panic(NotSupported(Add(this.Id, " fetchTradingFeesWs() is not supported yet")))
 }
-func  (this *BaseExchange) FetchConvertCurrencies(optionalArgs ...any) <- chan any {
+func  (this *BaseExchange) FetchConvertCurrenciesAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchConvertCurrenciesBody(ch, optionalArgs...)
     return ch
@@ -6964,7 +6964,7 @@ func  (this *BaseExchange) ParseOpenInterestsHistory(response any, optionalArgs 
     var symbol *string = this.SafeString(market, "symbol")
     return this.FilterBySymbolSinceLimit(sorted, symbol, since, limit)
 }
-func  (this *BaseExchange) FetchFundingRate(symbol any, optionalArgs ...any) <- chan any {
+func  (this *BaseExchange) FetchFundingRateAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchFundingRateBody(ch, symbol, optionalArgs...)
     return ch
@@ -6976,7 +6976,7 @@ func (this *BaseExchange) fetchFundingRateBody(ch chan any, symbol any, optional
         _ = params
         if !IsEqual(GetValue(this.Has, "fetchFundingRates"), nil) && !IsEqual(GetValue(this.Has, "fetchFundingRates"), false) {
     
-            retRes790412 := (<-this.LoadMarkets())
+            retRes790412 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes790412)
     
             var market any = this.DerivedExchange.Market(symbol)
@@ -7000,7 +7000,7 @@ func (this *BaseExchange) fetchFundingRateBody(ch chan any, symbol any, optional
             panic(NotSupported(Add(this.Id, " fetchFundingRate () is not supported yet")))
         }
 }
-func  (this *BaseExchange) FetchFundingInterval(symbol any, optionalArgs ...any) <- chan any {
+func  (this *BaseExchange) FetchFundingIntervalAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchFundingIntervalBody(ch, symbol, optionalArgs...)
     return ch
@@ -7012,7 +7012,7 @@ func (this *BaseExchange) fetchFundingIntervalBody(ch chan any, symbol any, opti
         _ = params
         if !IsEqual(GetValue(this.Has, "fetchFundingIntervals"), nil) && !IsEqual(GetValue(this.Has, "fetchFundingIntervals"), false) {
     
-            retRes792412 := (<-this.LoadMarkets())
+            retRes792412 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes792412)
     
             var market any = this.DerivedExchange.Market(symbol)
@@ -7036,7 +7036,7 @@ func (this *BaseExchange) fetchFundingIntervalBody(ch chan any, symbol any, opti
             panic(NotSupported(Add(this.Id, " fetchFundingInterval() is not supported yet")))
         }
 }
-func  (this *BaseExchange) FetchMarkOHLCV(symbol any, optionalArgs ...any) <- chan any {
+func  (this *BaseExchange) FetchMarkOHLCVAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchMarkOHLCVBody(ch, symbol, optionalArgs...)
     return ch
@@ -7076,7 +7076,7 @@ func (this *BaseExchange) fetchMarkOHLCVBody(ch chan any, symbol any, optionalAr
             panic(NotSupported(Add(this.Id, " fetchMarkOHLCV () is not supported yet")))
         }
 }
-func  (this *BaseExchange) FetchIndexOHLCV(symbol any, optionalArgs ...any) <- chan any {
+func  (this *BaseExchange) FetchIndexOHLCVAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchIndexOHLCVBody(ch, symbol, optionalArgs...)
     return ch
@@ -7116,7 +7116,7 @@ func (this *BaseExchange) fetchIndexOHLCVBody(ch chan any, symbol any, optionalA
             panic(NotSupported(Add(this.Id, " fetchIndexOHLCV () is not supported yet")))
         }
 }
-func  (this *BaseExchange) FetchPremiumIndexOHLCV(symbol any, optionalArgs ...any) <- chan any {
+func  (this *BaseExchange) FetchPremiumIndexOHLCVAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchPremiumIndexOHLCVBody(ch, symbol, optionalArgs...)
     return ch
@@ -7387,7 +7387,7 @@ func  (this *BaseExchange) ParseWsOHLCVs(ohlcvs any, optionalArgs ...any) any  {
     }
     return results
 }
-func  (this *BaseExchange) FetchTransactions(optionalArgs ...any) <- chan any {
+func  (this *BaseExchange) FetchTransactionsAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchTransactionsBody(ch, optionalArgs...)
     return ch
@@ -7483,7 +7483,7 @@ func  (this *BaseExchange) HandleMaxEntriesPerRequestAndParams(method any, optio
     }
     return []any{maxEntriesPerRequest, params}
 }
-func  (this *BaseExchange) FetchPaginatedCallDynamic(method any, optionalArgs ...any) <- chan any {
+func  (this *BaseExchange) FetchPaginatedCallDynamicAsync(method any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchPaginatedCallDynamicBody(ch, method, optionalArgs...)
     return ch
@@ -7628,7 +7628,7 @@ func (this *BaseExchange) fetchPaginatedCallDynamicBody(ch chan any, method any,
         ch <- this.FilterBySinceLimit(sortedRes, since, limit, key)
         return nil
 }
-func  (this *BaseExchange) SafeDeterministicCall(method any, optionalArgs ...any) <- chan any {
+func  (this *BaseExchange) SafeDeterministicCallAsync(method any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.safeDeterministicCallBody(ch, method, optionalArgs...)
     return ch
@@ -7703,7 +7703,7 @@ func (this *BaseExchange) safeDeterministicCallBody(ch chan any, method any, opt
         ch <- []any{}
         return nil
 }
-func  (this *BaseExchange) FetchPaginatedCallDeterministic(method any, optionalArgs ...any) <- chan any {
+func  (this *BaseExchange) FetchPaginatedCallDeterministicAsync(method any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchPaginatedCallDeterministicBody(ch, method, optionalArgs...)
     return ch
@@ -7770,7 +7770,7 @@ func (this *BaseExchange) fetchPaginatedCallDeterministicBody(ch chan any, metho
             if IsGreaterThanOrEqual(currentSince, current) {
                 break
             }
-            AppendToArray(&tasks, this.SafeDeterministicCall(method, symbol, currentSince, maxEntriesPerRequest, timeframe, params))
+            AppendToArray(&tasks, this.SafeDeterministicCallAsync(method, symbol, currentSince, maxEntriesPerRequest, timeframe, params))
             currentSince = Subtract(this.Sum(currentSince, step), 1)
         }
     
@@ -7788,7 +7788,7 @@ func (this *BaseExchange) fetchPaginatedCallDeterministicBody(ch chan any, metho
 }
 // the 'symbol' slot is forwarded to `this[method]` untouched and is only compared against
 // undefined here, so fetchPositions/fetchPositionsHistory legitimately pass a symbol list
-func  (this *BaseExchange) FetchPaginatedCallCursor(method any, optionalArgs ...any) <- chan any {
+func  (this *BaseExchange) FetchPaginatedCallCursorAsync(method any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchPaginatedCallCursorBody(ch, method, optionalArgs...)
     return ch
@@ -7931,7 +7931,7 @@ func (this *BaseExchange) fetchPaginatedCallCursorBody(ch chan any, method any, 
         ch <- this.FilterBySinceLimit(sorted, since, limit, key)
         return nil
 }
-func  (this *BaseExchange) FetchPaginatedCallIncremental(method any, optionalArgs ...any) <- chan any {
+func  (this *BaseExchange) FetchPaginatedCallIncrementalAsync(method any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchPaginatedCallIncrementalBody(ch, method, optionalArgs...)
     return ch
@@ -8396,7 +8396,7 @@ func  (this *BaseExchange) ConvertMarketIdExpireDate(date any) any  {
     var reconstructedDate any = Add(Add(day, month), year)
     return reconstructedDate
 }
-func  (this *BaseExchange) LoadMarketsAndSignIn() <- chan any {
+func  (this *BaseExchange) LoadMarketsAndSignInAsync() <- chan any {
     ch := make(chan any, 1)
     go this.loadMarketsAndSignInBody(ch)
     return ch
@@ -8405,7 +8405,7 @@ func (this *BaseExchange) loadMarketsAndSignInBody(ch chan any) any {
     defer close(ch)
     defer ReturnPanicError(ch)
     
-    retRes89178 := (<-promiseAll([]any{this.LoadMarkets(), <-this.callInternal("signIn")}))
+    retRes89178 := (<-promiseAll([]any{this.LoadMarketsAsync(), <-this.callInternal("signIn")}))
     PanicOnError(retRes89178)
     return nil
 }
@@ -8440,7 +8440,7 @@ func  (this *BaseExchange) ParseMarginModifications(response any, optionalArgs .
     }
     return marginModifications
 }
-func  (this *BaseExchange) FetchTransfer(id any, optionalArgs ...any) <- chan any {
+func  (this *BaseExchange) FetchTransferAsync(id any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchTransferBody(ch, id, optionalArgs...)
     return ch
@@ -8454,7 +8454,7 @@ func (this *BaseExchange) fetchTransferBody(ch chan any, id any, optionalArgs ..
         _ = params
         panic(NotSupported(Add(this.Id, " fetchTransfer () is not supported yet")))
 }
-func  (this *BaseExchange) FetchTransfers(optionalArgs ...any) <- chan any {
+func  (this *BaseExchange) FetchTransfersAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchTransfersBody(ch, optionalArgs...)
     return ch
@@ -8472,7 +8472,7 @@ func (this *BaseExchange) fetchTransfersBody(ch chan any, optionalArgs ...any) a
         _ = params
         panic(NotSupported(Add(this.Id, " fetchTransfers () is not supported yet")))
 }
-func  (this *BaseExchange) UnWatchOHLCV(symbol any, optionalArgs ...any) <- chan any {
+func  (this *BaseExchange) UnWatchOHLCVAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.unWatchOHLCVBody(ch, symbol, optionalArgs...)
     return ch
@@ -8486,7 +8486,7 @@ func (this *BaseExchange) unWatchOHLCVBody(ch chan any, symbol any, optionalArgs
         _ = params
         panic(NotSupported(Add(this.Id, " unWatchOHLCV () is not supported yet")))
 }
-func  (this *BaseExchange) WithdrawWs(code any, amount any, address any, optionalArgs ...any) <- chan any {
+func  (this *BaseExchange) WithdrawWsAsync(code any, amount any, address any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.withdrawWsBody(ch, code, amount, address, optionalArgs...)
     return ch
@@ -8500,7 +8500,7 @@ func (this *BaseExchange) withdrawWsBody(ch chan any, code any, amount any, addr
         _ = params
         panic(NotSupported(Add(this.Id, " withdrawWs () is not supported yet")))
 }
-func  (this *BaseExchange) UnWatchMyTrades(optionalArgs ...any) <- chan any {
+func  (this *BaseExchange) UnWatchMyTradesAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.unWatchMyTradesBody(ch, optionalArgs...)
     return ch
@@ -8514,7 +8514,7 @@ func (this *BaseExchange) unWatchMyTradesBody(ch chan any, optionalArgs ...any) 
         _ = params
         panic(NotSupported(Add(this.Id, " unWatchMyTrades () is not supported yet")))
 }
-func  (this *BaseExchange) FetchOrdersByStatusWs(status any, optionalArgs ...any) <- chan any {
+func  (this *BaseExchange) FetchOrdersByStatusWsAsync(status any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchOrdersByStatusWsBody(ch, status, optionalArgs...)
     return ch
@@ -8532,7 +8532,7 @@ func (this *BaseExchange) fetchOrdersByStatusWsBody(ch chan any, status any, opt
         _ = params
         panic(NotSupported(Add(this.Id, " fetchOrdersByStatusWs () is not supported yet")))
 }
-func  (this *BaseExchange) UnWatchBidsAsks(optionalArgs ...any) <- chan any {
+func  (this *BaseExchange) UnWatchBidsAsksAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.unWatchBidsAsksBody(ch, optionalArgs...)
     return ch
@@ -8682,7 +8682,7 @@ func  (this *BaseExchange) TimeframeFromMilliseconds(ms any) any  {
     }
     return ""
 }
-func  (this *BaseExchange) IsUTAEnabled(optionalArgs ...any) <- chan any {
+func  (this *BaseExchange) IsUTAEnabledAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.isUTAEnabledBody(ch, optionalArgs...)
     return ch
@@ -8700,7 +8700,7 @@ func (this *BaseExchange) isUTAEnabledBody(ch chan any, optionalArgs ...any) any
 
 
 
-func  (this *Exchange) ClosePosition(symbol any, optionalArgs ...any) <- chan any {
+func  (this *Exchange) ClosePositionAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.closePositionBody(ch, symbol, optionalArgs...)
     return ch
@@ -8714,7 +8714,7 @@ func (this *Exchange) closePositionBody(ch chan any, symbol any, optionalArgs ..
         _ = params
         panic(NotSupported(Add(this.Id, " closePosition() is not supported yet")))
 }
-func  (this *Exchange) CloseAllPositions(optionalArgs ...any) <- chan any {
+func  (this *Exchange) CloseAllPositionsAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.closeAllPositionsBody(ch, optionalArgs...)
     return ch
@@ -8726,7 +8726,7 @@ func (this *Exchange) closeAllPositionsBody(ch chan any, optionalArgs ...any) an
         _ = params
         panic(NotSupported(Add(this.Id, " closeAllPositions() is not supported yet")))
 }
-func  (this *Exchange) EditOrders(orders any, optionalArgs ...any) <- chan any {
+func  (this *Exchange) EditOrdersAsync(orders any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.editOrdersBody(ch, orders, optionalArgs...)
     return ch
@@ -8738,7 +8738,7 @@ func (this *Exchange) editOrdersBody(ch chan any, orders any, optionalArgs ...an
         _ = params
         panic(NotSupported(Add(this.Id, " editOrders() is not supported yet")))
 }
-func  (this *Exchange) FetchCanceledAndClosedOrders(optionalArgs ...any) <- chan any {
+func  (this *Exchange) FetchCanceledAndClosedOrdersAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchCanceledAndClosedOrdersBody(ch, optionalArgs...)
     return ch
@@ -8756,7 +8756,7 @@ func (this *Exchange) fetchCanceledAndClosedOrdersBody(ch chan any, optionalArgs
         _ = params
         panic(NotSupported(Add(this.Id, " fetchCanceledAndClosedOrders() is not supported yet")))
 }
-func  (this *Exchange) FetchPositionHistory(symbol any, optionalArgs ...any) <- chan any {
+func  (this *Exchange) FetchPositionHistoryAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchPositionHistoryBody(ch, symbol, optionalArgs...)
     return ch
@@ -8791,7 +8791,7 @@ func (this *Exchange) fetchPositionHistoryBody(ch chan any, symbol any, optional
             panic(NotSupported(Add(this.Id, " fetchPositionHistory () is not supported yet")))
         }
 }
-func  (this *Exchange) FetchPositionsHistory(optionalArgs ...any) <- chan any {
+func  (this *Exchange) FetchPositionsHistoryAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchPositionsHistoryBody(ch, optionalArgs...)
     return ch
@@ -8809,7 +8809,7 @@ func (this *Exchange) fetchPositionsHistoryBody(ch chan any, optionalArgs ...any
         _ = params
         panic(NotSupported(Add(this.Id, " fetchPositionsHistory () is not supported yet")))
 }
-func  (this *Exchange) FetchPositionsRisk(optionalArgs ...any) <- chan any {
+func  (this *Exchange) FetchPositionsRiskAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchPositionsRiskBody(ch, optionalArgs...)
     return ch
@@ -8823,7 +8823,7 @@ func (this *Exchange) fetchPositionsRiskBody(ch chan any, optionalArgs ...any) a
         _ = params
         panic(NotSupported(Add(this.Id, " fetchPositionsRisk() is not supported yet")))
 }
-func  (this *Exchange) FetchPositionsForSymbol(symbol any, optionalArgs ...any) <- chan any {
+func  (this *Exchange) FetchPositionsForSymbolAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchPositionsForSymbolBody(ch, symbol, optionalArgs...)
     return ch
@@ -8835,7 +8835,7 @@ func (this *Exchange) fetchPositionsForSymbolBody(ch chan any, symbol any, optio
         _ = params
         panic(NotSupported(Add(this.Id, " fetchPositionsForSymbol() is not supported yet")))
 }
-func  (this *Exchange) FetchPositionsForSymbolWs(symbol any, optionalArgs ...any) <- chan any {
+func  (this *Exchange) FetchPositionsForSymbolWsAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchPositionsForSymbolWsBody(ch, symbol, optionalArgs...)
     return ch
@@ -8847,7 +8847,7 @@ func (this *Exchange) fetchPositionsForSymbolWsBody(ch chan any, symbol any, opt
         _ = params
         panic(NotSupported(Add(this.Id, " fetchPositionsForSymbol() is not supported yet")))
 }
-func  (this *Exchange) WatchPosition(optionalArgs ...any) <- chan any {
+func  (this *Exchange) WatchPositionAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.watchPositionBody(ch, optionalArgs...)
     return ch
@@ -8861,7 +8861,7 @@ func (this *Exchange) watchPositionBody(ch chan any, optionalArgs ...any) any {
         _ = params
         panic(NotSupported(Add(this.Id, " watchPosition() is not supported yet")))
 }
-func  (this *Exchange) WatchMyTradesForSymbols(symbols any, optionalArgs ...any) <- chan any {
+func  (this *Exchange) WatchMyTradesForSymbolsAsync(symbols any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.watchMyTradesForSymbolsBody(ch, symbols, optionalArgs...)
     return ch
@@ -8877,7 +8877,7 @@ func (this *Exchange) watchMyTradesForSymbolsBody(ch chan any, symbols any, opti
         _ = params
         panic(NotSupported(Add(this.Id, " watchMyTradesForSymbols() is not supported yet")))
 }
-func  (this *Exchange) WatchTradesForSymbols(symbols any, optionalArgs ...any) <- chan any {
+func  (this *Exchange) WatchTradesForSymbolsAsync(symbols any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.watchTradesForSymbolsBody(ch, symbols, optionalArgs...)
     return ch
@@ -8893,7 +8893,7 @@ func (this *Exchange) watchTradesForSymbolsBody(ch chan any, symbols any, option
         _ = params
         panic(NotSupported(Add(this.Id, " watchTradesForSymbols() is not supported yet")))
 }
-func  (this *Exchange) FetchBidsAsks(optionalArgs ...any) <- chan any {
+func  (this *Exchange) FetchBidsAsksAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchBidsAsksBody(ch, optionalArgs...)
     return ch
@@ -8907,7 +8907,7 @@ func (this *Exchange) fetchBidsAsksBody(ch chan any, optionalArgs ...any) any {
         _ = params
         panic(NotSupported(Add(this.Id, " fetchBidsAsks() is not supported yet")))
 }
-func  (this *Exchange) FetchMarkPrice(symbol any, optionalArgs ...any) <- chan any {
+func  (this *Exchange) FetchMarkPriceAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchMarkPriceBody(ch, symbol, optionalArgs...)
     return ch
@@ -8919,14 +8919,14 @@ func (this *Exchange) fetchMarkPriceBody(ch chan any, symbol any, optionalArgs .
         _ = params
         if !IsEqual(GetValue(this.Has, "fetchMarkPrices"), nil) && !IsEqual(GetValue(this.Has, "fetchMarkPrices"), false) {
     
-            retRes927712 := (<-this.LoadMarkets())
+            retRes927712 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes927712)
     
             var market any = this.DerivedExchange.Market(symbol)
             PanicOnError(market)
             symbol = GetValue(market, "symbol")
     
-            tickers:= (<-this.FetchMarkPrices([]any{symbol}, params))
+            tickers:= (<-this.FetchMarkPricesAsync([]any{symbol}, params))
             PanicOnError(tickers)
             var ticker any = this.SafeDict(tickers, symbol)
             if IsEqual(ticker, nil) {
@@ -8940,7 +8940,7 @@ func (this *Exchange) fetchMarkPriceBody(ch chan any, symbol any, optionalArgs .
             panic(NotSupported(Add(this.Id, " fetchMarkPrices() is not supported yet")))
         }
 }
-func  (this *Exchange) FetchMarkPrices(optionalArgs ...any) <- chan any {
+func  (this *Exchange) FetchMarkPricesAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchMarkPricesBody(ch, optionalArgs...)
     return ch
@@ -8954,7 +8954,7 @@ func (this *Exchange) fetchMarkPricesBody(ch chan any, optionalArgs ...any) any 
         _ = params
         panic(NotSupported(Add(this.Id, " fetchMarkPrices() is not supported yet")))
 }
-func  (this *Exchange) WatchBidsAsks(optionalArgs ...any) <- chan any {
+func  (this *Exchange) WatchBidsAsksAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.watchBidsAsksBody(ch, optionalArgs...)
     return ch
@@ -8968,7 +8968,7 @@ func (this *Exchange) watchBidsAsksBody(ch chan any, optionalArgs ...any) any {
         _ = params
         panic(NotSupported(Add(this.Id, " watchBidsAsks() is not supported yet")))
 }
-func  (this *Exchange) WatchMarkPrice(symbol any, optionalArgs ...any) <- chan any {
+func  (this *Exchange) WatchMarkPriceAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.watchMarkPriceBody(ch, symbol, optionalArgs...)
     return ch
@@ -8980,7 +8980,7 @@ func (this *Exchange) watchMarkPriceBody(ch chan any, symbol any, optionalArgs .
         _ = params
         panic(NotSupported(Add(this.Id, " watchMarkPrice () is not supported yet")))
 }
-func  (this *Exchange) WatchMarkPrices(optionalArgs ...any) <- chan any {
+func  (this *Exchange) WatchMarkPricesAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.watchMarkPricesBody(ch, optionalArgs...)
     return ch
@@ -8994,7 +8994,7 @@ func (this *Exchange) watchMarkPricesBody(ch chan any, optionalArgs ...any) any 
         _ = params
         panic(NotSupported(Add(this.Id, " watchMarkPrices () is not supported yet")))
 }
-func  (this *Exchange) FetchL3OrderBook(symbol any, optionalArgs ...any) <- chan any {
+func  (this *Exchange) FetchL3OrderBookAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchL3OrderBookBody(ch, symbol, optionalArgs...)
     return ch
@@ -9008,7 +9008,7 @@ func (this *Exchange) fetchL3OrderBookBody(ch chan any, symbol any, optionalArgs
         _ = params
         panic(BadRequest(Add(this.Id, " fetchL3OrderBook() is not supported yet")))
 }
-func  (this *Exchange) WatchOrderBookForSymbols(symbols any, optionalArgs ...any) <- chan any {
+func  (this *Exchange) WatchOrderBookForSymbolsAsync(symbols any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.watchOrderBookForSymbolsBody(ch, symbols, optionalArgs...)
     return ch
@@ -9022,7 +9022,7 @@ func (this *Exchange) watchOrderBookForSymbolsBody(ch chan any, symbols any, opt
         _ = params
         panic(NotSupported(Add(this.Id, " watchOrderBookForSymbols() is not supported yet")))
 }
-func  (this *Exchange) WatchOrdersForSymbols(symbols any, optionalArgs ...any) <- chan any {
+func  (this *Exchange) WatchOrdersForSymbolsAsync(symbols any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.watchOrdersForSymbolsBody(ch, symbols, optionalArgs...)
     return ch
@@ -9038,7 +9038,7 @@ func (this *Exchange) watchOrdersForSymbolsBody(ch chan any, symbols any, option
         _ = params
         panic(NotSupported(Add(this.Id, " watchOrdersForSymbols() is not supported yet")))
 }
-func  (this *Exchange) CancelAllOrdersWs(optionalArgs ...any) <- chan any {
+func  (this *Exchange) CancelAllOrdersWsAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.cancelAllOrdersWsBody(ch, optionalArgs...)
     return ch
@@ -9052,7 +9052,7 @@ func (this *Exchange) cancelAllOrdersWsBody(ch chan any, optionalArgs ...any) an
         _ = params
         panic(NotSupported(Add(this.Id, " cancelAllOrdersWs() is not supported yet")))
 }
-func  (this *Exchange) CancelOrderWs(id any, optionalArgs ...any) <- chan any {
+func  (this *Exchange) CancelOrderWsAsync(id any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.cancelOrderWsBody(ch, id, optionalArgs...)
     return ch
@@ -9066,7 +9066,7 @@ func (this *Exchange) cancelOrderWsBody(ch chan any, id any, optionalArgs ...any
         _ = params
         panic(NotSupported(Add(this.Id, " cancelOrderWs() is not supported yet")))
 }
-func  (this *Exchange) CancelOrdersWs(ids any, optionalArgs ...any) <- chan any {
+func  (this *Exchange) CancelOrdersWsAsync(ids any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.cancelOrdersWsBody(ch, ids, optionalArgs...)
     return ch
@@ -9080,7 +9080,7 @@ func (this *Exchange) cancelOrdersWsBody(ch chan any, ids any, optionalArgs ...a
         _ = params
         panic(NotSupported(Add(this.Id, " cancelOrdersWs() is not supported yet")))
 }
-func  (this *Exchange) CreateLimitBuyOrderWs(symbol any, amount any, price any, optionalArgs ...any) <- chan any {
+func  (this *Exchange) CreateLimitBuyOrderWsAsync(symbol any, amount any, price any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.createLimitBuyOrderWsBody(ch, symbol, amount, price, optionalArgs...)
     return ch
@@ -9096,7 +9096,7 @@ func (this *Exchange) createLimitBuyOrderWsBody(ch chan any, symbol any, amount 
             ch <- retRes934915
             return nil
 }
-func  (this *Exchange) CreateLimitOrderWs(symbol any, side any, amount any, price any, optionalArgs ...any) <- chan any {
+func  (this *Exchange) CreateLimitOrderWsAsync(symbol any, side any, amount any, price any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.createLimitOrderWsBody(ch, symbol, side, amount, price, optionalArgs...)
     return ch
@@ -9112,7 +9112,7 @@ func (this *Exchange) createLimitOrderWsBody(ch chan any, symbol any, side any, 
             ch <- retRes935315
             return nil
 }
-func  (this *Exchange) CreateLimitSellOrderWs(symbol any, amount any, price any, optionalArgs ...any) <- chan any {
+func  (this *Exchange) CreateLimitSellOrderWsAsync(symbol any, amount any, price any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.createLimitSellOrderWsBody(ch, symbol, amount, price, optionalArgs...)
     return ch
@@ -9128,7 +9128,7 @@ func (this *Exchange) createLimitSellOrderWsBody(ch chan any, symbol any, amount
             ch <- retRes935715
             return nil
 }
-func  (this *Exchange) CreateMarketBuyOrderWs(symbol any, amount any, optionalArgs ...any) <- chan any {
+func  (this *Exchange) CreateMarketBuyOrderWsAsync(symbol any, amount any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.createMarketBuyOrderWsBody(ch, symbol, amount, optionalArgs...)
     return ch
@@ -9144,7 +9144,7 @@ func (this *Exchange) createMarketBuyOrderWsBody(ch chan any, symbol any, amount
             ch <- retRes936115
             return nil
 }
-func  (this *Exchange) CreateMarketOrderWithCostWs(symbol any, side any, cost any, optionalArgs ...any) <- chan any {
+func  (this *Exchange) CreateMarketOrderWithCostWsAsync(symbol any, side any, cost any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.createMarketOrderWithCostWsBody(ch, symbol, side, cost, optionalArgs...)
     return ch
@@ -9173,7 +9173,7 @@ func (this *Exchange) createMarketOrderWithCostWsBody(ch chan any, symbol any, s
         }
         panic(NotSupported(Add(this.Id, " createMarketOrderWithCostWs() is not supported yet")))
 }
-func  (this *Exchange) CreateMarketOrderWs(symbol any, side any, amount any, optionalArgs ...any) <- chan any {
+func  (this *Exchange) CreateMarketOrderWsAsync(symbol any, side any, amount any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.createMarketOrderWsBody(ch, symbol, side, amount, optionalArgs...)
     return ch
@@ -9191,7 +9191,7 @@ func (this *Exchange) createMarketOrderWsBody(ch chan any, symbol any, side any,
             ch <- retRes938215
             return nil
 }
-func  (this *Exchange) CreateMarketSellOrderWs(symbol any, amount any, optionalArgs ...any) <- chan any {
+func  (this *Exchange) CreateMarketSellOrderWsAsync(symbol any, amount any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.createMarketSellOrderWsBody(ch, symbol, amount, optionalArgs...)
     return ch
@@ -9207,7 +9207,7 @@ func (this *Exchange) createMarketSellOrderWsBody(ch chan any, symbol any, amoun
             ch <- retRes938615
             return nil
 }
-func  (this *Exchange) CreateOrderWithTakeProfitAndStopLossWs(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <- chan any {
+func  (this *Exchange) CreateOrderWithTakeProfitAndStopLossWsAsync(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.createOrderWithTakeProfitAndStopLossWsBody(ch, symbol, typeVar, side, amount, optionalArgs...)
     return ch
@@ -9255,7 +9255,7 @@ func (this *Exchange) createOrderWithTakeProfitAndStopLossWsBody(ch chan any, sy
         }
         panic(NotSupported(Add(this.Id, " createOrderWithTakeProfitAndStopLossWs() is not supported yet")))
 }
-func  (this *Exchange) CreateOrderWs(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <- chan any {
+func  (this *Exchange) CreateOrderWsAsync(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.createOrderWsBody(ch, symbol, typeVar, side, amount, optionalArgs...)
     return ch
@@ -9269,7 +9269,7 @@ func (this *Exchange) createOrderWsBody(ch chan any, symbol any, typeVar any, si
         _ = params
         panic(NotSupported(Add(this.Id, " createOrderWs() is not supported yet")))
 }
-func  (this *Exchange) CreateOrdersWs(orders any, optionalArgs ...any) <- chan any {
+func  (this *Exchange) CreateOrdersWsAsync(orders any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.createOrdersWsBody(ch, orders, optionalArgs...)
     return ch
@@ -9281,7 +9281,7 @@ func (this *Exchange) createOrdersWsBody(ch chan any, orders any, optionalArgs .
         _ = params
         panic(NotSupported(Add(this.Id, " createOrdersWs () is not supported yet")))
 }
-func  (this *Exchange) CreatePostOnlyOrderWs(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <- chan any {
+func  (this *Exchange) CreatePostOnlyOrderWsAsync(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.createPostOnlyOrderWsBody(ch, symbol, typeVar, side, amount, optionalArgs...)
     return ch
@@ -9305,7 +9305,7 @@ func (this *Exchange) createPostOnlyOrderWsBody(ch chan any, symbol any, typeVar
             ch <- retRes944015
             return nil
 }
-func  (this *Exchange) CreateReduceOnlyOrderWs(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <- chan any {
+func  (this *Exchange) CreateReduceOnlyOrderWsAsync(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.createReduceOnlyOrderWsBody(ch, symbol, typeVar, side, amount, optionalArgs...)
     return ch
@@ -9329,7 +9329,7 @@ func (this *Exchange) createReduceOnlyOrderWsBody(ch chan any, symbol any, typeV
             ch <- retRes944815
             return nil
 }
-func  (this *Exchange) CreateStopLimitOrderWs(symbol any, side any, amount any, price any, triggerPrice any, optionalArgs ...any) <- chan any {
+func  (this *Exchange) CreateStopLimitOrderWsAsync(symbol any, side any, amount any, price any, triggerPrice any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.createStopLimitOrderWsBody(ch, symbol, side, amount, price, triggerPrice, optionalArgs...)
     return ch
@@ -9351,7 +9351,7 @@ func (this *Exchange) createStopLimitOrderWsBody(ch chan any, symbol any, side a
             ch <- retRes945615
             return nil
 }
-func  (this *Exchange) CreateStopLossOrderWs(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <- chan any {
+func  (this *Exchange) CreateStopLossOrderWsAsync(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.createStopLossOrderWsBody(ch, symbol, typeVar, side, amount, optionalArgs...)
     return ch
@@ -9393,7 +9393,7 @@ func (this *Exchange) createStopLossOrderWsBody(ch chan any, symbol any, typeVar
         }
         panic(NotSupported(Add(this.Id, " createStopLossOrderWs() is not supported yet")))
 }
-func  (this *Exchange) CreateStopMarketOrderWs(symbol any, side any, amount any, triggerPrice any, optionalArgs ...any) <- chan any {
+func  (this *Exchange) CreateStopMarketOrderWsAsync(symbol any, side any, amount any, triggerPrice any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.createStopMarketOrderWsBody(ch, symbol, side, amount, triggerPrice, optionalArgs...)
     return ch
@@ -9415,7 +9415,7 @@ func (this *Exchange) createStopMarketOrderWsBody(ch chan any, symbol any, side 
             ch <- retRes948815
             return nil
 }
-func  (this *Exchange) CreateStopOrderWs(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <- chan any {
+func  (this *Exchange) CreateStopOrderWsAsync(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.createStopOrderWsBody(ch, symbol, typeVar, side, amount, optionalArgs...)
     return ch
@@ -9444,7 +9444,7 @@ func (this *Exchange) createStopOrderWsBody(ch chan any, symbol any, typeVar any
             ch <- retRes949915
             return nil
 }
-func  (this *Exchange) CreateTakeProfitOrderWs(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <- chan any {
+func  (this *Exchange) CreateTakeProfitOrderWsAsync(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.createTakeProfitOrderWsBody(ch, symbol, typeVar, side, amount, optionalArgs...)
     return ch
@@ -9486,7 +9486,7 @@ func (this *Exchange) createTakeProfitOrderWsBody(ch chan any, symbol any, typeV
         }
         panic(NotSupported(Add(this.Id, " createTakeProfitOrderWs() is not supported yet")))
 }
-func  (this *Exchange) CreateTrailingAmountOrderWs(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <- chan any {
+func  (this *Exchange) CreateTrailingAmountOrderWsAsync(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.createTrailingAmountOrderWsBody(ch, symbol, typeVar, side, amount, optionalArgs...)
     return ch
@@ -9532,7 +9532,7 @@ func (this *Exchange) createTrailingAmountOrderWsBody(ch chan any, symbol any, t
         }
         panic(NotSupported(Add(this.Id, " createTrailingAmountOrderWs() is not supported yet")))
 }
-func  (this *Exchange) CreateTrailingPercentOrderWs(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <- chan any {
+func  (this *Exchange) CreateTrailingPercentOrderWsAsync(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.createTrailingPercentOrderWsBody(ch, symbol, typeVar, side, amount, optionalArgs...)
     return ch
@@ -9578,7 +9578,7 @@ func (this *Exchange) createTrailingPercentOrderWsBody(ch chan any, symbol any, 
         }
         panic(NotSupported(Add(this.Id, " createTrailingPercentOrderWs() is not supported yet")))
 }
-func  (this *Exchange) CreateTriggerOrderWs(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <- chan any {
+func  (this *Exchange) CreateTriggerOrderWsAsync(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.createTriggerOrderWsBody(ch, symbol, typeVar, side, amount, optionalArgs...)
     return ch
@@ -9620,7 +9620,7 @@ func (this *Exchange) createTriggerOrderWsBody(ch chan any, symbol any, typeVar 
         }
         panic(NotSupported(Add(this.Id, " createTriggerOrderWs() is not supported yet")))
 }
-func  (this *Exchange) EditOrderWs(id any, symbol any, typeVar any, side any, optionalArgs ...any) <- chan any {
+func  (this *Exchange) EditOrderWsAsync(id any, symbol any, typeVar any, side any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.editOrderWsBody(ch, id, symbol, typeVar, side, optionalArgs...)
     return ch
@@ -9643,7 +9643,7 @@ func (this *Exchange) editOrderWsBody(ch chan any, id any, symbol any, typeVar a
             ch <- retRes960815
             return nil
 }
-func  (this *Exchange) FetchClosedOrdersWs(optionalArgs ...any) <- chan any {
+func  (this *Exchange) FetchClosedOrdersWsAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchClosedOrdersWsBody(ch, optionalArgs...)
     return ch
@@ -9669,7 +9669,7 @@ func (this *Exchange) fetchClosedOrdersWsBody(ch chan any, optionalArgs ...any) 
         }
         panic(NotSupported(Add(this.Id, " fetchClosedOrdersWs() is not supported yet")))
 }
-func  (this *Exchange) FetchMyTradesWs(optionalArgs ...any) <- chan any {
+func  (this *Exchange) FetchMyTradesWsAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchMyTradesWsBody(ch, optionalArgs...)
     return ch
@@ -9687,7 +9687,7 @@ func (this *Exchange) fetchMyTradesWsBody(ch chan any, optionalArgs ...any) any 
         _ = params
         panic(NotSupported(Add(this.Id, " fetchMyTradesWs() is not supported yet")))
 }
-func  (this *Exchange) FetchOpenOrdersWs(optionalArgs ...any) <- chan any {
+func  (this *Exchange) FetchOpenOrdersWsAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchOpenOrdersWsBody(ch, optionalArgs...)
     return ch
@@ -9713,7 +9713,7 @@ func (this *Exchange) fetchOpenOrdersWsBody(ch chan any, optionalArgs ...any) an
         }
         panic(NotSupported(Add(this.Id, " fetchOpenOrdersWs() is not supported yet")))
 }
-func  (this *Exchange) FetchOrderBookWs(symbol any, optionalArgs ...any) <- chan any {
+func  (this *Exchange) FetchOrderBookWsAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchOrderBookWsBody(ch, symbol, optionalArgs...)
     return ch
@@ -9727,7 +9727,7 @@ func (this *Exchange) fetchOrderBookWsBody(ch chan any, symbol any, optionalArgs
         _ = params
         panic(NotSupported(Add(this.Id, " fetchOrderBookWs() is not supported yet")))
 }
-func  (this *Exchange) FetchOrderWs(id any, optionalArgs ...any) <- chan any {
+func  (this *Exchange) FetchOrderWsAsync(id any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchOrderWsBody(ch, id, optionalArgs...)
     return ch
@@ -9741,7 +9741,7 @@ func (this *Exchange) fetchOrderWsBody(ch chan any, id any, optionalArgs ...any)
         _ = params
         panic(NotSupported(Add(this.Id, " fetchOrderWs() is not supported yet")))
 }
-func  (this *Exchange) FetchOrdersWs(optionalArgs ...any) <- chan any {
+func  (this *Exchange) FetchOrdersWsAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchOrdersWsBody(ch, optionalArgs...)
     return ch
@@ -9759,7 +9759,7 @@ func (this *Exchange) fetchOrdersWsBody(ch chan any, optionalArgs ...any) any {
         _ = params
         panic(NotSupported(Add(this.Id, " fetchOrdersWs() is not supported yet")))
 }
-func  (this *Exchange) FetchPositionWs(symbol any, optionalArgs ...any) <- chan any {
+func  (this *Exchange) FetchPositionWsAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchPositionWsBody(ch, symbol, optionalArgs...)
     return ch
@@ -9771,7 +9771,7 @@ func (this *Exchange) fetchPositionWsBody(ch chan any, symbol any, optionalArgs 
         _ = params
         panic(NotSupported(Add(this.Id, " fetchPositionWs() is not supported yet")))
 }
-func  (this *Exchange) FetchPositionsWs(optionalArgs ...any) <- chan any {
+func  (this *Exchange) FetchPositionsWsAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchPositionsWsBody(ch, optionalArgs...)
     return ch
@@ -9785,7 +9785,7 @@ func (this *Exchange) fetchPositionsWsBody(ch chan any, optionalArgs ...any) any
         _ = params
         panic(NotSupported(Add(this.Id, " fetchPositions() is not supported yet")))
 }
-func  (this *Exchange) FetchTickerWs(symbol any, optionalArgs ...any) <- chan any {
+func  (this *Exchange) FetchTickerWsAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchTickerWsBody(ch, symbol, optionalArgs...)
     return ch
@@ -9797,7 +9797,7 @@ func (this *Exchange) fetchTickerWsBody(ch chan any, symbol any, optionalArgs ..
         _ = params
         if !IsEqual(GetValue(this.Has, "fetchTickersWs"), nil) && !IsEqual(GetValue(this.Has, "fetchTickersWs"), false) {
     
-            retRes965312 := (<-this.LoadMarkets())
+            retRes965312 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes965312)
     
             var market any = this.DerivedExchange.Market(symbol)
@@ -9818,7 +9818,7 @@ func (this *Exchange) fetchTickerWsBody(ch chan any, symbol any, optionalArgs ..
             panic(NotSupported(Add(this.Id, " fetchTickerWs() is not supported yet")))
         }
 }
-func  (this *Exchange) FetchTickersWs(optionalArgs ...any) <- chan any {
+func  (this *Exchange) FetchTickersWsAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchTickersWsBody(ch, optionalArgs...)
     return ch
@@ -9832,7 +9832,7 @@ func (this *Exchange) fetchTickersWsBody(ch chan any, optionalArgs ...any) any {
         _ = params
         panic(NotSupported(Add(this.Id, " fetchTickersWs() is not supported yet")))
 }
-func  (this *Exchange) FetchTradesWs(symbol any, optionalArgs ...any) <- chan any {
+func  (this *Exchange) FetchTradesWsAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchTradesWsBody(ch, symbol, optionalArgs...)
     return ch
@@ -9848,76 +9848,8 @@ func (this *Exchange) fetchTradesWsBody(ch chan any, symbol any, optionalArgs ..
         _ = params
         panic(NotSupported(Add(this.Id, " fetchTradesWs() is not supported yet")))
 }
-func  (this *Exchange) LoadOrderBook(client *Client, messageHash any, symbol any, optionalArgs ...any) <- chan any {
-    ch := make(chan any, 1)
-    go this.loadOrderBookBody(ch, client, messageHash, symbol, optionalArgs...)
-    return ch
-}
-func (this *Exchange) loadOrderBookBody(ch chan any, client *Client, messageHash any, symbol any, optionalArgs ...any) any {
-    defer close(ch)
-    defer ReturnPanicError(ch)
-        limit := GetArg(optionalArgs, 0, nil)
-        _ = limit
-        params := GetArg(optionalArgs, 1, map[string]any {})
-        _ = params
-        if !(InOp(this.Orderbooks, symbol)) {
-            client.Reject(ExchangeError(Add(this.Id, " loadOrderBook() orderbook is not initiated")), messageHash)
-    
-            return nil
-        }
-        var maxRetries any = this.HandleOption("watchOrderBook", "snapshotMaxRetries", 3)
-        var tries any = 0
-        var error any = nil
-        
-            {
-                 func(this *Exchange) (ret_ any) {
-        		    defer func() {
-                        if e := recover(); e != nil {
-                            if e == "break" {
-                                return
-                            }
-                            ret_ = func(this *Exchange) any {
-                                // catch block:
-                                        error = e
-                                return nil
-                            }(this)
-                        }
-                    }()
-        		    // try block:
-                            var stored any = GetValue(this.Orderbooks, symbol)
-                for IsLessThan(tries, maxRetries) {
-                    var cache any = stored.Cache
-        
-                    orderBook:= (<-this.FetchRestOrderBookSafe(symbol, limit, params))
-                    PanicOnError(orderBook)
-                    var index any = this.GetCacheIndex(orderBook, cache)
-                    if IsGreaterThanOrEqual(index, 0) {
-                        stored.Reset(orderBook)
-                        this.HandleDeltas(stored, Slice(cache, index, nil))
-                        GetArrayLength(stored.Cache) = 0
-                        client.Resolve(stored, messageHash)
-        
-                        return nil
-                    }
-                                tries++
-                }
-                error = ExchangeError(Add(Add(Add(this.Id, " nonce is behind the cache after "), ToString(maxRetries)), " tries."))
-        		    return nil
-        	    }(this)
-            
-                }
-        // a failed synchronization must not recurse into another attempt with the
-        // same broken state - previously the catch invoked loadOrderBook again,
-        // recursing endlessly when the snapshot request kept failing, see
-        // https://github.com/ccxt/ccxt/pull/24224 and https://github.com/ccxt/ccxt/issues/14567
-        // instead, reject the watcher and drop the connection and the cached
-        // orderbook, so the next watchOrderBook () call resubscribes cleanly
-        client.Reject(error, messageHash)
-        Remove(this.Clients, client.Url)
-        AddElementToObject(this.Orderbooks, symbol, this.OrderBook()) // clear the orderbook and its cache - issue https://github.com/ccxt/ccxt/issues/26753
-    return nil
-}
-func  (this *Exchange) FetchTrades(symbol any, optionalArgs ...any) <- chan any {
+
+func  (this *Exchange) FetchTradesAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchTradesBody(ch, symbol, optionalArgs...)
     return ch
@@ -9933,7 +9865,7 @@ func (this *Exchange) fetchTradesBody(ch chan any, symbol any, optionalArgs ...a
         _ = params
         panic(NotSupported(Add(this.Id, " fetchTrades() is not supported yet")))
 }
-func  (this *Exchange) WatchTrades(symbol any, optionalArgs ...any) <- chan any {
+func  (this *Exchange) WatchTradesAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.watchTradesBody(ch, symbol, optionalArgs...)
     return ch
@@ -9949,7 +9881,7 @@ func (this *Exchange) watchTradesBody(ch chan any, symbol any, optionalArgs ...a
         _ = params
         panic(NotSupported(Add(this.Id, " watchTrades() is not supported yet")))
 }
-func  (this *Exchange) FetchOrderBook(symbol any, optionalArgs ...any) <- chan any {
+func  (this *Exchange) FetchOrderBookAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchOrderBookBody(ch, symbol, optionalArgs...)
     return ch
@@ -9963,7 +9895,7 @@ func (this *Exchange) fetchOrderBookBody(ch chan any, symbol any, optionalArgs .
         _ = params
         panic(NotSupported(Add(this.Id, " fetchOrderBook() is not supported yet")))
 }
-func  (this *Exchange) FetchRestOrderBookSafe(symbol any, optionalArgs ...any) <- chan any {
+func  (this *Exchange) FetchRestOrderBookSafeAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchRestOrderBookSafeBody(ch, symbol, optionalArgs...)
     return ch
@@ -10015,7 +9947,7 @@ func (this *Exchange) fetchRestOrderBookSafeBody(ch chan any, symbol any, option
     
         return nil
 }
-func  (this *Exchange) WatchOrderBook(symbol any, optionalArgs ...any) <- chan any {
+func  (this *Exchange) WatchOrderBookAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.watchOrderBookBody(ch, symbol, optionalArgs...)
     return ch
@@ -10029,7 +9961,7 @@ func (this *Exchange) watchOrderBookBody(ch chan any, symbol any, optionalArgs .
         _ = params
         panic(NotSupported(Add(this.Id, " watchOrderBook() is not supported yet")))
 }
-func  (this *Exchange) FetchOpenInterest(symbol any, optionalArgs ...any) <- chan any {
+func  (this *Exchange) FetchOpenInterestAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchOpenInterestBody(ch, symbol, optionalArgs...)
     return ch
@@ -10050,7 +9982,7 @@ func (this *Exchange) fetchOpenInterestBody(ch chan any, symbol any, optionalArg
             panic(NotSupported(Add(this.Id, " fetchOpenInterest() is not supported yet")))
         }
 }
-func  (this *Exchange) FetchL2OrderBook(symbol any, optionalArgs ...any) <- chan any {
+func  (this *Exchange) FetchL2OrderBookAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchL2OrderBookBody(ch, symbol, optionalArgs...)
     return ch
@@ -10072,7 +10004,7 @@ func (this *Exchange) fetchL2OrderBookBody(ch chan any, symbol any, optionalArgs
         })
         return nil
 }
-func  (this *Exchange) EditLimitBuyOrder(id any, symbol any, amount any, optionalArgs ...any) <- chan any {
+func  (this *Exchange) EditLimitBuyOrderAsync(id any, symbol any, amount any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.editLimitBuyOrderBody(ch, id, symbol, amount, optionalArgs...)
     return ch
@@ -10085,12 +10017,12 @@ func (this *Exchange) editLimitBuyOrderBody(ch chan any, id any, symbol any, amo
         params := GetArg(optionalArgs, 1, map[string]any {})
         _ = params
     
-            retRes976315 :=  (<-this.EditLimitOrder(id, symbol, "buy", amount, price, params))
+            retRes976315 :=  (<-this.EditLimitOrderAsync(id, symbol, "buy", amount, price, params))
             PanicOnError(retRes976315)
             ch <- retRes976315
             return nil
 }
-func  (this *Exchange) EditLimitSellOrder(id any, symbol any, amount any, optionalArgs ...any) <- chan any {
+func  (this *Exchange) EditLimitSellOrderAsync(id any, symbol any, amount any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.editLimitSellOrderBody(ch, id, symbol, amount, optionalArgs...)
     return ch
@@ -10103,12 +10035,12 @@ func (this *Exchange) editLimitSellOrderBody(ch chan any, id any, symbol any, am
         params := GetArg(optionalArgs, 1, map[string]any {})
         _ = params
     
-            retRes976715 :=  (<-this.EditLimitOrder(id, symbol, "sell", amount, price, params))
+            retRes976715 :=  (<-this.EditLimitOrderAsync(id, symbol, "sell", amount, price, params))
             PanicOnError(retRes976715)
             ch <- retRes976715
             return nil
 }
-func  (this *Exchange) EditLimitOrder(id any, symbol any, side any, amount any, optionalArgs ...any) <- chan any {
+func  (this *Exchange) EditLimitOrderAsync(id any, symbol any, side any, amount any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.editLimitOrderBody(ch, id, symbol, side, amount, optionalArgs...)
     return ch
@@ -10126,7 +10058,7 @@ func (this *Exchange) editLimitOrderBody(ch chan any, id any, symbol any, side a
             ch <- retRes977115
             return nil
 }
-func  (this *Exchange) EditOrder(id any, symbol any, typeVar any, side any, optionalArgs ...any) <- chan any {
+func  (this *Exchange) EditOrderAsync(id any, symbol any, typeVar any, side any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.editOrderBody(ch, id, symbol, typeVar, side, optionalArgs...)
     return ch
@@ -10149,7 +10081,7 @@ func (this *Exchange) editOrderBody(ch chan any, id any, symbol any, typeVar any
             ch <- retRes977615
             return nil
 }
-func  (this *Exchange) EditOrderWithClientOrderId(clientOrderId any, symbol any, typeVar any, side any, optionalArgs ...any) <- chan any {
+func  (this *Exchange) EditOrderWithClientOrderIdAsync(clientOrderId any, symbol any, typeVar any, side any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.editOrderWithClientOrderIdBody(ch, clientOrderId, symbol, typeVar, side, optionalArgs...)
     return ch
@@ -10172,7 +10104,7 @@ func (this *Exchange) editOrderWithClientOrderIdBody(ch chan any, clientOrderId 
             ch <- retRes978115
             return nil
 }
-func  (this *Exchange) FetchPosition(symbol any, optionalArgs ...any) <- chan any {
+func  (this *Exchange) FetchPositionAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchPositionBody(ch, symbol, optionalArgs...)
     return ch
@@ -10184,7 +10116,7 @@ func (this *Exchange) fetchPositionBody(ch chan any, symbol any, optionalArgs ..
         _ = params
         panic(NotSupported(Add(this.Id, " fetchPosition() is not supported yet")))
 }
-func  (this *Exchange) WatchPositions(optionalArgs ...any) <- chan any {
+func  (this *Exchange) WatchPositionsAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.watchPositionsBody(ch, optionalArgs...)
     return ch
@@ -10202,7 +10134,7 @@ func (this *Exchange) watchPositionsBody(ch chan any, optionalArgs ...any) any {
         _ = params
         panic(NotSupported(Add(this.Id, " watchPositions() is not supported yet")))
 }
-func  (this *Exchange) WatchPositionForSymbols(optionalArgs ...any) <- chan any {
+func  (this *Exchange) WatchPositionForSymbolsAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.watchPositionForSymbolsBody(ch, optionalArgs...)
     return ch
@@ -10224,7 +10156,7 @@ func (this *Exchange) watchPositionForSymbolsBody(ch chan any, optionalArgs ...a
             ch <- retRes979315
             return nil
 }
-func  (this *Exchange) FetchPositions(optionalArgs ...any) <- chan any {
+func  (this *Exchange) FetchPositionsAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchPositionsBody(ch, optionalArgs...)
     return ch
@@ -10238,7 +10170,7 @@ func (this *Exchange) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
         _ = params
         panic(NotSupported(Add(this.Id, " fetchPositions() is not supported yet")))
 }
-func  (this *Exchange) FetchTicker(symbol any, optionalArgs ...any) <- chan any {
+func  (this *Exchange) FetchTickerAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchTickerBody(ch, symbol, optionalArgs...)
     return ch
@@ -10250,7 +10182,7 @@ func (this *Exchange) fetchTickerBody(ch chan any, symbol any, optionalArgs ...a
         _ = params
         if !IsEqual(GetValue(this.Has, "fetchTickers"), nil) && !IsEqual(GetValue(this.Has, "fetchTickers"), false) {
     
-            retRes980212 := (<-this.LoadMarkets())
+            retRes980212 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes980212)
     
             var market any = this.DerivedExchange.Market(symbol)
@@ -10271,7 +10203,7 @@ func (this *Exchange) fetchTickerBody(ch chan any, symbol any, optionalArgs ...a
             panic(NotSupported(Add(this.Id, " fetchTicker() is not supported yet")))
         }
 }
-func  (this *Exchange) WatchTicker(symbol any, optionalArgs ...any) <- chan any {
+func  (this *Exchange) WatchTickerAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.watchTickerBody(ch, symbol, optionalArgs...)
     return ch
@@ -10283,7 +10215,7 @@ func (this *Exchange) watchTickerBody(ch chan any, symbol any, optionalArgs ...a
         _ = params
         panic(NotSupported(Add(this.Id, " watchTicker() is not supported yet")))
 }
-func  (this *Exchange) FetchTickers(optionalArgs ...any) <- chan any {
+func  (this *Exchange) FetchTickersAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchTickersBody(ch, optionalArgs...)
     return ch
@@ -10297,7 +10229,7 @@ func (this *Exchange) fetchTickersBody(ch chan any, optionalArgs ...any) any {
         _ = params
         panic(NotSupported(Add(this.Id, " fetchTickers() is not supported yet")))
 }
-func  (this *Exchange) WatchTickers(optionalArgs ...any) <- chan any {
+func  (this *Exchange) WatchTickersAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.watchTickersBody(ch, optionalArgs...)
     return ch
@@ -10311,7 +10243,7 @@ func (this *Exchange) watchTickersBody(ch chan any, optionalArgs ...any) any {
         _ = params
         panic(NotSupported(Add(this.Id, " watchTickers() is not supported yet")))
 }
-func  (this *Exchange) FetchOrder(id any, optionalArgs ...any) <- chan any {
+func  (this *Exchange) FetchOrderAsync(id any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchOrderBody(ch, id, optionalArgs...)
     return ch
@@ -10334,7 +10266,7 @@ func (this *Exchange) fetchOrderBody(ch chan any, id any, optionalArgs ...any) a
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Exchange) FetchOrderWithClientOrderId(clientOrderId any, optionalArgs ...any) <- chan any {
+func  (this *Exchange) FetchOrderWithClientOrderIdAsync(clientOrderId any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchOrderWithClientOrderIdBody(ch, clientOrderId, optionalArgs...)
     return ch
@@ -10355,7 +10287,7 @@ func (this *Exchange) fetchOrderWithClientOrderIdBody(ch chan any, clientOrderId
             ch <- retRes984415
             return nil
 }
-func  (this *Exchange) FetchOrderStatus(id any, optionalArgs ...any) <- chan any {
+func  (this *Exchange) FetchOrderStatusAsync(id any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchOrderStatusBody(ch, id, optionalArgs...)
     return ch
@@ -10376,7 +10308,7 @@ func (this *Exchange) fetchOrderStatusBody(ch chan any, id any, optionalArgs ...
         ch <- GetValue(order, "status")
         return nil
 }
-func  (this *Exchange) FetchUnifiedOrder(order any, optionalArgs ...any) <- chan any {
+func  (this *Exchange) FetchUnifiedOrderAsync(order any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchUnifiedOrderBody(ch, order, optionalArgs...)
     return ch
@@ -10392,7 +10324,7 @@ func (this *Exchange) fetchUnifiedOrderBody(ch chan any, order any, optionalArgs
             ch <- retRes985515
             return nil
 }
-func  (this *Exchange) CreateOrder(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <- chan any {
+func  (this *Exchange) CreateOrderAsync(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.createOrderBody(ch, symbol, typeVar, side, amount, optionalArgs...)
     return ch
@@ -10406,7 +10338,7 @@ func (this *Exchange) createOrderBody(ch chan any, symbol any, typeVar any, side
         _ = params
         panic(NotSupported(Add(this.Id, " createOrder() is not supported yet")))
 }
-func  (this *Exchange) CreateTrailingAmountOrder(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <- chan any {
+func  (this *Exchange) CreateTrailingAmountOrderAsync(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.createTrailingAmountOrderBody(ch, symbol, typeVar, side, amount, optionalArgs...)
     return ch
@@ -10452,7 +10384,7 @@ func (this *Exchange) createTrailingAmountOrderBody(ch chan any, symbol any, typ
         }
         panic(NotSupported(Add(this.Id, " createTrailingAmountOrder() is not supported yet")))
 }
-func  (this *Exchange) CreateTrailingPercentOrder(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <- chan any {
+func  (this *Exchange) CreateTrailingPercentOrderAsync(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.createTrailingPercentOrderBody(ch, symbol, typeVar, side, amount, optionalArgs...)
     return ch
@@ -10498,7 +10430,7 @@ func (this *Exchange) createTrailingPercentOrderBody(ch chan any, symbol any, ty
         }
         panic(NotSupported(Add(this.Id, " createTrailingPercentOrder() is not supported yet")))
 }
-func  (this *Exchange) CreateMarketOrderWithCost(symbol any, side any, cost any, optionalArgs ...any) <- chan any {
+func  (this *Exchange) CreateMarketOrderWithCostAsync(symbol any, side any, cost any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.createMarketOrderWithCostBody(ch, symbol, side, cost, optionalArgs...)
     return ch
@@ -10527,7 +10459,7 @@ func (this *Exchange) createMarketOrderWithCostBody(ch chan any, symbol any, sid
         }
         panic(NotSupported(Add(this.Id, " createMarketOrderWithCost() is not supported yet")))
 }
-func  (this *Exchange) CreateMarketBuyOrderWithCost(symbol any, cost any, optionalArgs ...any) <- chan any {
+func  (this *Exchange) CreateMarketBuyOrderWithCostAsync(symbol any, cost any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.createMarketBuyOrderWithCostBody(ch, symbol, cost, optionalArgs...)
     return ch
@@ -10555,7 +10487,7 @@ func (this *Exchange) createMarketBuyOrderWithCostBody(ch chan any, symbol any, 
         }
         panic(NotSupported(Add(this.Id, " createMarketBuyOrderWithCost() is not supported yet")))
 }
-func  (this *Exchange) CreateMarketSellOrderWithCost(symbol any, cost any, optionalArgs ...any) <- chan any {
+func  (this *Exchange) CreateMarketSellOrderWithCostAsync(symbol any, cost any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.createMarketSellOrderWithCostBody(ch, symbol, cost, optionalArgs...)
     return ch
@@ -10583,7 +10515,7 @@ func (this *Exchange) createMarketSellOrderWithCostBody(ch chan any, symbol any,
         }
         panic(NotSupported(Add(this.Id, " createMarketSellOrderWithCost() is not supported yet")))
 }
-func  (this *Exchange) CreateTriggerOrder(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <- chan any {
+func  (this *Exchange) CreateTriggerOrderAsync(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.createTriggerOrderBody(ch, symbol, typeVar, side, amount, optionalArgs...)
     return ch
@@ -10625,7 +10557,7 @@ func (this *Exchange) createTriggerOrderBody(ch chan any, symbol any, typeVar an
         }
         panic(NotSupported(Add(this.Id, " createTriggerOrder() is not supported yet")))
 }
-func  (this *Exchange) CreateStopLossOrder(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <- chan any {
+func  (this *Exchange) CreateStopLossOrderAsync(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.createStopLossOrderBody(ch, symbol, typeVar, side, amount, optionalArgs...)
     return ch
@@ -10667,7 +10599,7 @@ func (this *Exchange) createStopLossOrderBody(ch chan any, symbol any, typeVar a
         }
         panic(NotSupported(Add(this.Id, " createStopLossOrder() is not supported yet")))
 }
-func  (this *Exchange) CreateTakeProfitOrder(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <- chan any {
+func  (this *Exchange) CreateTakeProfitOrderAsync(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.createTakeProfitOrderBody(ch, symbol, typeVar, side, amount, optionalArgs...)
     return ch
@@ -10709,7 +10641,7 @@ func (this *Exchange) createTakeProfitOrderBody(ch chan any, symbol any, typeVar
         }
         panic(NotSupported(Add(this.Id, " createTakeProfitOrder() is not supported yet")))
 }
-func  (this *Exchange) CreateOrderWithTakeProfitAndStopLoss(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <- chan any {
+func  (this *Exchange) CreateOrderWithTakeProfitAndStopLossAsync(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.createOrderWithTakeProfitAndStopLossBody(ch, symbol, typeVar, side, amount, optionalArgs...)
     return ch
@@ -10757,7 +10689,7 @@ func (this *Exchange) createOrderWithTakeProfitAndStopLossBody(ch chan any, symb
         }
         panic(NotSupported(Add(this.Id, " createOrderWithTakeProfitAndStopLoss() is not supported yet")))
 }
-func  (this *Exchange) CreateOrders(orders any, optionalArgs ...any) <- chan any {
+func  (this *Exchange) CreateOrdersAsync(orders any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.createOrdersBody(ch, orders, optionalArgs...)
     return ch
@@ -10769,7 +10701,7 @@ func (this *Exchange) createOrdersBody(ch chan any, orders any, optionalArgs ...
         _ = params
         panic(NotSupported(Add(this.Id, " createOrders() is not supported yet")))
 }
-func  (this *Exchange) CancelOrder(id any, optionalArgs ...any) <- chan any {
+func  (this *Exchange) CancelOrderAsync(id any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.cancelOrderBody(ch, id, optionalArgs...)
     return ch
@@ -10792,7 +10724,7 @@ func (this *Exchange) cancelOrderBody(ch chan any, id any, optionalArgs ...any) 
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Exchange) CancelOrderWithClientOrderId(clientOrderId any, optionalArgs ...any) <- chan any {
+func  (this *Exchange) CancelOrderWithClientOrderIdAsync(clientOrderId any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.cancelOrderWithClientOrderIdBody(ch, clientOrderId, optionalArgs...)
     return ch
@@ -10813,7 +10745,7 @@ func (this *Exchange) cancelOrderWithClientOrderIdBody(ch chan any, clientOrderI
             ch <- retRes1008815
             return nil
 }
-func  (this *Exchange) CancelOrders(ids any, optionalArgs ...any) <- chan any {
+func  (this *Exchange) CancelOrdersAsync(ids any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.cancelOrdersBody(ch, ids, optionalArgs...)
     return ch
@@ -10836,7 +10768,7 @@ func (this *Exchange) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Exchange) CancelOrdersWithClientOrderIds(clientOrderIds any, optionalArgs ...any) <- chan any {
+func  (this *Exchange) CancelOrdersWithClientOrderIdsAsync(clientOrderIds any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.cancelOrdersWithClientOrderIdsBody(ch, clientOrderIds, optionalArgs...)
     return ch
@@ -10852,12 +10784,12 @@ func (this *Exchange) cancelOrdersWithClientOrderIdsBody(ch chan any, clientOrde
             "clientOrderIds": clientOrderIds,
         })
     
-            retRes1010615 :=  (<-this.CancelOrders([]any{}, symbol, extendedParams))
+            retRes1010615 :=  (<-this.CancelOrdersAsync([]any{}, symbol, extendedParams))
             PanicOnError(retRes1010615)
             ch <- retRes1010615
             return nil
 }
-func  (this *Exchange) CancelAllOrders(optionalArgs ...any) <- chan any {
+func  (this *Exchange) CancelAllOrdersAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.cancelAllOrdersBody(ch, optionalArgs...)
     return ch
@@ -10871,7 +10803,7 @@ func (this *Exchange) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any 
         _ = params
         panic(NotSupported(Add(this.Id, " cancelAllOrders() is not supported yet")))
 }
-func  (this *Exchange) CancelUnifiedOrder(order any, optionalArgs ...any) <- chan any {
+func  (this *Exchange) CancelUnifiedOrderAsync(order any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.cancelUnifiedOrderBody(ch, order, optionalArgs...)
     return ch
@@ -10885,7 +10817,7 @@ func (this *Exchange) cancelUnifiedOrderBody(ch chan any, order any, optionalArg
         ch <- <-this.DerivedExchange.CancelOrderAsync(this.SafeString(order, "id"), this.SafeString(order, "symbol"), params)
         return nil
 }
-func  (this *Exchange) FetchOrders(optionalArgs ...any) <- chan any {
+func  (this *Exchange) FetchOrdersAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchOrdersBody(ch, optionalArgs...)
     return ch
@@ -10906,7 +10838,7 @@ func (this *Exchange) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
         }
         panic(NotSupported(Add(this.Id, " fetchOrders() is not supported yet")))
 }
-func  (this *Exchange) FetchOrderTrades(id any, optionalArgs ...any) <- chan any {
+func  (this *Exchange) FetchOrderTradesAsync(id any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchOrderTradesBody(ch, id, optionalArgs...)
     return ch
@@ -10924,7 +10856,7 @@ func (this *Exchange) fetchOrderTradesBody(ch chan any, id any, optionalArgs ...
         _ = params
         panic(NotSupported(Add(this.Id, " fetchOrderTrades() is not supported yet")))
 }
-func  (this *Exchange) WatchOrders(optionalArgs ...any) <- chan any {
+func  (this *Exchange) WatchOrdersAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.watchOrdersBody(ch, optionalArgs...)
     return ch
@@ -10942,7 +10874,7 @@ func (this *Exchange) watchOrdersBody(ch chan any, optionalArgs ...any) any {
         _ = params
         panic(NotSupported(Add(this.Id, " watchOrders() is not supported yet")))
 }
-func  (this *Exchange) FetchOpenOrders(optionalArgs ...any) <- chan any {
+func  (this *Exchange) FetchOpenOrdersAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchOpenOrdersBody(ch, optionalArgs...)
     return ch
@@ -10968,7 +10900,7 @@ func (this *Exchange) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any 
         }
         panic(NotSupported(Add(this.Id, " fetchOpenOrders() is not supported yet")))
 }
-func  (this *Exchange) FetchClosedOrders(optionalArgs ...any) <- chan any {
+func  (this *Exchange) FetchClosedOrdersAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchClosedOrdersBody(ch, optionalArgs...)
     return ch
@@ -10994,7 +10926,7 @@ func (this *Exchange) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) an
         }
         panic(NotSupported(Add(this.Id, " fetchClosedOrders() is not supported yet")))
 }
-func  (this *Exchange) FetchCanceledOrders(optionalArgs ...any) <- chan any {
+func  (this *Exchange) FetchCanceledOrdersAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchCanceledOrdersBody(ch, optionalArgs...)
     return ch
@@ -11012,7 +10944,7 @@ func (this *Exchange) fetchCanceledOrdersBody(ch chan any, optionalArgs ...any) 
         _ = params
         panic(NotSupported(Add(this.Id, " fetchCanceledOrders() is not supported yet")))
 }
-func  (this *Exchange) FetchMyTrades(optionalArgs ...any) <- chan any {
+func  (this *Exchange) FetchMyTradesAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchMyTradesBody(ch, optionalArgs...)
     return ch
@@ -11030,7 +10962,7 @@ func (this *Exchange) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
         _ = params
         panic(NotSupported(Add(this.Id, " fetchMyTrades() is not supported yet")))
 }
-func  (this *Exchange) WatchMyTrades(optionalArgs ...any) <- chan any {
+func  (this *Exchange) WatchMyTradesAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.watchMyTradesBody(ch, optionalArgs...)
     return ch
@@ -11048,7 +10980,7 @@ func (this *Exchange) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
         _ = params
         panic(NotSupported(Add(this.Id, " watchMyTrades() is not supported yet")))
 }
-func  (this *Exchange) CreateLimitOrder(symbol any, side any, amount any, price any, optionalArgs ...any) <- chan any {
+func  (this *Exchange) CreateLimitOrderAsync(symbol any, side any, amount any, price any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.createLimitOrderBody(ch, symbol, side, amount, price, optionalArgs...)
     return ch
@@ -11064,7 +10996,7 @@ func (this *Exchange) createLimitOrderBody(ch chan any, symbol any, side any, am
             ch <- retRes1016115
             return nil
 }
-func  (this *Exchange) CreateMarketOrder(symbol any, side any, amount any, optionalArgs ...any) <- chan any {
+func  (this *Exchange) CreateMarketOrderAsync(symbol any, side any, amount any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.createMarketOrderBody(ch, symbol, side, amount, optionalArgs...)
     return ch
@@ -11082,7 +11014,7 @@ func (this *Exchange) createMarketOrderBody(ch chan any, symbol any, side any, a
             ch <- retRes1016515
             return nil
 }
-func  (this *Exchange) CreateLimitBuyOrder(symbol any, amount any, price any, optionalArgs ...any) <- chan any {
+func  (this *Exchange) CreateLimitBuyOrderAsync(symbol any, amount any, price any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.createLimitBuyOrderBody(ch, symbol, amount, price, optionalArgs...)
     return ch
@@ -11098,7 +11030,7 @@ func (this *Exchange) createLimitBuyOrderBody(ch chan any, symbol any, amount an
             ch <- retRes1016915
             return nil
 }
-func  (this *Exchange) CreateLimitSellOrder(symbol any, amount any, price any, optionalArgs ...any) <- chan any {
+func  (this *Exchange) CreateLimitSellOrderAsync(symbol any, amount any, price any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.createLimitSellOrderBody(ch, symbol, amount, price, optionalArgs...)
     return ch
@@ -11114,7 +11046,7 @@ func (this *Exchange) createLimitSellOrderBody(ch chan any, symbol any, amount a
             ch <- retRes1017315
             return nil
 }
-func  (this *Exchange) CreateMarketBuyOrder(symbol any, amount any, optionalArgs ...any) <- chan any {
+func  (this *Exchange) CreateMarketBuyOrderAsync(symbol any, amount any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.createMarketBuyOrderBody(ch, symbol, amount, optionalArgs...)
     return ch
@@ -11130,7 +11062,7 @@ func (this *Exchange) createMarketBuyOrderBody(ch chan any, symbol any, amount a
             ch <- retRes1017715
             return nil
 }
-func  (this *Exchange) CreateMarketSellOrder(symbol any, amount any, optionalArgs ...any) <- chan any {
+func  (this *Exchange) CreateMarketSellOrderAsync(symbol any, amount any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.createMarketSellOrderBody(ch, symbol, amount, optionalArgs...)
     return ch
@@ -11146,7 +11078,7 @@ func (this *Exchange) createMarketSellOrderBody(ch chan any, symbol any, amount 
             ch <- retRes1018115
             return nil
 }
-func  (this *Exchange) CreatePostOnlyOrder(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <- chan any {
+func  (this *Exchange) CreatePostOnlyOrderAsync(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.createPostOnlyOrderBody(ch, symbol, typeVar, side, amount, optionalArgs...)
     return ch
@@ -11170,7 +11102,7 @@ func (this *Exchange) createPostOnlyOrderBody(ch chan any, symbol any, typeVar a
             ch <- retRes1018915
             return nil
 }
-func  (this *Exchange) CreateReduceOnlyOrder(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <- chan any {
+func  (this *Exchange) CreateReduceOnlyOrderAsync(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.createReduceOnlyOrderBody(ch, symbol, typeVar, side, amount, optionalArgs...)
     return ch
@@ -11194,7 +11126,7 @@ func (this *Exchange) createReduceOnlyOrderBody(ch chan any, symbol any, typeVar
             ch <- retRes1019715
             return nil
 }
-func  (this *Exchange) CreateStopOrder(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <- chan any {
+func  (this *Exchange) CreateStopOrderAsync(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.createStopOrderBody(ch, symbol, typeVar, side, amount, optionalArgs...)
     return ch
@@ -11223,7 +11155,7 @@ func (this *Exchange) createStopOrderBody(ch chan any, symbol any, typeVar any, 
             ch <- retRes1020815
             return nil
 }
-func  (this *Exchange) CreateStopLimitOrder(symbol any, side any, amount any, price any, triggerPrice any, optionalArgs ...any) <- chan any {
+func  (this *Exchange) CreateStopLimitOrderAsync(symbol any, side any, amount any, price any, triggerPrice any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.createStopLimitOrderBody(ch, symbol, side, amount, price, triggerPrice, optionalArgs...)
     return ch
@@ -11245,7 +11177,7 @@ func (this *Exchange) createStopLimitOrderBody(ch chan any, symbol any, side any
             ch <- retRes1021615
             return nil
 }
-func  (this *Exchange) CreateStopMarketOrder(symbol any, side any, amount any, triggerPrice any, optionalArgs ...any) <- chan any {
+func  (this *Exchange) CreateStopMarketOrderAsync(symbol any, side any, amount any, triggerPrice any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.createStopMarketOrderBody(ch, symbol, side, amount, triggerPrice, optionalArgs...)
     return ch
@@ -11267,7 +11199,7 @@ func (this *Exchange) createStopMarketOrderBody(ch chan any, symbol any, side an
             ch <- retRes1022415
             return nil
 }
-func  (this *Exchange) FetchTradingFee(symbol any, optionalArgs ...any) <- chan any {
+func  (this *Exchange) FetchTradingFeeAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchTradingFeeBody(ch, symbol, optionalArgs...)
     return ch

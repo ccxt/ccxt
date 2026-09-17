@@ -6,7 +6,7 @@ import "fmt"
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 
-    func TestWatchLiquidationsForSymbols(exchange ccxt.ICoreExchange, skippedProperties any, symbol any) <- chan any {
+    func TestWatchLiquidationsForSymbolsAsync(exchange ccxt.ICoreExchange, skippedProperties any, symbol any) <- chan any {
         ch := make(chan any, 1)
         go testWatchLiquidationsForSymbolsBody(ch, exchange, skippedProperties, symbol)
         return ch

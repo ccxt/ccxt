@@ -377,7 +377,7 @@ func  (this *Apex) Describe() any  {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {int} the current integer timestamp in milliseconds from the exchange server
  */
-func  (this *Apex) FetchTime(optionalArgs ...any) <- chan any {
+func  (this *Apex) FetchTimeAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchTimeBody(ch, optionalArgs...)
     return ch
@@ -437,7 +437,7 @@ func  (this *Apex) ParseBalance(response any) any  {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
-func  (this *Apex) FetchBalance(optionalArgs ...any) <- chan any {
+func  (this *Apex) FetchBalanceAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchBalanceBody(ch, optionalArgs...)
     return ch
@@ -449,7 +449,7 @@ func (this *Apex) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes37012 := (<-this.LoadMarkets())
+            retRes37012 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes37012)
         }
     
@@ -477,7 +477,7 @@ func  (this *Apex) ParseAccount(account any) any  {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
-func  (this *Apex) FetchAccount(optionalArgs ...any) <- chan any {
+func  (this *Apex) FetchAccountAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchAccountBody(ch, optionalArgs...)
     return ch
@@ -489,7 +489,7 @@ func (this *Apex) fetchAccountBody(ch chan any, optionalArgs ...any) any {
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes39712 := (<-this.LoadMarkets())
+            retRes39712 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes39712)
         }
     
@@ -508,7 +508,7 @@ func (this *Apex) fetchAccountBody(ch chan any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an associative dictionary of currencies
  */
-func  (this *Apex) FetchCurrencies(optionalArgs ...any) <- chan any {
+func  (this *Apex) FetchCurrenciesAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchCurrenciesBody(ch, optionalArgs...)
     return ch
@@ -702,7 +702,7 @@ func  (this *Apex) ParseCurrency(currency any) any  {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} an array of objects representing market data
  */
-func  (this *Apex) FetchMarkets(optionalArgs ...any) <- chan any {
+func  (this *Apex) FetchMarketsAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchMarketsBody(ch, optionalArgs...)
     return ch
@@ -907,7 +907,7 @@ func  (this *Apex) ParseTicker(ticker any, optionalArgs ...any) any  {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func  (this *Apex) FetchTicker(symbol any, optionalArgs ...any) <- chan any {
+func  (this *Apex) FetchTickerAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchTickerBody(ch, symbol, optionalArgs...)
     return ch
@@ -919,7 +919,7 @@ func (this *Apex) fetchTickerBody(ch chan any, symbol any, optionalArgs ...any) 
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes79012 := (<-this.LoadMarkets())
+            retRes79012 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes79012)
         }
         var market any = this.Market(symbol)
@@ -944,7 +944,7 @@ func (this *Apex) fetchTickerBody(ch chan any, symbol any, optionalArgs ...any) 
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func  (this *Apex) FetchTickers(optionalArgs ...any) <- chan any {
+func  (this *Apex) FetchTickersAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchTickersBody(ch, optionalArgs...)
     return ch
@@ -958,7 +958,7 @@ func (this *Apex) fetchTickersBody(ch chan any, optionalArgs ...any) any {
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes81312 := (<-this.LoadMarkets())
+            retRes81312 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes81312)
         }
     
@@ -982,7 +982,7 @@ func (this *Apex) fetchTickersBody(ch chan any, optionalArgs ...any) any {
  * @param {int} [params.until] timestamp in ms of the latest candle to fetch
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
-func  (this *Apex) FetchOHLCV(symbol any, optionalArgs ...any) <- chan any {
+func  (this *Apex) FetchOHLCVAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchOHLCVBody(ch, symbol, optionalArgs...)
     return ch
@@ -1000,7 +1000,7 @@ func (this *Apex) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) a
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes83512 := (<-this.LoadMarkets())
+            retRes83512 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes83512)
         }
         var market any = this.Market(symbol)
@@ -1055,7 +1055,7 @@ func  (this *Apex) ParseOHLCV(ohlcv any, optionalArgs ...any) any  {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
-func  (this *Apex) FetchOrderBook(symbol any, optionalArgs ...any) <- chan any {
+func  (this *Apex) FetchOrderBookAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchOrderBookBody(ch, symbol, optionalArgs...)
     return ch
@@ -1069,7 +1069,7 @@ func (this *Apex) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...an
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes89212 := (<-this.LoadMarkets())
+            retRes89212 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes89212)
         }
         var market any = this.Market(symbol)
@@ -1130,7 +1130,7 @@ func (this *Apex) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...an
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times
  * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
-func  (this *Apex) FetchTrades(symbol any, optionalArgs ...any) <- chan any {
+func  (this *Apex) FetchTradesAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchTradesBody(ch, symbol, optionalArgs...)
     return ch
@@ -1146,7 +1146,7 @@ func (this *Apex) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any) 
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes95112 := (<-this.LoadMarkets())
+            retRes95112 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes95112)
         }
         var market any = this.Market(symbol)
@@ -1234,7 +1234,7 @@ func  (this *Apex) ParseTrade(trade any, optionalArgs ...any) any  {
  * @param {object} [params] exchange specific parameters
  * @returns {object} an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}
  */
-func  (this *Apex) FetchOpenInterest(symbol any, optionalArgs ...any) <- chan any {
+func  (this *Apex) FetchOpenInterestAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchOpenInterestBody(ch, symbol, optionalArgs...)
     return ch
@@ -1246,7 +1246,7 @@ func (this *Apex) fetchOpenInterestBody(ch chan any, symbol any, optionalArgs ..
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes103612 := (<-this.LoadMarkets())
+            retRes103612 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes103612)
         }
         var market any = this.Market(symbol)
@@ -1309,7 +1309,7 @@ func  (this *Apex) ParseOpenInterest(interest any, optionalArgs ...any) any  {
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
  * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
  */
-func  (this *Apex) FetchFundingRateHistory(optionalArgs ...any) <- chan any {
+func  (this *Apex) FetchFundingRateHistoryAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchFundingRateHistoryBody(ch, optionalArgs...)
     return ch
@@ -1330,7 +1330,7 @@ func (this *Apex) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any) 
         }
         if IsEqual(this.Markets, nil) {
     
-            retRes109912 := (<-this.LoadMarkets())
+            retRes109912 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes109912)
         }
         var request map[string]any = map[string]any {}
@@ -1575,7 +1575,7 @@ func  (this *Apex) GetSeeds() any  {
     }
     return seeds
 }
-func  (this *Apex) GetAccountId() <- chan any {
+func  (this *Apex) GetAccountIdAsync() <- chan any {
     ch := make(chan any, 1)
     go this.getAccountIdBody(ch)
     return ch
@@ -1586,7 +1586,7 @@ func (this *Apex) getAccountIdBody(ch chan any) any {
     var accountId *string = this.SafeString(this.Options, "accountId", "0")
     if (accountId != nil && *accountId == "0") {
     
-        accountData:= (<-this.FetchAccount())
+        accountData:= (<-this.FetchAccountAsync())
         PanicOnError(accountData)
         AddElementToObject(this.Options, "accountId", this.SafeString(accountData, "id", "0"))
     }
@@ -1614,7 +1614,7 @@ func (this *Apex) getAccountIdBody(ch chan any) any {
  * @param {string} [params.clientOrderId] a unique id for the order
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Apex) CreateOrder(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <- chan any {
+func  (this *Apex) CreateOrderAsync(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.createOrderBody(ch, symbol, typeVar, side, amount, optionalArgs...)
     return ch
@@ -1628,7 +1628,7 @@ func (this *Apex) createOrderBody(ch chan any, symbol any, typeVar any, side any
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes136912 := (<-this.LoadMarkets())
+            retRes136912 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes136912)
         }
         var market any = this.Market(symbol)
@@ -1677,7 +1677,7 @@ func (this *Apex) createOrderBody(ch chan any, symbol any, typeVar any, side any
         params = this.Omit(params, "postOnly")
         var clientOrderId any = DerefScalar(this.SafeStringN(params, []any{"clientId", "clientOrderId", "client_order_id"}))
     
-        accountId:= (<-this.GetAccountId())
+        accountId:= (<-this.GetAccountIdAsync())
         PanicOnError(accountId)
         if IsEqual(clientOrderId, nil) {
             clientOrderId = this.GenerateRandomClientIdOmni(accountId)
@@ -1700,7 +1700,7 @@ func (this *Apex) createOrderBody(ch chan any, symbol any, typeVar any, side any
             AddElementToObject(orderToSign, "triggerPrice", this.PriceToPrecision(symbol, triggerPrice))
         }
     
-        signature:= (<-this.GetZKContractSignatureObj(this.Remove0xPrefix(this.GetSeeds()), orderToSign))
+        signature:= (<-this.GetZKContractSignatureObjAsync(this.Remove0xPrefix(this.GetSeeds()), orderToSign))
         PanicOnError(signature)
         var request map[string]any = map[string]any {
             "symbol": GetValue(market, "id"),
@@ -1738,7 +1738,7 @@ func (this *Apex) createOrderBody(ch chan any, symbol any, typeVar any, side any
  * @param {string} [params.transferId] UUID, which is unique across the platform
  * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
-func  (this *Apex) Transfer(code any, amount any, fromAccount any, toAccount any, optionalArgs ...any) <- chan any {
+func  (this *Apex) TransferAsync(code any, amount any, fromAccount any, toAccount any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.transferBody(ch, code, amount, fromAccount, toAccount, optionalArgs...)
     return ch
@@ -1750,7 +1750,7 @@ func (this *Apex) transferBody(ch chan any, code any, amount any, fromAccount an
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes147312 := (<-this.LoadMarkets())
+            retRes147312 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes147312)
         }
     
@@ -1822,7 +1822,7 @@ func (this *Apex) transferBody(ch chan any, code any, amount any, fromAccount an
                 "isContract": true,
             }
     
-            signature:= (<-this.GetZKTransferSignatureObj(this.Remove0xPrefix(this.GetSeeds()), orderToSign))
+            signature:= (<-this.GetZKTransferSignatureObjAsync(this.Remove0xPrefix(this.GetSeeds()), orderToSign))
             PanicOnError(signature)
             var request map[string]any = map[string]any {
                 "amount": amount,
@@ -1860,7 +1860,7 @@ func (this *Apex) transferBody(ch chan any, code any, amount any, fromAccount an
                 "timestampSeconds": timestampSeconds,
             }
     
-            signature:= (<-this.GetZKTransferSignatureObj(this.Remove0xPrefix(this.GetSeeds()), orderToSign))
+            signature:= (<-this.GetZKTransferSignatureObjAsync(this.Remove0xPrefix(this.GetSeeds()), orderToSign))
             PanicOnError(signature)
             var amountStr string = ToString(amount)
             var ts any = timestampSeconds // java req
@@ -1924,7 +1924,7 @@ func  (this *Apex) ParseTransfer(transfer any, optionalArgs ...any) any  {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Apex) CancelAllOrders(optionalArgs ...any) <- chan any {
+func  (this *Apex) CancelAllOrdersAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.cancelAllOrdersBody(ch, optionalArgs...)
     return ch
@@ -1938,7 +1938,7 @@ func (this *Apex) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes163212 := (<-this.LoadMarkets())
+            retRes163212 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes163212)
         }
         var market any = nil
@@ -1965,7 +1965,7 @@ func (this *Apex) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Apex) CancelOrder(id any, optionalArgs ...any) <- chan any {
+func  (this *Apex) CancelOrderAsync(id any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.cancelOrderBody(ch, id, optionalArgs...)
     return ch
@@ -2009,7 +2009,7 @@ func (this *Apex) cancelOrderBody(ch chan any, id any, optionalArgs ...any) any 
  * @param {string} [params.clientOrderId] a unique id for the order
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Apex) FetchOrder(id any, optionalArgs ...any) <- chan any {
+func  (this *Apex) FetchOrderAsync(id any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchOrderBody(ch, id, optionalArgs...)
     return ch
@@ -2023,7 +2023,7 @@ func (this *Apex) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any {
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes168512 := (<-this.LoadMarkets())
+            retRes168512 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes168512)
         }
         var request map[string]any = map[string]any {}
@@ -2057,7 +2057,7 @@ func (this *Apex) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Apex) FetchOpenOrders(optionalArgs ...any) <- chan any {
+func  (this *Apex) FetchOpenOrdersAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchOpenOrdersBody(ch, optionalArgs...)
     return ch
@@ -2075,7 +2075,7 @@ func (this *Apex) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes171512 := (<-this.LoadMarkets())
+            retRes171512 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes171512)
         }
     
@@ -2103,7 +2103,7 @@ func (this *Apex) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
  * @param {boolean} [params.page] Page numbers start from 0
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Apex) FetchOrders(optionalArgs ...any) <- chan any {
+func  (this *Apex) FetchOrdersAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchOrdersBody(ch, optionalArgs...)
     return ch
@@ -2121,7 +2121,7 @@ func (this *Apex) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes174112 := (<-this.LoadMarkets())
+            retRes174112 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes174112)
         }
         var request map[string]any = map[string]any {}
@@ -2162,7 +2162,7 @@ func (this *Apex) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
-func  (this *Apex) FetchOrderTrades(id any, optionalArgs ...any) <- chan any {
+func  (this *Apex) FetchOrderTradesAsync(id any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchOrderTradesBody(ch, id, optionalArgs...)
     return ch
@@ -2180,7 +2180,7 @@ func (this *Apex) fetchOrderTradesBody(ch chan any, id any, optionalArgs ...any)
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes178012 := (<-this.LoadMarkets())
+            retRes178012 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes178012)
         }
         var request map[string]any = map[string]any {}
@@ -2215,7 +2215,7 @@ func (this *Apex) fetchOrderTradesBody(ch chan any, id any, optionalArgs ...any)
  * @param {boolean} [params.page] Page numbers start from 0
  * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
-func  (this *Apex) FetchMyTrades(optionalArgs ...any) <- chan any {
+func  (this *Apex) FetchMyTradesAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchMyTradesBody(ch, optionalArgs...)
     return ch
@@ -2233,7 +2233,7 @@ func (this *Apex) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes181312 := (<-this.LoadMarkets())
+            retRes181312 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes181312)
         }
         var request map[string]any = map[string]any {}
@@ -2276,7 +2276,7 @@ func (this *Apex) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
  * @param {boolean} [params.page] Page numbers start from 0
  * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=funding-history-structure}
  */
-func  (this *Apex) FetchFundingHistory(optionalArgs ...any) <- chan any {
+func  (this *Apex) FetchFundingHistoryAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchFundingHistoryBody(ch, optionalArgs...)
     return ch
@@ -2294,7 +2294,7 @@ func (this *Apex) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) any 
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes185412 := (<-this.LoadMarkets())
+            retRes185412 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes185412)
         }
         var request map[string]any = map[string]any {}
@@ -2365,7 +2365,7 @@ func  (this *Apex) ParseIncome(income any, optionalArgs ...any) any  {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} response from the exchange
  */
-func  (this *Apex) SetLeverage(leverage any, optionalArgs ...any) <- chan any {
+func  (this *Apex) SetLeverageAsync(leverage any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.setLeverageBody(ch, leverage, optionalArgs...)
     return ch
@@ -2382,7 +2382,7 @@ func (this *Apex) setLeverageBody(ch chan any, leverage any, optionalArgs ...any
         }
         if IsEqual(this.Markets, nil) {
     
-            retRes192512 := (<-this.LoadMarkets())
+            retRes192512 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes192512)
         }
         var market any = this.Market(symbol)
@@ -2409,7 +2409,7 @@ func (this *Apex) setLeverageBody(ch chan any, leverage any, optionalArgs ...any
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
  */
-func  (this *Apex) FetchPositions(optionalArgs ...any) <- chan any {
+func  (this *Apex) FetchPositionsAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchPositionsBody(ch, optionalArgs...)
     return ch
@@ -2423,7 +2423,7 @@ func (this *Apex) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes195012 := (<-this.LoadMarkets())
+            retRes195012 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes195012)
         }
     

@@ -565,7 +565,7 @@ func  (this *Bithumb) GetGen2MarketId(market any) any  {
  * @param {int} [params.generation] if you want to use the API generation 1 or 2, default is 2
  * @returns {object[]} an array of objects representing market data
  */
-func  (this *Bithumb) FetchMarkets(optionalArgs ...any) <- chan any {
+func  (this *Bithumb) FetchMarketsAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchMarketsBody(ch, optionalArgs...)
     return ch
@@ -818,7 +818,7 @@ func  (this *Bithumb) ParseBalance(response any) any  {
  * @param {int} [params.generation] if you want to use the API generation 1 or 2, default is 2
  * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
-func  (this *Bithumb) FetchBalance(optionalArgs ...any) <- chan any {
+func  (this *Bithumb) FetchBalanceAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchBalanceBody(ch, optionalArgs...)
     return ch
@@ -830,7 +830,7 @@ func (this *Bithumb) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes70512 := (<-this.LoadMarkets())
+            retRes70512 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes70512)
         }
         var generation any = nil
@@ -866,7 +866,7 @@ func (this *Bithumb) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
  * @param {int} [params.generation] if you want to use the API generation 1 or 2, default is 2
  * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
-func  (this *Bithumb) FetchOrderBook(symbol any, optionalArgs ...any) <- chan any {
+func  (this *Bithumb) FetchOrderBookAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchOrderBookBody(ch, symbol, optionalArgs...)
     return ch
@@ -880,7 +880,7 @@ func (this *Bithumb) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ..
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes75712 := (<-this.LoadMarkets())
+            retRes75712 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes75712)
         }
         var generation any = nil
@@ -1120,7 +1120,7 @@ func  (this *Bithumb) ParseTicker(ticker any, optionalArgs ...any) any  {
  * @param {int} [params.generation] if you want to use the API generation 1 or 2, default is 2
  * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func  (this *Bithumb) FetchTickers(optionalArgs ...any) <- chan any {
+func  (this *Bithumb) FetchTickersAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchTickersBody(ch, optionalArgs...)
     return ch
@@ -1134,7 +1134,7 @@ func (this *Bithumb) fetchTickersBody(ch chan any, optionalArgs ...any) any {
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes99012 := (<-this.LoadMarkets())
+            retRes99012 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes99012)
         }
         var generation any = nil
@@ -1322,7 +1322,7 @@ func (this *Bithumb) fetchTickersBody(ch chan any, optionalArgs ...any) any {
  * @param {int} [params.generation] if you want to use the API generation 1 or 2, default is 2
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func  (this *Bithumb) FetchTicker(symbol any, optionalArgs ...any) <- chan any {
+func  (this *Bithumb) FetchTickerAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchTickerBody(ch, symbol, optionalArgs...)
     return ch
@@ -1334,7 +1334,7 @@ func (this *Bithumb) fetchTickerBody(ch chan any, symbol any, optionalArgs ...an
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes119112 := (<-this.LoadMarkets())
+            retRes119112 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes119112)
         }
         var generation any = nil
@@ -1470,7 +1470,7 @@ func  (this *Bithumb) ParseOHLCV(ohlcv any, optionalArgs ...any) any  {
  * @param {int} [params.generation] if you want to use the API generation 1 or 2, default is 2
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
-func  (this *Bithumb) FetchOHLCV(symbol any, optionalArgs ...any) <- chan any {
+func  (this *Bithumb) FetchOHLCVAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchOHLCVBody(ch, symbol, optionalArgs...)
     return ch
@@ -1488,7 +1488,7 @@ func (this *Bithumb) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes132712 := (<-this.LoadMarkets())
+            retRes132712 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes132712)
         }
         var generation any = nil
@@ -1730,7 +1730,7 @@ func  (this *Bithumb) ParseTrade(trade any, optionalArgs ...any) any  {
  * @param {int} [params.generation] if you want to use the API generation 1 or 2, default is 2
  * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
-func  (this *Bithumb) FetchTrades(symbol any, optionalArgs ...any) <- chan any {
+func  (this *Bithumb) FetchTradesAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchTradesBody(ch, symbol, optionalArgs...)
     return ch
@@ -1746,7 +1746,7 @@ func (this *Bithumb) fetchTradesBody(ch chan any, symbol any, optionalArgs ...an
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes155612 := (<-this.LoadMarkets())
+            retRes155612 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes155612)
         }
         var generation any = nil
@@ -1821,7 +1821,7 @@ func (this *Bithumb) fetchTradesBody(ch chan any, symbol any, optionalArgs ...an
  * @param {int} [params.generation] *only generation 2 is supported* if you want to use the API generation 1 or 2, default is 2
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Bithumb) CreateOrders(orders any, optionalArgs ...any) <- chan any {
+func  (this *Bithumb) CreateOrdersAsync(orders any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.createOrdersBody(ch, orders, optionalArgs...)
     return ch
@@ -1833,7 +1833,7 @@ func (this *Bithumb) createOrdersBody(ch chan any, orders any, optionalArgs ...a
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes162512 := (<-this.LoadMarkets())
+            retRes162512 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes162512)
         }
         var generation any = nil
@@ -2008,7 +2008,7 @@ func  (this *Bithumb) CreateOrderRequest(symbol any, typeVar any, side any, amou
  * @param {int} [params.generation] if you want to use the API generation 1 or 2, default is 2
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Bithumb) CreateOrder(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <- chan any {
+func  (this *Bithumb) CreateOrderAsync(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.createOrderBody(ch, symbol, typeVar, side, amount, optionalArgs...)
     return ch
@@ -2022,7 +2022,7 @@ func (this *Bithumb) createOrderBody(ch chan any, symbol any, typeVar any, side 
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes178912 := (<-this.LoadMarkets())
+            retRes178912 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes178912)
         }
         var generation any = nil
@@ -2088,7 +2088,7 @@ func (this *Bithumb) createOrderBody(ch chan any, symbol any, typeVar any, side 
  * @param {int} [params.generation] *only generation 2 is supported* if you want to use the API generation 1 or 2, default is 2
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Bithumb) CreateMarketBuyOrderWithCost(symbol any, cost any, optionalArgs ...any) <- chan any {
+func  (this *Bithumb) CreateMarketBuyOrderWithCostAsync(symbol any, cost any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.createMarketBuyOrderWithCostBody(ch, symbol, cost, optionalArgs...)
     return ch
@@ -2100,7 +2100,7 @@ func (this *Bithumb) createMarketBuyOrderWithCostBody(ch chan any, symbol any, c
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes186112 := (<-this.LoadMarkets())
+            retRes186112 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes186112)
         }
         var generation any = nil
@@ -2112,7 +2112,7 @@ func (this *Bithumb) createMarketBuyOrderWithCostBody(ch chan any, symbol any, c
         }
         AddElementToObject(params, "createMarketBuyOrderRequiresPrice", false)
     
-            retRes186915 :=  (<-this.CreateOrder(symbol, "market", "buy", cost, nil, params))
+            retRes186915 :=  (<-this.CreateOrderAsync(symbol, "market", "buy", cost, nil, params))
             PanicOnError(retRes186915)
             ch <- retRes186915
             return nil
@@ -2132,7 +2132,7 @@ func (this *Bithumb) createMarketBuyOrderWithCostBody(ch chan any, symbol any, c
  * @param {int} [params.generation] *only generation 2 is supported* if you want to use the API generation 1 or 2, default is 2
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Bithumb) CreateTwapOrder(symbol any, side any, amount any, duration any, optionalArgs ...any) <- chan any {
+func  (this *Bithumb) CreateTwapOrderAsync(symbol any, side any, amount any, duration any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.createTwapOrderBody(ch, symbol, side, amount, duration, optionalArgs...)
     return ch
@@ -2144,7 +2144,7 @@ func (this *Bithumb) createTwapOrderBody(ch chan any, symbol any, side any, amou
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes188912 := (<-this.LoadMarkets())
+            retRes188912 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes188912)
         }
         var generation any = nil
@@ -2199,7 +2199,7 @@ func (this *Bithumb) createTwapOrderBody(ch chan any, symbol any, side any, amou
  * @param {string} [params.state] *generation 2 only* the order state, either wait, watch, done, or cancel. For twap either progress (default), done, or cancel
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Bithumb) FetchOrder(id any, optionalArgs ...any) <- chan any {
+func  (this *Bithumb) FetchOrderAsync(id any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchOrderBody(ch, id, optionalArgs...)
     return ch
@@ -2213,7 +2213,7 @@ func (this *Bithumb) fetchOrderBody(ch chan any, id any, optionalArgs ...any) an
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes194012 := (<-this.LoadMarkets())
+            retRes194012 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes194012)
         }
         var generation any = nil
@@ -2603,7 +2603,7 @@ func  (this *Bithumb) ParseOrder(order any, optionalArgs ...any) any  {
  * @param {string} [params.state] *generation 2 only* the order state, either wait, watch, done, or cancel. For twap either progress (default), done, or cancel
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Bithumb) FetchOpenOrders(optionalArgs ...any) <- chan any {
+func  (this *Bithumb) FetchOpenOrdersAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchOpenOrdersBody(ch, optionalArgs...)
     return ch
@@ -2621,7 +2621,7 @@ func (this *Bithumb) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes232212 := (<-this.LoadMarkets())
+            retRes232212 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes232212)
         }
         var generation any = nil
@@ -2639,7 +2639,7 @@ func (this *Bithumb) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
                 AddElementToObject(params, "state", "wait")
             }
     
-            orders:= (<-this.FetchOrders(symbol, since, limit, params))
+            orders:= (<-this.FetchOrdersAsync(symbol, since, limit, params))
             PanicOnError(orders)
     
             ch <- this.FilterBySinceLimit(orders, since, limit)
@@ -2683,7 +2683,7 @@ func (this *Bithumb) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
  * @param {string} [params.state] *generation 2 only* the order state, either wait, watch, done, or cancel. For twap either progress (default), done, or cancel
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Bithumb) FetchOrders(optionalArgs ...any) <- chan any {
+func  (this *Bithumb) FetchOrdersAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchOrdersBody(ch, optionalArgs...)
     return ch
@@ -2701,7 +2701,7 @@ func (this *Bithumb) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes239512 := (<-this.LoadMarkets())
+            retRes239512 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes239512)
         }
         var generation any = nil
@@ -2808,7 +2808,7 @@ func (this *Bithumb) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
  * @param {bool} [params.twap] if you want to fetch generation 2 twap orders
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Bithumb) FetchClosedOrders(optionalArgs ...any) <- chan any {
+func  (this *Bithumb) FetchClosedOrdersAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchClosedOrdersBody(ch, optionalArgs...)
     return ch
@@ -2826,7 +2826,7 @@ func (this *Bithumb) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any
         _ = params
         AddElementToObject(params, "state", "done")
     
-        orders:= (<-this.FetchOrders(symbol, since, limit, params))
+        orders:= (<-this.FetchOrdersAsync(symbol, since, limit, params))
         PanicOnError(orders)
     
         ch <- this.FilterBySinceLimit(orders, since, limit)
@@ -2847,7 +2847,7 @@ func (this *Bithumb) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any
  * @param {bool} [params.twap] if you want to fetch generation 2 twap orders
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Bithumb) FetchCanceledOrders(optionalArgs ...any) <- chan any {
+func  (this *Bithumb) FetchCanceledOrdersAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchCanceledOrdersBody(ch, optionalArgs...)
     return ch
@@ -2865,7 +2865,7 @@ func (this *Bithumb) fetchCanceledOrdersBody(ch chan any, optionalArgs ...any) a
         _ = params
         AddElementToObject(params, "state", "cancel")
     
-        orders:= (<-this.FetchOrders(symbol, since, limit, params))
+        orders:= (<-this.FetchOrdersAsync(symbol, since, limit, params))
         PanicOnError(orders)
     
         ch <- this.FilterBySinceLimit(orders, since, limit)
@@ -2886,7 +2886,7 @@ func (this *Bithumb) fetchCanceledOrdersBody(ch chan any, optionalArgs ...any) a
  * @param {bool} [params.twap] if you want to cancel a generation 2 twap order
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Bithumb) CancelOrder(id any, optionalArgs ...any) <- chan any {
+func  (this *Bithumb) CancelOrderAsync(id any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.cancelOrderBody(ch, id, optionalArgs...)
     return ch
@@ -2900,7 +2900,7 @@ func (this *Bithumb) cancelOrderBody(ch chan any, id any, optionalArgs ...any) a
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes253812 := (<-this.LoadMarkets())
+            retRes253812 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes253812)
         }
         var generation any = nil
@@ -2983,7 +2983,7 @@ func (this *Bithumb) cancelOrderBody(ch chan any, id any, optionalArgs ...any) a
  * @param {int} [params.generation] *only generation 2 is supported* if you want to use the API generation 1 or 2, default is 2
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Bithumb) CancelOrders(ids any, optionalArgs ...any) <- chan any {
+func  (this *Bithumb) CancelOrdersAsync(ids any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.cancelOrdersBody(ch, ids, optionalArgs...)
     return ch
@@ -2997,7 +2997,7 @@ func (this *Bithumb) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any)
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes262912 := (<-this.LoadMarkets())
+            retRes262912 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes262912)
         }
         var generation any = nil
@@ -3038,7 +3038,7 @@ func (this *Bithumb) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any)
         ch <- this.ParseOrders(data, market)
         return nil
 }
-func  (this *Bithumb) CancelUnifiedOrder(order any, optionalArgs ...any) <- chan any {
+func  (this *Bithumb) CancelUnifiedOrderAsync(order any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.cancelUnifiedOrderBody(ch, order, optionalArgs...)
     return ch
@@ -3052,7 +3052,7 @@ func (this *Bithumb) cancelUnifiedOrderBody(ch chan any, order any, optionalArgs
             "side": GetValue(order, "side"),
         }
     
-            retRes266815 :=  (<-this.CancelOrder(GetValue(order, "id"), GetValue(order, "symbol"), this.Extend(request, params)))
+            retRes266815 :=  (<-this.CancelOrderAsync(GetValue(order, "id"), GetValue(order, "symbol"), this.Extend(request, params)))
             PanicOnError(retRes266815)
             ch <- retRes266815
             return nil
@@ -3083,7 +3083,7 @@ func (this *Bithumb) cancelUnifiedOrderBody(ch chan any, order any, optionalArgs
  * @param {string} [params.two_factor_type] *generation 2 KRW withdraw only* the two factor type, for example kakao
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func  (this *Bithumb) Withdraw(code any, amount any, address any, optionalArgs ...any) <- chan any {
+func  (this *Bithumb) WithdrawAsync(code any, amount any, address any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.withdrawBody(ch, code, amount, address, optionalArgs...)
     return ch
@@ -3097,7 +3097,7 @@ func (this *Bithumb) withdrawBody(ch chan any, code any, amount any, address any
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes269912 := (<-this.LoadMarkets())
+            retRes269912 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes269912)
         }
         var generation any = nil
@@ -3284,7 +3284,7 @@ func  (this *Bithumb) ParseTransactionStatusByType(status any, optionalArgs ...a
  * @param {int} [params.generation] *only generation 2 is supported* if you want to use the API generation 1 or 2, default is 2
  * @returns {object[]} a list response from the exchange
  */
-func  (this *Bithumb) FetchWithdrawalWhitelist(optionalArgs ...any) <- chan any {
+func  (this *Bithumb) FetchWithdrawalWhitelistAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchWithdrawalWhitelistBody(ch, optionalArgs...)
     return ch
@@ -3296,7 +3296,7 @@ func (this *Bithumb) fetchWithdrawalWhitelistBody(ch chan any, optionalArgs ...a
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes289312 := (<-this.LoadMarkets())
+            retRes289312 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes289312)
         }
         var generation any = nil
@@ -3339,7 +3339,7 @@ func (this *Bithumb) fetchWithdrawalWhitelistBody(ch chan any, optionalArgs ...a
  * @param {int} [params.generation] *only generation 2 is supported* if you want to use the API generation 1 or 2, default is 2
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func  (this *Bithumb) FetchWithdrawal(id any, optionalArgs ...any) <- chan any {
+func  (this *Bithumb) FetchWithdrawalAsync(id any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchWithdrawalBody(ch, id, optionalArgs...)
     return ch
@@ -3353,7 +3353,7 @@ func (this *Bithumb) fetchWithdrawalBody(ch chan any, id any, optionalArgs ...an
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes293212 := (<-this.LoadMarkets())
+            retRes293212 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes293212)
         }
         var generation any = nil
@@ -3413,7 +3413,7 @@ func (this *Bithumb) fetchWithdrawalBody(ch chan any, id any, optionalArgs ...an
  * @param {string[]} [params.txids] an array of txid strings
  * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func  (this *Bithumb) FetchWithdrawals(optionalArgs ...any) <- chan any {
+func  (this *Bithumb) FetchWithdrawalsAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchWithdrawalsBody(ch, optionalArgs...)
     return ch
@@ -3431,7 +3431,7 @@ func (this *Bithumb) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any 
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes298812 := (<-this.LoadMarkets())
+            retRes298812 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes298812)
         }
         var generation any = nil
@@ -3494,7 +3494,7 @@ func (this *Bithumb) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any 
  * @param {int} [params.generation] *only generation 2 is supported* if you want to use the API generation 1 or 2, default is 2
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func  (this *Bithumb) FetchDeposit(id any, optionalArgs ...any) <- chan any {
+func  (this *Bithumb) FetchDepositAsync(id any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchDepositBody(ch, id, optionalArgs...)
     return ch
@@ -3508,7 +3508,7 @@ func (this *Bithumb) fetchDepositBody(ch chan any, id any, optionalArgs ...any) 
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes304512 := (<-this.LoadMarkets())
+            retRes304512 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes304512)
         }
         var generation any = nil
@@ -3568,7 +3568,7 @@ func (this *Bithumb) fetchDepositBody(ch chan any, id any, optionalArgs ...any) 
  * @param {string[]} [params.txids] an array of txid strings
  * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func  (this *Bithumb) FetchDeposits(optionalArgs ...any) <- chan any {
+func  (this *Bithumb) FetchDepositsAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchDepositsBody(ch, optionalArgs...)
     return ch
@@ -3586,7 +3586,7 @@ func (this *Bithumb) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes310112 := (<-this.LoadMarkets())
+            retRes310112 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes310112)
         }
         var generation any = nil
@@ -3648,7 +3648,7 @@ func (this *Bithumb) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
  * @param {string} [params.network] the blockchain network to create a deposit address on
  * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
  */
-func  (this *Bithumb) CreateDepositAddress(code any, optionalArgs ...any) <- chan any {
+func  (this *Bithumb) CreateDepositAddressAsync(code any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.createDepositAddressBody(ch, code, optionalArgs...)
     return ch
@@ -3660,7 +3660,7 @@ func (this *Bithumb) createDepositAddressBody(ch chan any, code any, optionalArg
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes315712 := (<-this.LoadMarkets())
+            retRes315712 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes315712)
         }
         var generation any = nil
@@ -3706,7 +3706,7 @@ func (this *Bithumb) createDepositAddressBody(ch chan any, code any, optionalArg
  * @param {string} [params.network] network for fetch deposit address
  * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
  */
-func  (this *Bithumb) FetchDepositAddress(code any, optionalArgs ...any) <- chan any {
+func  (this *Bithumb) FetchDepositAddressAsync(code any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchDepositAddressBody(ch, code, optionalArgs...)
     return ch
@@ -3718,7 +3718,7 @@ func (this *Bithumb) fetchDepositAddressBody(ch chan any, code any, optionalArgs
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes319912 := (<-this.LoadMarkets())
+            retRes319912 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes319912)
         }
         var generation any = nil
@@ -3763,7 +3763,7 @@ func (this *Bithumb) fetchDepositAddressBody(ch chan any, code any, optionalArgs
  * @param {int} [params.generation] *only generation 2 is supported* if you want to use the API generation 1 or 2, default is 2
  * @returns {object} a dictionary of [address structures]{@link https://docs.ccxt.com/?id=address-structure} indexed by currency code
  */
-func  (this *Bithumb) FetchDepositAddresses(optionalArgs ...any) <- chan any {
+func  (this *Bithumb) FetchDepositAddressesAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchDepositAddressesBody(ch, optionalArgs...)
     return ch
@@ -3777,7 +3777,7 @@ func (this *Bithumb) fetchDepositAddressesBody(ch chan any, optionalArgs ...any)
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes324012 := (<-this.LoadMarkets())
+            retRes324012 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes324012)
         }
         var generation any = nil

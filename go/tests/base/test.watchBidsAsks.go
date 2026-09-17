@@ -5,7 +5,7 @@ import "github.com/ccxt/ccxt/go/v4"
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 
-    func TestWatchBidsAsks(exchange ccxt.ICoreExchange, skippedProperties any, symbol any) <- chan any {
+    func TestWatchBidsAsksAsync(exchange ccxt.ICoreExchange, skippedProperties any, symbol any) <- chan any {
         ch := make(chan any, 1)
         go testWatchBidsAsksBody(ch, exchange, skippedProperties, symbol)
         return ch
@@ -13,14 +13,14 @@ import "github.com/ccxt/ccxt/go/v4"
     func testWatchBidsAsksBody(ch chan any, exchange ccxt.ICoreExchange, skippedProperties any, symbol any) any {
         defer close(ch)
         defer ReturnPanicError(ch)
-            var withoutSymbol any = TestWatchBidsAsksHelper(exchange, skippedProperties, nil)
-            var withSymbol any = TestWatchBidsAsksHelper(exchange, skippedProperties, []any{symbol})
+            var withoutSymbol any = TestWatchBidsAsksHelperAsync(exchange, skippedProperties, nil)
+            var withSymbol any = TestWatchBidsAsksHelperAsync(exchange, skippedProperties, []any{symbol})
         
             retRes114 := (<-promiseAll([]any{withSymbol, withoutSymbol}))
             PanicOnError(retRes114)
         return nil
     }
-    func TestWatchBidsAsksHelper(exchange ccxt.ICoreExchange, skippedProperties any, argSymbols any, optionalArgs ...any) <- chan any {
+    func TestWatchBidsAsksHelperAsync(exchange ccxt.ICoreExchange, skippedProperties any, argSymbols any, optionalArgs ...any) <- chan any {
         ch := make(chan any, 1)
         go testWatchBidsAsksHelperBody(ch, exchange, skippedProperties, argSymbols, optionalArgs...)
         return ch

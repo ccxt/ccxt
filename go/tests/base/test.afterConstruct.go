@@ -5,7 +5,7 @@ import "github.com/ccxt/ccxt/go/v4"
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 
-    func TestAfterConstruct(exchange ccxt.ICoreExchange, skippedProperties any) <- chan any {
+    func TestAfterConstructAsync(exchange ccxt.ICoreExchange, skippedProperties any) <- chan any {
         ch := make(chan any, 1)
         go testAfterConstructBody(ch, exchange, skippedProperties)
         return ch

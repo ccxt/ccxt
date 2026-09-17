@@ -5,7 +5,7 @@ import "github.com/ccxt/ccxt/go/v4"
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 
-    func TestFetchWithdrawals(exchange ccxt.ICoreExchange, skippedProperties any, code any) <- chan any {
+    func TestFetchWithdrawalsAsync(exchange ccxt.ICoreExchange, skippedProperties any, code any) <- chan any {
         ch := make(chan any, 1)
         go testFetchWithdrawalsBody(ch, exchange, skippedProperties, code)
         return ch

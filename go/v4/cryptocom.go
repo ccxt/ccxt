@@ -802,7 +802,7 @@ func  (this *Cryptocom) Describe() any  {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an associative dictionary of currencies
  */
-func  (this *Cryptocom) FetchCurrencies(optionalArgs ...any) <- chan any {
+func  (this *Cryptocom) FetchCurrenciesAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchCurrenciesBody(ch, optionalArgs...)
     return ch
@@ -971,7 +971,7 @@ func  (this *Cryptocom) ParseCurrency(currency any) any  {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} an array of objects representing market data
  */
-func  (this *Cryptocom) FetchMarkets(optionalArgs ...any) <- chan any {
+func  (this *Cryptocom) FetchMarketsAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchMarketsBody(ch, optionalArgs...)
     return ch
@@ -1179,7 +1179,7 @@ func (this *Cryptocom) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func  (this *Cryptocom) FetchTickers(optionalArgs ...any) <- chan any {
+func  (this *Cryptocom) FetchTickersAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchTickersBody(ch, optionalArgs...)
     return ch
@@ -1193,7 +1193,7 @@ func (this *Cryptocom) fetchTickersBody(ch chan any, optionalArgs ...any) any {
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes88712 := (<-this.LoadMarkets())
+            retRes88712 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes88712)
         }
         var market any = nil
@@ -1254,7 +1254,7 @@ func (this *Cryptocom) fetchTickersBody(ch chan any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func  (this *Cryptocom) FetchTicker(symbol any, optionalArgs ...any) <- chan any {
+func  (this *Cryptocom) FetchTickerAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchTickerBody(ch, symbol, optionalArgs...)
     return ch
@@ -1266,12 +1266,12 @@ func (this *Cryptocom) fetchTickerBody(ch chan any, symbol any, optionalArgs ...
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes94612 := (<-this.LoadMarkets())
+            retRes94612 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes94612)
         }
         symbol = this.Symbol(symbol)
     
-        tickers:= (<-this.FetchTickers([]any{symbol}, params))
+        tickers:= (<-this.FetchTickersAsync([]any{symbol}, params))
         PanicOnError(tickers)
     
         ch <- this.SafeValue(tickers, symbol)
@@ -1290,7 +1290,7 @@ func (this *Cryptocom) fetchTickerBody(ch chan any, symbol any, optionalArgs ...
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Cryptocom) FetchOrders(optionalArgs ...any) <- chan any {
+func  (this *Cryptocom) FetchOrdersAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchOrdersBody(ch, optionalArgs...)
     return ch
@@ -1308,7 +1308,7 @@ func (this *Cryptocom) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes96812 := (<-this.LoadMarkets())
+            retRes96812 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes96812)
         }
         var paginate any = false
@@ -1317,7 +1317,7 @@ func (this *Cryptocom) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
         params = GetValue(paginateparamsVariable,1)
         if EvalTruthy(paginate) {
     
-                retRes97319 :=  (<-this.FetchPaginatedCallDynamic("fetchOrders", symbol, since, limit, params))
+                retRes97319 :=  (<-this.FetchPaginatedCallDynamicAsync("fetchOrders", symbol, since, limit, params))
                 PanicOnError(retRes97319)
                 ch <- retRes97319
                 return nil
@@ -1400,7 +1400,7 @@ func (this *Cryptocom) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
  * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
-func  (this *Cryptocom) FetchTrades(symbol any, optionalArgs ...any) <- chan any {
+func  (this *Cryptocom) FetchTradesAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchTradesBody(ch, symbol, optionalArgs...)
     return ch
@@ -1416,7 +1416,7 @@ func (this *Cryptocom) fetchTradesBody(ch chan any, symbol any, optionalArgs ...
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes105212 := (<-this.LoadMarkets())
+            retRes105212 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes105212)
         }
         var paginate any = false
@@ -1425,7 +1425,7 @@ func (this *Cryptocom) fetchTradesBody(ch chan any, symbol any, optionalArgs ...
         params = GetValue(paginateparamsVariable,1)
         if EvalTruthy(paginate) {
     
-                retRes105719 :=  (<-this.FetchPaginatedCallDynamic("fetchTrades", symbol, since, limit, params))
+                retRes105719 :=  (<-this.FetchPaginatedCallDynamicAsync("fetchTrades", symbol, since, limit, params))
                 PanicOnError(retRes105719)
                 ch <- retRes105719
                 return nil
@@ -1488,7 +1488,7 @@ func (this *Cryptocom) fetchTradesBody(ch chan any, symbol any, optionalArgs ...
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
-func  (this *Cryptocom) FetchOHLCV(symbol any, optionalArgs ...any) <- chan any {
+func  (this *Cryptocom) FetchOHLCVAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchOHLCVBody(ch, symbol, optionalArgs...)
     return ch
@@ -1506,7 +1506,7 @@ func (this *Cryptocom) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...a
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes111612 := (<-this.LoadMarkets())
+            retRes111612 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes111612)
         }
         var paginate any = false
@@ -1515,7 +1515,7 @@ func (this *Cryptocom) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...a
         params = GetValue(paginateparamsVariable,1)
         if EvalTruthy(paginate) {
     
-                retRes112119 :=  (<-this.FetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, params, 300))
+                retRes112119 :=  (<-this.FetchPaginatedCallDeterministicAsync("fetchOHLCV", symbol, since, limit, timeframe, params, 300))
                 PanicOnError(retRes112119)
                 ch <- retRes112119
                 return nil
@@ -1585,7 +1585,7 @@ func (this *Cryptocom) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...a
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
-func  (this *Cryptocom) FetchOrderBook(symbol any, optionalArgs ...any) <- chan any {
+func  (this *Cryptocom) FetchOrderBookAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchOrderBookBody(ch, symbol, optionalArgs...)
     return ch
@@ -1599,7 +1599,7 @@ func (this *Cryptocom) fetchOrderBookBody(ch chan any, symbol any, optionalArgs 
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes118712 := (<-this.LoadMarkets())
+            retRes118712 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes118712)
         }
         var market any = this.Market(symbol)
@@ -1666,7 +1666,7 @@ func  (this *Cryptocom) ParseBalance(response any) any  {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
-func  (this *Cryptocom) FetchBalance(optionalArgs ...any) <- chan any {
+func  (this *Cryptocom) FetchBalanceAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchBalanceBody(ch, optionalArgs...)
     return ch
@@ -1678,7 +1678,7 @@ func (this *Cryptocom) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes125112 := (<-this.LoadMarkets())
+            retRes125112 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes125112)
         }
     
@@ -1741,7 +1741,7 @@ func (this *Cryptocom) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Cryptocom) FetchOrder(id any, optionalArgs ...any) <- chan any {
+func  (this *Cryptocom) FetchOrderAsync(id any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchOrderBody(ch, id, optionalArgs...)
     return ch
@@ -1755,7 +1755,7 @@ func (this *Cryptocom) fetchOrderBody(ch chan any, id any, optionalArgs ...any) 
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes131212 := (<-this.LoadMarkets())
+            retRes131212 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes131212)
         }
         var market any = nil
@@ -1935,7 +1935,7 @@ func  (this *Cryptocom) CreateOrderRequest(symbol any, typeVar any, side any, am
  * @param {float} [params.takeProfitPrice] price to trigger a take-profit trigger order
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Cryptocom) CreateOrder(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <- chan any {
+func  (this *Cryptocom) CreateOrderAsync(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.createOrderBody(ch, symbol, typeVar, side, amount, optionalArgs...)
     return ch
@@ -1949,7 +1949,7 @@ func (this *Cryptocom) createOrderBody(ch chan any, symbol any, typeVar any, sid
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes148312 := (<-this.LoadMarkets())
+            retRes148312 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes148312)
         }
         var market any = this.Market(symbol)
@@ -1983,7 +1983,7 @@ func (this *Cryptocom) createOrderBody(ch chan any, symbol any, typeVar any, sid
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Cryptocom) CreateOrders(orders any, optionalArgs ...any) <- chan any {
+func  (this *Cryptocom) CreateOrdersAsync(orders any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.createOrdersBody(ch, orders, optionalArgs...)
     return ch
@@ -1995,7 +1995,7 @@ func (this *Cryptocom) createOrdersBody(ch chan any, orders any, optionalArgs ..
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes151512 := (<-this.LoadMarkets())
+            retRes151512 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes151512)
         }
         var ordersRequests any = []any{}
@@ -2213,7 +2213,7 @@ func  (this *Cryptocom) CreateAdvancedOrderRequest(symbol any, typeVar any, side
  * @param {string} [params.clientOrderId] the original client order id of the order to edit, required if id is not provided
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Cryptocom) EditOrder(id any, symbol any, typeVar any, side any, optionalArgs ...any) <- chan any {
+func  (this *Cryptocom) EditOrderAsync(id any, symbol any, typeVar any, side any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.editOrderBody(ch, id, symbol, typeVar, side, optionalArgs...)
     return ch
@@ -2229,7 +2229,7 @@ func (this *Cryptocom) editOrderBody(ch chan any, id any, symbol any, typeVar an
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes172212 := (<-this.LoadMarkets())
+            retRes172212 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes172212)
         }
         var request any = this.EditOrderRequest(id, symbol, amount, price, params)
@@ -2274,7 +2274,7 @@ func  (this *Cryptocom) EditOrderRequest(id any, symbol any, amount any, optiona
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} Returns exchange raw message{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Cryptocom) CancelAllOrders(optionalArgs ...any) <- chan any {
+func  (this *Cryptocom) CancelAllOrdersAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.cancelAllOrdersBody(ch, optionalArgs...)
     return ch
@@ -2288,7 +2288,7 @@ func (this *Cryptocom) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes176212 := (<-this.LoadMarkets())
+            retRes176212 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes176212)
         }
         var market any = nil
@@ -2316,7 +2316,7 @@ func (this *Cryptocom) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Cryptocom) CancelOrder(id any, optionalArgs ...any) <- chan any {
+func  (this *Cryptocom) CancelOrderAsync(id any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.cancelOrderBody(ch, id, optionalArgs...)
     return ch
@@ -2330,7 +2330,7 @@ func (this *Cryptocom) cancelOrderBody(ch chan any, id any, optionalArgs ...any)
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes178612 := (<-this.LoadMarkets())
+            retRes178612 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes178612)
         }
         var market any = nil
@@ -2370,7 +2370,7 @@ func (this *Cryptocom) cancelOrderBody(ch chan any, id any, optionalArgs ...any)
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Cryptocom) CancelOrders(ids any, optionalArgs ...any) <- chan any {
+func  (this *Cryptocom) CancelOrdersAsync(ids any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.cancelOrdersBody(ch, ids, optionalArgs...)
     return ch
@@ -2387,7 +2387,7 @@ func (this *Cryptocom) cancelOrdersBody(ch chan any, ids any, optionalArgs ...an
         }
         if IsEqual(this.Markets, nil) {
     
-            retRes182712 := (<-this.LoadMarkets())
+            retRes182712 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes182712)
         }
         var market any = this.Market(symbol)
@@ -2421,7 +2421,7 @@ func (this *Cryptocom) cancelOrdersBody(ch chan any, ids any, optionalArgs ...an
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Cryptocom) CancelOrdersForSymbols(orders any, optionalArgs ...any) <- chan any {
+func  (this *Cryptocom) CancelOrdersForSymbolsAsync(orders any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.cancelOrdersForSymbolsBody(ch, orders, optionalArgs...)
     return ch
@@ -2433,7 +2433,7 @@ func (this *Cryptocom) cancelOrdersForSymbolsBody(ch chan any, orders any, optio
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes185912 := (<-this.LoadMarkets())
+            retRes185912 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes185912)
         }
         var orderRequests any = []any{}
@@ -2471,7 +2471,7 @@ func (this *Cryptocom) cancelOrdersForSymbolsBody(ch chan any, orders any, optio
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Cryptocom) FetchOpenOrders(optionalArgs ...any) <- chan any {
+func  (this *Cryptocom) FetchOpenOrdersAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchOpenOrdersBody(ch, optionalArgs...)
     return ch
@@ -2489,7 +2489,7 @@ func (this *Cryptocom) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes189512 := (<-this.LoadMarkets())
+            retRes189512 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes189512)
         }
         var market any = nil
@@ -2557,7 +2557,7 @@ func (this *Cryptocom) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
  * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
-func  (this *Cryptocom) FetchMyTrades(optionalArgs ...any) <- chan any {
+func  (this *Cryptocom) FetchMyTradesAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchMyTradesBody(ch, optionalArgs...)
     return ch
@@ -2575,7 +2575,7 @@ func (this *Cryptocom) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes196112 := (<-this.LoadMarkets())
+            retRes196112 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes196112)
         }
         var paginate any = false
@@ -2584,7 +2584,7 @@ func (this *Cryptocom) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
         params = GetValue(paginateparamsVariable,1)
         if EvalTruthy(paginate) {
     
-                retRes196619 :=  (<-this.FetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, params, 100))
+                retRes196619 :=  (<-this.FetchPaginatedCallDynamicAsync("fetchMyTrades", symbol, since, limit, params, 100))
                 PanicOnError(retRes196619)
                 ch <- retRes196619
                 return nil
@@ -2671,7 +2671,7 @@ func  (this *Cryptocom) ParseAddress(addressString any) any  {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func  (this *Cryptocom) Withdraw(code any, amount any, address any, optionalArgs ...any) <- chan any {
+func  (this *Cryptocom) WithdrawAsync(code any, amount any, address any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.withdrawBody(ch, code, amount, address, optionalArgs...)
     return ch
@@ -2688,7 +2688,7 @@ func (this *Cryptocom) withdrawBody(ch chan any, code any, amount any, address a
         params = GetValue(tagparamsVariable,1)
         if IsEqual(this.Markets, nil) {
     
-            retRes204912 := (<-this.LoadMarkets())
+            retRes204912 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes204912)
         }
         var currency any = this.SafeCurrency(code) // for instance, USDC is not inferred from markets but it's still available
@@ -2741,7 +2741,7 @@ func (this *Cryptocom) withdrawBody(ch chan any, code any, amount any, address a
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a dictionary of [address structures]{@link https://docs.ccxt.com/?id=address-structure} indexed by the network
  */
-func  (this *Cryptocom) FetchDepositAddressesByNetwork(code any, optionalArgs ...any) <- chan any {
+func  (this *Cryptocom) FetchDepositAddressesByNetworkAsync(code any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchDepositAddressesByNetworkBody(ch, code, optionalArgs...)
     return ch
@@ -2753,7 +2753,7 @@ func (this *Cryptocom) fetchDepositAddressesByNetworkBody(ch chan any, code any,
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes209812 := (<-this.LoadMarkets())
+            retRes209812 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes209812)
         }
         var currency any = this.SafeCurrency(code)
@@ -2823,7 +2823,7 @@ func (this *Cryptocom) fetchDepositAddressesByNetworkBody(ch chan any, code any,
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
  */
-func  (this *Cryptocom) FetchDepositAddress(code any, optionalArgs ...any) <- chan any {
+func  (this *Cryptocom) FetchDepositAddressAsync(code any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchDepositAddressBody(ch, code, optionalArgs...)
     return ch
@@ -2836,7 +2836,7 @@ func (this *Cryptocom) fetchDepositAddressBody(ch chan any, code any, optionalAr
         var network *string = this.SafeStringUpper(params, "network")
         params = this.Omit(params, []any{"network"})
     
-        depositAddressesRaw:= (<-this.FetchDepositAddressesByNetwork(code, params))
+        depositAddressesRaw:= (<-this.FetchDepositAddressesByNetworkAsync(code, params))
         PanicOnError(depositAddressesRaw)
         var depositAddresses any = depositAddressesRaw
         if InOp(depositAddresses, network) {
@@ -2861,7 +2861,7 @@ func (this *Cryptocom) fetchDepositAddressBody(ch chan any, code any, optionalAr
  * @param {int} [params.until] timestamp in ms for the ending date filter, default is the current time
  * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func  (this *Cryptocom) FetchDeposits(optionalArgs ...any) <- chan any {
+func  (this *Cryptocom) FetchDepositsAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchDepositsBody(ch, optionalArgs...)
     return ch
@@ -2879,7 +2879,7 @@ func (this *Cryptocom) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes218812 := (<-this.LoadMarkets())
+            retRes218812 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes218812)
         }
         var currency any = nil
@@ -2943,7 +2943,7 @@ func (this *Cryptocom) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
  * @param {int} [params.until] timestamp in ms for the ending date filter, default is the current time
  * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func  (this *Cryptocom) FetchWithdrawals(optionalArgs ...any) <- chan any {
+func  (this *Cryptocom) FetchWithdrawalsAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchWithdrawalsBody(ch, optionalArgs...)
     return ch
@@ -2961,7 +2961,7 @@ func (this *Cryptocom) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) an
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes225012 := (<-this.LoadMarkets())
+            retRes225012 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes225012)
         }
         var currency any = nil
@@ -3482,7 +3482,7 @@ func  (this *Cryptocom) ParseDepositWithdrawFee(fee any, optionalArgs ...any) an
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
  */
-func  (this *Cryptocom) FetchDepositWithdrawFees(optionalArgs ...any) <- chan any {
+func  (this *Cryptocom) FetchDepositWithdrawFeesAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchDepositWithdrawFeesBody(ch, optionalArgs...)
     return ch
@@ -3496,7 +3496,7 @@ func (this *Cryptocom) fetchDepositWithdrawFeesBody(ch chan any, optionalArgs ..
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes276012 := (<-this.LoadMarkets())
+            retRes276012 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes276012)
         }
     
@@ -3520,7 +3520,7 @@ func (this *Cryptocom) fetchDepositWithdrawFeesBody(ch chan any, optionalArgs ..
  * @param {int} [params.until] timestamp in ms for the ending date filter, default is the current time
  * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
  */
-func  (this *Cryptocom) FetchLedger(optionalArgs ...any) <- chan any {
+func  (this *Cryptocom) FetchLedgerAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchLedgerBody(ch, optionalArgs...)
     return ch
@@ -3538,7 +3538,7 @@ func (this *Cryptocom) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes278212 := (<-this.LoadMarkets())
+            retRes278212 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes278212)
         }
         var request map[string]any = map[string]any {}
@@ -3685,7 +3685,7 @@ func  (this *Cryptocom) ParseLedgerEntryType(typeVar any) any  {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/?id=account-structure} indexed by the account type
  */
-func  (this *Cryptocom) FetchAccounts(optionalArgs ...any) <- chan any {
+func  (this *Cryptocom) FetchAccountsAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchAccountsBody(ch, optionalArgs...)
     return ch
@@ -3697,7 +3697,7 @@ func (this *Cryptocom) fetchAccountsBody(ch chan any, optionalArgs ...any) any {
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes292712 := (<-this.LoadMarkets())
+            retRes292712 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes292712)
         }
     
@@ -3787,7 +3787,7 @@ func  (this *Cryptocom) ParseAccount(account any) any  {
  * @param {int} [params.type] 'future', 'option'
  * @returns {object[]} a list of [settlement history objects]{@link https://docs.ccxt.com/?id=settlement-history-structure}
  */
-func  (this *Cryptocom) FetchSettlementHistory(optionalArgs ...any) <- chan any {
+func  (this *Cryptocom) FetchSettlementHistoryAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchSettlementHistoryBody(ch, optionalArgs...)
     return ch
@@ -3805,7 +3805,7 @@ func (this *Cryptocom) fetchSettlementHistoryBody(ch chan any, optionalArgs ...a
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes301612 := (<-this.LoadMarkets())
+            retRes301612 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes301612)
         }
         var market any = nil
@@ -3896,7 +3896,7 @@ func  (this *Cryptocom) ParseSettlements(settlements any, market any) any  {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
  */
-func  (this *Cryptocom) FetchFundingRate(symbol any, optionalArgs ...any) <- chan any {
+func  (this *Cryptocom) FetchFundingRateAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchFundingRateBody(ch, symbol, optionalArgs...)
     return ch
@@ -3908,7 +3908,7 @@ func (this *Cryptocom) fetchFundingRateBody(ch chan any, symbol any, optionalArg
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes310512 := (<-this.LoadMarkets())
+            retRes310512 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes310512)
         }
         var market any = this.Market(symbol)
@@ -3994,7 +3994,7 @@ func  (this *Cryptocom) ParseFundingRate(contract any, optionalArgs ...any) any 
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
  * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
  */
-func  (this *Cryptocom) FetchFundingRateHistory(optionalArgs ...any) <- chan any {
+func  (this *Cryptocom) FetchFundingRateHistoryAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchFundingRateHistoryBody(ch, optionalArgs...)
     return ch
@@ -4015,7 +4015,7 @@ func (this *Cryptocom) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...
         }
         if IsEqual(this.Markets, nil) {
     
-            retRes319112 := (<-this.LoadMarkets())
+            retRes319112 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes319112)
         }
         var paginate any = false
@@ -4024,7 +4024,7 @@ func (this *Cryptocom) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...
         params = GetValue(paginateparamsVariable,1)
         if EvalTruthy(paginate) {
     
-                retRes319619 :=  (<-this.FetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", params))
+                retRes319619 :=  (<-this.FetchPaginatedCallDeterministicAsync("fetchFundingRateHistory", symbol, since, limit, "8h", params))
                 PanicOnError(retRes319619)
                 ch <- retRes319619
                 return nil
@@ -4096,7 +4096,7 @@ func (this *Cryptocom) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
  */
-func  (this *Cryptocom) FetchPosition(symbol any, optionalArgs ...any) <- chan any {
+func  (this *Cryptocom) FetchPositionAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchPositionBody(ch, symbol, optionalArgs...)
     return ch
@@ -4108,7 +4108,7 @@ func (this *Cryptocom) fetchPositionBody(ch chan any, symbol any, optionalArgs .
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes326412 := (<-this.LoadMarkets())
+            retRes326412 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes326412)
         }
         var market any = this.Market(symbol)
@@ -4155,7 +4155,7 @@ func (this *Cryptocom) fetchPositionBody(ch chan any, symbol any, optionalArgs .
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
  */
-func  (this *Cryptocom) FetchPositions(optionalArgs ...any) <- chan any {
+func  (this *Cryptocom) FetchPositionsAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchPositionsBody(ch, optionalArgs...)
     return ch
@@ -4169,7 +4169,7 @@ func (this *Cryptocom) fetchPositionsBody(ch chan any, optionalArgs ...any) any 
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes330912 := (<-this.LoadMarkets())
+            retRes330912 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes330912)
         }
         symbols = this.MarketSymbols(symbols)
@@ -4325,7 +4325,7 @@ func  (this *Cryptocom) ParamsToString(object any, level any) any  {
  * @param {number} [params.price] for limit orders only
  * @returns {object[]} [A list of position structures]{@link https://docs.ccxt.com/?id=position-structure}
  */
-func  (this *Cryptocom) ClosePosition(symbol any, optionalArgs ...any) <- chan any {
+func  (this *Cryptocom) ClosePositionAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.closePositionBody(ch, symbol, optionalArgs...)
     return ch
@@ -4339,7 +4339,7 @@ func (this *Cryptocom) closePositionBody(ch chan any, symbol any, optionalArgs .
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes346412 := (<-this.LoadMarkets())
+            retRes346412 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes346412)
         }
         var market any = this.Market(symbol)
@@ -4383,7 +4383,7 @@ func (this *Cryptocom) closePositionBody(ch chan any, symbol any, optionalArgs .
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
  */
-func  (this *Cryptocom) FetchTradingFee(symbol any, optionalArgs ...any) <- chan any {
+func  (this *Cryptocom) FetchTradingFeeAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchTradingFeeBody(ch, symbol, optionalArgs...)
     return ch
@@ -4395,7 +4395,7 @@ func (this *Cryptocom) fetchTradingFeeBody(ch chan any, symbol any, optionalArgs
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes350612 := (<-this.LoadMarkets())
+            retRes350612 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes350612)
         }
         var market any = this.Market(symbol)
@@ -4433,7 +4433,7 @@ func (this *Cryptocom) fetchTradingFeeBody(ch chan any, symbol any, optionalArgs
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
  */
-func  (this *Cryptocom) FetchTradingFees(optionalArgs ...any) <- chan any {
+func  (this *Cryptocom) FetchTradingFeesAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchTradingFeesBody(ch, optionalArgs...)
     return ch
@@ -4445,7 +4445,7 @@ func (this *Cryptocom) fetchTradingFeesBody(ch chan any, optionalArgs ...any) an
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes354212 := (<-this.LoadMarkets())
+            retRes354212 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes354212)
         }
     

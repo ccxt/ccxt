@@ -1132,7 +1132,7 @@ func  (this *Phemex) ParseSpotMarket(market any) any  {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} an array of objects representing market data
  */
-func  (this *Phemex) FetchMarkets(optionalArgs ...any) <- chan any {
+func  (this *Phemex) FetchMarketsAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchMarketsBody(ch, optionalArgs...)
     return ch
@@ -1376,7 +1376,7 @@ func (this *Phemex) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an associative dictionary of currencies
  */
-func  (this *Phemex) FetchCurrencies(optionalArgs ...any) <- chan any {
+func  (this *Phemex) FetchCurrenciesAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchCurrenciesBody(ch, optionalArgs...)
     return ch
@@ -1509,7 +1509,7 @@ func  (this *Phemex) CustomParseOrderBook(orderbook any, symbol any, optionalArg
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
-func  (this *Phemex) FetchOrderBook(symbol any, optionalArgs ...any) <- chan any {
+func  (this *Phemex) FetchOrderBookAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchOrderBookBody(ch, symbol, optionalArgs...)
     return ch
@@ -1523,7 +1523,7 @@ func (this *Phemex) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes125612 := (<-this.LoadMarkets())
+            retRes125612 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes125612)
         }
         var market any = this.Market(symbol)
@@ -1679,7 +1679,7 @@ func  (this *Phemex) ParseOHLCV(ohlcv any, optionalArgs ...any) any  {
  * @param {int} [params.until] *USDT settled/ linear swaps only* end time in ms
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
-func  (this *Phemex) FetchOHLCV(symbol any, optionalArgs ...any) <- chan any {
+func  (this *Phemex) FetchOHLCVAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchOHLCVBody(ch, symbol, optionalArgs...)
     return ch
@@ -1697,7 +1697,7 @@ func (this *Phemex) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes141012 := (<-this.LoadMarkets())
+            retRes141012 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes141012)
         }
         var market any = this.Market(symbol)
@@ -1880,7 +1880,7 @@ func  (this *Phemex) ParseTicker(ticker any, optionalArgs ...any) any  {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func  (this *Phemex) FetchTicker(symbol any, optionalArgs ...any) <- chan any {
+func  (this *Phemex) FetchTickerAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchTickerBody(ch, symbol, optionalArgs...)
     return ch
@@ -1892,7 +1892,7 @@ func (this *Phemex) fetchTickerBody(ch chan any, symbol any, optionalArgs ...any
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes158612 := (<-this.LoadMarkets())
+            retRes158612 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes158612)
         }
         var market any = this.Market(symbol)
@@ -1975,7 +1975,7 @@ func (this *Phemex) fetchTickerBody(ch chan any, symbol any, optionalArgs ...any
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func  (this *Phemex) FetchTickers(optionalArgs ...any) <- chan any {
+func  (this *Phemex) FetchTickersAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchTickersBody(ch, optionalArgs...)
     return ch
@@ -1989,7 +1989,7 @@ func (this *Phemex) fetchTickersBody(ch chan any, optionalArgs ...any) any {
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes166412 := (<-this.LoadMarkets())
+            retRes166412 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes166412)
         }
         var market any = nil
@@ -2036,7 +2036,7 @@ func (this *Phemex) fetchTickersBody(ch chan any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
-func  (this *Phemex) FetchTrades(symbol any, optionalArgs ...any) <- chan any {
+func  (this *Phemex) FetchTradesAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchTradesBody(ch, symbol, optionalArgs...)
     return ch
@@ -2052,7 +2052,7 @@ func (this *Phemex) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes170112 := (<-this.LoadMarkets())
+            retRes170112 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes170112)
         }
         var market any = this.Market(symbol)
@@ -2507,7 +2507,7 @@ func  (this *Phemex) ParseSwapBalance(response any) any  {
  * @param {string} [params.code] *swap only* currency code of the balance to query (USD, USDT, etc), default is USDT
  * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
-func  (this *Phemex) FetchBalance(optionalArgs ...any) <- chan any {
+func  (this *Phemex) FetchBalanceAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchBalanceBody(ch, optionalArgs...)
     return ch
@@ -2519,7 +2519,7 @@ func (this *Phemex) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes215012 := (<-this.LoadMarkets())
+            retRes215012 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes215012)
         }
         var typeVar any = nil
@@ -3077,7 +3077,7 @@ func  (this *Phemex) ParseOrder(order any, optionalArgs ...any) any  {
  * @param {bool} [params.hedged] *swap only* true for hedged mode, false for one way mode, default is false
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Phemex) CreateOrder(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <- chan any {
+func  (this *Phemex) CreateOrderAsync(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.createOrderBody(ch, symbol, typeVar, side, amount, optionalArgs...)
     return ch
@@ -3091,7 +3091,7 @@ func (this *Phemex) createOrderBody(ch chan any, symbol any, typeVar any, side a
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes269512 := (<-this.LoadMarkets())
+            retRes269512 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes269512)
         }
         var market any = this.Market(symbol)
@@ -3388,7 +3388,7 @@ func (this *Phemex) createOrderBody(ch chan any, symbol any, typeVar any, side a
  * @param {string} [params.posSide] either 'Merged' or 'Long' or 'Short'
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Phemex) EditOrder(id any, symbol any, typeVar any, side any, optionalArgs ...any) <- chan any {
+func  (this *Phemex) EditOrderAsync(id any, symbol any, typeVar any, side any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.editOrderBody(ch, id, symbol, typeVar, side, optionalArgs...)
     return ch
@@ -3404,7 +3404,7 @@ func (this *Phemex) editOrderBody(ch chan any, id any, symbol any, typeVar any, 
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes300712 := (<-this.LoadMarkets())
+            retRes300712 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes300712)
         }
         var market any = this.Market(symbol)
@@ -3481,7 +3481,7 @@ func (this *Phemex) editOrderBody(ch chan any, id any, symbol any, typeVar any, 
  * @param {string} [params.posSide] either 'Merged' or 'Long' or 'Short'
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Phemex) CancelOrder(id any, optionalArgs ...any) <- chan any {
+func  (this *Phemex) CancelOrderAsync(id any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.cancelOrderBody(ch, id, optionalArgs...)
     return ch
@@ -3498,7 +3498,7 @@ func (this *Phemex) cancelOrderBody(ch chan any, id any, optionalArgs ...any) an
         }
         if IsEqual(this.Markets, nil) {
     
-            retRes308112 := (<-this.LoadMarkets())
+            retRes308112 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes308112)
         }
         var market any = this.Market(symbol)
@@ -3544,7 +3544,7 @@ func (this *Phemex) cancelOrderBody(ch chan any, id any, optionalArgs ...any) an
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Phemex) CancelAllOrders(optionalArgs ...any) <- chan any {
+func  (this *Phemex) CancelAllOrdersAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.cancelAllOrdersBody(ch, optionalArgs...)
     return ch
@@ -3561,7 +3561,7 @@ func (this *Phemex) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
         }
         if IsEqual(this.Markets, nil) {
     
-            retRes312412 := (<-this.LoadMarkets())
+            retRes312412 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes312412)
         }
         var market any = this.Market(symbol)
@@ -3603,7 +3603,7 @@ func (this *Phemex) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Phemex) FetchOrder(id any, optionalArgs ...any) <- chan any {
+func  (this *Phemex) FetchOrderAsync(id any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchOrderBody(ch, id, optionalArgs...)
     return ch
@@ -3620,7 +3620,7 @@ func (this *Phemex) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any
         }
         if IsEqual(this.Markets, nil) {
     
-            retRes319012 := (<-this.LoadMarkets())
+            retRes319012 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes319012)
         }
         var market any = this.Market(symbol)
@@ -3679,7 +3679,7 @@ func (this *Phemex) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Phemex) FetchOrders(optionalArgs ...any) <- chan any {
+func  (this *Phemex) FetchOrdersAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchOrdersBody(ch, optionalArgs...)
     return ch
@@ -3700,7 +3700,7 @@ func (this *Phemex) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
         }
         if IsEqual(this.Markets, nil) {
     
-            retRes324612 := (<-this.LoadMarkets())
+            retRes324612 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes324612)
         }
         var market any = this.Market(symbol)
@@ -3747,7 +3747,7 @@ func (this *Phemex) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Phemex) FetchOpenOrders(optionalArgs ...any) <- chan any {
+func  (this *Phemex) FetchOpenOrdersAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchOpenOrdersBody(ch, optionalArgs...)
     return ch
@@ -3767,7 +3767,7 @@ func (this *Phemex) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes328712 := (<-this.LoadMarkets())
+            retRes328712 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes328712)
         }
         if IsEqual(symbol, nil) {
@@ -3775,7 +3775,7 @@ func (this *Phemex) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
         }
         if IsEqual(this.Markets, nil) {
     
-            retRes329312 := (<-this.LoadMarkets())
+            retRes329312 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes329312)
         }
         var market any = this.Market(symbol)
@@ -3852,7 +3852,7 @@ func (this *Phemex) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
  * @param {string} [params.settle] the settlement currency to fetch orders for
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Phemex) FetchClosedOrders(optionalArgs ...any) <- chan any {
+func  (this *Phemex) FetchClosedOrdersAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchClosedOrdersBody(ch, optionalArgs...)
     return ch
@@ -3870,7 +3870,7 @@ func (this *Phemex) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any 
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes334012 := (<-this.LoadMarkets())
+            retRes334012 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes334012)
         }
         var market any = nil
@@ -3963,7 +3963,7 @@ func (this *Phemex) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any 
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
-func  (this *Phemex) FetchMyTrades(optionalArgs ...any) <- chan any {
+func  (this *Phemex) FetchMyTradesAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchMyTradesBody(ch, optionalArgs...)
     return ch
@@ -3981,7 +3981,7 @@ func (this *Phemex) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes342612 := (<-this.LoadMarkets())
+            retRes342612 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes342612)
         }
         var market any = nil
@@ -4149,7 +4149,7 @@ func (this *Phemex) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
  * @param {string} [params.network] the chain name to fetch the deposit address e.g. ETH, TRX, EOS, SOL, etc.
  * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
  */
-func  (this *Phemex) FetchDepositAddress(code any, optionalArgs ...any) <- chan any {
+func  (this *Phemex) FetchDepositAddressAsync(code any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchDepositAddressBody(ch, code, optionalArgs...)
     return ch
@@ -4161,7 +4161,7 @@ func (this *Phemex) fetchDepositAddressBody(ch chan any, code any, optionalArgs 
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes358612 := (<-this.LoadMarkets())
+            retRes358612 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes358612)
         }
         var currency any = this.Currency(code)
@@ -4221,7 +4221,7 @@ func (this *Phemex) fetchDepositAddressBody(ch chan any, code any, optionalArgs 
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func  (this *Phemex) FetchDeposits(optionalArgs ...any) <- chan any {
+func  (this *Phemex) FetchDepositsAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchDepositsBody(ch, optionalArgs...)
     return ch
@@ -4239,7 +4239,7 @@ func (this *Phemex) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes364412 := (<-this.LoadMarkets())
+            retRes364412 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes364412)
         }
         var currency any = nil
@@ -4284,7 +4284,7 @@ func (this *Phemex) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func  (this *Phemex) FetchWithdrawals(optionalArgs ...any) <- chan any {
+func  (this *Phemex) FetchWithdrawalsAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchWithdrawalsBody(ch, optionalArgs...)
     return ch
@@ -4302,7 +4302,7 @@ func (this *Phemex) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes368712 := (<-this.LoadMarkets())
+            retRes368712 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes368712)
         }
         var currency any = nil
@@ -4490,7 +4490,7 @@ func  (this *Phemex) ParseTransaction(transaction any, optionalArgs ...any) any 
  * @param {string} [params.method] *USDT contracts only* 'privateGetGAccountsAccountPositions' or 'privateGetGAccountsPositions' default is 'privateGetGAccountsAccountPositions'
  * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
  */
-func  (this *Phemex) FetchPositions(optionalArgs ...any) <- chan any {
+func  (this *Phemex) FetchPositionsAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchPositionsBody(ch, optionalArgs...)
     return ch
@@ -4504,7 +4504,7 @@ func (this *Phemex) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes387312 := (<-this.LoadMarkets())
+            retRes387312 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes387312)
         }
         symbols = this.MarketSymbols(symbols)
@@ -4657,7 +4657,7 @@ func (this *Phemex) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
  * @param {int} [params.until] the latest time in ms to fetch positions for
  * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
  */
-func  (this *Phemex) FetchPositionHistory(symbol any, optionalArgs ...any) <- chan any {
+func  (this *Phemex) FetchPositionHistoryAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchPositionHistoryBody(ch, symbol, optionalArgs...)
     return ch
@@ -4673,7 +4673,7 @@ func (this *Phemex) fetchPositionHistoryBody(ch chan any, symbol any, optionalAr
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes401412 := (<-this.LoadMarkets())
+            retRes401412 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes401412)
         }
         var market any = this.Market(symbol)
@@ -4908,7 +4908,7 @@ func  (this *Phemex) ParsePosition(position any, optionalArgs ...any) any  {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/?id=funding-history-structure}
  */
-func  (this *Phemex) FetchFundingHistory(optionalArgs ...any) <- chan any {
+func  (this *Phemex) FetchFundingHistoryAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchFundingHistoryBody(ch, optionalArgs...)
     return ch
@@ -4929,7 +4929,7 @@ func (this *Phemex) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) an
         }
         if IsEqual(this.Markets, nil) {
     
-            retRes424912 := (<-this.LoadMarkets())
+            retRes424912 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes424912)
         }
         var market any = this.Market(symbol)
@@ -5023,7 +5023,7 @@ func  (this *Phemex) ParseFundingFeeToPrecision(value any, optionalArgs ...any) 
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
  */
-func  (this *Phemex) FetchFundingRate(symbol any, optionalArgs ...any) <- chan any {
+func  (this *Phemex) FetchFundingRateAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchFundingRateBody(ch, symbol, optionalArgs...)
     return ch
@@ -5035,7 +5035,7 @@ func (this *Phemex) fetchFundingRateBody(ch chan any, symbol any, optionalArgs .
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes433812 := (<-this.LoadMarkets())
+            retRes433812 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes433812)
         }
         var market any = this.Market(symbol)
@@ -5161,7 +5161,7 @@ func  (this *Phemex) ParseFundingRate(contract any, optionalArgs ...any) any  {
  * @param {object} [params] parameters specific to the exchange API endpoint
  * @returns {object} A [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
  */
-func  (this *Phemex) SetMargin(symbol any, amount any, optionalArgs ...any) <- chan any {
+func  (this *Phemex) SetMarginAsync(symbol any, amount any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.setMarginBody(ch, symbol, amount, optionalArgs...)
     return ch
@@ -5173,7 +5173,7 @@ func (this *Phemex) setMarginBody(ch chan any, symbol any, amount any, optionalA
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes445912 := (<-this.LoadMarkets())
+            retRes445912 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes445912)
         }
         var market any = this.Market(symbol)
@@ -5239,7 +5239,7 @@ func  (this *Phemex) ParseMarginModification(data any, optionalArgs ...any) any 
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} response from the exchange
  */
-func  (this *Phemex) SetMarginMode(marginMode any, optionalArgs ...any) <- chan any {
+func  (this *Phemex) SetMarginModeAsync(marginMode any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.setMarginModeBody(ch, marginMode, optionalArgs...)
     return ch
@@ -5256,7 +5256,7 @@ func (this *Phemex) setMarginModeBody(ch chan any, marginMode any, optionalArgs 
         }
         if IsEqual(this.Markets, nil) {
     
-            retRes452612 := (<-this.LoadMarkets())
+            retRes452612 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes452612)
         }
         var market any = this.Market(symbol)
@@ -5307,7 +5307,7 @@ func (this *Phemex) setMarginModeBody(ch chan any, marginMode any, optionalArgs 
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} response from the exchange
  */
-func  (this *Phemex) SetPositionMode(hedged any, optionalArgs ...any) <- chan any {
+func  (this *Phemex) SetPositionModeAsync(hedged any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.setPositionModeBody(ch, hedged, optionalArgs...)
     return ch
@@ -5322,7 +5322,7 @@ func (this *Phemex) setPositionModeBody(ch chan any, hedged any, optionalArgs ..
         this.CheckRequiredArgument("setPositionMode", symbol, "symbol")
         if IsEqual(this.Markets, nil) {
     
-            retRes457212 := (<-this.LoadMarkets())
+            retRes457212 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes457212)
         }
         var market any = this.Market(symbol)
@@ -5351,7 +5351,7 @@ func (this *Phemex) setPositionModeBody(ch chan any, hedged any, optionalArgs ..
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}, indexed by market symbols
  */
-func  (this *Phemex) FetchLeverageTiers(optionalArgs ...any) <- chan any {
+func  (this *Phemex) FetchLeverageTiersAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchLeverageTiersBody(ch, optionalArgs...)
     return ch
@@ -5365,7 +5365,7 @@ func (this *Phemex) fetchLeverageTiersBody(ch chan any, optionalArgs ...any) any
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes459912 := (<-this.LoadMarkets())
+            retRes459912 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes459912)
         }
         if !IsEqual(symbols, nil) {
@@ -5571,7 +5571,7 @@ func  (this *Phemex) Sign(path any, optionalArgs ...any) any  {
  * @param {float} [params.shortLeverageRr] *hedged mode only* set the leverage for short positions
  * @returns {object} response from the exchange
  */
-func  (this *Phemex) SetLeverage(leverage any, optionalArgs ...any) <- chan any {
+func  (this *Phemex) SetLeverageAsync(leverage any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.setLeverageBody(ch, leverage, optionalArgs...)
     return ch
@@ -5593,7 +5593,7 @@ func (this *Phemex) setLeverageBody(ch chan any, leverage any, optionalArgs ...a
         }
         if IsEqual(this.Markets, nil) {
     
-            retRes479612 := (<-this.LoadMarkets())
+            retRes479612 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes479612)
         }
         var isHedged any = DerefScalar(this.SafeBool(params, "hedged", false))
@@ -5640,7 +5640,7 @@ func (this *Phemex) setLeverageBody(ch chan any, leverage any, optionalArgs ...a
  * @param {string} [params.bizType] for transferring between main and sub-acounts either 'SPOT' or 'PERPETUAL' default is 'SPOT'
  * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
-func  (this *Phemex) Transfer(code any, amount any, fromAccount any, toAccount any, optionalArgs ...any) <- chan any {
+func  (this *Phemex) TransferAsync(code any, amount any, fromAccount any, toAccount any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.transferBody(ch, code, amount, fromAccount, toAccount, optionalArgs...)
     return ch
@@ -5652,7 +5652,7 @@ func (this *Phemex) transferBody(ch chan any, code any, amount any, fromAccount 
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes483912 := (<-this.LoadMarkets())
+            retRes483912 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes483912)
         }
         var currency any = this.Currency(code)
@@ -5743,7 +5743,7 @@ func (this *Phemex) transferBody(ch chan any, code any, amount any, fromAccount 
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
-func  (this *Phemex) FetchTransfers(optionalArgs ...any) <- chan any {
+func  (this *Phemex) FetchTransfersAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchTransfersBody(ch, optionalArgs...)
     return ch
@@ -5761,7 +5761,7 @@ func (this *Phemex) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes492612 := (<-this.LoadMarkets())
+            retRes492612 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes492612)
         }
         if IsEqual(code, nil) {
@@ -5885,7 +5885,7 @@ func  (this *Phemex) ParseTransferStatus(status any) any  {
  * @param {int} [params.until] timestamp in ms of the latest funding rate
  * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
  */
-func  (this *Phemex) FetchFundingRateHistory(optionalArgs ...any) <- chan any {
+func  (this *Phemex) FetchFundingRateHistoryAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchFundingRateHistoryBody(ch, optionalArgs...)
     return ch
@@ -5906,7 +5906,7 @@ func (this *Phemex) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any
         }
         if IsEqual(this.Markets, nil) {
     
-            retRes505112 := (<-this.LoadMarkets())
+            retRes505112 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes505112)
         }
         var market any = this.Market(symbol)
@@ -5920,7 +5920,7 @@ func (this *Phemex) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any
         params = GetValue(paginateparamsVariable,1)
         if EvalTruthy(paginate) {
     
-                retRes506119 :=  (<-this.FetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", params, 100))
+                retRes506119 :=  (<-this.FetchPaginatedCallDeterministicAsync("fetchFundingRateHistory", symbol, since, limit, "8h", params, 100))
                 PanicOnError(retRes506119)
                 ch <- retRes506119
                 return nil
@@ -6001,7 +6001,7 @@ func (this *Phemex) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any
  * @param {string} [params.network] unified network code
  * @returns {object} a [transaction structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure}
  */
-func  (this *Phemex) Withdraw(code any, amount any, address any, optionalArgs ...any) <- chan any {
+func  (this *Phemex) WithdrawAsync(code any, amount any, address any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.withdrawBody(ch, code, amount, address, optionalArgs...)
     return ch
@@ -6018,7 +6018,7 @@ func (this *Phemex) withdrawBody(ch chan any, code any, amount any, address any,
         params = GetValue(tagparamsVariable,1)
         if IsEqual(this.Markets, nil) {
     
-            retRes513512 := (<-this.LoadMarkets())
+            retRes513512 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes513512)
         }
         this.CheckAddress(address)
@@ -6092,7 +6092,7 @@ func (this *Phemex) withdrawBody(ch chan any, code any, amount any, address any,
  * @param {object} [params] exchange specific parameters
  * @returns {object} an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}
  */
-func  (this *Phemex) FetchOpenInterest(symbol any, optionalArgs ...any) <- chan any {
+func  (this *Phemex) FetchOpenInterestAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchOpenInterestBody(ch, symbol, optionalArgs...)
     return ch
@@ -6104,7 +6104,7 @@ func (this *Phemex) fetchOpenInterestBody(ch chan any, symbol any, optionalArgs 
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes520512 := (<-this.LoadMarkets())
+            retRes520512 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes520512)
         }
         var market any = this.Market(symbol)
@@ -6187,7 +6187,7 @@ func  (this *Phemex) ParseOpenInterest(interest any, optionalArgs ...any) any  {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/?id=conversion-structure}
  */
-func  (this *Phemex) FetchConvertQuote(fromCode any, toCode any, optionalArgs ...any) <- chan any {
+func  (this *Phemex) FetchConvertQuoteAsync(fromCode any, toCode any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchConvertQuoteBody(ch, fromCode, toCode, optionalArgs...)
     return ch
@@ -6201,7 +6201,7 @@ func (this *Phemex) fetchConvertQuoteBody(ch chan any, fromCode any, toCode any,
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes528512 := (<-this.LoadMarkets())
+            retRes528512 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes528512)
         }
         var fromCurrency any = this.Currency(fromCode)
@@ -6250,7 +6250,7 @@ func (this *Phemex) fetchConvertQuoteBody(ch chan any, fromCode any, toCode any,
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/?id=conversion-structure}
  */
-func  (this *Phemex) CreateConvertTrade(id any, fromCode any, toCode any, optionalArgs ...any) <- chan any {
+func  (this *Phemex) CreateConvertTradeAsync(id any, fromCode any, toCode any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.createConvertTradeBody(ch, id, fromCode, toCode, optionalArgs...)
     return ch
@@ -6264,7 +6264,7 @@ func (this *Phemex) createConvertTradeBody(ch chan any, id any, fromCode any, to
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes533212 := (<-this.LoadMarkets())
+            retRes533212 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes533212)
         }
         var fromCurrency any = this.Currency(fromCode)
@@ -6319,7 +6319,7 @@ func (this *Phemex) createConvertTradeBody(ch chan any, id any, fromCode any, to
  * @param {string} [params.toCurrency] the currency that you bought and converted into
  * @returns {object[]} a list of [conversion structures]{@link https://docs.ccxt.com/?id=conversion-structure}
  */
-func  (this *Phemex) FetchConvertTradeHistory(optionalArgs ...any) <- chan any {
+func  (this *Phemex) FetchConvertTradeHistoryAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchConvertTradeHistoryBody(ch, optionalArgs...)
     return ch
@@ -6337,7 +6337,7 @@ func (this *Phemex) fetchConvertTradeHistoryBody(ch chan any, optionalArgs ...an
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes538512 := (<-this.LoadMarkets())
+            retRes538512 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes538512)
         }
         var request any = map[string]any {}
@@ -6474,7 +6474,7 @@ func  (this *Phemex) ParseConversion(conversion any, optionalArgs ...any) any  {
  * @param {string} [params.method] *USDT contracts only* 'privateGetGAccountsAccountPositions' or 'privateGetGAccountsPositions' default is 'privateGetGAccountsAccountPositions'
  * @returns {object} an array of [auto de leverage structures]{@link https://docs.ccxt.com/?id=auto-de-leverage-structure}
  */
-func  (this *Phemex) FetchPositionsADLRank(optionalArgs ...any) <- chan any {
+func  (this *Phemex) FetchPositionsADLRankAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchPositionsADLRankBody(ch, optionalArgs...)
     return ch
@@ -6488,7 +6488,7 @@ func (this *Phemex) fetchPositionsADLRankBody(ch chan any, optionalArgs ...any) 
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes551512 := (<-this.LoadMarkets())
+            retRes551512 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes551512)
         }
         symbols = this.MarketSymbols(symbols, nil, true, true, true)

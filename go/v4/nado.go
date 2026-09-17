@@ -382,7 +382,7 @@ func  (this *Nado) Describe() any  {
  * @param {int} [params.id] client-provided request id, returned by the exchange in the response
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
  */
-func  (this *Nado) CreateOrder(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <- chan any {
+func  (this *Nado) CreateOrderAsync(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.createOrderBody(ch, symbol, typeVar, side, amount, optionalArgs...)
     return ch
@@ -396,11 +396,11 @@ func (this *Nado) createOrderBody(ch chan any, symbol any, typeVar any, side any
         _ = params
         this.CheckRequiredCredentials()
     
-        retRes3568 := (<-this.LoadMarkets())
+        retRes3568 := (<-this.LoadMarketsAsync())
         PanicOnError(retRes3568)
         var market any = this.Market(symbol)
     
-        request:= (<-this.CreateOrderRequest(symbol, typeVar, side, amount, price, params))
+        request:= (<-this.CreateOrderRequestAsync(symbol, typeVar, side, amount, price, params))
         PanicOnError(request)
         var placeOrder any = this.SafeDict(request, "place_order", map[string]any {})
         var isTriggerOrder bool =     (InOp(placeOrder, "trigger"))
@@ -444,7 +444,7 @@ func (this *Nado) createOrderBody(ch chan any, symbol any, typeVar any, side any
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} the request payload for the place_order execute
  */
-func  (this *Nado) CreateOrderRequest(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <- chan any {
+func  (this *Nado) CreateOrderRequestAsync(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.createOrderRequestBody(ch, symbol, typeVar, side, amount, optionalArgs...)
     return ch
@@ -550,7 +550,7 @@ func (this *Nado) createOrderRequestBody(ch chan any, symbol any, typeVar any, s
         }
         AddElementToObject(order, "appendix", appendix)
     
-        contracts:= (<-this.QueryContracts())
+        contracts:= (<-this.QueryContractsAsync())
         PanicOnError(contracts)
         var chainId *string = this.SafeString(contracts, "chain_id")
         var signature any = this.SignOrder(order, productId, chainId)
@@ -588,7 +588,7 @@ func (this *Nado) createOrderRequestBody(ch chan any, symbol any, typeVar any, s
  * @param {float} [params.triggerPrice] not supported, editing trigger orders throws NotSupported, the same applies to params.stopPrice, params.stopLossPrice and params.takeProfitPrice
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
  */
-func  (this *Nado) EditOrder(id any, symbol any, typeVar any, side any, optionalArgs ...any) <- chan any {
+func  (this *Nado) EditOrderAsync(id any, symbol any, typeVar any, side any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.editOrderBody(ch, id, symbol, typeVar, side, optionalArgs...)
     return ch
@@ -604,11 +604,11 @@ func (this *Nado) editOrderBody(ch chan any, id any, symbol any, typeVar any, si
         _ = params
         this.CheckRequiredCredentials()
     
-        retRes5188 := (<-this.LoadMarkets())
+        retRes5188 := (<-this.LoadMarketsAsync())
         PanicOnError(retRes5188)
         var market any = this.Market(symbol)
     
-        request:= (<-this.EditOrderRequest(id, symbol, typeVar, side, amount, price, params))
+        request:= (<-this.EditOrderRequestAsync(id, symbol, typeVar, side, amount, price, params))
         PanicOnError(request)
     
         response:= (<-this.GatewayPrivatePostExecute(request))
@@ -645,7 +645,7 @@ func (this *Nado) editOrderBody(ch chan any, id any, symbol any, typeVar any, si
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} the request payload for the cancel_and_place execute
  */
-func  (this *Nado) EditOrderRequest(id any, symbol any, typeVar any, side any, optionalArgs ...any) <- chan any {
+func  (this *Nado) EditOrderRequestAsync(id any, symbol any, typeVar any, side any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.editOrderRequestBody(ch, id, symbol, typeVar, side, optionalArgs...)
     return ch
@@ -720,7 +720,7 @@ func (this *Nado) editOrderRequestBody(ch chan any, id any, symbol any, typeVar 
             "appendix": appendix,
         }
     
-        contracts:= (<-this.QueryContracts())
+        contracts:= (<-this.QueryContractsAsync())
         PanicOnError(contracts)
         var chainId *string = this.SafeString(contracts, "chain_id")
         var endpointAddress *string = this.SafeString(contracts, "endpoint_addr")
@@ -766,7 +766,7 @@ func (this *Nado) editOrderRequestBody(ch chan any, id any, symbol any, typeVar 
  * @param {int} [params.id] client-provided request id, returned by the exchange in the response
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Nado) CancelOrder(id any, optionalArgs ...any) <- chan any {
+func  (this *Nado) CancelOrderAsync(id any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.cancelOrderBody(ch, id, optionalArgs...)
     return ch
@@ -779,7 +779,7 @@ func (this *Nado) cancelOrderBody(ch chan any, id any, optionalArgs ...any) any 
         params := GetArg(optionalArgs, 1, map[string]any {})
         _ = params
     
-        orders:= (<-this.CancelOrders([]any{id}, symbol, params))
+        orders:= (<-this.CancelOrdersAsync([]any{id}, symbol, params))
         PanicOnError(orders)
     
         ch <- this.SafeDict(orders, 0)
@@ -797,7 +797,7 @@ func (this *Nado) cancelOrderBody(ch chan any, id any, optionalArgs ...any) any 
  * @param {boolean} [params.trigger] set to true if you would like to fetch portfolio margin account trigger or conditional orders
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Nado) CancelAllOrders(optionalArgs ...any) <- chan any {
+func  (this *Nado) CancelAllOrdersAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.cancelAllOrdersBody(ch, optionalArgs...)
     return ch
@@ -811,7 +811,7 @@ func (this *Nado) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
         _ = params
         this.CheckRequiredCredentials()
     
-        retRes6698 := (<-this.LoadMarkets())
+        retRes6698 := (<-this.LoadMarketsAsync())
         PanicOnError(retRes6698)
         var market any = nil
         if !IsEqual(symbol, nil) {
@@ -820,7 +820,7 @@ func (this *Nado) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
         var trigger any = DerefScalar(this.SafeBool2(params, "stop", "trigger"))
         params = this.Omit(params, []any{"stop", "trigger"})
     
-        request:= (<-this.CancelAllOrdersRequest(symbol, params))
+        request:= (<-this.CancelAllOrdersRequestAsync(symbol, params))
         PanicOnError(request)
         var response any = nil
         if IsEqual(trigger, true) {
@@ -853,7 +853,7 @@ func (this *Nado) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} the request payload for the cancel_product_orders execute
  */
-func  (this *Nado) CancelAllOrdersRequest(optionalArgs ...any) <- chan any {
+func  (this *Nado) CancelAllOrdersRequestAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.cancelAllOrdersRequestBody(ch, optionalArgs...)
     return ch
@@ -886,7 +886,7 @@ func (this *Nado) cancelAllOrdersRequestBody(ch chan any, optionalArgs ...any) a
             "nonce": nonce,
         }
     
-        contracts:= (<-this.QueryContracts())
+        contracts:= (<-this.QueryContractsAsync())
         PanicOnError(contracts)
         var chainId *string = this.SafeString(contracts, "chain_id")
         var endpointAddress *string = this.SafeString(contracts, "endpoint_addr")
@@ -924,7 +924,7 @@ func (this *Nado) cancelAllOrdersRequestBody(ch chan any, optionalArgs ...any) a
  * @param {boolean} [params.trigger] set to true if you would like to fetch portfolio margin account trigger or conditional orders
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Nado) CancelOrders(ids any, optionalArgs ...any) <- chan any {
+func  (this *Nado) CancelOrdersAsync(ids any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.cancelOrdersBody(ch, ids, optionalArgs...)
     return ch
@@ -941,13 +941,13 @@ func (this *Nado) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any) an
             panic(ArgumentsRequired(Add(this.Id, " cancelOrders() requires a symbol argument")))
         }
     
-        retRes7918 := (<-this.LoadMarkets())
+        retRes7918 := (<-this.LoadMarketsAsync())
         PanicOnError(retRes7918)
         var market any = this.Market(symbol)
         var trigger any = DerefScalar(this.SafeBool2(params, "stop", "trigger"))
         params = this.Omit(params, []any{"stop", "trigger"})
     
-        request:= (<-this.CancelOrdersRequest(ids, symbol, params))
+        request:= (<-this.CancelOrdersRequestAsync(ids, symbol, params))
         PanicOnError(request)
         var response any = nil
         if IsEqual(trigger, true) {
@@ -981,7 +981,7 @@ func (this *Nado) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any) an
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} the request payload for the cancel_orders execute
  */
-func  (this *Nado) CancelOrdersRequest(ids any, optionalArgs ...any) <- chan any {
+func  (this *Nado) CancelOrdersRequestAsync(ids any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.cancelOrdersRequestBody(ch, ids, optionalArgs...)
     return ch
@@ -1016,7 +1016,7 @@ func (this *Nado) cancelOrdersRequestBody(ch chan any, ids any, optionalArgs ...
             "nonce": nonce,
         }
     
-        contracts:= (<-this.QueryContracts())
+        contracts:= (<-this.QueryContractsAsync())
         PanicOnError(contracts)
         var chainId *string = this.SafeString(contracts, "chain_id")
         var endpointAddress *string = this.SafeString(contracts, "endpoint_addr")
@@ -1057,7 +1057,7 @@ func (this *Nado) cancelOrdersRequestBody(ch chan any, ids any, optionalArgs ...
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Nado) FetchOrder(id any, optionalArgs ...any) <- chan any {
+func  (this *Nado) FetchOrderAsync(id any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchOrderBody(ch, id, optionalArgs...)
     return ch
@@ -1073,7 +1073,7 @@ func (this *Nado) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any {
             panic(ArgumentsRequired(Add(this.Id, " fetchOrder() requires a symbol argument")))
         }
     
-        retRes9158 := (<-this.LoadMarkets())
+        retRes9158 := (<-this.LoadMarketsAsync())
         PanicOnError(retRes9158)
         var market any = this.Market(symbol)
         var request map[string]any = map[string]any {
@@ -1121,7 +1121,7 @@ func (this *Nado) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any {
  * @param {boolean} [params.trigger] set to true if you would like to fetch portfolio margin account trigger or conditional orders
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Nado) FetchOrders(optionalArgs ...any) <- chan any {
+func  (this *Nado) FetchOrdersAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchOrdersBody(ch, optionalArgs...)
     return ch
@@ -1138,7 +1138,7 @@ func (this *Nado) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
         params := GetArg(optionalArgs, 3, map[string]any {})
         _ = params
     
-        retRes9608 := (<-this.LoadMarkets())
+        retRes9608 := (<-this.LoadMarketsAsync())
         PanicOnError(retRes9608)
         var productIds any = []any{}
         var market any = nil
@@ -1173,7 +1173,7 @@ func (this *Nado) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
             AddElementToObject(request, "limit", mathMin(limit, 500))
         }
     
-        contracts:= (<-this.QueryContracts())
+        contracts:= (<-this.QueryContractsAsync())
         PanicOnError(contracts)
         var chainId *string = this.SafeString(contracts, "chain_id")
         var endpointAddress *string = this.SafeString(contracts, "endpoint_addr")
@@ -1231,7 +1231,7 @@ func (this *Nado) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
  * @param {boolean} [params.trigger] whether the order is a trigger order
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Nado) FetchOpenOrders(optionalArgs ...any) <- chan any {
+func  (this *Nado) FetchOpenOrdersAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchOpenOrdersBody(ch, optionalArgs...)
     return ch
@@ -1251,7 +1251,7 @@ func (this *Nado) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
             panic(ArgumentsRequired(Add(this.Id, " fetchOpenOrders() requires walletAddress")))
         }
     
-        retRes10478 := (<-this.LoadMarkets())
+        retRes10478 := (<-this.LoadMarketsAsync())
         PanicOnError(retRes10478)
         var subaccount any = nil
         subaccountparamsVariable := this.HandleOptionAndParams(params, "fetchOpenOrders", "subaccount", "default");
@@ -1261,7 +1261,7 @@ func (this *Nado) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
         var trigger any = DerefScalar(this.SafeBool2(params, "stop", "trigger"))
         if IsEqual(trigger, true) {
     
-                retRes105319 :=  (<-this.FetchOrders(symbol, since, limit, this.Extend(params, map[string]any {
+                retRes105319 :=  (<-this.FetchOrdersAsync(symbol, since, limit, this.Extend(params, map[string]any {
                 "status_types": []any{"waiting_price", "waiting_dependency"},
             })))
                 PanicOnError(retRes105319)
@@ -1330,7 +1330,7 @@ func (this *Nado) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
  * @param {boolean} [params.trigger] whether the order is a trigger order
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
  */
-func  (this *Nado) FetchClosedOrders(optionalArgs ...any) <- chan any {
+func  (this *Nado) FetchClosedOrdersAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchClosedOrdersBody(ch, optionalArgs...)
     return ch
@@ -1350,7 +1350,7 @@ func (this *Nado) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any {
             panic(ArgumentsRequired(Add(this.Id, " fetchClosedOrders() requires walletAddress")))
         }
     
-        retRes11208 := (<-this.LoadMarkets())
+        retRes11208 := (<-this.LoadMarketsAsync())
         PanicOnError(retRes11208)
         var market any = nil
         if !IsEqual(symbol, nil) {
@@ -1364,7 +1364,7 @@ func (this *Nado) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any {
         var trigger any = DerefScalar(this.SafeBool2(params, "stop", "trigger"))
         if IsEqual(trigger, true) {
     
-                retRes113019 :=  (<-this.FetchOrders(symbol, since, limit, this.Extend(params, map[string]any {
+                retRes113019 :=  (<-this.FetchOrdersAsync(symbol, since, limit, this.Extend(params, map[string]any {
                 "status_types": []any{"triggered", "triggering", "twap_executing", "twap_completed"},
             })))
                 PanicOnError(retRes113019)
@@ -1433,7 +1433,7 @@ func (this *Nado) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Nado) FetchCanceledOrders(optionalArgs ...any) <- chan any {
+func  (this *Nado) FetchCanceledOrdersAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchCanceledOrdersBody(ch, optionalArgs...)
     return ch
@@ -1450,7 +1450,7 @@ func (this *Nado) fetchCanceledOrdersBody(ch chan any, optionalArgs ...any) any 
         params := GetArg(optionalArgs, 3, map[string]any {})
         _ = params
     
-            retRes119415 :=  (<-this.FetchOrders(symbol, since, limit, this.Extend(params, map[string]any {
+            retRes119415 :=  (<-this.FetchOrdersAsync(symbol, since, limit, this.Extend(params, map[string]any {
             "trigger": true,
             "status_types": []any{"cancelled", "internal_error"},
         })))
@@ -1469,7 +1469,7 @@ func (this *Nado) fetchCanceledOrdersBody(ch chan any, optionalArgs ...any) any 
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Nado) FetchCanceledAndClosedOrders(optionalArgs ...any) <- chan any {
+func  (this *Nado) FetchCanceledAndClosedOrdersAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchCanceledAndClosedOrdersBody(ch, optionalArgs...)
     return ch
@@ -1486,7 +1486,7 @@ func (this *Nado) fetchCanceledAndClosedOrdersBody(ch chan any, optionalArgs ...
         params := GetArg(optionalArgs, 3, map[string]any {})
         _ = params
     
-            retRes121415 :=  (<-this.FetchOrders(symbol, since, limit, this.Extend(params, map[string]any {
+            retRes121415 :=  (<-this.FetchOrdersAsync(symbol, since, limit, this.Extend(params, map[string]any {
             "trigger": true,
             "status_types": []any{"cancelled", "internal_error", "triggered", "triggering", "twap_executing", "twap_completed"},
         })))
@@ -1507,7 +1507,7 @@ func (this *Nado) fetchCanceledAndClosedOrdersBody(ch chan any, optionalArgs ...
  * @param {int} [params.until] timestamp in ms of the latest trade to fetch
  * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
  */
-func  (this *Nado) FetchMyTrades(optionalArgs ...any) <- chan any {
+func  (this *Nado) FetchMyTradesAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchMyTradesBody(ch, optionalArgs...)
     return ch
@@ -1527,7 +1527,7 @@ func (this *Nado) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
             panic(ArgumentsRequired(Add(this.Id, " fetchMyTrades() requires walletAddress")))
         }
     
-        retRes12398 := (<-this.LoadMarkets())
+        retRes12398 := (<-this.LoadMarketsAsync())
         PanicOnError(retRes12398)
         var market any = nil
         if !IsEqual(symbol, nil) {
@@ -1606,7 +1606,7 @@ func (this *Nado) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
  * @param {string} [params.subaccount] the 12-byte subaccount identifier, defaults to 'default'
  * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
-func  (this *Nado) FetchBalance(optionalArgs ...any) <- chan any {
+func  (this *Nado) FetchBalanceAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchBalanceBody(ch, optionalArgs...)
     return ch
@@ -1620,7 +1620,7 @@ func (this *Nado) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
             panic(ArgumentsRequired(Add(this.Id, " fetchBalance() requires walletAddress")))
         }
     
-        retRes13168 := (<-this.LoadMarkets())
+        retRes13168 := (<-this.LoadMarketsAsync())
         PanicOnError(retRes13168)
         var subaccount any = nil
         subaccountparamsVariable := this.HandleOptionAndParams(params, "fetchBalance", "subaccount", "default");
@@ -1670,7 +1670,7 @@ func (this *Nado) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
  * @param {int} [params.until] timestamp in ms of the latest deposit to fetch
  * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
  */
-func  (this *Nado) FetchDeposits(optionalArgs ...any) <- chan any {
+func  (this *Nado) FetchDepositsAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchDepositsBody(ch, optionalArgs...)
     return ch
@@ -1687,7 +1687,7 @@ func (this *Nado) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
         params := GetArg(optionalArgs, 3, map[string]any {})
         _ = params
     
-            retRes136115 :=  (<-this.QueryTransactionsByEventType("deposit_collateral", "deposit", "fetchDeposits", code, since, limit, params))
+            retRes136115 :=  (<-this.QueryTransactionsByEventTypeAsync("deposit_collateral", "deposit", "fetchDeposits", code, since, limit, params))
             PanicOnError(retRes136115)
             ch <- retRes136115
             return nil
@@ -1705,7 +1705,7 @@ func (this *Nado) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
  * @param {int} [params.until] timestamp in ms of the latest withdrawal to fetch
  * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
  */
-func  (this *Nado) FetchWithdrawals(optionalArgs ...any) <- chan any {
+func  (this *Nado) FetchWithdrawalsAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchWithdrawalsBody(ch, optionalArgs...)
     return ch
@@ -1722,12 +1722,12 @@ func (this *Nado) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
         params := GetArg(optionalArgs, 3, map[string]any {})
         _ = params
     
-            retRes137815 :=  (<-this.QueryTransactionsByEventType("withdraw_collateral", "withdrawal", "fetchWithdrawals", code, since, limit, params))
+            retRes137815 :=  (<-this.QueryTransactionsByEventTypeAsync("withdraw_collateral", "withdrawal", "fetchWithdrawals", code, since, limit, params))
             PanicOnError(retRes137815)
             ch <- retRes137815
             return nil
 }
-func  (this *Nado) QueryTransactionsByEventType(eventType any, transactionType any, methodName any, optionalArgs ...any) <- chan any {
+func  (this *Nado) QueryTransactionsByEventTypeAsync(eventType any, transactionType any, methodName any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.queryTransactionsByEventTypeBody(ch, eventType, transactionType, methodName, optionalArgs...)
     return ch
@@ -1747,7 +1747,7 @@ func (this *Nado) queryTransactionsByEventTypeBody(ch chan any, eventType any, t
             panic(ArgumentsRequired(Add(Add(Add(this.Id, " "), methodName), "() requires walletAddress")))
         }
     
-        retRes13858 := (<-this.LoadMarkets())
+        retRes13858 := (<-this.LoadMarketsAsync())
         PanicOnError(retRes13858)
         var currency any = nil
         if !IsEqual(code, nil) {
@@ -1842,7 +1842,7 @@ func (this *Nado) queryTransactionsByEventTypeBody(ch chan any, eventType any, t
  * @param {string} [params.subaccount] the 12-byte subaccount identifier, defaults to 'default'
  * @returns {Position[]} a list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
  */
-func  (this *Nado) FetchPositions(optionalArgs ...any) <- chan any {
+func  (this *Nado) FetchPositionsAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchPositionsBody(ch, optionalArgs...)
     return ch
@@ -1858,7 +1858,7 @@ func (this *Nado) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
             panic(ArgumentsRequired(Add(this.Id, " fetchPositions() requires walletAddress")))
         }
     
-        retRes14828 := (<-this.LoadMarkets())
+        retRes14828 := (<-this.LoadMarketsAsync())
         PanicOnError(retRes14828)
         symbols = this.MarketSymbols(symbols)
         var subaccount any = nil
@@ -1936,7 +1936,7 @@ func (this *Nado) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {int} the current integer timestamp in milliseconds from the exchange server
  */
-func  (this *Nado) FetchTime(optionalArgs ...any) <- chan any {
+func  (this *Nado) FetchTimeAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchTimeBody(ch, optionalArgs...)
     return ch
@@ -1972,7 +1972,7 @@ func (this *Nado) fetchTimeBody(ch chan any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
  */
-func  (this *Nado) FetchStatus(optionalArgs ...any) <- chan any {
+func  (this *Nado) FetchStatusAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchStatusBody(ch, optionalArgs...)
     return ch
@@ -2016,7 +2016,7 @@ func (this *Nado) fetchStatusBody(ch chan any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} an array of objects representing market data
  */
-func  (this *Nado) FetchMarkets(optionalArgs ...any) <- chan any {
+func  (this *Nado) FetchMarketsAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchMarketsBody(ch, optionalArgs...)
     return ch
@@ -2176,7 +2176,7 @@ func (this *Nado) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an associative dictionary of currencies
  */
-func  (this *Nado) FetchCurrencies(optionalArgs ...any) <- chan any {
+func  (this *Nado) FetchCurrenciesAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchCurrenciesBody(ch, optionalArgs...)
     return ch
@@ -2224,7 +2224,7 @@ func (this *Nado) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func  (this *Nado) FetchTickers(optionalArgs ...any) <- chan any {
+func  (this *Nado) FetchTickersAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchTickersBody(ch, optionalArgs...)
     return ch
@@ -2237,7 +2237,7 @@ func (this *Nado) fetchTickersBody(ch chan any, optionalArgs ...any) any {
         params := GetArg(optionalArgs, 1, map[string]any {})
         _ = params
     
-        retRes17938 := (<-this.LoadMarkets())
+        retRes17938 := (<-this.LoadMarketsAsync())
         PanicOnError(retRes17938)
         symbols = this.MarketSymbols(symbols)
     
@@ -2271,7 +2271,7 @@ func (this *Nado) fetchTickersBody(ch chan any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func  (this *Nado) FetchTicker(symbol any, optionalArgs ...any) <- chan any {
+func  (this *Nado) FetchTickerAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchTickerBody(ch, symbol, optionalArgs...)
     return ch
@@ -2282,12 +2282,12 @@ func (this *Nado) fetchTickerBody(ch chan any, symbol any, optionalArgs ...any) 
         params := GetArg(optionalArgs, 0, map[string]any {})
         _ = params
     
-        retRes18248 := (<-this.LoadMarkets())
+        retRes18248 := (<-this.LoadMarketsAsync())
         PanicOnError(retRes18248)
         var market any = this.Market(symbol)
         symbol = GetValue(market, "symbol")
     
-        tickers:= (<-this.FetchTickers([]any{symbol}, params))
+        tickers:= (<-this.FetchTickersAsync([]any{symbol}, params))
         PanicOnError(tickers)
         var ticker any = this.SafeDict(tickers, symbol)
         if IsEqual(ticker, nil) {
@@ -2307,7 +2307,7 @@ func (this *Nado) fetchTickerBody(ch chan any, symbol any, optionalArgs ...any) 
  * @param {boolean} [params.edge] whether to retrieve volume and open interest metrics for all chains, defaults to true
  * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
  */
-func  (this *Nado) FetchFundingRate(symbol any, optionalArgs ...any) <- chan any {
+func  (this *Nado) FetchFundingRateAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchFundingRateBody(ch, symbol, optionalArgs...)
     return ch
@@ -2318,7 +2318,7 @@ func (this *Nado) fetchFundingRateBody(ch chan any, symbol any, optionalArgs ...
         params := GetArg(optionalArgs, 0, map[string]any {})
         _ = params
     
-        retRes18468 := (<-this.LoadMarkets())
+        retRes18468 := (<-this.LoadMarketsAsync())
         PanicOnError(retRes18468)
         var market any = this.Market(symbol)
         if !IsEqual(GetValue(market, "swap"), true) {
@@ -2368,7 +2368,7 @@ func (this *Nado) fetchFundingRateBody(ch chan any, symbol any, optionalArgs ...
  * @param {string} [params.subaccount] the 12-byte subaccount identifier, defaults to 'default'
  * @returns {object[]} a list of [funding history structures]{@link https://docs.ccxt.com/?id=funding-history-structure}
  */
-func  (this *Nado) FetchFundingHistory(optionalArgs ...any) <- chan any {
+func  (this *Nado) FetchFundingHistoryAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchFundingHistoryBody(ch, optionalArgs...)
     return ch
@@ -2391,7 +2391,7 @@ func (this *Nado) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) any 
             panic(ArgumentsRequired(Add(this.Id, " fetchFundingHistory() requires walletAddress")))
         }
     
-        retRes18998 := (<-this.LoadMarkets())
+        retRes18998 := (<-this.LoadMarketsAsync())
         PanicOnError(retRes18998)
         var market any = this.Market(symbol)
         if !IsEqual(GetValue(market, "swap"), true) {
@@ -2448,7 +2448,7 @@ func (this *Nado) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) any 
  * @param {boolean} [params.edge] whether to retrieve volume and open interest metrics for all chains, defaults to true
  * @returns {object} a dictionary of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rates-structure}, indexed by market symbols
  */
-func  (this *Nado) FetchFundingRates(optionalArgs ...any) <- chan any {
+func  (this *Nado) FetchFundingRatesAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchFundingRatesBody(ch, optionalArgs...)
     return ch
@@ -2461,7 +2461,7 @@ func (this *Nado) fetchFundingRatesBody(ch chan any, optionalArgs ...any) any {
         params := GetArg(optionalArgs, 1, map[string]any {})
         _ = params
     
-        retRes19538 := (<-this.LoadMarkets())
+        retRes19538 := (<-this.LoadMarketsAsync())
         PanicOnError(retRes19538)
         symbols = this.MarketSymbols(symbols, "swap", true)
     
@@ -2510,7 +2510,7 @@ func (this *Nado) fetchFundingRatesBody(ch chan any, optionalArgs ...any) any {
  * @param {boolean} [params.edge] whether to retrieve volume and open interest metrics for all chains, defaults to true
  * @returns {object} an [open interest structure]{@link https://docs.ccxt.com/?id=open-interest-structure}
  */
-func  (this *Nado) FetchOpenInterest(symbol any, optionalArgs ...any) <- chan any {
+func  (this *Nado) FetchOpenInterestAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchOpenInterestBody(ch, symbol, optionalArgs...)
     return ch
@@ -2521,7 +2521,7 @@ func (this *Nado) fetchOpenInterestBody(ch chan any, symbol any, optionalArgs ..
         params := GetArg(optionalArgs, 0, map[string]any {})
         _ = params
     
-        retRes19998 := (<-this.LoadMarkets())
+        retRes19998 := (<-this.LoadMarketsAsync())
         PanicOnError(retRes19998)
         var market any = this.Market(symbol)
         if !IsEqual(GetValue(market, "swap"), true) {
@@ -2569,7 +2569,7 @@ func (this *Nado) fetchOpenInterestBody(ch chan any, symbol any, optionalArgs ..
  * @param {boolean} [params.edge] whether to retrieve volume and open interest metrics for all chains, defaults to true
  * @returns {object} a dictionary of [open interest structures]{@link https://docs.ccxt.com/?id=open-interest-structure}
  */
-func  (this *Nado) FetchOpenInterests(optionalArgs ...any) <- chan any {
+func  (this *Nado) FetchOpenInterestsAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchOpenInterestsBody(ch, optionalArgs...)
     return ch
@@ -2582,7 +2582,7 @@ func (this *Nado) fetchOpenInterestsBody(ch chan any, optionalArgs ...any) any {
         params := GetArg(optionalArgs, 1, map[string]any {})
         _ = params
     
-        retRes20448 := (<-this.LoadMarkets())
+        retRes20448 := (<-this.LoadMarketsAsync())
         PanicOnError(retRes20448)
         symbols = this.MarketSymbols(symbols, "swap", true)
     
@@ -2631,7 +2631,7 @@ func (this *Nado) fetchOpenInterestsBody(ch chan any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
-func  (this *Nado) FetchOrderBook(symbol any, optionalArgs ...any) <- chan any {
+func  (this *Nado) FetchOrderBookAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchOrderBookBody(ch, symbol, optionalArgs...)
     return ch
@@ -2644,7 +2644,7 @@ func (this *Nado) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...an
         params := GetArg(optionalArgs, 1, map[string]any {})
         _ = params
     
-        retRes20908 := (<-this.LoadMarkets())
+        retRes20908 := (<-this.LoadMarketsAsync())
         PanicOnError(retRes20908)
         var market any = this.Market(symbol)
         var tickerId *string = this.SafeString(GetValue(market, "info"), "ticker_id")
@@ -2687,7 +2687,7 @@ func (this *Nado) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...an
  * @param {int} [params.max_trade_id] max trade id to include in the result for pagination
  * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
-func  (this *Nado) FetchTrades(symbol any, optionalArgs ...any) <- chan any {
+func  (this *Nado) FetchTradesAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchTradesBody(ch, symbol, optionalArgs...)
     return ch
@@ -2702,7 +2702,7 @@ func (this *Nado) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any) 
         params := GetArg(optionalArgs, 2, map[string]any {})
         _ = params
     
-        retRes21308 := (<-this.LoadMarkets())
+        retRes21308 := (<-this.LoadMarketsAsync())
         PanicOnError(retRes21308)
         var market any = this.Market(symbol)
         var tickerId *string = this.SafeString(GetValue(market, "info"), "ticker_id")
@@ -2746,7 +2746,7 @@ func (this *Nado) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any) 
  * @param {int} [params.until] timestamp in ms of the latest candle to fetch
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
-func  (this *Nado) FetchOHLCV(symbol any, optionalArgs ...any) <- chan any {
+func  (this *Nado) FetchOHLCVAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchOHLCVBody(ch, symbol, optionalArgs...)
     return ch
@@ -2763,7 +2763,7 @@ func (this *Nado) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) a
         params := GetArg(optionalArgs, 3, map[string]any {})
         _ = params
     
-        retRes21718 := (<-this.LoadMarkets())
+        retRes21718 := (<-this.LoadMarketsAsync())
         PanicOnError(retRes21718)
         var market any = this.Market(symbol)
         var until *int64 = this.SafeInteger(params, "until")
@@ -3580,7 +3580,7 @@ func  (this *Nado) CreateSubaccount(walletAddress any, optionalArgs ...any) any 
     }
     return Add(Add("0x", address), this.PadHex(encoded, 24, false))
 }
-func  (this *Nado) QueryContracts(optionalArgs ...any) <- chan any {
+func  (this *Nado) QueryContractsAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.queryContractsBody(ch, optionalArgs...)
     return ch

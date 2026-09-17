@@ -663,7 +663,7 @@ func  (this *Backpack) Describe() any  {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an associative dictionary of currencies
  */
-func  (this *Backpack) FetchCurrencies(optionalArgs ...any) <- chan any {
+func  (this *Backpack) FetchCurrenciesAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchCurrenciesBody(ch, optionalArgs...)
     return ch
@@ -776,7 +776,7 @@ func  (this *Backpack) ParseCurrency(rawCurrency any) any  {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} an array of objects representing market data
  */
-func  (this *Backpack) FetchMarkets(optionalArgs ...any) <- chan any {
+func  (this *Backpack) FetchMarketsAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchMarketsBody(ch, optionalArgs...)
     return ch
@@ -788,7 +788,7 @@ func (this *Backpack) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
         _ = params
         if IsEqual(GetValue(this.Options, "adjustForTimeDifference"), true) {
     
-            retRes62912 := (<-this.LoadTimeDifference())
+            retRes62912 := (<-this.LoadTimeDifferenceAsync())
             PanicOnError(retRes62912)
         }
     
@@ -989,7 +989,7 @@ func  (this *Backpack) ParseMarketType(typeVar any) any  {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func  (this *Backpack) FetchTickers(optionalArgs ...any) <- chan any {
+func  (this *Backpack) FetchTickersAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchTickersBody(ch, optionalArgs...)
     return ch
@@ -1003,7 +1003,7 @@ func (this *Backpack) fetchTickersBody(ch chan any, optionalArgs ...any) any {
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes83512 := (<-this.LoadMarkets())
+            retRes83512 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes83512)
         }
         var request map[string]any = map[string]any {}
@@ -1024,7 +1024,7 @@ func (this *Backpack) fetchTickersBody(ch chan any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func  (this *Backpack) FetchTicker(symbol any, optionalArgs ...any) <- chan any {
+func  (this *Backpack) FetchTickerAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchTickerBody(ch, symbol, optionalArgs...)
     return ch
@@ -1036,7 +1036,7 @@ func (this *Backpack) fetchTickerBody(ch chan any, symbol any, optionalArgs ...a
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes85412 := (<-this.LoadMarkets())
+            retRes85412 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes85412)
         }
         var market any = this.Market(symbol)
@@ -1121,7 +1121,7 @@ func  (this *Backpack) ParseTicker(ticker any, optionalArgs ...any) any  {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
-func  (this *Backpack) FetchOrderBook(symbol any, optionalArgs ...any) <- chan any {
+func  (this *Backpack) FetchOrderBookAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchOrderBookBody(ch, symbol, optionalArgs...)
     return ch
@@ -1135,7 +1135,7 @@ func (this *Backpack) fetchOrderBookBody(ch chan any, symbol any, optionalArgs .
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes93612 := (<-this.LoadMarkets())
+            retRes93612 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes93612)
         }
         var market any = this.Market(symbol)
@@ -1182,7 +1182,7 @@ func (this *Backpack) fetchOrderBookBody(ch chan any, symbol any, optionalArgs .
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
-func  (this *Backpack) FetchOHLCV(symbol any, optionalArgs ...any) <- chan any {
+func  (this *Backpack) FetchOHLCVAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchOHLCVBody(ch, symbol, optionalArgs...)
     return ch
@@ -1200,7 +1200,7 @@ func (this *Backpack) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...an
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes98112 := (<-this.LoadMarkets())
+            retRes98112 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes98112)
         }
         var market any = this.Market(symbol)
@@ -1271,7 +1271,7 @@ func  (this *Backpack) ParseOHLCV(ohlcv any, optionalArgs ...any) any  {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
  */
-func  (this *Backpack) FetchFundingRate(symbol any, optionalArgs ...any) <- chan any {
+func  (this *Backpack) FetchFundingRateAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchFundingRateBody(ch, symbol, optionalArgs...)
     return ch
@@ -1283,7 +1283,7 @@ func (this *Backpack) fetchFundingRateBody(ch chan any, symbol any, optionalArgs
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes105412 := (<-this.LoadMarkets())
+            retRes105412 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes105412)
         }
         var market any = this.Market(symbol)
@@ -1347,7 +1347,7 @@ func  (this *Backpack) ParseFundingRate(contract any, optionalArgs ...any) any  
  * @param {object} [params] exchange specific parameters
  * @returns {object} an open interest structure{@link https://docs.ccxt.com/?id=interest-history-structure}
  */
-func  (this *Backpack) FetchOpenInterest(symbol any, optionalArgs ...any) <- chan any {
+func  (this *Backpack) FetchOpenInterestAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchOpenInterestBody(ch, symbol, optionalArgs...)
     return ch
@@ -1359,7 +1359,7 @@ func (this *Backpack) fetchOpenInterestBody(ch chan any, symbol any, optionalArg
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes111512 := (<-this.LoadMarkets())
+            retRes111512 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes111512)
         }
         var market any = this.Market(symbol)
@@ -1411,7 +1411,7 @@ func  (this *Backpack) ParseOpenInterest(interest any, optionalArgs ...any) any 
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
  */
-func  (this *Backpack) FetchFundingRateHistory(optionalArgs ...any) <- chan any {
+func  (this *Backpack) FetchFundingRateHistoryAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchFundingRateHistoryBody(ch, optionalArgs...)
     return ch
@@ -1432,7 +1432,7 @@ func (this *Backpack) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...a
         }
         if IsEqual(this.Markets, nil) {
     
-            retRes116712 := (<-this.LoadMarkets())
+            retRes116712 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes116712)
         }
         var market any = this.Market(symbol)
@@ -1486,7 +1486,7 @@ func (this *Backpack) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...a
  * @param {int} [params.offset] the number of trades to skip, default is 0
  * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
-func  (this *Backpack) FetchTrades(symbol any, optionalArgs ...any) <- chan any {
+func  (this *Backpack) FetchTradesAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchTradesBody(ch, symbol, optionalArgs...)
     return ch
@@ -1502,7 +1502,7 @@ func (this *Backpack) fetchTradesBody(ch chan any, symbol any, optionalArgs ...a
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes121912 := (<-this.LoadMarkets())
+            retRes121912 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes121912)
         }
         var market any = this.Market(symbol)
@@ -1541,7 +1541,7 @@ func (this *Backpack) fetchTradesBody(ch chan any, symbol any, optionalArgs ...a
  * @param {string} [params.fillType] 'User' (default) 'BookLiquidation' or 'Adl' or 'Backstop' or 'Liquidation' or 'AllLiquidation' or 'CollateralConversion' or 'CollateralConversionAndSpotLiquidation'
  * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
-func  (this *Backpack) FetchMyTrades(optionalArgs ...any) <- chan any {
+func  (this *Backpack) FetchMyTradesAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchMyTradesBody(ch, optionalArgs...)
     return ch
@@ -1559,7 +1559,7 @@ func (this *Backpack) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes125412 := (<-this.LoadMarkets())
+            retRes125412 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes125412)
         }
         var request map[string]any = map[string]any {}
@@ -1677,7 +1677,7 @@ func  (this *Backpack) ParseTrade(trade any, optionalArgs ...any) any  {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
  */
-func  (this *Backpack) FetchStatus(optionalArgs ...any) <- chan any {
+func  (this *Backpack) FetchStatusAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchStatusBody(ch, optionalArgs...)
     return ch
@@ -1718,7 +1718,7 @@ func (this *Backpack) fetchStatusBody(ch chan any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {int} the current integer timestamp in milliseconds from the exchange server
  */
-func  (this *Backpack) FetchTime(optionalArgs ...any) <- chan any {
+func  (this *Backpack) FetchTimeAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchTimeBody(ch, optionalArgs...)
     return ch
@@ -1746,7 +1746,7 @@ func (this *Backpack) fetchTimeBody(ch chan any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
-func  (this *Backpack) FetchBalance(optionalArgs ...any) <- chan any {
+func  (this *Backpack) FetchBalanceAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchBalanceBody(ch, optionalArgs...)
     return ch
@@ -1758,7 +1758,7 @@ func (this *Backpack) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes141412 := (<-this.LoadMarkets())
+            retRes141412 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes141412)
         }
     
@@ -1808,7 +1808,7 @@ func  (this *Backpack) ParseBalance(response any) any  {
  * @param {int} [params.until] the latest time in ms to fetch entries for
  * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func  (this *Backpack) FetchDeposits(optionalArgs ...any) <- chan any {
+func  (this *Backpack) FetchDepositsAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchDepositsBody(ch, optionalArgs...)
     return ch
@@ -1826,7 +1826,7 @@ func (this *Backpack) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes146312 := (<-this.LoadMarkets())
+            retRes146312 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes146312)
         }
         var request map[string]any = map[string]any {}
@@ -1866,7 +1866,7 @@ func (this *Backpack) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
  * @param {int} [params.until] the latest time in ms to fetch transfers for (default time now)
  * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func  (this *Backpack) FetchWithdrawals(optionalArgs ...any) <- chan any {
+func  (this *Backpack) FetchWithdrawalsAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchWithdrawalsBody(ch, optionalArgs...)
     return ch
@@ -1884,7 +1884,7 @@ func (this *Backpack) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes150012 := (<-this.LoadMarkets())
+            retRes150012 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes150012)
         }
         var request map[string]any = map[string]any {}
@@ -1925,7 +1925,7 @@ func (this *Backpack) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any
  * @param {string} params.network the network to withdraw on (mandatory)
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func  (this *Backpack) Withdraw(code any, amount any, address any, optionalArgs ...any) <- chan any {
+func  (this *Backpack) WithdrawAsync(code any, amount any, address any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.withdrawBody(ch, code, amount, address, optionalArgs...)
     return ch
@@ -1939,7 +1939,7 @@ func (this *Backpack) withdrawBody(ch chan any, code any, amount any, address an
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes153712 := (<-this.LoadMarkets())
+            retRes153712 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes153712)
         }
         var currency any = this.Currency(code)
@@ -2108,7 +2108,7 @@ func  (this *Backpack) ParseTransactionStatus(status any) any  {
  * @param {string} [params.networkCode] the network to fetch the deposit address (mandatory)
  * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
  */
-func  (this *Backpack) FetchDepositAddress(code any, optionalArgs ...any) <- chan any {
+func  (this *Backpack) FetchDepositAddressAsync(code any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchDepositAddressBody(ch, code, optionalArgs...)
     return ch
@@ -2120,7 +2120,7 @@ func (this *Backpack) fetchDepositAddressBody(ch chan any, code any, optionalArg
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes170212 := (<-this.LoadMarkets())
+            retRes170212 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes170212)
         }
         var networkCode any = nil
@@ -2190,7 +2190,7 @@ func  (this *Backpack) ParseDepositAddress(depositAddress any, optionalArgs ...a
  * @param {float} [params.stopLoss.price] stop loss order price (if not provided the order will be a market order)
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Backpack) CreateOrder(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <- chan any {
+func  (this *Backpack) CreateOrderAsync(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.createOrderBody(ch, symbol, typeVar, side, amount, optionalArgs...)
     return ch
@@ -2204,7 +2204,7 @@ func (this *Backpack) createOrderBody(ch chan any, symbol any, typeVar any, side
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes176712 := (<-this.LoadMarkets())
+            retRes176712 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes176712)
         }
         var market any = this.Market(symbol)
@@ -2225,7 +2225,7 @@ func (this *Backpack) createOrderBody(ch chan any, symbol any, typeVar any, side
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Backpack) CreateOrders(orders any, optionalArgs ...any) <- chan any {
+func  (this *Backpack) CreateOrdersAsync(orders any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.createOrdersBody(ch, orders, optionalArgs...)
     return ch
@@ -2237,7 +2237,7 @@ func (this *Backpack) createOrdersBody(ch chan any, orders any, optionalArgs ...
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes178612 := (<-this.LoadMarkets())
+            retRes178612 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes178612)
         }
         var ordersRequests any = []any{}
@@ -2367,7 +2367,7 @@ func  (this *Backpack) EncodeOrderSide(side any) any  {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Backpack) FetchOpenOrders(optionalArgs ...any) <- chan any {
+func  (this *Backpack) FetchOpenOrdersAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchOpenOrdersBody(ch, optionalArgs...)
     return ch
@@ -2385,7 +2385,7 @@ func (this *Backpack) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any 
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes190812 := (<-this.LoadMarkets())
+            retRes190812 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes190812)
         }
         var request map[string]any = map[string]any {}
@@ -2411,7 +2411,7 @@ func (this *Backpack) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any 
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Backpack) FetchOpenOrder(id any, optionalArgs ...any) <- chan any {
+func  (this *Backpack) FetchOpenOrderAsync(id any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchOpenOrderBody(ch, id, optionalArgs...)
     return ch
@@ -2425,7 +2425,7 @@ func (this *Backpack) fetchOpenOrderBody(ch chan any, id any, optionalArgs ...an
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes193212 := (<-this.LoadMarkets())
+            retRes193212 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes193212)
         }
         if IsEqual(symbol, nil) {
@@ -2453,7 +2453,7 @@ func (this *Backpack) fetchOpenOrderBody(ch chan any, id any, optionalArgs ...an
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Backpack) CancelOrder(id any, optionalArgs ...any) <- chan any {
+func  (this *Backpack) CancelOrderAsync(id any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.cancelOrderBody(ch, id, optionalArgs...)
     return ch
@@ -2467,7 +2467,7 @@ func (this *Backpack) cancelOrderBody(ch chan any, id any, optionalArgs ...any) 
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes195812 := (<-this.LoadMarkets())
+            retRes195812 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes195812)
         }
         if IsEqual(symbol, nil) {
@@ -2494,7 +2494,7 @@ func (this *Backpack) cancelOrderBody(ch chan any, id any, optionalArgs ...any) 
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Backpack) CancelAllOrders(optionalArgs ...any) <- chan any {
+func  (this *Backpack) CancelAllOrdersAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.cancelAllOrdersBody(ch, optionalArgs...)
     return ch
@@ -2508,7 +2508,7 @@ func (this *Backpack) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any 
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes198312 := (<-this.LoadMarkets())
+            retRes198312 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes198312)
         }
         if IsEqual(symbol, nil) {
@@ -2536,7 +2536,7 @@ func (this *Backpack) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any 
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
  */
-func  (this *Backpack) FetchOrders(optionalArgs ...any) <- chan any {
+func  (this *Backpack) FetchOrdersAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchOrdersBody(ch, optionalArgs...)
     return ch
@@ -2554,7 +2554,7 @@ func (this *Backpack) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes200912 := (<-this.LoadMarkets())
+            retRes200912 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes200912)
         }
         var request map[string]any = map[string]any {}
@@ -2744,7 +2744,7 @@ func  (this *Backpack) ParseOrderSide(side any) any  {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
  */
-func  (this *Backpack) FetchPositions(optionalArgs ...any) <- chan any {
+func  (this *Backpack) FetchPositionsAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchPositionsBody(ch, optionalArgs...)
     return ch
@@ -2758,7 +2758,7 @@ func (this *Backpack) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes219812 := (<-this.LoadMarkets())
+            retRes219812 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes219812)
         }
     
@@ -2874,7 +2874,7 @@ func  (this *Backpack) ParsePosition(position any, optionalArgs ...any) any  {
  * @param {int} [params.until] timestamp in ms of the latest trade to fetch (default now)
  * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
-func  (this *Backpack) FetchFundingHistory(optionalArgs ...any) <- chan any {
+func  (this *Backpack) FetchFundingHistoryAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchFundingHistoryBody(ch, optionalArgs...)
     return ch
@@ -2892,7 +2892,7 @@ func (this *Backpack) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) 
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes230912 := (<-this.LoadMarkets())
+            retRes230912 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes230912)
         }
         var request map[string]any = map[string]any {}

@@ -582,7 +582,7 @@ func  (this *Dydx) Describe() any  {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {int} the current integer timestamp in milliseconds from the exchange server
  */
-func  (this *Dydx) FetchTime(optionalArgs ...any) <- chan any {
+func  (this *Dydx) FetchTimeAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchTimeBody(ch, optionalArgs...)
     return ch
@@ -715,7 +715,7 @@ func  (this *Dydx) ParseMarket(market any) any  {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} an array of objects representing market data
  */
-func  (this *Dydx) FetchMarkets(optionalArgs ...any) <- chan any {
+func  (this *Dydx) FetchMarketsAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchMarketsBody(ch, optionalArgs...)
     return ch
@@ -812,7 +812,7 @@ func  (this *Dydx) ParseTrade(trade any, optionalArgs ...any) any  {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
-func  (this *Dydx) FetchTrades(symbol any, optionalArgs ...any) <- chan any {
+func  (this *Dydx) FetchTradesAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchTradesBody(ch, symbol, optionalArgs...)
     return ch
@@ -828,7 +828,7 @@ func (this *Dydx) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any) 
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes68512 := (<-this.LoadMarkets())
+            retRes68512 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes68512)
         }
         var market any = this.Market(symbol)
@@ -896,7 +896,7 @@ func  (this *Dydx) ParseOHLCV(ohlcv any, optionalArgs ...any) any  {
  * @param {int} [params.until] the latest time in ms to fetch entries for
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
-func  (this *Dydx) FetchOHLCV(symbol any, optionalArgs ...any) <- chan any {
+func  (this *Dydx) FetchOHLCVAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchOHLCVBody(ch, symbol, optionalArgs...)
     return ch
@@ -914,7 +914,7 @@ func (this *Dydx) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) a
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes75712 := (<-this.LoadMarkets())
+            retRes75712 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes75712)
         }
         var market any = this.Market(symbol)
@@ -974,7 +974,7 @@ func (this *Dydx) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) a
  * @param {int} [params.until] timestamp in ms of the latest funding rate
  * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
  */
-func  (this *Dydx) FetchFundingRateHistory(optionalArgs ...any) <- chan any {
+func  (this *Dydx) FetchFundingRateHistoryAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchFundingRateHistoryBody(ch, optionalArgs...)
     return ch
@@ -995,7 +995,7 @@ func (this *Dydx) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any) 
         }
         if IsEqual(this.Markets, nil) {
     
-            retRes81812 := (<-this.LoadMarkets())
+            retRes81812 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes81812)
         }
         var market any = this.Market(symbol)
@@ -1157,7 +1157,7 @@ func  (this *Dydx) ParseOrderType(typeVar any) any  {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Dydx) FetchOrder(id any, optionalArgs ...any) <- chan any {
+func  (this *Dydx) FetchOrderAsync(id any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchOrderBody(ch, id, optionalArgs...)
     return ch
@@ -1171,7 +1171,7 @@ func (this *Dydx) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any {
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes97612 := (<-this.LoadMarkets())
+            retRes97612 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes97612)
         }
         var request map[string]any = map[string]any {
@@ -1197,7 +1197,7 @@ func (this *Dydx) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any {
  * @param {string} [params.subAccountNumber] sub account number
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Dydx) FetchOrders(optionalArgs ...any) <- chan any {
+func  (this *Dydx) FetchOrdersAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchOrdersBody(ch, optionalArgs...)
     return ch
@@ -1223,7 +1223,7 @@ func (this *Dydx) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
         params = GetValue(subAccountNumberparamsVariable,1)
         if IsEqual(this.Markets, nil) {
     
-            retRes100412 := (<-this.LoadMarkets())
+            retRes100412 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes100412)
         }
         var request map[string]any = map[string]any {
@@ -1285,7 +1285,7 @@ func (this *Dydx) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
  * @param {string} [params.subAccountNumber] sub account number
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Dydx) FetchOpenOrders(optionalArgs ...any) <- chan any {
+func  (this *Dydx) FetchOpenOrdersAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchOpenOrdersBody(ch, optionalArgs...)
     return ch
@@ -1305,7 +1305,7 @@ func (this *Dydx) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
             "status": "OPEN",
         }
     
-            retRes106615 :=  (<-this.FetchOrders(symbol, since, limit, this.Extend(request, params)))
+            retRes106615 :=  (<-this.FetchOrdersAsync(symbol, since, limit, this.Extend(request, params)))
             PanicOnError(retRes106615)
             ch <- retRes106615
             return nil
@@ -1323,7 +1323,7 @@ func (this *Dydx) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
  * @param {string} [params.subAccountNumber] sub account number
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Dydx) FetchClosedOrders(optionalArgs ...any) <- chan any {
+func  (this *Dydx) FetchClosedOrdersAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchClosedOrdersBody(ch, optionalArgs...)
     return ch
@@ -1343,7 +1343,7 @@ func (this *Dydx) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any {
             "status": "FILLED",
         }
     
-            retRes108615 :=  (<-this.FetchOrders(symbol, since, limit, this.Extend(request, params)))
+            retRes108615 :=  (<-this.FetchOrdersAsync(symbol, since, limit, this.Extend(request, params)))
             PanicOnError(retRes108615)
             ch <- retRes108615
             return nil
@@ -1417,7 +1417,7 @@ func  (this *Dydx) ParsePosition(position any, optionalArgs ...any) any  {
  * @param {string} [params.subAccountNumber] sub account number
  * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
  */
-func  (this *Dydx) FetchPosition(symbol any, optionalArgs ...any) <- chan any {
+func  (this *Dydx) FetchPositionAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchPositionBody(ch, symbol, optionalArgs...)
     return ch
@@ -1428,7 +1428,7 @@ func (this *Dydx) fetchPositionBody(ch chan any, symbol any, optionalArgs ...any
         params := GetArg(optionalArgs, 0, map[string]any {})
         _ = params
     
-        positions:= (<-this.FetchPositions([]any{symbol}, params))
+        positions:= (<-this.FetchPositionsAsync([]any{symbol}, params))
         PanicOnError(positions)
     
         ch <- this.SafeDict(positions, 0, map[string]any {})
@@ -1445,7 +1445,7 @@ func (this *Dydx) fetchPositionBody(ch chan any, symbol any, optionalArgs ...any
  * @param {string} [params.subAccountNumber] sub account number
  * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
  */
-func  (this *Dydx) FetchPositions(optionalArgs ...any) <- chan any {
+func  (this *Dydx) FetchPositionsAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchPositionsBody(ch, optionalArgs...)
     return ch
@@ -1467,7 +1467,7 @@ func (this *Dydx) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
         params = GetValue(subAccountNumberparamsVariable,1)
         if IsEqual(this.Markets, nil) {
     
-            retRes117912 := (<-this.LoadMarkets())
+            retRes117912 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes117912)
         }
         var request map[string]any = map[string]any {
@@ -1570,7 +1570,7 @@ func  (this *Dydx) RetrieveCredentials() any  {
     AddElementToObject(this.Options, "dydxCredentials", credentials)
     return credentials
 }
-func  (this *Dydx) FetchDydxAccount() <- chan any {
+func  (this *Dydx) FetchDydxAccountAsync() <- chan any {
     ch := make(chan any, 1)
     go this.fetchDydxAccountBody(ch)
     return ch
@@ -1580,7 +1580,7 @@ func (this *Dydx) fetchDydxAccountBody(ch chan any) any {
     defer ReturnPanicError(ch)
     // required in js
     
-    retRes12798 := (<-this.LoadDydxProtos())
+    retRes12798 := (<-this.LoadDydxProtosAsync())
     PanicOnError(retRes12798)
     var dydxAccount any = this.SafeDict(this.Options, "dydxAccount")
     if !IsEqual(dydxAccount, nil) {
@@ -1784,7 +1784,7 @@ func  (this *Dydx) CreateOrderIdFromParts(address any, subAccountNumber any, cli
     var orderInfo any = Add(Add(Add(Add(Add(Add(prefix, "-"), this.NumberToString(clientOrderId)), "-"), this.NumberToString(clobPairId)), "-"), this.NumberToString(orderFlags))
     return this.Uuid5(nameSp, orderInfo)
 }
-func  (this *Dydx) FetchLatestBlockHeight(optionalArgs ...any) <- chan any {
+func  (this *Dydx) FetchLatestBlockHeightAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchLatestBlockHeightBody(ch, optionalArgs...)
     return ch
@@ -1843,7 +1843,7 @@ func (this *Dydx) fetchLatestBlockHeightBody(ch chan any, optionalArgs ...any) a
  * @param {float} [params.goodTillBlockTimeInSeconds] expired time elapsed for the order, required for limit GTT order and conditional, default value is 30 days
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Dydx) CreateOrder(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <- chan any {
+func  (this *Dydx) CreateOrderAsync(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.createOrderBody(ch, symbol, typeVar, side, amount, optionalArgs...)
     return ch
@@ -1857,15 +1857,15 @@ func (this *Dydx) createOrderBody(ch chan any, symbol any, typeVar any, side any
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes152212 := (<-this.LoadMarkets())
+            retRes152212 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes152212)
         }
         var credentials any = this.RetrieveCredentials()
     
-        account:= (<-this.FetchDydxAccount())
+        account:= (<-this.FetchDydxAccountAsync())
         PanicOnError(account)
     
-        lastBlockHeight:= (<-this.FetchLatestBlockHeight())
+        lastBlockHeight:= (<-this.FetchLatestBlockHeightAsync())
         PanicOnError(lastBlockHeight)
         // params['latestBlockHeight'] = lastBlockHeight;
         var newParams map[string]any = this.Extend(params, map[string]any {
@@ -1921,7 +1921,7 @@ func (this *Dydx) createOrderBody(ch chan any, symbol any, typeVar any, side any
  * @param {int} [params.subAccountId] sub account id, default is 0
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Dydx) CancelOrder(id any, optionalArgs ...any) <- chan any {
+func  (this *Dydx) CancelOrderAsync(id any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.cancelOrderBody(ch, id, optionalArgs...)
     return ch
@@ -1940,7 +1940,7 @@ func (this *Dydx) cancelOrderBody(ch chan any, id any, optionalArgs ...any) any 
         }
         if IsEqual(this.Markets, nil) {
     
-            retRes158312 := (<-this.LoadMarkets())
+            retRes158312 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes158312)
         }
         var market any = this.Market(symbol)
@@ -1979,14 +1979,14 @@ func (this *Dydx) cancelOrderBody(ch chan any, id any, optionalArgs ...any) any 
         } else {
             if IsEqual(goodTillBlock, nil) {
     
-                latestBlockHeight:= (<-this.FetchLatestBlockHeight())
+                latestBlockHeight:= (<-this.FetchLatestBlockHeightAsync())
                 PanicOnError(latestBlockHeight)
                 goodTillBlock = Add(latestBlockHeight, 20)
             }
         }
         var credentials any = this.RetrieveCredentials()
     
-        account:= (<-this.FetchDydxAccount())
+        account:= (<-this.FetchDydxAccountAsync())
         PanicOnError(account)
         var cancelPayload map[string]any = map[string]any {
             "orderId": map[string]any {
@@ -2045,7 +2045,7 @@ func (this *Dydx) cancelOrderBody(ch chan any, id any, optionalArgs ...any) any 
  * @param {int} [params.subAccountId] sub account id, default is 0
  * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Dydx) CancelOrders(ids any, optionalArgs ...any) <- chan any {
+func  (this *Dydx) CancelOrdersAsync(ids any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.cancelOrdersBody(ch, ids, optionalArgs...)
     return ch
@@ -2059,7 +2059,7 @@ func (this *Dydx) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any) an
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes167812 := (<-this.LoadMarkets())
+            retRes167812 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes167812)
         }
         var market any = this.Market(symbol)
@@ -2074,14 +2074,14 @@ func (this *Dydx) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any) an
         var goodTillBlock any = DerefScalar(this.SafeInteger(params, "goodTillBlock"))
         if IsEqual(goodTillBlock, nil) {
     
-            latestBlockHeight:= (<-this.FetchLatestBlockHeight())
+            latestBlockHeight:= (<-this.FetchLatestBlockHeightAsync())
             PanicOnError(latestBlockHeight)
             goodTillBlock = Add(latestBlockHeight, 20)
         }
         params = this.Omit(params, []any{"clientOrderIds", "goodTillBlock", "subaccountId"})
         var credentials any = this.RetrieveCredentials()
     
-        account:= (<-this.FetchDydxAccount())
+        account:= (<-this.FetchDydxAccountAsync())
         PanicOnError(account)
         var cancelOrders map[string]any = map[string]any {
             "clientIds": clientOrderIds,
@@ -2138,7 +2138,7 @@ func (this *Dydx) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any) an
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
-func  (this *Dydx) FetchOrderBook(symbol any, optionalArgs ...any) <- chan any {
+func  (this *Dydx) FetchOrderBookAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchOrderBookBody(ch, symbol, optionalArgs...)
     return ch
@@ -2152,7 +2152,7 @@ func (this *Dydx) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...an
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes174912 := (<-this.LoadMarkets())
+            retRes174912 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes174912)
         }
         var market any = this.Market(symbol)
@@ -2260,7 +2260,7 @@ func  (this *Dydx) ParseLedgerEntryType(typeVar any) any  {
  * @param {string} [params.subAccountNumber] sub account number
  * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
  */
-func  (this *Dydx) FetchLedger(optionalArgs ...any) <- chan any {
+func  (this *Dydx) FetchLedgerAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchLedgerBody(ch, optionalArgs...)
     return ch
@@ -2278,7 +2278,7 @@ func (this *Dydx) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes185512 := (<-this.LoadMarkets())
+            retRes185512 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes185512)
         }
         var currency any = nil
@@ -2286,7 +2286,7 @@ func (this *Dydx) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
             currency = this.Currency(code)
         }
     
-        response:= (<-this.FetchTransactionsHelper(code, since, limit, this.Extend(params, map[string]any {
+        response:= (<-this.FetchTransactionsHelperAsync(code, since, limit, this.Extend(params, map[string]any {
         "methodName": "fetchLedger",
     })))
         PanicOnError(response)
@@ -2294,7 +2294,7 @@ func (this *Dydx) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
         ch <- this.ParseLedger(response, currency, since, limit)
         return nil
 }
-func  (this *Dydx) EstimateTxFee(message any, memo any, account any) <- chan any {
+func  (this *Dydx) EstimateTxFeeAsync(message any, memo any, account any) <- chan any {
     ch := make(chan any, 1)
     go this.estimateTxFeeBody(ch, message, memo, account)
     return ch
@@ -2368,7 +2368,7 @@ func (this *Dydx) estimateTxFeeBody(ch chan any, message any, memo any, account 
  * @param {string} [params.vaultAddress] the vault address for order
  * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
-func  (this *Dydx) Transfer(code any, amount any, fromAccount any, toAccount any, optionalArgs ...any) <- chan any {
+func  (this *Dydx) TransferAsync(code any, amount any, fromAccount any, toAccount any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.transferBody(ch, code, amount, fromAccount, toAccount, optionalArgs...)
     return ch
@@ -2383,7 +2383,7 @@ func (this *Dydx) transferBody(ch chan any, code any, amount any, fromAccount an
         }
         if IsEqual(this.Markets, nil) {
     
-            retRes193412 := (<-this.LoadMarkets())
+            retRes193412 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes193412)
         }
         var fromSubaccountId *int64 = this.SafeInteger(params, "fromSubaccountId")
@@ -2400,7 +2400,7 @@ func (this *Dydx) transferBody(ch chan any, code any, amount any, fromAccount an
         params = this.Omit(params, []any{"fromSubaccountId", "toSubaccountId"})
         var credentials any = this.RetrieveCredentials()
     
-        account:= (<-this.FetchDydxAccount())
+        account:= (<-this.FetchDydxAccountAsync())
         PanicOnError(account)
         var usd any = this.ParseToInt(Precise.StringMul(this.NumberToString(amount), "1000000"))
         var payload any = nil
@@ -2444,7 +2444,7 @@ func (this *Dydx) transferBody(ch chan any, code any, amount any, fromAccount an
             }
         }
     
-        txFee:= (<-this.EstimateTxFee(signingPayload, "", account))
+        txFee:= (<-this.EstimateTxFeeAsync(signingPayload, "", account))
         PanicOnError(txFee)
         var chainName any = GetValue(this.Options, "chainName")
         var signedTx any = this.SignDydxTx(GetValue(credentials, "privateKey"), signingPayload, "", chainName, account, nil, txFee)
@@ -2528,7 +2528,7 @@ func  (this *Dydx) ParseTransfer(transfer any, optionalArgs ...any) any  {
  * @param {string} [params.subAccountNumber] sub account number
  * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
-func  (this *Dydx) FetchTransfers(optionalArgs ...any) <- chan any {
+func  (this *Dydx) FetchTransfersAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchTransfersBody(ch, optionalArgs...)
     return ch
@@ -2546,7 +2546,7 @@ func (this *Dydx) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes207212 := (<-this.LoadMarkets())
+            retRes207212 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes207212)
         }
         var currency any = nil
@@ -2554,7 +2554,7 @@ func (this *Dydx) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
             currency = this.Currency(code)
         }
     
-        response:= (<-this.FetchTransactionsHelper(code, since, limit, this.Extend(params, map[string]any {
+        response:= (<-this.FetchTransactionsHelperAsync(code, since, limit, this.Extend(params, map[string]any {
         "methodName": "fetchTransfers",
     })))
         PanicOnError(response)
@@ -2631,7 +2631,7 @@ func  (this *Dydx) ParseTransaction(transaction any, optionalArgs ...any) any  {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func  (this *Dydx) Withdraw(code any, amount any, address any, optionalArgs ...any) <- chan any {
+func  (this *Dydx) WithdrawAsync(code any, amount any, address any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.withdrawBody(ch, code, amount, address, optionalArgs...)
     return ch
@@ -2648,7 +2648,7 @@ func (this *Dydx) withdrawBody(ch chan any, code any, amount any, address any, o
         }
         if IsEqual(this.Markets, nil) {
     
-            retRes215512 := (<-this.LoadMarkets())
+            retRes215512 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes215512)
         }
         this.CheckAddress(address)
@@ -2660,7 +2660,7 @@ func (this *Dydx) withdrawBody(ch chan any, code any, amount any, address any, o
         var currency any = this.Currency(code)
         var credentials any = this.RetrieveCredentials()
     
-        account:= (<-this.FetchDydxAccount())
+        account:= (<-this.FetchDydxAccountAsync())
         PanicOnError(account)
         var usd any = this.ParseToInt(Precise.StringMul(this.NumberToString(amount), "1000000"))
         var payload map[string]any = map[string]any {
@@ -2677,7 +2677,7 @@ func (this *Dydx) withdrawBody(ch chan any, code any, amount any, address any, o
             "value": payload,
         }
     
-        txFee:= (<-this.EstimateTxFee(signingPayload, tag, account))
+        txFee:= (<-this.EstimateTxFeeAsync(signingPayload, tag, account))
         PanicOnError(txFee)
         var chainName any = GetValue(this.Options, "chainName")
         var signedTx any = this.SignDydxTx(GetValue(credentials, "privateKey"), signingPayload, tag, chainName, account, nil, txFee)
@@ -2719,7 +2719,7 @@ func (this *Dydx) withdrawBody(ch chan any, code any, amount any, address any, o
  * @param {string} [params.subAccountNumber] sub account number
  * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func  (this *Dydx) FetchWithdrawals(optionalArgs ...any) <- chan any {
+func  (this *Dydx) FetchWithdrawalsAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchWithdrawalsBody(ch, optionalArgs...)
     return ch
@@ -2737,7 +2737,7 @@ func (this *Dydx) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes222012 := (<-this.LoadMarkets())
+            retRes222012 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes222012)
         }
         var currency any = nil
@@ -2745,7 +2745,7 @@ func (this *Dydx) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
             currency = this.Currency(code)
         }
     
-        response:= (<-this.FetchTransactionsHelper(code, since, limit, this.Extend(params, map[string]any {
+        response:= (<-this.FetchTransactionsHelperAsync(code, since, limit, this.Extend(params, map[string]any {
         "methodName": "fetchWithdrawals",
     })))
         PanicOnError(response)
@@ -2767,7 +2767,7 @@ func (this *Dydx) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
  * @param {string} [params.subAccountNumber] sub account number
  * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func  (this *Dydx) FetchDeposits(optionalArgs ...any) <- chan any {
+func  (this *Dydx) FetchDepositsAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchDepositsBody(ch, optionalArgs...)
     return ch
@@ -2785,7 +2785,7 @@ func (this *Dydx) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes224612 := (<-this.LoadMarkets())
+            retRes224612 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes224612)
         }
         var currency any = nil
@@ -2793,7 +2793,7 @@ func (this *Dydx) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
             currency = this.Currency(code)
         }
     
-        response:= (<-this.FetchTransactionsHelper(code, since, limit, this.Extend(params, map[string]any {
+        response:= (<-this.FetchTransactionsHelperAsync(code, since, limit, this.Extend(params, map[string]any {
         "methodName": "fetchDeposits",
     })))
         PanicOnError(response)
@@ -2815,7 +2815,7 @@ func (this *Dydx) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
  * @param {string} [params.subAccountNumber] sub account number
  * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func  (this *Dydx) FetchDepositsWithdrawals(optionalArgs ...any) <- chan any {
+func  (this *Dydx) FetchDepositsWithdrawalsAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchDepositsWithdrawalsBody(ch, optionalArgs...)
     return ch
@@ -2833,7 +2833,7 @@ func (this *Dydx) fetchDepositsWithdrawalsBody(ch chan any, optionalArgs ...any)
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes227212 := (<-this.LoadMarkets())
+            retRes227212 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes227212)
         }
         var currency any = nil
@@ -2841,7 +2841,7 @@ func (this *Dydx) fetchDepositsWithdrawalsBody(ch chan any, optionalArgs ...any)
             currency = this.Currency(code)
         }
     
-        response:= (<-this.FetchTransactionsHelper(code, since, limit, this.Extend(params, map[string]any {
+        response:= (<-this.FetchTransactionsHelperAsync(code, since, limit, this.Extend(params, map[string]any {
         "methodName": "fetchDepositsWithdrawals",
     })))
         PanicOnError(response)
@@ -2852,7 +2852,7 @@ func (this *Dydx) fetchDepositsWithdrawalsBody(ch chan any, optionalArgs ...any)
         ch <- this.ParseTransactions(rows, currency, since, limit)
         return nil
 }
-func  (this *Dydx) FetchTransactionsHelper(optionalArgs ...any) <- chan any {
+func  (this *Dydx) FetchTransactionsHelperAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchTransactionsHelperBody(ch, optionalArgs...)
     return ch
@@ -2921,7 +2921,7 @@ func (this *Dydx) fetchTransactionsHelperBody(ch chan any, optionalArgs ...any) 
  * @param {string} [params.address] wallet address that made trades
  * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/?id=account-structure} indexed by the account type
  */
-func  (this *Dydx) FetchAccounts(optionalArgs ...any) <- chan any {
+func  (this *Dydx) FetchAccountsAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchAccountsBody(ch, optionalArgs...)
     return ch
@@ -3010,7 +3010,7 @@ func (this *Dydx) fetchAccountsBody(ch chan any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
-func  (this *Dydx) FetchBalance(optionalArgs ...any) <- chan any {
+func  (this *Dydx) FetchBalanceAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchBalanceBody(ch, optionalArgs...)
     return ch
@@ -3022,7 +3022,7 @@ func (this *Dydx) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes240912 := (<-this.LoadMarkets())
+            retRes240912 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes240912)
         }
         var userAddress any = nil

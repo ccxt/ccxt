@@ -1146,7 +1146,7 @@ func  (this *Aster) IsLinear(typeVar any, optionalArgs ...any) any  {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an associative dictionary of currencies
  */
-func  (this *Aster) FetchCurrencies(optionalArgs ...any) <- chan any {
+func  (this *Aster) FetchCurrenciesAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchCurrenciesBody(ch, optionalArgs...)
     return ch
@@ -1214,7 +1214,7 @@ func  (this *Aster) ParseCurrency(rawCurrency any) any  {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} an array of objects representing market data
  */
-func  (this *Aster) FetchMarkets(optionalArgs ...any) <- chan any {
+func  (this *Aster) FetchMarketsAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchMarketsBody(ch, optionalArgs...)
     return ch
@@ -1225,7 +1225,7 @@ func (this *Aster) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
         params := GetArg(optionalArgs, 0, map[string]any {})
         _ = params
         var promises any = []any{this.SapiPublicGetV3ExchangeInfo(params), this.FapiPublicGetV3ExchangeInfo(params)}
-        AppendToArray(&promises, this.SignIn())
+        AppendToArray(&promises, this.SignInAsync())
     
         results:= (<-promiseAll(promises))
         PanicOnError(results)
@@ -1451,7 +1451,7 @@ func  (this *Aster) ParseMarket(market any) any  {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {int} the current integer timestamp in milliseconds from the exchange server
  */
-func  (this *Aster) FetchTime(optionalArgs ...any) <- chan any {
+func  (this *Aster) FetchTimeAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchTimeBody(ch, optionalArgs...)
     return ch
@@ -1526,7 +1526,7 @@ func  (this *Aster) ParseOHLCV(ohlcv any, optionalArgs ...any) any  {
  * @param {int} [params.until] the latest time in ms to fetch orders for
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
-func  (this *Aster) FetchOHLCV(symbol any, optionalArgs ...any) <- chan any {
+func  (this *Aster) FetchOHLCVAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchOHLCVBody(ch, symbol, optionalArgs...)
     return ch
@@ -1544,7 +1544,7 @@ func (this *Aster) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) 
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes116112 := (<-this.LoadMarkets())
+            retRes116112 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes116112)
         }
         var market any = this.Market(symbol)
@@ -1701,7 +1701,7 @@ func  (this *Aster) ParseTrade(trade any, optionalArgs ...any) any  {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
-func  (this *Aster) FetchTrades(symbol any, optionalArgs ...any) <- chan any {
+func  (this *Aster) FetchTradesAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchTradesBody(ch, symbol, optionalArgs...)
     return ch
@@ -1717,7 +1717,7 @@ func (this *Aster) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any)
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes132712 := (<-this.LoadMarkets())
+            retRes132712 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes132712)
         }
         var market any = this.Market(symbol)
@@ -1775,7 +1775,7 @@ func (this *Aster) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any)
  * @param {int} [params.until] timestamp in ms for the ending date filter, default is undefined
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
-func  (this *Aster) FetchMyTrades(optionalArgs ...any) <- chan any {
+func  (this *Aster) FetchMyTradesAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchMyTradesBody(ch, optionalArgs...)
     return ch
@@ -1792,7 +1792,7 @@ func (this *Aster) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
         params := GetArg(optionalArgs, 3, map[string]any {})
         _ = params
     
-        retRes14058 := (<-this.LoadMarketsAndSignIn())
+        retRes14058 := (<-this.LoadMarketsAndSignInAsync())
         PanicOnError(retRes14058)
         var request any = map[string]any {}
         var market any = nil
@@ -1861,7 +1861,7 @@ func (this *Aster) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
-func  (this *Aster) FetchOrderBook(symbol any, optionalArgs ...any) <- chan any {
+func  (this *Aster) FetchOrderBookAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchOrderBookBody(ch, symbol, optionalArgs...)
     return ch
@@ -1875,7 +1875,7 @@ func (this *Aster) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...a
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes146612 := (<-this.LoadMarkets())
+            retRes146612 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes146612)
         }
         var market any = this.Market(symbol)
@@ -2018,7 +2018,7 @@ func  (this *Aster) ParseTicker(ticker any, optionalArgs ...any) any  {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func  (this *Aster) FetchTicker(symbol any, optionalArgs ...any) <- chan any {
+func  (this *Aster) FetchTickerAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchTickerBody(ch, symbol, optionalArgs...)
     return ch
@@ -2030,7 +2030,7 @@ func (this *Aster) fetchTickerBody(ch chan any, symbol any, optionalArgs ...any)
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes160412 := (<-this.LoadMarkets())
+            retRes160412 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes160412)
         }
         var market any = this.Market(symbol)
@@ -2091,7 +2091,7 @@ func (this *Aster) fetchTickerBody(ch chan any, symbol any, optionalArgs ...any)
  * @param {string} [params.type] 'spot', 'option', use params["subType"] for swap and future markets
  * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func  (this *Aster) FetchTickers(optionalArgs ...any) <- chan any {
+func  (this *Aster) FetchTickersAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchTickersBody(ch, optionalArgs...)
     return ch
@@ -2105,7 +2105,7 @@ func (this *Aster) fetchTickersBody(ch chan any, optionalArgs ...any) any {
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes166112 := (<-this.LoadMarkets())
+            retRes166112 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes166112)
         }
         symbols = this.MarketSymbols(symbols, nil, true, true, true)
@@ -2167,7 +2167,7 @@ func (this *Aster) fetchTickersBody(ch chan any, optionalArgs ...any) any {
  * @param {string} [params.subType] "linear" or "inverse"
  * @returns {object} a dictionary of lastprices structures
  */
-func  (this *Aster) FetchLastPrices(optionalArgs ...any) <- chan any {
+func  (this *Aster) FetchLastPricesAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchLastPricesBody(ch, optionalArgs...)
     return ch
@@ -2181,7 +2181,7 @@ func (this *Aster) fetchLastPricesBody(ch chan any, optionalArgs ...any) any {
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes171712 := (<-this.LoadMarkets())
+            retRes171712 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes171712)
         }
         symbols = this.MarketSymbols(symbols, nil, true, true, true)
@@ -2261,7 +2261,7 @@ func  (this *Aster) ParseLastPrice(entry any, optionalArgs ...any) any  {
  * @param {string} [params.subType] "linear" or "inverse"
  * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func  (this *Aster) FetchBidsAsks(optionalArgs ...any) <- chan any {
+func  (this *Aster) FetchBidsAsksAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchBidsAsksBody(ch, optionalArgs...)
     return ch
@@ -2275,7 +2275,7 @@ func (this *Aster) fetchBidsAsksBody(ch chan any, optionalArgs ...any) any {
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes179012 := (<-this.LoadMarkets())
+            retRes179012 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes179012)
         }
         symbols = this.MarketSymbols(symbols, nil, true, true, true)
@@ -2378,7 +2378,7 @@ func  (this *Aster) ParseFundingRate(contract any, optionalArgs ...any) any  {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
  */
-func  (this *Aster) FetchFundingRate(symbol any, optionalArgs ...any) <- chan any {
+func  (this *Aster) FetchFundingRateAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchFundingRateBody(ch, symbol, optionalArgs...)
     return ch
@@ -2393,7 +2393,7 @@ func (this *Aster) fetchFundingRateBody(ch chan any, symbol any, optionalArgs ..
         }
         if IsEqual(this.Markets, nil) {
     
-            retRes188912 := (<-this.LoadMarkets())
+            retRes188912 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes188912)
         }
         var market any = this.Market(symbol)
@@ -2428,7 +2428,7 @@ func (this *Aster) fetchFundingRateBody(ch chan any, symbol any, optionalArgs ..
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-structure}
  */
-func  (this *Aster) FetchFundingRates(optionalArgs ...any) <- chan any {
+func  (this *Aster) FetchFundingRatesAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchFundingRatesBody(ch, optionalArgs...)
     return ch
@@ -2442,7 +2442,7 @@ func (this *Aster) fetchFundingRatesBody(ch chan any, optionalArgs ...any) any {
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes192212 := (<-this.LoadMarkets())
+            retRes192212 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes192212)
         }
         symbols = this.MarketSymbols(symbols)
@@ -2476,7 +2476,7 @@ func (this *Aster) fetchFundingRatesBody(ch chan any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-structure}
  */
-func  (this *Aster) FetchFundingIntervals(optionalArgs ...any) <- chan any {
+func  (this *Aster) FetchFundingIntervalsAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchFundingIntervalsBody(ch, optionalArgs...)
     return ch
@@ -2490,7 +2490,7 @@ func (this *Aster) fetchFundingIntervalsBody(ch chan any, optionalArgs ...any) a
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes195412 := (<-this.LoadMarkets())
+            retRes195412 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes195412)
         }
         if !IsEqual(symbols, nil) {
@@ -2527,7 +2527,7 @@ func (this *Aster) fetchFundingIntervalsBody(ch chan any, optionalArgs ...any) a
  * @param {int} [params.until] timestamp in ms of the latest funding rate
  * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
  */
-func  (this *Aster) FetchFundingRateHistory(optionalArgs ...any) <- chan any {
+func  (this *Aster) FetchFundingRateHistoryAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchFundingRateHistoryBody(ch, optionalArgs...)
     return ch
@@ -2545,7 +2545,7 @@ func (this *Aster) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any)
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes198912 := (<-this.LoadMarkets())
+            retRes198912 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes198912)
         }
         var request any = map[string]any {}
@@ -2609,7 +2609,7 @@ func  (this *Aster) ParseFundingRateHistory(contract any, optionalArgs ...any) a
  * @param {string} [params.type] 'spot', 'option', use params["subType"] for swap and future markets
  * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
-func  (this *Aster) FetchBalance(optionalArgs ...any) <- chan any {
+func  (this *Aster) FetchBalanceAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchBalanceBody(ch, optionalArgs...)
     return ch
@@ -2620,7 +2620,7 @@ func (this *Aster) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
         params := GetArg(optionalArgs, 0, map[string]any {})
         _ = params
     
-        retRes20478 := (<-this.LoadMarketsAndSignIn())
+        retRes20478 := (<-this.LoadMarketsAndSignInAsync())
         PanicOnError(retRes20478)
         var marketType any = nil
         marketTypeparamsVariable := this.HandleMarketTypeAndParams("fetchBalance", nil, params);
@@ -2670,7 +2670,7 @@ func  (this *Aster) ParseBalance(response any) any  {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} response from the exchange
  */
-func  (this *Aster) SetMarginMode(marginMode any, optionalArgs ...any) <- chan any {
+func  (this *Aster) SetMarginModeAsync(marginMode any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.setMarginModeBody(ch, marginMode, optionalArgs...)
     return ch
@@ -2693,7 +2693,7 @@ func (this *Aster) setMarginModeBody(ch chan any, marginMode any, optionalArgs .
             panic(BadRequest(Add(this.Id, " marginMode must be either isolated or cross")))
         }
     
-        retRes21228 := (<-this.LoadMarketsAndSignIn())
+        retRes21228 := (<-this.LoadMarketsAndSignInAsync())
         PanicOnError(retRes21228)
         var market any = this.Market(symbol)
         var request map[string]any = map[string]any {
@@ -2719,7 +2719,7 @@ func (this *Aster) setMarginModeBody(ch chan any, marginMode any, optionalArgs .
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an object detailing whether the market is in hedged or one-way mode
  */
-func  (this *Aster) FetchPositionMode(optionalArgs ...any) <- chan any {
+func  (this *Aster) FetchPositionModeAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchPositionModeBody(ch, optionalArgs...)
     return ch
@@ -2756,7 +2756,7 @@ func (this *Aster) fetchPositionModeBody(ch chan any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} response from the exchange
  */
-func  (this *Aster) SetPositionMode(hedged any, optionalArgs ...any) <- chan any {
+func  (this *Aster) SetPositionModeAsync(hedged any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.setPositionModeBody(ch, hedged, optionalArgs...)
     return ch
@@ -2809,7 +2809,7 @@ func  (this *Aster) ParseTradingFee(fee any, optionalArgs ...any) any  {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
  */
-func  (this *Aster) FetchTradingFee(symbol any, optionalArgs ...any) <- chan any {
+func  (this *Aster) FetchTradingFeeAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchTradingFeeBody(ch, symbol, optionalArgs...)
     return ch
@@ -2820,7 +2820,7 @@ func (this *Aster) fetchTradingFeeBody(ch chan any, symbol any, optionalArgs ...
         params := GetArg(optionalArgs, 0, map[string]any {})
         _ = params
     
-        retRes22068 := (<-this.LoadMarketsAndSignIn())
+        retRes22068 := (<-this.LoadMarketsAndSignInAsync())
         PanicOnError(retRes22068)
         var market any = this.Market(symbol)
         var request map[string]any = map[string]any {
@@ -2976,7 +2976,7 @@ func  (this *Aster) ParseOrder(order any, optionalArgs ...any) any  {
  * @param {string} [params.clientOrderId] a unique id for the order
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Aster) FetchOrder(id any, optionalArgs ...any) <- chan any {
+func  (this *Aster) FetchOrderAsync(id any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchOrderBody(ch, id, optionalArgs...)
     return ch
@@ -2992,7 +2992,7 @@ func (this *Aster) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any 
             panic(ArgumentsRequired(Add(this.Id, " fetchOrder() requires a symbol argument")))
         }
     
-        retRes23618 := (<-this.LoadMarketsAndSignIn())
+        retRes23618 := (<-this.LoadMarketsAndSignInAsync())
         PanicOnError(retRes23618)
         var market any = this.Market(symbol)
         var request map[string]any = map[string]any {
@@ -3059,7 +3059,7 @@ func (this *Aster) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any 
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Aster) FetchOpenOrder(id any, optionalArgs ...any) <- chan any {
+func  (this *Aster) FetchOpenOrderAsync(id any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchOpenOrderBody(ch, id, optionalArgs...)
     return ch
@@ -3075,7 +3075,7 @@ func (this *Aster) fetchOpenOrderBody(ch chan any, id any, optionalArgs ...any) 
             panic(ArgumentsRequired(Add(this.Id, " fetchOpenOrder() requires a symbol argument")))
         }
     
-        retRes24268 := (<-this.LoadMarketsAndSignIn())
+        retRes24268 := (<-this.LoadMarketsAndSignInAsync())
         PanicOnError(retRes24268)
         var market any = this.Market(symbol)
         var request map[string]any = map[string]any {
@@ -3144,7 +3144,7 @@ func (this *Aster) fetchOpenOrderBody(ch chan any, id any, optionalArgs ...any) 
  * @param {int} [params.until] the latest time in ms to fetch orders for
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Aster) FetchOrders(optionalArgs ...any) <- chan any {
+func  (this *Aster) FetchOrdersAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchOrdersBody(ch, optionalArgs...)
     return ch
@@ -3164,7 +3164,7 @@ func (this *Aster) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
             panic(ArgumentsRequired(Add(this.Id, " fetchOrders() requires a symbol argument")))
         }
     
-        retRes24938 := (<-this.LoadMarketsAndSignIn())
+        retRes24938 := (<-this.LoadMarketsAndSignInAsync())
         PanicOnError(retRes24938)
         var market any = this.Market(symbol)
         var request any = map[string]any {
@@ -3237,7 +3237,7 @@ func (this *Aster) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
  * @param {string} [params.type] 'spot', 'option', use params["subType"] for swap and future markets
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Aster) FetchOpenOrders(optionalArgs ...any) <- chan any {
+func  (this *Aster) FetchOpenOrdersAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchOpenOrdersBody(ch, optionalArgs...)
     return ch
@@ -3254,7 +3254,7 @@ func (this *Aster) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
         params := GetArg(optionalArgs, 3, map[string]any {})
         _ = params
     
-        retRes25598 := (<-this.LoadMarketsAndSignIn())
+        retRes25598 := (<-this.LoadMarketsAndSignInAsync())
         PanicOnError(retRes25598)
         var request map[string]any = map[string]any {}
         var market any = nil
@@ -3345,7 +3345,7 @@ func (this *Aster) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
  * @param {float} [params.takeProfitPrice] the price that a take profit order is triggered at
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Aster) CreateOrder(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <- chan any {
+func  (this *Aster) CreateOrderAsync(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.createOrderBody(ch, symbol, typeVar, side, amount, optionalArgs...)
     return ch
@@ -3358,7 +3358,7 @@ func (this *Aster) createOrderBody(ch chan any, symbol any, typeVar any, side an
         params := GetArg(optionalArgs, 1, map[string]any {})
         _ = params
     
-        retRes26418 := (<-this.LoadMarketsAndSignIn())
+        retRes26418 := (<-this.LoadMarketsAndSignInAsync())
         PanicOnError(retRes26418)
         var market any = this.Market(symbol)
         var request any = this.CreateOrderRequest(symbol, typeVar, side, amount, price, params)
@@ -3415,7 +3415,7 @@ func (this *Aster) createOrderBody(ch chan any, symbol any, typeVar any, side an
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Aster) CreateOrders(orders any, optionalArgs ...any) <- chan any {
+func  (this *Aster) CreateOrdersAsync(orders any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.createOrdersBody(ch, orders, optionalArgs...)
     return ch
@@ -3426,7 +3426,7 @@ func (this *Aster) createOrdersBody(ch chan any, orders any, optionalArgs ...any
         params := GetArg(optionalArgs, 0, map[string]any {})
         _ = params
     
-        retRes26938 := (<-this.LoadMarketsAndSignIn())
+        retRes26938 := (<-this.LoadMarketsAndSignInAsync())
         PanicOnError(retRes26938)
         var ordersRequests any = []any{}
         var orderSymbols any = []any{}
@@ -3670,7 +3670,7 @@ func  (this *Aster) CreateOrderRequest(symbol any, typeVar any, side any, amount
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Aster) CancelAllOrders(optionalArgs ...any) <- chan any {
+func  (this *Aster) CancelAllOrdersAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.cancelAllOrdersBody(ch, optionalArgs...)
     return ch
@@ -3686,7 +3686,7 @@ func (this *Aster) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
             panic(ArgumentsRequired(Add(this.Id, " cancelAllOrders() requires a symbol argument")))
         }
     
-        retRes29328 := (<-this.LoadMarketsAndSignIn())
+        retRes29328 := (<-this.LoadMarketsAndSignInAsync())
         PanicOnError(retRes29328)
         var market any = this.Market(symbol)
         var request map[string]any = map[string]any {
@@ -3727,7 +3727,7 @@ func (this *Aster) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Aster) CancelOrder(id any, optionalArgs ...any) <- chan any {
+func  (this *Aster) CancelOrderAsync(id any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.cancelOrderBody(ch, id, optionalArgs...)
     return ch
@@ -3743,7 +3743,7 @@ func (this *Aster) cancelOrderBody(ch chan any, id any, optionalArgs ...any) any
             panic(ArgumentsRequired(Add(this.Id, " cancelOrder() requires a symbol argument")))
         }
     
-        retRes29738 := (<-this.LoadMarketsAndSignIn())
+        retRes29738 := (<-this.LoadMarketsAndSignInAsync())
         PanicOnError(retRes29738)
         var market any = this.Market(symbol)
         var request map[string]any = map[string]any {
@@ -3785,7 +3785,7 @@ func (this *Aster) cancelOrderBody(ch chan any, id any, optionalArgs ...any) any
  * @param {int[]} [params.recvWindow]
  * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Aster) CancelOrders(ids any, optionalArgs ...any) <- chan any {
+func  (this *Aster) CancelOrdersAsync(ids any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.cancelOrdersBody(ch, ids, optionalArgs...)
     return ch
@@ -3801,7 +3801,7 @@ func (this *Aster) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any) a
             panic(ArgumentsRequired(Add(this.Id, " cancelOrders() requires a symbol argument")))
         }
     
-        retRes30138 := (<-this.LoadMarketsAndSignIn())
+        retRes30138 := (<-this.LoadMarketsAndSignInAsync())
         PanicOnError(retRes30138)
         var market any = this.Market(symbol)
         var request map[string]any = map[string]any {
@@ -3837,7 +3837,7 @@ func (this *Aster) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any) a
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} response from the exchange
  */
-func  (this *Aster) SetLeverage(leverage any, optionalArgs ...any) <- chan any {
+func  (this *Aster) SetLeverageAsync(leverage any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.setLeverageBody(ch, leverage, optionalArgs...)
     return ch
@@ -3856,7 +3856,7 @@ func (this *Aster) setLeverageBody(ch chan any, leverage any, optionalArgs ...an
             panic(BadRequest(Add(this.Id, " leverage should be between 1 and 125")))
         }
     
-        retRes30858 := (<-this.LoadMarketsAndSignIn())
+        retRes30858 := (<-this.LoadMarketsAndSignInAsync())
         PanicOnError(retRes30858)
         var market any = this.Market(symbol)
         var request map[string]any = map[string]any {
@@ -3886,7 +3886,7 @@ func (this *Aster) setLeverageBody(ch chan any, leverage any, optionalArgs ...an
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a list of [leverage structures]{@link https://docs.ccxt.com/?id=leverage-structure}
  */
-func  (this *Aster) FetchLeverages(optionalArgs ...any) <- chan any {
+func  (this *Aster) FetchLeveragesAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchLeveragesBody(ch, optionalArgs...)
     return ch
@@ -3899,7 +3899,7 @@ func (this *Aster) fetchLeveragesBody(ch chan any, optionalArgs ...any) any {
         params := GetArg(optionalArgs, 1, map[string]any {})
         _ = params
     
-        retRes31128 := (<-this.LoadMarketsAndSignIn())
+        retRes31128 := (<-this.LoadMarketsAndSignInAsync())
         PanicOnError(retRes31128)
     
         response:= (<-this.FapiPrivateGetV3PositionRisk(params))
@@ -3982,7 +3982,7 @@ func  (this *Aster) ParseLeverage(leverage any, optionalArgs ...any) any  {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a list of [margin mode structures]{@link https://docs.ccxt.com/?id=margin-mode-structure}
  */
-func  (this *Aster) FetchMarginModes(optionalArgs ...any) <- chan any {
+func  (this *Aster) FetchMarginModesAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchMarginModesBody(ch, optionalArgs...)
     return ch
@@ -3995,7 +3995,7 @@ func (this *Aster) fetchMarginModesBody(ch chan any, optionalArgs ...any) any {
         params := GetArg(optionalArgs, 1, map[string]any {})
         _ = params
     
-        retRes31918 := (<-this.LoadMarketsAndSignIn())
+        retRes31918 := (<-this.LoadMarketsAndSignInAsync())
         PanicOnError(retRes31918)
     
         response:= (<-this.FapiPrivateGetV3PositionRisk(params))
@@ -4070,7 +4070,7 @@ func  (this *Aster) ParseMarginMode(marginMode any, optionalArgs ...any) any  {
  * @param {int} [params.until] timestamp in ms of the latest change to fetch
  * @returns {object[]} a list of [margin structures]{@link https://docs.ccxt.com/?id=margin-loan-structure}
  */
-func  (this *Aster) FetchMarginAdjustmentHistory(optionalArgs ...any) <- chan any {
+func  (this *Aster) FetchMarginAdjustmentHistoryAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchMarginAdjustmentHistoryBody(ch, optionalArgs...)
     return ch
@@ -4092,7 +4092,7 @@ func (this *Aster) fetchMarginAdjustmentHistoryBody(ch chan any, optionalArgs ..
             panic(ArgumentsRequired(Add(this.Id, " fetchMarginAdjustmentHistory () requires a symbol argument")))
         }
     
-        retRes32658 := (<-this.LoadMarketsAndSignIn())
+        retRes32658 := (<-this.LoadMarketsAndSignInAsync())
         PanicOnError(retRes32658)
         var market any = this.Market(symbol)
         var until *int64 = this.SafeInteger(params, "until")
@@ -4172,7 +4172,7 @@ func  (this *Aster) ParseMarginModification(data any, optionalArgs ...any) any  
         "datetime": this.Iso8601(timestamp),
     }
 }
-func  (this *Aster) ModifyMarginHelper(symbol any, amount any, addOrReduce any, optionalArgs ...any) <- chan any {
+func  (this *Aster) ModifyMarginHelperAsync(symbol any, amount any, addOrReduce any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.modifyMarginHelperBody(ch, symbol, amount, addOrReduce, optionalArgs...)
     return ch
@@ -4183,7 +4183,7 @@ func (this *Aster) modifyMarginHelperBody(ch chan any, symbol any, amount any, a
         params := GetArg(optionalArgs, 0, map[string]any {})
         _ = params
     
-        retRes33418 := (<-this.LoadMarketsAndSignIn())
+        retRes33418 := (<-this.LoadMarketsAndSignInAsync())
         PanicOnError(retRes33418)
         var market any = this.Market(symbol)
         amount = this.AmountToPrecision(symbol, amount)
@@ -4220,7 +4220,7 @@ func (this *Aster) modifyMarginHelperBody(ch chan any, symbol any, amount any, a
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=reduce-margin-structure}
  */
-func  (this *Aster) ReduceMargin(symbol any, amount any, optionalArgs ...any) <- chan any {
+func  (this *Aster) ReduceMarginAsync(symbol any, amount any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.reduceMarginBody(ch, symbol, amount, optionalArgs...)
     return ch
@@ -4231,7 +4231,7 @@ func (this *Aster) reduceMarginBody(ch chan any, symbol any, amount any, optiona
         params := GetArg(optionalArgs, 0, map[string]any {})
         _ = params
     
-            retRes337315 :=  (<-this.ModifyMarginHelper(symbol, amount, 2, params))
+            retRes337315 :=  (<-this.ModifyMarginHelperAsync(symbol, amount, 2, params))
             PanicOnError(retRes337315)
             ch <- retRes337315
             return nil
@@ -4246,7 +4246,7 @@ func (this *Aster) reduceMarginBody(ch chan any, symbol any, amount any, optiona
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=add-margin-structure}
  */
-func  (this *Aster) AddMargin(symbol any, amount any, optionalArgs ...any) <- chan any {
+func  (this *Aster) AddMarginAsync(symbol any, amount any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.addMarginBody(ch, symbol, amount, optionalArgs...)
     return ch
@@ -4257,7 +4257,7 @@ func (this *Aster) addMarginBody(ch chan any, symbol any, amount any, optionalAr
         params := GetArg(optionalArgs, 0, map[string]any {})
         _ = params
     
-            retRes338715 :=  (<-this.ModifyMarginHelper(symbol, amount, 1, params))
+            retRes338715 :=  (<-this.ModifyMarginHelperAsync(symbol, amount, 1, params))
             PanicOnError(retRes338715)
             ch <- retRes338715
             return nil
@@ -4304,7 +4304,7 @@ func  (this *Aster) ParseIncome(income any, optionalArgs ...any) any  {
  * @param {string} [params.subType] "linear" or "inverse"
  * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/?id=funding-history-structure}
  */
-func  (this *Aster) FetchFundingHistory(optionalArgs ...any) <- chan any {
+func  (this *Aster) FetchFundingHistoryAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchFundingHistoryBody(ch, optionalArgs...)
     return ch
@@ -4321,7 +4321,7 @@ func (this *Aster) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) any
         params := GetArg(optionalArgs, 3, map[string]any {})
         _ = params
     
-        retRes34328 := (<-this.LoadMarketsAndSignIn())
+        retRes34328 := (<-this.LoadMarketsAndSignInAsync())
         PanicOnError(retRes34328)
         var market any = nil
         var request any = map[string]any {
@@ -4417,7 +4417,7 @@ func  (this *Aster) ParseLedgerEntryType(typeVar any) any  {
  * @param {int} [params.until] timestamp in ms of the latest ledger entry
  * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger}
  */
-func  (this *Aster) FetchLedger(optionalArgs ...any) <- chan any {
+func  (this *Aster) FetchLedgerAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchLedgerBody(ch, optionalArgs...)
     return ch
@@ -4434,7 +4434,7 @@ func (this *Aster) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
         params := GetArg(optionalArgs, 3, map[string]any {})
         _ = params
     
-        retRes35238 := (<-this.LoadMarketsAndSignIn())
+        retRes35238 := (<-this.LoadMarketsAndSignInAsync())
         PanicOnError(retRes35238)
         var currency any = nil
         if !IsEqual(code, nil) {
@@ -4653,7 +4653,7 @@ func  (this *Aster) ParsePositionRisk(position any, optionalArgs ...any) any  {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} data on the positions risk
  */
-func  (this *Aster) FetchPositionsRisk(optionalArgs ...any) <- chan any {
+func  (this *Aster) FetchPositionsRiskAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchPositionsRiskBody(ch, optionalArgs...)
     return ch
@@ -4671,10 +4671,10 @@ func (this *Aster) fetchPositionsRiskBody(ch chan any, optionalArgs ...any) any 
             }
         }
     
-        retRes37438 := (<-this.LoadMarketsAndSignIn())
+        retRes37438 := (<-this.LoadMarketsAndSignInAsync())
         PanicOnError(retRes37438)
     
-        retRes37448 := (<-this.LoadLeverageBrackets(false, params))
+        retRes37448 := (<-this.LoadLeverageBracketsAsync(false, params))
         PanicOnError(retRes37448)
         var request map[string]any = map[string]any {}
     
@@ -4723,7 +4723,7 @@ func (this *Aster) fetchPositionsRiskBody(ch chan any, optionalArgs ...any) any 
  * @param {string} [params.method] method name to call, "positionRisk", "account" or "option", default is "positionRisk"
  * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
  */
-func  (this *Aster) FetchPositions(optionalArgs ...any) <- chan any {
+func  (this *Aster) FetchPositionsAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchPositionsBody(ch, optionalArgs...)
     return ch
@@ -4749,13 +4749,13 @@ func (this *Aster) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
         }
         if (IsEqual(defaultMethod, "positionRisk")) {
     
-                retRes380119 :=  (<-this.FetchPositionsRisk(symbols, params))
+                retRes380119 :=  (<-this.FetchPositionsRiskAsync(symbols, params))
                 PanicOnError(retRes380119)
                 ch <- retRes380119
                 return nil
         } else if (IsEqual(defaultMethod, "account")) {
     
-                retRes380319 :=  (<-this.FetchAccountPositions(symbols, params))
+                retRes380319 :=  (<-this.FetchAccountPositionsAsync(symbols, params))
                 PanicOnError(retRes380319)
                 ch <- retRes380319
                 return nil
@@ -4984,7 +4984,7 @@ https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#positi
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} data on account positions
  */
-func  (this *Aster) FetchAccountPositions(optionalArgs ...any) <- chan any {
+func  (this *Aster) FetchAccountPositionsAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchAccountPositionsBody(ch, optionalArgs...)
     return ch
@@ -5002,10 +5002,10 @@ func (this *Aster) fetchAccountPositionsBody(ch chan any, optionalArgs ...any) a
             }
         }
     
-        retRes40348 := (<-this.LoadMarketsAndSignIn())
+        retRes40348 := (<-this.LoadMarketsAndSignInAsync())
         PanicOnError(retRes40348)
     
-        retRes40358 := (<-this.LoadLeverageBrackets(false, params))
+        retRes40358 := (<-this.LoadLeverageBracketsAsync(false, params))
         PanicOnError(retRes40358)
     
         response:= (<-this.FapiPrivateGetV4Account(params))
@@ -5020,7 +5020,7 @@ func (this *Aster) fetchAccountPositionsBody(ch chan any, optionalArgs ...any) a
         ch <- this.FilterByArrayPositions(result, "symbol", symbols, false)
         return nil
 }
-func  (this *Aster) LoadLeverageBrackets(optionalArgs ...any) <- chan any {
+func  (this *Aster) LoadLeverageBracketsAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.loadLeverageBracketsBody(ch, optionalArgs...)
     return ch
@@ -5033,7 +5033,7 @@ func (this *Aster) loadLeverageBracketsBody(ch chan any, optionalArgs ...any) an
         params := GetArg(optionalArgs, 1, map[string]any {})
         _ = params
     
-        retRes40458 := (<-this.LoadMarketsAndSignIn())
+        retRes40458 := (<-this.LoadMarketsAndSignInAsync())
         PanicOnError(retRes40458)
         // by default cache the leverage bracket
         // it contains useful stuff like the maintenance margin and initial margin for positions
@@ -5155,7 +5155,7 @@ func  (this *Aster) SignWithdrawPayload(withdrawPayload any, network any) any  {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func  (this *Aster) Withdraw(code any, amount any, address any, optionalArgs ...any) <- chan any {
+func  (this *Aster) WithdrawAsync(code any, amount any, address any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.withdrawBody(ch, code, amount, address, optionalArgs...)
     return ch
@@ -5172,7 +5172,7 @@ func (this *Aster) withdrawBody(ch chan any, code any, amount any, address any, 
         params = GetValue(tagparamsVariable,1)
         this.CheckAddress(address)
     
-        retRes41548 := (<-this.LoadMarketsAndSignIn())
+        retRes41548 := (<-this.LoadMarketsAndSignInAsync())
         PanicOnError(retRes41548)
         var currency any = this.Currency(code)
         var nonce any = Multiply(this.Milliseconds(), 1000)
@@ -5254,7 +5254,7 @@ func  (this *Aster) ParseTransaction(transaction any, optionalArgs ...any) any  
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
-func  (this *Aster) Transfer(code any, amount any, fromAccount any, toAccount any, optionalArgs ...any) <- chan any {
+func  (this *Aster) TransferAsync(code any, amount any, fromAccount any, toAccount any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.transferBody(ch, code, amount, fromAccount, toAccount, optionalArgs...)
     return ch
@@ -5265,7 +5265,7 @@ func (this *Aster) transferBody(ch chan any, code any, amount any, fromAccount a
         params := GetArg(optionalArgs, 0, map[string]any {})
         _ = params
     
-        retRes42328 := (<-this.LoadMarketsAndSignIn())
+        retRes42328 := (<-this.LoadMarketsAndSignInAsync())
         PanicOnError(retRes42328)
         var currency any = this.Currency(code)
         var request map[string]any = map[string]any {
@@ -5468,7 +5468,7 @@ func  (this *Aster) CapitalizeKeys(dict any) any  {
     }
     return capitalized
 }
-func  (this *Aster) LoadMarketsAndSignIn() <- chan any {
+func  (this *Aster) LoadMarketsAndSignInAsync() <- chan any {
     ch := make(chan any, 1)
     go this.loadMarketsAndSignInBody(ch)
     return ch
@@ -5477,7 +5477,7 @@ func (this *Aster) loadMarketsAndSignInBody(ch chan any) any {
     defer close(ch)
     defer ReturnPanicError(ch)
     
-    retRes44088 := (<-promiseAll([]any{this.LoadMarkets(), this.SignIn()}))
+    retRes44088 := (<-promiseAll([]any{this.LoadMarketsAsync(), this.SignInAsync()}))
     PanicOnError(retRes44088)
     return nil
 }
@@ -5489,7 +5489,7 @@ func (this *Aster) loadMarketsAndSignInBody(ch chan any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns response from exchange
  */
-func  (this *Aster) SignIn(optionalArgs ...any) <- chan any {
+func  (this *Aster) SignInAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.signInBody(ch, optionalArgs...)
     return ch
@@ -5511,13 +5511,13 @@ func (this *Aster) signInBody(ch chan any, optionalArgs ...any) any {
             panic(NotSupported(Add(this.Id, " after the latest update (v4.5.52), CCXT now expects the l1 private key to be provided in the credentials.")))
         }
     
-        retRes44298 := (<-this.InitializeClient(params))
+        retRes44298 := (<-this.InitializeClientAsync(params))
         PanicOnError(retRes44298)
     
         ch <- true
         return nil
 }
-func  (this *Aster) InitializeClient(optionalArgs ...any) <- chan any {
+func  (this *Aster) InitializeClientAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.initializeClientBody(ch, optionalArgs...)
     return ch

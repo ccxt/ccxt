@@ -614,7 +614,7 @@ func  (this *Ndax) Describe() any  {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
  */
-func  (this *Ndax) FetchStatus(optionalArgs ...any) <- chan any {
+func  (this *Ndax) FetchStatusAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchStatusBody(ch, optionalArgs...)
     return ch
@@ -651,7 +651,7 @@ func (this *Ndax) fetchStatusBody(ch chan any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns response from exchange
  */
-func  (this *Ndax) SignIn(optionalArgs ...any) <- chan any {
+func  (this *Ndax) SignInAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.signInBody(ch, optionalArgs...)
     return ch
@@ -724,7 +724,7 @@ func (this *Ndax) signInBody(ch chan any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an associative dictionary of currencies
  */
-func  (this *Ndax) FetchCurrencies(optionalArgs ...any) <- chan any {
+func  (this *Ndax) FetchCurrenciesAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchCurrenciesBody(ch, optionalArgs...)
     return ch
@@ -806,7 +806,7 @@ func  (this *Ndax) ParseCurrency(rawCurrency any) any  {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} an array of objects representing market data
  */
-func  (this *Ndax) FetchMarkets(optionalArgs ...any) <- chan any {
+func  (this *Ndax) FetchMarketsAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchMarketsBody(ch, optionalArgs...)
     return ch
@@ -996,7 +996,7 @@ func  (this *Ndax) ParseOrderBook(orderbook any, symbol any, optionalArgs ...any
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
-func  (this *Ndax) FetchOrderBook(symbol any, optionalArgs ...any) <- chan any {
+func  (this *Ndax) FetchOrderBookAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchOrderBookBody(ch, symbol, optionalArgs...)
     return ch
@@ -1011,7 +1011,7 @@ func (this *Ndax) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...an
         var omsId *int64 = this.SafeInteger(this.Options, "omsId", 1)
         if IsEqual(this.Markets, nil) {
     
-            retRes73612 := (<-this.LoadMarkets())
+            retRes73612 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes73612)
         }
         var market any = this.Market(symbol)
@@ -1144,7 +1144,7 @@ func  (this *Ndax) ParseTicker(ticker any, optionalArgs ...any) any  {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func  (this *Ndax) FetchTickers(optionalArgs ...any) <- chan any {
+func  (this *Ndax) FetchTickersAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchTickersBody(ch, optionalArgs...)
     return ch
@@ -1158,7 +1158,7 @@ func (this *Ndax) fetchTickersBody(ch chan any, optionalArgs ...any) any {
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes86612 := (<-this.LoadMarkets())
+            retRes86612 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes86612)
         }
         symbols = this.MarketSymbols(symbols)
@@ -1194,7 +1194,7 @@ func (this *Ndax) fetchTickersBody(ch chan any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func  (this *Ndax) FetchTicker(symbol any, optionalArgs ...any) <- chan any {
+func  (this *Ndax) FetchTickerAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchTickerBody(ch, symbol, optionalArgs...)
     return ch
@@ -1207,7 +1207,7 @@ func (this *Ndax) fetchTickerBody(ch chan any, symbol any, optionalArgs ...any) 
         var omsId *int64 = this.SafeInteger(this.Options, "omsId", 1)
         if IsEqual(this.Markets, nil) {
     
-            retRes90112 := (<-this.LoadMarkets())
+            retRes90112 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes90112)
         }
         var market any = this.Market(symbol)
@@ -1282,7 +1282,7 @@ func  (this *Ndax) ParseOHLCV(ohlcv any, optionalArgs ...any) any  {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
-func  (this *Ndax) FetchOHLCV(symbol any, optionalArgs ...any) <- chan any {
+func  (this *Ndax) FetchOHLCVAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchOHLCVBody(ch, symbol, optionalArgs...)
     return ch
@@ -1301,7 +1301,7 @@ func (this *Ndax) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) a
         var omsId *int64 = this.SafeInteger(this.Options, "omsId", 1)
         if IsEqual(this.Markets, nil) {
     
-            retRes98112 := (<-this.LoadMarkets())
+            retRes98112 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes98112)
         }
         var market any = this.Market(symbol)
@@ -1526,7 +1526,7 @@ func  (this *Ndax) ParseTrade(trade any, optionalArgs ...any) any  {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
-func  (this *Ndax) FetchTrades(symbol any, optionalArgs ...any) <- chan any {
+func  (this *Ndax) FetchTradesAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchTradesBody(ch, symbol, optionalArgs...)
     return ch
@@ -1543,7 +1543,7 @@ func (this *Ndax) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any) 
         var omsId *int64 = this.SafeInteger(this.Options, "omsId", 1)
         if IsEqual(this.Markets, nil) {
     
-            retRes120412 := (<-this.LoadMarkets())
+            retRes120412 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes120412)
         }
         var market any = this.Market(symbol)
@@ -1576,7 +1576,7 @@ func (this *Ndax) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any) 
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/?id=account-structure} indexed by the account type
  */
-func  (this *Ndax) FetchAccounts(optionalArgs ...any) <- chan any {
+func  (this *Ndax) FetchAccountsAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchAccountsBody(ch, optionalArgs...)
     return ch
@@ -1645,7 +1645,7 @@ func  (this *Ndax) ParseBalance(response any) any  {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
-func  (this *Ndax) FetchBalance(optionalArgs ...any) <- chan any {
+func  (this *Ndax) FetchBalanceAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchBalanceBody(ch, optionalArgs...)
     return ch
@@ -1658,11 +1658,11 @@ func (this *Ndax) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
         var omsId *int64 = this.SafeInteger(this.Options, "omsId", 1)
         if IsEqual(this.Markets, nil) {
     
-            retRes129412 := (<-this.LoadMarkets())
+            retRes129412 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes129412)
         }
     
-        retRes12968 := (<-this.LoadAccounts())
+        retRes12968 := (<-this.LoadAccountsAsync())
         PanicOnError(retRes12968)
         var defaultAccountId *int64 = this.SafeInteger2(this.Options, "accountId", "AccountId")
         var accountId any = DerefScalar(this.SafeInteger2(params, "accountId", "AccountId", defaultAccountId))
@@ -1799,7 +1799,7 @@ func  (this *Ndax) ParseLedgerEntry(item any, optionalArgs ...any) any  {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
  */
-func  (this *Ndax) FetchLedger(optionalArgs ...any) <- chan any {
+func  (this *Ndax) FetchLedgerAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchLedgerBody(ch, optionalArgs...)
     return ch
@@ -1818,11 +1818,11 @@ func (this *Ndax) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
         var omsId *int64 = this.SafeInteger(this.Options, "omsId", 1)
         if IsEqual(this.Markets, nil) {
     
-            retRes143212 := (<-this.LoadMarkets())
+            retRes143212 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes143212)
         }
     
-        retRes14348 := (<-this.LoadAccounts())
+        retRes14348 := (<-this.LoadAccountsAsync())
         PanicOnError(retRes14348)
         var defaultAccountId *int64 = this.SafeInteger2(this.Options, "accountId", "AccountId", this.ParseToInt(GetValue(GetValue(this.Accounts, 0), "id")))
         var accountId *int64 = this.SafeInteger2(params, "accountId", "AccountId", defaultAccountId)
@@ -1988,7 +1988,7 @@ func  (this *Ndax) ParseOrder(order any, optionalArgs ...any) any  {
  * @param {string} [params.clientOrderId] a unique id for the order
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Ndax) CreateOrder(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <- chan any {
+func  (this *Ndax) CreateOrderAsync(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.createOrderBody(ch, symbol, typeVar, side, amount, optionalArgs...)
     return ch
@@ -2003,11 +2003,11 @@ func (this *Ndax) createOrderBody(ch chan any, symbol any, typeVar any, side any
         var omsId *int64 = this.SafeInteger(this.Options, "omsId", 1)
         if IsEqual(this.Markets, nil) {
     
-            retRes159912 := (<-this.LoadMarkets())
+            retRes159912 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes159912)
         }
     
-        retRes16018 := (<-this.LoadAccounts())
+        retRes16018 := (<-this.LoadAccountsAsync())
         PanicOnError(retRes16018)
         var defaultAccountId *int64 = this.SafeInteger2(this.Options, "accountId", "AccountId", this.ParseToInt(GetValue(GetValue(this.Accounts, 0), "id")))
         var accountId *int64 = this.SafeInteger2(params, "accountId", "AccountId", defaultAccountId)
@@ -2076,7 +2076,7 @@ func (this *Ndax) createOrderBody(ch chan any, symbol any, typeVar any, side any
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Ndax) EditOrder(id any, symbol any, typeVar any, side any, optionalArgs ...any) <- chan any {
+func  (this *Ndax) EditOrderAsync(id any, symbol any, typeVar any, side any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.editOrderBody(ch, id, symbol, typeVar, side, optionalArgs...)
     return ch
@@ -2093,11 +2093,11 @@ func (this *Ndax) editOrderBody(ch chan any, id any, symbol any, typeVar any, si
         var omsId *int64 = this.SafeInteger(this.Options, "omsId", 1)
         if IsEqual(this.Markets, nil) {
     
-            retRes167812 := (<-this.LoadMarkets())
+            retRes167812 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes167812)
         }
     
-        retRes16808 := (<-this.LoadAccounts())
+        retRes16808 := (<-this.LoadAccountsAsync())
         PanicOnError(retRes16808)
         var defaultAccountId *int64 = this.SafeInteger2(this.Options, "accountId", "AccountId", this.ParseToInt(GetValue(GetValue(this.Accounts, 0), "id")))
         var accountId *int64 = this.SafeInteger2(params, "accountId", "AccountId", defaultAccountId)
@@ -2153,7 +2153,7 @@ func (this *Ndax) editOrderBody(ch chan any, id any, symbol any, typeVar any, si
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
-func  (this *Ndax) FetchMyTrades(optionalArgs ...any) <- chan any {
+func  (this *Ndax) FetchMyTradesAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchMyTradesBody(ch, optionalArgs...)
     return ch
@@ -2172,11 +2172,11 @@ func (this *Ndax) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
         var omsId *int64 = this.SafeInteger(this.Options, "omsId", 1)
         if IsEqual(this.Markets, nil) {
     
-            retRes174412 := (<-this.LoadMarkets())
+            retRes174412 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes174412)
         }
     
-        retRes17468 := (<-this.LoadAccounts())
+        retRes17468 := (<-this.LoadAccountsAsync())
         PanicOnError(retRes17468)
         var defaultAccountId *int64 = this.SafeInteger2(this.Options, "accountId", "AccountId", this.ParseToInt(GetValue(GetValue(this.Accounts, 0), "id")))
         var accountId *int64 = this.SafeInteger2(params, "accountId", "AccountId", defaultAccountId)
@@ -2255,7 +2255,7 @@ func (this *Ndax) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Ndax) CancelAllOrders(optionalArgs ...any) <- chan any {
+func  (this *Ndax) CancelAllOrdersAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.cancelAllOrdersBody(ch, optionalArgs...)
     return ch
@@ -2270,11 +2270,11 @@ func (this *Ndax) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
         var omsId *int64 = this.SafeInteger(this.Options, "omsId", 1)
         if IsEqual(this.Markets, nil) {
     
-            retRes183312 := (<-this.LoadMarkets())
+            retRes183312 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes183312)
         }
     
-        retRes18358 := (<-this.LoadAccounts())
+        retRes18358 := (<-this.LoadAccountsAsync())
         PanicOnError(retRes18358)
         var defaultAccountId *int64 = this.SafeInteger2(this.Options, "accountId", "AccountId", this.ParseToInt(GetValue(GetValue(this.Accounts, 0), "id")))
         var accountId *int64 = this.SafeInteger2(params, "accountId", "AccountId", defaultAccountId)
@@ -2315,7 +2315,7 @@ func (this *Ndax) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
  * @param {string} [params.clientOrderId] a unique id for the order
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Ndax) CancelOrder(id any, optionalArgs ...any) <- chan any {
+func  (this *Ndax) CancelOrderAsync(id any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.cancelOrderBody(ch, id, optionalArgs...)
     return ch
@@ -2330,11 +2330,11 @@ func (this *Ndax) cancelOrderBody(ch chan any, id any, optionalArgs ...any) any 
         var omsId *int64 = this.SafeInteger(this.Options, "omsId", 1)
         if IsEqual(this.Markets, nil) {
     
-            retRes187712 := (<-this.LoadMarkets())
+            retRes187712 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes187712)
         }
     
-        retRes18798 := (<-this.LoadAccounts())
+        retRes18798 := (<-this.LoadAccountsAsync())
         PanicOnError(retRes18798)
         // const defaultAccountId = this.safeInteger2 (this.options, 'accountId', 'AccountId', this.parseToInt (this.accounts[0]['id']));
         // const accountId = this.safeInteger2 (params, 'accountId', 'AccountId', defaultAccountId);
@@ -2375,7 +2375,7 @@ func (this *Ndax) cancelOrderBody(ch chan any, id any, optionalArgs ...any) any 
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Ndax) FetchOpenOrders(optionalArgs ...any) <- chan any {
+func  (this *Ndax) FetchOpenOrdersAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchOpenOrdersBody(ch, optionalArgs...)
     return ch
@@ -2394,11 +2394,11 @@ func (this *Ndax) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
         var omsId *int64 = this.SafeInteger(this.Options, "omsId", 1)
         if IsEqual(this.Markets, nil) {
     
-            retRes192012 := (<-this.LoadMarkets())
+            retRes192012 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes192012)
         }
     
-        retRes19228 := (<-this.LoadAccounts())
+        retRes19228 := (<-this.LoadAccountsAsync())
         PanicOnError(retRes19228)
         var defaultAccountId *int64 = this.SafeInteger2(this.Options, "accountId", "AccountId", this.ParseToInt(GetValue(GetValue(this.Accounts, 0), "id")))
         var accountId *int64 = this.SafeInteger2(params, "accountId", "AccountId", defaultAccountId)
@@ -2479,7 +2479,7 @@ func (this *Ndax) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Ndax) FetchOrders(optionalArgs ...any) <- chan any {
+func  (this *Ndax) FetchOrdersAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchOrdersBody(ch, optionalArgs...)
     return ch
@@ -2498,11 +2498,11 @@ func (this *Ndax) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
         var omsId *int64 = this.SafeInteger(this.Options, "omsId", 1)
         if IsEqual(this.Markets, nil) {
     
-            retRes200212 := (<-this.LoadMarkets())
+            retRes200212 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes200212)
         }
     
-        retRes20048 := (<-this.LoadAccounts())
+        retRes20048 := (<-this.LoadAccountsAsync())
         PanicOnError(retRes20048)
         var defaultAccountId *int64 = this.SafeInteger2(this.Options, "accountId", "AccountId", this.ParseToInt(GetValue(GetValue(this.Accounts, 0), "id")))
         var accountId *int64 = this.SafeInteger2(params, "accountId", "AccountId", defaultAccountId)
@@ -2589,7 +2589,7 @@ func (this *Ndax) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Ndax) FetchOrder(id any, optionalArgs ...any) <- chan any {
+func  (this *Ndax) FetchOrderAsync(id any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchOrderBody(ch, id, optionalArgs...)
     return ch
@@ -2604,11 +2604,11 @@ func (this *Ndax) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any {
         var omsId *int64 = this.SafeInteger(this.Options, "omsId", 1)
         if IsEqual(this.Markets, nil) {
     
-            retRes209912 := (<-this.LoadMarkets())
+            retRes209912 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes209912)
         }
     
-        retRes21018 := (<-this.LoadAccounts())
+        retRes21018 := (<-this.LoadAccountsAsync())
         PanicOnError(retRes21018)
         var defaultAccountId *int64 = this.SafeInteger2(this.Options, "accountId", "AccountId", this.ParseToInt(GetValue(GetValue(this.Accounts, 0), "id")))
         var accountId *int64 = this.SafeInteger2(params, "accountId", "AccountId", defaultAccountId)
@@ -2689,7 +2689,7 @@ func (this *Ndax) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
-func  (this *Ndax) FetchOrderTrades(id any, optionalArgs ...any) <- chan any {
+func  (this *Ndax) FetchOrderTradesAsync(id any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchOrderTradesBody(ch, id, optionalArgs...)
     return ch
@@ -2708,11 +2708,11 @@ func (this *Ndax) fetchOrderTradesBody(ch chan any, id any, optionalArgs ...any)
         var omsId *int64 = this.SafeInteger(this.Options, "omsId", 1)
         if IsEqual(this.Markets, nil) {
     
-            retRes218112 := (<-this.LoadMarkets())
+            retRes218112 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes218112)
         }
     
-        retRes21838 := (<-this.LoadAccounts())
+        retRes21838 := (<-this.LoadAccountsAsync())
         PanicOnError(retRes21838)
         // const defaultAccountId = this.safeInteger2 (this.options, 'accountId', 'AccountId', this.parseToInt (this.accounts[0]['id']));
         // const accountId = this.safeInteger2 (params, 'accountId', 'AccountId', defaultAccountId);
@@ -2792,7 +2792,7 @@ func (this *Ndax) fetchOrderTradesBody(ch chan any, id any, optionalArgs ...any)
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
  */
-func  (this *Ndax) FetchDepositAddress(code any, optionalArgs ...any) <- chan any {
+func  (this *Ndax) FetchDepositAddressAsync(code any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchDepositAddressBody(ch, code, optionalArgs...)
     return ch
@@ -2805,11 +2805,11 @@ func (this *Ndax) fetchDepositAddressBody(ch chan any, code any, optionalArgs ..
         var omsId *int64 = this.SafeInteger(this.Options, "omsId", 1)
         if IsEqual(this.Markets, nil) {
     
-            retRes226312 := (<-this.LoadMarkets())
+            retRes226312 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes226312)
         }
     
-        retRes22658 := (<-this.LoadAccounts())
+        retRes22658 := (<-this.LoadAccountsAsync())
         PanicOnError(retRes22658)
         var defaultAccountId *int64 = this.SafeInteger2(this.Options, "accountId", "AccountId", this.ParseToInt(GetValue(GetValue(this.Accounts, 0), "id")))
         var accountId *int64 = this.SafeInteger2(params, "accountId", "AccountId", defaultAccountId)
@@ -2885,7 +2885,7 @@ func  (this *Ndax) ParseDepositAddress(depositAddress any, optionalArgs ...any) 
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
  */
-func  (this *Ndax) CreateDepositAddress(code any, optionalArgs ...any) <- chan any {
+func  (this *Ndax) CreateDepositAddressAsync(code any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.createDepositAddressBody(ch, code, optionalArgs...)
     return ch
@@ -2899,7 +2899,7 @@ func (this *Ndax) createDepositAddressBody(ch chan any, code any, optionalArgs .
             "GenerateNewKey": true,
         }
     
-            retRes234015 :=  (<-this.FetchDepositAddress(code, this.Extend(request, params)))
+            retRes234015 :=  (<-this.FetchDepositAddressAsync(code, this.Extend(request, params)))
             PanicOnError(retRes234015)
             ch <- retRes234015
             return nil
@@ -2915,7 +2915,7 @@ func (this *Ndax) createDepositAddressBody(ch chan any, code any, optionalArgs .
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func  (this *Ndax) FetchDeposits(optionalArgs ...any) <- chan any {
+func  (this *Ndax) FetchDepositsAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchDepositsBody(ch, optionalArgs...)
     return ch
@@ -2934,11 +2934,11 @@ func (this *Ndax) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
         var omsId *int64 = this.SafeInteger(this.Options, "omsId", 1)
         if IsEqual(this.Markets, nil) {
     
-            retRes235712 := (<-this.LoadMarkets())
+            retRes235712 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes235712)
         }
     
-        retRes23598 := (<-this.LoadAccounts())
+        retRes23598 := (<-this.LoadAccountsAsync())
         PanicOnError(retRes23598)
         var defaultAccountId *int64 = this.SafeInteger2(this.Options, "accountId", "AccountId", this.ParseToInt(GetValue(GetValue(this.Accounts, 0), "id")))
         var accountId *int64 = this.SafeInteger2(params, "accountId", "AccountId", defaultAccountId)
@@ -3002,7 +3002,7 @@ func (this *Ndax) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func  (this *Ndax) FetchWithdrawals(optionalArgs ...any) <- chan any {
+func  (this *Ndax) FetchWithdrawalsAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchWithdrawalsBody(ch, optionalArgs...)
     return ch
@@ -3021,11 +3021,11 @@ func (this *Ndax) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
         var omsId *int64 = this.SafeInteger(this.Options, "omsId", 1)
         if IsEqual(this.Markets, nil) {
     
-            retRes242012 := (<-this.LoadMarkets())
+            retRes242012 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes242012)
         }
     
-        retRes24228 := (<-this.LoadAccounts())
+        retRes24228 := (<-this.LoadAccountsAsync())
         PanicOnError(retRes24228)
         var defaultAccountId *int64 = this.SafeInteger2(this.Options, "accountId", "AccountId", this.ParseToInt(GetValue(GetValue(this.Accounts, 0), "id")))
         var accountId *int64 = this.SafeInteger2(params, "accountId", "AccountId", defaultAccountId)
@@ -3238,7 +3238,7 @@ func  (this *Ndax) ParseTransaction(transaction any, optionalArgs ...any) any  {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func  (this *Ndax) Withdraw(code any, amount any, address any, optionalArgs ...any) <- chan any {
+func  (this *Ndax) WithdrawAsync(code any, amount any, address any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.withdrawBody(ch, code, amount, address, optionalArgs...)
     return ch
@@ -3265,11 +3265,11 @@ func (this *Ndax) withdrawBody(ch chan any, code any, amount any, address any, o
         var omsId *int64 = this.SafeInteger(this.Options, "omsId", 1)
         if IsEqual(this.Markets, nil) {
     
-            retRes263712 := (<-this.LoadMarkets())
+            retRes263712 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes263712)
         }
     
-        retRes26398 := (<-this.LoadAccounts())
+        retRes26398 := (<-this.LoadAccountsAsync())
         PanicOnError(retRes26398)
         var defaultAccountId *int64 = this.SafeInteger2(this.Options, "accountId", "AccountId", this.ParseToInt(GetValue(GetValue(this.Accounts, 0), "id")))
         var accountId *int64 = this.SafeInteger2(params, "accountId", "AccountId", defaultAccountId)

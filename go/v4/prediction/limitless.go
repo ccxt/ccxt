@@ -310,7 +310,7 @@ func  (this *Limitless) Describe() any  {
  * @param {int} [params.limit] max number of markets to collect (defaults to options.fetchMarketsLimit, 1000); caps the pages fetched
  * @returns {object[]} an array of objects representing market data
  */
-func  (this *Limitless) FetchMarkets(optionalArgs ...any) <- chan any {
+func  (this *Limitless) FetchMarketsAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchMarketsBody(ch, optionalArgs...)
     return ch
@@ -695,7 +695,7 @@ func  (this *Limitless) ParseMarket(raw any) any  {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [prediction event structure](https://docs.ccxt.com/#/?id=prediction-event-structure)
  */
-func  (this *Limitless) FetchEvent(id any, optionalArgs ...any) <- chan any {
+func  (this *Limitless) FetchEventAsync(id any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchEventBody(ch, id, optionalArgs...)
     return ch
@@ -1045,7 +1045,7 @@ func  (this *Limitless) ParseEvent(event any) any  {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [prediction ticker structure](https://docs.ccxt.com/#/?id=prediction-ticker-structure)
  */
-func  (this *Limitless) FetchTicker(outcome any, optionalArgs ...any) <- chan any {
+func  (this *Limitless) FetchTickerAsync(outcome any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchTickerBody(ch, outcome, optionalArgs...)
     return ch
@@ -1056,7 +1056,7 @@ func (this *Limitless) fetchTickerBody(ch chan any, outcome any, optionalArgs ..
         params := ccxt.GetArg(optionalArgs, 0, map[string]any {})
         _ = params
     
-        retRes8978 := (<-this.LoadOutcome(outcome))
+        retRes8978 := (<-this.LoadOutcomeAsync(outcome))
         ccxt.PanicOnError(retRes8978)
         var outcomeObj any = this.Outcome(outcome)
         var slug *string = this.SafeString(ccxt.GetValue(outcomeObj, "info"), "slug")
@@ -1324,7 +1324,7 @@ func  (this *Limitless) ParsePredictionTicker(ticker any, optionalArgs ...any) a
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a dictionary of [prediction ticker structures](https://docs.ccxt.com/#/?id=prediction-ticker-structure) indexed by outcome
  */
-func  (this *Limitless) FetchTickers(optionalArgs ...any) <- chan any {
+func  (this *Limitless) FetchTickersAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchTickersBody(ch, optionalArgs...)
     return ch
@@ -1343,7 +1343,7 @@ func (this *Limitless) fetchTickersBody(ch chan any, optionalArgs ...any) any {
         // resolve the uncached outcomes first, then group by parent market to fetch each
         // market and book only once
     
-        retRes11658 := (<-this.LoadOutcomes(outcomes))
+        retRes11658 := (<-this.LoadOutcomesAsync(outcomes))
         ccxt.PanicOnError(retRes11658)
         var outcomesBySlug map[string]any = map[string]any {}
         var slugs any = []any{}
@@ -1412,7 +1412,7 @@ func (this *Limitless) fetchTickersBody(ch chan any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
  */
-func  (this *Limitless) FetchTrades(outcome any, optionalArgs ...any) <- chan any {
+func  (this *Limitless) FetchTradesAsync(outcome any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchTradesBody(ch, outcome, optionalArgs...)
     return ch
@@ -1427,7 +1427,7 @@ func (this *Limitless) fetchTradesBody(ch chan any, outcome any, optionalArgs ..
         params := ccxt.GetArg(optionalArgs, 2, map[string]any {})
         _ = params
     
-        retRes12248 := (<-this.LoadOutcome(outcome))
+        retRes12248 := (<-this.LoadOutcomeAsync(outcome))
         ccxt.PanicOnError(retRes12248)
         var outcomeObj any = this.Outcome(outcome)
         var slug *string = this.SafeString(ccxt.GetValue(outcomeObj, "info"), "slug")
@@ -1487,7 +1487,7 @@ func (this *Limitless) fetchTradesBody(ch chan any, outcome any, optionalArgs ..
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [prediction order book structure](https://docs.ccxt.com/#/?id=prediction-order-book-structure)
  */
-func  (this *Limitless) FetchOrderBook(outcome any, optionalArgs ...any) <- chan any {
+func  (this *Limitless) FetchOrderBookAsync(outcome any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchOrderBookBody(ch, outcome, optionalArgs...)
     return ch
@@ -1500,7 +1500,7 @@ func (this *Limitless) fetchOrderBookBody(ch chan any, outcome any, optionalArgs
         params := ccxt.GetArg(optionalArgs, 1, map[string]any {})
         _ = params
     
-        retRes12818 := (<-this.LoadOutcome(outcome))
+        retRes12818 := (<-this.LoadOutcomeAsync(outcome))
         ccxt.PanicOnError(retRes12818)
         var outcomeObj any = this.Outcome(outcome)
         var slug *string = this.SafeString(ccxt.GetValue(outcomeObj, "info"), "slug")
@@ -1589,7 +1589,7 @@ func (this *Limitless) fetchOrderBookBody(ch chan any, outcome any, optionalArgs
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {int[][]} a list of candles ordered as timestamp, open, high, low, close, volume
  */
-func  (this *Limitless) FetchOHLCV(outcome any, optionalArgs ...any) <- chan any {
+func  (this *Limitless) FetchOHLCVAsync(outcome any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchOHLCVBody(ch, outcome, optionalArgs...)
     return ch
@@ -1606,7 +1606,7 @@ func (this *Limitless) fetchOHLCVBody(ch chan any, outcome any, optionalArgs ...
         params := ccxt.GetArg(optionalArgs, 3, map[string]any {})
         _ = params
     
-        retRes13678 := (<-this.LoadOutcome(outcome))
+        retRes13678 := (<-this.LoadOutcomeAsync(outcome))
         ccxt.PanicOnError(retRes13678)
         var outcomeObj any = this.Outcome(outcome)
         var slug *string = this.SafeString(ccxt.GetValue(outcomeObj, "info"), "slug")
@@ -1749,7 +1749,7 @@ func (this *Limitless) fetchOHLCVBody(ch chan any, outcome any, optionalArgs ...
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
  */
-func  (this *Limitless) FetchOrders(optionalArgs ...any) <- chan any {
+func  (this *Limitless) FetchOrdersAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchOrdersBody(ch, optionalArgs...)
     return ch
@@ -1769,7 +1769,7 @@ func (this *Limitless) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
             panic(ccxt.ArgumentsRequired(ccxt.Add(this.Id, " fetchOrders requires an outcome argument")))
         }
     
-        retRes15068 := (<-this.LoadOutcome(outcome))
+        retRes15068 := (<-this.LoadOutcomeAsync(outcome))
         ccxt.PanicOnError(retRes15068)
         var outcomeObj any = this.Outcome(outcome)
         var info any = this.SafeDict(outcomeObj, "info")
@@ -1820,7 +1820,7 @@ func (this *Limitless) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
  */
-func  (this *Limitless) FetchOpenOrders(optionalArgs ...any) <- chan any {
+func  (this *Limitless) FetchOpenOrdersAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchOpenOrdersBody(ch, optionalArgs...)
     return ch
@@ -1840,13 +1840,13 @@ func (this *Limitless) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any
             panic(ccxt.ArgumentsRequired(ccxt.Add(this.Id, " fetchOpenOrders requires an outcome argument")))
         }
     
-        retRes15578 := (<-this.LoadOutcome(outcome))
+        retRes15578 := (<-this.LoadOutcomeAsync(outcome))
         ccxt.PanicOnError(retRes15578)
         params = this.Extend(params, map[string]any {
             "statuses": []any{"LIVE"},
         })
     
-            retRes156115 :=  (<-this.FetchOrders(outcome, since, limit, params))
+            retRes156115 :=  (<-this.FetchOrdersAsync(outcome, since, limit, params))
             ccxt.PanicOnError(retRes156115)
             ch <- retRes156115
             return nil
@@ -1862,7 +1862,7 @@ func (this *Limitless) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
  */
-func  (this *Limitless) FetchClosedOrders(optionalArgs ...any) <- chan any {
+func  (this *Limitless) FetchClosedOrdersAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchClosedOrdersBody(ch, optionalArgs...)
     return ch
@@ -1882,13 +1882,13 @@ func (this *Limitless) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) a
             panic(ccxt.ArgumentsRequired(ccxt.Add(this.Id, " fetchClosedOrders requires an outcome argument")))
         }
     
-        retRes15798 := (<-this.LoadOutcome(outcome))
+        retRes15798 := (<-this.LoadOutcomeAsync(outcome))
         ccxt.PanicOnError(retRes15798)
         params = this.Extend(params, map[string]any {
             "statuses": []any{"MATCHED"},
         })
     
-            retRes158315 :=  (<-this.FetchOrders(outcome, since, limit, params))
+            retRes158315 :=  (<-this.FetchOrdersAsync(outcome, since, limit, params))
             ccxt.PanicOnError(retRes158315)
             ch <- retRes158315
             return nil
@@ -1903,7 +1903,7 @@ func (this *Limitless) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) a
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
  */
-func  (this *Limitless) FetchOrdersByIds(ids any, optionalArgs ...any) <- chan any {
+func  (this *Limitless) FetchOrdersByIdsAsync(ids any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchOrdersByIdsBody(ch, ids, optionalArgs...)
     return ch
@@ -1917,7 +1917,7 @@ func (this *Limitless) fetchOrdersByIdsBody(ch chan any, ids any, optionalArgs .
         _ = params
         if !ccxt.IsEqual(outcome, nil) {
     
-            retRes159812 := (<-this.LoadOutcome(outcome))
+            retRes159812 := (<-this.LoadOutcomeAsync(outcome))
             ccxt.PanicOnError(retRes159812)
         }
         var length int =     ccxt.GetArrayLength(ids)
@@ -2057,7 +2057,7 @@ func (this *Limitless) fetchOrdersByIdsBody(ch chan any, ids any, optionalArgs .
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
  */
-func  (this *Limitless) FetchOrder(id any, optionalArgs ...any) <- chan any {
+func  (this *Limitless) FetchOrderAsync(id any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchOrderBody(ch, id, optionalArgs...)
     return ch
@@ -2071,11 +2071,11 @@ func (this *Limitless) fetchOrderBody(ch chan any, id any, optionalArgs ...any) 
         _ = params
         if !ccxt.IsEqual(outcome, nil) {
     
-            retRes173612 := (<-this.LoadOutcome(outcome))
+            retRes173612 := (<-this.LoadOutcomeAsync(outcome))
             ccxt.PanicOnError(retRes173612)
         }
     
-        orders:= (<-this.FetchOrdersByIds([]any{id}, outcome, params))
+        orders:= (<-this.FetchOrdersByIdsAsync([]any{id}, outcome, params))
         ccxt.PanicOnError(orders)
         var order any = this.SafeDict(orders, 0)
         if ccxt.IsEqual(order, nil) {
@@ -2359,7 +2359,7 @@ func  (this *Limitless) ParseAccount(account any) any  {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [account structures]
  */
-func  (this *Limitless) FetchAccounts(optionalArgs ...any) <- chan any {
+func  (this *Limitless) FetchAccountsAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchAccountsBody(ch, optionalArgs...)
     return ch
@@ -2390,7 +2390,7 @@ func (this *Limitless) fetchAccountsBody(ch chan any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
  */
-func  (this *Limitless) CreateOrder(outcome any, typeVar any, side any, amount any, optionalArgs ...any) <- chan any {
+func  (this *Limitless) CreateOrderAsync(outcome any, typeVar any, side any, amount any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.createOrderBody(ch, outcome, typeVar, side, amount, optionalArgs...)
     return ch
@@ -2403,10 +2403,10 @@ func (this *Limitless) createOrderBody(ch chan any, outcome any, typeVar any, si
         params := ccxt.GetArg(optionalArgs, 1, map[string]any {})
         _ = params
     
-        accounts:= (<-this.LoadAccounts())
+        accounts:= (<-this.LoadAccountsAsync())
         ccxt.PanicOnError(accounts)
     
-        retRes20448 := (<-this.LoadOutcome(outcome))
+        retRes20448 := (<-this.LoadOutcomeAsync(outcome))
         ccxt.PanicOnError(retRes20448)
         var outcomeObj any = this.Outcome(outcome)
         var account any = this.SafeDict(accounts, 0)
@@ -2717,7 +2717,7 @@ func  (this *Limitless) SignEvmTransaction(tx any, privateKey any) any  {
  * @param {string} [params.gasLimit] gas limit hex for the approve tx (default '0x186a0')
  * @returns {object} the transaction receipt
  */
-func  (this *Limitless) Approve(optionalArgs ...any) <- chan any {
+func  (this *Limitless) ApproveAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.approveBody(ch, optionalArgs...)
     return ch
@@ -2754,10 +2754,10 @@ func (this *Limitless) approveBody(ch chan any, optionalArgs ...any) any {
         // approve(spender, amount) -> selector 0x095ea7b3
         var approveData any = ccxt.Add(ccxt.Add("0x095ea7b3", this.PadHexAddress(spender)), amountHex)
     
-        txHash:= (<-this.SendEvmTransaction(rpcUrl, chainId, owner, token, "0x0", approveData, gasLimit))
+        txHash:= (<-this.SendEvmTransactionAsync(rpcUrl, chainId, owner, token, "0x0", approveData, gasLimit))
         ccxt.PanicOnError(txHash)
     
-            retRes231115 :=  (<-this.WaitForTransactionReceipt(rpcUrl, txHash))
+            retRes231115 :=  (<-this.WaitForTransactionReceiptAsync(rpcUrl, txHash))
             ccxt.PanicOnError(retRes231115)
             ch <- retRes231115
             return nil
@@ -2772,7 +2772,7 @@ func (this *Limitless) approveBody(ch chan any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
  */
-func  (this *Limitless) CancelOrder(id any, optionalArgs ...any) <- chan any {
+func  (this *Limitless) CancelOrderAsync(id any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.cancelOrderBody(ch, id, optionalArgs...)
     return ch
@@ -2786,7 +2786,7 @@ func (this *Limitless) cancelOrderBody(ch chan any, id any, optionalArgs ...any)
         _ = params
         if !ccxt.IsEqual(outcome, nil) {
     
-            retRes232612 := (<-this.LoadOutcome(outcome))
+            retRes232612 := (<-this.LoadOutcomeAsync(outcome))
             ccxt.PanicOnError(retRes232612)
         }
         var request map[string]any = map[string]any {
@@ -2817,7 +2817,7 @@ func (this *Limitless) cancelOrderBody(ch chan any, id any, optionalArgs ...any)
  * @param {string} [params.conditionId] the CTF condition id (bytes32 hex) to redeem directly, instead of resolving it from an outcome
  * @returns {object} the raw redemption response
  */
-func  (this *Limitless) Redeem(optionalArgs ...any) <- chan any {
+func  (this *Limitless) RedeemAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.redeemBody(ch, optionalArgs...)
     return ch
@@ -2835,7 +2835,7 @@ func (this *Limitless) redeemBody(ch chan any, optionalArgs ...any) any {
                 panic(ccxt.ArgumentsRequired(ccxt.Add(this.Id, " redeem() requires an outcome or a params.conditionId")))
             }
     
-            retRes235912 := (<-this.LoadOutcome(outcome))
+            retRes235912 := (<-this.LoadOutcomeAsync(outcome))
             ccxt.PanicOnError(retRes235912)
             var outcomeObj any = this.Outcome(outcome)
             conditionId = this.SafeString(this.SafeDict(outcomeObj, "info", map[string]any {}), "conditionId")
@@ -2868,7 +2868,7 @@ func (this *Limitless) redeemBody(ch chan any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
  */
-func  (this *Limitless) CancelOrders(ids any, optionalArgs ...any) <- chan any {
+func  (this *Limitless) CancelOrdersAsync(ids any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.cancelOrdersBody(ch, ids, optionalArgs...)
     return ch
@@ -2882,7 +2882,7 @@ func (this *Limitless) cancelOrdersBody(ch chan any, ids any, optionalArgs ...an
         _ = params
         if !ccxt.IsEqual(outcome, nil) {
     
-            retRes239012 := (<-this.LoadOutcome(outcome))
+            retRes239012 := (<-this.LoadOutcomeAsync(outcome))
             ccxt.PanicOnError(retRes239012)
         }
         var request map[string]any = map[string]any {
@@ -2913,7 +2913,7 @@ func (this *Limitless) cancelOrdersBody(ch chan any, ids any, optionalArgs ...an
  * @param {string} [params.slug] the market slug to cancel all orders for
  * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
  */
-func  (this *Limitless) CancelAllOrders(optionalArgs ...any) <- chan any {
+func  (this *Limitless) CancelAllOrdersAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.cancelAllOrdersBody(ch, optionalArgs...)
     return ch
@@ -2938,7 +2938,7 @@ func (this *Limitless) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any
         var slug *string = this.SafeString(params, "slug")
         if !ccxt.IsEqual(outcome, nil) {
     
-            outcomeObj:= (<-this.LoadOutcome(outcome))
+            outcomeObj:= (<-this.LoadOutcomeAsync(outcome))
             ccxt.PanicOnError(outcomeObj)
             ccxt.AddElementToObject(request, "slug", this.SafeString(ccxt.GetValue(outcomeObj, "info"), "slug"))
         } else if (slug == nil) {
@@ -2969,7 +2969,7 @@ func (this *Limitless) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
  */
-func  (this *Limitless) FetchMyTrades(optionalArgs ...any) <- chan any {
+func  (this *Limitless) FetchMyTradesAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchMyTradesBody(ch, optionalArgs...)
     return ch
@@ -2989,7 +2989,7 @@ func (this *Limitless) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
         var outcomeSymbol any = outcome
         if !ccxt.IsEqual(outcome, nil) {
     
-            outcomeObj:= (<-this.LoadOutcome(outcome))
+            outcomeObj:= (<-this.LoadOutcomeAsync(outcome))
             ccxt.PanicOnError(outcomeObj)
             outcomeSymbol = ccxt.DerefScalar(this.SafeString(outcomeObj, "outcome"))
         }
@@ -3001,7 +3001,7 @@ func (this *Limitless) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
         if ccxt.EvalTruthy(paginate) {
             params = this.Omit(params, "paginate")
     
-                retRes246519 :=  (<-this.FetchPaginatedCallCursor("fetchMyTrades", outcome, since, limit, params, "nextCursor", "cursor", nil, maxLimit))
+                retRes246519 :=  (<-this.FetchPaginatedCallCursorAsync("fetchMyTrades", outcome, since, limit, params, "nextCursor", "cursor", nil, maxLimit))
                 ccxt.PanicOnError(retRes246519)
                 ch <- retRes246519
                 return nil
@@ -3249,7 +3249,7 @@ func  (this *Limitless) GetOutcomeBySlugAndLabel(slug any, label any, optionalAr
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [prediction position structures](https://docs.ccxt.com/#/?id=prediction-position-structure)
  */
-func  (this *Limitless) FetchPositions(optionalArgs ...any) <- chan any {
+func  (this *Limitless) FetchPositionsAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchPositionsBody(ch, optionalArgs...)
     return ch
@@ -3267,7 +3267,7 @@ func (this *Limitless) fetchPositionsBody(ch chan any, optionalArgs ...any) any 
         }
         if ccxt.IsGreaterThan(symbolsLength, 0) {
     
-            retRes271112 := (<-this.LoadOutcomes(outcomes))
+            retRes271112 := (<-this.LoadOutcomesAsync(outcomes))
             ccxt.PanicOnError(retRes271112)
         }
         // no bulk warm-up on the unfiltered path: the portfolio request is self-contained and
@@ -3470,7 +3470,7 @@ func  (this *Limitless) ParsePredictionPosition(position any, optionalArgs ...an
  * @param {int} [params.limit] maximum number of markets per query, defaults to 50
  * @returns {object[]} an array of event structures
  */
-func  (this *Limitless) FetchEvents(optionalArgs ...any) <- chan any {
+func  (this *Limitless) FetchEventsAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchEventsBody(ch, optionalArgs...)
     return ch
@@ -3529,7 +3529,7 @@ func (this *Limitless) fetchEventsBody(ch chan any, optionalArgs ...any) any {
             // categories' listings server-side — never the whole active listing
             var requestedTags any = this.SafeList(params, "tags", []any{})
     
-            listRaw:= (<-this.FetchRawMarketsByTags(requestedTags, params))
+            listRaw:= (<-this.FetchRawMarketsByTagsAsync(requestedTags, params))
             ccxt.PanicOnError(listRaw)
             var listRawLength int =         ccxt.GetArrayLength(listRaw)
             for i := 0; ccxt.IsLessThan(i, listRawLength); i++ {
@@ -3609,7 +3609,7 @@ func (this *Limitless) fetchEventsBody(ch chan any, optionalArgs ...any) any {
  * @param {string} [categoryId] a limitless category id — pages only that category's listing
  * @returns {object[]} raw limitless market objects
  */
-func  (this *Limitless) FetchRawActiveMarkets(optionalArgs ...any) <- chan any {
+func  (this *Limitless) FetchRawActiveMarketsAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchRawActiveMarketsBody(ch, optionalArgs...)
     return ch
@@ -3673,7 +3673,7 @@ func (this *Limitless) fetchRawActiveMarketsBody(ch chan any, optionalArgs ...an
  * @param {int} [params.limit] max number of raw markets to collect per category
  * @returns {object[]} raw limitless market objects, deduped by slug
  */
-func  (this *Limitless) FetchRawMarketsByTags(tags any, optionalArgs ...any) <- chan any {
+func  (this *Limitless) FetchRawMarketsByTagsAsync(tags any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchRawMarketsByTagsBody(ch, tags, optionalArgs...)
     return ch
@@ -3722,7 +3722,7 @@ func (this *Limitless) fetchRawMarketsByTagsBody(ch chan any, tags any, optional
         var allRaw any = []any{}
         for ci := 0; ccxt.IsLessThan(ci, categoryIdsLength); ci++ {
     
-            categoryMarkets:= (<-this.FetchRawActiveMarkets(params, ccxt.GetValue(categoryIds, ci)))
+            categoryMarkets:= (<-this.FetchRawActiveMarketsAsync(params, ccxt.GetValue(categoryIds, ci)))
             ccxt.PanicOnError(categoryMarkets)
             var categoryMarketsLength int =         ccxt.GetArrayLength(categoryMarkets)
             for mi := 0; ccxt.IsLessThan(mi, categoryMarketsLength); mi++ {

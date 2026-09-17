@@ -5,7 +5,7 @@ import "github.com/ccxt/ccxt/go/v4"
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 
-    func TestWatchOrderBook(exchange ccxt.ICoreExchange, skippedProperties any, symbol any) <- chan any {
+    func TestWatchOrderBookAsync(exchange ccxt.ICoreExchange, skippedProperties any, symbol any) <- chan any {
         ch := make(chan any, 1)
         go testWatchOrderBookBody(ch, exchange, skippedProperties, symbol)
         return ch

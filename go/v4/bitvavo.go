@@ -497,7 +497,7 @@ func  (this *Bitvavo) Describe() any  {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {int} the current integer timestamp in milliseconds from the exchange server
  */
-func  (this *Bitvavo) FetchTime(optionalArgs ...any) <- chan any {
+func  (this *Bitvavo) FetchTimeAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchTimeBody(ch, optionalArgs...)
     return ch
@@ -525,7 +525,7 @@ func (this *Bitvavo) fetchTimeBody(ch chan any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} an array of objects representing market data
  */
-func  (this *Bitvavo) FetchMarkets(optionalArgs ...any) <- chan any {
+func  (this *Bitvavo) FetchMarketsAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchMarketsBody(ch, optionalArgs...)
     return ch
@@ -635,7 +635,7 @@ func  (this *Bitvavo) ParseMarkets(markets any) any  {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an associative dictionary of currencies
  */
-func  (this *Bitvavo) FetchCurrencies(optionalArgs ...any) <- chan any {
+func  (this *Bitvavo) FetchCurrenciesAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchCurrenciesBody(ch, optionalArgs...)
     return ch
@@ -791,7 +791,7 @@ func  (this *Bitvavo) ParseCurrency(rawCurrency any) any  {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func  (this *Bitvavo) FetchTicker(symbol any, optionalArgs ...any) <- chan any {
+func  (this *Bitvavo) FetchTickerAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchTickerBody(ch, symbol, optionalArgs...)
     return ch
@@ -803,7 +803,7 @@ func (this *Bitvavo) fetchTickerBody(ch chan any, symbol any, optionalArgs ...an
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes69612 := (<-this.LoadMarkets())
+            retRes69612 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes69612)
         }
         var market any = this.Market(symbol)
@@ -893,7 +893,7 @@ func  (this *Bitvavo) ParseTicker(ticker any, optionalArgs ...any) any  {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func  (this *Bitvavo) FetchTickers(optionalArgs ...any) <- chan any {
+func  (this *Bitvavo) FetchTickersAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchTickersBody(ch, optionalArgs...)
     return ch
@@ -907,7 +907,7 @@ func (this *Bitvavo) fetchTickersBody(ch chan any, optionalArgs ...any) any {
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes78312 := (<-this.LoadMarkets())
+            retRes78312 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes78312)
         }
     
@@ -948,7 +948,7 @@ func (this *Bitvavo) fetchTickersBody(ch chan any, optionalArgs ...any) any {
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
  * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
-func  (this *Bitvavo) FetchTrades(symbol any, optionalArgs ...any) <- chan any {
+func  (this *Bitvavo) FetchTradesAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchTradesBody(ch, symbol, optionalArgs...)
     return ch
@@ -964,7 +964,7 @@ func (this *Bitvavo) fetchTradesBody(ch chan any, symbol any, optionalArgs ...an
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes82212 := (<-this.LoadMarkets())
+            retRes82212 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes82212)
         }
         var market any = this.Market(symbol)
@@ -974,7 +974,7 @@ func (this *Bitvavo) fetchTradesBody(ch chan any, symbol any, optionalArgs ...an
         params = GetValue(paginateparamsVariable,1)
         if EvalTruthy(paginate) {
     
-                retRes82819 :=  (<-this.FetchPaginatedCallDynamic("fetchTrades", symbol, since, limit, params))
+                retRes82819 :=  (<-this.FetchPaginatedCallDynamicAsync("fetchTrades", symbol, since, limit, params))
                 PanicOnError(retRes82819)
                 ch <- retRes82819
                 return nil
@@ -1115,7 +1115,7 @@ func  (this *Bitvavo) ParseTrade(trade any, optionalArgs ...any) any  {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
  */
-func  (this *Bitvavo) FetchTradingFees(optionalArgs ...any) <- chan any {
+func  (this *Bitvavo) FetchTradingFeesAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchTradingFeesBody(ch, optionalArgs...)
     return ch
@@ -1127,7 +1127,7 @@ func (this *Bitvavo) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any 
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes96712 := (<-this.LoadMarkets())
+            retRes96712 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes96712)
         }
     
@@ -1184,7 +1184,7 @@ func  (this *Bitvavo) ParseTradingFees(fees any, optionalArgs ...any) any  {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
  */
-func  (this *Bitvavo) FetchTradingFee(symbol any, optionalArgs ...any) <- chan any {
+func  (this *Bitvavo) FetchTradingFeeAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchTradingFeeBody(ch, symbol, optionalArgs...)
     return ch
@@ -1196,7 +1196,7 @@ func (this *Bitvavo) fetchTradingFeeBody(ch chan any, symbol any, optionalArgs .
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes102112 := (<-this.LoadMarkets())
+            retRes102112 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes102112)
         }
         var market any = this.Market(symbol)
@@ -1240,7 +1240,7 @@ func  (this *Bitvavo) ParseTradingFee(fee any, optionalArgs ...any) any  {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
-func  (this *Bitvavo) FetchOrderBook(symbol any, optionalArgs ...any) <- chan any {
+func  (this *Bitvavo) FetchOrderBookAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchOrderBookBody(ch, symbol, optionalArgs...)
     return ch
@@ -1254,7 +1254,7 @@ func (this *Bitvavo) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ..
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes106212 := (<-this.LoadMarkets())
+            retRes106212 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes106212)
         }
         var market any = this.Market(symbol)
@@ -1351,7 +1351,7 @@ func  (this *Bitvavo) FetchOHLCVRequest(symbol any, optionalArgs ...any) any  {
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
-func  (this *Bitvavo) FetchOHLCV(symbol any, optionalArgs ...any) <- chan any {
+func  (this *Bitvavo) FetchOHLCVAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchOHLCVBody(ch, symbol, optionalArgs...)
     return ch
@@ -1369,7 +1369,7 @@ func (this *Bitvavo) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes115712 := (<-this.LoadMarkets())
+            retRes115712 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes115712)
         }
         var market any = this.Market(symbol)
@@ -1379,7 +1379,7 @@ func (this *Bitvavo) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any
         params = GetValue(paginateparamsVariable,1)
         if EvalTruthy(paginate) {
     
-                retRes116319 :=  (<-this.FetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, params, 1440))
+                retRes116319 :=  (<-this.FetchPaginatedCallDeterministicAsync("fetchOHLCV", symbol, since, limit, timeframe, params, 1440))
                 PanicOnError(retRes116319)
                 ch <- retRes116319
                 return nil
@@ -1426,7 +1426,7 @@ func  (this *Bitvavo) ParseBalance(response any) any  {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
-func  (this *Bitvavo) FetchBalance(optionalArgs ...any) <- chan any {
+func  (this *Bitvavo) FetchBalanceAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchBalanceBody(ch, optionalArgs...)
     return ch
@@ -1438,7 +1438,7 @@ func (this *Bitvavo) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes120712 := (<-this.LoadMarkets())
+            retRes120712 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes120712)
         }
     
@@ -1465,7 +1465,7 @@ func (this *Bitvavo) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [account structures]{@link https://docs.ccxt.com/?id=account-structure}
  */
-func  (this *Bitvavo) FetchAccounts(optionalArgs ...any) <- chan any {
+func  (this *Bitvavo) FetchAccountsAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchAccountsBody(ch, optionalArgs...)
     return ch
@@ -1477,7 +1477,7 @@ func (this *Bitvavo) fetchAccountsBody(ch chan any, optionalArgs ...any) any {
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes123212 := (<-this.LoadMarkets())
+            retRes123212 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes123212)
         }
     
@@ -1525,7 +1525,7 @@ func  (this *Bitvavo) ParseAccount(account any) any  {
  * @param {string} [params.clientRequestId] client defined unique id
  * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
-func  (this *Bitvavo) Transfer(code any, amount any, fromAccount any, toAccount any, optionalArgs ...any) <- chan any {
+func  (this *Bitvavo) TransferAsync(code any, amount any, fromAccount any, toAccount any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.transferBody(ch, code, amount, fromAccount, toAccount, optionalArgs...)
     return ch
@@ -1537,7 +1537,7 @@ func (this *Bitvavo) transferBody(ch chan any, code any, amount any, fromAccount
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes127912 := (<-this.LoadMarkets())
+            retRes127912 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes127912)
         }
         var currency any = this.Currency(code)
@@ -1600,7 +1600,7 @@ func (this *Bitvavo) transferBody(ch chan any, code any, amount any, fromAccount
  * @param {int} [params.until] the latest time in ms to fetch transfers for
  * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
-func  (this *Bitvavo) FetchTransfers(optionalArgs ...any) <- chan any {
+func  (this *Bitvavo) FetchTransfersAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchTransfersBody(ch, optionalArgs...)
     return ch
@@ -1618,7 +1618,7 @@ func (this *Bitvavo) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes134012 := (<-this.LoadMarkets())
+            retRes134012 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes134012)
         }
         var request any = map[string]any {}
@@ -1677,7 +1677,7 @@ func (this *Bitvavo) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
-func  (this *Bitvavo) FetchTransfer(id any, optionalArgs ...any) <- chan any {
+func  (this *Bitvavo) FetchTransferAsync(id any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchTransferBody(ch, id, optionalArgs...)
     return ch
@@ -1691,7 +1691,7 @@ func (this *Bitvavo) fetchTransferBody(ch chan any, id any, optionalArgs ...any)
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes139512 := (<-this.LoadMarkets())
+            retRes139512 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes139512)
         }
         var currency any = nil
@@ -1769,7 +1769,7 @@ func  (this *Bitvavo) ParseTransfer(transfer any, optionalArgs ...any) any  {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
  */
-func  (this *Bitvavo) FetchDepositAddress(code any, optionalArgs ...any) <- chan any {
+func  (this *Bitvavo) FetchDepositAddressAsync(code any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchDepositAddressBody(ch, code, optionalArgs...)
     return ch
@@ -1781,7 +1781,7 @@ func (this *Bitvavo) fetchDepositAddressBody(ch chan any, code any, optionalArgs
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes147112 := (<-this.LoadMarkets())
+            retRes147112 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes147112)
         }
         var currency any = this.Currency(code)
@@ -1926,7 +1926,7 @@ func  (this *Bitvavo) CreateOrderRequest(symbol any, typeVar any, side any, amou
  * @param {bool} [params.responseRequired] Set this to 'false' when only an acknowledgement of success or failure is required, this is faster.
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Bitvavo) CreateOrder(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <- chan any {
+func  (this *Bitvavo) CreateOrderAsync(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.createOrderBody(ch, symbol, typeVar, side, amount, optionalArgs...)
     return ch
@@ -1940,7 +1940,7 @@ func (this *Bitvavo) createOrderBody(ch chan any, symbol any, typeVar any, side 
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes160712 := (<-this.LoadMarkets())
+            retRes160712 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes160712)
         }
         var market any = this.Market(symbol)
@@ -2050,7 +2050,7 @@ func  (this *Bitvavo) EditOrderRequest(id any, symbol any, typeVar any, side any
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Bitvavo) EditOrder(id any, symbol any, typeVar any, side any, optionalArgs ...any) <- chan any {
+func  (this *Bitvavo) EditOrderAsync(id any, symbol any, typeVar any, side any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.editOrderBody(ch, id, symbol, typeVar, side, optionalArgs...)
     return ch
@@ -2066,7 +2066,7 @@ func (this *Bitvavo) editOrderBody(ch chan any, id any, symbol any, typeVar any,
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes170812 := (<-this.LoadMarkets())
+            retRes170812 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes170812)
         }
         var market any = this.Market(symbol)
@@ -2115,7 +2115,7 @@ func  (this *Bitvavo) CancelOrderRequest(id any, optionalArgs ...any) any  {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Bitvavo) CancelOrder(id any, optionalArgs ...any) <- chan any {
+func  (this *Bitvavo) CancelOrderAsync(id any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.cancelOrderBody(ch, id, optionalArgs...)
     return ch
@@ -2129,7 +2129,7 @@ func (this *Bitvavo) cancelOrderBody(ch chan any, id any, optionalArgs ...any) a
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes175012 := (<-this.LoadMarkets())
+            retRes175012 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes175012)
         }
         var market any = this.Market(symbol)
@@ -2155,7 +2155,7 @@ func (this *Bitvavo) cancelOrderBody(ch chan any, id any, optionalArgs ...any) a
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Bitvavo) CancelAllOrders(optionalArgs ...any) <- chan any {
+func  (this *Bitvavo) CancelAllOrdersAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.cancelAllOrdersBody(ch, optionalArgs...)
     return ch
@@ -2169,7 +2169,7 @@ func (this *Bitvavo) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes177412 := (<-this.LoadMarkets())
+            retRes177412 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes177412)
         }
         var request map[string]any = map[string]any {}
@@ -2211,7 +2211,7 @@ func (this *Bitvavo) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
  * @param {int} [params.codGroupId] your identifier for a group of orders, default is 1
  * @returns {object} the api result
  */
-func  (this *Bitvavo) CancelAllOrdersAfter(timeout any, optionalArgs ...any) <- chan any {
+func  (this *Bitvavo) CancelAllOrdersAfterAsync(timeout any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.cancelAllOrdersAfterBody(ch, timeout, optionalArgs...)
     return ch
@@ -2229,7 +2229,7 @@ func (this *Bitvavo) cancelAllOrdersAfterBody(ch chan any, timeout any, optional
         }
         if IsEqual(this.Markets, nil) {
     
-            retRes181812 := (<-this.LoadMarkets())
+            retRes181812 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes181812)
         }
         var codGroupId any = nil
@@ -2263,7 +2263,7 @@ func (this *Bitvavo) cancelAllOrdersAfterBody(ch chan any, timeout any, optional
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Bitvavo) FetchOrder(id any, optionalArgs ...any) <- chan any {
+func  (this *Bitvavo) FetchOrderAsync(id any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchOrderBody(ch, id, optionalArgs...)
     return ch
@@ -2280,7 +2280,7 @@ func (this *Bitvavo) fetchOrderBody(ch chan any, id any, optionalArgs ...any) an
         }
         if IsEqual(this.Markets, nil) {
     
-            retRes185112 := (<-this.LoadMarkets())
+            retRes185112 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes185112)
         }
         var market any = this.Market(symbol)
@@ -2369,7 +2369,7 @@ func  (this *Bitvavo) FetchOrdersRequest(optionalArgs ...any) any  {
  * @param {int} [params.until] the latest time in ms to fetch entries for
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Bitvavo) FetchOrders(optionalArgs ...any) <- chan any {
+func  (this *Bitvavo) FetchOrdersAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchOrdersBody(ch, optionalArgs...)
     return ch
@@ -2390,7 +2390,7 @@ func (this *Bitvavo) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
         }
         if IsEqual(this.Markets, nil) {
     
-            retRes193712 := (<-this.LoadMarkets())
+            retRes193712 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes193712)
         }
         var paginate any = false
@@ -2399,7 +2399,7 @@ func (this *Bitvavo) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
         params = GetValue(paginateparamsVariable,1)
         if EvalTruthy(paginate) {
     
-                retRes194219 :=  (<-this.FetchPaginatedCallDynamic("fetchOrders", symbol, since, limit, params))
+                retRes194219 :=  (<-this.FetchPaginatedCallDynamicAsync("fetchOrders", symbol, since, limit, params))
                 PanicOnError(retRes194219)
                 ch <- retRes194219
                 return nil
@@ -2460,7 +2460,7 @@ func (this *Bitvavo) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Bitvavo) FetchOpenOrders(optionalArgs ...any) <- chan any {
+func  (this *Bitvavo) FetchOpenOrdersAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchOpenOrdersBody(ch, optionalArgs...)
     return ch
@@ -2478,7 +2478,7 @@ func (this *Bitvavo) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes199912 := (<-this.LoadMarkets())
+            retRes199912 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes199912)
         }
         var request map[string]any = map[string]any {}
@@ -2689,7 +2689,7 @@ func  (this *Bitvavo) FetchMyTradesRequest(optionalArgs ...any) any  {
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
  * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
-func  (this *Bitvavo) FetchMyTrades(optionalArgs ...any) <- chan any {
+func  (this *Bitvavo) FetchMyTradesAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchMyTradesBody(ch, optionalArgs...)
     return ch
@@ -2710,7 +2710,7 @@ func (this *Bitvavo) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
         }
         if IsEqual(this.Markets, nil) {
     
-            retRes220912 := (<-this.LoadMarkets())
+            retRes220912 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes220912)
         }
         var paginate any = false
@@ -2719,7 +2719,7 @@ func (this *Bitvavo) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
         params = GetValue(paginateparamsVariable,1)
         if EvalTruthy(paginate) {
     
-                retRes221419 :=  (<-this.FetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, params))
+                retRes221419 :=  (<-this.FetchPaginatedCallDynamicAsync("fetchMyTrades", symbol, since, limit, params))
                 PanicOnError(retRes221419)
                 ch <- retRes221419
                 return nil
@@ -2763,7 +2763,7 @@ func (this *Bitvavo) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
  * @param {int} [params.page] the page number for the transaction history
  * @returns {object[]} a list of [ledger structures]{@link https://docs.ccxt.com/?id=ledger}
  */
-func  (this *Bitvavo) FetchLedger(optionalArgs ...any) <- chan any {
+func  (this *Bitvavo) FetchLedgerAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchLedgerBody(ch, optionalArgs...)
     return ch
@@ -2781,7 +2781,7 @@ func (this *Bitvavo) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes225412 := (<-this.LoadMarkets())
+            retRes225412 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes225412)
         }
         var request any = map[string]any {}
@@ -2913,7 +2913,7 @@ func  (this *Bitvavo) WithdrawRequest(code any, amount any, address any, optiona
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func  (this *Bitvavo) Withdraw(code any, amount any, address any, optionalArgs ...any) <- chan any {
+func  (this *Bitvavo) WithdrawAsync(code any, amount any, address any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.withdrawBody(ch, code, amount, address, optionalArgs...)
     return ch
@@ -2931,7 +2931,7 @@ func (this *Bitvavo) withdrawBody(ch chan any, code any, amount any, address any
         this.CheckAddress(address)
         if IsEqual(this.Markets, nil) {
     
-            retRes238312 := (<-this.LoadMarkets())
+            retRes238312 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes238312)
         }
         var currency any = this.Currency(code)
@@ -2984,7 +2984,7 @@ func  (this *Bitvavo) FetchWithdrawalsRequest(optionalArgs ...any) any  {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func  (this *Bitvavo) FetchWithdrawals(optionalArgs ...any) <- chan any {
+func  (this *Bitvavo) FetchWithdrawalsAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchWithdrawalsBody(ch, optionalArgs...)
     return ch
@@ -3002,7 +3002,7 @@ func (this *Bitvavo) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any 
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes243212 := (<-this.LoadMarkets())
+            retRes243212 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes243212)
         }
         var request any = this.FetchWithdrawalsRequest(code, since, limit, params)
@@ -3067,7 +3067,7 @@ func  (this *Bitvavo) FetchDepositsRequest(optionalArgs ...any) any  {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func  (this *Bitvavo) FetchDeposits(optionalArgs ...any) <- chan any {
+func  (this *Bitvavo) FetchDepositsAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchDepositsBody(ch, optionalArgs...)
     return ch
@@ -3085,7 +3085,7 @@ func (this *Bitvavo) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes249112 := (<-this.LoadMarkets())
+            retRes249112 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes249112)
         }
         var request any = this.FetchDepositsRequest(code, since, limit, params)
@@ -3266,7 +3266,7 @@ func  (this *Bitvavo) ParseDepositWithdrawFee(fee any, optionalArgs ...any) any 
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
  */
-func  (this *Bitvavo) FetchDepositWithdrawFees(optionalArgs ...any) <- chan any {
+func  (this *Bitvavo) FetchDepositWithdrawFeesAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchDepositWithdrawFeesBody(ch, optionalArgs...)
     return ch
@@ -3280,7 +3280,7 @@ func (this *Bitvavo) fetchDepositWithdrawFeesBody(ch chan any, optionalArgs ...a
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes266712 := (<-this.LoadMarkets())
+            retRes266712 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes266712)
         }
     

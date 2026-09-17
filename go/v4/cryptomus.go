@@ -348,7 +348,7 @@ func  (this *Cryptomus) Describe() any  {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} an array of objects representing market data
  */
-func  (this *Cryptomus) FetchMarkets(optionalArgs ...any) <- chan any {
+func  (this *Cryptomus) FetchMarketsAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchMarketsBody(ch, optionalArgs...)
     return ch
@@ -474,7 +474,7 @@ func  (this *Cryptomus) ParseMarket(market any) any  {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an associative dictionary of currencies
  */
-func  (this *Cryptomus) FetchCurrencies(optionalArgs ...any) <- chan any {
+func  (this *Cryptomus) FetchCurrenciesAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchCurrenciesBody(ch, optionalArgs...)
     return ch
@@ -565,7 +565,7 @@ func  (this *Cryptomus) ParseCurrency(rawCurrency any) any  {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func  (this *Cryptomus) FetchTickers(optionalArgs ...any) <- chan any {
+func  (this *Cryptomus) FetchTickersAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchTickersBody(ch, optionalArgs...)
     return ch
@@ -579,7 +579,7 @@ func (this *Cryptomus) fetchTickersBody(ch chan any, optionalArgs ...any) any {
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes48912 := (<-this.LoadMarkets())
+            retRes48912 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes48912)
         }
         symbols = this.MarketSymbols(symbols)
@@ -652,7 +652,7 @@ func  (this *Cryptomus) ParseTicker(ticker any, optionalArgs ...any) any  {
  * @param {int} [params.level] 0 or 1 or 2 or 3 or 4 or 5 - the level of volume
  * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
-func  (this *Cryptomus) FetchOrderBook(symbol any, optionalArgs ...any) <- chan any {
+func  (this *Cryptomus) FetchOrderBookAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchOrderBookBody(ch, symbol, optionalArgs...)
     return ch
@@ -666,7 +666,7 @@ func (this *Cryptomus) fetchOrderBookBody(ch chan any, symbol any, optionalArgs 
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes55912 := (<-this.LoadMarkets())
+            retRes55912 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes55912)
         }
         var market any = this.Market(symbol)
@@ -717,7 +717,7 @@ func (this *Cryptomus) fetchOrderBookBody(ch chan any, symbol any, optionalArgs 
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
-func  (this *Cryptomus) FetchTrades(symbol any, optionalArgs ...any) <- chan any {
+func  (this *Cryptomus) FetchTradesAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchTradesBody(ch, symbol, optionalArgs...)
     return ch
@@ -733,7 +733,7 @@ func (this *Cryptomus) fetchTradesBody(ch chan any, symbol any, optionalArgs ...
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes60612 := (<-this.LoadMarkets())
+            retRes60612 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes60612)
         }
         var market any = this.Market(symbol)
@@ -807,7 +807,7 @@ func  (this *Cryptomus) ParseTrade(trade any, optionalArgs ...any) any  {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
-func  (this *Cryptomus) FetchBalance(optionalArgs ...any) <- chan any {
+func  (this *Cryptomus) FetchBalanceAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchBalanceBody(ch, optionalArgs...)
     return ch
@@ -819,7 +819,7 @@ func (this *Cryptomus) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes67712 := (<-this.LoadMarkets())
+            retRes67712 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes67712)
         }
         var request map[string]any = map[string]any {}
@@ -882,7 +882,7 @@ func  (this *Cryptomus) ParseBalance(balance any) any  {
  * @param {string} [params.clientOrderId] a unique identifier for the order (optional)
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Cryptomus) CreateOrder(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <- chan any {
+func  (this *Cryptomus) CreateOrderAsync(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.createOrderBody(ch, symbol, typeVar, side, amount, optionalArgs...)
     return ch
@@ -896,7 +896,7 @@ func (this *Cryptomus) createOrderBody(ch chan any, symbol any, typeVar any, sid
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes73912 := (<-this.LoadMarkets())
+            retRes73912 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes73912)
         }
         var market any = this.Market(symbol)
@@ -971,7 +971,7 @@ func (this *Cryptomus) createOrderBody(ch chan any, symbol any, typeVar any, sid
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Cryptomus) CancelOrder(id any, optionalArgs ...any) <- chan any {
+func  (this *Cryptomus) CancelOrderAsync(id any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.cancelOrderBody(ch, id, optionalArgs...)
     return ch
@@ -985,7 +985,7 @@ func (this *Cryptomus) cancelOrderBody(ch chan any, id any, optionalArgs ...any)
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes80612 := (<-this.LoadMarkets())
+            retRes80612 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes80612)
         }
         var request map[string]any = map[string]any {}
@@ -1020,7 +1020,7 @@ func (this *Cryptomus) cancelOrderBody(ch chan any, id any, optionalArgs ...any)
  * @param {string} [params.offset] A special parameter that sets the number of records from the beginning of the list
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Cryptomus) FetchCanceledAndClosedOrders(optionalArgs ...any) <- chan any {
+func  (this *Cryptomus) FetchCanceledAndClosedOrdersAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchCanceledAndClosedOrdersBody(ch, optionalArgs...)
     return ch
@@ -1038,7 +1038,7 @@ func (this *Cryptomus) fetchCanceledAndClosedOrdersBody(ch chan any, optionalArg
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes83712 := (<-this.LoadMarkets())
+            retRes83712 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes83712)
         }
         var request map[string]any = map[string]any {}
@@ -1118,7 +1118,7 @@ func (this *Cryptomus) fetchCanceledAndClosedOrdersBody(ch chan any, optionalArg
  * @param {string} [params.offset] A special parameter that sets the number of records from the beginning of the list
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Cryptomus) FetchOpenOrders(optionalArgs ...any) <- chan any {
+func  (this *Cryptomus) FetchOpenOrdersAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchOpenOrdersBody(ch, optionalArgs...)
     return ch
@@ -1136,7 +1136,7 @@ func (this *Cryptomus) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes91512 := (<-this.LoadMarkets())
+            retRes91512 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes91512)
         }
         var market any = nil
@@ -1306,7 +1306,7 @@ func  (this *Cryptomus) ParseOrderStatus(optionalArgs ...any) any  {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
  */
-func  (this *Cryptomus) FetchTradingFees(optionalArgs ...any) <- chan any {
+func  (this *Cryptomus) FetchTradingFeesAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchTradingFeesBody(ch, optionalArgs...)
     return ch

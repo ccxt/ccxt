@@ -2037,7 +2037,7 @@ func  (this *Kucoin) Nonce() any  {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {int} the current integer timestamp in milliseconds from the exchange server
  */
-func  (this *Kucoin) FetchTime(optionalArgs ...any) <- chan any {
+func  (this *Kucoin) FetchTimeAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchTimeBody(ch, optionalArgs...)
     return ch
@@ -2091,7 +2091,7 @@ func (this *Kucoin) fetchTimeBody(ch chan any, optionalArgs ...any) any {
  * @param {string} [params.tradeType] *uta only* set to SPOT or FUTURES
  * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
  */
-func  (this *Kucoin) FetchStatus(optionalArgs ...any) <- chan any {
+func  (this *Kucoin) FetchStatusAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchStatusBody(ch, optionalArgs...)
     return ch
@@ -2152,7 +2152,7 @@ func (this *Kucoin) fetchStatusBody(ch chan any, optionalArgs ...any) any {
  * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
  * @returns {object[]} an array of objects representing market data
  */
-func  (this *Kucoin) FetchMarkets(optionalArgs ...any) <- chan any {
+func  (this *Kucoin) FetchMarketsAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchMarketsBody(ch, optionalArgs...)
     return ch
@@ -2172,7 +2172,7 @@ func (this *Kucoin) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
         params = GetValue(utaparamsVariable,1)
         if EvalTruthy(uta) {
     
-                retRes164119 :=  (<-this.FetchUTAMarkets(params))
+                retRes164119 :=  (<-this.FetchUTAMarketsAsync(params))
                 PanicOnError(retRes164119)
                 ch <- retRes164119
                 return nil
@@ -2237,11 +2237,11 @@ func (this *Kucoin) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
             AppendToArray(&promises, this.PublicGetMarketAllTickers(params))
         }
         if fetchContractMarkets {
-            AppendToArray(&promises, this.FetchContractMarkets(params))
+            AppendToArray(&promises, this.FetchContractMarketsAsync(params))
         }
         if EvalTruthy(credentialsSet) {
             // load migration status for account
-            AppendToArray(&promises, this.LoadMigrationStatus())
+            AppendToArray(&promises, this.LoadMigrationStatusAsync())
         }
     
         responses:= (<-promiseAll(promises))
@@ -2359,14 +2359,14 @@ func (this *Kucoin) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
         }
         if IsEqual(GetValue(this.Options, "adjustForTimeDifference"), true) {
     
-            retRes186412 := (<-this.LoadTimeDifference())
+            retRes186412 := (<-this.LoadTimeDifferenceAsync())
             PanicOnError(retRes186412)
         }
     
         ch <- result
         return nil
 }
-func  (this *Kucoin) FetchContractMarkets(optionalArgs ...any) <- chan any {
+func  (this *Kucoin) FetchContractMarketsAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchContractMarketsBody(ch, optionalArgs...)
     return ch
@@ -2536,7 +2536,7 @@ func (this *Kucoin) fetchContractMarketsBody(ch chan any, optionalArgs ...any) a
         ch <- result
         return nil
 }
-func  (this *Kucoin) FetchUTAMarkets(optionalArgs ...any) <- chan any {
+func  (this *Kucoin) FetchUTAMarketsAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchUTAMarketsBody(ch, optionalArgs...)
     return ch
@@ -2728,7 +2728,7 @@ func (this *Kucoin) fetchUTAMarketsBody(ch chan any, optionalArgs ...any) any {
         }
         if IsEqual(GetValue(this.Options, "adjustForTimeDifference"), true) {
     
-            retRes220312 := (<-this.LoadTimeDifference())
+            retRes220312 := (<-this.LoadTimeDifferenceAsync())
             PanicOnError(retRes220312)
         }
     
@@ -2743,7 +2743,7 @@ func (this *Kucoin) fetchUTAMarketsBody(ch chan any, optionalArgs ...any) any {
  * @see https://www.kucoin.com/docs-new/rest/account-info/account-funding/get-account-type-spot
  * @returns {any} ignore
  */
-func  (this *Kucoin) LoadMigrationStatus(optionalArgs ...any) <- chan any {
+func  (this *Kucoin) LoadMigrationStatusAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.loadMigrationStatusBody(ch, optionalArgs...)
     return ch
@@ -2789,7 +2789,7 @@ func  (this *Kucoin) HandleHfAndParams(optionalArgs ...any) any  {
  * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
  * @returns {object} an associative dictionary of currencies
  */
-func  (this *Kucoin) FetchCurrencies(optionalArgs ...any) <- chan any {
+func  (this *Kucoin) FetchCurrenciesAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchCurrenciesBody(ch, optionalArgs...)
     return ch
@@ -2802,7 +2802,7 @@ func (this *Kucoin) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any {
         var uta any = false
         if EvalTruthy(this.CheckRequiredCredentials(false)) {
             
-        uta = (<-this.IsUTAEnabled())
+        uta = (<-this.IsUTAEnabledAsync())
                 PanicOnError(uta)
         }
         utaparamsVariable := this.HandleOptionAndParams(params, "fetchCurrencies", "uta", uta);
@@ -2925,7 +2925,7 @@ func  (this *Kucoin) ParseCurrency(currency any) any  {
  * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
  * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/?id=account-structure} indexed by the account type
  */
-func  (this *Kucoin) FetchAccounts(optionalArgs ...any) <- chan any {
+func  (this *Kucoin) FetchAccountsAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchAccountsBody(ch, optionalArgs...)
     return ch
@@ -2936,7 +2936,7 @@ func (this *Kucoin) fetchAccountsBody(ch chan any, optionalArgs ...any) any {
         params := GetArg(optionalArgs, 0, map[string]any {})
         _ = params
     
-        uta:= (<-this.IsUTAEnabled())
+        uta:= (<-this.IsUTAEnabledAsync())
         PanicOnError(uta)
         utaparamsVariable := this.HandleOptionAndParams(params, "fetchAccounts", "uta", uta);
         uta = GetValue(utaparamsVariable,0);
@@ -3023,7 +3023,7 @@ func (this *Kucoin) fetchAccountsBody(ch chan any, optionalArgs ...any) any {
  * @param {object} params extra parameters specific to the exchange API endpoint
  * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
  */
-func  (this *Kucoin) FetchTransactionFee(code any, optionalArgs ...any) <- chan any {
+func  (this *Kucoin) FetchTransactionFeeAsync(code any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchTransactionFeeBody(ch, code, optionalArgs...)
     return ch
@@ -3035,7 +3035,7 @@ func (this *Kucoin) fetchTransactionFeeBody(ch chan any, code any, optionalArgs 
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes248212 := (<-this.LoadMarkets())
+            retRes248212 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes248212)
         }
         var currency any = this.Currency(code)
@@ -3076,7 +3076,7 @@ func (this *Kucoin) fetchTransactionFeeBody(ch chan any, code any, optionalArgs 
  * @param {string} [params.network] The chain of currency. This only apply for multi-chain currency, and there is no need for single chain currency; you can query the chain through the response of the GET /api/v2/currencies/{currency} interface
  * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
  */
-func  (this *Kucoin) FetchDepositWithdrawFee(code any, optionalArgs ...any) <- chan any {
+func  (this *Kucoin) FetchDepositWithdrawFeeAsync(code any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchDepositWithdrawFeeBody(ch, code, optionalArgs...)
     return ch
@@ -3088,7 +3088,7 @@ func (this *Kucoin) fetchDepositWithdrawFeeBody(ch chan any, code any, optionalA
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes251912 := (<-this.LoadMarkets())
+            retRes251912 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes251912)
         }
         var currency any = this.Currency(code)
@@ -3528,7 +3528,7 @@ func  (this *Kucoin) TypeToTradeType(typeVar any) any  {
  * @param {string} [params.method] *swap only* the method to use, futuresPublicGetContractsActive or futuresPublicGetAllTickers (default is futuresPublicGetContractsActive)
  * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func  (this *Kucoin) FetchTickers(optionalArgs ...any) <- chan any {
+func  (this *Kucoin) FetchTickersAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchTickersBody(ch, optionalArgs...)
     return ch
@@ -3542,7 +3542,7 @@ func (this *Kucoin) fetchTickersBody(ch chan any, optionalArgs ...any) any {
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes295312 := (<-this.LoadMarkets())
+            retRes295312 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes295312)
         }
         var request map[string]any = map[string]any {}
@@ -3573,7 +3573,7 @@ func (this *Kucoin) fetchTickersBody(ch chan any, optionalArgs ...any) any {
                 PanicOnError(response)
         } else if ((!IsEqual(typeVar, "spot"))) && ((!IsEqual(typeVar, "margin"))) {
     
-                retRes300219 :=  (<-this.FetchContractTickers(symbols, params))
+                retRes300219 :=  (<-this.FetchContractTickersAsync(symbols, params))
                 PanicOnError(retRes300219)
                 ch <- retRes300219
                 return nil
@@ -3598,7 +3598,7 @@ func (this *Kucoin) fetchTickersBody(ch chan any, optionalArgs ...any) any {
         ch <- this.FilterByArrayTickers(result, "symbol", symbols)
         return nil
 }
-func  (this *Kucoin) FetchContractTickers(optionalArgs ...any) <- chan any {
+func  (this *Kucoin) FetchContractTickersAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchContractTickersBody(ch, optionalArgs...)
     return ch
@@ -3701,7 +3701,7 @@ func (this *Kucoin) fetchContractTickersBody(ch chan any, optionalArgs ...any) a
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func  (this *Kucoin) FetchMarkPrices(optionalArgs ...any) <- chan any {
+func  (this *Kucoin) FetchMarkPricesAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchMarkPricesBody(ch, optionalArgs...)
     return ch
@@ -3715,7 +3715,7 @@ func (this *Kucoin) fetchMarkPricesBody(ch chan any, optionalArgs ...any) any {
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes313612 := (<-this.LoadMarkets())
+            retRes313612 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes313612)
         }
         symbols = this.MarketSymbols(symbols)
@@ -3739,7 +3739,7 @@ func (this *Kucoin) fetchMarkPricesBody(ch chan any, optionalArgs ...any) any {
  * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func  (this *Kucoin) FetchTicker(symbol any, optionalArgs ...any) <- chan any {
+func  (this *Kucoin) FetchTickerAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchTickerBody(ch, symbol, optionalArgs...)
     return ch
@@ -3751,7 +3751,7 @@ func (this *Kucoin) fetchTickerBody(ch chan any, symbol any, optionalArgs ...any
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes315812 := (<-this.LoadMarkets())
+            retRes315812 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes315812)
         }
         var market any = this.Market(symbol)
@@ -3874,7 +3874,7 @@ func (this *Kucoin) fetchTickerBody(ch chan any, symbol any, optionalArgs ...any
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func  (this *Kucoin) FetchMarkPrice(symbol any, optionalArgs ...any) <- chan any {
+func  (this *Kucoin) FetchMarkPriceAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchMarkPriceBody(ch, symbol, optionalArgs...)
     return ch
@@ -3886,7 +3886,7 @@ func (this *Kucoin) fetchMarkPriceBody(ch chan any, symbol any, optionalArgs ...
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes326912 := (<-this.LoadMarkets())
+            retRes326912 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes326912)
         }
         var market any = this.Market(symbol)
@@ -3951,7 +3951,7 @@ func  (this *Kucoin) ParseOHLCV(ohlcv any, optionalArgs ...any) any  {
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
-func  (this *Kucoin) FetchOHLCV(symbol any, optionalArgs ...any) <- chan any {
+func  (this *Kucoin) FetchOHLCVAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchOHLCVBody(ch, symbol, optionalArgs...)
     return ch
@@ -3969,7 +3969,7 @@ func (this *Kucoin) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes334112 := (<-this.LoadMarkets())
+            retRes334112 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes334112)
         }
         var market any = this.Market(symbol)
@@ -3983,19 +3983,19 @@ func (this *Kucoin) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
         }
         if EvalTruthy(uta) {
     
-                retRes335119 :=  (<-this.FetchUTAOHLCV(symbol, timeframe, since, limit, params))
+                retRes335119 :=  (<-this.FetchUTAOHLCVAsync(symbol, timeframe, since, limit, params))
                 PanicOnError(retRes335119)
                 ch <- retRes335119
                 return nil
         } else if IsEqual(GetValue(market, "contract"), true) {
     
-                retRes335319 :=  (<-this.FetchContractOHLCV(symbol, timeframe, since, limit, params))
+                retRes335319 :=  (<-this.FetchContractOHLCVAsync(symbol, timeframe, since, limit, params))
                 PanicOnError(retRes335319)
                 ch <- retRes335319
                 return nil
         } else {
     
-                retRes335519 :=  (<-this.FetchSpotOHLCV(symbol, timeframe, since, limit, params))
+                retRes335519 :=  (<-this.FetchSpotOHLCVAsync(symbol, timeframe, since, limit, params))
                 PanicOnError(retRes335519)
                 ch <- retRes335519
                 return nil
@@ -4014,7 +4014,7 @@ func (this *Kucoin) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
-func  (this *Kucoin) FetchUTAOHLCV(symbol any, optionalArgs ...any) <- chan any {
+func  (this *Kucoin) FetchUTAOHLCVAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchUTAOHLCVBody(ch, symbol, optionalArgs...)
     return ch
@@ -4032,7 +4032,7 @@ func (this *Kucoin) fetchUTAOHLCVBody(ch chan any, symbol any, optionalArgs ...a
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes337412 := (<-this.LoadMarkets())
+            retRes337412 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes337412)
         }
         var maxLimit int = 1500
@@ -4042,7 +4042,7 @@ func (this *Kucoin) fetchUTAOHLCVBody(ch chan any, symbol any, optionalArgs ...a
         params = GetValue(paginateparamsVariable,1)
         if EvalTruthy(paginate) {
     
-                retRes338019 :=  (<-this.FetchPaginatedCallDeterministic("fetchUTAOHLCV", symbol, since, limit, timeframe, params, maxLimit))
+                retRes338019 :=  (<-this.FetchPaginatedCallDeterministicAsync("fetchUTAOHLCV", symbol, since, limit, timeframe, params, maxLimit))
                 PanicOnError(retRes338019)
                 ch <- retRes338019
                 return nil
@@ -4129,7 +4129,7 @@ func (this *Kucoin) fetchUTAOHLCVBody(ch chan any, symbol any, optionalArgs ...a
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
-func  (this *Kucoin) FetchSpotOHLCV(symbol any, optionalArgs ...any) <- chan any {
+func  (this *Kucoin) FetchSpotOHLCVAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchSpotOHLCVBody(ch, symbol, optionalArgs...)
     return ch
@@ -4147,7 +4147,7 @@ func (this *Kucoin) fetchSpotOHLCVBody(ch chan any, symbol any, optionalArgs ...
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes345912 := (<-this.LoadMarkets())
+            retRes345912 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes345912)
         }
         var maxLimit int = 1500
@@ -4157,7 +4157,7 @@ func (this *Kucoin) fetchSpotOHLCVBody(ch chan any, symbol any, optionalArgs ...
         params = GetValue(paginateparamsVariable,1)
         if EvalTruthy(paginate) {
     
-                retRes346519 :=  (<-this.FetchPaginatedCallDeterministic("fetchSpotOHLCV", symbol, since, limit, timeframe, params, maxLimit))
+                retRes346519 :=  (<-this.FetchPaginatedCallDeterministicAsync("fetchSpotOHLCV", symbol, since, limit, timeframe, params, maxLimit))
                 PanicOnError(retRes346519)
                 ch <- retRes346519
                 return nil
@@ -4214,7 +4214,7 @@ func (this *Kucoin) fetchSpotOHLCVBody(ch chan any, symbol any, optionalArgs ...
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
-func  (this *Kucoin) FetchContractOHLCV(symbol any, optionalArgs ...any) <- chan any {
+func  (this *Kucoin) FetchContractOHLCVAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchContractOHLCVBody(ch, symbol, optionalArgs...)
     return ch
@@ -4232,7 +4232,7 @@ func (this *Kucoin) fetchContractOHLCVBody(ch chan any, symbol any, optionalArgs
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes351812 := (<-this.LoadMarkets())
+            retRes351812 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes351812)
         }
         var maxLimit int = 200
@@ -4242,7 +4242,7 @@ func (this *Kucoin) fetchContractOHLCVBody(ch chan any, symbol any, optionalArgs
         params = GetValue(paginateparamsVariable,1)
         if EvalTruthy(paginate) {
     
-                retRes352419 :=  (<-this.FetchPaginatedCallDeterministic("fetchContractOHLCV", symbol, since, limit, timeframe, params, maxLimit))
+                retRes352419 :=  (<-this.FetchPaginatedCallDeterministicAsync("fetchContractOHLCV", symbol, since, limit, timeframe, params, maxLimit))
                 PanicOnError(retRes352419)
                 ch <- retRes352419
                 return nil
@@ -4302,7 +4302,7 @@ func (this *Kucoin) fetchContractOHLCVBody(ch chan any, symbol any, optionalArgs
  * @param {string} [params.network] the blockchain network name
  * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
  */
-func  (this *Kucoin) CreateDepositAddress(code any, optionalArgs ...any) <- chan any {
+func  (this *Kucoin) CreateDepositAddressAsync(code any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.createDepositAddressBody(ch, code, optionalArgs...)
     return ch
@@ -4314,7 +4314,7 @@ func (this *Kucoin) createDepositAddressBody(ch chan any, code any, optionalArgs
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes358012 := (<-this.LoadMarkets())
+            retRes358012 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes358012)
         }
         var currency any = this.Currency(code)
@@ -4364,7 +4364,7 @@ func (this *Kucoin) createDepositAddressBody(ch chan any, code any, optionalArgs
  * @param {boolean} [params.uta] set to true for the unified trading account (uta) endpoint, defaults to false
  * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
  */
-func  (this *Kucoin) FetchDepositAddress(code any, optionalArgs ...any) <- chan any {
+func  (this *Kucoin) FetchDepositAddressAsync(code any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchDepositAddressBody(ch, code, optionalArgs...)
     return ch
@@ -4376,7 +4376,7 @@ func (this *Kucoin) fetchDepositAddressBody(ch chan any, code any, optionalArgs 
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes362612 := (<-this.LoadMarkets())
+            retRes362612 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes362612)
         }
         var accountType any = "main"
@@ -4386,20 +4386,20 @@ func (this *Kucoin) fetchDepositAddressBody(ch chan any, code any, optionalArgs 
         var accountsByType any = this.SafeDict(this.Options, "accountsByType", map[string]any {})
         accountType = DerefScalar(this.SafeString(accountsByType, accountType, accountType))
     
-        uta:= (<-this.IsUTAEnabled())
+        uta:= (<-this.IsUTAEnabledAsync())
         PanicOnError(uta)
         utaparamsVariable := this.HandleOptionAndParams(params, "fetchDepositAddress", "uta", uta);
         uta = GetValue(utaparamsVariable,0);
         params = GetValue(utaparamsVariable,1)
         if (IsEqual(accountType, "contract")) {
     
-                retRes363519 :=  (<-this.FetchContractDepositAddress(code, params))
+                retRes363519 :=  (<-this.FetchContractDepositAddressAsync(code, params))
                 PanicOnError(retRes363519)
                 ch <- retRes363519
                 return nil
         } else if EvalTruthy(uta) || ((IsEqual(accountType, "uta"))) || ((IsEqual(accountType, "unified"))) {
     
-                retRes363719 :=  (<-this.Exchange.FetchDepositAddress(code, this.Extend(params, map[string]any {
+                retRes363719 :=  (<-this.Exchange.FetchDepositAddressAsync(code, this.Extend(params, map[string]any {
                 "uta": true,
             })))
                 PanicOnError(retRes363719)
@@ -4445,7 +4445,7 @@ func (this *Kucoin) fetchDepositAddressBody(ch chan any, code any, optionalArgs 
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
  */
-func  (this *Kucoin) FetchContractDepositAddress(code any, optionalArgs ...any) <- chan any {
+func  (this *Kucoin) FetchContractDepositAddressAsync(code any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchContractDepositAddressBody(ch, code, optionalArgs...)
     return ch
@@ -4457,7 +4457,7 @@ func (this *Kucoin) fetchContractDepositAddressBody(ch chan any, code any, optio
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes367812 := (<-this.LoadMarkets())
+            retRes367812 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes367812)
         }
         var currency any = this.Currency(code)
@@ -4529,7 +4529,7 @@ func  (this *Kucoin) ParseDepositAddress(depositAddress any, optionalArgs ...any
  * @param {boolean} [params.uta] set to true for the unified trading account (uta) endpoint, defaults to false
  * @returns {object} a dictionary of [address structures]{@link https://docs.ccxt.com/?id=address-structure} indexed by the network
  */
-func  (this *Kucoin) FetchDepositAddressesByNetwork(code any, optionalArgs ...any) <- chan any {
+func  (this *Kucoin) FetchDepositAddressesByNetworkAsync(code any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchDepositAddressesByNetworkBody(ch, code, optionalArgs...)
     return ch
@@ -4541,7 +4541,7 @@ func (this *Kucoin) fetchDepositAddressesByNetworkBody(ch chan any, code any, op
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes374712 := (<-this.LoadMarkets())
+            retRes374712 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes374712)
         }
         var currency any = this.Currency(code)
@@ -4549,7 +4549,7 @@ func (this *Kucoin) fetchDepositAddressesByNetworkBody(ch chan any, code any, op
             "currency": GetValue(currency, "id"),
         }
     
-        uta:= (<-this.IsUTAEnabled())
+        uta:= (<-this.IsUTAEnabledAsync())
         PanicOnError(uta)
         utaparamsVariable := this.HandleOptionAndParams(params, "fetchDepositAddressesByNetwork", "uta", uta);
         uta = GetValue(utaparamsVariable,0);
@@ -4632,7 +4632,7 @@ func (this *Kucoin) fetchDepositAddressesByNetworkBody(ch chan any, code any, op
  * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
  * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
-func  (this *Kucoin) FetchOrderBook(symbol any, optionalArgs ...any) <- chan any {
+func  (this *Kucoin) FetchOrderBookAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchOrderBookBody(ch, symbol, optionalArgs...)
     return ch
@@ -4646,7 +4646,7 @@ func (this *Kucoin) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes382812 := (<-this.LoadMarkets())
+            retRes382812 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes382812)
         }
         var market any = this.Market(symbol)
@@ -4822,7 +4822,7 @@ func  (this *Kucoin) HandleTriggerPrices(params any) any  {
  * Check createSpotOrder(), createContractOrder() and createUtaOrder () for more details on the extra parameters that can be used in params
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Kucoin) CreateOrder(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <- chan any {
+func  (this *Kucoin) CreateOrderAsync(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.createOrderBody(ch, symbol, typeVar, side, amount, optionalArgs...)
     return ch
@@ -4836,31 +4836,31 @@ func (this *Kucoin) createOrderBody(ch chan any, symbol any, typeVar any, side a
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes400512 := (<-this.LoadMarkets())
+            retRes400512 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes400512)
         }
         var market any = this.Market(symbol)
     
-        uta:= (<-this.IsUTAEnabled())
+        uta:= (<-this.IsUTAEnabledAsync())
         PanicOnError(uta)
         utaparamsVariable := this.HandleOptionAndParams(params, "createOrder", "uta", uta);
         uta = GetValue(utaparamsVariable,0);
         params = GetValue(utaparamsVariable,1)
         if EvalTruthy(uta) {
     
-                retRes401119 :=  (<-this.CreateUtaOrder(symbol, typeVar, side, amount, price, params))
+                retRes401119 :=  (<-this.CreateUtaOrderAsync(symbol, typeVar, side, amount, price, params))
                 PanicOnError(retRes401119)
                 ch <- retRes401119
                 return nil
         } else if IsEqual(GetValue(market, "spot"), true) {
     
-                retRes401319 :=  (<-this.CreateSpotOrder(symbol, typeVar, side, amount, price, params))
+                retRes401319 :=  (<-this.CreateSpotOrderAsync(symbol, typeVar, side, amount, price, params))
                 PanicOnError(retRes401319)
                 ch <- retRes401319
                 return nil
         } else if IsEqual(GetValue(market, "contract"), true) {
     
-                retRes401519 :=  (<-this.CreateContractOrder(symbol, typeVar, side, amount, price, params))
+                retRes401519 :=  (<-this.CreateContractOrderAsync(symbol, typeVar, side, amount, price, params))
                 PanicOnError(retRes401519)
                 ch <- retRes401519
                 return nil
@@ -4912,7 +4912,7 @@ func (this *Kucoin) createOrderBody(ch chan any, symbol any, typeVar any, side a
  * @param {bool} [params.sync] set to true to use the hf sync call
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Kucoin) CreateSpotOrder(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <- chan any {
+func  (this *Kucoin) CreateSpotOrderAsync(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.createSpotOrderBody(ch, symbol, typeVar, side, amount, optionalArgs...)
     return ch
@@ -4926,7 +4926,7 @@ func (this *Kucoin) createSpotOrderBody(ch chan any, symbol any, typeVar any, si
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes406712 := (<-this.LoadMarkets())
+            retRes406712 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes406712)
         }
         var market any = this.Market(symbol)
@@ -5145,7 +5145,7 @@ func  (this *Kucoin) MarketOrderAmountToPrecision(symbol any, amount any) any  {
  * @param {string} [params.positionSide] *swap and future only* hedged two-way position side, LONG or SHORT
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Kucoin) CreateContractOrder(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <- chan any {
+func  (this *Kucoin) CreateContractOrderAsync(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.createContractOrderBody(ch, symbol, typeVar, side, amount, optionalArgs...)
     return ch
@@ -5159,7 +5159,7 @@ func (this *Kucoin) createContractOrderBody(ch chan any, symbol any, typeVar any
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes424812 := (<-this.LoadMarkets())
+            retRes424812 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes424812)
         }
         var market any = this.Market(symbol)
@@ -5372,7 +5372,7 @@ func  (this *Kucoin) CreateContractOrderRequest(symbol any, typeVar any, side an
  * @param {int} [params.leverage] *classic contract orders with isolated marginMode only* Leverage size of the order
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Kucoin) CreateUtaOrder(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <- chan any {
+func  (this *Kucoin) CreateUtaOrderAsync(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.createUtaOrderBody(ch, symbol, typeVar, side, amount, optionalArgs...)
     return ch
@@ -5386,7 +5386,7 @@ func (this *Kucoin) createUtaOrderBody(ch chan any, symbol any, typeVar any, sid
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes444512 := (<-this.LoadMarkets())
+            retRes444512 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes444512)
         }
         var market any = this.Market(symbol)
@@ -5577,7 +5577,7 @@ func  (this *Kucoin) CreateUtaOrderRequest(symbol any, typeVar any, side any, am
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Kucoin) CreateMarketOrderWithCost(symbol any, side any, cost any, optionalArgs ...any) <- chan any {
+func  (this *Kucoin) CreateMarketOrderWithCostAsync(symbol any, side any, cost any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.createMarketOrderWithCostBody(ch, symbol, side, cost, optionalArgs...)
     return ch
@@ -5589,14 +5589,14 @@ func (this *Kucoin) createMarketOrderWithCostBody(ch chan any, symbol any, side 
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes463912 := (<-this.LoadMarkets())
+            retRes463912 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes463912)
         }
         var req map[string]any = map[string]any {
             "cost": cost,
         }
     
-            retRes464415 :=  (<-this.CreateOrder(symbol, "market", side, cost, nil, this.Extend(req, params)))
+            retRes464415 :=  (<-this.CreateOrderAsync(symbol, "market", side, cost, nil, this.Extend(req, params)))
             PanicOnError(retRes464415)
             ch <- retRes464415
             return nil
@@ -5612,7 +5612,7 @@ func (this *Kucoin) createMarketOrderWithCostBody(ch chan any, symbol any, side 
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Kucoin) CreateMarketBuyOrderWithCost(symbol any, cost any, optionalArgs ...any) <- chan any {
+func  (this *Kucoin) CreateMarketBuyOrderWithCostAsync(symbol any, cost any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.createMarketBuyOrderWithCostBody(ch, symbol, cost, optionalArgs...)
     return ch
@@ -5624,11 +5624,11 @@ func (this *Kucoin) createMarketBuyOrderWithCostBody(ch chan any, symbol any, co
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes466012 := (<-this.LoadMarkets())
+            retRes466012 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes466012)
         }
     
-            retRes466215 :=  (<-this.CreateMarketOrderWithCost(symbol, "buy", cost, params))
+            retRes466215 :=  (<-this.CreateMarketOrderWithCostAsync(symbol, "buy", cost, params))
             PanicOnError(retRes466215)
             ch <- retRes466215
             return nil
@@ -5644,7 +5644,7 @@ func (this *Kucoin) createMarketBuyOrderWithCostBody(ch chan any, symbol any, co
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Kucoin) CreateMarketSellOrderWithCost(symbol any, cost any, optionalArgs ...any) <- chan any {
+func  (this *Kucoin) CreateMarketSellOrderWithCostAsync(symbol any, cost any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.createMarketSellOrderWithCostBody(ch, symbol, cost, optionalArgs...)
     return ch
@@ -5656,11 +5656,11 @@ func (this *Kucoin) createMarketSellOrderWithCostBody(ch chan any, symbol any, c
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes467812 := (<-this.LoadMarkets())
+            retRes467812 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes467812)
         }
     
-            retRes468015 :=  (<-this.CreateMarketOrderWithCost(symbol, "sell", cost, params))
+            retRes468015 :=  (<-this.CreateMarketOrderWithCostAsync(symbol, "sell", cost, params))
             PanicOnError(retRes468015)
             ch <- retRes468015
             return nil
@@ -5676,7 +5676,7 @@ func (this *Kucoin) createMarketSellOrderWithCostBody(ch chan any, symbol any, c
  * Check createSpotOrders() and createContractOrders() for more details on the extra parameters that can be used in params
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Kucoin) CreateOrders(orders any, optionalArgs ...any) <- chan any {
+func  (this *Kucoin) CreateOrdersAsync(orders any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.createOrdersBody(ch, orders, optionalArgs...)
     return ch
@@ -5688,7 +5688,7 @@ func (this *Kucoin) createOrdersBody(ch chan any, orders any, optionalArgs ...an
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes469612 := (<-this.LoadMarkets())
+            retRes469612 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes469612)
         }
         var isSpot bool = false
@@ -5710,13 +5710,13 @@ func (this *Kucoin) createOrdersBody(ch chan any, orders any, optionalArgs ...an
             panic(BadRequest(Add(this.Id, " createOrders() requires all orders to be either spot or contract")))
         } else if isSpot {
     
-                retRes471619 :=  (<-this.CreateSpotOrders(orders, params))
+                retRes471619 :=  (<-this.CreateSpotOrdersAsync(orders, params))
                 PanicOnError(retRes471619)
                 ch <- retRes471619
                 return nil
         } else if isContract {
     
-                retRes471819 :=  (<-this.CreateContractOrders(orders, params))
+                retRes471819 :=  (<-this.CreateContractOrdersAsync(orders, params))
                 PanicOnError(retRes471819)
                 ch <- retRes471819
                 return nil
@@ -5737,7 +5737,7 @@ func (this *Kucoin) createOrdersBody(ch chan any, orders any, optionalArgs ...an
  * @param {bool} [params.sync] false, // true to use the hf sync call
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Kucoin) CreateSpotOrders(orders any, optionalArgs ...any) <- chan any {
+func  (this *Kucoin) CreateSpotOrdersAsync(orders any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.createSpotOrdersBody(ch, orders, optionalArgs...)
     return ch
@@ -5749,7 +5749,7 @@ func (this *Kucoin) createSpotOrdersBody(ch chan any, orders any, optionalArgs .
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes473912 := (<-this.LoadMarkets())
+            retRes473912 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes473912)
         }
         var ordersRequests any = []any{}
@@ -5853,7 +5853,7 @@ func (this *Kucoin) createSpotOrdersBody(ch chan any, orders any, optionalArgs .
  * @param {object} [params]  extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Kucoin) CreateContractOrders(orders any, optionalArgs ...any) <- chan any {
+func  (this *Kucoin) CreateContractOrdersAsync(orders any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.createContractOrdersBody(ch, orders, optionalArgs...)
     return ch
@@ -5865,7 +5865,7 @@ func (this *Kucoin) createContractOrdersBody(ch chan any, orders any, optionalAr
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes483312 := (<-this.LoadMarkets())
+            retRes483312 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes483312)
         }
         var ordersRequests any = []any{}
@@ -5927,7 +5927,7 @@ func (this *Kucoin) createContractOrdersBody(ch chan any, orders any, optionalAr
  * @param {string} [params.clientOrderId] client order id, defaults to id if not passed
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Kucoin) EditOrder(id any, symbol any, typeVar any, side any, optionalArgs ...any) <- chan any {
+func  (this *Kucoin) EditOrderAsync(id any, symbol any, typeVar any, side any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.editOrderBody(ch, id, symbol, typeVar, side, optionalArgs...)
     return ch
@@ -5943,7 +5943,7 @@ func (this *Kucoin) editOrderBody(ch chan any, id any, symbol any, typeVar any, 
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes489312 := (<-this.LoadMarkets())
+            retRes489312 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes489312)
         }
         var market any = this.Market(symbol)
@@ -6004,7 +6004,7 @@ func (this *Kucoin) editOrderBody(ch chan any, id any, symbol any, typeVar any, 
  * Check cancelSpotOrder() and cancelContractOrder() for more details on the extra parameters that can be used in params
  * @returns Response from the exchange
  */
-func  (this *Kucoin) CancelOrder(id any, optionalArgs ...any) <- chan any {
+func  (this *Kucoin) CancelOrderAsync(id any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.cancelOrderBody(ch, id, optionalArgs...)
     return ch
@@ -6018,18 +6018,18 @@ func (this *Kucoin) cancelOrderBody(ch chan any, id any, optionalArgs ...any) an
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes495212 := (<-this.LoadMarkets())
+            retRes495212 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes495212)
         }
     
-        uta:= (<-this.IsUTAEnabled())
+        uta:= (<-this.IsUTAEnabledAsync())
         PanicOnError(uta)
         utaparamsVariable := this.HandleOptionAndParams(params, "cancelOrder", "uta", uta);
         uta = GetValue(utaparamsVariable,0);
         params = GetValue(utaparamsVariable,1)
         if EvalTruthy(uta) {
     
-                retRes495719 :=  (<-this.CancelUtaOrder(id, symbol, params))
+                retRes495719 :=  (<-this.CancelUtaOrderAsync(id, symbol, params))
                 PanicOnError(retRes495719)
                 ch <- retRes495719
                 return nil
@@ -6044,13 +6044,13 @@ func (this *Kucoin) cancelOrderBody(ch chan any, id any, optionalArgs ...any) an
         params = GetValue(marketTypeparamsVariable,1)
         if ((IsEqual(marketType, "spot"))) || ((IsEqual(marketType, "margin"))) {
     
-                retRes496619 :=  (<-this.CancelSpotOrder(id, symbol, params))
+                retRes496619 :=  (<-this.CancelSpotOrderAsync(id, symbol, params))
                 PanicOnError(retRes496619)
                 ch <- retRes496619
                 return nil
         } else {
     
-                retRes496819 :=  (<-this.CancelContractOrder(id, symbol, params))
+                retRes496819 :=  (<-this.CancelContractOrderAsync(id, symbol, params))
                 PanicOnError(retRes496819)
                 ch <- retRes496819
                 return nil
@@ -6079,7 +6079,7 @@ func (this *Kucoin) cancelOrderBody(ch chan any, id any, optionalArgs ...any) an
  * @param {string} [params.marginMode] 'cross' or 'isolated'
  * @returns Response from the exchange
  */
-func  (this *Kucoin) CancelSpotOrder(id any, optionalArgs ...any) <- chan any {
+func  (this *Kucoin) CancelSpotOrderAsync(id any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.cancelSpotOrderBody(ch, id, optionalArgs...)
     return ch
@@ -6093,7 +6093,7 @@ func (this *Kucoin) cancelSpotOrderBody(ch chan any, id any, optionalArgs ...any
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes499712 := (<-this.LoadMarkets())
+            retRes499712 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes499712)
         }
         var request map[string]any = map[string]any {}
@@ -6246,7 +6246,7 @@ func (this *Kucoin) cancelSpotOrderBody(ch chan any, id any, optionalArgs ...any
  * @param {string} [params.clientOrderId] cancel order by client order id
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Kucoin) CancelContractOrder(id any, optionalArgs ...any) <- chan any {
+func  (this *Kucoin) CancelContractOrderAsync(id any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.cancelContractOrderBody(ch, id, optionalArgs...)
     return ch
@@ -6260,7 +6260,7 @@ func (this *Kucoin) cancelContractOrderBody(ch chan any, id any, optionalArgs ..
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes513812 := (<-this.LoadMarkets())
+            retRes513812 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes513812)
         }
         var clientOrderId *string = this.SafeString2(params, "clientOid", "clientOrderId")
@@ -6312,7 +6312,7 @@ func (this *Kucoin) cancelContractOrderBody(ch chan any, id any, optionalArgs ..
  * @param {string} [params.marginMode] 'cross' or 'isolated', required if fetching a margin order (unified accountMode supports only cross margin)
  * @returns Response from the exchange
  */
-func  (this *Kucoin) CancelUtaOrder(id any, optionalArgs ...any) <- chan any {
+func  (this *Kucoin) CancelUtaOrderAsync(id any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.cancelUtaOrderBody(ch, id, optionalArgs...)
     return ch
@@ -6329,7 +6329,7 @@ func (this *Kucoin) cancelUtaOrderBody(ch chan any, id any, optionalArgs ...any)
         }
         if IsEqual(this.Markets, nil) {
     
-            retRes518712 := (<-this.LoadMarkets())
+            retRes518712 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes518712)
         }
         var request map[string]any = map[string]any {}
@@ -6345,7 +6345,7 @@ func (this *Kucoin) cancelUtaOrderBody(ch chan any, id any, optionalArgs ...any)
         }
         if IsEqual(this.Markets, nil) {
     
-            retRes520112 := (<-this.LoadMarkets())
+            retRes520112 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes520112)
         }
         var market any = this.Market(symbol)
@@ -6401,7 +6401,7 @@ func (this *Kucoin) cancelUtaOrderBody(ch chan any, id any, optionalArgs ...any)
  * Check cancelAllSpotOrders(), cancelAllContractOrders() and cancelAllUtaOrders() for more details on the extra parameters that can be used in params
  * @returns Response from the exchange
  */
-func  (this *Kucoin) CancelAllOrders(optionalArgs ...any) <- chan any {
+func  (this *Kucoin) CancelAllOrdersAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.cancelAllOrdersBody(ch, optionalArgs...)
     return ch
@@ -6415,18 +6415,18 @@ func (this *Kucoin) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes525112 := (<-this.LoadMarkets())
+            retRes525112 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes525112)
         }
     
-        uta:= (<-this.IsUTAEnabled())
+        uta:= (<-this.IsUTAEnabledAsync())
         PanicOnError(uta)
         utaparamsVariable := this.HandleOptionAndParams(params, "cancelAllOrders", "uta", uta);
         uta = GetValue(utaparamsVariable,0);
         params = GetValue(utaparamsVariable,1)
         if EvalTruthy(uta) {
     
-                retRes525619 :=  (<-this.CancelAllUtaOrders(symbol, params))
+                retRes525619 :=  (<-this.CancelAllUtaOrdersAsync(symbol, params))
                 PanicOnError(retRes525619)
                 ch <- retRes525619
                 return nil
@@ -6441,13 +6441,13 @@ func (this *Kucoin) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
         params = GetValue(marketTypeparamsVariable,1)
         if ((IsEqual(marketType, "spot"))) || ((IsEqual(marketType, "margin"))) {
     
-                retRes526519 :=  (<-this.CancelAllSpotOrders(symbol, params))
+                retRes526519 :=  (<-this.CancelAllSpotOrdersAsync(symbol, params))
                 PanicOnError(retRes526519)
                 ch <- retRes526519
                 return nil
         } else {
     
-                retRes526719 :=  (<-this.CancelAllContractOrders(symbol, params))
+                retRes526719 :=  (<-this.CancelAllContractOrdersAsync(symbol, params))
                 PanicOnError(retRes526719)
                 ch <- retRes526719
                 return nil
@@ -6470,7 +6470,7 @@ func (this *Kucoin) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
  * @param {bool} [params.hf] false, // true for hf order
  * @returns Response from the exchange
  */
-func  (this *Kucoin) CancelAllSpotOrders(optionalArgs ...any) <- chan any {
+func  (this *Kucoin) CancelAllSpotOrdersAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.cancelAllSpotOrdersBody(ch, optionalArgs...)
     return ch
@@ -6484,7 +6484,7 @@ func (this *Kucoin) cancelAllSpotOrdersBody(ch chan any, optionalArgs ...any) an
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes529012 := (<-this.LoadMarkets())
+            retRes529012 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes529012)
         }
         var request map[string]any = map[string]any {}
@@ -6556,7 +6556,7 @@ func (this *Kucoin) cancelAllSpotOrdersBody(ch chan any, optionalArgs ...any) an
  * @param {object} [params.trigger] When true, all the trigger orders will be cancelled
  * @returns Response from the exchange
  */
-func  (this *Kucoin) CancelAllContractOrders(optionalArgs ...any) <- chan any {
+func  (this *Kucoin) CancelAllContractOrdersAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.cancelAllContractOrdersBody(ch, optionalArgs...)
     return ch
@@ -6570,7 +6570,7 @@ func (this *Kucoin) cancelAllContractOrdersBody(ch chan any, optionalArgs ...any
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes534412 := (<-this.LoadMarkets())
+            retRes534412 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes534412)
         }
         var request map[string]any = map[string]any {}
@@ -6617,7 +6617,7 @@ func (this *Kucoin) cancelAllContractOrdersBody(ch chan any, optionalArgs ...any
  * @param {string} [params.marginMode] 'CROSS' or 'ISOLATED'
  * @returns Response from the exchange
  */
-func  (this *Kucoin) CancelAllUtaOrders(optionalArgs ...any) <- chan any {
+func  (this *Kucoin) CancelAllUtaOrdersAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.cancelAllUtaOrdersBody(ch, optionalArgs...)
     return ch
@@ -6634,7 +6634,7 @@ func (this *Kucoin) cancelAllUtaOrdersBody(ch chan any, optionalArgs ...any) any
         }
         if IsEqual(this.Markets, nil) {
     
-            retRes538812 := (<-this.LoadMarkets())
+            retRes538812 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes538812)
         }
         var market any = this.Market(symbol)
@@ -6699,7 +6699,7 @@ func (this *Kucoin) cancelAllUtaOrdersBody(ch chan any, optionalArgs ...any) any
  * Check fetchSpotOrdersByStatus(), fetchContractOrdersByStatus() and fetchUtaOrdersByStatus() for more details on the extra parameters that can be used in params
  * @returns An [array of order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Kucoin) FetchOrdersByStatus(status any, optionalArgs ...any) <- chan any {
+func  (this *Kucoin) FetchOrdersByStatusAsync(status any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchOrdersByStatusBody(ch, status, optionalArgs...)
     return ch
@@ -6717,11 +6717,11 @@ func (this *Kucoin) fetchOrdersByStatusBody(ch chan any, status any, optionalArg
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes544712 := (<-this.LoadMarkets())
+            retRes544712 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes544712)
         }
     
-        uta:= (<-this.IsUTAEnabled())
+        uta:= (<-this.IsUTAEnabledAsync())
         PanicOnError(uta)
         utaparamsVariable := this.HandleOptionAndParams(params, "fetchOrdersByStatus", "uta", uta);
         uta = GetValue(utaparamsVariable,0);
@@ -6752,19 +6752,19 @@ func (this *Kucoin) fetchOrdersByStatusBody(ch chan any, status any, optionalArg
                 "marketType": marketType,
             })
     
-                retRes547419 :=  (<-this.FetchUtaOrdersByStatus(status, symbol, since, limit, params))
+                retRes547419 :=  (<-this.FetchUtaOrdersByStatusAsync(status, symbol, since, limit, params))
                 PanicOnError(retRes547419)
                 ch <- retRes547419
                 return nil
         } else if ((IsEqual(marketType, "spot"))) || ((IsEqual(marketType, "margin"))) {
     
-                retRes547619 :=  (<-this.FetchSpotOrdersByStatus(status, symbol, since, limit, params))
+                retRes547619 :=  (<-this.FetchSpotOrdersByStatusAsync(status, symbol, since, limit, params))
                 PanicOnError(retRes547619)
                 ch <- retRes547619
                 return nil
         } else {
     
-                retRes547819 :=  (<-this.FetchContractOrdersByStatus(status, symbol, since, limit, params))
+                retRes547819 :=  (<-this.FetchContractOrdersByStatusAsync(status, symbol, since, limit, params))
                 PanicOnError(retRes547819)
                 ch <- retRes547819
                 return nil
@@ -6796,7 +6796,7 @@ func (this *Kucoin) fetchOrdersByStatusBody(ch chan any, status any, optionalArg
  * @param {string} [params.marginMode] 'cross' or 'isolated', only for margin orders
  * @returns An [array of order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Kucoin) FetchSpotOrdersByStatus(status any, optionalArgs ...any) <- chan any {
+func  (this *Kucoin) FetchSpotOrdersByStatusAsync(status any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchSpotOrdersByStatusBody(ch, status, optionalArgs...)
     return ch
@@ -6814,7 +6814,7 @@ func (this *Kucoin) fetchSpotOrdersByStatusBody(ch chan any, status any, optiona
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes551012 := (<-this.LoadMarkets())
+            retRes551012 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes551012)
         }
         var lowercaseStatus string = ToLower(status)
@@ -6923,7 +6923,7 @@ func (this *Kucoin) fetchSpotOrdersByStatusBody(ch chan any, status any, optiona
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
  * @returns An [array of order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Kucoin) FetchContractOrdersByStatus(status any, optionalArgs ...any) <- chan any {
+func  (this *Kucoin) FetchContractOrdersByStatusAsync(status any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchContractOrdersByStatusBody(ch, status, optionalArgs...)
     return ch
@@ -6941,7 +6941,7 @@ func (this *Kucoin) fetchContractOrdersByStatusBody(ch chan any, status any, opt
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes564212 := (<-this.LoadMarkets())
+            retRes564212 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes564212)
         }
         var paginate any = false
@@ -6950,7 +6950,7 @@ func (this *Kucoin) fetchContractOrdersByStatusBody(ch chan any, status any, opt
         params = GetValue(paginateparamsVariable,1)
         if EvalTruthy(paginate) {
     
-                retRes564719 :=  (<-this.FetchPaginatedCallDynamic("fetchOrdersByStatus", symbol, since, limit, params))
+                retRes564719 :=  (<-this.FetchPaginatedCallDynamicAsync("fetchOrdersByStatus", symbol, since, limit, params))
                 PanicOnError(retRes564719)
                 ch <- retRes564719
                 return nil
@@ -7065,7 +7065,7 @@ func (this *Kucoin) fetchContractOrdersByStatusBody(ch chan any, status any, opt
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
  * @returns An [array of order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Kucoin) FetchUtaOrdersByStatus(status any, optionalArgs ...any) <- chan any {
+func  (this *Kucoin) FetchUtaOrdersByStatusAsync(status any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchUtaOrdersByStatusBody(ch, status, optionalArgs...)
     return ch
@@ -7083,7 +7083,7 @@ func (this *Kucoin) fetchUtaOrdersByStatusBody(ch chan any, status any, optional
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes575612 := (<-this.LoadMarkets())
+            retRes575612 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes575612)
         }
         var paginate any = false
@@ -7093,7 +7093,7 @@ func (this *Kucoin) fetchUtaOrdersByStatusBody(ch chan any, status any, optional
         params = GetValue(paginateparamsVariable,1)
         if EvalTruthy(paginate) {
     
-                retRes576219 :=  (<-this.FetchPaginatedCallDynamic("fetchOrdersByStatus", symbol, since, limit, params, maxLimit))
+                retRes576219 :=  (<-this.FetchPaginatedCallDynamicAsync("fetchOrdersByStatus", symbol, since, limit, params, maxLimit))
                 PanicOnError(retRes576219)
                 ch <- retRes576219
                 return nil
@@ -7229,7 +7229,7 @@ func (this *Kucoin) fetchUtaOrdersByStatusBody(ch chan any, status any, optional
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Kucoin) FetchClosedOrders(optionalArgs ...any) <- chan any {
+func  (this *Kucoin) FetchClosedOrdersAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchClosedOrdersBody(ch, optionalArgs...)
     return ch
@@ -7247,7 +7247,7 @@ func (this *Kucoin) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any 
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes588612 := (<-this.LoadMarkets())
+            retRes588612 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes588612)
         }
         var paginate any = false
@@ -7256,13 +7256,13 @@ func (this *Kucoin) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any 
         params = GetValue(paginateparamsVariable,1)
         if EvalTruthy(paginate) {
     
-                retRes589119 :=  (<-this.FetchPaginatedCallDynamic("fetchClosedOrders", symbol, since, limit, params))
+                retRes589119 :=  (<-this.FetchPaginatedCallDynamicAsync("fetchClosedOrders", symbol, since, limit, params))
                 PanicOnError(retRes589119)
                 ch <- retRes589119
                 return nil
         }
     
-            retRes589315 :=  (<-this.FetchOrdersByStatus("done", symbol, since, limit, params))
+            retRes589315 :=  (<-this.FetchOrdersByStatusAsync("done", symbol, since, limit, params))
             PanicOnError(retRes589315)
             ch <- retRes589315
             return nil
@@ -7294,7 +7294,7 @@ func (this *Kucoin) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any 
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Kucoin) FetchOpenOrders(optionalArgs ...any) <- chan any {
+func  (this *Kucoin) FetchOpenOrdersAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchOpenOrdersBody(ch, optionalArgs...)
     return ch
@@ -7312,7 +7312,7 @@ func (this *Kucoin) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes592512 := (<-this.LoadMarkets())
+            retRes592512 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes592512)
         }
         var paginate any = false
@@ -7321,13 +7321,13 @@ func (this *Kucoin) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
         params = GetValue(paginateparamsVariable,1)
         if EvalTruthy(paginate) {
     
-                retRes593019 :=  (<-this.FetchPaginatedCallDynamic("fetchOpenOrders", symbol, since, limit, params))
+                retRes593019 :=  (<-this.FetchPaginatedCallDynamicAsync("fetchOpenOrders", symbol, since, limit, params))
                 PanicOnError(retRes593019)
                 ch <- retRes593019
                 return nil
         }
     
-            retRes593215 :=  (<-this.FetchOrdersByStatus("active", symbol, since, limit, params))
+            retRes593215 :=  (<-this.FetchOrdersByStatusAsync("active", symbol, since, limit, params))
             PanicOnError(retRes593215)
             ch <- retRes593215
             return nil
@@ -7355,7 +7355,7 @@ func (this *Kucoin) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
  * Check fetchSpotOrder(), fetchContractOrder() and fetchUtaOrder() for more details on the extra parameters that can be used in params
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Kucoin) FetchOrder(id any, optionalArgs ...any) <- chan any {
+func  (this *Kucoin) FetchOrderAsync(id any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchOrderBody(ch, id, optionalArgs...)
     return ch
@@ -7369,14 +7369,14 @@ func (this *Kucoin) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes596012 := (<-this.LoadMarkets())
+            retRes596012 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes596012)
         }
         if IsEqual(id, nil) {
             panic(ArgumentsRequired(Add(this.Id, " fetchOrder() requires an id argument")))
         }
     
-        uta:= (<-this.IsUTAEnabled())
+        uta:= (<-this.IsUTAEnabledAsync())
         PanicOnError(uta)
         utaparamsVariable := this.HandleOptionAndParams(params, "fetchOrder", "uta", uta);
         uta = GetValue(utaparamsVariable,0);
@@ -7384,7 +7384,7 @@ func (this *Kucoin) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any
         if EvalTruthy(uta) {
             params = this.Omit(params, "uta")
     
-                retRes596919 :=  (<-this.FetchUtaOrder(id, symbol, params))
+                retRes596919 :=  (<-this.FetchUtaOrderAsync(id, symbol, params))
                 PanicOnError(retRes596919)
                 ch <- retRes596919
                 return nil
@@ -7400,13 +7400,13 @@ func (this *Kucoin) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any
         }
         if ((IsEqual(marketType, "spot"))) || ((IsEqual(marketType, "margin"))) {
     
-                retRes597919 :=  (<-this.FetchSpotOrder(id, symbol, params))
+                retRes597919 :=  (<-this.FetchSpotOrderAsync(id, symbol, params))
                 PanicOnError(retRes597919)
                 ch <- retRes597919
                 return nil
         } else {
     
-                retRes598119 :=  (<-this.FetchContractOrder(id, symbol, params))
+                retRes598119 :=  (<-this.FetchContractOrderAsync(id, symbol, params))
                 PanicOnError(retRes598119)
                 ch <- retRes598119
                 return nil
@@ -7433,7 +7433,7 @@ func (this *Kucoin) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any
  * @param {object} [params.marginMode] 'cross' or 'isolated'
  * @returns An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Kucoin) FetchSpotOrder(id any, optionalArgs ...any) <- chan any {
+func  (this *Kucoin) FetchSpotOrderAsync(id any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchSpotOrderBody(ch, id, optionalArgs...)
     return ch
@@ -7447,7 +7447,7 @@ func (this *Kucoin) fetchSpotOrderBody(ch chan any, id any, optionalArgs ...any)
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes600812 := (<-this.LoadMarkets())
+            retRes600812 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes600812)
         }
         var request map[string]any = map[string]any {}
@@ -7555,7 +7555,7 @@ func (this *Kucoin) fetchSpotOrderBody(ch chan any, id any, optionalArgs ...any)
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Kucoin) FetchContractOrder(id any, optionalArgs ...any) <- chan any {
+func  (this *Kucoin) FetchContractOrderAsync(id any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchContractOrderBody(ch, id, optionalArgs...)
     return ch
@@ -7569,7 +7569,7 @@ func (this *Kucoin) fetchContractOrderBody(ch chan any, id any, optionalArgs ...
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes609212 := (<-this.LoadMarkets())
+            retRes609212 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes609212)
         }
         var request map[string]any = map[string]any {}
@@ -7652,7 +7652,7 @@ func (this *Kucoin) fetchContractOrderBody(ch chan any, id any, optionalArgs ...
  * @param {string} [params.marginMode] 'cross' or 'isolated', required if fetching a margin order (unified accountMode supports only cross margin)
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Kucoin) FetchUtaOrder(id any, optionalArgs ...any) <- chan any {
+func  (this *Kucoin) FetchUtaOrderAsync(id any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchUtaOrderBody(ch, id, optionalArgs...)
     return ch
@@ -7680,7 +7680,7 @@ func (this *Kucoin) fetchUtaOrderBody(ch chan any, id any, optionalArgs ...any) 
         }
         if IsEqual(this.Markets, nil) {
     
-            retRes618512 := (<-this.LoadMarkets())
+            retRes618512 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes618512)
         }
         var market any = this.Market(symbol)
@@ -8256,7 +8256,7 @@ func  (this *Kucoin) ParseOrderStatus(status any) any  {
  * @param {boolean} [params.uta] set to true if fetching trades from uta endpoint, default is false.
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
-func  (this *Kucoin) FetchOrderTrades(id any, optionalArgs ...any) <- chan any {
+func  (this *Kucoin) FetchOrderTradesAsync(id any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchOrderTradesBody(ch, id, optionalArgs...)
     return ch
@@ -8276,7 +8276,7 @@ func (this *Kucoin) fetchOrderTradesBody(ch chan any, id any, optionalArgs ...an
             "orderId": id,
         }
     
-            retRes674815 :=  (<-this.FetchMyTrades(symbol, since, limit, this.Extend(request, params)))
+            retRes674815 :=  (<-this.FetchMyTradesAsync(symbol, since, limit, this.Extend(request, params)))
             PanicOnError(retRes674815)
             ch <- retRes674815
             return nil
@@ -8297,7 +8297,7 @@ func (this *Kucoin) fetchOrderTradesBody(ch chan any, id any, optionalArgs ...an
  * Check fetchMySpotTrades() and fetchMyContractTrades() for more details on the extra parameters that can be used in params
  * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
-func  (this *Kucoin) FetchMyTrades(optionalArgs ...any) <- chan any {
+func  (this *Kucoin) FetchMyTradesAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchMyTradesBody(ch, optionalArgs...)
     return ch
@@ -8315,7 +8315,7 @@ func (this *Kucoin) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes676912 := (<-this.LoadMarkets())
+            retRes676912 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes676912)
         }
         var marketType any = nil
@@ -8327,7 +8327,7 @@ func (this *Kucoin) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
         marketType = GetValue(marketTypeparamsVariable,0);
         params = GetValue(marketTypeparamsVariable,1)
     
-        uta:= (<-this.IsUTAEnabled())
+        uta:= (<-this.IsUTAEnabledAsync())
         PanicOnError(uta)
         utaparamsVariable := this.HandleOptionAndParams(params, "fetchMyTrades", "uta", uta);
         uta = GetValue(utaparamsVariable,0);
@@ -8337,20 +8337,20 @@ func (this *Kucoin) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
                 "marketType": marketType,
             })
     
-                retRes678119 :=  (<-this.FetchMyUtaTrades(symbol, since, limit, params))
+                retRes678119 :=  (<-this.FetchMyUtaTradesAsync(symbol, since, limit, params))
                 PanicOnError(retRes678119)
                 ch <- retRes678119
                 return nil
         }
         if ((IsEqual(marketType, "spot"))) || ((IsEqual(marketType, "margin"))) {
     
-                retRes678419 :=  (<-this.FetchMySpotTrades(symbol, since, limit, params))
+                retRes678419 :=  (<-this.FetchMySpotTradesAsync(symbol, since, limit, params))
                 PanicOnError(retRes678419)
                 ch <- retRes678419
                 return nil
         } else {
     
-                retRes678619 :=  (<-this.FetchMyContractTrades(symbol, since, limit, params))
+                retRes678619 :=  (<-this.FetchMyContractTradesAsync(symbol, since, limit, params))
                 PanicOnError(retRes678619)
                 ch <- retRes678619
                 return nil
@@ -8372,7 +8372,7 @@ func (this *Kucoin) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
  * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
-func  (this *Kucoin) FetchMySpotTrades(optionalArgs ...any) <- chan any {
+func  (this *Kucoin) FetchMySpotTradesAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchMySpotTradesBody(ch, optionalArgs...)
     return ch
@@ -8390,7 +8390,7 @@ func (this *Kucoin) fetchMySpotTradesBody(ch chan any, optionalArgs ...any) any 
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes680812 := (<-this.LoadMarkets())
+            retRes680812 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes680812)
         }
         var paginate any = false
@@ -8399,7 +8399,7 @@ func (this *Kucoin) fetchMySpotTradesBody(ch chan any, optionalArgs ...any) any 
         params = GetValue(paginateparamsVariable,1)
         if EvalTruthy(paginate) {
     
-                retRes681319 :=  (<-this.FetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, params))
+                retRes681319 :=  (<-this.FetchPaginatedCallDynamicAsync("fetchMyTrades", symbol, since, limit, params))
                 PanicOnError(retRes681319)
                 ch <- retRes681319
                 return nil
@@ -8540,7 +8540,7 @@ func (this *Kucoin) fetchMySpotTradesBody(ch chan any, optionalArgs ...any) any 
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
  * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
-func  (this *Kucoin) FetchMyContractTrades(optionalArgs ...any) <- chan any {
+func  (this *Kucoin) FetchMyContractTradesAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchMyContractTradesBody(ch, optionalArgs...)
     return ch
@@ -8558,7 +8558,7 @@ func (this *Kucoin) fetchMyContractTradesBody(ch chan any, optionalArgs ...any) 
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes693812 := (<-this.LoadMarkets())
+            retRes693812 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes693812)
         }
         var paginate any = false
@@ -8567,7 +8567,7 @@ func (this *Kucoin) fetchMyContractTradesBody(ch chan any, optionalArgs ...any) 
         params = GetValue(paginateparamsVariable,1)
         if EvalTruthy(paginate) {
     
-                retRes694319 :=  (<-this.FetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, params))
+                retRes694319 :=  (<-this.FetchPaginatedCallDynamicAsync("fetchMyTrades", symbol, since, limit, params))
                 PanicOnError(retRes694319)
                 ch <- retRes694319
                 return nil
@@ -8649,7 +8649,7 @@ func (this *Kucoin) fetchMyContractTradesBody(ch chan any, optionalArgs ...any) 
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
  * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
-func  (this *Kucoin) FetchMyUtaTrades(optionalArgs ...any) <- chan any {
+func  (this *Kucoin) FetchMyUtaTradesAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchMyUtaTradesBody(ch, optionalArgs...)
     return ch
@@ -8667,7 +8667,7 @@ func (this *Kucoin) fetchMyUtaTradesBody(ch chan any, optionalArgs ...any) any {
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes702612 := (<-this.LoadMarkets())
+            retRes702612 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes702612)
         }
         var paginate any = false
@@ -8676,7 +8676,7 @@ func (this *Kucoin) fetchMyUtaTradesBody(ch chan any, optionalArgs ...any) any {
         params = GetValue(paginateparamsVariable,1)
         if EvalTruthy(paginate) {
     
-                retRes703119 :=  (<-this.FetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, params))
+                retRes703119 :=  (<-this.FetchPaginatedCallDynamicAsync("fetchMyTrades", symbol, since, limit, params))
                 PanicOnError(retRes703119)
                 ch <- retRes703119
                 return nil
@@ -8772,7 +8772,7 @@ func (this *Kucoin) fetchMyUtaTradesBody(ch chan any, optionalArgs ...any) any {
  * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
  * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
-func  (this *Kucoin) FetchTrades(symbol any, optionalArgs ...any) <- chan any {
+func  (this *Kucoin) FetchTradesAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchTradesBody(ch, symbol, optionalArgs...)
     return ch
@@ -8788,7 +8788,7 @@ func (this *Kucoin) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes711712 := (<-this.LoadMarkets())
+            retRes711712 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes711712)
         }
         var market any = this.Market(symbol)
@@ -9240,7 +9240,7 @@ func  (this *Kucoin) ParseMyUtaTrade(trade any, optionalArgs ...any) any  {
  * @param {boolean} [params.uta] set to true for the unified trading account (uta) endpoint, defaults to false
  * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
  */
-func  (this *Kucoin) FetchTradingFee(symbol any, optionalArgs ...any) <- chan any {
+func  (this *Kucoin) FetchTradingFeeAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchTradingFeeBody(ch, symbol, optionalArgs...)
     return ch
@@ -9252,12 +9252,12 @@ func (this *Kucoin) fetchTradingFeeBody(ch chan any, symbol any, optionalArgs ..
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes755512 := (<-this.LoadMarkets())
+            retRes755512 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes755512)
         }
         var market any = this.Market(symbol)
     
-        uta:= (<-this.IsUTAEnabled())
+        uta:= (<-this.IsUTAEnabledAsync())
         PanicOnError(uta)
         utaparamsVariable := this.HandleOptionAndParams(params, "fetchTradingFee", "uta", uta);
         uta = GetValue(utaparamsVariable,0);
@@ -9354,7 +9354,7 @@ func (this *Kucoin) fetchTradingFeeBody(ch chan any, symbol any, optionalArgs ..
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func  (this *Kucoin) Withdraw(code any, amount any, address any, optionalArgs ...any) <- chan any {
+func  (this *Kucoin) WithdrawAsync(code any, amount any, address any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.withdrawBody(ch, code, amount, address, optionalArgs...)
     return ch
@@ -9371,7 +9371,7 @@ func (this *Kucoin) withdrawBody(ch chan any, code any, amount any, address any,
         params = GetValue(tagparamsVariable,1)
         if IsEqual(this.Markets, nil) {
     
-            retRes764812 := (<-this.LoadMarkets())
+            retRes764812 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes764812)
         }
         this.CheckAddress(address)
@@ -9566,7 +9566,7 @@ func  (this *Kucoin) ParseTransaction(transaction any, optionalArgs ...any) any 
  * @param {string} [params.accountType] 'main' or 'contract' (default is 'main')
  * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func  (this *Kucoin) FetchDeposits(optionalArgs ...any) <- chan any {
+func  (this *Kucoin) FetchDepositsAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchDepositsBody(ch, optionalArgs...)
     return ch
@@ -9584,7 +9584,7 @@ func (this *Kucoin) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes784112 := (<-this.LoadMarkets())
+            retRes784112 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes784112)
         }
         var accountType any = "main"
@@ -9595,7 +9595,7 @@ func (this *Kucoin) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
         accountType = DerefScalar(this.SafeString(accountsByType, accountType, accountType))
         if (IsEqual(accountType, "contract")) {
     
-                retRes784819 :=  (<-this.FetchContractDeposits(code, since, limit, params))
+                retRes784819 :=  (<-this.FetchContractDepositsAsync(code, since, limit, params))
                 PanicOnError(retRes784819)
                 ch <- retRes784819
                 return nil
@@ -9606,7 +9606,7 @@ func (this *Kucoin) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
         params = GetValue(paginateparamsVariable,1)
         if EvalTruthy(paginate) {
     
-                retRes785319 :=  (<-this.FetchPaginatedCallDynamic("fetchDeposits", code, since, limit, params))
+                retRes785319 :=  (<-this.FetchPaginatedCallDynamicAsync("fetchDeposits", code, since, limit, params))
                 PanicOnError(retRes785319)
                 ch <- retRes785319
                 return nil
@@ -9694,7 +9694,7 @@ func (this *Kucoin) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func  (this *Kucoin) FetchContractDeposits(optionalArgs ...any) <- chan any {
+func  (this *Kucoin) FetchContractDepositsAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchContractDepositsBody(ch, optionalArgs...)
     return ch
@@ -9712,7 +9712,7 @@ func (this *Kucoin) fetchContractDepositsBody(ch chan any, optionalArgs ...any) 
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes793112 := (<-this.LoadMarkets())
+            retRes793112 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes793112)
         }
         var request map[string]any = map[string]any {}
@@ -9780,7 +9780,7 @@ func (this *Kucoin) fetchContractDepositsBody(ch chan any, optionalArgs ...any) 
  * @param {string} [params.accountType] 'main' or 'contract' (default is 'main')
  * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func  (this *Kucoin) FetchWithdrawals(optionalArgs ...any) <- chan any {
+func  (this *Kucoin) FetchWithdrawalsAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchWithdrawalsBody(ch, optionalArgs...)
     return ch
@@ -9798,7 +9798,7 @@ func (this *Kucoin) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes799512 := (<-this.LoadMarkets())
+            retRes799512 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes799512)
         }
         var accountType any = "main"
@@ -9809,7 +9809,7 @@ func (this *Kucoin) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
         accountType = DerefScalar(this.SafeString(accountsByType, accountType, accountType))
         if (IsEqual(accountType, "contract")) {
     
-                retRes800219 :=  (<-this.FetchContractWithdrawals(code, since, limit, params))
+                retRes800219 :=  (<-this.FetchContractWithdrawalsAsync(code, since, limit, params))
                 PanicOnError(retRes800219)
                 ch <- retRes800219
                 return nil
@@ -9821,7 +9821,7 @@ func (this *Kucoin) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
         params = GetValue(paginateparamsVariable,1)
         if EvalTruthy(paginate) {
     
-                retRes800819 :=  (<-this.FetchPaginatedCallDynamic("fetchWithdrawals", code, since, limit, params, maxLimit))
+                retRes800819 :=  (<-this.FetchPaginatedCallDynamicAsync("fetchWithdrawals", code, since, limit, params, maxLimit))
                 PanicOnError(retRes800819)
                 ch <- retRes800819
                 return nil
@@ -9910,7 +9910,7 @@ func (this *Kucoin) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func  (this *Kucoin) FetchContractWithdrawals(optionalArgs ...any) <- chan any {
+func  (this *Kucoin) FetchContractWithdrawalsAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchContractWithdrawalsBody(ch, optionalArgs...)
     return ch
@@ -9928,7 +9928,7 @@ func (this *Kucoin) fetchContractWithdrawalsBody(ch chan any, optionalArgs ...an
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes808712 := (<-this.LoadMarkets())
+            retRes808712 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes808712)
         }
         var request map[string]any = map[string]any {}
@@ -10008,7 +10008,7 @@ func  (this *Kucoin) ParseBalanceHelper(entry any) any  {
  * @param {boolean} [params.uta] set to true for the unified trading account (uta) endpoint, defaults to false
  * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
-func  (this *Kucoin) FetchBalance(optionalArgs ...any) <- chan any {
+func  (this *Kucoin) FetchBalanceAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchBalanceBody(ch, optionalArgs...)
     return ch
@@ -10020,18 +10020,18 @@ func (this *Kucoin) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes816412 := (<-this.LoadMarkets())
+            retRes816412 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes816412)
         }
     
-        uta:= (<-this.IsUTAEnabled())
+        uta:= (<-this.IsUTAEnabledAsync())
         PanicOnError(uta)
         utaparamsVariable := this.HandleOptionAndParams(params, "fetchBalance", "uta", uta);
         uta = GetValue(utaparamsVariable,0);
         params = GetValue(utaparamsVariable,1)
         if EvalTruthy(uta) {
     
-                retRes816919 :=  (<-this.FetchUtaBalance(params))
+                retRes816919 :=  (<-this.FetchUtaBalanceAsync(params))
                 PanicOnError(retRes816919)
                 ch <- retRes816919
                 return nil
@@ -10052,7 +10052,7 @@ func (this *Kucoin) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
         params = this.Omit(params, "type")
         if (IsEqual(typeVar, "contract")) {
     
-                retRes818419 :=  (<-this.FetchContractBalance(params))
+                retRes818419 :=  (<-this.FetchContractBalanceAsync(params))
                 PanicOnError(retRes818419)
                 ch <- retRes818419
                 return nil
@@ -10230,7 +10230,7 @@ func (this *Kucoin) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
  * @param {object} [params.code] the unified currency code to fetch the balance for, if not provided, the default .options['fetchBalance']['code'] will be used
  * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
-func  (this *Kucoin) FetchContractBalance(optionalArgs ...any) <- chan any {
+func  (this *Kucoin) FetchContractBalanceAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchContractBalanceBody(ch, optionalArgs...)
     return ch
@@ -10242,7 +10242,7 @@ func (this *Kucoin) fetchContractBalanceBody(ch chan any, optionalArgs ...any) a
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes835012 := (<-this.LoadMarkets())
+            retRes835012 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes835012)
         }
         // only fetches one balance at a time
@@ -10304,7 +10304,7 @@ func (this *Kucoin) fetchContractBalanceBody(ch chan any, optionalArgs ...any) a
  * @param {string} [params.marginMode] 'cross' or 'isolated', margin type for fetching margin balance, only applicable if type is margin (default is cross)
  * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
-func  (this *Kucoin) FetchUtaBalance(optionalArgs ...any) <- chan any {
+func  (this *Kucoin) FetchUtaBalanceAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchUtaBalanceBody(ch, optionalArgs...)
     return ch
@@ -10316,7 +10316,7 @@ func (this *Kucoin) fetchUtaBalanceBody(ch chan any, optionalArgs ...any) any {
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes841012 := (<-this.LoadMarkets())
+            retRes841012 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes841012)
         }
         var requestedType any = "unified"
@@ -10463,7 +10463,7 @@ func (this *Kucoin) fetchUtaBalanceBody(ch chan any, optionalArgs ...any) any {
  * Check transferClassic() and transferUta() for more details on params
  * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
-func  (this *Kucoin) Transfer(code any, amount any, fromAccount any, toAccount any, optionalArgs ...any) <- chan any {
+func  (this *Kucoin) TransferAsync(code any, amount any, fromAccount any, toAccount any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.transferBody(ch, code, amount, fromAccount, toAccount, optionalArgs...)
     return ch
@@ -10475,24 +10475,24 @@ func (this *Kucoin) transferBody(ch chan any, code any, amount any, fromAccount 
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes854912 := (<-this.LoadMarkets())
+            retRes854912 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes854912)
         }
     
-        uta:= (<-this.IsUTAEnabled())
+        uta:= (<-this.IsUTAEnabledAsync())
         PanicOnError(uta)
         utaparamsVariable := this.HandleOptionAndParams(params, "transfer", "uta", uta);
         uta = GetValue(utaparamsVariable,0);
         params = GetValue(utaparamsVariable,1)
         if EvalTruthy(uta) {
     
-                retRes855419 :=  (<-this.TransferUta(code, amount, fromAccount, toAccount, params))
+                retRes855419 :=  (<-this.TransferUtaAsync(code, amount, fromAccount, toAccount, params))
                 PanicOnError(retRes855419)
                 ch <- retRes855419
                 return nil
         }
     
-            retRes855615 :=  (<-this.TransferClassic(code, amount, fromAccount, toAccount, params))
+            retRes855615 :=  (<-this.TransferClassicAsync(code, amount, fromAccount, toAccount, params))
             PanicOnError(retRes855615)
             ch <- retRes855615
             return nil
@@ -10512,7 +10512,7 @@ func (this *Kucoin) transferBody(ch chan any, code any, amount any, fromAccount 
  * @param {string} [params.toUserId] required if transferType is PARENT_TO_SUB or SUB_TO_SUB
  * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
-func  (this *Kucoin) TransferUta(code any, amount any, fromAccount any, toAccount any, optionalArgs ...any) <- chan any {
+func  (this *Kucoin) TransferUtaAsync(code any, amount any, fromAccount any, toAccount any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.transferUtaBody(ch, code, amount, fromAccount, toAccount, optionalArgs...)
     return ch
@@ -10524,7 +10524,7 @@ func (this *Kucoin) transferUtaBody(ch chan any, code any, amount any, fromAccou
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes857612 := (<-this.LoadMarkets())
+            retRes857612 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes857612)
         }
         var currency any = this.Currency(code)
@@ -10622,7 +10622,7 @@ func (this *Kucoin) transferUtaBody(ch chan any, code any, amount any, fromAccou
  * @param {string} [params.toUserId] required if transferType is PARENT_TO_SUB
  * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
-func  (this *Kucoin) TransferClassic(code any, amount any, fromAccount any, toAccount any, optionalArgs ...any) <- chan any {
+func  (this *Kucoin) TransferClassicAsync(code any, amount any, fromAccount any, toAccount any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.transferClassicBody(ch, code, amount, fromAccount, toAccount, optionalArgs...)
     return ch
@@ -10634,7 +10634,7 @@ func (this *Kucoin) transferClassicBody(ch chan any, code any, amount any, fromA
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes866412 := (<-this.LoadMarkets())
+            retRes866412 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes866412)
         }
         var currency any = this.Currency(code)
@@ -11049,7 +11049,7 @@ func  (this *Kucoin) ParseLedgerEntry(item any, optionalArgs ...any) any  {
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
  * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
  */
-func  (this *Kucoin) FetchLedger(optionalArgs ...any) <- chan any {
+func  (this *Kucoin) FetchLedgerAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchLedgerBody(ch, optionalArgs...)
     return ch
@@ -11067,14 +11067,14 @@ func (this *Kucoin) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes907512 := (<-this.LoadMarkets())
+            retRes907512 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes907512)
         }
     
-        retRes90778 := (<-this.LoadAccounts())
+        retRes90778 := (<-this.LoadAccountsAsync())
         PanicOnError(retRes90778)
     
-        uta:= (<-this.IsUTAEnabled())
+        uta:= (<-this.IsUTAEnabledAsync())
         PanicOnError(uta)
         utaparamsVariable := this.HandleOptionAndParams(params, "fetchLedger", "uta", uta);
         uta = GetValue(utaparamsVariable,0);
@@ -11122,7 +11122,7 @@ func (this *Kucoin) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
         params = GetValue(paginateparamsVariable,1)
         if EvalTruthy(paginate) {
     
-                retRes911419 :=  (<-this.FetchPaginatedCallDynamic("fetchLedger", code, since, limit, params, maxLimit))
+                retRes911419 :=  (<-this.FetchPaginatedCallDynamicAsync("fetchLedger", code, since, limit, params, maxLimit))
                 PanicOnError(retRes911419)
                 ch <- retRes911419
                 return nil
@@ -11320,7 +11320,7 @@ func  (this *Kucoin) ParseBorrowRate(info any, optionalArgs ...any) any  {
  * @param {string} [params.marginMode] 'cross' or 'isolated' default is 'cross'
  * @returns {object[]} a list of [borrow interest structures]{@link https://docs.ccxt.com/?id=borrow-interest-structure}
  */
-func  (this *Kucoin) FetchBorrowInterest(optionalArgs ...any) <- chan any {
+func  (this *Kucoin) FetchBorrowInterestAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchBorrowInterestBody(ch, optionalArgs...)
     return ch
@@ -11340,7 +11340,7 @@ func (this *Kucoin) fetchBorrowInterestBody(ch chan any, optionalArgs ...any) an
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes930012 := (<-this.LoadMarkets())
+            retRes930012 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes930012)
         }
         var marginMode any = nil
@@ -11536,7 +11536,7 @@ func  (this *Kucoin) ParseBorrowInterest(info any, optionalArgs ...any) any  {
  * @param {int} [params.until] the latest time in ms to fetch entries for
  * @returns {object} a dictionary of [borrow rate structures]{@link https://docs.ccxt.com/?id=borrow-rate-structure} indexed by the market symbol
  */
-func  (this *Kucoin) FetchBorrowRateHistories(optionalArgs ...any) <- chan any {
+func  (this *Kucoin) FetchBorrowRateHistoriesAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchBorrowRateHistoriesBody(ch, optionalArgs...)
     return ch
@@ -11554,7 +11554,7 @@ func (this *Kucoin) fetchBorrowRateHistoriesBody(ch chan any, optionalArgs ...an
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes948912 := (<-this.LoadMarkets())
+            retRes948912 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes948912)
         }
         var marginResult any = this.HandleMarginModeAndParams("fetchBorrowRateHistories", params)
@@ -11614,7 +11614,7 @@ func (this *Kucoin) fetchBorrowRateHistoriesBody(ch chan any, optionalArgs ...an
  * @param {int} [params.until] the latest time in ms to fetch entries for
  * @returns {object[]} an array of [borrow rate structures]{@link https://docs.ccxt.com/?id=borrow-rate-structure}
  */
-func  (this *Kucoin) FetchBorrowRateHistory(code any, optionalArgs ...any) <- chan any {
+func  (this *Kucoin) FetchBorrowRateHistoryAsync(code any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchBorrowRateHistoryBody(ch, code, optionalArgs...)
     return ch
@@ -11630,7 +11630,7 @@ func (this *Kucoin) fetchBorrowRateHistoryBody(ch chan any, code any, optionalAr
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes954512 := (<-this.LoadMarkets())
+            retRes954512 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes954512)
         }
         var marginResult any = this.HandleMarginModeAndParams("fetchBorrowRateHistories", params)
@@ -11719,7 +11719,7 @@ func  (this *Kucoin) ParseBorrowRateHistories(response any, codes any, since any
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [borrow rate structure]{@link https://docs.ccxt.com/?id=borrow-rate-structure}
  */
-func  (this *Kucoin) FetchCrossBorrowRate(code any, optionalArgs ...any) <- chan any {
+func  (this *Kucoin) FetchCrossBorrowRateAsync(code any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchCrossBorrowRateBody(ch, code, optionalArgs...)
     return ch
@@ -11731,7 +11731,7 @@ func (this *Kucoin) fetchCrossBorrowRateBody(ch chan any, code any, optionalArgs
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes963112 := (<-this.LoadMarkets())
+            retRes963112 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes963112)
         }
         var currency any = this.Currency(code)
@@ -11770,7 +11770,7 @@ func (this *Kucoin) fetchCrossBorrowRateBody(ch chan any, code any, optionalArgs
  * @param {string} [params.timeInForce] either IOC or FOK
  * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
  */
-func  (this *Kucoin) BorrowCrossMargin(code any, amount any, optionalArgs ...any) <- chan any {
+func  (this *Kucoin) BorrowCrossMarginAsync(code any, amount any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.borrowCrossMarginBody(ch, code, amount, optionalArgs...)
     return ch
@@ -11782,7 +11782,7 @@ func (this *Kucoin) borrowCrossMarginBody(ch chan any, code any, amount any, opt
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes966812 := (<-this.LoadMarkets())
+            retRes966812 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes966812)
         }
         var currency any = this.Currency(code)
@@ -11823,7 +11823,7 @@ func (this *Kucoin) borrowCrossMarginBody(ch chan any, code any, amount any, opt
  * @param {string} [params.timeInForce] either IOC or FOK
  * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
  */
-func  (this *Kucoin) BorrowIsolatedMargin(symbol any, code any, amount any, optionalArgs ...any) <- chan any {
+func  (this *Kucoin) BorrowIsolatedMarginAsync(symbol any, code any, amount any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.borrowIsolatedMarginBody(ch, symbol, code, amount, optionalArgs...)
     return ch
@@ -11835,7 +11835,7 @@ func (this *Kucoin) borrowIsolatedMarginBody(ch chan any, symbol any, code any, 
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes970712 := (<-this.LoadMarkets())
+            retRes970712 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes970712)
         }
         var market any = this.Market(symbol)
@@ -11877,7 +11877,7 @@ func (this *Kucoin) borrowIsolatedMarginBody(ch chan any, symbol any, code any, 
  * @param {object} [params] extra parameters specific to the exchange API endpoints
  * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
  */
-func  (this *Kucoin) RepayCrossMargin(code any, amount any, optionalArgs ...any) <- chan any {
+func  (this *Kucoin) RepayCrossMarginAsync(code any, amount any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.repayCrossMarginBody(ch, code, amount, optionalArgs...)
     return ch
@@ -11889,7 +11889,7 @@ func (this *Kucoin) repayCrossMarginBody(ch chan any, code any, amount any, opti
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes974712 := (<-this.LoadMarkets())
+            retRes974712 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes974712)
         }
         var currency any = this.Currency(code)
@@ -11928,7 +11928,7 @@ func (this *Kucoin) repayCrossMarginBody(ch chan any, code any, amount any, opti
  * @param {object} [params] extra parameters specific to the exchange API endpoints
  * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
  */
-func  (this *Kucoin) RepayIsolatedMargin(symbol any, code any, amount any, optionalArgs ...any) <- chan any {
+func  (this *Kucoin) RepayIsolatedMarginAsync(symbol any, code any, amount any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.repayIsolatedMarginBody(ch, symbol, code, amount, optionalArgs...)
     return ch
@@ -11940,7 +11940,7 @@ func (this *Kucoin) repayIsolatedMarginBody(ch chan any, symbol any, code any, a
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes978412 := (<-this.LoadMarkets())
+            retRes978412 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes978412)
         }
         var market any = this.Market(symbol)
@@ -12001,7 +12001,7 @@ func  (this *Kucoin) ParseMarginLoan(info any, optionalArgs ...any) any  {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
  */
-func  (this *Kucoin) FetchDepositWithdrawFees(optionalArgs ...any) <- chan any {
+func  (this *Kucoin) FetchDepositWithdrawFeesAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchDepositWithdrawFeesBody(ch, optionalArgs...)
     return ch
@@ -12015,7 +12015,7 @@ func (this *Kucoin) fetchDepositWithdrawFeesBody(ch chan any, optionalArgs ...an
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes984212 := (<-this.LoadMarkets())
+            retRes984212 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes984212)
         }
     
@@ -12053,7 +12053,7 @@ func (this *Kucoin) fetchDepositWithdrawFeesBody(ch chan any, optionalArgs ...an
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
  */
-func  (this *Kucoin) FetchLeverage(symbol any, optionalArgs ...any) <- chan any {
+func  (this *Kucoin) FetchLeverageAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchLeverageBody(ch, symbol, optionalArgs...)
     return ch
@@ -12072,7 +12072,7 @@ func (this *Kucoin) fetchLeverageBody(ch chan any, symbol any, optionalArgs ...a
         }
         if IsEqual(this.Markets, nil) {
     
-            retRes988312 := (<-this.LoadMarkets())
+            retRes988312 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes988312)
         }
         var market any = this.Market(symbol)
@@ -12118,7 +12118,7 @@ func (this *Kucoin) fetchLeverageBody(ch chan any, symbol any, optionalArgs ...a
  * @param {string} [params.code] *uta margin only* the unified currency code for the margin to set the leverage for
  * @returns {object} response from the exchange
  */
-func  (this *Kucoin) SetLeverage(leverage any, optionalArgs ...any) <- chan any {
+func  (this *Kucoin) SetLeverageAsync(leverage any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.setLeverageBody(ch, leverage, optionalArgs...)
     return ch
@@ -12132,7 +12132,7 @@ func (this *Kucoin) setLeverageBody(ch chan any, leverage any, optionalArgs ...a
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes992712 := (<-this.LoadMarkets())
+            retRes992712 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes992712)
         }
         var market any = nil
@@ -12147,7 +12147,7 @@ func (this *Kucoin) setLeverageBody(ch chan any, leverage any, optionalArgs ...a
             market = this.Market(symbol)
             if IsEqual(GetValue(market, "contract"), true) {
     
-                    retRes993823 :=  (<-this.SetContractLeverage(leverage, symbol, params))
+                    retRes993823 :=  (<-this.SetContractLeverageAsync(leverage, symbol, params))
                     PanicOnError(retRes993823)
                     ch <- retRes993823
                     return nil
@@ -12161,7 +12161,7 @@ func (this *Kucoin) setLeverageBody(ch chan any, leverage any, optionalArgs ...a
         marginMode = GetValue(marginModeparamsVariable,0);
         params = GetValue(marginModeparamsVariable,1)
     
-        uta:= (<-this.IsUTAEnabled())
+        uta:= (<-this.IsUTAEnabledAsync())
         PanicOnError(uta)
         utaparamsVariable := this.HandleOptionAndParams(params, "setLeverage", "uta", uta);
         uta = GetValue(utaparamsVariable,0);
@@ -12214,7 +12214,7 @@ func (this *Kucoin) setLeverageBody(ch chan any, leverage any, optionalArgs ...a
  * @param {boolean} [params.uta] set to true for the unified trading account (uta)
  * @returns {object} response from the exchange
  */
-func  (this *Kucoin) SetContractLeverage(leverage any, optionalArgs ...any) <- chan any {
+func  (this *Kucoin) SetContractLeverageAsync(leverage any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.setContractLeverageBody(ch, leverage, optionalArgs...)
     return ch
@@ -12238,7 +12238,7 @@ func (this *Kucoin) setContractLeverageBody(ch chan any, leverage any, optionalA
         }
         if IsEqual(this.Markets, nil) {
     
-            retRes999912 := (<-this.LoadMarkets())
+            retRes999912 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes999912)
         }
         var market any = this.Market(symbol)
@@ -12247,7 +12247,7 @@ func (this *Kucoin) setContractLeverageBody(ch chan any, leverage any, optionalA
             "leverage": ToString(leverage),
         }
     
-        uta:= (<-this.IsUTAEnabled())
+        uta:= (<-this.IsUTAEnabledAsync())
         PanicOnError(uta)
         utaparamsVariable := this.HandleOptionAndParams(params, "setLeverage", "uta", uta);
         uta = GetValue(utaparamsVariable,0);
@@ -12291,7 +12291,7 @@ func (this *Kucoin) setContractLeverageBody(ch chan any, leverage any, optionalA
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
  */
-func  (this *Kucoin) FetchFundingInterval(symbol any, optionalArgs ...any) <- chan any {
+func  (this *Kucoin) FetchFundingIntervalAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchFundingIntervalBody(ch, symbol, optionalArgs...)
     return ch
@@ -12302,7 +12302,7 @@ func (this *Kucoin) fetchFundingIntervalBody(ch chan any, symbol any, optionalAr
         params := GetArg(optionalArgs, 0, map[string]any {})
         _ = params
     
-            retRes1004315 :=  (<-this.FetchFundingRate(symbol, params))
+            retRes1004315 :=  (<-this.FetchFundingRateAsync(symbol, params))
             PanicOnError(retRes1004315)
             ch <- retRes1004315
             return nil
@@ -12318,7 +12318,7 @@ func (this *Kucoin) fetchFundingIntervalBody(ch chan any, symbol any, optionalAr
  * @param {boolean} [params.uta] set to true for the unified trading account (uta)
  * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
  */
-func  (this *Kucoin) FetchFundingRate(symbol any, optionalArgs ...any) <- chan any {
+func  (this *Kucoin) FetchFundingRateAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchFundingRateBody(ch, symbol, optionalArgs...)
     return ch
@@ -12330,7 +12330,7 @@ func (this *Kucoin) fetchFundingRateBody(ch chan any, symbol any, optionalArgs .
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes1005912 := (<-this.LoadMarkets())
+            retRes1005912 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes1005912)
         }
         var market any = this.Market(symbol)
@@ -12398,7 +12398,7 @@ func (this *Kucoin) fetchFundingRateBody(ch chan any, symbol any, optionalArgs .
  * @param {string} [params.symbol] exchange-specific contract id (e.g. XBTUSDTM), overrides productType when provided
  * @returns {object} a dictionary of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-structure}, indexed by market symbols
  */
-func  (this *Kucoin) FetchFundingRates(optionalArgs ...any) <- chan any {
+func  (this *Kucoin) FetchFundingRatesAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchFundingRatesBody(ch, optionalArgs...)
     return ch
@@ -12412,7 +12412,7 @@ func (this *Kucoin) fetchFundingRatesBody(ch chan any, optionalArgs ...any) any 
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes1012112 := (<-this.LoadMarkets())
+            retRes1012112 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes1012112)
         }
         symbols = this.MarketSymbols(symbols)
@@ -12529,7 +12529,7 @@ func  (this *Kucoin) ParseFundingInterval(interval any) any  {
  * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to true
  * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
  */
-func  (this *Kucoin) FetchFundingRateHistory(optionalArgs ...any) <- chan any {
+func  (this *Kucoin) FetchFundingRateHistoryAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchFundingRateHistoryBody(ch, optionalArgs...)
     return ch
@@ -12550,7 +12550,7 @@ func (this *Kucoin) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any
         }
         if IsEqual(this.Markets, nil) {
     
-            retRes1023912 := (<-this.LoadMarkets())
+            retRes1023912 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes1023912)
         }
         var market any = this.Market(symbol)
@@ -12658,7 +12658,7 @@ func  (this *Kucoin) ParseFundingRateHistory(info any, optionalArgs ...any) any 
  * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
  * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/?id=funding-history-structure}
  */
-func  (this *Kucoin) FetchFundingHistory(optionalArgs ...any) <- chan any {
+func  (this *Kucoin) FetchFundingHistoryAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchFundingHistoryBody(ch, optionalArgs...)
     return ch
@@ -12676,11 +12676,11 @@ func (this *Kucoin) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) an
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes1034012 := (<-this.LoadMarkets())
+            retRes1034012 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes1034012)
         }
     
-        uta:= (<-this.IsUTAEnabled())
+        uta:= (<-this.IsUTAEnabledAsync())
         PanicOnError(uta)
         utaparamsVariable := this.HandleOptionAndParams(params, "fetchFundingHistory", "uta", uta);
         uta = GetValue(utaparamsVariable,0);
@@ -12798,7 +12798,7 @@ func (this *Kucoin) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) an
  * @param {integer} [params.pageNumber] *uta only* page number for the uta endpoint (default 1)
  * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
  */
-func  (this *Kucoin) FetchPosition(symbol any, optionalArgs ...any) <- chan any {
+func  (this *Kucoin) FetchPositionAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchPositionBody(ch, symbol, optionalArgs...)
     return ch
@@ -12810,7 +12810,7 @@ func (this *Kucoin) fetchPositionBody(ch chan any, symbol any, optionalArgs ...a
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes1045212 := (<-this.LoadMarkets())
+            retRes1045212 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes1045212)
         }
         var market any = this.Market(symbol)
@@ -12818,7 +12818,7 @@ func (this *Kucoin) fetchPositionBody(ch chan any, symbol any, optionalArgs ...a
             "symbol": GetValue(market, "id"),
         }
     
-        uta:= (<-this.IsUTAEnabled())
+        uta:= (<-this.IsUTAEnabledAsync())
         PanicOnError(uta)
         utaparamsVariable := this.HandleOptionAndParams(params, "fetchPosition", "uta", uta);
         uta = GetValue(utaparamsVariable,0);
@@ -12923,7 +12923,7 @@ func (this *Kucoin) fetchPositionBody(ch chan any, symbol any, optionalArgs ...a
  * @param {integer} [params.pageNumber] *uta only* page number for the uta endpoint (default 1)
  * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
  */
-func  (this *Kucoin) FetchPositions(optionalArgs ...any) <- chan any {
+func  (this *Kucoin) FetchPositionsAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchPositionsBody(ch, optionalArgs...)
     return ch
@@ -12937,11 +12937,11 @@ func (this *Kucoin) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes1055712 := (<-this.LoadMarkets())
+            retRes1055712 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes1055712)
         }
     
-        uta:= (<-this.IsUTAEnabled())
+        uta:= (<-this.IsUTAEnabledAsync())
         PanicOnError(uta)
         utaparamsVariable := this.HandleOptionAndParams(params, "fetchPositions", "uta", uta);
         uta = GetValue(utaparamsVariable,0);
@@ -12979,7 +12979,7 @@ func (this *Kucoin) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
  * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
  * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
  */
-func  (this *Kucoin) FetchPositionsHistory(optionalArgs ...any) <- chan any {
+func  (this *Kucoin) FetchPositionsHistoryAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchPositionsHistoryBody(ch, optionalArgs...)
     return ch
@@ -12997,11 +12997,11 @@ func (this *Kucoin) fetchPositionsHistoryBody(ch chan any, optionalArgs ...any) 
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes1063412 := (<-this.LoadMarkets())
+            retRes1063412 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes1063412)
         }
     
-        uta:= (<-this.IsUTAEnabled())
+        uta:= (<-this.IsUTAEnabledAsync())
         PanicOnError(uta)
         utaparamsVariable := this.HandleOptionAndParams(params, "fetchPositionsHistory", "uta", uta);
         uta = GetValue(utaparamsVariable,0);
@@ -13315,7 +13315,7 @@ func  (this *Kucoin) ParsePosition(position any, optionalArgs ...any) any  {
  * @param {string} [params.marginMode] *for margin orders only* 'cross' or 'isolated' (unified accountMode supports cross margin only)
  * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Kucoin) CancelOrders(ids any, optionalArgs ...any) <- chan any {
+func  (this *Kucoin) CancelOrdersAsync(ids any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.cancelOrdersBody(ch, ids, optionalArgs...)
     return ch
@@ -13329,11 +13329,11 @@ func (this *Kucoin) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any) 
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes1094112 := (<-this.LoadMarkets())
+            retRes1094112 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes1094112)
         }
     
-        uta:= (<-this.IsUTAEnabled())
+        uta:= (<-this.IsUTAEnabledAsync())
         PanicOnError(uta)
         utaparamsVariable := this.HandleOptionAndParams(params, "cancelOrders", "uta", uta);
         uta = GetValue(utaparamsVariable,0);
@@ -13439,7 +13439,7 @@ func (this *Kucoin) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any) 
  * @param {string} [params.positionSide] *required for hedged position* 'BOTH', 'LONG' or 'SHORT' (default is 'BOTH')
  * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
  */
-func  (this *Kucoin) AddMargin(symbol any, amount any, optionalArgs ...any) <- chan any {
+func  (this *Kucoin) AddMarginAsync(symbol any, amount any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.addMarginBody(ch, symbol, amount, optionalArgs...)
     return ch
@@ -13451,7 +13451,7 @@ func (this *Kucoin) addMarginBody(ch chan any, symbol any, amount any, optionalA
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes1103912 := (<-this.LoadMarkets())
+            retRes1103912 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes1103912)
         }
         var market any = this.Market(symbol)
@@ -13532,7 +13532,7 @@ func (this *Kucoin) addMarginBody(ch chan any, symbol any, amount any, optionalA
  * @param {string} [params.positionSide] *required for hedged position* 'BOTH', 'LONG' or 'SHORT' (default is 'BOTH')
  * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
  */
-func  (this *Kucoin) ReduceMargin(symbol any, amount any, optionalArgs ...any) <- chan any {
+func  (this *Kucoin) ReduceMarginAsync(symbol any, amount any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.reduceMarginBody(ch, symbol, amount, optionalArgs...)
     return ch
@@ -13544,7 +13544,7 @@ func (this *Kucoin) reduceMarginBody(ch chan any, symbol any, amount any, option
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes1111812 := (<-this.LoadMarkets())
+            retRes1111812 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes1111812)
         }
         var market any = this.Market(symbol)
@@ -13656,7 +13656,7 @@ func  (this *Kucoin) ParseMarginModification(info any, optionalArgs ...any) any 
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [margin mode structure]{@link https://docs.ccxt.com/?id=margin-mode-structure}
  */
-func  (this *Kucoin) FetchMarginMode(symbol any, optionalArgs ...any) <- chan any {
+func  (this *Kucoin) FetchMarginModeAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchMarginModeBody(ch, symbol, optionalArgs...)
     return ch
@@ -13668,7 +13668,7 @@ func (this *Kucoin) fetchMarginModeBody(ch chan any, symbol any, optionalArgs ..
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes1122712 := (<-this.LoadMarkets())
+            retRes1122712 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes1122712)
         }
         var market any = this.Market(symbol)
@@ -13713,7 +13713,7 @@ func  (this *Kucoin) ParseMarginMode(marginMode any, optionalArgs ...any) any  {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} response from the exchange
  */
-func  (this *Kucoin) SetMarginMode(marginMode any, optionalArgs ...any) <- chan any {
+func  (this *Kucoin) SetMarginModeAsync(marginMode any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.setMarginModeBody(ch, marginMode, optionalArgs...)
     return ch
@@ -13731,7 +13731,7 @@ func (this *Kucoin) setMarginModeBody(ch chan any, marginMode any, optionalArgs 
         this.CheckRequiredArgument("setMarginMode", marginMode, "marginMode", []any{"cross", "isolated"})
         if IsEqual(this.Markets, nil) {
     
-            retRes1127312 := (<-this.LoadMarkets())
+            retRes1127312 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes1127312)
         }
         var market any = this.Market(symbol)
@@ -13769,7 +13769,7 @@ func (this *Kucoin) setMarginModeBody(ch chan any, marginMode any, optionalArgs 
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a response from the exchange
  */
-func  (this *Kucoin) SetPositionMode(hedged any, optionalArgs ...any) <- chan any {
+func  (this *Kucoin) SetPositionModeAsync(hedged any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.setPositionModeBody(ch, hedged, optionalArgs...)
     return ch
@@ -13783,7 +13783,7 @@ func (this *Kucoin) setPositionModeBody(ch chan any, hedged any, optionalArgs ..
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes1130912 := (<-this.LoadMarkets())
+            retRes1130912 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes1130912)
         }
         var posMode any = Ternary(EvalTruthy(hedged), "1", "0")
@@ -13814,7 +13814,7 @@ func (this *Kucoin) setPositionModeBody(ch chan any, hedged any, optionalArgs ..
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an object detailing whether the market is in hedged or one-way mode
  */
-func  (this *Kucoin) FetchPositionMode(optionalArgs ...any) <- chan any {
+func  (this *Kucoin) FetchPositionModeAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchPositionModeBody(ch, optionalArgs...)
     return ch
@@ -13850,7 +13850,7 @@ func (this *Kucoin) fetchPositionModeBody(ch chan any, optionalArgs ...any) any 
  * @param {string} [params.clientOrderId] client order id of the order
  * @returns {object[]} [A list of position structures]{@link https://docs.ccxt.com/?id=position-structure}
  */
-func  (this *Kucoin) ClosePosition(symbol any, optionalArgs ...any) <- chan any {
+func  (this *Kucoin) ClosePositionAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.closePositionBody(ch, symbol, optionalArgs...)
     return ch
@@ -13864,7 +13864,7 @@ func (this *Kucoin) closePositionBody(ch chan any, symbol any, optionalArgs ...a
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes1136012 := (<-this.LoadMarkets())
+            retRes1136012 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes1136012)
         }
         var market any = this.Market(symbol)
@@ -13904,7 +13904,7 @@ func (this *Kucoin) closePositionBody(ch chan any, symbol any, optionalArgs ...a
  * @param {boolean} [params.uta] set to true to fetch leverage tiers for unified trading account instead of futures account (default is false)
  * @returns {object} a [leverage tiers structure]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}
  */
-func  (this *Kucoin) FetchMarketLeverageTiers(symbol any, optionalArgs ...any) <- chan any {
+func  (this *Kucoin) FetchMarketLeverageTiersAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchMarketLeverageTiersBody(ch, symbol, optionalArgs...)
     return ch
@@ -13916,7 +13916,7 @@ func (this *Kucoin) fetchMarketLeverageTiersBody(ch chan any, symbol any, option
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes1139612 := (<-this.LoadMarkets())
+            retRes1139612 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes1139612)
         }
         var market any = this.Market(symbol)
@@ -13929,7 +13929,7 @@ func (this *Kucoin) fetchMarketLeverageTiersBody(ch chan any, symbol any, option
         params = GetValue(utaparamsVariable,1)
         if EvalTruthy(uta) {
     
-            result:= (<-this.FetchLeverageTiers([]any{symbol}, params))
+            result:= (<-this.FetchLeverageTiersAsync([]any{symbol}, params))
             PanicOnError(result)
     
             ch <- this.SafeList(result, symbol, []any{})
@@ -14023,7 +14023,7 @@ func  (this *Kucoin) ParseMarketLeverageTiers(info any, optionalArgs ...any) any
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}, indexed by market symbols
  */
-func  (this *Kucoin) FetchLeverageTiers(optionalArgs ...any) <- chan any {
+func  (this *Kucoin) FetchLeverageTiersAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchLeverageTiersBody(ch, optionalArgs...)
     return ch
@@ -14037,7 +14037,7 @@ func (this *Kucoin) fetchLeverageTiersBody(ch chan any, optionalArgs ...any) any
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes1149412 := (<-this.LoadMarkets())
+            retRes1149412 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes1149412)
         }
         if IsEqual(symbols, nil) {
@@ -14115,7 +14115,7 @@ func (this *Kucoin) fetchLeverageTiersBody(ch chan any, optionalArgs ...any) any
  * @param {object} [params] exchange specific parameters
  * @returns {object} an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}
  */
-func  (this *Kucoin) FetchOpenInterests(optionalArgs ...any) <- chan any {
+func  (this *Kucoin) FetchOpenInterestsAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchOpenInterestsBody(ch, optionalArgs...)
     return ch
@@ -14129,7 +14129,7 @@ func (this *Kucoin) fetchOpenInterestsBody(ch chan any, optionalArgs ...any) any
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes1156712 := (<-this.LoadMarkets())
+            retRes1156712 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes1156712)
         }
         symbols = this.MarketSymbols(symbols)
@@ -14199,7 +14199,7 @@ func  (this *Kucoin) ParseOpenInterest(interest any, optionalArgs ...any) any  {
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
  * @returns {object} an array of [open interest structures]{@link https://docs.ccxt.com/?id=open-interest-structure}
  */
-func  (this *Kucoin) FetchOpenInterestHistory(symbol any, optionalArgs ...any) <- chan any {
+func  (this *Kucoin) FetchOpenInterestHistoryAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchOpenInterestHistoryBody(ch, symbol, optionalArgs...)
     return ch
@@ -14235,7 +14235,7 @@ func (this *Kucoin) fetchOpenInterestHistoryBody(ch chan any, symbol any, option
         }
         if IsEqual(this.Markets, nil) {
     
-            retRes1165212 := (<-this.LoadMarkets())
+            retRes1165212 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes1165212)
         }
         var market any = this.Market(symbol)
@@ -14246,7 +14246,7 @@ func (this *Kucoin) fetchOpenInterestHistoryBody(ch chan any, symbol any, option
         params = GetValue(paginateparamsVariable,1)
         if EvalTruthy(paginate) {
     
-                retRes1165919 :=  (<-this.FetchPaginatedCallDeterministic("fetchOpenInterestHistory", symbol, since, limit, timeframe, params, maxLimit))
+                retRes1165919 :=  (<-this.FetchPaginatedCallDeterministicAsync("fetchOpenInterestHistory", symbol, since, limit, timeframe, params, maxLimit))
                 PanicOnError(retRes1165919)
                 ch <- retRes1165919
                 return nil
@@ -14280,7 +14280,7 @@ func (this *Kucoin) fetchOpenInterestHistoryBody(ch chan any, symbol any, option
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {boolean} true if unified account is enabled, false otherwise
  */
-func  (this *Kucoin) IsUTAEnabled(optionalArgs ...any) <- chan any {
+func  (this *Kucoin) IsUTAEnabledAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.isUTAEnabledBody(ch, optionalArgs...)
     return ch
@@ -14446,7 +14446,7 @@ func  (this *Kucoin) HandleErrors(code any, reason any, url any, method any, hea
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
  * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
-func  (this *Kucoin) FetchTransfers(optionalArgs ...any) <- chan any {
+func  (this *Kucoin) FetchTransfersAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchTransfersBody(ch, optionalArgs...)
     return ch
@@ -14464,7 +14464,7 @@ func (this *Kucoin) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes1182812 := (<-this.LoadMarkets())
+            retRes1182812 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes1182812)
         }
         var paginate any = false
@@ -14473,7 +14473,7 @@ func (this *Kucoin) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
         params = GetValue(paginateparamsVariable,1)
         if EvalTruthy(paginate) {
     
-                retRes1183319 :=  (<-this.FetchPaginatedCallDynamic("fetchTransfers", code, since, limit, params))
+                retRes1183319 :=  (<-this.FetchPaginatedCallDynamicAsync("fetchTransfers", code, since, limit, params))
                 PanicOnError(retRes1183319)
                 ch <- retRes1183319
                 return nil
@@ -14545,7 +14545,7 @@ func (this *Kucoin) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} an array of [auto de leverage structures]{@link https://docs.ccxt.com/?id=auto-de-leverage-structure}
  */
-func  (this *Kucoin) FetchPositionsADLRank(optionalArgs ...any) <- chan any {
+func  (this *Kucoin) FetchPositionsADLRankAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchPositionsADLRankBody(ch, optionalArgs...)
     return ch
@@ -14559,7 +14559,7 @@ func (this *Kucoin) fetchPositionsADLRankBody(ch chan any, optionalArgs ...any) 
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes1189912 := (<-this.LoadMarkets())
+            retRes1189912 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes1189912)
         }
         symbols = this.MarketSymbols(symbols, nil, true, true, true)

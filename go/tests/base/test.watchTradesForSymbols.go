@@ -5,7 +5,7 @@ import "github.com/ccxt/ccxt/go/v4"
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 
-    func TestWatchTradesForSymbols(exchange ccxt.ICoreExchange, skippedProperties any, symbols any) <- chan any {
+    func TestWatchTradesForSymbolsAsync(exchange ccxt.ICoreExchange, skippedProperties any, symbols any) <- chan any {
         ch := make(chan any, 1)
         go testWatchTradesForSymbolsBody(ch, exchange, skippedProperties, symbols)
         return ch

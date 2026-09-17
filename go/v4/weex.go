@@ -859,7 +859,7 @@ func  (this *Weex) Nonce() any  {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
  */
-func  (this *Weex) FetchStatus(optionalArgs ...any) <- chan any {
+func  (this *Weex) FetchStatusAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchStatusBody(ch, optionalArgs...)
     return ch
@@ -893,7 +893,7 @@ func (this *Weex) fetchStatusBody(ch chan any, optionalArgs ...any) any {
  * @param {string} [params.type] 'spot' or 'swap', default is 'spot'
  * @returns {int} the current integer timestamp in milliseconds from the exchange server
  */
-func  (this *Weex) FetchTime(optionalArgs ...any) <- chan any {
+func  (this *Weex) FetchTimeAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchTimeBody(ch, optionalArgs...)
     return ch
@@ -934,7 +934,7 @@ func (this *Weex) fetchTimeBody(ch chan any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an associative dictionary of currencies
  */
-func  (this *Weex) FetchCurrencies(optionalArgs ...any) <- chan any {
+func  (this *Weex) FetchCurrenciesAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchCurrenciesBody(ch, optionalArgs...)
     return ch
@@ -1136,7 +1136,7 @@ func  (this *Weex) ParseCurrency(rawCurrency any) any  {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} an array of objects representing market data
  */
-func  (this *Weex) FetchMarkets(optionalArgs ...any) <- chan any {
+func  (this *Weex) FetchMarketsAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchMarketsBody(ch, optionalArgs...)
     return ch
@@ -1148,7 +1148,7 @@ func (this *Weex) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
         _ = params
         if IsEqual(GetValue(this.Options, "adjustForTimeDifference"), true) {
     
-            retRes96812 := (<-this.LoadTimeDifference())
+            retRes96812 := (<-this.LoadTimeDifferenceAsync())
             PanicOnError(retRes96812)
         }
         var promises []any = []any{this.PublicGetApiV3ExchangeInfo(params), this.ContractGetCapiV3MarketExchangeInfo(params)}
@@ -1325,7 +1325,7 @@ func  (this *Weex) ParseMarket(market any) any  {
  * @param {string} [params.type] 'spot' or 'swap', default is 'spot' (used if symbols are not provided)
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func  (this *Weex) FetchTickers(optionalArgs ...any) <- chan any {
+func  (this *Weex) FetchTickersAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchTickersBody(ch, optionalArgs...)
     return ch
@@ -1339,7 +1339,7 @@ func (this *Weex) fetchTickersBody(ch chan any, optionalArgs ...any) any {
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes114712 := (<-this.LoadMarkets())
+            retRes114712 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes114712)
         }
         symbols = this.MarketSymbols(symbols, nil, true, true)
@@ -1425,7 +1425,7 @@ func (this *Weex) fetchTickersBody(ch chan any, optionalArgs ...any) any {
  * @param {string} [params.type] 'spot' or 'swap', default is 'spot' (used if symbols are not provided)
  * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func  (this *Weex) FetchBidsAsks(optionalArgs ...any) <- chan any {
+func  (this *Weex) FetchBidsAsksAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchBidsAsksBody(ch, optionalArgs...)
     return ch
@@ -1439,7 +1439,7 @@ func (this *Weex) fetchBidsAsksBody(ch chan any, optionalArgs ...any) any {
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes122712 := (<-this.LoadMarkets())
+            retRes122712 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes122712)
         }
         symbols = this.MarketSymbols(symbols, nil, true, true)
@@ -1579,7 +1579,7 @@ func  (this *Weex) ParseTicker(ticker any, optionalArgs ...any) any  {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a dictionary of lastprice structures
  */
-func  (this *Weex) FetchLastPrices(optionalArgs ...any) <- chan any {
+func  (this *Weex) FetchLastPricesAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchLastPricesBody(ch, optionalArgs...)
     return ch
@@ -1593,7 +1593,7 @@ func (this *Weex) fetchLastPricesBody(ch chan any, optionalArgs ...any) any {
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes136012 := (<-this.LoadMarkets())
+            retRes136012 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes136012)
         }
         symbols = this.MarketSymbols(symbols, nil, true, true)
@@ -1650,7 +1650,7 @@ func  (this *Weex) ParseLastPrice(entry any, optionalArgs ...any) any  {
  * @param {string} [params.priceType] "MARK" (default) or "INDEX", with "INDEX" the price is returned as the indexPrice of the ticker
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func  (this *Weex) FetchMarkPrice(symbol any, optionalArgs ...any) <- chan any {
+func  (this *Weex) FetchMarkPriceAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchMarkPriceBody(ch, symbol, optionalArgs...)
     return ch
@@ -1662,7 +1662,7 @@ func (this *Weex) fetchMarkPriceBody(ch chan any, symbol any, optionalArgs ...an
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes141212 := (<-this.LoadMarkets())
+            retRes141212 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes141212)
         }
         var market any = this.Market(symbol)
@@ -1707,7 +1707,7 @@ func (this *Weex) fetchMarkPriceBody(ch chan any, symbol any, optionalArgs ...an
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func  (this *Weex) FetchMarkPrices(optionalArgs ...any) <- chan any {
+func  (this *Weex) FetchMarkPricesAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchMarkPricesBody(ch, optionalArgs...)
     return ch
@@ -1721,7 +1721,7 @@ func (this *Weex) fetchMarkPricesBody(ch chan any, optionalArgs ...any) any {
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes145312 := (<-this.LoadMarkets())
+            retRes145312 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes145312)
         }
         symbols = this.MarketSymbols(symbols, "swap") // reject non-contract symbols instead of silently filtering the result to an empty dict
@@ -1758,7 +1758,7 @@ func (this *Weex) fetchMarkPricesBody(ch chan any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
-func  (this *Weex) FetchOrderBook(symbol any, optionalArgs ...any) <- chan any {
+func  (this *Weex) FetchOrderBookAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchOrderBookBody(ch, symbol, optionalArgs...)
     return ch
@@ -1772,7 +1772,7 @@ func (this *Weex) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...an
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes148812 := (<-this.LoadMarkets())
+            retRes148812 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes148812)
         }
         var market any = this.Market(symbol)
@@ -1832,7 +1832,7 @@ func (this *Weex) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...an
  * Check fetchSpotOHLCV() and fetchContractOHLCV() for more details on the extra parameters that can be used in params
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
-func  (this *Weex) FetchOHLCV(symbol any, optionalArgs ...any) <- chan any {
+func  (this *Weex) FetchOHLCVAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchOHLCVBody(ch, symbol, optionalArgs...)
     return ch
@@ -1850,19 +1850,19 @@ func (this *Weex) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) a
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes154412 := (<-this.LoadMarkets())
+            retRes154412 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes154412)
         }
         var market any = this.Market(symbol)
         if IsEqual(GetValue(market, "spot"), true) {
     
-                retRes154819 :=  (<-this.FetchSpotOHLCV(symbol, timeframe, since, limit, params))
+                retRes154819 :=  (<-this.FetchSpotOHLCVAsync(symbol, timeframe, since, limit, params))
                 PanicOnError(retRes154819)
                 ch <- retRes154819
                 return nil
         } else {
     
-                retRes155019 :=  (<-this.FetchContractOHLCV(symbol, timeframe, since, limit, params))
+                retRes155019 :=  (<-this.FetchContractOHLCVAsync(symbol, timeframe, since, limit, params))
                 PanicOnError(retRes155019)
                 ch <- retRes155019
                 return nil
@@ -1881,7 +1881,7 @@ func (this *Weex) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) a
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
-func  (this *Weex) FetchSpotOHLCV(symbol any, optionalArgs ...any) <- chan any {
+func  (this *Weex) FetchSpotOHLCVAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchSpotOHLCVBody(ch, symbol, optionalArgs...)
     return ch
@@ -1899,7 +1899,7 @@ func (this *Weex) fetchSpotOHLCVBody(ch chan any, symbol any, optionalArgs ...an
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes156912 := (<-this.LoadMarkets())
+            retRes156912 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes156912)
         }
         var market any = this.Market(symbol)
@@ -1933,7 +1933,7 @@ func (this *Weex) fetchSpotOHLCVBody(ch chan any, symbol any, optionalArgs ...an
  * @param {boolean} [params.historical] whether to fetch historical klines (default is false). If false, will fetch last price klines
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
-func  (this *Weex) FetchContractOHLCV(symbol any, optionalArgs ...any) <- chan any {
+func  (this *Weex) FetchContractOHLCVAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchContractOHLCVBody(ch, symbol, optionalArgs...)
     return ch
@@ -1951,7 +1951,7 @@ func (this *Weex) fetchContractOHLCVBody(ch chan any, symbol any, optionalArgs .
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes160112 := (<-this.LoadMarkets())
+            retRes160112 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes160112)
         }
         var maxHistoricalLimit int = 100
@@ -1964,7 +1964,7 @@ func (this *Weex) fetchContractOHLCVBody(ch chan any, symbol any, optionalArgs .
                 "historical": true,
             })
     
-                retRes160819 :=  (<-this.FetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, params, maxHistoricalLimit))
+                retRes160819 :=  (<-this.FetchPaginatedCallDeterministicAsync("fetchOHLCV", symbol, since, limit, timeframe, params, maxHistoricalLimit))
                 PanicOnError(retRes160819)
                 ch <- retRes160819
                 return nil
@@ -2054,7 +2054,7 @@ func  (this *Weex) ParseOHLCV(ohlcv any, optionalArgs ...any) any  {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
-func  (this *Weex) FetchTrades(symbol any, optionalArgs ...any) <- chan any {
+func  (this *Weex) FetchTradesAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchTradesBody(ch, symbol, optionalArgs...)
     return ch
@@ -2070,7 +2070,7 @@ func (this *Weex) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any) 
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes169212 := (<-this.LoadMarkets())
+            retRes169212 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes169212)
         }
         var market any = this.Market(symbol)
@@ -2225,7 +2225,7 @@ func  (this *Weex) ParseTrade(trade any, optionalArgs ...any) any  {
  * @param {object} [params] exchange specific parameters
  * @returns {object} an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}
  */
-func  (this *Weex) FetchOpenInterest(symbol any, optionalArgs ...any) <- chan any {
+func  (this *Weex) FetchOpenInterestAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchOpenInterestBody(ch, symbol, optionalArgs...)
     return ch
@@ -2237,7 +2237,7 @@ func (this *Weex) fetchOpenInterestBody(ch chan any, symbol any, optionalArgs ..
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes184212 := (<-this.LoadMarkets())
+            retRes184212 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes184212)
         }
         var market any = this.Market(symbol)
@@ -2283,7 +2283,7 @@ func  (this *Weex) ParseOpenInterest(interest any, optionalArgs ...any) any  {
  * @param {string} [params.subType] "linear" or "inverse"
  * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rates-structure}, indexed by market symbols
  */
-func  (this *Weex) FetchFundingRates(optionalArgs ...any) <- chan any {
+func  (this *Weex) FetchFundingRatesAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchFundingRatesBody(ch, optionalArgs...)
     return ch
@@ -2297,7 +2297,7 @@ func (this *Weex) fetchFundingRatesBody(ch chan any, optionalArgs ...any) any {
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes188512 := (<-this.LoadMarkets())
+            retRes188512 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes188512)
         }
         symbols = this.MarketSymbols(symbols)
@@ -2378,7 +2378,7 @@ func  (this *Weex) ParseFundingRate(contract any, optionalArgs ...any) any  {
  * @param {int} [params.until] timestamp in ms of the latest funding rate
  * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
  */
-func  (this *Weex) FetchFundingRateHistory(optionalArgs ...any) <- chan any {
+func  (this *Weex) FetchFundingRateHistoryAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchFundingRateHistoryBody(ch, optionalArgs...)
     return ch
@@ -2399,7 +2399,7 @@ func (this *Weex) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any) 
         }
         if IsEqual(this.Markets, nil) {
     
-            retRes196612 := (<-this.LoadMarkets())
+            retRes196612 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes196612)
         }
         var market any = this.Market(symbol)
@@ -2455,7 +2455,7 @@ func  (this *Weex) ParseFundingRateHistory(contract any, optionalArgs ...any) an
  * @param {string} [params.type] 'spot' or 'swap' (default is 'spot', in sandbox mode only 'swap' is available and is used by default)
  * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
-func  (this *Weex) FetchBalance(optionalArgs ...any) <- chan any {
+func  (this *Weex) FetchBalanceAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchBalanceBody(ch, optionalArgs...)
     return ch
@@ -2569,7 +2569,7 @@ func  (this *Weex) ParseBalance(response any) any  {
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
  * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
-func  (this *Weex) FetchTransfers(optionalArgs ...any) <- chan any {
+func  (this *Weex) FetchTransfersAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchTransfersBody(ch, optionalArgs...)
     return ch
@@ -2587,7 +2587,7 @@ func (this *Weex) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes211412 := (<-this.LoadMarkets())
+            retRes211412 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes211412)
         }
         var request any = map[string]any {}
@@ -2602,7 +2602,7 @@ func (this *Weex) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
         params = GetValue(paginateparamsVariable,1)
         if EvalTruthy(paginate) {
     
-                retRes212519 :=  (<-this.FetchPaginatedCallDynamic("fetchTransfers", code, since, limit, params, maxLimit))
+                retRes212519 :=  (<-this.FetchPaginatedCallDynamicAsync("fetchTransfers", code, since, limit, params, maxLimit))
                 PanicOnError(retRes212519)
                 ch <- retRes212519
                 return nil
@@ -2680,7 +2680,7 @@ func  (this *Weex) ParseTransferStatus(status any) any  {
  * Check createSpotOrder() and createContractOrder() for more details on the extra parameters that can be used in params
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Weex) CreateOrder(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <- chan any {
+func  (this *Weex) CreateOrderAsync(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.createOrderBody(ch, symbol, typeVar, side, amount, optionalArgs...)
     return ch
@@ -2694,13 +2694,13 @@ func (this *Weex) createOrderBody(ch chan any, symbol any, typeVar any, side any
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes219712 := (<-this.LoadMarkets())
+            retRes219712 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes219712)
         }
         var market any = this.Market(symbol)
         if IsEqual(GetValue(market, "contract"), true) {
     
-                retRes220119 :=  (<-this.CreateContractOrder(symbol, typeVar, side, amount, price, params))
+                retRes220119 :=  (<-this.CreateContractOrderAsync(symbol, typeVar, side, amount, price, params))
                 PanicOnError(retRes220119)
                 ch <- retRes220119
                 return nil
@@ -2710,7 +2710,7 @@ func (this *Weex) createOrderBody(ch chan any, symbol any, typeVar any, side any
                 panic(NotSupported(Add(this.Id, " createOrder() only supports swap markets in sandbox mode")))
             }
     
-                retRes220719 :=  (<-this.CreateSpotOrder(symbol, typeVar, side, amount, price, params))
+                retRes220719 :=  (<-this.CreateSpotOrderAsync(symbol, typeVar, side, amount, price, params))
                 PanicOnError(retRes220719)
                 ch <- retRes220719
                 return nil
@@ -2731,7 +2731,7 @@ func (this *Weex) createOrderBody(ch chan any, symbol any, typeVar any, side any
  * @param {string} [params.timeInForce] 'GTC', 'IOC', or 'FOK'
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Weex) CreateSpotOrder(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <- chan any {
+func  (this *Weex) CreateSpotOrderAsync(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.createSpotOrderBody(ch, symbol, typeVar, side, amount, optionalArgs...)
     return ch
@@ -2745,7 +2745,7 @@ func (this *Weex) createSpotOrderBody(ch chan any, symbol any, typeVar any, side
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes222812 := (<-this.LoadMarkets())
+            retRes222812 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes222812)
         }
         var market any = this.Market(symbol)
@@ -2833,7 +2833,7 @@ func  (this *Weex) CreateSpotOrderRequest(symbol any, typeVar any, side any, amo
  * @param {string} [params.timeInForce] GTC, IOC, or FOK (default is GTC for limit orders, not supported for trigger orders)
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Weex) CreateContractOrder(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <- chan any {
+func  (this *Weex) CreateContractOrderAsync(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.createContractOrderBody(ch, symbol, typeVar, side, amount, optionalArgs...)
     return ch
@@ -2847,7 +2847,7 @@ func (this *Weex) createContractOrderBody(ch chan any, symbol any, typeVar any, 
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes231112 := (<-this.LoadMarkets())
+            retRes231112 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes231112)
         }
         var market any = this.Market(symbol)
@@ -3063,7 +3063,7 @@ func  (this *Weex) EncodeTriggerPriceType(triggerPriceType any) any  {
  * @param {string} [params.clientOrderId] *non-trigger orders only* a unique id for the order
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Weex) CancelOrder(id any, optionalArgs ...any) <- chan any {
+func  (this *Weex) CancelOrderAsync(id any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.cancelOrderBody(ch, id, optionalArgs...)
     return ch
@@ -3077,7 +3077,7 @@ func (this *Weex) cancelOrderBody(ch chan any, id any, optionalArgs ...any) any 
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes251512 := (<-this.LoadMarkets())
+            retRes251512 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes251512)
         }
         var market any = nil
@@ -3150,7 +3150,7 @@ func (this *Weex) cancelOrderBody(ch chan any, id any, optionalArgs ...any) any 
  * @param {boolean} [params.trigger] *swap only* true for cancelling trigger orders (default is false)
  * @returns Response from the exchange
  */
-func  (this *Weex) CancelAllOrders(optionalArgs ...any) <- chan any {
+func  (this *Weex) CancelAllOrdersAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.cancelAllOrdersBody(ch, optionalArgs...)
     return ch
@@ -3164,7 +3164,7 @@ func (this *Weex) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes258012 := (<-this.LoadMarkets())
+            retRes258012 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes258012)
         }
         var request map[string]any = map[string]any {}
@@ -3216,7 +3216,7 @@ func (this *Weex) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
  * @param {string} [params.type] 'spot' or 'swap', used if symbol is not provided (default is 'spot')
  * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Weex) CancelOrders(ids any, optionalArgs ...any) <- chan any {
+func  (this *Weex) CancelOrdersAsync(ids any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.cancelOrdersBody(ch, ids, optionalArgs...)
     return ch
@@ -3230,7 +3230,7 @@ func (this *Weex) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any) an
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes262412 := (<-this.LoadMarkets())
+            retRes262412 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes262412)
         }
         var request map[string]any = map[string]any {}
@@ -3291,7 +3291,7 @@ func (this *Weex) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any) an
  * @param {string} [params.clientOrderId] *spot only* a unique id for the order, used if id is not provided
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Weex) FetchOrder(id any, optionalArgs ...any) <- chan any {
+func  (this *Weex) FetchOrderAsync(id any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchOrderBody(ch, id, optionalArgs...)
     return ch
@@ -3305,7 +3305,7 @@ func (this *Weex) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any {
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes267912 := (<-this.LoadMarkets())
+            retRes267912 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes267912)
         }
         var market any = nil
@@ -3380,7 +3380,7 @@ func (this *Weex) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any {
  * @param {boolean} [params.trigger] *swap only* whether to fetch trigger orders (default is false)
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Weex) FetchOpenOrders(optionalArgs ...any) <- chan any {
+func  (this *Weex) FetchOpenOrdersAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchOpenOrdersBody(ch, optionalArgs...)
     return ch
@@ -3398,7 +3398,7 @@ func (this *Weex) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes274812 := (<-this.LoadMarkets())
+            retRes274812 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes274812)
         }
         var market any = nil
@@ -3420,7 +3420,7 @@ func (this *Weex) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
                 panic(NotSupported(Add(this.Id, " fetchOpenOrders() pagination is not supported for spot markets")))
             }
     
-                retRes276419 :=  (<-this.FetchPaginatedCallDynamic("fetchOpenOrders", symbol, since, limit, params, maxLimit))
+                retRes276419 :=  (<-this.FetchPaginatedCallDynamicAsync("fetchOpenOrders", symbol, since, limit, params, maxLimit))
                 PanicOnError(retRes276419)
                 ch <- retRes276419
                 return nil
@@ -3553,7 +3553,7 @@ func (this *Weex) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
  * @param {string} [params.type] 'spot' or 'swap', used if symbol is not provided (default is 'spot')
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Weex) FetchClosedOrders(optionalArgs ...any) <- chan any {
+func  (this *Weex) FetchClosedOrdersAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchClosedOrdersBody(ch, optionalArgs...)
     return ch
@@ -3571,7 +3571,7 @@ func (this *Weex) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any {
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes288712 := (<-this.LoadMarkets())
+            retRes288712 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes288712)
         }
         var market any = nil
@@ -3588,11 +3588,11 @@ func (this *Weex) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any {
                 panic(ArgumentsRequired(Add(this.Id, " fetchClosedOrders() requires a symbol argument for spot markets")))
             }
             
-        orders = (<-this.FetchOrders(symbol, since, nil, params))
+        orders = (<-this.FetchOrdersAsync(symbol, since, nil, params))
                 PanicOnError(orders)
         } else {
             
-        orders = (<-this.FetchCanceledAndClosedOrders(symbol, since, limit, params))
+        orders = (<-this.FetchCanceledAndClosedOrdersAsync(symbol, since, limit, params))
                 PanicOnError(orders)
         }
     
@@ -3614,7 +3614,7 @@ func (this *Weex) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any {
  * @param {string} [params.type] 'spot' or 'swap', used if symbol is not provided (default is 'spot')
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Weex) FetchCanceledOrders(optionalArgs ...any) <- chan any {
+func  (this *Weex) FetchCanceledOrdersAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchCanceledOrdersBody(ch, optionalArgs...)
     return ch
@@ -3632,7 +3632,7 @@ func (this *Weex) fetchCanceledOrdersBody(ch chan any, optionalArgs ...any) any 
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes292412 := (<-this.LoadMarkets())
+            retRes292412 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes292412)
         }
         var market any = nil
@@ -3649,11 +3649,11 @@ func (this *Weex) fetchCanceledOrdersBody(ch chan any, optionalArgs ...any) any 
                 panic(ArgumentsRequired(Add(this.Id, " fetchCanceledOrders() requires a symbol argument for spot markets")))
             }
             
-        orders = (<-this.FetchOrders(symbol, since, nil, params))
+        orders = (<-this.FetchOrdersAsync(symbol, since, nil, params))
                 PanicOnError(orders)
         } else {
             
-        orders = (<-this.FetchCanceledAndClosedOrders(symbol, since, limit, params))
+        orders = (<-this.FetchCanceledAndClosedOrdersAsync(symbol, since, limit, params))
                 PanicOnError(orders)
         }
     
@@ -3673,7 +3673,7 @@ func (this *Weex) fetchCanceledOrdersBody(ch chan any, optionalArgs ...any) any 
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Weex) FetchOrders(optionalArgs ...any) <- chan any {
+func  (this *Weex) FetchOrdersAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchOrdersBody(ch, optionalArgs...)
     return ch
@@ -3694,7 +3694,7 @@ func (this *Weex) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
         }
         if IsEqual(this.Markets, nil) {
     
-            retRes296212 := (<-this.LoadMarkets())
+            retRes296212 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes296212)
         }
         var market any = this.Market(symbol)
@@ -3708,7 +3708,7 @@ func (this *Weex) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
         params = GetValue(paginateparamsVariable,1)
         if EvalTruthy(paginate) {
     
-                retRes297219 :=  (<-this.FetchPaginatedCallDynamic("fetchOrders", symbol, since, limit, params, maxLimit))
+                retRes297219 :=  (<-this.FetchPaginatedCallDynamicAsync("fetchOrders", symbol, since, limit, params, maxLimit))
                 PanicOnError(retRes297219)
                 ch <- retRes297219
                 return nil
@@ -3767,7 +3767,7 @@ func (this *Weex) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Weex) FetchCanceledAndClosedOrders(optionalArgs ...any) <- chan any {
+func  (this *Weex) FetchCanceledAndClosedOrdersAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchCanceledAndClosedOrdersBody(ch, optionalArgs...)
     return ch
@@ -3785,7 +3785,7 @@ func (this *Weex) fetchCanceledAndClosedOrdersBody(ch chan any, optionalArgs ...
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes302512 := (<-this.LoadMarkets())
+            retRes302512 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes302512)
         }
         var market any = nil
@@ -3806,7 +3806,7 @@ func (this *Weex) fetchCanceledAndClosedOrdersBody(ch chan any, optionalArgs ...
         var maxLimit int = 1000
         if EvalTruthy(paginate) {
     
-                retRes304019 :=  (<-this.FetchPaginatedCallDynamic("fetchCanceledAndClosedOrders", symbol, since, limit, params, maxLimit))
+                retRes304019 :=  (<-this.FetchPaginatedCallDynamicAsync("fetchCanceledAndClosedOrders", symbol, since, limit, params, maxLimit))
                 PanicOnError(retRes304019)
                 ch <- retRes304019
                 return nil
@@ -4084,7 +4084,7 @@ func  (this *Weex) HandleOrderOrPositionError(errorCode any, errorMessage any, o
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
-func  (this *Weex) FetchOrderTrades(id any, optionalArgs ...any) <- chan any {
+func  (this *Weex) FetchOrderTradesAsync(id any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchOrderTradesBody(ch, id, optionalArgs...)
     return ch
@@ -4102,14 +4102,14 @@ func (this *Weex) fetchOrderTradesBody(ch chan any, id any, optionalArgs ...any)
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes331212 := (<-this.LoadMarkets())
+            retRes331212 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes331212)
         }
         var request map[string]any = map[string]any {
             "orderId": id,
         }
     
-            retRes331715 :=  (<-this.FetchMyTrades(symbol, since, limit, this.Extend(request, params)))
+            retRes331715 :=  (<-this.FetchMyTradesAsync(symbol, since, limit, this.Extend(request, params)))
             PanicOnError(retRes331715)
             ch <- retRes331715
             return nil
@@ -4128,7 +4128,7 @@ func (this *Weex) fetchOrderTradesBody(ch chan any, id any, optionalArgs ...any)
  * @param {string} [params.type] 'spot' or 'swap', used if symbol is not provided (default is 'spot')
  * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
-func  (this *Weex) FetchMyTrades(optionalArgs ...any) <- chan any {
+func  (this *Weex) FetchMyTradesAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchMyTradesBody(ch, optionalArgs...)
     return ch
@@ -4146,7 +4146,7 @@ func (this *Weex) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes333612 := (<-this.LoadMarkets())
+            retRes333612 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes333612)
         }
         var market any = nil
@@ -4168,7 +4168,7 @@ func (this *Weex) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
         var maxLimit int = 100
         if EvalTruthy(paginate) {
     
-                retRes335219 :=  (<-this.FetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, params, maxLimit))
+                retRes335219 :=  (<-this.FetchPaginatedCallDynamicAsync("fetchMyTrades", symbol, since, limit, params, maxLimit))
                 PanicOnError(retRes335219)
                 ch <- retRes335219
                 return nil
@@ -4255,7 +4255,7 @@ func (this *Weex) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
  * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
  */
-func  (this *Weex) FetchLedger(optionalArgs ...any) <- chan any {
+func  (this *Weex) FetchLedgerAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchLedgerBody(ch, optionalArgs...)
     return ch
@@ -4273,7 +4273,7 @@ func (this *Weex) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes343112 := (<-this.LoadMarkets())
+            retRes343112 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes343112)
         }
         var paginate any = false
@@ -4283,7 +4283,7 @@ func (this *Weex) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
         var maxLimit int = 100
         if EvalTruthy(paginate) {
     
-                retRes343719 :=  (<-this.FetchPaginatedCallDynamic("fetchLedger", code, since, limit, params, maxLimit))
+                retRes343719 :=  (<-this.FetchPaginatedCallDynamicAsync("fetchLedger", code, since, limit, params, maxLimit))
                 PanicOnError(retRes343719)
                 ch <- retRes343719
                 return nil
@@ -4467,7 +4467,7 @@ func  (this *Weex) ParseLedgerType(typeVar any) any  {
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
  * @returns {object[]} a list of [funding history structures]{@link https://docs.ccxt.com/?id=funding-history-structure}
  */
-func  (this *Weex) FetchFundingHistory(optionalArgs ...any) <- chan any {
+func  (this *Weex) FetchFundingHistoryAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchFundingHistoryBody(ch, optionalArgs...)
     return ch
@@ -4485,7 +4485,7 @@ func (this *Weex) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) any 
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes360512 := (<-this.LoadMarkets())
+            retRes360512 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes360512)
         }
         var paginate any = false
@@ -4494,7 +4494,7 @@ func (this *Weex) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) any 
         params = GetValue(paginateparamsVariable,1)
         if EvalTruthy(paginate) {
     
-                retRes361019 :=  (<-this.FetchPaginatedCallDynamic("fetchFundingHistory", symbol, since, limit, params, 100))
+                retRes361019 :=  (<-this.FetchPaginatedCallDynamicAsync("fetchFundingHistory", symbol, since, limit, params, 100))
                 PanicOnError(retRes361019)
                 ch <- retRes361019
                 return nil
@@ -4593,7 +4593,7 @@ func  (this *Weex) ParseIncome(income any, optionalArgs ...any) any  {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
  */
-func  (this *Weex) FetchPositions(optionalArgs ...any) <- chan any {
+func  (this *Weex) FetchPositionsAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchPositionsBody(ch, optionalArgs...)
     return ch
@@ -4607,7 +4607,7 @@ func (this *Weex) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes370212 := (<-this.LoadMarkets())
+            retRes370212 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes370212)
         }
         symbols = this.MarketSymbols(symbols)
@@ -4635,7 +4635,7 @@ func (this *Weex) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
  */
-func  (this *Weex) FetchPosition(symbol any, optionalArgs ...any) <- chan any {
+func  (this *Weex) FetchPositionAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchPositionBody(ch, symbol, optionalArgs...)
     return ch
@@ -4646,7 +4646,7 @@ func (this *Weex) fetchPositionBody(ch chan any, symbol any, optionalArgs ...any
         params := GetArg(optionalArgs, 0, map[string]any {})
         _ = params
     
-        positions:= (<-this.FetchPositionsForSymbol(symbol, params))
+        positions:= (<-this.FetchPositionsForSymbolAsync(symbol, params))
         PanicOnError(positions)
     
         ch <- this.SafeDict(positions, 0)
@@ -4662,7 +4662,7 @@ func (this *Weex) fetchPositionBody(ch chan any, symbol any, optionalArgs ...any
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
  */
-func  (this *Weex) FetchPositionsForSymbol(symbol any, optionalArgs ...any) <- chan any {
+func  (this *Weex) FetchPositionsForSymbolAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchPositionsForSymbolBody(ch, symbol, optionalArgs...)
     return ch
@@ -4674,14 +4674,14 @@ func (this *Weex) fetchPositionsForSymbolBody(ch chan any, symbol any, optionalA
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes374112 := (<-this.LoadMarkets())
+            retRes374112 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes374112)
         }
         var market any = this.Market(symbol)
         var sandboxMode any = DerefScalar(this.SafeBool(this.Options, "sandboxMode", false))
         if (sandboxMode == true) {
     
-                retRes374719 :=  (<-this.FetchPositions([]any{GetValue(market, "symbol")}, params))
+                retRes374719 :=  (<-this.FetchPositionsAsync([]any{GetValue(market, "symbol")}, params))
                 PanicOnError(retRes374719)
                         // the demo trading API does not provide a single-position endpoint
     ch <- retRes374719
@@ -4825,7 +4825,7 @@ func  (this *Weex) ParsePosition(position any, optionalArgs ...any) any  {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} A list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
  */
-func  (this *Weex) CloseAllPositions(optionalArgs ...any) <- chan any {
+func  (this *Weex) CloseAllPositionsAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.closeAllPositionsBody(ch, optionalArgs...)
     return ch
@@ -4837,7 +4837,7 @@ func (this *Weex) closeAllPositionsBody(ch chan any, optionalArgs ...any) any {
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes388512 := (<-this.LoadMarkets())
+            retRes388512 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes388512)
         }
     
@@ -4867,7 +4867,7 @@ func (this *Weex) closeAllPositionsBody(ch chan any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Weex) ClosePosition(symbol any, optionalArgs ...any) <- chan any {
+func  (this *Weex) ClosePositionAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.closePositionBody(ch, symbol, optionalArgs...)
     return ch
@@ -4881,7 +4881,7 @@ func (this *Weex) closePositionBody(ch chan any, symbol any, optionalArgs ...any
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes391312 := (<-this.LoadMarkets())
+            retRes391312 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes391312)
         }
         var market any = this.Market(symbol)
@@ -4905,7 +4905,7 @@ func (this *Weex) closePositionBody(ch chan any, symbol any, optionalArgs ...any
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
  */
-func  (this *Weex) FetchTradingFee(symbol any, optionalArgs ...any) <- chan any {
+func  (this *Weex) FetchTradingFeeAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchTradingFeeBody(ch, symbol, optionalArgs...)
     return ch
@@ -4917,7 +4917,7 @@ func (this *Weex) fetchTradingFeeBody(ch chan any, symbol any, optionalArgs ...a
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes393512 := (<-this.LoadMarkets())
+            retRes393512 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes393512)
         }
         var market any = this.Market(symbol)
@@ -4971,7 +4971,7 @@ func  (this *Weex) ParseTradingFee(fee any, optionalArgs ...any) any  {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [margin mode structure]{@link https://docs.ccxt.com/?id=margin-mode-structure}
  */
-func  (this *Weex) FetchMarginMode(symbol any, optionalArgs ...any) <- chan any {
+func  (this *Weex) FetchMarginModeAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchMarginModeBody(ch, symbol, optionalArgs...)
     return ch
@@ -4983,7 +4983,7 @@ func (this *Weex) fetchMarginModeBody(ch chan any, symbol any, optionalArgs ...a
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes398712 := (<-this.LoadMarkets())
+            retRes398712 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes398712)
         }
         var market any = this.Market(symbol)
@@ -5019,7 +5019,7 @@ func (this *Weex) fetchMarginModeBody(ch chan any, symbol any, optionalArgs ...a
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a list of [margin mode structures]{@link https://docs.ccxt.com/?id=margin-mode-structure}
  */
-func  (this *Weex) FetchMarginModes(optionalArgs ...any) <- chan any {
+func  (this *Weex) FetchMarginModesAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchMarginModesBody(ch, optionalArgs...)
     return ch
@@ -5033,7 +5033,7 @@ func (this *Weex) fetchMarginModesBody(ch chan any, optionalArgs ...any) any {
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes402112 := (<-this.LoadMarkets())
+            retRes402112 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes402112)
         }
         symbols = this.MarketSymbols(symbols)
@@ -5072,7 +5072,7 @@ func  (this *Weex) ParseMarginType(marginType any) any  {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} response from the exchange
  */
-func  (this *Weex) SetMarginMode(marginMode any, optionalArgs ...any) <- chan any {
+func  (this *Weex) SetMarginModeAsync(marginMode any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.setMarginModeBody(ch, marginMode, optionalArgs...)
     return ch
@@ -5089,7 +5089,7 @@ func (this *Weex) setMarginModeBody(ch chan any, marginMode any, optionalArgs ..
         }
         if IsEqual(this.Markets, nil) {
     
-            retRes406112 := (<-this.LoadMarkets())
+            retRes406112 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes406112)
         }
         var market any = this.Market(symbol)
@@ -5123,7 +5123,7 @@ func  (this *Weex) EncodeMarginMode(marginMode any) any  {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
  */
-func  (this *Weex) FetchLeverage(symbol any, optionalArgs ...any) <- chan any {
+func  (this *Weex) FetchLeverageAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchLeverageBody(ch, symbol, optionalArgs...)
     return ch
@@ -5135,7 +5135,7 @@ func (this *Weex) fetchLeverageBody(ch chan any, symbol any, optionalArgs ...any
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes409412 := (<-this.LoadMarkets())
+            retRes409412 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes409412)
         }
         var market any = this.Market(symbol)
@@ -5159,7 +5159,7 @@ func (this *Weex) fetchLeverageBody(ch chan any, symbol any, optionalArgs ...any
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a list of [leverage structures]{@link https://docs.ccxt.com/?id=leverage-structure}
  */
-func  (this *Weex) FetchLeverages(optionalArgs ...any) <- chan any {
+func  (this *Weex) FetchLeveragesAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchLeveragesBody(ch, optionalArgs...)
     return ch
@@ -5173,7 +5173,7 @@ func (this *Weex) fetchLeveragesBody(ch chan any, optionalArgs ...any) any {
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes411612 := (<-this.LoadMarkets())
+            retRes411612 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes411612)
         }
         symbols = this.MarketSymbols(symbols)
@@ -5224,7 +5224,7 @@ func  (this *Weex) ParseLeverage(leverage any, optionalArgs ...any) any  {
  * the leverage value will be applied to cross leverage
  * @returns {object} response from the exchange
  */
-func  (this *Weex) SetLeverage(leverage any, optionalArgs ...any) <- chan any {
+func  (this *Weex) SetLeverageAsync(leverage any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.setLeverageBody(ch, leverage, optionalArgs...)
     return ch
@@ -5241,7 +5241,7 @@ func (this *Weex) setLeverageBody(ch chan any, leverage any, optionalArgs ...any
         }
         if IsEqual(this.Markets, nil) {
     
-            retRes416712 := (<-this.LoadMarkets())
+            retRes416712 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes416712)
         }
         var market any = this.Market(symbol)
@@ -5281,7 +5281,7 @@ func (this *Weex) setLeverageBody(ch chan any, leverage any, optionalArgs ...any
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an object detailing whether the market is in hedged or one-way mode
  */
-func  (this *Weex) FetchPositionMode(optionalArgs ...any) <- chan any {
+func  (this *Weex) FetchPositionModeAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchPositionModeBody(ch, optionalArgs...)
     return ch
@@ -5295,7 +5295,7 @@ func (this *Weex) fetchPositionModeBody(ch chan any, optionalArgs ...any) any {
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes420312 := (<-this.LoadMarkets())
+            retRes420312 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes420312)
         }
         var market any = this.Market(symbol)
@@ -5325,7 +5325,7 @@ func (this *Weex) fetchPositionModeBody(ch chan any, optionalArgs ...any) any {
  * @param {string} params.marginMode 'cross' or 'isolated' (default is 'cross')
  * @returns {object} response from the exchange
  */
-func  (this *Weex) SetPositionMode(hedged any, optionalArgs ...any) <- chan any {
+func  (this *Weex) SetPositionModeAsync(hedged any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.setPositionModeBody(ch, hedged, optionalArgs...)
     return ch
@@ -5342,7 +5342,7 @@ func (this *Weex) setPositionModeBody(ch chan any, hedged any, optionalArgs ...a
         }
         if IsEqual(this.Markets, nil) {
     
-            retRes423412 := (<-this.LoadMarkets())
+            retRes423412 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes423412)
         }
         var market any = this.Market(symbol)
@@ -5365,7 +5365,7 @@ func (this *Weex) setPositionModeBody(ch chan any, hedged any, optionalArgs ...a
             ch <- retRes424815
             return nil
 }
-func  (this *Weex) ModifyMarginHelper(symbol any, amount any, typeVar any, optionalArgs ...any) <- chan any {
+func  (this *Weex) ModifyMarginHelperAsync(symbol any, amount any, typeVar any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.modifyMarginHelperBody(ch, symbol, amount, typeVar, optionalArgs...)
     return ch
@@ -5377,7 +5377,7 @@ func (this *Weex) modifyMarginHelperBody(ch chan any, symbol any, amount any, ty
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes425312 := (<-this.LoadMarkets())
+            retRes425312 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes425312)
         }
         var isolatedPositionId *string = this.SafeStringN(params, []any{"positionId", "id", "isolatedPositionId"})
@@ -5439,7 +5439,7 @@ func  (this *Weex) ParseMarginModification(data any, optionalArgs ...any) any  {
  * @param {string} params.positionId the id of the position to reduce margin from, required
  * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
  */
-func  (this *Weex) ReduceMargin(symbol any, amount any, optionalArgs ...any) <- chan any {
+func  (this *Weex) ReduceMarginAsync(symbol any, amount any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.reduceMarginBody(ch, symbol, amount, optionalArgs...)
     return ch
@@ -5450,7 +5450,7 @@ func (this *Weex) reduceMarginBody(ch chan any, symbol any, amount any, optional
         params := GetArg(optionalArgs, 0, map[string]any {})
         _ = params
     
-            retRes431115 :=  (<-this.ModifyMarginHelper(symbol, amount, 2, params))
+            retRes431115 :=  (<-this.ModifyMarginHelperAsync(symbol, amount, 2, params))
             PanicOnError(retRes431115)
             ch <- retRes431115
             return nil
@@ -5466,7 +5466,7 @@ func (this *Weex) reduceMarginBody(ch chan any, symbol any, amount any, optional
  * @param {string} params.positionId the id of the position to add margin to, required
  * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
  */
-func  (this *Weex) AddMargin(symbol any, amount any, optionalArgs ...any) <- chan any {
+func  (this *Weex) AddMarginAsync(symbol any, amount any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.addMarginBody(ch, symbol, amount, optionalArgs...)
     return ch
@@ -5477,7 +5477,7 @@ func (this *Weex) addMarginBody(ch chan any, symbol any, amount any, optionalArg
         params := GetArg(optionalArgs, 0, map[string]any {})
         _ = params
     
-            retRes432615 :=  (<-this.ModifyMarginHelper(symbol, amount, 1, params))
+            retRes432615 :=  (<-this.ModifyMarginHelperAsync(symbol, amount, 1, params))
             PanicOnError(retRes432615)
             ch <- retRes432615
             return nil

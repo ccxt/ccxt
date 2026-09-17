@@ -52,7 +52,7 @@ func  (this *Kucoinfutures) Describe() any  {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func  (this *Kucoinfutures) FetchBidsAsks(optionalArgs ...any) <- chan any {
+func  (this *Kucoinfutures) FetchBidsAsksAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchBidsAsksBody(ch, optionalArgs...)
     return ch
@@ -69,7 +69,7 @@ func (this *Kucoinfutures) fetchBidsAsksBody(ch chan any, optionalArgs ...any) a
         }
         var extendedRequest map[string]any = this.Extend(request, params)
     
-            retRes5715 :=  (<-this.FetchTickers(symbols, extendedRequest))
+            retRes5715 :=  (<-this.FetchTickersAsync(symbols, extendedRequest))
             PanicOnError(retRes5715)
             ch <- retRes5715
             return nil
@@ -85,7 +85,7 @@ func (this *Kucoinfutures) fetchBidsAsksBody(ch chan any, optionalArgs ...any) a
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
-func  (this *Kucoinfutures) Transfer(code any, amount any, fromAccount any, toAccount any, optionalArgs ...any) <- chan any {
+func  (this *Kucoinfutures) TransferAsync(code any, amount any, fromAccount any, toAccount any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.transferBody(ch, code, amount, fromAccount, toAccount, optionalArgs...)
     return ch
@@ -97,7 +97,7 @@ func (this *Kucoinfutures) transferBody(ch chan any, code any, amount any, fromA
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes7312 := (<-this.LoadMarkets())
+            retRes7312 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes7312)
         }
         var currency any = this.Currency(code)

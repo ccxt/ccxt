@@ -791,7 +791,7 @@ func  (this *Woofipro) SetSandboxMode(enable any)  {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
  */
-func  (this *Woofipro) FetchStatus(optionalArgs ...any) <- chan any {
+func  (this *Woofipro) FetchStatusAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchStatusBody(ch, optionalArgs...)
     return ch
@@ -841,7 +841,7 @@ func (this *Woofipro) fetchStatusBody(ch chan any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {int} the current integer timestamp in milliseconds from the exchange server
  */
-func  (this *Woofipro) FetchTime(optionalArgs ...any) <- chan any {
+func  (this *Woofipro) FetchTimeAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchTimeBody(ch, optionalArgs...)
     return ch
@@ -967,7 +967,7 @@ func  (this *Woofipro) ParseMarket(market any) any  {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} an array of objects representing market data
  */
-func  (this *Woofipro) FetchMarkets(optionalArgs ...any) <- chan any {
+func  (this *Woofipro) FetchMarketsAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchMarketsBody(ch, optionalArgs...)
     return ch
@@ -1030,7 +1030,7 @@ func (this *Woofipro) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an associative dictionary of currencies
  */
-func  (this *Woofipro) FetchCurrencies(optionalArgs ...any) <- chan any {
+func  (this *Woofipro) FetchCurrenciesAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchCurrenciesBody(ch, optionalArgs...)
     return ch
@@ -1241,7 +1241,7 @@ func  (this *Woofipro) ParseTrade(trade any, optionalArgs ...any) any  {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
-func  (this *Woofipro) FetchTrades(symbol any, optionalArgs ...any) <- chan any {
+func  (this *Woofipro) FetchTradesAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchTradesBody(ch, symbol, optionalArgs...)
     return ch
@@ -1257,7 +1257,7 @@ func (this *Woofipro) fetchTradesBody(ch chan any, symbol any, optionalArgs ...a
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes90712 := (<-this.LoadMarkets())
+            retRes90712 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes90712)
         }
         var market any = this.Market(symbol)
@@ -1353,7 +1353,7 @@ func  (this *Woofipro) ParseFundingInterval(interval any) any  {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
  */
-func  (this *Woofipro) FetchFundingInterval(symbol any, optionalArgs ...any) <- chan any {
+func  (this *Woofipro) FetchFundingIntervalAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchFundingIntervalBody(ch, symbol, optionalArgs...)
     return ch
@@ -1364,7 +1364,7 @@ func (this *Woofipro) fetchFundingIntervalBody(ch chan any, symbol any, optional
         params := GetArg(optionalArgs, 0, map[string]any {})
         _ = params
     
-            retRes100015 :=  (<-this.FetchFundingRate(symbol, params))
+            retRes100015 :=  (<-this.FetchFundingRateAsync(symbol, params))
             PanicOnError(retRes100015)
             ch <- retRes100015
             return nil
@@ -1378,7 +1378,7 @@ func (this *Woofipro) fetchFundingIntervalBody(ch chan any, symbol any, optional
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
  */
-func  (this *Woofipro) FetchFundingRate(symbol any, optionalArgs ...any) <- chan any {
+func  (this *Woofipro) FetchFundingRateAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchFundingRateBody(ch, symbol, optionalArgs...)
     return ch
@@ -1390,7 +1390,7 @@ func (this *Woofipro) fetchFundingRateBody(ch chan any, symbol any, optionalArgs
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes101412 := (<-this.LoadMarkets())
+            retRes101412 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes101412)
         }
         var market any = this.Market(symbol)
@@ -1429,7 +1429,7 @@ func (this *Woofipro) fetchFundingRateBody(ch chan any, symbol any, optionalArgs
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} an array of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-structure}
  */
-func  (this *Woofipro) FetchFundingRates(optionalArgs ...any) <- chan any {
+func  (this *Woofipro) FetchFundingRatesAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchFundingRatesBody(ch, optionalArgs...)
     return ch
@@ -1443,7 +1443,7 @@ func (this *Woofipro) fetchFundingRatesBody(ch chan any, optionalArgs ...any) an
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes105112 := (<-this.LoadMarkets())
+            retRes105112 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes105112)
         }
         symbols = this.MarketSymbols(symbols)
@@ -1531,7 +1531,7 @@ func  (this *Woofipro) ParseTicker(ticker any, optionalArgs ...any) any  {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func  (this *Woofipro) FetchTicker(symbol any, optionalArgs ...any) <- chan any {
+func  (this *Woofipro) FetchTickerAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchTickerBody(ch, symbol, optionalArgs...)
     return ch
@@ -1543,7 +1543,7 @@ func (this *Woofipro) fetchTickerBody(ch chan any, symbol any, optionalArgs ...a
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes113612 := (<-this.LoadMarkets())
+            retRes113612 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes113612)
         }
         var market any = this.Market(symbol)
@@ -1590,7 +1590,7 @@ func (this *Woofipro) fetchTickerBody(ch chan any, symbol any, optionalArgs ...a
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func  (this *Woofipro) FetchTickers(optionalArgs ...any) <- chan any {
+func  (this *Woofipro) FetchTickersAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchTickersBody(ch, optionalArgs...)
     return ch
@@ -1604,7 +1604,7 @@ func (this *Woofipro) fetchTickersBody(ch chan any, optionalArgs ...any) any {
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes118112 := (<-this.LoadMarkets())
+            retRes118112 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes118112)
         }
         symbols = this.MarketSymbols(symbols)
@@ -1693,7 +1693,7 @@ func  (this *Woofipro) ParseOpenInterest(interest any, optionalArgs ...any) any 
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [open interest structure]{@link https://docs.ccxt.com/?id=open-interest-structure}
  */
-func  (this *Woofipro) FetchOpenInterest(symbol any, optionalArgs ...any) <- chan any {
+func  (this *Woofipro) FetchOpenInterestAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchOpenInterestBody(ch, symbol, optionalArgs...)
     return ch
@@ -1705,7 +1705,7 @@ func (this *Woofipro) fetchOpenInterestBody(ch chan any, symbol any, optionalArg
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes126512 := (<-this.LoadMarkets())
+            retRes126512 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes126512)
         }
         var market any = this.Market(symbol)
@@ -1744,7 +1744,7 @@ func (this *Woofipro) fetchOpenInterestBody(ch chan any, symbol any, optionalArg
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a dictionary of [open interest structures]{@link https://docs.ccxt.com/?id=open-interest-structure}
  */
-func  (this *Woofipro) FetchOpenInterests(optionalArgs ...any) <- chan any {
+func  (this *Woofipro) FetchOpenInterestsAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchOpenInterestsBody(ch, optionalArgs...)
     return ch
@@ -1758,7 +1758,7 @@ func (this *Woofipro) fetchOpenInterestsBody(ch chan any, optionalArgs ...any) a
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes130212 := (<-this.LoadMarkets())
+            retRes130212 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes130212)
         }
         symbols = this.MarketSymbols(symbols)
@@ -1813,7 +1813,7 @@ func (this *Woofipro) fetchOpenInterestsBody(ch chan any, optionalArgs ...any) a
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
  * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
  */
-func  (this *Woofipro) FetchFundingRateHistory(optionalArgs ...any) <- chan any {
+func  (this *Woofipro) FetchFundingRateHistoryAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchFundingRateHistoryBody(ch, optionalArgs...)
     return ch
@@ -1831,7 +1831,7 @@ func (this *Woofipro) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...a
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes135312 := (<-this.LoadMarkets())
+            retRes135312 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes135312)
         }
         var paginate any = false
@@ -1840,7 +1840,7 @@ func (this *Woofipro) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...a
         params = GetValue(paginateparamsVariable,1)
         if EvalTruthy(paginate) {
     
-                retRes135819 :=  (<-this.FetchPaginatedCallIncremental("fetchFundingRateHistory", symbol, since, limit, params, "page", 25))
+                retRes135819 :=  (<-this.FetchPaginatedCallIncrementalAsync("fetchFundingRateHistory", symbol, since, limit, params, "page", 25))
                 PanicOnError(retRes135819)
                 ch <- retRes135819
                 return nil
@@ -1945,7 +1945,7 @@ func  (this *Woofipro) ParseIncome(income any, optionalArgs ...any) any  {
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
  * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/?id=funding-history-structure}
  */
-func  (this *Woofipro) FetchFundingHistory(optionalArgs ...any) <- chan any {
+func  (this *Woofipro) FetchFundingHistoryAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchFundingHistoryBody(ch, optionalArgs...)
     return ch
@@ -1963,7 +1963,7 @@ func (this *Woofipro) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) 
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes145612 := (<-this.LoadMarkets())
+            retRes145612 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes145612)
         }
         var paginate any = false
@@ -1972,7 +1972,7 @@ func (this *Woofipro) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) 
         params = GetValue(paginateparamsVariable,1)
         if EvalTruthy(paginate) {
     
-                retRes146119 :=  (<-this.FetchPaginatedCallIncremental("fetchFundingHistory", symbol, since, limit, params, "page", 500))
+                retRes146119 :=  (<-this.FetchPaginatedCallIncrementalAsync("fetchFundingHistory", symbol, since, limit, params, "page", 500))
                 PanicOnError(retRes146119)
                 ch <- retRes146119
                 return nil
@@ -2034,7 +2034,7 @@ func (this *Woofipro) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) 
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
  */
-func  (this *Woofipro) FetchTradingFees(optionalArgs ...any) <- chan any {
+func  (this *Woofipro) FetchTradingFeesAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchTradingFeesBody(ch, optionalArgs...)
     return ch
@@ -2046,7 +2046,7 @@ func (this *Woofipro) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes151912 := (<-this.LoadMarkets())
+            retRes151912 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes151912)
         }
     
@@ -2109,7 +2109,7 @@ func (this *Woofipro) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
-func  (this *Woofipro) FetchOrderBook(symbol any, optionalArgs ...any) <- chan any {
+func  (this *Woofipro) FetchOrderBookAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchOrderBookBody(ch, symbol, optionalArgs...)
     return ch
@@ -2123,7 +2123,7 @@ func (this *Woofipro) fetchOrderBookBody(ch chan any, symbol any, optionalArgs .
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes158012 := (<-this.LoadMarkets())
+            retRes158012 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes158012)
         }
         var market any = this.Market(symbol)
@@ -2177,7 +2177,7 @@ func  (this *Woofipro) ParseOHLCV(ohlcv any, optionalArgs ...any) any  {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
-func  (this *Woofipro) FetchOHLCV(symbol any, optionalArgs ...any) <- chan any {
+func  (this *Woofipro) FetchOHLCVAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchOHLCVBody(ch, symbol, optionalArgs...)
     return ch
@@ -2195,7 +2195,7 @@ func (this *Woofipro) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...an
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes163812 := (<-this.LoadMarkets())
+            retRes163812 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes163812)
         }
         var market any = this.Market(symbol)
@@ -2520,7 +2520,7 @@ func  (this *Woofipro) CreateOrderRequest(symbol any, typeVar any, side any, amo
  * @param {string} [params.clientOrderId] a unique id for the order
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Woofipro) CreateOrder(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <- chan any {
+func  (this *Woofipro) CreateOrderAsync(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.createOrderBody(ch, symbol, typeVar, side, amount, optionalArgs...)
     return ch
@@ -2534,7 +2534,7 @@ func (this *Woofipro) createOrderBody(ch chan any, symbol any, typeVar any, side
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes196012 := (<-this.LoadMarkets())
+            retRes196012 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes196012)
         }
         var market any = this.Market(symbol)
@@ -2570,7 +2570,7 @@ func (this *Woofipro) createOrderBody(ch chan any, symbol any, typeVar any, side
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Woofipro) CreateOrders(orders any, optionalArgs ...any) <- chan any {
+func  (this *Woofipro) CreateOrdersAsync(orders any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.createOrdersBody(ch, orders, optionalArgs...)
     return ch
@@ -2582,7 +2582,7 @@ func (this *Woofipro) createOrdersBody(ch chan any, orders any, optionalArgs ...
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes201912 := (<-this.LoadMarkets())
+            retRes201912 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes201912)
         }
         var ordersRequests any = []any{}
@@ -2651,7 +2651,7 @@ func (this *Woofipro) createOrdersBody(ch chan any, orders any, optionalArgs ...
  * @param {float} [params.takeProfitPrice] price to trigger take-profit orders
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Woofipro) EditOrder(id any, symbol any, typeVar any, side any, optionalArgs ...any) <- chan any {
+func  (this *Woofipro) EditOrderAsync(id any, symbol any, typeVar any, side any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.editOrderBody(ch, id, symbol, typeVar, side, optionalArgs...)
     return ch
@@ -2667,7 +2667,7 @@ func (this *Woofipro) editOrderBody(ch chan any, id any, symbol any, typeVar any
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes208612 := (<-this.LoadMarkets())
+            retRes208612 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes208612)
         }
         var market any = this.Market(symbol)
@@ -2753,7 +2753,7 @@ func (this *Woofipro) editOrderBody(ch chan any, id any, symbol any, typeVar any
  * @param {string} [params.clientOrderId] a unique id for the order
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Woofipro) CancelOrder(id any, optionalArgs ...any) <- chan any {
+func  (this *Woofipro) CancelOrderAsync(id any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.cancelOrderBody(ch, id, optionalArgs...)
     return ch
@@ -2772,7 +2772,7 @@ func (this *Woofipro) cancelOrderBody(ch chan any, id any, optionalArgs ...any) 
         }
         if IsEqual(this.Markets, nil) {
     
-            retRes217312 := (<-this.LoadMarkets())
+            retRes217312 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes217312)
         }
         var market any = nil
@@ -2859,7 +2859,7 @@ func (this *Woofipro) cancelOrderBody(ch chan any, id any, optionalArgs ...any) 
  * @param {string[]} [params.client_order_ids] max length 10 e.g. ["my_id_1","my_id_2"], encode the double quotes. No space after comma
  * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Woofipro) CancelOrders(ids any, optionalArgs ...any) <- chan any {
+func  (this *Woofipro) CancelOrdersAsync(ids any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.cancelOrdersBody(ch, ids, optionalArgs...)
     return ch
@@ -2873,7 +2873,7 @@ func (this *Woofipro) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes224812 := (<-this.LoadMarkets())
+            retRes224812 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes224812)
         }
         var clientOrderIds any = this.SafeListN(params, []any{"clOrdIDs", "clientOrderIds", "client_order_ids"})
@@ -2917,7 +2917,7 @@ func (this *Woofipro) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any
  * @param {boolean} [params.trigger] whether the order is a stop/algo order
  * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Woofipro) CancelAllOrders(optionalArgs ...any) <- chan any {
+func  (this *Woofipro) CancelAllOrdersAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.cancelAllOrdersBody(ch, optionalArgs...)
     return ch
@@ -2931,7 +2931,7 @@ func (this *Woofipro) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any 
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes228812 := (<-this.LoadMarkets())
+            retRes228812 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes228812)
         }
         var trigger any = DerefScalar(this.SafeBool2(params, "stop", "trigger"))
@@ -2987,7 +2987,7 @@ func (this *Woofipro) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any 
  * @param {string} [params.clientOrderId] a unique id for the order
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Woofipro) FetchOrder(id any, optionalArgs ...any) <- chan any {
+func  (this *Woofipro) FetchOrderAsync(id any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchOrderBody(ch, id, optionalArgs...)
     return ch
@@ -3001,7 +3001,7 @@ func (this *Woofipro) fetchOrderBody(ch chan any, id any, optionalArgs ...any) a
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes234212 := (<-this.LoadMarkets())
+            retRes234212 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes234212)
         }
         var market any = nil
@@ -3088,7 +3088,7 @@ func (this *Woofipro) fetchOrderBody(ch chan any, id any, optionalArgs ...any) a
  * @param {int} params.until timestamp in ms of the latest order to fetch
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Woofipro) FetchOrders(optionalArgs ...any) <- chan any {
+func  (this *Woofipro) FetchOrdersAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchOrdersBody(ch, optionalArgs...)
     return ch
@@ -3106,7 +3106,7 @@ func (this *Woofipro) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes242112 := (<-this.LoadMarkets())
+            retRes242112 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes242112)
         }
         var paginate any = false
@@ -3117,7 +3117,7 @@ func (this *Woofipro) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
         params = GetValue(paginateparamsVariable,1)
         if EvalTruthy(paginate) {
     
-                retRes242819 :=  (<-this.FetchPaginatedCallIncremental("fetchOrders", symbol, since, limit, params, "page", maxLimit))
+                retRes242819 :=  (<-this.FetchPaginatedCallIncrementalAsync("fetchOrders", symbol, since, limit, params, "page", maxLimit))
                 PanicOnError(retRes242819)
                 ch <- retRes242819
                 return nil
@@ -3210,7 +3210,7 @@ func (this *Woofipro) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
  * @param {boolean} [params.paginate] set to true if you want to fetch orders with pagination
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Woofipro) FetchOpenOrders(optionalArgs ...any) <- chan any {
+func  (this *Woofipro) FetchOpenOrdersAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchOpenOrdersBody(ch, optionalArgs...)
     return ch
@@ -3228,14 +3228,14 @@ func (this *Woofipro) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any 
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes251312 := (<-this.LoadMarkets())
+            retRes251312 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes251312)
         }
         var extendedParams map[string]any = this.Extend(params, map[string]any {
             "status": "INCOMPLETE",
         })
     
-            retRes251615 :=  (<-this.FetchOrders(symbol, since, limit, extendedParams))
+            retRes251615 :=  (<-this.FetchOrdersAsync(symbol, since, limit, extendedParams))
             PanicOnError(retRes251615)
             ch <- retRes251615
             return nil
@@ -3257,7 +3257,7 @@ func (this *Woofipro) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any 
  * @param {boolean} [params.paginate] set to true if you want to fetch orders with pagination
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Woofipro) FetchClosedOrders(optionalArgs ...any) <- chan any {
+func  (this *Woofipro) FetchClosedOrdersAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchClosedOrdersBody(ch, optionalArgs...)
     return ch
@@ -3275,14 +3275,14 @@ func (this *Woofipro) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) an
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes253812 := (<-this.LoadMarkets())
+            retRes253812 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes253812)
         }
         var extendedParams map[string]any = this.Extend(params, map[string]any {
             "status": "COMPLETED",
         })
     
-            retRes254115 :=  (<-this.FetchOrders(symbol, since, limit, extendedParams))
+            retRes254115 :=  (<-this.FetchOrdersAsync(symbol, since, limit, extendedParams))
             PanicOnError(retRes254115)
             ch <- retRes254115
             return nil
@@ -3299,7 +3299,7 @@ func (this *Woofipro) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) an
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
-func  (this *Woofipro) FetchOrderTrades(id any, optionalArgs ...any) <- chan any {
+func  (this *Woofipro) FetchOrderTradesAsync(id any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchOrderTradesBody(ch, id, optionalArgs...)
     return ch
@@ -3317,7 +3317,7 @@ func (this *Woofipro) fetchOrderTradesBody(ch chan any, id any, optionalArgs ...
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes255812 := (<-this.LoadMarkets())
+            retRes255812 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes255812)
         }
         var market any = nil
@@ -3370,7 +3370,7 @@ func (this *Woofipro) fetchOrderTradesBody(ch chan any, id any, optionalArgs ...
  * @param {int} params.until timestamp in ms of the latest trade to fetch
  * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
-func  (this *Woofipro) FetchMyTrades(optionalArgs ...any) <- chan any {
+func  (this *Woofipro) FetchMyTradesAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchMyTradesBody(ch, optionalArgs...)
     return ch
@@ -3388,7 +3388,7 @@ func (this *Woofipro) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes260912 := (<-this.LoadMarkets())
+            retRes260912 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes260912)
         }
         var paginate any = false
@@ -3397,7 +3397,7 @@ func (this *Woofipro) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
         params = GetValue(paginateparamsVariable,1)
         if EvalTruthy(paginate) {
     
-                retRes261419 :=  (<-this.FetchPaginatedCallIncremental("fetchMyTrades", symbol, since, limit, params, "page", 500))
+                retRes261419 :=  (<-this.FetchPaginatedCallIncrementalAsync("fetchMyTrades", symbol, since, limit, params, "page", 500))
                 PanicOnError(retRes261419)
                 ch <- retRes261419
                 return nil
@@ -3479,7 +3479,7 @@ func  (this *Woofipro) ParseBalance(response any) any  {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
-func  (this *Woofipro) FetchBalance(optionalArgs ...any) <- chan any {
+func  (this *Woofipro) FetchBalanceAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchBalanceBody(ch, optionalArgs...)
     return ch
@@ -3491,7 +3491,7 @@ func (this *Woofipro) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes269112 := (<-this.LoadMarkets())
+            retRes269112 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes269112)
         }
     
@@ -3517,7 +3517,7 @@ func (this *Woofipro) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
         ch <- this.ParseBalance(data)
         return nil
 }
-func  (this *Woofipro) GetAssetHistoryRows(optionalArgs ...any) <- chan any {
+func  (this *Woofipro) GetAssetHistoryRowsAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.getAssetHistoryRowsBody(ch, optionalArgs...)
     return ch
@@ -3535,7 +3535,7 @@ func (this *Woofipro) getAssetHistoryRowsBody(ch chan any, optionalArgs ...any) 
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes271512 := (<-this.LoadMarkets())
+            retRes271512 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes271512)
         }
         var request map[string]any = map[string]any {}
@@ -3635,7 +3635,7 @@ func  (this *Woofipro) ParseLedgerEntryType(typeVar any) any  {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
  */
-func  (this *Woofipro) FetchLedger(optionalArgs ...any) <- chan any {
+func  (this *Woofipro) FetchLedgerAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchLedgerBody(ch, optionalArgs...)
     return ch
@@ -3652,7 +3652,7 @@ func (this *Woofipro) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
         params := GetArg(optionalArgs, 3, map[string]any {})
         _ = params
     
-        currencyRows:= (<-this.GetAssetHistoryRows(code, since, limit, params))
+        currencyRows:= (<-this.GetAssetHistoryRowsAsync(code, since, limit, params))
         PanicOnError(currencyRows)
         var currency any = this.SafeValue(currencyRows, 0)
         var rows any = this.SafeList(currencyRows, 1)
@@ -3717,7 +3717,7 @@ func  (this *Woofipro) ParseTransactionStatus(status any) any  {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func  (this *Woofipro) FetchDeposits(optionalArgs ...any) <- chan any {
+func  (this *Woofipro) FetchDepositsAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchDepositsBody(ch, optionalArgs...)
     return ch
@@ -3737,7 +3737,7 @@ func (this *Woofipro) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
             "side": "DEPOSIT",
         }
     
-            retRes287915 :=  (<-this.FetchDepositsWithdrawals(code, since, limit, this.Extend(request, params)))
+            retRes287915 :=  (<-this.FetchDepositsWithdrawalsAsync(code, since, limit, this.Extend(request, params)))
             PanicOnError(retRes287915)
             ch <- retRes287915
             return nil
@@ -3753,7 +3753,7 @@ func (this *Woofipro) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func  (this *Woofipro) FetchWithdrawals(optionalArgs ...any) <- chan any {
+func  (this *Woofipro) FetchWithdrawalsAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchWithdrawalsBody(ch, optionalArgs...)
     return ch
@@ -3773,7 +3773,7 @@ func (this *Woofipro) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any
             "side": "WITHDRAW",
         }
     
-            retRes289715 :=  (<-this.FetchDepositsWithdrawals(code, since, limit, this.Extend(request, params)))
+            retRes289715 :=  (<-this.FetchDepositsWithdrawalsAsync(code, since, limit, this.Extend(request, params)))
             PanicOnError(retRes289715)
             ch <- retRes289715
             return nil
@@ -3789,7 +3789,7 @@ func (this *Woofipro) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func  (this *Woofipro) FetchDepositsWithdrawals(optionalArgs ...any) <- chan any {
+func  (this *Woofipro) FetchDepositsWithdrawalsAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchDepositsWithdrawalsBody(ch, optionalArgs...)
     return ch
@@ -3807,7 +3807,7 @@ func (this *Woofipro) fetchDepositsWithdrawalsBody(ch chan any, optionalArgs ...
         _ = params
         var request map[string]any = map[string]any {}
     
-        currencyRows:= (<-this.GetAssetHistoryRows(code, since, limit, this.Extend(request, params)))
+        currencyRows:= (<-this.GetAssetHistoryRowsAsync(code, since, limit, this.Extend(request, params)))
         PanicOnError(currencyRows)
         var currency any = this.SafeValue(currencyRows, 0)
         var rows any = this.SafeList(currencyRows, 1)
@@ -3830,7 +3830,7 @@ func (this *Woofipro) fetchDepositsWithdrawalsBody(ch chan any, optionalArgs ...
         ch <- this.ParseTransactions(rowsList, currency, since, limit, params)
         return nil
 }
-func  (this *Woofipro) GetWithdrawNonce(optionalArgs ...any) <- chan any {
+func  (this *Woofipro) GetWithdrawNonceAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.getWithdrawNonceBody(ch, optionalArgs...)
     return ch
@@ -3882,7 +3882,7 @@ func  (this *Woofipro) SignMessage(message any, privateKey any) any  {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func  (this *Woofipro) Withdraw(code any, amount any, address any, optionalArgs ...any) <- chan any {
+func  (this *Woofipro) WithdrawAsync(code any, amount any, address any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.withdrawBody(ch, code, amount, address, optionalArgs...)
     return ch
@@ -3896,7 +3896,7 @@ func (this *Woofipro) withdrawBody(ch chan any, code any, amount any, address an
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes297912 := (<-this.LoadMarkets())
+            retRes297912 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes297912)
         }
         this.CheckAddress(address)
@@ -3916,7 +3916,7 @@ func (this *Woofipro) withdrawBody(ch chan any, code any, amount any, address an
             panic(BadRequest(Add(this.Id, " withdraw() require chainId parameter")))
         }
     
-        withdrawNonce:= (<-this.GetWithdrawNonce(params))
+        withdrawNonce:= (<-this.GetWithdrawNonceAsync(params))
         PanicOnError(withdrawNonce)
         var nonce any = this.Nonce()
         var domain map[string]any = map[string]any {
@@ -4010,7 +4010,7 @@ func  (this *Woofipro) ParseMarginMode(marginMode any, optionalArgs ...any) any 
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a list of [margin mode structures]{@link https://docs.ccxt.com/?id=margin-mode-structure}
  */
-func  (this *Woofipro) FetchMarginModes(optionalArgs ...any) <- chan any {
+func  (this *Woofipro) FetchMarginModesAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchMarginModesBody(ch, optionalArgs...)
     return ch
@@ -4024,7 +4024,7 @@ func (this *Woofipro) fetchMarginModesBody(ch chan any, optionalArgs ...any) any
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes307512 := (<-this.LoadMarkets())
+            retRes307512 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes307512)
         }
         symbols = this.MarketSymbols(symbols)
@@ -4058,7 +4058,7 @@ func (this *Woofipro) fetchMarginModesBody(ch chan any, optionalArgs ...any) any
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [margin mode structure]{@link https://docs.ccxt.com/?id=margin-mode-structure}
  */
-func  (this *Woofipro) FetchMarginMode(symbol any, optionalArgs ...any) <- chan any {
+func  (this *Woofipro) FetchMarginModeAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchMarginModeBody(ch, symbol, optionalArgs...)
     return ch
@@ -4070,12 +4070,12 @@ func (this *Woofipro) fetchMarginModeBody(ch chan any, symbol any, optionalArgs 
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes310712 := (<-this.LoadMarkets())
+            retRes310712 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes310712)
         }
         var market any = this.Market(symbol)
     
-        marginModes:= (<-this.FetchMarginModes([]any{GetValue(market, "symbol")}, params))
+        marginModes:= (<-this.FetchMarginModesAsync([]any{GetValue(market, "symbol")}, params))
         PanicOnError(marginModes)
         var marginMode any = this.SafeDict(marginModes, GetValue(market, "symbol"))
         if IsEqual(marginMode, nil) {
@@ -4095,7 +4095,7 @@ func (this *Woofipro) fetchMarginModeBody(ch chan any, symbol any, optionalArgs 
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} response from the exchange
  */
-func  (this *Woofipro) SetMarginMode(marginMode any, optionalArgs ...any) <- chan any {
+func  (this *Woofipro) SetMarginModeAsync(marginMode any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.setMarginModeBody(ch, marginMode, optionalArgs...)
     return ch
@@ -4112,7 +4112,7 @@ func (this *Woofipro) setMarginModeBody(ch chan any, marginMode any, optionalArg
         }
         if IsEqual(this.Markets, nil) {
     
-            retRes313312 := (<-this.LoadMarkets())
+            retRes313312 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes313312)
         }
         marginMode = ToLower(marginMode)
@@ -4172,7 +4172,7 @@ func  (this *Woofipro) ParseMarginModification(data any, optionalArgs ...any) an
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=add-margin-structure}
  */
-func  (this *Woofipro) ModifyMarginHelper(symbol any, amount any, typeVar any, optionalArgs ...any) <- chan any {
+func  (this *Woofipro) ModifyMarginHelperAsync(symbol any, amount any, typeVar any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.modifyMarginHelperBody(ch, symbol, amount, typeVar, optionalArgs...)
     return ch
@@ -4184,7 +4184,7 @@ func (this *Woofipro) modifyMarginHelperBody(ch chan any, symbol any, amount any
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes319012 := (<-this.LoadMarkets())
+            retRes319012 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes319012)
         }
         var market any = this.Market(symbol)
@@ -4219,7 +4219,7 @@ func (this *Woofipro) modifyMarginHelperBody(ch chan any, symbol any, amount any
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=add-margin-structure}
  */
-func  (this *Woofipro) AddMargin(symbol any, amount any, optionalArgs ...any) <- chan any {
+func  (this *Woofipro) AddMarginAsync(symbol any, amount any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.addMarginBody(ch, symbol, amount, optionalArgs...)
     return ch
@@ -4230,7 +4230,7 @@ func (this *Woofipro) addMarginBody(ch chan any, symbol any, amount any, optiona
         params := GetArg(optionalArgs, 0, map[string]any {})
         _ = params
     
-            retRes322215 :=  (<-this.ModifyMarginHelper(symbol, amount, "ADD", params))
+            retRes322215 :=  (<-this.ModifyMarginHelperAsync(symbol, amount, "ADD", params))
             PanicOnError(retRes322215)
             ch <- retRes322215
             return nil
@@ -4245,7 +4245,7 @@ func (this *Woofipro) addMarginBody(ch chan any, symbol any, amount any, optiona
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=reduce-margin-structure}
  */
-func  (this *Woofipro) ReduceMargin(symbol any, amount any, optionalArgs ...any) <- chan any {
+func  (this *Woofipro) ReduceMarginAsync(symbol any, amount any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.reduceMarginBody(ch, symbol, amount, optionalArgs...)
     return ch
@@ -4256,7 +4256,7 @@ func (this *Woofipro) reduceMarginBody(ch chan any, symbol any, amount any, opti
         params := GetArg(optionalArgs, 0, map[string]any {})
         _ = params
     
-            retRes323615 :=  (<-this.ModifyMarginHelper(symbol, amount, "REDUCE", params))
+            retRes323615 :=  (<-this.ModifyMarginHelperAsync(symbol, amount, "REDUCE", params))
             PanicOnError(retRes323615)
             ch <- retRes323615
             return nil
@@ -4282,7 +4282,7 @@ func  (this *Woofipro) ParseLeverage(leverage any, optionalArgs ...any) any  {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
  */
-func  (this *Woofipro) FetchLeverage(symbol any, optionalArgs ...any) <- chan any {
+func  (this *Woofipro) FetchLeverageAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchLeverageBody(ch, symbol, optionalArgs...)
     return ch
@@ -4294,7 +4294,7 @@ func (this *Woofipro) fetchLeverageBody(ch chan any, symbol any, optionalArgs ..
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes326112 := (<-this.LoadMarkets())
+            retRes326112 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes326112)
         }
         var market any = this.Market(symbol)
@@ -4343,7 +4343,7 @@ func (this *Woofipro) fetchLeverageBody(ch chan any, symbol any, optionalArgs ..
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} response from the exchange
  */
-func  (this *Woofipro) SetLeverage(leverage any, optionalArgs ...any) <- chan any {
+func  (this *Woofipro) SetLeverageAsync(leverage any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.setLeverageBody(ch, leverage, optionalArgs...)
     return ch
@@ -4357,7 +4357,7 @@ func (this *Woofipro) setLeverageBody(ch chan any, leverage any, optionalArgs ..
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes330812 := (<-this.LoadMarkets())
+            retRes330812 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes330812)
         }
         if (IsLessThan(leverage, 1)) || (IsGreaterThan(leverage, 50)) {
@@ -4453,7 +4453,7 @@ func  (this *Woofipro) ParsePosition(position any, optionalArgs ...any) any  {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
  */
-func  (this *Woofipro) FetchPosition(symbol any, optionalArgs ...any) <- chan any {
+func  (this *Woofipro) FetchPositionAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchPositionBody(ch, symbol, optionalArgs...)
     return ch
@@ -4465,7 +4465,7 @@ func (this *Woofipro) fetchPositionBody(ch chan any, symbol any, optionalArgs ..
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes340112 := (<-this.LoadMarkets())
+            retRes340112 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes340112)
         }
         var market any = this.Market(symbol)
@@ -4515,7 +4515,7 @@ func (this *Woofipro) fetchPositionBody(ch chan any, symbol any, optionalArgs ..
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
  */
-func  (this *Woofipro) FetchPositions(optionalArgs ...any) <- chan any {
+func  (this *Woofipro) FetchPositionsAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchPositionsBody(ch, optionalArgs...)
     return ch
@@ -4529,7 +4529,7 @@ func (this *Woofipro) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes344912 := (<-this.LoadMarkets())
+            retRes344912 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes344912)
         }
     

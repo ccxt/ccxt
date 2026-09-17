@@ -365,7 +365,7 @@ func  (this *Btcmarkets) Describe() any  {
         },
     })
 }
-func  (this *Btcmarkets) FetchTransactionsWithMethod(method any, optionalArgs ...any) <- chan any {
+func  (this *Btcmarkets) FetchTransactionsWithMethodAsync(method any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchTransactionsWithMethodBody(ch, method, optionalArgs...)
     return ch
@@ -383,7 +383,7 @@ func (this *Btcmarkets) fetchTransactionsWithMethodBody(ch chan any, method any,
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes30412 := (<-this.LoadMarkets())
+            retRes30412 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes30412)
         }
         var request map[string]any = map[string]any {}
@@ -426,7 +426,7 @@ func (this *Btcmarkets) fetchTransactionsWithMethodBody(ch chan any, method any,
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func  (this *Btcmarkets) FetchDepositsWithdrawals(optionalArgs ...any) <- chan any {
+func  (this *Btcmarkets) FetchDepositsWithdrawalsAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchDepositsWithdrawalsBody(ch, optionalArgs...)
     return ch
@@ -443,7 +443,7 @@ func (this *Btcmarkets) fetchDepositsWithdrawalsBody(ch chan any, optionalArgs .
         params := GetArg(optionalArgs, 3, map[string]any {})
         _ = params
     
-            retRes34015 :=  (<-this.FetchTransactionsWithMethod("privateGetTransfers", code, since, limit, params))
+            retRes34015 :=  (<-this.FetchTransactionsWithMethodAsync("privateGetTransfers", code, since, limit, params))
             PanicOnError(retRes34015)
             ch <- retRes34015
             return nil
@@ -459,7 +459,7 @@ func (this *Btcmarkets) fetchDepositsWithdrawalsBody(ch chan any, optionalArgs .
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func  (this *Btcmarkets) FetchDeposits(optionalArgs ...any) <- chan any {
+func  (this *Btcmarkets) FetchDepositsAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchDepositsBody(ch, optionalArgs...)
     return ch
@@ -476,7 +476,7 @@ func (this *Btcmarkets) fetchDepositsBody(ch chan any, optionalArgs ...any) any 
         params := GetArg(optionalArgs, 3, map[string]any {})
         _ = params
     
-            retRes35515 :=  (<-this.FetchTransactionsWithMethod("privateGetDeposits", code, since, limit, params))
+            retRes35515 :=  (<-this.FetchTransactionsWithMethodAsync("privateGetDeposits", code, since, limit, params))
             PanicOnError(retRes35515)
             ch <- retRes35515
             return nil
@@ -492,7 +492,7 @@ func (this *Btcmarkets) fetchDepositsBody(ch chan any, optionalArgs ...any) any 
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func  (this *Btcmarkets) FetchWithdrawals(optionalArgs ...any) <- chan any {
+func  (this *Btcmarkets) FetchWithdrawalsAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchWithdrawalsBody(ch, optionalArgs...)
     return ch
@@ -509,7 +509,7 @@ func (this *Btcmarkets) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) a
         params := GetArg(optionalArgs, 3, map[string]any {})
         _ = params
     
-            retRes37015 :=  (<-this.FetchTransactionsWithMethod("privateGetWithdrawals", code, since, limit, params))
+            retRes37015 :=  (<-this.FetchTransactionsWithMethodAsync("privateGetWithdrawals", code, since, limit, params))
             PanicOnError(retRes37015)
             ch <- retRes37015
             return nil
@@ -644,7 +644,7 @@ func  (this *Btcmarkets) ParseTransaction(transaction any, optionalArgs ...any) 
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} an array of objects representing market data
  */
-func  (this *Btcmarkets) FetchMarkets(optionalArgs ...any) <- chan any {
+func  (this *Btcmarkets) FetchMarketsAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchMarketsBody(ch, optionalArgs...)
     return ch
@@ -751,7 +751,7 @@ func  (this *Btcmarkets) ParseMarket(market any) any  {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {int} the current integer timestamp in milliseconds from the exchange server
  */
-func  (this *Btcmarkets) FetchTime(optionalArgs ...any) <- chan any {
+func  (this *Btcmarkets) FetchTimeAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchTimeBody(ch, optionalArgs...)
     return ch
@@ -798,7 +798,7 @@ func  (this *Btcmarkets) ParseBalance(response any) any  {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
-func  (this *Btcmarkets) FetchBalance(optionalArgs ...any) <- chan any {
+func  (this *Btcmarkets) FetchBalanceAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchBalanceBody(ch, optionalArgs...)
     return ch
@@ -810,7 +810,7 @@ func (this *Btcmarkets) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes63612 := (<-this.LoadMarkets())
+            retRes63612 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes63612)
         }
     
@@ -847,7 +847,7 @@ func  (this *Btcmarkets) ParseOHLCV(ohlcv any, optionalArgs ...any) any  {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
-func  (this *Btcmarkets) FetchOHLCV(symbol any, optionalArgs ...any) <- chan any {
+func  (this *Btcmarkets) FetchOHLCVAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchOHLCVBody(ch, symbol, optionalArgs...)
     return ch
@@ -865,7 +865,7 @@ func (this *Btcmarkets) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes67712 := (<-this.LoadMarkets())
+            retRes67712 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes67712)
         }
         var market any = this.Market(symbol)
@@ -903,7 +903,7 @@ func (this *Btcmarkets) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
-func  (this *Btcmarkets) FetchOrderBook(symbol any, optionalArgs ...any) <- chan any {
+func  (this *Btcmarkets) FetchOrderBookAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchOrderBookBody(ch, symbol, optionalArgs...)
     return ch
@@ -917,7 +917,7 @@ func (this *Btcmarkets) fetchOrderBookBody(ch chan any, symbol any, optionalArgs
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes71812 := (<-this.LoadMarkets())
+            retRes71812 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes71812)
         }
         var market any = this.Market(symbol)
@@ -1011,7 +1011,7 @@ func  (this *Btcmarkets) ParseTicker(ticker any, optionalArgs ...any) any  {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func  (this *Btcmarkets) FetchTicker(symbol any, optionalArgs ...any) <- chan any {
+func  (this *Btcmarkets) FetchTickerAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchTickerBody(ch, symbol, optionalArgs...)
     return ch
@@ -1023,7 +1023,7 @@ func (this *Btcmarkets) fetchTickerBody(ch chan any, symbol any, optionalArgs ..
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes80912 := (<-this.LoadMarkets())
+            retRes80912 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes80912)
         }
         var market any = this.Market(symbol)
@@ -1052,7 +1052,7 @@ func (this *Btcmarkets) fetchTickerBody(ch chan any, symbol any, optionalArgs ..
     ch <- this.ParseTicker(response, market)
         return nil
 }
-func  (this *Btcmarkets) FetchTicker2(symbol any, optionalArgs ...any) <- chan any {
+func  (this *Btcmarkets) FetchTicker2Async(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchTicker2Body(ch, symbol, optionalArgs...)
     return ch
@@ -1064,7 +1064,7 @@ func (this *Btcmarkets) fetchTicker2Body(ch chan any, symbol any, optionalArgs .
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes83612 := (<-this.LoadMarkets())
+            retRes83612 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes83612)
         }
         var market any = this.Market(symbol)
@@ -1157,7 +1157,7 @@ func  (this *Btcmarkets) ParseTrade(trade any, optionalArgs ...any) any  {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
-func  (this *Btcmarkets) FetchTrades(symbol any, optionalArgs ...any) <- chan any {
+func  (this *Btcmarkets) FetchTradesAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchTradesBody(ch, symbol, optionalArgs...)
     return ch
@@ -1173,7 +1173,7 @@ func (this *Btcmarkets) fetchTradesBody(ch chan any, symbol any, optionalArgs ..
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes92612 := (<-this.LoadMarkets())
+            retRes92612 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes92612)
         }
         var market any = this.Market(symbol)
@@ -1208,7 +1208,7 @@ func (this *Btcmarkets) fetchTradesBody(ch chan any, symbol any, optionalArgs ..
  * @param {float} [params.triggerPrice] the price at which a trigger order is triggered at
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Btcmarkets) CreateOrder(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <- chan any {
+func  (this *Btcmarkets) CreateOrderAsync(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.createOrderBody(ch, symbol, typeVar, side, amount, optionalArgs...)
     return ch
@@ -1222,7 +1222,7 @@ func (this *Btcmarkets) createOrderBody(ch chan any, symbol any, typeVar any, si
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes96012 := (<-this.LoadMarkets())
+            retRes96012 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes96012)
         }
         var market any = this.Market(symbol)
@@ -1309,7 +1309,7 @@ func (this *Btcmarkets) createOrderBody(ch chan any, symbol any, typeVar any, si
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Btcmarkets) CancelOrders(ids any, optionalArgs ...any) <- chan any {
+func  (this *Btcmarkets) CancelOrdersAsync(ids any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.cancelOrdersBody(ch, ids, optionalArgs...)
     return ch
@@ -1323,7 +1323,7 @@ func (this *Btcmarkets) cancelOrdersBody(ch chan any, ids any, optionalArgs ...a
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes105612 := (<-this.LoadMarkets())
+            retRes105612 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes105612)
         }
         var numericIds any = []any{}
@@ -1372,7 +1372,7 @@ func (this *Btcmarkets) cancelOrdersBody(ch chan any, ids any, optionalArgs ...a
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Btcmarkets) CancelOrder(id any, optionalArgs ...any) <- chan any {
+func  (this *Btcmarkets) CancelOrderAsync(id any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.cancelOrderBody(ch, id, optionalArgs...)
     return ch
@@ -1386,7 +1386,7 @@ func (this *Btcmarkets) cancelOrderBody(ch chan any, id any, optionalArgs ...any
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes110312 := (<-this.LoadMarkets())
+            retRes110312 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes110312)
         }
         var request map[string]any = map[string]any {
@@ -1536,7 +1536,7 @@ func  (this *Btcmarkets) ParseOrder(order any, optionalArgs ...any) any  {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Btcmarkets) FetchOrder(id any, optionalArgs ...any) <- chan any {
+func  (this *Btcmarkets) FetchOrderAsync(id any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchOrderBody(ch, id, optionalArgs...)
     return ch
@@ -1550,7 +1550,7 @@ func (this *Btcmarkets) fetchOrderBody(ch chan any, id any, optionalArgs ...any)
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes124812 := (<-this.LoadMarkets())
+            retRes124812 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes124812)
         }
         var request map[string]any = map[string]any {
@@ -1574,7 +1574,7 @@ func (this *Btcmarkets) fetchOrderBody(ch chan any, id any, optionalArgs ...any)
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Btcmarkets) FetchOrders(optionalArgs ...any) <- chan any {
+func  (this *Btcmarkets) FetchOrdersAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchOrdersBody(ch, optionalArgs...)
     return ch
@@ -1592,7 +1592,7 @@ func (this *Btcmarkets) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes127012 := (<-this.LoadMarkets())
+            retRes127012 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes127012)
         }
         var request map[string]any = map[string]any {
@@ -1627,7 +1627,7 @@ func (this *Btcmarkets) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Btcmarkets) FetchOpenOrders(optionalArgs ...any) <- chan any {
+func  (this *Btcmarkets) FetchOpenOrdersAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchOpenOrdersBody(ch, optionalArgs...)
     return ch
@@ -1647,7 +1647,7 @@ func (this *Btcmarkets) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) an
             "status": "open",
         }
     
-            retRes130315 :=  (<-this.FetchOrders(symbol, since, limit, this.Extend(request, params)))
+            retRes130315 :=  (<-this.FetchOrdersAsync(symbol, since, limit, this.Extend(request, params)))
             PanicOnError(retRes130315)
             ch <- retRes130315
             return nil
@@ -1663,7 +1663,7 @@ func (this *Btcmarkets) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) an
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Btcmarkets) FetchClosedOrders(optionalArgs ...any) <- chan any {
+func  (this *Btcmarkets) FetchClosedOrdersAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchClosedOrdersBody(ch, optionalArgs...)
     return ch
@@ -1680,7 +1680,7 @@ func (this *Btcmarkets) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) 
         params := GetArg(optionalArgs, 3, map[string]any {})
         _ = params
     
-        orders:= (<-this.FetchOrders(symbol, since, limit, params))
+        orders:= (<-this.FetchOrdersAsync(symbol, since, limit, params))
         PanicOnError(orders)
     
         ch <- this.FilterBy(orders, "status", "closed")
@@ -1697,7 +1697,7 @@ func (this *Btcmarkets) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) 
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
-func  (this *Btcmarkets) FetchMyTrades(optionalArgs ...any) <- chan any {
+func  (this *Btcmarkets) FetchMyTradesAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchMyTradesBody(ch, optionalArgs...)
     return ch
@@ -1715,7 +1715,7 @@ func (this *Btcmarkets) fetchMyTradesBody(ch chan any, optionalArgs ...any) any 
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes133512 := (<-this.LoadMarkets())
+            retRes133512 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes133512)
         }
         var request map[string]any = map[string]any {}
@@ -1776,7 +1776,7 @@ func (this *Btcmarkets) fetchMyTradesBody(ch chan any, optionalArgs ...any) any 
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func  (this *Btcmarkets) Withdraw(code any, amount any, address any, optionalArgs ...any) <- chan any {
+func  (this *Btcmarkets) WithdrawAsync(code any, amount any, address any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.withdrawBody(ch, code, amount, address, optionalArgs...)
     return ch
@@ -1793,7 +1793,7 @@ func (this *Btcmarkets) withdrawBody(ch chan any, code any, amount any, address 
         params = GetValue(tagparamsVariable,1)
         if IsEqual(this.Markets, nil) {
     
-            retRes139512 := (<-this.LoadMarkets())
+            retRes139512 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes139512)
         }
         var currency any = this.Currency(code)

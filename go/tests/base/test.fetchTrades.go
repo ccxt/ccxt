@@ -5,7 +5,7 @@ import "github.com/ccxt/ccxt/go/v4"
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 
-    func TestFetchTrades(exchange ccxt.ICoreExchange, skippedProperties any, symbol any) <- chan any {
+    func TestFetchTradesAsync(exchange ccxt.ICoreExchange, skippedProperties any, symbol any) <- chan any {
         ch := make(chan any, 1)
         go testFetchTradesBody(ch, exchange, skippedProperties, symbol)
         return ch
@@ -45,14 +45,14 @@ import "github.com/ccxt/ccxt/go/v4"
             }
             if !(InOp(skippedProperties, "side")) && !(InOp(skippedProperties, "sideSequence")) {
         
-                retRes378 := (<-HelperTestFetchTradesSideSequence(exchange, skippedProperties, symbol, method, trades))
+                retRes378 := (<-HelperTestFetchTradesSideSequenceAsync(exchange, skippedProperties, symbol, method, trades))
                 PanicOnError(retRes378)
             }
         
             ch <- true
             return nil
     }
-    func HelperTestFetchTradesSideSequence(exchange ccxt.ICoreExchange, skippedProperties any, symbol any, method any, trades any) <- chan any {
+    func HelperTestFetchTradesSideSequenceAsync(exchange ccxt.ICoreExchange, skippedProperties any, symbol any, method any, trades any) <- chan any {
         ch := make(chan any, 1)
         go helperTestFetchTradesSideSequenceBody(ch, exchange, skippedProperties, symbol, method, trades)
         return ch

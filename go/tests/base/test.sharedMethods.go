@@ -420,7 +420,7 @@ import "github.com/ccxt/ccxt/go/v4"
             AssertGreaterOrEqual(exchange, skippedProperties, method, entry, key, "-8") // in real-world cases, there would not be less than that
         }
     }
-    func FetchBestBidAsk(exchange ccxt.ICoreExchange, method any, symbol any) <- chan any {
+    func FetchBestBidAskAsync(exchange ccxt.ICoreExchange, method any, symbol any) <- chan any {
         ch := make(chan any, 1)
         go fetchBestBidAskBody(ch, exchange, method, symbol)
         return ch
@@ -474,7 +474,7 @@ import "github.com/ccxt/ccxt/go/v4"
             ch <- []any{bestBid, bestAsk}
             return nil
     }
-    func FetchOrder(exchange ccxt.ICoreExchange, symbol any, orderId any, skippedProperties any) <- chan any {
+    func FetchOrderAsync(exchange ccxt.ICoreExchange, symbol any, orderId any, skippedProperties any) <- chan any {
         ch := make(chan any, 1)
         go fetchOrderBody(ch, exchange, symbol, orderId, skippedProperties)
         return ch

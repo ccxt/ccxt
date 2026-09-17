@@ -714,7 +714,7 @@ func  (this *Pacifica) Describe() any  {
         },
     })
 }
-func  (this *Pacifica) InitializeClient() <- chan any {
+func  (this *Pacifica) InitializeClientAsync() <- chan any {
     ch := make(chan any, 1)
     go this.initializeClientBody(ch)
     return ch
@@ -744,7 +744,7 @@ func (this *Pacifica) initializeClientBody(ch chan any) any {
                 }()
     		    // try block:
                 
-        retRes55912 := (<-this.HandleBuilderFeeApproval())
+        retRes55912 := (<-this.HandleBuilderFeeApprovalAsync())
         PanicOnError(retRes55912)
     		    return nil
     	    }(this)
@@ -757,7 +757,7 @@ func (this *Pacifica) initializeClientBody(ch chan any) any {
     ch <- true
     return nil
 }
-func  (this *Pacifica) HandleBuilderFeeApproval() <- chan any {
+func  (this *Pacifica) HandleBuilderFeeApprovalAsync() <- chan any {
     ch := make(chan any, 1)
     go this.handleBuilderFeeApprovalBody(ch)
     return ch
@@ -801,7 +801,7 @@ func (this *Pacifica) handleBuilderFeeApprovalBody(ch chan any) any {
                     var builder *string = this.SafeString(this.Options, "builderCode", "CCXT") // case sensitive
         var maxFeeRate *string = this.SafeString(this.Options, "feeRate", "0.01")
     
-        retRes58112 := (<-this.ApproveBuilderCode(builder, maxFeeRate))
+        retRes58112 := (<-this.ApproveBuilderCodeAsync(builder, maxFeeRate))
         PanicOnError(retRes58112)
         AddElementToObject(this.Options, "approvedBuilderFee", true)
     		    return nil
@@ -820,7 +820,7 @@ func (this *Pacifica) handleBuilderFeeApprovalBody(ch chan any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} an array of [market structures](https://docs.ccxt.com/#/?id=market-structure)
  */
-func  (this *Pacifica) FetchMarkets(optionalArgs ...any) <- chan any {
+func  (this *Pacifica) FetchMarketsAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchMarketsBody(ch, optionalArgs...)
     return ch
@@ -885,7 +885,7 @@ func (this *Pacifica) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} an array of objects representing market data
  */
-func  (this *Pacifica) FetchSwapMarkets(optionalArgs ...any) <- chan any {
+func  (this *Pacifica) FetchSwapMarketsAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchSwapMarketsBody(ch, optionalArgs...)
     return ch
@@ -896,7 +896,7 @@ func (this *Pacifica) fetchSwapMarketsBody(ch chan any, optionalArgs ...any) any
         params := GetArg(optionalArgs, 0, map[string]any {})
         _ = params
     
-        markets:= (<-this.FetchMarkets(params))
+        markets:= (<-this.FetchMarketsAsync(params))
         PanicOnError(markets)
     
         ch <- this.FilterBy(markets, "type", "swap")
@@ -1047,7 +1047,7 @@ func  (this *Pacifica) ParseMarket(market any) any  {
  * @param {string} [params.account] will default to walletAddress if not provided
  * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
-func  (this *Pacifica) FetchBalance(optionalArgs ...any) <- chan any {
+func  (this *Pacifica) FetchBalanceAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchBalanceBody(ch, optionalArgs...)
     return ch
@@ -1141,7 +1141,7 @@ func (this *Pacifica) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
  * @param {string} [params.account] will default to walletAddress if not provided
  * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
  */
-func  (this *Pacifica) FetchLeverage(symbol any, optionalArgs ...any) <- chan any {
+func  (this *Pacifica) FetchLeverageAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchLeverageBody(ch, symbol, optionalArgs...)
     return ch
@@ -1152,11 +1152,11 @@ func (this *Pacifica) fetchLeverageBody(ch chan any, symbol any, optionalArgs ..
         params := GetArg(optionalArgs, 0, map[string]any {})
         _ = params
     
-        retRes8828 := (<-this.LoadAccountSettings())
+        retRes8828 := (<-this.LoadAccountSettingsAsync())
         PanicOnError(retRes8828)
         if IsEqual(this.Markets, nil) {
     
-            retRes88412 := (<-this.LoadMarkets())
+            retRes88412 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes88412)
         }
         var market any = this.Market(symbol)
@@ -1173,7 +1173,7 @@ func (this *Pacifica) fetchLeverageBody(ch chan any, symbol any, optionalArgs ..
                 "account": userAccount,
             }
             
-        settings = (<-this.FetchAccountSettings(this.Extend(request, params)))
+        settings = (<-this.FetchAccountSettingsAsync(this.Extend(request, params)))
                 PanicOnError(settings)
         }
         var setting any = this.SafeDict(settings, symbol)
@@ -1230,7 +1230,7 @@ func  (this *Pacifica) ParseLeverageFromMarket(market any) any  {
  * @param {string} [params.account] will default to walletAddress if not provided
  * @returns {object} Dict repacked from list by symbol key
  */
-func  (this *Pacifica) FetchAccountSettings(optionalArgs ...any) <- chan any {
+func  (this *Pacifica) FetchAccountSettingsAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchAccountSettingsBody(ch, optionalArgs...)
     return ch
@@ -1268,7 +1268,7 @@ func (this *Pacifica) fetchAccountSettingsBody(ch chan any, optionalArgs ...any)
     ch <- this.ParseAccountSettings(this.SafeList(response, "data", []any{}))
         return nil
 }
-func  (this *Pacifica) LoadAccountSettings(optionalArgs ...any) <- chan any {
+func  (this *Pacifica) LoadAccountSettingsAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.loadAccountSettingsBody(ch, optionalArgs...)
     return ch
@@ -1284,7 +1284,7 @@ func (this *Pacifica) loadAccountSettingsBody(ch chan any, optionalArgs ...any) 
         if (IsEqual(settings, nil)) || ((refresh == true)) {
             AddElementToObject(this.Options, "settings", this.CreateSafeDictionary())
             
-        settings = (<-this.FetchAccountSettings(params))
+        settings = (<-this.FetchAccountSettingsAsync(params))
                 PanicOnError(settings)
             AddElementToObject(this.Options, "settings", settings)
         }
@@ -1314,7 +1314,7 @@ func  (this *Pacifica) ParseAccountSettings(settings any) any  {
  * @param {string} [params.account] will default to walletAddress if not provided
  * @returns {object} a [margin mode structure]{@link https://docs.ccxt.com/?id=margin-mode-structure}
  */
-func  (this *Pacifica) FetchMarginMode(symbol any, optionalArgs ...any) <- chan any {
+func  (this *Pacifica) FetchMarginModeAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchMarginModeBody(ch, symbol, optionalArgs...)
     return ch
@@ -1325,7 +1325,7 @@ func (this *Pacifica) fetchMarginModeBody(ch chan any, symbol any, optionalArgs 
         params := GetArg(optionalArgs, 0, map[string]any {})
         _ = params
     
-        retRes10118 := (<-this.LoadAccountSettings())
+        retRes10118 := (<-this.LoadAccountSettingsAsync())
         PanicOnError(retRes10118)
         var userAccount any = nil
         userAccountparamsVariable := this.HandleOriginAndSingleAddress("fetchMarginMode", params);
@@ -1340,7 +1340,7 @@ func (this *Pacifica) fetchMarginModeBody(ch chan any, symbol any, optionalArgs 
                 "account": userAccount,
             }
             
-        settings = (<-this.FetchAccountSettings(this.Extend(request, params)))
+        settings = (<-this.FetchAccountSettingsAsync(this.Extend(request, params)))
                 PanicOnError(settings)
         }
         // {
@@ -1396,7 +1396,7 @@ func  (this *Pacifica) ParseMarginModeFromSetting(symbol any, setting any) any  
  * @param {int} [params.aggLevel] aggregation level for price grouping. Defaults to 1. Can be 1, 10, 100, 1000, 10000
  * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
-func  (this *Pacifica) FetchOrderBook(symbol any, optionalArgs ...any) <- chan any {
+func  (this *Pacifica) FetchOrderBookAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchOrderBookBody(ch, symbol, optionalArgs...)
     return ch
@@ -1410,7 +1410,7 @@ func (this *Pacifica) fetchOrderBookBody(ch chan any, symbol any, optionalArgs .
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes107712 := (<-this.LoadMarkets())
+            retRes107712 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes107712)
         }
         var market any = this.Market(symbol)
@@ -1480,7 +1480,7 @@ func (this *Pacifica) fetchOrderBookBody(ch chan any, symbol any, optionalArgs .
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} an array of objects representing market data
  */
-func  (this *Pacifica) FetchFundingRates(optionalArgs ...any) <- chan any {
+func  (this *Pacifica) FetchFundingRatesAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchFundingRatesBody(ch, optionalArgs...)
     return ch
@@ -1582,7 +1582,7 @@ func  (this *Pacifica) ParseFundingRate(info any, optionalArgs ...any) any  {
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
-func  (this *Pacifica) FetchOHLCV(symbol any, optionalArgs ...any) <- chan any {
+func  (this *Pacifica) FetchOHLCVAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchOHLCVBody(ch, symbol, optionalArgs...)
     return ch
@@ -1607,7 +1607,7 @@ func (this *Pacifica) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...an
         var defaultMaxLimit int = 3950 // 4000 by docs, but in fact >~3960 returns error
         if IsEqual(this.Markets, nil) {
     
-            retRes123712 := (<-this.LoadMarkets())
+            retRes123712 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes123712)
         }
         var market any = this.Market(symbol)
@@ -1617,7 +1617,7 @@ func (this *Pacifica) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...an
         params = GetValue(paginateparamsVariable,1)
         if EvalTruthy(paginate) {
     
-                retRes124319 :=  (<-this.FetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, params, defaultMaxLimit))
+                retRes124319 :=  (<-this.FetchPaginatedCallDeterministicAsync("fetchOHLCV", symbol, since, limit, timeframe, params, defaultMaxLimit))
                 PanicOnError(retRes124319)
                 ch <- retRes124319
                 return nil
@@ -1704,7 +1704,7 @@ func  (this *Pacifica) ParseOHLCV(ohlcv any, optionalArgs ...any) any  {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
-func  (this *Pacifica) FetchTrades(symbol any, optionalArgs ...any) <- chan any {
+func  (this *Pacifica) FetchTradesAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchTradesBody(ch, symbol, optionalArgs...)
     return ch
@@ -1720,7 +1720,7 @@ func (this *Pacifica) fetchTradesBody(ch chan any, symbol any, optionalArgs ...a
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes133012 := (<-this.LoadMarkets())
+            retRes133012 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes133012)
         }
         var market any = this.Market(symbol)
@@ -1768,7 +1768,7 @@ func (this *Pacifica) fetchTradesBody(ch chan any, symbol any, optionalArgs ...a
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
  * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
-func  (this *Pacifica) FetchMyTrades(optionalArgs ...any) <- chan any {
+func  (this *Pacifica) FetchMyTradesAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchMyTradesBody(ch, optionalArgs...)
     return ch
@@ -1786,7 +1786,7 @@ func (this *Pacifica) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes137612 := (<-this.LoadMarkets())
+            retRes137612 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes137612)
         }
         var market any = nil
@@ -1804,7 +1804,7 @@ func (this *Pacifica) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
         var defaultLimit int = 100 // Default max limit
         if EvalTruthy(paginate) {
     
-                retRes138819 :=  (<-this.FetchPaginatedCallCursor("fetchMyTrades", symbol, since, limit, params, "next_cursor", "cursor", nil, defaultLimit))
+                retRes138819 :=  (<-this.FetchPaginatedCallCursorAsync("fetchMyTrades", symbol, since, limit, params, "next_cursor", "cursor", nil, defaultLimit))
                 PanicOnError(retRes138819)
                 ch <- retRes138819
                 return nil
@@ -1957,7 +1957,7 @@ func  (this *Pacifica) ParseTrade(trade any, optionalArgs ...any) any  {
  * @param {int} [params.expiryWindow] time to live in milliseconds
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Pacifica) CreateOrder(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <- chan any {
+func  (this *Pacifica) CreateOrderAsync(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.createOrderBody(ch, symbol, typeVar, side, amount, optionalArgs...)
     return ch
@@ -1971,11 +1971,11 @@ func (this *Pacifica) createOrderBody(ch chan any, symbol any, typeVar any, side
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes153412 := (<-this.LoadMarkets())
+            retRes153412 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes153412)
         }
     
-        retRes15368 := (<-this.InitializeClient())
+        retRes15368 := (<-this.InitializeClientAsync())
         PanicOnError(retRes15368)
         requestoperationTypeVariable := this.CreateOrderRequest(symbol, typeVar, side, amount, price, params);
         request := GetValue(requestoperationTypeVariable,0);
@@ -2224,7 +2224,7 @@ func  (this *Pacifica) CreateOrdersRequest(orders any, optionalArgs ...any) any 
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Pacifica) CreateOrders(orders any, optionalArgs ...any) <- chan any {
+func  (this *Pacifica) CreateOrdersAsync(orders any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.createOrdersBody(ch, orders, optionalArgs...)
     return ch
@@ -2236,11 +2236,11 @@ func (this *Pacifica) createOrdersBody(ch chan any, orders any, optionalArgs ...
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes177012 := (<-this.LoadMarkets())
+            retRes177012 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes177012)
         }
     
-        retRes17728 := (<-this.InitializeClient())
+        retRes17728 := (<-this.InitializeClientAsync())
         PanicOnError(retRes17728)
         var request any = this.CreateOrdersRequest(orders)
     
@@ -2300,7 +2300,7 @@ func (this *Pacifica) createOrdersBody(ch chan any, orders any, optionalArgs ...
  * @param {int} [params.expiryWindow] time to live in milliseconds
  * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Pacifica) CancelOrders(ids any, optionalArgs ...any) <- chan any {
+func  (this *Pacifica) CancelOrdersAsync(ids any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.cancelOrdersBody(ch, ids, optionalArgs...)
     return ch
@@ -2314,11 +2314,11 @@ func (this *Pacifica) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes182612 := (<-this.LoadMarkets())
+            retRes182612 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes182612)
         }
     
-        retRes18288 := (<-this.InitializeClient())
+        retRes18288 := (<-this.InitializeClientAsync())
         PanicOnError(retRes18288)
         if IsEqual(symbol, nil) {
             panic(ArgumentsRequired(Add(this.Id, " cancelOrders() requires a \"symbol\" argument!")))
@@ -2412,7 +2412,7 @@ func  (this *Pacifica) CancelOrdersRequest(ids any, optionalArgs ...any) any  {
  * @param {int} [params.expiryWindow] time to live in milliseconds
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Pacifica) CancelAllOrders(optionalArgs ...any) <- chan any {
+func  (this *Pacifica) CancelAllOrdersAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.cancelAllOrdersBody(ch, optionalArgs...)
     return ch
@@ -2426,11 +2426,11 @@ func (this *Pacifica) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any 
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes191312 := (<-this.LoadMarkets())
+            retRes191312 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes191312)
         }
     
-        retRes19158 := (<-this.InitializeClient())
+        retRes19158 := (<-this.InitializeClientAsync())
         PanicOnError(retRes19158)
         var request any = this.CancelAllOrdersRequest(symbol, params)
         params = this.Omit(params, []any{"excludeReduceOnly", "expiryWindow"})
@@ -2484,7 +2484,7 @@ func  (this *Pacifica) CancelAllOrdersRequest(symbol any, optionalArgs ...any) a
  * @param {int} [params.expiryWindow] time to live in milliseconds
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Pacifica) CancelOrder(id any, optionalArgs ...any) <- chan any {
+func  (this *Pacifica) CancelOrderAsync(id any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.cancelOrderBody(ch, id, optionalArgs...)
     return ch
@@ -2498,11 +2498,11 @@ func (this *Pacifica) cancelOrderBody(ch chan any, id any, optionalArgs ...any) 
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes196812 := (<-this.LoadMarkets())
+            retRes196812 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes196812)
         }
     
-        retRes19708 := (<-this.InitializeClient())
+        retRes19708 := (<-this.InitializeClientAsync())
         PanicOnError(retRes19708)
         if IsEqual(symbol, nil) {
             panic(ArgumentsRequired(Add(this.Id, " cancelOrder() requires a symbol argument")))
@@ -2579,7 +2579,7 @@ func  (this *Pacifica) CancelOrderRequest(id any, optionalArgs ...any) any  {
  * @param {int} [params.expiryWindow] time to live in milliseconds
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Pacifica) EditOrder(id any, symbol any, typeVar any, side any, optionalArgs ...any) <- chan any {
+func  (this *Pacifica) EditOrderAsync(id any, symbol any, typeVar any, side any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.editOrderBody(ch, id, symbol, typeVar, side, optionalArgs...)
     return ch
@@ -2595,11 +2595,11 @@ func (this *Pacifica) editOrderBody(ch chan any, id any, symbol any, typeVar any
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes203512 := (<-this.LoadMarkets())
+            retRes203512 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes203512)
         }
     
-        retRes20378 := (<-this.InitializeClient())
+        retRes20378 := (<-this.InitializeClientAsync())
         PanicOnError(retRes20378)
         var market any = this.Market(symbol)
         var request any = this.EditOrderRequest(id, symbol, typeVar, side, amount, price, market, params)
@@ -2669,7 +2669,7 @@ func  (this *Pacifica) EditOrderRequest(id any, symbol any, typeVar any, side an
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
  * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
  */
-func  (this *Pacifica) FetchFundingRateHistory(optionalArgs ...any) <- chan any {
+func  (this *Pacifica) FetchFundingRateHistoryAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchFundingRateHistoryBody(ch, optionalArgs...)
     return ch
@@ -2687,7 +2687,7 @@ func (this *Pacifica) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...a
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes210012 := (<-this.LoadMarkets())
+            retRes210012 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes210012)
         }
         if IsEqual(symbol, nil) {
@@ -2701,7 +2701,7 @@ func (this *Pacifica) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...a
         var defaultLimit int = 100 // Default max limit
         if EvalTruthy(paginate) {
     
-                retRes211019 :=  (<-this.FetchPaginatedCallCursor("fetchFundingRateHistory", symbol, since, limit, params, "next_cursor", "cursor", nil, defaultLimit))
+                retRes211019 :=  (<-this.FetchPaginatedCallCursorAsync("fetchFundingRateHistory", symbol, since, limit, params, "next_cursor", "cursor", nil, defaultLimit))
                 PanicOnError(retRes211019)
                 ch <- retRes211019
                 return nil
@@ -2760,7 +2760,7 @@ func (this *Pacifica) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...a
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func  (this *Pacifica) FetchTickers(optionalArgs ...any) <- chan any {
+func  (this *Pacifica) FetchTickersAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchTickersBody(ch, optionalArgs...)
     return ch
@@ -2774,7 +2774,7 @@ func (this *Pacifica) fetchTickersBody(ch chan any, optionalArgs ...any) any {
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes216512 := (<-this.LoadMarkets())
+            retRes216512 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes216512)
         }
         symbols = this.MarketSymbols(symbols)
@@ -2861,7 +2861,7 @@ func  (this *Pacifica) ParseTicker(ticker any, optionalArgs ...any) any  {
  * @param {string} [params.account] will default to walletAddress if not provided
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Pacifica) FetchClosedOrders(optionalArgs ...any) <- chan any {
+func  (this *Pacifica) FetchClosedOrdersAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchClosedOrdersBody(ch, optionalArgs...)
     return ch
@@ -2879,11 +2879,11 @@ func (this *Pacifica) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) an
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes224912 := (<-this.LoadMarkets())
+            retRes224912 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes224912)
         }
     
-        orders:= (<-this.FetchOrders(symbol, nil, nil, params))
+        orders:= (<-this.FetchOrdersAsync(symbol, nil, nil, params))
         PanicOnError(orders) // don't filter here because we don't want to catch open orders
         var closedOrders any = this.FilterByArray(orders, "status", []any{"closed"}, false)
     
@@ -2902,7 +2902,7 @@ func (this *Pacifica) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) an
  * @param {string} [params.account] will default to walletAddress if not provided
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Pacifica) FetchCanceledOrders(optionalArgs ...any) <- chan any {
+func  (this *Pacifica) FetchCanceledOrdersAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchCanceledOrdersBody(ch, optionalArgs...)
     return ch
@@ -2920,11 +2920,11 @@ func (this *Pacifica) fetchCanceledOrdersBody(ch chan any, optionalArgs ...any) 
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes227012 := (<-this.LoadMarkets())
+            retRes227012 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes227012)
         }
     
-        orders:= (<-this.FetchOrders(symbol, nil, nil, params))
+        orders:= (<-this.FetchOrdersAsync(symbol, nil, nil, params))
         PanicOnError(orders) // don't filter here because we don't want to catch open orders
         var closedOrders any = this.FilterByArray(orders, "status", []any{"canceled"}, false)
     
@@ -2943,7 +2943,7 @@ func (this *Pacifica) fetchCanceledOrdersBody(ch chan any, optionalArgs ...any) 
  * @param {string} [params.account] will default to walletAddress if not provided
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Pacifica) FetchCanceledAndClosedOrders(optionalArgs ...any) <- chan any {
+func  (this *Pacifica) FetchCanceledAndClosedOrdersAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchCanceledAndClosedOrdersBody(ch, optionalArgs...)
     return ch
@@ -2961,11 +2961,11 @@ func (this *Pacifica) fetchCanceledAndClosedOrdersBody(ch chan any, optionalArgs
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes229112 := (<-this.LoadMarkets())
+            retRes229112 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes229112)
         }
     
-        orders:= (<-this.FetchOrders(symbol, nil, nil, params))
+        orders:= (<-this.FetchOrdersAsync(symbol, nil, nil, params))
         PanicOnError(orders) // don't filter here because we don't want to catch open orders
         var closedOrders any = this.FilterByArray(orders, "status", []any{"canceled", "closed", "rejected"}, false)
     
@@ -2984,7 +2984,7 @@ func (this *Pacifica) fetchCanceledAndClosedOrdersBody(ch chan any, optionalArgs
  * @param {string} [params.account] will default to walletAddress if not provided
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Pacifica) FetchOpenOrders(optionalArgs ...any) <- chan any {
+func  (this *Pacifica) FetchOpenOrdersAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchOpenOrdersBody(ch, optionalArgs...)
     return ch
@@ -3002,7 +3002,7 @@ func (this *Pacifica) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any 
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes231212 := (<-this.LoadMarkets())
+            retRes231212 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes231212)
         }
         var userAddress any = nil
@@ -3064,7 +3064,7 @@ func (this *Pacifica) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any 
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Pacifica) FetchOrders(optionalArgs ...any) <- chan any {
+func  (this *Pacifica) FetchOrdersAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchOrdersBody(ch, optionalArgs...)
     return ch
@@ -3082,7 +3082,7 @@ func (this *Pacifica) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes237012 := (<-this.LoadMarkets())
+            retRes237012 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes237012)
         }
         var paginate any = false
@@ -3092,7 +3092,7 @@ func (this *Pacifica) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
         var defaultLimit int = 100 // max default 100
         if EvalTruthy(paginate) {
     
-                retRes237619 :=  (<-this.FetchPaginatedCallCursor("fetchOrders", symbol, since, limit, params, "next_cursor", "cursor", nil, defaultLimit))
+                retRes237619 :=  (<-this.FetchPaginatedCallCursorAsync("fetchOrders", symbol, since, limit, params, "next_cursor", "cursor", nil, defaultLimit))
                 PanicOnError(retRes237619)
                 ch <- retRes237619
                 return nil
@@ -3173,7 +3173,7 @@ func  (this *Pacifica) AddPaginationCursorToResult(response any) any  {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Pacifica) FetchOrder(id any, optionalArgs ...any) <- chan any {
+func  (this *Pacifica) FetchOrderAsync(id any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchOrderBody(ch, id, optionalArgs...)
     return ch
@@ -3187,7 +3187,7 @@ func (this *Pacifica) fetchOrderBody(ch chan any, id any, optionalArgs ...any) a
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes245212 := (<-this.LoadMarkets())
+            retRes245212 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes245212)
         }
         var market any = nil
@@ -3438,7 +3438,7 @@ func  (this *Pacifica) ParseOrder(order any, optionalArgs ...any) any  {
  * @param {string} [params.account] will default to walletAddress if not provided
  * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
  */
-func  (this *Pacifica) FetchPosition(symbol any, optionalArgs ...any) <- chan any {
+func  (this *Pacifica) FetchPositionAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchPositionBody(ch, symbol, optionalArgs...)
     return ch
@@ -3449,7 +3449,7 @@ func (this *Pacifica) fetchPositionBody(ch chan any, symbol any, optionalArgs ..
         params := GetArg(optionalArgs, 0, map[string]any {})
         _ = params
     
-        positions:= (<-this.FetchPositions([]any{symbol}, params))
+        positions:= (<-this.FetchPositionsAsync([]any{symbol}, params))
         PanicOnError(positions)
     
         ch <- this.SafeDict(positions, 0, map[string]any {})
@@ -3465,7 +3465,7 @@ func (this *Pacifica) fetchPositionBody(ch chan any, symbol any, optionalArgs ..
  * @param {string} [params.account] will default to walletAddress if not provided
  * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
  */
-func  (this *Pacifica) FetchPositions(optionalArgs ...any) <- chan any {
+func  (this *Pacifica) FetchPositionsAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchPositionsBody(ch, optionalArgs...)
     return ch
@@ -3479,7 +3479,7 @@ func (this *Pacifica) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes271912 := (<-this.LoadMarkets())
+            retRes271912 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes271912)
         }
         var userAddress any = nil
@@ -3585,7 +3585,7 @@ func  (this *Pacifica) ParsePosition(position any, optionalArgs ...any) any  {
  * @param {int} [params.expiryWindow] time to live in milliseconds
  * @returns {object} response from the exchange
  */
-func  (this *Pacifica) SetMarginMode(marginMode any, optionalArgs ...any) <- chan any {
+func  (this *Pacifica) SetMarginModeAsync(marginMode any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.setMarginModeBody(ch, marginMode, optionalArgs...)
     return ch
@@ -3603,7 +3603,7 @@ func (this *Pacifica) setMarginModeBody(ch chan any, marginMode any, optionalArg
         }
         if IsEqual(this.Markets, nil) {
     
-            retRes282412 := (<-this.LoadMarkets())
+            retRes282412 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes282412)
         }
         var market any = this.Market(symbol)
@@ -3635,7 +3635,7 @@ func (this *Pacifica) setMarginModeBody(ch chan any, marginMode any, optionalArg
  * @param {int} [params.expiryWindow] time to live in milliseconds
  * @returns {object} response from the exchange
  */
-func  (this *Pacifica) SetLeverage(leverage any, optionalArgs ...any) <- chan any {
+func  (this *Pacifica) SetLeverageAsync(leverage any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.setLeverageBody(ch, leverage, optionalArgs...)
     return ch
@@ -3653,7 +3653,7 @@ func (this *Pacifica) setLeverageBody(ch chan any, leverage any, optionalArgs ..
         }
         if IsEqual(this.Markets, nil) {
     
-            retRes285812 := (<-this.LoadMarkets())
+            retRes285812 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes285812)
         }
         var market any = this.Market(symbol)
@@ -3686,7 +3686,7 @@ func (this *Pacifica) setLeverageBody(ch chan any, leverage any, optionalArgs ..
  * @param {int} [params.expiryWindow] time to live in milliseconds
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func  (this *Pacifica) Withdraw(code any, amount any, address any, optionalArgs ...any) <- chan any {
+func  (this *Pacifica) WithdrawAsync(code any, amount any, address any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.withdrawBody(ch, code, amount, address, optionalArgs...)
     return ch
@@ -3701,7 +3701,7 @@ func (this *Pacifica) withdrawBody(ch chan any, code any, amount any, address an
         var operationType string = "withdraw"
         if IsEqual(this.Markets, nil) {
     
-            retRes289012 := (<-this.LoadMarkets())
+            retRes289012 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes289012)
         }
         this.CheckAddress(address)
@@ -3729,7 +3729,7 @@ func (this *Pacifica) withdrawBody(ch chan any, code any, amount any, address an
  * @param {string} [params.account] will default to walletAddress if not provided
  * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
  */
-func  (this *Pacifica) FetchTradingFee(symbol any, optionalArgs ...any) <- chan any {
+func  (this *Pacifica) FetchTradingFeeAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchTradingFeeBody(ch, symbol, optionalArgs...)
     return ch
@@ -3741,7 +3741,7 @@ func (this *Pacifica) fetchTradingFeeBody(ch chan any, symbol any, optionalArgs 
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes291412 := (<-this.LoadMarkets())
+            retRes291412 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes291412)
         }
         var userAddress any = nil
@@ -3824,7 +3824,7 @@ func  (this *Pacifica) ParseTradingFee(fee any, optionalArgs ...any) any  {
  * @param {object} [params] exchange specific parameters
  * @returns {object} an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}
  */
-func  (this *Pacifica) FetchOpenInterests(optionalArgs ...any) <- chan any {
+func  (this *Pacifica) FetchOpenInterestsAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchOpenInterestsBody(ch, optionalArgs...)
     return ch
@@ -3838,12 +3838,12 @@ func (this *Pacifica) fetchOpenInterestsBody(ch chan any, optionalArgs ...any) a
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes299212 := (<-this.LoadMarkets())
+            retRes299212 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes299212)
         }
         symbols = this.MarketSymbols(symbols)
     
-        swapMarkets:= (<-this.FetchSwapMarkets())
+        swapMarkets:= (<-this.FetchSwapMarketsAsync())
         PanicOnError(swapMarkets)
     
         ch <- this.ParseOpenInterests(swapMarkets, symbols)
@@ -3858,7 +3858,7 @@ func (this *Pacifica) fetchOpenInterestsBody(ch chan any, optionalArgs ...any) a
  * @param {object} [params] exchange specific parameters
  * @returns {object} an [open interest structure]{@link https://docs.ccxt.com/?id=open-interest-structure}
  */
-func  (this *Pacifica) FetchOpenInterest(symbol any, optionalArgs ...any) <- chan any {
+func  (this *Pacifica) FetchOpenInterestAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchOpenInterestBody(ch, symbol, optionalArgs...)
     return ch
@@ -3871,11 +3871,11 @@ func (this *Pacifica) fetchOpenInterestBody(ch chan any, symbol any, optionalArg
         symbol = this.Symbol(symbol)
         if IsEqual(this.Markets, nil) {
     
-            retRes301112 := (<-this.LoadMarkets())
+            retRes301112 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes301112)
         }
     
-        ois:= (<-this.FetchOpenInterests([]any{symbol}, params))
+        ois:= (<-this.FetchOpenInterestsAsync([]any{symbol}, params))
         PanicOnError(ois)
     
         ch <- GetValue(ois, symbol)
@@ -3934,7 +3934,7 @@ func  (this *Pacifica) ParseOpenInterest(interest any, optionalArgs ...any) any 
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
  * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
  */
-func  (this *Pacifica) FetchLedger(optionalArgs ...any) <- chan any {
+func  (this *Pacifica) FetchLedgerAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchLedgerBody(ch, optionalArgs...)
     return ch
@@ -3952,7 +3952,7 @@ func (this *Pacifica) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes307112 := (<-this.LoadMarkets())
+            retRes307112 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes307112)
         }
         var paginate any = false
@@ -3966,7 +3966,7 @@ func (this *Pacifica) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
         var defaultLimit int = 100 // Default max limit
         if EvalTruthy(paginate) {
     
-                retRes307919 :=  (<-this.FetchPaginatedCallCursor("fetchLedger", code, since, limit, params, "next_cursor", "cursor", nil, defaultLimit))
+                retRes307919 :=  (<-this.FetchPaginatedCallCursorAsync("fetchLedger", code, since, limit, params, "next_cursor", "cursor", nil, defaultLimit))
                 PanicOnError(retRes307919)
                 ch <- retRes307919
                 return nil
@@ -4068,7 +4068,7 @@ func  (this *Pacifica) ParseLedgerEntryType(typeVar any) any  {
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
  * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/?id=funding-history-structure}
  */
-func  (this *Pacifica) FetchFundingHistory(optionalArgs ...any) <- chan any {
+func  (this *Pacifica) FetchFundingHistoryAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchFundingHistoryBody(ch, optionalArgs...)
     return ch
@@ -4086,7 +4086,7 @@ func (this *Pacifica) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) 
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes317712 := (<-this.LoadMarkets())
+            retRes317712 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes317712)
         }
         var market any = nil
@@ -4110,7 +4110,7 @@ func (this *Pacifica) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) 
         var defaultLimit int = 100
         if EvalTruthy(paginate) {
     
-                retRes319519 :=  (<-this.FetchPaginatedCallCursor("fetchFundingHistory", symbol, since, limit, params, "next_cursor", "cursor", nil, defaultLimit))
+                retRes319519 :=  (<-this.FetchPaginatedCallCursorAsync("fetchFundingHistory", symbol, since, limit, params, "next_cursor", "cursor", nil, defaultLimit))
                 PanicOnError(retRes319519)
                 ch <- retRes319519
                 return nil
@@ -4186,7 +4186,7 @@ func  (this *Pacifica) ParseIncome(income any, optionalArgs ...any) any  {
  * @param {int} [params.expiryWindow] time to live in milliseconds
  * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
-func  (this *Pacifica) Transfer(code any, amount any, fromAccount any, toAccount any, optionalArgs ...any) <- chan any {
+func  (this *Pacifica) TransferAsync(code any, amount any, fromAccount any, toAccount any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.transferBody(ch, code, amount, fromAccount, toAccount, optionalArgs...)
     return ch
@@ -4198,7 +4198,7 @@ func (this *Pacifica) transferBody(ch chan any, code any, amount any, fromAccoun
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes326612 := (<-this.LoadMarkets())
+            retRes326612 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes326612)
         }
         var currency any = this.Currency(code)
@@ -4275,7 +4275,7 @@ func  (this *Pacifica) ParseTransfer(transfer any, optionalArgs ...any) any  {
  * @param {string} [params.subAccountPrivateKey] - The private key of the sub-account to use for creation
  * @returns {object} a response object
  */
-func  (this *Pacifica) CreateSubAccount(name any, optionalArgs ...any) <- chan any {
+func  (this *Pacifica) CreateSubAccountAsync(name any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.createSubAccountBody(ch, name, optionalArgs...)
     return ch
@@ -4362,7 +4362,7 @@ func (this *Pacifica) createSubAccountBody(ch chan any, name any, optionalArgs .
     ch <- response
         return nil
 }
-func  (this *Pacifica) BindAgentWallet(agentAddress any, optionalArgs ...any) <- chan any {
+func  (this *Pacifica) BindAgentWalletAsync(agentAddress any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.bindAgentWalletBody(ch, agentAddress, optionalArgs...)
     return ch
@@ -4383,7 +4383,7 @@ func (this *Pacifica) bindAgentWalletBody(ch chan any, agentAddress any, optiona
             ch <- retRes340715
             return nil
 }
-func  (this *Pacifica) CreateApiKey(optionalArgs ...any) <- chan any {
+func  (this *Pacifica) CreateApiKeyAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.createApiKeyBody(ch, optionalArgs...)
     return ch
@@ -4402,7 +4402,7 @@ func (this *Pacifica) createApiKeyBody(ch chan any, optionalArgs ...any) any {
             ch <- retRes341415
             return nil
 }
-func  (this *Pacifica) RevokeApiKey(apiKey any, optionalArgs ...any) <- chan any {
+func  (this *Pacifica) RevokeApiKeyAsync(apiKey any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.revokeApiKeyBody(ch, apiKey, optionalArgs...)
     return ch
@@ -4423,7 +4423,7 @@ func (this *Pacifica) revokeApiKeyBody(ch chan any, apiKey any, optionalArgs ...
             ch <- retRes342315
             return nil
 }
-func  (this *Pacifica) FetchApiKeys(optionalArgs ...any) <- chan any {
+func  (this *Pacifica) FetchApiKeysAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchApiKeysBody(ch, optionalArgs...)
     return ch
@@ -4442,7 +4442,7 @@ func (this *Pacifica) fetchApiKeysBody(ch chan any, optionalArgs ...any) any {
             ch <- retRes343015
             return nil
 }
-func  (this *Pacifica) ApproveBuilderCode(builderCode any, maxFeeRate any, optionalArgs ...any) <- chan any {
+func  (this *Pacifica) ApproveBuilderCodeAsync(builderCode any, maxFeeRate any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.approveBuilderCodeBody(ch, builderCode, maxFeeRate, optionalArgs...)
     return ch
@@ -4464,7 +4464,7 @@ func (this *Pacifica) approveBuilderCodeBody(ch chan any, builderCode any, maxFe
             ch <- retRes344015
             return nil
 }
-func  (this *Pacifica) FetchBuilderApprovals(address any) <- chan any {
+func  (this *Pacifica) FetchBuilderApprovalsAsync(address any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchBuilderApprovalsBody(ch, address)
     return ch
@@ -4481,7 +4481,7 @@ func (this *Pacifica) fetchBuilderApprovalsBody(ch chan any, address any) any {
             ch <- retRes344715
             return nil
 }
-func  (this *Pacifica) RevokeBuilderCode(builderCode any, optionalArgs ...any) <- chan any {
+func  (this *Pacifica) RevokeBuilderCodeAsync(builderCode any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.revokeBuilderCodeBody(ch, builderCode, optionalArgs...)
     return ch

@@ -5,7 +5,7 @@ import "github.com/ccxt/ccxt/go/v4"
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 
-    func TestFetchMarginMode(exchange ccxt.ICoreExchange, skippedProperties any, symbol any) <- chan any {
+    func TestFetchMarginModeAsync(exchange ccxt.ICoreExchange, skippedProperties any, symbol any) <- chan any {
         ch := make(chan any, 1)
         go testFetchMarginModeBody(ch, exchange, skippedProperties, symbol)
         return ch

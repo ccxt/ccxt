@@ -51,7 +51,7 @@ func  (this *Binanceusdm) Describe() any  {
         },
     })
 }
-func  (this *Binanceusdm) TransferIn(code any, amount any, optionalArgs ...any) <- chan any {
+func  (this *Binanceusdm) TransferInAsync(code any, amount any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.transferInBody(ch, code, amount, optionalArgs...)
     return ch
@@ -63,12 +63,12 @@ func (this *Binanceusdm) transferInBody(ch chan any, code any, amount any, optio
         params := GetArg(optionalArgs, 0, map[string]any {})
         _ = params
     
-            retRes5615 :=  (<-this.FuturesTransfer(code, amount, 1, params))
+            retRes5615 :=  (<-this.FuturesTransferAsync(code, amount, 1, params))
             PanicOnError(retRes5615)
     ch <- retRes5615
             return nil
 }
-func  (this *Binanceusdm) TransferOut(code any, amount any, optionalArgs ...any) <- chan any {
+func  (this *Binanceusdm) TransferOutAsync(code any, amount any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.transferOutBody(ch, code, amount, optionalArgs...)
     return ch
@@ -80,7 +80,7 @@ func (this *Binanceusdm) transferOutBody(ch chan any, code any, amount any, opti
         params := GetArg(optionalArgs, 0, map[string]any {})
         _ = params
     
-            retRes6115 :=  (<-this.FuturesTransfer(code, amount, 2, params))
+            retRes6115 :=  (<-this.FuturesTransferAsync(code, amount, 2, params))
             PanicOnError(retRes6115)
     ch <- retRes6115
             return nil

@@ -241,7 +241,7 @@ func  (this *Paymium) ParseBalance(response any) any  {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
-func  (this *Paymium) FetchBalance(optionalArgs ...any) <- chan any {
+func  (this *Paymium) FetchBalanceAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchBalanceBody(ch, optionalArgs...)
     return ch
@@ -253,7 +253,7 @@ func (this *Paymium) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes19012 := (<-this.LoadMarkets())
+            retRes19012 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes19012)
         }
     
@@ -273,7 +273,7 @@ func (this *Paymium) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
-func  (this *Paymium) FetchOrderBook(symbol any, optionalArgs ...any) <- chan any {
+func  (this *Paymium) FetchOrderBookAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchOrderBookBody(ch, symbol, optionalArgs...)
     return ch
@@ -287,7 +287,7 @@ func (this *Paymium) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ..
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes20812 := (<-this.LoadMarkets())
+            retRes20812 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes20812)
         }
         var market any = this.Market(symbol)
@@ -360,7 +360,7 @@ func  (this *Paymium) ParseTicker(ticker any, optionalArgs ...any) any  {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func  (this *Paymium) FetchTicker(symbol any, optionalArgs ...any) <- chan any {
+func  (this *Paymium) FetchTickerAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchTickerBody(ch, symbol, optionalArgs...)
     return ch
@@ -372,7 +372,7 @@ func (this *Paymium) fetchTickerBody(ch chan any, symbol any, optionalArgs ...an
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes27812 := (<-this.LoadMarkets())
+            retRes27812 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes27812)
         }
         var market any = this.Market(symbol)
@@ -441,7 +441,7 @@ func  (this *Paymium) ParseTrade(trade any, optionalArgs ...any) any  {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
-func  (this *Paymium) FetchTrades(symbol any, optionalArgs ...any) <- chan any {
+func  (this *Paymium) FetchTradesAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchTradesBody(ch, symbol, optionalArgs...)
     return ch
@@ -457,7 +457,7 @@ func (this *Paymium) fetchTradesBody(ch chan any, symbol any, optionalArgs ...an
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes34412 := (<-this.LoadMarkets())
+            retRes34412 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes34412)
         }
         var market any = this.Market(symbol)
@@ -480,7 +480,7 @@ func (this *Paymium) fetchTradesBody(ch chan any, symbol any, optionalArgs ...an
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
  */
-func  (this *Paymium) CreateDepositAddress(code any, optionalArgs ...any) <- chan any {
+func  (this *Paymium) CreateDepositAddressAsync(code any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.createDepositAddressBody(ch, code, optionalArgs...)
     return ch
@@ -492,7 +492,7 @@ func (this *Paymium) createDepositAddressBody(ch chan any, code any, optionalArg
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes36512 := (<-this.LoadMarkets())
+            retRes36512 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes36512)
         }
     
@@ -519,7 +519,7 @@ func (this *Paymium) createDepositAddressBody(ch chan any, code any, optionalArg
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
  */
-func  (this *Paymium) FetchDepositAddress(code any, optionalArgs ...any) <- chan any {
+func  (this *Paymium) FetchDepositAddressAsync(code any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchDepositAddressBody(ch, code, optionalArgs...)
     return ch
@@ -531,7 +531,7 @@ func (this *Paymium) fetchDepositAddressBody(ch chan any, code any, optionalArgs
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes39012 := (<-this.LoadMarkets())
+            retRes39012 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes39012)
         }
         var request map[string]any = map[string]any {
@@ -561,7 +561,7 @@ func (this *Paymium) fetchDepositAddressBody(ch chan any, code any, optionalArgs
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a list of [address structures]{@link https://docs.ccxt.com/?id=address-structure}
  */
-func  (this *Paymium) FetchDepositAddresses(optionalArgs ...any) <- chan any {
+func  (this *Paymium) FetchDepositAddressesAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchDepositAddressesBody(ch, optionalArgs...)
     return ch
@@ -575,7 +575,7 @@ func (this *Paymium) fetchDepositAddressesBody(ch chan any, optionalArgs ...any)
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes41812 := (<-this.LoadMarkets())
+            retRes41812 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes41812)
         }
     
@@ -629,7 +629,7 @@ func  (this *Paymium) ParseDepositAddress(depositAddress any, optionalArgs ...an
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Paymium) CreateOrder(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <- chan any {
+func  (this *Paymium) CreateOrderAsync(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.createOrderBody(ch, symbol, typeVar, side, amount, optionalArgs...)
     return ch
@@ -643,7 +643,7 @@ func (this *Paymium) createOrderBody(ch chan any, symbol any, typeVar any, side 
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes46912 := (<-this.LoadMarkets())
+            retRes46912 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes46912)
         }
         var market any = this.Market(symbol)
@@ -676,7 +676,7 @@ func (this *Paymium) createOrderBody(ch chan any, symbol any, typeVar any, side 
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Paymium) CancelOrder(id any, optionalArgs ...any) <- chan any {
+func  (this *Paymium) CancelOrderAsync(id any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.cancelOrderBody(ch, id, optionalArgs...)
     return ch
@@ -712,7 +712,7 @@ func (this *Paymium) cancelOrderBody(ch chan any, id any, optionalArgs ...any) a
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
-func  (this *Paymium) Transfer(code any, amount any, fromAccount any, toAccount any, optionalArgs ...any) <- chan any {
+func  (this *Paymium) TransferAsync(code any, amount any, fromAccount any, toAccount any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.transferBody(ch, code, amount, fromAccount, toAccount, optionalArgs...)
     return ch
@@ -724,7 +724,7 @@ func (this *Paymium) transferBody(ch chan any, code any, amount any, fromAccount
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes52212 := (<-this.LoadMarkets())
+            retRes52212 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes52212)
         }
         var currency any = this.Currency(code)

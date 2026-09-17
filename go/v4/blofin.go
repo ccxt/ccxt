@@ -789,7 +789,7 @@ func  (this *Blofin) Describe() any  {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} an array of objects representing market data
  */
-func  (this *Blofin) FetchMarkets(optionalArgs ...any) <- chan any {
+func  (this *Blofin) FetchMarketsAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchMarketsBody(ch, optionalArgs...)
     return ch
@@ -901,7 +901,7 @@ func  (this *Blofin) ParseMarket(market any) any  {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
-func  (this *Blofin) FetchOrderBook(symbol any, optionalArgs ...any) <- chan any {
+func  (this *Blofin) FetchOrderBookAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchOrderBookBody(ch, symbol, optionalArgs...)
     return ch
@@ -915,7 +915,7 @@ func (this *Blofin) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes71512 := (<-this.LoadMarkets())
+            retRes71512 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes71512)
         }
         var market any = this.Market(symbol)
@@ -1024,7 +1024,7 @@ func  (this *Blofin) ParseTicker(ticker any, optionalArgs ...any) any  {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func  (this *Blofin) FetchTicker(symbol any, optionalArgs ...any) <- chan any {
+func  (this *Blofin) FetchTickerAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchTickerBody(ch, symbol, optionalArgs...)
     return ch
@@ -1036,7 +1036,7 @@ func (this *Blofin) fetchTickerBody(ch chan any, symbol any, optionalArgs ...any
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes82112 := (<-this.LoadMarkets())
+            retRes82112 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes82112)
         }
         var market any = this.Market(symbol)
@@ -1062,7 +1062,7 @@ func (this *Blofin) fetchTickerBody(ch chan any, symbol any, optionalArgs ...any
  * @param {string} [params.subType] "linear" or "inverse"
  * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func  (this *Blofin) FetchMarkPrice(symbol any, optionalArgs ...any) <- chan any {
+func  (this *Blofin) FetchMarkPriceAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchMarkPriceBody(ch, symbol, optionalArgs...)
     return ch
@@ -1074,7 +1074,7 @@ func (this *Blofin) fetchMarkPriceBody(ch chan any, symbol any, optionalArgs ...
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes84512 := (<-this.LoadMarkets())
+            retRes84512 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes84512)
         }
         var market any = this.Market(symbol)
@@ -1099,7 +1099,7 @@ func (this *Blofin) fetchMarkPriceBody(ch chan any, symbol any, optionalArgs ...
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func  (this *Blofin) FetchTickers(optionalArgs ...any) <- chan any {
+func  (this *Blofin) FetchTickersAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchTickersBody(ch, optionalArgs...)
     return ch
@@ -1113,7 +1113,7 @@ func (this *Blofin) fetchTickersBody(ch chan any, optionalArgs ...any) any {
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes86812 := (<-this.LoadMarkets())
+            retRes86812 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes86812)
         }
         symbols = this.MarketSymbols(symbols)
@@ -1248,7 +1248,7 @@ func  (this *Blofin) ParseTrade(trade any, optionalArgs ...any) any  {
  * @param {boolean} [params.paginate] *only applies to publicGetMarketHistoryTrades* default false, when true will automatically paginate by calling this endpoint multiple times
  * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
-func  (this *Blofin) FetchTrades(symbol any, optionalArgs ...any) <- chan any {
+func  (this *Blofin) FetchTradesAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchTradesBody(ch, symbol, optionalArgs...)
     return ch
@@ -1264,7 +1264,7 @@ func (this *Blofin) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes100012 := (<-this.LoadMarkets())
+            retRes100012 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes100012)
         }
         var paginate any = false
@@ -1273,7 +1273,7 @@ func (this *Blofin) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any
         params = GetValue(paginateparamsVariable,1)
         if EvalTruthy(paginate) {
     
-                retRes100519 :=  (<-this.FetchPaginatedCallCursor("fetchTrades", symbol, since, limit, params, "tradeId", "after", nil, 100))
+                retRes100519 :=  (<-this.FetchPaginatedCallCursorAsync("fetchTrades", symbol, since, limit, params, "tradeId", "after", nil, 100))
                 PanicOnError(retRes100519)
                 ch <- retRes100519
                 return nil
@@ -1332,7 +1332,7 @@ func  (this *Blofin) ParseOHLCV(ohlcv any, optionalArgs ...any) any  {
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
-func  (this *Blofin) FetchOHLCV(symbol any, optionalArgs ...any) <- chan any {
+func  (this *Blofin) FetchOHLCVAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchOHLCVBody(ch, symbol, optionalArgs...)
     return ch
@@ -1350,7 +1350,7 @@ func (this *Blofin) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes106412 := (<-this.LoadMarkets())
+            retRes106412 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes106412)
         }
         var market any = this.Market(symbol)
@@ -1360,7 +1360,7 @@ func (this *Blofin) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
         params = GetValue(paginateparamsVariable,1)
         if EvalTruthy(paginate) {
     
-                retRes107019 :=  (<-this.FetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, params, 100))
+                retRes107019 :=  (<-this.FetchPaginatedCallDeterministicAsync("fetchOHLCV", symbol, since, limit, timeframe, params, 100))
                 PanicOnError(retRes107019)
                 ch <- retRes107019
                 return nil
@@ -1399,7 +1399,7 @@ func (this *Blofin) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
  * @param {int} [params.until] timestamp in ms of the latest funding rate to fetch
  * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
  */
-func  (this *Blofin) FetchFundingRateHistory(optionalArgs ...any) <- chan any {
+func  (this *Blofin) FetchFundingRateHistoryAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchFundingRateHistoryBody(ch, optionalArgs...)
     return ch
@@ -1420,7 +1420,7 @@ func (this *Blofin) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any
         }
         if IsEqual(this.Markets, nil) {
     
-            retRes110812 := (<-this.LoadMarkets())
+            retRes110812 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes110812)
         }
         var paginate any = false
@@ -1429,7 +1429,7 @@ func (this *Blofin) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any
         params = GetValue(paginateparamsVariable,1)
         if EvalTruthy(paginate) {
     
-                retRes111319 :=  (<-this.FetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", params, 100))
+                retRes111319 :=  (<-this.FetchPaginatedCallDeterministicAsync("fetchFundingRateHistory", symbol, since, limit, "8h", params, 100))
                 PanicOnError(retRes111319)
                 ch <- retRes111319
                 return nil
@@ -1514,7 +1514,7 @@ func  (this *Blofin) ParseFundingRate(contract any, optionalArgs ...any) any  {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
  */
-func  (this *Blofin) FetchFundingRate(symbol any, optionalArgs ...any) <- chan any {
+func  (this *Blofin) FetchFundingRateAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchFundingRateBody(ch, symbol, optionalArgs...)
     return ch
@@ -1526,7 +1526,7 @@ func (this *Blofin) fetchFundingRateBody(ch chan any, symbol any, optionalArgs .
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes119312 := (<-this.LoadMarkets())
+            retRes119312 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes119312)
         }
         var market any = this.Market(symbol)
@@ -1679,7 +1679,7 @@ func  (this *Blofin) ParseTradingFee(fee any, optionalArgs ...any) any  {
  * @param {string} [params.accountType] the type of account to fetch the balance for, either 'funding' or 'futures'  or 'copy_trading' or 'earn'
  * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
-func  (this *Blofin) FetchBalance(optionalArgs ...any) <- chan any {
+func  (this *Blofin) FetchBalanceAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchBalanceBody(ch, optionalArgs...)
     return ch
@@ -1691,7 +1691,7 @@ func (this *Blofin) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes134312 := (<-this.LoadMarkets())
+            retRes134312 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes134312)
         }
         var accountType any = nil
@@ -1959,7 +1959,7 @@ func  (this *Blofin) ParseOrder(order any, optionalArgs ...any) any  {
  * @param {float} [params.tpsl] whether to force to send the order to the combined TPSL oco order endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Blofin) CreateOrder(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <- chan any {
+func  (this *Blofin) CreateOrderAsync(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.createOrderBody(ch, symbol, typeVar, side, amount, optionalArgs...)
     return ch
@@ -1973,7 +1973,7 @@ func (this *Blofin) createOrderBody(ch chan any, symbol any, typeVar any, side a
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes159912 := (<-this.LoadMarkets())
+            retRes159912 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes159912)
         }
         var market any = this.Market(symbol)
@@ -2094,7 +2094,7 @@ func  (this *Blofin) CreateTpslOrderRequest(symbol any, typeVar any, side any, o
  * @param {boolean} [params.tpsl] True if cancelling a tpsl order
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Blofin) CancelOrder(id any, optionalArgs ...any) <- chan any {
+func  (this *Blofin) CancelOrderAsync(id any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.cancelOrderBody(ch, id, optionalArgs...)
     return ch
@@ -2111,7 +2111,7 @@ func (this *Blofin) cancelOrderBody(ch chan any, id any, optionalArgs ...any) an
         }
         if IsEqual(this.Markets, nil) {
     
-            retRes170812 := (<-this.LoadMarkets())
+            retRes170812 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes170812)
         }
         var market any = this.Market(symbol)
@@ -2135,7 +2135,7 @@ func (this *Blofin) cancelOrderBody(ch chan any, id any, optionalArgs ...any) an
         var query any = this.Omit(params, []any{"orderId", "clientOrderId", "stop", "trigger", "tpsl"})
         if (isTpsl == true) {
     
-            tpslResponse:= (<-this.CancelOrders([]any{id}, symbol, params))
+            tpslResponse:= (<-this.CancelOrdersAsync([]any{id}, symbol, params))
             PanicOnError(tpslResponse)
             var first any = this.SafeDict(tpslResponse, 0)
     
@@ -2168,7 +2168,7 @@ func (this *Blofin) cancelOrderBody(ch chan any, id any, optionalArgs ...any) an
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Blofin) CreateOrders(orders any, optionalArgs ...any) <- chan any {
+func  (this *Blofin) CreateOrdersAsync(orders any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.createOrdersBody(ch, orders, optionalArgs...)
     return ch
@@ -2180,7 +2180,7 @@ func (this *Blofin) createOrdersBody(ch chan any, orders any, optionalArgs ...an
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes175512 := (<-this.LoadMarkets())
+            retRes175512 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes175512)
         }
         var ordersRequests any = []any{}
@@ -2219,7 +2219,7 @@ func (this *Blofin) createOrdersBody(ch chan any, orders any, optionalArgs ...an
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Blofin) FetchOpenOrders(optionalArgs ...any) <- chan any {
+func  (this *Blofin) FetchOpenOrdersAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchOpenOrdersBody(ch, optionalArgs...)
     return ch
@@ -2237,7 +2237,7 @@ func (this *Blofin) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes179212 := (<-this.LoadMarkets())
+            retRes179212 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes179212)
         }
         var paginate any = false
@@ -2246,7 +2246,7 @@ func (this *Blofin) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
         params = GetValue(paginateparamsVariable,1)
         if EvalTruthy(paginate) {
     
-                retRes179719 :=  (<-this.FetchPaginatedCallDynamic("fetchOpenOrders", symbol, since, limit, params))
+                retRes179719 :=  (<-this.FetchPaginatedCallDynamicAsync("fetchOpenOrders", symbol, since, limit, params))
                 PanicOnError(retRes179719)
                 ch <- retRes179719
                 return nil
@@ -2302,7 +2302,7 @@ func (this *Blofin) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
  * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
-func  (this *Blofin) FetchMyTrades(optionalArgs ...any) <- chan any {
+func  (this *Blofin) FetchMyTradesAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchMyTradesBody(ch, optionalArgs...)
     return ch
@@ -2320,7 +2320,7 @@ func (this *Blofin) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes184412 := (<-this.LoadMarkets())
+            retRes184412 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes184412)
         }
         var paginate any = false
@@ -2329,7 +2329,7 @@ func (this *Blofin) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
         params = GetValue(paginateparamsVariable,1)
         if EvalTruthy(paginate) {
     
-                retRes184919 :=  (<-this.FetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, params))
+                retRes184919 :=  (<-this.FetchPaginatedCallDynamicAsync("fetchMyTrades", symbol, since, limit, params))
                 PanicOnError(retRes184919)
                 ch <- retRes184919
                 return nil
@@ -2400,7 +2400,7 @@ func (this *Blofin) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
  * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func  (this *Blofin) FetchDeposits(optionalArgs ...any) <- chan any {
+func  (this *Blofin) FetchDepositsAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchDepositsBody(ch, optionalArgs...)
     return ch
@@ -2418,7 +2418,7 @@ func (this *Blofin) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes191112 := (<-this.LoadMarkets())
+            retRes191112 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes191112)
         }
         var paginate any = false
@@ -2427,7 +2427,7 @@ func (this *Blofin) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
         params = GetValue(paginateparamsVariable,1)
         if EvalTruthy(paginate) {
     
-                retRes191619 :=  (<-this.FetchPaginatedCallDynamic("fetchDeposits", code, since, limit, params))
+                retRes191619 :=  (<-this.FetchPaginatedCallDynamicAsync("fetchDeposits", code, since, limit, params))
                 PanicOnError(retRes191619)
                 ch <- retRes191619
                 return nil
@@ -2468,7 +2468,7 @@ func (this *Blofin) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
  * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func  (this *Blofin) FetchWithdrawals(optionalArgs ...any) <- chan any {
+func  (this *Blofin) FetchWithdrawalsAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchWithdrawalsBody(ch, optionalArgs...)
     return ch
@@ -2486,7 +2486,7 @@ func (this *Blofin) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes195212 := (<-this.LoadMarkets())
+            retRes195212 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes195212)
         }
         var paginate any = false
@@ -2495,7 +2495,7 @@ func (this *Blofin) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
         params = GetValue(paginateparamsVariable,1)
         if EvalTruthy(paginate) {
     
-                retRes195719 :=  (<-this.FetchPaginatedCallDynamic("fetchWithdrawals", code, since, limit, params))
+                retRes195719 :=  (<-this.FetchPaginatedCallDynamicAsync("fetchWithdrawals", code, since, limit, params))
                 PanicOnError(retRes195719)
                 ch <- retRes195719
                 return nil
@@ -2582,7 +2582,7 @@ func  (this *Blofin) ChainIdToNetworkCode(chainId any) any  {
  * @param {string} [params.clientId] a client-supplied id of up to 32 case-sensitive alphanumerics
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
  */
-func  (this *Blofin) Withdraw(code any, amount any, address any, optionalArgs ...any) <- chan any {
+func  (this *Blofin) WithdrawAsync(code any, amount any, address any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.withdrawBody(ch, code, amount, address, optionalArgs...)
     return ch
@@ -2608,7 +2608,7 @@ func (this *Blofin) withdrawBody(ch chan any, code any, amount any, address any,
         tag = GetValue(tagparamsVariable,0);
         params = GetValue(tagparamsVariable,1)
     
-        retRes20518 := (<-this.LoadMarkets())
+        retRes20518 := (<-this.LoadMarketsAsync())
         PanicOnError(retRes20518)
         var currency any = this.Currency(code)
         var request map[string]any = map[string]any {
@@ -2681,7 +2681,7 @@ func (this *Blofin) withdrawBody(ch chan any, code any, amount any, address any,
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
  * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
  */
-func  (this *Blofin) FetchLedger(optionalArgs ...any) <- chan any {
+func  (this *Blofin) FetchLedgerAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchLedgerBody(ch, optionalArgs...)
     return ch
@@ -2699,7 +2699,7 @@ func (this *Blofin) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes212112 := (<-this.LoadMarkets())
+            retRes212112 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes212112)
         }
         var paginate any = false
@@ -2708,7 +2708,7 @@ func (this *Blofin) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
         params = GetValue(paginateparamsVariable,1)
         if EvalTruthy(paginate) {
     
-                retRes212619 :=  (<-this.FetchPaginatedCallDynamic("fetchLedger", code, since, limit, params))
+                retRes212619 :=  (<-this.FetchPaginatedCallDynamicAsync("fetchLedger", code, since, limit, params))
                 PanicOnError(retRes212619)
                 ch <- retRes212619
                 return nil
@@ -2918,7 +2918,7 @@ func  (this *Blofin) ParseIds(ids any) any  {
  * @param {boolean} [params.trigger] whether the order is a stop/trigger order
  * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Blofin) CancelOrders(ids any, optionalArgs ...any) <- chan any {
+func  (this *Blofin) CancelOrdersAsync(ids any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.cancelOrdersBody(ch, ids, optionalArgs...)
     return ch
@@ -2936,7 +2936,7 @@ func (this *Blofin) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any) 
         }
         if IsEqual(this.Markets, nil) {
     
-            retRes233712 := (<-this.LoadMarkets())
+            retRes233712 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes233712)
         }
         var market any = this.Market(symbol)
@@ -3006,7 +3006,7 @@ func (this *Blofin) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any) 
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
-func  (this *Blofin) Transfer(code any, amount any, fromAccount any, toAccount any, optionalArgs ...any) <- chan any {
+func  (this *Blofin) TransferAsync(code any, amount any, fromAccount any, toAccount any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.transferBody(ch, code, amount, fromAccount, toAccount, optionalArgs...)
     return ch
@@ -3018,7 +3018,7 @@ func (this *Blofin) transferBody(ch chan any, code any, amount any, fromAccount 
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes240312 := (<-this.LoadMarkets())
+            retRes240312 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes240312)
         }
         var currency any = this.Currency(code)
@@ -3065,7 +3065,7 @@ func  (this *Blofin) ParseTransfer(transfer any, optionalArgs ...any) any  {
  * @param {string} [params.instType] MARGIN, SWAP, FUTURES, OPTION
  * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
  */
-func  (this *Blofin) FetchPosition(symbol any, optionalArgs ...any) <- chan any {
+func  (this *Blofin) FetchPositionAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchPositionBody(ch, symbol, optionalArgs...)
     return ch
@@ -3077,7 +3077,7 @@ func (this *Blofin) fetchPositionBody(ch chan any, symbol any, optionalArgs ...a
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes244712 := (<-this.LoadMarkets())
+            retRes244712 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes244712)
         }
         var market any = this.Market(symbol)
@@ -3106,7 +3106,7 @@ func (this *Blofin) fetchPositionBody(ch chan any, symbol any, optionalArgs ...a
  * @param {string} [params.instType] MARGIN, SWAP, FUTURES, OPTION
  * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
  */
-func  (this *Blofin) FetchPositions(optionalArgs ...any) <- chan any {
+func  (this *Blofin) FetchPositionsAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchPositionsBody(ch, optionalArgs...)
     return ch
@@ -3120,7 +3120,7 @@ func (this *Blofin) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes247412 := (<-this.LoadMarkets())
+            retRes247412 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes247412)
         }
         symbols = this.MarketSymbols(symbols)
@@ -3147,7 +3147,7 @@ func (this *Blofin) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
  * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
  * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
  */
-func  (this *Blofin) FetchPositionsHistory(optionalArgs ...any) <- chan any {
+func  (this *Blofin) FetchPositionsHistoryAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchPositionsHistoryBody(ch, optionalArgs...)
     return ch
@@ -3165,7 +3165,7 @@ func (this *Blofin) fetchPositionsHistoryBody(ch chan any, optionalArgs ...any) 
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes249912 := (<-this.LoadMarkets())
+            retRes249912 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes249912)
         }
         var request any = map[string]any {}
@@ -3373,7 +3373,7 @@ func  (this *Blofin) ParsePosition(position any, optionalArgs ...any) any  {
  * @param {string} [params.marginMode] 'cross' or 'isolated'
  * @returns {object} a list of [leverage structures]{@link https://docs.ccxt.com/?id=leverage-structure}
  */
-func  (this *Blofin) FetchLeverages(optionalArgs ...any) <- chan any {
+func  (this *Blofin) FetchLeveragesAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchLeveragesBody(ch, optionalArgs...)
     return ch
@@ -3387,7 +3387,7 @@ func (this *Blofin) fetchLeveragesBody(ch chan any, optionalArgs ...any) any {
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes270212 := (<-this.LoadMarkets())
+            retRes270212 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes270212)
         }
         if IsEqual(symbols, nil) {
@@ -3450,7 +3450,7 @@ func (this *Blofin) fetchLeveragesBody(ch chan any, optionalArgs ...any) any {
  * @param {string} [params.marginMode] 'cross' or 'isolated'
  * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
  */
-func  (this *Blofin) FetchLeverage(symbol any, optionalArgs ...any) <- chan any {
+func  (this *Blofin) FetchLeverageAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchLeverageBody(ch, symbol, optionalArgs...)
     return ch
@@ -3462,7 +3462,7 @@ func (this *Blofin) fetchLeverageBody(ch chan any, symbol any, optionalArgs ...a
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes276112 := (<-this.LoadMarkets())
+            retRes276112 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes276112)
         }
         var marginMode any = nil
@@ -3524,7 +3524,7 @@ func  (this *Blofin) ParseLeverage(leverage any, optionalArgs ...any) any  {
  * @param {string} [params.positionSide] 'long' or 'short' - required for hedged mode in isolated margin
  * @returns {object} response from the exchange
  */
-func  (this *Blofin) SetLeverage(leverage any, optionalArgs ...any) <- chan any {
+func  (this *Blofin) SetLeverageAsync(leverage any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.setLeverageBody(ch, leverage, optionalArgs...)
     return ch
@@ -3546,7 +3546,7 @@ func (this *Blofin) setLeverageBody(ch chan any, leverage any, optionalArgs ...a
         }
         if IsEqual(this.Markets, nil) {
     
-            retRes282612 := (<-this.LoadMarkets())
+            retRes282612 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes282612)
         }
         var market any = this.Market(symbol)
@@ -3586,7 +3586,7 @@ func (this *Blofin) setLeverageBody(ch chan any, leverage any, optionalArgs ...a
  * @param {string} [params.tag] order tag a combination of case-sensitive alphanumerics, all numbers, or all letters of up to 16 characters
  * @returns {object[]} [A list of position structures]{@link https://docs.ccxt.com/?id=position-structure}
  */
-func  (this *Blofin) ClosePosition(symbol any, optionalArgs ...any) <- chan any {
+func  (this *Blofin) ClosePositionAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.closePositionBody(ch, symbol, optionalArgs...)
     return ch
@@ -3600,7 +3600,7 @@ func (this *Blofin) closePositionBody(ch chan any, symbol any, optionalArgs ...a
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes286212 := (<-this.LoadMarkets())
+            retRes286212 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes286212)
         }
         var market any = this.Market(symbol)
@@ -3637,7 +3637,7 @@ func (this *Blofin) closePositionBody(ch chan any, symbol any, optionalArgs ...a
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Blofin) FetchClosedOrders(optionalArgs ...any) <- chan any {
+func  (this *Blofin) FetchClosedOrdersAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchClosedOrdersBody(ch, optionalArgs...)
     return ch
@@ -3655,7 +3655,7 @@ func (this *Blofin) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any 
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes289512 := (<-this.LoadMarkets())
+            retRes289512 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes289512)
         }
         var paginate any = false
@@ -3664,7 +3664,7 @@ func (this *Blofin) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any 
         params = GetValue(paginateparamsVariable,1)
         if EvalTruthy(paginate) {
     
-                retRes290019 :=  (<-this.FetchPaginatedCallDynamic("fetchClosedOrders", symbol, since, limit, params))
+                retRes290019 :=  (<-this.FetchPaginatedCallDynamicAsync("fetchClosedOrders", symbol, since, limit, params))
                 PanicOnError(retRes290019)
                 ch <- retRes290019
                 return nil
@@ -3711,7 +3711,7 @@ func (this *Blofin) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any 
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [margin mode structure]{@link https://docs.ccxt.com/?id=margin-mode-structure}
  */
-func  (this *Blofin) FetchMarginMode(symbol any, optionalArgs ...any) <- chan any {
+func  (this *Blofin) FetchMarginModeAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchMarginModeBody(ch, symbol, optionalArgs...)
     return ch
@@ -3723,7 +3723,7 @@ func (this *Blofin) fetchMarginModeBody(ch chan any, symbol any, optionalArgs ..
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes294012 := (<-this.LoadMarkets())
+            retRes294012 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes294012)
         }
         var market any = this.Market(symbol)
@@ -3763,7 +3763,7 @@ func  (this *Blofin) ParseMarginMode(marginMode any, optionalArgs ...any) any  {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} response from the exchange
  */
-func  (this *Blofin) SetMarginMode(marginMode any, optionalArgs ...any) <- chan any {
+func  (this *Blofin) SetMarginModeAsync(marginMode any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.setMarginModeBody(ch, marginMode, optionalArgs...)
     return ch
@@ -3778,7 +3778,7 @@ func (this *Blofin) setMarginModeBody(ch chan any, marginMode any, optionalArgs 
         this.CheckRequiredArgument("setMarginMode", marginMode, "marginMode", []any{"cross", "isolated"})
         if IsEqual(this.Markets, nil) {
     
-            retRes297812 := (<-this.LoadMarkets())
+            retRes297812 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes297812)
         }
         var market any = nil
@@ -3814,7 +3814,7 @@ func (this *Blofin) setMarginModeBody(ch chan any, marginMode any, optionalArgs 
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an object detailing whether the market is in hedged or one-way mode
  */
-func  (this *Blofin) FetchPositionMode(optionalArgs ...any) <- chan any {
+func  (this *Blofin) FetchPositionModeAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchPositionModeBody(ch, optionalArgs...)
     return ch
@@ -3857,7 +3857,7 @@ func (this *Blofin) fetchPositionModeBody(ch chan any, optionalArgs ...any) any 
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} response from the exchange
  */
-func  (this *Blofin) SetPositionMode(hedged any, optionalArgs ...any) <- chan any {
+func  (this *Blofin) SetPositionModeAsync(hedged any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.setPositionModeBody(ch, hedged, optionalArgs...)
     return ch
@@ -3896,7 +3896,7 @@ func (this *Blofin) setPositionModeBody(ch chan any, hedged any, optionalArgs ..
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} an array of [auto de leverage structures]{@link https://docs.ccxt.com/?id=auto-de-leverage-structure}
  */
-func  (this *Blofin) FetchPositionsADLRank(optionalArgs ...any) <- chan any {
+func  (this *Blofin) FetchPositionsADLRankAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchPositionsADLRankBody(ch, optionalArgs...)
     return ch
@@ -3910,7 +3910,7 @@ func (this *Blofin) fetchPositionsADLRankBody(ch chan any, optionalArgs ...any) 
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes306612 := (<-this.LoadMarkets())
+            retRes306612 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes306612)
         }
         symbols = this.MarketSymbols(symbols, nil, true, true, true)

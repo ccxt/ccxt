@@ -604,7 +604,7 @@ func  (this *Bullish) Describe() any  {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {int} the current integer timestamp in milliseconds from the exchange server
  */
-func  (this *Bullish) FetchTime(optionalArgs ...any) <- chan any {
+func  (this *Bullish) FetchTimeAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchTimeBody(ch, optionalArgs...)
     return ch
@@ -635,7 +635,7 @@ func (this *Bullish) fetchTimeBody(ch chan any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an associative dictionary of currencies
  */
-func  (this *Bullish) FetchCurrencies(optionalArgs ...any) <- chan any {
+func  (this *Bullish) FetchCurrenciesAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchCurrenciesBody(ch, optionalArgs...)
     return ch
@@ -733,7 +733,7 @@ func  (this *Bullish) ParseCurrency(rawCurrency any) any  {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} an array of objects representing market data
  */
-func  (this *Bullish) FetchMarkets(optionalArgs ...any) <- chan any {
+func  (this *Bullish) FetchMarketsAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchMarketsBody(ch, optionalArgs...)
     return ch
@@ -745,7 +745,7 @@ func (this *Bullish) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
         _ = params
         if IsEqual(GetValue(this.Options, "adjustForTimeDifference"), true) {
     
-            retRes56712 := (<-this.LoadTimeDifference())
+            retRes56712 := (<-this.LoadTimeDifferenceAsync())
             PanicOnError(retRes56712)
         }
     
@@ -1108,7 +1108,7 @@ func  (this *Bullish) ParseMarketType(optionalArgs ...any) any  {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
-func  (this *Bullish) FetchOrderBook(symbol any, optionalArgs ...any) <- chan any {
+func  (this *Bullish) FetchOrderBookAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchOrderBookBody(ch, symbol, optionalArgs...)
     return ch
@@ -1122,7 +1122,7 @@ func (this *Bullish) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ..
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes92612 := (<-this.LoadMarkets())
+            retRes92612 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes92612)
         }
         var market any = this.Market(symbol)
@@ -1170,7 +1170,7 @@ func (this *Bullish) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ..
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
  * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
-func  (this *Bullish) FetchTrades(symbol any, optionalArgs ...any) <- chan any {
+func  (this *Bullish) FetchTradesAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchTradesBody(ch, symbol, optionalArgs...)
     return ch
@@ -1186,7 +1186,7 @@ func (this *Bullish) fetchTradesBody(ch chan any, symbol any, optionalArgs ...an
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes97212 := (<-this.LoadMarkets())
+            retRes97212 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes97212)
         }
         var maxLimit int = 100
@@ -1197,7 +1197,7 @@ func (this *Bullish) fetchTradesBody(ch chan any, symbol any, optionalArgs ...an
         if EvalTruthy(paginate) {
             params = this.HandlePaginationParams("fetchTrades", since, params)
     
-                retRes97919 :=  (<-this.FetchPaginatedCallDynamic("fetchTrades", symbol, since, limit, params, maxLimit))
+                retRes97919 :=  (<-this.FetchPaginatedCallDynamicAsync("fetchTrades", symbol, since, limit, params, maxLimit))
                 PanicOnError(retRes97919)
                 ch <- retRes97919
                 return nil
@@ -1247,7 +1247,7 @@ func (this *Bullish) fetchTradesBody(ch chan any, symbol any, optionalArgs ...an
  * @param {string} [params.tradingAccountId] the trading account id to fetch trades for
  * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
-func  (this *Bullish) FetchMyTrades(optionalArgs ...any) <- chan any {
+func  (this *Bullish) FetchMyTradesAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchMyTradesBody(ch, optionalArgs...)
     return ch
@@ -1264,10 +1264,10 @@ func (this *Bullish) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
         params := GetArg(optionalArgs, 3, map[string]any {})
         _ = params
     
-        retRes10248 := (<-promiseAll([]any{this.LoadMarkets(), this.HandleToken()}))
+        retRes10248 := (<-promiseAll([]any{this.LoadMarketsAsync(), this.HandleTokenAsync()}))
         PanicOnError(retRes10248)
     
-        tradingAccountId:= (<-this.LoadAccount(params))
+        tradingAccountId:= (<-this.LoadAccountAsync(params))
         PanicOnError(tradingAccountId)
         var request map[string]any = map[string]any {
             "tradingAccountId": tradingAccountId,
@@ -1291,7 +1291,7 @@ func (this *Bullish) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
             if EvalTruthy(paginate) {
                 params = this.HandlePaginationParams("fetchMyTrades", since, params)
     
-                    retRes104323 :=  (<-this.FetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, params, 100))
+                    retRes104323 :=  (<-this.FetchPaginatedCallDynamicAsync("fetchMyTrades", symbol, since, limit, params, 100))
                     PanicOnError(retRes104323)
                     ch <- retRes104323
                     return nil
@@ -1341,7 +1341,7 @@ func (this *Bullish) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
  * @param {string} [params.clientOrderId] the client order id to fetch trades for
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
-func  (this *Bullish) FetchOrderTrades(id any, optionalArgs ...any) <- chan any {
+func  (this *Bullish) FetchOrderTradesAsync(id any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchOrderTradesBody(ch, id, optionalArgs...)
     return ch
@@ -1359,7 +1359,7 @@ func (this *Bullish) fetchOrderTradesBody(ch chan any, id any, optionalArgs ...a
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes108912 := (<-this.LoadMarkets())
+            retRes108912 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes108912)
         }
         var clientOrderId *string = this.SafeString(params, "clientOrderId")
@@ -1369,7 +1369,7 @@ func (this *Bullish) fetchOrderTradesBody(ch chan any, id any, optionalArgs ...a
             }, params)
         }
     
-            retRes109515 :=  (<-this.FetchMyTrades(symbol, since, limit, params))
+            retRes109515 :=  (<-this.FetchMyTradesAsync(symbol, since, limit, params))
             PanicOnError(retRes109515)
             ch <- retRes109515
             return nil
@@ -1476,7 +1476,7 @@ func  (this *Bullish) ParseTrade(trade any, optionalArgs ...any) any  {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func  (this *Bullish) FetchTicker(symbol any, optionalArgs ...any) <- chan any {
+func  (this *Bullish) FetchTickerAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchTickerBody(ch, symbol, optionalArgs...)
     return ch
@@ -1488,7 +1488,7 @@ func (this *Bullish) fetchTickerBody(ch chan any, symbol any, optionalArgs ...an
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes119812 := (<-this.LoadMarkets())
+            retRes119812 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes119812)
         }
         var market any = this.Market(symbol)
@@ -1608,7 +1608,7 @@ func  (this *Bullish) ParseTicker(ticker any, optionalArgs ...any) any  {
         "info": ticker,
     }, market)
 }
-func  (this *Bullish) SafeDeterministicCall(method any, optionalArgs ...any) <- chan any {
+func  (this *Bullish) SafeDeterministicCallAsync(method any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.safeDeterministicCallBody(ch, method, optionalArgs...)
     return ch
@@ -1664,21 +1664,21 @@ func (this *Bullish) safeDeterministicCallBody(ch chan any, method any, optional
             		    // try block:
                                     if (IsEqual(method, "fetchOHLCV")) {
             
-                                retRes132627 :=  (<-this.FetchOHLCV(symbol, timeframe, since, limit, params))
+                                retRes132627 :=  (<-this.FetchOHLCVAsync(symbol, timeframe, since, limit, params))
                                 PanicOnError(retRes132627)
                                 ch <- retRes132627
                                 chSent = true
                                 return nil
                         } else if (IsEqual(method, "fetchFundingRateHistory")) {
             
-                                retRes132827 :=  (<-this.FetchFundingRateHistory(symbol, since, limit, params))
+                                retRes132827 :=  (<-this.FetchFundingRateHistoryAsync(symbol, since, limit, params))
                                 PanicOnError(retRes132827)
                                 ch <- retRes132827
                                 chSent = true
                                 return nil
                         } else {
             
-                                retRes133027 :=  (<-this.FetchTrades(symbol, since, limit, params))
+                                retRes133027 :=  (<-this.FetchTradesAsync(symbol, since, limit, params))
                                 PanicOnError(retRes133027)
                                 ch <- retRes133027
                                 chSent = true
@@ -1710,7 +1710,7 @@ func (this *Bullish) safeDeterministicCallBody(ch chan any, method any, optional
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
-func  (this *Bullish) FetchOHLCV(symbol any, optionalArgs ...any) <- chan any {
+func  (this *Bullish) FetchOHLCVAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchOHLCVBody(ch, symbol, optionalArgs...)
     return ch
@@ -1728,7 +1728,7 @@ func (this *Bullish) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes136112 := (<-this.LoadMarkets())
+            retRes136112 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes136112)
         }
         var market any = this.Market(symbol)
@@ -1739,7 +1739,7 @@ func (this *Bullish) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any
         params = GetValue(paginateparamsVariable,1)
         if EvalTruthy(paginate) {
     
-                retRes136819 :=  (<-this.FetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, params, maxLimit))
+                retRes136819 :=  (<-this.FetchPaginatedCallDeterministicAsync("fetchOHLCV", symbol, since, limit, timeframe, params, maxLimit))
                 PanicOnError(retRes136819)
                 ch <- retRes136819
                 return nil
@@ -1805,7 +1805,7 @@ func  (this *Bullish) ParseOHLCV(ohlcv any, optionalArgs ...any) any  {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
  */
-func  (this *Bullish) FetchFundingRateHistory(optionalArgs ...any) <- chan any {
+func  (this *Bullish) FetchFundingRateHistoryAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchFundingRateHistoryBody(ch, optionalArgs...)
     return ch
@@ -1826,7 +1826,7 @@ func (this *Bullish) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...an
         }
         if IsEqual(this.Markets, nil) {
     
-            retRes143712 := (<-this.LoadMarkets())
+            retRes143712 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes143712)
         }
         var maxLimit int = 100
@@ -1837,7 +1837,7 @@ func (this *Bullish) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...an
         if EvalTruthy(paginate) {
             params = this.HandlePaginationParams("fetchFundingRateHistory", since, params)
     
-                retRes144419 :=  (<-this.FetchPaginatedCallDynamic("fetchFundingRateHistory", symbol, since, limit, params, maxLimit))
+                retRes144419 :=  (<-this.FetchPaginatedCallDynamicAsync("fetchFundingRateHistory", symbol, since, limit, params, maxLimit))
                 PanicOnError(retRes144419)
                 ch <- retRes144419
                 return nil
@@ -1904,7 +1904,7 @@ func (this *Bullish) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...an
  * @param {bool} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Bullish) FetchOrders(optionalArgs ...any) <- chan any {
+func  (this *Bullish) FetchOrdersAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchOrdersBody(ch, optionalArgs...)
     return ch
@@ -1921,16 +1921,16 @@ func (this *Bullish) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
         params := GetArg(optionalArgs, 3, map[string]any {})
         _ = params
     
-        retRes15068 := (<-promiseAll([]any{this.LoadMarkets(), this.HandleToken()}))
+        retRes15068 := (<-promiseAll([]any{this.LoadMarketsAsync(), this.HandleTokenAsync()}))
         PanicOnError(retRes15068)
     
-        tradingAccountId:= (<-this.LoadAccount(params))
+        tradingAccountId:= (<-this.LoadAccountAsync(params))
         PanicOnError(tradingAccountId)
         var paginate any = DerefScalar(this.SafeBool(params, "paginate", false))
         if (paginate == true) {
             params = this.HandlePaginationParams("fetchOrders", since, params)
     
-                retRes151119 :=  (<-this.FetchPaginatedCallDynamic("fetchOrders", symbol, since, limit, params, 100))
+                retRes151119 :=  (<-this.FetchPaginatedCallDynamicAsync("fetchOrders", symbol, since, limit, params, 100))
                 PanicOnError(retRes151119)
                 ch <- retRes151119
                 return nil
@@ -2071,7 +2071,7 @@ func  (this *Bullish) GetClosestLimit(limit any) any  {
  * @param {string} params.tradingAccountId the trading account id (mandatory parameter)
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Bullish) FetchOpenOrders(optionalArgs ...any) <- chan any {
+func  (this *Bullish) FetchOpenOrdersAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchOpenOrdersBody(ch, optionalArgs...)
     return ch
@@ -2091,7 +2091,7 @@ func (this *Bullish) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
             "status": "OPEN",
         }
     
-            retRes163315 :=  (<-this.FetchOrders(symbol, since, limit, this.Extend(request, params)))
+            retRes163315 :=  (<-this.FetchOrdersAsync(symbol, since, limit, this.Extend(request, params)))
             PanicOnError(retRes163315)
             ch <- retRes163315
             return nil
@@ -2108,7 +2108,7 @@ func (this *Bullish) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
  * @param {string} [params.tradingAccountId] the trading account id (mandatory parameter)
  * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Bullish) FetchCanceledOrders(optionalArgs ...any) <- chan any {
+func  (this *Bullish) FetchCanceledOrdersAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchCanceledOrdersBody(ch, optionalArgs...)
     return ch
@@ -2129,7 +2129,7 @@ func (this *Bullish) fetchCanceledOrdersBody(ch chan any, optionalArgs ...any) a
             "method": "privateGetV2Orders",
         }
     
-            retRes165315 :=  (<-this.FetchOrders(symbol, since, limit, this.Extend(request, params)))
+            retRes165315 :=  (<-this.FetchOrdersAsync(symbol, since, limit, this.Extend(request, params)))
             PanicOnError(retRes165315)
             ch <- retRes165315
             return nil
@@ -2146,7 +2146,7 @@ func (this *Bullish) fetchCanceledOrdersBody(ch chan any, optionalArgs ...any) a
  * @param {string} params.tradingAccountId the trading account id (mandatory parameter)
  * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Bullish) FetchClosedOrders(optionalArgs ...any) <- chan any {
+func  (this *Bullish) FetchClosedOrdersAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchClosedOrdersBody(ch, optionalArgs...)
     return ch
@@ -2167,7 +2167,7 @@ func (this *Bullish) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any
             "method": "privateGetV2Orders",
         }
     
-            retRes167315 :=  (<-this.FetchOrders(symbol, since, limit, this.Extend(request, params)))
+            retRes167315 :=  (<-this.FetchOrdersAsync(symbol, since, limit, this.Extend(request, params)))
             PanicOnError(retRes167315)
             ch <- retRes167315
             return nil
@@ -2184,7 +2184,7 @@ func (this *Bullish) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any
  * @param {string} [params.tradingAccountId] the trading account id (mandatory parameter)
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Bullish) FetchCanceledAndClosedOrders(optionalArgs ...any) <- chan any {
+func  (this *Bullish) FetchCanceledAndClosedOrdersAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchCanceledAndClosedOrdersBody(ch, optionalArgs...)
     return ch
@@ -2205,7 +2205,7 @@ func (this *Bullish) fetchCanceledAndClosedOrdersBody(ch chan any, optionalArgs 
             "method": "privateGetV2HistoryOrders",
         }
     
-            retRes169315 :=  (<-this.FetchOrders(symbol, since, limit, this.Extend(request, params)))
+            retRes169315 :=  (<-this.FetchOrdersAsync(symbol, since, limit, this.Extend(request, params)))
             PanicOnError(retRes169315)
             ch <- retRes169315
             return nil
@@ -2221,7 +2221,7 @@ func (this *Bullish) fetchCanceledAndClosedOrdersBody(ch chan any, optionalArgs 
  * @param {string} [params.traidingAccountId] the trading account id (mandatory parameter)
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Bullish) FetchOrder(id any, optionalArgs ...any) <- chan any {
+func  (this *Bullish) FetchOrderAsync(id any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchOrderBody(ch, id, optionalArgs...)
     return ch
@@ -2234,10 +2234,10 @@ func (this *Bullish) fetchOrderBody(ch chan any, id any, optionalArgs ...any) an
         params := GetArg(optionalArgs, 1, map[string]any {})
         _ = params
     
-        retRes17088 := (<-promiseAll([]any{this.LoadMarkets(), this.HandleToken()}))
+        retRes17088 := (<-promiseAll([]any{this.LoadMarketsAsync(), this.HandleTokenAsync()}))
         PanicOnError(retRes17088)
     
-        tradingAccountId:= (<-this.LoadAccount(params))
+        tradingAccountId:= (<-this.LoadAccountAsync(params))
         PanicOnError(tradingAccountId)
         var market any = nil
         if !IsEqual(symbol, nil) {
@@ -2300,7 +2300,7 @@ func (this *Bullish) fetchOrderBody(ch chan any, id any, optionalArgs ...any) an
  * @param {string} params.traidingAccountId the trading account id (mandatory parameter)
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Bullish) CreateOrder(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <- chan any {
+func  (this *Bullish) CreateOrderAsync(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.createOrderBody(ch, symbol, typeVar, side, amount, optionalArgs...)
     return ch
@@ -2313,10 +2313,10 @@ func (this *Bullish) createOrderBody(ch chan any, symbol any, typeVar any, side 
         params := GetArg(optionalArgs, 1, map[string]any {})
         _ = params
     
-        retRes17698 := (<-promiseAll([]any{this.LoadMarkets(), this.HandleToken()}))
+        retRes17698 := (<-promiseAll([]any{this.LoadMarketsAsync(), this.HandleTokenAsync()}))
         PanicOnError(retRes17698)
     
-        tradingAccountId:= (<-this.LoadAccount(params))
+        tradingAccountId:= (<-this.LoadAccountAsync(params))
         PanicOnError(tradingAccountId)
         var market any = this.Market(symbol)
         var request map[string]any = map[string]any {
@@ -2384,7 +2384,7 @@ func (this *Bullish) createOrderBody(ch chan any, symbol any, typeVar any, side 
  * @param {string} [params.clientOrderId] a unique identifier for the order, automatically generated if not sent
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Bullish) EditOrder(id any, symbol any, typeVar any, side any, optionalArgs ...any) <- chan any {
+func  (this *Bullish) EditOrderAsync(id any, symbol any, typeVar any, side any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.editOrderBody(ch, id, symbol, typeVar, side, optionalArgs...)
     return ch
@@ -2399,10 +2399,10 @@ func (this *Bullish) editOrderBody(ch chan any, id any, symbol any, typeVar any,
         params := GetArg(optionalArgs, 2, map[string]any {})
         _ = params
     
-        retRes18318 := (<-promiseAll([]any{this.LoadMarkets(), this.HandleToken()}))
+        retRes18318 := (<-promiseAll([]any{this.LoadMarketsAsync(), this.HandleTokenAsync()}))
         PanicOnError(retRes18318)
     
-        tradingAccountId:= (<-this.LoadAccount(params))
+        tradingAccountId:= (<-this.LoadAccountAsync(params))
         PanicOnError(tradingAccountId)
         var market any = this.Market(symbol)
         var request map[string]any = map[string]any {
@@ -2447,7 +2447,7 @@ func (this *Bullish) editOrderBody(ch chan any, id any, symbol any, typeVar any,
  * @param {string} [params.traidingAccountId] the trading account id (mandatory parameter)
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Bullish) CancelOrder(id any, optionalArgs ...any) <- chan any {
+func  (this *Bullish) CancelOrderAsync(id any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.cancelOrderBody(ch, id, optionalArgs...)
     return ch
@@ -2460,10 +2460,10 @@ func (this *Bullish) cancelOrderBody(ch chan any, id any, optionalArgs ...any) a
         params := GetArg(optionalArgs, 1, map[string]any {})
         _ = params
     
-        retRes18748 := (<-promiseAll([]any{this.LoadMarkets(), this.HandleToken()}))
+        retRes18748 := (<-promiseAll([]any{this.LoadMarketsAsync(), this.HandleTokenAsync()}))
         PanicOnError(retRes18748)
     
-        tradingAccountId:= (<-this.LoadAccount(params))
+        tradingAccountId:= (<-this.LoadAccountAsync(params))
         PanicOnError(tradingAccountId)
         if IsEqual(symbol, nil) {
             panic(ArgumentsRequired(Add(this.Id, " cancelOrder() requires a symbol argument")))
@@ -2500,7 +2500,7 @@ func (this *Bullish) cancelOrderBody(ch chan any, id any, optionalArgs ...any) a
  * @param {string} params.traidingAccountId the trading account id (mandatory parameter)
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Bullish) CancelAllOrders(optionalArgs ...any) <- chan any {
+func  (this *Bullish) CancelAllOrdersAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.cancelAllOrdersBody(ch, optionalArgs...)
     return ch
@@ -2513,10 +2513,10 @@ func (this *Bullish) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
         params := GetArg(optionalArgs, 1, map[string]any {})
         _ = params
     
-        retRes19098 := (<-promiseAll([]any{this.LoadMarkets(), this.HandleToken()}))
+        retRes19098 := (<-promiseAll([]any{this.LoadMarketsAsync(), this.HandleTokenAsync()}))
         PanicOnError(retRes19098)
     
-        tradingAccountId:= (<-this.LoadAccount(params))
+        tradingAccountId:= (<-this.LoadAccountAsync(params))
         PanicOnError(tradingAccountId)
         var request map[string]any = map[string]any {
             "tradingAccountId": tradingAccountId,
@@ -2677,7 +2677,7 @@ func  (this *Bullish) ParseOrderType(typeVar any) any  {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func  (this *Bullish) FetchDepositsWithdrawals(optionalArgs ...any) <- chan any {
+func  (this *Bullish) FetchDepositsWithdrawalsAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchDepositsWithdrawalsBody(ch, optionalArgs...)
     return ch
@@ -2694,7 +2694,7 @@ func (this *Bullish) fetchDepositsWithdrawalsBody(ch chan any, optionalArgs ...a
         params := GetArg(optionalArgs, 3, map[string]any {})
         _ = params
     
-        retRes20698 := (<-promiseAll([]any{this.LoadMarkets(), this.HandleToken()}))
+        retRes20698 := (<-promiseAll([]any{this.LoadMarketsAsync(), this.HandleTokenAsync()}))
         PanicOnError(retRes20698)
         var request any = map[string]any {}
         requestparamsVariable := this.HandleUntilOption("createdAtDatetime[lte]", request, params);
@@ -2768,7 +2768,7 @@ func (this *Bullish) fetchDepositsWithdrawalsBody(ch chan any, optionalArgs ...a
  * @param {string} params.network network for withdraw (mandatory)
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func  (this *Bullish) Withdraw(code any, amount any, address any, optionalArgs ...any) <- chan any {
+func  (this *Bullish) WithdrawAsync(code any, amount any, address any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.withdrawBody(ch, code, amount, address, optionalArgs...)
     return ch
@@ -2781,7 +2781,7 @@ func (this *Bullish) withdrawBody(ch chan any, code any, amount any, address any
         params := GetArg(optionalArgs, 1, map[string]any {})
         _ = params
     
-        retRes21388 := (<-promiseAll([]any{this.LoadMarkets(), this.HandleToken()}))
+        retRes21388 := (<-promiseAll([]any{this.LoadMarketsAsync(), this.HandleTokenAsync()}))
         PanicOnError(retRes21388)
         // todo check this method properly
         var currency any = this.Currency(code)
@@ -2911,7 +2911,7 @@ func  (this *Bullish) ParseTransactionStatus(status any) any  {
     }
     return this.SafeString(statuses, status, status)
 }
-func  (this *Bullish) LoadAccount(optionalArgs ...any) <- chan any {
+func  (this *Bullish) LoadAccountAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.loadAccountBody(ch, optionalArgs...)
     return ch
@@ -2955,7 +2955,7 @@ func (this *Bullish) loadAccountBody(ch chan any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/?id=account-structure} indexed by the account type
  */
-func  (this *Bullish) FetchAccounts(optionalArgs ...any) <- chan any {
+func  (this *Bullish) FetchAccountsAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchAccountsBody(ch, optionalArgs...)
     return ch
@@ -2966,7 +2966,7 @@ func (this *Bullish) fetchAccountsBody(ch chan any, optionalArgs ...any) any {
         params := GetArg(optionalArgs, 0, map[string]any {})
         _ = params
     
-        retRes22948 := (<-promiseAll([]any{this.LoadMarkets(), this.HandleToken()}))
+        retRes22948 := (<-promiseAll([]any{this.LoadMarketsAsync(), this.HandleTokenAsync()}))
         PanicOnError(retRes22948)
     
         response:= (<-this.PrivateGetV1AccountsTradingAccounts(params))
@@ -3072,7 +3072,7 @@ func  (this *Bullish) ParseAccount(account any) any  {
  * @param {string} [params.network] network for deposit address
  * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
  */
-func  (this *Bullish) FetchDepositAddress(code any, optionalArgs ...any) <- chan any {
+func  (this *Bullish) FetchDepositAddressAsync(code any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchDepositAddressBody(ch, code, optionalArgs...)
     return ch
@@ -3083,7 +3083,7 @@ func (this *Bullish) fetchDepositAddressBody(ch chan any, code any, optionalArgs
         params := GetArg(optionalArgs, 0, map[string]any {})
         _ = params
     
-        retRes23988 := (<-promiseAll([]any{this.LoadMarkets(), this.HandleToken()}))
+        retRes23988 := (<-promiseAll([]any{this.LoadMarketsAsync(), this.HandleTokenAsync()}))
         PanicOnError(retRes23988)
         var currency any = this.Currency(code)
         var request map[string]any = map[string]any {
@@ -3160,7 +3160,7 @@ func  (this *Bullish) ParseDepositAddress(depositAddress any, optionalArgs ...an
  * @param {string} [params.code] unified currency code, default is undefined
  * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
-func  (this *Bullish) FetchBalance(optionalArgs ...any) <- chan any {
+func  (this *Bullish) FetchBalanceAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchBalanceBody(ch, optionalArgs...)
     return ch
@@ -3171,10 +3171,10 @@ func (this *Bullish) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
         params := GetArg(optionalArgs, 0, map[string]any {})
         _ = params
     
-        retRes24698 := (<-promiseAll([]any{this.LoadMarkets(), this.HandleToken()}))
+        retRes24698 := (<-promiseAll([]any{this.LoadMarketsAsync(), this.HandleTokenAsync()}))
         PanicOnError(retRes24698)
     
-        tradingAccountId:= (<-this.LoadAccount(params))
+        tradingAccountId:= (<-this.LoadAccountAsync(params))
         PanicOnError(tradingAccountId)
         var request map[string]any = map[string]any {
             "tradingAccountId": tradingAccountId,
@@ -3251,7 +3251,7 @@ func  (this *Bullish) ParseBalance(response any) any  {
  * @param {string} params.tradingAccountId the trading account id
  * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
  */
-func  (this *Bullish) FetchPositions(optionalArgs ...any) <- chan any {
+func  (this *Bullish) FetchPositionsAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchPositionsBody(ch, optionalArgs...)
     return ch
@@ -3264,10 +3264,10 @@ func (this *Bullish) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
         params := GetArg(optionalArgs, 1, map[string]any {})
         _ = params
     
-        retRes25408 := (<-promiseAll([]any{this.LoadMarkets(), this.HandleToken()}))
+        retRes25408 := (<-promiseAll([]any{this.LoadMarketsAsync(), this.HandleTokenAsync()}))
         PanicOnError(retRes25408)
     
-        tradingAccountId:= (<-this.LoadAccount(params))
+        tradingAccountId:= (<-this.LoadAccountAsync(params))
         PanicOnError(tradingAccountId)
         var request map[string]any = map[string]any {
             "tradingAccountId": tradingAccountId,
@@ -3379,7 +3379,7 @@ func  (this *Bullish) ParsePositionSide(side any) any  {
  * @param {string} params.tradingAccountId the trading account id
  * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
-func  (this *Bullish) FetchTransfers(optionalArgs ...any) <- chan any {
+func  (this *Bullish) FetchTransfersAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchTransfersBody(ch, optionalArgs...)
     return ch
@@ -3396,10 +3396,10 @@ func (this *Bullish) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
         params := GetArg(optionalArgs, 3, map[string]any {})
         _ = params
     
-        retRes26508 := (<-promiseAll([]any{this.LoadMarkets(), this.HandleToken()}))
+        retRes26508 := (<-promiseAll([]any{this.LoadMarketsAsync(), this.HandleTokenAsync()}))
         PanicOnError(retRes26508)
     
-        tradingAccountId:= (<-this.LoadAccount(params))
+        tradingAccountId:= (<-this.LoadAccountAsync(params))
         PanicOnError(tradingAccountId)
         var maxLimit int = 100
         var paginate any = false
@@ -3409,7 +3409,7 @@ func (this *Bullish) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
         if EvalTruthy(paginate) {
             params = this.HandlePaginationParams("fetchTransfers", since, params)
     
-                retRes265719 :=  (<-this.FetchPaginatedCallDynamic("fetchTransfers", code, since, limit, params, maxLimit))
+                retRes265719 :=  (<-this.FetchPaginatedCallDynamicAsync("fetchTransfers", code, since, limit, params, maxLimit))
                 PanicOnError(retRes265719)
                 ch <- retRes265719
                 return nil
@@ -3469,7 +3469,7 @@ func (this *Bullish) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
-func  (this *Bullish) Transfer(code any, amount any, fromAccount any, toAccount any, optionalArgs ...any) <- chan any {
+func  (this *Bullish) TransferAsync(code any, amount any, fromAccount any, toAccount any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.transferBody(ch, code, amount, fromAccount, toAccount, optionalArgs...)
     return ch
@@ -3480,7 +3480,7 @@ func (this *Bullish) transferBody(ch chan any, code any, amount any, fromAccount
         params := GetArg(optionalArgs, 0, map[string]any {})
         _ = params
     
-        retRes27108 := (<-promiseAll([]any{this.LoadMarkets(), this.HandleToken()}))
+        retRes27108 := (<-promiseAll([]any{this.LoadMarketsAsync(), this.HandleTokenAsync()}))
         PanicOnError(retRes27108)
         // todo check this method properly
         var currency any = this.Currency(code)
@@ -3577,7 +3577,7 @@ func  (this *Bullish) ParseTransferStatus(status any) any  {
  * @param {string} params.tradingAccountId the trading account id
  * @returns {object[]} an array of [borrow rate structures]{@link https://docs.ccxt.com/?id=borrow-rate-structure}
  */
-func  (this *Bullish) FetchBorrowRateHistory(code any, optionalArgs ...any) <- chan any {
+func  (this *Bullish) FetchBorrowRateHistoryAsync(code any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchBorrowRateHistoryBody(ch, code, optionalArgs...)
     return ch
@@ -3592,10 +3592,10 @@ func (this *Bullish) fetchBorrowRateHistoryBody(ch chan any, code any, optionalA
         params := GetArg(optionalArgs, 2, map[string]any {})
         _ = params
     
-        retRes28048 := (<-promiseAll([]any{this.LoadMarkets(), this.HandleToken()}))
+        retRes28048 := (<-promiseAll([]any{this.LoadMarketsAsync(), this.HandleTokenAsync()}))
         PanicOnError(retRes28048)
     
-        tradingAccountId:= (<-this.LoadAccount(params))
+        tradingAccountId:= (<-this.LoadAccountAsync(params))
         PanicOnError(tradingAccountId)
         var currency any = this.Currency(code)
         var request any = map[string]any {
@@ -3672,7 +3672,7 @@ func  (this *Bullish) GetTimestamp() any  {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [open interest structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func  (this *Bullish) FetchOpenInterest(symbol any, optionalArgs ...any) <- chan any {
+func  (this *Bullish) FetchOpenInterestAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchOpenInterestBody(ch, symbol, optionalArgs...)
     return ch
@@ -3684,7 +3684,7 @@ func (this *Bullish) fetchOpenInterestBody(ch chan any, symbol any, optionalArgs
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes287812 := (<-this.LoadMarkets())
+            retRes287812 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes287812)
         }
         var market any = this.Market(symbol)
@@ -3865,7 +3865,7 @@ func  (this *Bullish) Sign(path any, optionalArgs ...any) any  {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns response from exchange
  */
-func  (this *Bullish) SignIn(optionalArgs ...any) <- chan any {
+func  (this *Bullish) SignInAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.signInBody(ch, optionalArgs...)
     return ch
@@ -3894,7 +3894,7 @@ func (this *Bullish) signInBody(ch chan any, optionalArgs ...any) any {
         ch <- token
         return nil
 }
-func  (this *Bullish) HandleToken(optionalArgs ...any) <- chan any {
+func  (this *Bullish) HandleTokenAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.handleTokenBody(ch, optionalArgs...)
     return ch
@@ -3909,7 +3909,7 @@ func (this *Bullish) handleTokenBody(ch chan any, optionalArgs ...any) any {
         var tokenExpires *int64 = this.SafeInteger(this.Options, "tokenExpires")
         if (IsEqual(token, nil)) || ((tokenExpires == nil)) || (IsGreaterThan(now, tokenExpires)) {
     
-                retRes306319 :=  (<-this.SignIn())
+                retRes306319 :=  (<-this.SignInAsync())
                 PanicOnError(retRes306319)
                 ch <- retRes306319
                 return nil

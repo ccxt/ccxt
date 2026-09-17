@@ -5,7 +5,7 @@ import "github.com/ccxt/ccxt/go/v4"
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 
-    func TestWatchOHLCVForSymbols(exchange ccxt.ICoreExchange, skippedProperties any, symbol any) <- chan any {
+    func TestWatchOHLCVForSymbolsAsync(exchange ccxt.ICoreExchange, skippedProperties any, symbol any) <- chan any {
         ch := make(chan any, 1)
         go testWatchOHLCVForSymbolsBody(ch, exchange, skippedProperties, symbol)
         return ch

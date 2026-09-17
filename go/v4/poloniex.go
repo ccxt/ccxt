@@ -860,7 +860,7 @@ func  (this *Poloniex) ParseOHLCV(ohlcv any, optionalArgs ...any) any  {
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
-func  (this *Poloniex) FetchOHLCV(symbol any, optionalArgs ...any) <- chan any {
+func  (this *Poloniex) FetchOHLCVAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchOHLCVBody(ch, symbol, optionalArgs...)
     return ch
@@ -877,7 +877,7 @@ func (this *Poloniex) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...an
         params := GetArg(optionalArgs, 3, map[string]any {})
         _ = params
     
-        retRes6888 := (<-this.LoadMarkets())
+        retRes6888 := (<-this.LoadMarketsAsync())
         PanicOnError(retRes6888)
         var paginate any = false
         paginateparamsVariable := this.HandleOptionAndParams(params, "fetchOHLCV", "paginate", false);
@@ -885,7 +885,7 @@ func (this *Poloniex) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...an
         params = GetValue(paginateparamsVariable,1)
         if EvalTruthy(paginate) {
     
-                retRes69219 :=  (<-this.FetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, params, 500))
+                retRes69219 :=  (<-this.FetchPaginatedCallDeterministicAsync("fetchOHLCV", symbol, since, limit, timeframe, params, 500))
                 PanicOnError(retRes69219)
                 ch <- retRes69219
                 return nil
@@ -964,7 +964,7 @@ func (this *Poloniex) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...an
         ch <- this.ParseOHLCVs(candles, market, timeframe, since, limit)
         return nil
 }
-func  (this *Poloniex) LoadMarkets(optionalArgs ...any) <- chan any {
+func  (this *Poloniex) LoadMarketsAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.loadMarketsBody(ch, optionalArgs...)
     return ch
@@ -977,7 +977,7 @@ func (this *Poloniex) loadMarketsBody(ch chan any, optionalArgs ...any) any {
         params := GetArg(optionalArgs, 1, map[string]any {})
         _ = params
     
-        markets:= (<-this.Exchange.LoadMarkets(reload, params))
+        markets:= (<-this.Exchange.LoadMarketsAsync(reload, params))
         PanicOnError(markets)
         var currenciesByNumericId any = this.SafeValue(this.Options, "currenciesByNumericId")
         if (IsEqual(currenciesByNumericId, nil)) || EvalTruthy(reload) {
@@ -996,7 +996,7 @@ func (this *Poloniex) loadMarketsBody(ch chan any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} an array of objects representing market data
  */
-func  (this *Poloniex) FetchMarkets(optionalArgs ...any) <- chan any {
+func  (this *Poloniex) FetchMarketsAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchMarketsBody(ch, optionalArgs...)
     return ch
@@ -1006,7 +1006,7 @@ func (this *Poloniex) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
     defer ReturnPanicError(ch)
         params := GetArg(optionalArgs, 0, map[string]any {})
         _ = params
-        var promises []any = []any{this.FetchSpotMarkets(params), this.FetchSwapMarkets(params)}
+        var promises []any = []any{this.FetchSpotMarketsAsync(params), this.FetchSwapMarketsAsync(params)}
     
         results:= (<-promiseAll(promises))
         PanicOnError(results)
@@ -1014,7 +1014,7 @@ func (this *Poloniex) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
         ch <- this.ArrayConcat(GetValue(results, 0), GetValue(results, 1))
         return nil
 }
-func  (this *Poloniex) FetchSpotMarkets(optionalArgs ...any) <- chan any {
+func  (this *Poloniex) FetchSpotMarketsAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchSpotMarketsBody(ch, optionalArgs...)
     return ch
@@ -1054,7 +1054,7 @@ func (this *Poloniex) fetchSpotMarketsBody(ch chan any, optionalArgs ...any) any
     ch <- this.ParseMarkets(markets)
         return nil
 }
-func  (this *Poloniex) FetchSwapMarkets(optionalArgs ...any) <- chan any {
+func  (this *Poloniex) FetchSwapMarketsAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchSwapMarketsBody(ch, optionalArgs...)
     return ch
@@ -1292,7 +1292,7 @@ func  (this *Poloniex) ParseSwapMarket(market any) any  {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {int} the current integer timestamp in milliseconds from the exchange server
  */
-func  (this *Poloniex) FetchTime(optionalArgs ...any) <- chan any {
+func  (this *Poloniex) FetchTimeAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchTimeBody(ch, optionalArgs...)
     return ch
@@ -1404,7 +1404,7 @@ func  (this *Poloniex) ParseTicker(ticker any, optionalArgs ...any) any  {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func  (this *Poloniex) FetchTickers(optionalArgs ...any) <- chan any {
+func  (this *Poloniex) FetchTickersAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchTickersBody(ch, optionalArgs...)
     return ch
@@ -1417,7 +1417,7 @@ func (this *Poloniex) fetchTickersBody(ch chan any, optionalArgs ...any) any {
         params := GetArg(optionalArgs, 1, map[string]any {})
         _ = params
     
-        retRes11408 := (<-this.LoadMarkets())
+        retRes11408 := (<-this.LoadMarketsAsync())
         PanicOnError(retRes11408)
         var market any = nil
         var request map[string]any = map[string]any {}
@@ -1509,7 +1509,7 @@ func (this *Poloniex) fetchTickersBody(ch chan any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an associative dictionary of currencies
  */
-func  (this *Poloniex) FetchCurrencies(optionalArgs ...any) <- chan any {
+func  (this *Poloniex) FetchCurrenciesAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchCurrenciesBody(ch, optionalArgs...)
     return ch
@@ -1616,7 +1616,7 @@ func  (this *Poloniex) ParseCurrency(currency any) any  {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func  (this *Poloniex) FetchTicker(symbol any, optionalArgs ...any) <- chan any {
+func  (this *Poloniex) FetchTickerAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchTickerBody(ch, symbol, optionalArgs...)
     return ch
@@ -1627,7 +1627,7 @@ func (this *Poloniex) fetchTickerBody(ch chan any, symbol any, optionalArgs ...a
         params := GetArg(optionalArgs, 0, map[string]any {})
         _ = params
     
-        retRes13198 := (<-this.LoadMarkets())
+        retRes13198 := (<-this.LoadMarketsAsync())
         PanicOnError(retRes13198)
         var market any = this.Market(symbol)
         var request map[string]any = map[string]any {
@@ -1635,7 +1635,7 @@ func (this *Poloniex) fetchTickerBody(ch chan any, symbol any, optionalArgs ...a
         }
         if IsEqual(GetValue(market, "contract"), true) {
     
-            tickers:= (<-this.FetchTickers([]any{GetValue(market, "symbol")}, params))
+            tickers:= (<-this.FetchTickersAsync([]any{GetValue(market, "symbol")}, params))
             PanicOnError(tickers)
     
             ch <- this.SafeDict(tickers, symbol)
@@ -1817,7 +1817,7 @@ func  (this *Poloniex) ParseTrade(trade any, optionalArgs ...any) any  {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
-func  (this *Poloniex) FetchTrades(symbol any, optionalArgs ...any) <- chan any {
+func  (this *Poloniex) FetchTradesAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchTradesBody(ch, symbol, optionalArgs...)
     return ch
@@ -1832,7 +1832,7 @@ func (this *Poloniex) fetchTradesBody(ch chan any, symbol any, optionalArgs ...a
         params := GetArg(optionalArgs, 2, map[string]any {})
         _ = params
     
-        retRes15018 := (<-this.LoadMarkets())
+        retRes15018 := (<-this.LoadMarketsAsync())
         PanicOnError(retRes15018)
         var market any = this.Market(symbol)
         var request map[string]any = map[string]any {
@@ -1898,7 +1898,7 @@ func (this *Poloniex) fetchTradesBody(ch chan any, symbol any, optionalArgs ...a
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
  * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
-func  (this *Poloniex) FetchMyTrades(optionalArgs ...any) <- chan any {
+func  (this *Poloniex) FetchMyTradesAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchMyTradesBody(ch, optionalArgs...)
     return ch
@@ -1915,7 +1915,7 @@ func (this *Poloniex) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
         params := GetArg(optionalArgs, 3, map[string]any {})
         _ = params
     
-        retRes15608 := (<-this.LoadMarkets())
+        retRes15608 := (<-this.LoadMarketsAsync())
         PanicOnError(retRes15608)
         var paginate any = false
         paginateparamsVariable := this.HandleOptionAndParams(params, "fetchMyTrades", "paginate");
@@ -1923,7 +1923,7 @@ func (this *Poloniex) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
         params = GetValue(paginateparamsVariable,1)
         if EvalTruthy(paginate) {
     
-                retRes156419 :=  (<-this.FetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, params))
+                retRes156419 :=  (<-this.FetchPaginatedCallDynamicAsync("fetchMyTrades", symbol, since, limit, params))
                 PanicOnError(retRes156419)
                 ch <- retRes156419
                 return nil
@@ -2244,7 +2244,7 @@ func  (this *Poloniex) ParseOpenOrders(orders any, market any, result any) any  
  * @param {boolean} [params.trigger] set true to fetch trigger orders instead of regular orders
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Poloniex) FetchOpenOrders(optionalArgs ...any) <- chan any {
+func  (this *Poloniex) FetchOpenOrdersAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchOpenOrdersBody(ch, optionalArgs...)
     return ch
@@ -2261,7 +2261,7 @@ func (this *Poloniex) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any 
         params := GetArg(optionalArgs, 3, map[string]any {})
         _ = params
     
-        retRes18778 := (<-this.LoadMarkets())
+        retRes18778 := (<-this.LoadMarketsAsync())
         PanicOnError(retRes18778)
         var market any = nil
         var request map[string]any = map[string]any {}
@@ -2375,7 +2375,7 @@ func (this *Poloniex) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any 
  * @param {int} [params.until] timestamp in ms of the latest entry
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Poloniex) FetchClosedOrders(optionalArgs ...any) <- chan any {
+func  (this *Poloniex) FetchClosedOrdersAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchClosedOrdersBody(ch, optionalArgs...)
     return ch
@@ -2392,7 +2392,7 @@ func (this *Poloniex) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) an
         params := GetArg(optionalArgs, 3, map[string]any {})
         _ = params
     
-        retRes19808 := (<-this.LoadMarkets())
+        retRes19808 := (<-this.LoadMarketsAsync())
         PanicOnError(retRes19808)
         var market any = nil
         var request any = map[string]any {}
@@ -2481,7 +2481,7 @@ func (this *Poloniex) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) an
  * @param {string} [params.clientOrderId] a unique identifier for the order
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Poloniex) CreateOrder(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <- chan any {
+func  (this *Poloniex) CreateOrderAsync(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.createOrderBody(ch, symbol, typeVar, side, amount, optionalArgs...)
     return ch
@@ -2494,7 +2494,7 @@ func (this *Poloniex) createOrderBody(ch chan any, symbol any, typeVar any, side
         params := GetArg(optionalArgs, 1, map[string]any {})
         _ = params
     
-        retRes20628 := (<-this.LoadMarkets())
+        retRes20628 := (<-this.LoadMarketsAsync())
         PanicOnError(retRes20628)
         var market any = this.Market(symbol)
         var request any = map[string]any {
@@ -2638,7 +2638,7 @@ func  (this *Poloniex) OrderRequest(symbol any, typeVar any, side any, amount an
  * @param {string} [params.clientOrderId] a unique identifier for the order
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Poloniex) EditOrder(id any, symbol any, typeVar any, side any, optionalArgs ...any) <- chan any {
+func  (this *Poloniex) EditOrderAsync(id any, symbol any, typeVar any, side any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.editOrderBody(ch, id, symbol, typeVar, side, optionalArgs...)
     return ch
@@ -2653,7 +2653,7 @@ func (this *Poloniex) editOrderBody(ch chan any, id any, symbol any, typeVar any
         params := GetArg(optionalArgs, 2, map[string]any {})
         _ = params
     
-        retRes21918 := (<-this.LoadMarkets())
+        retRes21918 := (<-this.LoadMarketsAsync())
         PanicOnError(retRes21918)
         var market any = this.Market(symbol)
         if !IsEqual(GetValue(market, "spot"), true) {
@@ -2690,7 +2690,7 @@ func (this *Poloniex) editOrderBody(ch chan any, id any, symbol any, typeVar any
         ch <- this.ParseOrder(response, market)
         return nil
 }
-func  (this *Poloniex) CancelOrder(id any, optionalArgs ...any) <- chan any {
+func  (this *Poloniex) CancelOrderAsync(id any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.cancelOrderBody(ch, id, optionalArgs...)
     return ch
@@ -2715,7 +2715,7 @@ func (this *Poloniex) cancelOrderBody(ch chan any, id any, optionalArgs ...any) 
         params := GetArg(optionalArgs, 1, map[string]any {})
         _ = params
     
-        retRes22348 := (<-this.LoadMarkets())
+        retRes22348 := (<-this.LoadMarketsAsync())
         PanicOnError(retRes22348)
         if IsEqual(symbol, nil) {
             panic(ArgumentsRequired(Add(this.Id, " cancelOrder() requires a symbol argument")))
@@ -2784,7 +2784,7 @@ func (this *Poloniex) cancelOrderBody(ch chan any, id any, optionalArgs ...any) 
  * @param {boolean} [params.trigger] true if canceling trigger orders
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Poloniex) CancelAllOrders(optionalArgs ...any) <- chan any {
+func  (this *Poloniex) CancelAllOrdersAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.cancelAllOrdersBody(ch, optionalArgs...)
     return ch
@@ -2797,7 +2797,7 @@ func (this *Poloniex) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any 
         params := GetArg(optionalArgs, 1, map[string]any {})
         _ = params
     
-        retRes22948 := (<-this.LoadMarkets())
+        retRes22948 := (<-this.LoadMarketsAsync())
         PanicOnError(retRes22948)
         var request map[string]any = map[string]any {
             "symbols": []any{},
@@ -2879,7 +2879,7 @@ func (this *Poloniex) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any 
  * @param {boolean} [params.trigger] true if fetching a trigger order
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Poloniex) FetchOrder(id any, optionalArgs ...any) <- chan any {
+func  (this *Poloniex) FetchOrderAsync(id any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchOrderBody(ch, id, optionalArgs...)
     return ch
@@ -2892,7 +2892,7 @@ func (this *Poloniex) fetchOrderBody(ch chan any, id any, optionalArgs ...any) a
         params := GetArg(optionalArgs, 1, map[string]any {})
         _ = params
     
-        retRes23688 := (<-this.LoadMarkets())
+        retRes23688 := (<-this.LoadMarketsAsync())
         PanicOnError(retRes23688)
         id = ToString(id)
         var request map[string]any = map[string]any {
@@ -2950,7 +2950,7 @@ func (this *Poloniex) fetchOrderBody(ch chan any, id any, optionalArgs ...any) a
         ch <- order
         return nil
 }
-func  (this *Poloniex) FetchOrderStatus(id any, optionalArgs ...any) <- chan any {
+func  (this *Poloniex) FetchOrderStatusAsync(id any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchOrderStatusBody(ch, id, optionalArgs...)
     return ch
@@ -2963,10 +2963,10 @@ func (this *Poloniex) fetchOrderStatusBody(ch chan any, id any, optionalArgs ...
         params := GetArg(optionalArgs, 1, map[string]any {})
         _ = params
     
-        retRes24198 := (<-this.LoadMarkets())
+        retRes24198 := (<-this.LoadMarketsAsync())
         PanicOnError(retRes24198)
     
-        orders:= (<-this.FetchOpenOrders(symbol, nil, nil, params))
+        orders:= (<-this.FetchOpenOrdersAsync(symbol, nil, nil, params))
         PanicOnError(orders)
         var indexed map[string]any = this.IndexBy(orders, "id")
     
@@ -2985,7 +2985,7 @@ func (this *Poloniex) fetchOrderStatusBody(ch chan any, id any, optionalArgs ...
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
-func  (this *Poloniex) FetchOrderTrades(id any, optionalArgs ...any) <- chan any {
+func  (this *Poloniex) FetchOrderTradesAsync(id any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchOrderTradesBody(ch, id, optionalArgs...)
     return ch
@@ -3002,7 +3002,7 @@ func (this *Poloniex) fetchOrderTradesBody(ch chan any, id any, optionalArgs ...
         params := GetArg(optionalArgs, 3, map[string]any {})
         _ = params
     
-        retRes24388 := (<-this.LoadMarkets())
+        retRes24388 := (<-this.LoadMarketsAsync())
         PanicOnError(retRes24388)
         var request map[string]any = map[string]any {
             "id": id,
@@ -3087,7 +3087,7 @@ func  (this *Poloniex) ParseBalance(response any) any  {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
-func  (this *Poloniex) FetchBalance(optionalArgs ...any) <- chan any {
+func  (this *Poloniex) FetchBalanceAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchBalanceBody(ch, optionalArgs...)
     return ch
@@ -3098,7 +3098,7 @@ func (this *Poloniex) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
         params := GetArg(optionalArgs, 0, map[string]any {})
         _ = params
     
-        retRes25218 := (<-this.LoadMarkets())
+        retRes25218 := (<-this.LoadMarketsAsync())
         PanicOnError(retRes25218)
         var marketType any = nil
         marketTypeparamsVariable := this.HandleMarketTypeAndParams("fetchBalance", nil, params);
@@ -3184,7 +3184,7 @@ func (this *Poloniex) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
  */
-func  (this *Poloniex) FetchTradingFees(optionalArgs ...any) <- chan any {
+func  (this *Poloniex) FetchTradingFeesAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchTradingFeesBody(ch, optionalArgs...)
     return ch
@@ -3195,7 +3195,7 @@ func (this *Poloniex) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any
         params := GetArg(optionalArgs, 0, map[string]any {})
         _ = params
     
-        retRes25988 := (<-this.LoadMarkets())
+        retRes25988 := (<-this.LoadMarketsAsync())
         PanicOnError(retRes25988)
     
         response:= (<-this.PrivateGetFeeinfo(params))
@@ -3236,7 +3236,7 @@ func (this *Poloniex) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
-func  (this *Poloniex) FetchOrderBook(symbol any, optionalArgs ...any) <- chan any {
+func  (this *Poloniex) FetchOrderBookAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchOrderBookBody(ch, symbol, optionalArgs...)
     return ch
@@ -3249,7 +3249,7 @@ func (this *Poloniex) fetchOrderBookBody(ch chan any, symbol any, optionalArgs .
         params := GetArg(optionalArgs, 1, map[string]any {})
         _ = params
     
-        retRes26368 := (<-this.LoadMarkets())
+        retRes26368 := (<-this.LoadMarketsAsync())
         PanicOnError(retRes26368)
         var market any = this.Market(symbol)
         var request map[string]any = map[string]any {
@@ -3334,7 +3334,7 @@ func (this *Poloniex) fetchOrderBookBody(ch chan any, symbol any, optionalArgs .
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
  */
-func  (this *Poloniex) CreateDepositAddress(code any, optionalArgs ...any) <- chan any {
+func  (this *Poloniex) CreateDepositAddressAsync(code any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.createDepositAddressBody(ch, code, optionalArgs...)
     return ch
@@ -3345,7 +3345,7 @@ func (this *Poloniex) createDepositAddressBody(ch chan any, code any, optionalAr
         params := GetArg(optionalArgs, 0, map[string]any {})
         _ = params
     
-        retRes27148 := (<-this.LoadMarkets())
+        retRes27148 := (<-this.LoadMarketsAsync())
         PanicOnError(retRes27148)
         requestextraParamscurrencynetworkEntryVariable := this.PrepareRequestForDepositAddress(code, params);
         request := GetValue(requestextraParamscurrencynetworkEntryVariable,0);
@@ -3374,7 +3374,7 @@ func (this *Poloniex) createDepositAddressBody(ch chan any, code any, optionalAr
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
  */
-func  (this *Poloniex) FetchDepositAddress(code any, optionalArgs ...any) <- chan any {
+func  (this *Poloniex) FetchDepositAddressAsync(code any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchDepositAddressBody(ch, code, optionalArgs...)
     return ch
@@ -3385,7 +3385,7 @@ func (this *Poloniex) fetchDepositAddressBody(ch chan any, code any, optionalArg
         params := GetArg(optionalArgs, 0, map[string]any {})
         _ = params
     
-        retRes27368 := (<-this.LoadMarkets())
+        retRes27368 := (<-this.LoadMarketsAsync())
         PanicOnError(retRes27368)
         requestextraParamscurrencynetworkEntryVariable := this.PrepareRequestForDepositAddress(code, params);
         request := GetValue(requestextraParamscurrencynetworkEntryVariable,0);
@@ -3471,7 +3471,7 @@ func  (this *Poloniex) ParseDepositAddressSpecial(response any, currency any, ne
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
-func  (this *Poloniex) Transfer(code any, amount any, fromAccount any, toAccount any, optionalArgs ...any) <- chan any {
+func  (this *Poloniex) TransferAsync(code any, amount any, fromAccount any, toAccount any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.transferBody(ch, code, amount, fromAccount, toAccount, optionalArgs...)
     return ch
@@ -3482,7 +3482,7 @@ func (this *Poloniex) transferBody(ch chan any, code any, amount any, fromAccoun
         params := GetArg(optionalArgs, 0, map[string]any {})
         _ = params
     
-        retRes28148 := (<-this.LoadMarkets())
+        retRes28148 := (<-this.LoadMarketsAsync())
         PanicOnError(retRes28148)
         var currency any = this.Currency(code)
         var accountsByType any = this.SafeValue(this.Options, "accountsByType", map[string]any {})
@@ -3538,7 +3538,7 @@ func  (this *Poloniex) ParseTransfer(transfer any, optionalArgs ...any) any  {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func  (this *Poloniex) Withdraw(code any, amount any, address any, optionalArgs ...any) <- chan any {
+func  (this *Poloniex) WithdrawAsync(code any, amount any, address any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.withdrawBody(ch, code, amount, address, optionalArgs...)
     return ch
@@ -3585,7 +3585,7 @@ func (this *Poloniex) withdrawBody(ch chan any, code any, amount any, address an
     ch <- this.ParseTransaction(response, currency)
         return nil
 }
-func  (this *Poloniex) FetchTransactionsHelper(optionalArgs ...any) <- chan any {
+func  (this *Poloniex) FetchTransactionsHelperAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchTransactionsHelperBody(ch, optionalArgs...)
     return ch
@@ -3602,7 +3602,7 @@ func (this *Poloniex) fetchTransactionsHelperBody(ch chan any, optionalArgs ...a
         params := GetArg(optionalArgs, 3, map[string]any {})
         _ = params
     
-        retRes28968 := (<-this.LoadMarkets())
+        retRes28968 := (<-this.LoadMarketsAsync())
         PanicOnError(retRes28968)
         var year int = 31104000 // 60 * 60 * 24 * 30 * 12 = one year of history, why not
         var now int64 = this.Seconds()
@@ -3700,7 +3700,7 @@ func (this *Poloniex) fetchTransactionsHelperBody(ch chan any, optionalArgs ...a
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func  (this *Poloniex) FetchDepositsWithdrawals(optionalArgs ...any) <- chan any {
+func  (this *Poloniex) FetchDepositsWithdrawalsAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchDepositsWithdrawalsBody(ch, optionalArgs...)
     return ch
@@ -3717,10 +3717,10 @@ func (this *Poloniex) fetchDepositsWithdrawalsBody(ch chan any, optionalArgs ...
         params := GetArg(optionalArgs, 3, map[string]any {})
         _ = params
     
-        retRes29918 := (<-this.LoadMarkets())
+        retRes29918 := (<-this.LoadMarketsAsync())
         PanicOnError(retRes29918)
     
-        response:= (<-this.FetchTransactionsHelper(code, since, limit, params))
+        response:= (<-this.FetchTransactionsHelperAsync(code, since, limit, params))
         PanicOnError(response)
         var currency any = nil
         if !IsEqual(code, nil) {
@@ -3746,7 +3746,7 @@ func (this *Poloniex) fetchDepositsWithdrawalsBody(ch chan any, optionalArgs ...
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func  (this *Poloniex) FetchWithdrawals(optionalArgs ...any) <- chan any {
+func  (this *Poloniex) FetchWithdrawalsAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchWithdrawalsBody(ch, optionalArgs...)
     return ch
@@ -3763,7 +3763,7 @@ func (this *Poloniex) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any
         params := GetArg(optionalArgs, 3, map[string]any {})
         _ = params
     
-        response:= (<-this.FetchTransactionsHelper(code, since, limit, params))
+        response:= (<-this.FetchTransactionsHelperAsync(code, since, limit, params))
         PanicOnError(response)
         var currency any = nil
         if !IsEqual(code, nil) {
@@ -3784,7 +3784,7 @@ func (this *Poloniex) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [fees structures]{@link https://docs.ccxt.com/?id=fee-structure}
  */
-func  (this *Poloniex) FetchDepositWithdrawFees(optionalArgs ...any) <- chan any {
+func  (this *Poloniex) FetchDepositWithdrawFeesAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchDepositWithdrawFeesBody(ch, optionalArgs...)
     return ch
@@ -3797,7 +3797,7 @@ func (this *Poloniex) fetchDepositWithdrawFeesBody(ch chan any, optionalArgs ...
         params := GetArg(optionalArgs, 1, map[string]any {})
         _ = params
     
-        retRes30378 := (<-this.LoadMarkets())
+        retRes30378 := (<-this.LoadMarketsAsync())
         PanicOnError(retRes30378)
     
         response:= (<-this.PublicGetCurrencies(this.Extend(params, map[string]any {
@@ -3945,7 +3945,7 @@ func  (this *Poloniex) ParseDepositWithdrawFee(fee any, optionalArgs ...any) any
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func  (this *Poloniex) FetchDeposits(optionalArgs ...any) <- chan any {
+func  (this *Poloniex) FetchDepositsAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchDepositsBody(ch, optionalArgs...)
     return ch
@@ -3962,7 +3962,7 @@ func (this *Poloniex) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
         params := GetArg(optionalArgs, 3, map[string]any {})
         _ = params
     
-        response:= (<-this.FetchTransactionsHelper(code, since, limit, params))
+        response:= (<-this.FetchTransactionsHelperAsync(code, since, limit, params))
         PanicOnError(response)
         var currency any = nil
         if !IsEqual(code, nil) {
@@ -4082,7 +4082,7 @@ func  (this *Poloniex) ParseTransaction(transaction any, optionalArgs ...any) an
  * @param {string} [params.marginMode] 'cross' or 'isolated'
  * @returns {object} response from the exchange
  */
-func  (this *Poloniex) SetLeverage(leverage any, optionalArgs ...any) <- chan any {
+func  (this *Poloniex) SetLeverageAsync(leverage any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.setLeverageBody(ch, leverage, optionalArgs...)
     return ch
@@ -4098,7 +4098,7 @@ func (this *Poloniex) setLeverageBody(ch chan any, leverage any, optionalArgs ..
             panic(ArgumentsRequired(Add(this.Id, " setLeverage() requires a symbol argument")))
         }
     
-        retRes32988 := (<-this.LoadMarkets())
+        retRes32988 := (<-this.LoadMarketsAsync())
         PanicOnError(retRes32988)
         var market any = this.Market(symbol)
         var marginMode any = nil
@@ -4138,7 +4138,7 @@ func (this *Poloniex) setLeverageBody(ch chan any, leverage any, optionalArgs ..
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
  */
-func  (this *Poloniex) FetchLeverage(symbol any, optionalArgs ...any) <- chan any {
+func  (this *Poloniex) FetchLeverageAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchLeverageBody(ch, symbol, optionalArgs...)
     return ch
@@ -4149,7 +4149,7 @@ func (this *Poloniex) fetchLeverageBody(ch chan any, symbol any, optionalArgs ..
         params := GetArg(optionalArgs, 0, map[string]any {})
         _ = params
     
-        retRes33318 := (<-this.LoadMarkets())
+        retRes33318 := (<-this.LoadMarketsAsync())
         PanicOnError(retRes33318)
         var market any = this.Market(symbol)
         var request map[string]any = map[string]any {
@@ -4249,7 +4249,7 @@ func  (this *Poloniex) ParseLeverage(leverage any, optionalArgs ...any) any  {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an object detailing whether the market is in hedged or one-way mode
  */
-func  (this *Poloniex) FetchPositionMode(optionalArgs ...any) <- chan any {
+func  (this *Poloniex) FetchPositionModeAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchPositionModeBody(ch, optionalArgs...)
     return ch
@@ -4293,7 +4293,7 @@ func (this *Poloniex) fetchPositionModeBody(ch chan any, optionalArgs ...any) an
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} response from the exchange
  */
-func  (this *Poloniex) SetPositionMode(hedged any, optionalArgs ...any) <- chan any {
+func  (this *Poloniex) SetPositionModeAsync(hedged any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.setPositionModeBody(ch, hedged, optionalArgs...)
     return ch
@@ -4333,7 +4333,7 @@ func (this *Poloniex) setPositionModeBody(ch chan any, hedged any, optionalArgs 
  * @param {boolean} [params.standard] whether to fetch standard contract positions
  * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
  */
-func  (this *Poloniex) FetchPositions(optionalArgs ...any) <- chan any {
+func  (this *Poloniex) FetchPositionsAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchPositionsBody(ch, optionalArgs...)
     return ch
@@ -4346,7 +4346,7 @@ func (this *Poloniex) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
         params := GetArg(optionalArgs, 1, map[string]any {})
         _ = params
     
-        retRes34818 := (<-this.LoadMarkets())
+        retRes34818 := (<-this.LoadMarketsAsync())
         PanicOnError(retRes34818)
         symbols = this.MarketSymbols(symbols)
     
@@ -4465,7 +4465,7 @@ func  (this *Poloniex) ParsePosition(position any, optionalArgs ...any) any  {
         "takeProfitPrice": this.SafeNumber(position, "tpTrgPx"),
     })
 }
-func  (this *Poloniex) ModifyMarginHelper(symbol any, amount any, typeVar any, optionalArgs ...any) <- chan any {
+func  (this *Poloniex) ModifyMarginHelperAsync(symbol any, amount any, typeVar any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.modifyMarginHelperBody(ch, symbol, amount, typeVar, optionalArgs...)
     return ch
@@ -4476,7 +4476,7 @@ func (this *Poloniex) modifyMarginHelperBody(ch chan any, symbol any, amount any
         params := GetArg(optionalArgs, 0, map[string]any {})
         _ = params
     
-        retRes35968 := (<-this.LoadMarkets())
+        retRes35968 := (<-this.LoadMarketsAsync())
         PanicOnError(retRes35968)
         var market any = this.Market(symbol)
         amount = this.AmountToPrecision(symbol, amount)
@@ -4542,7 +4542,7 @@ func  (this *Poloniex) ParseMarginModification(data any, optionalArgs ...any) an
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
  */
-func  (this *Poloniex) ReduceMargin(symbol any, amount any, optionalArgs ...any) <- chan any {
+func  (this *Poloniex) ReduceMarginAsync(symbol any, amount any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.reduceMarginBody(ch, symbol, amount, optionalArgs...)
     return ch
@@ -4553,7 +4553,7 @@ func (this *Poloniex) reduceMarginBody(ch chan any, symbol any, amount any, opti
         params := GetArg(optionalArgs, 0, map[string]any {})
         _ = params
     
-            retRes365815 :=  (<-this.ModifyMarginHelper(symbol, OpNeg(amount), "reduce", params))
+            retRes365815 :=  (<-this.ModifyMarginHelperAsync(symbol, OpNeg(amount), "reduce", params))
             PanicOnError(retRes365815)
             ch <- retRes365815
             return nil
@@ -4567,7 +4567,7 @@ func (this *Poloniex) reduceMarginBody(ch chan any, symbol any, amount any, opti
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
  */
-func  (this *Poloniex) AddMargin(symbol any, amount any, optionalArgs ...any) <- chan any {
+func  (this *Poloniex) AddMarginAsync(symbol any, amount any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.addMarginBody(ch, symbol, amount, optionalArgs...)
     return ch
@@ -4578,7 +4578,7 @@ func (this *Poloniex) addMarginBody(ch chan any, symbol any, amount any, optiona
         params := GetArg(optionalArgs, 0, map[string]any {})
         _ = params
     
-            retRes367115 :=  (<-this.ModifyMarginHelper(symbol, amount, "add", params))
+            retRes367115 :=  (<-this.ModifyMarginHelperAsync(symbol, amount, "add", params))
             PanicOnError(retRes367115)
             ch <- retRes367115
             return nil

@@ -366,7 +366,7 @@ func  (this *Revolutx) ParseMarket(market any) any  {
  * @param {string} [params.region] the region to filter markets by (e.g. EEA, UK)
  * @returns {object[]} an array of [market structures]{@link https://docs.ccxt.com/?id=market-structure}
  */
-func  (this *Revolutx) FetchMarkets(optionalArgs ...any) <- chan any {
+func  (this *Revolutx) FetchMarketsAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchMarketsBody(ch, optionalArgs...)
     return ch
@@ -467,7 +467,7 @@ func  (this *Revolutx) ParseCurrency(currency any) any  {
  * @param {string} [params.region] the region to filter currencies by
  * @returns {object} a dictionary of [currency structures]{@link https://docs.ccxt.com/?id=currency-structure}
  */
-func  (this *Revolutx) FetchCurrencies(optionalArgs ...any) <- chan any {
+func  (this *Revolutx) FetchCurrenciesAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchCurrenciesBody(ch, optionalArgs...)
     return ch
@@ -575,7 +575,7 @@ func  (this *Revolutx) ParseTicker(ticker any, optionalArgs ...any) any  {
  * @param {string} [params.region] the region to fetch tickers for (e.g. EEA, UK)
  * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func  (this *Revolutx) FetchTickers(optionalArgs ...any) <- chan any {
+func  (this *Revolutx) FetchTickersAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchTickersBody(ch, optionalArgs...)
     return ch
@@ -589,7 +589,7 @@ func (this *Revolutx) fetchTickersBody(ch chan any, optionalArgs ...any) any {
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes53712 := (<-this.LoadMarkets())
+            retRes53712 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes53712)
         }
         var request map[string]any = map[string]any {}
@@ -659,7 +659,7 @@ func (this *Revolutx) fetchTickersBody(ch chan any, optionalArgs ...any) any {
  * @param {string} [params.region] the region to fetch the ticker for
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func  (this *Revolutx) FetchTicker(symbol any, optionalArgs ...any) <- chan any {
+func  (this *Revolutx) FetchTickerAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchTickerBody(ch, symbol, optionalArgs...)
     return ch
@@ -671,11 +671,11 @@ func (this *Revolutx) fetchTickerBody(ch chan any, symbol any, optionalArgs ...a
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes60312 := (<-this.LoadMarkets())
+            retRes60312 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes60312)
         }
     
-        tickers:= (<-this.FetchTickers([]any{symbol}, params))
+        tickers:= (<-this.FetchTickersAsync([]any{symbol}, params))
         PanicOnError(tickers)
         var ticker any = this.SafeDict(tickers, symbol)
         if IsEqual(ticker, nil) {
@@ -696,7 +696,7 @@ func (this *Revolutx) fetchTickerBody(ch chan any, symbol any, optionalArgs ...a
  * @param {string} [params.region] the region to fetch the order book for
  * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
-func  (this *Revolutx) FetchOrderBook(symbol any, optionalArgs ...any) <- chan any {
+func  (this *Revolutx) FetchOrderBookAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchOrderBookBody(ch, symbol, optionalArgs...)
     return ch
@@ -710,7 +710,7 @@ func (this *Revolutx) fetchOrderBookBody(ch chan any, symbol any, optionalArgs .
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes62612 := (<-this.LoadMarkets())
+            retRes62612 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes62612)
         }
         var market any = this.Market(symbol)
@@ -777,7 +777,7 @@ func  (this *Revolutx) ParseOHLCV(ohlcv any, optionalArgs ...any) any  {
  * @param {string} [params.region] the region to fetch candles for
  * @returns {int[][]} a list of [OHLCV structures]{@link https://docs.ccxt.com/?id=ohlcv-structure}
  */
-func  (this *Revolutx) FetchOHLCV(symbol any, optionalArgs ...any) <- chan any {
+func  (this *Revolutx) FetchOHLCVAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchOHLCVBody(ch, symbol, optionalArgs...)
     return ch
@@ -795,7 +795,7 @@ func (this *Revolutx) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...an
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes69012 := (<-this.LoadMarkets())
+            retRes69012 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes69012)
         }
         var market any = this.Market(symbol)
@@ -886,7 +886,7 @@ func  (this *Revolutx) ParseTrade(trade any, optionalArgs ...any) any  {
  * @param {string} [params.cursor] pagination cursor from the previous response
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
-func  (this *Revolutx) FetchTrades(symbol any, optionalArgs ...any) <- chan any {
+func  (this *Revolutx) FetchTradesAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchTradesBody(ch, symbol, optionalArgs...)
     return ch
@@ -902,7 +902,7 @@ func (this *Revolutx) fetchTradesBody(ch chan any, symbol any, optionalArgs ...a
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes77812 := (<-this.LoadMarkets())
+            retRes77812 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes77812)
         }
         var market any = nil
@@ -959,7 +959,7 @@ func (this *Revolutx) fetchTradesBody(ch chan any, symbol any, optionalArgs ...a
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
-func  (this *Revolutx) FetchBalance(optionalArgs ...any) <- chan any {
+func  (this *Revolutx) FetchBalanceAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchBalanceBody(ch, optionalArgs...)
     return ch
@@ -971,7 +971,7 @@ func (this *Revolutx) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes83312 := (<-this.LoadMarkets())
+            retRes83312 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes83312)
         }
     
@@ -1122,7 +1122,7 @@ func  (this *Revolutx) ParseOrder(order any, optionalArgs ...any) any  {
  * @param {string[]} [params.executionInstructions] limit order instructions, e.g. ['post_only'] or ['allow_taker']
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Revolutx) CreateOrder(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <- chan any {
+func  (this *Revolutx) CreateOrderAsync(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.createOrderBody(ch, symbol, typeVar, side, amount, optionalArgs...)
     return ch
@@ -1136,7 +1136,7 @@ func (this *Revolutx) createOrderBody(ch chan any, symbol any, typeVar any, side
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes98012 := (<-this.LoadMarkets())
+            retRes98012 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes98012)
         }
         var market any = this.Market(symbol)
@@ -1218,7 +1218,7 @@ func (this *Revolutx) createOrderBody(ch chan any, symbol any, typeVar any, side
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Revolutx) CancelOrder(id any, optionalArgs ...any) <- chan any {
+func  (this *Revolutx) CancelOrderAsync(id any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.cancelOrderBody(ch, id, optionalArgs...)
     return ch
@@ -1232,7 +1232,7 @@ func (this *Revolutx) cancelOrderBody(ch chan any, id any, optionalArgs ...any) 
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes106012 := (<-this.LoadMarkets())
+            retRes106012 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes106012)
         }
         var request map[string]any = map[string]any {
@@ -1258,7 +1258,7 @@ func (this *Revolutx) cancelOrderBody(ch chan any, id any, optionalArgs ...any) 
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an empty [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Revolutx) CancelAllOrders(optionalArgs ...any) <- chan any {
+func  (this *Revolutx) CancelAllOrdersAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.cancelAllOrdersBody(ch, optionalArgs...)
     return ch
@@ -1272,7 +1272,7 @@ func (this *Revolutx) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any 
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes108412 := (<-this.LoadMarkets())
+            retRes108412 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes108412)
         }
     
@@ -1292,7 +1292,7 @@ func (this *Revolutx) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any 
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Revolutx) FetchOrder(id any, optionalArgs ...any) <- chan any {
+func  (this *Revolutx) FetchOrderAsync(id any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchOrderBody(ch, id, optionalArgs...)
     return ch
@@ -1306,7 +1306,7 @@ func (this *Revolutx) fetchOrderBody(ch chan any, id any, optionalArgs ...any) a
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes110212 := (<-this.LoadMarkets())
+            retRes110212 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes110212)
         }
         var request map[string]any = map[string]any {
@@ -1352,7 +1352,7 @@ func (this *Revolutx) fetchOrderBody(ch chan any, id any, optionalArgs ...any) a
  * @param {string} [params.side] filter by side, 'buy' or 'sell'
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Revolutx) FetchOpenOrders(optionalArgs ...any) <- chan any {
+func  (this *Revolutx) FetchOpenOrdersAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchOpenOrdersBody(ch, optionalArgs...)
     return ch
@@ -1370,7 +1370,7 @@ func (this *Revolutx) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any 
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes114612 := (<-this.LoadMarkets())
+            retRes114612 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes114612)
         }
         var request map[string]any = map[string]any {}
@@ -1431,7 +1431,7 @@ func (this *Revolutx) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any 
  * @param {string[]} [params.orderTypes] filter by order types, e.g. ['limit', 'market']
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Revolutx) FetchOrders(optionalArgs ...any) <- chan any {
+func  (this *Revolutx) FetchOrdersAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchOrdersBody(ch, optionalArgs...)
     return ch
@@ -1449,7 +1449,7 @@ func (this *Revolutx) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes120512 := (<-this.LoadMarkets())
+            retRes120512 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes120512)
         }
         var request map[string]any = map[string]any {}
@@ -1510,7 +1510,7 @@ func (this *Revolutx) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Revolutx) FetchClosedOrders(optionalArgs ...any) <- chan any {
+func  (this *Revolutx) FetchClosedOrdersAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchClosedOrdersBody(ch, optionalArgs...)
     return ch
@@ -1531,7 +1531,7 @@ func (this *Revolutx) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) an
             "order_states": orderStates,
         })
     
-            retRes126715 :=  (<-this.FetchOrders(symbol, since, limit, requestParams))
+            retRes126715 :=  (<-this.FetchOrdersAsync(symbol, since, limit, requestParams))
             PanicOnError(retRes126715)
             ch <- retRes126715
             return nil
@@ -1591,7 +1591,7 @@ func  (this *Revolutx) ParseMyTrade(trade any, optionalArgs ...any) any  {
  * @param {string} [params.cursor] pagination cursor from the previous response
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
-func  (this *Revolutx) FetchMyTrades(optionalArgs ...any) <- chan any {
+func  (this *Revolutx) FetchMyTradesAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchMyTradesBody(ch, optionalArgs...)
     return ch
@@ -1609,7 +1609,7 @@ func (this *Revolutx) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes132612 := (<-this.LoadMarkets())
+            retRes132612 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes132612)
         }
         if IsEqual(symbol, nil) {
@@ -1681,7 +1681,7 @@ func (this *Revolutx) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
  * @param {string[]} [params.executionInstructions] e.g. ['post_only']
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Revolutx) EditOrder(id any, symbol any, typeVar any, side any, optionalArgs ...any) <- chan any {
+func  (this *Revolutx) EditOrderAsync(id any, symbol any, typeVar any, side any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.editOrderBody(ch, id, symbol, typeVar, side, optionalArgs...)
     return ch
@@ -1698,7 +1698,7 @@ func (this *Revolutx) editOrderBody(ch chan any, id any, symbol any, typeVar any
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes139712 := (<-this.LoadMarkets())
+            retRes139712 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes139712)
         }
         var market any = this.Market(symbol)

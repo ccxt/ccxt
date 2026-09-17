@@ -5,7 +5,7 @@ import "github.com/ccxt/ccxt/go/v4"
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 
-    func TestFetchBorrowInterest(exchange ccxt.ICoreExchange, skippedProperties any, code any, symbol any) <- chan any {
+    func TestFetchBorrowInterestAsync(exchange ccxt.ICoreExchange, skippedProperties any, code any, symbol any) <- chan any {
         ch := make(chan any, 1)
         go testFetchBorrowInterestBody(ch, exchange, skippedProperties, code, symbol)
         return ch

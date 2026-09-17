@@ -3609,7 +3609,7 @@ func  (this *Bitget) HandleProductTypeAndParams(optionalArgs ...any) any  {
     params = this.Omit(params, []any{"productType", "category"})
     return []any{productType, params}
 }
-func  (this *Bitget) HandleUTAAndParams(params any, methodName any, optionalArgs ...any) <- chan any {
+func  (this *Bitget) HandleUTAAndParamsAsync(params any, methodName any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.handleUTAAndParamsBody(ch, params, methodName, optionalArgs...)
     return ch
@@ -3672,7 +3672,7 @@ func (this *Bitget) handleUTAAndParamsBody(ch chan any, params any, methodName a
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {int} the current integer timestamp in milliseconds from the exchange server
  */
-func  (this *Bitget) FetchTime(optionalArgs ...any) <- chan any {
+func  (this *Bitget) FetchTimeAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchTimeBody(ch, optionalArgs...)
     return ch
@@ -3712,7 +3712,7 @@ func (this *Bitget) fetchTimeBody(ch chan any, optionalArgs ...any) any {
  * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
  * @returns {object[]} an array of objects representing market data
  */
-func  (this *Bitget) FetchMarkets(optionalArgs ...any) <- chan any {
+func  (this *Bitget) FetchMarketsAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchMarketsBody(ch, optionalArgs...)
     return ch
@@ -3724,27 +3724,27 @@ func (this *Bitget) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
         _ = params
         if IsEqual(GetValue(this.Options, "adjustForTimeDifference"), true) {
     
-            retRes214312 := (<-this.LoadTimeDifference())
+            retRes214312 := (<-this.LoadTimeDifferenceAsync())
             PanicOnError(retRes214312)
         }
         var uta any = nil
-        utaparamsVariable := (<-this.HandleUTAAndParams(params, "fetchMarkets", false));
+        utaparamsVariable := (<-this.HandleUTAAndParamsAsync(params, "fetchMarkets", false));
         uta = GetValue(utaparamsVariable,0);
         params = GetValue(utaparamsVariable,1)
         if IsEqual(uta, true) {
     
-                retRes214819 :=  (<-this.FetchUtaMarkets(params))
+                retRes214819 :=  (<-this.FetchUtaMarketsAsync(params))
                 PanicOnError(retRes214819)
                 ch <- retRes214819
                 return nil
         }
     
-            retRes215015 :=  (<-this.FetchDefaultMarkets(params))
+            retRes215015 :=  (<-this.FetchDefaultMarketsAsync(params))
             PanicOnError(retRes215015)
             ch <- retRes215015
             return nil
 }
-func  (this *Bitget) FetchDefaultMarkets(params any) <- chan any {
+func  (this *Bitget) FetchDefaultMarketsAsync(params any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchDefaultMarketsBody(ch, params)
     return ch
@@ -4027,7 +4027,7 @@ func (this *Bitget) fetchDefaultMarketsBody(ch chan any, params any) any {
         ch <- result
         return nil
 }
-func  (this *Bitget) FetchUtaMarkets(params any) <- chan any {
+func  (this *Bitget) FetchUtaMarketsAsync(params any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchUtaMarketsBody(ch, params)
     return ch
@@ -4293,7 +4293,7 @@ func (this *Bitget) fetchUtaMarketsBody(ch chan any, params any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an associative dictionary of currencies
  */
-func  (this *Bitget) FetchCurrencies(optionalArgs ...any) <- chan any {
+func  (this *Bitget) FetchCurrenciesAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchCurrenciesBody(ch, optionalArgs...)
     return ch
@@ -4438,7 +4438,7 @@ func  (this *Bitget) ParseCurrency(rawCurrency any) any  {
  * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
  * @returns {object} a [leverage tiers structure]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}
  */
-func  (this *Bitget) FetchMarketLeverageTiers(symbol any, optionalArgs ...any) <- chan any {
+func  (this *Bitget) FetchMarketLeverageTiersAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchMarketLeverageTiersBody(ch, symbol, optionalArgs...)
     return ch
@@ -4450,7 +4450,7 @@ func (this *Bitget) fetchMarketLeverageTiersBody(ch chan any, symbol any, option
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes281812 := (<-this.LoadMarkets())
+            retRes281812 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes281812)
         }
         var market any = this.Market(symbol)
@@ -4465,7 +4465,7 @@ func (this *Bitget) fetchMarketLeverageTiersBody(ch chan any, symbol any, option
         productTypeparamsVariable := this.HandleProductTypeAndParams(market, params);
         productType = GetValue(productTypeparamsVariable,0);
         params = GetValue(productTypeparamsVariable,1)
-        utaparamsVariable := (<-this.HandleUTAAndParams(params, "fetchMarketLeverageTiers", false));
+        utaparamsVariable := (<-this.HandleUTAAndParamsAsync(params, "fetchMarketLeverageTiers", false));
         uta = GetValue(utaparamsVariable,0);
         params = GetValue(utaparamsVariable,1)
         if IsEqual(uta, true) {
@@ -4674,7 +4674,7 @@ func  (this *Bitget) ParseMarketLeverageTiers(info any, optionalArgs ...any) any
  * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
  * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func  (this *Bitget) FetchDeposits(optionalArgs ...any) <- chan any {
+func  (this *Bitget) FetchDepositsAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchDepositsBody(ch, optionalArgs...)
     return ch
@@ -4692,11 +4692,11 @@ func (this *Bitget) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes302712 := (<-this.LoadMarkets())
+            retRes302712 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes302712)
         }
         var uta any = nil
-        utaparamsVariable := (<-this.HandleUTAAndParams(params, "fetchDeposits", false));
+        utaparamsVariable := (<-this.HandleUTAAndParamsAsync(params, "fetchDeposits", false));
         uta = GetValue(utaparamsVariable,0);
         params = GetValue(utaparamsVariable,1)
         var paginate any = false
@@ -4706,13 +4706,13 @@ func (this *Bitget) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
         if EvalTruthy(paginate) {
             if IsEqual(uta, true) {
     
-                    retRes303523 :=  (<-this.FetchPaginatedCallCursor("fetchDeposits", nil, since, limit, params, "orderId", "cursor", nil, 100))
+                    retRes303523 :=  (<-this.FetchPaginatedCallCursorAsync("fetchDeposits", nil, since, limit, params, "orderId", "cursor", nil, 100))
                     PanicOnError(retRes303523)
                     ch <- retRes303523
                     return nil
             }
     
-                retRes303719 :=  (<-this.FetchPaginatedCallCursor("fetchDeposits", nil, since, limit, params, "idLessThan", "idLessThan", nil, 100))
+                retRes303719 :=  (<-this.FetchPaginatedCallCursorAsync("fetchDeposits", nil, since, limit, params, "idLessThan", "idLessThan", nil, 100))
                 PanicOnError(retRes303719)
                 ch <- retRes303719
                 return nil
@@ -4817,7 +4817,7 @@ func (this *Bitget) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
  * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func  (this *Bitget) Withdraw(code any, amount any, address any, optionalArgs ...any) <- chan any {
+func  (this *Bitget) WithdrawAsync(code any, amount any, address any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.withdrawBody(ch, code, amount, address, optionalArgs...)
     return ch
@@ -4839,11 +4839,11 @@ func (this *Bitget) withdrawBody(ch chan any, code any, amount any, address any,
         }
         if IsEqual(this.Markets, nil) {
     
-            retRes314012 := (<-this.LoadMarkets())
+            retRes314012 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes314012)
         }
         var uta any = nil
-        utaparamsVariable := (<-this.HandleUTAAndParams(params, "withdraw", false));
+        utaparamsVariable := (<-this.HandleUTAAndParamsAsync(params, "withdraw", false));
         uta = GetValue(utaparamsVariable,0);
         params = GetValue(utaparamsVariable,1)
         var currency any = this.Currency(code)
@@ -4912,7 +4912,7 @@ func (this *Bitget) withdrawBody(ch chan any, code any, amount any, address any,
  * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
  * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func  (this *Bitget) FetchWithdrawals(optionalArgs ...any) <- chan any {
+func  (this *Bitget) FetchWithdrawalsAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchWithdrawalsBody(ch, optionalArgs...)
     return ch
@@ -4930,11 +4930,11 @@ func (this *Bitget) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes320712 := (<-this.LoadMarkets())
+            retRes320712 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes320712)
         }
         var uta any = nil
-        utaparamsVariable := (<-this.HandleUTAAndParams(params, "fetchWithdrawals", false));
+        utaparamsVariable := (<-this.HandleUTAAndParamsAsync(params, "fetchWithdrawals", false));
         uta = GetValue(utaparamsVariable,0);
         params = GetValue(utaparamsVariable,1)
         var paginate any = false
@@ -4944,13 +4944,13 @@ func (this *Bitget) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
         if EvalTruthy(paginate) {
             if IsEqual(uta, true) {
     
-                    retRes321523 :=  (<-this.FetchPaginatedCallCursor("fetchWithdrawals", nil, since, limit, params, "orderId", "cursor", nil, 100))
+                    retRes321523 :=  (<-this.FetchPaginatedCallCursorAsync("fetchWithdrawals", nil, since, limit, params, "orderId", "cursor", nil, 100))
                     PanicOnError(retRes321523)
                     ch <- retRes321523
                     return nil
             }
     
-                retRes321719 :=  (<-this.FetchPaginatedCallCursor("fetchWithdrawals", nil, since, limit, params, "idLessThan", "idLessThan", nil, 100))
+                retRes321719 :=  (<-this.FetchPaginatedCallCursorAsync("fetchWithdrawals", nil, since, limit, params, "idLessThan", "idLessThan", nil, 100))
                 PanicOnError(retRes321719)
                 ch <- retRes321719
                 return nil
@@ -5176,7 +5176,7 @@ func  (this *Bitget) ParseTransactionStatus(status any) any  {
  * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
  * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
  */
-func  (this *Bitget) FetchDepositAddress(code any, optionalArgs ...any) <- chan any {
+func  (this *Bitget) FetchDepositAddressAsync(code any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchDepositAddressBody(ch, code, optionalArgs...)
     return ch
@@ -5188,11 +5188,11 @@ func (this *Bitget) fetchDepositAddressBody(ch chan any, code any, optionalArgs 
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes343312 := (<-this.LoadMarkets())
+            retRes343312 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes343312)
         }
         var uta any = nil
-        utaparamsVariable := (<-this.HandleUTAAndParams(params, "fetchDepositAddress", false));
+        utaparamsVariable := (<-this.HandleUTAAndParamsAsync(params, "fetchDepositAddress", false));
         uta = GetValue(utaparamsVariable,0);
         params = GetValue(utaparamsVariable,1)
         var networkCode any = nil
@@ -5275,7 +5275,7 @@ func  (this *Bitget) ParseDepositAddress(depositAddress any, optionalArgs ...any
  * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
  * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
-func  (this *Bitget) FetchOrderBook(symbol any, optionalArgs ...any) <- chan any {
+func  (this *Bitget) FetchOrderBookAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchOrderBookBody(ch, symbol, optionalArgs...)
     return ch
@@ -5289,7 +5289,7 @@ func (this *Bitget) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes351112 := (<-this.LoadMarkets())
+            retRes351112 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes351112)
         }
         var market any = this.Market(symbol)
@@ -5305,7 +5305,7 @@ func (this *Bitget) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...
         params = GetValue(productTypeparamsVariable,1)
         var response any = nil
         var uta any = nil
-        utaparamsVariable := (<-this.HandleUTAAndParams(params, "fetchOrderBook", false));
+        utaparamsVariable := (<-this.HandleUTAAndParamsAsync(params, "fetchOrderBook", false));
         uta = GetValue(utaparamsVariable,0);
         params = GetValue(utaparamsVariable,1)
         if IsEqual(uta, true) {
@@ -5512,7 +5512,7 @@ func  (this *Bitget) ParseTicker(ticker any, optionalArgs ...any) any  {
  * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func  (this *Bitget) FetchTicker(symbol any, optionalArgs ...any) <- chan any {
+func  (this *Bitget) FetchTickerAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchTickerBody(ch, symbol, optionalArgs...)
     return ch
@@ -5524,7 +5524,7 @@ func (this *Bitget) fetchTickerBody(ch chan any, symbol any, optionalArgs ...any
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes372312 := (<-this.LoadMarkets())
+            retRes372312 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes372312)
         }
         var market any = this.Market(symbol)
@@ -5537,7 +5537,7 @@ func (this *Bitget) fetchTickerBody(ch chan any, symbol any, optionalArgs ...any
         params = GetValue(productTypeparamsVariable,1)
         var response any = nil
         var uta any = nil
-        utaparamsVariable := (<-this.HandleUTAAndParams(params, "fetchTicker", false));
+        utaparamsVariable := (<-this.HandleUTAAndParamsAsync(params, "fetchTicker", false));
         uta = GetValue(utaparamsVariable,0);
         params = GetValue(utaparamsVariable,1)
         if IsEqual(uta, true) {
@@ -5692,7 +5692,7 @@ func (this *Bitget) fetchTickerBody(ch chan any, symbol any, optionalArgs ...any
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func  (this *Bitget) FetchMarkPrice(symbol any, optionalArgs ...any) <- chan any {
+func  (this *Bitget) FetchMarkPriceAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchMarkPriceBody(ch, symbol, optionalArgs...)
     return ch
@@ -5704,7 +5704,7 @@ func (this *Bitget) fetchMarkPriceBody(ch chan any, symbol any, optionalArgs ...
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes388112 := (<-this.LoadMarkets())
+            retRes388112 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes388112)
         }
         var market any = this.Market(symbol)
@@ -5743,7 +5743,7 @@ func (this *Bitget) fetchMarkPriceBody(ch chan any, symbol any, optionalArgs ...
  * @param {string} [params.productType] *contract only* 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
  * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func  (this *Bitget) FetchTickers(optionalArgs ...any) <- chan any {
+func  (this *Bitget) FetchTickersAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchTickersBody(ch, optionalArgs...)
     return ch
@@ -5757,7 +5757,7 @@ func (this *Bitget) fetchTickersBody(ch chan any, optionalArgs ...any) any {
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes391612 := (<-this.LoadMarkets())
+            retRes391612 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes391612)
         }
         var market any = nil
@@ -5781,7 +5781,7 @@ func (this *Bitget) fetchTickersBody(ch chan any, optionalArgs ...any) any {
         params = GetValue(productTypeparamsVariable,1)
         // only if passedSubType && productType is undefined, then use spot
         var uta any = nil
-        utaparamsVariable := (<-this.HandleUTAAndParams(params, "fetchTickers", false));
+        utaparamsVariable := (<-this.HandleUTAAndParamsAsync(params, "fetchTickers", false));
         uta = GetValue(utaparamsVariable,0);
         params = GetValue(utaparamsVariable,1)
         if IsEqual(uta, true) {
@@ -6099,7 +6099,7 @@ func  (this *Bitget) ParseTrade(trade any, optionalArgs ...any) any  {
  * @param {boolean} [params.paginate] *only applies to publicSpotGetV2SpotMarketFillsHistory and publicMixGetV2MixMarketFillsHistory* default false, when true will automatically paginate by calling this endpoint multiple times
  * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
-func  (this *Bitget) FetchTrades(symbol any, optionalArgs ...any) <- chan any {
+func  (this *Bitget) FetchTradesAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchTradesBody(ch, symbol, optionalArgs...)
     return ch
@@ -6115,7 +6115,7 @@ func (this *Bitget) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes424512 := (<-this.LoadMarkets())
+            retRes424512 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes424512)
         }
         var paginate any = false
@@ -6124,7 +6124,7 @@ func (this *Bitget) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any
         params = GetValue(paginateparamsVariable,1)
         if EvalTruthy(paginate) {
     
-                retRes425019 :=  (<-this.FetchPaginatedCallCursor("fetchTrades", symbol, since, limit, params, "idLessThan", "idLessThan"))
+                retRes425019 :=  (<-this.FetchPaginatedCallCursorAsync("fetchTrades", symbol, since, limit, params, "idLessThan", "idLessThan"))
                 PanicOnError(retRes425019)
                 ch <- retRes425019
                 return nil
@@ -6134,7 +6134,7 @@ func (this *Bitget) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any
             "symbol": GetValue(market, "id"),
         }
         var uta any = nil
-        utaparamsVariable := (<-this.HandleUTAAndParams(params, "fetchTrades", false));
+        utaparamsVariable := (<-this.HandleUTAAndParamsAsync(params, "fetchTrades", false));
         uta = GetValue(utaparamsVariable,0);
         params = GetValue(utaparamsVariable,1)
         if !IsEqual(limit, nil) {
@@ -6279,7 +6279,7 @@ func (this *Bitget) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any
  * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
  * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
  */
-func  (this *Bitget) FetchTradingFee(symbol any, optionalArgs ...any) <- chan any {
+func  (this *Bitget) FetchTradingFeeAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchTradingFeeBody(ch, symbol, optionalArgs...)
     return ch
@@ -6291,7 +6291,7 @@ func (this *Bitget) fetchTradingFeeBody(ch chan any, symbol any, optionalArgs ..
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes438312 := (<-this.LoadMarkets())
+            retRes438312 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes438312)
         }
         var market any = this.Market(symbol)
@@ -6299,7 +6299,7 @@ func (this *Bitget) fetchTradingFeeBody(ch chan any, symbol any, optionalArgs ..
             "symbol": GetValue(market, "id"),
         }
         var uta any = nil
-        utaparamsVariable := (<-this.HandleUTAAndParams(params, "fetchTradingFee", false));
+        utaparamsVariable := (<-this.HandleUTAAndParamsAsync(params, "fetchTradingFee", false));
         uta = GetValue(utaparamsVariable,0);
         params = GetValue(utaparamsVariable,1)
         if IsEqual(uta, true) {
@@ -6373,7 +6373,7 @@ func (this *Bitget) fetchTradingFeeBody(ch chan any, symbol any, optionalArgs ..
  * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
  * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
  */
-func  (this *Bitget) FetchTradingFees(optionalArgs ...any) <- chan any {
+func  (this *Bitget) FetchTradingFeesAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchTradingFeesBody(ch, optionalArgs...)
     return ch
@@ -6385,7 +6385,7 @@ func (this *Bitget) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any {
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes445312 := (<-this.LoadMarkets())
+            retRes445312 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes445312)
         }
         var response any = nil
@@ -6398,7 +6398,7 @@ func (this *Bitget) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any {
         marketType = GetValue(marketTypeparamsVariable,0);
         params = GetValue(marketTypeparamsVariable,1)
         var uta any = nil
-        utaparamsVariable := (<-this.HandleUTAAndParams(params, "fetchTradingFees", false));
+        utaparamsVariable := (<-this.HandleUTAAndParamsAsync(params, "fetchTradingFees", false));
         uta = GetValue(utaparamsVariable,0);
         params = GetValue(utaparamsVariable,1)
         if IsEqual(uta, true) {
@@ -6620,7 +6620,7 @@ func  (this *Bitget) ParseOHLCV(ohlcv any, optionalArgs ...any) any  {
  * @param {string} [params.price] *swap only* "mark" (to fetch mark price candles) or "index" (to fetch index price candles)
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
-func  (this *Bitget) FetchOHLCV(symbol any, optionalArgs ...any) <- chan any {
+func  (this *Bitget) FetchOHLCVAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchOHLCVBody(ch, symbol, optionalArgs...)
     return ch
@@ -6638,7 +6638,7 @@ func (this *Bitget) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes467312 := (<-this.LoadMarkets())
+            retRes467312 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes467312)
         }
         var defaultLimit int = 100 // default 100, max 1000
@@ -6653,7 +6653,7 @@ func (this *Bitget) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
         if EvalTruthy(paginate) {
             var limitForPagination any = Ternary(((useHistoryEndpointForPagination == true)), maxLimitForHistoryEndpoint, maxLimitForRecentEndpoint)
     
-                retRes468419 :=  (<-this.FetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, params, limitForPagination))
+                retRes468419 :=  (<-this.FetchPaginatedCallDeterministicAsync("fetchOHLCV", symbol, since, limit, timeframe, params, limitForPagination))
                 PanicOnError(retRes468419)
                 ch <- retRes468419
                 return nil
@@ -6666,7 +6666,7 @@ func (this *Bitget) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
         var timeframes any = nil
         var timeframesOption any = this.HandleOption("fetchOHLCV", "timeframes")
         var uta any = nil
-        utaparamsVariable := (<-this.HandleUTAAndParams(params, "fetchOHLCV", false));
+        utaparamsVariable := (<-this.HandleUTAAndParamsAsync(params, "fetchOHLCV", false));
         uta = GetValue(utaparamsVariable,0);
         params = GetValue(utaparamsVariable,1)
         if IsEqual(uta, true) {
@@ -6858,7 +6858,7 @@ func (this *Bitget) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
  * @param {string} [params.type] 'funding' to fetch the uta funding-account assets (uta only, classic accounts route funding through 'spot')
  * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
-func  (this *Bitget) FetchBalance(optionalArgs ...any) <- chan any {
+func  (this *Bitget) FetchBalanceAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchBalanceBody(ch, optionalArgs...)
     return ch
@@ -6870,7 +6870,7 @@ func (this *Bitget) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes486212 := (<-this.LoadMarkets())
+            retRes486212 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes486212)
         }
         var request map[string]any = map[string]any {}
@@ -6878,7 +6878,7 @@ func (this *Bitget) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
         var marginMode any = nil
         var response any = nil
         var uta any = nil
-        utaparamsVariable := (<-this.HandleUTAAndParams(params, "fetchBalance", false));
+        utaparamsVariable := (<-this.HandleUTAAndParamsAsync(params, "fetchBalance", false));
         uta = GetValue(utaparamsVariable,0);
         params = GetValue(utaparamsVariable,1)
         marketTypeparamsVariable := this.HandleMarketTypeAndParams("fetchBalance", nil, params);
@@ -7525,7 +7525,7 @@ func  (this *Bitget) ParseOrder(order any, optionalArgs ...any) any  {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Bitget) CreateMarketBuyOrderWithCost(symbol any, cost any, optionalArgs ...any) <- chan any {
+func  (this *Bitget) CreateMarketBuyOrderWithCostAsync(symbol any, cost any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.createMarketBuyOrderWithCostBody(ch, symbol, cost, optionalArgs...)
     return ch
@@ -7537,7 +7537,7 @@ func (this *Bitget) createMarketBuyOrderWithCostBody(ch chan any, symbol any, co
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes553812 := (<-this.LoadMarkets())
+            retRes553812 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes553812)
         }
         var market any = this.Market(symbol)
@@ -7548,7 +7548,7 @@ func (this *Bitget) createMarketBuyOrderWithCostBody(ch chan any, symbol any, co
             "createMarketBuyOrderRequiresPrice": false,
         }
     
-            retRes554715 :=  (<-this.CreateOrder(symbol, "market", "buy", cost, nil, this.Extend(req, params)))
+            retRes554715 :=  (<-this.CreateOrderAsync(symbol, "market", "buy", cost, nil, this.Extend(req, params)))
             PanicOnError(retRes554715)
             ch <- retRes554715
             return nil
@@ -7598,7 +7598,7 @@ func (this *Bitget) createMarketBuyOrderWithCostBody(ch chan any, symbol any, co
  * @param {string} [params.posSide] *uta only* hedged two-way position side, long or short
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Bitget) CreateOrder(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <- chan any {
+func  (this *Bitget) CreateOrderAsync(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.createOrderBody(ch, symbol, typeVar, side, amount, optionalArgs...)
     return ch
@@ -7612,7 +7612,7 @@ func (this *Bitget) createOrderBody(ch chan any, symbol any, typeVar any, side a
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes559712 := (<-this.LoadMarkets())
+            retRes559712 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes559712)
         }
         var market any = this.Market(symbol)
@@ -7629,7 +7629,7 @@ func (this *Bitget) createOrderBody(ch chan any, symbol any, typeVar any, side a
         var isStopLossOrTakeProfitTrigger bool = isStopLossTriggerOrder || isTakeProfitTriggerOrder
         var response any = nil
         var uta any = nil
-        utaparamsVariable := (<-this.HandleUTAAndParams(params, "createOrder", false));
+        utaparamsVariable := (<-this.HandleUTAAndParamsAsync(params, "createOrder", false));
         uta = GetValue(utaparamsVariable,0);
         params = GetValue(utaparamsVariable,1)
         if IsEqual(uta, true) {
@@ -8098,7 +8098,7 @@ func  (this *Bitget) CreateOrderRequest(symbol any, typeVar any, side any, amoun
     }
     return this.Extend(request, params)
 }
-func  (this *Bitget) CreateUtaOrders(orders any, optionalArgs ...any) <- chan any {
+func  (this *Bitget) CreateUtaOrdersAsync(orders any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.createUtaOrdersBody(ch, orders, optionalArgs...)
     return ch
@@ -8110,7 +8110,7 @@ func (this *Bitget) createUtaOrdersBody(ch chan any, orders any, optionalArgs ..
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes603112 := (<-this.LoadMarkets())
+            retRes603112 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes603112)
         }
         var ordersRequests any = []any{}
@@ -8181,7 +8181,7 @@ func (this *Bitget) createUtaOrdersBody(ch chan any, orders any, optionalArgs ..
  * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Bitget) CreateOrders(orders any, optionalArgs ...any) <- chan any {
+func  (this *Bitget) CreateOrdersAsync(orders any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.createOrdersBody(ch, orders, optionalArgs...)
     return ch
@@ -8193,16 +8193,16 @@ func (this *Bitget) createOrdersBody(ch chan any, orders any, optionalArgs ...an
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes610012 := (<-this.LoadMarkets())
+            retRes610012 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes610012)
         }
         var uta any = nil
-        utaparamsVariable := (<-this.HandleUTAAndParams(params, "createOrders", false));
+        utaparamsVariable := (<-this.HandleUTAAndParamsAsync(params, "createOrders", false));
         uta = GetValue(utaparamsVariable,0);
         params = GetValue(utaparamsVariable,1)
         if IsEqual(uta, true) {
     
-                retRes610519 :=  (<-this.CreateUtaOrders(orders, params))
+                retRes610519 :=  (<-this.CreateUtaOrdersAsync(orders, params))
                 PanicOnError(retRes610519)
                 ch <- retRes610519
                 return nil
@@ -8339,7 +8339,7 @@ func (this *Bitget) createOrdersBody(ch chan any, orders any, optionalArgs ...an
  * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Bitget) EditOrder(id any, symbol any, typeVar any, side any, optionalArgs ...any) <- chan any {
+func  (this *Bitget) EditOrderAsync(id any, symbol any, typeVar any, side any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.editOrderBody(ch, id, symbol, typeVar, side, optionalArgs...)
     return ch
@@ -8355,7 +8355,7 @@ func (this *Bitget) editOrderBody(ch chan any, id any, symbol any, typeVar any, 
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes623012 := (<-this.LoadMarkets())
+            retRes623012 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes623012)
         }
         var market any = this.Market(symbol)
@@ -8397,7 +8397,7 @@ func (this *Bitget) editOrderBody(ch chan any, id any, symbol any, typeVar any, 
         productTypeparamsVariable := this.HandleProductTypeAndParams(market, params);
         productType = GetValue(productTypeparamsVariable,0);
         params = GetValue(productTypeparamsVariable,1)
-        utaparamsVariable := (<-this.HandleUTAAndParams(params, "editOrder", false));
+        utaparamsVariable := (<-this.HandleUTAAndParamsAsync(params, "editOrder", false));
         uta = GetValue(utaparamsVariable,0);
         params = GetValue(utaparamsVariable,1)
         if IsEqual(uta, true) {
@@ -8592,7 +8592,7 @@ func (this *Bitget) editOrderBody(ch chan any, id any, symbol any, typeVar any, 
  * @param {string} [params.clientOrderId] the clientOrderId of the order, id does not need to be provided if clientOrderId is provided
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Bitget) CancelOrder(id any, optionalArgs ...any) <- chan any {
+func  (this *Bitget) CancelOrderAsync(id any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.cancelOrderBody(ch, id, optionalArgs...)
     return ch
@@ -8609,7 +8609,7 @@ func (this *Bitget) cancelOrderBody(ch chan any, id any, optionalArgs ...any) an
         }
         if IsEqual(this.Markets, nil) {
     
-            retRes645212 := (<-this.LoadMarkets())
+            retRes645212 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes645212)
         }
         var market any = this.Market(symbol)
@@ -8626,7 +8626,7 @@ func (this *Bitget) cancelOrderBody(ch chan any, id any, optionalArgs ...any) an
             AddElementToObject(request, "symbol", GetValue(market, "id"))
         }
         var uta any = nil
-        utaparamsVariable := (<-this.HandleUTAAndParams(params, "cancelOrder", false));
+        utaparamsVariable := (<-this.HandleUTAAndParamsAsync(params, "cancelOrder", false));
         uta = GetValue(utaparamsVariable,0);
         params = GetValue(utaparamsVariable,1)
         var isPlanOrder bool = (IsEqual(trigger, true)) || (IsEqual(trailing, true))
@@ -8774,7 +8774,7 @@ func (this *Bitget) cancelOrderBody(ch chan any, id any, optionalArgs ...any) an
         ch <- this.ParseOrder(order, market)
         return nil
 }
-func  (this *Bitget) CancelUtaOrders(ids any, optionalArgs ...any) <- chan any {
+func  (this *Bitget) CancelUtaOrdersAsync(ids any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.cancelUtaOrdersBody(ch, ids, optionalArgs...)
     return ch
@@ -8791,7 +8791,7 @@ func (this *Bitget) cancelUtaOrdersBody(ch chan any, ids any, optionalArgs ...an
         }
         if IsEqual(this.Markets, nil) {
     
-            retRes659612 := (<-this.LoadMarkets())
+            retRes659612 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes659612)
         }
         var market any = this.Market(symbol)
@@ -8848,7 +8848,7 @@ func (this *Bitget) cancelUtaOrdersBody(ch chan any, ids any, optionalArgs ...an
  * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
  * @returns {object} an array of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Bitget) CancelOrders(ids any, optionalArgs ...any) <- chan any {
+func  (this *Bitget) CancelOrdersAsync(ids any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.cancelOrdersBody(ch, ids, optionalArgs...)
     return ch
@@ -8865,17 +8865,17 @@ func (this *Bitget) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any) 
         }
         if IsEqual(this.Markets, nil) {
     
-            retRes665212 := (<-this.LoadMarkets())
+            retRes665212 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes665212)
         }
         var market any = this.Market(symbol)
         var uta any = nil
-        utaparamsVariable := (<-this.HandleUTAAndParams(params, "cancelOrders", false));
+        utaparamsVariable := (<-this.HandleUTAAndParamsAsync(params, "cancelOrders", false));
         uta = GetValue(utaparamsVariable,0);
         params = GetValue(utaparamsVariable,1)
         if IsEqual(uta, true) {
     
-                retRes665819 :=  (<-this.CancelUtaOrders(ids, symbol, params))
+                retRes665819 :=  (<-this.CancelUtaOrdersAsync(ids, symbol, params))
                 PanicOnError(retRes665819)
                 ch <- retRes665819
                 return nil
@@ -8973,7 +8973,7 @@ func (this *Bitget) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any) 
  * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Bitget) CancelAllOrders(optionalArgs ...any) <- chan any {
+func  (this *Bitget) CancelAllOrdersAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.cancelAllOrdersBody(ch, optionalArgs...)
     return ch
@@ -8990,7 +8990,7 @@ func (this *Bitget) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
         }
         if IsEqual(this.Markets, nil) {
     
-            retRes674312 := (<-this.LoadMarkets())
+            retRes674312 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes674312)
         }
         var market any = this.Market(symbol)
@@ -9009,7 +9009,7 @@ func (this *Bitget) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
         params = this.Omit(params, []any{"stop", "trigger"})
         var response any = nil
         var uta any = nil
-        utaparamsVariable := (<-this.HandleUTAAndParams(params, "cancelAllOrders", false));
+        utaparamsVariable := (<-this.HandleUTAAndParamsAsync(params, "cancelAllOrders", false));
         uta = GetValue(utaparamsVariable,0);
         params = GetValue(utaparamsVariable,1)
         if IsEqual(uta, true) {
@@ -9099,7 +9099,7 @@ func (this *Bitget) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
  * @param {string} [params.clientOrderId] the clientOrderId of the order, id does not need to be provided if clientOrderId is provided
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Bitget) FetchOrder(id any, optionalArgs ...any) <- chan any {
+func  (this *Bitget) FetchOrderAsync(id any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchOrderBody(ch, id, optionalArgs...)
     return ch
@@ -9116,7 +9116,7 @@ func (this *Bitget) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any
         }
         if IsEqual(this.Markets, nil) {
     
-            retRes686812 := (<-this.LoadMarkets())
+            retRes686812 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes686812)
         }
         var market any = this.Market(symbol)
@@ -9130,7 +9130,7 @@ func (this *Bitget) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any
         }
         var response any = nil
         var uta any = nil
-        utaparamsVariable := (<-this.HandleUTAAndParams(params, "fetchOrder", false));
+        utaparamsVariable := (<-this.HandleUTAAndParamsAsync(params, "fetchOrder", false));
         uta = GetValue(utaparamsVariable,0);
         params = GetValue(utaparamsVariable,1)
         if IsEqual(uta, true) {
@@ -9310,7 +9310,7 @@ func (this *Bitget) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any
  * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Bitget) FetchOpenOrders(optionalArgs ...any) <- chan any {
+func  (this *Bitget) FetchOpenOrdersAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchOpenOrdersBody(ch, optionalArgs...)
     return ch
@@ -9328,7 +9328,7 @@ func (this *Bitget) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes705412 := (<-this.LoadMarkets())
+            retRes705412 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes705412)
         }
         var market any = nil
@@ -9339,7 +9339,7 @@ func (this *Bitget) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
         marginMode = GetValue(marginModeparamsVariable,0);
         params = GetValue(marginModeparamsVariable,1)
         var uta any = nil
-        utaparamsVariable := (<-this.HandleUTAAndParams(params, "fetchOpenOrders", false));
+        utaparamsVariable := (<-this.HandleUTAAndParamsAsync(params, "fetchOpenOrders", false));
         uta = GetValue(utaparamsVariable,0);
         params = GetValue(utaparamsVariable,1)
         if !IsEqual(symbol, nil) {
@@ -9372,7 +9372,7 @@ func (this *Bitget) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
                 cursorSent = "idLessThan"
             }
     
-                retRes709019 :=  (<-this.FetchPaginatedCallCursor("fetchOpenOrders", symbol, since, limit, params, cursorReceived, cursorSent))
+                retRes709019 :=  (<-this.FetchPaginatedCallCursorAsync("fetchOpenOrders", symbol, since, limit, params, cursorReceived, cursorSent))
                 PanicOnError(retRes709019)
                 ch <- retRes709019
                 return nil
@@ -9770,7 +9770,7 @@ func (this *Bitget) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
  * @param {boolean} [params.trailing] set to true if you want to fetch trailing orders
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Bitget) FetchClosedOrders(optionalArgs ...any) <- chan any {
+func  (this *Bitget) FetchClosedOrdersAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchClosedOrdersBody(ch, optionalArgs...)
     return ch
@@ -9788,11 +9788,11 @@ func (this *Bitget) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any 
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes745812 := (<-this.LoadMarkets())
+            retRes745812 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes745812)
         }
     
-        orders:= (<-this.FetchCanceledAndClosedOrders(symbol, since, limit, params))
+        orders:= (<-this.FetchCanceledAndClosedOrdersAsync(symbol, since, limit, params))
         PanicOnError(orders)
     
         ch <- this.FilterBy(orders, "status", "closed")
@@ -9821,7 +9821,7 @@ func (this *Bitget) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any 
  * @param {boolean} [params.trailing] set to true if you want to fetch trailing orders
  * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Bitget) FetchCanceledOrders(optionalArgs ...any) <- chan any {
+func  (this *Bitget) FetchCanceledOrdersAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchCanceledOrdersBody(ch, optionalArgs...)
     return ch
@@ -9839,11 +9839,11 @@ func (this *Bitget) fetchCanceledOrdersBody(ch chan any, optionalArgs ...any) an
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes748912 := (<-this.LoadMarkets())
+            retRes748912 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes748912)
         }
     
-        orders:= (<-this.FetchCanceledAndClosedOrders(symbol, since, limit, params))
+        orders:= (<-this.FetchCanceledAndClosedOrdersAsync(symbol, since, limit, params))
         PanicOnError(orders)
     
         ch <- this.FilterBy(orders, "status", "canceled")
@@ -9874,7 +9874,7 @@ func (this *Bitget) fetchCanceledOrdersBody(ch chan any, optionalArgs ...any) an
  * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Bitget) FetchCanceledAndClosedOrders(optionalArgs ...any) <- chan any {
+func  (this *Bitget) FetchCanceledAndClosedOrdersAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchCanceledAndClosedOrdersBody(ch, optionalArgs...)
     return ch
@@ -9891,19 +9891,19 @@ func (this *Bitget) fetchCanceledAndClosedOrdersBody(ch chan any, optionalArgs .
         params := GetArg(optionalArgs, 3, map[string]any {})
         _ = params
         var uta any = nil
-        utaparamsVariable := (<-this.HandleUTAAndParams(params, "fetchCanceledAndClosedOrders", false));
+        utaparamsVariable := (<-this.HandleUTAAndParamsAsync(params, "fetchCanceledAndClosedOrders", false));
         uta = GetValue(utaparamsVariable,0);
         params = GetValue(utaparamsVariable,1)
         if IsEqual(uta, true) {
     
-                retRes752419 :=  (<-this.FetchUtaCanceledAndClosedOrders(symbol, since, limit, params))
+                retRes752419 :=  (<-this.FetchUtaCanceledAndClosedOrdersAsync(symbol, since, limit, params))
                 PanicOnError(retRes752419)
                 ch <- retRes752419
                 return nil
         }
         if IsEqual(this.Markets, nil) {
     
-            retRes752712 := (<-this.LoadMarkets())
+            retRes752712 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes752712)
         }
         var market any = nil
@@ -9934,7 +9934,7 @@ func (this *Bitget) fetchCanceledAndClosedOrdersBody(ch chan any, optionalArgs .
                 cursorReceived = "endId"
             }
     
-                retRes755019 :=  (<-this.FetchPaginatedCallCursor("fetchCanceledAndClosedOrders", symbol, since, limit, params, cursorReceived, "idLessThan"))
+                retRes755019 :=  (<-this.FetchPaginatedCallCursorAsync("fetchCanceledAndClosedOrders", symbol, since, limit, params, cursorReceived, "idLessThan"))
                 PanicOnError(retRes755019)
                 ch <- retRes755019
                 return nil
@@ -10219,7 +10219,7 @@ func (this *Bitget) fetchCanceledAndClosedOrdersBody(ch chan any, optionalArgs .
         ch <- this.ParseOrders(orders, market, since, limit)
         return nil
 }
-func  (this *Bitget) FetchUtaCanceledAndClosedOrders(optionalArgs ...any) <- chan any {
+func  (this *Bitget) FetchUtaCanceledAndClosedOrdersAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchUtaCanceledAndClosedOrdersBody(ch, optionalArgs...)
     return ch
@@ -10237,7 +10237,7 @@ func (this *Bitget) fetchUtaCanceledAndClosedOrdersBody(ch chan any, optionalArg
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes781112 := (<-this.LoadMarkets())
+            retRes781112 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes781112)
         }
         var market any = nil
@@ -10266,7 +10266,7 @@ func (this *Bitget) fetchUtaCanceledAndClosedOrdersBody(ch chan any, optionalArg
         params = GetValue(paginateparamsVariable,1)
         if EvalTruthy(paginate) {
     
-                retRes783219 :=  (<-this.FetchPaginatedCallCursor("fetchCanceledAndClosedOrders", symbol, since, limit, params, "cursor", "cursor"))
+                retRes783219 :=  (<-this.FetchPaginatedCallCursorAsync("fetchCanceledAndClosedOrders", symbol, since, limit, params, "cursor", "cursor"))
                 PanicOnError(retRes783219)
                 ch <- retRes783219
                 return nil
@@ -10397,7 +10397,7 @@ func (this *Bitget) fetchUtaCanceledAndClosedOrdersBody(ch chan any, optionalArg
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
  * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
  */
-func  (this *Bitget) FetchLedger(optionalArgs ...any) <- chan any {
+func  (this *Bitget) FetchLedgerAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchLedgerBody(ch, optionalArgs...)
     return ch
@@ -10415,7 +10415,7 @@ func (this *Bitget) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes795512 := (<-this.LoadMarkets())
+            retRes795512 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes795512)
         }
         var symbol *string = this.SafeString(params, "symbol")
@@ -10438,7 +10438,7 @@ func (this *Bitget) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
                 cursorReceived = "endId"
             }
     
-                retRes797219 :=  (<-this.FetchPaginatedCallCursor("fetchLedger", symbol, since, limit, params, cursorReceived, "idLessThan"))
+                retRes797219 :=  (<-this.FetchPaginatedCallCursorAsync("fetchLedger", symbol, since, limit, params, cursorReceived, "idLessThan"))
                 PanicOnError(retRes797219)
                 ch <- retRes797219
                 return nil
@@ -10657,7 +10657,7 @@ func  (this *Bitget) ParseLedgerType(typeVar any) any  {
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
  * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
-func  (this *Bitget) FetchMyTrades(optionalArgs ...any) <- chan any {
+func  (this *Bitget) FetchMyTradesAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchMyTradesBody(ch, optionalArgs...)
     return ch
@@ -10674,7 +10674,7 @@ func (this *Bitget) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
         params := GetArg(optionalArgs, 3, map[string]any {})
         _ = params
         var uta any = nil
-        utaparamsVariable := (<-this.HandleUTAAndParams(params, "fetchMyTrades", false));
+        utaparamsVariable := (<-this.HandleUTAAndParamsAsync(params, "fetchMyTrades", false));
         uta = GetValue(utaparamsVariable,0);
         params = GetValue(utaparamsVariable,1)
         if (!IsEqual(uta, true)) && (IsEqual(symbol, nil)) {
@@ -10682,7 +10682,7 @@ func (this *Bitget) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
         }
         if IsEqual(this.Markets, nil) {
     
-            retRes818412 := (<-this.LoadMarkets())
+            retRes818412 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes818412)
         }
         var market any = this.Market(symbol)
@@ -10720,7 +10720,7 @@ func (this *Bitget) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
                 cursorSent = "idLessThan"
             }
     
-                retRes821419 :=  (<-this.FetchPaginatedCallCursor("fetchMyTrades", symbol, since, limit, params, cursorReceived, cursorSent))
+                retRes821419 :=  (<-this.FetchPaginatedCallCursorAsync("fetchMyTrades", symbol, since, limit, params, cursorReceived, cursorSent))
                 PanicOnError(retRes821419)
                 ch <- retRes821419
                 return nil
@@ -10925,7 +10925,7 @@ func (this *Bitget) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
  * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
  * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
  */
-func  (this *Bitget) FetchPosition(symbol any, optionalArgs ...any) <- chan any {
+func  (this *Bitget) FetchPositionAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchPositionBody(ch, symbol, optionalArgs...)
     return ch
@@ -10937,7 +10937,7 @@ func (this *Bitget) fetchPositionBody(ch chan any, symbol any, optionalArgs ...a
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes839912 := (<-this.LoadMarkets())
+            retRes839912 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes839912)
         }
         var market any = this.Market(symbol)
@@ -10951,7 +10951,7 @@ func (this *Bitget) fetchPositionBody(ch chan any, symbol any, optionalArgs ...a
         var response any = nil
         var uta any = nil
         var result any = nil
-        utaparamsVariable := (<-this.HandleUTAAndParams(params, "fetchPosition", false));
+        utaparamsVariable := (<-this.HandleUTAAndParamsAsync(params, "fetchPosition", false));
         uta = GetValue(utaparamsVariable,0);
         params = GetValue(utaparamsVariable,1)
         if IsEqual(uta, true) {
@@ -11059,7 +11059,7 @@ func (this *Bitget) fetchPositionBody(ch chan any, symbol any, optionalArgs ...a
  * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
  * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
  */
-func  (this *Bitget) FetchPositions(optionalArgs ...any) <- chan any {
+func  (this *Bitget) FetchPositionsAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchPositionsBody(ch, optionalArgs...)
     return ch
@@ -11073,7 +11073,7 @@ func (this *Bitget) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes851312 := (<-this.LoadMarkets())
+            retRes851312 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes851312)
         }
         var paginate any = false
@@ -11082,7 +11082,7 @@ func (this *Bitget) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
         params = GetValue(paginateparamsVariable,1)
         if EvalTruthy(paginate) {
     
-                retRes851819 :=  (<-this.FetchPaginatedCallCursor("fetchPositions", nil, nil, nil, params, "endId", "idLessThan"))
+                retRes851819 :=  (<-this.FetchPaginatedCallCursorAsync("fetchPositions", nil, nil, nil, params, "endId", "idLessThan"))
                 PanicOnError(retRes851819)
                 ch <- retRes851819
                 return nil
@@ -11112,7 +11112,7 @@ func (this *Bitget) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
         var response any = nil
         var isHistory bool = false
         var uta any = nil
-        utaparamsVariable := (<-this.HandleUTAAndParams(params, "fetchPositions", false));
+        utaparamsVariable := (<-this.HandleUTAAndParamsAsync(params, "fetchPositions", false));
         uta = GetValue(utaparamsVariable,0);
         params = GetValue(utaparamsVariable,1)
         if IsEqual(uta, true) {
@@ -11508,7 +11508,7 @@ func  (this *Bitget) ParsePosition(position any, optionalArgs ...any) any  {
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
  * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
  */
-func  (this *Bitget) FetchFundingRateHistory(optionalArgs ...any) <- chan any {
+func  (this *Bitget) FetchFundingRateHistoryAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchFundingRateHistoryBody(ch, optionalArgs...)
     return ch
@@ -11529,7 +11529,7 @@ func (this *Bitget) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any
         }
         if IsEqual(this.Markets, nil) {
     
-            retRes893212 := (<-this.LoadMarkets())
+            retRes893212 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes893212)
         }
         var market any = this.Market(symbol)
@@ -11543,7 +11543,7 @@ func (this *Bitget) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any
         productTypeparamsVariable := this.HandleProductTypeAndParams(market, params);
         productType = GetValue(productTypeparamsVariable,0);
         params = GetValue(productTypeparamsVariable,1)
-        utaparamsVariable := (<-this.HandleUTAAndParams(params, "fetchFundingRateHistory", false));
+        utaparamsVariable := (<-this.HandleUTAAndParamsAsync(params, "fetchFundingRateHistory", false));
         uta = GetValue(utaparamsVariable,0);
         params = GetValue(utaparamsVariable,1)
         if IsEqual(uta, true) {
@@ -11579,7 +11579,7 @@ func (this *Bitget) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any
             params = GetValue(paginateparamsVariable,1)
             if EvalTruthy(paginate) {
     
-                    retRes897223 :=  (<-this.FetchPaginatedCallIncremental("fetchFundingRateHistory", symbol, since, limit, params, "pageNo", 100))
+                    retRes897223 :=  (<-this.FetchPaginatedCallIncrementalAsync("fetchFundingRateHistory", symbol, since, limit, params, "pageNo", 100))
                     PanicOnError(retRes897223)
                     ch <- retRes897223
                     return nil
@@ -11639,7 +11639,7 @@ func (this *Bitget) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any
  * @param {string} [params.method] either (default) 'publicMixGetV2MixMarketCurrentFundRate' or 'publicMixGetV2MixMarketFundingTime'
  * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
  */
-func  (this *Bitget) FetchFundingRate(symbol any, optionalArgs ...any) <- chan any {
+func  (this *Bitget) FetchFundingRateAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchFundingRateBody(ch, symbol, optionalArgs...)
     return ch
@@ -11651,7 +11651,7 @@ func (this *Bitget) fetchFundingRateBody(ch chan any, symbol any, optionalArgs .
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes902812 := (<-this.LoadMarkets())
+            retRes902812 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes902812)
         }
         var market any = this.Market(symbol)
@@ -11667,7 +11667,7 @@ func (this *Bitget) fetchFundingRateBody(ch chan any, symbol any, optionalArgs .
         }
         var uta any = nil
         var response any = nil
-        utaparamsVariable := (<-this.HandleUTAAndParams(params, "fetchFundingRate", false));
+        utaparamsVariable := (<-this.HandleUTAAndParamsAsync(params, "fetchFundingRate", false));
         uta = GetValue(utaparamsVariable,0);
         params = GetValue(utaparamsVariable,1)
         if IsEqual(uta, true) {
@@ -11707,7 +11707,7 @@ func (this *Bitget) fetchFundingRateBody(ch chan any, symbol any, optionalArgs .
  * @param {string} [params.method] either (default) 'publicMixGetV2MixMarketTickers' or 'publicMixGetV2MixMarketCurrentFundRate'
  * @returns {object} a dictionary of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rates-structure}, indexed by market symbols
  */
-func  (this *Bitget) FetchFundingRates(optionalArgs ...any) <- chan any {
+func  (this *Bitget) FetchFundingRatesAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchFundingRatesBody(ch, optionalArgs...)
     return ch
@@ -11721,7 +11721,7 @@ func (this *Bitget) fetchFundingRatesBody(ch chan any, optionalArgs ...any) any 
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes912012 := (<-this.LoadMarkets())
+            retRes912012 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes912012)
         }
         var market any = nil
@@ -11814,7 +11814,7 @@ func (this *Bitget) fetchFundingRatesBody(ch chan any, optionalArgs ...any) any 
  * @param {string} [params.productType] 'USDT-FUTURES' (default), 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
  * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-structure}
  */
-func  (this *Bitget) FetchFundingIntervals(optionalArgs ...any) <- chan any {
+func  (this *Bitget) FetchFundingIntervalsAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchFundingIntervalsBody(ch, optionalArgs...)
     return ch
@@ -11828,14 +11828,14 @@ func (this *Bitget) fetchFundingIntervalsBody(ch chan any, optionalArgs ...any) 
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes920512 := (<-this.LoadMarkets())
+            retRes920512 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes920512)
         }
         params = this.Extend(map[string]any {
             "method": "publicMixGetV2MixMarketCurrentFundRate",
         }, params)
     
-            retRes920815 :=  (<-this.FetchFundingRates(symbols, params))
+            retRes920815 :=  (<-this.FetchFundingRatesAsync(symbols, params))
             PanicOnError(retRes920815)
             ch <- retRes920815
             return nil
@@ -11944,7 +11944,7 @@ func  (this *Bitget) ParseFundingRate(contract any, optionalArgs ...any) any  {
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
  * @returns {object[]} a list of [funding history structures]{@link https://docs.ccxt.com/?id=funding-history-structure}
  */
-func  (this *Bitget) FetchFundingHistory(optionalArgs ...any) <- chan any {
+func  (this *Bitget) FetchFundingHistoryAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchFundingHistoryBody(ch, optionalArgs...)
     return ch
@@ -11962,14 +11962,14 @@ func (this *Bitget) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) an
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes931612 := (<-this.LoadMarkets())
+            retRes931612 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes931612)
         }
         if IsEqual(symbol, nil) {
             panic(ArgumentsRequired(Add(this.Id, " fetchFundingHistory() requires a symbol argument")))
         }
         var uta any = nil
-        utaparamsVariable := (<-this.HandleUTAAndParams(params, "fetchFundingHistory", false));
+        utaparamsVariable := (<-this.HandleUTAAndParamsAsync(params, "fetchFundingHistory", false));
         uta = GetValue(utaparamsVariable,0);
         params = GetValue(utaparamsVariable,1)
         var paginate any = false
@@ -11979,13 +11979,13 @@ func (this *Bitget) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) an
         if EvalTruthy(paginate) {
             if IsEqual(uta, true) {
     
-                    retRes932723 :=  (<-this.FetchPaginatedCallCursor("fetchFundingHistory", symbol, since, limit, params, "cursor", "cursor"))
+                    retRes932723 :=  (<-this.FetchPaginatedCallCursorAsync("fetchFundingHistory", symbol, since, limit, params, "cursor", "cursor"))
                     PanicOnError(retRes932723)
                     ch <- retRes932723
                     return nil
             }
     
-                retRes932919 :=  (<-this.FetchPaginatedCallCursor("fetchFundingHistory", symbol, since, limit, params, "endId", "idLessThan"))
+                retRes932919 :=  (<-this.FetchPaginatedCallCursorAsync("fetchFundingHistory", symbol, since, limit, params, "endId", "idLessThan"))
                 PanicOnError(retRes932919)
                 ch <- retRes932919
                 return nil
@@ -12097,7 +12097,7 @@ func  (this *Bitget) ParseFundingHistories(contracts any, optionalArgs ...any) a
     }
     return this.FilterBySymbolSinceLimit(sorted, symbol, since, limit)
 }
-func  (this *Bitget) ModifyMarginHelper(symbol any, amount any, typeVar any, optionalArgs ...any) <- chan any {
+func  (this *Bitget) ModifyMarginHelperAsync(symbol any, amount any, typeVar any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.modifyMarginHelperBody(ch, symbol, amount, typeVar, optionalArgs...)
     return ch
@@ -12109,7 +12109,7 @@ func (this *Bitget) modifyMarginHelperBody(ch chan any, symbol any, amount any, 
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes947012 := (<-this.LoadMarkets())
+            retRes947012 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes947012)
         }
         var holdSide *string = this.SafeString(params, "holdSide")
@@ -12182,7 +12182,7 @@ func  (this *Bitget) ParseMarginModification(data any, optionalArgs ...any) any 
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
  */
-func  (this *Bitget) ReduceMargin(symbol any, amount any, optionalArgs ...any) <- chan any {
+func  (this *Bitget) ReduceMarginAsync(symbol any, amount any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.reduceMarginBody(ch, symbol, amount, optionalArgs...)
     return ch
@@ -12200,7 +12200,7 @@ func (this *Bitget) reduceMarginBody(ch chan any, symbol any, amount any, option
             panic(ArgumentsRequired(Add(this.Id, " reduceMargin() requires a holdSide parameter, either long or short")))
         }
     
-            retRes954415 :=  (<-this.ModifyMarginHelper(symbol, amount, "reduce", params))
+            retRes954415 :=  (<-this.ModifyMarginHelperAsync(symbol, amount, "reduce", params))
             PanicOnError(retRes954415)
             ch <- retRes954415
             return nil
@@ -12215,7 +12215,7 @@ func (this *Bitget) reduceMarginBody(ch chan any, symbol any, amount any, option
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
  */
-func  (this *Bitget) AddMargin(symbol any, amount any, optionalArgs ...any) <- chan any {
+func  (this *Bitget) AddMarginAsync(symbol any, amount any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.addMarginBody(ch, symbol, amount, optionalArgs...)
     return ch
@@ -12230,7 +12230,7 @@ func (this *Bitget) addMarginBody(ch chan any, symbol any, amount any, optionalA
             panic(ArgumentsRequired(Add(this.Id, " addMargin() requires a holdSide parameter, either long or short")))
         }
     
-            retRes956215 :=  (<-this.ModifyMarginHelper(symbol, amount, "add", params))
+            retRes956215 :=  (<-this.ModifyMarginHelperAsync(symbol, amount, "add", params))
             PanicOnError(retRes956215)
             ch <- retRes956215
             return nil
@@ -12244,7 +12244,7 @@ func (this *Bitget) addMarginBody(ch chan any, symbol any, amount any, optionalA
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
  */
-func  (this *Bitget) FetchLeverage(symbol any, optionalArgs ...any) <- chan any {
+func  (this *Bitget) FetchLeverageAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchLeverageBody(ch, symbol, optionalArgs...)
     return ch
@@ -12256,7 +12256,7 @@ func (this *Bitget) fetchLeverageBody(ch chan any, symbol any, optionalArgs ...a
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes957612 := (<-this.LoadMarkets())
+            retRes957612 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes957612)
         }
         var market any = this.Market(symbol)
@@ -12333,7 +12333,7 @@ func  (this *Bitget) ParseLeverage(leverage any, optionalArgs ...any) any  {
  * @param {boolean} [params.posSide] required for uta isolated margin, long or short
  * @returns {object} response from the exchange
  */
-func  (this *Bitget) SetLeverage(leverage any, optionalArgs ...any) <- chan any {
+func  (this *Bitget) SetLeverageAsync(leverage any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.setLeverageBody(ch, leverage, optionalArgs...)
     return ch
@@ -12350,7 +12350,7 @@ func (this *Bitget) setLeverageBody(ch chan any, leverage any, optionalArgs ...a
         }
         if IsEqual(this.Markets, nil) {
     
-            retRes965112 := (<-this.LoadMarkets())
+            retRes965112 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes965112)
         }
         var market any = this.Market(symbol)
@@ -12364,7 +12364,7 @@ func (this *Bitget) setLeverageBody(ch chan any, leverage any, optionalArgs ...a
         }
         var uta any = nil
         var response any = map[string]any {}
-        utaparamsVariable := (<-this.HandleUTAAndParams(params, "setLeverage", false));
+        utaparamsVariable := (<-this.HandleUTAAndParamsAsync(params, "setLeverage", false));
         uta = GetValue(utaparamsVariable,0);
         params = GetValue(utaparamsVariable,1)
         if IsEqual(uta, true) {
@@ -12403,7 +12403,7 @@ func (this *Bitget) setLeverageBody(ch chan any, leverage any, optionalArgs ...a
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} response from the exchange
  */
-func  (this *Bitget) SetMarginMode(marginMode any, optionalArgs ...any) <- chan any {
+func  (this *Bitget) SetMarginModeAsync(marginMode any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.setMarginModeBody(ch, marginMode, optionalArgs...)
     return ch
@@ -12427,7 +12427,7 @@ func (this *Bitget) setMarginModeBody(ch chan any, marginMode any, optionalArgs 
         }
         if IsEqual(this.Markets, nil) {
     
-            retRes972712 := (<-this.LoadMarkets())
+            retRes972712 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes972712)
         }
         var market any = this.Market(symbol)
@@ -12475,7 +12475,7 @@ func (this *Bitget) setMarginModeBody(ch chan any, marginMode any, optionalArgs 
  * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
  * @returns {object} response from the exchange
  */
-func  (this *Bitget) SetPositionMode(hedged any, optionalArgs ...any) <- chan any {
+func  (this *Bitget) SetPositionModeAsync(hedged any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.setPositionModeBody(ch, hedged, optionalArgs...)
     return ch
@@ -12489,7 +12489,7 @@ func (this *Bitget) setPositionModeBody(ch chan any, hedged any, optionalArgs ..
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes977112 := (<-this.LoadMarkets())
+            retRes977112 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes977112)
         }
         var posMode any = Ternary(EvalTruthy(hedged), "hedge_mode", "one_way_mode")
@@ -12504,7 +12504,7 @@ func (this *Bitget) setPositionModeBody(ch chan any, hedged any, optionalArgs ..
         productTypeparamsVariable := this.HandleProductTypeAndParams(market, params);
         productType = GetValue(productTypeparamsVariable,0);
         params = GetValue(productTypeparamsVariable,1)
-        utaparamsVariable := (<-this.HandleUTAAndParams(params, "setPositionMode", false));
+        utaparamsVariable := (<-this.HandleUTAAndParamsAsync(params, "setPositionMode", false));
         uta = GetValue(utaparamsVariable,0);
         params = GetValue(utaparamsVariable,1)
         if IsEqual(uta, true) {
@@ -12534,7 +12534,7 @@ func (this *Bitget) setPositionModeBody(ch chan any, hedged any, optionalArgs ..
  * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
  * @returns {object} an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}
  */
-func  (this *Bitget) FetchOpenInterest(symbol any, optionalArgs ...any) <- chan any {
+func  (this *Bitget) FetchOpenInterestAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchOpenInterestBody(ch, symbol, optionalArgs...)
     return ch
@@ -12546,7 +12546,7 @@ func (this *Bitget) fetchOpenInterestBody(ch chan any, symbol any, optionalArgs 
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes982612 := (<-this.LoadMarkets())
+            retRes982612 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes982612)
         }
         var market any = this.Market(symbol)
@@ -12562,7 +12562,7 @@ func (this *Bitget) fetchOpenInterestBody(ch chan any, symbol any, optionalArgs 
         }
         var uta any = nil
         var response any = nil
-        utaparamsVariable := (<-this.HandleUTAAndParams(params, "fetchOpenInterest", false));
+        utaparamsVariable := (<-this.HandleUTAAndParamsAsync(params, "fetchOpenInterest", false));
         uta = GetValue(utaparamsVariable,0);
         params = GetValue(utaparamsVariable,1)
         if IsEqual(uta, true) {
@@ -12633,7 +12633,7 @@ func  (this *Bitget) ParseOpenInterest(interest any, optionalArgs ...any) any  {
  * @param {int} [params.until] the latest time in ms to fetch entries for
  * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
-func  (this *Bitget) FetchTransfers(optionalArgs ...any) <- chan any {
+func  (this *Bitget) FetchTransfersAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchTransfersBody(ch, optionalArgs...)
     return ch
@@ -12654,7 +12654,7 @@ func (this *Bitget) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
         }
         if IsEqual(this.Markets, nil) {
     
-            retRes993912 := (<-this.LoadMarkets())
+            retRes993912 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes993912)
         }
         var typeVar any = nil
@@ -12724,7 +12724,7 @@ func (this *Bitget) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
  * @param {string} [params.clientOid] custom id
  * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
-func  (this *Bitget) Transfer(code any, amount any, fromAccount any, toAccount any, optionalArgs ...any) <- chan any {
+func  (this *Bitget) TransferAsync(code any, amount any, fromAccount any, toAccount any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.transferBody(ch, code, amount, fromAccount, toAccount, optionalArgs...)
     return ch
@@ -12736,11 +12736,11 @@ func (this *Bitget) transferBody(ch chan any, code any, amount any, fromAccount 
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes1000312 := (<-this.LoadMarkets())
+            retRes1000312 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes1000312)
         }
         var uta any = nil
-        utaparamsVariable := (<-this.HandleUTAAndParams(params, "transfer", false));
+        utaparamsVariable := (<-this.HandleUTAAndParamsAsync(params, "transfer", false));
         uta = GetValue(utaparamsVariable,0);
         params = GetValue(utaparamsVariable,1)
         var currency any = this.Currency(code)
@@ -12912,7 +12912,7 @@ func  (this *Bitget) ParseDepositWithdrawFee(fee any, optionalArgs ...any) any  
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
  */
-func  (this *Bitget) FetchDepositWithdrawFees(optionalArgs ...any) <- chan any {
+func  (this *Bitget) FetchDepositWithdrawFeesAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchDepositWithdrawFeesBody(ch, optionalArgs...)
     return ch
@@ -12926,7 +12926,7 @@ func (this *Bitget) fetchDepositWithdrawFeesBody(ch chan any, optionalArgs ...an
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes1016612 := (<-this.LoadMarkets())
+            retRes1016612 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes1016612)
         }
     
@@ -12976,7 +12976,7 @@ func (this *Bitget) fetchDepositWithdrawFeesBody(ch chan any, optionalArgs ...an
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
  */
-func  (this *Bitget) BorrowCrossMargin(code any, amount any, optionalArgs ...any) <- chan any {
+func  (this *Bitget) BorrowCrossMarginAsync(code any, amount any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.borrowCrossMarginBody(ch, code, amount, optionalArgs...)
     return ch
@@ -12988,7 +12988,7 @@ func (this *Bitget) borrowCrossMarginBody(ch chan any, code any, amount any, opt
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes1021412 := (<-this.LoadMarkets())
+            retRes1021412 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes1021412)
         }
         var currency any = this.Currency(code)
@@ -13027,7 +13027,7 @@ func (this *Bitget) borrowCrossMarginBody(ch chan any, code any, amount any, opt
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
  */
-func  (this *Bitget) BorrowIsolatedMargin(symbol any, code any, amount any, optionalArgs ...any) <- chan any {
+func  (this *Bitget) BorrowIsolatedMarginAsync(symbol any, code any, amount any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.borrowIsolatedMarginBody(ch, symbol, code, amount, optionalArgs...)
     return ch
@@ -13039,7 +13039,7 @@ func (this *Bitget) borrowIsolatedMarginBody(ch chan any, symbol any, code any, 
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes1025112 := (<-this.LoadMarkets())
+            retRes1025112 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes1025112)
         }
         var currency any = this.Currency(code)
@@ -13081,7 +13081,7 @@ func (this *Bitget) borrowIsolatedMarginBody(ch chan any, symbol any, code any, 
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
  */
-func  (this *Bitget) RepayIsolatedMargin(symbol any, code any, amount any, optionalArgs ...any) <- chan any {
+func  (this *Bitget) RepayIsolatedMarginAsync(symbol any, code any, amount any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.repayIsolatedMarginBody(ch, symbol, code, amount, optionalArgs...)
     return ch
@@ -13093,7 +13093,7 @@ func (this *Bitget) repayIsolatedMarginBody(ch chan any, symbol any, code any, a
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes1029112 := (<-this.LoadMarkets())
+            retRes1029112 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes1029112)
         }
         var currency any = this.Currency(code)
@@ -13135,7 +13135,7 @@ func (this *Bitget) repayIsolatedMarginBody(ch chan any, symbol any, code any, a
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
  */
-func  (this *Bitget) RepayCrossMargin(code any, amount any, optionalArgs ...any) <- chan any {
+func  (this *Bitget) RepayCrossMarginAsync(code any, amount any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.repayCrossMarginBody(ch, code, amount, optionalArgs...)
     return ch
@@ -13147,7 +13147,7 @@ func (this *Bitget) repayCrossMarginBody(ch chan any, code any, amount any, opti
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes1033112 := (<-this.LoadMarkets())
+            retRes1033112 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes1033112)
         }
         var currency any = this.Currency(code)
@@ -13249,7 +13249,7 @@ func  (this *Bitget) ParseMarginLoan(info any, optionalArgs ...any) any  {
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
  * @returns {object} an array of [liquidation structures]{@link https://docs.ccxt.com/?id=liquidation-structure}
  */
-func  (this *Bitget) FetchMyLiquidations(optionalArgs ...any) <- chan any {
+func  (this *Bitget) FetchMyLiquidationsAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchMyLiquidationsBody(ch, optionalArgs...)
     return ch
@@ -13267,7 +13267,7 @@ func (this *Bitget) fetchMyLiquidationsBody(ch chan any, optionalArgs ...any) an
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes1042812 := (<-this.LoadMarkets())
+            retRes1042812 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes1042812)
         }
         var paginate any = false
@@ -13276,7 +13276,7 @@ func (this *Bitget) fetchMyLiquidationsBody(ch chan any, optionalArgs ...any) an
         params = GetValue(paginateparamsVariable,1)
         if EvalTruthy(paginate) {
     
-                retRes1043319 :=  (<-this.FetchPaginatedCallCursor("fetchMyLiquidations", symbol, since, limit, params, "minId", "idLessThan"))
+                retRes1043319 :=  (<-this.FetchPaginatedCallCursorAsync("fetchMyLiquidations", symbol, since, limit, params, "minId", "idLessThan"))
                 PanicOnError(retRes1043319)
                 ch <- retRes1043319
                 return nil
@@ -13439,7 +13439,7 @@ func  (this *Bitget) ParseLiquidation(liquidation any, optionalArgs ...any) any 
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [isolated borrow rate structure]{@link https://docs.ccxt.com/?id=isolated-borrow-rate-structure}
  */
-func  (this *Bitget) FetchIsolatedBorrowRate(symbol any, optionalArgs ...any) <- chan any {
+func  (this *Bitget) FetchIsolatedBorrowRateAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchIsolatedBorrowRateBody(ch, symbol, optionalArgs...)
     return ch
@@ -13451,7 +13451,7 @@ func (this *Bitget) fetchIsolatedBorrowRateBody(ch chan any, symbol any, optiona
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes1058312 := (<-this.LoadMarkets())
+            retRes1058312 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes1058312)
         }
         var market any = this.Market(symbol)
@@ -13575,7 +13575,7 @@ func  (this *Bitget) ParseIsolatedBorrowRate(info any, optionalArgs ...any) any 
  * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
  * @returns {object} a [borrow rate structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#borrow-rate-structure}
  */
-func  (this *Bitget) FetchCrossBorrowRate(code any, optionalArgs ...any) <- chan any {
+func  (this *Bitget) FetchCrossBorrowRateAsync(code any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchCrossBorrowRateBody(ch, code, optionalArgs...)
     return ch
@@ -13587,7 +13587,7 @@ func (this *Bitget) fetchCrossBorrowRateBody(ch chan any, code any, optionalArgs
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes1070412 := (<-this.LoadMarkets())
+            retRes1070412 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes1070412)
         }
         var currency any = this.Currency(code)
@@ -13597,7 +13597,7 @@ func (this *Bitget) fetchCrossBorrowRateBody(ch chan any, code any, optionalArgs
         var uta any = nil
         var response any = nil
         var result any = map[string]any {}
-        utaparamsVariable := (<-this.HandleUTAAndParams(params, "fetchCrossBorrowRate", false));
+        utaparamsVariable := (<-this.HandleUTAAndParamsAsync(params, "fetchCrossBorrowRate", false));
         uta = GetValue(utaparamsVariable,0);
         params = GetValue(utaparamsVariable,1)
         if IsEqual(uta, true) {
@@ -13713,7 +13713,7 @@ func  (this *Bitget) ParseBorrowRate(info any, optionalArgs ...any) any  {
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
  * @returns {object[]} a list of [borrow interest structures]{@link https://docs.ccxt.com/?id=borrow-interest-structure}
  */
-func  (this *Bitget) FetchBorrowInterest(optionalArgs ...any) <- chan any {
+func  (this *Bitget) FetchBorrowInterestAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchBorrowInterestBody(ch, optionalArgs...)
     return ch
@@ -13733,7 +13733,7 @@ func (this *Bitget) fetchBorrowInterestBody(ch chan any, optionalArgs ...any) an
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes1082312 := (<-this.LoadMarkets())
+            retRes1082312 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes1082312)
         }
         var paginate any = false
@@ -13742,7 +13742,7 @@ func (this *Bitget) fetchBorrowInterestBody(ch chan any, optionalArgs ...any) an
         params = GetValue(paginateparamsVariable,1)
         if EvalTruthy(paginate) {
     
-                retRes1082819 :=  (<-this.FetchPaginatedCallCursor("fetchBorrowInterest", symbol, since, limit, params, "minId", "idLessThan"))
+                retRes1082819 :=  (<-this.FetchPaginatedCallCursorAsync("fetchBorrowInterest", symbol, since, limit, params, "minId", "idLessThan"))
                 PanicOnError(retRes1082819)
                 ch <- retRes1082819
                 return nil
@@ -13899,7 +13899,7 @@ func  (this *Bitget) ParseBorrowInterest(info any, optionalArgs ...any) any  {
  * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Bitget) ClosePosition(symbol any, optionalArgs ...any) <- chan any {
+func  (this *Bitget) ClosePositionAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.closePositionBody(ch, symbol, optionalArgs...)
     return ch
@@ -13913,7 +13913,7 @@ func (this *Bitget) closePositionBody(ch chan any, symbol any, optionalArgs ...a
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes1097612 := (<-this.LoadMarkets())
+            retRes1097612 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes1097612)
         }
         var market any = this.Market(symbol)
@@ -13926,7 +13926,7 @@ func (this *Bitget) closePositionBody(ch chan any, symbol any, optionalArgs ...a
         productTypeparamsVariable := this.HandleProductTypeAndParams(market, params);
         productType = GetValue(productTypeparamsVariable,0);
         params = GetValue(productTypeparamsVariable,1)
-        utaparamsVariable := (<-this.HandleUTAAndParams(params, "closePosition", false));
+        utaparamsVariable := (<-this.HandleUTAAndParamsAsync(params, "closePosition", false));
         uta = GetValue(utaparamsVariable,0);
         params = GetValue(utaparamsVariable,1)
         if IsEqual(uta, true) {
@@ -13963,7 +13963,7 @@ func (this *Bitget) closePositionBody(ch chan any, symbol any, optionalArgs ...a
  * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
  * @returns {object[]} A list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
  */
-func  (this *Bitget) CloseAllPositions(optionalArgs ...any) <- chan any {
+func  (this *Bitget) CloseAllPositionsAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.closeAllPositionsBody(ch, optionalArgs...)
     return ch
@@ -13975,7 +13975,7 @@ func (this *Bitget) closeAllPositionsBody(ch chan any, optionalArgs ...any) any 
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes1105012 := (<-this.LoadMarkets())
+            retRes1105012 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes1105012)
         }
         var request map[string]any = map[string]any {}
@@ -13985,7 +13985,7 @@ func (this *Bitget) closeAllPositionsBody(ch chan any, optionalArgs ...any) any 
         productTypeparamsVariable := this.HandleProductTypeAndParams(nil, params);
         productType = GetValue(productTypeparamsVariable,0);
         params = GetValue(productTypeparamsVariable,1)
-        utaparamsVariable := (<-this.HandleUTAAndParams(params, "closeAllPositions", false));
+        utaparamsVariable := (<-this.HandleUTAAndParamsAsync(params, "closeAllPositions", false));
         uta = GetValue(utaparamsVariable,0);
         params = GetValue(utaparamsVariable,1)
         if IsEqual(uta, true) {
@@ -14014,7 +14014,7 @@ func (this *Bitget) closeAllPositionsBody(ch chan any, optionalArgs ...any) any 
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [margin mode structure]{@link https://docs.ccxt.com/?id=margin-mode-structure}
  */
-func  (this *Bitget) FetchMarginMode(symbol any, optionalArgs ...any) <- chan any {
+func  (this *Bitget) FetchMarginModeAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchMarginModeBody(ch, symbol, optionalArgs...)
     return ch
@@ -14026,7 +14026,7 @@ func (this *Bitget) fetchMarginModeBody(ch chan any, symbol any, optionalArgs ..
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes1111312 := (<-this.LoadMarkets())
+            retRes1111312 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes1111312)
         }
         var market any = this.Market(symbol)
@@ -14101,7 +14101,7 @@ func  (this *Bitget) ParseMarginMode(marginMode any, optionalArgs ...any) any  {
  * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
  * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
  */
-func  (this *Bitget) FetchPositionsHistory(optionalArgs ...any) <- chan any {
+func  (this *Bitget) FetchPositionsHistoryAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchPositionsHistoryBody(ch, optionalArgs...)
     return ch
@@ -14119,7 +14119,7 @@ func (this *Bitget) fetchPositionsHistoryBody(ch chan any, optionalArgs ...any) 
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes1118312 := (<-this.LoadMarkets())
+            retRes1118312 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes1118312)
         }
         var request any = map[string]any {}
@@ -14146,7 +14146,7 @@ func (this *Bitget) fetchPositionsHistoryBody(ch chan any, optionalArgs ...any) 
         productTypeparamsVariable := this.HandleProductTypeAndParams(market, params);
         productType = GetValue(productTypeparamsVariable,0);
         params = GetValue(productTypeparamsVariable,1)
-        utaparamsVariable := (<-this.HandleUTAAndParams(params, "fetchPositionsHistory", false));
+        utaparamsVariable := (<-this.HandleUTAAndParamsAsync(params, "fetchPositionsHistory", false));
         uta = GetValue(utaparamsVariable,0);
         params = GetValue(utaparamsVariable,1)
         if IsEqual(uta, true) {
@@ -14177,7 +14177,7 @@ func (this *Bitget) fetchPositionsHistoryBody(ch chan any, optionalArgs ...any) 
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/?id=conversion-structure}
  */
-func  (this *Bitget) FetchConvertQuote(fromCode any, toCode any, optionalArgs ...any) <- chan any {
+func  (this *Bitget) FetchConvertQuoteAsync(fromCode any, toCode any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchConvertQuoteBody(ch, fromCode, toCode, optionalArgs...)
     return ch
@@ -14191,7 +14191,7 @@ func (this *Bitget) fetchConvertQuoteBody(ch chan any, fromCode any, toCode any,
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes1129212 := (<-this.LoadMarkets())
+            retRes1129212 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes1129212)
         }
         var request map[string]any = map[string]any {
@@ -14241,7 +14241,7 @@ func (this *Bitget) fetchConvertQuoteBody(ch chan any, fromCode any, toCode any,
  * @param {string} params.toAmount the amount you want to trade in units of the toCurrency, obtained from fetchConvertQuote()
  * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/?id=conversion-structure}
  */
-func  (this *Bitget) CreateConvertTrade(id any, fromCode any, toCode any, optionalArgs ...any) <- chan any {
+func  (this *Bitget) CreateConvertTradeAsync(id any, fromCode any, toCode any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.createConvertTradeBody(ch, id, fromCode, toCode, optionalArgs...)
     return ch
@@ -14255,7 +14255,7 @@ func (this *Bitget) createConvertTradeBody(ch chan any, id any, fromCode any, to
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes1134012 := (<-this.LoadMarkets())
+            retRes1134012 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes1134012)
         }
         var price *string = this.SafeString2(params, "price", "cnvtPrice")
@@ -14309,7 +14309,7 @@ func (this *Bitget) createConvertTradeBody(ch chan any, id any, fromCode any, to
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [conversion structures]{@link https://docs.ccxt.com/?id=conversion-structure}
  */
-func  (this *Bitget) FetchConvertTradeHistory(optionalArgs ...any) <- chan any {
+func  (this *Bitget) FetchConvertTradeHistoryAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchConvertTradeHistoryBody(ch, optionalArgs...)
     return ch
@@ -14327,7 +14327,7 @@ func (this *Bitget) fetchConvertTradeHistoryBody(ch chan any, optionalArgs ...an
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes1139212 := (<-this.LoadMarkets())
+            retRes1139212 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes1139212)
         }
         var request map[string]any = map[string]any {}
@@ -14445,7 +14445,7 @@ func  (this *Bitget) ParseConversion(conversion any, optionalArgs ...any) any  {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an associative dictionary of currencies
  */
-func  (this *Bitget) FetchConvertCurrencies(optionalArgs ...any) <- chan any {
+func  (this *Bitget) FetchConvertCurrenciesAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchConvertCurrenciesBody(ch, optionalArgs...)
     return ch
@@ -14457,7 +14457,7 @@ func (this *Bitget) fetchConvertCurrenciesBody(ch chan any, optionalArgs ...any)
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes1150512 := (<-this.LoadMarkets())
+            retRes1150512 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes1150512)
         }
     
@@ -14530,7 +14530,7 @@ func (this *Bitget) fetchConvertCurrenciesBody(ch chan any, optionalArgs ...any)
  * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
  * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
  */
-func  (this *Bitget) FetchFundingInterval(symbol any, optionalArgs ...any) <- chan any {
+func  (this *Bitget) FetchFundingIntervalAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchFundingIntervalBody(ch, symbol, optionalArgs...)
     return ch
@@ -14542,7 +14542,7 @@ func (this *Bitget) fetchFundingIntervalBody(ch chan any, symbol any, optionalAr
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes1157612 := (<-this.LoadMarkets())
+            retRes1157612 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes1157612)
         }
         var market any = this.Market(symbol)
@@ -14555,7 +14555,7 @@ func (this *Bitget) fetchFundingIntervalBody(ch chan any, symbol any, optionalAr
         }
         var response any = nil
         var uta any = nil
-        utaparamsVariable := (<-this.HandleUTAAndParams(params, "fetchFundingInterval", false));
+        utaparamsVariable := (<-this.HandleUTAAndParamsAsync(params, "fetchFundingInterval", false));
         uta = GetValue(utaparamsVariable,0);
         params = GetValue(utaparamsVariable,1)
         if IsEqual(uta, true) {
@@ -14587,7 +14587,7 @@ func (this *Bitget) fetchFundingIntervalBody(ch chan any, symbol any, optionalAr
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} an array of [long short ratio structures]{@link https://docs.ccxt.com/?id=long-short-ratio-structure}
  */
-func  (this *Bitget) FetchLongShortRatioHistory(optionalArgs ...any) <- chan any {
+func  (this *Bitget) FetchLongShortRatioHistoryAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchLongShortRatioHistoryBody(ch, optionalArgs...)
     return ch
@@ -14607,7 +14607,7 @@ func (this *Bitget) fetchLongShortRatioHistoryBody(ch chan any, optionalArgs ...
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes1164412 := (<-this.LoadMarkets())
+            retRes1164412 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes1164412)
         }
         var market any = this.Market(symbol)

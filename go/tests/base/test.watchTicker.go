@@ -5,7 +5,7 @@ import "github.com/ccxt/ccxt/go/v4"
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 
-    func TestWatchTicker(exchange ccxt.ICoreExchange, skippedProperties any, symbol any) <- chan any {
+    func TestWatchTickerAsync(exchange ccxt.ICoreExchange, skippedProperties any, symbol any) <- chan any {
         ch := make(chan any, 1)
         go testWatchTickerBody(ch, exchange, skippedProperties, symbol)
         return ch

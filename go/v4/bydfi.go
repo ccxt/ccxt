@@ -530,7 +530,7 @@ func  (this *Bydfi) Describe() any  {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} an array of objects representing market data
  */
-func  (this *Bydfi) FetchMarkets(optionalArgs ...any) <- chan any {
+func  (this *Bydfi) FetchMarketsAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchMarketsBody(ch, optionalArgs...)
     return ch
@@ -706,7 +706,7 @@ func  (this *Bydfi) ParseMarket(market any) any  {
  * @param {string} [params.loc] crypto location, default: us
  * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
-func  (this *Bydfi) FetchOrderBook(symbol any, optionalArgs ...any) <- chan any {
+func  (this *Bydfi) FetchOrderBookAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchOrderBookBody(ch, symbol, optionalArgs...)
     return ch
@@ -720,7 +720,7 @@ func (this *Bydfi) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...a
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes58612 := (<-this.LoadMarkets())
+            retRes58612 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes58612)
         }
         var market any = this.Market(symbol)
@@ -793,7 +793,7 @@ func  (this *Bydfi) GetClosestLimit(limit any) any  {
  * @param {int} [params.fromId] retrieve from which trade ID to start. Default to retrieve the most recent trade records
  * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
-func  (this *Bydfi) FetchTrades(symbol any, optionalArgs ...any) <- chan any {
+func  (this *Bydfi) FetchTradesAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchTradesBody(ch, symbol, optionalArgs...)
     return ch
@@ -809,7 +809,7 @@ func (this *Bydfi) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any)
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes65812 := (<-this.LoadMarkets())
+            retRes65812 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes65812)
         }
         var market any = this.Market(symbol)
@@ -859,7 +859,7 @@ func (this *Bydfi) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any)
  * @param {string} [params.orderType] order type ('LIMIT', 'MARKET', 'LIQ', 'LIMIT_CLOSE', 'MARKET_CLOSE', 'STOP', 'TAKE_PROFIT', 'STOP_MARKET', 'TAKE_PROFIT_MARKET' or 'TRAILING_STOP_MARKET')
  * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
-func  (this *Bydfi) FetchMyTrades(optionalArgs ...any) <- chan any {
+func  (this *Bydfi) FetchMyTradesAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchMyTradesBody(ch, optionalArgs...)
     return ch
@@ -877,7 +877,7 @@ func (this *Bydfi) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes70612 := (<-this.LoadMarkets())
+            retRes70612 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes70612)
         }
         var paginate any = DerefScalar(this.SafeBool(params, "paginate", false))
@@ -888,7 +888,7 @@ func (this *Bydfi) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
                 "paginationDirection": "backward",
             })
     
-            paginatedResponse:= (<-this.FetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, params, maxLimit, true))
+            paginatedResponse:= (<-this.FetchPaginatedCallDynamicAsync("fetchMyTrades", symbol, since, limit, params, maxLimit, true))
             PanicOnError(paginatedResponse)
     
             ch <- this.SortBy(paginatedResponse, "timestamp")
@@ -1032,7 +1032,7 @@ func  (this *Bydfi) ParseTradeType(typeVar any) any  {
  * @param {int} [params.until] timestamp in ms of the latest candle to fetch
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
-func  (this *Bydfi) FetchOHLCV(symbol any, optionalArgs ...any) <- chan any {
+func  (this *Bydfi) FetchOHLCVAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchOHLCVBody(ch, symbol, optionalArgs...)
     return ch
@@ -1050,7 +1050,7 @@ func (this *Bydfi) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) 
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes85112 := (<-this.LoadMarkets())
+            retRes85112 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes85112)
         }
         var maxLimit int = 500 // docs says max 1500, but in practice only 500 works
@@ -1060,7 +1060,7 @@ func (this *Bydfi) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) 
         params = GetValue(paginateparamsVariable,1)
         if EvalTruthy(paginate) {
     
-            ch <- this.FetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, params, maxLimit)
+            ch <- this.FetchPaginatedCallDeterministicAsync("fetchOHLCV", symbol, since, limit, timeframe, params, maxLimit)
             return nil
         }
         var market any = this.Market(symbol)
@@ -1149,7 +1149,7 @@ func  (this *Bydfi) ParseOHLCV(ohlcv any, optionalArgs ...any) any  {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func  (this *Bydfi) FetchTickers(optionalArgs ...any) <- chan any {
+func  (this *Bydfi) FetchTickersAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchTickersBody(ch, optionalArgs...)
     return ch
@@ -1163,7 +1163,7 @@ func (this *Bydfi) fetchTickersBody(ch chan any, optionalArgs ...any) any {
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes94812 := (<-this.LoadMarkets())
+            retRes94812 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes94812)
         }
     
@@ -1201,7 +1201,7 @@ func (this *Bydfi) fetchTickersBody(ch chan any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func  (this *Bydfi) FetchTicker(symbol any, optionalArgs ...any) <- chan any {
+func  (this *Bydfi) FetchTickerAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchTickerBody(ch, symbol, optionalArgs...)
     return ch
@@ -1213,7 +1213,7 @@ func (this *Bydfi) fetchTickerBody(ch chan any, symbol any, optionalArgs ...any)
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes98412 := (<-this.LoadMarkets())
+            retRes98412 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes98412)
         }
         var market any = this.Market(symbol)
@@ -1282,7 +1282,7 @@ func  (this *Bydfi) ParseTicker(ticker any, optionalArgs ...any) any  {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
  */
-func  (this *Bydfi) FetchFundingRate(symbol any, optionalArgs ...any) <- chan any {
+func  (this *Bydfi) FetchFundingRateAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchFundingRateBody(ch, symbol, optionalArgs...)
     return ch
@@ -1294,7 +1294,7 @@ func (this *Bydfi) fetchFundingRateBody(ch chan any, symbol any, optionalArgs ..
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes105012 := (<-this.LoadMarkets())
+            retRes105012 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes105012)
         }
         var market any = this.Market(symbol)
@@ -1370,7 +1370,7 @@ func  (this *Bydfi) ParseFundingRate(contract any, optionalArgs ...any) any  {
  * @param {int} [params.until] timestamp in ms of the latest funding rate to fetch
  * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
  */
-func  (this *Bydfi) FetchFundingRateHistory(optionalArgs ...any) <- chan any {
+func  (this *Bydfi) FetchFundingRateHistoryAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchFundingRateHistoryBody(ch, optionalArgs...)
     return ch
@@ -1391,7 +1391,7 @@ func (this *Bydfi) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any)
         }
         if IsEqual(this.Markets, nil) {
     
-            retRes112612 := (<-this.LoadMarkets())
+            retRes112612 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes112612)
         }
         var market any = this.Market(symbol)
@@ -1480,7 +1480,7 @@ func  (this *Bydfi) ParseFundingRateHistory(contract any, optionalArgs ...any) a
  * @param {bool} [params.closePosition] true or false, whether to close all positions after triggering, only supported in STOP_MARKET and TAKE_PROFIT_MARKET; not used with quantity;
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Bydfi) CreateOrder(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <- chan any {
+func  (this *Bydfi) CreateOrderAsync(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.createOrderBody(ch, symbol, typeVar, side, amount, optionalArgs...)
     return ch
@@ -1494,7 +1494,7 @@ func (this *Bydfi) createOrderBody(ch chan any, symbol any, typeVar any, side an
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes121012 := (<-this.LoadMarkets())
+            retRes121012 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes121012)
         }
         var market any = this.Market(symbol)
@@ -1671,7 +1671,7 @@ func  (this *Bydfi) EncodeWorkingType(workingType any) any  {
  * @param {string} [params.wallet] The unique code of a sub-wallet. W001 is the default wallet and the main wallet code of the contract
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Bydfi) CreateOrders(orders any, optionalArgs ...any) <- chan any {
+func  (this *Bydfi) CreateOrdersAsync(orders any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.createOrdersBody(ch, orders, optionalArgs...)
     return ch
@@ -1683,7 +1683,7 @@ func (this *Bydfi) createOrdersBody(ch chan any, orders any, optionalArgs ...any
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes138312 := (<-this.LoadMarkets())
+            retRes138312 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes138312)
         }
         var length int =     GetArrayLength(orders)
@@ -1734,7 +1734,7 @@ func (this *Bydfi) createOrdersBody(ch chan any, orders any, optionalArgs ...any
  * @param {string} [params.wallet] The unique code of a sub-wallet. W001 is the default wallet and the main wallet code of the contract
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Bydfi) EditOrder(id any, symbol any, typeVar any, side any, optionalArgs ...any) <- chan any {
+func  (this *Bydfi) EditOrderAsync(id any, symbol any, typeVar any, side any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.editOrderBody(ch, id, symbol, typeVar, side, optionalArgs...)
     return ch
@@ -1750,7 +1750,7 @@ func (this *Bydfi) editOrderBody(ch chan any, id any, symbol any, typeVar any, s
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes143012 := (<-this.LoadMarkets())
+            retRes143012 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes143012)
         }
         var request any = this.CreateEditOrderRequest(id, symbol, "limit", side, amount, price, params)
@@ -1777,7 +1777,7 @@ func (this *Bydfi) editOrderBody(ch chan any, id any, symbol any, typeVar any, s
  * @param {string} [params.wallet] The unique code of a sub-wallet. W001 is the default wallet and the main wallet code of the contract
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Bydfi) EditOrders(orders any, optionalArgs ...any) <- chan any {
+func  (this *Bydfi) EditOrdersAsync(orders any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.editOrdersBody(ch, orders, optionalArgs...)
     return ch
@@ -1789,7 +1789,7 @@ func (this *Bydfi) editOrdersBody(ch chan any, orders any, optionalArgs ...any) 
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes145312 := (<-this.LoadMarkets())
+            retRes145312 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes145312)
         }
         var length int =     GetArrayLength(orders)
@@ -1861,7 +1861,7 @@ func  (this *Bydfi) CreateEditOrderRequest(id any, symbol any, typeVar any, side
  * @param {string} [params.wallet] The unique code of a sub-wallet. W001 is the default wallet and the main wallet code of the contract
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Bydfi) CancelAllOrders(optionalArgs ...any) <- chan any {
+func  (this *Bydfi) CancelAllOrdersAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.cancelAllOrdersBody(ch, optionalArgs...)
     return ch
@@ -1878,7 +1878,7 @@ func (this *Bydfi) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
         }
         if IsEqual(this.Markets, nil) {
     
-            retRes151912 := (<-this.LoadMarkets())
+            retRes151912 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes151912)
         }
         var market any = this.Market(symbol)
@@ -1944,7 +1944,7 @@ func (this *Bydfi) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
  * @param {string} [params.wallet] The unique code of a sub-wallet. W001 is the default wallet and the main wallet code of the contract
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Bydfi) FetchOpenOrders(optionalArgs ...any) <- chan any {
+func  (this *Bydfi) FetchOpenOrdersAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchOpenOrdersBody(ch, optionalArgs...)
     return ch
@@ -1965,7 +1965,7 @@ func (this *Bydfi) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
         }
         if IsEqual(this.Markets, nil) {
     
-            retRes158412 := (<-this.LoadMarkets())
+            retRes158412 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes158412)
         }
         var market any = this.Market(symbol)
@@ -2042,7 +2042,7 @@ func (this *Bydfi) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
  * @param {string} [params.wallet] The unique code of a sub-wallet. W001 is the default wallet and the main wallet code of the contract
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Bydfi) FetchOpenOrder(id any, optionalArgs ...any) <- chan any {
+func  (this *Bydfi) FetchOpenOrderAsync(id any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchOpenOrderBody(ch, id, optionalArgs...)
     return ch
@@ -2059,7 +2059,7 @@ func (this *Bydfi) fetchOpenOrderBody(ch chan any, id any, optionalArgs ...any) 
         }
         if IsEqual(this.Markets, nil) {
     
-            retRes165612 := (<-this.LoadMarkets())
+            retRes165612 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes165612)
         }
         var market any = this.Market(symbol)
@@ -2112,7 +2112,7 @@ func (this *Bydfi) fetchOpenOrderBody(ch chan any, id any, optionalArgs ...any) 
  * @param {string} [params.orderType] order type ('LIMIT', 'MARKET', 'LIQ', 'LIMIT_CLOSE', 'MARKET_CLOSE', 'STOP', 'TAKE_PROFIT', 'STOP_MARKET', 'TAKE_PROFIT_MARKET' or 'TRAILING_STOP_MARKET')
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Bydfi) FetchCanceledAndClosedOrders(optionalArgs ...any) <- chan any {
+func  (this *Bydfi) FetchCanceledAndClosedOrdersAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchCanceledAndClosedOrdersBody(ch, optionalArgs...)
     return ch
@@ -2130,7 +2130,7 @@ func (this *Bydfi) fetchCanceledAndClosedOrdersBody(ch chan any, optionalArgs ..
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes170112 := (<-this.LoadMarkets())
+            retRes170112 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes170112)
         }
         var paginate any = DerefScalar(this.SafeBool(params, "paginate", false))
@@ -2141,7 +2141,7 @@ func (this *Bydfi) fetchCanceledAndClosedOrdersBody(ch chan any, optionalArgs ..
                 "paginationDirection": "backward",
             })
     
-            paginatedResponse:= (<-this.FetchPaginatedCallDynamic("fetchCanceledAndClosedOrders", symbol, since, limit, params, maxLimit, true))
+            paginatedResponse:= (<-this.FetchPaginatedCallDynamicAsync("fetchCanceledAndClosedOrders", symbol, since, limit, params, maxLimit, true))
             PanicOnError(paginatedResponse)
     
             ch <- this.SortBy(paginatedResponse, "timestamp")
@@ -2413,7 +2413,7 @@ func  (this *Bydfi) ParseOrderStatus(status any) any  {
  * @param {string} [params.wallet] The unique code of a sub-wallet. W001 is the default wallet and the main wallet code of the contract
  * @returns {object} response from the exchange
  */
-func  (this *Bydfi) SetLeverage(leverage any, optionalArgs ...any) <- chan any {
+func  (this *Bydfi) SetLeverageAsync(leverage any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.setLeverageBody(ch, leverage, optionalArgs...)
     return ch
@@ -2430,7 +2430,7 @@ func (this *Bydfi) setLeverageBody(ch chan any, leverage any, optionalArgs ...an
         }
         if IsEqual(this.Markets, nil) {
     
-            retRes197412 := (<-this.LoadMarkets())
+            retRes197412 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes197412)
         }
         var market any = this.Market(symbol)
@@ -2461,7 +2461,7 @@ func (this *Bydfi) setLeverageBody(ch chan any, leverage any, optionalArgs ...an
  * @param {string} [params.wallet] The unique code of a sub-wallet. W001 is the default wallet and the main wallet code of the contract
  * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
  */
-func  (this *Bydfi) FetchLeverage(symbol any, optionalArgs ...any) <- chan any {
+func  (this *Bydfi) FetchLeverageAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchLeverageBody(ch, symbol, optionalArgs...)
     return ch
@@ -2476,7 +2476,7 @@ func (this *Bydfi) fetchLeverageBody(ch chan any, symbol any, optionalArgs ...an
         }
         if IsEqual(this.Markets, nil) {
     
-            retRes200412 := (<-this.LoadMarkets())
+            retRes200412 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes200412)
         }
         var market any = this.Market(symbol)
@@ -2531,7 +2531,7 @@ func  (this *Bydfi) ParseLeverage(leverage any, optionalArgs ...any) any  {
  * @param {string} [params.settleCoin] the settlement currency (USDT or USDC or USD)
  * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
  */
-func  (this *Bydfi) FetchPositions(optionalArgs ...any) <- chan any {
+func  (this *Bydfi) FetchPositionsAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchPositionsBody(ch, optionalArgs...)
     return ch
@@ -2545,7 +2545,7 @@ func (this *Bydfi) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes205412 := (<-this.LoadMarkets())
+            retRes205412 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes205412)
         }
         var contractType any = "FUTURE"
@@ -2596,7 +2596,7 @@ func (this *Bydfi) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
  * @param {string} [params.contractType] FUTURE or DELIVERY, default is FUTURE
  * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
  */
-func  (this *Bydfi) FetchPositionsForSymbol(symbol any, optionalArgs ...any) <- chan any {
+func  (this *Bydfi) FetchPositionsForSymbolAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchPositionsForSymbolBody(ch, symbol, optionalArgs...)
     return ch
@@ -2608,7 +2608,7 @@ func (this *Bydfi) fetchPositionsForSymbolBody(ch chan any, symbol any, optional
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes210112 := (<-this.LoadMarkets())
+            retRes210112 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes210112)
         }
         var market any = this.Market(symbol)
@@ -2755,7 +2755,7 @@ func  (this *Bydfi) ParsePositionSide(side any) any  {
  * @param {string} [params.wallet] The unique code of a sub-wallet. W001 is the default wallet and the main wallet code of the contract
  * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
  */
-func  (this *Bydfi) FetchPositionHistory(symbol any, optionalArgs ...any) <- chan any {
+func  (this *Bydfi) FetchPositionHistoryAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchPositionHistoryBody(ch, symbol, optionalArgs...)
     return ch
@@ -2771,7 +2771,7 @@ func (this *Bydfi) fetchPositionHistoryBody(ch chan any, symbol any, optionalArg
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes224412 := (<-this.LoadMarkets())
+            retRes224412 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes224412)
         }
         var market any = this.Market(symbol)
@@ -2812,7 +2812,7 @@ func (this *Bydfi) fetchPositionHistoryBody(ch chan any, symbol any, optionalArg
  * @param {string} [params.wallet] The unique code of a sub-wallet. W001 is the default wallet and the main wallet code of the contract
  * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
  */
-func  (this *Bydfi) FetchPositionsHistory(optionalArgs ...any) <- chan any {
+func  (this *Bydfi) FetchPositionsHistoryAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchPositionsHistoryBody(ch, optionalArgs...)
     return ch
@@ -2830,7 +2830,7 @@ func (this *Bydfi) fetchPositionsHistoryBody(ch chan any, optionalArgs ...any) a
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes228112 := (<-this.LoadMarkets())
+            retRes228112 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes228112)
         }
         var contractType any = "FUTURE"
@@ -2906,7 +2906,7 @@ func (this *Bydfi) fetchPositionsHistoryBody(ch chan any, optionalArgs ...any) a
  * @param {string} [params.wallet] The unique code of a sub-wallet. W001 is the default wallet and the main wallet code of the contract
  * @returns {object} a [margin mode structure]{@link https://docs.ccxt.com/?id=margin-mode-structure}
  */
-func  (this *Bydfi) FetchMarginMode(symbol any, optionalArgs ...any) <- chan any {
+func  (this *Bydfi) FetchMarginModeAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchMarginModeBody(ch, symbol, optionalArgs...)
     return ch
@@ -2918,7 +2918,7 @@ func (this *Bydfi) fetchMarginModeBody(ch chan any, symbol any, optionalArgs ...
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes235312 := (<-this.LoadMarkets())
+            retRes235312 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes235312)
         }
         var market any = this.Market(symbol)
@@ -2977,7 +2977,7 @@ func  (this *Bydfi) ParseMarginMode(marginMode any, optionalArgs ...any) any  {
  * @param {string} [params.wallet] The unique code of a sub-wallet. W001 is the default wallet and the main wallet code of the contract
  * @returns {object} response from the exchange
  */
-func  (this *Bydfi) SetMarginMode(marginMode any, optionalArgs ...any) <- chan any {
+func  (this *Bydfi) SetMarginModeAsync(marginMode any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.setMarginModeBody(ch, marginMode, optionalArgs...)
     return ch
@@ -2998,7 +2998,7 @@ func (this *Bydfi) setMarginModeBody(ch chan any, marginMode any, optionalArgs .
         }
         if IsEqual(this.Markets, nil) {
     
-            retRes241212 := (<-this.LoadMarkets())
+            retRes241212 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes241212)
         }
         var market any = this.Market(symbol)
@@ -3035,7 +3035,7 @@ func (this *Bydfi) setMarginModeBody(ch chan any, marginMode any, optionalArgs .
  * @param {string} [params.settleCoin] The settlement currency - USDT or USDC or USD (default is USDT)
  * @returns {object} response from the exchange
  */
-func  (this *Bydfi) SetPositionMode(hedged any, optionalArgs ...any) <- chan any {
+func  (this *Bydfi) SetPositionModeAsync(hedged any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.setPositionModeBody(ch, hedged, optionalArgs...)
     return ch
@@ -3052,7 +3052,7 @@ func (this *Bydfi) setPositionModeBody(ch chan any, hedged any, optionalArgs ...
         }
         if IsEqual(this.Markets, nil) {
     
-            retRes244612 := (<-this.LoadMarkets())
+            retRes244612 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes244612)
         }
         var positionType any = Ternary(EvalTruthy(hedged), "HEDGE", "ONEWAY")
@@ -3099,7 +3099,7 @@ func (this *Bydfi) setPositionModeBody(ch chan any, hedged any, optionalArgs ...
  * @param {string} [params.settleCoin] The settlement currency - USDT or USDC or USD (default is USDT or settle currency of the market if market is provided)
  * @returns {object} an object detailing whether the market is in hedged or one-way mode
  */
-func  (this *Bydfi) FetchPositionMode(optionalArgs ...any) <- chan any {
+func  (this *Bydfi) FetchPositionModeAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchPositionModeBody(ch, optionalArgs...)
     return ch
@@ -3113,7 +3113,7 @@ func (this *Bydfi) fetchPositionModeBody(ch chan any, optionalArgs ...any) any {
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes248512 := (<-this.LoadMarkets())
+            retRes248512 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes248512)
         }
         var wallet any = "W001"
@@ -3179,7 +3179,7 @@ func (this *Bydfi) fetchPositionModeBody(ch chan any, optionalArgs ...any) any {
  * @param {string} [params.asset] currency id for the balance to fetch
  * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
-func  (this *Bydfi) FetchBalance(optionalArgs ...any) <- chan any {
+func  (this *Bydfi) FetchBalanceAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchBalanceBody(ch, optionalArgs...)
     return ch
@@ -3191,7 +3191,7 @@ func (this *Bydfi) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes254312 := (<-this.LoadMarkets())
+            retRes254312 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes254312)
         }
         var typeVar any = nil
@@ -3298,7 +3298,7 @@ func  (this *Bydfi) ParseBalance(response any) any  {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
-func  (this *Bydfi) Transfer(code any, amount any, fromAccount any, toAccount any, optionalArgs ...any) <- chan any {
+func  (this *Bydfi) TransferAsync(code any, amount any, fromAccount any, toAccount any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.transferBody(ch, code, amount, fromAccount, toAccount, optionalArgs...)
     return ch
@@ -3310,7 +3310,7 @@ func (this *Bydfi) transferBody(ch chan any, code any, amount any, fromAccount a
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes264312 := (<-this.LoadMarkets())
+            retRes264312 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes264312)
         }
         var currency any = this.Currency(code)
@@ -3361,7 +3361,7 @@ func (this *Bydfi) transferBody(ch chan any, code any, amount any, fromAccount a
  * @param {int} [params.until] the latest time in ms to fetch entries for
  * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
-func  (this *Bydfi) FetchTransfers(optionalArgs ...any) <- chan any {
+func  (this *Bydfi) FetchTransfersAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchTransfersBody(ch, optionalArgs...)
     return ch
@@ -3382,7 +3382,7 @@ func (this *Bydfi) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
         }
         if IsEqual(this.Markets, nil) {
     
-            retRes269512 := (<-this.LoadMarkets())
+            retRes269512 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes269512)
         }
         var currency any = this.Currency(code)
@@ -3394,7 +3394,7 @@ func (this *Bydfi) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
                 "paginationDirection": "backward",
             })
     
-            paginatedResponse:= (<-this.FetchPaginatedCallDynamic("fetchTransfers", GetValue(currency, "code"), since, limit, params, maxLimit, true))
+            paginatedResponse:= (<-this.FetchPaginatedCallDynamicAsync("fetchTransfers", GetValue(currency, "code"), since, limit, params, maxLimit, true))
             PanicOnError(paginatedResponse)
     
             ch <- this.SortBy(paginatedResponse, "timestamp")
@@ -3507,7 +3507,7 @@ func  (this *Bydfi) ParaseTransferStatus(status any) any  {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func  (this *Bydfi) FetchDeposits(optionalArgs ...any) <- chan any {
+func  (this *Bydfi) FetchDepositsAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchDepositsBody(ch, optionalArgs...)
     return ch
@@ -3524,7 +3524,7 @@ func (this *Bydfi) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
         params := GetArg(optionalArgs, 3, map[string]any {})
         _ = params
     
-            retRes280915 :=  (<-this.FetchTransactionsHelper("deposit", code, since, limit, params))
+            retRes280915 :=  (<-this.FetchTransactionsHelperAsync("deposit", code, since, limit, params))
             PanicOnError(retRes280915)
             ch <- retRes280915
             return nil
@@ -3540,7 +3540,7 @@ func (this *Bydfi) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func  (this *Bydfi) FetchWithdrawals(optionalArgs ...any) <- chan any {
+func  (this *Bydfi) FetchWithdrawalsAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchWithdrawalsBody(ch, optionalArgs...)
     return ch
@@ -3557,12 +3557,12 @@ func (this *Bydfi) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
         params := GetArg(optionalArgs, 3, map[string]any {})
         _ = params
     
-            retRes282415 :=  (<-this.FetchTransactionsHelper("withdrawal", code, since, limit, params))
+            retRes282415 :=  (<-this.FetchTransactionsHelperAsync("withdrawal", code, since, limit, params))
             PanicOnError(retRes282415)
             ch <- retRes282415
             return nil
 }
-func  (this *Bydfi) FetchTransactionsHelper(typeVar any, code any, since any, limit any, params any) <- chan any {
+func  (this *Bydfi) FetchTransactionsHelperAsync(typeVar any, code any, since any, limit any, params any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchTransactionsHelperBody(ch, typeVar, code, since, limit, params)
     return ch
@@ -3576,7 +3576,7 @@ func (this *Bydfi) fetchTransactionsHelperBody(ch chan any, typeVar any, code an
         }
         if IsEqual(this.Markets, nil) {
     
-            retRes283312 := (<-this.LoadMarkets())
+            retRes283312 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes283312)
         }
         var currency any = this.Currency(code)
@@ -3588,7 +3588,7 @@ func (this *Bydfi) fetchTransactionsHelperBody(ch chan any, typeVar any, code an
                 "paginationDirection": "backward",
             })
     
-            paginatedResponse:= (<-this.FetchPaginatedCallDynamic(methodName, GetValue(currency, "code"), since, limit, params, maxLimit, true))
+            paginatedResponse:= (<-this.FetchPaginatedCallDynamicAsync(methodName, GetValue(currency, "code"), since, limit, params, maxLimit, true))
             PanicOnError(paginatedResponse)
     
             ch <- this.SortBy(paginatedResponse, "timestamp")

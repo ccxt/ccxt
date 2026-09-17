@@ -185,7 +185,7 @@ func  (this *Binance) Nonce() any  {
  * @param {int} [params.limit] for an unscoped listing (no query), the max number of topics to collect (defaults to options.maxFetchMarketsLimit, 200)
  * @returns {object[]} an array of objects representing market data
  */
-func  (this *Binance) FetchMarkets(optionalArgs ...any) <- chan any {
+func  (this *Binance) FetchMarketsAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchMarketsBody(ch, optionalArgs...)
     return ch
@@ -200,7 +200,7 @@ func (this *Binance) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
         if ccxt.IsGreaterThan(queriesLength, 0) {
             var eventParams any = this.Omit(params, []any{"limit"})
     
-            events:= (<-this.FetchEvents(eventParams))
+            events:= (<-this.FetchEventsAsync(eventParams))
             ccxt.PanicOnError(events)
             var eventsLength int =         ccxt.GetArrayLength(events)
             var queryMarkets any = []any{}
@@ -218,7 +218,7 @@ func (this *Binance) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
         var maxMarkets *int64 = this.SafeInteger(params, "limit", this.SafeInteger(this.Options, "maxFetchMarketsLimit", 200))
         var rest any = this.Omit(params, []any{"query", "queries", "limit"})
     
-        rawTopics:= (<-this.FetchRawTopics(maxMarkets, rest))
+        rawTopics:= (<-this.FetchRawTopicsAsync(maxMarkets, rest))
         ccxt.PanicOnError(rawTopics)
         var parsedEvents any = []any{}
         var flatMarkets any = []any{}
@@ -247,7 +247,7 @@ func (this *Binance) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
  * @param {object} [rest] extra params forwarded verbatim to the listing endpoint (l1Category, l2Category, sortBy, orderBy)
  * @returns {object[]} raw market topic objects
  */
-func  (this *Binance) FetchRawTopics(maxTopics any, optionalArgs ...any) <- chan any {
+func  (this *Binance) FetchRawTopicsAsync(maxTopics any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchRawTopicsBody(ch, maxTopics, optionalArgs...)
     return ch
@@ -339,7 +339,7 @@ func (this *Binance) fetchRawTopicsBody(ch chan any, maxTopics any, optionalArgs
  * @param {object} [params] extra params forwarded verbatim to the detail endpoint
  * @returns {object} the raw market topic object
  */
-func  (this *Binance) FetchRawTopicDetail(topicId any, optionalArgs ...any) <- chan any {
+func  (this *Binance) FetchRawTopicDetailAsync(topicId any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchRawTopicDetailBody(ch, topicId, optionalArgs...)
     return ch
@@ -366,7 +366,7 @@ func (this *Binance) fetchRawTopicDetailBody(ch chan any, topicId any, optionalA
  * @param {object[]} rawTopics raw market topic objects
  * @returns {object[]} raw market topic objects with usable nested markets
  */
-func  (this *Binance) CompleteRawTopics(rawTopics any) <- chan any {
+func  (this *Binance) CompleteRawTopicsAsync(rawTopics any) <- chan any {
     ch := make(chan any, 1)
     go this.completeRawTopicsBody(ch, rawTopics)
     return ch
@@ -393,7 +393,7 @@ func (this *Binance) completeRawTopicsBody(ch chan any, rawTopics any) any {
                 var topicId *string = this.SafeString(rawTopic, "marketTopicId")
                 if (topicId != nil) {
     
-                    detail:= (<-this.FetchRawTopicDetail(topicId))
+                    detail:= (<-this.FetchRawTopicDetailAsync(topicId))
                     ccxt.PanicOnError(detail)
                     ccxt.AppendToArray(&result, detail)
                 }
@@ -422,7 +422,7 @@ func (this *Binance) completeRawTopicsBody(ch chan any, rawTopics any) any {
  * @param {string} [params.orderBy] order events by server side ('ASC' | 'DESC'), works when no queries and eveitId provided
  * @returns {object[]} a list of [prediction event structures](https://docs.ccxt.com/#/?id=prediction-event-structure)
  */
-func  (this *Binance) FetchEvents(optionalArgs ...any) <- chan any {
+func  (this *Binance) FetchEventsAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchEventsBody(ch, optionalArgs...)
     return ch
@@ -464,11 +464,11 @@ func (this *Binance) fetchEventsBody(ch chan any, optionalArgs ...any) any {
         var rawTopics any = []any{}
         if ccxt.IsGreaterThan(allQueriesLength, 0) {
             
-        rawTopics = (<-this.FetchEventsByQuery(allQueries, fetchCap, rest))
+        rawTopics = (<-this.FetchEventsByQueryAsync(allQueries, fetchCap, rest))
                 ccxt.PanicOnError(rawTopics)
         } else if (eventId != nil) {
     
-            detail:= (<-this.FetchRawTopicDetail(eventId, rest))
+            detail:= (<-this.FetchRawTopicDetailAsync(eventId, rest))
             ccxt.PanicOnError(detail)
             rawTopics = []any{detail}
         } else {
@@ -496,10 +496,10 @@ func (this *Binance) fetchEventsBody(ch chan any, optionalArgs ...any) any {
                 }
             }
     
-            listed:= (<-this.FetchRawTopics(fetchCap, this.Extend(listingRequest, rest)))
+            listed:= (<-this.FetchRawTopicsAsync(fetchCap, this.Extend(listingRequest, rest)))
             ccxt.PanicOnError(listed)
             
-        rawTopics = (<-this.CompleteRawTopics(listed))
+        rawTopics = (<-this.CompleteRawTopicsAsync(listed))
                 ccxt.PanicOnError(rawTopics)
         }
         var rawTopicsLength int =     ccxt.GetArrayLength(rawTopics)
@@ -538,7 +538,7 @@ func (this *Binance) fetchEventsBody(ch chan any, optionalArgs ...any) any {
  * @param {object} [rest] extra params forwarded verbatim to the search endpoint
  * @returns {object[]} raw market topic objects with usable nested markets
  */
-func  (this *Binance) FetchEventsByQuery(queries any, limit any, optionalArgs ...any) <- chan any {
+func  (this *Binance) FetchEventsByQueryAsync(queries any, limit any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchEventsByQueryBody(ch, queries, limit, optionalArgs...)
     return ch
@@ -595,7 +595,7 @@ func (this *Binance) fetchEventsByQueryBody(ch chan any, queries any, limit any,
             capped = this.ArraySlice(collected, 0, limit)
         }
     
-            retRes48515 :=  (<-this.CompleteRawTopics(capped))
+            retRes48515 :=  (<-this.CompleteRawTopicsAsync(capped))
             ccxt.PanicOnError(retRes48515)
             ch <- retRes48515
             return nil
@@ -609,7 +609,7 @@ func (this *Binance) fetchEventsByQueryBody(ch chan any, queries any, limit any,
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [prediction event structure](https://docs.ccxt.com/#/?id=prediction-event-structure)
  */
-func  (this *Binance) FetchEvent(id any, optionalArgs ...any) <- chan any {
+func  (this *Binance) FetchEventAsync(id any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchEventBody(ch, id, optionalArgs...)
     return ch
@@ -620,7 +620,7 @@ func (this *Binance) fetchEventBody(ch chan any, id any, optionalArgs ...any) an
         params := ccxt.GetArg(optionalArgs, 0, map[string]any {})
         _ = params
     
-        events:= (<-this.FetchEvents(this.Extend(map[string]any {
+        events:= (<-this.FetchEventsAsync(this.Extend(map[string]any {
         "eventId": id,
     }, params)))
         ccxt.PanicOnError(events)
@@ -891,7 +891,7 @@ func  (this *Binance) ParseTopicMarket(rawMarket any, rawTopic any) any  {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a prediction [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
  */
-func  (this *Binance) FetchTicker(outcome any, optionalArgs ...any) <- chan any {
+func  (this *Binance) FetchTickerAsync(outcome any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchTickerBody(ch, outcome, optionalArgs...)
     return ch
@@ -902,7 +902,7 @@ func (this *Binance) fetchTickerBody(ch chan any, outcome any, optionalArgs ...a
         params := ccxt.GetArg(optionalArgs, 0, map[string]any {})
         _ = params
     
-        retRes7568 := (<-this.LoadOutcome(outcome))
+        retRes7568 := (<-this.LoadOutcomeAsync(outcome))
         ccxt.PanicOnError(retRes7568)
         var outcomeObj any = this.Outcome(outcome)
         var info any = this.SafeDict(outcomeObj, "info", map[string]any {})
@@ -992,7 +992,7 @@ func  (this *Binance) ParsePredictionTicker(raw any, optionalArgs ...any) any  {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a dictionary of prediction [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure)
  */
-func  (this *Binance) FetchTickers(optionalArgs ...any) <- chan any {
+func  (this *Binance) FetchTickersAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchTickersBody(ch, optionalArgs...)
     return ch
@@ -1008,7 +1008,7 @@ func (this *Binance) fetchTickersBody(ch chan any, optionalArgs ...any) any {
             panic(ccxt.ArgumentsRequired(ccxt.Add(this.Id, " fetchTickers() requires an outcomes argument — the venue has no all-tickers endpoint; pass the outcome handles to fetch (discover them via fetchEvents ())")))
         }
     
-        retRes8458 := (<-this.LoadOutcomes(outcomes))
+        retRes8458 := (<-this.LoadOutcomesAsync(outcomes))
         ccxt.PanicOnError(retRes8458)
         var responsesByMarketId map[string]any = map[string]any {}
         var result map[string]any = map[string]any {}
@@ -1048,7 +1048,7 @@ func (this *Binance) fetchTickersBody(ch chan any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a prediction [order book structure](https://docs.ccxt.com/#/?id=order-book-structure)
  */
-func  (this *Binance) FetchOrderBook(outcome any, optionalArgs ...any) <- chan any {
+func  (this *Binance) FetchOrderBookAsync(outcome any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchOrderBookBody(ch, outcome, optionalArgs...)
     return ch
@@ -1061,7 +1061,7 @@ func (this *Binance) fetchOrderBookBody(ch chan any, outcome any, optionalArgs .
         params := ccxt.GetArg(optionalArgs, 1, map[string]any {})
         _ = params
     
-        retRes8828 := (<-this.LoadOutcome(outcome))
+        retRes8828 := (<-this.LoadOutcomeAsync(outcome))
         ccxt.PanicOnError(retRes8828)
         var outcomeObj any = this.Outcome(outcome)
         var info any = this.SafeDict(outcomeObj, "info", map[string]any {})
@@ -1097,7 +1097,7 @@ func (this *Binance) fetchOrderBookBody(ch chan any, outcome any, optionalArgs .
  * @param {string} [params.type] 'CeDefi', 'FUNDING', or 'SPOT'
  * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
-func  (this *Binance) FetchBalance(optionalArgs ...any) <- chan any {
+func  (this *Binance) FetchBalanceAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchBalanceBody(ch, optionalArgs...)
     return ch
@@ -1254,7 +1254,7 @@ func  (this *Binance) ParseOrderStatus(status any) any  {
  * @param {boolean} [params.paginate] *spot only* default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
  * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
  */
-func  (this *Binance) FetchOpenOrders(optionalArgs ...any) <- chan any {
+func  (this *Binance) FetchOpenOrdersAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchOpenOrdersBody(ch, optionalArgs...)
     return ch
@@ -1281,7 +1281,7 @@ func (this *Binance) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
         var pageKey string = "ccxtPageKey"
         if ccxt.EvalTruthy(paginate) {
     
-                retRes106719 :=  (<-this.FetchPaginatedCallIncremental("fetchOpenOrders", outcome, since, limit, params, pageKey, maxEntriesPerRequest))
+                retRes106719 :=  (<-this.FetchPaginatedCallIncrementalAsync("fetchOpenOrders", outcome, since, limit, params, pageKey, maxEntriesPerRequest))
                 ccxt.PanicOnError(retRes106719)
                 ch <- retRes106719
                 return nil
@@ -1295,7 +1295,7 @@ func (this *Binance) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
         var outcomeObj any = nil
         if !ccxt.IsEqual(outcome, nil) {
     
-            retRes107712 := (<-this.LoadOutcome(outcome))
+            retRes107712 := (<-this.LoadOutcomeAsync(outcome))
             ccxt.PanicOnError(retRes107712)
             outcomeObj = this.Outcome(outcome)
             var market any = this.Market(ccxt.GetValue(outcomeObj, "market"))
@@ -1305,7 +1305,7 @@ func (this *Binance) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
             ccxt.AddElementToObject(request, "limit", limit)
         }
     
-        wallet:= (<-this.FetchWallet("fetchOpenOrders", params))
+        wallet:= (<-this.FetchWalletAsync("fetchOpenOrders", params))
         ccxt.PanicOnError(wallet)
         ccxt.AddElementToObject(request, "walletAddress", ccxt.GetValue(wallet, "walletAddress"))
     
@@ -1367,7 +1367,7 @@ func (this *Binance) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
  * @param {boolean} [params.paginate] *spot only* default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
  * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
  */
-func  (this *Binance) FetchOrders(optionalArgs ...any) <- chan any {
+func  (this *Binance) FetchOrdersAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchOrdersBody(ch, optionalArgs...)
     return ch
@@ -1394,7 +1394,7 @@ func (this *Binance) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
         var pageKey string = "ccxtPageKey"
         if ccxt.EvalTruthy(paginate) {
     
-                retRes115019 :=  (<-this.FetchPaginatedCallIncremental("fetchOrders", outcome, since, limit, params, pageKey, maxEntriesPerRequest))
+                retRes115019 :=  (<-this.FetchPaginatedCallIncrementalAsync("fetchOrders", outcome, since, limit, params, pageKey, maxEntriesPerRequest))
                 ccxt.PanicOnError(retRes115019)
                 ch <- retRes115019
                 return nil
@@ -1408,7 +1408,7 @@ func (this *Binance) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
         var outcomeObj any = nil
         if !ccxt.IsEqual(outcome, nil) {
     
-            retRes116012 := (<-this.LoadOutcome(outcome))
+            retRes116012 := (<-this.LoadOutcomeAsync(outcome))
             ccxt.PanicOnError(retRes116012)
             outcomeObj = this.Outcome(outcome)
         }
@@ -1424,7 +1424,7 @@ func (this *Binance) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
             ccxt.AddElementToObject(request, "endDate", this.Yyyymmdd(until))
         }
     
-        wallet:= (<-this.FetchWallet("fetchOrders", params))
+        wallet:= (<-this.FetchWalletAsync("fetchOrders", params))
         ccxt.PanicOnError(wallet)
         ccxt.AddElementToObject(request, "walletAddress", ccxt.GetValue(wallet, "walletAddress"))
     
@@ -1481,7 +1481,7 @@ func (this *Binance) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
  * @param {string} [params.tab] ccxt.Position status tab. Values from PositionQueryType. Default ONGOING
  * @returns {object[]} a list of [prediction position structures](https://docs.ccxt.com/#/?id=prediction-position-structure)
  */
-func  (this *Binance) FetchPositions(optionalArgs ...any) <- chan any {
+func  (this *Binance) FetchPositionsAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchPositionsBody(ch, optionalArgs...)
     return ch
@@ -1494,7 +1494,7 @@ func (this *Binance) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
         params := ccxt.GetArg(optionalArgs, 1, map[string]any {})
         _ = params
     
-        retRes12288 := (<-this.LoadOutcomes())
+        retRes12288 := (<-this.LoadOutcomesAsync())
         ccxt.PanicOnError(retRes12288)
         var requestedOutcomeSymbols map[string]any = map[string]any {}
         if !ccxt.IsEqual(outcomes, nil) {
@@ -1506,7 +1506,7 @@ func (this *Binance) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
             }
         }
     
-        wallet:= (<-this.FetchWallet("fetchPositions", params))
+        wallet:= (<-this.FetchWalletAsync("fetchPositions", params))
         ccxt.PanicOnError(wallet)
         var request map[string]any = map[string]any {
             "walletAddress": ccxt.GetValue(wallet, "walletAddress"),
@@ -1592,7 +1592,7 @@ func (this *Binance) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [prediction position structures](https://docs.ccxt.com/#/?id=prediction-position-structure)
  */
-func  (this *Binance) FetchPosition(outcome any, optionalArgs ...any) <- chan any {
+func  (this *Binance) FetchPositionAsync(outcome any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchPositionBody(ch, outcome, optionalArgs...)
     return ch
@@ -1606,14 +1606,14 @@ func (this *Binance) fetchPositionBody(ch chan any, outcome any, optionalArgs ..
         var outcomeObj any = nil
         if !ccxt.IsEqual(outcome, nil) {
     
-            retRes132212 := (<-this.LoadOutcome(outcome))
+            retRes132212 := (<-this.LoadOutcomeAsync(outcome))
             ccxt.PanicOnError(retRes132212)
             outcomeObj = this.Outcome(outcome)
             var market any = this.Market(ccxt.GetValue(outcomeObj, "market"))
             ccxt.AddElementToObject(request, "marketTopicId", ccxt.GetValue(ccxt.GetValue(market, "info"), "marketTopicId"))
         }
     
-        wallet:= (<-this.FetchWallet("fetchOrders", params))
+        wallet:= (<-this.FetchWalletAsync("fetchOrders", params))
         ccxt.PanicOnError(wallet)
         ccxt.AddElementToObject(request, "walletAddress", ccxt.GetValue(wallet, "walletAddress"))
     
@@ -1699,7 +1699,7 @@ func  (this *Binance) ParsePredictionPosition(position any, optionalArgs ...any)
  * @param {boolean} [params.paginate] *spot only* default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
  * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
  */
-func  (this *Binance) FetchMyTrades(optionalArgs ...any) <- chan any {
+func  (this *Binance) FetchMyTradesAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchMyTradesBody(ch, optionalArgs...)
     return ch
@@ -1726,7 +1726,7 @@ func (this *Binance) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
         var pageKey string = "ccxtPageKey"
         if ccxt.EvalTruthy(paginate) {
     
-                retRes141519 :=  (<-this.FetchPaginatedCallIncremental("fetchMyTrades", outcome, since, limit, params, pageKey, maxEntriesPerRequest))
+                retRes141519 :=  (<-this.FetchPaginatedCallIncrementalAsync("fetchMyTrades", outcome, since, limit, params, pageKey, maxEntriesPerRequest))
                 ccxt.PanicOnError(retRes141519)
                 ch <- retRes141519
                 return nil
@@ -1742,7 +1742,7 @@ func (this *Binance) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
         var outcomeObj any = nil
         if !ccxt.IsEqual(outcome, nil) {
     
-            retRes142712 := (<-this.LoadOutcome(outcome))
+            retRes142712 := (<-this.LoadOutcomeAsync(outcome))
             ccxt.PanicOnError(retRes142712)
             outcomeObj = this.Outcome(outcome)
         }
@@ -1758,7 +1758,7 @@ func (this *Binance) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
             ccxt.AddElementToObject(request, "endDate", this.Yyyymmdd(until))
         }
     
-        wallet:= (<-this.FetchWallet("fetchMyTrades", params))
+        wallet:= (<-this.FetchWalletAsync("fetchMyTrades", params))
         ccxt.PanicOnError(wallet)
         ccxt.AddElementToObject(request, "walletAddress", ccxt.GetValue(wallet, "walletAddress"))
     
@@ -1900,7 +1900,7 @@ func  (this *Binance) ParsePredictionTrade(trade any, optionalArgs ...any) any  
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a wallet
  */
-func  (this *Binance) FetchWallet(methodName any, optionalArgs ...any) <- chan any {
+func  (this *Binance) FetchWalletAsync(methodName any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchWalletBody(ch, methodName, optionalArgs...)
     return ch
@@ -1971,7 +1971,7 @@ func (this *Binance) fetchWalletBody(ch chan any, methodName any, optionalArgs .
  * @param {string} [params.fundTransferAmount] Auto-transfer amount before order (wei). Must be > 0 if provided
  * @returns {object} a quote
  */
-func  (this *Binance) FetchQuote(request any, optionalArgs ...any) <- chan any {
+func  (this *Binance) FetchQuoteAsync(request any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchQuoteBody(ch, request, optionalArgs...)
     return ch
@@ -2056,7 +2056,7 @@ func  (this *Binance) AmountToPrecision(outcome any, amount any) any  {
  * @param {string} [params.cost] Buy prediction market with USDT cost, only for buy side
  * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
  */
-func  (this *Binance) CreateOrder(outcome any, typeVar any, side any, amount any, optionalArgs ...any) <- chan any {
+func  (this *Binance) CreateOrderAsync(outcome any, typeVar any, side any, amount any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.createOrderBody(ch, outcome, typeVar, side, amount, optionalArgs...)
     return ch
@@ -2069,7 +2069,7 @@ func (this *Binance) createOrderBody(ch chan any, outcome any, typeVar any, side
         params := ccxt.GetArg(optionalArgs, 1, map[string]any {})
         _ = params
     
-        retRes17078 := (<-this.LoadOutcome(outcome))
+        retRes17078 := (<-this.LoadOutcomeAsync(outcome))
         ccxt.PanicOnError(retRes17078)
         var outcomeObj any = this.Outcome(outcome)
         // markets are keyed by the parent market outcome; the outcome handle ("MARKET:LABEL")
@@ -2079,7 +2079,7 @@ func (this *Binance) createOrderBody(ch chan any, outcome any, typeVar any, side
         var typeUpper string = ccxt.ToUpper(typeVar)
         var sideUpper string = ccxt.ToUpper(side)
     
-        wallet:= (<-this.FetchWallet("createOrder", params))
+        wallet:= (<-this.FetchWalletAsync("createOrder", params))
         ccxt.PanicOnError(wallet)
         var defaultSlippage *string = this.SafeString(this.Options, "defaultSlippage", "0.05")
         var slippage *string = this.SafeString(params, "slippage", defaultSlippage)
@@ -2131,7 +2131,7 @@ func (this *Binance) createOrderBody(ch chan any, outcome any, typeVar any, side
             "amountIn": ccxt.Precise.StringMul(this.AmountToPrecision(marketSymbol, amountStr), "1000000000000000000"),
         })
     
-        quote:= (<-this.FetchQuote(quoteRequest, params))
+        quote:= (<-this.FetchQuoteAsync(quoteRequest, params))
         ccxt.PanicOnError(quote)
         var quoteId *string = this.SafeString(quote, "quoteId")
         var orderRequest map[string]any = this.Extend(commonRequest, map[string]any {
@@ -2178,7 +2178,7 @@ func (this *Binance) createOrderBody(ch chan any, outcome any, typeVar any, side
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *Binance) CreateMarketOrderWithCost(symbol any, side any, cost any, optionalArgs ...any) <- chan any {
+func  (this *Binance) CreateMarketOrderWithCostAsync(symbol any, side any, cost any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.createMarketOrderWithCostBody(ch, symbol, side, cost, optionalArgs...)
     return ch
@@ -2192,7 +2192,7 @@ func (this *Binance) createMarketOrderWithCostBody(ch chan any, symbol any, side
             "cost": cost,
         }
     
-            retRes181215 :=  (<-this.CreateOrder(symbol, "market", side, cost, nil, this.Extend(req, params)))
+            retRes181215 :=  (<-this.CreateOrderAsync(symbol, "market", side, cost, nil, this.Extend(req, params)))
             ccxt.PanicOnError(retRes181215)
             ch <- retRes181215
             return nil
@@ -2207,7 +2207,7 @@ func (this *Binance) createMarketOrderWithCostBody(ch chan any, symbol any, side
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
  */
-func  (this *Binance) CancelOrder(id any, optionalArgs ...any) <- chan any {
+func  (this *Binance) CancelOrderAsync(id any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.cancelOrderBody(ch, id, optionalArgs...)
     return ch
@@ -2220,7 +2220,7 @@ func (this *Binance) cancelOrderBody(ch chan any, id any, optionalArgs ...any) a
         params := ccxt.GetArg(optionalArgs, 1, map[string]any {})
         _ = params
     
-        orders:= (<-this.CancelOrders([]any{id}, outcome, params))
+        orders:= (<-this.CancelOrdersAsync([]any{id}, outcome, params))
         ccxt.PanicOnError(orders)
     
         ch <- this.SafeDict(orders, 0, map[string]any {})
@@ -2236,7 +2236,7 @@ func (this *Binance) cancelOrderBody(ch chan any, id any, optionalArgs ...any) a
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
  */
-func  (this *Binance) CancelOrders(ids any, optionalArgs ...any) <- chan any {
+func  (this *Binance) CancelOrdersAsync(ids any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.cancelOrdersBody(ch, ids, optionalArgs...)
     return ch
@@ -2251,12 +2251,12 @@ func (this *Binance) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any)
         var outcomeObj any = nil
         if !ccxt.IsEqual(outcome, nil) {
     
-            retRes184312 := (<-this.LoadOutcome(outcome))
+            retRes184312 := (<-this.LoadOutcomeAsync(outcome))
             ccxt.PanicOnError(retRes184312)
             outcomeObj = this.Outcome(outcome)
         }
     
-        wallet:= (<-this.FetchWallet("cancelOrders", params))
+        wallet:= (<-this.FetchWalletAsync("cancelOrders", params))
         ccxt.PanicOnError(wallet)
         var request map[string]any = map[string]any {
             "walletAddress": ccxt.GetValue(wallet, "walletAddress"),

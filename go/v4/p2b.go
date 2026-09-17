@@ -351,7 +351,7 @@ func  (this *P2b) Describe() any  {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} an array of objects representing market data
  */
-func  (this *P2b) FetchMarkets(optionalArgs ...any) <- chan any {
+func  (this *P2b) FetchMarketsAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchMarketsBody(ch, optionalArgs...)
     return ch
@@ -466,7 +466,7 @@ func  (this *P2b) ParseMarket(market any) any  {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func  (this *P2b) FetchTickers(optionalArgs ...any) <- chan any {
+func  (this *P2b) FetchTickersAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchTickersBody(ch, optionalArgs...)
     return ch
@@ -480,7 +480,7 @@ func (this *P2b) fetchTickersBody(ch chan any, optionalArgs ...any) any {
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes44912 := (<-this.LoadMarkets())
+            retRes44912 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes44912)
         }
     
@@ -525,7 +525,7 @@ func (this *P2b) fetchTickersBody(ch chan any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func  (this *P2b) FetchTicker(symbol any, optionalArgs ...any) <- chan any {
+func  (this *P2b) FetchTickerAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchTickerBody(ch, symbol, optionalArgs...)
     return ch
@@ -537,7 +537,7 @@ func (this *P2b) fetchTickerBody(ch chan any, symbol any, optionalArgs ...any) a
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes49212 := (<-this.LoadMarkets())
+            retRes49212 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes49212)
         }
         var market any = this.Market(symbol)
@@ -651,7 +651,7 @@ func  (this *P2b) ParseTicker(ticker any, optionalArgs ...any) any  {
  * @param {string} [params.interval] 0 (default), 0.00000001, 0.0000001, 0.000001, 0.00001, 0.0001, 0.001, 0.01, 0.1, 1
  * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
-func  (this *P2b) FetchOrderBook(symbol any, optionalArgs ...any) <- chan any {
+func  (this *P2b) FetchOrderBookAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchOrderBookBody(ch, symbol, optionalArgs...)
     return ch
@@ -665,7 +665,7 @@ func (this *P2b) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...any
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes60312 := (<-this.LoadMarkets())
+            retRes60312 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes60312)
         }
         var market any = this.Market(symbol)
@@ -721,7 +721,7 @@ func (this *P2b) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...any
  * @param {int} params.lastId order id
  * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
-func  (this *P2b) FetchTrades(symbol any, optionalArgs ...any) <- chan any {
+func  (this *P2b) FetchTradesAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchTradesBody(ch, symbol, optionalArgs...)
     return ch
@@ -737,7 +737,7 @@ func (this *P2b) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any) a
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes65712 := (<-this.LoadMarkets())
+            retRes65712 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes65712)
         }
         var lastId *int64 = this.SafeInteger(params, "lastId")
@@ -861,7 +861,7 @@ func  (this *P2b) ParseTrade(trade any, optionalArgs ...any) any  {
  * @param {int} [params.offset] default=0, with this value the last candles are returned
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
-func  (this *P2b) FetchOHLCV(symbol any, optionalArgs ...any) <- chan any {
+func  (this *P2b) FetchOHLCVAsync(symbol any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchOHLCVBody(ch, symbol, optionalArgs...)
     return ch
@@ -879,7 +879,7 @@ func (this *P2b) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) an
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes77812 := (<-this.LoadMarkets())
+            retRes77812 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes77812)
         }
         var market any = this.Market(symbol)
@@ -945,7 +945,7 @@ func  (this *P2b) ParseOHLCV(ohlcv any, optionalArgs ...any) any  {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
-func  (this *P2b) FetchBalance(optionalArgs ...any) <- chan any {
+func  (this *P2b) FetchBalanceAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchBalanceBody(ch, optionalArgs...)
     return ch
@@ -957,7 +957,7 @@ func (this *P2b) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes84812 := (<-this.LoadMarkets())
+            retRes84812 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes84812)
         }
     
@@ -1029,7 +1029,7 @@ func  (this *P2b) ParseBalance(response any) any  {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *P2b) CreateOrder(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <- chan any {
+func  (this *P2b) CreateOrderAsync(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.createOrderBody(ch, symbol, typeVar, side, amount, optionalArgs...)
     return ch
@@ -1043,7 +1043,7 @@ func (this *P2b) createOrderBody(ch chan any, symbol any, typeVar any, side any,
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes91912 := (<-this.LoadMarkets())
+            retRes91912 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes91912)
         }
         if (IsEqual(typeVar, "market")) {
@@ -1096,7 +1096,7 @@ func (this *P2b) createOrderBody(ch chan any, symbol any, typeVar any, side any,
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *P2b) CancelOrder(id any, optionalArgs ...any) <- chan any {
+func  (this *P2b) CancelOrderAsync(id any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.cancelOrderBody(ch, id, optionalArgs...)
     return ch
@@ -1113,7 +1113,7 @@ func (this *P2b) cancelOrderBody(ch chan any, id any, optionalArgs ...any) any {
         }
         if IsEqual(this.Markets, nil) {
     
-            retRes97312 := (<-this.LoadMarkets())
+            retRes97312 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes97312)
         }
         var market any = this.Market(symbol)
@@ -1165,7 +1165,7 @@ func (this *P2b) cancelOrderBody(ch chan any, id any, optionalArgs ...any) any {
  * @param {int} [params.offset] 0-10000, default=0
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *P2b) FetchOpenOrders(optionalArgs ...any) <- chan any {
+func  (this *P2b) FetchOpenOrdersAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchOpenOrdersBody(ch, optionalArgs...)
     return ch
@@ -1186,7 +1186,7 @@ func (this *P2b) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
         }
         if IsEqual(this.Markets, nil) {
     
-            retRes102612 := (<-this.LoadMarkets())
+            retRes102612 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes102612)
         }
         var market any = this.Market(symbol)
@@ -1244,7 +1244,7 @@ func (this *P2b) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
  * @param {int} [params.offset] 0-10000, default=0
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
-func  (this *P2b) FetchOrderTrades(id any, optionalArgs ...any) <- chan any {
+func  (this *P2b) FetchOrderTradesAsync(id any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchOrderTradesBody(ch, id, optionalArgs...)
     return ch
@@ -1262,7 +1262,7 @@ func (this *P2b) fetchOrderTradesBody(ch chan any, id any, optionalArgs ...any) 
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes108212 := (<-this.LoadMarkets())
+            retRes108212 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes108212)
         }
         var market any = this.SafeMarket(symbol)
@@ -1319,7 +1319,7 @@ func (this *P2b) fetchOrderTradesBody(ch chan any, id any, optionalArgs ...any) 
  * @param {int} [params.offset] 0-10000, default=0
  * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
-func  (this *P2b) FetchMyTrades(optionalArgs ...any) <- chan any {
+func  (this *P2b) FetchMyTradesAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchMyTradesBody(ch, optionalArgs...)
     return ch
@@ -1340,7 +1340,7 @@ func (this *P2b) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
         }
         if IsEqual(this.Markets, nil) {
     
-            retRes114012 := (<-this.LoadMarkets())
+            retRes114012 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes114012)
         }
         var until any = DerefScalar(this.SafeInteger(params, "until"))
@@ -1419,7 +1419,7 @@ func (this *P2b) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
  * @param {int} [params.offset] 0-10000, default=0
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *P2b) FetchClosedOrders(optionalArgs ...any) <- chan any {
+func  (this *P2b) FetchClosedOrdersAsync(optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
     go this.fetchClosedOrdersBody(ch, optionalArgs...)
     return ch
@@ -1437,7 +1437,7 @@ func (this *P2b) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any {
         _ = params
         if IsEqual(this.Markets, nil) {
     
-            retRes121712 := (<-this.LoadMarkets())
+            retRes121712 := (<-this.LoadMarketsAsync())
             PanicOnError(retRes121712)
         }
         var until any = DerefScalar(this.SafeInteger(params, "until"))
