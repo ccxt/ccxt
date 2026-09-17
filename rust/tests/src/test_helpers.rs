@@ -435,11 +435,21 @@ pub fn preloadWsMessages(_exchange: Value, url: Value, messages: Value) -> Value
     Value::Null
 }
 
-/// Whether the mock inbound queue still has frames to drain — the
-/// parsedResponse loop keeps re-watching until every frame is consumed so the
-/// asserted structure reflects the final state after all deltas.
-pub fn wsHasQueuedMessages(_exchange: Value, url: Value) -> Value {
-    Value::Bool(ccxt::pro::ws_client::mock_has_queued_messages(&ws_url(&url)))
+/// Finish a single-result fixture after its watch has resolved. Replay directly
+/// into the same Core, as the other language injectors do, without opening a new
+/// watch future that could consume a later rejection. Handler panics propagate.
+pub async fn drainWsMessages(exchange: Value, url: Value) -> Value {
+    let u = ws_url(&url);
+    let id = ws_url(&ccxt::get_value(&exchange, &Value::Str("id".into())));
+    let client = ccxt::pro::ws_client::get_client(&u)
+        .expect("static WS replay requires a mock client");
+    while client.has_queued_messages() {
+        let message = client.next_message().await.expect("queued mock frame disappeared");
+        crate::live_dispatch::live_call(
+            &id, "handle_message", vec![ccxt::pro::ws_client::client_value(&u), message],
+        ).await;
+    }
+    Value::Null
 }
 
 #[cfg(feature = "exchange-tests")]
