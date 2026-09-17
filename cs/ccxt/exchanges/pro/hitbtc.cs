@@ -281,7 +281,7 @@ public partial class hitbtc : ccxt.hitbtc
         {
             string? marketId = ((string)getValue(marketIds, i));
             Dictionary<string, object> market = this.safeMarket(marketId);
-            object symbol = getValue(market, "symbol");
+            string? symbol = ((string)getValue(market, "symbol"));
             object item = getValue(data, marketId);
             string messageHash = add("orderbooks::", symbol);
             if (!isTrue((inOp(this.orderbooks, symbol))))
@@ -295,7 +295,7 @@ public partial class hitbtc : ccxt.hitbtc
             Int64? nonce = this.safeInteger(item, "s");
             if (isTrue(isEqual(type, "snapshot")))
             {
-                object parsedSnapshot = this.parseOrderBook(item, symbol, timestamp, "b", "a");
+                Dictionary<string, object> parsedSnapshot = ((Dictionary<string, object>)this.parseOrderBook(item, symbol, timestamp, "b", "a"));
                 (orderbook as IOrderBook).reset(parsedSnapshot);
             } else
             {
@@ -456,11 +456,11 @@ public partial class hitbtc : ccxt.hitbtc
         {
             string? marketId = ((string)getValue(marketIds, i));
             Dictionary<string, object> market = this.safeMarket(marketId);
-            object symbol = getValue(market, "symbol");
-            object ticker = this.parseWsTicker(getValue(data, marketId), market);
+            string? symbol = ((string)getValue(market, "symbol"));
+            Dictionary<string, object> ticker = ((Dictionary<string, object>)this.parseWsTicker(getValue(data, marketId), market));
             ((IDictionary<string,object>)this.tickers)[(string)symbol] = ticker;
             ((IList<object>)result).Add(ticker);
-            object messageHash = add(add(topic, "::"), symbol);
+            string messageHash = add(add(topic, "::"), symbol);
             callDynamically(client as WebSocketClient, "resolve", new object[] {ticker, messageHash});
         }
         callDynamically(client as WebSocketClient, "resolve", new object[] {result, topic});
@@ -593,11 +593,11 @@ public partial class hitbtc : ccxt.hitbtc
         {
             string? marketId = ((string)getValue(marketIds, i));
             Dictionary<string, object> market = this.safeMarket(marketId);
-            object symbol = getValue(market, "symbol");
-            object ticker = this.parseWsBidAsk(getValue(data, marketId), market);
+            string? symbol = ((string)getValue(market, "symbol"));
+            Dictionary<string, object> ticker = ((Dictionary<string, object>)this.parseWsBidAsk(getValue(data, marketId), market));
             ((IDictionary<string,object>)this.bidsasks)[(string)symbol] = ticker;
             ((IList<object>)result).Add(ticker);
-            object messageHash = add(add(topic, "::"), symbol);
+            string messageHash = add(add(topic, "::"), symbol);
             callDynamically(client as WebSocketClient, "resolve", new object[] {ticker, messageHash});
         }
         callDynamically(client as WebSocketClient, "resolve", new object[] {result, topic});
@@ -705,7 +705,7 @@ public partial class hitbtc : ccxt.hitbtc
             string? marketId = ((string)getValue(marketIds, i));
             Dictionary<string, object> market = this.safeMarket(marketId);
             Int64? tradesLimit = this.safeInteger(this.options, "tradesLimit", 1000);
-            object symbol = getValue(market, "symbol");
+            string? symbol = ((string)getValue(market, "symbol"));
             object stored = this.safeValue(this.trades, symbol);
             if (isTrue(isEqual(stored, null)))
             {
@@ -781,7 +781,7 @@ public partial class hitbtc : ccxt.hitbtc
      */
     public async override Task<List<ccxt.OHLCV>> WatchOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object timeframeVar = timeframe;
+        string timeframeVar = timeframe;
         object limitVar = limit;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
@@ -845,7 +845,7 @@ public partial class hitbtc : ccxt.hitbtc
         string? channel = this.safeString(message, "ch", "");
         List<object> splitChannel = ((string)channel).Split(new [] {((string)"/")}, StringSplitOptions.None).ToList<object>();
         string? period = this.safeString(splitChannel, 1);
-        object timeframe = this.findTimeframe(period);
+        string? timeframe = this.findTimeframe(period);
         if (isTrue(isEqual(timeframe, null)))
         {
             return message;
@@ -854,7 +854,7 @@ public partial class hitbtc : ccxt.hitbtc
         {
             string? marketId = ((string)getValue(marketIds, i));
             Dictionary<string, object> market = this.safeMarket(marketId);
-            object symbol = getValue(market, "symbol");
+            string? symbol = ((string)getValue(market, "symbol"));
             ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = this.safeValue(this.ohlcvs, symbol, new Dictionary<string, object>() {});
             object stored = this.safeValue(this.safeValue(this.ohlcvs, symbol), timeframe);
             if (isTrue(isEqual(stored, null)))
@@ -911,14 +911,14 @@ public partial class hitbtc : ccxt.hitbtc
         {
             await this.loadMarkets();
         }
-        object marketType = null;
+        string? marketType = null;
         IDictionary<string, object> market = null;
         if (isTrue(!isEqual(symbol, null)))
         {
             market = this.market(symbol);
         }
         IList<object> marketTypeparametersVariable = (IList<object>)this.handleMarketTypeAndParams("watchOrders", market, parameters);
-        marketType = ((IList<object>)marketTypeparametersVariable)[0];
+        marketType = (string)((IList<object>)marketTypeparametersVariable)[0];
         parameters = ((IList<object>)marketTypeparametersVariable)[1];
         object name = this.getSupportedMapping(marketType, new Dictionary<string, object>() {
             { "spot", "spot_subscribe" },
@@ -1029,7 +1029,7 @@ public partial class hitbtc : ccxt.hitbtc
         List<object> splitMethod = ((string)method).Split(new [] {((string)"_order")}, StringSplitOptions.None).ToList<object>();
         object messageHash = this.safeString(splitMethod, 0);
         string? symbol = this.safeSymbol(marketId);
-        object parsed = this.parseOrder(order);
+        Dictionary<string, object> parsed = this.parseOrder(order);
         callDynamically(orders, "append", new object[] {parsed});
         callDynamically(client as WebSocketClient, "resolve", new object[] {orders, messageHash});
         callDynamically(client as WebSocketClient, "resolve", new object[] {orders, add(add(messageHash, "::"), symbol)});
@@ -1121,7 +1121,7 @@ public partial class hitbtc : ccxt.hitbtc
         List<object> trades = null;
         if (isTrue(!isEqual(tradeId, null)))
         {
-            object trade = this.parseWsOrderTrade(order, market);
+            Dictionary<string, object> trade = ((Dictionary<string, object>)this.parseWsOrderTrade(order, market));
             trades = new List<object>() {trade};
         }
         string? rawStatus = this.safeString(order, "status");
@@ -1179,9 +1179,9 @@ public partial class hitbtc : ccxt.hitbtc
         {
             await this.loadMarkets();
         }
-        object type = null;
+        string? type = null;
         IList<object> typeparametersVariable = (IList<object>)this.handleMarketTypeAndParams("watchBalance", null, parameters);
-        type = ((IList<object>)typeparametersVariable)[0];
+        type = (string)((IList<object>)typeparametersVariable)[0];
         parameters = ((IList<object>)typeparametersVariable)[1];
         object name = this.getSupportedMapping(type, new Dictionary<string, object>() {
             { "spot", "spot_balance_subscribe" },
@@ -1225,9 +1225,9 @@ public partial class hitbtc : ccxt.hitbtc
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {};
-        object marketType = null;
+        string? marketType = null;
         IList<object> marketTypeparametersVariable = (IList<object>)this.handleMarketTypeAndParams("createOrder", market, parameters);
-        marketType = ((IList<object>)marketTypeparametersVariable)[0];
+        marketType = (string)((IList<object>)marketTypeparametersVariable)[0];
         parameters = ((IList<object>)marketTypeparametersVariable)[1];
         object marginMode = null;
         IList<object> marginModeparametersVariable = (IList<object>)this.handleMarginModeAndParams("createOrder", parameters);
@@ -1278,9 +1278,9 @@ public partial class hitbtc : ccxt.hitbtc
         {
             market = this.market(symbol);
         }
-        object marketType = null;
+        string? marketType = null;
         IList<object> marketTypeparametersVariable = (IList<object>)this.handleMarketTypeAndParams("cancelOrderWs", market, parameters);
-        marketType = ((IList<object>)marketTypeparametersVariable)[0];
+        marketType = (string)((IList<object>)marketTypeparametersVariable)[0];
         parameters = ((IList<object>)marketTypeparametersVariable)[1];
         IList<object> marginModequeryVariable = (IList<object>)this.handleMarginModeAndParams("cancelOrderWs", parameters);
         var marginMode = ((IList<object>) marginModequeryVariable)[0];
@@ -1322,9 +1322,9 @@ public partial class hitbtc : ccxt.hitbtc
         {
             market = this.market(symbol);
         }
-        object marketType = null;
+        string? marketType = null;
         IList<object> marketTypeparametersVariable = (IList<object>)this.handleMarketTypeAndParams("cancelAllOrdersWs", market, parameters);
-        marketType = ((IList<object>)marketTypeparametersVariable)[0];
+        marketType = (string)((IList<object>)marketTypeparametersVariable)[0];
         parameters = ((IList<object>)marketTypeparametersVariable)[1];
         object marginMode = null;
         IList<object> marginModeparametersVariable = (IList<object>)this.handleMarginModeAndParams("cancelAllOrdersWs", parameters);
@@ -1371,9 +1371,9 @@ public partial class hitbtc : ccxt.hitbtc
             market = this.market(symbol);
             ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
         }
-        object marketType = null;
+        string? marketType = null;
         IList<object> marketTypeparametersVariable = (IList<object>)this.handleMarketTypeAndParams("fetchOpenOrdersWs", market, parameters);
-        marketType = ((IList<object>)marketTypeparametersVariable)[0];
+        marketType = (string)((IList<object>)marketTypeparametersVariable)[0];
         parameters = ((IList<object>)marketTypeparametersVariable)[1];
         object marginMode = null;
         IList<object> marginModeparametersVariable = (IList<object>)this.handleMarginModeAndParams("fetchOpenOrdersWs", parameters);
@@ -1459,13 +1459,13 @@ public partial class hitbtc : ccxt.hitbtc
             List<object> parsedOrders = new List<object>() {};
             for (int i = 0; isLessThan(i, getArrayLength(result)); postFixIncrement(ref i))
             {
-                object parsedOrder = this.parseWsOrder(getValue(result, i));
+                Dictionary<string, object> parsedOrder = ((Dictionary<string, object>)this.parseWsOrder(getValue(result, i)));
                 ((IList<object>)parsedOrders).Add(parsedOrder);
             }
             callDynamically(client as WebSocketClient, "resolve", new object[] {parsedOrders, messageHash});
         } else
         {
-            object parsedOrder = this.parseWsOrder(result);
+            Dictionary<string, object> parsedOrder = ((Dictionary<string, object>)this.parseWsOrder(result));
             callDynamically(client as WebSocketClient, "resolve", new object[] {parsedOrder, messageHash});
         }
         return message;
@@ -1547,7 +1547,7 @@ public partial class hitbtc : ccxt.hitbtc
         string messageHash = "authenticated";
         if (isTrue(isEqual(success, true)))
         {
-            Future future = ((Future)this.safeValue((client as WebSocketClient).futures, messageHash));
+            var future = this.safeValue((client as WebSocketClient).futures, messageHash);
             (future as Future).resolve(true);
         } else
         {

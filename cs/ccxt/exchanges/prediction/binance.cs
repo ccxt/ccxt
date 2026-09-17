@@ -970,7 +970,7 @@ public partial class binance : PredictionExchange
             {
                 continue;
             }
-            object response = this.safeDict(responsesByMarketId, marketId);
+            IDictionary<string, object> response = this.safeDict(responsesByMarketId, marketId);
             if (isTrue(isEqual(response, null)))
             {
                 Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -1018,7 +1018,7 @@ public partial class binance : PredictionExchange
         //     }
         //
         Int64? timestamp = this.safeInteger(response, "timestamp");
-        object orderbook = this.parseOrderBook(response, this.safeOutcomeSymbol(outcome, outcomeObj), timestamp, "bids", "asks", "price", "size");
+        Dictionary<string, object> orderbook = ((Dictionary<string, object>)this.parseOrderBook(response, this.safeOutcomeSymbol(outcome, outcomeObj), timestamp, "bids", "asks", "price", "size"));
         return ccxt.BaseExchange.ToPredictionOrderBook(this.safePredictionOrderBook(orderbook, outcomeObj));
     }
 
@@ -1386,7 +1386,7 @@ public partial class binance : PredictionExchange
             for (int i = 0; isLessThan(i, getArrayLength(outcomes)); postFixIncrement(ref i))
             {
                 object requested = getValue(outcomes, i);
-                object requestedOutcomeObj = this.safeOutcome(requested);
+                IDictionary<string, object> requestedOutcomeObj = ((IDictionary<string, object>)this.safeOutcome(requested));
                 string? requestedOutcome = this.safeString(requestedOutcomeObj, "outcome", requested);
                 ((IDictionary<string,object>)requestedOutcomeSymbols)[(string)requestedOutcome] = true;
             }

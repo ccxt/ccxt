@@ -1533,7 +1533,7 @@ public partial class hashkey : Exchange
         return ccxt.BaseExchange.ToTradeList(this.parseTrades(response, market, since, limit));
     }
 
-    public override object parseTrade(object trade, object market = null)
+    public override Dictionary<string, object> parseTrade(object trade, object market = null)
     {
         //
         // fetchTrades
@@ -1663,7 +1663,7 @@ public partial class hashkey : Exchange
      */
     public async override Task<List<ccxt.OHLCV>> FetchOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object timeframeVar = timeframe;
+        string timeframeVar = timeframe;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
         string methodName = "fetchOHLCV";
@@ -1802,7 +1802,7 @@ public partial class hashkey : Exchange
         return ccxt.BaseExchange.ToTickers(this.parseTickers(response, symbols));
     }
 
-    public override object parseTicker(object ticker, object market = null)
+    public override Dictionary<string, object> parseTicker(object ticker, object market = null)
     {
         //
         //     {
@@ -2277,9 +2277,9 @@ public partial class hashkey : Exchange
         {
             ((IDictionary<string,object>)request)["addressExt"] = tagVar;
         }
-        object networkCode = null;
+        string? networkCode = null;
         IList<object> networkCodeparametersVariable = (IList<object>)this.handleNetworkCodeAndParams(parameters);
-        networkCode = ((IList<object>)networkCodeparametersVariable)[0];
+        networkCode = (string)((IList<object>)networkCodeparametersVariable)[0];
         parameters = ((IList<object>)networkCodeparametersVariable)[1];
         if (isTrue(!isEqual(networkCode, null)))
         {
@@ -2519,7 +2519,7 @@ public partial class hashkey : Exchange
             label = "sub";
         }
         string? accountType = this.parseAccountType(this.safeString(account, "accountType"));
-        object type = add(add(label, " "), accountType);
+        string type = add(add(label, " "), accountType);
         return new Dictionary<string, object>() {
             { "id", this.safeString(account, "accountId") },
             { "type", type },
@@ -2539,17 +2539,17 @@ public partial class hashkey : Exchange
         return this.safeString(types, ((string)type), type);
     }
 
-    public virtual object encodeAccountType(object type)
+    public virtual Int64? encodeAccountType(object type)
     {
         Dictionary<string, object> types = new Dictionary<string, object>() {
             { "spot", "1" },
             { "swap", "3" },
             { "custody", "5" },
         };
-        return this.safeInteger(types, ((string)type), type);
+        return ((Int64?)((object)(this.safeInteger(types, ((string)type), type))));
     }
 
-    public virtual object encodeFlowType(object type)
+    public virtual Int64? encodeFlowType(object type)
     {
         Dictionary<string, object> types = new Dictionary<string, object>() {
             { "trade", "1" },
@@ -2558,7 +2558,7 @@ public partial class hashkey : Exchange
             { "deposit", "900" },
             { "withdraw", "904" },
         };
-        return this.safeInteger(types, ((string)type), type);
+        return ((Int64?)((object)(this.safeInteger(types, ((string)type), type))));
     }
 
     /**
@@ -2813,7 +2813,7 @@ public partial class hashkey : Exchange
         {
             throw new NotSupported ((string)add(this.id, " createOrder() supports cost parameter for spot market buy orders only")) ;
         }
-        object request = this.createSpotOrderRequest(symbol, type, side, amount, price, parameters);
+        Dictionary<string, object> request = this.createSpotOrderRequest(symbol, type, side, amount, price, parameters);
         Dictionary<string, object> response = new Dictionary<string, object>() {};
         bool? test = this.safeBool(parameters, "test");
         if (isTrue(isEqual(test, true)))
@@ -2830,7 +2830,7 @@ public partial class hashkey : Exchange
         return ccxt.BaseExchange.ToOrder(this.parseOrder(response, market));
     }
 
-    public virtual object createOrderRequest(object symbol, object type, object side, object amount, object price = null, object parameters = null)
+    public virtual Dictionary<string, object> createOrderRequest(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(type, null)))
@@ -2854,7 +2854,7 @@ public partial class hashkey : Exchange
         }
     }
 
-    public virtual object createSpotOrderRequest(object symbol, object type, object side, object amount, object price = null, object parameters = null)
+    public virtual Dictionary<string, object> createSpotOrderRequest(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(type, null)))
@@ -2893,9 +2893,9 @@ public partial class hashkey : Exchange
         {
             ((IDictionary<string,object>)request)["quantity"] = this.amountToPrecision(symbol, amount);
         }
-        object cost = null;
+        string? cost = null;
         IList<object> costparametersVariable = (IList<object>)this.handleParamString(parameters, "cost");
-        cost = ((IList<object>)costparametersVariable)[0];
+        cost = (string)((IList<object>)costparametersVariable)[0];
         parameters = ((IList<object>)costparametersVariable)[1];
         if (isTrue(!isEqual(cost, null)))
         {
@@ -2906,17 +2906,17 @@ public partial class hashkey : Exchange
             ((IDictionary<string,object>)request)["price"] = this.priceToPrecision(symbol, price);
         }
         bool isMarketOrder = isEqual(type, "MARKET");
-        object postOnly = false;
+        bool postOnly = false;
         IList<object> postOnlyparametersVariable = (IList<object>)this.handlePostOnly(isMarketOrder, isEqual(type, "LIMIT_MAKER"), parameters);
-        postOnly = ((IList<object>)postOnlyparametersVariable)[0];
+        postOnly = (bool)((IList<object>)postOnlyparametersVariable)[0];
         parameters = ((IList<object>)postOnlyparametersVariable)[1];
         if (isTrue(isTrue(postOnly) && isTrue((isEqual(type, "LIMIT")))))
         {
             ((IDictionary<string,object>)request)["type"] = "LIMIT_MAKER";
         }
-        object clientOrderId = null;
+        string? clientOrderId = null;
         IList<object> clientOrderIdparametersVariable = (IList<object>)this.handleParamString(parameters, "clientOrderId");
-        clientOrderId = ((IList<object>)clientOrderIdparametersVariable)[0];
+        clientOrderId = (string)((IList<object>)clientOrderIdparametersVariable)[0];
         parameters = ((IList<object>)clientOrderIdparametersVariable)[1];
         if (isTrue(!isEqual(clientOrderId, null)))
         {
@@ -2972,13 +2972,13 @@ public partial class hashkey : Exchange
             suffix = "_CLOSE";
         }
         ((IDictionary<string,object>)request)["side"] = add(((string)((string)side)).ToUpper(), suffix);
-        object timeInForce = null;
+        string? timeInForce = null;
         IList<object> timeInForceparametersVariable = (IList<object>)this.handleParamString(parameters, "timeInForce");
-        timeInForce = ((IList<object>)timeInForceparametersVariable)[0];
+        timeInForce = (string)((IList<object>)timeInForceparametersVariable)[0];
         parameters = ((IList<object>)timeInForceparametersVariable)[1];
-        object postOnly = false;
+        bool postOnly = false;
         IList<object> postOnlyparametersVariable = (IList<object>)this.handlePostOnly(isMarketOrder, isEqual(timeInForce, "LIMIT_MAKER"), parameters);
-        postOnly = ((IList<object>)postOnlyparametersVariable)[0];
+        postOnly = (bool)((IList<object>)postOnlyparametersVariable)[0];
         parameters = ((IList<object>)postOnlyparametersVariable)[1];
         if (isTrue(postOnly))
         {
@@ -3082,7 +3082,7 @@ public partial class hashkey : Exchange
             double? amount = this.safeNumber(rawOrder, "amount");
             double? price = this.safeNumber(rawOrder, "price");
             IDictionary<string, object> orderParams = this.safeDict(rawOrder, "params", new Dictionary<string, object>() {});
-            object orderRequest = this.createOrderRequest(symbol, type, side, amount, price, orderParams);
+            Dictionary<string, object> orderRequest = this.createOrderRequest(symbol, type, side, amount, price, orderParams);
             string? clientOrderId = this.safeString(orderRequest, "clientOrderId");
             if (isTrue(isEqual(clientOrderId, null)))
             {
@@ -3090,7 +3090,7 @@ public partial class hashkey : Exchange
             }
             ((IList<object>)ordersRequests).Add(orderRequest);
         }
-        object firstOrder = getValue(ordersRequests, 0);
+        Dictionary<string, object> firstOrder = ((Dictionary<string, object>)getValue(ordersRequests, 0));
         string? firstSymbol = this.safeString(firstOrder, "symbol");
         Dictionary<string, object> market = this.market(firstSymbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -3309,9 +3309,9 @@ public partial class hashkey : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {};
-        object clientOrderId = null;
+        string? clientOrderId = null;
         IList<object> clientOrderIdparametersVariable = (IList<object>)this.handleParamString(parameters, "clientOrderId");
-        clientOrderId = ((IList<object>)clientOrderIdparametersVariable)[0];
+        clientOrderId = (string)((IList<object>)clientOrderIdparametersVariable)[0];
         parameters = ((IList<object>)clientOrderIdparametersVariable)[1];
         if (isTrue(isEqual(clientOrderId, null)))
         {
@@ -3649,7 +3649,7 @@ public partial class hashkey : Exchange
         return new List<object>() {isTrigger, parameters};
     }
 
-    public override object parseOrder(object order, object market = null)
+    public override Dictionary<string, object> parseOrder(object order, object market = null)
     {
         //
         // createOrder spot
@@ -4143,7 +4143,7 @@ public partial class hashkey : Exchange
         return ccxt.BaseExchange.ToPositionList(this.parsePositions(response, new List<object>() {symbol}));
     }
 
-    public override object parsePosition(object position, object market = null)
+    public override Dictionary<string, object> parsePosition(object position, object market = null)
     {
         string? marketId = this.safeString(position, "symbol");
         market = this.safeMarket(marketId, market);
@@ -4276,7 +4276,7 @@ public partial class hashkey : Exchange
      */
     public async override Task<Dictionary<string, object>> SetMarginMode(string marginMode, string symbol = null, object parameters = null)
     {
-        object marginModeVar = marginMode;
+        string marginModeVar = marginMode;
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
         {
@@ -4353,9 +4353,9 @@ public partial class hashkey : Exchange
         {
             throw new BadSymbol ((string)add(this.id, " modifyMarginHelper() supports swap markets only")) ;
         }
-        object side = null;
+        string? side = null;
         IList<object> sideparametersVariable = (IList<object>)this.handleParamString(parameters, "side");
-        side = ((IList<object>)sideparametersVariable)[0];
+        side = (string)((IList<object>)sideparametersVariable)[0];
         parameters = ((IList<object>)sideparametersVariable)[1];
         if (isTrue(isEqual(side, null)))
         {

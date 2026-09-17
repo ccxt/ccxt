@@ -41,7 +41,7 @@ public partial class mudrex : ccxt.mudrex
 
     public virtual object requestId()
     {
-        object reqid = this.sum(this.safeInteger(this.options, "correlationId", 0), 1);
+        Int64 reqid = ((Int64)this.sum(this.safeInteger(this.options, "correlationId", 0), 1));
         ((IDictionary<string,object>)this.options)["correlationId"] = reqid;
         return reqid;
     }
@@ -78,7 +78,7 @@ public partial class mudrex : ccxt.mudrex
         Dictionary<string, object> market = this.market(symbolVar);
         symbolVar = getValue(market, "symbol");
         string messageHash = add("ticker:", symbolVar);
-        object url = getValue(getValue(this.urls, "api"), "ws");
+        string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
         this.setBrokerHeaders();
         object baseIdString = ((bool) isTrue((!isEqual(getValue(market, "baseId"), null)))) ? getValue(market, "baseId") : "";
         object quoteIdString = ((bool) isTrue((!isEqual(getValue(market, "quoteId"), null)))) ? getValue(market, "quoteId") : "";
@@ -114,7 +114,7 @@ public partial class mudrex : ccxt.mudrex
                 ((IList<object>)assets).Add(add(((string)baseIdString).ToLower(), ((string)quoteIdString).ToLower()));
             }
         }
-        object url = getValue(getValue(this.urls, "api"), "ws");
+        string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
         this.setBrokerHeaders();
         Dictionary<string, object> subscribe = new Dictionary<string, object>() {
             { "id", this.requestId() },
@@ -136,7 +136,7 @@ public partial class mudrex : ccxt.mudrex
     public async override Task<List<ccxt.OHLCV>> WatchOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         object symbolVar = symbol;
-        object timeframeVar = timeframe;
+        string timeframeVar = timeframe;
         object limitVar = limit;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
@@ -160,9 +160,9 @@ public partial class mudrex : ccxt.mudrex
         }
         object streamBaseId = ((bool) isTrue((!isEqual(getValue(market, "baseId"), null)))) ? getValue(market, "baseId") : "";
         object streamQuoteId = ((bool) isTrue((!isEqual(getValue(market, "quoteId"), null)))) ? getValue(market, "quoteId") : "";
-        object stream = add(add(add(add(add(prefix, "@"), interval), "@"), ((string)streamBaseId).ToLower()), ((string)streamQuoteId).ToLower());
-        object messageHash = stream;
-        object url = getValue(getValue(this.urls, "api"), "ws");
+        string stream = add(add(add(add(add(prefix, "@"), interval), "@"), ((string)streamBaseId).ToLower()), ((string)streamQuoteId).ToLower());
+        string messageHash = stream;
+        string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
         this.setBrokerHeaders();
         Dictionary<string, object> subscribe = new Dictionary<string, object>() {
             { "id", this.requestId() },
@@ -225,7 +225,7 @@ public partial class mudrex : ccxt.mudrex
         }
         List<object> parts = ((string)stream).Split(new [] {((string)"@")}, StringSplitOptions.None).ToList<object>();
         string? interval = ((string)getValue(parts, 1));
-        object tf = this.findTimeframe(interval);
+        string? tf = this.findTimeframe(interval);
         IDictionary<string, object> data = this.safeDict(message, "data", new Dictionary<string, object>() {});
         string? s = this.safeString(data, "s");
         if (isTrue(isEqual(s, null)))
@@ -233,7 +233,7 @@ public partial class mudrex : ccxt.mudrex
             return;
         }
         Dictionary<string, object> market = this.safeMarket(((string)s).ToUpper());
-        object symbol = getValue(market, "symbol");
+        string? symbol = ((string)getValue(market, "symbol"));
         List<object> parsed = new List<object> {this.safeTimestamp(data, "t"), this.safeNumber(data, "o"), this.safeNumber(data, "h"), this.safeNumber(data, "l"), this.safeNumber(data, "c"), this.safeNumber(data, "v")};
         ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = this.safeValue(this.ohlcvs, symbol, new Dictionary<string, object>() {});
         object stored = this.safeValue(this.safeValue(this.ohlcvs, symbol), tf);
@@ -263,7 +263,7 @@ public partial class mudrex : ccxt.mudrex
                 continue;
             }
             Dictionary<string, object> market = this.safeMarket(((string)s).ToUpper());
-            object symbol = getValue(market, "symbol");
+            string? symbol = ((string)getValue(market, "symbol"));
             Int64 timestamp = this.milliseconds();
             double? last = this.safeNumber(t, "p");
             Dictionary<string, object> result = this.safeTicker(new Dictionary<string, object>() {

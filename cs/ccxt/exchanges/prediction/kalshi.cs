@@ -792,7 +792,7 @@ public partial class kalshi : PredictionExchange
             string? label = ((string)getValue(outcomeLabels, oi));
             object outcomeHandle = this.slugToOutcomeSymbol(eventTicker, subtitleOrTicker, label);
             bool? winnerRaw = null;
-            object settleFractionRaw = null;
+            int? settleFractionRaw = null;
             if (isTrue(isTrue(isTrue(resolved) && isTrue((!isEqual(result, null)))) && isTrue((!isEqual(result, "")))))
             {
                 winnerRaw = (isEqual(((string)label).ToLower(), result));
@@ -805,7 +805,7 @@ public partial class kalshi : PredictionExchange
             // effectively-final copies for the object literal below (Java cannot capture a
             // reassigned local into the anonymous inner class it emits for a map literal)
             bool? winner = winnerRaw;
-            object settleFraction = settleFractionRaw;
+            int? settleFraction = settleFractionRaw;
             ((IList<object>)outcomes).Add(new Dictionary<string, object>() {
                 { "id", getValue(outcomeIds, oi) },
                 { "outcomeId", getValue(outcomeIds, oi) },
@@ -1930,7 +1930,7 @@ public partial class kalshi : PredictionExchange
         List<object> result = new List<object>() {};
         for (int i = 0; isLessThan(i, getArrayLength(parsed)); postFixIncrement(ref i))
         {
-            object settlement = getValue(parsed, i);
+            Dictionary<string, object> settlement = ((Dictionary<string, object>)getValue(parsed, i));
             if (isTrue(isTrue((isEqual(wantedOutcome, null))) || isTrue((isEqual(this.safeString(settlement, "outcome"), wantedOutcome)))))
             {
                 ((IList<object>)result).Add(settlement);

@@ -97,7 +97,7 @@ public partial class hollaex : ccxt.hollaex
         string? marketId = this.safeString(message, "symbol");
         object channel = this.safeString(message, "topic");
         Dictionary<string, object> market = this.safeMarket(marketId);
-        object symbol = getValue(market, "symbol");
+        string? symbol = ((string)getValue(market, "symbol"));
         if (isTrue(isEqual(symbol, null)))
         {
             return;
@@ -105,7 +105,7 @@ public partial class hollaex : ccxt.hollaex
         object data = this.safeValue(message, "data");
         string? timestamp = this.safeString(data, "timestamp");
         Int64? timestampMs = this.parse8601(timestamp);
-        object snapshot = this.parseOrderBook(data, symbol, timestampMs);
+        Dictionary<string, object> snapshot = ((Dictionary<string, object>)this.parseOrderBook(data, symbol, timestampMs));
         object orderbook = null;
         if (!isTrue((inOp(this.orderbooks, symbol))))
         {
@@ -175,7 +175,7 @@ public partial class hollaex : ccxt.hollaex
         object channel = this.safeString(message, "topic");
         string? marketId = this.safeString(message, "symbol");
         Dictionary<string, object> market = this.safeMarket(marketId);
-        object symbol = getValue(market, "symbol");
+        string? symbol = ((string)getValue(market, "symbol"));
         object stored = this.safeValue(this.trades, symbol);
         if (isTrue(isEqual(stored, null)))
         {
@@ -273,11 +273,11 @@ public partial class hollaex : ccxt.hollaex
         for (int i = 0; isLessThan(i, getArrayLength(rawTrades)); postFixIncrement(ref i))
         {
             object trade = getValue(rawTrades, i);
-            object parsed = this.parseTrade(trade);
+            Dictionary<string, object> parsed = this.parseTrade(trade);
             callDynamically(stored, "append", new object[] {parsed});
             object symbol = getValue(trade, "symbol");
             Dictionary<string, object> market = this.market(symbol);
-            object marketId = getValue(market, "id");
+            string? marketId = ((string)getValue(market, "id"));
             if (isTrue(!isEqual(marketId, null)))
             {
                 ((IDictionary<string,object>)marketIds)[(string)marketId] = true;
@@ -415,11 +415,11 @@ public partial class hollaex : ccxt.hollaex
         for (int i = 0; isLessThan(i, getArrayLength(rawOrders)); postFixIncrement(ref i))
         {
             object order = getValue(rawOrders, i);
-            object parsed = this.parseOrder(order);
+            Dictionary<string, object> parsed = this.parseOrder(order);
             callDynamically(stored, "append", new object[] {parsed});
             object symbol = getValue(order, "symbol");
             Dictionary<string, object> market = this.market(symbol);
-            object marketId = getValue(market, "id");
+            string? marketId = ((string)getValue(market, "id"));
             if (isTrue(!isEqual(marketId, null)))
             {
                 ((IDictionary<string,object>)marketIds)[(string)marketId] = true;
@@ -472,7 +472,7 @@ public partial class hollaex : ccxt.hollaex
         string? messageHash = this.safeString(message, "topic");
         object data = this.safeValue(message, "data");
         List<object> keys = new List<object>(((IDictionary<string,object>)data).Keys);
-        object timestamp = this.safeTimestamp(message, "time");
+        Int64? timestamp = this.safeTimestamp(message, "time");
         ((IDictionary<string,object>)this.balance)["info"] = data;
         ((IDictionary<string,object>)this.balance)["timestamp"] = timestamp;
         ((IDictionary<string,object>)this.balance)["datetime"] = this.iso8601(timestamp);
@@ -502,7 +502,7 @@ public partial class hollaex : ccxt.hollaex
     public async virtual Task<object> watchPublic(object messageHash, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object url = getValue(getValue(this.urls, "api"), "ws");
+        string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "op", "subscribe" },
             { "args", new List<object>() {messageHash} },

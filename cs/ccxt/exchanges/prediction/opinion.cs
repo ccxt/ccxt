@@ -305,8 +305,8 @@ public partial class opinion : PredictionExchange
         object resolvedOutcome = null;
         for (int i = 0; isLessThan(i, getArrayLength(outcomeLabels)); postFixIncrement(ref i))
         {
-            object label = getValue(outcomeLabels, i);
-            object tokenId = getValue(outcomeTokenIds, i);
+            string? label = ((string)getValue(outcomeLabels, i));
+            string? tokenId = ((string)getValue(outcomeTokenIds, i));
             object outcomeHandle = this.slugToOutcomeSymbol(effectiveEventSlug, slug, label);
             bool? winner = null;
             int? settleFraction = null;
@@ -695,7 +695,7 @@ public partial class opinion : PredictionExchange
     public async override Task<ccxt.PredictionTicker> FetchTicker(string outcome, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object outcomeObj = await this.loadOutcome(outcome);
+        IDictionary<string, object> outcomeObj = ((IDictionary<string, object>)await this.loadOutcome(outcome));
         string tokenId = ((string)getValue(outcomeObj, "outcomeId"));
         List<object> promises = new List<object> {this.opinionPublicGetTokenLatestPrice(this.extend(new Dictionary<string, object>() {
     { "token_id", tokenId },
@@ -803,12 +803,12 @@ public partial class opinion : PredictionExchange
                 { "token_id", tokenId },
             }, parameters)));
         }
-        object responses = await promiseAll(promises);
+        List<object> responses = await promiseAll(promises);
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         for (int i = 0; isLessThan(i, outcomesLength); postFixIncrement(ref i))
         {
             IDictionary<string, object> outcomeObj = this.outcome(getValue(outcomes, i));
-            object priceIndex = multiply(i, 2);
+            Int64 priceIndex = multiply(i, 2);
             object priceResponse = getValue(responses, priceIndex);
             object bookResponse = getValue(responses, this.sum(priceIndex, 1));
             Dictionary<string, object> response = new Dictionary<string, object>() {
@@ -838,7 +838,7 @@ public partial class opinion : PredictionExchange
     public async override Task<ccxt.PredictionOrderBook> FetchOrderBook(string outcome, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object outcomeObj = await this.loadOutcome(outcome);
+        IDictionary<string, object> outcomeObj = ((IDictionary<string, object>)await this.loadOutcome(outcome));
         string tokenId = ((string)getValue(outcomeObj, "outcomeId"));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "token_id", tokenId },
@@ -861,7 +861,7 @@ public partial class opinion : PredictionExchange
         //
         IDictionary<string, object> result = this.safeDict(response, "result", new Dictionary<string, object>() {});
         Int64? timestamp = this.safeInteger(result, "timestamp");
-        object orderbook = this.parseOrderBook(result, this.safeOutcomeSymbol(outcome, outcomeObj), timestamp, "bids", "asks", "price", "size");
+        Dictionary<string, object> orderbook = ((Dictionary<string, object>)this.parseOrderBook(result, this.safeOutcomeSymbol(outcome, outcomeObj), timestamp, "bids", "asks", "price", "size"));
         return ccxt.BaseExchange.ToPredictionOrderBook(this.safePredictionOrderBook(orderbook, outcomeObj));
     }
 
@@ -887,7 +887,7 @@ public partial class opinion : PredictionExchange
             List<object> supportedKeys = new List<object>(((IDictionary<string,object>)this.timeframes).Keys);
             throw new BadRequest ((string)add(add(add(add(this.id, " fetchOHLCV() unsupported timeframe "), timeframeVar), ", supported timeframes are "), String.Join(", ", ((IList<object>)supportedKeys).ToArray()))) ;
         }
-        object outcomeObj = await this.loadOutcome(outcome);
+        IDictionary<string, object> outcomeObj = ((IDictionary<string, object>)await this.loadOutcome(outcome));
         string tokenId = ((string)getValue(outcomeObj, "outcomeId"));
         string? interval = this.safeString(this.timeframes, timeframeVar);
         object response = await this.opinionPublicGetTokenPriceHistory(this.extend(new Dictionary<string, object>() {
@@ -1054,7 +1054,7 @@ public partial class opinion : PredictionExchange
     { "type", "uint8" },
 }} },
         };
-        object encoded = this.ethEncodeStructuredData(domain, messageTypes, order);
+        byte[] encoded = this.ethEncodeStructuredData(domain, messageTypes, order);
         object sig = this.signMessage(encoded, this.privateKey);
         return add(add(add("0x", this.remove0xPrefix(getValue(sig, "r"))), this.remove0xPrefix(getValue(sig, "s"))), this.intToBase16(getValue(sig, "v")));
     }
@@ -1129,7 +1129,7 @@ public partial class opinion : PredictionExchange
         parameters ??= new Dictionary<string, object>();
         await this.loadApiKey();
         this.checkRequiredCredentials();
-        object outcomeObj = await this.loadOutcome(outcome);
+        IDictionary<string, object> outcomeObj = ((IDictionary<string, object>)await this.loadOutcome(outcome));
         string tokenId = ((string)getValue(outcomeObj, "outcomeId"));
         bool isMarket = (isEqual(type, "market"));
         string sideStr = ((string)((string)side)).ToUpper();
@@ -1700,7 +1700,7 @@ public partial class opinion : PredictionExchange
 
     public virtual object signHash(object hash, object privateKey)
     {
-        object signature = ecdsa(slice(hash, -64, null), slice(privateKey, -64, null), secp256k1, null);
+        Dictionary<string, object> signature = ecdsa(slice(hash, -64, null), slice(privateKey, -64, null), secp256k1, null);
         // assign before padStart so the PHP str_pad regex matches
         object rRaw = getValue(signature, "r");
         object sRaw = getValue(signature, "s");
@@ -1743,7 +1743,7 @@ public partial class opinion : PredictionExchange
             { "action", action },
             { "timestamp", timestamp },
         };
-        object encoded = this.ethEncodeStructuredData(domain, messageTypes, messageData);
+        byte[] encoded = this.ethEncodeStructuredData(domain, messageTypes, messageData);
         object sig = this.signMessage(encoded, this.privateKey);
         return add(add(add("0x", this.remove0xPrefix(getValue(sig, "r"))), this.remove0xPrefix(getValue(sig, "s"))), this.intToBase16(getValue(sig, "v")));
     }
@@ -1978,7 +1978,7 @@ public partial class opinion : PredictionExchange
     public async override Task<ccxt.PredictionOrderBook> WatchOrderBook(string outcome, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object outcomeObj = await this.loadOutcome(outcome);
+        IDictionary<string, object> outcomeObj = ((IDictionary<string, object>)await this.loadOutcome(outcome));
         IDictionary<string, object> info = this.safeDict(outcomeObj, "info", new Dictionary<string, object>() {});
         Int64? marketId = this.safeInteger(info, "marketId");
         string? sym = this.safeOutcomeSymbol(outcome, outcomeObj);
@@ -1987,7 +1987,7 @@ public partial class opinion : PredictionExchange
         await this.loadApiKey();
         object url = this.opinionWsUrl();
         var client = this.client(url);
-        object subscriptionKey = add(add(channel, ":"), this.numberToString(marketId));
+        string subscriptionKey = add(add(channel, ":"), this.numberToString(marketId));
         bool isNewSubscription = isEqual(this.safeValue(((WebSocketClient)client).subscriptions, subscriptionKey), null);
         if (isTrue(isNewSubscription))
         {
@@ -2066,7 +2066,7 @@ public partial class opinion : PredictionExchange
     public async override Task<ccxt.Ticker> WatchTicker(string outcome, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object outcomeObj = await this.loadOutcome(outcome);
+        IDictionary<string, object> outcomeObj = ((IDictionary<string, object>)await this.loadOutcome(outcome));
         IDictionary<string, object> info = this.safeDict(outcomeObj, "info", new Dictionary<string, object>() {});
         Int64? marketId = this.safeInteger(info, "marketId");
         string? sym = this.safeOutcomeSymbol(outcome, outcomeObj);
@@ -2123,7 +2123,7 @@ public partial class opinion : PredictionExchange
     public async override Task<List<ccxt.Trade>> WatchTrades(string outcome, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object outcomeObj = await this.loadOutcome(outcome);
+        IDictionary<string, object> outcomeObj = ((IDictionary<string, object>)await this.loadOutcome(outcome));
         IDictionary<string, object> info = this.safeDict(outcomeObj, "info", new Dictionary<string, object>() {});
         Int64? marketId = this.safeInteger(info, "marketId");
         string? sym = this.safeOutcomeSymbol(outcome, outcomeObj);
@@ -2204,7 +2204,7 @@ public partial class opinion : PredictionExchange
         {
             throw new ArgumentsRequired ((string)add(this.id, " watchOrders() requires an outcome (the order update channel is per-market)")) ;
         }
-        object outcomeObj = await this.loadOutcome(outcome);
+        IDictionary<string, object> outcomeObj = ((IDictionary<string, object>)await this.loadOutcome(outcome));
         IDictionary<string, object> info = this.safeDict(outcomeObj, "info", new Dictionary<string, object>() {});
         Int64? marketId = this.safeInteger(info, "marketId");
         string messageHash = "orders";
@@ -2330,7 +2330,7 @@ public partial class opinion : PredictionExchange
         {
             throw new ArgumentsRequired ((string)add(this.id, " watchMyTrades() requires an outcome (the trade record channel is per-market)")) ;
         }
-        object outcomeObj = await this.loadOutcome(outcome);
+        IDictionary<string, object> outcomeObj = ((IDictionary<string, object>)await this.loadOutcome(outcome));
         IDictionary<string, object> info = this.safeDict(outcomeObj, "info", new Dictionary<string, object>() {});
         Int64? marketId = this.safeInteger(info, "marketId");
         string messageHash = "myTrades";
