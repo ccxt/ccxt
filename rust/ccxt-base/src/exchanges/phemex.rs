@@ -3470,7 +3470,7 @@ impl PhemexCore {
             });
         }
         let mut timeInForce: Value = self.parse_time_in_force(self.safe_string_k(order.clone(), "timeInForce", &[]));
-        let mut triggerPrice: Value = self.parse_number(self.omit_zero(self.from_ep(self.safe_string_k(order.clone(), "stopPxEp", &[]), &[])), &[]);
+        let mut triggerPrice: Value = self.parse_number(self.omit_zero(self.from_ep(self.safe_string_k(order.clone(), "stopPxEp", &[]), &[market.clone()])), &[]);
         let mut postOnly: Value = Value::Bool(is_equal(&timeInForce, &Value::Str("PO".to_string())));
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -4294,6 +4294,14 @@ impl PhemexCore {
 })]);
         }  else if is_equal(&get_value(&market, &Value::Str("spot".to_string())), &Value::Bool(true)) {
             let mut rows: Value = self.safe_list_k(data.clone(), "rows", &[Value::List(vec![])]);
+            let mut numRows: Value = get_array_length(&rows);
+            if is_less_than(&numRows, &Value::Int(1)) {
+                if !is_equal(&clientOrderId, &Value::Null) {
+                    panic!("{}", crate::exchange_errors::order_not_found(add(&add(&add(&add(&add(&self.id, &Value::Str(" fetchOrder() ".to_string())), &symbol), &Value::Str(" order with clientOrderId ".to_string())), &clientOrderId), &Value::Str(" not found".to_string()))));
+                }  else {
+                    panic!("{}", crate::exchange_errors::order_not_found(add(&add(&add(&add(&add(&self.id, &Value::Str(" fetchOrder() ".to_string())), &symbol), &Value::Str(" order with id ".to_string())), &id), &Value::Str(" not found".to_string()))));
+                }
+            }
             order = self.safe_dict(rows.clone(), Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m

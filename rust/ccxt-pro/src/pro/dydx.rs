@@ -380,8 +380,8 @@ impl DydxCore {
         let mut parsedTrades: Value = self.parse_trades(rawTrades.clone(), &[market.clone()]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_319: bool = true;
-            while { if !__for_first_319 { i = add(&i, &Value::Int(1)); } __for_first_319 = false; is_less_than(&i, &get_array_length(&parsedTrades)) } {
+            let mut __for_first_324: bool = true;
+            while { if !__for_first_324 { i = add(&i, &Value::Int(1)); } __for_first_324 = false; is_less_than(&i, &get_array_length(&parsedTrades)) } {
             let mut parsed: Value = get_value(&parsedTrades, &i);
             let mut parsed: Value = get_value(&parsedTrades, &i);
             stored.append(parsed.clone());

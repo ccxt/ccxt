@@ -9,7 +9,7 @@ use crate::test_helpers::*;
 // sibling validators / method tests are re-exported from mod.rs
 use super::*;
 
-pub fn testAfterConstruct(mut exchange: Value, mut skippedProperties: Value) -> Value {
+pub async fn testAfterConstruct(mut exchange: Value, mut skippedProperties: Value) -> Value {
     if !is_true(&(Value::Bool(in_op(&skippedProperties, &Value::Str("networks".to_string()))))) {
         testOptionsNetworks(exchange.clone(), skippedProperties.clone());
     }
