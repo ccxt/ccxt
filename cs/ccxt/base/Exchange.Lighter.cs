@@ -36,7 +36,7 @@ public partial class BaseExchange
         return lighterSigner;
     }
 
-    public async Task<LighterSigner.Signer> lighterCreateClient(object signer, object chainId, object privateKey, object apiKeyIndex, object accountIndex)
+    public LighterSigner.Signer lighterCreateClient(object signer, object chainId, object privateKey, object apiKeyIndex, object accountIndex)
     {
         string url = (string)this.implodeHostname(getValue(getValue(this.urls, "api"), "public"));
         ((LighterSigner.Signer)signer).CreateClient(
