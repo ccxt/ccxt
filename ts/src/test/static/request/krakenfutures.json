@@ -3,6 +3,48 @@
     "skipKeys": [],
     "outputType": "urlencoded",
     "methods": {
+        "fetchIndexOHLCV": [
+            {
+                "description": "index price candles map to the spot price type",
+                "method": "fetchIndexOHLCV",
+                "url": "https://futures.kraken.com/api/charts/v1/spot/PF_XBTUSD/1h?from=1650000000&to=1650010799",
+                "input": [
+                    "BTC/USD:USD",
+                    "1h",
+                    1650000000000,
+                    3
+                ],
+                "output": null
+            }
+        ],
+        "fetchMarkOHLCV": [
+            {
+                "description": "mark price candles",
+                "method": "fetchMarkOHLCV",
+                "url": "https://futures.kraken.com/api/charts/v1/mark/PF_XBTUSD/1h?from=1650000000&to=1650010799",
+                "input": [
+                    "BTC/USD:USD",
+                    "1h",
+                    1650000000000,
+                    3
+                ],
+                "output": null
+            }
+        ],
+        "fetchOHLCV": [
+            {
+                "description": "trade price candles by default",
+                "method": "fetchOHLCV",
+                "url": "https://futures.kraken.com/api/charts/v1/trade/PF_XBTUSD/1h?from=1650000000&to=1650010799",
+                "input": [
+                    "BTC/USD:USD",
+                    "1h",
+                    1650000000000,
+                    3
+                ],
+                "output": null
+            }
+        ],
         "fetchTicker": [
             {
                 "description": "fetch a single ticker",
