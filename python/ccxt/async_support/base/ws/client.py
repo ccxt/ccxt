@@ -137,6 +137,15 @@ class Client(object):
                 self.reject(result, message_hash)
         return result
 
+    def reset(self, error):
+        # mirrors the js/php/c#/go clients: stop the keepalive timer and
+        # reject every pending future, so exchange-level teardown paths
+        # (e.g. an unrecoverable orderbook desync) behave the same in every
+        # language - transpiled code calls client.reset(error)
+        if self.ping_looper:
+            self.ping_looper.cancel()
+        self.reject(error)
+
     def receive_loop(self):
         if self.verbose:
             self.log(Exchange.iso8601(Exchange.milliseconds()), 'receive loop')
