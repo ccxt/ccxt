@@ -1687,6 +1687,9 @@ class testMainClass:
                 is_disabled_php = exchange.safe_string(result, 'disabledPHP')
                 if (is_disabled_php is not None) and (self.lang == 'PHP'):
                     continue
+                is_disabled_rust = exchange.safe_string(result, 'disabledRS')
+                if (is_disabled_rust is not None) and (self.lang == 'RUST'):
+                    continue
                 exchange.extend_exchange_options(global_options)
                 test_exchange_options = exchange.safe_value(result, 'options', {})
                 exchange.extend_exchange_options(test_exchange_options)
