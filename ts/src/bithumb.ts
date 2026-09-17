@@ -3342,6 +3342,9 @@ export default class bithumb extends Exchange {
         const queryKeysLength = queryKeys.length;
         const hasQuery = (queryKeysLength > 0);
         if (api === 'public') {
+            headers = {
+                'OPEN-API-PARTNER': 'CCXT',
+            };
             if (hasQuery) {
                 url += '?' + this.urlencode (query);
             }
