@@ -1763,10 +1763,10 @@ export default class bingx extends bingxRest {
             const balance = data[i];
             const currencyId = this.safeString (balance, 'a');
             const code = this.safeCurrencyCode (currencyId);
-            const previous = this.safeDict (this.balance[type], code, {});
             const account = this.account ();
+            // Missing lk does not make the previous snapshot's used balance current.
             account['total'] = this.safeString (balance, 'wb');
-            account['used'] = this.safeString (previous, 'used');
+            account['used'] = this.safeString (balance, 'lk');
             if ((type !== undefined) && (code !== undefined)) {
                 this.balance[type][code] = account;
             }

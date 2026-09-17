@@ -7671,15 +7671,15 @@
                         }
                     ],
                     "USDT": {
-                        "free": 40,
-                        "used": 9.81083984,
+                        "free": null,
+                        "used": null,
                         "total": 49.81083984
                     },
                     "free": {
-                        "USDT": 40
+                        "USDT": null
                     },
                     "used": {
-                        "USDT": 9.81083984
+                        "USDT": null
                     },
                     "total": {
                         "USDT": 49.81083984
@@ -7742,15 +7742,15 @@
                         }
                     ],
                     "USDT": {
-                        "free": 54.04945926,
-                        "used": 0,
+                        "free": null,
+                        "used": null,
                         "total": 54.04945926
                     },
                     "free": {
-                        "USDT": 54.04945926
+                        "USDT": null
                     },
                     "used": {
-                        "USDT": 0
+                        "USDT": null
                     },
                     "total": {
                         "USDT": 54.04945926
