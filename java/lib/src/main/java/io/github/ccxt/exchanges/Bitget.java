@@ -6902,7 +6902,7 @@ final Object finalMinNotional = minNotional;
             }
             //  [ ["1645911960000","39406","39407","39374.5","39379","35.526","1399132.341"] ]
             Object candles = new ArrayList<Object>(Arrays.asList());
-            if (Helpers.isTrue(Helpers.isArray(response)))
+            if (Helpers.isTrue((response instanceof List)))
             {
                 candles = response;
             } else
@@ -9468,7 +9468,7 @@ final Object finalMinNotional = minNotional;
             Object data = this.safeDict(response, "data");
             if ((!java.util.Objects.equals(data, null)))
             {
-                if (!Helpers.isTrue(Helpers.isArray(data)))
+                if (!Helpers.isTrue((data instanceof List)))
                 {
                     return this.parseOrder(data, market);
                 }
