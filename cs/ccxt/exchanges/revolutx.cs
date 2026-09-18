@@ -578,7 +578,7 @@ public partial class revolutx : Exchange
             List<object> marketIds = new List<object>() {};
             for (int i = 0; isLessThan(i, symbols?.Count ?? 0); postFixIncrement(ref i))
             {
-                object symbol = getValue(symbols, i);
+                string? symbol = ((string)getValue(symbols, i));
                 Dictionary<string, object> market = this.market(symbol);
                 ((IList<object>)marketIds).Add(GetValue(market, "id"));
             }
@@ -621,7 +621,7 @@ public partial class revolutx : Exchange
             Dictionary<string, object> filtered = new Dictionary<string, object>() {};
             for (int i = 0; isLessThan(i, symbols?.Count ?? 0); postFixIncrement(ref i))
             {
-                object s = getValue(symbols, i);
+                string? s = ((string)getValue(symbols, i));
                 if (inOp(result, s))
                 {
                     filtered[(string)s] = getValue(result, s);

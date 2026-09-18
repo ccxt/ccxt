@@ -63,7 +63,7 @@ public partial class upbit : ccxt.upbit
         List<object> messageHashes = new List<object>() {};
         for (int i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
-            object marketId = getValue(marketIds, i);
+            string? marketId = ((string)getValue(marketIds, i));
             object symbol = getValue(symbols, i);
             object messageHash = add(add(channel, ":"), symbol);
             ((IList<object>)messageHashes).Add(messageHash);

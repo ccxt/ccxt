@@ -1288,12 +1288,12 @@ public partial class kucoin : ccxt.kucoin
         {
             channelName = "/contractMarket/execution:";
         }
-        object topic = add(channelName, String.Join(",", marketIds.ToArray()));
+        string topic = add(channelName, String.Join(",", marketIds.ToArray()));
         for (int i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
             object symbol = getValue(symbols, i);
             ((IList<object>)messageHashes).Add(add("trades:", symbol));
-            object marketId = getValue(marketIds, i);
+            string? marketId = ((string)getValue(marketIds, i));
             ((IList<object>)subscriptionHashes).Add(add(channelName, marketId));
         }
         object trades = await this.subscribeMultiple(url, messageHashes, topic, subscriptionHashes, parameters);
@@ -1338,7 +1338,7 @@ public partial class kucoin : ccxt.kucoin
         string topic = add(channelName, String.Join(",", marketIds.ToArray()));
         for (int i = 0; isLessThan(i, symbols?.Count ?? 0); postFixIncrement(ref i))
         {
-            object symbol = getValue(symbols, i);
+            string? symbol = ((string)getValue(symbols, i));
             ((IList<object>)messageHashes).Add(add("unsubscribe:trades:", symbol));
             ((IList<object>)subscriptionHashes).Add(add("trades:", symbol));
         }
@@ -1699,7 +1699,7 @@ public partial class kucoin : ccxt.kucoin
         {
             object symbol = getValue(symbols, i);
             ((IList<object>)messageHashes).Add(add("orderbook:", symbol));
-            object marketId = getValue(marketIds, i);
+            string? marketId = ((string)getValue(marketIds, i));
             ((IList<object>)subscriptionHashes).Add(add(add(method, ":"), marketId));
         }
         Dictionary<string, object> subscription = new Dictionary<string, object>() {};
@@ -1765,7 +1765,7 @@ public partial class kucoin : ccxt.kucoin
         List<object> subscriptionHashes = new List<object>() {};
         for (int i = 0; isLessThan(i, symbols?.Count ?? 0); postFixIncrement(ref i))
         {
-            object symbol = getValue(symbols, i);
+            string? symbol = ((string)getValue(symbols, i));
             ((IList<object>)messageHashes).Add(add("unsubscribe:orderbook:", symbol));
             ((IList<object>)subscriptionHashes).Add(add("orderbook:", symbol));
         }

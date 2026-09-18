@@ -734,7 +734,7 @@ public partial class hyperliquid : PredictionExchange
             await this.loadOutcomes(outcomes);
             for (int i = 0; isLessThan(i, outcomes?.Count ?? 0); postFixIncrement(ref i))
             {
-                object requested = getValue(outcomes, i);
+                string? requested = ((string)getValue(outcomes, i));
                 IDictionary<string, object> requestedOutcomeObj = this.safeOutcome(requested);
                 string? requestedOutcome = this.safeString(requestedOutcomeObj, "outcome", requested);
                 requestedOutcomeSymbols[(string)requestedOutcome] = true;

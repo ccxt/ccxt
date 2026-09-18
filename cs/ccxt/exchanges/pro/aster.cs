@@ -248,7 +248,7 @@ public partial class aster : ccxt.aster
         };
         for (int i = 0; isLessThan(i, symbols?.Count ?? 0); postFixIncrement(ref i))
         {
-            object symbol = getValue(symbols, i);
+            string? symbol = ((string)getValue(symbols, i));
             Dictionary<string, object> market = this.market(symbol);
             ((IList<object>)subscriptionArgs).Add(add(this.safeStringLower(market, "id"), "@ticker"));
             ((IList<object>)messageHashes).Add(add("unsubscribe:ticker:", GetValue(market, "symbol")));
@@ -344,7 +344,7 @@ public partial class aster : ccxt.aster
         bool? use1sFreq = this.safeBool(parameters, "use1sFreq", true);
         for (int i = 0; isLessThan(i, symbols?.Count ?? 0); postFixIncrement(ref i))
         {
-            object symbol = getValue(symbols, i);
+            string? symbol = ((string)getValue(symbols, i));
             Dictionary<string, object> market = this.market(symbol);
             string suffix = ((use1sFreq == true)) ? "@1s" : "";
             ((IList<object>)subscriptionArgs).Add(add(add(this.safeStringLower(market, "id"), "@markPrice"), suffix));
@@ -405,7 +405,7 @@ public partial class aster : ccxt.aster
         bool? use1sFreq = this.safeBool(parameters, "use1sFreq", true);
         for (int i = 0; isLessThan(i, symbols?.Count ?? 0); postFixIncrement(ref i))
         {
-            object symbol = getValue(symbols, i);
+            string? symbol = ((string)getValue(symbols, i));
             Dictionary<string, object> market = this.market(symbol);
             string suffix = ((use1sFreq == true)) ? "@1s" : "";
             ((IList<object>)subscriptionArgs).Add(add(add(this.safeStringLower(market, "id"), "@markPrice"), suffix));
@@ -597,7 +597,7 @@ public partial class aster : ccxt.aster
         };
         for (int i = 0; isLessThan(i, symbols?.Count ?? 0); postFixIncrement(ref i))
         {
-            object symbol = getValue(symbols, i);
+            string? symbol = ((string)getValue(symbols, i));
             Dictionary<string, object> market = this.market(symbol);
             ((IList<object>)subscriptionArgs).Add(add(this.safeStringLower(market, "id"), "@bookTicker"));
             ((IList<object>)messageHashes).Add(add("unsubscribe:bidask:", GetValue(market, "symbol")));
@@ -787,7 +787,7 @@ public partial class aster : ccxt.aster
         };
         for (int i = 0; isLessThan(i, symbols?.Count ?? 0); postFixIncrement(ref i))
         {
-            object symbol = getValue(symbols, i);
+            string? symbol = ((string)getValue(symbols, i));
             Dictionary<string, object> market = this.market(symbol);
             ((IList<object>)subscriptionArgs).Add(add(this.safeStringLower(market, "id"), "@aggTrade"));
             ((IList<object>)messageHashes).Add(add("unsubscribe:trade:", GetValue(market, "symbol")));
@@ -1132,7 +1132,7 @@ public partial class aster : ccxt.aster
         }
         for (int i = 0; isLessThan(i, symbols?.Count ?? 0); postFixIncrement(ref i))
         {
-            object symbol = getValue(symbols, i);
+            string? symbol = ((string)getValue(symbols, i));
             Dictionary<string, object> market = this.market(symbol);
             ((IList<object>)subscriptionArgs).Add(add(add(this.safeStringLower(market, "id"), "@depth"), limit));
             ((IList<object>)messageHashes).Add(add("unsubscribe:orderbook:", GetValue(market, "symbol")));

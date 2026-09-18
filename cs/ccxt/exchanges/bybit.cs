@@ -3580,7 +3580,7 @@ public partial class bybit : Exchange
             object currentType = null;
             for (int i = 0; isLessThan(i, symbols?.Count ?? 0); postFixIncrement(ref i))
             {
-                object symbol = getValue(symbols, i);
+                string? symbol = ((string)getValue(symbols, i));
                 // using safeMarket here because if the user provides for instance BTCUSDT and "type": "spot" in params we should
                 // infer the market type from the type provided and not from the conflicting id (BTCUSDT might be swap or spot)
                 bool isExchangeSpecificSymbol = (isEqual(getIndexOf(symbol, "/"), -1));

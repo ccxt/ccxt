@@ -1094,7 +1094,7 @@ public partial class gate : ccxt.gate
         List<object> messageHashes = new List<object>() {};
         for (int i = 0; isLessThan(i, symbols?.Count ?? 0); postFixIncrement(ref i))
         {
-            object symbol = getValue(symbols, i);
+            string? symbol = ((string)getValue(symbols, i));
             ((IList<object>)subMessageHashes).Add(add("trades:", symbol));
             ((IList<object>)messageHashes).Add(add("unsubscribe:trades:", symbol));
         }

@@ -294,7 +294,7 @@ public partial class okx : ccxt.okx
         List<object> messageHashes = new List<object>() {};
         for (int i = 0; isLessThan(i, symbols?.Count ?? 0); postFixIncrement(ref i))
         {
-            object symbol = getValue(symbols, i);
+            string? symbol = ((string)getValue(symbols, i));
             ((IList<object>)messageHashes).Add(add(add(add("unsubscribe:", channel), ":"), symbol));
             string? marketId = this.marketId(symbol);
             Dictionary<string, object> topic = new Dictionary<string, object>() {
@@ -432,7 +432,7 @@ public partial class okx : ccxt.okx
         List<object> messageHashes = new List<object>() {};
         for (int i = 0; isLessThan(i, symbols?.Count ?? 0); postFixIncrement(ref i))
         {
-            object symbol = getValue(symbols, i);
+            string? symbol = ((string)getValue(symbols, i));
             ((IList<object>)messageHashes).Add(add(add(channel, ":"), symbol));
             string? marketId = this.marketId(symbol);
             Dictionary<string, object> topic = new Dictionary<string, object>() {
@@ -647,7 +647,7 @@ public partial class okx : ccxt.okx
         List<object> messageHashes = new List<object>() {};
         for (int i = 0; isLessThan(i, symbols?.Count ?? 0); postFixIncrement(ref i))
         {
-            object symbol = getValue(symbols, i);
+            string? symbol = ((string)getValue(symbols, i));
             ((IList<object>)messageHashes).Add(add("unsubscribe:ticker:", symbol));
             string? marketId = this.marketId(symbol);
             Dictionary<string, object> topic = new Dictionary<string, object>() {
@@ -877,7 +877,7 @@ public partial class okx : ccxt.okx
         {
             for (int i = 0; isLessThan(i, symbols?.Count ?? 0); postFixIncrement(ref i))
             {
-                object symbol = getValue(symbols, i);
+                string? symbol = ((string)getValue(symbols, i));
                 ((IList<object>)messageHashes).Add(add(add(messageHash, "::"), symbol));
             }
         } else
@@ -996,7 +996,7 @@ public partial class okx : ccxt.okx
         {
             for (int i = 0; isLessThan(i, symbols?.Count ?? 0); postFixIncrement(ref i))
             {
-                object symbol = getValue(symbols, i);
+                string? symbol = ((string)getValue(symbols, i));
                 ((IList<object>)messageHashes).Add(add(add(messageHash, "::"), symbol));
             }
         } else
@@ -1515,7 +1515,7 @@ public partial class okx : ccxt.okx
         List<object> messageHashes = new List<object>() {};
         for (int i = 0; isLessThan(i, symbols?.Count ?? 0); postFixIncrement(ref i))
         {
-            object symbol = getValue(symbols, i);
+            string? symbol = ((string)getValue(symbols, i));
             ((IList<object>)subMessageHashes).Add(add(add(depth, ":"), symbol));
             ((IList<object>)messageHashes).Add(add("unsubscribe:orderbook:", symbol));
             string? marketId = this.marketId(symbol);
