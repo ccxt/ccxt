@@ -408,7 +408,7 @@ public partial class blockchaincom : ccxt.blockchaincom
         string? symbol = this.safeSymbol(marketId);
         Dictionary<string, object> market = this.safeMarket(marketId);
         string messageHash = add("trades:", symbol);
-        object stored = this.safeValue(this.trades, symbol);
+        ccxt.pro.ArrayCache stored = ((ccxt.pro.ArrayCache)this.safeValue(this.trades, symbol));
         if ((stored == null))
         {
             Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);
@@ -823,7 +823,7 @@ public partial class blockchaincom : ccxt.blockchaincom
             { "balances", this.handleBalance },
             { "trading", this.handleOrders },
         };
-        object handler = this.safeValue(handlers, channel);
+        Delegate handler = ((Delegate)this.safeValue(handlers, channel));
         if ((handler != null))
         {
             DynamicInvoker.InvokeMethod(handler, new object[] { client, message});

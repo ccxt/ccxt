@@ -355,7 +355,7 @@ public partial class htx : ccxt.htx
         string? marketId = this.safeString(parts, 1);
         Dictionary<string, object> market = this.safeMarket(marketId);
         string? symbol = ((string)GetValue(market, "symbol"));
-        object tradesCache = this.safeValue(this.trades, symbol);
+        ccxt.pro.ArrayCache tradesCache = ((ccxt.pro.ArrayCache)this.safeValue(this.trades, symbol));
         if ((tradesCache == null))
         {
             Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);
@@ -1905,7 +1905,7 @@ public partial class htx : ccxt.htx
         {
             this.positions = new Dictionary<string, object>() {};
         }
-        object clientPositions = this.safeValue(this.positions, url);
+        IDictionary<string, object> clientPositions = ((IDictionary<string, object>)this.safeValue(this.positions, url));
         if ((clientPositions == null))
         {
             ((IDictionary<string,object>)this.positions)[url] = new Dictionary<string, object>() {};
@@ -2551,7 +2551,7 @@ public partial class htx : ccxt.htx
                 { "trade", this.handleTrades },
                 { "kline", this.handleOHLCV },
             };
-            object method = this.safeValue(methods, methodName);
+            Delegate method = ((Delegate)this.safeValue(methods, methodName));
             if ((method != null))
             {
                 DynamicInvoker.InvokeMethod(method, new object[] { client, message});

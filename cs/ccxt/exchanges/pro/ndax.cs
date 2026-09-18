@@ -209,7 +209,7 @@ public partial class ndax : ccxt.ndax
             string? symbol = ((string)getValue(symbols, i));
             Dictionary<string, object> market = this.market(symbol);
             string messageHash = add(add(name, ":"), GetValue(market, "id"));
-            object tradesArray = this.safeValue(this.trades, symbol);
+            ccxt.pro.ArrayCache tradesArray = ((ccxt.pro.ArrayCache)this.safeValue(this.trades, symbol));
             callDynamically(client, "resolve", new object[] {tradesArray, messageHash});
         }
     }

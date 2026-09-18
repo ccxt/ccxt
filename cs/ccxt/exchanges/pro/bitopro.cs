@@ -189,7 +189,7 @@ public partial class bitopro : ccxt.bitopro
         object messageHash = add(add(eventVar, ":"), symbol);
         object rawData = this.safeValue(message, "data", new List<object>() {});
         IList<object> trades = this.parseTrades(rawData, market);
-        object tradesCache = this.safeValue(this.trades, symbol);
+        ccxt.pro.ArrayCache tradesCache = ((ccxt.pro.ArrayCache)this.safeValue(this.trades, symbol));
         if ((tradesCache == null))
         {
             Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);
@@ -542,7 +542,7 @@ public partial class bitopro : ccxt.bitopro
             { "USER_TRADE", this.handleMyTrade },
         };
         string? eventVar = this.safeString(message, "event");
-        object method = this.safeValue(methods, eventVar);
+        Delegate method = ((Delegate)this.safeValue(methods, eventVar));
         if ((method != null))
         {
             DynamicInvoker.InvokeMethod(method, new object[] { client, message});

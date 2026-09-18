@@ -831,7 +831,7 @@ public partial class coinbase : ccxt.coinbase
         string? marketId = this.safeString(trade, "product_id");
         string? symbol = this.safeSymbol(marketId);
         string messageHash = add("market_trades::", symbol);
-        object tradesArray = this.safeValue(this.trades, symbol);
+        ccxt.pro.ArrayCache tradesArray = ((ccxt.pro.ArrayCache)this.safeValue(this.trades, symbol));
         if ((tradesArray == null))
         {
             Int64? tradesLimit = this.safeInteger(this.options, "tradesLimit", 1000);
@@ -1159,7 +1159,7 @@ public partial class coinbase : ccxt.coinbase
             string? errorMessageValue = ((errorMessage != null)) ? errorMessage : "unknown error";
             throw new ExchangeError ((string)errorMessageValue) ;
         }
-        object method = this.safeValue(methods, channel);
+        Delegate method = ((Delegate)this.safeValue(methods, channel));
         if ((method != null))
         {
             DynamicInvoker.InvokeMethod(method, new object[] { client, message});

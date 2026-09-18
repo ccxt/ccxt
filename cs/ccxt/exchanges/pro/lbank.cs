@@ -504,7 +504,7 @@ public partial class lbank : ccxt.lbank
         string? marketId = this.safeString(message, "pair");
         string? symbol = this.safeSymbol(marketId);
         Dictionary<string, object> market = this.safeMarket(marketId);
-        object stored = this.safeValue(this.trades, symbol);
+        ccxt.pro.ArrayCache stored = ((ccxt.pro.ArrayCache)this.safeValue(this.trades, symbol));
         if ((stored == null))
         {
             Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);
@@ -1029,7 +1029,7 @@ public partial class lbank : ccxt.lbank
             { "orderUpdate", this.handleOrders },
             { "assetUpdate", this.handleBalance },
         };
-        object handler = this.safeValue(handlers, type);
+        Delegate handler = ((Delegate)this.safeValue(handlers, type));
         if ((handler != null))
         {
             DynamicInvoker.InvokeMethod(handler, new object[] { client, message});

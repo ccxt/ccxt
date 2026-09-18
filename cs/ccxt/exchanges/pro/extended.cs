@@ -791,7 +791,7 @@ public partial class extended : ccxt.extended
         string? symbol = ((string)GetValue(market, "symbol"));
         string messageHash = add("trades:", symbol);
         IDictionary<string, object> subscription = this.safeDict(client.subscriptions, messageHash, new Dictionary<string, object>() {});
-        object stored = this.safeValue(this.trades, symbol);
+        ccxt.pro.ArrayCache stored = ((ccxt.pro.ArrayCache)this.safeValue(this.trades, symbol));
         if ((stored == null))
         {
             Int64? defaultLimit = this.safeInteger(this.options, "tradesLimit", 1000);

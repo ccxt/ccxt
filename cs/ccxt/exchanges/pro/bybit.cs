@@ -897,7 +897,7 @@ public partial class bybit : ccxt.bybit
         string marketType = isSpot ? "spot" : "contract";
         Dictionary<string, object> market = this.safeMarket(marketId, null, null, marketType);
         string? symbol = ((string)GetValue(market, "symbol"));
-        object ohlcvsByTimeframe = this.safeValue(this.ohlcvs, symbol);
+        IDictionary<string, object> ohlcvsByTimeframe = ((IDictionary<string, object>)this.safeValue(this.ohlcvs, symbol));
         if ((ohlcvsByTimeframe == null))
         {
             ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = new Dictionary<string, object>() {};
@@ -1316,7 +1316,7 @@ public partial class bybit : ccxt.bybit
         string? marketId = this.safeString(parts, 1);
         Dictionary<string, object> market = this.safeMarket(marketId, null, null, marketType);
         string? symbol = ((string)GetValue(market, "symbol"));
-        object stored = this.safeValue(this.trades, symbol);
+        ccxt.pro.ArrayCache stored = ((ccxt.pro.ArrayCache)this.safeValue(this.trades, symbol));
         if ((stored == null))
         {
             Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);
@@ -2911,7 +2911,7 @@ public partial class bybit : ccxt.bybit
             { "auth", this.handleAuthenticate },
             { "unsubscribe", this.handleUnSubscribe },
         };
-        object exacMethod = this.safeValue(methods, topic);
+        Delegate exacMethod = ((Delegate)this.safeValue(methods, topic));
         if ((exacMethod != null))
         {
             DynamicInvoker.InvokeMethod(exacMethod, new object[] { client, message});

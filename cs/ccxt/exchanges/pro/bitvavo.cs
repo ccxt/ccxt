@@ -302,7 +302,7 @@ public partial class bitvavo : ccxt.bitvavo
         string name = "trades";
         string messageHash = add(add(name, "@"), marketId);
         Dictionary<string, object> trade = this.parseTrade(message, market);
-        object tradesArray = this.safeValue(this.trades, symbol);
+        ccxt.pro.ArrayCache tradesArray = ((ccxt.pro.ArrayCache)this.safeValue(this.trades, symbol));
         if ((tradesArray == null))
         {
             Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);
@@ -1851,7 +1851,7 @@ public partial class bitvavo : ccxt.bitvavo
             { "privateGetOrder", this.actionAndOrderIdMessageHash },
             { "privateGetTrades", this.actionAndMarketMessageHash },
         };
-        object method = this.safeValue(methods, action);
+        Delegate method = ((Delegate)this.safeValue(methods, action));
         object messageHash = action;
         if ((method != null))
         {
@@ -1966,7 +1966,7 @@ public partial class bitvavo : ccxt.bitvavo
         for (int i = 0; isLessThan(i, names.Count); postFixIncrement(ref i))
         {
             string? name = ((string)getValue(names, i));
-            object method = this.safeValue(methods, name);
+            Delegate method = ((Delegate)this.safeValue(methods, name));
             if ((method != null))
             {
                 object subscription = this.safeValue(subscriptions, name);

@@ -483,7 +483,7 @@ public partial class cryptocom : ccxt.cryptocom
         string? symbolSpecificMessageHash = this.safeString(message, "subscription");
         Dictionary<string, object> market = this.safeMarket(marketId);
         string? symbol = ((string)GetValue(market, "symbol"));
-        object stored = this.safeValue(this.trades, symbol);
+        ccxt.pro.ArrayCache stored = ((ccxt.pro.ArrayCache)this.safeValue(this.trades, symbol));
         if ((stored == null))
         {
             Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);
@@ -1572,7 +1572,7 @@ public partial class cryptocom : ccxt.cryptocom
             // channel might be user.order.BTC_USDT
             this.handleOrders(client, result);
         }
-        object method = this.safeValue(methods, channel);
+        Delegate method = ((Delegate)this.safeValue(methods, channel));
         if ((method != null))
         {
             DynamicInvoker.InvokeMethod(method, new object[] { client, result});
@@ -1631,7 +1631,7 @@ public partial class cryptocom : ccxt.cryptocom
             { "subscribe", this.handleSubscribe },
             { "unsubscribe", this.handleUnsubscribe },
         };
-        object callMethod = this.safeValue(methods, method);
+        Delegate callMethod = ((Delegate)this.safeValue(methods, method));
         if ((callMethod != null))
         {
             DynamicInvoker.InvokeMethod(callMethod, new object[] { client, message});

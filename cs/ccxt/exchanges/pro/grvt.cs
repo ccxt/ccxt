@@ -106,7 +106,7 @@ public partial class grvt : ccxt.grvt
             return;
         }
         string? channel = this.safeString(message, "stream");
-        object method = this.safeValue(methods, channel);
+        Delegate method = ((Delegate)this.safeValue(methods, channel));
         if ((method != null))
         {
             DynamicInvoker.InvokeMethod(method, new object[] { client, message});

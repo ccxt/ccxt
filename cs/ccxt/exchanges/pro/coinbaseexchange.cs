@@ -485,7 +485,7 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
             // therefore we resolve 'matches' here instead of 'match'
             string type = "matches";
             string messageHash = add(add(type, ":"), marketId);
-            object tradesArray = this.safeValue(this.trades, symbol);
+            ccxt.pro.ArrayCache tradesArray = ((ccxt.pro.ArrayCache)this.safeValue(this.trades, symbol));
             if ((tradesArray == null))
             {
                 Int64? tradesLimit = this.safeInteger(this.options, "tradesLimit", 1000);
@@ -1120,7 +1120,7 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
         };
         object length = subtract(((string)client.url).Length, 0);
         bool authenticated = isEqual(getValue(client.url, subtract(length, 1)), "?");
-        object method = this.safeValue(methods, type);
+        Delegate method = ((Delegate)this.safeValue(methods, type));
         if ((method == null))
         {
             if (type == "match")

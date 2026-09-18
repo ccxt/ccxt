@@ -180,7 +180,7 @@ public partial class gemini : ccxt.gemini
         Dictionary<string, object> trade = this.parseWsTrade(message);
         string? symbol = ((string)GetValue(trade, "symbol"));
         Int64? tradesLimit = this.safeInteger(this.options, "tradesLimit", 1000);
-        object stored = this.safeValue(this.trades, symbol);
+        ccxt.pro.ArrayCache stored = ((ccxt.pro.ArrayCache)this.safeValue(this.trades, symbol));
         if ((stored == null))
         {
             stored = new ArrayCache(tradesLimit);
@@ -240,7 +240,7 @@ public partial class gemini : ccxt.gemini
         {
             string? symbol = ((string)GetValue(market, "symbol"));
             Int64? tradesLimit = this.safeInteger(this.options, "tradesLimit", 1000);
-            object stored = this.safeValue(this.trades, symbol);
+            ccxt.pro.ArrayCache stored = ((ccxt.pro.ArrayCache)this.safeValue(this.trades, symbol));
             if ((stored == null))
             {
                 stored = new ArrayCache(tradesLimit);
@@ -270,7 +270,7 @@ public partial class gemini : ccxt.gemini
                 Dictionary<string, object> trade = this.parseWsTrade(getValue(trades, i), market);
                 trade["timestamp"] = timestamp;
                 trade["datetime"] = this.iso8601(timestamp);
-                object stored = this.safeValue(this.trades, symbol);
+                ccxt.pro.ArrayCache stored = ((ccxt.pro.ArrayCache)this.safeValue(this.trades, symbol));
                 if ((stored == null))
                 {
                     stored = new ArrayCache(tradesLimit);
@@ -367,7 +367,7 @@ public partial class gemini : ccxt.gemini
         string? symbol = this.safeSymbol(marketId, market);
         List<object> changes = this.safeList(message, "changes", new List<object>() {});
         string? timeframe = this.findTimeframe(timeframeId);
-        object ohlcvsBySymbol = this.safeValue(this.ohlcvs, symbol);
+        IDictionary<string, object> ohlcvsBySymbol = ((IDictionary<string, object>)this.safeValue(this.ohlcvs, symbol));
         if ((ohlcvsBySymbol == null))
         {
             ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = new Dictionary<string, object>() {};
@@ -972,7 +972,7 @@ public partial class gemini : ccxt.gemini
             this.handleOHLCV(client, message);
             return;
         }
-        object method = this.safeValue(methods, type);
+        Delegate method = ((Delegate)this.safeValue(methods, type));
         if ((method != null))
         {
             DynamicInvoker.InvokeMethod(method, new object[] { client, message});

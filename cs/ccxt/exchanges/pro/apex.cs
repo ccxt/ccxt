@@ -145,7 +145,7 @@ public partial class apex : ccxt.apex
         string? marketId = this.safeString(parts, 2);
         Dictionary<string, object> market = this.safeMarket(marketId, null, null);
         string? symbol = ((string)GetValue(market, "symbol"));
-        object stored = this.safeValue(this.trades, symbol);
+        ccxt.pro.ArrayCache stored = ((ccxt.pro.ArrayCache)this.safeValue(this.trades, symbol));
         if ((stored == null))
         {
             Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);
@@ -1148,7 +1148,7 @@ public partial class apex : ccxt.apex
             { "auth", this.handleAuthenticate },
             { "ping", this.handlePing },
         };
-        object exacMethod = this.safeValue(methods, topic);
+        Delegate exacMethod = ((Delegate)this.safeValue(methods, topic));
         if ((exacMethod != null))
         {
             DynamicInvoker.InvokeMethod(exacMethod, new object[] { client, message});

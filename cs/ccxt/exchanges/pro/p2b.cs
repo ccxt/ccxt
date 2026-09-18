@@ -365,7 +365,7 @@ public partial class p2b : ccxt.p2b
         string? marketId = this.safeString(data, 0);
         Dictionary<string, object> market = this.safeMarket(marketId);
         string? symbol = this.safeString(market, "symbol");
-        object tradesArray = this.safeValue(this.trades, symbol);
+        ccxt.pro.ArrayCache tradesArray = ((ccxt.pro.ArrayCache)this.safeValue(this.trades, symbol));
         if ((tradesArray == null))
         {
             Int64? tradesLimit = this.safeInteger(this.options, "tradesLimit", 1000);
@@ -535,7 +535,7 @@ public partial class p2b : ccxt.p2b
             { "state.update", this.handleTicker },
             { "deals.update", this.handleTrade },
         };
-        object endpoint = this.safeValue(methods, method);
+        Delegate endpoint = ((Delegate)this.safeValue(methods, method));
         if ((endpoint != null))
         {
             DynamicInvoker.InvokeMethod(endpoint, new object[] { client, message});

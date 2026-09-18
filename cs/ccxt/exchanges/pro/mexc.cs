@@ -1124,7 +1124,7 @@ public partial class mexc : ccxt.mexc
         Dictionary<string, object> market = this.safeMarket(marketId);
         string? symbol = ((string)GetValue(market, "symbol"));
         string messageHash = add("trades:", symbol);
-        object stored = this.safeValue(this.trades, symbol);
+        ccxt.pro.ArrayCache stored = ((ccxt.pro.ArrayCache)this.safeValue(this.trades, symbol));
         if ((stored == null))
         {
             Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);
@@ -2272,7 +2272,7 @@ public partial class mexc : ccxt.mexc
                 { "public.increase.depth.v3.api", this.handleOrderBookSubscription },
                 { "public.aggre.depth.v3.api.pb", this.handleOrderBookSubscription },
             };
-            object method = this.safeValue(methods, channel);
+            Delegate method = ((Delegate)this.safeValue(methods, channel));
             if ((method != null))
             {
                 DynamicInvoker.InvokeMethod(method, new object[] { client, message});

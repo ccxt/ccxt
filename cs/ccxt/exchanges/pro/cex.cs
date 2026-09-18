@@ -1303,7 +1303,7 @@ public partial class cex : ccxt.cex
         string? symbol = this.pairToSymbol(pair);
         string messageHash = add("ohlcv:", symbol);
         List<object> ohlcv = new List<object> {this.safeTimestamp(data, "time"), this.safeNumber(data, "o"), this.safeNumber(data, "h"), this.safeNumber(data, "l"), this.safeNumber(data, "c"), this.safeNumber(data, "v")};
-        object stored = this.safeValue(this.ohlcvs, symbol);
+        IDictionary<string, object> stored = ((IDictionary<string, object>)this.safeValue(this.ohlcvs, symbol));
         callDynamically(stored, "append", new object[] {ohlcv});
         callDynamically(client, "resolve", new object[] {stored, messageHash});
     }
@@ -1681,7 +1681,7 @@ public partial class cex : ccxt.cex
             { "mass-cancel-place-orders", this.resolveData },
             { "get-order", this.resolveData },
         };
-        object handler = this.safeValue(handlers, eventVar);
+        Delegate handler = ((Delegate)this.safeValue(handlers, eventVar));
         if ((handler != null))
         {
             DynamicInvoker.InvokeMethod(handler, new object[] { client, message});

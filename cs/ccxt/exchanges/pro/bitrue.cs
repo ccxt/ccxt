@@ -588,7 +588,7 @@ public partial class bitrue : ccxt.bitrue
         object tick = this.safeValue(message, "tick", new Dictionary<string, object>() {});
         List<object> data = this.safeList(tick, "data", new List<object>() {});
         bool appended = false;
-        object stored = this.safeValue(this.trades, symbol);
+        ccxt.pro.ArrayCache stored = ((ccxt.pro.ArrayCache)this.safeValue(this.trades, symbol));
         for (int i = 0; isLessThan(i, data.Count); postFixIncrement(ref i))
         {
             if ((stored == null))
@@ -940,7 +940,7 @@ public partial class bitrue : ccxt.bitrue
                 { "BALANCE", this.handleBalance },
                 { "ORDER", this.handleOrder },
             };
-            object handler = this.safeValue(handlers, eventVar);
+            Delegate handler = ((Delegate)this.safeValue(handlers, eventVar));
             if ((handler != null))
             {
                 DynamicInvoker.InvokeMethod(handler, new object[] { client, message});

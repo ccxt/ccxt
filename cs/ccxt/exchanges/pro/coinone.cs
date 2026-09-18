@@ -123,8 +123,8 @@ public partial class coinone : ccxt.coinone
             (orderbook as IOrderBook).reset();
         }
         ((IDictionary<string,object>)orderbook)["symbol"] = symbol;
-        List<object> asks = this.safeList(data, "asks", new List<object>() {});
-        List<object> bids = this.safeList(data, "bids", new List<object>() {});
+        object asks = this.safeValue(data, "asks", new List<object>() {});
+        object bids = this.safeValue(data, "bids", new List<object>() {});
         this.handleDeltas(getValue(orderbook, "asks"), asks);
         this.handleDeltas(getValue(orderbook, "bids"), bids);
         ((IDictionary<string,object>)orderbook)["timestamp"] = timestamp;
@@ -204,7 +204,7 @@ public partial class coinone : ccxt.coinone
         //
         object data = this.safeValue(message, "data", new Dictionary<string, object>() {});
         Dictionary<string, object> ticker = this.parseWsTicker(data);
-        string? symbol = ((string)GetValue(ticker, "symbol"));
+        object symbol = GetValue(ticker, "symbol");
         ((IDictionary<string,object>)this.tickers)[(string)((string)symbol)] = ticker;
         string messageHash = add("ticker:", symbol);
         callDynamically(client, "resolve", new object[] {getValue(this.tickers, ((string)symbol)), messageHash});
@@ -326,8 +326,8 @@ public partial class coinone : ccxt.coinone
         //
         object data = this.safeValue(message, "data", new Dictionary<string, object>() {});
         Dictionary<string, object> trade = this.parseWsTrade(data);
-        string? symbol = ((string)GetValue(trade, "symbol"));
-        object stored = this.safeValue(this.trades, symbol);
+        object symbol = GetValue(trade, "symbol");
+        ccxt.pro.ArrayCache stored = ((ccxt.pro.ArrayCache)this.safeValue(this.trades, symbol));
         if ((stored == null))
         {
             Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);
@@ -421,7 +421,7 @@ public partial class coinone : ccxt.coinone
                 { "TICKER", this.handleTicker },
                 { "TRADE", this.handleTrades },
             };
-            object exacMethod = this.safeValue(methods, topic);
+            Delegate exacMethod = ((Delegate)this.safeValue(methods, topic));
             if ((exacMethod != null))
             {
                 DynamicInvoker.InvokeMethod(exacMethod, new object[] { client, message});

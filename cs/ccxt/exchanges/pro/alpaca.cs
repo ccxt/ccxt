@@ -209,7 +209,7 @@ public partial class alpaca : ccxt.alpaca
         //
         string? marketId = this.safeString(message, "S");
         string? symbol = this.safeSymbol(marketId);
-        object stored = this.safeValue(this.ohlcvs, symbol);
+        ccxt.pro.ArrayCacheByTimestamp stored = ((ccxt.pro.ArrayCacheByTimestamp)this.safeValue(this.ohlcvs, symbol));
         if ((stored == null))
         {
             Int64? limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
@@ -370,7 +370,7 @@ public partial class alpaca : ccxt.alpaca
         //
         string? marketId = this.safeString(message, "S");
         string? symbol = this.safeSymbol(marketId);
-        object stored = this.safeValue(this.trades, symbol);
+        ccxt.pro.ArrayCache stored = ((ccxt.pro.ArrayCache)this.safeValue(this.trades, symbol));
         if ((stored == null))
         {
             Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);
@@ -762,7 +762,7 @@ public partial class alpaca : ccxt.alpaca
                 { "t", this.handleTrades },
                 { "o", this.handleOrderBook },
             };
-            object method = this.safeValue(methods, T);
+            Delegate method = ((Delegate)this.safeValue(methods, T));
             if ((method != null))
             {
                 DynamicInvoker.InvokeMethod(method, new object[] { client, data});
@@ -778,7 +778,7 @@ public partial class alpaca : ccxt.alpaca
             { "listening", this.handleSubscription },
             { "trade_updates", this.handleTradeUpdate },
         };
-        object method = this.safeValue(methods, stream);
+        Delegate method = ((Delegate)this.safeValue(methods, stream));
         if ((method != null))
         {
             DynamicInvoker.InvokeMethod(method, new object[] { client, message});

@@ -1229,7 +1229,7 @@ public partial class bithumb : ccxt.bithumb
                 { "myAsset", this.handleBalance },
                 { "myOrder", this.handleOrders },
             };
-            object method = this.safeValue(methods, topic);
+            Delegate method = ((Delegate)this.safeValue(methods, topic));
             if ((method != null))
             {
                 DynamicInvoker.InvokeMethod(method, new object[] { client, message});

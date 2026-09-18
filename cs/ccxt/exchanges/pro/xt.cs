@@ -1232,7 +1232,7 @@ public partial class xt : ccxt.xt
             Dictionary<string, object> market = this.safeMarket(marketId, null, null, tradeType);
             string? symbol = ((string)GetValue(market, "symbol"));
             object eventVar = this.safeString(message, "event");
-            object tradesArray = this.safeValue(this.trades, symbol);
+            ccxt.pro.ArrayCache tradesArray = ((ccxt.pro.ArrayCache)this.safeValue(this.trades, symbol));
             if ((tradesArray == null))
             {
                 Int64? tradesLimit = this.safeInteger(this.options, "tradesLimit", 1000);

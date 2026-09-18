@@ -1395,7 +1395,7 @@ public partial class aster : ccxt.aster
         {
             return;
         }
-        object ohlcvsByTimeframe = this.safeValue(this.ohlcvs, symbol);
+        IDictionary<string, object> ohlcvsByTimeframe = ((IDictionary<string, object>)this.safeValue(this.ohlcvs, symbol));
         if ((ohlcvsByTimeframe == null))
         {
             ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = new Dictionary<string, object>() {};

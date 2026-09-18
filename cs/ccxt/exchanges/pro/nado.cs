@@ -1517,7 +1517,7 @@ public partial class nado : ccxt.nado
         Dictionary<string, object> market = this.safeMarket(marketId);
         string? symbol = ((string)GetValue(market, "symbol"));
         string messageHash = add("trade:", symbol);
-        object trades = this.safeValue(this.trades, symbol);
+        ccxt.pro.ArrayCache trades = ((ccxt.pro.ArrayCache)this.safeValue(this.trades, symbol));
         if ((trades == null))
         {
             Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);
@@ -2219,7 +2219,7 @@ public partial class nado : ccxt.nado
             { "order_update", this.handleOrder },
             { "position_change", this.handlePosition },
         };
-        object handler = this.safeValue(methods, type);
+        Delegate handler = ((Delegate)this.safeValue(methods, type));
         if ((handler != null))
         {
             DynamicInvoker.InvokeMethod(handler, new object[] { client, message});
