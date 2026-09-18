@@ -1015,8 +1015,8 @@ public class Bitfinex extends BitfinexApi
                     put( "strike", null );
                     put( "optionType", null );
                     put( "precision", new HashMap<String, Object>() {{
-                        put( "amount", Helpers.parseInt("8") );
-                        put( "price", Helpers.parseInt("5") );
+                        put( "amount", Long.parseLong("8") );
+                        put( "price", Long.parseLong("5") );
                     }} );
                     put( "limits", new HashMap<String, Object>() {{
                         put( "leverage", new HashMap<String, Object>() {{
