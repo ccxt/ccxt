@@ -1023,7 +1023,7 @@ public partial class kucoin : ccxt.kucoin
             {
                 channelName = "/contractMarket/limitCandle:";
             }
-            object topic = add(add(add(channelName, GetValue(market, "id")), "_"), period);
+            string topic = add(add(add(channelName, GetValue(market, "id")), "_"), period);
             ohlcv = await this.subscribe(url, messageHash, topic, parameters);
         }
         if (isTrue(this.newUpdates))
@@ -1090,7 +1090,7 @@ public partial class kucoin : ccxt.kucoin
                 channelName = "/contractMarket/limitCandle:";
             }
             string messageHash = add("unsubscribe:", subMessageHash);
-            object topic = add(add(add(channelName, GetValue(market, "id")), "_"), period);
+            string topic = add(add(add(channelName, GetValue(market, "id")), "_"), period);
             // we have to add the topic to the messageHashes and subMessageHashes
             // because handleSubscriptionStatus needs them to remove the subscription from the client
             // without them subscription would never be removed and re-subscribe would fail because of duplicate subscriptionHash

@@ -230,7 +230,7 @@ public partial class weex : ccxt.weex
         {
             object symbol = getValue(symbols, i);
             Dictionary<string, object> market = this.market(symbol);
-            object channelName = add(add(GetValue(market, "id"), "@"), topic);
+            string? channelName = ((string)add(add(GetValue(market, "id"), "@"), topic));
             string messageHash = add(add(topic, "::"), symbol);
             ((IList<object>)messageHashes).Add(messageHash);
             ((IList<object>)channels).Add(channelName);
@@ -289,7 +289,7 @@ public partial class weex : ccxt.weex
         {
             string? symbol = ((string)getValue(symbols, i));
             Dictionary<string, object> market = this.market(symbol);
-            object channelName = add(add(GetValue(market, "id"), "@"), topic);
+            string? channelName = ((string)add(add(GetValue(market, "id"), "@"), topic));
             string messageHash = add(add(topic, "::"), symbol);
             string unSubMessageHash = add("unsubscribe::", messageHash);
             ((IList<object>)subHashes).Add(messageHash);
@@ -444,7 +444,7 @@ public partial class weex : ccxt.weex
         {
             object symbol = getValue(symbols, i);
             Dictionary<string, object> market = this.market(symbol);
-            object channelName = add(add(GetValue(market, "id"), "@"), topic);
+            string? channelName = ((string)add(add(GetValue(market, "id"), "@"), topic));
             string messageHash = add(add(topic, "::"), symbol);
             ((IList<object>)messageHashes).Add(messageHash);
             ((IList<object>)channels).Add(channelName);
@@ -503,7 +503,7 @@ public partial class weex : ccxt.weex
         {
             string? symbol = ((string)getValue(symbols, i));
             Dictionary<string, object> market = this.market(symbol);
-            object channelName = add(add(GetValue(market, "id"), "@"), topic);
+            string? channelName = ((string)add(add(GetValue(market, "id"), "@"), topic));
             string messageHash = add(add(topic, "::"), symbol);
             string unSubMessageHash = add("unsubscribe::", messageHash);
             ((IList<object>)subHashes).Add(messageHash);
@@ -680,7 +680,7 @@ public partial class weex : ccxt.weex
             symbolString = GetValue(market, "symbol");
             string? unifiedTimeframe = this.safeString(data, 1, "1");
             string? interval = this.safeString(this.timeframes, unifiedTimeframe, unifiedTimeframe);
-            object channel = add(add(add(add(GetValue(market, "id"), "@kline_"), interval), "_"), priceType);
+            string? channel = ((string)add(add(add(add(GetValue(market, "id"), "@kline_"), interval), "_"), priceType));
             string messageHash = add(add(add("ohlcv::", symbolString), "::"), unifiedTimeframe);
             ((IList<object>)channels).Add(channel);
             ((IList<object>)messageHashes).Add(messageHash);
@@ -762,7 +762,7 @@ public partial class weex : ccxt.weex
             symbolString = GetValue(market, "symbol");
             string? unifiedTimeframe = this.safeString(data, 1, "1");
             string? interval = this.safeString(this.timeframes, unifiedTimeframe, unifiedTimeframe);
-            object channel = add(add(add(add(GetValue(market, "id"), "@kline_"), interval), "_"), priceType);
+            string? channel = ((string)add(add(add(add(GetValue(market, "id"), "@kline_"), interval), "_"), priceType));
             string messageHash = add(add(add("ohlcv::", symbolString), "::"), unifiedTimeframe);
             string unSubMessageHash = add("unsubscribe::", messageHash);
             ((IList<object>)channels).Add(channel);
@@ -917,7 +917,7 @@ public partial class weex : ccxt.weex
             object symbol = getValue(symbols, i);
             Dictionary<string, object> market = this.market(symbol);
             string messageHash = add("orderbook::", symbol);
-            object channel = add(add(GetValue(market, "id"), "@depth"), depth);
+            string? channel = ((string)add(add(GetValue(market, "id"), "@depth"), depth));
             ((IList<object>)messageHashes).Add(messageHash);
             ((IList<object>)channels).Add(channel);
         }
@@ -981,7 +981,7 @@ public partial class weex : ccxt.weex
             string? symbol = ((string)getValue(symbols, i));
             Dictionary<string, object> market = this.market(symbol);
             string messageHash = add("orderbook::", symbol);
-            object channel = add(add(GetValue(market, "id"), "@depth"), depth);
+            string? channel = ((string)add(add(GetValue(market, "id"), "@depth"), depth));
             string unSubMessageHash = add("unsubscribe::", messageHash);
             ((IList<object>)subHashes).Add(messageHash);
             ((IList<object>)channels).Add(channel);
@@ -1087,7 +1087,7 @@ public partial class weex : ccxt.weex
         {
             object symbol = getValue(symbols, i);
             Dictionary<string, object> market = this.market(symbol);
-            object channelName = add(add(GetValue(market, "id"), "@"), "bookTicker");
+            string? channelName = ((string)add(add(GetValue(market, "id"), "@"), "bookTicker"));
             string messageHash = add("bidask::", symbol);
             ((IList<object>)messageHashes).Add(messageHash);
             ((IList<object>)channels).Add(channelName);
@@ -1131,7 +1131,7 @@ public partial class weex : ccxt.weex
         {
             string? symbol = ((string)getValue(symbols, i));
             Dictionary<string, object> market = this.market(symbol);
-            object channelName = add(add(GetValue(market, "id"), "@"), "bookTicker");
+            string? channelName = ((string)add(add(GetValue(market, "id"), "@"), "bookTicker"));
             string messageHash = add("bidask::", symbol);
             string unSubMessageHash = add("unsubscribe::", messageHash);
             ((IList<object>)subHashes).Add(messageHash);
@@ -1943,7 +1943,7 @@ public partial class weex : ccxt.weex
         {
             await this.loadMarkets();
         }
-        object url = add(getValue(getValue(getValue(this.urls, "api"), "ws"), "contract"), "/private");
+        string? url = ((string)add(getValue(getValue(getValue(this.urls, "api"), "ws"), "contract"), "/private"));
         this.authenticate(url);
         var client = this.client(url);
         symbols = this.marketSymbols(symbols, "swap", true);

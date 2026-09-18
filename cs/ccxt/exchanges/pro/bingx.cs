@@ -179,7 +179,7 @@ public partial class bingx : ccxt.bingx
         {
             url = this.safeString(getValue(getValue(this.urls, "api"), "ws"), marketType);
         }
-        object dataType = add(GetValue(market, "id"), "@ticker");
+        string? dataType = ((string)add(GetValue(market, "id"), "@ticker"));
         string? messageHash = this.getMessageHash("ticker", GetValue(market, "symbol"));
         string uuid = this.uuid();
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -216,7 +216,7 @@ public partial class bingx : ccxt.bingx
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        object dataType = add(GetValue(market, "id"), "@ticker");
+        string? dataType = ((string)add(GetValue(market, "id"), "@ticker"));
         string? subMessageHash = this.getMessageHash("ticker", GetValue(market, "symbol"));
         string messageHash = add("unsubscribe::", subMessageHash);
         string topic = "ticker";
@@ -432,7 +432,7 @@ public partial class bingx : ccxt.bingx
         {
             url = this.safeString(getValue(getValue(this.urls, "api"), "ws"), marketType);
         }
-        object rawHash = add(GetValue(market, "id"), "@trade");
+        string? rawHash = ((string)add(GetValue(market, "id"), "@trade"));
         string messageHash = add("trade::", symbolVar);
         string uuid = this.uuid();
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -482,7 +482,7 @@ public partial class bingx : ccxt.bingx
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        object dataType = add(GetValue(market, "id"), "@trade");
+        string? dataType = ((string)add(GetValue(market, "id"), "@trade"));
         string? subMessageHash = this.getMessageHash("trade", GetValue(market, "symbol"));
         string messageHash = add("unsubscribe::", subMessageHash);
         string topic = "trades";
@@ -641,7 +641,7 @@ public partial class bingx : ccxt.bingx
         }
         IDictionary<string, object> options = this.safeDict(this.options, "watchOrderBook", new Dictionary<string, object>() {});
         Int64? depth = this.safeInteger(options, "depth", 100);
-        object subscriptionHash = add(add(add(GetValue(market, "id"), "@"), "depth"), this.numberToString(depth));
+        string? subscriptionHash = ((string)add(add(add(GetValue(market, "id"), "@"), "depth"), this.numberToString(depth)));
         string? messageHash = this.getMessageHash("orderbook", GetValue(market, "symbol"));
         string uuid = this.uuid();
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -695,7 +695,7 @@ public partial class bingx : ccxt.bingx
         Dictionary<string, object> market = this.market(symbol);
         IDictionary<string, object> options = this.safeDict(this.options, "watchOrderBook", new Dictionary<string, object>() {});
         Int64? depth = this.safeInteger(options, "depth", 100);
-        object subMessageHash = add(add(add(GetValue(market, "id"), "@"), "depth"), this.numberToString(depth));
+        string? subMessageHash = ((string)add(add(add(GetValue(market, "id"), "@"), "depth"), this.numberToString(depth)));
         string messageHash = add("unsubscribe::", subMessageHash);
         string topic = "orderbook";
         string methodName = "unWatchOrderBook";
@@ -1020,7 +1020,7 @@ public partial class bingx : ccxt.bingx
         object timeframes = this.safeValue(options, "timeframes", new Dictionary<string, object>() {});
         string? rawTimeframe = this.safeString(timeframes, timeframeVar, timeframeVar);
         string? messageHash = this.getMessageHash("ohlcv", GetValue(market, "symbol"), timeframeVar);
-        object subscriptionHash = add(add(GetValue(market, "id"), "@kline_"), rawTimeframe);
+        string? subscriptionHash = ((string)add(add(GetValue(market, "id"), "@kline_"), rawTimeframe));
         string uuid = this.uuid();
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "id", uuid },
@@ -1070,7 +1070,7 @@ public partial class bingx : ccxt.bingx
         object options = this.safeValue(this.options, GetValue(market, "type"), new Dictionary<string, object>() {});
         object timeframes = this.safeValue(options, "timeframes", new Dictionary<string, object>() {});
         string? rawTimeframe = this.safeString(timeframes, timeframeVar, timeframeVar);
-        object subMessageHash = add(add(GetValue(market, "id"), "@kline_"), rawTimeframe);
+        string? subMessageHash = ((string)add(add(GetValue(market, "id"), "@kline_"), rawTimeframe));
         string messageHash = add("unsubscribe::", subMessageHash);
         string topic = "ohlcv";
         string methodName = "unWatchOHLCV";

@@ -370,7 +370,7 @@ public partial class mudrex : Exchange
         string? priceType = this.safeString(parameters, "price");
         parameters = this.omit(parameters, "price");
         // the endpoint expects the pair in "BASE/QUOTE" format (comma-separated for multiple)
-        object assetPair = add(add(GetValue(market, "baseId"), "/"), GetValue(market, "quoteId"));
+        string? assetPair = ((string)add(add(GetValue(market, "baseId"), "/"), GetValue(market, "quoteId")));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "assets", assetPair },
             { "aggregation", this.safeString(this.timeframes, timeframeVar, timeframeVar) },
@@ -427,7 +427,7 @@ public partial class mudrex : Exchange
         //
         IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         IDictionary<string, object> assetTicks = this.safeDict(data, "asset_ticks", new Dictionary<string, object>() {});
-        List<object> ohlcvs = this.safeList(assetTicks, ((string)assetPair).ToLower(), new List<object>() {});
+        List<object> ohlcvs = this.safeList(assetTicks, assetPair.ToLower(), new List<object>() {});
         return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(ohlcvs, market,timeframeVar, since, limit));
     }
 

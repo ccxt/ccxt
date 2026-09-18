@@ -155,7 +155,7 @@ public partial class extended : ccxt.extended
     public async virtual Task<object> watchPrivate(object messageHash, object subscription = null)
     {
         this.checkRequiredCredentials();
-        object url = add(getValue(getValue(this.urls, "api"), "ws"), "/account");
+        string? url = ((string)add(getValue(getValue(this.urls, "api"), "ws"), "/account"));
         if ((isEqual(this.clients, null)) || !(inOp(this.clients, url)))
         {
             Dictionary<string, object> defaultOptions = new Dictionary<string, object>() {
@@ -862,7 +862,7 @@ public partial class extended : ccxt.extended
         string query = this.urlencode(this.extend(new Dictionary<string, object>() {
             { "interval", interval },
         }, parameters));
-        object url = add(add(add(add(add(add(getValue(getValue(this.urls, "api"), "ws"), "/candles/"), GetValue(market, "id")), "/"), candleType), "?"), query);
+        string? url = ((string)add(add(add(add(add(add(getValue(getValue(this.urls, "api"), "ws"), "/candles/"), GetValue(market, "id")), "/"), candleType), "?"), query));
         object ohlcv = await this.watch(url, messageHash, null, messageHash, new Dictionary<string, object>() {
             { "name", "ohlcv" },
             { "symbol", symbolVar },

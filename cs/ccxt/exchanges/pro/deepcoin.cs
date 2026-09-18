@@ -177,7 +177,7 @@ public partial class deepcoin : ccxt.deepcoin
     {
         parameters ??= new Dictionary<string, object>();
         string? listenKey = await this.authenticate();
-        object url = add(add(getValue(getValue(getValue(this.urls, "api"), "ws"), "private"), "?listenKey="), listenKey);
+        string? url = ((string)add(add(getValue(getValue(getValue(this.urls, "api"), "ws"), "private"), "?listenKey="), listenKey));
         return await this.watch(url, messageHash, null, "private", parameters);
     }
 
@@ -1228,7 +1228,7 @@ public partial class deepcoin : ccxt.deepcoin
         {
             ((IList<object>)messageHashes).Add(messageHash);
         }
-        object url = add(add(getValue(getValue(getValue(this.urls, "api"), "ws"), "private"), "?listenKey="), listenKey);
+        string? url = ((string)add(add(getValue(getValue(getValue(this.urls, "api"), "ws"), "private"), "?listenKey="), listenKey));
         object positions = await this.watchMultiple(url, messageHashes, parameters, new List<object>() {"private"});
         if (isTrue(this.newUpdates))
         {

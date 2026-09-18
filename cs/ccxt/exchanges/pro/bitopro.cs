@@ -47,7 +47,7 @@ public partial class bitopro : ccxt.bitopro
 
     public async virtual Task<object> watchPublic(object path, object messageHash, object marketId)
     {
-        object url = add(add(add(add(getValue(getValue(this.urls, "ws"), "public"), "/"), path), "/"), marketId);
+        string? url = ((string)add(add(add(add(getValue(getValue(this.urls, "ws"), "public"), "/"), path), "/"), marketId));
         return await this.watch(url, messageHash, null, messageHash);
     }
 
@@ -229,7 +229,7 @@ public partial class bitopro : ccxt.bitopro
             Dictionary<string, object> market = this.market(symbol);
             messageHash = add(add(messageHash, ":"), GetValue(market, "symbol"));
         }
-        object url = add(add(getValue(getValue(this.urls, "ws"), "private"), "/"), "user-trades");
+        string? url = ((string)add(add(getValue(getValue(this.urls, "ws"), "private"), "/"), "user-trades"));
         this.authenticate(url);
         object trades = await this.watch(url, messageHash, null, messageHash);
         if (isTrue(this.newUpdates))
@@ -481,7 +481,7 @@ public partial class bitopro : ccxt.bitopro
             await this.loadMarkets();
         }
         string messageHash = "ACCOUNT_BALANCE";
-        object url = add(add(getValue(getValue(this.urls, "ws"), "private"), "/"), "account-balance");
+        string? url = ((string)add(add(getValue(getValue(this.urls, "ws"), "private"), "/"), "account-balance"));
         this.authenticate(url);
         return ccxt.BaseExchange.ToBalances(await this.watch(url, messageHash, null, messageHash));
     }

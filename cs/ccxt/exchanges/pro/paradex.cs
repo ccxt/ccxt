@@ -112,7 +112,7 @@ public partial class paradex : ccxt.paradex
         {
             await this.loadMarkets();
         }
-        object messageHash = "trades.";
+        string messageHash = "trades.";
         if (!isEqual(symbol, null))
         {
             Dictionary<string, object> market = this.market(symbol);
@@ -373,7 +373,7 @@ public partial class paradex : ccxt.paradex
         }
         await this.authenticate();
         string messageHash = "orders";
-        object channel = "orders.";
+        string channel = "orders.";
         if (!isEqual(symbolVar, null))
         {
             Dictionary<string, object> market = this.market(symbolVar);

@@ -2229,7 +2229,7 @@ public partial class hollaex : Exchange
                 path = add(path, add("?", this.urlencode(query)));
             }
         }
-        object url = add(getValue(getValue(this.urls, "api"), "rest"), path);
+        string? url = ((string)add(getValue(getValue(this.urls, "api"), "rest"), path));
         if (isEqual(api, "private"))
         {
             this.checkRequiredCredentials();

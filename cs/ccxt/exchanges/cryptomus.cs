@@ -1324,8 +1324,8 @@ public partial class cryptomus : Exchange
                     url = add(url, add("?", query));
                 }
             }
-            object jsonParamsBase64 = this.stringToBase64(jsonParams);
-            object stringToSign = add(jsonParamsBase64, this.secret);
+            string jsonParamsBase64 = this.stringToBase64(jsonParams);
+            string stringToSign = add(jsonParamsBase64, this.secret);
             object signature = this.hash(this.encode(stringToSign), md5);
             ((IDictionary<string,object>)headers)["sign"] = signature;
         } else

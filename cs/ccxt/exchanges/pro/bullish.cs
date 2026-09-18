@@ -98,7 +98,7 @@ public partial class bullish : ccxt.bullish
             { "params", request },
             { "id", id },
         };
-        object fullUrl = add(getValue(getValue(getValue(this.urls, "api"), "ws"), "public"), url);
+        string? fullUrl = ((string)add(getValue(getValue(getValue(this.urls, "api"), "ws"), "public"), url));
         return await this.watch(fullUrl, messageHash, this.deepExtend(message, parameters), messageHash);
     }
 
@@ -225,7 +225,7 @@ public partial class bullish : ccxt.bullish
         }
         Dictionary<string, object> market = this.market(symbolVar);
         symbolVar = GetValue(market, "symbol");
-        object url = add(add(getValue(getValue(getValue(this.urls, "api"), "ws"), "public"), "/trading-api/v1/market-data/tick/"), GetValue(market, "id"));
+        string? url = ((string)add(add(getValue(getValue(getValue(this.urls, "api"), "ws"), "public"), "/trading-api/v1/market-data/tick/"), GetValue(market, "id")));
         string messageHash = add("ticker::", symbolVar);
         return ccxt.BaseExchange.ToTicker(await this.watch(url, messageHash, parameters, messageHash));  // no need to send a subscribe message, the server sends a ticker update on connect
     }

@@ -133,7 +133,7 @@ public partial class bydfi : ccxt.bydfi
         {
             Int64 id = ((Int64)this.requestId());
             string timestamp = this.milliseconds().ToString();
-            object payload = add(this.apiKey, timestamp);
+            string? payload = add(this.apiKey, timestamp);
             string signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256, "hex");
             Dictionary<string, object> request = new Dictionary<string, object>() {
                 { "id", id },

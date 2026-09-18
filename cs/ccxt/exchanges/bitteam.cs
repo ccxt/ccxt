@@ -2584,7 +2584,7 @@ public partial class bitteam : Exchange
             {
                 url = add(url, add("?", query));
             }
-            object auth = add(add(this.apiKey, ":"), this.secret);
+            string? auth = add(add(this.apiKey, ":"), this.secret);
             string auth64 = this.stringToBase64(auth);
             string signature = add("Basic ", auth64);
             headers = new Dictionary<string, object>() {
