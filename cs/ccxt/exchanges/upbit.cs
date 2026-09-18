@@ -908,9 +908,9 @@ public partial class upbit : Exchange
                     ((IList<object>)quoteIds).Add(quoteId);
                 }
             }
-            object sortedQuoteIds = this.sort(quoteIds); // market iteration order differs per language
+            List<string> sortedQuoteIds = this.sort(quoteIds); // market iteration order differs per language
             object quoteCurrencies = "";
-            for (int i = 0; isLessThan(i, getArrayLength(sortedQuoteIds)); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, sortedQuoteIds?.Count ?? 0); postFixIncrement(ref i))
             {
                 if (!isEqual(quoteCurrencies, ""))
                 {

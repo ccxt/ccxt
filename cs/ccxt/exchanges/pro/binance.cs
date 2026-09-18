@@ -9,7 +9,7 @@ public partial class binance : ccxt.binance
 {
     public override Dictionary<string, object> describe()
     {
-        object superDescribe = base.describe();
+        Dictionary<string, object> superDescribe = base.describe();
         return this.deepExtend(superDescribe, this.describeData());
     }
 

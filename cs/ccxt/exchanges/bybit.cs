@@ -2270,7 +2270,7 @@ public partial class bybit : Exchange
         return ((Int64)((object)(subtract(this.milliseconds(), getValue(this.options, "timeDifference"))))!);
     }
 
-    public virtual object addPaginationCursorToResult(object response)
+    public virtual List<object> addPaginationCursorToResult(object response)
     {
         IDictionary<string, object> result = this.safeDict(response, "result", new Dictionary<string, object>() {});
         List<object> data = this.safeListN(result, new List<object>() {"list", "rows", "data", "dataList"}, new List<object>() {});
@@ -6710,7 +6710,7 @@ public partial class bybit : Exchange
         //         "time": 1672221263862
         //     }
         //
-        object data = this.addPaginationCursorToResult(response);
+        List<object> data = this.addPaginationCursorToResult(response);
         return ccxt.BaseExchange.ToOrderList(this.parseOrders(data, market, since, limit));
     }
 
@@ -6927,7 +6927,7 @@ public partial class bybit : Exchange
         //         "time": 1758187806376
         //     }
         //
-        object data = this.addPaginationCursorToResult(response);
+        List<object> data = this.addPaginationCursorToResult(response);
         return ccxt.BaseExchange.ToOrderList(this.parseOrders(data, market, since, limit));
     }
 
@@ -7124,7 +7124,7 @@ public partial class bybit : Exchange
         //         "time": 1758187806376
         //     }
         //
-        object data = this.addPaginationCursorToResult(response);
+        List<object> data = this.addPaginationCursorToResult(response);
         return ccxt.BaseExchange.ToOrderList(this.parseOrders(data, market, since, limit));
     }
 
@@ -7251,7 +7251,7 @@ public partial class bybit : Exchange
         //         "time": 1672283754510
         //     }
         //
-        object trades = this.addPaginationCursorToResult(response);
+        List<object> trades = this.addPaginationCursorToResult(response);
         return ccxt.BaseExchange.ToTradeList(this.parseTrades(trades, market, since, limit));
     }
 
@@ -7437,7 +7437,7 @@ public partial class bybit : Exchange
         //         "time": 1672191992512
         //     }
         //
-        object data = this.addPaginationCursorToResult(response);
+        List<object> data = this.addPaginationCursorToResult(response);
         return ccxt.BaseExchange.ToTransactionList(this.parseTransactions(data, currency, since, limit));
     }
 
@@ -7529,7 +7529,7 @@ public partial class bybit : Exchange
         //         "time": 1672194949928
         //     }
         //
-        object data = this.addPaginationCursorToResult(response);
+        List<object> data = this.addPaginationCursorToResult(response);
         return ccxt.BaseExchange.ToTransactionList(this.parseTransactions(data, currency, since, limit));
     }
 
@@ -7812,7 +7812,7 @@ public partial class bybit : Exchange
         //         "time": 1672132481405
         //     }
         //
-        object data = this.addPaginationCursorToResult(response);
+        List<object> data = this.addPaginationCursorToResult(response);
         return ccxt.BaseExchange.ToLedgerEntryList(this.parseLedger(data, currency, since, limit));
     }
 
@@ -8195,9 +8195,9 @@ public partial class bybit : Exchange
         //         "time": 1657713693182
         //     }
         //
-        object positions = this.addPaginationCursorToResult(response);
+        List<object> positions = this.addPaginationCursorToResult(response);
         List<object> results = new List<object>() {};
-        for (int i = 0; isLessThan(i, getArrayLength(positions)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, positions?.Count ?? 0); postFixIncrement(ref i))
         {
             object rawPosition = getValue(positions, i);
             if ((inOp(rawPosition, "data")) && (inOp(rawPosition, "is_valid")))
@@ -8817,7 +8817,7 @@ public partial class bybit : Exchange
         //     }
         //
         IDictionary<string, object> result = this.safeDict(response, "result", new Dictionary<string, object>() {});
-        object data = this.addPaginationCursorToResult(response);
+        List<object> data = this.addPaginationCursorToResult(response);
         string? id = this.safeString(result, "symbol");
         Dictionary<string, object> safeMarketObj = this.safeMarket(id, market, null, "contract");
         return ccxt.BaseExchange.ToOpenInterestList(this.parseOpenInterestsHistory(data, safeMarketObj, since, limit));
@@ -8887,7 +8887,7 @@ public partial class bybit : Exchange
         IDictionary<string, object> result = this.safeDict(response, "result", new Dictionary<string, object>() {});
         string? id = this.safeString(result, "symbol");
         Dictionary<string, object> safeMarketObj = this.safeMarket(id, market, null, "contract");
-        object data = this.addPaginationCursorToResult(response);
+        List<object> data = this.addPaginationCursorToResult(response);
         return ccxt.BaseExchange.ToOpenInterest(this.parseOpenInterest(getValue(data, 0), safeMarketObj));
     }
 
@@ -9319,7 +9319,7 @@ public partial class bybit : Exchange
         //         "time": 1670988271677
         //     }
         //
-        object data = this.addPaginationCursorToResult(response);
+        List<object> data = this.addPaginationCursorToResult(response);
         return ccxt.BaseExchange.ToTransferEntryList(this.parseTransfers(data, currency, since, limit));
     }
 
@@ -10378,7 +10378,7 @@ public partial class bybit : Exchange
         //         "time": 1672283754510
         //     }
         //
-        object liquidations = this.addPaginationCursorToResult(response);
+        List<object> liquidations = this.addPaginationCursorToResult(response);
         return ccxt.BaseExchange.ToLiquidationList(this.parseLiquidations(liquidations, market, since, limit));
     }
 
@@ -10460,9 +10460,9 @@ public partial class bybit : Exchange
             { "category", subType },
         };
         Dictionary<string, object> response = await this.publicGetV5MarketRiskLimit(this.extend(request, parameters));
-        object result = this.addPaginationCursorToResult(response);
+        List<object> result = this.addPaginationCursorToResult(response);
         IDictionary<string, object> first = this.safeDict(result, 0);
-        int total = getArrayLength(result);
+        int total = result?.Count ?? 0;
         object lastIndex = subtract(total, 1);
         IDictionary<string, object> last = this.safeDict(result, lastIndex, new Dictionary<string, object>() {});
         string? cursorValue = this.safeString(first, "nextPageCursor");
@@ -10647,7 +10647,7 @@ public partial class bybit : Exchange
         request = (Dictionary<string, object>)requestparametersVariable[0];
         parameters = requestparametersVariable[1];
         Dictionary<string, object> response = await this.privateGetV5ExecutionList(this.extend(request, parameters));
-        object fundings = this.addPaginationCursorToResult(response);
+        List<object> fundings = this.addPaginationCursorToResult(response);
         return ccxt.BaseExchange.ToFundingHistoryList(this.parseIncomes(fundings, market, since, limit));
     }
 

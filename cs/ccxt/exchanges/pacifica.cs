@@ -1664,7 +1664,7 @@ public partial class pacifica : Exchange
         //   "has_more": true   // not included to info!
         // }
         //
-        object data = this.addPaginationCursorToResult(response);
+        List<object> data = this.addPaginationCursorToResult(response);
         return ccxt.BaseExchange.ToTradeList(this.parseTrades(data, market, since, limit));
     }
 
@@ -2473,9 +2473,9 @@ public partial class pacifica : Exchange
         //   "has_more": true
         // }
         //
-        object data = this.addPaginationCursorToResult(response);
+        List<object> data = this.addPaginationCursorToResult(response);
         List<object> result = new List<object>() {};
-        for (int i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, data?.Count ?? 0); postFixIncrement(ref i))
         {
             object entry = getValue(data, i);
             Int64? timestamp = this.safeInteger(entry, "created_at");
@@ -2787,12 +2787,12 @@ public partial class pacifica : Exchange
         //   "has_more": true
         // }
         //
-        object data = this.addPaginationCursorToResult(response);
+        List<object> data = this.addPaginationCursorToResult(response);
         IList<object> orders = this.parseOrders(data, market, since, limit);
         return ccxt.BaseExchange.ToOrderList(orders);
     }
 
-    public virtual object addPaginationCursorToResult(object response)
+    public virtual List<object> addPaginationCursorToResult(object response)
     {
         List<object> data = this.safeList(response, "data", new List<object>() {});
         string? paginationCursor = this.safeString(response, "next_cursor");
@@ -3538,7 +3538,7 @@ public partial class pacifica : Exchange
         //   "next_cursor": "11114Lz77",
         //   "has_more": true
         // }
-        object data = this.addPaginationCursorToResult(response);
+        List<object> data = this.addPaginationCursorToResult(response);
         return ccxt.BaseExchange.ToLedgerEntryList(this.parseLedger(data, null, since, limit));
     }
 
@@ -3662,7 +3662,7 @@ public partial class pacifica : Exchange
         //   "next_cursor": "11114Lz77",
         //   "has_more": true
         // }
-        object data = this.addPaginationCursorToResult(response);
+        List<object> data = this.addPaginationCursorToResult(response);
         return ccxt.BaseExchange.ToFundingHistoryList(this.parseIncomes(data, market, since, limit));
     }
 
@@ -4048,8 +4048,8 @@ public partial class pacifica : Exchange
         {
             Dictionary<string, object> result = new Dictionary<string, object>() {};
             List<object> keys = new List<object>(((IDictionary<string,object>)value).Keys);
-            object sortedKeys = this.sort(keys);
-            for (int i = 0; isLessThan(i, getArrayLength(sortedKeys)); postFixIncrement(ref i))
+            List<string> sortedKeys = this.sort(keys);
+            for (int i = 0; isLessThan(i, sortedKeys?.Count ?? 0); postFixIncrement(ref i))
             {
                 object key = getValue(sortedKeys, i);
                 result[(string)key] = this.sortJsonKeys(getValue(value, key));

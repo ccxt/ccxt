@@ -2747,7 +2747,7 @@ public partial class BaseExchange
         {
             throw new ArgumentsRequired (add(this.id, " calculateFee() - you have provided incompatible arguments - \"market\" type order can not be \"maker\". Change either the \"type\" or the \"takerOrMaker\" argument to calculate the fee.")) ;
         }
-        object markets = this.markets;
+        IDictionary<string, object> markets = ((IDictionary<string, object>)this.markets);
         if ((markets == null))
         {
             throw new ExchangeError (add(this.id, " markets not loaded")) ;
@@ -4014,7 +4014,7 @@ public partial class BaseExchange
             {
                 Dictionary<string, object> response = ccxt.BaseExchange.FromDict(await this.FetchTradingLimits(symbols));
                 object symbolsArray = this.requireValue(symbols, "loadTradingLimits() requires a symbols argument");
-                object markets = this.markets;
+                IDictionary<string, object> markets = ((IDictionary<string, object>)this.markets);
                 if ((markets == null))
                 {
                     throw new ExchangeError (add(this.id, " markets not loaded")) ;
@@ -4022,7 +4022,7 @@ public partial class BaseExchange
                 for (int i = 0; isLessThan(i, getArrayLength(symbolsArray)); postFixIncrement(ref i))
                 {
                     object symbol = getValue(symbolsArray, i);
-                    ((IDictionary<string,object>)markets)[(string)symbol] = this.deepExtend(getValue(markets, symbol), getValue(response, symbol));
+                    markets[(string)symbol] = this.deepExtend(getValue(markets, symbol), getValue(response, symbol));
                 }
                 ((IDictionary<string,object>)this.options)["limitsLoaded"] = this.milliseconds();
             }
@@ -5611,7 +5611,7 @@ public partial class BaseExchange
         {
             throw new ArgumentsRequired (add(this.id, " market() requires a symbol argument")) ;
         }
-        object markets = this.markets;
+        IDictionary<string, object> markets = ((IDictionary<string, object>)this.markets);
         if ((markets == null))
         {
             throw new ExchangeError (add(this.id, " markets not loaded")) ;
@@ -6562,7 +6562,7 @@ public partial class BaseExchange
         {
             return ((string?)((object)(getValue(accountsByType, lowercaseAccount))));
         }
-        object markets = this.markets;
+        IDictionary<string, object> markets = ((IDictionary<string, object>)this.markets);
         object marketsById = this.markets_by_id;
         if ((((markets != null)) && (inOp(markets, account))) || (((marketsById != null)) && (inOp(marketsById, account))))
         {

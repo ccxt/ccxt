@@ -5332,7 +5332,7 @@ public partial class binance : Exchange
         Dictionary<string, object> filtersByType = this.indexBy(filters, "filterType");
         string? status = this.safeString2(market, "status", "contractStatus");
         double? contractSize = null;
-        object fees = this.fees;
+        IDictionary<string, object> fees = ((IDictionary<string, object>)this.fees);
         bool? linear = null;
         bool? inverse = null;
         object symbol = add(add(bs, "/"), quote);
@@ -5436,8 +5436,8 @@ public partial class binance : Exchange
             { "contract", contract },
             { "linear", linear },
             { "inverse", inverse },
-            { "taker", getValue(getValue(fees, "trading"), "taker") },
-            { "maker", getValue(getValue(fees, "trading"), "maker") },
+            { "taker", getValue(GetValue(fees, "trading"), "taker") },
+            { "maker", getValue(GetValue(fees, "trading"), "maker") },
             { "contractSize", contractSize },
             { "expiry", expiry },
             { "expiryDatetime", this.iso8601(expiry) },
@@ -12913,7 +12913,7 @@ public partial class binance : Exchange
             //         ...
             //     }
             //
-            object markets = this.markets;
+            IDictionary<string, object> markets = ((IDictionary<string, object>)this.markets);
             if ((markets == null))
             {
                 throw new ExchangeError (add(this.id, " markets not loaded")) ;
@@ -12952,7 +12952,7 @@ public partial class binance : Exchange
             //         "updateTime": 0
             //     }
             //
-            object markets = this.markets;
+            IDictionary<string, object> markets = ((IDictionary<string, object>)this.markets);
             if ((markets == null))
             {
                 throw new ExchangeError (add(this.id, " markets not loaded")) ;

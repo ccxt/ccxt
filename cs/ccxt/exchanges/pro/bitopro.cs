@@ -119,7 +119,7 @@ public partial class bitopro : ccxt.bitopro
         string? symbol = ((string)GetValue(market, "symbol"));
         object eventVar = this.safeString(message, "event");
         object messageHash = add(add(eventVar, ":"), symbol);
-        object orderbook = this.safeOrderBook(this.orderbooks, symbol);
+        ccxt.pro.IOrderBook orderbook = this.safeOrderBook(this.orderbooks, symbol);
         if ((orderbook == null))
         {
             orderbook = this.orderBook(new Dictionary<string, object>() {});

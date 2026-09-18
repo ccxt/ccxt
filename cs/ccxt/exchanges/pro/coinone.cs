@@ -114,7 +114,7 @@ public partial class coinone : ccxt.coinone
         string? quote = this.safeCurrencyCode(quoteId);
         string? symbol = this.symbol(add(add(bs, "/"), quote));
         Int64? timestamp = this.safeInteger(data, "timestamp");
-        object orderbook = this.safeOrderBook(this.orderbooks, symbol);
+        ccxt.pro.IOrderBook orderbook = this.safeOrderBook(this.orderbooks, symbol);
         if ((orderbook == null))
         {
             orderbook = this.orderBook();

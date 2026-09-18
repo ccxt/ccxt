@@ -399,7 +399,7 @@ public partial class onetrading : ccxt.onetrading
         string? dateTime = this.safeString(message, "time");
         Int64? timestamp = this.parse8601(dateTime);
         string channel = add("book:", symbol);
-        object orderbook = this.safeOrderBook(this.orderbooks, symbol);
+        ccxt.pro.IOrderBook orderbook = this.safeOrderBook(this.orderbooks, symbol);
         if ((orderbook == null))
         {
             orderbook = this.orderBook(new Dictionary<string, object>() {});

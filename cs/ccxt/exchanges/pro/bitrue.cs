@@ -454,7 +454,7 @@ public partial class bitrue : ccxt.bitrue
 
     public virtual object findSwapMarketByWsBaseQuote(object wsBaseQuote)
     {
-        object markets = this.markets;
+        IDictionary<string, object> markets = ((IDictionary<string, object>)this.markets);
         if ((markets == null))
         {
             return null;

@@ -99,7 +99,7 @@ public partial class coincheck : ccxt.coincheck
         object data = this.safeValue(message, 1, new Dictionary<string, object>() {});
         Int64? timestamp = this.safeTimestamp(data, "last_update_at");
         Dictionary<string, object> snapshot = this.parseOrderBook(data, symbol, timestamp);
-        object orderbook = this.safeOrderBook(this.orderbooks, symbol);
+        ccxt.pro.IOrderBook orderbook = this.safeOrderBook(this.orderbooks, symbol);
         if ((orderbook == null))
         {
             orderbook = this.orderBook(snapshot);
