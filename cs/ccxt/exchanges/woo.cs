@@ -3389,7 +3389,7 @@ public partial class woo : Exchange
             int partsLength = getArrayLength(parts);
             string? firstPart = this.safeString(parts, 0);
             object currencyId = this.safeString(parts, 1, firstPart);
-            if (isGreaterThan(partsLength, 2))
+            if (partsLength > 2)
             {
                 currencyId = add(currencyId, ("_" + this.safeString(parts, 2)));
             }
@@ -3884,7 +3884,7 @@ public partial class woo : Exchange
                 {
                     string applicationId = "bc830de7-50f3-460b-9ee0-f430f83f9dad";
                     string? brokerId = this.safeString(this.options, "brokerId", applicationId);
-                    bool isTrigger = isGreaterThan(getIndexOf(path, "algo"), -1);
+                    bool isTrigger = getIndexOf(path, "algo") > -1;
                     if (isTrigger)
                     {
                         ((IDictionary<string,object>)parameters)["brokerId"] = brokerId;

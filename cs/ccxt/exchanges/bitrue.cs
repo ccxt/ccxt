@@ -3505,7 +3505,7 @@ public partial class bitrue : Exchange
         string? version = this.safeString(api, 1);
         string? access = this.safeString(api, 2);
         object url = null;
-        if (((type == "api") && (version == "kline")) || ((type == "open") && isGreaterThanOrEqual(getIndexOf(path, "listenKey"), 0)))
+        if (((type == "api") && (version == "kline")) || ((type == "open") && getIndexOf(path, "listenKey") >= 0))
         {
             url = getValue(getValue(this.urls, "api"), type);
         } else

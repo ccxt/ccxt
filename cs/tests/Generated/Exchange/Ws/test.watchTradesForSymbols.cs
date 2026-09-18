@@ -50,7 +50,7 @@ public partial class testMainClass : BaseTest
                         ((IList<object>)returnedSymbols).Add(symbol);
                     }
                 }
-                if (isGreaterThan(elapsedMs, maxIdleTime))
+                if (elapsedMs > maxIdleTime)
                 {
                     idle = true;
                 }

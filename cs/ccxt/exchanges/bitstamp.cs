@@ -1964,7 +1964,7 @@ public partial class bitstamp : Exchange
         {
             response = new List<object>() {};
         }
-        for (int i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(response); postFixIncrement(ref i))
         {
             object currencyBalance = getValue(response, i);
             string? currencyId = this.safeString(currencyBalance, "currency");
@@ -2074,7 +2074,7 @@ public partial class bitstamp : Exchange
         Dictionary<string, object> result = new Dictionary<string, object>() {
             { "info", fees },
         };
-        for (int i = 0; isLessThan(i, getArrayLength(fees)); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(fees); postFixIncrement(ref i))
         {
             object fee = this.parseTradingFee(getValue(fees, i));
             object symbol = getValue(fee, "symbol");
@@ -2211,7 +2211,7 @@ public partial class bitstamp : Exchange
     {
         Dictionary<string, object> result = this.depositWithdrawFee(fee);
         string? code = this.safeString(currency, "code");
-        for (int j = 0; isLessThan(j, getArrayLength(fee)); postFixIncrement(ref j))
+        for (int j = 0; j < getArrayLength(fee); postFixIncrement(ref j))
         {
             object networkEntry = getValue(fee, j);
             string? networkId = this.safeString(networkEntry, "network");

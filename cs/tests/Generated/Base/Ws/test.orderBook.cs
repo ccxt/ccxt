@@ -396,7 +396,7 @@ public partial class BaseTest
                 for (int k = 0; k < getArrayLength(side); k++)
                 {
                     object row = getValue(side, k);
-                    Assert(isGreaterThanOrEqual(getArrayLength(row), 2));
+                    Assert(getArrayLength(row) >= 2);
                     Assert(!isEqual(getValue(row, 0), null));
                 }
             }

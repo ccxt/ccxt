@@ -3999,7 +3999,7 @@ public partial class deribit : Exchange
         if ((cursor != null))
         {
             int dataLength = getArrayLength(data);
-            if (isGreaterThan(dataLength, 0))
+            if (dataLength > 0)
             {
                 object first = getValue(data, 0);
                 object last = getValue(data, (dataLength - 1));

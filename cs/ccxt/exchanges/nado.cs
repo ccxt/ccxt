@@ -3206,7 +3206,7 @@ public partial class nado : Exchange
             throw new BadRequest ((string)(this.id + " createOrder() requires a 20-byte walletAddress")) ;
         }
         object encoded = this.remove0xPrefix(this.stringToBase16(subaccount));
-        if (isGreaterThan(getArrayLength(encoded), 24))
+        if (getArrayLength(encoded) > 24)
         {
             throw new BadRequest ((string)(this.id + " createOrder() subaccount must fit in 12 bytes")) ;
         }

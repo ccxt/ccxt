@@ -196,7 +196,7 @@ public partial class opinion : PredictionExchange
                     object eventVar = this.parseEvent(raw);
                     object childMarkets = getValue(eventVar, "markets");
                     int childMarketsLength = getArrayLength(childMarkets);
-                    for (int ci = 0; isLessThan(ci, childMarketsLength); postFixIncrement(ref ci))
+                    for (int ci = 0; ci < childMarketsLength; postFixIncrement(ref ci))
                     {
                         ((IList<object>)flatMarkets).Add(getValue(childMarkets, ci));
                     }
