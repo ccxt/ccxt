@@ -1354,7 +1354,7 @@ func (this *P2b) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		retRes114012 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes114012)
 	}
-	var until any = DerefScalar(this.SafeInteger(params, "until"))
+	var until any = this.SafeInteger(params, "until")
 	params = this.Omit(params, "until")
 	if IsEqual(until, nil) {
 		if IsEqual(since, nil) {
@@ -1452,7 +1452,7 @@ func (this *P2b) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any {
 		retRes121712 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes121712)
 	}
-	var until any = DerefScalar(this.SafeInteger(params, "until"))
+	var until any = this.SafeInteger(params, "until")
 	params = this.Omit(params, "until")
 	var market any = nil
 	if symbol != nil {

@@ -1167,7 +1167,7 @@ func (this *Hollaex) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any
 		ch <- retRes94919
 		return nil
 	}
-	var until any = DerefScalar(this.SafeInteger(params, "until"))
+	var until any = this.SafeInteger(params, "until")
 	var timeDelta any = Multiply(Multiply(this.ParseTimeframe(timeframe), maxLimit), 1000)
 	var start any = since
 	var now int64 = this.Milliseconds()

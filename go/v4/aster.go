@@ -4855,7 +4855,7 @@ func (this *Aster) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	if IsEqual(defaultMethod, nil) {
 		var options any = this.SafeDict(this.Options, "fetchPositions")
 		if IsEqual(options, nil) {
-			defaultMethod = DerefScalar(this.SafeString(this.Options, "fetchPositions", "positionRisk"))
+			defaultMethod = this.SafeString(this.Options, "fetchPositions", "positionRisk")
 		} else {
 			defaultMethod = "positionRisk"
 		}
@@ -4983,7 +4983,7 @@ func (this *Aster) ParseAccountPosition(position any, optionalArgs ...any) any {
 	if IsEqual(timestamp, 0) {
 		timestamp = nil
 	}
-	var isolated any = DerefScalar(this.SafeBool(position, "isolated"))
+	var isolated any = this.SafeBool(position, "isolated")
 	if IsEqual(isolated, nil) {
 		var isolatedMarginRaw *string = this.SafeString(position, "isolatedMargin")
 		isolated = !Precise.StringEq(isolatedMarginRaw, "0")

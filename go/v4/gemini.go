@@ -1462,8 +1462,8 @@ func (this *Gemini) ParseTicker(ticker any, optionalArgs ...any) any {
 			baseId = Slice(marketId, 0, 3)
 			quoteId = Slice(marketId, 3, 6)
 		}
-		base = DerefScalar(this.SafeCurrencyCode(baseId))
-		quote = DerefScalar(this.SafeCurrencyCode(quoteId))
+		base = this.SafeCurrencyCode(baseId)
+		quote = this.SafeCurrencyCode(quoteId)
 		symbol = Add(Add(base, "/"), quote)
 	}
 	if (symbol == nil) && (!IsEqual(market, nil)) {

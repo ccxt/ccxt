@@ -1890,7 +1890,7 @@ func (this *Kalshi) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	}
 	var wantedOutcome any = nil
 	if outcome != nil {
-		wantedOutcome = ccxt.DerefScalar(this.SafeString(this.Outcome(outcome), "outcome"))
+		wantedOutcome = this.SafeString(this.Outcome(outcome), "outcome")
 	}
 	var result any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(trades); i++ {
@@ -2163,7 +2163,7 @@ func (this *Kalshi) fetchSettlementsBody(ch chan any, optionalArgs ...any) any {
 	}
 	var wantedOutcome any = nil
 	if outcome != nil {
-		wantedOutcome = ccxt.DerefScalar(this.SafeString(this.Outcome(outcome), "outcome"))
+		wantedOutcome = this.SafeString(this.Outcome(outcome), "outcome")
 	}
 	var result any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(parsed); i++ {

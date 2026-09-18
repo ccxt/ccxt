@@ -4470,7 +4470,7 @@ func (this *Bybit) ParseTrade(trade any, optionalArgs ...any) any {
 			return "taker"
 		}()
 	} else {
-		var lastLiquidityInd any = DerefScalar(this.SafeString(trade, "lastLiquidityInd"))
+		var lastLiquidityInd any = this.SafeString(trade, "lastLiquidityInd")
 		if IsEqual(lastLiquidityInd, "UNKNOWN") {
 			lastLiquidityInd = nil
 		}

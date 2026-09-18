@@ -2044,7 +2044,7 @@ func (this *Xt) HandleSubscriptionStatus(client any, message any) any {
 	var unsubscribe any = false
 	if id != nil {
 		var subscription any = this.SafeDict(subscriptionsById, id, map[string]any{})
-		unsubscribe = ccxt.DerefScalar(this.SafeBool(subscription, "unsubscribe", false))
+		unsubscribe = this.SafeBool(subscription, "unsubscribe", false)
 		if ccxt.IsEqual(unsubscribe, true) {
 			this.HandleUnSubscription(client, subscription)
 		}

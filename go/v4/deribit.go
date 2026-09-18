@@ -823,7 +823,7 @@ func (this *Deribit) CreateExpiredOptionMarket(symbol any) any {
 	}
 	if IsGreaterThan(GetIndexOf(base, "_"), -1) {
 		var splitSymbol []string = Split(base, "_")
-		splitBase = DerefScalar(this.SafeString(splitSymbol, 0))
+		splitBase = this.SafeString(splitSymbol, 0)
 	}
 	var strike *string = this.SafeString(optionParts, 2)
 	var optionType *string = this.SafeString(optionParts, 3)

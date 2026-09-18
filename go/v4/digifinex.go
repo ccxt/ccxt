@@ -887,7 +887,7 @@ func (this *Digifinex) fetchMarketsV2Body(ch chan any, optionalArgs ...any) any 
 		// const status = this.safeString (market, 'status');
 		// const active = (status === 'TRADING');
 		//
-		var isAllowed any = DerefScalar(this.SafeInteger(market, "is_allow", 1))
+		var isAllowed any = this.SafeInteger(market, "is_allow", 1)
 		var typeVar any = func() any {
 			if defaultType != nil && *defaultType == "margin" {
 				return "margin"

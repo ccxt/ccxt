@@ -1062,7 +1062,7 @@ func (this *Derive) ParseMarket(market any) any {
 		var optionDetails any = this.SafeDict(market, "option_details")
 		expiry = this.SafeTimestamp(optionDetails, "expiry")
 		strike = this.SafeInteger(optionDetails, "strike")
-		optionLetter = DerefScalar(this.SafeString(optionDetails, "option_type"))
+		optionLetter = this.SafeString(optionDetails, "option_type")
 		symbol = Add(Add(Add(Add(Add(Add(Add(Add(Add(Add(base, "/"), quote), ":"), settle), "-"), this.Yymmdd(expiry)), "-"), this.NumberToString(strike)), "-"), optionLetter)
 		if IsEqual(optionLetter, "P") {
 			optionType = "put"

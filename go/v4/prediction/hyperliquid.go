@@ -2834,10 +2834,10 @@ func (this *Hyperliquid) Sign(path any, optionalArgs ...any) any {
 	var baseUrl any = nil
 	if sandboxMode != nil && *sandboxMode == true {
 		var testUrls any = this.SafeDict(this.Urls, "test", map[string]any{})
-		baseUrl = ccxt.DerefScalar(this.SafeString(testUrls, apiGroup, this.SafeString(testUrls, "public", "")))
+		baseUrl = this.SafeString(testUrls, apiGroup, this.SafeString(testUrls, "public", ""))
 	} else {
 		var apiUrls any = this.SafeDict(this.Urls, "api", map[string]any{})
-		baseUrl = ccxt.DerefScalar(this.SafeString(apiUrls, apiGroup, this.SafeString(apiUrls, "public", "")))
+		baseUrl = this.SafeString(apiUrls, apiGroup, this.SafeString(apiUrls, "public", ""))
 	}
 	var url any = ccxt.Add(ccxt.Add(baseUrl, "/"), path)
 	if ccxt.IsEqual(method, "POST") {

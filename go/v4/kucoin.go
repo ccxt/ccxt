@@ -7270,7 +7270,7 @@ func (this *Kucoin) fetchUtaOrdersByStatusBody(ch chan any, status any, optional
 		marketType = GetValue(market, "type")
 		AddElementToObject(request, "symbol", GetValue(market, "id"))
 	} else {
-		marketType = DerefScalar(this.SafeString(params, "marketType"))
+		marketType = this.SafeString(params, "marketType")
 	}
 	params = this.Omit(params, "marketType")
 	var isContract bool = (!IsEqual(marketType, "spot")) && (!IsEqual(marketType, "margin"))

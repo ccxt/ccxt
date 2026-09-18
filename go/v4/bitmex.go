@@ -2570,7 +2570,7 @@ func (this *Bitmex) ParseOrder(order any, optionalArgs ...any) any {
 		var defaultSubType *string = this.SafeString(this.Options, "defaultSubType", "linear")
 		isInverse = (defaultSubType != nil && *defaultSubType == "inverse")
 	} else {
-		isInverse = DerefScalar(this.SafeBool(market, "inverse", false))
+		isInverse = this.SafeBool(market, "inverse", false)
 	}
 	if EvalTruthy(isInverse) {
 		cost = this.ConvertFromRawQuantity(symbol, qty)

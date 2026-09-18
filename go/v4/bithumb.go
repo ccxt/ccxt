@@ -1174,7 +1174,7 @@ func (this *Bithumb) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 			AppendToArray(&marketIdsChunks, marketIds)
 			AppendToArray(&promises, this.PublicGetV1Ticker(this.Extend(request, params)))
 		} else {
-			var maxMarketIdsPerRequest any = DerefScalar(this.SafeInteger(this.Options, "fetchTickersGeneration2MaxMarketIdsPerRequest", 300))
+			var maxMarketIdsPerRequest any = this.SafeInteger(this.Options, "fetchTickersGeneration2MaxMarketIdsPerRequest", 300)
 			if (IsEqual(maxMarketIdsPerRequest, nil)) || (IsLessThan(maxMarketIdsPerRequest, 1)) {
 				maxMarketIdsPerRequest = 300
 			}
@@ -1940,7 +1940,7 @@ func (this *Bithumb) CreateOrderRequest(symbol any, typeVar any, side any, amoun
 		panic(InvalidOrder(Add(this.Id+" createOrder() invalid side ", side)))
 	}
 	request["side"] = sideRequest
-	var timeInForce any = DerefScalar(this.SafeString2(params, "timeInForce", "time_in_force"))
+	var timeInForce any = this.SafeString2(params, "timeInForce", "time_in_force")
 	if IsEqual(timeInForce, nil) {
 		timeInForce = "GTC"
 	} else {

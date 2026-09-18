@@ -1352,7 +1352,7 @@ func (this *Hyperliquid) watchBalanceBody(ch chan any, optionalArgs ...any) any 
 
 	unifiedResult := (<-this.IsUnifiedEnabledAsync("watchBalance", userAddress, false, params))
 	ccxt.PanicOnError(unifiedResult)
-	isUnifiedEnabled = ccxt.DerefScalar(this.SafeBool(unifiedResult, 0))
+	isUnifiedEnabled = this.SafeBool(unifiedResult, 0)
 	params = this.SafeDict(unifiedResult, 1, params)
 	var dex *string = this.SafeString(params, "dex")
 	var isSpot bool = ((ccxt.IsEqual(typeVar, "spot")) || (ccxt.IsEqual(isUnifiedEnabled, true))) && (dex == nil)
@@ -1425,7 +1425,7 @@ func (this *Hyperliquid) unWatchBalanceBody(ch chan any, optionalArgs ...any) an
 
 	unifiedResult := (<-this.IsUnifiedEnabledAsync("unWatchBalance", userAddress, false, params))
 	ccxt.PanicOnError(unifiedResult)
-	isUnifiedEnabled = ccxt.DerefScalar(this.SafeBool(unifiedResult, 0))
+	isUnifiedEnabled = this.SafeBool(unifiedResult, 0)
 	params = this.SafeDict(unifiedResult, 1, params)
 	var dex *string = this.SafeString(params, "dex")
 	var isSpot bool = ((ccxt.IsEqual(typeVar, "spot")) || (ccxt.IsEqual(isUnifiedEnabled, true))) && (dex == nil)
