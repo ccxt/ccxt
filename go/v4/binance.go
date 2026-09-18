@@ -5454,7 +5454,7 @@ func (this *Binance) ParseMarket(market any) any {
 	}
 	var stepSize *float64 = this.SafeNumber(market, "stepSize")
 	if stepSize != nil {
-		AddElementToObject(GetValue(entry, "precision"), "amount", stepSize)
+		AddElementToObject(entry["precision"], "amount", stepSize)
 	}
 	if func() bool { _, ok := filtersByType["PRICE_FILTER"]; return ok }() {
 		var filter any = this.SafeDict(filtersByType, "PRICE_FILTER", map[string]any{})
@@ -5462,31 +5462,31 @@ func (this *Binance) ParseMarket(market any) any {
 		// since they updated filter types in November 2018
 		// https://github.com/ccxt/ccxt/issues/4286
 		// therefore limits['price']['max'] doesn't have any meaningful value except undefined
-		AddElementToObject(GetValue(entry, "limits"), "price", map[string]any{
+		AddElementToObject(entry["limits"], "price", map[string]any{
 			"min": this.SafeNumber(filter, "minPrice"),
 			"max": this.SafeNumber(filter, "maxPrice"),
 		})
-		AddElementToObject(GetValue(entry, "precision"), "price", this.SafeNumber(filter, "tickSize"))
+		AddElementToObject(entry["precision"], "price", this.SafeNumber(filter, "tickSize"))
 	}
 	if func() bool { _, ok := filtersByType["LOT_SIZE"]; return ok }() {
 		var filter any = this.SafeDict(filtersByType, "LOT_SIZE", map[string]any{})
-		AddElementToObject(GetValue(entry, "precision"), "amount", this.SafeNumber(filter, "stepSize"))
-		AddElementToObject(GetValue(entry, "limits"), "amount", map[string]any{
+		AddElementToObject(entry["precision"], "amount", this.SafeNumber(filter, "stepSize"))
+		AddElementToObject(entry["limits"], "amount", map[string]any{
 			"min": this.SafeNumber(filter, "minQty"),
 			"max": this.SafeNumber(filter, "maxQty"),
 		})
 	}
 	if func() bool { _, ok := filtersByType["MARKET_LOT_SIZE"]; return ok }() {
 		var filter any = this.SafeDict(filtersByType, "MARKET_LOT_SIZE", map[string]any{})
-		AddElementToObject(GetValue(entry, "limits"), "market", map[string]any{
+		AddElementToObject(entry["limits"], "market", map[string]any{
 			"min": this.SafeNumber(filter, "minQty"),
 			"max": this.SafeNumber(filter, "maxQty"),
 		})
 	}
 	if (func() bool { _, ok := filtersByType["MIN_NOTIONAL"]; return ok }()) || (func() bool { _, ok := filtersByType["NOTIONAL"]; return ok }()) {
 		var filter any = this.SafeDict2(filtersByType, "MIN_NOTIONAL", "NOTIONAL", map[string]any{})
-		AddElementToObject(GetValue(GetValue(entry, "limits"), "cost"), "min", this.SafeNumber2(filter, "minNotional", "notional"))
-		AddElementToObject(GetValue(GetValue(entry, "limits"), "cost"), "max", this.SafeNumber(filter, "maxNotional"))
+		AddElementToObject(GetValue(entry["limits"], "cost"), "min", this.SafeNumber2(filter, "minNotional", "notional"))
+		AddElementToObject(GetValue(entry["limits"], "cost"), "max", this.SafeNumber(filter, "maxNotional"))
 	}
 	return this.SafeMarketStructure(entry)
 }
@@ -13333,7 +13333,7 @@ func (this *Binance) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any 
 		var symbols []string = ObjectKeys(markets)
 		var result map[string]any = map[string]any{}
 		var feeTier *int64 = this.SafeInteger(response, "feeTier")
-		var feeTiers any = GetValue(GetValue(GetValue(this.Fees, "linear"), "trading"), "tiers")
+		var feeTiers any = GetValue(GetValue(this.Fees["linear"], "trading"), "tiers")
 		var maker any = GetValue(GetValue(GetValue(feeTiers, "maker"), feeTier), 1)
 		var taker any = GetValue(GetValue(GetValue(feeTiers, "taker"), feeTier), 1)
 		for i := 0; i < len(symbols); i++ {
@@ -13370,7 +13370,7 @@ func (this *Binance) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any 
 		var symbols []string = ObjectKeys(markets)
 		var result map[string]any = map[string]any{}
 		var feeTier *int64 = this.SafeInteger(response, "feeTier")
-		var feeTiers any = GetValue(GetValue(GetValue(this.Fees, "inverse"), "trading"), "tiers")
+		var feeTiers any = GetValue(GetValue(this.Fees["inverse"], "trading"), "tiers")
 		var maker any = GetValue(GetValue(GetValue(feeTiers, "maker"), feeTier), 1)
 		var taker any = GetValue(GetValue(GetValue(feeTiers, "taker"), feeTier), 1)
 		for i := 0; i < len(symbols); i++ {
