@@ -63,6 +63,9 @@ public partial class BaseExchange
         public bool isMock = false; // static ws tests: transport is stubbed, sends are recorded
 
         public List<object> mockSentMessages = new List<object>(); // frames recorded in mock mode
+        private bool retired = false;
+        private object retirementError = null;
+        private TaskCompletionSource<bool> retirementCompletion = null;
 
         public WebSocketClient(string url, string proxy, handleMessageDelegate handleMessage, pingDelegate ping = null, onCloseDelegate onClose = null, onErrorDelegate onError = null, bool isVerbose = false, Int64 keepA = 30000, bool decompressBinary = true)
         {
@@ -91,8 +94,16 @@ public partial class BaseExchange
             object rejection = null;
             lock (futuresSync)
             {
-                future = (this.futures as ConcurrentDictionary<string, Future>).GetOrAdd(messageHash, (key) => new Future());
-                (this.rejections as ConcurrentDictionary<string, object>).TryRemove(messageHash, out rejection);
+                if (this.retired)
+                {
+                    future = new Future();
+                    rejection = this.retirementError;
+                }
+                else
+                {
+                    future = (this.futures as ConcurrentDictionary<string, Future>).GetOrAdd(messageHash, (key) => new Future());
+                    (this.rejections as ConcurrentDictionary<string, object>).TryRemove(messageHash, out rejection);
+                }
             }
             // settle outside the lock, the TaskCompletionSource is not
             // RunContinuationsAsynchronously so awaiter continuations can run
@@ -135,7 +146,11 @@ public partial class BaseExchange
                 Future future = null;
                 lock (futuresSync)
                 {
-                    if (!(this.futures as ConcurrentDictionary<string, Future>).TryRemove(messageHash, out future))
+                    if (this.retired)
+                    {
+                        future = null;
+                    }
+                    else if (!(this.futures as ConcurrentDictionary<string, Future>).TryRemove(messageHash, out future))
                     {
                         (this.rejections as ConcurrentDictionary<string, object>)[messageHash] = content;
                         future = null;
@@ -569,25 +584,84 @@ public partial class BaseExchange
 
         public async Task Close()
         {
+            await this.retire(new ExchangeClosedByUser("Connection closed by the user"));
+        }
+
+        public Task retire(object error)
+        {
+            var pending = new List<Future>();
+            lock (futuresSync)
+            {
+                if (this.retired)
+                {
+                    return this.retirementCompletion?.Task ?? Task.CompletedTask;
+                }
+                this.retired = true;
+                this.retirementError = error;
+                this.retirementCompletion = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+                foreach (var future in this.futures.Values)
+                {
+                    pending.Add(future);
+                }
+                this.futures.Clear();
+                this.rejections.Clear();
+                this.subscriptions.Clear();
+            }
+            this.error = true;
+            this.isConnected = false;
+            foreach (var future in pending)
+            {
+                if (!future.task.IsCompleted)
+                {
+                    future.reject(error);
+                }
+            }
+            _ = this.finishRetirement();
+            return this.retirementCompletion.Task;
+        }
+
+        private async Task finishRetirement()
+        {
+            try
+            {
+                await this.closeTransport();
+                this.retirementCompletion.TrySetResult(true);
+            }
+            catch (Exception error)
+            {
+                this.retirementCompletion.TrySetException(error);
+            }
+        }
+
+        private async Task closeTransport()
+        {
+            Exception closeError = null;
             if (this.webSocket.State == WebSocketState.Open)
             {
                 try
                 {
                     await this.webSocket.CloseOutputAsync(WebSocketCloseStatus.NormalClosure, "Close", CancellationToken.None);
                 }
-                catch (Exception e)
+                catch (Exception error)
                 {
-                    // Console.WriteLine(e);
+                    closeError = error;
                 }
-
             }
-            foreach (var future in this.futures.Values)
+            try
             {
-                if (!future.task.IsCompleted)
+                this.webSocket.Abort();
+            }
+            catch (Exception error)
+            {
+                if (closeError != null)
                 {
-                    future.reject(new ExchangeClosedByUser("Connection closed by the user"));
-
+                    throw new AggregateException(closeError, error);
                 }
+                throw;
+            }
+            if (closeError != null)
+            {
+                throw closeError;
             }
         }
     }

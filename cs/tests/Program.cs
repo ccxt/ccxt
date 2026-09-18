@@ -147,6 +147,7 @@ public class Tests
                 WsOrderBookCopyAtomicityTests();
                 await WsClientKeepAliveLivenessTests();
                 await WsClientKeepAliveTimeoutTests();
+                await WsClientRetirementRaceTests();
                 Helper.Green("[C#] base WS tests passed");
             }
             else
@@ -212,6 +213,15 @@ public class Tests
     {
         await baseTestInstance.testWsClientKeepAliveTimeout();
         Helper.Green(" [C#] WebSocketClient keepalive timeout closes the socket tests passed");
+    }
+
+    static async Task WsClientRetirementRaceTests()
+    {
+        await baseTestInstance.testWsClientRetirementReplacementRace();
+        await baseTestInstance.testWsClientRetirementSameReference();
+        await baseTestInstance.testWsClientCloseRetiresReplacedClient();
+        await baseTestInstance.testWsClientRetireIsIdempotent();
+        Helper.Green(" [C#] WebSocketClient retirement race tests passed");
     }
 
     static void WsOrderBookTests()

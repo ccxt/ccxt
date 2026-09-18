@@ -755,7 +755,8 @@ public partial class BaseExchange
     private async Task closeClient(string key, WebSocketClient client)
     {
         await client.Close();
-        this.clients.TryRemove(key, out _);
+        ((ICollection<KeyValuePair<string, WebSocketClient>>) this.clients)
+            .Remove(new KeyValuePair<string, WebSocketClient>(key, client));
     }
 
     public async Task Close(bool cleanInstanceCache = false)
@@ -763,15 +764,12 @@ public partial class BaseExchange
         // ##### language-specific cleanup of WS & REST resources #####
         // [WS]
         var tasks = new List<Task>();
-        if (this.clients.Keys.Count > 0)
+        foreach (var pair in this.clients.ToArray())
         {
-            foreach (var key in this.clients.Keys)
-            {
-
-                var client = this.clients[key];
-                tasks.Add(closeClient(key, client));
-
-            }
+            tasks.Add(closeClient(pair.Key, pair.Value));
+        }
+        if (tasks.Count > 0)
+        {
             await Task.WhenAll(tasks);
         }
         if (cleanInstanceCache) {
