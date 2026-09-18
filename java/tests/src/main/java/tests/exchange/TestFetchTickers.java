@@ -32,7 +32,7 @@ public class TestFetchTickers extends BaseTest {
         }
         Object withoutSymbol = fetchTickersHelperTest(exchange, skippedProperties, null);
         Object withSymbol = fetchTickersHelperTest(exchange, skippedProperties, new ArrayList<Object>(Arrays.asList(symbol)));
-        Object results = (Helpers.promiseAll(new ArrayList<Object>(Arrays.asList(withoutSymbol, withSymbol)))).join();
+        Object results = (CompletableFuture.allOf(((CompletableFuture<?>) withoutSymbol), ((CompletableFuture<?>) withSymbol)).thenApply(promiseAllValue -> new ArrayList<Object>(Arrays.asList(((CompletableFuture<?>) withoutSymbol).join(), ((CompletableFuture<?>) withSymbol).join())))).join();
         fetchTickersAmountsTest(exchange, skippedProperties, ((List<Object>)results).get(0));
         return results;
         });

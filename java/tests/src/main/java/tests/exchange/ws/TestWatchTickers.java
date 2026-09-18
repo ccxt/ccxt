@@ -25,7 +25,7 @@ public class TestWatchTickers extends BaseTest {
 
         Object withoutSymbol = testWatchTickersHelper(exchange, skippedProperties, null);
         Object withSymbol = testWatchTickersHelper(exchange, skippedProperties, new ArrayList<Object>(Arrays.asList(symbol)));
-        (Helpers.promiseAll(new ArrayList<Object>(Arrays.asList(withSymbol, withoutSymbol)))).join();
+        (CompletableFuture.allOf(((CompletableFuture<?>) withSymbol), ((CompletableFuture<?>) withoutSymbol))).join();
             return null;
         });
 
