@@ -158,6 +158,10 @@ ccxt-farm status 812                  -> {"state": "succeeded", "exit_code": 0, 
 ccxt-farm log 812 --step buildCS      -> Build succeeded.  0 Warning(s)  0 Error(s)
 ```
 
+The report revision on top of it (`9ccc55d438c`, REPORT.md only — not a build input) was re-gated the
+same way: **job 815, exit=0, `branch_update=unchanged`**. The tip revision (this file, REPORT.md only)
+is re-gated identically and its job is keyed by the tip sha (`ccxt-farm status <tip sha>`).
+
 `branch_update=unchanged` on the farm's own forced transpile is the fixed-point proof: the committed tree
 is what the generator emits. No `[Automated changes]` commit was merged back.
 
