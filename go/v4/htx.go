@@ -2073,7 +2073,7 @@ func (this *Htx) Describe() any {
 					"untilDays":        2,
 					"limit":            500,
 					"daysBack":         180,
-					"daysBackCanceled": Divide(1, 12),
+					"daysBackCanceled": 1 / 12,
 					"symbolRequired":   false,
 				},
 				"fetchOHLCV": map[string]any{
@@ -2114,7 +2114,7 @@ func (this *Htx) Describe() any {
 					"untilDays":        2,
 					"limit":            50,
 					"daysBack":         90,
-					"daysBackCanceled": Divide(1, 12),
+					"daysBackCanceled": 1 / 12,
 				},
 				"fetchOHLCV": map[string]any{
 					"limit": 2000,
@@ -5212,7 +5212,7 @@ func (this *Htx) fetchSpotOrdersByStatesBody(ch chan any, states any, optionalAr
 	}
 	if !IsEqual(since, nil) {
 		AddElementToObject(request, "start-time", since) // a window of 48 hours within 180 days
-		AddElementToObject(request, "end-time", this.Sum(since, Multiply(Multiply(Multiply(48, 60), 60), 1000)))
+		AddElementToObject(request, "end-time", this.Sum(since, (48*60)*60*1000))
 	}
 	requestparamsVariable := this.HandleUntilOption("end-time", request, params)
 	request = GetValue(requestparamsVariable, 0)

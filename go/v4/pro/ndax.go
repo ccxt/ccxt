@@ -354,8 +354,8 @@ func (this *Ndax) HandleOHLCV(client any, message any) {
 			var parsed []any = []any{this.ParseToInt(ccxt.Multiply((ccxt.Divide(timestamp, duration)), duration)), this.SafeFloat(ohlcv, 3), this.SafeFloat(ohlcv, 1), this.SafeFloat(ohlcv, 2), this.SafeFloat(ohlcv, 4), this.SafeFloat(ohlcv, 5)}
 			var stored any = this.SafeValue(ccxt.GetValue(this.Ohlcvs, symbol), timeframe, []any{})
 			var length int = ccxt.GetArrayLength(stored)
-			if (length > 0) && (ccxt.IsEqual(ccxt.GetValue(parsed, 0), ccxt.GetValue(ccxt.GetValue(stored, ccxt.Subtract(length, 1)), 0))) {
-				var previous any = ccxt.GetValue(stored, ccxt.Subtract(length, 1))
+			if (length > 0) && (ccxt.IsEqual(ccxt.GetValue(parsed, 0), ccxt.GetValue(ccxt.GetValue(stored, length-1), 0))) {
+				var previous any = ccxt.GetValue(stored, length-1)
 				var high any = ccxt.GetValue(parsed, 1)
 				if ccxt.IsEqual(ccxt.GetValue(parsed, 1), nil) {
 					high = ccxt.GetValue(previous, 1)
@@ -368,12 +368,12 @@ func (this *Ndax) HandleOHLCV(client any, message any) {
 				} else if !ccxt.IsEqual(ccxt.GetValue(previous, 2), nil) {
 					low = ccxt.MathMin(ccxt.GetValue(parsed, 2), ccxt.GetValue(previous, 2))
 				}
-				ccxt.AddElementToObject(stored, ccxt.Subtract(length, 1), []any{ccxt.GetValue(parsed, 0), ccxt.GetValue(previous, 1), high, low, ccxt.GetValue(parsed, 4), this.Sum(ccxt.GetValue(parsed, 5), ccxt.GetValue(previous, 5))})
+				ccxt.AddElementToObject(stored, length - 1, []any{ccxt.GetValue(parsed, 0), ccxt.GetValue(previous, 1), high, low, ccxt.GetValue(parsed, 4), this.Sum(ccxt.GetValue(parsed, 5), ccxt.GetValue(previous, 5))})
 				if (marketId != nil) && (!ccxt.IsEqual(timeframe, nil)) {
 					ccxt.AddElementToObject(ccxt.GetValue(updates, marketId), timeframe, true)
 				}
 			} else {
-				if (length > 0) && (this.ParseToInt(ccxt.GetValue(parsed, 0)) < this.ParseToInt(ccxt.GetValue(ccxt.GetValue(stored, ccxt.Subtract(length, 1)), 0))) {
+				if (length > 0) && (this.ParseToInt(ccxt.GetValue(parsed, 0)) < this.ParseToInt(ccxt.GetValue(ccxt.GetValue(stored, length-1), 0))) {
 					continue
 				} else {
 					ccxt.AppendToArray(&stored, parsed)

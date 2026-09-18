@@ -390,7 +390,7 @@ func (this *Limitless) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 			var data any = this.SafeList(response, "data", []any{})
 			allRaw = this.ArrayConcat(allRaw, data)
 		}
-		var lastPageResponse any = this.SafeDict(responses, ccxt.Subtract(length, 1))
+		var lastPageResponse any = this.SafeDict(responses, length-1)
 		var lastPageData any = this.SafeList(lastPageResponse, "data", []any{})
 		var lastPageLength int = ccxt.GetArrayLength(lastPageData)
 		var allRawLength int = ccxt.GetArrayLength(allRaw)

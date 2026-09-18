@@ -2302,12 +2302,12 @@ func (this *Phemex) ParseTrade(trade any, optionalArgs ...any) any {
 		var tradeLength int = GetArrayLength(trade)
 		timestamp = this.SafeIntegerProduct(trade, 0, 0.000001)
 		if tradeLength > 4 {
-			id = DerefScalar(this.SafeString(trade, Subtract(tradeLength, 4)))
+			id = DerefScalar(this.SafeString(trade, tradeLength-4))
 		}
-		side = this.SafeStringLower(trade, Subtract(tradeLength, 3))
-		priceString = DerefScalar(this.SafeString(trade, Subtract(tradeLength, 2)))
-		amountString = DerefScalar(this.SafeString(trade, Subtract(tradeLength, 1)))
-		if IsNumber(GetValue(trade, Subtract(tradeLength, 2))) {
+		side = this.SafeStringLower(trade, tradeLength-3)
+		priceString = DerefScalar(this.SafeString(trade, tradeLength-2))
+		amountString = DerefScalar(this.SafeString(trade, tradeLength-1))
+		if IsNumber(GetValue(trade, tradeLength-2)) {
 			priceString = this.FromEp(priceString, market)
 			amountString = this.FromEv(amountString, market)
 		}

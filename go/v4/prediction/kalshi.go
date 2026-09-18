@@ -820,7 +820,7 @@ func (this *Kalshi) ParseMarket(raw any) any {
 	var seriesTicker any = eventTicker
 	var eventPartsLength int = ccxt.GetArrayLength(eventParts)
 	if eventPartsLength > 1 {
-		var seriesParts any = this.ArraySlice(eventParts, 0, ccxt.Subtract(eventPartsLength, 1))
+		var seriesParts any = this.ArraySlice(eventParts, 0, eventPartsLength-1)
 		seriesTicker = ccxt.Join(seriesParts, "-")
 	}
 	// market symbol (no outcome suffix)

@@ -574,7 +574,7 @@ func (this *Krakenfutures) fetchMarketsBody(ch chan any, optionalArgs ...any) an
 		var symbol any = id
 		var split []string = Split(id, "_")
 		var splitMarket *string = this.SafeString(split, 1)
-		var baseId string = Slice(splitMarket, 0, Subtract(GetLength(splitMarket), 3))
+		var baseId string = Slice(splitMarket, 0, GetLength(splitMarket)-3)
 		var quoteId string = "usd" // always USD
 		var base *string = this.SafeCurrencyCode(baseId)
 		var quote *string = this.SafeCurrencyCode(quoteId)
@@ -4061,7 +4061,7 @@ func (this *Krakenfutures) ParseMarketLeverageTiers(info any, optionalArgs ...an
 		var minNotional *float64 = this.SafeNumber2(tier, "numNonContractUnits", "contracts")
 		if i != 0 {
 			var tiersLength int = GetArrayLength(tiers)
-			var previousTier any = GetValue(tiers, Subtract(tiersLength, 1))
+			var previousTier any = GetValue(tiers, tiersLength-1)
 			AddElementToObject(previousTier, "maxNotional", minNotional)
 		}
 		AppendToArray(&tiers, map[string]any{

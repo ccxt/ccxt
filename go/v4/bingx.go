@@ -1070,7 +1070,7 @@ func (this *Bingx) Describe() any {
 				"USDTMPerp":  "linear",
 				"coinMPerp":  "inverse",
 			},
-			"recvWindow": Multiply(5, 1000),
+			"recvWindow": 5 * 1000,
 			"broker":     "CCXT",
 			"defaultNetworks": map[string]any{
 				"ETH":  "ETH",
@@ -6962,7 +6962,7 @@ func (this *Bingx) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 			}()
 			AddElementToObject(request, startTimeReq, since)
 		} else if IsEqual(GetValue(market, "swap"), true) {
-			request["startTs"] = Subtract(now, Multiply(Multiply(Multiply(Multiply(30, 24), 60), 60), 1000)) // 30 days for swap
+			request["startTs"] = Subtract(now, (30*24)*60*60*1000) // 30 days for swap
 		}
 		var until *int64 = this.SafeInteger(params, "until")
 		params = this.Omit(params, "until")

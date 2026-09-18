@@ -224,10 +224,10 @@ func (this *Bitopro) Describe() any {
 				},
 				"post": map[string]any{
 					"orders/{pair}": map[string]any{
-						"cost": Divide(1, 2),
+						"cost": 1 / 2,
 					},
 					"orders/batch": map[string]any{
-						"cost": Divide(20, 3),
+						"cost": 20 / 3,
 					},
 					"wallet/withdraw/{currency}": map[string]any{
 						"cost": 10,
@@ -240,7 +240,7 @@ func (this *Bitopro) Describe() any {
 				},
 				"delete": map[string]any{
 					"orders/{pair}/{id}": map[string]any{
-						"cost": Divide(2, 3),
+						"cost": 2 / 3,
 					},
 					"orders/all": map[string]any{
 						"cost": 5,
@@ -1137,7 +1137,7 @@ func (this *Bitopro) InsertMissingCandles(candles any, distance any, since any, 
 		}
 		timestamp = this.Sum(timestamp, Multiply(distance, 1000))
 		resultLength = GetArrayLength(result)
-		copyFrom = GetValue(result, Subtract(resultLength, 1))
+		copyFrom = GetValue(result, resultLength-1)
 	}
 	return result
 }

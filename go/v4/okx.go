@@ -200,22 +200,22 @@ func (this *Okx) Describe() any {
 						"cost": 1,
 					},
 					"market/books": map[string]any{
-						"cost": Divide(1, 2),
+						"cost": 1 / 2,
 					},
 					"market/books-full": map[string]any{
 						"cost": 2,
 					},
 					"market/books-rpi": map[string]any{
-						"cost": Divide(1, 2),
+						"cost": 1 / 2,
 					},
 					"market/candles": map[string]any{
-						"cost": Divide(1, 2),
+						"cost": 1 / 2,
 					},
 					"market/history-candles": map[string]any{
 						"cost": 1,
 					},
 					"market/trades": map[string]any{
-						"cost": Divide(1, 5),
+						"cost": 1 / 5,
 					},
 					"market/history-trades": map[string]any{
 						"cost": 2,
@@ -245,7 +245,7 @@ func (this *Okx) Describe() any {
 						"cost": 1,
 					},
 					"market/sprd-candles": map[string]any{
-						"cost": Divide(1, 2),
+						"cost": 1 / 2,
 					},
 					"market/sprd-history-candles": map[string]any{
 						"cost": 1,
@@ -275,7 +275,7 @@ func (this *Okx) Describe() any {
 						"cost": 50,
 					},
 					"market/books-lite": map[string]any{
-						"cost": Divide(5, 3),
+						"cost": 5 / 3,
 					},
 					"public/option-trades": map[string]any{
 						"cost": 1,
@@ -290,13 +290,13 @@ func (this *Okx) Describe() any {
 						"cost": 2,
 					},
 					"public/delivery-exercise-history": map[string]any{
-						"cost": Divide(1, 2),
+						"cost": 1 / 2,
 					},
 					"public/estimated-settlement-info": map[string]any{
 						"cost": 2,
 					},
 					"public/settlement-history": map[string]any{
-						"cost": Divide(1, 2),
+						"cost": 1 / 2,
 					},
 					"public/funding-rate": map[string]any{
 						"cost": 2,
@@ -440,31 +440,31 @@ func (this *Okx) Describe() any {
 						"cost": 4,
 					},
 					"asset/exchange-list": map[string]any{
-						"cost": Divide(5, 3),
+						"cost": 5 / 3,
 					},
 					"finance/staking-defi/eth/apy-history": map[string]any{
-						"cost": Divide(5, 3),
+						"cost": 5 / 3,
 					},
 					"finance/staking-defi/sol/apy-history": map[string]any{
-						"cost": Divide(5, 3),
+						"cost": 5 / 3,
 					},
 					"finance/savings/lending-rate-summary": map[string]any{
-						"cost": Divide(5, 3),
+						"cost": 5 / 3,
 					},
 					"finance/savings/lending-rate-history": map[string]any{
-						"cost": Divide(5, 3),
+						"cost": 5 / 3,
 					},
 					"finance/fixed-loan/lending-offers": map[string]any{
-						"cost": Divide(10, 3),
+						"cost": 10 / 3,
 					},
 					"finance/fixed-loan/lending-apy-history": map[string]any{
-						"cost": Divide(10, 3),
+						"cost": 10 / 3,
 					},
 					"finance/fixed-loan/pending-lending-volume": map[string]any{
-						"cost": Divide(10, 3),
+						"cost": 10 / 3,
 					},
 					"finance/sfp/dcd/products": map[string]any{
-						"cost": Divide(2, 3),
+						"cost": 2 / 3,
 					},
 					"copytrading/public-config": map[string]any{
 						"cost": 4,
@@ -548,19 +548,19 @@ func (this *Okx) Describe() any {
 						"cost": 1,
 					},
 					"trade/order": map[string]any{
-						"cost": Divide(1, 3),
+						"cost": 1 / 3,
 					},
 					"trade/orders-pending": map[string]any{
-						"cost": Divide(1, 3),
+						"cost": 1 / 3,
 					},
 					"trade/orders-history": map[string]any{
-						"cost": Divide(1, 2),
+						"cost": 1 / 2,
 					},
 					"trade/orders-history-archive": map[string]any{
 						"cost": 1,
 					},
 					"trade/fills": map[string]any{
-						"cost": Divide(1, 3),
+						"cost": 1 / 3,
 					},
 					"trade/fills-history": map[string]any{
 						"cost": 2,
@@ -599,13 +599,13 @@ func (this *Okx) Describe() any {
 						"cost": 1,
 					},
 					"asset/currencies": map[string]any{
-						"cost": Divide(5, 3),
+						"cost": 5 / 3,
 					},
 					"asset/balances": map[string]any{
-						"cost": Divide(5, 3),
+						"cost": 5 / 3,
 					},
 					"asset/non-tradable-assets": map[string]any{
-						"cost": Divide(5, 3),
+						"cost": 5 / 3,
 					},
 					"asset/asset-valuation": map[string]any{
 						"cost": 10,
@@ -614,7 +614,7 @@ func (this *Okx) Describe() any {
 						"cost": 1,
 					},
 					"asset/bills": map[string]any{
-						"cost": Divide(5, 3),
+						"cost": 5 / 3,
 					},
 					"asset/bills-history": map[string]any{
 						"cost": 10,
@@ -623,13 +623,13 @@ func (this *Okx) Describe() any {
 						"cost": 5,
 					},
 					"asset/deposit-address": map[string]any{
-						"cost": Divide(5, 3),
+						"cost": 5 / 3,
 					},
 					"asset/deposit-history": map[string]any{
-						"cost": Divide(5, 3),
+						"cost": 5 / 3,
 					},
 					"asset/withdrawal-history": map[string]any{
-						"cost": Divide(5, 3),
+						"cost": 5 / 3,
 					},
 					"asset/deposit-withdraw-status": map[string]any{
 						"cost": 20,
@@ -638,40 +638,40 @@ func (this *Okx) Describe() any {
 						"cost": 2,
 					},
 					"asset/convert/currencies": map[string]any{
-						"cost": Divide(5, 3),
+						"cost": 5 / 3,
 					},
 					"asset/convert/currency-pair": map[string]any{
-						"cost": Divide(5, 3),
+						"cost": 5 / 3,
 					},
 					"asset/convert/history": map[string]any{
-						"cost": Divide(5, 3),
+						"cost": 5 / 3,
 					},
 					"fiat/deposit-payment-methods": map[string]any{
-						"cost": Divide(10, 3),
+						"cost": 10 / 3,
 					},
 					"fiat/withdrawal-payment-methods": map[string]any{
-						"cost": Divide(10, 3),
+						"cost": 10 / 3,
 					},
 					"fiat/deposit-order-history": map[string]any{
-						"cost": Divide(10, 3),
+						"cost": 10 / 3,
 					},
 					"fiat/deposit": map[string]any{
-						"cost": Divide(10, 3),
+						"cost": 10 / 3,
 					},
 					"fiat/withdrawal-order-history": map[string]any{
-						"cost": Divide(10, 3),
+						"cost": 10 / 3,
 					},
 					"fiat/withdrawal": map[string]any{
-						"cost": Divide(10, 3),
+						"cost": 10 / 3,
 					},
 					"fiat/buy-sell/currencies": map[string]any{
-						"cost": Divide(5, 3),
+						"cost": 5 / 3,
 					},
 					"fiat/buy-sell/currency-pair": map[string]any{
-						"cost": Divide(5, 3),
+						"cost": 5 / 3,
 					},
 					"fiat/buy-sell/history": map[string]any{
-						"cost": Divide(5, 3),
+						"cost": 5 / 3,
 					},
 					"account/instruments": map[string]any{
 						"cost": 1,
@@ -797,19 +797,19 @@ func (this *Okx) Describe() any {
 						"cost": 10,
 					},
 					"account/subaccount/balances": map[string]any{
-						"cost": Divide(10, 3),
+						"cost": 10 / 3,
 					},
 					"asset/subaccount/balances": map[string]any{
-						"cost": Divide(10, 3),
+						"cost": 10 / 3,
 					},
 					"account/subaccount/max-withdrawal": map[string]any{
 						"cost": 1,
 					},
 					"asset/subaccount/bills": map[string]any{
-						"cost": Divide(5, 3),
+						"cost": 5 / 3,
 					},
 					"asset/subaccount/managed-subaccount-bills": map[string]any{
-						"cost": Divide(5, 3),
+						"cost": 5 / 3,
 					},
 					"users/entrust-subaccount-list": map[string]any{
 						"cost": 10,
@@ -890,37 +890,37 @@ func (this *Okx) Describe() any {
 						"cost": 1,
 					},
 					"finance/savings/balance": map[string]any{
-						"cost": Divide(5, 3),
+						"cost": 5 / 3,
 					},
 					"finance/savings/lending-history": map[string]any{
-						"cost": Divide(5, 3),
+						"cost": 5 / 3,
 					},
 					"finance/staking-defi/offers": map[string]any{
-						"cost": Divide(10, 3),
+						"cost": 10 / 3,
 					},
 					"finance/staking-defi/orders-active": map[string]any{
-						"cost": Divide(10, 3),
+						"cost": 10 / 3,
 					},
 					"finance/staking-defi/orders-history": map[string]any{
-						"cost": Divide(10, 3),
+						"cost": 10 / 3,
 					},
 					"finance/staking-defi/eth/product-info": map[string]any{
-						"cost": Divide(10, 3),
+						"cost": 10 / 3,
 					},
 					"finance/staking-defi/eth/balance": map[string]any{
-						"cost": Divide(5, 3),
+						"cost": 5 / 3,
 					},
 					"finance/staking-defi/eth/purchase-redeem-history": map[string]any{
-						"cost": Divide(5, 3),
+						"cost": 5 / 3,
 					},
 					"finance/staking-defi/sol/product-info": map[string]any{
-						"cost": Divide(10, 3),
+						"cost": 10 / 3,
 					},
 					"finance/staking-defi/sol/balance": map[string]any{
-						"cost": Divide(5, 3),
+						"cost": 5 / 3,
 					},
 					"finance/staking-defi/sol/purchase-redeem-history": map[string]any{
-						"cost": Divide(5, 3),
+						"cost": 5 / 3,
 					},
 					"finance/flexible-loan/borrow-currencies": map[string]any{
 						"cost": 4,
@@ -968,7 +968,7 @@ func (this *Okx) Describe() any {
 						"cost": 4,
 					},
 					"finance/stable-rewards/apy-history": map[string]any{
-						"cost": Divide(5, 3),
+						"cost": 5 / 3,
 					},
 					"users/glp/todayperformance": map[string]any{
 						"cost": 4,
@@ -1040,7 +1040,7 @@ func (this *Okx) Describe() any {
 						"cost": 10,
 					},
 					"asset/broker/nd/subaccount-deposit-address": map[string]any{
-						"cost": Divide(5, 3),
+						"cost": 5 / 3,
 					},
 					"asset/broker/nd/subaccount-deposit-history": map[string]any{
 						"cost": 4,
@@ -1073,19 +1073,19 @@ func (this *Okx) Describe() any {
 						"cost": 1,
 					},
 					"affiliate/performance/summary": map[string]any{
-						"cost": Divide(10, 3),
+						"cost": 10 / 3,
 					},
 					"affiliate/invitee/list": map[string]any{
-						"cost": Divide(10, 3),
+						"cost": 10 / 3,
 					},
 					"affiliate/link/list": map[string]any{
-						"cost": Divide(10, 3),
+						"cost": 10 / 3,
 					},
 					"affiliate/co-inviter/list": map[string]any{
-						"cost": Divide(10, 3),
+						"cost": 10 / 3,
 					},
 					"affiliate/sub-affiliate/list": map[string]any{
-						"cost": Divide(10, 3),
+						"cost": 10 / 3,
 					},
 					"users/partner/if-rebate": map[string]any{
 						"cost": 1,
@@ -1150,22 +1150,22 @@ func (this *Okx) Describe() any {
 						"cost": 10,
 					},
 					"trade/order": map[string]any{
-						"cost": Divide(1, 3),
+						"cost": 1 / 3,
 					},
 					"trade/batch-orders": map[string]any{
-						"cost": Divide(1, 15),
+						"cost": 1 / 15,
 					},
 					"trade/cancel-order": map[string]any{
-						"cost": Divide(1, 3),
+						"cost": 1 / 3,
 					},
 					"trade/cancel-batch-orders": map[string]any{
-						"cost": Divide(1, 15),
+						"cost": 1 / 15,
 					},
 					"trade/amend-order": map[string]any{
-						"cost": Divide(1, 3),
+						"cost": 1 / 3,
 					},
 					"trade/amend-batch-orders": map[string]any{
-						"cost": Divide(1, 150),
+						"cost": 1 / 150,
 					},
 					"trade/close-position": map[string]any{
 						"cost": 1,
@@ -1207,13 +1207,13 @@ func (this *Okx) Describe() any {
 						"cost": 5,
 					},
 					"asset/withdrawal": map[string]any{
-						"cost": Divide(5, 3),
+						"cost": 5 / 3,
 					},
 					"asset/withdrawal-lightning": map[string]any{
 						"cost": 5,
 					},
 					"asset/cancel-withdrawal": map[string]any{
-						"cost": Divide(5, 3),
+						"cost": 5 / 3,
 					},
 					"asset/convert-dust-assets": map[string]any{
 						"cost": 10,
@@ -1228,10 +1228,10 @@ func (this *Okx) Describe() any {
 						"cost": 1,
 					},
 					"fiat/create-withdrawal": map[string]any{
-						"cost": Divide(10, 3),
+						"cost": 10 / 3,
 					},
 					"fiat/cancel-withdrawal": map[string]any{
-						"cost": Divide(10, 3),
+						"cost": 10 / 3,
 					},
 					"fiat/buy-sell/quote": map[string]any{
 						"cost": 50,
@@ -1270,7 +1270,7 @@ func (this *Okx) Describe() any {
 						"cost": 4,
 					},
 					"account/borrow-repay": map[string]any{
-						"cost": Divide(5, 3),
+						"cost": 5 / 3,
 					},
 					"account/simulated_margin": map[string]any{
 						"cost": 10,
@@ -1477,10 +1477,10 @@ func (this *Okx) Describe() any {
 						"cost": 1,
 					},
 					"finance/savings/purchase-redempt": map[string]any{
-						"cost": Divide(5, 3),
+						"cost": 5 / 3,
 					},
 					"finance/savings/set-lending-rate": map[string]any{
-						"cost": Divide(5, 3),
+						"cost": 5 / 3,
 					},
 					"finance/staking-defi/purchase": map[string]any{
 						"cost": 5,
@@ -1579,7 +1579,7 @@ func (this *Okx) Describe() any {
 						"cost": 1,
 					},
 					"asset/broker/nd/modify-subaccount-deposit-address": map[string]any{
-						"cost": Divide(5, 3),
+						"cost": 5 / 3,
 					},
 					"broker/nd/rebate-per-orders": map[string]any{
 						"cost": 36000,
@@ -1603,7 +1603,7 @@ func (this *Okx) Describe() any {
 						"cost": 0.25,
 					},
 					"broker/dma/subaccount/apikey": map[string]any{
-						"cost": Divide(1, 4),
+						"cost": 1 / 4,
 					},
 					"broker/dma/trades": map[string]any{
 						"cost": 36000,
@@ -2311,7 +2311,7 @@ func (this *Okx) Describe() any {
 					"marginMode":       false,
 					"limit":            100,
 					"daysBack":         90,
-					"daysBackCanceled": Divide(1, 12),
+					"daysBackCanceled": 1 / 12,
 					"untilDays":        nil,
 					"trigger":          true,
 					"trailing":         true,

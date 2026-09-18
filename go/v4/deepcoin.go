@@ -315,7 +315,7 @@ func (this *Deepcoin) Describe() any {
 						"cost": 5,
 					},
 					"deepcoin/trade/cancel-trigger-order": map[string]any{
-						"cost": Divide(1, 6),
+						"cost": 1 / 6,
 					},
 					"deepcoin/trade/swap/cancel-all": map[string]any{
 						"cost": 5,

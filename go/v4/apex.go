@@ -1593,7 +1593,7 @@ func (this *Apex) GenerateRandomClientIdOmni(_accountId any) any {
 func (this *Apex) AddHyphenBeforeUsdt(symbol any) any {
 	var uppercaseSymbol string = ToUpper(symbol)
 	var index int = GetIndexOf(uppercaseSymbol, "USDT")
-	var symbolChar *string = this.SafeString(symbol, Subtract(index, 1))
+	var symbolChar *string = this.SafeString(symbol, index-1)
 	if (index > 0) && (symbolChar == nil || *symbolChar != "-") {
 		return Slice(symbol, 0, index) + "-" + Slice(symbol, index, nil)
 	}
@@ -1751,7 +1751,7 @@ func (this *Apex) createOrderBody(ch chan any, symbol any, typeVar any, side any
 		"size":        orderSize,
 		"price":       finalOrderPrice,
 		"limitFee":    limitFee,
-		"expiration":  MathFloor(Add(timeNow/1000, Multiply(Multiply(Multiply(30, 24), 60), 60))),
+		"expiration":  MathFloor(Add(timeNow/1000, (30*24)*60*60)),
 		"timeInForce": timeInForce,
 		"clientId":    finalClientOrderId,
 		"brokerId":    this.SafeString(this.Options, "brokerId", "6956"),

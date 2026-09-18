@@ -1355,7 +1355,7 @@ func (this *Hyperliquid) ParseOutcomeInputSideHint(outcomeInput any) any {
 		return nil
 	}
 	var colonIndex int = ccxt.GetIndexOf(outcomeInput, ":")
-	if ccxt.IsGreaterThan(colonIndex, -1) && ccxt.IsLessThan(colonIndex, ccxt.Subtract(ccxt.GetLength(outcomeInput), 1)) {
+	if ccxt.IsGreaterThan(colonIndex, -1) && ccxt.IsLessThan(colonIndex, ccxt.GetLength(outcomeInput)-1) {
 		var side string = ccxt.ToUpper(ccxt.Slice(outcomeInput, colonIndex+1, nil))
 		if (side == "YES") || (side == "NO") {
 			return side

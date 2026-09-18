@@ -19,7 +19,7 @@ func (this *Btse) Describe() any {
 		"id":        "btse",
 		"name":      "BTSE",
 		"countries": []any{"VG"},
-		"rateLimit": Divide(1000, 75),
+		"rateLimit": 1000 / 75,
 		"version":   "v3",
 		"certified": false,
 		"pro":       false,
@@ -1157,9 +1157,9 @@ func (this *Btse) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any) 
 		if !IsEqual(since, nil) {
 			var age any = Subtract(this.Milliseconds(), since)
 			var day int = 86400000
-			if IsGreaterThan(age, Multiply(14, day)) {
+			if IsGreaterThan(age, 14*day) {
 				period = "1M"
-			} else if IsGreaterThan(age, Multiply(7, day)) {
+			} else if IsGreaterThan(age, 7*day) {
 				period = "2W"
 			}
 		}

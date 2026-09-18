@@ -65,7 +65,7 @@ func (this *Kucoin) Describe() any {
 		"options": map[string]any{
 			"utaToken":                nil,
 			"utaTokenLastUpdate":      0,
-			"utaTokenRefreshInterval": ccxt.Multiply(ccxt.Multiply(ccxt.Multiply(1000, 60), 60), 24),
+			"utaTokenRefreshInterval": (1000 * 60) * 60 * 24,
 			"tradesLimit":             1000,
 			"watchTicker": map[string]any{
 				"spotMethod": "/market/snapshot",

@@ -314,7 +314,7 @@ func (this *Tokocrypto) Describe() any {
 			"defaultTimeInForce":                  "GTC",
 			"hasAlreadyAuthenticatedSuccessfully": false,
 			"warnOnFetchOpenOrdersWithoutSymbol":  true,
-			"recvWindow":                          Multiply(5, 1000),
+			"recvWindow":                          5 * 1000,
 			"timeDifference":                      0,
 			"adjustForTimeDifference":             false,
 			"newOrderRespType": map[string]any{

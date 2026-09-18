@@ -2397,7 +2397,7 @@ func (this *Upbit) ParseOrder(order any, optionalArgs ...any) any {
 	var numTrades int = GetArrayLength(trades)
 	if numTrades > 0 {
 		// the timestamp in fetchOrder trades is missing
-		lastTradeTimestamp = GetValue(GetValue(trades, Subtract(numTrades, 1)), "timestamp")
+		lastTradeTimestamp = GetValue(GetValue(trades, numTrades-1), "timestamp")
 		var getFeesFromTrades bool = false
 		if IsEqual(feeCost, nil) {
 			getFeesFromTrades = true

@@ -571,7 +571,7 @@ func (this *Apex) HandleTicker(client any, message any) {
 	} else if updateType != nil && *updateType == "delta" {
 		var topicParts []string = ccxt.Split(topic, ".")
 		var topicLength int = len(topicParts)
-		var marketId *string = this.SafeString(topicParts, ccxt.Subtract(topicLength, 1))
+		var marketId *string = this.SafeString(topicParts, topicLength-1)
 		var market any = this.SafeMarket(marketId, nil, nil)
 		symbol = ccxt.GetValue(market, "symbol")
 		var ticker any = this.SafeDict(this.Tickers, symbol, map[string]any{})
@@ -708,7 +708,7 @@ func (this *Apex) HandleOHLCV(client any, message any) {
 	var topicLength int = len(topicParts)
 	var timeframeId *string = this.SafeString(topicParts, 1)
 	var timeframe any = this.FindTimeframe(timeframeId)
-	var marketId *string = this.SafeString(topicParts, ccxt.Subtract(topicLength, 1))
+	var marketId *string = this.SafeString(topicParts, topicLength-1)
 	var isSpot bool = ccxt.IsGreaterThan(ccxt.GetIndexOf(client.(ccxt.ClientInterface).GetUrl(), "spot"), -1)
 	var marketType any = func() any {
 		if isSpot {

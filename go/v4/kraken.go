@@ -842,7 +842,7 @@ func (this *Kraken) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 			"limits": map[string]any{
 				"leverage": map[string]any{
 					"min": this.ParseNumber("1"),
-					"max": this.SafeNumber(leverageBuy, Subtract(leverageBuyLength, 1), 1),
+					"max": this.SafeNumber(leverageBuy, leverageBuyLength-1, 1),
 				},
 				"amount": map[string]any{
 					"min": this.SafeNumber(market, "ordermin"),
@@ -1934,10 +1934,10 @@ func (this *Kraken) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any
 		ch <- []any{}
 		return nil
 	}
-	var lastTrade any = GetValue(trades, Subtract(length, 1))
+	var lastTrade any = GetValue(trades, length-1)
 	var lastTradeId *string = this.SafeString(result, "last")
 	AppendToArray(&lastTrade, lastTradeId)
-	AddElementToObject(trades, Subtract(length, 1), lastTrade)
+	AddElementToObject(trades, length - 1, lastTrade)
 
 	ch <- this.ParseTrades(trades, market, since, limit)
 	return nil
@@ -3987,9 +3987,9 @@ func (this *Kraken) AddPaginationCursorToResult(result any) any {
 	var data any = this.SafeValue(result, "withdrawals")
 	var dataLength int = GetArrayLength(data)
 	if (cursor != nil) && (dataLength > 0) {
-		var last any = GetValue(data, Subtract(dataLength, 1))
+		var last any = GetValue(data, dataLength-1)
 		AddElementToObject(last, "next_cursor", cursor)
-		AddElementToObject(data, Subtract(dataLength, 1), last)
+		AddElementToObject(data, dataLength - 1, last)
 	}
 	return data
 }

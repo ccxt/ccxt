@@ -1217,7 +1217,7 @@ func (this *Hashkey) ParseMarket(market any) any {
 		if !IsEqual(riskLimits, nil) {
 			var first any = this.SafeDict(riskLimits, 0)
 			var arrayLength int = GetArrayLength(riskLimits)
-			var last any = this.SafeDict(riskLimits, Subtract(arrayLength, 1))
+			var last any = this.SafeDict(riskLimits, arrayLength-1)
 			var minInitialMargin any = DerefScalar(this.SafeString(first, "initialMargin"))
 			var maxInitialMargin any = DerefScalar(this.SafeString(last, "initialMargin"))
 			if Precise.StringGt(minInitialMargin, maxInitialMargin) {

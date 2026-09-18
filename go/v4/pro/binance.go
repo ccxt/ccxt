@@ -276,7 +276,7 @@ func (this *Binance) GetWsUrl(typeVar any, category any) any {
 		// only rewrite when the URL ends with exactly "/ws"
 		// this avoids matching "/wss", "/ws-api", "/ws-fapi/v1", etc.
 		if ccxt.EndsWith(baseUrl, "/ws") {
-			var prefix string = ccxt.Slice(baseUrl, 0, ccxt.Subtract(ccxt.GetLength(baseUrl), 3))
+			var prefix string = ccxt.Slice(baseUrl, 0, ccxt.GetLength(baseUrl)-3)
 			return ccxt.Add(ccxt.Add(prefix+"/", category), "/ws")
 		}
 		return baseUrl

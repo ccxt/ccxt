@@ -768,7 +768,7 @@ func (this *Bybit) HandleTicker(client any, message any) {
 	} else if updateType != nil && *updateType == "delta" {
 		var topicParts []string = ccxt.Split(topic, ".")
 		var topicLength int = len(topicParts)
-		var marketId *string = this.SafeString(topicParts, ccxt.Subtract(topicLength, 1))
+		var marketId *string = this.SafeString(topicParts, topicLength-1)
 		var market any = this.SafeMarket(marketId, nil, nil, typeVar)
 		symbol = ccxt.GetValue(market, "symbol")
 		// update the info in place
@@ -1075,7 +1075,7 @@ func (this *Bybit) HandleOHLCV(client any, message any) {
 	if timeframe == nil {
 		return
 	}
-	var marketId *string = this.SafeString(topicParts, ccxt.Subtract(topicLength, 1))
+	var marketId *string = this.SafeString(topicParts, topicLength-1)
 	var isSpot bool = ccxt.IsGreaterThan(ccxt.GetIndexOf(client.(ccxt.ClientInterface).GetUrl(), "spot"), -1)
 	var marketType any = func() any {
 		if isSpot {

@@ -1314,7 +1314,7 @@ func (this *Extended) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var dataLength int = GetArrayLength(data)
 	for i := 0; i < dataLength; i++ {
 		var entry any = GetValue(data, i)
-		if (cursor != nil) && (IsEqual(i, Subtract(dataLength, 1))) {
+		if (cursor != nil) && (i == dataLength-1) {
 			entry = this.Extend(entry, map[string]any{
 				"cursor": cursor,
 			})
@@ -1414,7 +1414,7 @@ func (this *Extended) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) 
 	var dataLength int = GetArrayLength(data)
 	for i := 0; i < dataLength; i++ {
 		var entry any = GetValue(data, i)
-		if (cursor != nil) && (IsEqual(i, Subtract(dataLength, 1))) {
+		if (cursor != nil) && (i == dataLength-1) {
 			entry = this.Extend(entry, map[string]any{
 				"cursor": cursor,
 			})
@@ -1756,7 +1756,7 @@ func (this *Extended) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...a
 	var dataLength int = GetArrayLength(data)
 	for i := 0; i < dataLength; i++ {
 		var entry any = GetValue(data, i)
-		if (cursor != nil) && (IsEqual(i, Subtract(dataLength, 1))) {
+		if (cursor != nil) && (i == dataLength-1) {
 			entry = this.Extend(entry, map[string]any{
 				"cursor": cursor,
 			})
@@ -2136,7 +2136,7 @@ func (this *Extended) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	var dataLength int = GetArrayLength(data)
 	for i := 0; i < dataLength; i++ {
 		var entry any = GetValue(data, i)
-		if (cursor != nil) && (IsEqual(i, Subtract(dataLength, 1))) {
+		if (cursor != nil) && (i == dataLength-1) {
 			entry = this.Extend(entry, map[string]any{
 				"cursor": cursor,
 			})
@@ -2291,7 +2291,7 @@ func (this *Extended) fetchTransactionsBody(ch chan any, optionalArgs ...any) an
 	var dataLength int = GetArrayLength(data)
 	for i := 0; i < dataLength; i++ {
 		var entry any = GetValue(data, i)
-		if (cursor != nil) && (IsEqual(i, Subtract(dataLength, 1))) {
+		if (cursor != nil) && (i == dataLength-1) {
 			entry = this.Extend(entry, map[string]any{
 				"cursor": cursor,
 			})
@@ -2527,7 +2527,7 @@ func (this *Extended) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 	var dataLength int = GetArrayLength(data)
 	for i := 0; i < dataLength; i++ {
 		var entry any = GetValue(data, i)
-		if (cursor != nil) && (IsEqual(i, Subtract(dataLength, 1))) {
+		if (cursor != nil) && (i == dataLength-1) {
 			entry = this.Extend(entry, map[string]any{
 				"cursor": cursor,
 			})
@@ -3195,7 +3195,7 @@ func (this *Extended) fetchPositionsHistoryBody(ch chan any, optionalArgs ...any
 	var dataLength int = GetArrayLength(data)
 	for i := 0; i < dataLength; i++ {
 		var entry any = GetValue(data, i)
-		if (cursor != nil) && (IsEqual(i, Subtract(dataLength, 1))) {
+		if (cursor != nil) && (i == dataLength-1) {
 			entry = this.Extend(entry, map[string]any{
 				"cursor": cursor,
 			})
@@ -4299,7 +4299,7 @@ func (this *Extended) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	var dataLength int = GetArrayLength(data)
 	for i := 0; i < dataLength; i++ {
 		var entry any = GetValue(data, i)
-		if (cursor != nil) && (IsEqual(i, Subtract(dataLength, 1))) {
+		if (cursor != nil) && (i == dataLength-1) {
 			entry = this.Extend(entry, map[string]any{
 				"cursor": cursor,
 			})

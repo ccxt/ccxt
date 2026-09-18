@@ -2004,7 +2004,7 @@ func (this *Bybit) Describe() any {
 			"defaultSubType":             "linear",
 			"defaultSettle":              "USDT",
 			"code":                       "BTC",
-			"recvWindow":                 Multiply(5, 1000),
+			"recvWindow":                 5 * 1000,
 			"timeDifference":             0,
 			"adjustForTimeDifference":    false,
 			"brokerId":                   "CCXT",
@@ -2160,7 +2160,7 @@ func (this *Bybit) Describe() any {
 				"fetchMyTrades": map[string]any{
 					"marginMode":     false,
 					"limit":          100,
-					"daysBack":       Multiply(365, 2),
+					"daysBack":       365 * 2,
 					"untilDays":      7,
 					"symbolRequired": false,
 				},
@@ -2181,7 +2181,7 @@ func (this *Bybit) Describe() any {
 				"fetchClosedOrders": map[string]any{
 					"marginMode":       false,
 					"limit":            50,
-					"daysBack":         Multiply(365, 2),
+					"daysBack":         365 * 2,
 					"daysBackCanceled": 1,
 					"untilDays":        7,
 					"trigger":          true,
@@ -9884,13 +9884,13 @@ func (this *Bybit) fetchBorrowRateHistoryBody(ch chan any, code any, optionalArg
 		"currency": GetValue(currency, "id"),
 	}
 	if IsEqual(since, nil) {
-		since = Subtract(this.Milliseconds(), Multiply(86400000, 30)) // last 30 days
+		since = Subtract(this.Milliseconds(), 86400000*30) // last 30 days
 	}
 	request["startTime"] = since
 	var endTime any = DerefScalar(this.SafeInteger2(params, "until", "endTime"))
 	params = this.Omit(params, []any{"until"})
 	if IsEqual(endTime, nil) {
-		endTime = Add(since, Multiply(86400000, 30)) // since + 30 days
+		endTime = Add(since, 86400000*30) // since + 30 days
 	}
 	request["endTime"] = endTime
 

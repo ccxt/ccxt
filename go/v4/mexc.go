@@ -1036,8 +1036,8 @@ func (this *Mexc) Describe() any {
 				"BNB Smart Chain(BEP20)":        "BSC",
 				"Ethereum(ERC20)":               "ERC20",
 			},
-			"recvWindow":     Multiply(5, 1000),
-			"maxTimeTillEnd": Subtract(Multiply(Multiply(90, 86400), 1000), 1),
+			"recvWindow":     5 * 1000,
+			"maxTimeTillEnd": (90 * 86400) * 1000 - 1,
 			"broker":         "CCXT",
 		},
 		"features": map[string]any{

@@ -491,7 +491,7 @@ func (this *testMainClass) testSafeBody(ch chan any, methodName any, exchange cc
 							}()
 							if isOperationFailed {
 								// if last retry was gone with same `tempFailure` error, then let's eventually return false
-								if i == Subtract(maxRetries, 1) {
+								if i == maxRetries-1 {
 									var isOnMaintenance bool = (IsInstance(e, OnMaintenance))
 									var isExchangeNotAvailable bool = (IsInstance(e, ExchangeNotAvailable))
 									var shouldFail any = nil
@@ -602,7 +602,7 @@ func (this *testMainClass) GetLastRequestUrl(exchange ccxt.ICoreExchange) any {
 	var fetchCache any = exchange.GetFetchCache()
 	var url any = ""
 	if GetArrayLength(fetchCache) > 0 {
-		var lastEntry any = GetValue(fetchCache, Subtract(GetArrayLength(fetchCache), 1))
+		var lastEntry any = GetValue(fetchCache, GetArrayLength(fetchCache)-1)
 		var lastRequest any = GetValue(lastEntry, "request")
 		if !IsEqual(lastRequest, nil) {
 			url = exchange.SafeString(lastRequest, "url", "")

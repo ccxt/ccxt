@@ -460,7 +460,7 @@ func (this *Bitrue) Describe() any {
 			"fetchMyTradesMethod":                 "v2PrivateGetMyTrades",
 			"hasAlreadyAuthenticatedSuccessfully": false,
 			"currencyToPrecisionRoundingMode":     TRUNCATE,
-			"recvWindow":                          Multiply(5, 1000),
+			"recvWindow":                          5 * 1000,
 			"timeDifference":                      0,
 			"adjustForTimeDifference":             false,
 			"parseOrderToPrecision":               false,

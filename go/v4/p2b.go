@@ -273,7 +273,7 @@ func (this *P2b) Describe() any {
 					"marginMode":       false,
 					"limit":            100,
 					"daysBack":         100000,
-					"daysBackCanceled": Divide(1, 12),
+					"daysBackCanceled": 1 / 12,
 					"untilDays":        1,
 					"trigger":          false,
 					"trailing":         false,

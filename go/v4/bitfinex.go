@@ -1632,27 +1632,27 @@ func (this *Bitfinex) ParseTicker(ticker any, optionalArgs ...any) any {
 	var low any = nil
 	if isFundingCurrency {
 		// per api docs, they are different array type
-		last = DerefScalar(this.SafeString(ticker, Subtract(10, minusIndex)))
-		bid = DerefScalar(this.SafeString(ticker, Subtract(2, minusIndex)))
-		ask = DerefScalar(this.SafeString(ticker, Subtract(5, minusIndex)))
-		change = DerefScalar(this.SafeString(ticker, Subtract(8, minusIndex)))
+		last = DerefScalar(this.SafeString(ticker, 10-minusIndex))
+		bid = DerefScalar(this.SafeString(ticker, 2-minusIndex))
+		ask = DerefScalar(this.SafeString(ticker, 5-minusIndex))
+		change = DerefScalar(this.SafeString(ticker, 8-minusIndex))
 		// DAILY_CHANGE_RELATIVE, per the array above: the same field the trading
 		// branch reads at index 6 and scales
-		percentage = Precise.StringMul(this.SafeString(ticker, Subtract(9, minusIndex)), "100")
-		volume = DerefScalar(this.SafeString(ticker, Subtract(11, minusIndex)))
-		high = DerefScalar(this.SafeString(ticker, Subtract(12, minusIndex)))
-		low = DerefScalar(this.SafeString(ticker, Subtract(13, minusIndex)))
+		percentage = Precise.StringMul(this.SafeString(ticker, 9-minusIndex), "100")
+		volume = DerefScalar(this.SafeString(ticker, 11-minusIndex))
+		high = DerefScalar(this.SafeString(ticker, 12-minusIndex))
+		low = DerefScalar(this.SafeString(ticker, 13-minusIndex))
 	} else {
 		// on trading pairs (ex. tBTCUSD or tHMSTR:USD)
-		last = DerefScalar(this.SafeString(ticker, Subtract(7, minusIndex)))
-		bid = DerefScalar(this.SafeString(ticker, Subtract(1, minusIndex)))
-		ask = DerefScalar(this.SafeString(ticker, Subtract(3, minusIndex)))
-		change = DerefScalar(this.SafeString(ticker, Subtract(5, minusIndex)))
-		percentage = DerefScalar(this.SafeString(ticker, Subtract(6, minusIndex)))
+		last = DerefScalar(this.SafeString(ticker, 7-minusIndex))
+		bid = DerefScalar(this.SafeString(ticker, 1-minusIndex))
+		ask = DerefScalar(this.SafeString(ticker, 3-minusIndex))
+		change = DerefScalar(this.SafeString(ticker, 5-minusIndex))
+		percentage = DerefScalar(this.SafeString(ticker, 6-minusIndex))
 		percentage = Precise.StringMul(percentage, "100")
-		volume = DerefScalar(this.SafeString(ticker, Subtract(8, minusIndex)))
-		high = DerefScalar(this.SafeString(ticker, Subtract(9, minusIndex)))
-		low = DerefScalar(this.SafeString(ticker, Subtract(10, minusIndex)))
+		volume = DerefScalar(this.SafeString(ticker, 8-minusIndex))
+		high = DerefScalar(this.SafeString(ticker, 9-minusIndex))
+		low = DerefScalar(this.SafeString(ticker, 10-minusIndex))
 	}
 	return this.SafeTicker(map[string]any{
 		"symbol":        symbol,

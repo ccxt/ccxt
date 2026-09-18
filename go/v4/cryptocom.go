@@ -164,10 +164,10 @@ func (this *Cryptocom) Describe() any {
 				"public": map[string]any{
 					"get": map[string]any{
 						"public/auth": map[string]any{
-							"cost": Divide(10, 3),
+							"cost": 10 / 3,
 						},
 						"public/get-instruments": map[string]any{
-							"cost": Divide(10, 3),
+							"cost": 10 / 3,
 						},
 						"public/get-book": map[string]any{
 							"cost": 1,
@@ -185,7 +185,7 @@ func (this *Cryptocom) Describe() any {
 							"cost": 1,
 						},
 						"public/get-expired-settlement-price": map[string]any{
-							"cost": Divide(10, 3),
+							"cost": 10 / 3,
 						},
 						"public/get-insurance": map[string]any{
 							"cost": 1,
@@ -206,85 +206,85 @@ func (this *Cryptocom) Describe() any {
 				"private": map[string]any{
 					"post": map[string]any{
 						"private/set-cancel-on-disconnect": map[string]any{
-							"cost": Divide(10, 3),
+							"cost": 10 / 3,
 						},
 						"private/get-cancel-on-disconnect": map[string]any{
-							"cost": Divide(10, 3),
+							"cost": 10 / 3,
 						},
 						"private/user-balance": map[string]any{
-							"cost": Divide(10, 3),
+							"cost": 10 / 3,
 						},
 						"private/user-balance-history": map[string]any{
-							"cost": Divide(10, 3),
+							"cost": 10 / 3,
 						},
 						"private/get-positions": map[string]any{
-							"cost": Divide(10, 3),
+							"cost": 10 / 3,
 						},
 						"private/create-order": map[string]any{
-							"cost": Divide(2, 3),
+							"cost": 2 / 3,
 						},
 						"private/amend-order": map[string]any{
-							"cost": Divide(4, 3),
+							"cost": 4 / 3,
 						},
 						"private/create-order-list": map[string]any{
-							"cost": Divide(10, 3),
+							"cost": 10 / 3,
 						},
 						"private/cancel-order": map[string]any{
-							"cost": Divide(2, 3),
+							"cost": 2 / 3,
 						},
 						"private/cancel-order-list": map[string]any{
-							"cost": Divide(10, 3),
+							"cost": 10 / 3,
 						},
 						"private/cancel-all-orders": map[string]any{
-							"cost": Divide(2, 3),
+							"cost": 2 / 3,
 						},
 						"private/close-position": map[string]any{
-							"cost": Divide(10, 3),
+							"cost": 10 / 3,
 						},
 						"private/get-order-history": map[string]any{
 							"cost": 100,
 						},
 						"private/get-open-orders": map[string]any{
-							"cost": Divide(10, 3),
+							"cost": 10 / 3,
 						},
 						"private/get-order-detail": map[string]any{
-							"cost": Divide(1, 3),
+							"cost": 1 / 3,
 						},
 						"private/get-trades": map[string]any{
 							"cost": 100,
 						},
 						"private/change-account-leverage": map[string]any{
-							"cost": Divide(10, 3),
+							"cost": 10 / 3,
 						},
 						"private/get-transactions": map[string]any{
-							"cost": Divide(10, 3),
+							"cost": 10 / 3,
 						},
 						"private/create-subaccount-transfer": map[string]any{
-							"cost": Divide(10, 3),
+							"cost": 10 / 3,
 						},
 						"private/get-subaccount-balances": map[string]any{
-							"cost": Divide(10, 3),
+							"cost": 10 / 3,
 						},
 						"private/get-order-list": map[string]any{
-							"cost": Divide(10, 3),
+							"cost": 10 / 3,
 						},
 						"private/create-withdrawal": map[string]any{
-							"cost": Divide(10, 3),
+							"cost": 10 / 3,
 						},
 						"private/get-currency-networks": map[string]any{
-							"cost": Divide(10, 3),
+							"cost": 10 / 3,
 						},
 						"private/get-deposit-address": map[string]any{
-							"cost": Divide(10, 3),
+							"cost": 10 / 3,
 						},
 						"private/get-accounts": map[string]any{
-							"cost": Divide(10, 3),
+							"cost": 10 / 3,
 						},
 						"private/get-withdrawal-history": map[string]any{
-							"cost": Divide(10, 3),
+							"cost": 10 / 3,
 						},
 						"private/get-deposit-history": map[string]any{
-							"cost": Divide(10, 3),
+							"cost": 10 / 3,
 						},
 						"private/get-fee-rate": map[string]any{
 							"cost": 2,
@@ -293,28 +293,28 @@ func (this *Cryptocom) Describe() any {
 							"cost": 2,
 						},
 						"private/get-fee-credit-balances": map[string]any{
-							"cost": Divide(10, 3),
+							"cost": 10 / 3,
 						},
 						"private/fiat/fiat-deposit-info": map[string]any{
-							"cost": Divide(10, 3),
+							"cost": 10 / 3,
 						},
 						"private/fiat/fiat-deposit-history": map[string]any{
-							"cost": Divide(10, 3),
+							"cost": 10 / 3,
 						},
 						"private/fiat/fiat-withdraw-history": map[string]any{
-							"cost": Divide(10, 3),
+							"cost": 10 / 3,
 						},
 						"private/fiat/fiat-create-withdraw": map[string]any{
-							"cost": Divide(10, 3),
+							"cost": 10 / 3,
 						},
 						"private/fiat/fiat-transaction-quota": map[string]any{
-							"cost": Divide(10, 3),
+							"cost": 10 / 3,
 						},
 						"private/fiat/fiat-transaction-limit": map[string]any{
-							"cost": Divide(10, 3),
+							"cost": 10 / 3,
 						},
 						"private/fiat/fiat-get-bank-accounts": map[string]any{
-							"cost": Divide(10, 3),
+							"cost": 10 / 3,
 						},
 						"private/staking/stake": map[string]any{
 							"cost": 2,
@@ -347,31 +347,31 @@ func (this *Cryptocom) Describe() any {
 							"cost": 2,
 						},
 						"private/create-isolated-margin-transfer": map[string]any{
-							"cost": Divide(10, 3),
+							"cost": 10 / 3,
 						},
 						"private/change-isolated-margin-leverage": map[string]any{
-							"cost": Divide(10, 3),
+							"cost": 10 / 3,
 						},
 						"private/bot/create-trading-bot": map[string]any{
-							"cost": Divide(10, 3),
+							"cost": 10 / 3,
 						},
 						"private/bot/update-trading-bot": map[string]any{
-							"cost": Divide(10, 3),
+							"cost": 10 / 3,
 						},
 						"private/bot/terminate-trading-bot": map[string]any{
-							"cost": Divide(10, 3),
+							"cost": 10 / 3,
 						},
 						"private/bot/pause-trading-bot": map[string]any{
-							"cost": Divide(10, 3),
+							"cost": 10 / 3,
 						},
 						"private/bot/resume-trading-bot": map[string]any{
-							"cost": Divide(10, 3),
+							"cost": 10 / 3,
 						},
 						"private/bot/get-trading-bots": map[string]any{
-							"cost": Divide(10, 3),
+							"cost": 10 / 3,
 						},
 						"private/bot/get-trading-bot-executions": map[string]any{
-							"cost": Divide(10, 3),
+							"cost": 10 / 3,
 						},
 					},
 				},
@@ -411,76 +411,76 @@ func (this *Cryptocom) Describe() any {
 				"private": map[string]any{
 					"post": map[string]any{
 						"private/set-cancel-on-disconnect": map[string]any{
-							"cost": Divide(10, 3),
+							"cost": 10 / 3,
 						},
 						"private/get-cancel-on-disconnect": map[string]any{
-							"cost": Divide(10, 3),
+							"cost": 10 / 3,
 						},
 						"private/create-withdrawal": map[string]any{
-							"cost": Divide(10, 3),
+							"cost": 10 / 3,
 						},
 						"private/get-withdrawal-history": map[string]any{
-							"cost": Divide(10, 3),
+							"cost": 10 / 3,
 						},
 						"private/get-currency-networks": map[string]any{
-							"cost": Divide(10, 3),
+							"cost": 10 / 3,
 						},
 						"private/get-deposit-history": map[string]any{
-							"cost": Divide(10, 3),
+							"cost": 10 / 3,
 						},
 						"private/get-deposit-address": map[string]any{
-							"cost": Divide(10, 3),
+							"cost": 10 / 3,
 						},
 						"private/export/create-export-request": map[string]any{
-							"cost": Divide(10, 3),
+							"cost": 10 / 3,
 						},
 						"private/export/get-export-requests": map[string]any{
-							"cost": Divide(10, 3),
+							"cost": 10 / 3,
 						},
 						"private/export/download-export-output": map[string]any{
-							"cost": Divide(10, 3),
+							"cost": 10 / 3,
 						},
 						"private/get-account-summary": map[string]any{
-							"cost": Divide(10, 3),
+							"cost": 10 / 3,
 						},
 						"private/create-order": map[string]any{
-							"cost": Divide(2, 3),
+							"cost": 2 / 3,
 						},
 						"private/cancel-order": map[string]any{
-							"cost": Divide(2, 3),
+							"cost": 2 / 3,
 						},
 						"private/cancel-all-orders": map[string]any{
-							"cost": Divide(2, 3),
+							"cost": 2 / 3,
 						},
 						"private/create-order-list": map[string]any{
-							"cost": Divide(10, 3),
+							"cost": 10 / 3,
 						},
 						"private/get-order-history": map[string]any{
-							"cost": Divide(10, 3),
+							"cost": 10 / 3,
 						},
 						"private/get-open-orders": map[string]any{
-							"cost": Divide(10, 3),
+							"cost": 10 / 3,
 						},
 						"private/get-order-detail": map[string]any{
-							"cost": Divide(1, 3),
+							"cost": 1 / 3,
 						},
 						"private/get-trades": map[string]any{
 							"cost": 100,
 						},
 						"private/get-accounts": map[string]any{
-							"cost": Divide(10, 3),
+							"cost": 10 / 3,
 						},
 						"private/get-subaccount-balances": map[string]any{
-							"cost": Divide(10, 3),
+							"cost": 10 / 3,
 						},
 						"private/create-subaccount-transfer": map[string]any{
-							"cost": Divide(10, 3),
+							"cost": 10 / 3,
 						},
 						"private/otc/get-otc-user": map[string]any{
-							"cost": Divide(10, 3),
+							"cost": 10 / 3,
 						},
 						"private/otc/get-instruments": map[string]any{
-							"cost": Divide(10, 3),
+							"cost": 10 / 3,
 						},
 						"private/otc/request-quote": map[string]any{
 							"cost": 100,
@@ -489,13 +489,13 @@ func (this *Cryptocom) Describe() any {
 							"cost": 100,
 						},
 						"private/otc/get-quote-history": map[string]any{
-							"cost": Divide(10, 3),
+							"cost": 10 / 3,
 						},
 						"private/otc/get-trade-history": map[string]any{
-							"cost": Divide(10, 3),
+							"cost": 10 / 3,
 						},
 						"private/otc/create-order": map[string]any{
-							"cost": Divide(10, 3),
+							"cost": 10 / 3,
 						},
 					},
 				},
@@ -504,10 +504,10 @@ func (this *Cryptocom) Describe() any {
 				"public": map[string]any{
 					"get": map[string]any{
 						"public/auth": map[string]any{
-							"cost": Divide(10, 3),
+							"cost": 10 / 3,
 						},
 						"public/get-instruments": map[string]any{
-							"cost": Divide(10, 3),
+							"cost": 10 / 3,
 						},
 						"public/get-book": map[string]any{
 							"cost": 1,
@@ -525,7 +525,7 @@ func (this *Cryptocom) Describe() any {
 							"cost": 1,
 						},
 						"public/get-expired-settlement-price": map[string]any{
-							"cost": Divide(10, 3),
+							"cost": 10 / 3,
 						},
 						"public/get-insurance": map[string]any{
 							"cost": 1,
@@ -535,67 +535,67 @@ func (this *Cryptocom) Describe() any {
 				"private": map[string]any{
 					"post": map[string]any{
 						"private/set-cancel-on-disconnect": map[string]any{
-							"cost": Divide(10, 3),
+							"cost": 10 / 3,
 						},
 						"private/get-cancel-on-disconnect": map[string]any{
-							"cost": Divide(10, 3),
+							"cost": 10 / 3,
 						},
 						"private/user-balance": map[string]any{
-							"cost": Divide(10, 3),
+							"cost": 10 / 3,
 						},
 						"private/user-balance-history": map[string]any{
-							"cost": Divide(10, 3),
+							"cost": 10 / 3,
 						},
 						"private/get-positions": map[string]any{
-							"cost": Divide(10, 3),
+							"cost": 10 / 3,
 						},
 						"private/create-order": map[string]any{
-							"cost": Divide(2, 3),
+							"cost": 2 / 3,
 						},
 						"private/create-order-list": map[string]any{
-							"cost": Divide(10, 3),
+							"cost": 10 / 3,
 						},
 						"private/cancel-order": map[string]any{
-							"cost": Divide(2, 3),
+							"cost": 2 / 3,
 						},
 						"private/cancel-order-list": map[string]any{
-							"cost": Divide(10, 3),
+							"cost": 10 / 3,
 						},
 						"private/cancel-all-orders": map[string]any{
-							"cost": Divide(2, 3),
+							"cost": 2 / 3,
 						},
 						"private/close-position": map[string]any{
-							"cost": Divide(10, 3),
+							"cost": 10 / 3,
 						},
 						"private/convert-collateral": map[string]any{
-							"cost": Divide(10, 3),
+							"cost": 10 / 3,
 						},
 						"private/get-order-history": map[string]any{
 							"cost": 100,
 						},
 						"private/get-open-orders": map[string]any{
-							"cost": Divide(10, 3),
+							"cost": 10 / 3,
 						},
 						"private/get-order-detail": map[string]any{
-							"cost": Divide(1, 3),
+							"cost": 1 / 3,
 						},
 						"private/get-trades": map[string]any{
 							"cost": 100,
 						},
 						"private/change-account-leverage": map[string]any{
-							"cost": Divide(10, 3),
+							"cost": 10 / 3,
 						},
 						"private/get-transactions": map[string]any{
-							"cost": Divide(10, 3),
+							"cost": 10 / 3,
 						},
 						"private/create-subaccount-transfer": map[string]any{
-							"cost": Divide(10, 3),
+							"cost": 10 / 3,
 						},
 						"private/get-subaccount-balances": map[string]any{
-							"cost": Divide(10, 3),
+							"cost": 10 / 3,
 						},
 						"private/get-order-list": map[string]any{
-							"cost": Divide(10, 3),
+							"cost": 10 / 3,
 						},
 					},
 				},
