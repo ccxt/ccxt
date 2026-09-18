@@ -7,7 +7,7 @@ namespace Tests;
 
 public partial class testMainClass : BaseTest
 {
-    public static void testTrade(BaseExchange exchange, object skippedProperties, object method, object entry, object symbol, object now)
+    public static void testTrade(BaseExchange exchange, object skippedProperties, object method, object entry, object symbol, object now, object isPublicTrade)
     {
         // prediction-market structures are keyed by an outcome handle, not a `symbol`, and the
         // PredictionTrade type carries a single `fee` but omits the `fees` list entirely
@@ -44,7 +44,15 @@ public partial class testMainClass : BaseTest
         testSharedMethods.assertSymbol(exchange, skippedProperties, method, entry, "symbol", symbol);
         //
         testSharedMethods.assertInArray(exchange, skippedProperties, method, entry, "side", new List<object>() {"buy", "sell"});
-        testSharedMethods.assertInArray(exchange, skippedProperties, method, entry, "takerOrMaker", new List<object>() {"taker", "maker"});
+        if (isTrue(isPublicTrade))
+        {
+            // for public trades (fetchTrades & watchTrades), it must be either 'taker' or undefined
+            testSharedMethods.assertInArray(exchange, skippedProperties, method, entry, "takerOrMaker", new List<object>() {"taker", null});
+        } else
+        {
+            // for private trades (fetchMyTrades & watchMyTrades), it can be any
+            testSharedMethods.assertInArray(exchange, skippedProperties, method, entry, "takerOrMaker", new List<object>() {"taker", "maker", null});
+        }
         testSharedMethods.assertFeeStructure(exchange, skippedProperties, method, entry, "fee");
         if (!isTrue((inOp(skippedProperties, "fees"))))
         {

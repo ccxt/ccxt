@@ -368,7 +368,7 @@ class bydfi(Exchange, ImplicitAPI):
                     '101001': AuthenticationError,  # {"code":101001,"message":"Apikey doesn't exist!"}
                     '101103': AuthenticationError,  # {"code":101103,"message":"Invalid API-key, IP, or permissions for action."}
                     '102001': BadRequest,  # {"code":102001,"message":"Unsupported transfer type"}
-                    '102002': PermissionDenied,  # {"code":102002,"message":"The current account does not support transfer of self currency"}
+                    '102002': PermissionDenied,  # {"code":102002,"message":"The current account does not support transfer of this currency"}
                     '401': AuthenticationError,  # 401 Unauthorized – Invalid API Key
                     '500': ExchangeError,  # 500 Internal Error
                     '501': ExchangeError,  # 501 System Busy
@@ -380,7 +380,7 @@ class bydfi(Exchange, ImplicitAPI):
                     '600': BadRequest,  # 600 Parameter Error
                     'Position does not exist': BadRequest,  # {"code":100036,"message":"Position does not exist"}
                     'Requires transaction permissions': PermissionDenied,  # {"code":101107,"message":"Requires transaction permissions"}
-                    'Service error': ExchangeError,  # {msg: 'Service error', code: '-1'}
+                    'Service error': ExchangeError,  # { msg: 'Service error', code: '-1' }
                     'transfer failed': InsufficientFunds,  # {"code":500,"message":"transfer failed","success":false}
                 },
                 'broad': {
@@ -454,13 +454,13 @@ class bydfi(Exchange, ImplicitAPI):
         #                 "volumePrecision": "2",
         #                 "maxLimitOrderNum": "200",
         #                 "maxPlanOrderNum": "10",
-        #                 "reverse": False,
+        #                 "reverse": false,
         #                 "onboardTime": "1763373600000",
         #                 "status": "NORMAL"
         #             },
         #             ...
         #         ],
-        #         "success": True
+        #         "success": true
         #     }
         data = self.safe_list(response, 'data', [])
         return self.parse_markets(data)
@@ -492,7 +492,7 @@ class bydfi(Exchange, ImplicitAPI):
         #         "volumePrecision": "2",
         #         "maxLimitOrderNum": "200",
         #         "maxPlanOrderNum": "10",
-        #         "reverse": False,
+        #         "reverse": false,
         #         "onboardTime": "1763373600000",
         #         "status": "NORMAL"
         #     }
@@ -618,7 +618,7 @@ class bydfi(Exchange, ImplicitAPI):
         #             ],
         #             "e": "221780076"
         #         },
-        #         "success": True
+        #         "success": true
         #     }
         #
         data = self.safe_dict(response, 'data', {})
@@ -674,7 +674,7 @@ class bydfi(Exchange, ImplicitAPI):
         #                 "time": 1766163153218
         #             }
         #         ],
-        #         "success": True
+        #         "success": true
         #     }
         #
         data = self.safe_list(response, 'data', [])
@@ -741,7 +741,7 @@ class bydfi(Exchange, ImplicitAPI):
         #                 "leverageLevel": 1
         #             }
         #         ],
-        #         "success": True
+        #         "success": true
         #     }
         #
         data = self.safe_list(response, 'data', [])
@@ -883,7 +883,7 @@ class bydfi(Exchange, ImplicitAPI):
         #                 "v": "20358.000000000000000000"
         #             }
         #         ],
-        #         "success": True
+        #         "success": true
         #     }
         #
         data = self.safe_list(response, 'data', [])
@@ -939,7 +939,7 @@ class bydfi(Exchange, ImplicitAPI):
         #                 "time": 1766169423872
         #             }
         #         ],
-        #         "success": True
+        #         "success": true
         #     }
         #
         data = self.safe_list(response, 'data', [])
@@ -1035,7 +1035,7 @@ class bydfi(Exchange, ImplicitAPI):
         #             "nextFundingTime": "1766188800000",
         #             "time": "1766170665007"
         #         },
-        #         "success": True
+        #         "success": true
         #     }
         #
         data = self.safe_dict(response, 'data')
@@ -1117,7 +1117,7 @@ class bydfi(Exchange, ImplicitAPI):
         #                 "markPrice": "3083.2"
         #             }
         #         ],
-        #         "success": True
+        #         "success": true
         #     }
         #
         data = self.safe_list(response, 'data', [])
@@ -1197,13 +1197,13 @@ class bydfi(Exchange, ImplicitAPI):
         #             "timeInForce": null,
         #             "workingType": "CONTRACT_PRICE",
         #             "positionSide": "BOTH",
-        #             "priceProtect": False,
-        #             "reduceOnly": False,
-        #             "closePosition": False,
+        #             "priceProtect": false,
+        #             "reduceOnly": false,
+        #             "closePosition": false,
         #             "createTime": "1766413633367",
         #             "updateTime": "1766413633367"
         #         },
-        #         "success": True
+        #         "success": true
         #     }
         #
         data = self.safe_dict(response, 'data', {})
@@ -1222,13 +1222,13 @@ class bydfi(Exchange, ImplicitAPI):
             'side': side.upper(),
             # 'positionSide': STRING Position direction, not required in single position mode, default and can only be BOTH; required in dual position mode, and can only choose LONG or SHORT
             # 'type': STRING Order type LIMIT / MARKET / STOP / TAKE_PROFIT / STOP_MARKET / TAKE_PROFIT_MARKET / TRAILING_STOP_MARKET
-            # 'reduceOnly': BOOL True, False; defaults to False in non-dual mode; not accepted in dual mode; not supported when using closePosition.
+            # 'reduceOnly': BOOL true, false; defaults to false in non-dual mode; not accepted in dual mode; not supported when using closePosition.
             # 'quantity': DECIMAL Order quantity, not supported with closePosition.
             # 'price': DECIMAL Order price
             # 'clientOrderId': STRING User-defined order number, must not be repeated in pending orders. If blank, the system will assign automatically
             # 'stopPrice': DECIMAL Trigger price, only required for STOP, STOP_MARKET, TAKE_PROFIT, TAKE_PROFIT_MARKET
-            # 'closePosition': BOOL True, False; all positions closed after triggering, only supported in STOP_MARKET and TAKE_PROFIT_MARKET; not used with quantity; has a self-closing effect, not used with reduceOnly
-            # 'activationPrice': DECIMAL Trailing stop activation price, required for TRAILING_STOP_MARKET, default to current market price upon order(supports different workingType)
+            # 'closePosition': BOOL true, false; all positions closed after triggering, only supported in STOP_MARKET and TAKE_PROFIT_MARKET; not used with quantity; has a self-closing effect, not used with reduceOnly
+            # 'activationPrice': DECIMAL Trailing stop activation price, required for TRAILING_STOP_MARKET, default to current market price upon order (supports different workingType)
             # 'callbackRate': DECIMAL Trailing stop callback rate, can range from [0.1, 5], where 1 represents 1%, only required for TRAILING_STOP_MARKET
             # 'timeInForce': STRING Validity method GTC / FOK / POST_ONLY / IOC / TRAILING_STOP
             # 'workingType': STRING stopPrice trigger type: MARK_PRICE(marking price), CONTRACT_PRICE(latest contract price). Default CONTRACT_PRICE
@@ -1473,14 +1473,14 @@ class bydfi(Exchange, ImplicitAPI):
         #                 "timeInForce": null,
         #                 "workingType": "CONTRACT_PRICE",
         #                 "positionSide": "BOTH",
-        #                 "priceProtect": False,
-        #                 "reduceOnly": False,
-        #                 "closePosition": False,
+        #                 "priceProtect": false,
+        #                 "reduceOnly": false,
+        #                 "closePosition": false,
         #                 "createTime": "1766413633367",
         #                 "updateTime": "1766413633370"
         #             }
         #         ],
-        #         "success": True
+        #         "success": true
         #     }
         #
         data = self.safe_list(response, 'data', [])
@@ -1538,14 +1538,14 @@ class bydfi(Exchange, ImplicitAPI):
             #                 "timeInForce": null,
             #                 "workingType": "CONTRACT_PRICE",
             #                 "positionSide": "BOTH",
-            #                 "priceProtect": False,
-            #                 "reduceOnly": False,
-            #                 "closePosition": False,
+            #                 "priceProtect": false,
+            #                 "reduceOnly": false,
+            #                 "closePosition": false,
             #                 "createTime": "1766418476877",
             #                 "updateTime": "1766418476880"
             #             }
             #         ],
-            #         "success": True
+            #         "success": true
             #     }
             #
             response = self.privateGetV1FapiTradeOpenOrder(self.extend(request, params))
@@ -1649,8 +1649,8 @@ class bydfi(Exchange, ImplicitAPI):
         #                 "positionAvgPrice": null,
         #                 "positionVolume": null,
         #                 "positionType": null,
-        #                 "reduceOnly": False,
-        #                 "closePosition": False,
+        #                 "reduceOnly": false,
+        #                 "closePosition": false,
         #                 "action": null,
         #                 "price": "3032.45",
         #                 "avgPrice": "3032.45",
@@ -1676,7 +1676,7 @@ class bydfi(Exchange, ImplicitAPI):
         #                 "activationPrice": null
         #             }
         #         ],
-        #         "success": True
+        #         "success": true
         #     }
         #
         data = self.safe_list(response, 'data', [])
@@ -1690,14 +1690,14 @@ class bydfi(Exchange, ImplicitAPI):
         startTime = since
         if startTime is None:
             if until is None:
-                # both since and until are None
+                # both since and until are undefined
                 startTime = now - sevenDays
                 until = now
             else:
-                # since is None but until is defined
+                # since is undefined but until is defined
                 startTime = until - sevenDays
         elif until is None:
-            # until is None but since is defined
+            # until is undefined but since is defined
             delta = now - startTime
             if delta > sevenDays:
                 until = startTime + sevenDays
@@ -1729,9 +1729,9 @@ class bydfi(Exchange, ImplicitAPI):
         #         "timeInForce": null,
         #         "workingType": "CONTRACT_PRICE",
         #         "positionSide": "BOTH",
-        #         "priceProtect": False,
-        #         "reduceOnly": False,
-        #         "closePosition": False,
+        #         "priceProtect": false,
+        #         "reduceOnly": false,
+        #         "closePosition": false,
         #         "createTime": "1766413633367",
         #         "updateTime": "1766413633370"
         #     }
@@ -1747,8 +1747,8 @@ class bydfi(Exchange, ImplicitAPI):
         #         "positionAvgPrice": null,
         #         "positionVolume": null,
         #         "positionType": null,
-        #         "reduceOnly": False,
-        #         "closePosition": False,
+        #         "reduceOnly": false,
+        #         "closePosition": false,
         #         "action": null,
         #         "price": "3032.45",
         #         "avgPrice": "3032.45",
@@ -1915,7 +1915,7 @@ class bydfi(Exchange, ImplicitAPI):
         #             "leverage": 1,
         #             "maxNotionalValue": "100000000"
         #         },
-        #         "success": True
+        #         "success": true
         #     }
         #
         data = self.safe_dict(response, 'data', {})
@@ -1970,7 +1970,7 @@ class bydfi(Exchange, ImplicitAPI):
         #                 "mm": "0.007581125"
         #             }
         #         ],
-        #         "success": True
+        #         "success": true
         #     }
         #
         data = self.safe_list(response, 'data', [])
@@ -2047,7 +2047,7 @@ class bydfi(Exchange, ImplicitAPI):
         #         "closeFeeTotal": "-0.00177221",
         #         "closeFeeBonus": "0",
         #         "liqLoss": "0",
-        #         "liqClosed": False,
+        #         "liqClosed": false,
         #         "sequence": "53685341336",
         #         "updateTime": "1766494929423",
         #         "createTime": "1766423985842"
@@ -2202,13 +2202,13 @@ class bydfi(Exchange, ImplicitAPI):
         #                 "closeFeeTotal": "-0.00177221",
         #                 "closeFeeBonus": "0",
         #                 "liqLoss": "0",
-        #                 "liqClosed": False,
+        #                 "liqClosed": false,
         #                 "sequence": "53685341336",
         #                 "updateTime": "1766494929423",
         #                 "createTime": "1766423985842"
         #             }
         #         ],
-        #         "success": True
+        #         "success": true
         #     }
         #
         data = self.safe_list(response, 'data', [])
@@ -2249,7 +2249,7 @@ class bydfi(Exchange, ImplicitAPI):
         #             "symbol": "ETH-USDC",
         #             "marginType": "CROSS"
         #         },
-        #         "success": True
+        #         "success": true
         #     }
         #
         data = self.safe_dict(response, 'data', {})
@@ -2331,7 +2331,7 @@ class bydfi(Exchange, ImplicitAPI):
         #     {
         #         "code": 200,
         #         "message": "success",
-        #         "success": True
+        #         "success": true
         #     }
         #
         return self.privatePostV1FapiUserDataPositionSideDual(self.extend(request, params))
@@ -2381,7 +2381,7 @@ class bydfi(Exchange, ImplicitAPI):
         #             "priceProtection": "CLOSE",
         #             "totalWallet": 2
         #         },
-        #         "success": True
+        #         "success": true
         #     }
         #
         data = self.safe_dict(response, 'data', {})
@@ -2429,7 +2429,7 @@ class bydfi(Exchange, ImplicitAPI):
             #                 "frozen": "0"
             #             }
             #         ],
-            #         "success": True
+            #         "success": true
             #     }
             #
             response = self.privateGetV1AccountAssets(self.extend(request, params))
@@ -2461,7 +2461,7 @@ class bydfi(Exchange, ImplicitAPI):
             #                 "bonusAmount": "0"
             #             }
             #         ],
-            #         "success": True
+            #         "success": true
             #     }
             response = self.privateGetV1FapiAccountBalance(self.extend(request, params))
         data = self.safe_list(response, 'data', [])
@@ -2515,7 +2515,7 @@ class bydfi(Exchange, ImplicitAPI):
         #     {
         #         "code": 200,
         #         "message": "success",
-        #         "success": True
+        #         "success": true
         #     }
         #
         transfer = self.parse_transfer(response, currency)
@@ -2586,7 +2586,7 @@ class bydfi(Exchange, ImplicitAPI):
         #                 "timestamp": 1766413950000
         #             }
         #         ],
-        #         "success": True
+        #         "success": true
         #     }
         #
         data = self.safe_list(response, 'data', [])
@@ -2598,7 +2598,7 @@ class bydfi(Exchange, ImplicitAPI):
         #     {
         #         "code": 200,
         #         "message": "success",
-        #         "success": True
+        #         "success": true
         #     }
         #
         # fetchTransfers
@@ -2693,14 +2693,14 @@ class bydfi(Exchange, ImplicitAPI):
         startTime = since
         if startTime is None:
             if until is None:
-                # both since and until are None
+                # both since and until are undefined
                 startTime = now - sevenDays
                 until = now
             else:
-                # since is None but until is defined
+                # since is undefined but until is defined
                 startTime = until - sevenDays
         elif until is None:
-            # until is None but since is defined
+            # until is undefined but since is defined
             delta = now - startTime
             if delta > sevenDays:
                 until = startTime + sevenDays
@@ -2730,7 +2730,7 @@ class bydfi(Exchange, ImplicitAPI):
             #                 "createTime": 1766145344000
             #             }
             #         ],
-            #         "success": True
+            #         "success": true
             #     }
             #
             response = self.privateGetV1SpotDepositRecords(self.extend(request, params))

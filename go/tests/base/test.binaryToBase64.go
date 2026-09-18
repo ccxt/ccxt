@@ -17,5 +17,6 @@ func TestBinaryToBase64() {
 	// In JavaScript, we use Uint8Array or Buffer for binary data
 	// The encode() method converts string to bytes
 	//
+
 	assert(ccxt.IsEqual(exchange.SafeString(nil, "key"), nil), "GO_WORKAROUND")
 }

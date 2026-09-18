@@ -10017,6 +10017,113 @@
                     "datetime": null
                 }
             }
+        ],
+        "fetchOrder": [
+            {
+                "description": "spot conditional order with triggerPrice",
+                "method": "fetchOrder",
+                "input": [
+                    "0e7d0a93-3b29-4b0e-8a2b-5c1b2f5d7a11",
+                    "ETH/USDT"
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "msg": "OK",
+                    "data": {
+                        "total": "1",
+                        "rows": [
+                            {
+                                "orderID": "0e7d0a93-3b29-4b0e-8a2b-5c1b2f5d7a11",
+                                "clOrdID": "CCXT1234569c1e0e3a2f4b7d52",
+                                "stopPxEp": "300000000000",
+                                "avgPriceEp": "0",
+                                "qtyType": "ByBase",
+                                "leavesBaseQtyEv": "100000",
+                                "leavesQuoteQtyEv": "0",
+                                "baseQtyEv": "100000",
+                                "feeCurrency": "ETH",
+                                "stopDirection": "RISING",
+                                "symbol": "sETHUSDT",
+                                "side": "Buy",
+                                "quoteQtyEv": "0",
+                                "priceEp": "299000000000",
+                                "ordType": "StopLimit",
+                                "timeInForce": "GoodTillCancel",
+                                "ordStatus": "Untriggered",
+                                "execStatus": "Init",
+                                "createTimeNs": "1715871268108003308",
+                                "cumFeeEv": "0",
+                                "cumBaseValueEv": "0",
+                                "cumQuoteValueEv": "0",
+                                "avgTransactPriceEp": "0",
+                                "spotOrderDetailsVos": null
+                            }
+                        ]
+                    }
+                },
+                "parsedResponse": {
+                    "info": {
+                        "orderID": "0e7d0a93-3b29-4b0e-8a2b-5c1b2f5d7a11",
+                        "clOrdID": "CCXT1234569c1e0e3a2f4b7d52",
+                        "stopPxEp": "300000000000",
+                        "avgPriceEp": "0",
+                        "qtyType": "ByBase",
+                        "leavesBaseQtyEv": "100000",
+                        "leavesQuoteQtyEv": "0",
+                        "baseQtyEv": "100000",
+                        "feeCurrency": "ETH",
+                        "stopDirection": "RISING",
+                        "symbol": "sETHUSDT",
+                        "side": "Buy",
+                        "quoteQtyEv": "0",
+                        "priceEp": "299000000000",
+                        "ordType": "StopLimit",
+                        "timeInForce": "GoodTillCancel",
+                        "ordStatus": "Untriggered",
+                        "execStatus": "Init",
+                        "createTimeNs": "1715871268108003308",
+                        "cumFeeEv": "0",
+                        "cumBaseValueEv": "0",
+                        "cumQuoteValueEv": "0",
+                        "avgTransactPriceEp": "0",
+                        "spotOrderDetailsVos": null
+                    },
+                    "id": "0e7d0a93-3b29-4b0e-8a2b-5c1b2f5d7a11",
+                    "clientOrderId": "CCXT1234569c1e0e3a2f4b7d52",
+                    "timestamp": 1715871268108,
+                    "datetime": "2024-05-16T14:54:28.108Z",
+                    "lastTradeTimestamp": null,
+                    "symbol": "ETH/USDT",
+                    "type": "StopLimit",
+                    "timeInForce": "GTC",
+                    "postOnly": false,
+                    "side": "buy",
+                    "price": 2990,
+                    "triggerPrice": 3000,
+                    "amount": 0.001,
+                    "cost": 0,
+                    "average": null,
+                    "filled": 0,
+                    "remaining": 0.001,
+                    "status": "open",
+                    "fee": {
+                        "cost": "0",
+                        "currency": "ETH"
+                    },
+                    "trades": [],
+                    "fees": [
+                        {
+                            "cost": 0,
+                            "currency": "ETH"
+                        }
+                    ],
+                    "lastUpdateTimestamp": null,
+                    "reduceOnly": null,
+                    "stopPrice": 3000,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null
+                }
+            }
         ]
     }
 }

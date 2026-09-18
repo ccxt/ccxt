@@ -35,6 +35,17 @@ class okx extends okx$1["default"] {
                 'watchPositions': true,
                 'watchFundingRate': true,
                 'watchFundingRates': true,
+                'unWatchTicker': true,
+                'unWatchTickers': true,
+                'unWatchOHLCV': true,
+                'unWatchOHLCVForSymbols': true,
+                'unWatchOrderBook': true,
+                'unWatchOrderBookForSymbols': true,
+                'unWatchTrades': true,
+                'unWatchTradesForSymbols': true,
+                'unWatchMyTrades': false,
+                'unWatchOrders': false,
+                'unWatchPositions': false,
                 'createOrderWs': true,
                 'editOrderWs': true,
                 'cancelOrderWs': true,
@@ -63,6 +74,9 @@ class okx extends okx$1["default"] {
                 },
                 'watchTickers': {
                     'channel': 'tickers', // tickers, sprd-tickers, index-tickers, block-tickers
+                },
+                'watchBidsAsks': {
+                    'channel': 'bbo-tbt', // bbo-tbt (10ms L1), tickers (100ms)
                 },
                 'watchOrders': {
                     'type': 'ANY', // SPOT, MARGIN, SWAP, FUTURES, OPTION, ANY
@@ -602,10 +616,12 @@ class okx extends okx$1["default"] {
     /**
      * @method
      * @name okx#watchBidsAsks
+     * @see https://www.okx.com/docs-v5/en/#order-book-trading-market-data-ws-order-book-channel
      * @see https://www.okx.com/docs-v5/en/#order-book-trading-market-data-ws-tickers-channel
      * @description watches best bid & ask for symbols
      * @param {string[]} symbols unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.channel] the channel to subscribe to, 'bbo-tbt' (default, 10ms L1) or 'tickers' (100ms)
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async watchBidsAsks(symbols = undefined, params = {}) {
@@ -614,7 +630,7 @@ class okx extends okx$1["default"] {
         }
         symbols = this.marketSymbols(symbols, undefined, false);
         let channel = undefined;
-        [channel, params] = this.handleOptionAndParams(params, 'watchBidsAsks', 'channel', 'tickers');
+        [channel, params] = this.handleOptionAndParams(params, 'watchBidsAsks', 'channel', 'bbo-tbt');
         const url = this.getUrl(channel, 'public');
         const messageHashes = [];
         const args = [];
@@ -641,6 +657,8 @@ class okx extends okx$1["default"] {
     }
     handleBidAsk(client, message) {
         //
+        // tickers
+        //
         //     {
         //         "arg": { channel: "tickers", instId: "BTC-USDT" },
         //         "data": [
@@ -665,9 +683,25 @@ class okx extends okx$1["default"] {
         //         ]
         //     }
         //
+        // bbo-tbt
+        //
+        //     {
+        //         "arg": { "channel": "bbo-tbt", "instId": "BTC-USDT" },
+        //         "data": [
+        //             {
+        //                 "asks": [ [ "36232.2", "1.8826134", "0", "17" ] ],
+        //                 "bids": [ [ "36232.1", "0.00572212", "0", "2" ] ],
+        //                 "ts": "1651826598363"
+        //             }
+        //         ]
+        //     }
+        //
+        const arg = this.safeDict(message, 'arg', {});
+        const marketId = this.safeString(arg, 'instId');
+        const market = this.safeMarket(marketId);
         const data = this.safeList(message, 'data', []);
         const ticker = this.safeDict(data, 0, {});
-        const parsedTicker = this.parseWsBidAsk(ticker);
+        const parsedTicker = this.parseWsBidAsk(ticker, market);
         const symbol = parsedTicker['symbol'];
         if (symbol !== undefined) {
             this.bidsasks[symbol] = parsedTicker;
@@ -680,14 +714,30 @@ class okx extends okx$1["default"] {
         market = this.safeMarket(marketId, market);
         const symbol = this.safeString(market, 'symbol');
         const timestamp = this.safeInteger(ticker, 'ts');
+        let ask = this.safeString(ticker, 'askPx');
+        let askVolume = this.safeString(ticker, 'askSz');
+        let bid = this.safeString(ticker, 'bidPx');
+        let bidVolume = this.safeString(ticker, 'bidSz');
+        if (ask === undefined) {
+            const asks = this.safeList(ticker, 'asks', []);
+            const firstAsk = this.safeList(asks, 0, []);
+            ask = this.safeString(firstAsk, 0);
+            askVolume = this.safeString(firstAsk, 1);
+        }
+        if (bid === undefined) {
+            const bids = this.safeList(ticker, 'bids', []);
+            const firstBid = this.safeList(bids, 0, []);
+            bid = this.safeString(firstBid, 0);
+            bidVolume = this.safeString(firstBid, 1);
+        }
         return this.safeTicker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
-            'ask': this.safeString(ticker, 'askPx'),
-            'askVolume': this.safeString(ticker, 'askSz'),
-            'bid': this.safeString(ticker, 'bidPx'),
-            'bidVolume': this.safeString(ticker, 'bidSz'),
+            'ask': ask,
+            'askVolume': askVolume,
+            'bid': bid,
+            'bidVolume': bidVolume,
             'info': ticker,
         }, market);
     }
@@ -1353,6 +1403,7 @@ class okx extends okx$1["default"] {
                 delete this.orderbooks[symbol];
             }
             client.reject(error, messageHash);
+            return orderbook;
         }
         const timestamp = this.safeInteger(message, 'ts');
         orderbook['nonce'] = seqId;
@@ -1469,7 +1520,10 @@ class okx extends okx$1["default"] {
                 const orderbook = this.orderBook({}, limit);
                 this.orderbooks[symbol] = orderbook;
                 orderbook['symbol'] = symbol;
-                this.handleOrderBookMessage(client, update, orderbook, messageHash);
+                this.handleOrderBookMessage(client, update, orderbook, messageHash, market);
+                if (!(messageHash in client.subscriptions)) {
+                    break;
+                }
                 client.resolve(orderbook, messageHash);
             }
         }
@@ -1479,22 +1533,35 @@ class okx extends okx$1["default"] {
                 for (let i = 0; i < data.length; i++) {
                     const update = data[i];
                     this.handleOrderBookMessage(client, update, orderbook, messageHash, market);
+                    if (!(messageHash in client.subscriptions)) {
+                        // a nonce gap rejected the future and always cleared the subscription entry, while the book
+                        // removal alone is skipped for a frame lacking an instrument id - stop replaying leftover rows
+                        break;
+                    }
                     client.resolve(orderbook, messageHash);
                 }
             }
         }
         else if ((channel === 'books5') || (channel === 'bbo-tbt')) {
-            if (!(symbol in this.orderbooks)) {
-                this.orderbooks[symbol] = this.orderBook({}, limit);
+            // watchBidsAsks reuses bbo-tbt with bidask:: hashes; only reset the
+            // shared order-book cache when watchOrderBook subscribed to this
+            // channel+symbol (e.g. 'bbo-tbt:BTC/USDT' in client.subscriptions)
+            if (messageHash in client.subscriptions) {
+                if (!(symbol in this.orderbooks)) {
+                    this.orderbooks[symbol] = this.orderBook({}, limit);
+                }
+                const orderbook = this.orderbooks[symbol];
+                for (let i = 0; i < data.length; i++) {
+                    const update = data[i];
+                    const timestamp = this.safeInteger(update, 'ts');
+                    const snapshot = this.parseOrderBook(update, symbol, timestamp, 'bids', 'asks', 0, 1);
+                    orderbook.reset(snapshot);
+                    client.resolve(orderbook, messageHash);
+                }
             }
-            const orderbook = this.orderbooks[symbol];
-            for (let i = 0; i < data.length; i++) {
-                const update = data[i];
-                const timestamp = this.safeInteger(update, 'ts');
-                const snapshot = this.parseOrderBook(update, symbol, timestamp, 'bids', 'asks', 0, 1);
-                orderbook.reset(snapshot);
-                client.resolve(orderbook, messageHash);
-            }
+        }
+        if (channel === 'bbo-tbt') {
+            this.handleBidAsk(client, message);
         }
         return message;
     }

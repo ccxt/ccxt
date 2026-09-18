@@ -370,17 +370,17 @@ class ndax extends Exchange {
                 // these credentials are required for signIn() and withdraw()
                 'login' => true,
                 'password' => true,
-                // 'twofa' => true,
+                // 'twofa': true,
             ),
             'precisionMode' => TICK_SIZE,
             'exceptions' => array(
                 'exact' => array(
-                    'Not_Enough_Funds' => '\\ccxt\\InsufficientFunds', // array("status":"Rejected","errormsg":"Not_Enough_Funds","errorcode":101)
-                    'Server Error' => '\\ccxt\\ExchangeError', // array("result":false,"errormsg":"Server Error","errorcode":102,"detail":null)
-                    'Resource Not Found' => '\\ccxt\\OrderNotFound', // array("result":false,"errormsg":"Resource Not Found","errorcode":104,"detail":null)
+                    'Not_Enough_Funds' => '\\ccxt\\InsufficientFunds', // {"status":"Rejected","errormsg":"Not_Enough_Funds","errorcode":101}
+                    'Server Error' => '\\ccxt\\ExchangeError', // {"result":false,"errormsg":"Server Error","errorcode":102,"detail":null}
+                    'Resource Not Found' => '\\ccxt\\OrderNotFound', // {"result":false,"errormsg":"Resource Not Found","errorcode":104,"detail":null}
                 ),
                 'broad' => array(
-                    'Invalid InstrumentId' => '\\ccxt\\BadSymbol', // array("result":false,"errormsg":"Invalid InstrumentId => 10000","errorcode":100,"detail":null)
+                    'Invalid InstrumentId' => '\\ccxt\\BadSymbol', // {"result":false,"errormsg":"Invalid InstrumentId: 10000","errorcode":100,"detail":null}
                     'This endpoint requires 2FACode along with the payload' => '\\ccxt\\AuthenticationError',
                 ),
             ),
@@ -462,7 +462,7 @@ class ndax extends Exchange {
         //         "Requires2FA":true,
         //         "AuthType":"Google",
         //         "AddtlInfo":"",
-        //         "Pending2FaToken" => "6f5c4e66-f3ee-493e-9227-31cc0583b55f"
+        //         "Pending2FaToken": "6f5c4e66-f3ee-493e-9227-31cc0583b55f"
         //     }
         //
         $sessionToken = $this->safe_string($response, 'SessionToken');
@@ -482,7 +482,7 @@ class ndax extends Exchange {
             $responseInner = Async\await($this->publicGetAuthenticate2FA($this->extend($request, $params)));
             //
             //     {
-            //         "Authenticated" => true,
+            //         "Authenticated": true,
             //         "UserId":57764,
             //         "SessionToken":"4a2a5857-c4e5-4fac-b09e-2c4c30b591a0"
             //     }
@@ -514,21 +514,21 @@ class ndax extends Exchange {
         $response = Async\await($this->publicGetGetProducts($this->extend($request, $params)));
         //
         //    [
-        //        array(
-        //            "OMSId" => "1",
-        //            "ProductId" => "1",
-        //            "Product" => "BTC",
-        //            "ProductFullName" => "Bitcoin",
-        //            "MasterDataUniqueProductSymbol" => "",
-        //            "ProductType" => "CryptoCurrency",
-        //            "DecimalPlaces" => "8",
-        //            "TickSize" => "0.0000000100000000000000000000",
-        //            "DepositEnabled" => true,
-        //            "WithdrawEnabled" => true,
-        //            "NoFees" => false,
-        //            "IsDisabled" => false,
-        //            "MarginEnabled" => false
-        //        ),
+        //        {
+        //            "OMSId": "1",
+        //            "ProductId": "1",
+        //            "Product": "BTC",
+        //            "ProductFullName": "Bitcoin",
+        //            "MasterDataUniqueProductSymbol": "",
+        //            "ProductType": "CryptoCurrency",
+        //            "DecimalPlaces": "8",
+        //            "TickSize": "0.0000000100000000000000000000",
+        //            "DepositEnabled": true,
+        //            "WithdrawEnabled": true,
+        //            "NoFees": false,
+        //            "IsDisabled": false,
+        //            "MarginEnabled": false
+        //        },
         //        ...
         //
         return $this->parse_currencies($response);
@@ -588,8 +588,8 @@ class ndax extends Exchange {
         );
         $response = Async\await($this->publicGetGetInstruments($this->extend($request, $params)));
         //
-        //     array(
-        //         array(
+        //     [
+        //         {
         //             "OMSId":1,
         //             "InstrumentId":3,
         //             "Symbol":"LTCBTC",
@@ -630,15 +630,15 @@ class ndax extends Exchange {
         //             "OtcConvertSizeEnabled":false,
         //             "OtcTradesPublic":true,
         //             "PriceTier":0
-        //         ),
-        //     )
+        //         },
+        //     ]
         //
         return $this->parse_markets($response);
     }
 
     public function parse_market(array $market): array {
         $id = $this->safe_string($market, 'InstrumentId');
-        // $lowercaseId = $this->safe_string_lower($market, 'symbol');
+        // const lowercaseId = this.safeStringLower (market, 'symbol');
         $baseId = $this->safe_string($market, 'Product1');
         $quoteId = $this->safe_string($market, 'Product2');
         $base = $this->safe_currency_code($this->safe_string($market, 'Product1Symbol'));
@@ -727,7 +727,7 @@ class ndax extends Exchange {
             }
             $bidask = $this->parse_order_book_bid_ask($level, $priceKey, $amountKey);
             $levelSide = $this->safe_integer($level, 9);
-            $side = ($levelSide !== null && $levelSide !== null && $levelSide !== 0) ? $asksKey : $bidsKey;
+            $side = ($levelSide !== null && $levelSide !== 0) ? $asksKey : $bidsKey;
             $result[$side][] = $bidask;
         }
         $result['bids'] = $this->sort_by($result['bids'], 0, true);
@@ -766,8 +766,8 @@ class ndax extends Exchange {
         );
         $response = Async\await($this->publicGetGetL2Snapshot($this->extend($request, $params)));
         //
-        //     array(
-        //         array(
+        //     [
+        //         [
         //             0,   // 0 MDUpdateId
         //             1,   // 1 Number of Unique Accounts
         //             123, // 2 ActionDateTime in Posix format X 1000
@@ -778,14 +778,14 @@ class ndax extends Exchange {
         //             0,   // 7 ProductPairCode
         //             0.0, // 8 Quantity
         //             0,   // 9 Side
-        //         ),
+        //         ],
         //         [97244115,1,1607456142963,0,19069.32,1,19069.31,8,0.140095,0],
         //         [97244115,0,1607456142963,0,19069.32,1,19068.64,8,0.0055,0],
         //         [97244115,0,1607456142963,0,19069.32,1,19068.26,8,0.021291,0],
         //         [97244115,1,1607456142964,0,19069.32,1,19069.32,8,0.099636,1],
         //         [97244115,0,1607456142964,0,19069.32,1,19069.98,8,0.1,1],
         //         [97244115,0,1607456142964,0,19069.32,1,19069.99,8,0.141604,1],
-        //     )
+        //     ]
         //
         return $this->parse_order_book($response, $symbol);
     }
@@ -857,9 +857,9 @@ class ndax extends Exchange {
             'high' => $this->safe_string_2($ticker, 'SessionHigh', 'highest_price_24h'),
             'low' => $this->safe_string_2($ticker, 'SessionLow', 'lowest_price_24h'),
             'bid' => $this->safe_string_2($ticker, 'BestBid', 'highest_bid'),
-            'bidVolume' => null, // $this->safe_number($ticker, 'BidQty'), always shows 0
+            'bidVolume' => null, // this.safeNumber (ticker, 'BidQty'), always shows 0
             'ask' => $this->safe_string_2($ticker, 'BestOffer', 'lowest_ask'),
-            'askVolume' => null, // $this->safe_number($ticker, 'AskQty'), always shows 0
+            'askVolume' => null, // this.safeNumber (ticker, 'AskQty'), always shows 0
             'vwap' => null,
             'open' => $open,
             'close' => $last,
@@ -894,7 +894,7 @@ class ndax extends Exchange {
         $symbols = $this->market_symbols($symbols);
         $response = Async\await($this->publicGetSummary($params));
         //
-        //     array(
+        //     [
         //         {
         //             "trading_pairs":"BTC_CAD",
         //             "last_price":75925.37,
@@ -906,7 +906,7 @@ class ndax extends Exchange {
         //             "highest_price_24h":79813.51,
         //             "lowest_price_24h":73700.01
         //         }
-        //     )
+        //     ]
         //
         $tickers = $this->parse_tickers($response);
         return $this->filter_by_array_tickers($tickers, 'symbol', $symbols);
@@ -971,7 +971,7 @@ class ndax extends Exchange {
 
     public function parse_ohlcv(mixed $ohlcv, ?array $market = null): array {
         //
-        //     array(
+        //     [
         //         1501603632000, // 0 DateTime
         //         2700.33,       // 1 High
         //         2687.01,       // 2 Low
@@ -981,7 +981,7 @@ class ndax extends Exchange {
         //         0,             // 6 Inside Bid Price
         //         2870.95,       // 7 Inside Ask Price
         //         1              // 8 InstrumentId
-        //     )
+        //     ]
         //
         return array(
             $this->safe_integer($ohlcv, 0),
@@ -1037,11 +1037,11 @@ class ndax extends Exchange {
         }
         $response = Async\await($this->publicGetGetTickerHistory($this->extend($request, $params)));
         //
-        //     array(
+        //     [
         //         [1607299260000,19069.32,19069.32,19069.32,19069.32,0,19069.31,19069.32,8,1607299200000],
         //         [1607299320000,19069.32,19069.32,19069.32,19069.32,0,19069.31,19069.32,8,1607299260000],
         //         [1607299380000,19069.32,19069.32,19069.32,19069.32,0,19069.31,19069.32,8,1607299320000],
-        //     )
+        //     ]
         //
         $candles = array();
         if ((gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response)))) {
@@ -1054,7 +1054,7 @@ class ndax extends Exchange {
         //
         // fetchTrades (public)
         //
-        //     array(
+        //     [
         //         6913253,       //  0 TradeId
         //         8,             //  1 ProductPairCode
         //         0.03340802,    //  2 Quantity
@@ -1066,7 +1066,7 @@ class ndax extends Exchange {
         //         1,             //  8 TakerSide
         //         0,             //  9 BlockTrade
         //         0,             // 10 Either Order1ClientId or Order2ClientId
-        //     )
+        //     ]
         //
         // fetchMyTrades (private)
         //
@@ -1249,11 +1249,11 @@ class ndax extends Exchange {
         }
         $response = Async\await($this->publicGetGetLastTrades($this->extend($request, $params)));
         //
-        //     array(
+        //     [
         //         [6913253,8,0.03340802,19116.08,2543425077,2543425482,1606935922416,0,1,0,0],
         //         [6913254,8,0.01391671,19117.42,2543427510,2543427811,1606935927998,1,1,0,0],
         //         [6913255,8,0.000006,19107.81,2543430495,2543430793,1606935933881,2,0,0,0],
-        //     )
+        //     ]
         //
         return $this->parse_trades($response, $market, $since, $limit);
     }
@@ -1283,7 +1283,7 @@ class ndax extends Exchange {
         );
         $response = Async\await($this->privateGetGetUserAccounts($this->extend($request, $params)));
         //
-        //     array( 449 ) // comma-separated list of account ids
+        //     [ 449 ] // comma-separated list of account ids
         //
         $result = array();
         for ($i = 0; $i < count($response); $i++) {
@@ -1350,8 +1350,8 @@ class ndax extends Exchange {
         );
         $response = Async\await($this->privateGetGetAccountPositions($this->extend($request, $params)));
         //
-        //     array(
-        //         array(
+        //     [
+        //         {
         //             "OMSId":1,
         //             "AccountId":449,
         //             "ProductSymbol":"BTC",
@@ -1377,8 +1377,8 @@ class ndax extends Exchange {
         //             "NotionalValue":10.000000000000000000000000000,
         //             "NotionalHoldAmount":0,
         //             "NotionalRate":1
-        //         ),
-        //     )
+        //         },
+        //     ]
         //
         return $this->parse_balance($response);
     }
@@ -1405,18 +1405,18 @@ class ndax extends Exchange {
     public function parse_ledger_entry(array $item, ?array $currency = null): array {
         //
         //     {
-        //         "TransactionId" => 2663709493,
-        //         "ReferenceId" => 68,
-        //         "OMSId" => 1,
-        //         "AccountId" => 449,
-        //         "CR" => 10.000000000000000000000000000,
-        //         "DR" => 0.0000000000000000000000000000,
-        //         "Counterparty" => 3,
-        //         "TransactionType" => "Other",
-        //         "ReferenceType" => "Deposit",
-        //         "ProductId" => 1,
-        //         "Balance" => 10.000000000000000000000000000,
-        //         "TimeStamp" => 1607532331591
+        //         "TransactionId": 2663709493,
+        //         "ReferenceId": 68,
+        //         "OMSId": 1,
+        //         "AccountId": 449,
+        //         "CR": 10.000000000000000000000000000,
+        //         "DR": 0.0000000000000000000000000000,
+        //         "Counterparty": 3,
+        //         "TransactionType": "Other",
+        //         "ReferenceType": "Deposit",
+        //         "ProductId": 1,
+        //         "Balance": 10.000000000000000000000000000,
+        //         "TimeStamp": 1607532331591
         //     }
         //
         $currencyId = $this->safe_string($item, 'ProductId');
@@ -1492,8 +1492,8 @@ class ndax extends Exchange {
         }
         $response = Async\await($this->privateGetGetAccountTransactions($this->extend($request, $params)));
         //
-        //     array(
-        //         array(
+        //     [
+        //         {
         //             "TransactionId":2663709493,
         //             "ReferenceId":68,
         //             "OMSId":1,
@@ -1506,8 +1506,8 @@ class ndax extends Exchange {
         //             "ProductId":1,
         //             "Balance":10.000000000000000000000000000,
         //             "TimeStamp":1607532331591
-        //         ),
-        //     )
+        //         },
+        //     ]
         //
         $currency = null;
         if ($code !== null) {
@@ -1538,16 +1538,16 @@ class ndax extends Exchange {
         //     {
         //         "status":"Accepted",
         //         "errormsg":"",
-        //         "OrderId" => 2543565231
+        //         "OrderId": 2543565231
         //     }
         //
         // editOrder
         //
         //     {
-        //         "ReplacementOrderId" => 1234,
-        //         "ReplacementClOrdId" => 1561,
-        //         "OrigOrderId" => 5678,
-        //         "OrigClOrdId" => 91011,
+        //         "ReplacementOrderId": 1234,
+        //         "ReplacementClOrdId": 1561,
+        //         "OrigOrderId": 5678,
+        //         "OrigClOrdId": 91011,
         //     }
         //
         // fetchOpenOrders, fetchClosedOrders
@@ -1671,19 +1671,19 @@ class ndax extends Exchange {
             'InstrumentId' => $this->parse_to_int($market['id']),
             'omsId' => $omsId,
             'AccountId' => $accountId,
-            'TimeInForce' => 1, // 0 Unknown, 1 GTC by default, 2 OPG execute as close to opening $price as possible, 3 IOC immediate or canceled,  4 FOK fill-or-kill, 5 GTX good 'til executed, 6 GTD good 'til date
-            // 'ClientOrderId' => $clientOrderId, // defaults to 0
+            'TimeInForce' => 1, // 0 Unknown, 1 GTC by default, 2 OPG execute as close to opening price as possible, 3 IOC immediate or canceled,  4 FOK fill-or-kill, 5 GTX good 'til executed, 6 GTD good 'til date
+            // 'ClientOrderId': clientOrderId, // defaults to 0
             // If this order is order A, OrderIdOCO refers to the order ID of an order B (which is not the order being created by this call).
             // If order B executes, then order A created by this call is canceled.
             // You can also set up order B to watch order A in the same way, but that may require an update to order B to make it watch this one, which could have implications for priority in the order book.
             // See CancelReplaceOrder and ModifyOrder.
-            // 'OrderIdOCO' => 0, // The order ID if One Cancels the Other.
-            // 'UseDisplayQuantity' => false, // If you enter a Limit order with a reserve, you must set UseDisplayQuantity to true
+            // 'OrderIdOCO': 0, // The order ID if One Cancels the Other.
+            // 'UseDisplayQuantity': false, // If you enter a Limit order with a reserve, you must set UseDisplayQuantity to true
             'Side' => $orderSide, // 0 Buy, 1 Sell, 2 Short, 3 unknown an error condition
             'Quantity' => ($amountString === null) ? null : floatval($amountString),
             'OrderType' => $orderType, // 0 Unknown, 1 Market, 2 Limit, 3 StopMarket, 4 StopLimit, 5 TrailingStopMarket, 6 TrailingStopLimit, 7 BlockTrade
-            // 'PegPriceType' => 3, // 1 Last, 2 Bid, 3 Ask, 4 Midpoint
-            // 'LimitPrice' => floatval($this->price_to_precision($symbol, $price)),
+            // 'PegPriceType': 3, // 1 Last, 2 Bid, 3 Ask, 4 Midpoint
+            // 'LimitPrice': parseFloat (this.priceToPrecision (symbol, price)),
         );
         // If OrderType=1 (Market), Side=0 (Buy), and LimitPrice is supplied, the Market order will execute up to the value specified
         if ($price !== null) {
@@ -1704,7 +1704,7 @@ class ndax extends Exchange {
         //     {
         //         "status":"Accepted",
         //         "errormsg":"",
-        //         "OrderId" => 2543565231
+        //         "OrderId": 2543565231
         //     }
         //
         return $this->parse_order($response, $market);
@@ -1746,19 +1746,19 @@ class ndax extends Exchange {
             'InstrumentId' => $this->parse_to_int($market['id']),
             'omsId' => $omsId,
             'AccountId' => $accountId,
-            'TimeInForce' => 1, // 0 Unknown, 1 GTC by default, 2 OPG execute as close to opening $price as possible, 3 IOC immediate or canceled,  4 FOK fill-or-kill, 5 GTX good 'til executed, 6 GTD good 'til date
-            // 'ClientOrderId' => $clientOrderId, // defaults to 0
+            'TimeInForce' => 1, // 0 Unknown, 1 GTC by default, 2 OPG execute as close to opening price as possible, 3 IOC immediate or canceled,  4 FOK fill-or-kill, 5 GTX good 'til executed, 6 GTD good 'til date
+            // 'ClientOrderId': clientOrderId, // defaults to 0
             // If this order is order A, OrderIdOCO refers to the order ID of an order B (which is not the order being created by this call).
             // If order B executes, then order A created by this call is canceled.
             // You can also set up order B to watch order A in the same way, but that may require an update to order B to make it watch this one, which could have implications for priority in the order book.
             // See CancelReplaceOrder and ModifyOrder.
-            // 'OrderIdOCO' => 0, // The order ID if One Cancels the Other.
-            // 'UseDisplayQuantity' => false, // If you enter a Limit order with a reserve, you must set UseDisplayQuantity to true
+            // 'OrderIdOCO': 0, // The order ID if One Cancels the Other.
+            // 'UseDisplayQuantity': false, // If you enter a Limit order with a reserve, you must set UseDisplayQuantity to true
             'Side' => $orderSide, // 0 Buy, 1 Sell, 2 Short, 3 unknown an error condition
             'Quantity' => ($amountString === null) ? null : floatval($amountString),
             'OrderType' => $this->safe_integer($this->options['orderTypes'], $this->capitalize($type)), // 0 Unknown, 1 Market, 2 Limit, 3 StopMarket, 4 StopLimit, 5 TrailingStopMarket, 6 TrailingStopLimit, 7 BlockTrade
-            // 'PegPriceType' => 3, // 1 Last, 2 Bid, 3 Ask, 4 Midpoint
-            // 'LimitPrice' => floatval($this->price_to_precision($symbol, $price)),
+            // 'PegPriceType': 3, // 1 Last, 2 Bid, 3 Ask, 4 Midpoint
+            // 'LimitPrice': parseFloat (this.priceToPrecision (symbol, price)),
         );
         // If OrderType=1 (Market), Side=0 (Buy), and LimitPrice is supplied, the Market order will execute up to the value specified
         if ($price !== null) {
@@ -1774,10 +1774,10 @@ class ndax extends Exchange {
         $response = Async\await($this->privatePostCancelReplaceOrder($this->extend($request, $params)));
         //
         //     {
-        //         "replacementOrderId" => 1234,
-        //         "replacementClOrdId" => 1561,
-        //         "origOrderId" => 5678,
-        //         "origClOrdId" => 91011,
+        //         "replacementOrderId": 1234,
+        //         "replacementClOrdId": 1561,
+        //         "origOrderId": 5678,
+        //         "origClOrdId": 91011,
         //     }
         //
         return $this->parse_order($response, $market);
@@ -1810,15 +1810,15 @@ class ndax extends Exchange {
         $request = array(
             'omsId' => $omsId,
             'AccountId' => $accountId,
-            // 'InstrumentId' => $market['id'],
-            // 'TradeId' => 123, // If you specify TradeId, GetTradesHistory can return all states for a single trade
-            // 'OrderId' => 456, // If specified, the call returns all trades associated with the order
-            // 'UserId' => integer. The ID of the logged-in user. If not specified, the call returns trades associated with the users belonging to the default account for the logged-in user of this OMS.
-            // 'StartTimeStamp' => long integer. The historical date and time at which to begin the trade report, in POSIX format. If not specified, reverts to the start date of this account on the trading venue.
-            // 'EndTimeStamp' => long integer. Date at which to end the trade report, in POSIX format.
-            // 'Depth' => integer. In this case, the count of trades to return, counting from the StartIndex. If Depth is not specified, returns all trades between BeginTimeStamp and EndTimeStamp, beginning at StartIndex.
-            // 'StartIndex' => 0 // from the most recent trade 0 and moving backwards in time
-            // 'ExecutionId' => 123, // The ID of the individual buy or sell execution. If not specified, returns all.
+            // 'InstrumentId': market['id'],
+            // 'TradeId': 123, // If you specify TradeId, GetTradesHistory can return all states for a single trade
+            // 'OrderId': 456, // If specified, the call returns all trades associated with the order
+            // 'UserId': integer. The ID of the logged-in user. If not specified, the call returns trades associated with the users belonging to the default account for the logged-in user of this OMS.
+            // 'StartTimeStamp': long integer. The historical date and time at which to begin the trade report, in POSIX format. If not specified, reverts to the start date of this account on the trading venue.
+            // 'EndTimeStamp': long integer. Date at which to end the trade report, in POSIX format.
+            // 'Depth': integer. In this case, the count of trades to return, counting from the StartIndex. If Depth is not specified, returns all trades between BeginTimeStamp and EndTimeStamp, beginning at StartIndex.
+            // 'StartIndex': 0 // from the most recent trade 0 and moving backwards in time
+            // 'ExecutionId': 123, // The ID of the individual buy or sell execution. If not specified, returns all.
         );
         $market = null;
         if ($symbol !== null) {
@@ -1833,7 +1833,7 @@ class ndax extends Exchange {
         }
         $response = Async\await($this->privateGetGetTradesHistory($this->extend($request, $params)));
         //
-        //     array(
+        //     [
         //         {
         //             "OMSId":1,
         //             "ExecutionId":16916567,
@@ -1873,7 +1873,7 @@ class ndax extends Exchange {
         //             "NotionalHoldAmount":0,
         //             "TradeTime":637431618315686826
         //         }
-        //     )
+        //     ]
         //
         return $this->parse_trades($response, $market, $since, $limit);
     }
@@ -1945,16 +1945,16 @@ class ndax extends Exchange {
             Async\await($this->load_markets());
         }
         Async\await($this->load_accounts());
-        // $defaultAccountId = $this->safe_integer_2($this->options, 'accountId', 'AccountId', $this->parse_to_int($this->accounts[0]['id']));
-        // $accountId = $this->safe_integer_2($params, 'accountId', 'AccountId', $defaultAccountId);
-        // $params = $this->omit($params, array( 'accountId', 'AccountId' ));
+        // const defaultAccountId = this.safeInteger2 (this.options, 'accountId', 'AccountId', this.parseToInt (this.accounts[0]['id']));
+        // const accountId = this.safeInteger2 (params, 'accountId', 'AccountId', defaultAccountId);
+        // params = this.omit (params, [ 'accountId', 'AccountId' ]);
         $market = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
         }
         $request = array(
             'omsId' => $omsId,
-            // 'AccountId' => $accountId,
+            // 'AccountId': accountId,
         );
         $clientOrderId = $this->safe_integer_2($params, 'clientOrderId', 'ClOrderId');
         if ($clientOrderId !== null) {
@@ -2005,7 +2005,7 @@ class ndax extends Exchange {
         );
         $response = Async\await($this->privateGetGetOpenOrders($this->extend($request, $params)));
         //
-        //     array(
+        //     [
         //         {
         //             "Side":"Buy",
         //             "OrderId":2543565233,
@@ -2052,7 +2052,7 @@ class ndax extends Exchange {
         //             "ClientOrderIdUuid":null,
         //             "OMSId":1
         //         }
-        //     )
+        //     ]
         //
         return $this->parse_orders($response, $market, $since, $limit);
     }
@@ -2084,15 +2084,15 @@ class ndax extends Exchange {
         $request = array(
             'omsId' => $omsId,
             'AccountId' => $accountId,
-            // 'ClientOrderId' => clientOrderId,
-            // 'OriginalOrderId' => id,
-            // 'OriginalClientOrderId' => long integer,
-            // 'UserId' => integer,
-            // 'InstrumentId' => $market['id'],
-            // 'StartTimestamp' => $since,
-            // 'EndTimestamp' => $this->milliseconds(),
-            // 'Depth' => $limit,
-            // 'StartIndex' => 0,
+            // 'ClientOrderId': clientOrderId,
+            // 'OriginalOrderId': id,
+            // 'OriginalClientOrderId': long integer,
+            // 'UserId': integer,
+            // 'InstrumentId': market['id'],
+            // 'StartTimestamp': since,
+            // 'EndTimestamp': this.milliseconds (),
+            // 'Depth': limit,
+            // 'StartIndex': 0,
         );
         $market = null;
         if ($symbol !== null) {
@@ -2107,8 +2107,8 @@ class ndax extends Exchange {
         }
         $response = Async\await($this->privateGetGetOrdersHistory($this->extend($request, $params)));
         //
-        //     array(
-        //         array(
+        //     [
+        //         {
         //             "Side":"Buy",
         //             "OrderId":2543565233,
         //             "Price":19010.000000000000000000000000,
@@ -2153,8 +2153,8 @@ class ndax extends Exchange {
         //             "IpAddress":"x.x.x.x",
         //             "ClientOrderIdUuid":null,
         //             "OMSId":1
-        //         ),
-        //     )
+        //         },
+        //     ]
         //
         return $this->parse_orders($response, $market, $since, $limit);
     }
@@ -2265,22 +2265,22 @@ class ndax extends Exchange {
             Async\await($this->load_markets());
         }
         Async\await($this->load_accounts());
-        // $defaultAccountId = $this->safe_integer_2($this->options, 'accountId', 'AccountId', $this->parse_to_int($this->accounts[0]['id']));
-        // $accountId = $this->safe_integer_2($params, 'accountId', 'AccountId', $defaultAccountId);
-        // $params = $this->omit($params, array( 'accountId', 'AccountId' ));
+        // const defaultAccountId = this.safeInteger2 (this.options, 'accountId', 'AccountId', this.parseToInt (this.accounts[0]['id']));
+        // const accountId = this.safeInteger2 (params, 'accountId', 'AccountId', defaultAccountId);
+        // params = this.omit (params, [ 'accountId', 'AccountId' ]);
         $market = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
         }
         $request = array(
             'OMSId' => $this->parse_to_int($omsId),
-            // 'AccountId' => $accountId,
+            // 'AccountId': accountId,
             'OrderId' => intval($id),
         );
         $response = Async\await($this->privatePostGetOrderHistoryByOrderId($this->extend($request, $params)));
         //
-        //     array(
-        //         array(
+        //     [
+        //         {
         //             "Side":"Sell",
         //             "OrderId":2543565235,
         //             "Price":18600.000000000000000000000000,
@@ -2325,8 +2325,8 @@ class ndax extends Exchange {
         //             "IpAddress":"x.x.x.x",
         //             "ClientOrderIdUuid":null,
         //             "OMSId":1
-        //         ),
-        //     )
+        //         },
+        //     ]
         //
         $grouped = $this->group_by($response, 'ChangeReason');
         $trades = $this->safe_list($grouped, 'Trade', array());
@@ -2462,32 +2462,32 @@ class ndax extends Exchange {
         );
         $response = Async\await($this->privateGetGetDeposits($this->extend($request, $params)));
         //
-        //    "array(
-        //        array(
-        //            "OMSId" => 1,
-        //            "DepositId" => 44,
-        //            "AccountId" => 449,
-        //            "SubAccountId" => 0,
-        //            "ProductId" => 4,
-        //            "Amount" => 200.00000000000000000000000000,
-        //            "LastUpdateTimeStamp" => 637431291261187806,
-        //            "ProductType" => "CryptoCurrency",
-        //            "TicketStatus" => "FullyProcessed",
-        //            "DepositInfo" => "array(
+        //    "[
+        //        {
+        //            "OMSId": 1,
+        //            "DepositId": 44,
+        //            "AccountId": 449,
+        //            "SubAccountId": 0,
+        //            "ProductId": 4,
+        //            "Amount": 200.00000000000000000000000000,
+        //            "LastUpdateTimeStamp": 637431291261187806,
+        //            "ProductType": "CryptoCurrency",
+        //            "TicketStatus": "FullyProcessed",
+        //            "DepositInfo": "{
         //                "AccountProviderId":42,
         //                "AccountProviderName":"USDT_BSC",
         //                "TXId":"0x3879b02632c69482646409e991149290bc9a58e4603be63c7c2c90a843f45d2b",
         //                "FromAddress":"0x8894E0a0c962CB723c1976a4421c95949bE2D4E3",
         //                "ToAddress":"0x5428EcEB1F7Ee058f64158589e27D087149230CB"
-        //            ),",
-        //            "DepositCode" => "ab0e23d5-a9ce-4d94-865f-9ab464fb1de3",
-        //            "TicketNumber" => 71,
-        //            "NotionalProductId" => 13,
-        //            "NotionalValue" => 200.00000000000000000000000000,
-        //            "FeeAmount" => 0.0000000000000000000000000000,
-        //        ),
+        //            },",
+        //            "DepositCode": "ab0e23d5-a9ce-4d94-865f-9ab464fb1de3",
+        //            "TicketNumber": 71,
+        //            "NotionalProductId": 13,
+        //            "NotionalValue": 200.00000000000000000000000000,
+        //            "FeeAmount": 0.0000000000000000000000000000,
+        //        },
         //        ...
-        //    )"
+        //    ]"
         //
         if (gettype($response) === 'string') {
             return $this->parse_transactions(json_decode($response, $as_associative_array = true), $currency, $since, $limit);
@@ -2529,28 +2529,28 @@ class ndax extends Exchange {
         );
         $response = Async\await($this->privateGetGetWithdraws($this->extend($request, $params)));
         //
-        //     array(
-        //         array(
-        //             "Amount" => 0.0,
-        //             "FeeAmount" => 0.0,
-        //             "NotionalValue" => 0.0,
-        //             "WithdrawId" => 0,
-        //             "AssetManagerId" => 0,
-        //             "AccountId" => 0,
-        //             "AssetId" => 0,
-        //             "TemplateForm" => "array(\"TemplateType\" => \"TetherRPCWithdraw\",\"Comment\" => \"TestWithdraw\",\"ExternalAddress\" => \"ms6C3pKAAr8gRCcnVebs8VRkVrjcvqNYv3\")",
-        //             "TemplateFormType" => "TetherRPCWithdraw",
-        //             "omsId" => 0,
-        //             "TicketStatus" => 0,
-        //             "TicketNumber" => 0,
-        //             "WithdrawTransactionDetails" => "",
-        //             "WithdrawType" => "",
-        //             "WithdrawCode" => "490b4fa3-53fc-44f4-bd29-7e16be86fba3",
-        //             "AssetType" => 0,
-        //             "Reaccepted" => true,
-        //             "NotionalProductId" => 0
-        //         ),
-        //     )
+        //     [
+        //         {
+        //             "Amount": 0.0,
+        //             "FeeAmount": 0.0,
+        //             "NotionalValue": 0.0,
+        //             "WithdrawId": 0,
+        //             "AssetManagerId": 0,
+        //             "AccountId": 0,
+        //             "AssetId": 0,
+        //             "TemplateForm": "{\"TemplateType\": \"TetherRPCWithdraw\",\"Comment\": \"TestWithdraw\",\"ExternalAddress\": \"ms6C3pKAAr8gRCcnVebs8VRkVrjcvqNYv3\"}",
+        //             "TemplateFormType": "TetherRPCWithdraw",
+        //             "omsId": 0,
+        //             "TicketStatus": 0,
+        //             "TicketNumber": 0,
+        //             "WithdrawTransactionDetails": "",
+        //             "WithdrawType": "",
+        //             "WithdrawCode": "490b4fa3-53fc-44f4-bd29-7e16be86fba3",
+        //             "AssetType": 0,
+        //             "Reaccepted": true,
+        //             "NotionalProductId": 0
+        //         },
+        //     ]
         //
         return $this->parse_transactions($response, $currency, $since, $limit);
     }
@@ -2562,10 +2562,10 @@ class ndax extends Exchange {
                 'AdminProcessing' => 'pending', // an admin is looking at the ticket
                 'Accepted' => 'pending', // an admin accepts the ticket
                 'Rejected' => 'rejected', // admin rejects the ticket
-                'SystemProcessing' => 'pending', // automatic processing; an unlikely $status for a deposit
+                'SystemProcessing' => 'pending', // automatic processing; an unlikely status for a deposit
                 'FullyProcessed' => 'ok', // the deposit has concluded
                 'Failed' => 'failed', // the deposit has failed for some reason
-                'Pending' => 'pending', // Account Provider has set $status to pending
+                'Pending' => 'pending', // Account Provider has set status to pending
                 'Confirmed' => 'pending', // Account Provider confirms the deposit
                 'AmlProcessing' => 'pending', // anti-money-laundering process underway
                 'AmlAccepted' => 'pending', // anti-money-laundering process successful
@@ -2582,7 +2582,7 @@ class ndax extends Exchange {
                 'SystemProcessing' => 'pending', // automatic processing underway
                 'FullyProcessed' => 'ok', // the withdrawal has concluded
                 'Failed' => 'failed', // the withdrawal failed for some reason
-                'Pending' => 'pending', // the admin has placed the withdrawal in pending $status
+                'Pending' => 'pending', // the admin has placed the withdrawal in pending status
                 'Pending2Fa' => 'pending', // user must click 2-factor authentication confirmation link
                 'AutoAccepted' => 'pending', // withdrawal will be automatically processed
                 'Delayed' => 'pending', // waiting for funds to be allocated for the withdrawal
@@ -2596,7 +2596,7 @@ class ndax extends Exchange {
                 'LimitsRejected' => 'rejected', // withdrawal does not meet limits for fiat or crypto asset
                 'Submitted' => 'pending', // withdrawal sent to Account Provider; awaiting blockchain confirmation
                 'Confirmed' => 'pending', // Account Provider confirms that withdrawal is on the blockchain
-                'ManuallyConfirmed' => 'pending', // admin has sent withdrawal via wallet or admin function directly; marks ticket; debits account
+                'ManuallyConfirmed' => 'pending', // admin has sent withdrawal via wallet or admin function directly; marks ticket as FullyProcessed; debits account
                 'Confirmed2Fa' => 'pending', // user has confirmed withdraw via 2-factor authentication.
             ),
         );
@@ -2612,50 +2612,50 @@ class ndax extends Exchange {
         // fetchDeposits
         //
         //    {
-        //        "OMSId" => 1,
-        //        "DepositId" => 44,
-        //        "AccountId" => 449,
-        //        "SubAccountId" => 0,
-        //        "ProductId" => 4,
-        //        "Amount" => 200.00000000000000000000000000,
-        //        "LastUpdateTimeStamp" => 637431291261187806,
-        //        "ProductType" => "CryptoCurrency",
-        //        "TicketStatus" => "FullyProcessed",
-        //        "DepositInfo" => "array(
+        //        "OMSId": 1,
+        //        "DepositId": 44,
+        //        "AccountId": 449,
+        //        "SubAccountId": 0,
+        //        "ProductId": 4,
+        //        "Amount": 200.00000000000000000000000000,
+        //        "LastUpdateTimeStamp": 637431291261187806,
+        //        "ProductType": "CryptoCurrency",
+        //        "TicketStatus": "FullyProcessed",
+        //        "DepositInfo": "{
         //            "AccountProviderId":42,
         //            "AccountProviderName":"USDT_BSC",
         //            "TXId":"0x3879b02632c69482646409e991149290bc9a58e4603be63c7c2c90a843f45d2b",
         //            "FromAddress":"0x8894E0a0c962CB723c1976a4421c95949bE2D4E3",
         //            "ToAddress":"0x5428EcEB1F7Ee058f64158589e27D087149230CB"
-        //        )",
-        //        "DepositCode" => "ab0e23d5-a9ce-4d94-865f-9ab464fb1de3",
-        //        "TicketNumber" => 71,
-        //        "NotionalProductId" => 13,
-        //        "NotionalValue" => 200.00000000000000000000000000,
-        //        "FeeAmount" => 0.0000000000000000000000000000,
+        //        }",
+        //        "DepositCode": "ab0e23d5-a9ce-4d94-865f-9ab464fb1de3",
+        //        "TicketNumber": 71,
+        //        "NotionalProductId": 13,
+        //        "NotionalValue": 200.00000000000000000000000000,
+        //        "FeeAmount": 0.0000000000000000000000000000,
         //     }
         //
         // fetchWithdrawals
         //
         //     {
-        //         "Amount" => 0.0,
-        //         "FeeAmount" => 0.0,
-        //         "NotionalValue" => 0.0,
-        //         "WithdrawId" => 0,
-        //         "AssetManagerId" => 0,
-        //         "AccountId" => 0,
-        //         "AssetId" => 0,
-        //         "TemplateForm" => "array(\"TemplateType\" => \"TetherRPCWithdraw\",\"Comment\" => \"TestWithdraw\",\"ExternalAddress\" => \"ms6C3pKAAr8gRCcnVebs8VRkVrjcvqNYv3\")",
-        //         "TemplateFormType" => "TetherRPCWithdraw",
-        //         "omsId" => 0,
-        //         "TicketStatus" => 0,
-        //         "TicketNumber" => 0,
-        //         "WithdrawTransactionDetails" => "",
-        //         "WithdrawType" => "",
-        //         "WithdrawCode" => "490b4fa3-53fc-44f4-bd29-7e16be86fba3",
-        //         "AssetType" => 0,
-        //         "Reaccepted" => true,
-        //         "NotionalProductId" => 0
+        //         "Amount": 0.0,
+        //         "FeeAmount": 0.0,
+        //         "NotionalValue": 0.0,
+        //         "WithdrawId": 0,
+        //         "AssetManagerId": 0,
+        //         "AccountId": 0,
+        //         "AssetId": 0,
+        //         "TemplateForm": "{\"TemplateType\": \"TetherRPCWithdraw\",\"Comment\": \"TestWithdraw\",\"ExternalAddress\": \"ms6C3pKAAr8gRCcnVebs8VRkVrjcvqNYv3\"}",
+        //         "TemplateFormType": "TetherRPCWithdraw",
+        //         "omsId": 0,
+        //         "TicketStatus": 0,
+        //         "TicketNumber": 0,
+        //         "WithdrawTransactionDetails": "",
+        //         "WithdrawType": "",
+        //         "WithdrawCode": "490b4fa3-53fc-44f4-bd29-7e16be86fba3",
+        //         "AssetType": 0,
+        //         "Reaccepted": true,
+        //         "NotionalProductId": 0
         //     }
         //
         $id = null;
@@ -2747,14 +2747,14 @@ class ndax extends Exchange {
         $withdrawTemplateTypesResponse = Async\await($this->privateGetGetWithdrawTemplateTypes($withdrawTemplateTypesRequest));
         //
         //     {
-        //         "result" => true,
-        //         "errormsg" => null,
-        //         "statuscode" => "0",
-        //         "TemplateTypes" => array(
-        //             array( AccountProviderId => "14", TemplateName => "ToExternalBitcoinAddress", AccountProviderName => "BitgoRPC-BTC" ),
-        //             array( AccountProviderId => "20", TemplateName => "ToExternalBitcoinAddress", AccountProviderName => "TrezorBTC" ),
-        //             array( AccountProviderId => "31", TemplateName => "BTC", AccountProviderName => "BTC Fireblocks 1" )
-        //         )
+        //         "result": true,
+        //         "errormsg": null,
+        //         "statuscode": "0",
+        //         "TemplateTypes": [
+        //             { AccountProviderId: "14", TemplateName: "ToExternalBitcoinAddress", AccountProviderName: "BitgoRPC-BTC" },
+        //             { AccountProviderId: "20", TemplateName: "ToExternalBitcoinAddress", AccountProviderName: "TrezorBTC" },
+        //             { AccountProviderId: "31", TemplateName: "BTC", AccountProviderName: "BTC Fireblocks 1" }
+        //         ]
         //     }
         //
         $templateTypes = $this->safe_value($withdrawTemplateTypesResponse, 'TemplateTypes', array());
@@ -2773,10 +2773,10 @@ class ndax extends Exchange {
         $withdrawTemplateResponse = Async\await($this->privateGetGetWithdrawTemplate($withdrawTemplateRequest));
         //
         //     {
-        //         "result" => true,
-        //         "errormsg" => null,
-        //         "statuscode" => "0",
-        //         "Template" => "array(\"TemplateType\":\"ToExternalBitcoinAddress\",\"Comment\":\"\",\"ExternalAddress\":\"\")"
+        //         "result": true,
+        //         "errormsg": null,
+        //         "statuscode": "0",
+        //         "Template": "{\"TemplateType\":\"ToExternalBitcoinAddress\",\"Comment\":\"\",\"ExternalAddress\":\"\"}"
         //     }
         //
         $template = $this->safe_string($withdrawTemplateResponse, 'Template');
@@ -2819,14 +2819,14 @@ class ndax extends Exchange {
                 $auth64 = base64_encode($auth);
                 $headers = array(
                     'Authorization' => 'Basic ' . $auth64,
-                    // 'Content-Type' => 'application/json',
+                    // 'Content-Type': 'application/json',
                 );
             } elseif ($path === 'Authenticate2FA') {
                 $pending2faToken = $this->safe_string($this->options, 'pending2faToken');
                 if ($pending2faToken !== null) {
                     $headers = array(
                         'Pending2FaToken' => $pending2faToken,
-                        // 'Content-Type' => 'application/json',
+                        // 'Content-Type': 'application/json',
                     );
                     $query = $this->omit($query, 'pending2faToken');
                 }
@@ -2872,8 +2872,8 @@ class ndax extends Exchange {
             return null;
         }
         //
-        //     array("status":"Rejected","errormsg":"Not_Enough_Funds","errorcode":101)
-        //     array("result":false,"errormsg":"Server Error","errorcode":102,"detail":null)
+        //     {"status":"Rejected","errormsg":"Not_Enough_Funds","errorcode":101}
+        //     {"result":false,"errormsg":"Server Error","errorcode":102,"detail":null}
         //
         $message = $this->safe_string($response, 'errormsg');
         if (($message !== null) && ($message !== '')) {

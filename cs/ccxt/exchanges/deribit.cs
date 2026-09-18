@@ -794,7 +794,7 @@ public partial class deribit : Exchange
         List<object> optionParts = ((string)symbol).Split(new [] {((string)"-")}, StringSplitOptions.None).ToList<object>();
         List<object> symbolBase = ((string)symbol).Split(new [] {((string)"/")}, StringSplitOptions.None).ToList<object>();
         object bs = null;
-        object expiry = null;
+        string? expiry = null;
         if (isTrue(isGreaterThan(getIndexOf(symbol, "/"), -1)))
         {
             bs = this.safeString(symbolBase, 0);
@@ -828,7 +828,7 @@ public partial class deribit : Exchange
         }
         string? strike = this.safeString(optionParts, 2);
         string? optionType = this.safeString(optionParts, 3);
-        object datetime = this.convertExpireDate(expiry);
+        string? datetime = this.convertExpireDate(expiry);
         Int64? timestamp = this.parse8601(datetime);
         object id = add(add(add(add(add(add(bs, "-"), this.convertExpireDateToMarketIdDate(expiry)), "-"), strike), "-"), optionType);
         object symbolExpired = add(add(add(add(add(add(add(add(add(add(splitBase, "/"), quote), ":"), settle), "-"), expiry), "-"), strike), "-"), optionType);
@@ -1565,7 +1565,7 @@ public partial class deribit : Exchange
         return ccxt.BaseExchange.ToDepositAddress(new Dictionary<string, object>() {             { "info", response },             { "currency", code },             { "network", null },             { "address", address },             { "tag", null },         });
     }
 
-    public override object parseTicker(object ticker, object market = null)
+    public override Dictionary<string, object> parseTicker(object ticker, object market = null)
     {
         //
         // fetchTicker /public/ticker
@@ -1795,7 +1795,7 @@ public partial class deribit : Exchange
         Dictionary<string, object> tickers = new Dictionary<string, object>() {};
         for (int i = 0; isLessThan(i, getArrayLength(result)); postFixIncrement(ref i))
         {
-            object ticker = this.parseTicker(getValue(result, i));
+            Dictionary<string, object> ticker = this.parseTicker(getValue(result, i));
             object symbol = getValue(ticker, "symbol");
             if (isTrue(!isEqual(symbol, null)))
             {
@@ -1821,7 +1821,7 @@ public partial class deribit : Exchange
      */
     public async override Task<List<ccxt.OHLCV>> FetchOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object timeframeVar = timeframe;
+        string timeframeVar = timeframe;
         object sinceVar = since;
         object limitVar = limit;
         timeframeVar ??= "1m";
@@ -1896,7 +1896,7 @@ public partial class deribit : Exchange
         return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(ohlcvs, market,((string)timeframeVar), sinceVar, limitVar));
     }
 
-    public override object parseTrade(object trade, object market = null)
+    public override Dictionary<string, object> parseTrade(object trade, object market = null)
     {
         //
         // fetchTrades (public)
@@ -2171,7 +2171,7 @@ public partial class deribit : Exchange
             }
         }
         Dictionary<string, object> parsedFees = new Dictionary<string, object>() {};
-        object symbols = this.symbols;
+        List<object> symbols = this.symbols;
         for (int i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
             object symbol = getValue(symbols, i);
@@ -2267,7 +2267,7 @@ public partial class deribit : Exchange
         object result = this.safeValue(response, "result", new Dictionary<string, object>() {});
         Int64? timestamp = this.safeInteger(result, "timestamp");
         Int64? nonce = this.safeInteger(result, "change_id");
-        object orderbook = this.parseOrderBook(result, getValue(market, "symbol"), timestamp);
+        Dictionary<string, object> orderbook = ((Dictionary<string, object>)this.parseOrderBook(result, getValue(market, "symbol"), timestamp));
         ((IDictionary<string,object>)orderbook)["nonce"] = nonce;
         return ccxt.BaseExchange.ToOrderBook(orderbook);
     }
@@ -2305,7 +2305,7 @@ public partial class deribit : Exchange
         return this.safeString(orderTypes, orderType, orderType);
     }
 
-    public override object parseOrder(object order, object market = null)
+    public override Dictionary<string, object> parseOrder(object order, object market = null)
     {
         //
         // createOrder
@@ -3203,7 +3203,7 @@ public partial class deribit : Exchange
         };
     }
 
-    public override object parsePosition(object position, object market = null)
+    public override Dictionary<string, object> parsePosition(object position, object market = null)
     {
         //
         //     {
@@ -4554,7 +4554,7 @@ public partial class deribit : Exchange
                 request = add(request, add("?", this.urlencode(parameters)));
             }
             object requestData = add(add(add(add(add(method, "\n"), request), "\n"), requestBody), "\n"); // eslint-disable-line quotes
-            object auth = add(add(add(add(timestamp, "\n"), nonce), "\n"), requestData); // eslint-disable-line quotes
+            string auth = add(add(add(add(timestamp, "\n"), nonce), "\n"), requestData); // eslint-disable-line quotes
             string signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
             headers = new Dictionary<string, object>() {
                 { "Authorization", add(add(add(add(add(add(add(add("deri-hmac-sha256 id=", this.apiKey), ",ts="), timestamp), ",sig="), signature), ","), "nonce="), nonce) },

@@ -148,7 +148,7 @@ class bullish(ccxt.async_support.bullish):
         #             "trades": [
         #                 {
         #                     "tradeId": "100086000000609304",
-        #                     "isTaker": True,
+        #                     "isTaker": true,
         #                     "price": "104889.2063",
         #                     "createdAtTimestamp": "1749124509118",
         #                     "quantity": "0.01000000",
@@ -299,7 +299,7 @@ class bullish(ccxt.async_support.bullish):
         #             ],
         #             "publishedAtTimestamp": "1749372632073",
         #             "datetime": "2025-06-08T08:50:32.028Z",
-        #             "sequenceNumberRange": [1967862061, 1967862062],
+        #             "sequenceNumberRange": [ 1967862061, 1967862062 ],
         #             "symbol": "BTCUSDC"
         #         }
         #     }
@@ -379,7 +379,7 @@ class bullish(ccxt.async_support.bullish):
         #         "type": "snapshot",
         #         "tradingAccountId": "111309424211255",
         #         "dataType": "V1TAOrder",
-        #         "data": [...]  # could be an empty list or a list of orders
+        #         "data": [ ... ] // could be an empty list or a list of orders
         #     }
         #
         # update
@@ -396,10 +396,10 @@ class bullish(ccxt.async_support.bullish):
         #             "handle": null,
         #             "clientOrderId": null,
         #             "quantity": "0.10000000",
-        #             "margin": False,
+        #             "margin": false,
         #             "side": "BUY",
         #             "createdAtDatetime": "2025-07-07T13:03:47.971Z",
-        #             "isLiquidation": False,
+        #             "isLiquidation": false,
         #             "borrowedQuoteQuantity": null,
         #             "borrowedBaseQuantity": null,
         #             "timeInForce": "GTC",
@@ -410,7 +410,7 @@ class bullish(ccxt.async_support.bullish):
         #             "statusReason": "Order accepted",
         #             "type": "MKT",
         #             "statusReasonCode": 6014,
-        #             "allowBorrow": False,
+        #             "allowBorrow": false,
         #             "orderId": "862317981870850049",
         #             "publishedAtTimestamp": "1751893427975",
         #             "symbol": "ETHUSDT",
@@ -486,7 +486,7 @@ class bullish(ccxt.async_support.bullish):
         #         "type": "snapshot",
         #         "tradingAccountId": "111309424211255",
         #         "dataType": "V1TATrade",
-        #         "data": [...]  # could be an empty list or a list of trades
+        #         "data": [ ... ] // could be an empty list or a list of trades
         #     }
         #
         # update
@@ -498,7 +498,7 @@ class bullish(ccxt.async_support.bullish):
         #             "clientOtcTradeId": null,
         #             "tradeId": "100203000003940164",
         #             "baseFee": "0.00000000",
-        #             "isTaker": True,
+        #             "isTaker": true,
         #             "quoteAmount": "253.6012195",
         #             "price": "2536.0121950",
         #             "createdAtTimestamp": "1751914859840",
@@ -666,7 +666,7 @@ class bullish(ccxt.async_support.bullish):
     def handle_positions(self, client: Client, message: object):
         # exchange does not return messages for sandbox mode
         # current method is implemented blindly
-        # todo: check if self works with not-sandbox mode
+        # todo: check if this works with not-sandbox mode
         messageType = self.safe_string(message, 'type')
         rawPositions = []
         if messageType == 'update':

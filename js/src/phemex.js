@@ -7,7 +7,7 @@
 // ----------------------------------------------------------------------------
 import { sha256 } from '@noble/hashes/sha2.js';
 import Exchange from './abstract/phemex.js';
-import { ExchangeError, BadSymbol, AuthenticationError, InsufficientFunds, InvalidOrder, ArgumentsRequired, OrderNotFound, BadRequest, PermissionDenied, AccountSuspended, CancelPending, DDoSProtection, DuplicateOrderId, RateLimitExceeded } from './base/errors.js';
+import { ExchangeError, BadSymbol, AuthenticationError, InsufficientFunds, InvalidOrder, ArgumentsRequired, OrderNotFound, BadRequest, PermissionDenied, AccountSuspended, CancelPending, DuplicateOrderId, RateLimitExceeded } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 // ----------------------------------------------------------------------------
@@ -486,8 +486,8 @@ export default class phemex extends Exchange {
                     '11028': BadSymbol, // TE_CURRENCY_INVALID Invalid currency ID or name
                     '11029': ExchangeError, // TE_ACTION_INVALID Unrecognized request type
                     '11030': ExchangeError, // TE_ACTION_BY_INVALID
-                    '11031': DDoSProtection, // TE_SO_NUM_EXCEEDS Number of total conditional orders exceeds the max limit
-                    '11032': DDoSProtection, // TE_AO_NUM_EXCEEDS Number of total active orders exceeds the max limit
+                    '11031': InvalidOrder, // TE_SO_NUM_EXCEEDS Number of total conditional orders exceeds the max limit
+                    '11032': InvalidOrder, // TE_AO_NUM_EXCEEDS Number of total active orders exceeds the max limit
                     '11033': DuplicateOrderId, // TE_ORDER_ID_DUPLICATE Duplicated order ID
                     '11034': InvalidOrder, // TE_SIDE_INVALID Invalid side
                     '11035': InvalidOrder, // TE_ORD_TYPE_INVALID Invalid OrderType
@@ -2442,7 +2442,7 @@ export default class phemex extends Exchange {
             };
         }
         const timeInForce = this.parseTimeInForce(this.safeString(order, 'timeInForce'));
-        const triggerPrice = this.parseNumber(this.omitZero(this.fromEp(this.safeString(order, 'stopPxEp'))));
+        const triggerPrice = this.parseNumber(this.omitZero(this.fromEp(this.safeString(order, 'stopPxEp'), market)));
         const postOnly = (timeInForce === 'PO');
         return this.safeOrder({
             'info': order,
@@ -3248,6 +3248,15 @@ export default class phemex extends Exchange {
         }
         else if (market['spot'] === true) {
             const rows = this.safeList(data, 'rows', []);
+            const numRows = rows.length;
+            if (numRows < 1) {
+                if (clientOrderId !== undefined) {
+                    throw new OrderNotFound(this.id + ' fetchOrder() ' + symbol + ' order with clientOrderId ' + clientOrderId + ' not found');
+                }
+                else {
+                    throw new OrderNotFound(this.id + ' fetchOrder() ' + symbol + ' order with id ' + id + ' not found');
+                }
+            }
             order = this.safeDict(rows, 0, {});
         }
         return this.parseOrder(order, market);

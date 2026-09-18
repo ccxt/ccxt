@@ -196,6 +196,7 @@ impl crate::exchange_generated::ExchangeBase for KucoinCore {
                 "fetch_funding_interval" => self.fetch_funding_interval(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]).await,
                 "fetch_funding_rate" => self.fetch_funding_rate(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]).await,
                 "fetch_funding_rate_history" => self.fetch_funding_rate_history(&args.get(0..).unwrap_or(&[]).to_vec()[..]).await,
+                "fetch_funding_rates" => self.fetch_funding_rates(&args.get(0..).unwrap_or(&[]).to_vec()[..]).await,
                 "fetch_ledger" => self.fetch_ledger(&args.get(0..).unwrap_or(&[]).to_vec()[..]).await,
                 "fetch_leverage" => self.fetch_leverage(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]).await,
                 "fetch_leverage_tiers" => self.fetch_leverage_tiers(&args.get(0..).unwrap_or(&[]).to_vec()[..]).await,
@@ -379,7 +380,7 @@ impl KucoinCore {
         m.insert("fetchFundingInterval".to_string(), Value::Bool(true));
         m.insert("fetchFundingRate".to_string(), Value::Bool(true));
         m.insert("fetchFundingRateHistory".to_string(), Value::Bool(true));
-        m.insert("fetchFundingRates".to_string(), Value::Bool(false));
+        m.insert("fetchFundingRates".to_string(), Value::Bool(true));
         m.insert("fetchIndexOHLCV".to_string(), Value::Bool(true));
         m.insert("fetchIsolatedBorrowRate".to_string(), Value::Bool(false));
         m.insert("fetchIsolatedBorrowRates".to_string(), Value::Bool(false));
@@ -448,6 +449,7 @@ impl KucoinCore {
         m.insert("broker".to_string(), Value::Str("https://api-broker.kucoin.com".to_string()));
         m.insert("earn".to_string(), Value::Str("https://api.kucoin.com".to_string()));
         m.insert("uta".to_string(), Value::Str("https://api.kucoin.com".to_string()));
+        m.insert("utaV2".to_string(), Value::Str("https://api.kucoin.com".to_string()));
         m.insert("utaPrivate".to_string(), Value::Str("https://api.kucoin.com".to_string()));
     m
 }));
@@ -2193,6 +2195,19 @@ impl KucoinCore {
 }));
     m
 }));
+        m.insert("utaV2".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("get".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("market/funding-rate".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(6));
+    m
+}));
+    m
+}));
+    m
+}));
         m.insert("utaPrivate".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("get".to_string(), Value::Map({
@@ -3504,8 +3519,8 @@ impl KucoinCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_878: bool = true;
-            while { if !__for_first_878 { i = add(&i, &Value::Int(1)); } __for_first_878 = false; is_less_than(&i, &get_array_length(&symbolsData)) } {
+            let mut __for_first_880: bool = true;
+            while { if !__for_first_880 { i = add(&i, &Value::Int(1)); } __for_first_880 = false; is_less_than(&i, &get_array_length(&symbolsData)) } {
             let mut market: Value = get_value(&symbolsData, &i);
             let mut market: Value = get_value(&symbolsData, &i);
             let mut id: Value = self.safe_string_k(market.clone(), "symbol", &[]);
@@ -3686,8 +3701,8 @@ impl KucoinCore {
         let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_879: bool = true;
-            while { if !__for_first_879 { i = add(&i, &Value::Int(1)); } __for_first_879 = false; is_less_than(&i, &get_array_length(&data)) } {
+            let mut __for_first_881: bool = true;
+            while { if !__for_first_881 { i = add(&i, &Value::Int(1)); } __for_first_881 = false; is_less_than(&i, &get_array_length(&data)) } {
             let mut market: Value = get_value(&data, &i);
             let mut market: Value = get_value(&data, &i);
             let mut id: Value = self.safe_string_k(market.clone(), "symbol", &[]);
@@ -3899,8 +3914,8 @@ impl KucoinCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_880: bool = true;
-            while { if !__for_first_880 { i = add(&i, &Value::Int(1)); } __for_first_880 = false; is_less_than(&i, &get_array_length(&symbolsData)) } {
+            let mut __for_first_882: bool = true;
+            while { if !__for_first_882 { i = add(&i, &Value::Int(1)); } __for_first_882 = false; is_less_than(&i, &get_array_length(&symbolsData)) } {
             let mut market: Value = get_value(&symbolsData, &i);
             let mut market: Value = get_value(&symbolsData, &i);
             let mut id: Value = self.safe_string_k(market.clone(), "symbol", &[]);
@@ -4142,8 +4157,8 @@ impl KucoinCore {
         let mut chainsLength: Value = get_array_length(&chains);
         {
                         let mut j: Value = Value::Int(0);
-            let mut __for_first_881: bool = true;
-            while { if !__for_first_881 { j = add(&j, &Value::Int(1)); } __for_first_881 = false; is_less_than(&j, &chainsLength) } {
+            let mut __for_first_883: bool = true;
+            while { if !__for_first_883 { j = add(&j, &Value::Int(1)); } __for_first_883 = false; is_less_than(&j, &chainsLength) } {
             let mut chain: Value = get_value(&chains, &j);
             let mut chain: Value = get_value(&chains, &j);
             let mut chainId: Value = self.safe_string_k(chain.clone(), "chainId", &[]);
@@ -4280,8 +4295,8 @@ impl KucoinCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_882: bool = true;
-            while { if !__for_first_882 { i = add(&i, &Value::Int(1)); } __for_first_882 = false; is_less_than(&i, &get_array_length(&data)) } {
+            let mut __for_first_884: bool = true;
+            while { if !__for_first_884 { i = add(&i, &Value::Int(1)); } __for_first_884 = false; is_less_than(&i, &get_array_length(&data)) } {
             let mut account: Value = get_value(&data, &i);
             let mut account: Value = get_value(&data, &i);
             let mut accountId: Value = self.safe_string_k(account.clone(), "id", &[]);
@@ -4461,8 +4476,8 @@ impl KucoinCore {
             let mut chains: Value = self.safe_list_k(fee.clone(), "chains", &[Value::List(vec![])]);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_883: bool = true;
-                while { if !__for_first_883 { i = add(&i, &Value::Int(1)); } __for_first_883 = false; is_less_than(&i, &get_array_length(&chains)) } {
+                let mut __for_first_885: bool = true;
+                while { if !__for_first_885 { i = add(&i, &Value::Int(1)); } __for_first_885 = false; is_less_than(&i, &get_array_length(&chains)) } {
                 let mut chain: Value = get_value(&chains, &i);
                 let mut chain: Value = get_value(&chains, &i);
                 let mut chainId: Value = self.safe_string_k(chain.clone(), "chainId", &[]);
@@ -4654,17 +4669,23 @@ impl KucoinCore {
         //         "markPrice": "1572.68"
         //     }
         //
-        let mut percentage: Value = self.safe_string_k(ticker.clone(), "changeRate", &[]);
-        if !is_equal(&percentage, &Value::Null) {
-            percentage = crate::precise::Precise::stringMul(&percentage, &Value::Str("100".to_string()));
-        }  else {
-            percentage = self.safe_string_k(ticker.clone(), "priceChangePercent", &[]);
-        }
         let mut last: Value = self.safe_string_n(ticker.clone(), Value::List(vec![Value::Str("last".to_string()), Value::Str("lastTradedPrice".to_string()), Value::Str("lastPrice".to_string())]), &[]);
         last = self.safe_string_k(ticker.clone(), "price", &[last.clone()]);
         let mut marketId: Value = self.safe_string_k(ticker.clone(), "symbol", &[]);
         market = self.safe_market(&[marketId.clone(), market.clone(), Value::Str("-".to_string())]);
         let mut symbol: Value = get_value(&market, &Value::Str("symbol".to_string()));
+        let mut percentage: Value = self.safe_string_k(ticker.clone(), "changeRate", &[]);
+        if !is_equal(&percentage, &Value::Null) {
+            percentage = crate::precise::Precise::stringMul(&percentage, &Value::Str("100".to_string()));
+        }  else {
+            percentage = self.safe_string_k(ticker.clone(), "priceChangePercent", &[]);
+            // uta spot sends a ratio under this name and uta swap sends a percentage.
+            // An unresolved market has no `spot` key at all, so read it the way okx
+            // does and leave the value alone rather than scaling on a guess.
+            if is_true(&self.safe_bool_k(market.clone(), "spot", &[Value::Bool(false)])) {
+                percentage = crate::precise::Precise::stringMul(&percentage, &Value::Str("100".to_string()));
+            }
+        }
         let mut baseVolume: Value = self.safe_string2(ticker.clone(), Value::Str("vol".to_string()), Value::Str("baseVolume".to_string()), &[]);
         let mut quoteVolume: Value = self.safe_string2(ticker.clone(), Value::Str("volValue".to_string()), Value::Str("quoteVolume".to_string()), &[]);
         let mut timestamp: Value = self.safe_integer_n(ticker.clone(), Value::List(vec![Value::Str("time".to_string()), Value::Str("datetime".to_string()), Value::Str("timePoint".to_string())]), &[]);
@@ -4797,6 +4818,11 @@ impl KucoinCore {
         market = self.safe_market(&[marketId.clone(), market.clone(), Value::Str("-".to_string())]);
         let mut last: Value = self.safe_string2(ticker.clone(), Value::Str("price".to_string()), Value::Str("lastTradePrice".to_string()), &[]);
         let mut timestamp: Value = self.safe_integer_product(ticker.clone(), Value::Str("ts".to_string()), Value::Float(0.000001), &[]);
+        let mut change: Value = self.safe_string_k(ticker.clone(), "priceChg", &[]);
+        let mut percentage: Value = Value::Null;
+        if is_true(&(is_equal(&last, &Value::Null))) || is_true(&(is_equal(&change, &Value::Null))) {
+            percentage = crate::precise::Precise::stringMul(&self.safe_string_k(ticker.clone(), "priceChgPct", &[]), &Value::Str("100".to_string()));
+        }
         return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), get_value(&market, &Value::Str("symbol".to_string())));
@@ -4813,8 +4839,8 @@ impl KucoinCore {
         m.insert("close".to_string(), last.clone());
         m.insert("last".to_string(), last.clone());
         m.insert("previousClose".to_string(), Value::Null);
-        m.insert("change".to_string(), self.safe_string_k(ticker.clone(), "priceChg", &[]));
-        m.insert("percentage".to_string(), crate::precise::Precise::stringMul(&self.safe_string_k(ticker.clone(), "priceChgPct", &[]), &Value::Str("100".to_string())));
+        m.insert("change".to_string(), change.clone());
+        m.insert("percentage".to_string(), percentage.clone());
         m.insert("average".to_string(), Value::Null);
         m.insert("baseVolume".to_string(), self.safe_string_k(ticker.clone(), "volumeOf24h", &[]));
         m.insert("quoteVolume".to_string(), self.safe_string_k(ticker.clone(), "turnoverOf24h", &[]));
@@ -4907,8 +4933,8 @@ impl KucoinCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_884: bool = true;
-            while { if !__for_first_884 { i = add(&i, &Value::Int(1)); } __for_first_884 = false; is_less_than(&i, &get_array_length(&tickers)) } {
+            let mut __for_first_886: bool = true;
+            while { if !__for_first_886 { i = add(&i, &Value::Int(1)); } __for_first_886 = false; is_less_than(&i, &get_array_length(&tickers)) } {
             add_element_to_object(get_value_mut(&mut tickers, &i), &Value::Str("time".to_string()), time.clone());
             let mut ticker: Value = self.parse_spot_or_uta_ticker(get_value(&tickers, &i), &[]);
             let mut symbol: Value = self.safe_string_k(ticker.clone(), "symbol", &[]);
@@ -6818,8 +6844,8 @@ impl KucoinCore {
         let mut isContract: bool = false;
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_885: bool = true;
-            while { if !__for_first_885 { i = add(&i, &Value::Int(1)); } __for_first_885 = false; is_less_than(&i, &get_array_length(&orders)) } {
+            let mut __for_first_887: bool = true;
+            while { if !__for_first_887 { i = add(&i, &Value::Int(1)); } __for_first_887 = false; is_less_than(&i, &get_array_length(&orders)) } {
             let mut order: Value = self.safe_dict(orders.clone(), i.clone(), &[]);
             let mut symbol: Value = self.safe_string_k(order.clone(), "symbol", &[]);
             if is_equal(&symbol, &Value::Null) {
@@ -6871,8 +6897,8 @@ impl KucoinCore {
         let mut symbol: Value = Value::Null;
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_886: bool = true;
-            while { if !__for_first_886 { i = add(&i, &Value::Int(1)); } __for_first_886 = false; is_less_than(&i, &get_array_length(&orders)) } {
+            let mut __for_first_888: bool = true;
+            while { if !__for_first_888 { i = add(&i, &Value::Int(1)); } __for_first_888 = false; is_less_than(&i, &get_array_length(&orders)) } {
             let mut rawOrder: Value = get_value(&orders, &i);
             let mut rawOrder: Value = get_value(&orders, &i);
             let mut marketId: Value = self.safe_string_k(rawOrder.clone(), "symbol", &[]);
@@ -6986,8 +7012,8 @@ impl KucoinCore {
         let mut ordersRequests: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_887: bool = true;
-            while { if !__for_first_887 { i = add(&i, &Value::Int(1)); } __for_first_887 = false; is_less_than(&i, &get_array_length(&orders)) } {
+            let mut __for_first_889: bool = true;
+            while { if !__for_first_889 { i = add(&i, &Value::Int(1)); } __for_first_889 = false; is_less_than(&i, &get_array_length(&orders)) } {
             let mut rawOrder: Value = get_value(&orders, &i);
             let mut rawOrder: Value = get_value(&orders, &i);
             let mut symbol: Value = self.safe_string_k(rawOrder.clone(), "symbol", &[]);
@@ -10964,8 +10990,8 @@ impl KucoinCore {
             let mut assets: Value = self.safe_value_k(data.clone(), "assets", &[data.clone()]);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_888: bool = true;
-                while { if !__for_first_888 { i = add(&i, &Value::Int(1)); } __for_first_888 = false; is_less_than(&i, &get_array_length(&assets)) } {
+                let mut __for_first_890: bool = true;
+                while { if !__for_first_890 { i = add(&i, &Value::Int(1)); } __for_first_890 = false; is_less_than(&i, &get_array_length(&assets)) } {
                 let mut entry: Value = get_value(&assets, &i);
                 let mut entry: Value = get_value(&assets, &i);
                 let mut base: Value = self.safe_dict_k(entry.clone(), "baseAsset", &[Value::Map({
@@ -10994,8 +11020,8 @@ impl KucoinCore {
             let mut accounts: Value = self.safe_list_k(data.clone(), "accounts", &[Value::List(vec![])]);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_889: bool = true;
-                while { if !__for_first_889 { i = add(&i, &Value::Int(1)); } __for_first_889 = false; is_less_than(&i, &get_array_length(&accounts)) } {
+                let mut __for_first_891: bool = true;
+                while { if !__for_first_891 { i = add(&i, &Value::Int(1)); } __for_first_891 = false; is_less_than(&i, &get_array_length(&accounts)) } {
                 let mut balance: Value = get_value(&accounts, &i);
                 let mut balance: Value = get_value(&accounts, &i);
                 let mut currencyId: Value = self.safe_string_k(balance.clone(), "currency", &[]);
@@ -11009,8 +11035,8 @@ impl KucoinCore {
             let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_890: bool = true;
-                while { if !__for_first_890 { i = add(&i, &Value::Int(1)); } __for_first_890 = false; is_less_than(&i, &get_array_length(&data)) } {
+                let mut __for_first_892: bool = true;
+                while { if !__for_first_892 { i = add(&i, &Value::Int(1)); } __for_first_892 = false; is_less_than(&i, &get_array_length(&data)) } {
                 let mut balance: Value = get_value(&data, &i);
                 let mut balance: Value = get_value(&data, &i);
                 let mut balanceType: Value = self.safe_string_k(balance.clone(), "type", &[]);
@@ -11232,15 +11258,15 @@ impl KucoinCore {
         if is_true(&isIsolated) {
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_892: bool = true;
-                while { if !__for_first_892 { i = add(&i, &Value::Int(1)); } __for_first_892 = false; is_less_than(&i, &get_array_length(&accounts)) } {
+                let mut __for_first_894: bool = true;
+                while { if !__for_first_894 { i = add(&i, &Value::Int(1)); } __for_first_894 = false; is_less_than(&i, &get_array_length(&accounts)) } {
                 let mut entry: Value = get_value(&accounts, &i);
                 let mut entry: Value = get_value(&accounts, &i);
                 let mut currencies: Value = self.safe_list_k(entry.clone(), "currencies", &[Value::List(vec![])]);
                 {
                                         let mut j: Value = Value::Int(0);
-                    let mut __for_first_891: bool = true;
-                    while { if !__for_first_891 { j = add(&j, &Value::Int(1)); } __for_first_891 = false; is_less_than(&j, &get_array_length(&currencies)) } {
+                    let mut __for_first_893: bool = true;
+                    while { if !__for_first_893 { j = add(&j, &Value::Int(1)); } __for_first_893 = false; is_less_than(&j, &get_array_length(&currencies)) } {
                     let mut currencyEntry: Value = self.safe_dict(currencies.clone(), j.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -11262,8 +11288,8 @@ impl KucoinCore {
             let mut currencies: Value = self.safe_list_k(firstAccount.clone(), "currencies", &[Value::List(vec![])]);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_893: bool = true;
-                while { if !__for_first_893 { i = add(&i, &Value::Int(1)); } __for_first_893 = false; is_less_than(&i, &get_array_length(&currencies)) } {
+                let mut __for_first_895: bool = true;
+                while { if !__for_first_895 { i = add(&i, &Value::Int(1)); } __for_first_895 = false; is_less_than(&i, &get_array_length(&currencies)) } {
                 let mut currencyEntry: Value = self.safe_dict(currencies.clone(), i.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -12492,8 +12518,8 @@ if let Err(_try_err) = _try_result { let exc: Value = panic_to_value(_try_err);
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_894: bool = true;
-            while { if !__for_first_894 { i = add(&i, &Value::Int(1)); } __for_first_894 = false; is_less_than(&i, &get_array_length(&response)) } {
+            let mut __for_first_896: bool = true;
+            while { if !__for_first_896 { i = add(&i, &Value::Int(1)); } __for_first_896 = false; is_less_than(&i, &get_array_length(&response)) } {
             let mut item: Value = get_value(&response, &i);
             let mut item: Value = get_value(&response, &i);
             let mut code: Value = self.safe_currency_code(self.safe_string_k(item.clone(), "currency", &[]), &[]);
@@ -12511,8 +12537,8 @@ if let Err(_try_err) = _try_result { let exc: Value = panic_to_value(_try_err);
         let mut keys: Value = object_keys(&borrowRateHistories);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_895: bool = true;
-            while { if !__for_first_895 { i = add(&i, &Value::Int(1)); } __for_first_895 = false; is_less_than(&i, &get_array_length(&keys)) } {
+            let mut __for_first_897: bool = true;
+            while { if !__for_first_897 { i = add(&i, &Value::Int(1)); } __for_first_897 = false; is_less_than(&i, &get_array_length(&keys)) } {
             let mut code: Value = get_value(&keys, &i);
             let mut code: Value = get_value(&keys, &i);
             { let __be_tmp = self.filter_by_currency_since_limit(get_value(&borrowRateHistories, &code), &[code.clone(), since.clone(), limit.clone()]); add_element_to_object(&mut borrowRateHistories, &code, __be_tmp); };
@@ -13146,6 +13172,66 @@ if let Err(_try_err) = _try_result { let exc: Value = panic_to_value(_try_err);
     Value::Null
 }
 
+/*
+ * @method
+ * @name kucoin#fetchFundingRates
+ * @description fetch the current funding rates for multiple markets
+ * @see https://www.kucoin.com/docs-new/v2/rest/ua/get-current-funding
+ * @param {string[]} [symbols] unified market symbols, all markets are returned if not assigned
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.productType] filter by USDT-FUTURES, USDC-FUTURES or COIN-FUTURES
+ * @param {string} [params.symbol] exchange-specific contract id (e.g. XBTUSDTM), overrides productType when provided
+ * @returns {object} a dictionary of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-structure}, indexed by market symbols
+ */
+    pub async fn fetch_funding_rates(&mut self, optional_args: &[Value]) -> Value {
+        let mut symbols = get_arg(optional_args, 0, Value::Null);
+        let mut params = get_arg(optional_args, 1, Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}));
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
+        symbols = self.market_symbols(&[symbols.clone()]);
+        let mut response: Value = self.uta_v2_get_market_funding_rate(&[params.clone()]).await;
+        //
+        //     {
+        //         "code": "200000",
+        //         "data": [
+        //             {
+        //                 "symbol": "XBTUSDTM",
+        //                 "nextFundingRate": "-0.000004",
+        //                 "fundingTime": 1789315200000,
+        //                 "fundingRateCap": "0.003",
+        //                 "fundingRateFloor": "-0.003",
+        //                 "currentGranularity": 28800000,
+        //                 "newGranularity": 28800000,
+        //                 "newGranularityStartTime": 1750147200000
+        //             }
+        //         ]
+        //     }
+        //
+        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
+        let mut rates: Value = Value::List(vec![]);
+        {
+                        let mut i: Value = Value::Int(0);
+            let mut __for_first_898: bool = true;
+            while { if !__for_first_898 { i = add(&i, &Value::Int(1)); } __for_first_898 = false; is_less_than(&i, &get_array_length(&data)) } {
+            let mut entry: Value = get_value(&data, &i);
+            let mut entry: Value = get_value(&data, &i);
+            let mut marketId: Value = self.safe_string_k(entry.clone(), "symbol", &[]);
+            // kucoin returns funding index symbols (e.g. .ETHUSDTMFPI8H) alongside tradeable contracts
+            let mut isFundingIndex: bool = is_true(&(!is_equal(&marketId, &Value::Null))) && is_true(&(Value::Bool(starts_with(&marketId, &Value::Str(".".to_string())))));
+            if !is_true(&isFundingIndex) {
+                append_to_array(&mut rates, entry.clone());
+            }
+        }
+        }
+        return self.parse_funding_rates(rates.clone(), &[symbols.clone()]);
+
+    Value::Null
+}
+
     pub fn parse_funding_rate(&self, mut data: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         // uta
@@ -13450,8 +13536,8 @@ if let Err(_try_err) = _try_result { let exc: Value = panic_to_value(_try_err);
         let mut fees: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_896: bool = true;
-            while { if !__for_first_896 { i = add(&i, &Value::Int(1)); } __for_first_896 = false; is_less_than(&i, &get_array_length(&dataList)) } {
+            let mut __for_first_899: bool = true;
+            while { if !__for_first_899 { i = add(&i, &Value::Int(1)); } __for_first_899 = false; is_less_than(&i, &get_array_length(&dataList)) } {
             let mut listItem: Value = get_value(&dataList, &i);
             let mut listItem: Value = get_value(&dataList, &i);
             let mut timestamp: Value = self.safe_integer2(listItem.clone(), Value::Str("timePoint".to_string()), Value::Str("settlementTime".to_string()), &[]);
@@ -14010,8 +14096,8 @@ if let Err(_try_err) = _try_result { let exc: Value = panic_to_value(_try_err);
         let mut useClientorderId: bool = false;
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_897: bool = true;
-            while { if !__for_first_897 { i = add(&i, &Value::Int(1)); } __for_first_897 = false; is_less_than(&i, &get_array_length(&clientOrderIds)) } {
+            let mut __for_first_900: bool = true;
+            while { if !__for_first_900 { i = add(&i, &Value::Int(1)); } __for_first_900 = false; is_less_than(&i, &get_array_length(&clientOrderIds)) } {
             useClientorderId = true;
             if is_equal(&symbol, &Value::Null) {
                 panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" cancelOrders() requires a symbol argument when cancelling by clientOrderIds".to_string()))));
@@ -14026,8 +14112,8 @@ if let Err(_try_err) = _try_result { let exc: Value = panic_to_value(_try_err);
         }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_898: bool = true;
-            while { if !__for_first_898 { i = add(&i, &Value::Int(1)); } __for_first_898 = false; is_less_than(&i, &get_array_length(&ids)) } {
+            let mut __for_first_901: bool = true;
+            while { if !__for_first_901 { i = add(&i, &Value::Int(1)); } __for_first_901 = false; is_less_than(&i, &get_array_length(&ids)) } {
             let mut orderId: Value = get_value(&ids, &i);
             let mut orderId: Value = get_value(&ids, &i);
             if is_true(&uta) {
@@ -14632,8 +14718,8 @@ if let Err(_try_err) = _try_result { let exc: Value = panic_to_value(_try_err);
         let mut tiers: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_899: bool = true;
-            while { if !__for_first_899 { i = add(&i, &Value::Int(1)); } __for_first_899 = false; is_less_than(&i, &get_array_length(&info)) } {
+            let mut __for_first_902: bool = true;
+            while { if !__for_first_902 { i = add(&i, &Value::Int(1)); } __for_first_902 = false; is_less_than(&i, &get_array_length(&info)) } {
             let mut tier: Value = self.safe_dict(info.clone(), i.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -14732,8 +14818,8 @@ if let Err(_try_err) = _try_result { let exc: Value = panic_to_value(_try_err);
         let mut tiers: Value = self.parse_market_leverage_tiers(data.clone(), &[]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_900: bool = true;
-            while { if !__for_first_900 { i = add(&i, &Value::Int(1)); } __for_first_900 = false; is_less_than(&i, &get_array_length(&tiers)) } {
+            let mut __for_first_903: bool = true;
+            while { if !__for_first_903 { i = add(&i, &Value::Int(1)); } __for_first_903 = false; is_less_than(&i, &get_array_length(&tiers)) } {
             let mut tier: Value = self.safe_dict(tiers.clone(), i.clone(), &[]);
             let mut symbol: Value = self.safe_string_k(tier.clone(), "symbol", &[]);
             if !is_equal(&symbol, &Value::Null) {
@@ -14959,6 +15045,9 @@ if let Err(_try_err) = _try_result { let exc: Value = panic_to_value(_try_err);
         let mut version: Value = self.safe_string_k(params.clone(), "version", &[defaultVersion.clone()]);
         params = self.omit(params.clone(), Value::Str("version".to_string()), &[]);
         let mut endpoint: Value = add(&add(&add(&Value::Str("/api/".to_string()), &version), &Value::Str("/".to_string())), &self.implode_params(path.clone(), params.clone()));
+        if is_equal(&api, &Value::Str("utaV2".to_string())) {
+            endpoint = add(&Value::Str("/api/ua/v2/".to_string()), &self.implode_params(path.clone(), params.clone()));
+        }
         if is_equal(&api, &Value::Str("webExchange".to_string())) {
             endpoint = add(&Value::Str("/".to_string()), &self.implode_params(path.clone(), params.clone()));
         }

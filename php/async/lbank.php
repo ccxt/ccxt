@@ -275,23 +275,23 @@ class lbank extends Exchange {
                     'BTCTRON' => 'btctron',
                     'XRP' => 'xrp',
                     // other unusual chains with number of listed currencies supported
-                    //     'avax c-chain' => 1,
-                    //     klay => 12,
-                    //     bta => 1,
-                    //     fantom => 1,
-                    //     celo => 1,
-                    //     sol => 2,
-                    //     zenith => 1,
-                    //     ftm => 5,
-                    //     bep20 => 1, (single token with mis-named chain) SSS
-                    //     bitci => 1,
-                    //     sgb => 1,
-                    //     moonbeam => 1,
-                    //     ekta => 1,
-                    //     etl => 1,
-                    //     arbitrum => 1,
-                    //     tpc => 1,
-                    //     ptx => 1
+                    //     'avax c-chain': 1,
+                    //     klay: 12,
+                    //     bta: 1,
+                    //     fantom: 1,
+                    //     celo: 1,
+                    //     sol: 2,
+                    //     zenith: 1,
+                    //     ftm: 5,
+                    //     bep20: 1, (single token with mis-named chain) SSS
+                    //     bitci: 1,
+                    //     sgb: 1,
+                    //     moonbeam: 1,
+                    //     ekta: 1,
+                    //     etl: 1,
+                    //     arbitrum: 1,
+                    //     tpc: 1,
+                    //     ptx: 1
                     // }
                 ),
                 'networksById' => array(
@@ -360,7 +360,7 @@ class lbank extends Exchange {
                         'trailing' => false,
                         'symbolRequired' => true,
                     ),
-                    'fetchClosedOrders' => null, // todo => through fetchOrders "status" -1 => Cancelled 0 => Unfilled 1 => Partially filled 2 => Completely filled 3 => Partially filled has been cancelled 4 => Cancellation is being processed
+                    'fetchClosedOrders' => null, // todo: through fetchOrders "status" -1: Cancelled 0: Unfilled 1: Partially filled 2: Completely filled 3: Partially filled has been cancelled 4: Cancellation is being processed
                     'fetchOHLCV' => array(
                         'limit' => 2000,
                     ),
@@ -407,20 +407,20 @@ class lbank extends Exchange {
         // spot
         //
         //     {
-        //         "result" => "true",
-        //         "data" => 1691789627950,
-        //         "error_code" => 0,
-        //         "ts" => 1691789627950
+        //         "result": "true",
+        //         "data": 1691789627950,
+        //         "error_code": 0,
+        //         "ts": 1691789627950
         //     }
         //
         // swap
         //
         //     {
-        //         "data" => 1691789627950,
-        //         "error_code" => 0,
-        //         "msg" => "Success",
-        //         "result" => "true",
-        //         "success" => true
+        //         "data": 1691789627950,
+        //         "error_code": 0,
+        //         "msg": "Success",
+        //         "result": "true",
+        //         "success": true
         //     }
         //
         return $this->safe_integer($response, 'data');
@@ -439,35 +439,35 @@ class lbank extends Exchange {
         $response = Async\await($this->spotPublicGetWithdrawConfigs($params));
         //
         //    {
-        //        "msg" => "Success",
-        //        "result" => "true",
-        //        "data" => array(
-        //            array(
-        //                "amountScale" => "4",
-        //                "chain" => "bep20(bsc)",
-        //                "assetCode" => "usdt",
-        //                "min" => "10",
-        //                "transferAmtScale" => "4",
-        //                "canWithDraw" => true,
-        //                "fee" => "0.0000",
-        //                "minTransfer" => "0.0001",
-        //                "type" => "1"
-        //            ),
-        //            array(
-        //                "amountScale" => "4",
-        //                "chain" => "trc20",
-        //                "assetCode" => "usdt",
-        //                "min" => "1",
-        //                "transferAmtScale" => "4",
-        //                "canWithDraw" => true,
-        //                "fee" => "1.0000",
-        //                "minTransfer" => "0.0001",
-        //                "type" => "1"
-        //            ),
+        //        "msg": "Success",
+        //        "result": "true",
+        //        "data": [
+        //            {
+        //                "amountScale": "4",
+        //                "chain": "bep20(bsc)",
+        //                "assetCode": "usdt",
+        //                "min": "10",
+        //                "transferAmtScale": "4",
+        //                "canWithDraw": true,
+        //                "fee": "0.0000",
+        //                "minTransfer": "0.0001",
+        //                "type": "1"
+        //            },
+        //            {
+        //                "amountScale": "4",
+        //                "chain": "trc20",
+        //                "assetCode": "usdt",
+        //                "min": "1",
+        //                "transferAmtScale": "4",
+        //                "canWithDraw": true,
+        //                "fee": "1.0000",
+        //                "minTransfer": "0.0001",
+        //                "type": "1"
+        //            },
         //            ...
-        //        ),
-        //        "error_code" => "0",
-        //        "ts" => "1747973911431"
+        //        ],
+        //        "error_code": "0",
+        //        "ts": "1747973911431"
         //    }
         //
         $currenciesData = $this->safe_list($response, 'data', array());
@@ -485,7 +485,7 @@ class lbank extends Exchange {
             $networkEntry = $networksRaw[$j];
             $networkId = $this->safe_string($networkEntry, 'chain');
             if ($networkId === null) {
-                $networkId = $this->safe_string($networkEntry, 'assetCode'); // use type as fallback if $networkId is not present
+                $networkId = $this->safe_string($networkEntry, 'assetCode'); // use type as fallback if networkId is not present
             }
             $networkCode = $this->network_id_to_code($networkId, $code);
             if ($networkCode !== null) {
@@ -566,17 +566,17 @@ class lbank extends Exchange {
         $response = Async\await($this->spotPublicGetAccuracy($params));
         //
         //     {
-        //         "result" => "true",
-        //         "data" => array(
-        //             array(
-        //                 "symbol" => "btc_usdt",
-        //                 "quantityAccuracy" => "4",
-        //                 "minTranQua" => "0.0001",
-        //                 "priceAccuracy" => "2"
-        //             ),
-        //         ),
-        //         "error_code" => 0,
-        //         "ts" => 1691560288484
+        //         "result": "true",
+        //         "data": [
+        //             {
+        //                 "symbol": "btc_usdt",
+        //                 "quantityAccuracy": "4",
+        //                 "minTranQua": "0.0001",
+        //                 "priceAccuracy": "2"
+        //             },
+        //         ],
+        //         "error_code": 0,
+        //         "ts": 1691560288484
         //     }
         //
         $data = $this->safe_list($response, 'data', array());
@@ -654,30 +654,30 @@ class lbank extends Exchange {
         $response = Async\await($this->contractPublicGetCfdOpenApiV1PubInstrument($this->extend($request, $params)));
         //
         //     {
-        //         "data" => array(
-        //             array(
-        //                 "priceLimitUpperValue" => 0.2,
-        //                 "symbol" => "BTCUSDT",
-        //                 "volumeTick" => 0.0001,
-        //                 "indexPrice" => "29707.70200000",
-        //                 "minOrderVolume" => "0.0001",
-        //                 "priceTick" => 0.1,
-        //                 "maxOrderVolume" => "30.0",
-        //                 "baseCurrency" => "BTC",
-        //                 "volumeMultiple" => 1.0,
-        //                 "exchangeID" => "Exchange",
-        //                 "priceCurrency" => "USDT",
-        //                 "priceLimitLowerValue" => 0.2,
-        //                 "clearCurrency" => "USDT",
-        //                 "symbolName" => "BTCUSDT",
-        //                 "defaultLeverage" => 20.0,
-        //                 "minOrderCost" => "5.0"
-        //             ),
-        //         ),
-        //         "error_code" => 0,
-        //         "msg" => "Success",
-        //         "result" => "true",
-        //         "success" => true
+        //         "data": [
+        //             {
+        //                 "priceLimitUpperValue": 0.2,
+        //                 "symbol": "BTCUSDT",
+        //                 "volumeTick": 0.0001,
+        //                 "indexPrice": "29707.70200000",
+        //                 "minOrderVolume": "0.0001",
+        //                 "priceTick": 0.1,
+        //                 "maxOrderVolume": "30.0",
+        //                 "baseCurrency": "BTC",
+        //                 "volumeMultiple": 1.0,
+        //                 "exchangeID": "Exchange",
+        //                 "priceCurrency": "USDT",
+        //                 "priceLimitLowerValue": 0.2,
+        //                 "clearCurrency": "USDT",
+        //                 "symbolName": "BTCUSDT",
+        //                 "defaultLeverage": 20.0,
+        //                 "minOrderCost": "5.0"
+        //             },
+        //         ],
+        //         "error_code": 0,
+        //         "msg": "Success",
+        //         "result": "true",
+        //         "success": true
         //     }
         //
         $data = $this->safe_list($response, 'data', array());
@@ -732,7 +732,7 @@ class lbank extends Exchange {
                     'price' => array(
                         // priceLimitLowerValue and priceLimitUpperValue are
                         // deviation ratios around the mark price, observed live
-                        // near 0.2 on nearly every $symbol and asymmetric on some,
+                        // near 0.2 on nearly every symbol and asymmetric on some,
                         // they are not absolute price bounds so they stay in info
                         'min' => null,
                         'max' => null,
@@ -751,34 +751,34 @@ class lbank extends Exchange {
 
     public function parse_ticker(array $ticker, ?array $market = null): array {
         //
-        // spot => fetchTicker, fetchTickers
+        // spot: fetchTicker, fetchTickers
         //
         //     {
-        //         "symbol" => "btc_usdt",
-        //         "ticker" => array(
-        //             "high" => "29695.57",
-        //             "vol" => "6890.2789",
-        //             "low" => "29110",
-        //             "change" => "0.58",
-        //             "turnover" => "202769821.06",
-        //             "latest" => "29405.98"
-        //         ),
-        //         "timestamp" => :1692064274908
+        //         "symbol": "btc_usdt",
+        //         "ticker": {
+        //             "high": "29695.57",
+        //             "vol": "6890.2789",
+        //             "low": "29110",
+        //             "change": "0.58",
+        //             "turnover": "202769821.06",
+        //             "latest": "29405.98"
+        //         },
+        //         "timestamp": :1692064274908
         //     }
         //
-        // swap => fetchTickers
+        // swap: fetchTickers
         //
         //     {
-        //         "lastTime" => 1784884932,
-        //         "prePositionFeeRate" => "0.000053",
-        //         "volume" => "2435.459",
-        //         "symbol" => "BTCUSDT",
-        //         "highestPrice" => "29446.5",
-        //         "lowestPrice" => "29362.9",
-        //         "openPrice" => "29419.5",
-        //         "markedPrice" => "29385.1",
-        //         "turnover" => "36345526.2438402",
-        //         "lastPrice" => "29387.0"
+        //         "lastTime": 1784884932,
+        //         "prePositionFeeRate": "0.000053",
+        //         "volume": "2435.459",
+        //         "symbol": "BTCUSDT",
+        //         "highestPrice": "29446.5",
+        //         "lowestPrice": "29362.9",
+        //         "openPrice": "29419.5",
+        //         "markedPrice": "29385.1",
+        //         "turnover": "36345526.2438402",
+        //         "lastPrice": "29387.0"
         //     }
         //
         $timestamp = $this->safe_integer($ticker, 'timestamp');
@@ -842,23 +842,23 @@ class lbank extends Exchange {
         $response = Async\await($this->spotPublicGetTicker24hr($this->extend($request, $params)));
         //
         //     {
-        //         "result" => "true",
-        //         "data" => array(
+        //         "result": "true",
+        //         "data": [
         //             {
-        //                 "symbol" => "btc_usdt",
-        //                 "ticker" => array(
-        //                     "high" => "29695.57",
-        //                     "vol" => "6890.2789",
-        //                     "low" => "29110",
-        //                     "change" => "0.58",
-        //                     "turnover" => "202769821.06",
-        //                     "latest" => "29405.98"
-        //                 ),
-        //                 "timestamp" => :1692064274908
+        //                 "symbol": "btc_usdt",
+        //                 "ticker": {
+        //                     "high": "29695.57",
+        //                     "vol": "6890.2789",
+        //                     "low": "29110",
+        //                     "change": "0.58",
+        //                     "turnover": "202769821.06",
+        //                     "latest": "29405.98"
+        //                 },
+        //                 "timestamp": :1692064274908
         //             }
-        //         ),
-        //         "error_code" => 0,
-        //         "ts" => :1692064276872
+        //         ],
+        //         "error_code": 0,
+        //         "ts": :1692064276872
         //     }
         //
         $data = $this->safe_value($response, 'data', array());
@@ -906,45 +906,45 @@ class lbank extends Exchange {
         // spot
         //
         //     {
-        //         "result" => "true",
-        //         "data" => array(
+        //         "result": "true",
+        //         "data": [
         //             {
-        //                 "symbol" => "btc_usdt",
-        //                 "ticker" => array(
-        //                     "high" => "29695.57",
-        //                     "vol" => "6890.2789",
-        //                     "low" => "29110",
-        //                     "change" => "0.58",
-        //                     "turnover" => "202769821.06",
-        //                     "latest" => "29405.98"
-        //                 ),
-        //                 "timestamp" => :1692064274908
+        //                 "symbol": "btc_usdt",
+        //                 "ticker": {
+        //                     "high": "29695.57",
+        //                     "vol": "6890.2789",
+        //                     "low": "29110",
+        //                     "change": "0.58",
+        //                     "turnover": "202769821.06",
+        //                     "latest": "29405.98"
+        //                 },
+        //                 "timestamp": :1692064274908
         //             }
-        //         ),
-        //         "error_code" => 0,
-        //         "ts" => :1692064276872
+        //         ],
+        //         "error_code": 0,
+        //         "ts": :1692064276872
         //     }
         //
         // swap
         //
         //     {
-        //         "data" => array(
-        //             array(
-        //                 "prePositionFeeRate" => "0.000053",
-        //                 "volume" => "2435.459",
-        //                 "symbol" => "BTCUSDT",
-        //                 "highestPrice" => "29446.5",
-        //                 "lowestPrice" => "29362.9",
-        //                 "openPrice" => "29419.5",
-        //                 "markedPrice" => "29385.1",
-        //                 "turnover" => "36345526.2438402",
-        //                 "lastPrice" => "29387.0"
-        //             ),
-        //         ),
-        //         "error_code" => 0,
-        //         "msg" => "Success",
-        //         "result" => "true",
-        //         "success" => true
+        //         "data": [
+        //             {
+        //                 "prePositionFeeRate": "0.000053",
+        //                 "volume": "2435.459",
+        //                 "symbol": "BTCUSDT",
+        //                 "highestPrice": "29446.5",
+        //                 "lowestPrice": "29362.9",
+        //                 "openPrice": "29419.5",
+        //                 "markedPrice": "29385.1",
+        //                 "turnover": "36345526.2438402",
+        //                 "lastPrice": "29387.0"
+        //             },
+        //         ],
+        //         "error_code": 0,
+        //         "msg": "Success",
+        //         "result": "true",
+        //         "success": true
         //     }
         //
         $data = $this->safe_list($response, 'data', array());
@@ -990,48 +990,48 @@ class lbank extends Exchange {
         // spot
         //
         //     {
-        //         "result" => "true",
-        //         "data" => array(
-        //             "asks" => array(
+        //         "result": "true",
+        //         "data": {
+        //             "asks": [
         //                 ["29243.37", "2.8783"],
         //                 ["29243.39", "2.2842"],
         //                 ["29243.4", "0.0337"]
-        //             ),
-        //             "bids" => array(
+        //             ],
+        //             "bids": [
         //                 ["29243.36", "1.5258"],
         //                 ["29243.34", "0.8218"],
         //                 ["29243.28", "1.285"]
-        //             ),
-        //             "timestamp" => :1692157328820
-        //         ),
-        //         "error_code" => 0,
-        //         "ts" => :1692157328820
+        //             ],
+        //             "timestamp": :1692157328820
+        //         },
+        //         "error_code": 0,
+        //         "ts": :1692157328820
         //     }
         //
         // swap
         //
         //     {
-        //         "data" => array(
-        //             "symbol" => "BTCUSDT",
-        //             "asks" => array(
-        //                 array(
-        //                     "volume" => "14.6535",
-        //                     "price" => "29234.2",
-        //                     "orders" => "1"
-        //                 ),
-        //             ),
-        //             "bids" => array(
-        //                 array(
-        //                     "volume" => "13.4899",
-        //                     "price" => "29234.1",
-        //                     "orders" => "4"
-        //                 ),
-        //             )
-        //         ),
-        //         "error_code" => 0,
-        //         "msg" => "Success",
-        //         "result" => "true",
-        //         "success" => true
+        //         "data": {
+        //             "symbol": "BTCUSDT",
+        //             "asks": [
+        //                 {
+        //                     "volume": "14.6535",
+        //                     "price": "29234.2",
+        //                     "orders": "1"
+        //                 },
+        //             ],
+        //             "bids": [
+        //                 {
+        //                     "volume": "13.4899",
+        //                     "price": "29234.1",
+        //                     "orders": "4"
+        //                 },
+        //             ]
+        //         },
+        //         "error_code": 0,
+        //         "msg": "Success",
+        //         "result": "true",
+        //         "success": true
         //     }
         //
         $orderbook = $this->safe_value($response, 'data', array());
@@ -1190,7 +1190,7 @@ class lbank extends Exchange {
         //
         //      {
         //          "result":"true",
-        //          "data" => array(
+        //          "data": [
         //              {
         //                  "date_ms":1647021989789,
         //                  "amount":0.0028,
@@ -1198,7 +1198,7 @@ class lbank extends Exchange {
         //                  "type":"buy",
         //                  "tid":"52d5616ee35c43019edddebe59b3e094"
         //               }
-        //           ),
+        //           ],
         //           "error_code":0,
         //           "ts":1647021999308
         //      }
@@ -1209,14 +1209,14 @@ class lbank extends Exchange {
 
     public function parse_ohlcv(mixed $ohlcv, ?array $market = null): array {
         //
-        //   array(
+        //   [
         //     1482311500, // timestamp
         //     5423.23,    // open
         //     5472.80,    // high
         //     5516.09,    // low
         //     5462,       // close
         //     234.3250    // volume
-        //   ),
+        //   ],
         //
         return array(
             $this->safe_timestamp($ohlcv, 0), // timestamp
@@ -1271,24 +1271,24 @@ class lbank extends Exchange {
         $ohlcvs = $this->safe_list($response, 'data', array());
         //
         //
-        // array(
-        //   array(
+        // [
+        //   [
         //     1482311500,
         //     5423.23,
         //     5472.80,
         //     5516.09,
         //     5462,
         //     234.3250
-        //   ),
-        //   array(
+        //   ],
+        //   [
         //     1482311400,
         //     5432.52,
         //     5459.87,
         //     5414.30,
         //     5428.23,
         //     213.7329
-        //   )
-        // )
+        //   ]
+        // ]
         //
         return $this->parse_ohlcvs($ohlcvs, $market, $timeframe, $since, $limit);
     }
@@ -1298,48 +1298,48 @@ class lbank extends Exchange {
         // spotPrivatePostUserInfo
         //
         //      {
-        //          "toBtc" => array(
-        //              "egc:" => "0",
-        //              "iog" => "0",
-        //              "ksm" => "0",
-        //              ),
-        //          "freeze" => array(
-        //              "egc" => "0",
-        //              "iog" => "0",
-        //              "ksm" => "0" ,
-        //              ),
-        //          "asset" => array(
-        //              "egc" => "0",
-        //              "iog" => "0",
-        //              "ksm" => "0",
-        //              ),
-        //          "free" => {
-        //              "egc" => "0",
-        //              "iog" => "0",
-        //              "ksm" => "0",
+        //          "toBtc": {
+        //              "egc:": "0",
+        //              "iog": "0",
+        //              "ksm": "0",
+        //              },
+        //          "freeze": {
+        //              "egc": "0",
+        //              "iog": "0",
+        //              "ksm": "0" ,
+        //              },
+        //          "asset": {
+        //              "egc": "0",
+        //              "iog": "0",
+        //              "ksm": "0",
+        //              },
+        //          "free": {
+        //              "egc": "0",
+        //              "iog": "0",
+        //              "ksm": "0",
         //              }
         //      }
         //
         // spotPrivatePostSupplementUserInfoAccount
         //
         //      {
-        //          "balances":array(
-        //              array(
+        //          "balances":[
+        //              {
         //                  "asset":"lbk",
         //                  "free":"0",
         //                  "locked":"0"
-        //              ), ...
-        //          )
+        //              }, ...
+        //          ]
         //      }
         //
         // spotPrivatePostSupplementUserInfo
         //
-        //      array(
+        //      [
         //          {
         //              "usableAmt":"31.45130723",
         //              "assetAmt":"31.45130723",
-        //              "networkList":array(
-        //                  array(
+        //              "networkList":[
+        //                  {
         //                      "isDefault":true,
         //                      "withdrawFeeRate":"",
         //                      "name":"bep20(bsc)",
@@ -1351,8 +1351,8 @@ class lbank extends Exchange {
         //                      "type":1,
         //                      "coin":"doge",
         //                      "network":"bsc"
-        //                  ),
-        //                  array(
+        //                  },
+        //                  {
         //                      "isDefault":false,
         //                      "withdrawFeeRate":"",
         //                      "name":"dogecoin",
@@ -1365,11 +1365,11 @@ class lbank extends Exchange {
         //                      "coin":"doge",
         //                      "network":"dogecoin"
         //                  }
-        //              ),
+        //              ],
         //              "freezeAmt":"0",
         //              "coin":"doge"
-        //          ), ...
-        //      )
+        //          }, ...
+        //      ]
         //
         $timestamp = $this->safe_integer($response, 'ts');
         $result = array(
@@ -1433,19 +1433,19 @@ class lbank extends Exchange {
 
     public function parse_funding_rate(mixed $ticker, ?array $market = null): array {
         // {
-        //     "symbol" => "BTCUSDT",
-        //     "highestPrice" => "69495.5",
-        //     "underlyingPrice" => "68455.904",
-        //     "lowestPrice" => "68182.1",
-        //     "openPrice" => "68762.4",
-        //     "positionFeeRate" => "0.0001",
-        //     "volume" => "33534.2858",
-        //     "markedPrice" => "68434.1",
-        //     "turnover" => "1200636218.210558",
-        //     "positionFeeTime" => "28800",
-        //     "lastPrice" => "68427.3",
-        //     "nextFeeTime" => "1730736000000",
-        //     "fundingRate" => "0.0001",
+        //     "symbol": "BTCUSDT",
+        //     "highestPrice": "69495.5",
+        //     "underlyingPrice": "68455.904",
+        //     "lowestPrice": "68182.1",
+        //     "openPrice": "68762.4",
+        //     "positionFeeRate": "0.0001",
+        //     "volume": "33534.2858",
+        //     "markedPrice": "68434.1",
+        //     "turnover": "1200636218.210558",
+        //     "positionFeeTime": "28800",
+        //     "lastPrice": "68427.3",
+        //     "nextFeeTime": "1730736000000",
+        //     "fundingRate": "0.0001",
         // }
         $marketId = $this->safe_string($ticker, 'symbol');
         $symbol = $this->safe_symbol($marketId, $market);
@@ -1524,27 +1524,27 @@ class lbank extends Exchange {
         );
         $response = Async\await($this->contractPublicGetCfdOpenApiV1PubMarketData($this->extend($request, $params)));
         // {
-        //     "data" => array(
+        //     "data": [
         //         {
-        //             "symbol" => "BTCUSDT",
-        //             "highestPrice" => "69495.5",
-        //             "underlyingPrice" => "68455.904",
-        //             "lowestPrice" => "68182.1",
-        //             "openPrice" => "68762.4",
-        //             "positionFeeRate" => "0.0001",
-        //             "volume" => "33534.2858",
-        //             "markedPrice" => "68434.1",
-        //             "turnover" => "1200636218.210558",
-        //             "positionFeeTime" => "28800",
-        //             "lastPrice" => "68427.3",
-        //             "nextFeeTime" => "1730736000000",
-        //             "fundingRate" => "0.0001",
+        //             "symbol": "BTCUSDT",
+        //             "highestPrice": "69495.5",
+        //             "underlyingPrice": "68455.904",
+        //             "lowestPrice": "68182.1",
+        //             "openPrice": "68762.4",
+        //             "positionFeeRate": "0.0001",
+        //             "volume": "33534.2858",
+        //             "markedPrice": "68434.1",
+        //             "turnover": "1200636218.210558",
+        //             "positionFeeTime": "28800",
+        //             "lastPrice": "68427.3",
+        //             "nextFeeTime": "1730736000000",
+        //             "fundingRate": "0.0001",
         //         }
-        //     ),
-        //     "error_code" => "0",
-        //     "msg" => "Success",
-        //     "result" => "true",
-        //     "success" => True,
+        //     ],
+        //     "error_code": "0",
+        //     "msg": "Success",
+        //     "result": "true",
+        //     "success": True,
         // }
         $data = $this->safe_list($response, 'data', array());
         return $this->parse_funding_rates($data, $symbols);
@@ -1580,32 +1580,32 @@ class lbank extends Exchange {
         }
         //
         //    {
-        //        "result" => "true",
-        //        "data" => array(
+        //        "result": "true",
+        //        "data": [
         //            {
-        //                "usableAmt" => "14.36",
-        //                "assetAmt" => "14.36",
-        //                "networkList" => array(
-        //                    array(
-        //                        "isDefault" => false,
-        //                        "withdrawFeeRate" => "",
-        //                        "name" => "erc20",
-        //                        "withdrawMin" => 30,
-        //                        "minLimit" => 0.0001,
-        //                        "minDeposit" => 20,
-        //                        "feeAssetCode" => "usdt",
-        //                        "withdrawFee" => "30",
-        //                        "type" => 1,
-        //                        "coin" => "usdt",
-        //                        "network" => "eth"
-        //                    ),
+        //                "usableAmt": "14.36",
+        //                "assetAmt": "14.36",
+        //                "networkList": [
+        //                    {
+        //                        "isDefault": false,
+        //                        "withdrawFeeRate": "",
+        //                        "name": "erc20",
+        //                        "withdrawMin": 30,
+        //                        "minLimit": 0.0001,
+        //                        "minDeposit": 20,
+        //                        "feeAssetCode": "usdt",
+        //                        "withdrawFee": "30",
+        //                        "type": 1,
+        //                        "coin": "usdt",
+        //                        "network": "eth"
+        //                    },
         //                    ...
-        //                ),
-        //                "freezeAmt" => "0",
-        //                "coin" => "ada"
+        //                ],
+        //                "freezeAmt": "0",
+        //                "coin": "ada"
         //            }
-        //        ),
-        //        "code" => 0
+        //        ],
+        //        "code": 0
         //    }
         //
         $balanceResponse = ($response === null) ? array() : $response;
@@ -1782,7 +1782,7 @@ class lbank extends Exchange {
                 } else {
                     $quoteAmount = $this->cost_to_precision($symbol, $amount);
                 }
-                // $market buys require filling the $price param instead of the $amount param, for $market buys the $price is treated as the $cost by lbank
+                // market buys require filling the price param instead of the amount param, for market buys the price is treated as the cost by lbank
                 $request['price'] = $quoteAmount;
             }
         }
@@ -1801,10 +1801,10 @@ class lbank extends Exchange {
         //
         //      {
         //          "result":true,
-        //          "data":array(
+        //          "data":{
         //              "symbol":"doge_usdt",
         //              "order_id":"0cf8a3de-4597-4296-af45-be7abaa06b07"
-        //              ),
+        //              },
         //          "error_code":0,
         //          "ts":1648162321043
         //      }
@@ -1858,7 +1858,7 @@ class lbank extends Exchange {
         //          "avg_price":0.00002466180000000104,
         //          "type":"buy_market",
         //          "order_id":"abe8b92d-86d9-4d6d-b71e-d14f5fb53ddf",
-        //          "custom_id" => "007",                                 // field only present if user creates it at $order time
+        //          "custom_id": "007",                                 // field only present if user creates it at order time
         //          "deal_amount":40548.54065802,
         //          "status":2
         //      }
@@ -1928,7 +1928,7 @@ class lbank extends Exchange {
         $rawType = $this->safe_string_2($order, 'type', 'tradeType'); // buy, sell, buy_market, sell_market, buy_maker,sell_maker,buy_ioc,sell_ioc, buy_fok, sell_fok
         $parts = explode('_', $rawType);
         $side = $this->safe_string($parts, 0);
-        $typePart = $this->safe_string($parts, 1); // $market, maker, ioc, fok or null (limit)
+        $typePart = $this->safe_string($parts, 1); // market, maker, ioc, fok or undefined (limit)
         if ($typePart === 'market') {
             $type = 'market';
         }
@@ -2024,7 +2024,7 @@ class lbank extends Exchange {
         //
         //      {
         //          "result":true,
-        //          "data":array(
+        //          "data":{
         //              "cummulativeQuoteQty":0,
         //              "symbol":"doge_usdt",
         //              "executedQty":0,
@@ -2037,7 +2037,7 @@ class lbank extends Exchange {
         //              "time":1648163139387,
         //              "type":"buy_maker",
         //              "status":-1
-        //              ),
+        //              },
         //          "error_code":0,
         //          "ts":1648164471827
         //      }
@@ -2067,7 +2067,7 @@ class lbank extends Exchange {
         //
         //      {
         //          "result":true,
-        //          "data":array(
+        //          "data":[
         //              {
         //                  "symbol":"doge_usdt",
         //                  "amount":18,
@@ -2079,7 +2079,7 @@ class lbank extends Exchange {
         //                  "deal_amount":18,
         //                  "status":2
         //                }
-        //            ),
+        //            ],
         //          "error_code":0,
         //          "ts":1647455270776
         //      }
@@ -2089,12 +2089,12 @@ class lbank extends Exchange {
         if ($numOrders === 1) {
             return $this->parse_order($result[0]);
         } else {
-            // $parsedOrders = array();
-            // for ($i = 0; $i < $numOrders; $i++) {
-            //     $parsedOrder = $this->parse_order($result[$i]);
-            //     $parsedOrders[] = $parsedOrder;
+            // const parsedOrders = [];
+            // for (let i = 0; i < numOrders; i++) {
+            //     const parsedOrder = this.parseOrder (result[i]);
+            //     parsedOrders.push (parsedOrder);
             // }
-            // return $parsedOrders;
+            // return parsedOrders;
             throw new BadRequest($this->id . ' fetchOrder() can only fetch one order at a time');
         }
     }
@@ -2128,7 +2128,7 @@ class lbank extends Exchange {
             'symbol' => $market['id'],
             // 'start_date' Start time yyyy-mm-dd, the maximum is today, the default is yesterday
             // 'end_date' Finish time yyyy-mm-dd, the maximum is today, the default is today
-            // 'The start' => and end date of the query window is up to 2 days
+            // 'The start': and end date of the query window is up to 2 days
             // 'from' Initial transaction number inquiring
             // 'direct' inquire direction,The default is the 'next' which is the positive sequence of dealing time，the 'prev' is inverted order of dealing time
             // 'size' Query the number of defaults to 100
@@ -2144,7 +2144,7 @@ class lbank extends Exchange {
         //
         //      {
         //          "result":true,
-        //          "data":array(
+        //          "data":[
         //              {
         //                  "orderUuid":"38b4e7a4-14f6-45fd-aba1-1a37024124a0",
         //                  "tradeFeeRate":0.0010000000,
@@ -2156,7 +2156,7 @@ class lbank extends Exchange {
         //                  "dealVolumePrice":4.53339000000000000000,
         //                  "tradeType":"sell_market"
         //              }
-        //          ),
+        //          ],
         //          "error_code":0,
         //          "ts":1648509742164
         //      }
@@ -2181,8 +2181,8 @@ class lbank extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
-        // default query is for canceled and completely filled $orders
-        // does not return open $orders unless specified explicitly
+        // default query is for canceled and completely filled orders
+        // does not return open orders unless specified explicitly
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchOrders() requires a $symbol argument');
         }
@@ -2197,17 +2197,17 @@ class lbank extends Exchange {
             'symbol' => $market['id'],
             'current_page' => 1,
             'page_length' => $limit,
-            // 'status'  -1 => Cancelled, 0 => Unfilled, 1 => Partially filled, 2 => Completely filled, 3 => Partially filled and cancelled, 4 => Cancellation is being processed
+            // 'status'  -1: Cancelled, 0: Unfilled, 1: Partially filled, 2: Completely filled, 3: Partially filled and cancelled, 4: Cancellation is being processed
         );
         $response = Async\await($this->spotPrivatePostSupplementOrdersInfoHistory($this->extend($request, $params)));
         //
         //      {
         //          "result":true,
-        //          "data":array(
+        //          "data":{
         //              "total":1,
         //              "page_length":100,
-        //              "orders":array(
-        //                  array(
+        //              "orders":[
+        //                  {
         //                      "cummulativeQuoteQty":0,
         //                      "symbol":"doge_usdt",
         //                      "executedQty":0,
@@ -2219,10 +2219,10 @@ class lbank extends Exchange {
         //                      "time":1648501363889,
         //                      "type":"buy",
         //                      "status":-1
-        //                  ), ...
-        //              ),
+        //                  }, ...
+        //              ],
         //              "current_page":1
-        //          ),
+        //          },
         //          "error_code":0,
         //          "ts":1648505706348
         //      }
@@ -2267,11 +2267,11 @@ class lbank extends Exchange {
         //
         //      {
         //          "result":true,
-        //          "data":array(
+        //          "data":{
         //              "total":1,
         //              "page_length":100,
-        //              "orders":array(
-        //                  array(
+        //              "orders":[
+        //                  {
         //                      "cummulativeQuoteQty":0,
         //                      "symbol":"doge_usdt",
         //                      "executedQty":0,
@@ -2283,10 +2283,10 @@ class lbank extends Exchange {
         //                      "time":1648501762353,
         //                      "type":"buy",
         //                      "status":0
-        //                  ), ...
-        //             ),
+        //                  }, ...
+        //             ],
         //             "current_page":1
-        //         ),
+        //         },
         //         "error_code":0,
         //         "ts":1648506110196
         //     }
@@ -2331,13 +2331,13 @@ class lbank extends Exchange {
         //
         //   {
         //      "result":true,
-        //      "data":array(
+        //      "data":{
         //          "executedQty":0.0,
         //          "price":0.05,
         //          "origQty":100.0,
         //          "tradeType":"buy",
         //          "status":0
-        //      ),
+        //      },
         //      "error_code":0,
         //      "ts":1648501286196
         //  }
@@ -2373,16 +2373,16 @@ class lbank extends Exchange {
         //
         //      {
         //          "result":"true",
-        //          "data":array(
-        //              array(
+        //          "data":[
+        //              {
         //                  "executedQty":0.00000000000000000000,
         //                  "orderId":"293ef71b-3e67-4962-af93-aa06990a045f",
         //                  "price":0.05000000000000000000,
         //                  "origQty":100.00000000000000000000,
         //                  "tradeType":"buy",
         //                  "status":0
-        //              ),
-        //          ),
+        //              },
+        //          ],
         //          "error_code":0,
         //          "ts":1648506641468
         //      }
@@ -2451,12 +2451,12 @@ class lbank extends Exchange {
         //
         //      {
         //          "result":true,
-        //          "data":array(
+        //          "data":{
         //              "assetCode":"usdt",
         //              "address":"0xc85689d37ca650bf2f2161364cdedee21eb6ca53",
         //              "memo":null,
         //              "netWork":"bep20(bsc)"
-        //              ),
+        //              },
         //          "error_code":0,
         //          "ts":1648075865103
         //      }
@@ -2478,7 +2478,7 @@ class lbank extends Exchange {
     }
 
     private function do_fetch_deposit_address_supplement(string $code, $params = array()) {
-        // returns the $address for whatever the default $network is...
+        // returns the address for whatever the default network is...
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
@@ -2497,11 +2497,11 @@ class lbank extends Exchange {
         //
         //      {
         //          "result":true,
-        //          "data":array(
+        //          "data":{
         //              "address":"TDxtabCC8iQwaxUUrPcE4WL2jArGAfvQ5A",
         //              "memo":null,
         //              "coin":"usdt"
-        //              ),
+        //              },
         //          "error_code":0,
         //          "ts":1648073818880
         //     }
@@ -2542,20 +2542,20 @@ class lbank extends Exchange {
         }
         $fee = $this->safe_string($params, 'fee');
         $params = $this->omit($params, 'fee');
-        // The relevant coin $network $fee can be found by calling fetchDepositWithdrawFees (), note => if no $network param is supplied then the default $network will be used, this can also be found in fetchDepositWithdrawFees ().
+        // The relevant coin network fee can be found by calling fetchDepositWithdrawFees (), note: if no network param is supplied then the default network will be used, this can also be found in fetchDepositWithdrawFees ().
         $this->check_required_argument('withdraw', $fee, 'fee');
         $currency = $this->currency($code);
         $request = array(
             'address' => $address,
             'coin' => $currency['id'],
             'amount' => $amount,
-            'fee' => $fee, // the correct coin-$network $fee must be supplied, which can be found by calling fetchDepositWithdrawFees (private)
-            // 'networkName' => defaults to the defaultNetwork of the coin which can be found in the /supplement/user_info endpoint
-            // 'memo' => memo => memo word of bts and dct
-            // 'mark' => Withdrawal Notes
-            // 'name' => Remarks of the $address-> After property_exists($this, filling) parameter, it will be added to the withdrawal $address book of the $currency->
-            // 'withdrawOrderId' => withdrawOrderId
-            // 'type' => type=1 is for intra-site transfer
+            'fee' => $fee, // the correct coin-network fee must be supplied, which can be found by calling fetchDepositWithdrawFees (private)
+            // 'networkName': defaults to the defaultNetwork of the coin which can be found in the /supplement/user_info endpoint
+            // 'memo': memo: memo word of bts and dct
+            // 'mark': Withdrawal Notes
+            // 'name': Remarks of the address. After filling in this parameter, it will be added to the withdrawal address book of the currency.
+            // 'withdrawOrderId': withdrawOrderId
+            // 'type': type=1 is for intra-site transfer
         );
         if ($tag !== null) {
             $request['memo'] = $tag;
@@ -2571,10 +2571,10 @@ class lbank extends Exchange {
         //
         //      {
         //          "result":true,
-        //          "data" => array(
+        //          "data": {
         //              "fee":10.00000000000000000000,
         //              "withdrawId":1900377
-        //              ),
+        //              },
         //          "error_code":0,
         //          "ts":1648992501414
         //      }
@@ -2708,8 +2708,8 @@ class lbank extends Exchange {
             Async\await($this->load_markets());
         }
         $request = array(
-            // 'status' => Recharge status => ("1","Applying"),("2","Recharge successful"),("3","Recharge failed"),("4","Already Cancel"), ("5", "Transfer")
-            // 'endTime' => end time, timestamp in milliseconds, default now
+            // 'status': Recharge status: ("1","Applying"),("2","Recharge successful"),("3","Recharge failed"),("4","Already Cancel"), ("5", "Transfer")
+            // 'endTime': end time, timestamp in milliseconds, default now
         );
         $currency = null;
         if ($code !== null) {
@@ -2723,10 +2723,10 @@ class lbank extends Exchange {
         //
         //      {
         //          "result":true,
-        //          "data" => array(
+        //          "data": {
         //              "total":1,
-        //              "depositOrders" => array(
-        //                  array(
+        //              "depositOrders": [
+        //                  {
         //                      "insertTime":1649012310000,
         //                      "amount":9.00000000000000000000,
         //                      "address":"TYASr5UV6HEcXatwdFQfmLVUqQQQMUxHLS",
@@ -2734,11 +2734,11 @@ class lbank extends Exchange {
         //                      "txId":"081e4e9351dd0274922168da5f2d14ea6c495b1c3b440244f4a6dd9fe196bf2b",
         //                      "coin":"usdt",
         //                      "status":"2"
-        //                  ),
-        //              ),
+        //                  },
+        //              ],
         //              "page_length":20,
         //              "current_page":1
-        //          ),
+        //          },
         //          "error_code":0,
         //          "ts":1649719721758
         //      }
@@ -2768,9 +2768,9 @@ class lbank extends Exchange {
             Async\await($this->load_markets());
         }
         $request = array(
-            // 'status' => Recharge status => ("1","Applying"),("2","Recharge successful"),("3","Recharge failed"),("4","Already Cancel"), ("5", "Transfer")
-            // 'endTime' => end time, timestamp in milliseconds, default now
-            // 'withdrawOrderId' => Custom withdrawal id
+            // 'status': Recharge status: ("1","Applying"),("2","Recharge successful"),("3","Recharge failed"),("4","Already Cancel"), ("5", "Transfer")
+            // 'endTime': end time, timestamp in milliseconds, default now
+            // 'withdrawOrderId': Custom withdrawal id
         );
         $currency = null;
         if ($code !== null) {
@@ -2784,10 +2784,10 @@ class lbank extends Exchange {
         //
         //      {
         //          "result":true,
-        //          "data" => array(
+        //          "data": {
         //              "total":1,
-        //              "withdraws" => array(
-        //                  array(
+        //              "withdraws": [
+        //                  {
         //                      "amount":2.00000000000000000000,
         //                      "address":"TBjrW5JHDyPZjFc5nrRMhRWUDaJmhGhmD6",
         //                      "fee":1.00000000000000000000,
@@ -2798,11 +2798,11 @@ class lbank extends Exchange {
         //                      "id":1902194,
         //                      "applyTime":1649014002000,
         //                      "status":"4"
-        //                  ),
-        //              ),
+        //                  },
+        //              ],
         //              "page_length":20,
         //              "current_page":1
-        //          ),
+        //          },
         //          "error_code":0,
         //          "ts":1649720362362
         //      }
@@ -2850,40 +2850,40 @@ class lbank extends Exchange {
     }
 
     private function do_fetch_private_transaction_fees($params = array()) {
-        // complete $response
-        // incl. for coins which null in public method
+        // complete response
+        // incl. for coins which undefined in public method
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
         $response = Async\await($this->spotPrivatePostSupplementUserInfo());
         //
         //    {
-        //        "result" => "true",
-        //        "data" => array(
+        //        "result": "true",
+        //        "data": [
         //            {
-        //                "usableAmt" => "14.36",
-        //                "assetAmt" => "14.36",
-        //                "networkList" => array(
-        //                    array(
-        //                        "isDefault" => false,
-        //                        "withdrawFeeRate" => "",
-        //                        "name" => "erc20",
-        //                        "withdrawMin" => 30,
-        //                        "minLimit" => 0.0001,
-        //                        "minDeposit" => 20,
-        //                        "feeAssetCode" => "usdt",
-        //                        "withdrawFee" => "30",
-        //                        "type" => 1,
-        //                        "coin" => "usdt",
-        //                        "network" => "eth"
-        //                    ),
+        //                "usableAmt": "14.36",
+        //                "assetAmt": "14.36",
+        //                "networkList": [
+        //                    {
+        //                        "isDefault": false,
+        //                        "withdrawFeeRate": "",
+        //                        "name": "erc20",
+        //                        "withdrawMin": 30,
+        //                        "minLimit": 0.0001,
+        //                        "minDeposit": 20,
+        //                        "feeAssetCode": "usdt",
+        //                        "withdrawFee": "30",
+        //                        "type": 1,
+        //                        "coin": "usdt",
+        //                        "network": "eth"
+        //                    },
         //                    ...
-        //                ),
-        //                "freezeAmt" => "0",
-        //                "coin" => "ada"
+        //                ],
+        //                "freezeAmt": "0",
+        //                "coin": "ada"
         //            }
-        //        ),
-        //        "code" => 0
+        //        ],
+        //        "code": 0
         //    }
         //
         $result = $this->safe_list($response, 'data', array());
@@ -2921,8 +2921,8 @@ class lbank extends Exchange {
     }
 
     private function do_fetch_public_transaction_fees($params = array()) {
-        // extremely incomplete $response
-        // vast majority fees null
+        // extremely incomplete response
+        // vast majority fees undefined
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
@@ -2936,23 +2936,23 @@ class lbank extends Exchange {
         $response = Async\await($this->spotPublicGetWithdrawConfigs($this->extend($request, $params)));
         //
         //    {
-        //        "result" => "true",
-        //        "data" => array(
-        //          array(
-        //            "amountScale" => "4",
-        //            "chain" => "heco",
-        //            "assetCode" => "lbk",
-        //            "min" => "200",
-        //            "transferAmtScale" => "4",
-        //            "canWithDraw" => true,
-        //            "fee" => "100",
-        //            "minTransfer" => "0.0001",
-        //            "type" => "1"
-        //          ),
+        //        "result": "true",
+        //        "data": [
+        //          {
+        //            "amountScale": "4",
+        //            "chain": "heco",
+        //            "assetCode": "lbk",
+        //            "min": "200",
+        //            "transferAmtScale": "4",
+        //            "canWithDraw": true,
+        //            "fee": "100",
+        //            "minTransfer": "0.0001",
+        //            "type": "1"
+        //          },
         //          ...
-        //        ),
-        //        "error_code" => "0",
-        //        "ts" => "1663364435973"
+        //        ],
+        //        "error_code": "0",
+        //        "ts": "1663364435973"
         //    }
         //
         $result = $this->safe_list($response, 'data', array());
@@ -3025,40 +3025,40 @@ class lbank extends Exchange {
     }
 
     private function do_fetch_private_deposit_withdraw_fees(?array $codes = null, $params = array()) {
-        // complete $response
-        // incl. for coins which null in public method
+        // complete response
+        // incl. for coins which undefined in public method
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
         $response = Async\await($this->spotPrivatePostSupplementUserInfo($params));
         //
         //    {
-        //        "result" => "true",
-        //        "data" => array(
+        //        "result": "true",
+        //        "data": [
         //            {
-        //                "usableAmt" => "14.36",
-        //                "assetAmt" => "14.36",
-        //                "networkList" => array(
-        //                    array(
-        //                        "isDefault" => false,
-        //                        "withdrawFeeRate" => "",
-        //                        "name" => "erc20",
-        //                        "withdrawMin" => 30,
-        //                        "minLimit" => 0.0001,
-        //                        "minDeposit" => 20,
-        //                        "feeAssetCode" => "usdt",
-        //                        "withdrawFee" => "30",
-        //                        "type" => 1,
-        //                        "coin" => "usdt",
-        //                        "network" => "eth"
-        //                    ),
+        //                "usableAmt": "14.36",
+        //                "assetAmt": "14.36",
+        //                "networkList": [
+        //                    {
+        //                        "isDefault": false,
+        //                        "withdrawFeeRate": "",
+        //                        "name": "erc20",
+        //                        "withdrawMin": 30,
+        //                        "minLimit": 0.0001,
+        //                        "minDeposit": 20,
+        //                        "feeAssetCode": "usdt",
+        //                        "withdrawFee": "30",
+        //                        "type": 1,
+        //                        "coin": "usdt",
+        //                        "network": "eth"
+        //                    },
         //                    ...
-        //                ),
-        //                "freezeAmt" => "0",
-        //                "coin" => "ada"
+        //                ],
+        //                "freezeAmt": "0",
+        //                "coin": "ada"
         //            }
-        //        ),
-        //        "code" => 0
+        //        ],
+        //        "code": 0
         //    }
         //
         $data = $this->safe_list($response, 'data', array());
@@ -3070,8 +3070,8 @@ class lbank extends Exchange {
     }
 
     private function do_fetch_public_deposit_withdraw_fees(?array $codes = null, $params = array()) {
-        // extremely incomplete $response
-        // vast majority fees null
+        // extremely incomplete response
+        // vast majority fees undefined
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
@@ -3079,23 +3079,23 @@ class lbank extends Exchange {
         $response = Async\await($this->spotPublicGetWithdrawConfigs($this->extend($request, $params)));
         //
         //    {
-        //        "result" => "true",
-        //        "data" => array(
-        //            array(
-        //                "amountScale" => "4",
-        //                "chain" => "heco",
-        //                "assetCode" => "lbk",
-        //                "min" => "200",
-        //                "transferAmtScale" => "4",
-        //                "canWithDraw" => true,
-        //                "fee" => "100",
-        //                "minTransfer" => "0.0001",
-        //                "type" => "1"
-        //            ),
+        //        "result": "true",
+        //        "data": [
+        //            {
+        //                "amountScale": "4",
+        //                "chain": "heco",
+        //                "assetCode": "lbk",
+        //                "min": "200",
+        //                "transferAmtScale": "4",
+        //                "canWithDraw": true,
+        //                "fee": "100",
+        //                "minTransfer": "0.0001",
+        //                "type": "1"
+        //            },
         //            ...
-        //        ),
-        //        "error_code" => "0",
-        //        "ts" => "1663364435973"
+        //        ],
+        //        "error_code": "0",
+        //        "ts": "1663364435973"
         //    }
         //
         $data = $this->safe_value($response, 'data', array());
@@ -3104,20 +3104,20 @@ class lbank extends Exchange {
 
     public function parse_public_deposit_withdraw_fees(mixed $response, ?array $codes = null) {
         //
-        //    array(
-        //        array(
-        //            "amountScale" => "4",
-        //            "chain" => "heco",
-        //            "assetCode" => "lbk",
-        //            "min" => "200",
-        //            "transferAmtScale" => "4",
-        //            "canWithDraw" => true,
-        //            "fee" => "100",
-        //            "minTransfer" => "0.0001",
-        //            "type" => "1"
-        //        ),
+        //    [
+        //        {
+        //            "amountScale": "4",
+        //            "chain": "heco",
+        //            "assetCode": "lbk",
+        //            "min": "200",
+        //            "transferAmtScale": "4",
+        //            "canWithDraw": true,
+        //            "fee": "100",
+        //            "minTransfer": "0.0001",
+        //            "type": "1"
+        //        },
         //        ...
-        //    )
+        //    ]
         //
         $result = array();
         for ($i = 0; $i < count($response); $i++) {
@@ -3166,26 +3166,26 @@ class lbank extends Exchange {
         // * only used for fetchPrivateDepositWithdrawFees
         //
         //    {
-        //        "usableAmt" => "14.36",
-        //        "assetAmt" => "14.36",
-        //        "networkList" => array(
-        //            array(
-        //                "isDefault" => false,
-        //                "withdrawFeeRate" => "",
-        //                "name" => "erc20",
-        //                "withdrawMin" => 30,
-        //                "minLimit" => 0.0001,
-        //                "minDeposit" => 20,
-        //                "feeAssetCode" => "usdt",
-        //                "withdrawFee" => "30",
-        //                "type" => 1,
-        //                "coin" => "usdt",
-        //                "network" => "eth"
-        //            ),
+        //        "usableAmt": "14.36",
+        //        "assetAmt": "14.36",
+        //        "networkList": [
+        //            {
+        //                "isDefault": false,
+        //                "withdrawFeeRate": "",
+        //                "name": "erc20",
+        //                "withdrawMin": 30,
+        //                "minLimit": 0.0001,
+        //                "minDeposit": 20,
+        //                "feeAssetCode": "usdt",
+        //                "withdrawFee": "30",
+        //                "type": 1,
+        //                "coin": "usdt",
+        //                "network": "eth"
+        //            },
         //            ...
-        //        ),
-        //        "freezeAmt" => "0",
-        //        "coin" => "ada"
+        //        ],
+        //        "freezeAmt": "0",
+        //        "coin": "ada"
         //    }
         //
         $result = $this->deposit_withdraw_fee($fee);
@@ -3317,8 +3317,8 @@ class lbank extends Exchange {
                 '10008' => 'Invalid Trading Pair',
                 '10009' => 'Price and/or Amount are required for limit order',
                 '10010' => 'Price and/or Amount must be less than minimum requirement',
-                // '10011' => 'Market orders can not be missing the amount of the order',
-                // '10012' => 'market sell orders can not be missing orders',
+                // '10011': 'Market orders can not be missing the amount of the order',
+                // '10012': 'market sell orders can not be missing orders',
                 '10013' => 'The amount is too small',
                 '10014' => 'Insufficient amount of money in the account',
                 '10015' => 'Invalid order type',

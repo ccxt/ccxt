@@ -940,7 +940,7 @@ impl BitfinexCore {
         //         236.88,        // 3 ASK float Price of last lowest ask
         //         7.1138,        // 4 ASK_SIZE float Size of the last lowest ask
         //         -1.02,         // 5 DAILY_CHANGE float Amount that the last price has changed since yesterday
-        //         0,             // 6 DAILY_CHANGE_PERC float Amount that the price has changed expressed in percentage terms
+        //         0,             // 6 DAILY_CHANGE_RELATIVE float Relative change (array index 5); parseWsTicker multiplies by 100.
         //         236.52,        // 7 LAST_PRICE float Price of the last trade.
         //         5191.36754297, // 8 VOLUME float Daily volume
         //         250.01,        // 9 HIGH float Daily high
@@ -968,7 +968,7 @@ impl BitfinexCore {
         //         236.88,        // 3 ASK float Price of last lowest ask
         //         7.1138,        // 4 ASK_SIZE float Size of the last lowest ask
         //         -1.02,         // 5 DAILY_CHANGE float Amount that the last price has changed since yesterday
-        //         0,             // 6 DAILY_CHANGE_PERC float Amount that the price has changed expressed in percentage terms
+        //         0,             // 6 DAILY_CHANGE_RELATIVE float Relative change (array index 5); parseWsTicker multiplies by 100.
         //         236.52,        // 7 LAST_PRICE float Price of the last trade.
         //         5191.36754297, // 8 VOLUME float Daily volume
         //         250.01,        // 9 HIGH float Daily high
@@ -996,7 +996,7 @@ impl BitfinexCore {
         m.insert("last".to_string(), last.clone());
         m.insert("previousClose".to_string(), Value::Null);
         m.insert("change".to_string(), change.clone());
-        m.insert("percentage".to_string(), self.safe_string(ticker.clone(), Value::Int(5), &[]));
+        m.insert("percentage".to_string(), crate::precise::Precise::stringMul(&self.safe_string(ticker.clone(), Value::Int(5), &[]), &Value::Str("100".to_string())));
         m.insert("average".to_string(), Value::Null);
         m.insert("baseVolume".to_string(), self.safe_string(ticker.clone(), Value::Int(7), &[]));
         m.insert("quoteVolume".to_string(), Value::Null);

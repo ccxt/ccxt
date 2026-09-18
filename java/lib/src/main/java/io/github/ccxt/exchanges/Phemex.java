@@ -6,6 +6,7 @@ import io.github.ccxt.api.PhemexApi;
 import io.github.ccxt.base.Precise;
 import io.github.ccxt.errors.*;
 import io.github.ccxt.Helpers;
+import io.github.ccxt.BaseExchange;
 import io.github.ccxt.types.ADL;
 import io.github.ccxt.types.Balances;
 import io.github.ccxt.types.Conversion;
@@ -744,8 +745,8 @@ public class Phemex extends PhemexApi
                     put( "11028", BadSymbol.class );
                     put( "11029", ExchangeError.class );
                     put( "11030", ExchangeError.class );
-                    put( "11031", DDoSProtection.class );
-                    put( "11032", DDoSProtection.class );
+                    put( "11031", InvalidOrder.class );
+                    put( "11032", InvalidOrder.class );
                     put( "11033", DuplicateOrderId.class );
                     put( "11034", InvalidOrder.class );
                     put( "11035", InvalidOrder.class );
@@ -1183,7 +1184,7 @@ public class Phemex extends PhemexApi
     public CompletableFuture<Object> fetchMarkets(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             Object v2ProductsPromise = this.v2GetPublicProducts(parameters);
@@ -1427,7 +1428,7 @@ public class Phemex extends PhemexApi
     public CompletableFuture<Object> fetchCurrencies(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             Map<String, Object> response = (this.v2GetPublicProducts(parameters)).join();
@@ -1561,7 +1562,7 @@ public class Phemex extends PhemexApi
     public CompletableFuture<OrderBook> fetchOrderBook(Object symbol, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object limit = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
@@ -1743,7 +1744,7 @@ public class Phemex extends PhemexApi
     public CompletableFuture<List<OHLCV>> fetchOHLCV(Object symbol, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object timeframe = Helpers.getArg(optionalArgs, 0, "1m");
             Object since = Helpers.getArg(optionalArgs, 1, null);
@@ -1947,7 +1948,7 @@ public class Phemex extends PhemexApi
     public CompletableFuture<Ticker> fetchTicker(String symbol, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
@@ -2036,7 +2037,7 @@ public class Phemex extends PhemexApi
     public CompletableFuture<Tickers> fetchTickers(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
@@ -2090,7 +2091,7 @@ public class Phemex extends PhemexApi
     public CompletableFuture<List<Trade>> fetchTrades(String symbol, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object since = Helpers.getArg(optionalArgs, 0, null);
             Object limit = Helpers.getArg(optionalArgs, 1, null);
@@ -2593,7 +2594,7 @@ public class Phemex extends PhemexApi
     public CompletableFuture<Balances> fetchBalance(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
@@ -2920,7 +2921,7 @@ public class Phemex extends PhemexApi
             }};
         }
         String timeInForce = this.parseTimeInForce(this.safeString(order, "timeInForce"));
-        Object triggerPrice = this.parseNumber(this.omitZero(this.fromEp(this.safeString(order, "stopPxEp"))));
+        Object triggerPrice = this.parseNumber(this.omitZero(this.fromEp(this.safeString(order, "stopPxEp"), market)));
         Boolean postOnly = (Helpers.isEqual(timeInForce, "PO"));
         final Object finalClientOrderId = clientOrderId;
         final Object finalTimeInForce = timeInForce;
@@ -3196,7 +3197,7 @@ public class Phemex extends PhemexApi
     {
         final Object type3 = type2;
         final Object side3 = side2;
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
             Object type = type3;
             Object side = side3;
             Object price = Helpers.getArg(optionalArgs, 0, null);
@@ -3555,7 +3556,7 @@ public class Phemex extends PhemexApi
     public CompletableFuture<Order> editOrder(String id, String symbol, Object type, Object side, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object amount = Helpers.getArg(optionalArgs, 0, null);
             Object price = Helpers.getArg(optionalArgs, 1, null);
@@ -3652,7 +3653,7 @@ public class Phemex extends PhemexApi
     public CompletableFuture<Order> cancelOrder(Object id, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
@@ -3711,7 +3712,7 @@ public class Phemex extends PhemexApi
     public CompletableFuture<List<Order>> cancelAllOrders(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
@@ -3765,7 +3766,7 @@ public class Phemex extends PhemexApi
     public CompletableFuture<Order> fetchOrder(Object id, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
@@ -3820,6 +3821,17 @@ public class Phemex extends PhemexApi
             } else if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
             {
                 Object rows = this.safeList(data, "rows", new ArrayList<Object>(Arrays.asList()));
+                Object numRows = Helpers.getArrayLength(rows);
+                if (Helpers.isTrue(Helpers.isLessThan(numRows, 1)))
+                {
+                    if (Helpers.isTrue(!Helpers.isEqual(clientOrderId, null)))
+                    {
+                        throw new OrderNotFound(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(this.id, " fetchOrder() "), symbol), " order with clientOrderId "), clientOrderId), " not found")) ;
+                    } else
+                    {
+                        throw new OrderNotFound(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(this.id, " fetchOrder() "), symbol), " order with id "), id), " not found")) ;
+                    }
+                }
                 order = this.safeDict(rows, 0, new HashMap<String, Object>() {{}});
             }
             return this.parseOrder(order, market);
@@ -3841,7 +3853,7 @@ public class Phemex extends PhemexApi
     public CompletableFuture<List<Order>> fetchOrders(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
@@ -3902,7 +3914,7 @@ public class Phemex extends PhemexApi
     public CompletableFuture<List<Order>> fetchOpenOrders(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
@@ -3976,7 +3988,7 @@ public class Phemex extends PhemexApi
     public CompletableFuture<List<Order>> fetchClosedOrders(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
@@ -4081,7 +4093,7 @@ public class Phemex extends PhemexApi
     public CompletableFuture<List<Trade>> fetchMyTrades(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
@@ -4265,7 +4277,7 @@ public class Phemex extends PhemexApi
     public CompletableFuture<DepositAddress> fetchDepositAddress(String code, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
@@ -4333,7 +4345,7 @@ public class Phemex extends PhemexApi
     public CompletableFuture<List<Transaction>> fetchDeposits(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object code = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
@@ -4388,7 +4400,7 @@ public class Phemex extends PhemexApi
     public CompletableFuture<List<Transaction>> fetchWithdrawals(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object code = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
@@ -4596,7 +4608,7 @@ public class Phemex extends PhemexApi
     public CompletableFuture<List<Position>> fetchPositions(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
@@ -4762,7 +4774,7 @@ public class Phemex extends PhemexApi
     public CompletableFuture<List<Position>> fetchPositionHistory(String symbol2, Object... optionalArgs)
     {
         final Object symbol3 = symbol2;
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
             Object since = Helpers.getArg(optionalArgs, 0, null);
             Object limit = Helpers.getArg(optionalArgs, 1, null);
@@ -5016,7 +5028,7 @@ public class Phemex extends PhemexApi
     public CompletableFuture<List<FundingHistory>> fetchFundingHistory(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
@@ -5128,7 +5140,7 @@ public class Phemex extends PhemexApi
     public CompletableFuture<FundingRate> fetchFundingRate(String symbol, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
@@ -5262,7 +5274,7 @@ public class Phemex extends PhemexApi
     public CompletableFuture<MarginModification> setMargin(String symbol, Object amount, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
@@ -5338,7 +5350,7 @@ public class Phemex extends PhemexApi
     public CompletableFuture<Object> setMarginMode(Object marginMode2, Object... optionalArgs)
     {
         final Object marginMode3 = marginMode2;
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
             Object marginMode = marginMode3;
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
@@ -5402,7 +5414,7 @@ public class Phemex extends PhemexApi
     public CompletableFuture<Object> setPositionMode(Object hedged, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
@@ -5442,7 +5454,7 @@ public class Phemex extends PhemexApi
     public CompletableFuture<LeverageTiers> fetchLeverageTiers(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
@@ -5668,7 +5680,7 @@ final Object finalI = i;
     public CompletableFuture<Object> setLeverage(Object leverage2, Object... optionalArgs)
     {
         final Object leverage3 = leverage2;
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
             Object leverage = leverage3;
             // WARNING: THIS WILL INCREASE LIQUIDATION PRICE FOR OPEN ISOLATED LONG POSITIONS
             // AND DECREASE LIQUIDATION PRICE FOR OPEN ISOLATED SHORT POSITIONS
@@ -5734,7 +5746,7 @@ final Object finalI = i;
     public CompletableFuture<TransferEntry> transfer(String code, Object amount, Object fromAccount, Object toAccount, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
@@ -5841,7 +5853,7 @@ final Object finalI = i;
     public CompletableFuture<List<TransferEntry>> fetchTransfers(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object code = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
@@ -5984,7 +5996,7 @@ final Object finalI = i;
     public CompletableFuture<List<FundingRateHistory>> fetchFundingRateHistory(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
@@ -6097,7 +6109,7 @@ final Object finalI = i;
     public CompletableFuture<Transaction> withdraw(String code, Object amount, Object address, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object tag = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
@@ -6187,7 +6199,7 @@ final Object finalI = i;
     public CompletableFuture<OpenInterest> fetchOpenInterest(String symbol, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
@@ -6278,7 +6290,7 @@ final Object finalI = i;
     public CompletableFuture<Conversion> fetchConvertQuote(Object fromCode, Object toCode, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object amount = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
@@ -6334,7 +6346,7 @@ final Object finalI = i;
     public CompletableFuture<Conversion> createConvertTrade(String id, Object fromCode, Object toCode, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object amount = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
@@ -6397,7 +6409,7 @@ final Object finalI = i;
     public CompletableFuture<List<Conversion>> fetchConvertTradeHistory(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object code = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
@@ -6551,7 +6563,7 @@ final Object finalI = i;
     public CompletableFuture<List<ADL>> fetchPositionsADLRank(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});

@@ -390,7 +390,7 @@ class onetrading(ccxt.async_support.onetrading):
 
     def handle_delta(self, orderbook: object, delta: object):
         #
-        #   ['BUY', "0.053595", "0"]
+        #   [ 'BUY', "0.053595", "0" ]
         #
         bidAsk = self.parse_order_book_bid_ask(delta, 1, 2)
         type = self.safe_string(delta, 0)
@@ -401,13 +401,13 @@ class onetrading(ccxt.async_support.onetrading):
             asks = orderbook['asks']
             asks.storeArray(bidAsk)
         else:
-            raise NotSupported(self.id + ' watchOrderBook() received unknown change type ' + self.json(delta))
+            raise NotSupported(self.id + ' watchOrderBook () received unknown change type ' + self.json(delta))
 
     def handle_deltas(self, orderbook: object, deltas: object):
         #
         #    [
-        #       ['BUY', "0.053593", "0"],
-        #       ['SELL', "0.053698", "0"]
+        #       [ 'BUY', "0.053593", "0" ],
+        #       [ 'SELL', "0.053698", "0" ]
         #    ]
         #
         for i in range(0, len(deltas)):
@@ -654,7 +654,7 @@ class onetrading(ccxt.async_support.onetrading):
         #                 "sequence": 7633339971,
         #                 "status": "FILLED_FULLY",
         #                 "average_price": "19645.48",
-        #                 "is_post_only": False,
+        #                 "is_post_only": false,
         #                 "order_book_sequence": 866885897,
         #                 "time_last_updated": "2022-06-28T06:10:02.766983Z",
         #                 "update_modification_sequence": 866885897
@@ -730,7 +730,7 @@ class onetrading(ccxt.async_support.onetrading):
         #             "time": "2022-06-29T04:33:29.661257Z",
         #             "order": {
         #                 "time_in_force": "GOOD_TILL_CANCELLED",
-        #                 "is_post_only": False,
+        #                 "is_post_only": false,
         #                 "order_id": "8892fd69-5ebd-496b-aaa4-269b4c18aa77",
         #                 "account_holder": "43202c1a-48dc-423e-b336-bb65baccc7bd",
         #                 "account_id": "49302c1a-48dc-423e-b336-bb65baccc7bd",
@@ -1087,7 +1087,7 @@ class onetrading(ccxt.async_support.onetrading):
         #  snapshot
         #     {
         #         "instrument_code": "BTC_EUR",
-        #         "granularity": {unit: "MONTHS", period: 1},
+        #         "granularity": { unit: "MONTHS", period: 1 },
         #         "high": "29750.81",
         #         "low": "16764.59",
         #         "open": "29556.02",

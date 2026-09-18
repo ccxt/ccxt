@@ -517,7 +517,7 @@ public partial class hyperliquid : PredictionExchange
         // Parse expiry from description
         string? expiry = this.safeString(desc, "expiry");
         Int64? expiryMs = null;
-        object expiryDatetime = null;
+        string? expiryDatetime = null;
         if (isTrue(isTrue((!isEqual(expiry, null))) && isTrue((!isEqual(expiry, "")))))
         {
             // e.g. "20260503-0600" → "2026-05-03T06:00:00Z"
@@ -527,7 +527,7 @@ public partial class hyperliquid : PredictionExchange
             {
                 string? ymd = ((string)getValue(expParts, 0));
                 object hm = ((bool) isTrue((isGreaterThanOrEqual(expPartsLength, 2)))) ? getValue(expParts, 1) : "0000";
-                object isoStr = add(add(add(add(add(add(add(add(add(slice(ymd, 0, 4), "-"), slice(ymd, 4, 6)), "-"), slice(ymd, 6, 8)), "T"), slice(hm, 0, 2)), ":"), slice(hm, 2, 4)), ":00Z");
+                string isoStr = add(add(add(add(add(add(add(add(add(slice(ymd, 0, 4), "-"), slice(ymd, 4, 6)), "-"), slice(ymd, 6, 8)), "T"), slice(hm, 0, 2)), ":"), slice(hm, 2, 4)), ":00Z");
                 expiryMs = this.parse8601(isoStr);
                 expiryDatetime = isoStr;
             }
@@ -735,7 +735,7 @@ public partial class hyperliquid : PredictionExchange
             for (int i = 0; isLessThan(i, getArrayLength(outcomes)); postFixIncrement(ref i))
             {
                 object requested = getValue(outcomes, i);
-                object requestedOutcomeObj = this.safeOutcome(requested);
+                IDictionary<string, object> requestedOutcomeObj = ((IDictionary<string, object>)this.safeOutcome(requested));
                 string? requestedOutcome = this.safeString(requestedOutcomeObj, "outcome", requested);
                 ((IDictionary<string,object>)requestedOutcomeSymbols)[(string)requestedOutcome] = true;
             }
@@ -927,7 +927,7 @@ public partial class hyperliquid : PredictionExchange
      */
     public async override Task<List<ccxt.OHLCV>> FetchOHLCV(string outcome, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object timeframeVar = timeframe;
+        string timeframeVar = timeframe;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
         await this.loadOutcome(outcome);
@@ -1088,7 +1088,7 @@ public partial class hyperliquid : PredictionExchange
             for (int i = 0; isLessThan(i, getArrayLength(outcomes)); postFixIncrement(ref i))
             {
                 object requested = getValue(outcomes, i);
-                object requestedOutcomeObj = this.safeOutcome(requested);
+                IDictionary<string, object> requestedOutcomeObj = ((IDictionary<string, object>)this.safeOutcome(requested));
                 string? requestedOutcome = this.safeString(requestedOutcomeObj, "outcome", requested);
                 ((IDictionary<string,object>)requestedOutcomeSymbols)[(string)requestedOutcome] = true;
             }
@@ -1111,7 +1111,7 @@ public partial class hyperliquid : PredictionExchange
         List<object> promises = new List<object> {this.publicPostInfo(this.extend(request, parameters)), this.publicPostInfo(new Dictionary<string, object>() {
     { "type", "allMids" },
 })};
-        object results = await promiseAll(promises);
+        List<object> results = await promiseAll(promises);
         object response = getValue(results, 0);
         object midsResponse = getValue(results, 1);
         List<object> balances = this.safeList(response, "balances", new List<object>() {});
@@ -1138,7 +1138,7 @@ public partial class hyperliquid : PredictionExchange
             }
             // the trade/orderbook form ("#<encoding>") resolves the outcome and the mid price
             string tradeCoin = add("#", slice(coin, 1, null));
-            object outcomeObj = this.safeOutcome(tradeCoin);
+            IDictionary<string, object> outcomeObj = ((IDictionary<string, object>)this.safeOutcome(tradeCoin));
             if (isTrue(!isEqual(outcomes, null)))
             {
                 string? outcomeHandle = this.safeString(outcomeObj, "outcome");
@@ -1450,7 +1450,7 @@ public partial class hyperliquid : PredictionExchange
                 { "f", feeInt },
             };
         }
-        object signature = this.signL1Action(orderAction, nonce, vaultAddress);
+        Dictionary<string, object> signature = this.signL1Action(orderAction, nonce, vaultAddress);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "action", orderAction },
             { "nonce", nonce },
@@ -1564,7 +1564,7 @@ public partial class hyperliquid : PredictionExchange
         vaultAddress = ((IList<object>)vaultAddressparametersVariable)[0];
         parameters = ((IList<object>)vaultAddressparametersVariable)[1];
         vaultAddress = this.formatVaultAddress(vaultAddress);
-        object signature = this.signL1Action(cancelAction, nonce, vaultAddress);
+        Dictionary<string, object> signature = this.signL1Action(cancelAction, nonce, vaultAddress);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "action", cancelAction },
             { "nonce", nonce },
@@ -1977,7 +1977,7 @@ public partial class hyperliquid : PredictionExchange
         string? outcomeHandle = null;
         if (isTrue(!isEqual(outcome, null)))
         {
-            object outcomeObj = await this.loadOutcome(outcome);
+            IDictionary<string, object> outcomeObj = ((IDictionary<string, object>)await this.loadOutcome(outcome));
             outcomeHandle = this.safeString(outcomeObj, "outcome");
         } else
         {
@@ -2148,7 +2148,7 @@ public partial class hyperliquid : PredictionExchange
                 string symLower = ((string)parentSymbolOrEmpty).ToLower();
                 // the parentSymbol joins words with underscores (BTC_ABOVE_...), so match the haystack word-by-word
                 // and require every word of a query to appear, letting "BTC above" match BTC_ABOVE
-                object haystack = add(add(description, " "), symLower);
+                string haystack = add(add(description, " "), symLower);
                 bool matches = false;
                 for (int qi = 0; isLessThan(qi, getArrayLength(lowerQueries)); postFixIncrement(ref qi))
                 {
@@ -2235,7 +2235,7 @@ public partial class hyperliquid : PredictionExchange
         string? targetPrice = this.safeString(desc, "targetPrice");
         string? expiryRaw = this.safeString(desc, "expiry");
         Int64? expiryMs = null;
-        object expiryDatetime = null;
+        string? expiryDatetime = null;
         if (isTrue(isTrue((!isEqual(expiryRaw, null))) && isTrue((!isEqual(expiryRaw, "")))))
         {
             List<object> parts = ((string)expiryRaw).Split(new [] {((string)"-")}, StringSplitOptions.None).ToList<object>();
@@ -2244,7 +2244,7 @@ public partial class hyperliquid : PredictionExchange
             {
                 string? ymd = ((string)getValue(parts, 0));
                 object hm = ((bool) isTrue((isGreaterThanOrEqual(partsLength, 2)))) ? getValue(parts, 1) : "0000";
-                object isoStr = add(add(add(add(add(add(add(add(add(slice(ymd, 0, 4), "-"), slice(ymd, 4, 6)), "-"), slice(ymd, 6, 8)), "T"), slice(hm, 0, 2)), ":"), slice(hm, 2, 4)), ":00Z");
+                string isoStr = add(add(add(add(add(add(add(add(add(slice(ymd, 0, 4), "-"), slice(ymd, 4, 6)), "-"), slice(ymd, 6, 8)), "T"), slice(hm, 0, 2)), ":"), slice(hm, 2, 4)), ":00Z");
                 expiryMs = this.parse8601(isoStr);
                 expiryDatetime = isoStr;
             }
@@ -2329,7 +2329,7 @@ public partial class hyperliquid : PredictionExchange
 
     public virtual object signHash(object hash, object privateKey)
     {
-        object signature = ecdsa(slice(hash, -64, null), slice(privateKey, -64, null), secp256k1, null);
+        Dictionary<string, object> signature = ecdsa(slice(hash, -64, null), slice(privateKey, -64, null), secp256k1, null);
         // assign to a bare local before padStart — `expr['key'].padStart()` leaks an undefined
         // padStart() call in the PHP transpiler (it only rewrites padStart on a bare identifier)
         object rRaw = getValue(signature, "r");
@@ -2375,7 +2375,7 @@ public partial class hyperliquid : PredictionExchange
         return this.hash(this.base16ToBinary(data), keccak, "binary");
     }
 
-    public virtual object signL1Action(object action, object nonce, object vaultAddress = null)
+    public virtual Dictionary<string, object> signL1Action(object action, object nonce, object vaultAddress = null)
     {
         this.checkRequiredCredentials();
         object hash = this.actionHash(action, vaultAddress, nonce);
@@ -2397,8 +2397,8 @@ public partial class hyperliquid : PredictionExchange
     { "type", "bytes32" },
 }} },
         };
-        object msg = this.ethEncodeStructuredData(domain, messageTypes, phantomAgent);
-        return this.signMessage(msg, this.privateKey);
+        byte[] msg = this.ethEncodeStructuredData(domain, messageTypes, phantomAgent);
+        return ((Dictionary<string, object>)((object)(this.signMessage(msg, this.privateKey))));
     }
 
     public virtual object signUserSignedAction(object messageTypes, object message)
@@ -2411,7 +2411,7 @@ public partial class hyperliquid : PredictionExchange
             { "verifyingContract", zeroAddress },
             { "version", "1" },
         };
-        object msg = this.ethEncodeStructuredData(domain, messageTypes, message);
+        byte[] msg = this.ethEncodeStructuredData(domain, messageTypes, message);
         object signature = this.signMessage(msg, this.privateKey);
         return signature;
     }

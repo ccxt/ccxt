@@ -5,6 +5,7 @@ package io.github.ccxt.exchanges.pro;
 import io.github.ccxt.base.Precise;
 import io.github.ccxt.errors.*;
 import io.github.ccxt.Helpers;
+import io.github.ccxt.BaseExchange;
 import io.github.ccxt.ws.*;
 import io.github.ccxt.Client;
 import io.github.ccxt.types.OHLCV;
@@ -163,7 +164,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
     public CompletableFuture<Object> watchPublic(Object market, Object messageHash, Object topicID, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             Object suffix = Helpers.getArg(optionalArgs, 1, "");
@@ -182,7 +183,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
     public CompletableFuture<Object> unWatchPublic(Object market, Object messageHash, Object topicID, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             Object subscription = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
@@ -212,7 +213,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
     public CompletableFuture<Object> watchPrivate(Object messageHash, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             Object listenKey = (this.authenticate()).join();
@@ -225,7 +226,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
     public CompletableFuture<Object> authenticate(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             this.checkRequiredCredentials();
@@ -313,7 +314,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
     public CompletableFuture<Ticker> watchTicker(String symbol, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
@@ -339,7 +340,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
     public CompletableFuture<Object> unWatchTicker(String symbol, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
@@ -480,7 +481,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
     public CompletableFuture<List<Trade>> watchTrades(String symbol, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object since = Helpers.getArg(optionalArgs, 0, null);
             Object limit = Helpers.getArg(optionalArgs, 1, null);
@@ -513,7 +514,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
     public CompletableFuture<Object> unWatchTrades(String symbol, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
@@ -673,7 +674,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
     public CompletableFuture<List<OHLCV>> watchOHLCV(String symbol2, Object... optionalArgs)
     {
         final Object symbol3 = symbol2;
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
             Object timeframe = Helpers.getArg(optionalArgs, 0, "1m");
             Object since = Helpers.getArg(optionalArgs, 1, null);
@@ -712,7 +713,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
     public CompletableFuture<Object> unWatchOHLCV(String symbol2, Object... optionalArgs)
     {
         final Object symbol3 = symbol2;
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
             Object timeframe = Helpers.getArg(optionalArgs, 0, "1m");
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
@@ -821,7 +822,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
     public CompletableFuture<OrderBook> watchOrderBook(String symbol, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object limit = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
@@ -854,7 +855,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
     public CompletableFuture<Object> unWatchOrderBook(Object symbol, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
@@ -1060,7 +1061,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
     public CompletableFuture<List<Trade>> watchMyTrades(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
@@ -1155,7 +1156,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
     public CompletableFuture<List<Order>> watchOrders(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
@@ -1316,7 +1317,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
     public CompletableFuture<List<Position>> watchPositions(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);

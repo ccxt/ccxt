@@ -2,6 +2,7 @@ package tests.exchange.ws;
 import tests.BaseTest;
 import io.github.ccxt.Helpers;
 import io.github.ccxt.Exchange;
+import io.github.ccxt.BaseExchange;
 import io.github.ccxt.errors.*;
 import tests.exchange.*;
 import java.util.ArrayList;
@@ -17,7 +18,7 @@ public class TestWatchTrades extends BaseTest {
     public CompletableFuture<Object> testWatchTrades(Exchange exchange, Object skippedProperties, String symbol)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
         String method = "watchTrades";
         Object now = exchange.milliseconds();
@@ -46,7 +47,7 @@ public class TestWatchTrades extends BaseTest {
                 TestSharedMethods.AssertNonEmtpyArray(exchange, skippedProperties, method, response);
                 for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(response)); i++)
                 {
-                    TestTrade.testTrade(exchange, skippedProperties, method, Helpers.GetValue(response, i), symbol, now);
+                    TestTrade.testTrade(exchange, skippedProperties, method, Helpers.GetValue(response, i), symbol, now, true);
                 }
                 if (Helpers.isTrue(Helpers.isGreaterThan((Helpers.subtract(now, startTime)), maxIdleTime)))
                 {

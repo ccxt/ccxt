@@ -645,8 +645,8 @@ class digifinex(Exchange, ImplicitAPI):
         #                 "clear_currency": "USDT",
         #                 "contract_value": "0.001",
         #                 "contract_value_currency": "BTC",
-        #                 "is_inverse": False,
-        #                 "is_trading": True,
+        #                 "is_inverse": false,
+        #                 "is_trading": true,
         #                 "status": "ONLINE",
         #                 "price_precision": 4,
         #                 "tick_size": "0.0001",
@@ -676,13 +676,13 @@ class digifinex(Exchange, ImplicitAPI):
             settle = self.safe_currency_code(settleId)
             #
             # The status is documented in the exchange API docs as follows:
-            # TRADING, HALT(delisted), BREAK(trading paused)
+            # TRADING, HALT (delisted), BREAK (trading paused)
             # https://docs.digifinex.vip/en-ww/v3/#/public/spot/symbols
-            # However, all spot markets actually have status == 'HALT'
+            # However, all spot markets actually have status === 'HALT'
             # despite that they appear to be active on the exchange website.
-            # Apparently, we can't trust self status.
-            # status = self.safe_string(market, 'status')
-            # active = (status == 'TRADING')
+            # Apparently, we can't trust this status.
+            # const status = this.safeString (market, 'status');
+            # const active = (status === 'TRADING');
             #
             isAllowed = self.safe_integer(market, 'is_allow', 1)
             type = 'margin' if (defaultType == 'margin') else 'spot'
@@ -1190,7 +1190,7 @@ class digifinex(Exchange, ImplicitAPI):
         #         "low":0.021791,
         #         "buy":0.021946,
         #         "high":0.022266,
-        #         "date"1564518452,  # injected from fetchTicker/fetchTickers
+        #         "date"1564518452, // injected from fetchTicker/fetchTickers
         #     }
         #
         # swap: fetchTicker, fetchTickers
@@ -1288,8 +1288,8 @@ class digifinex(Exchange, ImplicitAPI):
         #         "fee": 0.096,
         #         "fee_currency": "USDT",
         #         "timestamp": 1499865549,
-        #         "side": "buy",  # or "side": "sell_market"
-        #         "is_maker": True
+        #         "side": "buy", // or "side": "sell_market"
+        #         "is_maker": true
         #     }
         #
         # swap: fetchMyTrades
@@ -1336,16 +1336,16 @@ class digifinex(Exchange, ImplicitAPI):
             else:
                 takerOrMaker = None
             if (side == '1') or (direction == '1'):
-                # side = 'open long'
+                # side = 'open long';
                 side = 'buy'
             elif (side == '2') or (direction == '2'):
-                # side = 'open short'
+                # side = 'open short';
                 side = 'sell'
             elif (side == '3') or (direction == '3'):
-                # side = 'close long'
+                # side = 'close long';
                 side = 'sell'
             elif (side == '4') or (direction == '4'):
-                # side = 'close short'
+                # side = 'close short';
                 side = 'buy'
         else:
             if side is None:
@@ -1712,7 +1712,7 @@ class digifinex(Exchange, ImplicitAPI):
                     marginMode = currentMarginMode
                 else:
                     if marginMode != currentMarginMode:
-                        raise BadRequest(self.id + ' createOrders() requires all orders to have the same margin mode(isolated or cross)')
+                        raise BadRequest(self.id + ' createOrders() requires all orders to have the same margin mode (isolated or cross)')
             orderRequest = self.create_order_request(marketId, type, side, amount, price, orderParams)
             ordersRequests.append(orderRequest)
         market = self.market(symbol)
@@ -1838,7 +1838,7 @@ class digifinex(Exchange, ImplicitAPI):
                     quantity = self.cost_to_precision(symbol, cost)
                 elif createMarketBuyOrderRequiresPrice:
                     if price is None:
-                        raise InvalidOrder(self.id + ' createOrder() requires a price argument for market buy orders on spot markets to calculate the total amount to spend(amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to False and pass the cost to spend in the amount argument')
+                        raise InvalidOrder(self.id + ' createOrder() requires a price argument for market buy orders on spot markets to calculate the total amount to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to False and pass the cost to spend in the amount argument')
                     else:
                         amountString = self.number_to_string(amount)
                         priceString = self.number_to_string(price)
@@ -2728,9 +2728,9 @@ class digifinex(Exchange, ImplicitAPI):
         currency = None
         request = {
             # 'currency': currency['id'],
-            # 'from': 'fromId',  # When direct is' prev ', from is 1, returning from old to new ascending, when direct is' next ', from is the ID of the most recent record, returned from the old descending order
-            # 'size': 100,  # default 100, max 500
-            # 'direct': 'prev',  # "prev" ascending, "next" descending
+            # 'from': 'fromId', // When direct is' prev ', from is 1, returning from old to new ascending, when direct is' next ', from is the ID of the most recent record, returned from the old descending order
+            # 'size': 100, // default 100, max 500
+            # 'direct': 'prev', // "prev" ascending, "next" descending
         }
         if code is not None:
             currency = self.currency(code)
@@ -2794,8 +2794,8 @@ class digifinex(Exchange, ImplicitAPI):
         return await self.fetch_transactions_by_type('withdrawal', code, since, limit, params)
 
     def parse_transaction_status(self, status: Str):
-        # deposit state includes: 1(in deposit), 2(to be confirmed), 3(successfully deposited), 4(stopped)
-        # withdrawal state includes: 1(application in progress), 2(to be confirmed), 3(completed), 4(rejected)
+        # deposit state includes: 1 (in deposit), 2 (to be confirmed), 3 (successfully deposited), 4 (stopped)
+        # withdrawal state includes: 1 (application in progress), 2 (to be confirmed), 3 (completed), 4 (rejected)
         statuses = {
             '1': 'pending',  # in Progress
             '2': 'pending',  # to be confirmed
@@ -2999,7 +2999,7 @@ class digifinex(Exchange, ImplicitAPI):
             await self.load_markets()
         currency = self.currency(code)
         request = {
-            # 'chain': 'ERC20', 'OMNI', 'TRC20',  # required for USDT
+            # 'chain': 'ERC20', 'OMNI', 'TRC20', // required for USDT
             'address': address,
             'amount': self.currency_to_precision(code, amount),
             'currency': currency['id'],
@@ -3791,8 +3791,8 @@ class digifinex(Exchange, ImplicitAPI):
         #                 "clear_currency": "USDT",
         #                 "contract_value": "0.001",
         #                 "contract_value_currency": "BTC",
-        #                 "is_inverse": False,
-        #                 "is_trading": True,
+        #                 "is_inverse": false,
+        #                 "is_trading": true,
         #                 "status": "ONLINE",
         #                 "price_precision": 1,
         #                 "tick_size": "0.1",
@@ -3842,8 +3842,8 @@ class digifinex(Exchange, ImplicitAPI):
         #             "clear_currency": "USDT",
         #             "contract_value": "0.001",
         #             "contract_value_currency": "BTC",
-        #             "is_inverse": False,
-        #             "is_trading": True,
+        #             "is_inverse": false,
+        #             "is_trading": true,
         #             "status": "ONLINE",
         #             "price_precision": 1,
         #             "tick_size": "0.1",
@@ -3871,8 +3871,8 @@ class digifinex(Exchange, ImplicitAPI):
         #         "clear_currency": "USDT",
         #         "contract_value": "0.001",
         #         "contract_value_currency": "BTC",
-        #         "is_inverse": False,
-        #         "is_trading": True,
+        #         "is_inverse": false,
+        #         "is_trading": true,
         #         "status": "ONLINE",
         #         "price_precision": 1,
         #         "tick_size": "0.1",

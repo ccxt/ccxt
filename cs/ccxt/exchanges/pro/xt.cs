@@ -211,12 +211,12 @@ public partial class xt : ccxt.xt
     {
         parameters ??= new Dictionary<string, object>();
         bool privateAccess = isEqual(access, "private");
-        object type = null;
+        string? type = null;
         IList<object> typeparametersVariable = (IList<object>)this.handleMarketTypeAndParams(methodName, market, parameters);
-        type = ((IList<object>)typeparametersVariable)[0];
+        type = (string)((IList<object>)typeparametersVariable)[0];
         parameters = ((IList<object>)typeparametersVariable)[1];
         bool isContract = (!isEqual(type, "spot"));
-        object id = add(this.numberToString(this.milliseconds()), name); // call back ID
+        string id = add(this.numberToString(this.milliseconds()), name); // call back ID
         Dictionary<string, object> subscribe = new Dictionary<string, object>() {
             { "method", ((bool) isTrue(isContract)) ? "SUBSCRIBE" : "subscribe" },
             { "id", id },
@@ -278,12 +278,12 @@ public partial class xt : ccxt.xt
         parameters ??= new Dictionary<string, object>();
         subscriptionParams ??= new Dictionary<string, object>();
         bool privateAccess = isEqual(access, "private");
-        object type = null;
+        string? type = null;
         IList<object> typeparametersVariable = (IList<object>)this.handleMarketTypeAndParams(methodName, market, parameters);
-        type = ((IList<object>)typeparametersVariable)[0];
+        type = (string)((IList<object>)typeparametersVariable)[0];
         parameters = ((IList<object>)typeparametersVariable)[1];
         bool isContract = (!isEqual(type, "spot"));
-        object id = add(this.numberToString(this.milliseconds()), name); // call back ID
+        string id = add(this.numberToString(this.milliseconds()), name); // call back ID
         Dictionary<string, object> unsubscribe = new Dictionary<string, object>() {
             { "method", ((bool) isTrue(isContract)) ? "UNSUBSCRIBE" : "unsubscribe" },
             { "id", id },
@@ -877,7 +877,7 @@ public partial class xt : ccxt.xt
         // don't remove the future from the .futures cache
         if (isTrue(inOp(client.futures, messageHash)))
         {
-            Future future = ((Future)getValue(client.futures, messageHash));
+            var future = getValue(client.futures, messageHash);
             (future as Future).resolve(cache);
             callDynamically(client as WebSocketClient, "resolve", new object[] {cache, "position::contract"});
         }
@@ -921,7 +921,7 @@ public partial class xt : ccxt.xt
         }
         object cache = this.positions;
         IDictionary<string, object> data = this.safeDict(message, "data", new Dictionary<string, object>() {});
-        object position = this.parsePosition(data);
+        Dictionary<string, object> position = this.parsePosition(data);
         callDynamically(cache, "append", new object[] {position});
         List<object> messageHashes = this.findMessageHashes(client as WebSocketClient, "position::contract");
         for (int i = 0; isLessThan(i, getArrayLength(messageHashes)); postFixIncrement(ref i))
@@ -1007,7 +1007,7 @@ public partial class xt : ccxt.xt
         {
             string? cv = this.safeString(data, "cv");
             bool isSpot = !isEqual(cv, null);
-            object ticker = this.parseTicker(data);
+            Dictionary<string, object> ticker = this.parseTicker(data);
             object symbol = getValue(ticker, "symbol");
             if (isTrue(!isEqual(symbol, null)))
             {
@@ -1098,7 +1098,7 @@ public partial class xt : ccxt.xt
         for (int i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
         {
             object tickerData = getValue(data, i);
-            object ticker = this.parseTicker(tickerData);
+            Dictionary<string, object> ticker = this.parseTicker(tickerData);
             object symbol = getValue(ticker, "symbol");
             if (isTrue(!isEqual(symbol, null)))
             {
@@ -1106,7 +1106,7 @@ public partial class xt : ccxt.xt
             }
             ((IList<object>)newTickers).Add(ticker);
         }
-        object messageHashStart = add(add(this.safeString(message, "topic"), "::"), tradeType);
+        string messageHashStart = add(add(this.safeString(message, "topic"), "::"), tradeType);
         List<object> messageHashes = this.findMessageHashes(client as WebSocketClient, add(messageHashStart, "::"));
         for (int i = 0; isLessThan(i, getArrayLength(messageHashes)); postFixIncrement(ref i))
         {
@@ -1172,7 +1172,7 @@ public partial class xt : ccxt.xt
             string? timeframe = this.safeString(data, "i", "");
             string tradeType = ((bool) isTrue((inOp(data, "q")))) ? "spot" : "contract";
             Dictionary<string, object> market = this.safeMarket(marketId, null, null, tradeType);
-            object symbol = getValue(market, "symbol");
+            string? symbol = ((string)getValue(market, "symbol"));
             object parsed = this.parseOHLCV(data, market);
             ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = this.safeDict(this.ohlcvs, symbol, new Dictionary<string, object>() {});
             object stored = this.safeValue(getValue(this.ohlcvs, symbol), timeframe);
@@ -1226,11 +1226,11 @@ public partial class xt : ccxt.xt
         string? marketId = this.safeStringLower(data, "s");
         if (isTrue(!isEqual(marketId, null)))
         {
-            object trade = this.parseTrade(data);
+            Dictionary<string, object> trade = this.parseTrade(data);
             string? i = this.safeString(data, "i");
             string tradeType = ((bool) isTrue((!isEqual(i, null)))) ? "spot" : "contract";
             Dictionary<string, object> market = this.safeMarket(marketId, null, null, tradeType);
-            object symbol = getValue(market, "symbol");
+            string? symbol = ((string)getValue(market, "symbol"));
             object eventVar = this.safeString(message, "event");
             object tradesArray = this.safeValue(this.trades, symbol);
             if (isTrue(isEqual(tradesArray, null)))
@@ -1320,7 +1320,7 @@ public partial class xt : ccxt.xt
                 tradeType = "contract";
             }
             Dictionary<string, object> market = this.safeMarket(marketId, null, null, tradeType);
-            object symbol = getValue(market, "symbol");
+            string? symbol = ((string)getValue(market, "symbol"));
             List<object> obAsks = this.safeList(data, "a");
             List<object> obBids = this.safeList(data, "b");
             object messageHash = add(add(eventVar, "::"), tradeType);
@@ -1568,7 +1568,7 @@ public partial class xt : ccxt.xt
         {
             string tradeType = ((bool) isTrue((inOp(order, "symbol")))) ? "contract" : "spot";
             Dictionary<string, object> market = this.safeMarket(marketId, null, null, tradeType);
-            object parsed = this.parseWsOrder(order, market);
+            Dictionary<string, object> parsed = ((Dictionary<string, object>)this.parseWsOrder(order, market));
             callDynamically(orders, "append", new object[] {parsed});
             callDynamically(client as WebSocketClient, "resolve", new object[] {orders, add("order::", tradeType)});
         }
@@ -1671,7 +1671,7 @@ public partial class xt : ccxt.xt
             stored = new ArrayCacheBySymbolById(limit);
             this.myTrades = stored;
         }
-        object parsedTrade = this.parseTrade(data);
+        Dictionary<string, object> parsedTrade = this.parseTrade(data);
         object tradeSymbol = getValue(parsedTrade, "symbol");
         if (isTrue(isEqual(tradeSymbol, null)))
         {

@@ -678,8 +678,8 @@ class deepcoin(Exchange, ImplicitAPI):
         if calculateUntil is True:
             params = self.omit(params, 'calculateUntil')
             if since is not None:
-                # the exchange do not have a since param for self endpoint
-                # we calculate until(after) for correct pagination
+                # the exchange do not have a since param for this endpoint
+                # we calculate until (after) for correct pagination
                 duration = self.parse_timeframe(timeframe)
                 numberOfCandles = maxLimit if (limit is None) else limit
                 endTime = since + (duration * numberOfCandles) * 1000
@@ -767,7 +767,7 @@ class deepcoin(Exchange, ImplicitAPI):
         #         "ts": "1760367816000"
         #     }
         #
-        timestamp = self.safe_integer(ticker, 'ts')
+        timestamp = self.safe_integer_omit_zero(ticker, 'ts')
         marketId = self.safe_string(ticker, 'instId')
         market = self.safe_market(marketId, market, '-')
         symbol = market['symbol']
@@ -1134,7 +1134,7 @@ class deepcoin(Exchange, ImplicitAPI):
         #                     "inNotice": "",
         #                     "actLogo": "",
         #                     "address": "TNJYDW9Bk87VwfA6s7FtxURLEMHesQbYgF",
-        #                     "hasMemo": False,
+        #                     "hasMemo": false,
         #                     "memo": "",
         #                     "estimatedTime": 1,
         #                     "fastConfig": {
@@ -1192,7 +1192,7 @@ class deepcoin(Exchange, ImplicitAPI):
         #         "inNotice": "",
         #         "actLogo": "",
         #         "address": "TNJYDW9Bk87VwfA6s7FtxURLEMHesQbYgF",
-        #         "hasMemo": False,
+        #         "hasMemo": false,
         #         "memo": "",
         #         "estimatedTime": 1,
         #         "fastConfig": {
@@ -1469,7 +1469,7 @@ class deepcoin(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' requires a side argument')
         market = self.market(symbol)
         triggerPrice = self.safe_string(params, 'triggerPrice')
-        # isTriggerOrder = (triggerPrice is not None) or self.safe_string_2(params, 'stopLossPrice', 'takeProfitPrice') is not None
+        # const isTriggerOrder = (triggerPrice !== undefined) || this.safeString2 (params, 'stopLossPrice', 'takeProfitPrice') !== undefined;
         isTriggerOrder = (triggerPrice is not None)
         cost = self.safe_string(params, 'cost')
         if cost is not None:
@@ -1509,20 +1509,20 @@ class deepcoin(Exchange, ImplicitAPI):
         orderType, params = self.handle_type_post_only_and_time_in_force(type, params)
         request = {
             'instId': market['id'],
-            # 'tdMode': 'cash',  # 'cash' for spot, 'cross' or 'isolated' for swap
-            # 'ccy': currency['id'],  # only applicable to cross MARGIN orders in single-currency margin
+            # 'tdMode': 'cash', // 'cash' for spot, 'cross' or 'isolated' for swap
+            # 'ccy': currency['id'], // only applicable to cross MARGIN orders in single-currency margin
             # 'clOrdId': clientOrderId,
             'side': side,
             'ordType': orderType,
             # 'sz': amount or cost
-            # 'px': price,  # limit orders only
-            # 'reduceOnly': False,  # a mark to reduce the position size for margin and swap orders
-            # 'tgtCcy': 'base_ccy',  # spot only 'base_ccy' or 'quote_ccy', the default is 'base_ccy' for spot orders
-            # 'tpTriggerPx': takeProfitPrice,  # take profit trigger price
-            # 'slTriggerPx': stopLossPrice,  # stop loss trigger price
-            # 'posSide': 'long',  # swap only 'long' or 'short'
-            # 'mrgPosition': 'merge',  # swap only 'merge' or 'split'
-            # 'closePosId': 'id',  # swap only position ID to close, required in split mode
+            # 'px': price, // limit orders only
+            # 'reduceOnly': false, // a mark to reduce the position size for margin and swap orders
+            # 'tgtCcy': 'base_ccy', // spot only 'base_ccy' or 'quote_ccy', the default is 'base_ccy' for spot orders
+            # 'tpTriggerPx': takeProfitPrice, // take profit trigger price
+            # 'slTriggerPx': stopLossPrice, // stop loss trigger price
+            # 'posSide': 'long', // swap only 'long' or 'short'
+            # 'mrgPosition': 'merge', // swap only 'merge' or 'split'
+            # 'closePosId': 'id', // swap only position ID to close, required in split mode
         }
         clientOrderId = self.safe_string(params, 'clientOrderId')
         if clientOrderId is not None:
@@ -1604,25 +1604,25 @@ class deepcoin(Exchange, ImplicitAPI):
             'productGroup': self.capitalize(market['type']),
             'sz': self.amount_to_precision(symbol, amount),
             'side': side,
-            # 'posSide': 'long',  # 'long' or 'short' - required when product type is SWAP
+            # 'posSide': 'long', // 'long' or 'short' - required when product type is SWAP
             # 'price': price,
-            # 'isCrossMargin': 1,  # 1 for cross margin, 0 for isolated margin
+            # 'isCrossMargin': 1, // 1 for cross margin, 0 for isolated margin
             'orderType': type,
             # 'triggerPrice': triggerPrice,
-            # 'mrgPosition': 'merge',  # 'merge' or 'split', the default is 'merge' - required when product type is SWAP
-            # 'tdMode': 'cash',  # 'cash' for spot, 'cross' or 'isolated' for swap
+            # 'mrgPosition': 'merge', // 'merge' or 'split', the default is 'merge' - required when product type is SWAP
+            # 'tdMode': 'cash', // 'cash' for spot, 'cross' or 'isolated' for swap
         }
         triggerPrice = self.safe_string(params, 'triggerPrice')
-        # takeProfitPrice = self.safe_string(params, 'takeProfitPrice')
-        # stopLossPrice = self.safe_string(params, 'stopLossPrice')
-        # isTpOrSlOrder = (takeProfitPrice is not None) or (stopLossPrice is not None)
-        # if isTpOrSlOrder:
-        #     if takeProfitPrice is not None:
-        #         request['triggerPrice'] = self.price_to_precision(symbol, takeProfitPrice)
-        #     else:
-        #         request['triggerPrice'] = self.price_to_precision(symbol, stopLossPrice)
+        # const takeProfitPrice = this.safeString (params, 'takeProfitPrice');
+        # const stopLossPrice = this.safeString (params, 'stopLossPrice');
+        # const isTpOrSlOrder = (takeProfitPrice !== undefined) || (stopLossPrice !== undefined);
+        # if (isTpOrSlOrder) {
+        #     if (takeProfitPrice !== undefined) {
+        #         request['triggerPrice'] = this.priceToPrecision (symbol, takeProfitPrice);
+        #     } else {
+        #         request['triggerPrice'] = this.priceToPrecision (symbol, stopLossPrice);
         #     }
-        # else:
+        # } else {
         request['triggerPrice'] = self.price_to_precision(symbol, triggerPrice)
         # }
         if price is not None:

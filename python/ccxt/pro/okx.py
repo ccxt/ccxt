@@ -42,6 +42,17 @@ class okx(ccxt.async_support.okx):
                 'watchPositions': True,
                 'watchFundingRate': True,
                 'watchFundingRates': True,
+                'unWatchTicker': True,
+                'unWatchTickers': True,
+                'unWatchOHLCV': True,
+                'unWatchOHLCVForSymbols': True,
+                'unWatchOrderBook': True,
+                'unWatchOrderBookForSymbols': True,
+                'unWatchTrades': True,
+                'unWatchTradesForSymbols': True,
+                'unWatchMyTrades': False,
+                'unWatchOrders': False,
+                'unWatchPositions': False,
                 'createOrderWs': True,
                 'editOrderWs': True,
                 'cancelOrderWs': True,
@@ -59,7 +70,7 @@ class okx(ccxt.async_support.okx):
             'options': {
                 'watchOrderBook': {
                     #
-                    # channel tiers: bbo-tbt(L1 tick-by-tick), books, books5(100ms) and books-rpi(400 levels, 100ms) are public
+                    # channel tiers: bbo-tbt (L1 tick-by-tick), books, books5 (100ms) and books-rpi (400 levels, 100ms) are public;
                     # books-l2-tbt needs VIP5 and books50-l2-tbt needs VIP4, both with identity verification
                     #
                     'depth': 'books',
@@ -70,6 +81,9 @@ class okx(ccxt.async_support.okx):
                 },
                 'watchTickers': {
                     'channel': 'tickers',  # tickers, sprd-tickers, index-tickers, block-tickers
+                },
+                'watchBidsAsks': {
+                    'channel': 'bbo-tbt',  # bbo-tbt (10ms L1), tickers (100ms)
                 },
                 'watchOrders': {
                     'type': 'ANY',  # SPOT, MARGIN, SWAP, FUTURES, OPTION, ANY
@@ -84,7 +98,7 @@ class okx(ccxt.async_support.okx):
                     'op': 'amend-order',  # amend-order, batch-amend-orders
                 },
                 'ws': {
-                    # 'inflate': True,
+                    # 'inflate': true,
                 },
             },
             'streaming': {
@@ -269,7 +283,7 @@ class okx(ccxt.async_support.okx):
     def handle_trades(self, client: Client, message: object):
         #
         #     {
-        #         "arg": {channel: "trades", instId: "BTC-USDT"},
+        #         "arg": { channel: "trades", instId: "BTC-USDT" },
         #         "data": [
         #             {
         #                 "instId": "BTC-USDT",
@@ -529,7 +543,7 @@ class okx(ccxt.async_support.okx):
     def handle_ticker(self, client: Client, message: object):
         #
         #     {
-        #         "arg": {channel: "tickers", instId: "BTC-USDT"},
+        #         "arg": { channel: "tickers", instId: "BTC-USDT" },
         #         "data": [
         #             {
         #                 "instType": "SPOT",
@@ -570,18 +584,20 @@ class okx(ccxt.async_support.okx):
     async def watch_bids_asks(self, symbols: Strings = None, params={}) -> Tickers:
         """
 
+        https://www.okx.com/docs-v5/en/#order-book-trading-market-data-ws-order-book-channel
         https://www.okx.com/docs-v5/en/#order-book-trading-market-data-ws-tickers-channel
 
         watches best bid & ask for symbols
         :param str[] symbols: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.channel]: the channel to subscribe to, 'bbo-tbt'(default, 10ms L1) or 'tickers'(100ms)
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
         if self.markets is None:
             await self.load_markets()
         symbols = self.market_symbols(symbols, None, False)
         channel = None
-        channel, params = self.handle_option_and_params(params, 'watchBidsAsks', 'channel', 'tickers')
+        channel, params = self.handle_option_and_params(params, 'watchBidsAsks', 'channel', 'bbo-tbt')
         url = self.get_url(channel, 'public')
         messageHashes = []
         args = []
@@ -606,8 +622,10 @@ class okx(ccxt.async_support.okx):
 
     def handle_bid_ask(self, client: Client, message: object):
         #
+        # tickers
+        #
         #     {
-        #         "arg": {channel: "tickers", instId: "BTC-USDT"},
+        #         "arg": { channel: "tickers", instId: "BTC-USDT" },
         #         "data": [
         #             {
         #                 "instType": "SPOT",
@@ -630,9 +648,25 @@ class okx(ccxt.async_support.okx):
         #         ]
         #     }
         #
+        # bbo-tbt
+        #
+        #     {
+        #         "arg": { "channel": "bbo-tbt", "instId": "BTC-USDT" },
+        #         "data": [
+        #             {
+        #                 "asks": [ [ "36232.2", "1.8826134", "0", "17" ] ],
+        #                 "bids": [ [ "36232.1", "0.00572212", "0", "2" ] ],
+        #                 "ts": "1651826598363"
+        #             }
+        #         ]
+        #     }
+        #
+        arg = self.safe_dict(message, 'arg', {})
+        marketId = self.safe_string(arg, 'instId')
+        market = self.safe_market(marketId)
         data = self.safe_list(message, 'data', [])
         ticker = self.safe_dict(data, 0, {})
-        parsedTicker = self.parse_ws_bid_ask(ticker)
+        parsedTicker = self.parse_ws_bid_ask(ticker, market)
         symbol = parsedTicker['symbol']
         if symbol is not None:
             self.bidsasks[symbol] = parsedTicker
@@ -644,14 +678,28 @@ class okx(ccxt.async_support.okx):
         market = self.safe_market(marketId, market)
         symbol = self.safe_string(market, 'symbol')
         timestamp = self.safe_integer(ticker, 'ts')
+        ask = self.safe_string(ticker, 'askPx')
+        askVolume = self.safe_string(ticker, 'askSz')
+        bid = self.safe_string(ticker, 'bidPx')
+        bidVolume = self.safe_string(ticker, 'bidSz')
+        if ask is None:
+            asks = self.safe_list(ticker, 'asks', [])
+            firstAsk = self.safe_list(asks, 0, [])
+            ask = self.safe_string(firstAsk, 0)
+            askVolume = self.safe_string(firstAsk, 1)
+        if bid is None:
+            bids = self.safe_list(ticker, 'bids', [])
+            firstBid = self.safe_list(bids, 0, [])
+            bid = self.safe_string(firstBid, 0)
+            bidVolume = self.safe_string(firstBid, 1)
         return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'ask': self.safe_string(ticker, 'askPx'),
-            'askVolume': self.safe_string(ticker, 'askSz'),
-            'bid': self.safe_string(ticker, 'bidPx'),
-            'bidVolume': self.safe_string(ticker, 'bidSz'),
+            'ask': ask,
+            'askVolume': askVolume,
+            'bid': bid,
+            'bidVolume': bidVolume,
             'info': ticker,
         }, market)
 
@@ -1042,7 +1090,7 @@ class okx(ccxt.async_support.okx):
     def handle_ohlcv(self, client: Client, message: object):
         #
         #     {
-        #         "arg": {channel: "candle1m", instId: "BTC-USDT"},
+        #         "arg": { channel: "candle1m", instId: "BTC-USDT" },
         #         "data": [
         #             [
         #                 "1626690720000",
@@ -1098,7 +1146,7 @@ class okx(ccxt.async_support.okx):
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
         #
-        # channel tiers: bbo-tbt(L1 tick-by-tick), books, books5(100ms) and books-rpi(400 levels, 100ms) are public
+        # channel tiers: bbo-tbt (L1 tick-by-tick), books, books5 (100ms) and books-rpi (400 levels, 100ms) are public;
         # books-l2-tbt needs VIP5 and books50-l2-tbt needs VIP4, both with identity verification
         #
         return self.watch_order_book_for_symbols([symbol], limit, params)
@@ -1216,10 +1264,10 @@ class okx(ccxt.async_support.okx):
     def handle_delta(self, bookside: object, delta: object):
         #
         #     [
-        #         "31685",  # price
-        #         "0.78069158",  # amount
-        #         "0",  # liquidated orders
-        #         "17"  # orders
+        #         "31685", // price
+        #         "0.78069158", // amount
+        #         "0", // liquidated orders
+        #         "17" // orders
         #     ]
         #
         price = self.safe_float(delta, 0)
@@ -1234,14 +1282,14 @@ class okx(ccxt.async_support.okx):
         #
         #     {
         #         "asks": [
-        #             ['31738.3', '0.05973179', "0", "3"],
-        #             ['31738.5', '0.11035404', "0", "2"],
-        #             ['31739.6', '0.01', "0", "1"],
+        #             [ '31738.3', '0.05973179', "0", "3" ],
+        #             [ '31738.5', '0.11035404', "0", "2" ],
+        #             [ '31739.6', '0.01', "0", "1" ],
         #         ],
         #         "bids": [
-        #             ['31738.2', '0.67557666', "0", "9"],
-        #             ['31738', '0.02466947', "0", "2"],
-        #             ['31736.3', '0.01705046', "0", "2"],
+        #             [ '31738.2', '0.67557666', "0", "9" ],
+        #             [ '31738', '0.02466947', "0", "2" ],
+        #             [ '31736.3', '0.01705046', "0", "2" ],
         #         ],
         #         "instId": "BTC-USDT",
         #         "ts": "1626537446491"
@@ -1269,6 +1317,7 @@ class okx(ccxt.async_support.okx):
             if symbol is not None:
                 del self.orderbooks[symbol]
             client.reject(error, messageHash)
+            return orderbook
         timestamp = self.safe_integer(message, 'ts')
         orderbook['nonce'] = seqId
         orderbook['timestamp'] = timestamp
@@ -1280,19 +1329,19 @@ class okx(ccxt.async_support.okx):
         # snapshot
         #
         #     {
-        #         "arg": {channel: 'books-l2-tbt', instId: "BTC-USDT"},
+        #         "arg": { channel: 'books-l2-tbt', instId: "BTC-USDT" },
         #         "action": "snapshot",
         #         "data": [
         #             {
         #                 "asks": [
-        #                     ['31685', '0.78069158', "0", "17"],
-        #                     ['31685.1', '0.0001', "0", "1"],
-        #                     ['31685.6', '0.04543165', "0", "1"],
+        #                     [ '31685', '0.78069158', "0", "17" ],
+        #                     [ '31685.1', '0.0001', "0", "1" ],
+        #                     [ '31685.6', '0.04543165', "0", "1" ],
         #                 ],
         #                 "bids": [
-        #                     ['31684.9', '0.01', "0", "1"],
-        #                     ['31682.9', '0.0001', "0", "1"],
-        #                     ['31680.7', '0.01', "0", "1"],
+        #                     [ '31684.9', '0.01', "0", "1" ],
+        #                     [ '31682.9', '0.0001', "0", "1" ],
+        #                     [ '31680.7', '0.01', "0", "1" ],
         #                 ],
         #                 "ts": "1626532416403",
         #                 "checksum": -1023440116
@@ -1303,19 +1352,19 @@ class okx(ccxt.async_support.okx):
         # update
         #
         #     {
-        #         "arg": {channel: 'books-l2-tbt', instId: "BTC-USDT"},
+        #         "arg": { channel: 'books-l2-tbt', instId: "BTC-USDT" },
         #         "action": "update",
         #         "data": [
         #             {
         #                 "asks": [
-        #                     ['31657.7', '0', "0", "0"],
-        #                     ['31659.7', '0.01', "0", "1"],
-        #                     ['31987.3', '0.01', "0", "1"]
+        #                     [ '31657.7', '0', "0", "0" ],
+        #                     [ '31659.7', '0.01', "0", "1" ],
+        #                     [ '31987.3', '0.01', "0", "1" ]
         #                 ],
         #                 "bids": [
-        #                     ['31642.9', '0.50296385', "0", "4"],
-        #                     ['31639.9', '0', "0", "0"],
-        #                     ['31638.7', '0.01', "0", "1"],
+        #                     [ '31642.9', '0.50296385', "0", "4" ],
+        #                     [ '31639.9', '0', "0", "0" ],
+        #                     [ '31638.7', '0.01', "0", "1" ],
         #                 ],
         #                 "ts": "1626535709008",
         #                 "checksum": 830931827
@@ -1326,18 +1375,18 @@ class okx(ccxt.async_support.okx):
         # books5
         #
         #     {
-        #         "arg": {channel: "books5", instId: "BTC-USDT"},
+        #         "arg": { channel: "books5", instId: "BTC-USDT" },
         #         "data": [
         #             {
         #                 "asks": [
-        #                     ['31738.3', '0.05973179', "0", "3"],
-        #                     ['31738.5', '0.11035404', "0", "2"],
-        #                     ['31739.6', '0.01', "0", "1"],
+        #                     [ '31738.3', '0.05973179', "0", "3" ],
+        #                     [ '31738.5', '0.11035404', "0", "2" ],
+        #                     [ '31739.6', '0.01', "0", "1" ],
         #                 ],
         #                 "bids": [
-        #                     ['31738.2', '0.67557666', "0", "9"],
-        #                     ['31738', '0.02466947', "0", "2"],
-        #                     ['31736.3', '0.01705046', "0", "2"],
+        #                     [ '31738.2', '0.67557666', "0", "9" ],
+        #                     [ '31738', '0.02466947', "0", "2" ],
+        #                     [ '31736.3', '0.01705046', "0", "2" ],
         #                 ],
         #                 "instId": "BTC-USDT",
         #                 "ts": "1626537446491"
@@ -1384,7 +1433,9 @@ class okx(ccxt.async_support.okx):
                 orderbook = self.order_book({}, limit)
                 self.orderbooks[symbol] = orderbook
                 orderbook['symbol'] = symbol
-                self.handle_order_book_message(client, update, orderbook, messageHash)
+                self.handle_order_book_message(client, update, orderbook, messageHash, market)
+                if not (messageHash in client.subscriptions):
+                    break
                 client.resolve(orderbook, messageHash)
         elif action == 'update':
             if symbol in self.orderbooks:
@@ -1392,17 +1443,27 @@ class okx(ccxt.async_support.okx):
                 for i in range(0, len(data)):
                     update = data[i]
                     self.handle_order_book_message(client, update, orderbook, messageHash, market)
+                    if not (messageHash in client.subscriptions):
+                        # a nonce gap rejected the future and always cleared the subscription entry, while the book
+                        # removal alone is skipped for a frame lacking an instrument id - stop replaying leftover rows
+                        break
                     client.resolve(orderbook, messageHash)
         elif (channel == 'books5') or (channel == 'bbo-tbt'):
-            if not (symbol in self.orderbooks):
-                self.orderbooks[symbol] = self.order_book({}, limit)
-            orderbook = self.orderbooks[symbol]
-            for i in range(0, len(data)):
-                update = data[i]
-                timestamp = self.safe_integer(update, 'ts')
-                snapshot = self.parse_order_book(update, symbol, timestamp, 'bids', 'asks', 0, 1)
-                orderbook.reset(snapshot)
-                client.resolve(orderbook, messageHash)
+            # watchBidsAsks reuses bbo-tbt with bidask:: hashes; only reset the
+            # shared order-book cache when watchOrderBook subscribed to this
+            # channel+symbol (e.g. 'bbo-tbt:BTC/USDT' in client.subscriptions)
+            if messageHash in client.subscriptions:
+                if not (symbol in self.orderbooks):
+                    self.orderbooks[symbol] = self.order_book({}, limit)
+                orderbook = self.orderbooks[symbol]
+                for i in range(0, len(data)):
+                    update = data[i]
+                    timestamp = self.safe_integer(update, 'ts')
+                    snapshot = self.parse_order_book(update, symbol, timestamp, 'bids', 'asks', 0, 1)
+                    orderbook.reset(snapshot)
+                    client.resolve(orderbook, messageHash)
+        if channel == 'bbo-tbt':
+            self.handle_bid_ask(client, message)
         return message
 
     async def authenticate(self, params={}):
@@ -1464,7 +1525,7 @@ class okx(ccxt.async_support.okx):
         #         },
         #         eventType: 'snapshot',
         #         curPage: 1,
-        #         lastPage: True,
+        #         lastPage: true,
         #         data: [
         #             {
         #                 adjEq: '100942.13298468884',
@@ -1489,8 +1550,8 @@ class okx(ccxt.async_support.okx):
         #                         coinUsdPrice: '200.026',
         #                         colBorrAutoConversion: '0',
         #                         colRes: '0',
-        #                         collateralEnabled: False,
-        #                         collateralRestrict: False,
+        #                         collateralEnabled: false,
+        #                         collateralRestrict: false,
         #                         crossLiab: '0',
         #                         disEq: '0',
         #                         eq: '2900',
@@ -2200,7 +2261,7 @@ class okx(ccxt.async_support.okx):
         #        "op": "mass-cancel",
         #        "data": [
         #            {
-        #                "result": True
+        #                "result": true
         #            }
         #        ],
         #        "code": "0",
@@ -2213,15 +2274,15 @@ class okx(ccxt.async_support.okx):
 
     def handle_subscription_status(self, client: Client, message: object):
         #
-        #     {event: 'subscribe', arg: {channel: "tickers", instId: "BTC-USDT"}}
+        #     { event: 'subscribe', arg: { channel: "tickers", instId: "BTC-USDT" } }
         #
-        # channel = self.safe_string(message, "channel")
-        # client.subscriptions[channel] = message
+        # const channel = this.safeString (message, "channel");
+        # client.subscriptions[channel] = message;
         return message
 
     def handle_authenticate(self, client: Client, message: object):
         #
-        #     {event: "login", success: True}
+        #     { event: "login", success: true }
         #
         future = self.safe_value(client.futures, 'authenticated')
         future.resolve(True)
@@ -2237,8 +2298,8 @@ class okx(ccxt.async_support.okx):
 
     def handle_error_message(self, client: Client, message: object) -> Bool:
         #
-        #     {event: 'error', msg: "Illegal request: {"op":"subscribe","args":["spot/ticker:BTC-USDT"]}", code: "60012"}
-        #     {event: 'error", msg: "channel:ticker,instId:BTC-USDT doesn"t exist", code: "60018"}
+        #     { event: 'error', msg: "Illegal request: {"op":"subscribe","args":["spot/ticker:BTC-USDT"]}", code: "60012" }
+        #     { event: 'error", msg: "channel:ticker,instId:BTC-USDT doesn"t exist", code: "60018" }
         #     {"event":"error","msg":"Illegal request: {\\"id\\":\\"17321173472466905\\",\\"op\\":\\"amend-order\\",\\"args\\":[{\\"instId\\":\\"ETH-USDC\\",\\"ordId\\":\\"2000345622407479296\\",\\"newSz\\":\\"0.050857\\",\\"newPx\\":\\"2949.4\\",\\"postOnly\\":true}],\\"postOnly\\":true}","code":"60012","connId":"0808af6c"}
         #
         errorCode = self.safe_string(message, 'code')
@@ -2283,11 +2344,11 @@ class okx(ccxt.async_support.okx):
         if self.handle_error_message(client, message) is not True:
             return
         #
-        #     {event: 'subscribe', arg: {channel: "tickers", instId: "BTC-USDT"}}
-        #     {event: 'login", msg: '", code: "0"}
+        #     { event: 'subscribe', arg: { channel: "tickers", instId: "BTC-USDT" } }
+        #     { event: 'login", msg: '", code: "0" }
         #
         #     {
-        #         "arg": {channel: "tickers", instId: "BTC-USDT"},
+        #         "arg": { channel: "tickers", instId: "BTC-USDT" },
         #         "data": [
         #             {
         #                 "instType": "SPOT",
@@ -2310,9 +2371,9 @@ class okx(ccxt.async_support.okx):
         #         ]
         #     }
         #
-        #     {event: 'error', msg: "Illegal request: {"op":"subscribe","args":["spot/ticker:BTC-USDT"]}", code: "60012"}
-        #     {event: 'error", msg: "channel:ticker,instId:BTC-USDT doesn"t exist", code: "60018"}
-        #     {event: 'error', msg: "Invalid OK_ACCESS_KEY", code: "60005"}
+        #     { event: 'error', msg: "Illegal request: {"op":"subscribe","args":["spot/ticker:BTC-USDT"]}", code: "60012" }
+        #     { event: 'error", msg: "channel:ticker,instId:BTC-USDT doesn"t exist", code: "60018" }
+        #     { event: 'error', msg: "Invalid OK_ACCESS_KEY", code: "60005" }
         #     {
         #         "event": "error",
         #         "msg": "Illegal request: {"op":"login","args":["de89b035-b233-44b2-9a13-0ccdd00bda0e","7KUcc8YzQhnxBE3K","1626691289","H57N99mBt5NvW8U19FITrPdOxycAERFMaapQWRqLaSE="]}",
@@ -2324,12 +2385,12 @@ class okx(ccxt.async_support.okx):
         if message == 'pong':
             self.handle_pong(client, message)
             return
-        # table = self.safe_string(message, 'table')
-        # if table is None:
+        # const table = this.safeString (message, 'table');
+        # if (table === undefined) {
         event = self.safe_string_2(message, 'event', 'op')
         if event is not None:
             methods = {
-                # 'info': self.handleSystemStatus,
+                # 'info': this.handleSystemStatus,
                 # 'book': 'handleOrderBook',
                 'login': self.handle_authenticate,
                 'subscribe': self.handle_subscription_status,
@@ -2352,7 +2413,7 @@ class okx(ccxt.async_support.okx):
             methods = {
                 'bbo-tbt': self.handle_order_book,  # newly added channel that sends tick-by-tick Level 1 data, all API users can subscribe, public depth channel, verification not required
                 'books': self.handle_order_book,  # all API users can subscribe, public depth channel, verification not required
-                'books5': self.handle_order_book,  # all API users can subscribe, public depth channel, verification not required, data feeds will be delivered every 100ms(vs. every 200ms now)
+                'books5': self.handle_order_book,  # all API users can subscribe, public depth channel, verification not required, data feeds will be delivered every 100ms (vs. every 200ms now)
                 'books-rpi': self.handle_order_book,  # all API users can subscribe, public depth channel, verification not required
                 'books50-l2-tbt': self.handle_order_book,  # only users who're VIP4 and above can subscribe, identity verification required before subscription
                 'books-l2-tbt': self.handle_order_book,  # only users who're VIP5 and above can subscribe, identity verification required before subscription
@@ -2366,7 +2427,7 @@ class okx(ccxt.async_support.okx):
                 'trades-all': self.handle_trades,
                 'account': self.handle_balance,
                 'funding-rate': self.handle_funding_rate,
-                # 'margin_account': self.handle_balance,
+                # 'margin_account': this.handleBalance,
                 'orders': self.handle_orders,
                 'orders-algo': self.handle_orders,
                 'liquidation-orders': self.handle_liquidation,

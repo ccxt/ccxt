@@ -369,21 +369,21 @@ func (this *Btcturk) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	return nil
 }
 func (this *Btcturk) ParseMarket(entry any) any {
-	var id any = this.SafeString(entry, "name")
-	var baseId any = this.SafeString(entry, "numerator")
-	var quoteId any = this.SafeString(entry, "denominator")
-	var base any = this.SafeCurrencyCode(baseId)
-	var quote any = this.SafeCurrencyCode(quoteId)
+	var id *string = this.SafeString(entry, "name")
+	var baseId *string = this.SafeString(entry, "numerator")
+	var quoteId *string = this.SafeString(entry, "denominator")
+	var base *string = this.SafeCurrencyCode(baseId)
+	var quote *string = this.SafeCurrencyCode(quoteId)
 	var filters any = this.SafeList(entry, "filters", []any{})
-	var minPrice any = nil
-	var maxPrice any = nil
-	var minAmount any = nil
-	var maxAmount any = nil
-	var minCost any = nil
+	var minPrice *float64 = nil
+	var maxPrice *float64 = nil
+	var minAmount *float64 = nil
+	var maxAmount *float64 = nil
+	var minCost *float64 = nil
 	for j := 0; IsLessThan(j, GetArrayLength(filters)); j++ {
 		var filter any = GetValue(filters, j)
-		var filterType any = this.SafeString(filter, "filterType")
-		if IsTrue(IsEqual(filterType, "PRICE_FILTER")) {
+		var filterType *string = this.SafeString(filter, "filterType")
+		if filterType != nil && *filterType == "PRICE_FILTER" {
 			minPrice = this.SafeNumber(filter, "minPrice")
 			maxPrice = this.SafeNumber(filter, "maxPrice")
 			minAmount = this.SafeNumber(filter, "minAmount")
@@ -391,7 +391,7 @@ func (this *Btcturk) ParseMarket(entry any) any {
 			minCost = this.SafeNumber(filter, "minExchangeValue")
 		}
 	}
-	var status any = this.SafeString(entry, "status")
+	var status *string = this.SafeString(entry, "status")
 	return this.SafeMarketStructure(map[string]any{
 		"id":             id,
 		"symbol":         Add(Add(base, "/"), quote),
@@ -407,7 +407,7 @@ func (this *Btcturk) ParseMarket(entry any) any {
 		"swap":           false,
 		"future":         false,
 		"option":         false,
-		"active":         (IsEqual(status, "TRADING")),
+		"active":         (status != nil && *status == "TRADING"),
 		"contract":       false,
 		"linear":         nil,
 		"inverse":        nil,
@@ -451,13 +451,13 @@ func (this *Btcturk) ParseBalance(response any) any {
 	}
 	for i := 0; IsLessThan(i, GetArrayLength(data)); i++ {
 		var entry any = GetValue(data, i)
-		var currencyId any = this.SafeString(entry, "asset")
-		var code any = this.SafeCurrencyCode(currencyId)
+		var currencyId *string = this.SafeString(entry, "asset")
+		var code *string = this.SafeCurrencyCode(currencyId)
 		var account any = this.Account()
 		AddElementToObject(account, "total", this.SafeString(entry, "balance"))
 		AddElementToObject(account, "free", this.SafeString(entry, "free"))
 		AddElementToObject(account, "used", this.SafeString(entry, "locked"))
-		if IsTrue(!IsEqual(code, nil)) {
+		if code != nil {
 			AddElementToObject(result, code, account)
 		}
 	}
@@ -482,7 +482,7 @@ func (this *Btcturk) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	defer ReturnPanicError(ch)
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	if IsTrue(IsEqual(this.Markets, nil)) {
+	if IsEqual(this.Markets, nil) {
 
 		retRes42412 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes42412)
@@ -533,7 +533,7 @@ func (this *Btcturk) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ..
 	_ = limit
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if IsTrue(IsEqual(this.Markets, nil)) {
+	if IsEqual(this.Markets, nil) {
 
 		retRes45812 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes45812)
@@ -557,7 +557,7 @@ func (this *Btcturk) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ..
 	//       }
 	//     }
 	var data any = this.SafeDict(response, "data", map[string]any{})
-	var timestamp any = this.SafeInteger(data, "timestamp")
+	var timestamp *int64 = this.SafeInteger(data, "timestamp")
 
 	ch <- this.ParseOrderBook(data, GetValue(market, "symbol"), timestamp, "bids", "asks", 0, 1)
 	return nil
@@ -585,11 +585,11 @@ func (this *Btcturk) ParseTicker(ticker any, optionalArgs ...any) any {
 	//
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var marketId any = this.SafeString(ticker, "pair")
+	var marketId *string = this.SafeString(ticker, "pair")
 	market = this.SafeMarket(marketId, market)
 	var symbol any = GetValue(market, "symbol")
-	var timestamp any = this.SafeInteger(ticker, "timestamp")
-	var last any = this.SafeString(ticker, "last")
+	var timestamp *int64 = this.SafeInteger(ticker, "timestamp")
+	var last *string = this.SafeString(ticker, "last")
 	return this.SafeTicker(map[string]any{
 		"symbol":        symbol,
 		"timestamp":     timestamp,
@@ -635,7 +635,7 @@ func (this *Btcturk) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	_ = symbols
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if IsTrue(IsEqual(this.Markets, nil)) {
+	if IsEqual(this.Markets, nil) {
 
 		retRes54212 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes54212)
@@ -668,7 +668,7 @@ func (this *Btcturk) fetchTickerBody(ch chan any, symbol any, optionalArgs ...an
 	defer ReturnPanicError(ch)
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	if IsTrue(IsEqual(this.Markets, nil)) {
+	if IsEqual(this.Markets, nil) {
 
 		retRes56012 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes56012)
@@ -711,18 +711,18 @@ func (this *Btcturk) ParseTrade(trade any, optionalArgs ...any) any {
 	//
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var timestamp any = this.SafeInteger2(trade, "date", "timestamp")
-	var id any = this.SafeString2(trade, "tid", "id")
-	var order any = this.SafeString(trade, "orderId")
-	var priceString any = this.SafeString(trade, "price")
-	var amountString any = Precise.StringAbs(this.SafeString(trade, "amount"))
-	var marketId any = this.SafeString(trade, "pair")
-	var symbol any = this.SafeSymbol(marketId, market)
-	var side any = this.SafeString2(trade, "side", "orderType")
+	var timestamp *int64 = this.SafeInteger2(trade, "date", "timestamp")
+	var id *string = this.SafeString2(trade, "tid", "id")
+	var order *string = this.SafeString(trade, "orderId")
+	var priceString *string = this.SafeString(trade, "price")
+	var amountString *string = Precise.StringAbs(this.SafeString(trade, "amount"))
+	var marketId *string = this.SafeString(trade, "pair")
+	var symbol *string = this.SafeSymbol(marketId, market)
+	var side *string = this.SafeString2(trade, "side", "orderType")
 	var fee any = nil
-	var feeAmountString any = this.SafeString(trade, "fee")
-	if IsTrue(!IsEqual(feeAmountString, nil)) {
-		var feeCurrency any = this.SafeString(trade, "denominatorSymbol")
+	var feeAmountString *string = this.SafeString(trade, "fee")
+	if feeAmountString != nil {
+		var feeCurrency *string = this.SafeString(trade, "denominatorSymbol")
 		fee = map[string]any{
 			"cost":     Precise.StringAbs(feeAmountString),
 			"currency": this.SafeCurrencyCode(feeCurrency),
@@ -770,7 +770,7 @@ func (this *Btcturk) fetchTradesBody(ch chan any, symbol any, optionalArgs ...an
 	_ = limit
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	if IsTrue(IsEqual(this.Markets, nil)) {
+	if IsEqual(this.Markets, nil) {
 
 		retRes64212 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes64212)
@@ -780,7 +780,7 @@ func (this *Btcturk) fetchTradesBody(ch chan any, symbol any, optionalArgs ...an
 	var request map[string]any = map[string]any{
 		"pairSymbol": GetValue(market, "id"),
 	}
-	if IsTrue(!IsEqual(limit, nil)) {
+	if !IsEqual(limit, nil) {
 		AddElementToObject(request, "last", limit)
 	}
 
@@ -805,7 +805,7 @@ func (this *Btcturk) fetchTradesBody(ch chan any, symbol any, optionalArgs ...an
 	//
 	var data any = this.SafeList(response, "data")
 	var dataList any = []any{}
-	if IsTrue(!IsEqual(data, nil)) {
+	if !IsEqual(data, nil) {
 		dataList = data
 	}
 
@@ -857,7 +857,7 @@ func (this *Btcturk) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	if IsTrue(IsEqual(this.Markets, nil)) {
+	if IsEqual(this.Markets, nil) {
 
 		retRes71412 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes71412)
@@ -867,21 +867,21 @@ func (this *Btcturk) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any
 		"symbol":     GetValue(market, "id"),
 		"resolution": this.SafeValue(this.Timeframes, timeframe, timeframe),
 	}
-	var until any = this.SafeInteger(params, "until", this.Milliseconds())
+	var until *int64 = this.SafeInteger(params, "until", this.Milliseconds())
 	AddElementToObject(request, "to", this.ParseToInt((Divide(until, 1000))))
-	if IsTrue(!IsEqual(since, nil)) {
+	if !IsEqual(since, nil) {
 		AddElementToObject(request, "from", this.ParseToInt(Divide(since, 1000)))
-	} else if IsTrue(IsEqual(limit, nil)) {
+	} else if IsEqual(limit, nil) {
 		limit = 100 // default value
 	}
-	if IsTrue(!IsEqual(limit, nil)) {
+	if !IsEqual(limit, nil) {
 		limit = mathMin(limit, 11000) // max 11000 candles diapason can be covered
-		if IsTrue(IsEqual(timeframe, "1y")) {
+		if IsEqual(timeframe, "1y") {
 			panic(BadRequest(Add(this.Id, " fetchOHLCV () does not accept a limit parameter when timeframe == \"1y\"")))
 		}
 		var seconds any = this.ParseTimeframe(timeframe)
 		var limitSeconds any = Multiply(seconds, (Subtract(limit, 1)))
-		if IsTrue(!IsEqual(since, nil)) {
+		if !IsEqual(since, nil) {
 			var to any = Add(this.ParseToInt(Divide(since, 1000)), limitSeconds)
 			AddElementToObject(request, "to", mathMin(GetValue(request, "to"), to))
 		} else {
@@ -988,7 +988,7 @@ func (this *Btcturk) createOrderBody(ch chan any, symbol any, typeVar any, side 
 	_ = price
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if IsTrue(IsEqual(this.Markets, nil)) {
+	if IsEqual(this.Markets, nil) {
 
 		retRes81912 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes81912)
@@ -1000,12 +1000,12 @@ func (this *Btcturk) createOrderBody(ch chan any, symbol any, typeVar any, side 
 		"pairSymbol":  GetValue(market, "id"),
 		"quantity":    this.AmountToPrecision(symbol, amount),
 	}
-	if IsTrue(!IsEqual(typeVar, "market")) {
+	if !IsEqual(typeVar, "market") {
 		AddElementToObject(request, "price", this.PriceToPrecision(symbol, price))
 	}
-	if IsTrue(InOp(params, "clientOrderId")) {
+	if InOp(params, "clientOrderId") {
 		AddElementToObject(request, "newClientOrderId", GetValue(params, "clientOrderId"))
-	} else if !IsTrue((InOp(params, "newClientOrderId"))) {
+	} else if !(InOp(params, "newClientOrderId")) {
 		AddElementToObject(request, "newClientOrderId", this.Uuid())
 	}
 
@@ -1086,14 +1086,14 @@ func (this *Btcturk) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	if IsTrue(IsEqual(this.Markets, nil)) {
+	if IsEqual(this.Markets, nil) {
 
 		retRes88112 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes88112)
 	}
 	var request map[string]any = map[string]any{}
 	var market any = nil
-	if IsTrue(!IsEqual(symbol, nil)) {
+	if !IsEqual(symbol, nil) {
 		market = this.Market(symbol)
 		AddElementToObject(request, "pairSymbol", GetValue(market, "id"))
 	}
@@ -1135,7 +1135,7 @@ func (this *Btcturk) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	if IsTrue(IsEqual(this.Markets, nil)) {
+	if IsEqual(this.Markets, nil) {
 
 		retRes90912 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes90912)
@@ -1144,11 +1144,11 @@ func (this *Btcturk) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	var request map[string]any = map[string]any{
 		"pairSymbol": GetValue(market, "id"),
 	}
-	if IsTrue(!IsEqual(limit, nil)) {
+	if !IsEqual(limit, nil) {
 		// default 100 max 1000
 		AddElementToObject(request, "last", limit)
 	}
-	if IsTrue(!IsEqual(since, nil)) {
+	if !IsEqual(since, nil) {
 		AddElementToObject(request, "startTime", MathFloor(Divide(since, 1000)))
 	}
 
@@ -1179,7 +1179,7 @@ func (this *Btcturk) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	ch <- this.ParseOrders(data, market, since, limit)
 	return nil
 }
-func (this *Btcturk) ParseOrderStatus(status any) any {
+func (this *Btcturk) ParseOrderStatus(status any) *string {
 	var statuses map[string]any = map[string]any{
 		"Untouched": "open",
 		"Partial":   "open",
@@ -1224,19 +1224,19 @@ func (this *Btcturk) ParseOrder(order any, optionalArgs ...any) any {
 	//
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var id any = this.SafeString(order, "id")
-	var price any = this.SafeString(order, "price")
-	var amountString any = this.SafeString2(order, "amount", "quantity")
-	var amount any = Precise.StringAbs(amountString)
-	var remaining any = this.SafeString(order, "leftAmount")
-	var marketId any = this.SafeString(order, "pairSymbol")
-	var symbol any = this.SafeSymbol(marketId, market)
-	var side any = this.SafeString(order, "type")
-	var typeVar any = this.SafeString(order, "method")
-	var clientOrderId any = this.SafeString(order, "orderClientId")
-	var timestamp any = this.SafeInteger2(order, "updateTime", "datetime")
-	var rawStatus any = this.SafeString(order, "status")
-	var status any = this.ParseOrderStatus(rawStatus)
+	var id *string = this.SafeString(order, "id")
+	var price *string = this.SafeString(order, "price")
+	var amountString *string = this.SafeString2(order, "amount", "quantity")
+	var amount *string = Precise.StringAbs(amountString)
+	var remaining *string = this.SafeString(order, "leftAmount")
+	var marketId *string = this.SafeString(order, "pairSymbol")
+	var symbol *string = this.SafeSymbol(marketId, market)
+	var side *string = this.SafeString(order, "type")
+	var typeVar *string = this.SafeString(order, "method")
+	var clientOrderId *string = this.SafeString(order, "orderClientId")
+	var timestamp *int64 = this.SafeInteger2(order, "updateTime", "datetime")
+	var rawStatus *string = this.SafeString(order, "status")
+	var status *string = this.ParseOrderStatus(rawStatus)
 	return this.SafeOrder(map[string]any{
 		"info":          order,
 		"id":            id,
@@ -1284,13 +1284,13 @@ func (this *Btcturk) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	if IsTrue(IsEqual(this.Markets, nil)) {
+	if IsEqual(this.Markets, nil) {
 
 		retRes103712 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes103712)
 	}
 	var market any = nil
-	if IsTrue(!IsEqual(symbol, nil)) {
+	if !IsEqual(symbol, nil) {
 		market = this.Market(symbol)
 	}
 
@@ -1319,7 +1319,7 @@ func (this *Btcturk) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	//
 	var data any = this.SafeList(response, "data")
 	var dataList any = []any{}
-	if IsTrue(!IsEqual(data, nil)) {
+	if !IsEqual(data, nil) {
 		dataList = data
 	}
 
@@ -1340,18 +1340,18 @@ func (this *Btcturk) Sign(path any, optionalArgs ...any) any {
 	_ = headers
 	body := GetArg(optionalArgs, 4, nil)
 	_ = body
-	if IsTrue(IsEqual(this.Id, "btctrader")) {
+	if this.Id == "btctrader" {
 		panic(ExchangeError(Add(this.Id, " is an abstract base API for BTCExchange, BTCTurk")))
 	}
 	var url any = Add(Add(GetValue(GetValue(this.Urls, "api"), api), "/"), path)
-	if IsTrue(IsTrue((IsEqual(method, "GET"))) || IsTrue((IsEqual(method, "DELETE")))) {
-		if IsTrue(IsGreaterThan(GetArrayLength(ObjectKeys(params)), 0)) {
+	if (IsEqual(method, "GET")) || (IsEqual(method, "DELETE")) {
+		if IsGreaterThan(GetArrayLength(ObjectKeys(params)), 0) {
 			url = Add(url, Add("?", this.Urlencode(params)))
 		}
 	} else {
 		body = this.Json(params)
 	}
-	if IsTrue(IsEqual(api, "private")) {
+	if IsEqual(api, "private") {
 		this.CheckRequiredCredentials()
 		var nonce string = ToString(this.Nonce())
 		var secret []byte = this.Base64ToBinary(this.Secret)
@@ -1371,11 +1371,11 @@ func (this *Btcturk) Sign(path any, optionalArgs ...any) any {
 	}
 }
 func (this *Btcturk) HandleErrors(code any, reason any, url any, method any, headers any, body any, response any, requestHeaders any, requestBody any) any {
-	var errorCode any = this.SafeString(response, "code", "0")
-	var message any = this.SafeString(response, "message")
-	var output any = Ternary(IsTrue((IsEqual(message, nil))), body, message)
+	var errorCode *string = this.SafeString(response, "code", "0")
+	var message *string = this.SafeString(response, "message")
+	var output any = Ternary((message == nil), body, message)
 	this.ThrowExactlyMatchedException(GetValue(this.Exceptions, "exact"), message, Add(Add(this.Id, " "), output))
-	if IsTrue(IsTrue((!IsEqual(errorCode, "0"))) && IsTrue((!IsEqual(errorCode, "SUCCESS")))) {
+	if (errorCode == nil || *errorCode != "0") && (errorCode == nil || *errorCode != "SUCCESS") {
 		panic(ExchangeError(Add(Add(this.Id, " "), output)))
 	}
 	return nil
@@ -1395,6 +1395,7 @@ func (this *Btcturk) Init(userConfig map[string]any) {
 }
 
 // typed methods
+
 /**
  * @method
  * @name btcturk#fetchMarkets
@@ -1444,11 +1445,7 @@ func (this *Btcturk) FetchOrderBook(symbol string, options ...FetchOrderBookOpti
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var limit *int64 = opts.Limit
-
-	var params *map[string]any = opts.Params
-	res := <-this.FetchOrderBookAsync(symbol, limit, params)
+	res := <-this.FetchOrderBookAsync(symbol, opts.Limit, opts.Params)
 	if IsError(res) {
 		return OrderBook{}, CreateReturnError(res)
 	}
@@ -1471,11 +1468,7 @@ func (this *Btcturk) FetchTickers(options ...FetchTickersOptions) (Tickers, erro
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var symbols *[]string = opts.Symbols
-
-	var params *map[string]any = opts.Params
-	res := <-this.FetchTickersAsync(symbols, params)
+	res := <-this.FetchTickersAsync(opts.Symbols, opts.Params)
 	if IsError(res) {
 		return Tickers{}, CreateReturnError(res)
 	}
@@ -1498,9 +1491,7 @@ func (this *Btcturk) FetchTicker(symbol string, options ...FetchTickerOptions) (
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var params *map[string]any = opts.Params
-	res := <-this.FetchTickerAsync(symbol, params)
+	res := <-this.FetchTickerAsync(symbol, opts.Params)
 	if IsError(res) {
 		return Ticker{}, CreateReturnError(res)
 	}
@@ -1525,13 +1516,7 @@ func (this *Btcturk) FetchTrades(symbol string, options ...FetchTradesOptions) (
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var since *int64 = opts.Since
-
-	var limit *int64 = opts.Limit
-
-	var params *map[string]any = opts.Params
-	res := <-this.FetchTradesAsync(symbol, since, limit, params)
+	res := <-this.FetchTradesAsync(symbol, opts.Since, opts.Limit, opts.Params)
 	if IsError(res) {
 		return nil, CreateReturnError(res)
 	}
@@ -1558,15 +1543,7 @@ func (this *Btcturk) FetchOHLCV(symbol string, options ...FetchOHLCVOptions) ([]
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var timeframe *string = opts.Timeframe
-
-	var since *int64 = opts.Since
-
-	var limit *int64 = opts.Limit
-
-	var params *map[string]any = opts.Params
-	res := <-this.FetchOHLCVAsync(symbol, timeframe, since, limit, params)
+	res := <-this.FetchOHLCVAsync(symbol, opts.Timeframe, opts.Since, opts.Limit, opts.Params)
 	if IsError(res) {
 		return nil, CreateReturnError(res)
 	}
@@ -1593,11 +1570,7 @@ func (this *Btcturk) CreateOrder(symbol string, typeVar string, side string, amo
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var price *float64 = opts.Price
-
-	var params *map[string]any = opts.Params
-	res := <-this.CreateOrderAsync(symbol, typeVar, side, amount, price, params)
+	res := <-this.CreateOrderAsync(symbol, typeVar, side, amount, opts.Price, opts.Params)
 	if IsError(res) {
 		return Order{}, CreateReturnError(res)
 	}
@@ -1621,11 +1594,7 @@ func (this *Btcturk) CancelOrder(id string, options ...CancelOrderOptions) (Orde
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var symbol *string = opts.Symbol
-
-	var params *map[string]any = opts.Params
-	res := <-this.CancelOrderAsync(id, symbol, params)
+	res := <-this.CancelOrderAsync(id, opts.Symbol, opts.Params)
 	if IsError(res) {
 		return Order{}, CreateReturnError(res)
 	}
@@ -1650,15 +1619,7 @@ func (this *Btcturk) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([]Order
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var symbol *string = opts.Symbol
-
-	var since *int64 = opts.Since
-
-	var limit *int64 = opts.Limit
-
-	var params *map[string]any = opts.Params
-	res := <-this.FetchOpenOrdersAsync(symbol, since, limit, params)
+	res := <-this.FetchOpenOrdersAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params)
 	if IsError(res) {
 		return nil, CreateReturnError(res)
 	}
@@ -1683,15 +1644,7 @@ func (this *Btcturk) FetchOrders(options ...FetchOrdersOptions) ([]Order, error)
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var symbol *string = opts.Symbol
-
-	var since *int64 = opts.Since
-
-	var limit *int64 = opts.Limit
-
-	var params *map[string]any = opts.Params
-	res := <-this.FetchOrdersAsync(symbol, since, limit, params)
+	res := <-this.FetchOrdersAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params)
 	if IsError(res) {
 		return nil, CreateReturnError(res)
 	}
@@ -1716,15 +1669,7 @@ func (this *Btcturk) FetchMyTrades(options ...FetchMyTradesOptions) ([]Trade, er
 	for _, opt := range options {
 		opt(&opts)
 	}
-
-	var symbol *string = opts.Symbol
-
-	var since *int64 = opts.Since
-
-	var limit *int64 = opts.Limit
-
-	var params *map[string]any = opts.Params
-	res := <-this.FetchMyTradesAsync(symbol, since, limit, params)
+	res := <-this.FetchMyTradesAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params)
 	if IsError(res) {
 		return nil, CreateReturnError(res)
 	}

@@ -5,6 +5,7 @@ package io.github.ccxt.exchanges.pro;
 import io.github.ccxt.base.Precise;
 import io.github.ccxt.errors.*;
 import io.github.ccxt.Helpers;
+import io.github.ccxt.BaseExchange;
 import io.github.ccxt.ws.*;
 import io.github.ccxt.Client;
 import io.github.ccxt.types.Balances;
@@ -61,6 +62,17 @@ public class Okx extends io.github.ccxt.exchanges.Okx
                 put( "watchPositions", true );
                 put( "watchFundingRate", true );
                 put( "watchFundingRates", true );
+                put( "unWatchTicker", true );
+                put( "unWatchTickers", true );
+                put( "unWatchOHLCV", true );
+                put( "unWatchOHLCVForSymbols", true );
+                put( "unWatchOrderBook", true );
+                put( "unWatchOrderBookForSymbols", true );
+                put( "unWatchTrades", true );
+                put( "unWatchTradesForSymbols", true );
+                put( "unWatchMyTrades", false );
+                put( "unWatchOrders", false );
+                put( "unWatchPositions", false );
                 put( "createOrderWs", true );
                 put( "editOrderWs", true );
                 put( "cancelOrderWs", true );
@@ -85,6 +97,9 @@ public class Okx extends io.github.ccxt.exchanges.Okx
                 }} );
                 put( "watchTickers", new HashMap<String, Object>() {{
                     put( "channel", "tickers" );
+                }} );
+                put( "watchBidsAsks", new HashMap<String, Object>() {{
+                    put( "channel", "bbo-tbt" );
                 }} );
                 put( "watchOrders", new HashMap<String, Object>() {{
                     put( "type", "ANY" );
@@ -133,7 +148,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
     public CompletableFuture<Object> subscribeMultiple(Object access, Object channel2, Object... optionalArgs)
     {
         final Object channel3 = channel2;
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
             Object channel = channel3;
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
@@ -185,7 +200,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
     {
         final Object messageHash3 = messageHash2;
         final Object symbol3 = symbol2;
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
             Object messageHash = messageHash3;
             Object symbol = symbol3;
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
@@ -227,7 +242,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
     public CompletableFuture<List<Trade>> watchTrades(String symbol, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object since = Helpers.getArg(optionalArgs, 0, null);
             Object limit = Helpers.getArg(optionalArgs, 1, null);
@@ -253,7 +268,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
     public CompletableFuture<List<Trade>> watchTradesForSymbols(Object symbols2, Object... optionalArgs)
     {
         final Object symbols3 = symbols2;
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
             Object symbols = symbols3;
             Object since = Helpers.getArg(optionalArgs, 0, null);
             Object limit = Helpers.getArg(optionalArgs, 1, null);
@@ -324,7 +339,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
     public CompletableFuture<Object> unWatchTradesForSymbols(Object symbols2, Object... optionalArgs)
     {
         final Object symbols3 = symbols2;
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
             Object symbols = symbols3;
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
@@ -380,7 +395,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
     public CompletableFuture<Object> unWatchTrades(String symbol, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             return (this.unWatchTradesForSymbols(new ArrayList<Object>(Arrays.asList(symbol)), parameters)).join();
@@ -455,7 +470,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
     public CompletableFuture<FundingRate> watchFundingRate(String symbol2, Object... optionalArgs)
     {
         final Object symbol3 = symbol2;
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             symbol = this.symbol(symbol);
@@ -477,7 +492,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
     public CompletableFuture<FundingRates> watchFundingRates(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
@@ -574,7 +589,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
     public CompletableFuture<Ticker> watchTicker(String symbol2, Object... optionalArgs)
     {
         final Object symbol3 = symbol2;
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             Object channel = null;
@@ -603,7 +618,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
     public CompletableFuture<Object> unWatchTicker(String symbol, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             return (this.unWatchTickers(new ArrayList<Object>(Arrays.asList(symbol)), parameters)).join();
@@ -624,7 +639,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
     public CompletableFuture<Tickers> watchTickers(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
@@ -660,7 +675,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
     public CompletableFuture<Ticker> watchMarkPrice(String symbol2, Object... optionalArgs)
     {
         final Object symbol3 = symbol2;
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             Object channel = null;
@@ -689,7 +704,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
     public CompletableFuture<Tickers> watchMarkPrices(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
@@ -725,7 +740,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
     public CompletableFuture<Object> unWatchTickers(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
@@ -810,16 +825,18 @@ public class Okx extends io.github.ccxt.exchanges.Okx
     /**
      * @method
      * @name okx#watchBidsAsks
+     * @see https://www.okx.com/docs-v5/en/#order-book-trading-market-data-ws-order-book-channel
      * @see https://www.okx.com/docs-v5/en/#order-book-trading-market-data-ws-tickers-channel
      * @description watches best bid & ask for symbols
      * @param {string[]} symbols unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.channel] the channel to subscribe to, 'bbo-tbt' (default, 10ms L1) or 'tickers' (100ms)
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     public CompletableFuture<Tickers> watchBidsAsks(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
@@ -829,7 +846,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             }
             symbols = this.marketSymbols(symbols, null, false);
             Object channel = null;
-            List<Object> channelparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "watchBidsAsks", "channel", "tickers");
+            List<Object> channelparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "watchBidsAsks", "channel", "bbo-tbt");
             channel = ((List<Object>) channelparametersVariable).get(0);
             parameters = ((List<Object>) channelparametersVariable).get(1);
             Object url = this.getUrl(channel, "public");
@@ -865,6 +882,8 @@ public class Okx extends io.github.ccxt.exchanges.Okx
     public void handleBidAsk(Client client, Object message)
     {
         //
+        // tickers
+        //
         //     {
         //         "arg": { channel: "tickers", instId: "BTC-USDT" },
         //         "data": [
@@ -889,9 +908,25 @@ public class Okx extends io.github.ccxt.exchanges.Okx
         //         ]
         //     }
         //
+        // bbo-tbt
+        //
+        //     {
+        //         "arg": { "channel": "bbo-tbt", "instId": "BTC-USDT" },
+        //         "data": [
+        //             {
+        //                 "asks": [ [ "36232.2", "1.8826134", "0", "17" ] ],
+        //                 "bids": [ [ "36232.1", "0.00572212", "0", "2" ] ],
+        //                 "ts": "1651826598363"
+        //             }
+        //         ]
+        //     }
+        //
+        Object arg = this.safeDict(message, "arg", new HashMap<String, Object>() {{}});
+        String marketId = this.safeString(arg, "instId");
+        Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
         Object data = this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
         Object ticker = this.safeDict(data, 0, new HashMap<String, Object>() {{}});
-        Object parsedTicker = this.parseWsBidAsk(ticker);
+        Object parsedTicker = this.parseWsBidAsk(ticker, market);
         Object symbol = Helpers.GetValue(parsedTicker, "symbol");
         if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
         {
@@ -908,14 +943,36 @@ public class Okx extends io.github.ccxt.exchanges.Okx
         market = this.safeMarket(marketId, market);
         String symbol = this.safeString(market, "symbol");
         Long timestamp = this.safeInteger(ticker, "ts");
+        String ask = this.safeString(ticker, "askPx");
+        String askVolume = this.safeString(ticker, "askSz");
+        String bid = this.safeString(ticker, "bidPx");
+        String bidVolume = this.safeString(ticker, "bidSz");
+        if (Helpers.isTrue(Helpers.isEqual(ask, null)))
+        {
+            Object asks = this.safeList(ticker, "asks", new ArrayList<Object>(Arrays.asList()));
+            Object firstAsk = this.safeList(asks, 0, new ArrayList<Object>(Arrays.asList()));
+            ask = this.safeString(firstAsk, 0);
+            askVolume = this.safeString(firstAsk, 1);
+        }
+        if (Helpers.isTrue(Helpers.isEqual(bid, null)))
+        {
+            Object bids = this.safeList(ticker, "bids", new ArrayList<Object>(Arrays.asList()));
+            Object firstBid = this.safeList(bids, 0, new ArrayList<Object>(Arrays.asList()));
+            bid = this.safeString(firstBid, 0);
+            bidVolume = this.safeString(firstBid, 1);
+        }
+        final Object finalAsk = ask;
+        final Object finalAskVolume = askVolume;
+        final Object finalBid = bid;
+        final Object finalBidVolume = bidVolume;
         return this.safeTicker(new HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "timestamp", timestamp );
             put( "datetime", Okx.this.iso8601(timestamp) );
-            put( "ask", Okx.this.safeString(ticker, "askPx") );
-            put( "askVolume", Okx.this.safeString(ticker, "askSz") );
-            put( "bid", Okx.this.safeString(ticker, "bidPx") );
-            put( "bidVolume", Okx.this.safeString(ticker, "bidSz") );
+            put( "ask", finalAsk );
+            put( "askVolume", finalAskVolume );
+            put( "bid", finalBid );
+            put( "bidVolume", finalBidVolume );
             put( "info", ticker );
         }}, market);
     }
@@ -934,7 +991,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
     public CompletableFuture<List<Liquidation>> watchLiquidationsForSymbols(Object symbols2, Object... optionalArgs)
     {
         final Object symbols3 = symbols2;
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
             Object symbols = symbols3;
             Object since = Helpers.getArg(optionalArgs, 0, null);
             Object limit = Helpers.getArg(optionalArgs, 1, null);
@@ -1054,7 +1111,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
     public CompletableFuture<List<Liquidation>> watchMyLiquidationsForSymbols(Object symbols2, Object... optionalArgs)
     {
         final Object symbols3 = symbols2;
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
             Object symbols = symbols3;
             Object since = Helpers.getArg(optionalArgs, 0, null);
             Object limit = Helpers.getArg(optionalArgs, 1, null);
@@ -1268,7 +1325,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
     public CompletableFuture<List<OHLCV>> watchOHLCV(String symbol2, Object... optionalArgs)
     {
         final Object symbol3 = symbol2;
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
             Object timeframe = Helpers.getArg(optionalArgs, 0, "1m");
             Object since = Helpers.getArg(optionalArgs, 1, null);
@@ -1304,7 +1361,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
     public CompletableFuture<Object> unWatchOHLCV(String symbol, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object timeframe = Helpers.getArg(optionalArgs, 0, "1m");
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
@@ -1327,7 +1384,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
     public CompletableFuture<Object> watchOHLCVForSymbols(Object symbolsAndTimeframes, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object since = Helpers.getArg(optionalArgs, 0, null);
             Object limit = Helpers.getArg(optionalArgs, 1, null);
@@ -1389,7 +1446,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
     public CompletableFuture<Object> unWatchOHLCVForSymbols(Object symbolsAndTimeframes, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             Object symbolsLength = Helpers.getArrayLength(symbolsAndTimeframes);
@@ -1498,7 +1555,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
     public CompletableFuture<OrderBook> watchOrderBook(String symbol, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             //
             // channel tiers: bbo-tbt (L1 tick-by-tick), books, books5 (100ms) and books-rpi (400 levels, 100ms) are public;
@@ -1525,7 +1582,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
     public CompletableFuture<OrderBook> watchOrderBookForSymbols(Object symbols2, Object... optionalArgs)
     {
         final Object symbols3 = symbols2;
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
             Object symbols = symbols3;
             Object limit = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
@@ -1603,7 +1660,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
     public CompletableFuture<Object> unWatchOrderBookForSymbols(Object symbols2, Object... optionalArgs)
     {
         final Object symbols3 = symbols2;
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
             Object symbols = symbols3;
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
@@ -1672,7 +1729,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
     public CompletableFuture<Object> unWatchOrderBook(Object symbol, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             return (this.unWatchOrderBookForSymbols(new ArrayList<Object>(Arrays.asList(symbol)), parameters)).join();
@@ -1749,6 +1806,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
                 ((Map<String,Object>)this.orderbooks).remove((String)symbol);
             }
             client.reject(error, messageHash);
+            return orderbook;
         }
         Long timestamp = this.safeInteger(message, "ts");
         Helpers.addElementToObject(orderbook, "nonce", seqId);
@@ -1869,7 +1927,11 @@ public class Okx extends io.github.ccxt.exchanges.Okx
                 io.github.ccxt.ws.WsOrderBook orderbook = this.orderBook(new HashMap<String, Object>() {{}}, limit);
                 Helpers.addElementToObject(this.orderbooks, symbol, orderbook);
                 Helpers.addElementToObject(orderbook, "symbol", symbol);
-                this.handleOrderBookMessage(client, update, orderbook, messageHash);
+                this.handleOrderBookMessage(client, update, orderbook, messageHash, market);
+                if (!Helpers.isTrue((Helpers.inOp(client.subscriptions, messageHash))))
+                {
+                    break;
+                }
                 client.resolve(orderbook, messageHash);
             }
         } else if (Helpers.isTrue(Helpers.isEqual(action, "update")))
@@ -1881,24 +1943,40 @@ public class Okx extends io.github.ccxt.exchanges.Okx
                 {
                     Object update = Helpers.GetValue(data, i);
                     this.handleOrderBookMessage(client, update, orderbook, messageHash, market);
+                    if (!Helpers.isTrue((Helpers.inOp(client.subscriptions, messageHash))))
+                    {
+                        // a nonce gap rejected the future and always cleared the subscription entry, while the book
+                        // removal alone is skipped for a frame lacking an instrument id - stop replaying leftover rows
+                        break;
+                    }
                     client.resolve(orderbook, messageHash);
                 }
             }
         } else if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(channel, "books5"))) || Helpers.isTrue((Helpers.isEqual(channel, "bbo-tbt")))))
         {
-            if (!Helpers.isTrue((Helpers.inOp(this.orderbooks, symbol))))
+            // watchBidsAsks reuses bbo-tbt with bidask:: hashes; only reset the
+            // shared order-book cache when watchOrderBook subscribed to this
+            // channel+symbol (e.g. 'bbo-tbt:BTC/USDT' in client.subscriptions)
+            if (Helpers.isTrue(Helpers.inOp(client.subscriptions, messageHash)))
             {
-                Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook(new HashMap<String, Object>() {{}}, limit));
+                if (!Helpers.isTrue((Helpers.inOp(this.orderbooks, symbol))))
+                {
+                    Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook(new HashMap<String, Object>() {{}}, limit));
+                }
+                io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) Helpers.GetValue(this.orderbooks, symbol);
+                for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(data)); i++)
+                {
+                    Object update = Helpers.GetValue(data, i);
+                    Long timestamp = this.safeInteger(update, "ts");
+                    Object snapshot = this.parseOrderBook(update, symbol, timestamp, "bids", "asks", 0, 1);
+                    Helpers.callDynamically(orderbook, "reset", new Object[]{snapshot});
+                    client.resolve(orderbook, messageHash);
+                }
             }
-            io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) Helpers.GetValue(this.orderbooks, symbol);
-            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(data)); i++)
-            {
-                Object update = Helpers.GetValue(data, i);
-                Long timestamp = this.safeInteger(update, "ts");
-                Object snapshot = this.parseOrderBook(update, symbol, timestamp, "bids", "asks", 0, 1);
-                Helpers.callDynamically(orderbook, "reset", new Object[]{snapshot});
-                client.resolve(orderbook, messageHash);
-            }
+        }
+        if (Helpers.isTrue(Helpers.isEqual(channel, "bbo-tbt")))
+        {
+            this.handleBidAsk(client, message);
         }
         return message;
     }
@@ -1906,7 +1984,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
     public CompletableFuture<Object> authenticate(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             this.checkRequiredCredentials();
@@ -1958,7 +2036,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
     public CompletableFuture<Balances> watchBalance(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
@@ -2119,7 +2197,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
     public CompletableFuture<List<Trade>> watchMyTrades(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             // By default, receive order updates from any instrument type
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
@@ -2198,7 +2276,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
     public CompletableFuture<List<Position>> watchPositions(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
@@ -2361,7 +2439,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
     public CompletableFuture<List<Order>> watchOrders(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
@@ -2642,7 +2720,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
     public CompletableFuture<Order> createOrderWs(String symbol, Object type2, Object side, Object amount, Object... optionalArgs)
     {
         final Object type3 = type2;
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
             Object type = type3;
             Object price = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
@@ -2739,7 +2817,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
     public CompletableFuture<Order> editOrderWs(String id, String symbol, Object type, Object side, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object amount = Helpers.getArg(optionalArgs, 0, null);
             Object price = Helpers.getArg(optionalArgs, 1, null);
@@ -2788,7 +2866,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
     public CompletableFuture<Order> cancelOrderWs(String id, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
@@ -2841,7 +2919,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
     public CompletableFuture<List<Order>> cancelOrdersWs(Object ids, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
@@ -2897,7 +2975,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
     public CompletableFuture<List<Order>> cancelAllOrdersWs(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});

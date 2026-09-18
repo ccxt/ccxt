@@ -6,6 +6,7 @@ import io.github.ccxt.api.BingxApi;
 import io.github.ccxt.base.Precise;
 import io.github.ccxt.errors.*;
 import io.github.ccxt.Helpers;
+import io.github.ccxt.BaseExchange;
 import io.github.ccxt.types.Balances;
 import io.github.ccxt.types.DepositAddress;
 import io.github.ccxt.types.DepositWithdrawFees;
@@ -1187,7 +1188,7 @@ public class Bingx extends BingxApi
                         put( "untilDays", 7 );
                         put( "trigger", false );
                         put( "trailing", false );
-                        put( "symbolRequired", true );
+                        put( "symbolRequired", false );
                     }} );
                     put( "fetchClosedOrders", new HashMap<String, Object>() {{
                         put( "marginMode", false );
@@ -1197,7 +1198,7 @@ public class Bingx extends BingxApi
                         put( "untilDays", 7 );
                         put( "trigger", false );
                         put( "trailing", false );
-                        put( "symbolRequired", true );
+                        put( "symbolRequired", false );
                     }} );
                     put( "fetchOHLCV", new HashMap<String, Object>() {{
                         put( "limit", 1440 );
@@ -1205,6 +1206,7 @@ public class Bingx extends BingxApi
                 }} );
                 put( "defaultForInverse", new HashMap<String, Object>() {{
                     put( "extends", "defaultForLinear" );
+                    put( "sandbox", false );
                     put( "createOrders", null );
                     put( "fetchOHLCV", new HashMap<String, Object>() {{
                         put( "limit", 1000 );
@@ -1218,6 +1220,7 @@ public class Bingx extends BingxApi
                 }} );
                 put( "spot", new HashMap<String, Object>() {{
                     put( "extends", "defaultForLinear" );
+                    put( "sandbox", false );
                     put( "fetchCurrencies", new HashMap<String, Object>() {{
                         put( "private", true );
                     }} );
@@ -1245,18 +1248,6 @@ public class Bingx extends BingxApi
                         put( "extends", "defaultForInverse" );
                     }} );
                 }} );
-                put( "defaultForFuture", new HashMap<String, Object>() {{
-                    put( "extends", "defaultForLinear" );
-                    put( "fetchOrders", null );
-                }} );
-                put( "future", new HashMap<String, Object>() {{
-                    put( "linear", new HashMap<String, Object>() {{
-                        put( "extends", "defaultForFuture" );
-                    }} );
-                    put( "inverse", new HashMap<String, Object>() {{
-                        put( "extends", "defaultForFuture" );
-                    }} );
-                }} );
             }} );
             put( "rollingWindowSize", 2000 );
         }});
@@ -1273,7 +1264,7 @@ public class Bingx extends BingxApi
     public CompletableFuture<Long> fetchTime(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             Map<String, Object> response = (this.swapV2PublicGetServerTime(parameters)).join();
@@ -1303,7 +1294,7 @@ public class Bingx extends BingxApi
     public CompletableFuture<Object> fetchCurrencies(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             if (!Helpers.isTrue(this.checkRequiredCredentials(false)))
@@ -1427,7 +1418,7 @@ public class Bingx extends BingxApi
     public CompletableFuture<Object> fetchSpotMarkets(Object parameters)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Map<String, Object> response = (this.spotV1PublicGetCommonSymbols(parameters)).join();
             //
@@ -1467,7 +1458,7 @@ public class Bingx extends BingxApi
     public CompletableFuture<Object> fetchSwapMarkets(Object parameters)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Map<String, Object> response = (this.swapV2PublicGetQuoteContracts(parameters)).join();
             //
@@ -1510,7 +1501,7 @@ public class Bingx extends BingxApi
     public CompletableFuture<Object> fetchInverseSwapMarkets(Object parameters)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Map<String, Object> response = (this.cswapV1PublicGetMarketContracts(parameters)).join();
             //
@@ -1682,7 +1673,7 @@ public class Bingx extends BingxApi
     public CompletableFuture<Object> fetchMarkets(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             List<Object> requests = new ArrayList<Object>(Arrays.asList(this.fetchSwapMarkets(parameters)));
@@ -1722,7 +1713,7 @@ public class Bingx extends BingxApi
     public CompletableFuture<List<OHLCV>> fetchOHLCV(Object symbol, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object timeframe = Helpers.getArg(optionalArgs, 0, "1m");
             Object since = Helpers.getArg(optionalArgs, 1, null);
@@ -1900,7 +1891,7 @@ public class Bingx extends BingxApi
     public CompletableFuture<List<Trade>> fetchTrades(String symbol, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object since = Helpers.getArg(optionalArgs, 0, null);
             Object limit = Helpers.getArg(optionalArgs, 1, null);
@@ -2132,10 +2123,23 @@ public class Bingx extends BingxApi
             // safeTrade applies contractSize when calculating inverse cost.
             amount = this.safeString(trade, "volume");
         }
+        String price = this.safeStringN(trade, new ArrayList<Object>(Arrays.asList("price", "p", "tradePrice")));
+        if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(market, null))) && Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "linear"), true)))) && Helpers.isTrue((Helpers.isEqual(this.safeString(trade, "x"), "TRADE")))))
+        {
+            String lastAmount = this.safeString(trade, "l");
+            String lastPrice = this.safeString(trade, "L");
+            if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(lastAmount, null))) && Helpers.isTrue((!Helpers.isEqual(lastPrice, null)))))
+            {
+                // Linear WS l/L describe the last fill, not the original order's q/p.
+                amount = lastAmount;
+                price = lastPrice;
+            }
+        }
         final Object finalTime = time;
         final Object finalMarket = market;
         final Object finalSide = side;
         final Object finalTakeOrMaker = takeOrMaker;
+        final Object finalPrice = price;
         final Object finalAmount = amount;
         return this.safeTrade(new HashMap<String, Object>() {{
             put( "id", Bingx.this.safeString2(trade, "id", "t") );
@@ -2147,7 +2151,7 @@ public class Bingx extends BingxApi
             put( "type", Bingx.this.safeStringLower(trade, "o") );
             put( "side", Bingx.this.parseOrderSide(finalSide) );
             put( "takerOrMaker", finalTakeOrMaker );
-            put( "price", Bingx.this.safeStringN(trade, new ArrayList<Object>(Arrays.asList("price", "p", "tradePrice"))) );
+            put( "price", finalPrice );
             put( "amount", finalAmount );
             put( "cost", cost );
             put( "fee", new HashMap<String, Object>() {{
@@ -2172,7 +2176,7 @@ public class Bingx extends BingxApi
     public CompletableFuture<OrderBook> fetchOrderBook(Object symbol, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object limit = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
@@ -2309,7 +2313,7 @@ public class Bingx extends BingxApi
     public CompletableFuture<FundingRate> fetchFundingRate(String symbol, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
@@ -2372,7 +2376,7 @@ public class Bingx extends BingxApi
     public CompletableFuture<FundingRates> fetchFundingRates(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
@@ -2408,12 +2412,22 @@ public class Bingx extends BingxApi
         //         "markPrice": "16884.5",
         //         "indexPrice": "16886.9",
         //         "lastFundingRate": "0.0001",
-        //         "nextFundingTime": 1672041600000
+        //         "nextFundingTime": 1672041600000,
+        //         "fundingIntervalHours": 8,
+        //         "updateTime": 1672012800000
         //     }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String marketId = this.safeString(contract, "symbol");
         Long nextFundingTimestamp = this.safeInteger(contract, "nextFundingTime");
+        Long timestamp = this.safeInteger(contract, "updateTime");
+        String interval = this.safeString(contract, "fundingIntervalHours");
+        Object intervalString = null;
+        if (Helpers.isTrue(!Helpers.isEqual(interval, null)))
+        {
+            intervalString = Helpers.add(interval, "h");
+        }
+        final Object finalIntervalString = intervalString;
         return new HashMap<String, Object>() {{
             put( "info", contract );
             put( "symbol", Bingx.this.safeSymbol(marketId, market, "-", "swap") );
@@ -2421,8 +2435,8 @@ public class Bingx extends BingxApi
             put( "indexPrice", Bingx.this.safeNumber(contract, "indexPrice") );
             put( "interestRate", null );
             put( "estimatedSettlePrice", null );
-            put( "timestamp", null );
-            put( "datetime", null );
+            put( "timestamp", timestamp );
+            put( "datetime", Bingx.this.iso8601(timestamp) );
             put( "fundingRate", Bingx.this.safeNumber(contract, "lastFundingRate") );
             put( "fundingTimestamp", null );
             put( "fundingDatetime", null );
@@ -2432,7 +2446,7 @@ public class Bingx extends BingxApi
             put( "previousFundingRate", null );
             put( "previousFundingTimestamp", null );
             put( "previousFundingDatetime", null );
-            put( "interval", null );
+            put( "interval", finalIntervalString );
         }};
     }
 
@@ -2452,7 +2466,7 @@ public class Bingx extends BingxApi
     public CompletableFuture<List<FundingRateHistory>> fetchFundingRateHistory(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
@@ -2550,7 +2564,7 @@ public class Bingx extends BingxApi
     public CompletableFuture<List<FundingHistory>> fetchFundingHistory(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
@@ -2667,7 +2681,7 @@ public class Bingx extends BingxApi
     public CompletableFuture<OpenInterest> fetchOpenInterest(String symbol, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
@@ -2782,7 +2796,7 @@ public class Bingx extends BingxApi
     public CompletableFuture<Ticker> fetchTicker(String symbol, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
@@ -2861,7 +2875,7 @@ public class Bingx extends BingxApi
     public CompletableFuture<Tickers> fetchTickers(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
@@ -2949,7 +2963,7 @@ public class Bingx extends BingxApi
     public CompletableFuture<Ticker> fetchMarkPrice(String symbol, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
@@ -2994,7 +3008,7 @@ public class Bingx extends BingxApi
     public CompletableFuture<Tickers> fetchMarkPrices(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
@@ -3184,7 +3198,7 @@ public class Bingx extends BingxApi
     public CompletableFuture<Balances> fetchBalance(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
@@ -3369,7 +3383,7 @@ public class Bingx extends BingxApi
     public CompletableFuture<List<Position>> fetchPositionHistory(String symbol, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object since = Helpers.getArg(optionalArgs, 0, null);
             Object limit = Helpers.getArg(optionalArgs, 1, null);
@@ -3452,7 +3466,7 @@ public class Bingx extends BingxApi
     public CompletableFuture<List<Position>> fetchPositions(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
@@ -3512,7 +3526,7 @@ public class Bingx extends BingxApi
     public CompletableFuture<Position> fetchPosition(Object symbol, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
@@ -3683,7 +3697,7 @@ public class Bingx extends BingxApi
     public CompletableFuture<Order> createMarketOrderWithCost(String symbol, Object side, Object cost, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             Helpers.addElementToObject(parameters, "quoteOrderQty", cost);
@@ -3704,7 +3718,7 @@ public class Bingx extends BingxApi
     public CompletableFuture<Order> createMarketBuyOrderWithCost(String symbol, Object cost, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             Helpers.addElementToObject(parameters, "quoteOrderQty", cost);
@@ -3725,7 +3739,7 @@ public class Bingx extends BingxApi
     public CompletableFuture<Order> createMarketSellOrderWithCost(String symbol, Object cost, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             Helpers.addElementToObject(parameters, "quoteOrderQty", cost);
@@ -4072,7 +4086,7 @@ public class Bingx extends BingxApi
      * @param {float} [params.takeProfit.triggerPrice] take profit trigger price
      * @param {object} [params.stopLoss] *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered
      * @param {float} [params.stopLoss.triggerPrice] stop loss trigger price
-     * @param {boolean} [params.test] *swap only* whether to use the test endpoint or not, default is false
+     * @param {boolean} [params.test] *linear swap only* whether to use the test endpoint or not, default is false
      * @param {string} [params.positionSide] *contracts only* "BOTH" for one way mode, "LONG" for buy side of hedged mode, "SHORT" for sell side of hedged mode
      * @param {boolean} [params.hedged] *swap only* whether the order is in hedged mode or one way mode
      * @param {bool} [params.closePosition] *swap only* true to close the entire position with a TP/SL order, in which case the quantity is not sent
@@ -4081,7 +4095,7 @@ public class Bingx extends BingxApi
     public CompletableFuture<Order> createOrder(Object symbol, Object type2, Object side, Object amount, Object... optionalArgs)
     {
         final Object type3 = type2;
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
             Object type = type3;
             Object price = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
@@ -4091,6 +4105,10 @@ public class Bingx extends BingxApi
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Object test = this.safeBool(parameters, "test", false);
+            if (Helpers.isTrue(Helpers.isTrue(test) && Helpers.isTrue((Helpers.isTrue((!Helpers.isEqual(Helpers.GetValue(market, "swap"), true))) || Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "inverse"), true)))))))
+            {
+                throw new NotSupported(Helpers.add(this.id, " createOrder() only supports test orders for linear swap markets")) ;
+            }
             parameters = this.omit(parameters, "test");
             Object request = this.createOrderRequest(symbol, type, side, amount, price, parameters);
             Object response = null;
@@ -4234,7 +4252,7 @@ public class Bingx extends BingxApi
     public CompletableFuture<List<Order>> createOrders(Object orders, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
@@ -4761,7 +4779,7 @@ public class Bingx extends BingxApi
             put( "stopLossPrice", finalStopLossPrice );
             put( "takeProfitPrice", finalTakeProfitPrice );
             put( "average", Bingx.this.safeString2(finalOrder, "avgPrice", "ap") );
-            put( "cost", Bingx.this.safeString(finalOrder, "cummulativeQuoteQty") );
+            put( "cost", Bingx.this.safeString2(finalOrder, "cummulativeQuoteQty", "Z") );
             put( "amount", Bingx.this.safeStringN(finalOrder, new ArrayList<Object>(Arrays.asList("origQty", "q", "quantity", "totalAmount"))) );
             put( "filled", Bingx.this.safeString2(finalOrder, "executedQty", "z") );
             put( "remaining", null );
@@ -4807,7 +4825,7 @@ public class Bingx extends BingxApi
     public CompletableFuture<Order> cancelOrder(Object id, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
@@ -4988,7 +5006,7 @@ public class Bingx extends BingxApi
     public CompletableFuture<List<Order>> cancelAllOrders(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
@@ -5050,7 +5068,7 @@ public class Bingx extends BingxApi
     public CompletableFuture<List<Order>> cancelOrders(Object ids, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
@@ -5124,7 +5142,7 @@ public class Bingx extends BingxApi
     public CompletableFuture<Object> cancelAllOrdersAfter(Object timeout, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
@@ -5192,7 +5210,7 @@ public class Bingx extends BingxApi
     public CompletableFuture<Order> fetchOrder(Object id, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
@@ -5257,7 +5275,7 @@ public class Bingx extends BingxApi
      * @description fetches information on multiple orders made by the user
      * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/All%20Orders
      * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Query%20Order%20history (returns less fields than above)
-     * @param {string} symbol unified market symbol of the market orders were made in
+     * @param {string} [symbol] unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -5268,7 +5286,7 @@ public class Bingx extends BingxApi
     public CompletableFuture<List<Order>> fetchOrders(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
@@ -5382,7 +5400,7 @@ public class Bingx extends BingxApi
     public CompletableFuture<List<Order>> fetchOpenOrders(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
@@ -5580,7 +5598,7 @@ public class Bingx extends BingxApi
      * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Query%20Order%20history
      * @see https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Trades%20Endpoints/User's%20History%20Orders
      * @see https://bingx-api.github.io/docs/#/standard/contract-interface.html#Historical%20order
-     * @param {string} symbol unified market symbol of the closed orders
+     * @param {string} [symbol] unified market symbol of the closed orders
      * @param {int} [since] timestamp in ms of the earliest order
      * @param {int} [limit] the max number of closed orders to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -5591,7 +5609,7 @@ public class Bingx extends BingxApi
     public CompletableFuture<List<Order>> fetchClosedOrders(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
@@ -5615,7 +5633,7 @@ public class Bingx extends BingxApi
      * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Query%20Order%20history
      * @see https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Trades%20Endpoints/User's%20History%20Orders
      * @see https://bingx-api.github.io/docs/#/standard/contract-interface.html#Historical%20order
-     * @param {string} symbol unified market symbol of the canceled orders
+     * @param {string} [symbol] unified market symbol of the canceled orders
      * @param {int} [since] timestamp in ms of the earliest order
      * @param {int} [limit] the max number of canceled orders to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -5626,7 +5644,7 @@ public class Bingx extends BingxApi
     public CompletableFuture<List<Order>> fetchCanceledOrders(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
@@ -5663,7 +5681,7 @@ public class Bingx extends BingxApi
     public CompletableFuture<List<Order>> fetchCanceledAndClosedOrders(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
@@ -5746,7 +5764,7 @@ public class Bingx extends BingxApi
     public CompletableFuture<TransferEntry> transfer(String code, Object amount, Object fromAccount, Object toAccount, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
@@ -5836,7 +5854,7 @@ public class Bingx extends BingxApi
     public CompletableFuture<List<TransferEntry>> fetchTransfers(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object code = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
@@ -5960,7 +5978,7 @@ public class Bingx extends BingxApi
     public CompletableFuture<Object> fetchDepositAddressesByNetwork(Object code, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
@@ -6015,7 +6033,7 @@ public class Bingx extends BingxApi
     public CompletableFuture<DepositAddress> fetchDepositAddress(String code, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             String network = this.safeString(parameters, "network");
@@ -6098,7 +6116,7 @@ public class Bingx extends BingxApi
     public CompletableFuture<List<Transaction>> fetchDeposits(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object code = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
@@ -6164,7 +6182,7 @@ public class Bingx extends BingxApi
     public CompletableFuture<List<Transaction>> fetchWithdrawals(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object code = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
@@ -6358,7 +6376,7 @@ public class Bingx extends BingxApi
     public CompletableFuture<Object> setMarginMode(Object marginMode2, Object... optionalArgs)
     {
         final Object marginMode3 = marginMode2;
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
             Object marginMode = marginMode3;
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
@@ -6407,7 +6425,7 @@ public class Bingx extends BingxApi
     public CompletableFuture<MarginModification> addMargin(String symbol, Object amount, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -6421,7 +6439,7 @@ public class Bingx extends BingxApi
     public CompletableFuture<MarginModification> reduceMargin(String symbol, Object amount, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -6445,7 +6463,7 @@ public class Bingx extends BingxApi
     public CompletableFuture<MarginModification> setMargin(String symbol, Object amount, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             Long type = this.safeInteger(parameters, "type"); // 1 increase margin 2 decrease margin
@@ -6522,7 +6540,7 @@ public class Bingx extends BingxApi
     public CompletableFuture<Leverage> fetchLeverage(String symbol, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
@@ -6603,7 +6621,7 @@ public class Bingx extends BingxApi
     public CompletableFuture<Object> setLeverage(Object leverage, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
@@ -6654,7 +6672,7 @@ public class Bingx extends BingxApi
     public CompletableFuture<List<Trade>> fetchMyTrades(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
@@ -6790,7 +6808,7 @@ public class Bingx extends BingxApi
     public CompletableFuture<DepositWithdrawFees> fetchDepositWithdrawFees(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object codes = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
@@ -6831,7 +6849,7 @@ public class Bingx extends BingxApi
     public CompletableFuture<Transaction> withdraw(String code, Object amount, Object address, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object tag = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
@@ -6933,7 +6951,7 @@ public class Bingx extends BingxApi
     public CompletableFuture<List<Liquidation>> fetchMyLiquidations(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
@@ -7100,7 +7118,7 @@ public class Bingx extends BingxApi
     public CompletableFuture<Order> closePosition(Object symbol, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object side = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
@@ -7149,7 +7167,7 @@ public class Bingx extends BingxApi
     public CompletableFuture<List<Position>> closeAllPositions(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
@@ -7209,7 +7227,7 @@ public class Bingx extends BingxApi
     public CompletableFuture<PositionModeInfo> fetchPositionMode(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
@@ -7262,7 +7280,7 @@ public class Bingx extends BingxApi
     public CompletableFuture<Object> setPositionMode(Object hedged, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
@@ -7339,7 +7357,7 @@ public class Bingx extends BingxApi
     public CompletableFuture<Order> editOrder(String id, String symbol, Object type, Object side, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object amount = Helpers.getArg(optionalArgs, 0, null);
             Object price = Helpers.getArg(optionalArgs, 1, null);
@@ -7383,7 +7401,7 @@ public class Bingx extends BingxApi
     public CompletableFuture<MarginMode> fetchMarginMode(String symbol, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
@@ -7440,7 +7458,7 @@ public class Bingx extends BingxApi
     public CompletableFuture<TradingFeeInterface> fetchTradingFee(String symbol, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
@@ -7593,7 +7611,7 @@ public class Bingx extends BingxApi
     public CompletableFuture<List<LeverageTier>> fetchMarketLeverageTiers(String symbol, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))

@@ -109,7 +109,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
             messageHash = add(add(name, "::"), getValue(market, "symbol"));
             productIds = new List<object>() {((string)getValue(market, "id"))};
         }
-        object url = getValue(getValue(this.urls, "api"), "ws");
+        string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
         if (isTrue(isEqual(url, null)))
         {
             throw new NotSupported ((string)add(this.id, " is not supported in sandbox environment")) ;
@@ -170,7 +170,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
             ((IList<object>)productIds).Add(marketId);
             ((IList<object>)messageHashes).Add(add(add(name, "::"), symbol));
         }
-        object url = getValue(getValue(this.urls, "api"), "ws");
+        string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
         if (isTrue(isEqual(url, null)))
         {
             throw new NotSupported ((string)add(this.id, " is not supported in sandbox environment")) ;
@@ -262,7 +262,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
 
     public virtual List<object> getActiveSymbols()
     {
-        object symbols = this.symbols;
+        List<object> symbols = this.symbols;
         List<object> output = new List<object>() {};
         for (int i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
@@ -334,7 +334,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         //        "channel":"INSTRUMENTS",
         //        "type":"SNAPSHOT"
         //    }
-        object ticker = this.parseWsInstrument(message);
+        Dictionary<string, object> ticker = ((Dictionary<string, object>)this.parseWsInstrument(message));
         object channel = this.safeString(message, "channel");
         callDynamically(client as WebSocketClient, "resolve", new object[] {ticker, channel});
         callDynamically(client as WebSocketClient, "resolve", new object[] {ticker, add(add(channel, "::"), getValue(ticker, "symbol"))});
@@ -447,7 +447,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         //       "type": "UPDATE"
         //    }
         //
-        object ticker = this.parseWsTicker(message);
+        Dictionary<string, object> ticker = ((Dictionary<string, object>)this.parseWsTicker(message));
         object channel = this.safeString(message, "channel");
         callDynamically(client as WebSocketClient, "resolve", new object[] {ticker, channel});
         callDynamically(client as WebSocketClient, "resolve", new object[] {ticker, add(add(channel, "::"), getValue(ticker, "symbol"))});
@@ -509,7 +509,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
     public async override Task<List<ccxt.OHLCV>> WatchOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         object symbolVar = symbol;
-        object timeframeVar = timeframe;
+        string timeframeVar = timeframe;
         object limitVar = limit;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
@@ -552,8 +552,8 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         object messageHash = this.safeString(message, "channel");
         string? marketId = this.safeString(message, "product_id");
         Dictionary<string, object> market = this.safeMarket(marketId);
-        object symbol = getValue(market, "symbol");
-        object timeframe = this.findTimeframe(messageHash);
+        string? symbol = ((string)getValue(market, "symbol"));
+        string? timeframe = this.findTimeframe(messageHash);
         ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = this.safeValue(this.ohlcvs, symbol, new Dictionary<string, object>() {});
         if (isTrue(isEqual(this.safeValue(getValue(this.ohlcvs, symbol), timeframe), null)))
         {
@@ -632,7 +632,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         //       "type": "UPDATE"
         //    }
         //
-        object trade = this.parseWsTrade(message);
+        Dictionary<string, object> trade = ((Dictionary<string, object>)this.parseWsTrade(message));
         object symbol = getValue(trade, "symbol");
         object channel = this.safeString(message, "channel");
         if (!isTrue((inOp(this.trades, ((string)symbol)))))
@@ -764,7 +764,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         ccxt.pro.IOrderBook orderbook = this.getOrderBook(this.orderbooks, symbol);
         if (isTrue(isEqual(type, "SNAPSHOT")))
         {
-            object parsedSnapshot = this.parseOrderBook(message, symbol, null, "bids", "asks");
+            Dictionary<string, object> parsedSnapshot = ((Dictionary<string, object>)this.parseOrderBook(message, symbol, null, "bids", "asks"));
             (orderbook as IOrderBook).reset(parsedSnapshot);
             ((IDictionary<string,object>)orderbook)["symbol"] = symbol;
         } else

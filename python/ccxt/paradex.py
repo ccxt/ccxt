@@ -376,7 +376,7 @@ class paradex(Exchange, ImplicitAPI):
             'commonCurrencies': {
             },
             'options': {
-                'paradexAccount': None,  # add {"privateKey": "copy Paradex Private Key from UI", "publicKey": "used when onboard(optional)", "address": "copy Paradex Address from UI"}
+                'paradexAccount': None,  # add {"privateKey": "copy Paradex Private Key from UI", "publicKey": "used when onboard (optional)", "address": "copy Paradex Address from UI"}
                 'broker': 'CCXT',
             },
             'features': {
@@ -1101,7 +1101,7 @@ class paradex(Exchange, ImplicitAPI):
         funds = (market['swap'] is True) and (rate is not None) and (rate != '')
         # the funding period belongs to the market and is not always eight hours:
         # fetchMarkets documents one on twenty four. funding accrues each second
-        # against an index, and self rate is the amount for a whole period
+        # against an index, and this rate is the amount for a whole period
         hours = self.safe_string(self.safe_dict(market, 'info', {}), 'funding_period_hours')
         # zero hours is not an interval, and a caller annualising a rate divides by it
         interval = None
@@ -1224,7 +1224,7 @@ class paradex(Exchange, ImplicitAPI):
 
     def parse_trade(self, trade: dict, market: Market = None) -> Trade:
         #
-        # fetchTrades(public)
+        # fetchTrades (public)
         #
         #     {
         #         "id": "1718154353750201703989430001",
@@ -1236,7 +1236,7 @@ class paradex(Exchange, ImplicitAPI):
         #         "trade_type": "FILL"
         #     }
         #
-        # fetchMyTrades(private)
+        # fetchMyTrades (private)
         #
         #     {
         #         "id": "1718947571560201703986670001",
@@ -3301,14 +3301,14 @@ class paradex(Exchange, ImplicitAPI):
                     url = url + '?' + self.urlencode(query)
             # headers = {
             #     'Accept': 'application/json',
-            #     'Authorization': 'Bearer ' + self.apiKey,
-            # }
-            # if method == 'POST':
-            #     body = self.json(query)
-            #     headers['Content-Type'] = 'application/json'
-            # else:
-            #     if len(query):
-            #         url += '?' + self.urlencode(query)
+            #     'Authorization': 'Bearer ' + this.apiKey,
+            # };
+            # if (method === 'POST') {
+            #     body = this.json (query);
+            #     headers['Content-Type'] = 'application/json';
+            # } else {
+            #     if (Object.keys (query).length) {
+            #         url += '?' + this.urlencode (query);
             #     }
             # }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}

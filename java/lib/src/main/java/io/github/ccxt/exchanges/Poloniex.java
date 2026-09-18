@@ -6,6 +6,7 @@ import io.github.ccxt.api.PoloniexApi;
 import io.github.ccxt.base.Precise;
 import io.github.ccxt.errors.*;
 import io.github.ccxt.Helpers;
+import io.github.ccxt.BaseExchange;
 import io.github.ccxt.types.Balances;
 import io.github.ccxt.types.DepositAddress;
 import io.github.ccxt.types.DepositWithdrawFees;
@@ -891,7 +892,7 @@ public class Poloniex extends PoloniexApi
     public CompletableFuture<List<OHLCV>> fetchOHLCV(Object symbol, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object timeframe = Helpers.getArg(optionalArgs, 0, "1m");
             Object since = Helpers.getArg(optionalArgs, 1, null);
@@ -982,7 +983,7 @@ public class Poloniex extends PoloniexApi
     public CompletableFuture<Object> loadMarkets(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object reload = Helpers.getArg(optionalArgs, 0, false);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
@@ -1009,7 +1010,7 @@ public class Poloniex extends PoloniexApi
     public CompletableFuture<Object> fetchMarkets(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             List<Object> promises = new ArrayList<Object>(Arrays.asList(this.fetchSpotMarkets(parameters), this.fetchSwapMarkets(parameters)));
@@ -1022,7 +1023,7 @@ public class Poloniex extends PoloniexApi
     public CompletableFuture<Object> fetchSpotMarkets(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             List<Object> markets = (this.publicGetMarkets(parameters)).join();
@@ -1057,7 +1058,7 @@ public class Poloniex extends PoloniexApi
     public CompletableFuture<Object> fetchSwapMarkets(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             // do similar as spot per https://api-docs.poloniex.com/v3/futures/api/market/get-product-info
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
@@ -1305,7 +1306,7 @@ public class Poloniex extends PoloniexApi
     public CompletableFuture<Long> fetchTime(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             Map<String, Object> response = (this.publicGetTimestamp(parameters)).join();
@@ -1416,7 +1417,7 @@ public class Poloniex extends PoloniexApi
     public CompletableFuture<Tickers> fetchTickers(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
@@ -1513,7 +1514,7 @@ public class Poloniex extends PoloniexApi
     public CompletableFuture<Object> fetchCurrencies(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             List<Object> response = (this.publicGetV2Currencies(parameters)).join();
@@ -1620,7 +1621,7 @@ public class Poloniex extends PoloniexApi
     public CompletableFuture<Ticker> fetchTicker(String symbol, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             (this.loadMarkets()).join();
@@ -1815,7 +1816,7 @@ public class Poloniex extends PoloniexApi
     public CompletableFuture<List<Trade>> fetchTrades(String symbol, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object since = Helpers.getArg(optionalArgs, 0, null);
             Object limit = Helpers.getArg(optionalArgs, 1, null);
@@ -1885,7 +1886,7 @@ public class Poloniex extends PoloniexApi
     public CompletableFuture<List<Trade>> fetchMyTrades(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
@@ -2240,7 +2241,7 @@ public class Poloniex extends PoloniexApi
     public CompletableFuture<List<Order>> fetchOpenOrders(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
@@ -2362,7 +2363,7 @@ public class Poloniex extends PoloniexApi
     public CompletableFuture<List<Order>> fetchClosedOrders(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
@@ -2462,7 +2463,7 @@ public class Poloniex extends PoloniexApi
     public CompletableFuture<Order> createOrder(Object symbol, Object type, Object side, Object amount, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object price = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
@@ -2628,7 +2629,7 @@ public class Poloniex extends PoloniexApi
     public CompletableFuture<Order> editOrder(String id, String symbol, Object type, Object side, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object amount = Helpers.getArg(optionalArgs, 0, null);
             Object price = Helpers.getArg(optionalArgs, 1, null);
@@ -2672,7 +2673,7 @@ public class Poloniex extends PoloniexApi
     public CompletableFuture<Order> cancelOrder(Object id2, Object... optionalArgs)
     {
         final Object id3 = id2;
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
             Object id = id3;
             //
             // @method
@@ -2757,7 +2758,7 @@ public class Poloniex extends PoloniexApi
     public CompletableFuture<List<Order>> cancelAllOrders(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
@@ -2842,7 +2843,7 @@ public class Poloniex extends PoloniexApi
     public CompletableFuture<Order> fetchOrder(Object id2, Object... optionalArgs)
     {
         final Object id3 = id2;
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
             Object id = id3;
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
@@ -2908,7 +2909,7 @@ public class Poloniex extends PoloniexApi
     public CompletableFuture<String> fetchOrderStatus(String id2, Object... optionalArgs)
     {
         final Object id3 = id2;
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
             Object id = id3;
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
@@ -2935,7 +2936,7 @@ public class Poloniex extends PoloniexApi
     public CompletableFuture<List<Trade>> fetchOrderTrades(String id, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
@@ -3035,7 +3036,7 @@ public class Poloniex extends PoloniexApi
     public CompletableFuture<Balances> fetchBalance(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             (this.loadMarkets()).join();
@@ -3122,7 +3123,7 @@ public class Poloniex extends PoloniexApi
     public CompletableFuture<TradingFees> fetchTradingFees(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             (this.loadMarkets()).join();
@@ -3168,7 +3169,7 @@ public class Poloniex extends PoloniexApi
     public CompletableFuture<OrderBook> fetchOrderBook(Object symbol, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object limit = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
@@ -3261,7 +3262,7 @@ public class Poloniex extends PoloniexApi
     public CompletableFuture<DepositAddress> createDepositAddress(String code, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             (this.loadMarkets()).join();
@@ -3294,7 +3295,7 @@ public class Poloniex extends PoloniexApi
     public CompletableFuture<DepositAddress> fetchDepositAddress(String code, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             (this.loadMarkets()).join();
@@ -3399,7 +3400,7 @@ public class Poloniex extends PoloniexApi
     public CompletableFuture<TransferEntry> transfer(String code, Object amount, Object fromAccount, Object toAccount, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             (this.loadMarkets()).join();
@@ -3460,7 +3461,7 @@ public class Poloniex extends PoloniexApi
     public CompletableFuture<Transaction> withdraw(String code, Object amount, Object address, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object tag = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
@@ -3503,7 +3504,7 @@ public class Poloniex extends PoloniexApi
     public CompletableFuture<Object> fetchTransactionsHelper(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object code = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
@@ -3609,7 +3610,7 @@ public class Poloniex extends PoloniexApi
     public CompletableFuture<List<Transaction>> fetchDepositsWithdrawals(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object code = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
@@ -3646,7 +3647,7 @@ public class Poloniex extends PoloniexApi
     public CompletableFuture<List<Transaction>> fetchWithdrawals(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object code = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
@@ -3677,7 +3678,7 @@ public class Poloniex extends PoloniexApi
     public CompletableFuture<DepositWithdrawFees> fetchDepositWithdrawFees(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object codes = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
@@ -3841,7 +3842,7 @@ public class Poloniex extends PoloniexApi
     public CompletableFuture<List<Transaction>> fetchDeposits(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object code = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
@@ -3980,7 +3981,7 @@ public class Poloniex extends PoloniexApi
     public CompletableFuture<Object> setLeverage(Object leverage, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
@@ -4033,7 +4034,7 @@ public class Poloniex extends PoloniexApi
     public CompletableFuture<Leverage> fetchLeverage(String symbol, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             (this.loadMarkets()).join();
@@ -4147,7 +4148,7 @@ public class Poloniex extends PoloniexApi
     public CompletableFuture<PositionModeInfo> fetchPositionMode(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
@@ -4185,7 +4186,7 @@ public class Poloniex extends PoloniexApi
     public CompletableFuture<Object> setPositionMode(Object hedged, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
@@ -4219,7 +4220,7 @@ public class Poloniex extends PoloniexApi
     public CompletableFuture<List<Position>> fetchPositions(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
@@ -4346,7 +4347,7 @@ public class Poloniex extends PoloniexApi
     {
         final Object amount3 = amount2;
         final Object type3 = type2;
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
             Object amount = amount3;
             Object type = type3;
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
@@ -4423,7 +4424,7 @@ public class Poloniex extends PoloniexApi
     public CompletableFuture<MarginModification> reduceMargin(String symbol, Object amount, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             return (this.modifyMarginHelper(symbol, Helpers.opNeg(amount), "reduce", parameters)).join();
@@ -4443,7 +4444,7 @@ public class Poloniex extends PoloniexApi
     public CompletableFuture<MarginModification> addMargin(String symbol, Object amount, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             return (this.modifyMarginHelper(symbol, amount, "add", parameters)).join();

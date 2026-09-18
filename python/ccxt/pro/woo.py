@@ -64,7 +64,7 @@ class woo(ccxt.async_support.woo):
                 'ordersLimit': 1000,
                 'requestId': {},
                 'watchPositions': {
-                    'fetchPositionsSnapshot': True,  # or False
+                    'fetchPositionsSnapshot': True,  # or false
                     'awaitPositionsSnapshot': True,  # whether to wait for the positions snapshot before providing updates
                 },
             },
@@ -762,7 +762,7 @@ class woo(ccxt.async_support.woo):
         #     }
         # private trade
         #    {
-        #     "msgType": 0,  # execution report
+        #     "msgType": 0,  // execution report
         #     "symbol": "SPOT_BTC_USDT",
         #     "clientOrderId": 0,
         #     "orderId": 54774393,
@@ -786,8 +786,8 @@ class woo(ccxt.async_support.woo):
         #     "rebateCurrency": "USDT",
         #     "visible": 0.0,
         #     "timestamp": 1675406261689,
-        #     "reduceOnly": False,
-        #     "maker": False
+        #     "reduceOnly": false,
+        #     "maker": false
         #   }
         #
         marketId = self.safe_string(trade, 'symbol')
@@ -829,7 +829,7 @@ class woo(ccxt.async_support.woo):
     def check_required_uid(self, error=True) -> bool:
         if (self.uid is None) or (self.uid == ''):
             if error:
-                raise AuthenticationError(self.id + ' requires `uid` credential(woox calls it `application_id`)')
+                raise AuthenticationError(self.id + ' requires `uid` credential (woox calls it `application_id`)')
             else:
                 return False
         return True
@@ -968,8 +968,8 @@ class woo(ccxt.async_support.woo):
         #         "totalFee": 0,
         #         "visible": 0.01,
         #         "timestamp": 1657515556798,
-        #         "reduceOnly": False,
-        #         "maker": False
+        #         "reduceOnly": false,
+        #         "maker": false
         #     }
         #     {
         #      "symbol": "SPOT_BTC_USDT",
@@ -998,18 +998,18 @@ class woo(ccxt.async_support.woo):
         #      "totalFee": 0,
         #      "timestamp": 1761030467426,
         #      "visibleQuantity": 0,
-        #      "reduceOnly": False,
+        #      "reduceOnly": false,
         #      "triggerPriceType": "MARKET_PRICE",
         #      "positionSide": "BOTH",
         #      "feeCurrency": "",
         #      "totalRebate": 0.0,
         #      "rebateCurrency": "",
-        #      "triggered": False,
-        #      "maker": False,
-        #      "activated": False,
-        #      "isTriggered": False,
-        #      "isMaker": False,
-        #      "isActivated": False,
+        #      "triggered": false,
+        #      "maker": false,
+        #      "activated": false,
+        #      "isTriggered": false,
+        #      "isMaker": false,
+        #      "isActivated": false,
         #      "rootAlgoStatus": "NEW",
         #      "algoStatus": "NEW"
         # }
@@ -1088,8 +1088,8 @@ class woo(ccxt.async_support.woo):
         #             "totalFee": 0,
         #             "visible": 0.01,
         #             "timestamp": 1657515556799,
-        #             "reduceOnly": False,
-        #             "maker": False
+        #             "reduceOnly": false,
+        #             "maker": false
         #         }
         #     }
         #
@@ -1139,7 +1139,7 @@ class woo(ccxt.async_support.woo):
     def handle_my_trade(self, client: Client, message: object):
         #
         #    {
-        #     "msgType": 0,  # execution report
+        #     "msgType": 0,  // execution report
         #     "symbol": "SPOT_BTC_USDT",
         #     "clientOrderId": 0,
         #     "orderId": 54774393,
@@ -1163,8 +1163,8 @@ class woo(ccxt.async_support.woo):
         #     "rebateCurrency": "USDT",
         #     "visible": 0.0,
         #     "timestamp": 1675406261689,
-        #     "reduceOnly": False,
-        #     "maker": False
+        #     "reduceOnly": false,
+        #     "maker": false
         #   }
         #
         myTrades = self.myTrades
@@ -1435,7 +1435,7 @@ class woo(ccxt.async_support.woo):
         #     {
         #         "id": "2",
         #         "event": "unsubscribe",
-        #         "success": True,
+        #         "success": true,
         #         "ts": 1759568478343,
         #         "data": "SPOT_BTC_USDT@orderbook"
         #     }
@@ -1512,7 +1512,7 @@ class woo(ccxt.async_support.woo):
 
     def handle_pong(self, client: Client, message: object):
         #
-        # {event: "pong", ts: 1657117026090}
+        # { event: "pong", ts: 1657117026090 }
         #
         client.lastPong = self.milliseconds()
         return message
@@ -1522,7 +1522,7 @@ class woo(ccxt.async_support.woo):
         #     {
         #         "id": "666888",
         #         "event": "subscribe",
-        #         "success": True,
+        #         "success": true,
         #         "ts": 1657117712212
         #     }
         #
@@ -1538,14 +1538,14 @@ class woo(ccxt.async_support.woo):
         #
         #     {
         #         "event": "auth",
-        #         "success": True,
+        #         "success": true,
         #         "ts": 1657463158812
         #     }
         #
         messageHash = 'authenticated'
         success = self.safe_value(message, 'success')
         if success is True:
-            # client.resolve(message, messageHash)
+            # client.resolve (message, messageHash);
             future = self.safe_value(client.futures, 'authenticated')
             future.resolve(True)
         else:

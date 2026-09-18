@@ -32,7 +32,7 @@ class p2b extends \ccxt\async\p2b {
                 'watchOHLCV' => true,
                 'watchOrderBook' => true,
                 'watchOrders' => false,
-                // 'watchStatus' => true,
+                // 'watchStatus': true,
                 'watchTicker' => true,
                 'watchTickers' => true,
                 'watchTrades' => true,
@@ -295,9 +295,9 @@ class p2b extends \ccxt\async\p2b {
     public function handle_ohlcv(Client $client, mixed $message) {
         //
         //    {
-        //        "method" => "kline.update",
-        //        "params" => array(
-        //            array(
+        //        "method": "kline.update",
+        //        "params": [
+        //            [
         //                1657648800,             // Kline start time
         //                "0.054146",             // Kline open price
         //                "0.053938",             // Kline close price (current price)
@@ -306,9 +306,9 @@ class p2b extends \ccxt\async\p2b {
         //                "596.4674",             // Volume for stock currency
         //                "32.2298758767",        // Volume for money currency
         //                "ETH_BTC"               // Market
-        //            )
-        //        ),
-        //        "id" => null
+        //            ]
+        //        ],
+        //        "id": null
         //    }
         //
         $data = $this->safe_list($message, 'params');
@@ -340,21 +340,21 @@ class p2b extends \ccxt\async\p2b {
     public function handle_trade(Client $client, mixed $message) {
         //
         //    {
-        //        "method" => "deals.update",
-        //        "params" => array(
+        //        "method": "deals.update",
+        //        "params": [
         //            "ETH_BTC",
-        //            array(
-        //                array(
-        //                    "id" => 4503032979,               // Order_id
-        //                    "amount" => "0.103",
-        //                    "type" => "sell",                 // Side
-        //                    "time" => 1657661950.8487639,     // Creation time
-        //                    "price" => "0.05361"
-        //                ),
+        //            [
+        //                {
+        //                    "id": 4503032979,               // Order_id
+        //                    "amount": "0.103",
+        //                    "type": "sell",                 // Side
+        //                    "time": 1657661950.8487639,     // Creation time
+        //                    "price": "0.05361"
+        //                },
         //                ...
-        //            )
-        //        ),
-        //        "id" => null
+        //            ]
+        //        ],
+        //        "id": null
         //    }
         //
         $data = $this->safe_list($message, 'params', array());
@@ -383,32 +383,32 @@ class p2b extends \ccxt\async\p2b {
         // state
         //
         //    {
-        //        "method" => "state.update",
-        //        "params" => array(
+        //        "method": "state.update",
+        //        "params": [
         //            "ETH_BTC",
         //            {
-        //                "high" => "0.055774",         // High price for the last 24h
-        //                "close" => "0.053679",        // Close price for the last 24h
-        //                "low" => "0.053462",          // Low price for the last 24h
-        //                "period" => 86400,            // Period 24h
-        //                "last" => "0.053679",         // Last price for the last 24h
-        //                "volume" => "38463.6132",     // Stock volume for the last 24h
-        //                "open" => "0.055682",         // Open price for the last 24h
-        //                "deal" => "2091.0038055314"   // Money volume for the last 24h
+        //                "high": "0.055774",         // High price for the last 24h
+        //                "close": "0.053679",        // Close price for the last 24h
+        //                "low": "0.053462",          // Low price for the last 24h
+        //                "period": 86400,            // Period 24h
+        //                "last": "0.053679",         // Last price for the last 24h
+        //                "volume": "38463.6132",     // Stock volume for the last 24h
+        //                "open": "0.055682",         // Open price for the last 24h
+        //                "deal": "2091.0038055314"   // Money volume for the last 24h
         //            }
-        //        ),
-        //        "id" => null
+        //        ],
+        //        "id": null
         //    }
         //
         // price
         //
         //    {
-        //        "method" => "price.update",
-        //        "params" => array(
-        //            "ETH_BTC",      // $market
+        //        "method": "price.update",
+        //        "params": [
+        //            "ETH_BTC",      // market
         //            "0.053836"      // last price
-        //        ),
-        //        "id" => null
+        //        ],
+        //        "id": null
         //    }
         //
         $data = $this->safe_list($message, 'params', array());
@@ -438,20 +438,20 @@ class p2b extends \ccxt\async\p2b {
     public function handle_order_book(Client $client, mixed $message) {
         //
         //    {
-        //        "method" => "depth.update",
-        //        "params" => array(
+        //        "method": "depth.update",
+        //        "params": [
         //            false,                          // true - all records, false - new records
-        //            array(
-        //                "asks" => array(                   // side
-        //                    array(
-        //                        "19509.81",         // $price
-        //                        "0.277"             // $amount
-        //                    )
-        //                )
-        //            ),
+        //            {
+        //                "asks": [                   // side
+        //                    [
+        //                        "19509.81",         // price
+        //                        "0.277"             // amount
+        //                    ]
+        //                ]
+        //            },
         //            "BTC_USDT"
-        //        ),
-        //        "id" => null
+        //        ],
+        //        "id": null
         //    }
         //
         $params = $this->safe_list($message, 'params', array());
@@ -471,7 +471,7 @@ class p2b extends \ccxt\async\p2b {
             $orderbook = $this->orderbooks[$symbol];
         }
         if ($isFullUpdate === true) {
-            // the first parameter signals whether the $message carries all
+            // the first parameter signals whether the message carries all
             // records or only the changed ones, a full set replaces the book,
             // otherwise stale levels that left the depth window would linger
             // and cross the book, see https://github.com/ccxt/ccxt/issues/24944
@@ -545,9 +545,9 @@ class p2b extends \ccxt\async\p2b {
     public function handle_pong(Client $client, mixed $message) {
         //
         //    {
-        //        error => null,
-        //        result => 'pong',
-        //        id => 1706539608030
+        //        error: null,
+        //        result: 'pong',
+        //        id: 1706539608030
         //    }
         //
         $client->lastPong = $this->safe_integer($message, 'id', $this->milliseconds());

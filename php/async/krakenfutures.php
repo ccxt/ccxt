@@ -11,6 +11,7 @@ use ccxt\ExchangeError;
 use ccxt\ArgumentsRequired;
 use ccxt\BadRequest;
 use ccxt\OrderNotFound;
+use ccxt\NotSupported;
 use ccxt\DDoSProtection;
 use ccxt\ExchangeNotAvailable;
 use ccxt\Precise;
@@ -61,11 +62,11 @@ class krakenfutures extends Exchange {
                 'fetchDepositAddress' => false,
                 'fetchDepositAddresses' => false,
                 'fetchDepositAddressesByNetwork' => false,
-                'fetchFundingHistory' => null,
+                'fetchFundingHistory' => true,
                 'fetchFundingRate' => 'emulated',
                 'fetchFundingRateHistory' => true,
                 'fetchFundingRates' => true,
-                'fetchIndexOHLCV' => false,
+                'fetchIndexOHLCV' => true,
                 'fetchIsolatedBorrowRate' => false,
                 'fetchIsolatedBorrowRates' => false,
                 'fetchIsolatedPositions' => false,
@@ -237,7 +238,7 @@ class krakenfutures extends Exchange {
                     'invalidAccount' => '\\ccxt\\BadRequest',                  // the fromAccount or the toAccount are invalid
                     'invalidAmount' => '\\ccxt\\BadRequest',
                     'insufficientFunds' => '\\ccxt\\InsufficientFunds',
-                    'INSUFFICIENT_MARGIN' => '\\ccxt\\InsufficientFunds',      // 500 with array("errors":[array("code":92,"message":"INSUFFICIENT_MARGIN")]), see https://github.com/ccxt/ccxt/issues/19896
+                    'INSUFFICIENT_MARGIN' => '\\ccxt\\InsufficientFunds',      // 500 with {"errors":[{"code":92,"message":"INSUFFICIENT_MARGIN"}]}, see https://github.com/ccxt/ccxt/issues/19896
                     'Bad Request' => '\\ccxt\\BadRequest',                     // The URL contains invalid characters. (Please encode the json URL parameter)
                     'Unavailable' => '\\ccxt\\ExchangeNotAvailable',              // https://github.com/ccxt/ccxt/issues/24338
                     'invalidUnit' => '\\ccxt\\BadRequest',
@@ -411,46 +412,46 @@ class krakenfutures extends Exchange {
         $response = Async\await($this->publicGetInstruments($params));
         //
         //    {
-        //        "result" => "success",
-        //        "instruments" => array(
+        //        "result": "success",
+        //        "instruments": [
         //            {
-        //                "symbol" => "fi_ethusd_180928",
-        //                "type" => "futures_inverse", // futures_vanilla  // spot $index
-        //                "underlying" => "rr_ethusd",
-        //                "lastTradingTime" => "2018-09-28T15:00:00.000Z",
-        //                "tickSize" => 0.1,
-        //                "contractSize" => 1,
-        //                "tradeable" => true,
-        //                "marginLevels" => array(
-        //                    array(
+        //                "symbol": "fi_ethusd_180928",
+        //                "type": "futures_inverse", // futures_vanilla  // spot index
+        //                "underlying": "rr_ethusd",
+        //                "lastTradingTime": "2018-09-28T15:00:00.000Z",
+        //                "tickSize": 0.1,
+        //                "contractSize": 1,
+        //                "tradeable": true,
+        //                "marginLevels": [
+        //                    {
         //                        "contracts":0,
         //                        "initialMargin":0.02,
         //                        "maintenanceMargin":0.01
-        //                    ),
-        //                    array(
+        //                    },
+        //                    {
         //                        "contracts":250000,
         //                        "initialMargin":0.04,
         //                        "maintenanceMargin":0.02
-        //                    ),
+        //                    },
         //                    ...
-        //                ),
-        //                "isin" => "GB00JVMLMP88",
-        //                "retailMarginLevels" => array(
-        //                    array(
-        //                        "contracts" => 0,
-        //                        "initialMargin" => 0.5,
-        //                        "maintenanceMargin" => 0.25
+        //                ],
+        //                "isin": "GB00JVMLMP88",
+        //                "retailMarginLevels": [
+        //                    {
+        //                        "contracts": 0,
+        //                        "initialMargin": 0.5,
+        //                        "maintenanceMargin": 0.25
         //                    }
-        //                ),
-        //                "tags" => array(),
-        //            ),
+        //                ],
+        //                "tags": [],
+        //            },
         //            {
-        //                "symbol" => "in_xbtusd",
-        //                "type" => "spot $index",
+        //                "symbol": "in_xbtusd",
+        //                "type": "spot index",
         //                "tradeable":false
         //            }
-        //        )
-        //        "serverTime" => "2018-07-19T11:32:39.433Z"
+        //        ]
+        //        "serverTime": "2018-07-19T11:32:39.433Z"
         //    }
         //
         $instruments = $this->safe_list($response, 'instruments', array());
@@ -482,7 +483,7 @@ class krakenfutures extends Exchange {
             $quoteId = 'usd'; // always USD
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
-            // $swap == perpetual
+            // swap == perpetual
             $settle = null;
             $settleId = null;
             $cvtp = $this->safe_string($market, 'contractValueTradePrecision');
@@ -601,32 +602,32 @@ class krakenfutures extends Exchange {
         $response = Async\await($this->publicGetOrderbook($this->extend($request, $params)));
         //
         //    {
-        //       "result" => "success",
-        //       "serverTime" => "2016-02-25T09:45:53.818Z",
-        //       "orderBook" => array(
-        //          "bids" => array(
-        //                array(
+        //       "result": "success",
+        //       "serverTime": "2016-02-25T09:45:53.818Z",
+        //       "orderBook": {
+        //          "bids": [
+        //                [
         //                    4213,
         //                    2000,
-        //                ),
-        //                array(
+        //                ],
+        //                [
         //                    4210,
         //                    4000,
-        //                ),
+        //                ],
         //                ...
-        //            ),
-        //            "asks" => array(
-        //                array(
+        //            ],
+        //            "asks": [
+        //                [
         //                    4218,
         //                    4000,
-        //                ),
-        //                array(
+        //                ],
+        //                [
         //                    4220,
         //                    5000,
-        //                ),
+        //                ],
         //                ...
-        //            ),
-        //        ),
+        //            ],
+        //        },
         //    }
         //
         $timestamp = $this->parse8601($this->safe_string($response, 'serverTime'));
@@ -656,26 +657,26 @@ class krakenfutures extends Exchange {
         $response = Async\await($this->publicGetTickersSymbol($this->extend($request, $params)));
         //
         //    {
-        //        "result" => "success",
-        //        "ticker" => array(
-        //            "tag" => "perpetual",
-        //            "pair" => "XBT:USD",
-        //            "symbol" => "PF_XBTUSD",
-        //            "markPrice" => 77343.38154086835,
-        //            "bid" => 77333,
-        //            "bidSize" => 0.0776,
-        //            "ask" => 77334,
-        //            "askSize" => 0.4929,
-        //            "vol24h" => 8309.2546,
-        //            "openInterest" => 1950.596600000000000,
-        //            "open24h" => 77332,
-        //            "indexPrice" => 77340.22,
-        //            "last" => 77334,
-        //            "lastTime" => "2026-09-02T17:52:21.057577Z",
-        //            "lastSize" => 0.0114,
-        //            "suspended" => false
-        //        ),
-        //        "serverTime" => "2026-09-02T17:52:21.671Z"
+        //        "result": "success",
+        //        "ticker": {
+        //            "tag": "perpetual",
+        //            "pair": "XBT:USD",
+        //            "symbol": "PF_XBTUSD",
+        //            "markPrice": 77343.38154086835,
+        //            "bid": 77333,
+        //            "bidSize": 0.0776,
+        //            "ask": 77334,
+        //            "askSize": 0.4929,
+        //            "vol24h": 8309.2546,
+        //            "openInterest": 1950.596600000000000,
+        //            "open24h": 77332,
+        //            "indexPrice": 77340.22,
+        //            "last": 77334,
+        //            "lastTime": "2026-09-02T17:52:21.057577Z",
+        //            "lastSize": 0.0114,
+        //            "suspended": false
+        //        },
+        //        "serverTime": "2026-09-02T17:52:21.671Z"
         //    }
         //
         $ticker = $this->safe_dict($response, 'ticker', array());
@@ -702,34 +703,34 @@ class krakenfutures extends Exchange {
         $response = Async\await($this->publicGetTickers($params));
         //
         //    {
-        //        "result" => "success",
-        //        "tickers" => array(
-        //            array(
-        //                "tag" => 'semiannual',  // 'month', 'quarter', "perpetual", "semiannual",
-        //                "pair" => "ETH:USD",
-        //                "symbol" => "fi_ethusd_220624",
-        //                "markPrice" => "2925.72",
-        //                "bid" => "2923.8",
-        //                "bidSize" => "16804",
-        //                "ask" => "2928.65",
-        //                "askSize" => "1339",
-        //                "vol24h" => "860493",
-        //                "openInterest" => "3023363.00000000",
-        //                "open24h" => "3021.25",
-        //                "indexPrice" => "2893.71",
-        //                "last" => "2942.25",
-        //                "lastTime" => "2022-02-18T14:08:15.578Z",
-        //                "lastSize" => "151",
-        //                "suspended" => false
-        //            ),
-        //            array(
-        //                "symbol" => "in_xbtusd", // "rr_xbtusd",
-        //                "last" => "40411",
-        //                "lastTime" => "2022-02-18T14:16:28.000Z"
-        //            ),
+        //        "result": "success",
+        //        "tickers": [
+        //            {
+        //                "tag": 'semiannual',  // 'month', 'quarter', "perpetual", "semiannual",
+        //                "pair": "ETH:USD",
+        //                "symbol": "fi_ethusd_220624",
+        //                "markPrice": "2925.72",
+        //                "bid": "2923.8",
+        //                "bidSize": "16804",
+        //                "ask": "2928.65",
+        //                "askSize": "1339",
+        //                "vol24h": "860493",
+        //                "openInterest": "3023363.00000000",
+        //                "open24h": "3021.25",
+        //                "indexPrice": "2893.71",
+        //                "last": "2942.25",
+        //                "lastTime": "2022-02-18T14:08:15.578Z",
+        //                "lastSize": "151",
+        //                "suspended": false
+        //            },
+        //            {
+        //                "symbol": "in_xbtusd", // "rr_xbtusd",
+        //                "last": "40411",
+        //                "lastTime": "2022-02-18T14:16:28.000Z"
+        //            },
         //            ...
-        //        ),
-        //        "serverTime" => "2022-02-18T14:16:29.440Z"
+        //        ],
+        //        "serverTime": "2022-02-18T14:16:29.440Z"
         //    }
         //
         $tickers = $this->safe_list($response, 'tickers');
@@ -739,28 +740,28 @@ class krakenfutures extends Exchange {
     public function parse_ticker(array $ticker, ?array $market = null): array {
         //
         //    {
-        //        "tag" => 'semiannual',  // 'month', 'quarter', "perpetual", "semiannual",
-        //        "pair" => "ETH:USD",
-        //        "symbol" => "fi_ethusd_220624",
-        //        "markPrice" => "2925.72",
-        //        "bid" => "2923.8",
-        //        "bidSize" => "16804",
-        //        "ask" => "2928.65",
-        //        "askSize" => "1339",
-        //        "vol24h" => "860493",
-        //        "openInterest" => "3023363.00000000",
-        //        "open24h" => "3021.25",
-        //        "indexPrice" => "2893.71",
-        //        "last" => "2942.25",
-        //        "lastTime" => "2022-02-18T14:08:15.578Z",
-        //        "lastSize" => "151",
-        //        "suspended" => false
+        //        "tag": 'semiannual',  // 'month', 'quarter', "perpetual", "semiannual",
+        //        "pair": "ETH:USD",
+        //        "symbol": "fi_ethusd_220624",
+        //        "markPrice": "2925.72",
+        //        "bid": "2923.8",
+        //        "bidSize": "16804",
+        //        "ask": "2928.65",
+        //        "askSize": "1339",
+        //        "vol24h": "860493",
+        //        "openInterest": "3023363.00000000",
+        //        "open24h": "3021.25",
+        //        "indexPrice": "2893.71",
+        //        "last": "2942.25",
+        //        "lastTime": "2022-02-18T14:08:15.578Z",
+        //        "lastSize": "151",
+        //        "suspended": false
         //    }
         //
         //    {
-        //        "symbol" => "in_xbtusd", // "rr_xbtusd",
-        //        "last" => "40411",
-        //        "lastTime" => "2022-02-18T14:16:28.000Z"
+        //        "symbol": "in_xbtusd", // "rr_xbtusd",
+        //        "last": "40411",
+        //        "lastTime": "2022-02-18T14:16:28.000Z"
         //    }
         //
         $marketId = $this->safe_string($ticker, 'symbol');
@@ -827,18 +828,18 @@ class krakenfutures extends Exchange {
         $response = Async\await($this->publicGetFeeschedules($params));
         //
         //    {
-        //        "result" => "success",
-        //        "serverTime" => "2026-08-11T13:08:44Z",
-        //        "feeSchedules" => array(
+        //        "result": "success",
+        //        "serverTime": "2026-08-11T13:08:44Z",
+        //        "feeSchedules": [
         //            {
-        //                "uid" => "723888f7-0a8e-4183-8648-f920a22339e3",
-        //                "name" => "MTF Linear Rebate Fees",
-        //                "tiers" => array(
-        //                    array( "makerFee" => 0.02, "takerFee" => 0.05, "usdVolume" => 0.0 ),
-        //                    array( "makerFee" => 0.0175, "takerFee" => 0.045, "usdVolume" => 5000000.0 )
-        //                )
+        //                "uid": "723888f7-0a8e-4183-8648-f920a22339e3",
+        //                "name": "MTF Linear Rebate Fees",
+        //                "tiers": [
+        //                    { "makerFee": 0.02, "takerFee": 0.05, "usdVolume": 0.0 },
+        //                    { "makerFee": 0.0175, "takerFee": 0.045, "usdVolume": 5000000.0 }
+        //                ]
         //            }
-        //        )
+        //        ]
         //    }
         //
         $volumes = array();
@@ -846,10 +847,10 @@ class krakenfutures extends Exchange {
             $volumesResponse = Async\await($this->privateGetFeeschedulesVolumes());
             //
             //    {
-            //        "result" => "success",
-            //        "serverTime" => "2026-08-11T13:08:44Z",
-            //        "volumesByFeeSchedule" => {
-            //            "723888f7-0a8e-4183-8648-f920a22339e3" => 217587.88
+            //        "result": "success",
+            //        "serverTime": "2026-08-11T13:08:44Z",
+            //        "volumesByFeeSchedule": {
+            //            "723888f7-0a8e-4183-8648-f920a22339e3": 217587.88
             //        }
             //    }
             //
@@ -883,15 +884,15 @@ class krakenfutures extends Exchange {
     public function parse_trading_fee(array $fee, ?array $market = null, ?string $volume = null): array {
         //
         //    {
-        //        "uid" => "723888f7-0a8e-4183-8648-f920a22339e3",
-        //        "name" => "MTF Linear Rebate Fees",
-        //        "tiers" => array(
-        //            array( "makerFee" => 0.02, "takerFee" => 0.05, "usdVolume" => 0.0 ),
-        //            array( "makerFee" => 0.0175, "takerFee" => 0.045, "usdVolume" => 5000000.0 )
-        //        )
+        //        "uid": "723888f7-0a8e-4183-8648-f920a22339e3",
+        //        "name": "MTF Linear Rebate Fees",
+        //        "tiers": [
+        //            { "makerFee": 0.02, "takerFee": 0.05, "usdVolume": 0.0 },
+        //            { "makerFee": 0.0175, "takerFee": 0.045, "usdVolume": 5000000.0 }
+        //        ]
         //    }
         //
-        // fees are expressed in percent, $tiers are sorted by ascending usdVolume
+        // fees are expressed in percent, tiers are sorted by ascending usdVolume
         $tiers = $this->safe_list($fee, 'tiers', array());
         $makerFee = null;
         $takerFee = null;
@@ -932,6 +933,7 @@ class krakenfutures extends Exchange {
          * @param {int} [$limit] the maximum amount of $candles to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
+         * @param {string} [$params->price] "mark" for mark-price $candles or "index" for index-price $candles, defaults to trade-price $candles
          * @return {int[][]} A list of $candles ordered as timestamp, open, high, low, close, volume
          */
         if ($this->markets === null) {
@@ -943,9 +945,15 @@ class krakenfutures extends Exchange {
         if ($paginate) {
             return Async\await($this->fetch_paginated_call_deterministic('fetchOHLCV', $symbol, $since, $limit, $timeframe, $params, 2000));
         }
+        $priceType = $this->safe_string($params, 'price', 'trade');
+        if ($priceType === 'index') {
+            $priceType = 'spot'; // the venue's name for index-price candles
+        } elseif (($priceType !== 'trade') && ($priceType !== 'mark') && ($priceType !== 'spot')) {
+            throw new NotSupported($this->id . ' fetchOHLCV() price parameter must be one of "trade", "mark", "index" or "spot"');
+        }
         $request = array(
             'symbol' => $market['id'],
-            'price_type' => $this->safe_string($params, 'price', 'trade'),
+            'price_type' => $priceType,
             'interval' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
         );
         $params = $this->omit($params, 'price');
@@ -968,17 +976,17 @@ class krakenfutures extends Exchange {
         $response = Async\await($this->chartsGetPriceTypeSymbolInterval($this->extend($request, $params)));
         //
         //    {
-        //        "candles" => array(
+        //        "candles": [
         //            {
-        //                "time" => 1645198500000,
-        //                "open" => "309.15000000000",
-        //                "high" => "309.15000000000",
-        //                "low" => "308.70000000000",
-        //                "close" => "308.85000000000",
-        //                "volume" => 0
+        //                "time": 1645198500000,
+        //                "open": "309.15000000000",
+        //                "high": "309.15000000000",
+        //                "low": "308.70000000000",
+        //                "close": "308.85000000000",
+        //                "volume": 0
         //            }
-        //        ),
-        //        "more_candles" => true
+        //        ],
+        //        "more_candles": true
         //    }
         //
         $candles = $this->safe_list($response, 'candles');
@@ -988,12 +996,12 @@ class krakenfutures extends Exchange {
     public function parse_ohlcv(mixed $ohlcv, ?array $market = null): array {
         //
         //    {
-        //        "time" => 1645198500000,
-        //        "open" => "309.15000000000",
-        //        "high" => "309.15000000000",
-        //        "low" => "308.70000000000",
-        //        "close" => "308.85000000000",
-        //        "volume" => 0
+        //        "time": 1645198500000,
+        //        "open": "309.15000000000",
+        //        "high": "309.15000000000",
+        //        "low": "308.70000000000",
+        //        "close": "308.85000000000",
+        //        "volume": 0
         //    }
         //
         return array(
@@ -1002,7 +1010,7 @@ class krakenfutures extends Exchange {
             $this->safe_number($ohlcv, 'high'),        // highest price
             $this->safe_number($ohlcv, 'low'),         // lowest price
             $this->safe_number($ohlcv, 'close'),       // close price
-            $this->safe_number($ohlcv, 'volume'),      // trading volume, null for mark or index price
+            $this->safe_number($ohlcv, 'volume'),      // trading volume, undefined for mark or index price
         );
     }
 
@@ -1054,51 +1062,51 @@ class krakenfutures extends Exchange {
             $response = Async\await($this->historyGetMarketSymbolExecutions($this->extend($request, $params)));
             //
             //    {
-            //        "elements" => array(
+            //        "elements": [
             //            {
-            //                "uid" => "a5105030-f054-44cc-98ab-30d5cae96bef",
-            //                "timestamp" => "1710150778607",
-            //                "event" => {
-            //                    "Execution" => array(
-            //                        "execution" => array(
-            //                            "uid" => "2d485b71-cd28-4a1e-9364-371a127550d2",
-            //                            "makerOrder" => array(
-            //                                "uid" => "0a25f66b-1109-49ec-93a3-d17bf9e9137e",
-            //                                "tradeable" => "PF_XBTUSD",
-            //                                "direction" => "Buy",
-            //                                "quantity" => "0.26500",
-            //                                "timestamp" => "1710150778570",
-            //                                "limitPrice" => "71907",
-            //                                "orderType" => "Post",
-            //                                "reduceOnly" => false,
-            //                                "lastUpdateTimestamp" => "1710150778570"
-            //                            ),
-            //                            "takerOrder" => array(
-            //                                "uid" => "04de3ee0-9125-4960-bf8f-f63b577b6790",
-            //                                "tradeable" => "PF_XBTUSD",
-            //                                "direction" => "Sell",
-            //                                "quantity" => "0.0002",
-            //                                "timestamp" => "1710150778607",
-            //                                "limitPrice" => "71187.00",
-            //                                "orderType" => "Market",
-            //                                "reduceOnly" => false,
-            //                                "lastUpdateTimestamp" => "1710150778607"
-            //                            ),
-            //                            "timestamp" => "1710150778607",
-            //                            "quantity" => "0.0002",
-            //                            "price" => "71907",
-            //                            "markPrice" => "71903.32715463147",
-            //                            "limitFilled" => false,
-            //                            "usdValue" => "14.38"
-            //                        ),
-            //                        "takerReducedQuantity" => ""
+            //                "uid": "a5105030-f054-44cc-98ab-30d5cae96bef",
+            //                "timestamp": "1710150778607",
+            //                "event": {
+            //                    "Execution": {
+            //                        "execution": {
+            //                            "uid": "2d485b71-cd28-4a1e-9364-371a127550d2",
+            //                            "makerOrder": {
+            //                                "uid": "0a25f66b-1109-49ec-93a3-d17bf9e9137e",
+            //                                "tradeable": "PF_XBTUSD",
+            //                                "direction": "Buy",
+            //                                "quantity": "0.26500",
+            //                                "timestamp": "1710150778570",
+            //                                "limitPrice": "71907",
+            //                                "orderType": "Post",
+            //                                "reduceOnly": false,
+            //                                "lastUpdateTimestamp": "1710150778570"
+            //                            },
+            //                            "takerOrder": {
+            //                                "uid": "04de3ee0-9125-4960-bf8f-f63b577b6790",
+            //                                "tradeable": "PF_XBTUSD",
+            //                                "direction": "Sell",
+            //                                "quantity": "0.0002",
+            //                                "timestamp": "1710150778607",
+            //                                "limitPrice": "71187.00",
+            //                                "orderType": "Market",
+            //                                "reduceOnly": false,
+            //                                "lastUpdateTimestamp": "1710150778607"
+            //                            },
+            //                            "timestamp": "1710150778607",
+            //                            "quantity": "0.0002",
+            //                            "price": "71907",
+            //                            "markPrice": "71903.32715463147",
+            //                            "limitFilled": false,
+            //                            "usdValue": "14.38"
+            //                        },
+            //                        "takerReducedQuantity": ""
             //                    }
             //                }
-            //            ),
+            //            },
             //            ... followed by older items
-            //        ),
-            //        "len" => "1000",
-            //        "continuationToken" => "QTexMDE0OTe33NTcyXy8xNDIzAjc1NjY5MwI="
+            //        ],
+            //        "len": "1000",
+            //        "continuationToken": "QTexMDE0OTe33NTcyXy8xNDIzAjc1NjY5MwI="
             //    }
             //
             $elements = $this->safe_list($response, 'elements', array());
@@ -1118,20 +1126,20 @@ class krakenfutures extends Exchange {
             $response = Async\await($this->publicGetHistory($this->extend($request, $params)));
             //
             //    {
-            //        "result" => "success",
-            //        "history" => array(
-            //            array(
-            //                "time" => "2022-03-18T04:55:37.692Z",
-            //                "trade_id" => 100,
-            //                "price" => 0.7921,
-            //                "size" => 1068,
-            //                "side" => "sell",
-            //                "type" => "fill",
-            //                "uid" => "6c5da0b0-f1a8-483f-921f-466eb0388265"
-            //            ),
+            //        "result": "success",
+            //        "history": [
+            //            {
+            //                "time": "2022-03-18T04:55:37.692Z",
+            //                "trade_id": 100,
+            //                "price": 0.7921,
+            //                "size": 1068,
+            //                "side": "sell",
+            //                "type": "fill",
+            //                "uid": "6c5da0b0-f1a8-483f-921f-466eb0388265"
+            //            },
             //            ...
-            //        ),
-            //        "serverTime" => "2022-03-18T06:39:18.056Z"
+            //        ],
+            //        "serverTime": "2022-03-18T06:39:18.056Z"
             //    }
             //
             $rawTrades = $this->safe_list($response, 'history', array());
@@ -1144,65 +1152,65 @@ class krakenfutures extends Exchange {
         // fetchTrades (recent trades)
         //
         //    {
-        //        "time" => "2019-02-14T09:25:33.920Z",
-        //        "trade_id" => 100,
-        //        "price" => 3574,
-        //        "size" => 100,
-        //        "side" => "buy",
-        //        "type" => "fill" // fill, liquidation, assignment, termination
-        //        "uid" => "11c3d82c-9e70-4fe9-8115-f643f1b162d4"
+        //        "time": "2019-02-14T09:25:33.920Z",
+        //        "trade_id": 100,
+        //        "price": 3574,
+        //        "size": 100,
+        //        "side": "buy",
+        //        "type": "fill" // fill, liquidation, assignment, termination
+        //        "uid": "11c3d82c-9e70-4fe9-8115-f643f1b162d4"
         //    }
         //
         // fetchTrades (executions history)
         //
         //    {
-        //        "timestamp" => "1710152516830",
-        //        "price" => "71927.0",
-        //        "quantity" => "0.0695",
-        //        "markPrice" => "71936.38701675525",
-        //        "limitFilled" => true,
-        //        "usdValue" => "4998.93",
-        //        "uid" => "116ae634-253f-470b-bd20-fa9d429fb8b1",
-        //        "makerOrder" => array( "uid" => "17bfe4de-c01e-4938-926c-617d2a2d0597", "tradeable" => "PF_XBTUSD", "direction" => "Buy", "quantity" => "0.0695", "timestamp" => "1710152515836", "limitPrice" => "71927.0", "orderType" => "Post", "reduceOnly" => false, "lastUpdateTimestamp" => "1710152515836" ),
-        //        "takerOrder" => array( "uid" => "d3e437b4-aa70-4108-b5cf-b1eecb9845b5", "tradeable" => "PF_XBTUSD", "direction" => "Sell", "quantity" => "0.940100", "timestamp" => "1710152516830", "limitPrice" => "71915", "orderType" => "IoC", "reduceOnly" => false, "lastUpdateTimestamp" => "1710152516830" )
+        //        "timestamp": "1710152516830",
+        //        "price": "71927.0",
+        //        "quantity": "0.0695",
+        //        "markPrice": "71936.38701675525",
+        //        "limitFilled": true,
+        //        "usdValue": "4998.93",
+        //        "uid": "116ae634-253f-470b-bd20-fa9d429fb8b1",
+        //        "makerOrder": { "uid": "17bfe4de-c01e-4938-926c-617d2a2d0597", "tradeable": "PF_XBTUSD", "direction": "Buy", "quantity": "0.0695", "timestamp": "1710152515836", "limitPrice": "71927.0", "orderType": "Post", "reduceOnly": false, "lastUpdateTimestamp": "1710152515836" },
+        //        "takerOrder": { "uid": "d3e437b4-aa70-4108-b5cf-b1eecb9845b5", "tradeable": "PF_XBTUSD", "direction": "Sell", "quantity": "0.940100", "timestamp": "1710152516830", "limitPrice": "71915", "orderType": "IoC", "reduceOnly": false, "lastUpdateTimestamp": "1710152516830" }
         //    }
         //
         // fetchMyTrades (private)
         //
         //    {
-        //        "fillTime" => "2016-02-25T09:47:01.000Z",
-        //        "order_id" => "c18f0c17-9971-40e6-8e5b-10df05d422f0",
-        //        "fill_id" => "522d4e08-96e7-4b44-9694-bfaea8fe215e",
-        //        "cliOrdId" => "d427f920-ec55-4c18-ba95-5fe241513b30",     // OPTIONAL
-        //        "symbol" => "fi_xbtusd_180615",
-        //        "side" => "buy",
-        //        "size" => 2000,
-        //        "price" => 4255,
-        //        "fillType" => "maker"                                     // $taker, takerAfterEdit, maker, liquidation, assignee
+        //        "fillTime": "2016-02-25T09:47:01.000Z",
+        //        "order_id": "c18f0c17-9971-40e6-8e5b-10df05d422f0",
+        //        "fill_id": "522d4e08-96e7-4b44-9694-bfaea8fe215e",
+        //        "cliOrdId": "d427f920-ec55-4c18-ba95-5fe241513b30",     // OPTIONAL
+        //        "symbol": "fi_xbtusd_180615",
+        //        "side": "buy",
+        //        "size": 2000,
+        //        "price": 4255,
+        //        "fillType": "maker"                                     // taker, takerAfterEdit, maker, liquidation, assignee
         //    }
         //
         // execution report (createOrder, editOrder)
         //
         //    {
-        //        "executionId" => "e1ec9f63-2338-4c44-b40a-43486c6732d7",
-        //        "price" => 7244.5,
-        //        "amount" => 10,
-        //        "orderPriorEdit" => null,
-        //        "orderPriorExecution" => array(
-        //            "orderId" => "61ca5732-3478-42fe-8362-abbfd9465294",
-        //            "cliOrdId" => null,
-        //            "type" => "lmt",
-        //            "symbol" => "pi_xbtusd",
-        //            "side" => "buy",
-        //            "quantity" => 10,
-        //            "filled" => 0,
-        //            "limitPrice" => 7500,
-        //            "reduceOnly" => false,
-        //            "timestamp" => "2019-12-11T17:17:33.888Z",
-        //            "lastUpdateTimestamp" => "2019-12-11T17:17:33.888Z"
-        //        ),
-        //        "takerReducedQuantity" => null,
-        //        "type" => "EXECUTION"
+        //        "executionId": "e1ec9f63-2338-4c44-b40a-43486c6732d7",
+        //        "price": 7244.5,
+        //        "amount": 10,
+        //        "orderPriorEdit": null,
+        //        "orderPriorExecution": {
+        //            "orderId": "61ca5732-3478-42fe-8362-abbfd9465294",
+        //            "cliOrdId": null,
+        //            "type": "lmt",
+        //            "symbol": "pi_xbtusd",
+        //            "side": "buy",
+        //            "quantity": 10,
+        //            "filled": 0,
+        //            "limitPrice": 7500,
+        //            "reduceOnly": false,
+        //            "timestamp": "2019-12-11T17:17:33.888Z",
+        //            "lastUpdateTimestamp": "2019-12-11T17:17:33.888Z"
+        //        },
+        //        "takerReducedQuantity": null,
+        //        "type": "EXECUTION"
         //    }
         //
         $timestamp = $this->parse8601($this->safe_string_2($trade, 'time', 'fillTime'));
@@ -1265,8 +1273,8 @@ class krakenfutures extends Exchange {
         $fee = null;
         if (($takerOrMaker !== null) && ($cost !== null)) {
             $feeRate = $this->safe_string($market, $takerOrMaker);
-            // fees are charged in the settlement currency => the quote currency
-            // for $linear contracts, the base currency for inverse contracts
+            // fees are charged in the settlement currency: the quote currency
+            // for linear contracts, the base currency for inverse contracts
             $feeCurrency = $this->safe_string($market, 'settle');
             if ($feeCurrency === null) {
                 $feeCurrency = $this->safe_string($market, 'quote');
@@ -1354,7 +1362,14 @@ class krakenfutures extends Exchange {
             $request['reduceOnly'] = true;
         }
         $request['orderType'] = $type;
-        if ($price !== null) {
+        $price = $this->parse_number($price); // some callers pass null instead of undefined, normalize it
+        $isLimitOrder = ($type === 'lmt') || ($type === 'post') || ($type === 'ioc');
+        $limitPriceParam = $this->safe_string($params, 'limitPrice'); // the venue's own field name, forwarded as-is by this.extend below
+        if ($isLimitOrder && ($price === null) && ($limitPriceParam === null)) {
+            throw new ArgumentsRequired($this->id . ' createOrder () requires a $price argument for ' . $type . ' orders');
+        }
+        $isMarketOrder = ($type === 'mkt');
+        if (($price !== null) && !$isMarketOrder) {
             $request['limitPrice'] = $this->price_to_precision($symbol, $price);
         }
         $params = $this->omit($params, array( 'clientOrderId', 'timeInForce', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice' ));
@@ -1394,66 +1409,66 @@ class krakenfutures extends Exchange {
         $response = Async\await($this->privatePostSendorder($orderRequest));
         //
         //    {
-        //        "result" => "success",
-        //        "sendStatus" => {
-        //            "order_id" => "salf320-e337-47ac-b345-30sdfsalj",
-        //            "status" => "placed",
-        //            "receivedTime" => "2022-02-28T19:32:17.122Z",
-        //            "orderEvents" => array(
-        //                array(
-        //                    "order" => array(
-        //                        "orderId" => "salf320-e337-47ac-b345-30sdfsalj",
-        //                        "cliOrdId" => null,
-        //                        "type" => "lmt",
-        //                        "symbol" => "pi_xrpusd",
-        //                        "side" => "buy",
-        //                        "quantity" => 1,
-        //                        "filled" => 0,
-        //                        "limitPrice" => 0.7,
-        //                        "reduceOnly" => false,
-        //                        "timestamp" => "2022-02-28T19:32:17.122Z",
-        //                        "lastUpdateTimestamp" => "2022-02-28T19:32:17.122Z"
-        //                    ),
-        //                    "reducedQuantity" => null,
-        //                    "type" => "PLACE"
+        //        "result": "success",
+        //        "sendStatus": {
+        //            "order_id": "salf320-e337-47ac-b345-30sdfsalj",
+        //            "status": "placed",
+        //            "receivedTime": "2022-02-28T19:32:17.122Z",
+        //            "orderEvents": [
+        //                {
+        //                    "order": {
+        //                        "orderId": "salf320-e337-47ac-b345-30sdfsalj",
+        //                        "cliOrdId": null,
+        //                        "type": "lmt",
+        //                        "symbol": "pi_xrpusd",
+        //                        "side": "buy",
+        //                        "quantity": 1,
+        //                        "filled": 0,
+        //                        "limitPrice": 0.7,
+        //                        "reduceOnly": false,
+        //                        "timestamp": "2022-02-28T19:32:17.122Z",
+        //                        "lastUpdateTimestamp": "2022-02-28T19:32:17.122Z"
+        //                    },
+        //                    "reducedQuantity": null,
+        //                    "type": "PLACE"
         //                }
-        //            )
-        //        ),
-        //        "serverTime" => "2022-02-28T19:32:17.122Z"
+        //            ]
+        //        },
+        //        "serverTime": "2022-02-28T19:32:17.122Z"
         //    }
         //
         // MARKET
         //
         //     {
-        //         "result" => "success",
-        //         "serverTime" => "2026-03-02T06:10:31.955Z",
-        //         "sendStatus" => {
-        //             "status" => "placed",
-        //             "order_id" => "a133a4f9-254d-4806-8176-9acc936b6944",
-        //             "receivedTime" => "2026-03-02T06:10:31.954Z",
-        //             "orderEvents" => array(
+        //         "result": "success",
+        //         "serverTime": "2026-03-02T06:10:31.955Z",
+        //         "sendStatus": {
+        //             "status": "placed",
+        //             "order_id": "a133a4f9-254d-4806-8176-9acc936b6944",
+        //             "receivedTime": "2026-03-02T06:10:31.954Z",
+        //             "orderEvents": [
         //                 {
-        //                     "type" => "EXECUTION",
-        //                     "executionId" => "403bf49f-dbbe-448b-8de7-fd3cf38cc5dd",
-        //                     "price" => 66596.0,
-        //                     "amount" => 0.001,
-        //                     "orderPriorEdit" => null,
-        //                     "orderPriorExecution" => array(
-        //                         "orderId" => "a133a4f9-254d-4806-8176-9acc936b6944",
-        //                         "cliOrdId" => null,
-        //                         "type" => "ioc",
-        //                         "symbol" => "PF_XBTUSD",
-        //                         "side" => "buy",
-        //                         "quantity" => 0.001,
-        //                         "filled" => 0,
-        //                         "limitPrice" => 67261.000,
-        //                         "reduceOnly" => false,
-        //                         "timestamp" => "2026-03-02T06:10:31.954Z",
-        //                         "lastUpdateTimestamp" => "2026-03-02T06:10:31.954Z"
-        //                     ),
-        //                     "takerReducedQuantity" => null
+        //                     "type": "EXECUTION",
+        //                     "executionId": "403bf49f-dbbe-448b-8de7-fd3cf38cc5dd",
+        //                     "price": 66596.0,
+        //                     "amount": 0.001,
+        //                     "orderPriorEdit": null,
+        //                     "orderPriorExecution": {
+        //                         "orderId": "a133a4f9-254d-4806-8176-9acc936b6944",
+        //                         "cliOrdId": null,
+        //                         "type": "ioc",
+        //                         "symbol": "PF_XBTUSD",
+        //                         "side": "buy",
+        //                         "quantity": 0.001,
+        //                         "filled": 0,
+        //                         "limitPrice": 67261.000,
+        //                         "reduceOnly": false,
+        //                         "timestamp": "2026-03-02T06:10:31.954Z",
+        //                         "lastUpdateTimestamp": "2026-03-02T06:10:31.954Z"
+        //                     },
+        //                     "takerReducedQuantity": null
         //                 }
-        //             )
+        //             ]
         //         }
         //     }
         //
@@ -1489,7 +1504,7 @@ class krakenfutures extends Exchange {
             $amount = $this->safe_value($rawOrder, 'amount');
             $price = $this->safe_value($rawOrder, 'price');
             $orderParams = $this->safe_value($rawOrder, 'params', array());
-            $extendedParams = $this->extend($orderParams, $params); // the $request does not accept extra $params since it's a list, so we're extending each order with the common $params
+            $extendedParams = $this->extend($orderParams, $params); // the request does not accept extra params since it's a list, so we're extending each order with the common params
             if (!(is_array($extendedParams) && array_key_exists('order_tag' ?? '', $extendedParams))) {
                 // order tag is mandatory so we will generate one if not provided
                 $extendedParams['order_tag'] = $this->sum($i, (string) 1); // sequential counter
@@ -1504,18 +1519,18 @@ class krakenfutures extends Exchange {
         $response = Async\await($this->privatePostBatchorder($this->extend($request, $params)));
         //
         // {
-        //     "result" => "success",
-        //     "serverTime" => "2023-10-24T08:40:57.339Z",
-        //     "batchStatus" => array(
-        //        array(
-        //           "status" => "requiredArgumentMissing",
-        //           "orderEvents" => array()
-        //        ),
+        //     "result": "success",
+        //     "serverTime": "2023-10-24T08:40:57.339Z",
+        //     "batchStatus": [
         //        {
-        //           "status" => "requiredArgumentMissing",
-        //           "orderEvents" => array()
+        //           "status": "requiredArgumentMissing",
+        //           "orderEvents": []
+        //        },
+        //        {
+        //           "status": "requiredArgumentMissing",
+        //           "orderEvents": []
         //        }
-        //     )
+        //     ]
         // }
         //
         $data = $this->safe_list($response, 'batchStatus', array());
@@ -1628,33 +1643,33 @@ class krakenfutures extends Exchange {
         );
         $response = Async\await($this->privatePostBatchorder($this->extend($request, $params)));
         // {
-        //     "result" => "success",
-        //     "serverTime" => "2023-10-23T16:36:51.327Z",
-        //     "batchStatus" => array(
+        //     "result": "success",
+        //     "serverTime": "2023-10-23T16:36:51.327Z",
+        //     "batchStatus": [
         //       {
-        //         "status" => "cancelled",
-        //         "order_id" => "101c2327-f12e-45f2-8445-7502b87afc0b",
-        //         "orderEvents" => array(
+        //         "status": "cancelled",
+        //         "order_id": "101c2327-f12e-45f2-8445-7502b87afc0b",
+        //         "orderEvents": [
         //           {
-        //             "uid" => "101c2327-f12e-45f2-8445-7502b87afc0b",
-        //             "order" => array(
-        //               "orderId" => "101c2327-f12e-45f2-8445-7502b87afc0b",
-        //               "cliOrdId" => null,
-        //               "type" => "lmt",
-        //               "symbol" => "PF_LTCUSD",
-        //               "side" => "buy",
-        //               "quantity" => "0.10000000000",
-        //               "filled" => "0E-11",
-        //               "limitPrice" => "50.00000000000",
-        //               "reduceOnly" => false,
-        //               "timestamp" => "2023-10-20T10:29:13.005Z",
-        //               "lastUpdateTimestamp" => "2023-10-20T10:29:13.005Z"
-        //             ),
-        //             "type" => "CANCEL"
+        //             "uid": "101c2327-f12e-45f2-8445-7502b87afc0b",
+        //             "order": {
+        //               "orderId": "101c2327-f12e-45f2-8445-7502b87afc0b",
+        //               "cliOrdId": null,
+        //               "type": "lmt",
+        //               "symbol": "PF_LTCUSD",
+        //               "side": "buy",
+        //               "quantity": "0.10000000000",
+        //               "filled": "0E-11",
+        //               "limitPrice": "50.00000000000",
+        //               "reduceOnly": false,
+        //               "timestamp": "2023-10-20T10:29:13.005Z",
+        //               "lastUpdateTimestamp": "2023-10-20T10:29:13.005Z"
+        //             },
+        //             "type": "CANCEL"
         //           }
-        //         )
+        //         ]
         //       }
-        //     )
+        //     ]
         // }
         $batchStatus = $this->safe_list($response, 'batchStatus', array());
         return $this->parse_orders($batchStatus);
@@ -1681,33 +1696,33 @@ class krakenfutures extends Exchange {
         $response = Async\await($this->privatePostCancelallorders($this->extend($request, $params)));
         //
         //    {
-        //        result => 'success',
-        //        $cancelStatus => {
-        //          receivedTime => '2024-06-06T01:12:44.814Z',
-        //          cancelOnly => 'PF_XRPUSD',
-        //          status => 'cancelled',
-        //          cancelledOrders => array( array( order_id => '272fd0ac-45c0-4003-b84d-d39b9e86bd36' ) ),
-        //          $orderEvents => array(
-        //            array(
-        //              uid => '272fd0ac-45c0-4003-b84d-d39b9e86bd36',
-        //              $order => array(
-        //                orderId => '272fd0ac-45c0-4003-b84d-d39b9e86bd36',
-        //                cliOrdId => null,
-        //                type => 'lmt',
-        //                $symbol => 'PF_XRPUSD',
-        //                side => 'buy',
-        //                quantity => '10',
-        //                filled => '0',
-        //                limitPrice => '0.4',
-        //                reduceOnly => false,
-        //                timestamp => '2024-06-06T01:11:16.045Z',
-        //                lastUpdateTimestamp => '2024-06-06T01:11:16.045Z'
-        //              ),
-        //              type => 'CANCEL'
+        //        result: 'success',
+        //        cancelStatus: {
+        //          receivedTime: '2024-06-06T01:12:44.814Z',
+        //          cancelOnly: 'PF_XRPUSD',
+        //          status: 'cancelled',
+        //          cancelledOrders: [ { order_id: '272fd0ac-45c0-4003-b84d-d39b9e86bd36' } ],
+        //          orderEvents: [
+        //            {
+        //              uid: '272fd0ac-45c0-4003-b84d-d39b9e86bd36',
+        //              order: {
+        //                orderId: '272fd0ac-45c0-4003-b84d-d39b9e86bd36',
+        //                cliOrdId: null,
+        //                type: 'lmt',
+        //                symbol: 'PF_XRPUSD',
+        //                side: 'buy',
+        //                quantity: '10',
+        //                filled: '0',
+        //                limitPrice: '0.4',
+        //                reduceOnly: false,
+        //                timestamp: '2024-06-06T01:11:16.045Z',
+        //                lastUpdateTimestamp: '2024-06-06T01:11:16.045Z'
+        //              },
+        //              type: 'CANCEL'
         //            }
-        //          )
-        //        ),
-        //        serverTime => '2024-06-06T01:12:44.814Z'
+        //          ]
+        //        },
+        //        serverTime: '2024-06-06T01:12:44.814Z'
         //    }
         //
         $cancelStatus = $this->safe_dict($response, 'cancelStatus');
@@ -1744,11 +1759,11 @@ class krakenfutures extends Exchange {
         $response = Async\await($this->privatePostCancelallordersafter($this->extend($request, $params)));
         //
         //     {
-        //         "result" => "success",
-        //         "serverTime" => "2018-06-19T16:51:23.839Z",
-        //         "status" => {
-        //             "currentTime" => "2018-06-19T16:51:23.839Z",
-        //             "triggerTime" => "0"
+        //         "result": "success",
+        //         "serverTime": "2018-06-19T16:51:23.839Z",
+        //         "status": {
+        //             "currentTime": "2018-06-19T16:51:23.839Z",
+        //             "triggerTime": "0"
         //         }
         //     }
         //
@@ -1890,7 +1905,7 @@ class krakenfutures extends Exchange {
                 $innerOrder = $this->safe_dict($orderPlaced, 'order', array());
                 $filled = $this->safe_string($innerOrder, 'filled');
                 if ($filled !== '0') {
-                    $innerOrder['status'] = 'closed'; // status not available in the $response
+                    $innerOrder['status'] = 'closed'; // status not available in the response
                     $closedOrders[] = $innerOrder;
                 }
             } elseif ($orderUpdated !== null) {
@@ -1954,20 +1969,20 @@ class krakenfutures extends Exchange {
                 $innerOrder = $this->safe_dict($orderPlaced, 'order', array());
                 $filled = $this->safe_string($innerOrder, 'filled');
                 if ($filled === '0' || $isCancelledTriggerOrder) {
-                    $innerOrder['status'] = 'canceled'; // status not available in the $response
+                    $innerOrder['status'] = 'canceled'; // status not available in the response
                     $canceledAndRejected[] = $innerOrder;
                 }
             }
             $orderCanceled = $this->safe_dict($event, 'OrderCancelled');
             if ($orderCanceled !== null) {
                 $innerOrder = $this->safe_dict($orderCanceled, 'order', array());
-                $innerOrder['status'] = 'canceled'; // status not available in the $response
+                $innerOrder['status'] = 'canceled'; // status not available in the response
                 $canceledAndRejected[] = $innerOrder;
             }
             $orderRejected = $this->safe_dict($event, 'OrderRejected');
             if ($orderRejected !== null) {
                 $innerOrder = $this->safe_dict($orderRejected, 'order', array());
-                $innerOrder['status'] = 'rejected'; // status not available in the $response
+                $innerOrder['status'] = 'rejected'; // status not available in the response
                 $canceledAndRejected[] = $innerOrder;
             }
         }
@@ -1999,7 +2014,7 @@ class krakenfutures extends Exchange {
             'clientOrderIdAlreadyExist' => '\\ccxt\\DuplicateOrderId',
             'clientOrderIdTooLong' => '\\ccxt\\BadRequest',
             'outsidePriceCollar' => '\\ccxt\\InvalidOrder',
-            'postWouldExecute' => '\\ccxt\\OrderImmediatelyFillable',  // the unplaced order could actually be parsed (with $status = "rejected"), but there is this specific error for this
+            'postWouldExecute' => '\\ccxt\\OrderImmediatelyFillable',  // the unplaced order could actually be parsed (with status = "rejected"), but there is this specific error for this
             'iocWouldNotExecute' => '\\ccxt\\OrderNotFillable', // -||-
             'wouldNotReducePosition' => '\\ccxt\\ExchangeError',
             'orderForEditNotFound' => '\\ccxt\\OrderNotFound',
@@ -2023,7 +2038,7 @@ class krakenfutures extends Exchange {
             'insufficientAvailableFunds' => 'rejected', // the order was not placed because available funds are insufficient
             'selfFill' => 'rejected', // the order was not placed because it would be filled against an existing order belonging to the same account
             'tooManySmallOrders' => 'rejected', // the order was not placed because the number of small open orders would exceed the permissible limit
-            'maxPositionViolation' => 'rejected', // Order would cause you to exceed your maximum property_exists($this, position) contract.
+            'maxPositionViolation' => 'rejected', // Order would cause you to exceed your maximum position in this contract.
             'marketSuspended' => 'rejected', // the order was not placed because the market is suspended
             'marketInactive' => 'rejected', // the order was not placed because the market is inactive
             'clientOrderIdAlreadyExist' => 'rejected', // the specified client id already exist
@@ -2055,303 +2070,303 @@ class krakenfutures extends Exchange {
         // LIMIT
         //
         //    {
-        //        "order_id" => "179f9af8-e45e-469d-b3e9-2fd4675cb7d0",
-        //        "status" => "placed",
-        //        "receivedTime" => "2019-09-05T16:33:50.734Z",
-        //        "orderEvents" => array(
+        //        "order_id": "179f9af8-e45e-469d-b3e9-2fd4675cb7d0",
+        //        "status": "placed",
+        //        "receivedTime": "2019-09-05T16:33:50.734Z",
+        //        "orderEvents": [
         //            {
-        //                "uid" => "614a5298-0071-450f-83c6-0617ce8c6bc4",
-        //                "order" => array(
-        //                    "orderId" => "179f9af8-e45e-469d-b3e9-2fd4675cb7d0",
-        //                    "cliOrdId" => null,
-        //                    "type" => "lmt",
-        //                    "symbol" => "pi_xbtusd",
-        //                    "side" => "buy",
-        //                    "quantity" => 10000,
-        //                    "filled" => 0,
-        //                    "limitPrice" => 9400,
-        //                    "reduceOnly" => false,
-        //                    "timestamp" => "2019-09-05T16:33:50.734Z",
-        //                    "lastUpdateTimestamp" => "2019-09-05T16:33:50.734Z"
-        //                ),
-        //                "reducedQuantity" => null,
-        //                "reason" => "WOULD_NOT_REDUCE_POSITION", // REJECTED
-        //                "type" => "PLACE"
+        //                "uid": "614a5298-0071-450f-83c6-0617ce8c6bc4",
+        //                "order": {
+        //                    "orderId": "179f9af8-e45e-469d-b3e9-2fd4675cb7d0",
+        //                    "cliOrdId": null,
+        //                    "type": "lmt",
+        //                    "symbol": "pi_xbtusd",
+        //                    "side": "buy",
+        //                    "quantity": 10000,
+        //                    "filled": 0,
+        //                    "limitPrice": 9400,
+        //                    "reduceOnly": false,
+        //                    "timestamp": "2019-09-05T16:33:50.734Z",
+        //                    "lastUpdateTimestamp": "2019-09-05T16:33:50.734Z"
+        //                },
+        //                "reducedQuantity": null,
+        //                "reason": "WOULD_NOT_REDUCE_POSITION", // REJECTED
+        //                "type": "PLACE"
         //            }
-        //        )
+        //        ]
         //    }
         //
         // MARKET
         //
         //     {
-        //         "status" => "placed",
-        //         "order_id" => "a133a4f9-254d-4806-8176-9acc936b6944",
-        //         "receivedTime" => "2026-03-02T06:10:31.954Z",
-        //         "orderEvents" => array(
+        //         "status": "placed",
+        //         "order_id": "a133a4f9-254d-4806-8176-9acc936b6944",
+        //         "receivedTime": "2026-03-02T06:10:31.954Z",
+        //         "orderEvents": [
         //             {
-        //                 "type" => "EXECUTION",
-        //                 "executionId" => "403bf49f-dbbe-448b-8de7-fd3cf38cc5dd",
-        //                 "price" => 66596.0,
-        //                 "amount" => 0.001,
-        //                 "orderPriorEdit" => null,
-        //                 "orderPriorExecution" => array(
-        //                     "orderId" => "a133a4f9-254d-4806-8176-9acc936b6944",
-        //                     "cliOrdId" => null,
-        //                     "type" => "ioc",
-        //                     "symbol" => "PF_XBTUSD",
-        //                     "side" => "buy",
-        //                     "quantity" => 0.001,
-        //                     "filled" => 0,
-        //                     "limitPrice" => 67261.000,
-        //                     "reduceOnly" => false,
-        //                     "timestamp" => "2026-03-02T06:10:31.954Z",
-        //                     "lastUpdateTimestamp" => "2026-03-02T06:10:31.954Z"
-        //                 ),
-        //                 "takerReducedQuantity" => null
+        //                 "type": "EXECUTION",
+        //                 "executionId": "403bf49f-dbbe-448b-8de7-fd3cf38cc5dd",
+        //                 "price": 66596.0,
+        //                 "amount": 0.001,
+        //                 "orderPriorEdit": null,
+        //                 "orderPriorExecution": {
+        //                     "orderId": "a133a4f9-254d-4806-8176-9acc936b6944",
+        //                     "cliOrdId": null,
+        //                     "type": "ioc",
+        //                     "symbol": "PF_XBTUSD",
+        //                     "side": "buy",
+        //                     "quantity": 0.001,
+        //                     "filled": 0,
+        //                     "limitPrice": 67261.000,
+        //                     "reduceOnly": false,
+        //                     "timestamp": "2026-03-02T06:10:31.954Z",
+        //                     "lastUpdateTimestamp": "2026-03-02T06:10:31.954Z"
+        //                 },
+        //                 "takerReducedQuantity": null
         //             }
-        //         )
+        //         ]
         //     }
         //
         // CONDITIONAL
         //
         //    {
-        //        "order_id" => "1abfd3c6-af93-4b30-91cc-e4a93797f3f5",
-        //        "status" => "placed",
-        //        "receivedTime" => "2019-12-05T10:20:50.701Z",
-        //        "orderEvents" => array(
+        //        "order_id": "1abfd3c6-af93-4b30-91cc-e4a93797f3f5",
+        //        "status": "placed",
+        //        "receivedTime": "2019-12-05T10:20:50.701Z",
+        //        "orderEvents": [
         //            {
-        //                "orderTrigger" => array(
-        //                    "uid" => "1abfd3c6-af93-4b30-91cc-e4a93797f3f5",
+        //                "orderTrigger": {
+        //                    "uid": "1abfd3c6-af93-4b30-91cc-e4a93797f3f5",
         //                    "clientId":null,
-        //                    "type" => "lmt",                                // "ioc" if stop $market
-        //                    "symbol" => "pi_xbtusd",
-        //                    "side" => "buy",
+        //                    "type": "lmt",                                // "ioc" if stop market
+        //                    "symbol": "pi_xbtusd",
+        //                    "side": "buy",
         //                    "quantity":10,
         //                    "limitPrice":15000,
         //                    "triggerPrice":9500,
-        //                    "triggerSide" => "trigger_below",
-        //                    "triggerSignal" => "mark_price",
+        //                    "triggerSide": "trigger_below",
+        //                    "triggerSignal": "mark_price",
         //                    "reduceOnly":false,
-        //                    "timestamp" => "2019-12-05T10:20:50.701Z",
-        //                    "lastUpdateTimestamp" => "2019-12-05T10:20:50.701Z"
-        //                ),
-        //                "type" => "PLACE"
+        //                    "timestamp": "2019-12-05T10:20:50.701Z",
+        //                    "lastUpdateTimestamp": "2019-12-05T10:20:50.701Z"
+        //                },
+        //                "type": "PLACE"
         //            }
-        //        )
+        //        ]
         //    }
         //
         // EXECUTION
         //
         //    {
-        //        "order_id" => "61ca5732-3478-42fe-8362-abbfd9465294",
-        //        "status" => "placed",
-        //        "receivedTime" => "2019-12-11T17:17:33.888Z",
-        //        "orderEvents" => array(
+        //        "order_id": "61ca5732-3478-42fe-8362-abbfd9465294",
+        //        "status": "placed",
+        //        "receivedTime": "2019-12-11T17:17:33.888Z",
+        //        "orderEvents": [
         //            {
-        //                "executionId" => "e1ec9f63-2338-4c44-b40a-43486c6732d7",
-        //                "price" => 7244.5,
-        //                "amount" => 10,
-        //                "orderPriorEdit" => null,
-        //                "orderPriorExecution" => array(
-        //                    "orderId" => "61ca5732-3478-42fe-8362-abbfd9465294",
-        //                    "cliOrdId" => null,
-        //                    "type" => "lmt",
-        //                    "symbol" => "pi_xbtusd",
-        //                    "side" => "buy",
-        //                    "quantity" => 10,
-        //                    "filled" => 0,
-        //                    "limitPrice" => 7500,
-        //                    "reduceOnly" => false,
-        //                    "timestamp" => "2019-12-11T17:17:33.888Z",
-        //                    "lastUpdateTimestamp" => "2019-12-11T17:17:33.888Z"
-        //                ),
-        //                "takerReducedQuantity" => null,
-        //                "type" => "EXECUTION"
+        //                "executionId": "e1ec9f63-2338-4c44-b40a-43486c6732d7",
+        //                "price": 7244.5,
+        //                "amount": 10,
+        //                "orderPriorEdit": null,
+        //                "orderPriorExecution": {
+        //                    "orderId": "61ca5732-3478-42fe-8362-abbfd9465294",
+        //                    "cliOrdId": null,
+        //                    "type": "lmt",
+        //                    "symbol": "pi_xbtusd",
+        //                    "side": "buy",
+        //                    "quantity": 10,
+        //                    "filled": 0,
+        //                    "limitPrice": 7500,
+        //                    "reduceOnly": false,
+        //                    "timestamp": "2019-12-11T17:17:33.888Z",
+        //                    "lastUpdateTimestamp": "2019-12-11T17:17:33.888Z"
+        //                },
+        //                "takerReducedQuantity": null,
+        //                "type": "EXECUTION"
         //            }
-        //        )
+        //        ]
         //    }
         //
         // EDIT ORDER
         //
         //    {
-        //        "status" => "edited",
-        //        "orderId" => "022774bc-2c4a-4f26-9317-436c8d85746d",
-        //        "receivedTime" => "2019-09-05T16:47:47.521Z",
-        //        "orderEvents" => array(
+        //        "status": "edited",
+        //        "orderId": "022774bc-2c4a-4f26-9317-436c8d85746d",
+        //        "receivedTime": "2019-09-05T16:47:47.521Z",
+        //        "orderEvents": [
         //            {
-        //                "old" => array(
-        //                    "orderId" => "022774bc-2c4a-4f26-9317-436c8d85746d",
+        //                "old": {
+        //                    "orderId": "022774bc-2c4a-4f26-9317-436c8d85746d",
         //                    "cliOrdId":null,
-        //                    "type" => "lmt",
-        //                    "symbol" => "pi_xbtusd",
-        //                    "side" => "buy",
+        //                    "type": "lmt",
+        //                    "symbol": "pi_xbtusd",
+        //                    "side": "buy",
         //                    "quantity":1000,
         //                    "filled":0,
         //                    "limitPrice":9400.0,
         //                    "reduceOnly":false,
-        //                    "timestamp" => "2019-09-05T16:41:35.173Z",
-        //                    "lastUpdateTimestamp" => "2019-09-05T16:41:35.173Z"
-        //                ),
-        //                "new" => array(
-        //                    "orderId" => "022774bc-2c4a-4f26-9317-436c8d85746d",
-        //                    "cliOrdId" => null,
-        //                    "type" => "lmt",
-        //                    "symbol" => "pi_xbtusd",
-        //                    "side" => "buy",
-        //                    "quantity" => 1501,
-        //                    "filled" => 0,
-        //                    "limitPrice" => 7200,
-        //                    "reduceOnly" => false,
-        //                    "timestamp" => "2019-09-05T16:41:35.173Z",
-        //                    "lastUpdateTimestamp" => "2019-09-05T16:47:47.519Z"
-        //                ),
-        //                "reducedQuantity" => null,
-        //                "type" => "EDIT"
+        //                    "timestamp": "2019-09-05T16:41:35.173Z",
+        //                    "lastUpdateTimestamp": "2019-09-05T16:41:35.173Z"
+        //                },
+        //                "new": {
+        //                    "orderId": "022774bc-2c4a-4f26-9317-436c8d85746d",
+        //                    "cliOrdId": null,
+        //                    "type": "lmt",
+        //                    "symbol": "pi_xbtusd",
+        //                    "side": "buy",
+        //                    "quantity": 1501,
+        //                    "filled": 0,
+        //                    "limitPrice": 7200,
+        //                    "reduceOnly": false,
+        //                    "timestamp": "2019-09-05T16:41:35.173Z",
+        //                    "lastUpdateTimestamp": "2019-09-05T16:47:47.519Z"
+        //                },
+        //                "reducedQuantity": null,
+        //                "type": "EDIT"
         //            }
-        //        )
+        //        ]
         //    }
         //
         // CANCEL ORDER
         //
         //    {
-        //        "status" => "cancelled",
-        //        "orderEvents" => array(
+        //        "status": "cancelled",
+        //        "orderEvents": [
         //            {
-        //                "uid" => "85c40002-3f20-4e87-9302-262626c3531b",
-        //                "order" => array(
-        //                    "orderId" => "85c40002-3f20-4e87-9302-262626c3531b",
-        //                    "cliOrdId" => null,
-        //                    "type" => "lmt",
-        //                    "symbol" => "pi_xbtusd",
-        //                    "side" => "buy",
-        //                    "quantity" => 1000,
-        //                    "filled" => 0,
-        //                    "limitPrice" => 10144,
-        //                    "stopPrice" => null,
-        //                    "reduceOnly" => false,
-        //                    "timestamp" => "2019-08-01T15:26:27.790Z"
-        //                ),
-        //                "type" => "CANCEL"
+        //                "uid": "85c40002-3f20-4e87-9302-262626c3531b",
+        //                "order": {
+        //                    "orderId": "85c40002-3f20-4e87-9302-262626c3531b",
+        //                    "cliOrdId": null,
+        //                    "type": "lmt",
+        //                    "symbol": "pi_xbtusd",
+        //                    "side": "buy",
+        //                    "quantity": 1000,
+        //                    "filled": 0,
+        //                    "limitPrice": 10144,
+        //                    "stopPrice": null,
+        //                    "reduceOnly": false,
+        //                    "timestamp": "2019-08-01T15:26:27.790Z"
+        //                },
+        //                "type": "CANCEL"
         //            }
-        //        )
+        //        ]
         //    }
         //
         // cancelAllOrders
         //
         //    {
-        //        "orderId" => "85c40002-3f20-4e87-9302-262626c3531b",
-        //        "cliOrdId" => null,
-        //        "type" => "lmt",
-        //        "symbol" => "pi_xbtusd",
-        //        "side" => "buy",
-        //        "quantity" => 1000,
-        //        "filled" => 0,
-        //        "limitPrice" => 10144,
-        //        "stopPrice" => null,
-        //        "reduceOnly" => false,
-        //        "timestamp" => "2019-08-01T15:26:27.790Z"
+        //        "orderId": "85c40002-3f20-4e87-9302-262626c3531b",
+        //        "cliOrdId": null,
+        //        "type": "lmt",
+        //        "symbol": "pi_xbtusd",
+        //        "side": "buy",
+        //        "quantity": 1000,
+        //        "filled": 0,
+        //        "limitPrice": 10144,
+        //        "stopPrice": null,
+        //        "reduceOnly": false,
+        //        "timestamp": "2019-08-01T15:26:27.790Z"
         //    }
         //
         // FETCH OPEN ORDERS
         //
         //    {
-        //        "order_id" => "59302619-41d2-4f0b-941f-7e7914760ad3",
-        //        "symbol" => "pi_xbtusd",
-        //        "side" => "sell",
-        //        "orderType" => "lmt",
-        //        "limitPrice" => 10640,
-        //        "unfilledSize" => 304,
-        //        "receivedTime" => "2019-09-05T17:01:17.410Z",
-        //        "status" => "untouched",
-        //        "filledSize" => 0,
-        //        "reduceOnly" => true,
-        //        "lastUpdateTime" => "2019-09-05T17:01:17.410Z"
+        //        "order_id": "59302619-41d2-4f0b-941f-7e7914760ad3",
+        //        "symbol": "pi_xbtusd",
+        //        "side": "sell",
+        //        "orderType": "lmt",
+        //        "limitPrice": 10640,
+        //        "unfilledSize": 304,
+        //        "receivedTime": "2019-09-05T17:01:17.410Z",
+        //        "status": "untouched",
+        //        "filledSize": 0,
+        //        "reduceOnly": true,
+        //        "lastUpdateTime": "2019-09-05T17:01:17.410Z"
         //    }
         //
         // createOrders error
         //    {
-        //       "status" => "requiredArgumentMissing",
-        //       "orderEvents" => array()
+        //       "status": "requiredArgumentMissing",
+        //       "orderEvents": []
         //    }
         // closed orders
         //    {
-        //        uid => '2f00cd63-e61d-44f8-8569-adabde885941',
-        //        $timestamp => '1707258274849',
-        //        event => {
-        //          OrderPlaced => {
-        //            $order => array(
-        //              uid => '85805e01-9eed-4395-8360-ed1a228237c9',
-        //              accountUid => '406142dd-7c5c-4a8b-acbc-5f16eca30009',
-        //              tradeable => 'PF_LTCUSD',
-        //              direction => 'Buy',
-        //              quantity => '0',
-        //              $filled => '0.1',
-        //              $timestamp => '1707258274849',
-        //              limitPrice => '69.2200000000',
-        //              orderType => 'IoC',
-        //              clientId => '',
-        //              reduceOnly => false,
-        //              $lastUpdateTimestamp => '1707258274849'
-        //            ),
-        //            reason => 'new_user_order',
-        //            reducedQuantity => '',
-        //            algoId => ''
+        //        uid: '2f00cd63-e61d-44f8-8569-adabde885941',
+        //        timestamp: '1707258274849',
+        //        event: {
+        //          OrderPlaced: {
+        //            order: {
+        //              uid: '85805e01-9eed-4395-8360-ed1a228237c9',
+        //              accountUid: '406142dd-7c5c-4a8b-acbc-5f16eca30009',
+        //              tradeable: 'PF_LTCUSD',
+        //              direction: 'Buy',
+        //              quantity: '0',
+        //              filled: '0.1',
+        //              timestamp: '1707258274849',
+        //              limitPrice: '69.2200000000',
+        //              orderType: 'IoC',
+        //              clientId: '',
+        //              reduceOnly: false,
+        //              lastUpdateTimestamp: '1707258274849'
+        //            },
+        //            reason: 'new_user_order',
+        //            reducedQuantity: '',
+        //            algoId: ''
         //          }
         //        }
         //    }
         //
         //   {
-        //     uid => '85805e01-9eed-4395-8360-ed1a228237c9',
-        //     accountUid => '406142dd-7c5c-4a8b-acbc-5f16eca30009',
-        //     tradeable => 'PF_LTCUSD',
-        //     direction => 'Buy',
-        //     quantity => '0',
-        //     $filled => '0.1',
-        //     $timestamp => '1707258274849',
-        //     limitPrice => '69.2200000000',
-        //     orderType => 'IoC',
-        //     clientId => '',
-        //     reduceOnly => false,
-        //     $lastUpdateTimestamp => '1707258274849',
-        //     $status => 'closed'
+        //     uid: '85805e01-9eed-4395-8360-ed1a228237c9',
+        //     accountUid: '406142dd-7c5c-4a8b-acbc-5f16eca30009',
+        //     tradeable: 'PF_LTCUSD',
+        //     direction: 'Buy',
+        //     quantity: '0',
+        //     filled: '0.1',
+        //     timestamp: '1707258274849',
+        //     limitPrice: '69.2200000000',
+        //     orderType: 'IoC',
+        //     clientId: '',
+        //     reduceOnly: false,
+        //     lastUpdateTimestamp: '1707258274849',
+        //     status: 'closed'
         //   }
         //
-        // $order => array(
-        //     $type => 'ORDER',
-        //     orderId => 'a111f276-95fd-47fc-b77b-709c5ab2e9e1',
-        //     cliOrdId => null,
-        //     $symbol => 'PF_LTCUSD',
-        //     side => 'buy',
-        //     quantity => '0.1',
-        //     $filled => '0',
-        //     limitPrice => '40',
-        //     reduceOnly => false,
-        //     $timestamp => '2026-02-13T12:09:03.738Z',
-        //     $lastUpdateTimestamp => '2026-02-13T12:09:03.738Z'
-        // ),
-        //     $status => 'ENTERED_BOOK',
-        //     updateReason => null,
-        //     error => null
+        // order: {
+        //     type: 'ORDER',
+        //     orderId: 'a111f276-95fd-47fc-b77b-709c5ab2e9e1',
+        //     cliOrdId: null,
+        //     symbol: 'PF_LTCUSD',
+        //     side: 'buy',
+        //     quantity: '0.1',
+        //     filled: '0',
+        //     limitPrice: '40',
+        //     reduceOnly: false,
+        //     timestamp: '2026-02-13T12:09:03.738Z',
+        //     lastUpdateTimestamp: '2026-02-13T12:09:03.738Z'
+        // },
+        //     status: 'ENTERED_BOOK',
+        //     updateReason: null,
+        //     error: null
         // }
         //
         $orderDictFromFetchOrder = $this->safe_dict($order, 'order');
         if ($orderDictFromFetchOrder !== null) {
-            // $order => array(
-            //     $type => 'ORDER',
-            //     orderId => 'a111f276-95fd-47fc-b77b-709c5ab2e9e1',
-            //     cliOrdId => null,
-            //     $symbol => 'PF_LTCUSD',
-            //     side => 'buy',
-            //     quantity => '0.1',
-            //     $filled => '0',
-            //     limitPrice => '40',
-            //     reduceOnly => false,
-            //     $timestamp => '2026-02-13T12:09:03.738Z',
-            //     $lastUpdateTimestamp => '2026-02-13T12:09:03.738Z'
-            // ),
-            //     $status => 'ENTERED_BOOK',
-            //     updateReason => null,
-            //     error => null
+            // order: {
+            //     type: 'ORDER',
+            //     orderId: 'a111f276-95fd-47fc-b77b-709c5ab2e9e1',
+            //     cliOrdId: null,
+            //     symbol: 'PF_LTCUSD',
+            //     side: 'buy',
+            //     quantity: '0.1',
+            //     filled: '0',
+            //     limitPrice: '40',
+            //     reduceOnly: false,
+            //     timestamp: '2026-02-13T12:09:03.738Z',
+            //     lastUpdateTimestamp: '2026-02-13T12:09:03.738Z'
+            // },
+            //     status: 'ENTERED_BOOK',
+            //     updateReason: null,
+            //     error: null
             //
             $datetime = $this->safe_string($orderDictFromFetchOrder, 'timestamp');
             $innerStatus = $this->safe_string($order, 'status');
@@ -2406,7 +2421,7 @@ class krakenfutures extends Exchange {
                 if ($this->safe_string($item, 'type') === 'EXECUTION') {
                     $executions[] = $item;
                 }
-                // Final $order (after placement / editing / execution / canceling)
+                // Final order (after placement / editing / execution / canceling)
                 $orderTrigger = $this->safe_value($item, 'orderTrigger');
                 if ($details === null) {
                     $details = $this->safe_value_2($item, 'new', 'order', $orderTrigger);
@@ -2438,7 +2453,7 @@ class krakenfutures extends Exchange {
             $statusId = $this->safe_string($details, 'status');
         }
         // This may be incorrectly marked as "open" if only execution report is given,
-        // but will be $fixed below
+        // but will be fixed below
         $status = $this->parse_order_status($statusId);
         $isClosed = $this->in_array($status, array( 'canceled', 'rejected', 'closed' ));
         $marketId = $this->safe_string_2($details, 'symbol', 'tradeable');
@@ -2475,7 +2490,7 @@ class krakenfutures extends Exchange {
         if ($remaining === null) {
             if ($isPrior) {
                 if ($amount !== null) {
-                    // $remaining $amount before execution minus executed $amount
+                    // remaining amount before execution minus executed amount
                     $remaining = Precise::string_sub($amount, $filled2);
                 }
             } else {
@@ -2565,26 +2580,26 @@ class krakenfutures extends Exchange {
         if ($symbol !== null) {
             $market = $this->market($symbol);
         }
-        // todo => lastFillTime => $this->iso8601(end)
+        // todo: lastFillTime: this.iso8601(end)
         $response = Async\await($this->privateGetFills($params));
         //
         //    {
-        //        "result" => "success",
-        //        "serverTime" => "2016-02-25T09:45:53.818Z",
-        //        "fills" => array(
-        //            array(
-        //                "fillTime" => "2016-02-25T09:47:01.000Z",
-        //                "order_id" => "c18f0c17-9971-40e6-8e5b-10df05d422f0",
-        //                "fill_id" => "522d4e08-96e7-4b44-9694-bfaea8fe215e",
-        //                "cliOrdId" => "d427f920-ec55-4c18-ba95-5fe241513b30", // EXTRA
-        //                "symbol" => "fi_xbtusd_180615",
-        //                "side" => "buy",
-        //                "size" => 2000,
-        //                "price" => 4255,
-        //                "fillType" => "maker"
-        //            ),
+        //        "result": "success",
+        //        "serverTime": "2016-02-25T09:45:53.818Z",
+        //        "fills": [
+        //            {
+        //                "fillTime": "2016-02-25T09:47:01.000Z",
+        //                "order_id": "c18f0c17-9971-40e6-8e5b-10df05d422f0",
+        //                "fill_id": "522d4e08-96e7-4b44-9694-bfaea8fe215e",
+        //                "cliOrdId": "d427f920-ec55-4c18-ba95-5fe241513b30", // EXTRA
+        //                "symbol": "fi_xbtusd_180615",
+        //                "side": "buy",
+        //                "size": 2000,
+        //                "price": 4255,
+        //                "fillType": "maker"
+        //            },
         //            ...
-        //        )
+        //        ]
         //    }
         //
         $fills = $this->safe_list($response, 'fills', array());
@@ -2616,15 +2631,12 @@ class krakenfutures extends Exchange {
         $request = array();
         if ($since !== null) {
             $request['since'] = $since;
-            $sort = $this->safe_string($params, 'sort');
-            if ($sort === null) {
-                $request['sort'] = 'asc';
-            }
+            $request['sort'] = 'asc';
         }
         if ($limit !== null) {
-            // each trade execution emits two $rows and the position-size legs are
-            // filtered out below, so ask for twice the $limit to compensate,
-            // parseLedger re-applies the $limit on the filtered entries
+            // each trade execution emits two rows and the position-size legs are
+            // filtered out below, so ask for twice the limit to compensate,
+            // parseLedger re-applies the limit on the filtered entries
             $request['count'] = $limit * 2;
         }
         $until = $this->safe_integer($params, 'until');
@@ -2635,33 +2647,33 @@ class krakenfutures extends Exchange {
         $response = Async\await($this->historyGetAccountLog($this->extend($request, $params)));
         //
         //    {
-        //        "accountUid" => "f92fc7de-2fce-4265-b806-4f3c1efb37ee",
-        //        "logs" => array(
-        //            array(
-        //                "asset" => "usd",
-        //                "booking_uid" => "10ca244e-1b73-4467-8c3c-74539c7ae677",
-        //                "contract" => "pf_dogeusd",
-        //                "date" => "2026-08-11T19:55:24.251Z",
-        //                "execution" => "a59b8e24-89d8-4553-a084-b2de96dba5d3",
-        //                "fee" => 0.0035,
-        //                "funding_rate" => 0.000001129880786375,
-        //                "id" => 9,
-        //                "info" => "futures trade",
-        //                "margin_account" => "flex",
-        //                "mark_price" => 0.07091471613,
-        //                "new_balance" => 0,
-        //                "old_balance" => 0.0077,
-        //                "realized_funding" => null,
-        //                "realized_pnl" => -0.0042,
-        //                "trade_price" => 0.070914
-        //            ),
+        //        "accountUid": "f92fc7de-2fce-4265-b806-4f3c1efb37ee",
+        //        "logs": [
+        //            {
+        //                "asset": "usd",
+        //                "booking_uid": "10ca244e-1b73-4467-8c3c-74539c7ae677",
+        //                "contract": "pf_dogeusd",
+        //                "date": "2026-08-11T19:55:24.251Z",
+        //                "execution": "a59b8e24-89d8-4553-a084-b2de96dba5d3",
+        //                "fee": 0.0035,
+        //                "funding_rate": 0.000001129880786375,
+        //                "id": 9,
+        //                "info": "futures trade",
+        //                "margin_account": "flex",
+        //                "mark_price": 0.07091471613,
+        //                "new_balance": 0,
+        //                "old_balance": 0.0077,
+        //                "realized_funding": null,
+        //                "realized_pnl": -0.0042,
+        //                "trade_price": 0.070914
+        //            },
         //            ...
-        //        )
+        //        ]
         //    }
         //
         $logs = $this->safe_list($response, 'logs', array());
-        // each execution emits two $rows => a cash leg($asset is a $currency) and
-        // a position-size leg($asset equals the $contract id) - keep the cash legs only
+        // each execution emits two rows: a cash leg(asset is a currency) and
+        // a position-size leg(asset equals the contract id) - keep the cash legs only
         $rows = array();
         for ($i = 0; $i < count($logs); $i++) {
             $row = $logs[$i];
@@ -2672,6 +2684,118 @@ class krakenfutures extends Exchange {
             }
         }
         return $this->parse_ledger($rows, $currency, $since, $limit);
+    }
+
+    public function fetch_funding_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_fetch_funding_history(...))($symbol, $since, $limit, $params);
+    }
+
+    private function do_fetch_funding_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * fetch the funding payments history of the account
+         *
+         * @see https://docs.kraken.com/api-reference/account-history/get-account-log
+         *
+         * @param {string} [$symbol] unified $market $symbol
+         * @param {int} [$since] the earliest time in ms to fetch funding payments for
+         * @param {int} [$limit] the maximum number of funding payments to return
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {int} [$params->until] timestamp in ms of the latest funding payment
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=funding-history-structure funding history structures~
+         */
+        Async\await($this->load_markets());
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+        }
+        $request = array(
+            'info' => 'funding rate change', // the account log filters by entry type server-side
+        );
+        if ($since !== null) {
+            $request['since'] = $since;
+            $request['sort'] = 'asc';
+        }
+        if (($limit !== null) && ($symbol === null)) {
+            // the account log has no contract filter, so a symbol is applied on the
+            // client side - a server side page size would truncate the rows of other
+            // contracts away before that filter runs and under-fill the result
+            $request['count'] = $limit;
+        }
+        $until = $this->safe_integer($params, 'until');
+        if ($until !== null) {
+            $params = $this->omit($params, 'until');
+            $request['before'] = $until;
+        }
+        $response = Async\await($this->historyGetAccountLog($this->extend($request, $params)));
+        //
+        //    {
+        //        "accountUid": "f92fc7de-2fce-4265-b806-4f3c1efb37ee",
+        //        "logs": [
+        //            {
+        //                "asset": "usd",
+        //                "contract": "pf_dogeusd",
+        //                "booking_uid": "124f43a6-389a-4349-abc6-06fc7eeac86b",
+        //                "collateral": null,
+        //                "date": "2026-09-17T12:00:00.000Z",
+        //                "execution": null,
+        //                "fee": 0,
+        //                "funding_rate": 9.288451412e-7,
+        //                "id": 16,
+        //                "info": "funding rate change",
+        //                "margin_account": "flex",
+        //                "mark_price": null,
+        //                "new_average_entry_price": null,
+        //                "new_balance": 0,
+        //                "old_average_entry_price": null,
+        //                "old_balance": 0.0002,
+        //                "realized_funding": -0.0002,
+        //                "realized_pnl": null,
+        //                "trade_price": null,
+        //                "conversion_spread_percentage": null,
+        //                "liquidation_fee": null,
+        //                "position_uid": null
+        //            },
+        //            ...
+        //        ]
+        //    }
+        //
+        $logs = $this->safe_list($response, 'logs', array());
+        return $this->parse_incomes($logs, $market, $since, $limit);
+    }
+
+    public function parse_income(mixed $income, ?array $market = null): array {
+        //
+        //    {
+        //        "asset": "usd",
+        //        "contract": "pf_dogeusd",
+        //        "booking_uid": "124f43a6-389a-4349-abc6-06fc7eeac86b",
+        //        "date": "2026-09-17T12:00:00.000Z",
+        //        "fee": 0,
+        //        "funding_rate": 9.288451412e-7,
+        //        "id": 16,
+        //        "info": "funding rate change",
+        //        "margin_account": "flex",
+        //        "new_balance": 0,
+        //        "old_balance": 0.0002,
+        //        "realized_funding": -0.0002,
+        //        ...
+        //    }
+        //
+        // the account log spells the contract in lower case, the market ids are upper case
+        $marketId = $this->safe_string_upper($income, 'contract');
+        $currencyId = $this->safe_string($income, 'asset');
+        $timestamp = $this->parse8601($this->safe_string($income, 'date'));
+        return array(
+            'info' => $income,
+            // no market fallback: the symbol filter runs on the client side, so a row
+            // of an unknown contract must keep its raw id and get filtered out
+            'symbol' => $this->safe_symbol($marketId),
+            'code' => $this->safe_currency_code($currencyId),
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'id' => $this->safe_string($income, 'id'),
+            'amount' => $this->safe_number($income, 'realized_funding'),
+        );
     }
 
     public function parse_ledger_entry_type(mixed $type) {
@@ -2701,22 +2825,22 @@ class krakenfutures extends Exchange {
     public function parse_ledger_entry(array $item, ?array $currency = null): array {
         //
         //    {
-        //        "asset" => "usd",
-        //        "booking_uid" => "10ca244e-1b73-4467-8c3c-74539c7ae677",
-        //        "contract" => "pf_dogeusd",
-        //        "date" => "2026-08-11T19:55:24.251Z",
-        //        "execution" => "a59b8e24-89d8-4553-a084-b2de96dba5d3",
-        //        "fee" => 0.0035,
-        //        "funding_rate" => 0.000001129880786375,
-        //        "id" => 9,
-        //        "info" => "futures trade",
-        //        "margin_account" => "flex",
-        //        "mark_price" => 0.07091471613,
-        //        "new_balance" => 0,
-        //        "old_balance" => 0.0077,
-        //        "realized_funding" => null,
-        //        "realized_pnl" => -0.0042,
-        //        "trade_price" => 0.070914
+        //        "asset": "usd",
+        //        "booking_uid": "10ca244e-1b73-4467-8c3c-74539c7ae677",
+        //        "contract": "pf_dogeusd",
+        //        "date": "2026-08-11T19:55:24.251Z",
+        //        "execution": "a59b8e24-89d8-4553-a084-b2de96dba5d3",
+        //        "fee": 0.0035,
+        //        "funding_rate": 0.000001129880786375,
+        //        "id": 9,
+        //        "info": "futures trade",
+        //        "margin_account": "flex",
+        //        "mark_price": 0.07091471613,
+        //        "new_balance": 0,
+        //        "old_balance": 0.0077,
+        //        "realized_funding": null,
+        //        "realized_pnl": -0.0042,
+        //        "trade_price": 0.070914
         //    }
         //
         $timestamp = $this->parse8601($this->safe_string($item, 'date'));
@@ -2732,8 +2856,8 @@ class krakenfutures extends Exchange {
             $amount = Precise::string_sub($after, $before);
             if ($feeCost !== null) {
                 // the fee is already deducted from the balance delta, add it
-                // back so that $amount does not include the fee, matching the
-                // unified ledger contract => $after = $before +/- $amount - fee
+                // back so that amount does not include the fee, matching the
+                // unified ledger contract: after = before +/- amount - fee
                 $amount = Precise::string_add($amount, $feeCost);
             }
             if (Precise::string_lt($amount, '0')) {
@@ -2789,89 +2913,89 @@ class krakenfutures extends Exchange {
         $response = Async\await($this->privateGetAccounts($params));
         //
         //    {
-        //        "result" => "success",
-        //        "accounts" => {
-        //            "fi_xbtusd" => array(
-        //                "auxiliary" => array( usd => "0", pv => '0.0', pnl => '0.0', af => '0.0', funding => "0.0" ),
-        //                "marginRequirements" => array( im => '0.0', mm => '0.0', lt => '0.0', tt => "0.0" ),
-        //                "triggerEstimates" => array( im => '0', mm => '0', lt => "0", tt => "0" ),
-        //                "balances" => array( xbt => "0.0" ),
-        //                "currency" => "xbt",
-        //                "type" => "marginAccount"
-        //            ),
-        //            "cash" => array(
-        //                "balances" => array(
-        //                    "eur" => "0.0",
-        //                    "gbp" => "0.0",
-        //                    "bch" => "0.0",
-        //                    "xrp" => "2.20188538338",
-        //                    "usd" => "0.0",
-        //                    "eth" => "0.0",
-        //                    "usdt" => "0.0",
-        //                    "ltc" => "0.0",
-        //                    "usdc" => "0.0",
-        //                    "xbt" => "0.0"
-        //                ),
-        //                "type" => "cashAccount"
-        //            ),
-        //            "fv_xrpxbt" => array(
-        //                "auxiliary" => array( usd => "0", pv => '0.0', pnl => '0.0', af => '0.0', funding => "0.0" ),
-        //                "marginRequirements" => array( im => '0.0', mm => '0.0', lt => '0.0', tt => "0.0" ),
-        //                "triggerEstimates" => array( im => '0', mm => '0', lt => "0", tt => "0" ),
-        //                "balances" => array( xbt => "0.0" ),
-        //                "currency" => "xbt",
-        //                "type" => "marginAccount"
-        //            ),
-        //            "fi_xrpusd" => array(
-        //                "auxiliary" => array( usd => "0", pv => '11.0', pnl => '0.0', af => '11.0', funding => "0.0" ),
-        //                "marginRequirements" => array( im => '0.0', mm => '0.0', lt => '0.0', tt => "0.0" ),
-        //                "triggerEstimates" => array( im => '0', mm => '0', lt => "0", tt => "0" ),
-        //                "balances" => array( xrp => "11.0" ),
-        //                "currency" => "xrp",
-        //                "type" => "marginAccount"
-        //            ),
-        //            "fi_ethusd" => array(
-        //                "auxiliary" => array( usd => "0", pv => '0.0', pnl => '0.0', af => '0.0', funding => "0.0" ),
-        //                "marginRequirements" => array( im => '0.0', mm => '0.0', lt => '0.0', tt => "0.0" ),
-        //                "triggerEstimates" => array( im => '0', mm => '0', lt => "0", tt => "0" ),
-        //                "balances" => array( eth => "0.0" ),
-        //                "currency" => "eth",
-        //                "type" => "marginAccount"
-        //            ),
-        //            "fi_ltcusd" => array(
-        //                "auxiliary" => array( usd => "0", pv => '0.0', pnl => '0.0', af => '0.0', funding => "0.0" ),
-        //                "marginRequirements" => array( im => '0.0', mm => '0.0', lt => '0.0', tt => "0.0" ),
-        //                "triggerEstimates" => array( im => '0', mm => '0', lt => "0", tt => "0" ),
-        //                "balances" => array( ltc => "0.0" ),
-        //                "currency" => "ltc",
-        //                "type" => "marginAccount"
-        //            ),
-        //            "fi_bchusd" => array(
-        //                "auxiliary" => array( usd => "0", pv => '0.0', pnl => '0.0', af => '0.0', funding => "0.0" ),
-        //                "marginRequirements" => array( im => '0.0', mm => '0.0', lt => '0.0', tt => "0.0" ),
-        //                "triggerEstimates" => array( im => '0', mm => '0', lt => "0", tt => "0" ),
-        //                "balances" => array( bch => "0.0" ),
-        //                "currency" => "bch",
-        //                "type" => "marginAccount"
-        //            ),
-        //            "flex" => array(
-        //                "currencies" => array(),
-        //                "initialMargin" => "0.0",
-        //                "initialMarginWithOrders" => "0.0",
-        //                "maintenanceMargin" => "0.0",
-        //                "balanceValue" => "0.0",
-        //                "portfolioValue" => "0.0",
-        //                "collateralValue" => "0.0",
-        //                "pnl" => "0.0",
-        //                "unrealizedFunding" => "0.0",
-        //                "totalUnrealized" => "0.0",
-        //                "totalUnrealizedAsMargin" => "0.0",
-        //                "availableMargin" => "0.0",
-        //                "marginEquity" => "0.0",
-        //                "type" => "multiCollateralMarginAccount"
+        //        "result": "success",
+        //        "accounts": {
+        //            "fi_xbtusd": {
+        //                "auxiliary": { usd: "0", pv: '0.0', pnl: '0.0', af: '0.0', funding: "0.0" },
+        //                "marginRequirements": { im: '0.0', mm: '0.0', lt: '0.0', tt: "0.0" },
+        //                "triggerEstimates": { im: '0', mm: '0', lt: "0", tt: "0" },
+        //                "balances": { xbt: "0.0" },
+        //                "currency": "xbt",
+        //                "type": "marginAccount"
+        //            },
+        //            "cash": {
+        //                "balances": {
+        //                    "eur": "0.0",
+        //                    "gbp": "0.0",
+        //                    "bch": "0.0",
+        //                    "xrp": "2.20188538338",
+        //                    "usd": "0.0",
+        //                    "eth": "0.0",
+        //                    "usdt": "0.0",
+        //                    "ltc": "0.0",
+        //                    "usdc": "0.0",
+        //                    "xbt": "0.0"
+        //                },
+        //                "type": "cashAccount"
+        //            },
+        //            "fv_xrpxbt": {
+        //                "auxiliary": { usd: "0", pv: '0.0', pnl: '0.0', af: '0.0', funding: "0.0" },
+        //                "marginRequirements": { im: '0.0', mm: '0.0', lt: '0.0', tt: "0.0" },
+        //                "triggerEstimates": { im: '0', mm: '0', lt: "0", tt: "0" },
+        //                "balances": { xbt: "0.0" },
+        //                "currency": "xbt",
+        //                "type": "marginAccount"
+        //            },
+        //            "fi_xrpusd": {
+        //                "auxiliary": { usd: "0", pv: '11.0', pnl: '0.0', af: '11.0', funding: "0.0" },
+        //                "marginRequirements": { im: '0.0', mm: '0.0', lt: '0.0', tt: "0.0" },
+        //                "triggerEstimates": { im: '0', mm: '0', lt: "0", tt: "0" },
+        //                "balances": { xrp: "11.0" },
+        //                "currency": "xrp",
+        //                "type": "marginAccount"
+        //            },
+        //            "fi_ethusd": {
+        //                "auxiliary": { usd: "0", pv: '0.0', pnl: '0.0', af: '0.0', funding: "0.0" },
+        //                "marginRequirements": { im: '0.0', mm: '0.0', lt: '0.0', tt: "0.0" },
+        //                "triggerEstimates": { im: '0', mm: '0', lt: "0", tt: "0" },
+        //                "balances": { eth: "0.0" },
+        //                "currency": "eth",
+        //                "type": "marginAccount"
+        //            },
+        //            "fi_ltcusd": {
+        //                "auxiliary": { usd: "0", pv: '0.0', pnl: '0.0', af: '0.0', funding: "0.0" },
+        //                "marginRequirements": { im: '0.0', mm: '0.0', lt: '0.0', tt: "0.0" },
+        //                "triggerEstimates": { im: '0', mm: '0', lt: "0", tt: "0" },
+        //                "balances": { ltc: "0.0" },
+        //                "currency": "ltc",
+        //                "type": "marginAccount"
+        //            },
+        //            "fi_bchusd": {
+        //                "auxiliary": { usd: "0", pv: '0.0', pnl: '0.0', af: '0.0', funding: "0.0" },
+        //                "marginRequirements": { im: '0.0', mm: '0.0', lt: '0.0', tt: "0.0" },
+        //                "triggerEstimates": { im: '0', mm: '0', lt: "0", tt: "0" },
+        //                "balances": { bch: "0.0" },
+        //                "currency": "bch",
+        //                "type": "marginAccount"
+        //            },
+        //            "flex": {
+        //                "currencies": {},
+        //                "initialMargin": "0.0",
+        //                "initialMarginWithOrders": "0.0",
+        //                "maintenanceMargin": "0.0",
+        //                "balanceValue": "0.0",
+        //                "portfolioValue": "0.0",
+        //                "collateralValue": "0.0",
+        //                "pnl": "0.0",
+        //                "unrealizedFunding": "0.0",
+        //                "totalUnrealized": "0.0",
+        //                "totalUnrealizedAsMargin": "0.0",
+        //                "availableMargin": "0.0",
+        //                "marginEquity": "0.0",
+        //                "type": "multiCollateralMarginAccount"
         //            }
-        //        ),
-        //        "serverTime" => "2022-04-12T07:48:07.475Z"
+        //        },
+        //        "serverTime": "2022-04-12T07:48:07.475Z"
         //    }
         //
         $datetime = $this->safe_string($response, 'serverTime');
@@ -2904,62 +3028,62 @@ class krakenfutures extends Exchange {
         // cashAccount
         //
         //    {
-        //        "balances" => array(
-        //            "eur" => "0.0",
-        //            "gbp" => "0.0",
-        //            "bch" => "0.0",
-        //            "xrp" => "2.20188538338",
-        //            "usd" => "0.0",
-        //            "eth" => "0.0",
-        //            "usdt" => "0.0",
-        //            "ltc" => "0.0",
-        //            "usdc" => "0.0",
-        //            "xbt" => "0.0"
-        //        ),
-        //        "type" => "cashAccount"
+        //        "balances": {
+        //            "eur": "0.0",
+        //            "gbp": "0.0",
+        //            "bch": "0.0",
+        //            "xrp": "2.20188538338",
+        //            "usd": "0.0",
+        //            "eth": "0.0",
+        //            "usdt": "0.0",
+        //            "ltc": "0.0",
+        //            "usdc": "0.0",
+        //            "xbt": "0.0"
+        //        },
+        //        "type": "cashAccount"
         //    }
         //
         // marginAccount e,g, fi_xrpusd
         //
         //    {
-        //        "auxiliary" => array(
-        //            "usd" => "0",
-        //            "pv" => "11.0",
-        //            "pnl" => "0.0",
-        //            "af" => "11.0",
-        //            "funding" => "0.0"
-        //        ),
-        //        "marginRequirements" => array( im => '0.0', mm => '0.0', lt => '0.0', tt => "0.0" ),
-        //        "triggerEstimates" => array( im => '0', mm => '0', lt => "0", tt => "0" ),
-        //        "balances" => array( xrp => "11.0" ),
-        //        "currency" => "xrp",
-        //        "type" => "marginAccount"
+        //        "auxiliary": {
+        //            "usd": "0",
+        //            "pv": "11.0",
+        //            "pnl": "0.0",
+        //            "af": "11.0",
+        //            "funding": "0.0"
+        //        },
+        //        "marginRequirements": { im: '0.0', mm: '0.0', lt: '0.0', tt: "0.0" },
+        //        "triggerEstimates": { im: '0', mm: '0', lt: "0", tt: "0" },
+        //        "balances": { xrp: "11.0" },
+        //        "currency": "xrp",
+        //        "type": "marginAccount"
         //    }
         //
         // flex/multiCollateralMarginAccount
         //
         //    {
-        //       "currencies" => {
-        //            "USDT" => array(
-        //                "quantity" => "1",
-        //                "value" => "1.0001",
-        //                "collateral" => "0.9477197625",
-        //                "available" => "1.0"
+        //       "currencies": {
+        //            "USDT": {
+        //                "quantity": "1",
+        //                "value": "1.0001",
+        //                "collateral": "0.9477197625",
+        //                "available": "1.0"
         //             }
-        //       ),
-        //       "initialMargin" => "0.0",
-        //       "initialMarginWithOrders" => "0.0",
-        //       "maintenanceMargin" => "0.0",
-        //       "balanceValue" => "1.0",
-        //       "portfolioValue" => "1.0",
-        //       "collateralValue" => "0.95",
-        //       "pnl" => "0.0",
-        //       "unrealizedFunding" => "0.0",
-        //       "totalUnrealized" => "0.0",
-        //       "totalUnrealizedAsMargin" => "0.0",
-        //       "availableMargin" => "0.95",
-        //       "marginEquity" => "0.95",
-        //       "type" => "multiCollateralMarginAccount"
+        //       },
+        //       "initialMargin": "0.0",
+        //       "initialMarginWithOrders": "0.0",
+        //       "maintenanceMargin": "0.0",
+        //       "balanceValue": "1.0",
+        //       "portfolioValue": "1.0",
+        //       "collateralValue": "0.95",
+        //       "pnl": "0.0",
+        //       "unrealizedFunding": "0.0",
+        //       "totalUnrealized": "0.0",
+        //       "totalUnrealizedAsMargin": "0.0",
+        //       "availableMargin": "0.95",
+        //       "marginEquity": "0.95",
+        //       "type": "multiCollateralMarginAccount"
         //    }
         //
         $accountType = $this->safe_string_2($response, 'accountType', 'type');
@@ -3038,29 +3162,29 @@ class krakenfutures extends Exchange {
     public function parse_funding_rate(mixed $ticker, ?array $market = null): array {
         //
         //     {
-        //         "symbol" => "PF_ENJUSD",
-        //         "last" => 0.0433,
-        //         "lastTime" => "2025-10-22T11:02:25.599Z",
-        //         "tag" => "perpetual",
-        //         "pair" => "ENJ:USD",
-        //         "markPrice" => 0.0434,
-        //         "bid" => 0.0433,
-        //         "bidSize" => 4609,
-        //         "ask" => 0.0435,
-        //         "askSize" => 4609,
-        //         "vol24h" => 1696,
-        //         "volumeQuote" => 73.5216,
-        //         "openInterest" => 72513.00000000000,
-        //         "open24h" => 0.0435,
-        //         "high24h" => 0.0435,
-        //         "low24h" => 0.0433,
-        //         "lastSize" => 1272,
-        //         "fundingRate" => -0.000000756414717067,
-        //         "fundingRatePrediction" => 0.000000195218676,
-        //         "suspended" => false,
-        //         "indexPrice" => 0.043391,
-        //         "postOnly" => false,
-        //         "change24h" => -0.46
+        //         "symbol": "PF_ENJUSD",
+        //         "last": 0.0433,
+        //         "lastTime": "2025-10-22T11:02:25.599Z",
+        //         "tag": "perpetual",
+        //         "pair": "ENJ:USD",
+        //         "markPrice": 0.0434,
+        //         "bid": 0.0433,
+        //         "bidSize": 4609,
+        //         "ask": 0.0435,
+        //         "askSize": 4609,
+        //         "vol24h": 1696,
+        //         "volumeQuote": 73.5216,
+        //         "openInterest": 72513.00000000000,
+        //         "open24h": 0.0435,
+        //         "high24h": 0.0435,
+        //         "low24h": 0.0433,
+        //         "lastSize": 1272,
+        //         "fundingRate": -0.000000756414717067,
+        //         "fundingRatePrediction": 0.000000195218676,
+        //         "suspended": false,
+        //         "indexPrice": 0.043391,
+        //         "postOnly": false,
+        //         "change24h": -0.46
         //     }
         //
         $marketId = $this->safe_string($ticker, 'symbol');
@@ -3135,14 +3259,14 @@ class krakenfutures extends Exchange {
         $response = Async\await($this->publicGetHistoricalfundingrates($this->extend($request, $params)));
         //
         //    {
-        //        "rates" => array(
-        //          array(
-        //            "timestamp" => '2018-08-31T16:00:00.000Z',
-        //            "fundingRate" => '2.18900669884E-7',
-        //            "relativeFundingRate" => '0.000060779960000000'
-        //          ),
+        //        "rates": [
+        //          {
+        //            "timestamp": '2018-08-31T16:00:00.000Z',
+        //            "fundingRate": '2.18900669884E-7',
+        //            "relativeFundingRate": '0.000060779960000000'
+        //          },
         //          ...
-        //        )
+        //        ]
         //    }
         //
         $rates = $this->safe_value($response, 'rates');
@@ -3183,18 +3307,18 @@ class krakenfutures extends Exchange {
         $response = Async\await($this->privateGetOpenpositions($request));
         //
         //    {
-        //        "result" => "success",
-        //        "openPositions" => array(
+        //        "result": "success",
+        //        "openPositions": [
         //            {
-        //                "side" => "long",
-        //                "symbol" => "pi_xrpusd",
-        //                "price" => "0.7533",
-        //                "fillTime" => "2022-03-03T22:51:16.566Z",
-        //                "size" => "230",
-        //                "unrealizedFunding" => "-0.001878596918214635"
+        //                "side": "long",
+        //                "symbol": "pi_xrpusd",
+        //                "price": "0.7533",
+        //                "fillTime": "2022-03-03T22:51:16.566Z",
+        //                "size": "230",
+        //                "unrealizedFunding": "-0.001878596918214635"
         //            }
-        //        ),
-        //        "serverTime" => "2022-03-03T22:51:16.566Z"
+        //        ],
+        //        "serverTime": "2022-03-03T22:51:16.566Z"
         //    }
         //
         $result = $this->parse_positions($response);
@@ -3203,8 +3327,8 @@ class krakenfutures extends Exchange {
 
     public function parse_positions(mixed $response, ?array $symbols = null, $params = array()) {
         $result = array();
-        // a degraded $response missing openPositions must fail loudly - a flat
-        // account and "could not read $positions" are not interchangeable for
+        // a degraded response missing openPositions must fail loudly - a flat
+        // account and "could not read positions" are not interchangeable for
         // reconciliation logic, see https://github.com/ccxt/ccxt/issues/29710
         // the crash guarded against in #19896 is still avoided, since we no
         // longer call .length on a non-list value
@@ -3222,13 +3346,13 @@ class krakenfutures extends Exchange {
     public function parse_position(array $position, ?array $market = null) {
         // cross
         //    {
-        //        "side" => "long",
-        //        "symbol" => "pi_xrpusd",
-        //        "price" => "0.7533",
-        //        "fillTime" => "2022-03-03T22:51:16.566Z",
-        //        "size" => "230",
-        //        "unrealizedPnl" => "-607250.006654067",
-        //        "unrealizedFunding" => "-0.001878596918214635"
+        //        "side": "long",
+        //        "symbol": "pi_xrpusd",
+        //        "price": "0.7533",
+        //        "fillTime": "2022-03-03T22:51:16.566Z",
+        //        "size": "230",
+        //        "unrealizedPnl": "-607250.006654067",
+        //        "unrealizedFunding": "-0.001878596918214635"
         //    }
         //
         // isolated
@@ -3297,46 +3421,46 @@ class krakenfutures extends Exchange {
         $response = Async\await($this->publicGetInstruments($params));
         //
         //    {
-        //        "result" => "success",
-        //        "instruments" => array(
+        //        "result": "success",
+        //        "instruments": [
         //            {
-        //                "symbol" => "fi_ethusd_180928",
-        //                "type" => "futures_inverse",  // futures_vanilla  // spot index
-        //                "underlying" => "rr_ethusd",
-        //                "lastTradingTime" => "2018-09-28T15:00:00.000Z",
-        //                "tickSize" => 0.1,
-        //                "contractSize" => 1,
-        //                "tradeable" => true,
-        //                "marginLevels" => array(
-        //                    array(
+        //                "symbol": "fi_ethusd_180928",
+        //                "type": "futures_inverse",  // futures_vanilla  // spot index
+        //                "underlying": "rr_ethusd",
+        //                "lastTradingTime": "2018-09-28T15:00:00.000Z",
+        //                "tickSize": 0.1,
+        //                "contractSize": 1,
+        //                "tradeable": true,
+        //                "marginLevels": [
+        //                    {
         //                        "contracts":0,
         //                        "initialMargin":0.02,
         //                        "maintenanceMargin":0.01
-        //                    ),
-        //                    array(
+        //                    },
+        //                    {
         //                        "contracts":250000,
         //                        "initialMargin":0.04,
         //                        "maintenanceMargin":0.02
-        //                    ),
+        //                    },
         //                    ...
-        //                ),
-        //                "isin" => "GB00JVMLMP88",
-        //                "retailMarginLevels" => array(
-        //                    array(
-        //                        "contracts" => 0,
-        //                        "initialMargin" => 0.5,
-        //                        "maintenanceMargin" => 0.25
+        //                ],
+        //                "isin": "GB00JVMLMP88",
+        //                "retailMarginLevels": [
+        //                    {
+        //                        "contracts": 0,
+        //                        "initialMargin": 0.5,
+        //                        "maintenanceMargin": 0.25
         //                    }
-        //                ),
-        //                "tags" => array(),
-        //            ),
+        //                ],
+        //                "tags": [],
+        //            },
         //            {
-        //                "symbol" => "in_xbtusd",
-        //                "type" => "spot index",
+        //                "symbol": "in_xbtusd",
+        //                "type": "spot index",
         //                "tradeable":false
         //            }
-        //        )
-        //        "serverTime" => "2018-07-19T11:32:39.433Z"
+        //        ]
+        //        "serverTime": "2018-07-19T11:32:39.433Z"
         //    }
         //
         $data = $this->safe_list($response, 'instruments');
@@ -3351,35 +3475,35 @@ class krakenfutures extends Exchange {
          */
         //
         //    {
-        //        "symbol" => "fi_ethusd_180928",
-        //        "type" => "futures_inverse",  // futures_vanilla  // spot index
-        //        "underlying" => "rr_ethusd",
-        //        "lastTradingTime" => "2018-09-28T15:00:00.000Z",
-        //        "tickSize" => 0.1,
-        //        "contractSize" => 1,
-        //        "tradeable" => true,
-        //        "marginLevels" => array(
-        //            array(
+        //        "symbol": "fi_ethusd_180928",
+        //        "type": "futures_inverse",  // futures_vanilla  // spot index
+        //        "underlying": "rr_ethusd",
+        //        "lastTradingTime": "2018-09-28T15:00:00.000Z",
+        //        "tickSize": 0.1,
+        //        "contractSize": 1,
+        //        "tradeable": true,
+        //        "marginLevels": [
+        //            {
         //                "contracts":0,
         //                "initialMargin":0.02,
         //                "maintenanceMargin":0.01
-        //            ),
-        //            array(
+        //            },
+        //            {
         //                "contracts":250000,
         //                "initialMargin":0.04,
         //                "maintenanceMargin":0.02
-        //            ),
+        //            },
         //            ...
-        //        ),
-        //        "isin" => "GB00JVMLMP88",
-        //        "retailMarginLevels" => array(
+        //        ],
+        //        "isin": "GB00JVMLMP88",
+        //        "retailMarginLevels": [
         //            {
-        //                "contracts" => 0,
-        //                "initialMargin" => 0.5,
-        //                "maintenanceMargin" => 0.25
+        //                "contracts": 0,
+        //                "initialMargin": 0.5,
+        //                "maintenanceMargin": 0.25
         //            }
-        //        ),
-        //        "tags" => array(),
+        //        ],
+        //        "tags": [],
         //    }
         //
         $marginLevels = $this->safe_value($info, 'marginLevels');
@@ -3414,11 +3538,11 @@ class krakenfutures extends Exchange {
 
     public function parse_transfer(array $transfer, ?array $currency = null): array {
         //
-        // $transfer
+        // transfer
         //
         //    {
-        //        "result" => "success",
-        //        "serverTime" => "2022-04-12T01:22:53.420Z"
+        //        "result": "success",
+        //        "serverTime": "2022-04-12T01:22:53.420Z"
         //    }
         //
         $datetime = $this->safe_string($transfer, 'serverTime');
@@ -3519,8 +3643,8 @@ class krakenfutures extends Exchange {
         }
         //
         //    {
-        //        "result" => "success",
-        //        "serverTime" => "2022-04-12T01:22:53.420Z"
+        //        "result": "success",
+        //        "serverTime": "2022-04-12T01:22:53.420Z"
         //    }
         //
         $transfer = $this->parse_transfer($response, $currency);
@@ -3561,7 +3685,7 @@ class krakenfutures extends Exchange {
             'symbol' => strtoupper($marketIdUpper),
         );
         //
-        // array( result => "success", serverTime => "2023-08-01T09:40:32.345Z" )
+        // { result: "success", serverTime: "2023-08-01T09:40:32.345Z" }
         //
         return Async\await($this->privatePutLeveragepreferences($this->extend($request, $params)));
     }
@@ -3586,14 +3710,14 @@ class krakenfutures extends Exchange {
         $response = Async\await($this->privateGetLeveragepreferences($params));
         //
         //     {
-        //         "result" => "success",
-        //         "serverTime" => "2024-03-06T02:35:46.336Z",
-        //         "leveragePreferences" => array(
-        //             array(
-        //                 "symbol" => "PF_ETHUSD",
-        //                 "maxLeverage" => 30.00
-        //             ),
-        //         )
+        //         "result": "success",
+        //         "serverTime": "2024-03-06T02:35:46.336Z",
+        //         "leveragePreferences": [
+        //             {
+        //                 "symbol": "PF_ETHUSD",
+        //                 "maxLeverage": 30.00
+        //             },
+        //         ]
         //     }
         //
         $leveragePreferences = $this->safe_list($response, 'leveragePreferences', array());
@@ -3631,9 +3755,9 @@ class krakenfutures extends Exchange {
         $response = Async\await($this->privateGetLeveragepreferences($this->extend($request, $params)));
         //
         //     {
-        //         "result" => "success",
-        //         "serverTime" => "2023-08-01T09:54:08.900Z",
-        //         "leveragePreferences" => array( array( $symbol => "PF_LTCUSD", maxLeverage => "5.00" ) )
+        //         "result": "success",
+        //         "serverTime": "2023-08-01T09:54:08.900Z",
+        //         "leveragePreferences": [ { symbol: "PF_LTCUSD", maxLeverage: "5.00" } ]
         //     }
         //
         $leveragePreferences = $this->safe_list($response, 'leveragePreferences', array());

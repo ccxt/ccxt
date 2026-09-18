@@ -5,6 +5,7 @@ package io.github.ccxt.exchanges.pro;
 import io.github.ccxt.base.Precise;
 import io.github.ccxt.errors.*;
 import io.github.ccxt.Helpers;
+import io.github.ccxt.BaseExchange;
 import io.github.ccxt.ws.*;
 import io.github.ccxt.Client;
 import io.github.ccxt.types.Balances;
@@ -71,7 +72,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
     public CompletableFuture<Object> subscribe(Object channel2, Object symbol, Object... optionalArgs)
     {
         final Object channel3 = channel2;
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
             Object channel = channel3;
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
@@ -113,7 +114,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
     public CompletableFuture<Object> unSubscribe(Object channel2, Object topic, Object symbol, Object... optionalArgs)
     {
         final Object channel3 = channel2;
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
             Object channel = channel3;
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
@@ -149,7 +150,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
     public CompletableFuture<Object> subscribePrivate(Object messageHash)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -176,7 +177,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
     public CompletableFuture<List<OHLCV>> watchOHLCV(String symbol2, Object... optionalArgs)
     {
         final Object symbol3 = symbol2;
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
             Object timeframe = Helpers.getArg(optionalArgs, 0, "1m");
             Object since = Helpers.getArg(optionalArgs, 1, null);
@@ -222,7 +223,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
     public CompletableFuture<Object> unWatchOHLCV(String symbol2, Object... optionalArgs)
     {
         final Object symbol3 = symbol2;
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
             Object timeframe = Helpers.getArg(optionalArgs, 0, "1m");
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
@@ -360,7 +361,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
     public CompletableFuture<List<Trade>> watchTrades(String symbol, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object since = Helpers.getArg(optionalArgs, 0, null);
             Object limit = Helpers.getArg(optionalArgs, 1, null);
@@ -386,7 +387,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
     public CompletableFuture<Object> unWatchTrades(String symbol, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             return (this.unSubscribe("trades", "trades", symbol, parameters)).join();
@@ -407,7 +408,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
     public CompletableFuture<List<Trade>> watchMyTrades(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
@@ -444,7 +445,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
     public CompletableFuture<Ticker> watchTicker(String symbol, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             return (this.subscribe("ticker", symbol, parameters)).join();
@@ -463,7 +464,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
     public CompletableFuture<Object> unWatchTicker(String symbol, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             return (this.unSubscribe("ticker", "ticker", symbol, parameters)).join();
@@ -716,7 +717,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
         //         236.88,        // 3 ASK float Price of last lowest ask
         //         7.1138,        // 4 ASK_SIZE float Size of the last lowest ask
         //         -1.02,         // 5 DAILY_CHANGE float Amount that the last price has changed since yesterday
-        //         0,             // 6 DAILY_CHANGE_PERC float Amount that the price has changed expressed in percentage terms
+        //         0,             // 6 DAILY_CHANGE_RELATIVE float Relative change (array index 5); parseWsTicker multiplies by 100.
         //         236.52,        // 7 LAST_PRICE float Price of the last trade.
         //         5191.36754297, // 8 VOLUME float Daily volume
         //         250.01,        // 9 HIGH float Daily high
@@ -744,7 +745,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
         //         236.88,        // 3 ASK float Price of last lowest ask
         //         7.1138,        // 4 ASK_SIZE float Size of the last lowest ask
         //         -1.02,         // 5 DAILY_CHANGE float Amount that the last price has changed since yesterday
-        //         0,             // 6 DAILY_CHANGE_PERC float Amount that the price has changed expressed in percentage terms
+        //         0,             // 6 DAILY_CHANGE_RELATIVE float Relative change (array index 5); parseWsTicker multiplies by 100.
         //         236.52,        // 7 LAST_PRICE float Price of the last trade.
         //         5191.36754297, // 8 VOLUME float Daily volume
         //         250.01,        // 9 HIGH float Daily high
@@ -772,7 +773,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
             put( "last", last );
             put( "previousClose", null );
             put( "change", change );
-            put( "percentage", Bitfinex.this.safeString(ticker, 5) );
+            put( "percentage", Precise.stringMul(Bitfinex.this.safeString(ticker, 5), "100") );
             put( "average", null );
             put( "baseVolume", Bitfinex.this.safeString(ticker, 7) );
             put( "quoteVolume", null );
@@ -792,7 +793,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
     public CompletableFuture<OrderBook> watchOrderBook(String symbol, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object limit = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
@@ -998,7 +999,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
     public CompletableFuture<Balances> watchBalance(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
@@ -1228,7 +1229,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
     public CompletableFuture<Object> authenticate(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             Object url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "private");
@@ -1291,7 +1292,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
     public CompletableFuture<List<Order>> watchOrders(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);

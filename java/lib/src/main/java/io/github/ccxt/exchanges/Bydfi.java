@@ -6,6 +6,7 @@ import io.github.ccxt.api.BydfiApi;
 import io.github.ccxt.base.Precise;
 import io.github.ccxt.errors.*;
 import io.github.ccxt.Helpers;
+import io.github.ccxt.BaseExchange;
 import io.github.ccxt.types.Balances;
 import io.github.ccxt.types.FundingRate;
 import io.github.ccxt.types.FundingRateHistory;
@@ -558,7 +559,7 @@ public class Bydfi extends BydfiApi
     public CompletableFuture<Object> fetchMarkets(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             Map<String, Object> response = (this.publicGetV1FapiMarketExchangeInfo(parameters)).join();
@@ -734,7 +735,7 @@ public class Bydfi extends BydfiApi
     public CompletableFuture<OrderBook> fetchOrderBook(Object symbol, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object limit = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
@@ -820,7 +821,7 @@ public class Bydfi extends BydfiApi
     public CompletableFuture<List<Trade>> fetchTrades(String symbol, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object since = Helpers.getArg(optionalArgs, 0, null);
             Object limit = Helpers.getArg(optionalArgs, 1, null);
@@ -879,7 +880,7 @@ public class Bydfi extends BydfiApi
     public CompletableFuture<List<Trade>> fetchMyTrades(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
@@ -1054,7 +1055,7 @@ public class Bydfi extends BydfiApi
     public CompletableFuture<List<OHLCV>> fetchOHLCV(Object symbol, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object timeframe = Helpers.getArg(optionalArgs, 0, "1m");
             Object since = Helpers.getArg(optionalArgs, 1, null);
@@ -1168,7 +1169,7 @@ public class Bydfi extends BydfiApi
     public CompletableFuture<Tickers> fetchTickers(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
@@ -1213,7 +1214,7 @@ public class Bydfi extends BydfiApi
     public CompletableFuture<Ticker> fetchTicker(String symbol, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
@@ -1290,7 +1291,7 @@ public class Bydfi extends BydfiApi
     public CompletableFuture<FundingRate> fetchFundingRate(String symbol, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
@@ -1373,7 +1374,7 @@ public class Bydfi extends BydfiApi
     public CompletableFuture<List<FundingRateHistory>> fetchFundingRateHistory(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
@@ -1479,7 +1480,7 @@ public class Bydfi extends BydfiApi
     public CompletableFuture<Order> createOrder(Object symbol, Object type, Object side, Object amount, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object price = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
@@ -1690,7 +1691,7 @@ public class Bydfi extends BydfiApi
     public CompletableFuture<List<Order>> createOrders(Object orders, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
@@ -1750,7 +1751,7 @@ public class Bydfi extends BydfiApi
     public CompletableFuture<Order> editOrder(String id, String symbol, Object type, Object side, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object amount = Helpers.getArg(optionalArgs, 0, null);
             Object price = Helpers.getArg(optionalArgs, 1, null);
@@ -1785,7 +1786,7 @@ public class Bydfi extends BydfiApi
     public CompletableFuture<List<Order>> editOrders(Object orders, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
@@ -1870,7 +1871,7 @@ public class Bydfi extends BydfiApi
     public CompletableFuture<List<Order>> cancelAllOrders(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
@@ -1948,7 +1949,7 @@ public class Bydfi extends BydfiApi
     public CompletableFuture<List<Order>> fetchOpenOrders(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
@@ -2039,7 +2040,7 @@ public class Bydfi extends BydfiApi
     public CompletableFuture<Object> fetchOpenOrder(String id2, Object... optionalArgs)
     {
         final Object id3 = id2;
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
             Object id = id3;
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
@@ -2105,7 +2106,7 @@ public class Bydfi extends BydfiApi
     public CompletableFuture<List<Order>> fetchCanceledAndClosedOrders(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
@@ -2418,7 +2419,7 @@ public class Bydfi extends BydfiApi
     public CompletableFuture<Object> setLeverage(Object leverage, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
@@ -2461,7 +2462,7 @@ public class Bydfi extends BydfiApi
     public CompletableFuture<Leverage> fetchLeverage(String symbol2, Object... optionalArgs)
     {
         final Object symbol3 = symbol2;
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
@@ -2528,7 +2529,7 @@ public class Bydfi extends BydfiApi
     public CompletableFuture<List<Position>> fetchPositions(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
@@ -2587,7 +2588,7 @@ public class Bydfi extends BydfiApi
     public CompletableFuture<List<Position>> fetchPositionsForSymbol(Object symbol, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
@@ -2752,7 +2753,7 @@ public class Bydfi extends BydfiApi
     public CompletableFuture<List<Position>> fetchPositionHistory(String symbol, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object since = Helpers.getArg(optionalArgs, 0, null);
             Object limit = Helpers.getArg(optionalArgs, 1, null);
@@ -2803,7 +2804,7 @@ public class Bydfi extends BydfiApi
     public CompletableFuture<List<Position>> fetchPositionsHistory(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
@@ -2890,7 +2891,7 @@ public class Bydfi extends BydfiApi
     public CompletableFuture<MarginMode> fetchMarginMode(String symbol, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
@@ -2958,7 +2959,7 @@ public class Bydfi extends BydfiApi
     public CompletableFuture<Object> setMarginMode(Object marginMode2, Object... optionalArgs)
     {
         final Object marginMode3 = marginMode2;
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
             Object marginMode = marginMode3;
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
@@ -3014,7 +3015,7 @@ public class Bydfi extends BydfiApi
     public CompletableFuture<Object> setPositionMode(Object hedged, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
@@ -3075,7 +3076,7 @@ public class Bydfi extends BydfiApi
     public CompletableFuture<PositionModeInfo> fetchPositionMode(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
@@ -3153,7 +3154,7 @@ public class Bydfi extends BydfiApi
     public CompletableFuture<Balances> fetchBalance(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
@@ -3270,7 +3271,7 @@ public class Bydfi extends BydfiApi
     public CompletableFuture<TransferEntry> transfer(String code, Object amount, Object fromAccount, Object toAccount, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
@@ -3328,7 +3329,7 @@ public class Bydfi extends BydfiApi
     public CompletableFuture<List<TransferEntry>> fetchTransfers(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object code = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
@@ -3469,7 +3470,7 @@ public class Bydfi extends BydfiApi
     public CompletableFuture<List<Transaction>> fetchDeposits(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object code = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
@@ -3494,7 +3495,7 @@ public class Bydfi extends BydfiApi
     public CompletableFuture<List<Transaction>> fetchWithdrawals(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object code = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
@@ -3511,7 +3512,7 @@ public class Bydfi extends BydfiApi
         final Object code3 = code2;
         final Object limit3 = limit2;
         final Object parameters3 = parameters2;
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
             Object type = type3;
             Object code = code3;
             Object limit = limit3;

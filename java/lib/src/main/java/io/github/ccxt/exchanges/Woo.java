@@ -6,6 +6,7 @@ import io.github.ccxt.api.WooApi;
 import io.github.ccxt.base.Precise;
 import io.github.ccxt.errors.*;
 import io.github.ccxt.Helpers;
+import io.github.ccxt.BaseExchange;
 import io.github.ccxt.types.ADL;
 import io.github.ccxt.types.Account;
 import io.github.ccxt.types.Balances;
@@ -25,6 +26,8 @@ import io.github.ccxt.types.Order;
 import io.github.ccxt.types.OrderBook;
 import io.github.ccxt.types.Position;
 import io.github.ccxt.types.Status;
+import io.github.ccxt.types.Ticker;
+import io.github.ccxt.types.Tickers;
 import io.github.ccxt.types.Trade;
 import io.github.ccxt.types.TradingFeeInterface;
 import io.github.ccxt.types.TradingFees;
@@ -136,8 +139,8 @@ public class Woo extends WooApi
                 put( "fetchPositionsHistory", false );
                 put( "fetchPremiumIndexOHLCV", false );
                 put( "fetchStatus", true );
-                put( "fetchTicker", false );
-                put( "fetchTickers", false );
+                put( "fetchTicker", true );
+                put( "fetchTickers", true );
                 put( "fetchTime", true );
                 put( "fetchTrades", true );
                 put( "fetchTradingFee", true );
@@ -956,7 +959,7 @@ public class Woo extends WooApi
     public CompletableFuture<Status> fetchStatus(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             Map<String, Object> response = (this.v3PublicGetSystemInfo(parameters)).join();
@@ -1006,7 +1009,7 @@ public class Woo extends WooApi
     public CompletableFuture<Long> fetchTime(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             Map<String, Object> response = (this.v3PublicGetSystemInfo(parameters)).join();
@@ -1037,7 +1040,7 @@ public class Woo extends WooApi
     public CompletableFuture<Object> fetchMarkets(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(this.options, "adjustForTimeDifference"), true)))
@@ -1200,7 +1203,7 @@ public class Woo extends WooApi
     public CompletableFuture<List<Trade>> fetchTrades(String symbol, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object since = Helpers.getArg(optionalArgs, 0, null);
             Object limit = Helpers.getArg(optionalArgs, 1, null);
@@ -1375,7 +1378,7 @@ public class Woo extends WooApi
     public CompletableFuture<TradingFeeInterface> fetchTradingFee(String symbol, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
@@ -1415,7 +1418,7 @@ public class Woo extends WooApi
     public CompletableFuture<TradingFees> fetchTradingFees(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
@@ -1491,7 +1494,7 @@ public class Woo extends WooApi
     public CompletableFuture<Object> fetchCurrencies(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             Map<String, Object> result = new HashMap<String, Object>() {{}};
@@ -1680,7 +1683,7 @@ public class Woo extends WooApi
     public CompletableFuture<Order> createMarketBuyOrderWithCost(String symbol, Object cost, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
@@ -1710,7 +1713,7 @@ public class Woo extends WooApi
     public CompletableFuture<Order> createMarketSellOrderWithCost(String symbol, Object cost, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
@@ -1745,7 +1748,7 @@ public class Woo extends WooApi
     public CompletableFuture<Order> createTrailingAmountOrder(String symbol, Object type, Object side, Object amount, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object price = Helpers.getArg(optionalArgs, 0, null);
             Object trailingAmount = Helpers.getArg(optionalArgs, 1, null);
@@ -1784,7 +1787,7 @@ public class Woo extends WooApi
     public CompletableFuture<Order> createTrailingPercentOrder(String symbol, Object type, Object side, Object amount, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object price = Helpers.getArg(optionalArgs, 0, null);
             Object trailingPercent = Helpers.getArg(optionalArgs, 1, null);
@@ -1834,7 +1837,7 @@ public class Woo extends WooApi
     public CompletableFuture<Order> createOrder(Object symbol, Object type, Object side, Object amount, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object price = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
@@ -2044,7 +2047,7 @@ public class Woo extends WooApi
     public CompletableFuture<Order> editOrder(String id, String symbol, Object type, Object side, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object amount = Helpers.getArg(optionalArgs, 0, null);
             Object price = Helpers.getArg(optionalArgs, 1, null);
@@ -2155,7 +2158,7 @@ public class Woo extends WooApi
     public CompletableFuture<Order> cancelOrder(Object id, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
@@ -2239,7 +2242,7 @@ public class Woo extends WooApi
     public CompletableFuture<List<Order>> cancelAllOrders(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
@@ -2293,7 +2296,7 @@ public class Woo extends WooApi
     public CompletableFuture<Object> cancelAllOrdersAfter(Object timeout, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
@@ -2333,7 +2336,7 @@ public class Woo extends WooApi
     public CompletableFuture<Order> fetchOrder(Object id, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
@@ -2397,7 +2400,7 @@ public class Woo extends WooApi
     public CompletableFuture<List<Order>> fetchOrders(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
@@ -2473,7 +2476,7 @@ public class Woo extends WooApi
     public CompletableFuture<List<Order>> fetchOpenOrders(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
@@ -2511,7 +2514,7 @@ public class Woo extends WooApi
     public CompletableFuture<List<Order>> fetchClosedOrders(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
@@ -2743,7 +2746,7 @@ public class Woo extends WooApi
     public CompletableFuture<OrderBook> fetchOrderBook(Object symbol, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object limit = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
@@ -2788,6 +2791,203 @@ public class Woo extends WooApi
 
     }
 
+    public Object parseTicker(Object ticker, Object... optionalArgs)
+    {
+        //
+        //     {
+        //         "symbol": "PERP_BTC_USDT",
+        //         "indexPrice": "63049",
+        //         "markPrice": "63028",
+        //         "estFundingRate": "0.00008868",
+        //         "lastFundingRate": "0.00008545",
+        //         "openInterest": "221.3498",
+        //         "24hOpen": "63880",
+        //         "24hClose": "63020",
+        //         "24hHigh": "64000",
+        //         "24hLow": "62800",
+        //         "24hVolume": "12000",
+        //         "24hAmount": "756000000",
+        //         "nextFundingTime": 1786694400000
+        //     }
+        //
+        Object market = Helpers.getArg(optionalArgs, 0, null);
+        String marketId = this.safeString(ticker, "symbol");
+        market = this.safeMarket(marketId, market);
+        Long timestamp = this.safeInteger(ticker, "timestamp");
+        final Object finalMarket = market;
+        return this.safeTicker(new HashMap<String, Object>() {{
+            put( "symbol", Helpers.GetValue(finalMarket, "symbol") );
+            put( "timestamp", timestamp );
+            put( "datetime", Woo.this.iso8601(timestamp) );
+            put( "high", Woo.this.safeString(ticker, "24hHigh") );
+            put( "low", Woo.this.safeString(ticker, "24hLow") );
+            put( "bid", null );
+            put( "bidVolume", null );
+            put( "ask", null );
+            put( "askVolume", null );
+            put( "vwap", null );
+            put( "open", Woo.this.safeString(ticker, "24hOpen") );
+            put( "close", Woo.this.safeString(ticker, "24hClose") );
+            put( "last", Woo.this.safeString(ticker, "24hClose") );
+            put( "previousClose", null );
+            put( "change", null );
+            put( "percentage", null );
+            put( "average", null );
+            put( "baseVolume", Woo.this.safeString(ticker, "24hVolume") );
+            put( "quoteVolume", Woo.this.safeString(ticker, "24hAmount") );
+            put( "indexPrice", Woo.this.safeString(ticker, "indexPrice") );
+            put( "markPrice", Woo.this.safeString(ticker, "markPrice") );
+            put( "info", ticker );
+        }}, market);
+    }
+
+    /**
+     * @method
+     * @name woo#fetchTicker
+     * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market, swap markets only
+     * @see https://developer.woox.io/api-reference/endpoint/public_data/futures
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+     */
+    public CompletableFuture<Ticker> fetchTicker(String symbol, Object... optionalArgs)
+    {
+
+        return BaseExchange.supplyAsync(() -> {
+
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
+            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
+            {
+                throw new NotSupported(Helpers.add(this.id, " fetchTicker() supports swap markets only, there is no spot ticker endpoint")) ;
+            }
+            Map<String, Object> request = new HashMap<String, Object>() {{
+                put( "symbol", Helpers.GetValue(market, "id") );
+            }};
+            Map<String, Object> response = (this.v3PublicGetFutures(this.extend(request, parameters))).join();
+            //
+            //     {
+            //         "success": true,
+            //         "data": {
+            //             "rows": [
+            //                 {
+            //                     "symbol": "PERP_BTC_USDT",
+            //                     "indexPrice": "63049",
+            //                     "markPrice": "63028",
+            //                     "estFundingRate": "0.00008868",
+            //                     "lastFundingRate": "0.00008545",
+            //                     "openInterest": "221.3498",
+            //                     "24hOpen": "63880",
+            //                     "24hClose": "63020",
+            //                     "24hHigh": "64000",
+            //                     "24hLow": "62800",
+            //                     "24hVolume": "12000",
+            //                     "24hAmount": "756000000",
+            //                     "nextFundingTime": 1786694400000
+            //                 }
+            //             ]
+            //         },
+            //         "timestamp": 1786690534921
+            //     }
+            //
+            Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Object rows = this.safeList(data, "rows", new ArrayList<Object>(Arrays.asList()));
+            Object first = this.safeDict(rows, 0);
+            if (Helpers.isTrue(Helpers.isEqual(first, null)))
+            {
+                throw new BadSymbol(Helpers.add(Helpers.add(this.id, " fetchTicker() could not find ticker data for "), symbol)) ;
+            }
+            Map<String, Object> ticker = this.extend(new HashMap<String, Object>() {{
+                put( "timestamp", Woo.this.safeInteger(response, "timestamp") );
+            }}, first);
+            return this.parseTicker(ticker, market);
+        }).thenApply(Ticker::new);
+
+    }
+
+    /**
+     * @method
+     * @name woo#fetchTickers
+     * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market, only swap markets are supported
+     * @see https://developer.woox.io/api-reference/endpoint/public_data/futures
+     * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, swap markets only, all swap tickers are returned when not assigned
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.type] market type, must be 'swap' when no symbols are provided
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+     */
+    public CompletableFuture<Tickers> fetchTickers(Object... optionalArgs)
+    {
+
+        return BaseExchange.supplyAsync(() -> {
+
+            Object symbols = Helpers.getArg(optionalArgs, 0, null);
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
+            if (Helpers.isTrue(!Helpers.isEqual(symbols, null)))
+            {
+                Object symbolsLength = Helpers.getArrayLength(symbols);
+                if (Helpers.isTrue(Helpers.isGreaterThan(symbolsLength, 0)))
+                {
+                    // the type gate throws NotSupported rather than letting marketSymbols raise
+                    // BadRequest, so callers (and the live test harness) can tell "wrong market
+                    // type" apart from a malformed request, marketSymbols still enforces that the
+                    // rest of the list matches
+                    Map<String, Object> firstMarket = (Map<String, Object>) this.market(Helpers.GetValue(symbols, 0));
+                    if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(firstMarket, "swap"), true)))
+                    {
+                        throw new NotSupported(Helpers.add(this.id, " fetchTickers() supports swap markets only")) ;
+                    }
+                }
+            }
+            symbols = this.marketSymbols(symbols, "swap", true, true);
+            if (Helpers.isTrue(Helpers.isEqual(symbols, null)))
+            {
+                Object marketType = null;
+                List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchTickers", null, parameters, "swap");
+                marketType = ((List<Object>) marketTypeparametersVariable).get(0);
+                parameters = ((List<Object>) marketTypeparametersVariable).get(1);
+                if (Helpers.isTrue(!Helpers.isEqual(marketType, "swap")))
+                {
+                    throw new NotSupported(Helpers.add(this.id, " fetchTickers() supports swap markets only")) ;
+                }
+            }
+            Map<String, Object> response = (this.v3PublicGetFutures(parameters)).join();
+            //
+            // same as fetchTicker, with multiple rows
+            //
+            Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Object rows = this.safeList(data, "rows", new ArrayList<Object>(Arrays.asList()));
+            Long timestamp = this.safeInteger(response, "timestamp");
+            List<Object> result = new ArrayList<Object>(Arrays.asList());
+            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rows)); i++)
+            {
+                Object row = Helpers.GetValue(rows, i);
+                String marketId = this.safeString(row, "symbol");
+                if (Helpers.isTrue(Helpers.isEqual(marketId, null)))
+                {
+                    continue;
+                }
+                if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(this.markets_by_id, null))) || !Helpers.isTrue((Helpers.inOp(this.markets_by_id, marketId)))))
+                {
+                    continue;
+                }
+                Map<String, Object> ticker = this.extend(new HashMap<String, Object>() {{
+                    put( "timestamp", timestamp );
+                }}, row);
+                ((List<Object>)result).add(this.parseTicker(ticker));
+            }
+            return this.filterByArrayTickers(result, "symbol", symbols);
+        }).thenApply(Tickers::new);
+
+    }
+
     /**
      * @method
      * @name woo#fetchOHLCV
@@ -2804,7 +3004,7 @@ public class Woo extends WooApi
     public CompletableFuture<List<OHLCV>> fetchOHLCV(Object symbol, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object timeframe = Helpers.getArg(optionalArgs, 0, "1m");
             Object since = Helpers.getArg(optionalArgs, 1, null);
@@ -2884,7 +3084,7 @@ public class Woo extends WooApi
     public CompletableFuture<List<Trade>> fetchOrderTrades(String id, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
@@ -2942,7 +3142,7 @@ public class Woo extends WooApi
     public CompletableFuture<List<Trade>> fetchMyTrades(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
@@ -3030,7 +3230,7 @@ public class Woo extends WooApi
     public CompletableFuture<List<Account>> fetchAccounts(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             Object mainAccountPromise = this.v3PrivateGetAccountInfo(parameters);
@@ -3145,7 +3345,7 @@ public class Woo extends WooApi
     public CompletableFuture<Balances> fetchBalance(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
@@ -3215,7 +3415,7 @@ public class Woo extends WooApi
     public CompletableFuture<DepositAddress> fetchDepositAddress(String code, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             // this method is TODO because of networks unification
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
@@ -3287,7 +3487,7 @@ public class Woo extends WooApi
     public CompletableFuture<Object> getAssetHistoryRows(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object code = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
@@ -3382,7 +3582,7 @@ public class Woo extends WooApi
     public CompletableFuture<List<LedgerEntry>> fetchLedger(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object code = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
@@ -3491,7 +3691,7 @@ public class Woo extends WooApi
     public CompletableFuture<List<Transaction>> fetchDeposits(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object code = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
@@ -3519,7 +3719,7 @@ public class Woo extends WooApi
     public CompletableFuture<List<Transaction>> fetchWithdrawals(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object code = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
@@ -3547,7 +3747,7 @@ public class Woo extends WooApi
     public CompletableFuture<List<Transaction>> fetchDepositsWithdrawals(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object code = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
@@ -3653,7 +3853,7 @@ public class Woo extends WooApi
     public CompletableFuture<TransferEntry> transfer(String code, Object amount, Object fromAccount, Object toAccount, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
@@ -3711,7 +3911,7 @@ public class Woo extends WooApi
     public CompletableFuture<List<TransferEntry>> fetchTransfers(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object code = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
@@ -3855,7 +4055,7 @@ public class Woo extends WooApi
     public CompletableFuture<Transaction> withdraw(String code, Object amount, Object address, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object tag = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
@@ -3924,7 +4124,7 @@ public class Woo extends WooApi
     public CompletableFuture<MarginLoan> repayMargin(String code, Object amount, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
@@ -4162,7 +4362,7 @@ public class Woo extends WooApi
     public CompletableFuture<List<FundingHistory>> fetchFundingHistory(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
@@ -4306,7 +4506,7 @@ public class Woo extends WooApi
     public CompletableFuture<FundingRate> fetchFundingInterval(String symbol, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             return (this.fetchFundingRate(symbol, (Object)(parameters))).join();
@@ -4326,7 +4526,7 @@ public class Woo extends WooApi
     public CompletableFuture<FundingRate> fetchFundingRate(String symbol, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
@@ -4378,7 +4578,7 @@ public class Woo extends WooApi
     public CompletableFuture<FundingRates> fetchFundingRates(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
@@ -4431,7 +4631,7 @@ public class Woo extends WooApi
     public CompletableFuture<List<FundingRateHistory>> fetchFundingRateHistory(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
@@ -4523,7 +4723,7 @@ public class Woo extends WooApi
     public CompletableFuture<Object> setPositionMode(Object hedged, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
@@ -4566,7 +4766,7 @@ public class Woo extends WooApi
     public CompletableFuture<Leverage> fetchLeverage(String symbol, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
@@ -4658,7 +4858,7 @@ public class Woo extends WooApi
     public CompletableFuture<Object> setLeverage(Object leverage, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
@@ -4708,7 +4908,7 @@ public class Woo extends WooApi
     public CompletableFuture<MarginModification> addMargin(String symbol, Object amount, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             return (this.modifyMarginHelper(symbol, amount, "ADD", parameters)).join();
@@ -4730,7 +4930,7 @@ public class Woo extends WooApi
     public CompletableFuture<MarginModification> reduceMargin(String symbol, Object amount, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             return (this.modifyMarginHelper(symbol, amount, "REDUCE", parameters)).join();
@@ -4741,7 +4941,7 @@ public class Woo extends WooApi
     public CompletableFuture<Object> modifyMarginHelper(String symbol, Object amount, Object type, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
@@ -4772,7 +4972,7 @@ public class Woo extends WooApi
     public CompletableFuture<Position> fetchPosition(Object symbol, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
@@ -4835,7 +5035,7 @@ public class Woo extends WooApi
     public CompletableFuture<List<Position>> fetchPositions(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
@@ -5025,7 +5225,7 @@ public class Woo extends WooApi
     public CompletableFuture<Conversion> fetchConvertQuote(Object fromCode, Object toCode, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object amount = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
@@ -5080,7 +5280,7 @@ public class Woo extends WooApi
     public CompletableFuture<Conversion> createConvertTrade(String id, Object fromCode, Object toCode, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object amount = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
@@ -5121,7 +5321,7 @@ public class Woo extends WooApi
     public CompletableFuture<Conversion> fetchConvertTrade(String id, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object code = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
@@ -5180,7 +5380,7 @@ public class Woo extends WooApi
     public CompletableFuture<List<Conversion>> fetchConvertTradeHistory(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object code = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
@@ -5299,7 +5499,7 @@ public class Woo extends WooApi
     public CompletableFuture<Currencies> fetchConvertCurrencies(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
@@ -5377,7 +5577,7 @@ public class Woo extends WooApi
     public CompletableFuture<List<ADL>> fetchPositionsADLRank(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});

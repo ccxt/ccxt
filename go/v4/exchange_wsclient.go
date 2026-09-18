@@ -210,8 +210,8 @@ func (this *WSClient) ResetConnection(err any) {
 }
 
 func (this *WSClient) SetPingInterval() {
-	if this.KeepAlive.(int64) > 0 {
-		ticker := time.NewTicker(time.Duration(this.KeepAlive.(int64)) * time.Millisecond)
+	if derefScalar(this.KeepAlive).(int64) > 0 {
+		ticker := time.NewTicker(time.Duration(derefScalar(this.KeepAlive).(int64)) * time.Millisecond)
 		this.PingInterval = ticker
 		go func() {
 			defer ticker.Stop() // Ensure ticker is stopped when goroutine exits
@@ -238,22 +238,22 @@ func (this *WSClient) ClearPingInterval() {
 
 func (this *WSClient) OnPingInterval() {
 	this.PingMu.Lock()
-	if this.KeepAlive.(int64) > 0 {
-		if this.IsConnected.(bool) == true {
+	if derefScalar(this.KeepAlive).(int64) > 0 {
+		if derefScalar(this.IsConnected).(bool) == true {
 			now := time.Now().UnixNano() / int64(time.Millisecond)
 			lastPong := this.GetLastPong()
 			if lastPong == nil {
 				lastPong = now
 				this.SetLastPong(lastPong)
 			}
-			lastPongVal := lastPong.(int64)
+			lastPongVal := derefScalar(lastPong).(int64)
 			maxPingPongMisses := float64(2.0)
 			if this.MaxPingPongMisses != nil {
 				if misses, ok := this.MaxPingPongMisses.(float64); ok {
 					maxPingPongMisses = misses
 				}
 			}
-			if (lastPongVal + this.KeepAlive.(int64)*int64(maxPingPongMisses)) < now {
+			if (lastPongVal + derefScalar(this.KeepAlive).(int64)*int64(maxPingPongMisses)) < now {
 				err := RequestTimeout("Connection to " + this.Url + " timed out due to a ping-pong keepalive missing on time")
 				this.OnError(err)
 			} else {

@@ -434,8 +434,8 @@ impl BlofinCore {
         }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_185: bool = true;
-            while { if !__for_first_185 { i = add(&i, &Value::Int(1)); } __for_first_185 = false; is_less_than(&i, &get_array_length(&data)) } {
+            let mut __for_first_186: bool = true;
+            while { if !__for_first_186 { i = add(&i, &Value::Int(1)); } __for_first_186 = false; is_less_than(&i, &get_array_length(&data)) } {
             let mut rawTrade: Value = get_value(&data, &i);
             let mut rawTrade: Value = get_value(&data, &i);
             let mut trade: Value = self.parse_ws_trade(rawTrade.clone(), &[]);
@@ -637,8 +637,8 @@ impl BlofinCore {
         let mut data: Value = self.safe_list_k(message.clone(), "data", &[]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_186: bool = true;
-            while { if !__for_first_186 { i = add(&i, &Value::Int(1)); } __for_first_186 = false; is_less_than(&i, &get_array_length(&data)) } {
+            let mut __for_first_187: bool = true;
+            while { if !__for_first_187 { i = add(&i, &Value::Int(1)); } __for_first_187 = false; is_less_than(&i, &get_array_length(&data)) } {
             let mut ticker: Value = self.parse_ws_ticker(get_value(&data, &i), &[]);
             let mut symbol: Value = get_value(&ticker, &Value::Str("symbol".to_string()));
             let mut messageHash: Value = add(&add(&channelName, &Value::Str(":".to_string())), &symbol);
@@ -684,8 +684,8 @@ impl BlofinCore {
         let mut args: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_187: bool = true;
-            while { if !__for_first_187 { i = add(&i, &Value::Int(1)); } __for_first_187 = false; is_less_than(&i, &get_array_length(&symbolsList)) } {
+            let mut __for_first_188: bool = true;
+            while { if !__for_first_188 { i = add(&i, &Value::Int(1)); } __for_first_188 = false; is_less_than(&i, &get_array_length(&symbolsList)) } {
             let mut market: Value = self.market(get_value(&symbolsList, &i));
             append_to_array(&mut messageHashes, add(&Value::Str("bidask:".to_string()), &get_value(&market, &Value::Str("symbol".to_string()))));
             append_to_array(&mut args, Value::Map({
@@ -716,8 +716,8 @@ impl BlofinCore {
         let mut data: Value = self.safe_list_k(message.clone(), "data", &[]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_188: bool = true;
-            while { if !__for_first_188 { i = add(&i, &Value::Int(1)); } __for_first_188 = false; is_less_than(&i, &get_array_length(&data)) } {
+            let mut __for_first_189: bool = true;
+            while { if !__for_first_189 { i = add(&i, &Value::Int(1)); } __for_first_189 = false; is_less_than(&i, &get_array_length(&data)) } {
             let mut ticker: Value = self.parse_ws_bid_ask(get_value(&data, &i), &[]);
             let mut symbol: Value = get_value(&ticker, &Value::Str("symbol".to_string()));
             let mut messageHash: Value = add(&Value::Str("bidask:".to_string()), &symbol);
@@ -847,8 +847,8 @@ impl BlofinCore {
         }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_189: bool = true;
-            while { if !__for_first_189 { i = add(&i, &Value::Int(1)); } __for_first_189 = false; is_less_than(&i, &get_array_length(&data)) } {
+            let mut __for_first_190: bool = true;
+            while { if !__for_first_190 { i = add(&i, &Value::Int(1)); } __for_first_190 = false; is_less_than(&i, &get_array_length(&data)) } {
             let mut candle: Value = get_value(&data, &i);
             let mut candle: Value = get_value(&data, &i);
             let mut parsed: Value = self.parse_ohlcv(candle.clone(), &[market.clone()]);
@@ -1009,8 +1009,8 @@ impl BlofinCore {
         let mut data: Value = self.safe_list_k(message.clone(), "data", &[]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_190: bool = true;
-            while { if !__for_first_190 { i = add(&i, &Value::Int(1)); } __for_first_190 = false; is_less_than(&i, &get_array_length(&data)) } {
+            let mut __for_first_191: bool = true;
+            while { if !__for_first_191 { i = add(&i, &Value::Int(1)); } __for_first_191 = false; is_less_than(&i, &get_array_length(&data)) } {
             let mut order: Value = self.parse_ws_order(get_value(&data, &i), &[]);
             let mut symbol: Value = get_value(&order, &Value::Str("symbol".to_string()));
             let mut messageHash: Value = add(&add(&channelName, &Value::Str(":".to_string())), &symbol);
@@ -1079,8 +1079,8 @@ impl BlofinCore {
         let mut newPositions: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_191: bool = true;
-            while { if !__for_first_191 { i = add(&i, &Value::Int(1)); } __for_first_191 = false; is_less_than(&i, &get_array_length(&data)) } {
+            let mut __for_first_192: bool = true;
+            while { if !__for_first_192 { i = add(&i, &Value::Int(1)); } __for_first_192 = false; is_less_than(&i, &get_array_length(&data)) } {
             let mut position: Value = self.parse_ws_position(get_value(&data, &i), &[]);
             append_to_array(&mut newPositions, position.clone());
             cache.append(position.clone());
@@ -1194,8 +1194,8 @@ impl BlofinCore {
         if is_greater_than(&symbolsLength, &Value::Int(0)) {
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_192: bool = true;
-                while { if !__for_first_192 { i = add(&i, &Value::Int(1)); } __for_first_192 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+                let mut __for_first_193: bool = true;
+                while { if !__for_first_193 { i = add(&i, &Value::Int(1)); } __for_first_193 = false; is_less_than(&i, &get_array_length(&symbols)) } {
                 let mut current: Value = get_value(&symbols, &i);
                 let mut current: Value = get_value(&symbols, &i);
                 let mut market: Value = Value::Null;

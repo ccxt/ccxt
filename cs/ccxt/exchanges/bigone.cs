@@ -670,7 +670,7 @@ public partial class bigone : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         List<object> promises = new List<object> {this.publicGetAssetPairs(parameters), this.contractPublicGetSymbols(parameters)};
-        object promisesResult = await promiseAll(promises);
+        List<object> promisesResult = await promiseAll(promises);
         object response = getValue(promisesResult, 0);
         object contractResponse = getValue(promisesResult, 1);
         //
@@ -851,7 +851,7 @@ public partial class bigone : Exchange
         return ccxt.BaseExchange.ToMarketInterfaceList(result);
     }
 
-    public override object parseTicker(object ticker, object market = null)
+    public override Dictionary<string, object> parseTicker(object ticker, object market = null)
     {
         //
         // spot
@@ -948,9 +948,9 @@ public partial class bigone : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        object type = null;
+        string? type = null;
         IList<object> typeparametersVariable = (IList<object>)this.handleMarketTypeAndParams("fetchTicker", market, parameters);
-        type = ((IList<object>)typeparametersVariable)[0];
+        type = (string)((IList<object>)typeparametersVariable)[0];
         parameters = ((IList<object>)typeparametersVariable)[1];
         if (isTrue(isEqual(type, "spot")))
         {
@@ -1005,9 +1005,9 @@ public partial class bigone : Exchange
         {
             market = this.market(symbol);
         }
-        object type = null;
+        string? type = null;
         IList<object> typeparametersVariable = (IList<object>)this.handleMarketTypeAndParams("fetchTickers", market, parameters);
-        type = ((IList<object>)typeparametersVariable)[0];
+        type = (string)((IList<object>)typeparametersVariable)[0];
         parameters = ((IList<object>)typeparametersVariable)[1];
         bool isSpot = isEqual(type, "spot");
         Dictionary<string, object> request = new Dictionary<string, object>() {};
@@ -1197,7 +1197,7 @@ public partial class bigone : Exchange
         };
     }
 
-    public override object parseTrade(object trade, object market = null)
+    public override Dictionary<string, object> parseTrade(object trade, object market = null)
     {
         //
         // fetchTrades (public)
@@ -1449,7 +1449,7 @@ public partial class bigone : Exchange
      */
     public async override Task<List<ccxt.OHLCV>> FetchOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object timeframeVar = timeframe;
+        string timeframeVar = timeframe;
         object limitVar = limit;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
@@ -1593,7 +1593,7 @@ public partial class bigone : Exchange
         return this.safeString(types, ((string)type), type);
     }
 
-    public override object parseOrder(object order, object market = null)
+    public override Dictionary<string, object> parseOrder(object order, object market = null)
     {
         //
         //    {
@@ -1735,9 +1735,9 @@ public partial class bigone : Exchange
         string uppercaseType = ((string)type).ToUpper();
         bool isLimit = isEqual(uppercaseType, "LIMIT");
         bool? exchangeSpecificParam = this.safeBool(parameters, "post_only", false);
-        object postOnly = null;
+        bool? postOnly = null;
         IList<object> postOnlyparametersVariable = (IList<object>)this.handlePostOnly(isEqual(uppercaseType, "MARKET"), isEqual(exchangeSpecificParam, true), parameters);
-        postOnly = ((IList<object>)postOnlyparametersVariable)[0];
+        postOnly = (bool?)((IList<object>)postOnlyparametersVariable)[0];
         parameters = ((IList<object>)postOnlyparametersVariable)[1];
         string? triggerPrice = this.safeStringN(parameters, new List<object>() {"triggerPrice", "stopPrice", "stop_price"});
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -2559,9 +2559,9 @@ public partial class bigone : Exchange
         {
             ((IDictionary<string,object>)request)["memo"] = tagVar;
         }
-        object networkCode = null;
+        string? networkCode = null;
         IList<object> networkCodeparametersVariable = (IList<object>)this.handleNetworkCodeAndParams(parameters);
-        networkCode = ((IList<object>)networkCodeparametersVariable)[0];
+        networkCode = (string)((IList<object>)networkCodeparametersVariable)[0];
         parameters = ((IList<object>)networkCodeparametersVariable)[1];
         if (isTrue(!isEqual(networkCode, null)))
         {
