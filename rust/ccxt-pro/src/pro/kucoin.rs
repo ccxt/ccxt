@@ -502,7 +502,7 @@ impl KucoinCore {
                 let mut m = indexmap::IndexMap::new();
                 m
             })]);
-            let mut instanceServers: Value = self.safe_list_k(data.clone(), "instanceServers", &[Value::List(vec![])]);
+            let mut instanceServers: Value = self.safe_list_k(data.clone(), "instanceServers", &[Value::from(vec![])]);
             let mut firstInstanceServer: Value = self.safe_dict(instanceServers.clone(), Value::Int(0), &[]);
             let mut pingInterval: Value = self.safe_integer_k(firstInstanceServer.clone(), "pingInterval", &[]);
             let mut endpoint: Value = self.safe_string_k(firstInstanceServer.clone(), "endpoint", &[]);
@@ -629,7 +629,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         if !is_true(&(Value::Bool(in_op(&get_value(&client, &Value::Str("subscriptions".to_string())), &subscribeHash)))) {
             add_element_to_object(&mut get_value(&client, &Value::Str("subscriptions".to_string())), &requestId, subscribeHash.clone());
         }
-        return self.watch_multiple(url.clone(), messageHashes.clone(), &[message.clone(), Value::List(vec![subscribeHash.clone()]), subscription.clone()]).await;
+        return self.watch_multiple(url.clone(), messageHashes.clone(), &[message.clone(), Value::from(vec![subscribeHash.clone()]), subscription.clone()]).await;
 
     Value::Null
 }
@@ -691,7 +691,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     m
 }));
         let mut subscription = get_arg(optional_args, 1, Value::Null);
-        return self.un_subscribe_multiple(url.clone(), Value::List(vec![messageHash.clone()]), topic.clone(), Value::List(vec![subscriptionHash.clone()]), &[params.clone(), subscription.clone()]).await;
+        return self.un_subscribe_multiple(url.clone(), Value::from(vec![messageHash.clone()]), topic.clone(), Value::from(vec![subscriptionHash.clone()]), &[params.clone(), subscription.clone()]).await;
 
     Value::Null
 }
@@ -836,7 +836,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("unWatchTicker".to_string()), Value::Str("uta".to_string()), &[uta.clone()]); uta = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         let mut subscription: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("symbols".to_string(), Value::List(vec![symbol.clone()]));
+                m.insert("symbols".to_string(), Value::from(vec![symbol.clone()]));
                 m.insert("topic".to_string(), Value::Str("ticker".to_string()));
                 m.insert("unsubscribe".to_string(), Value::Bool(true));
             m
@@ -844,9 +844,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut subMessageHash: Value = Value::Str(format!("{}{}", Value::Str("ticker:".to_string()), symbol));
         if is_true(&uta) {
             subMessageHash = Value::Str(format!("{}{}", Value::Str("uta:".to_string()), subMessageHash));
-            add_element_to_object(&mut subscription, &Value::Str("subMessageHashes".to_string()), Value::List(vec![subMessageHash.clone()]));
+            add_element_to_object(&mut subscription, &Value::Str("subMessageHashes".to_string()), Value::from(vec![subMessageHash.clone()]));
             let mut utaMessageHash: Value = Value::Str(format!("{}{}", Value::Str("unsubscribe:".to_string()), subMessageHash));
-            add_element_to_object(&mut subscription, &Value::Str("messageHashes".to_string()), Value::List(vec![utaMessageHash.clone()]));
+            add_element_to_object(&mut subscription, &Value::Str("messageHashes".to_string()), Value::from(vec![utaMessageHash.clone()]));
             return self.subscribe_public_uta(utaMessageHash.clone(), Value::Str("ticker".to_string()), symbol.clone(), &[params.clone(), subscription.clone()]).await;
         }  else {
             let mut url: Value = self.negotiate(Value::Bool(false), &[isFuturesMethod.clone()]).await;
@@ -861,8 +861,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             // we have to add the topic to the messageHashes and subMessageHashes
             // because handleSubscriptionStatus needs them to remove the subscription from the client
             // without them subscription would never be removed and re-subscribe would fail because of duplicate subscriptionHash
-            add_element_to_object(&mut subscription, &Value::Str("messageHashes".to_string()), Value::List(vec![messageHash.clone(), topic.clone()]));
-            add_element_to_object(&mut subscription, &Value::Str("subMessageHashes".to_string()), Value::List(vec![subMessageHash.clone(), topic.clone()]));
+            add_element_to_object(&mut subscription, &Value::Str("messageHashes".to_string()), Value::from(vec![messageHash.clone(), topic.clone()]));
+            add_element_to_object(&mut subscription, &Value::Str("subMessageHashes".to_string()), Value::from(vec![subMessageHash.clone(), topic.clone()]));
             return self.un_subscribe(url.clone(), messageHash.clone(), topic.clone(), subMessageHash.clone(), &[params.clone(), subscription.clone()]).await;
         }
 
@@ -909,8 +909,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }  else {
             { let __destr_tmp = self.handle_option_and_params2(params.clone(), Value::Str("watchTickers".to_string()), Value::Str("method".to_string()), Value::Str("spotMethod".to_string()), &[method.clone()]); method = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         }
-        let mut messageHashes: Value = Value::List(vec![]);
-        let mut topics: Value = Value::List(vec![]);
+        let mut messageHashes: Value = Value::from(vec![]);
+        let mut topics: Value = Value::from(vec![]);
         if (symbols != Value::Null) {
             {
                                 let mut i: Value = Value::Int(0);
@@ -998,7 +998,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         symbols = self.market_symbols(&[symbols.clone(), Value::Null, Value::Bool(false), Value::Bool(true)]);
         let mut messageHash: Value = Value::Str("uta:ticker".to_string());
-        let mut messageHashes: Value = Value::List(vec![]);
+        let mut messageHashes: Value = Value::from(vec![]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_458: bool = true;
@@ -1299,7 +1299,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if length.as_f64().unwrap_or(f64::NAN) > Value::Int(100).as_f64().unwrap_or(f64::NAN) {
             panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", add(&Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), &methodName), Value::Str("() accepts a maximum of 100 symbols".to_string())))));
         }
-        let mut messageHashes: Value = Value::List(vec![]);
+        let mut messageHashes: Value = Value::from(vec![]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_459: bool = true;
@@ -1376,8 +1376,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 let mut m = indexmap::IndexMap::new();
                 m
             })]);
-            let mut ask: Value = self.safe_list_k(data.clone(), "asks", &[Value::List(vec![])]);
-            let mut bid: Value = self.safe_list_k(data.clone(), "bids", &[Value::List(vec![])]);
+            let mut ask: Value = self.safe_list_k(data.clone(), "asks", &[Value::from(vec![])]);
+            let mut bid: Value = self.safe_list_k(data.clone(), "bids", &[Value::from(vec![])]);
             let mut timestamp: Value = self.safe_integer_k(data.clone(), "timestamp", &[]);
             return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1507,11 +1507,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut uta: Value = Value::Bool(false);
         { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("unWatchOHLCV".to_string()), Value::Str("uta".to_string()), &[uta.clone()]); uta = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         let mut period: Value = self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]);
-        let mut symbolAndTimeframe: Value = Value::List(vec![symbol.clone(), timeframe.clone()]);
+        let mut symbolAndTimeframe: Value = Value::from(vec![symbol.clone(), timeframe.clone()]);
         let mut subscription: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("symbols".to_string(), Value::List(vec![symbol.clone()]));
-                m.insert("symbolsAndTimeframes".to_string(), Value::List(vec![symbolAndTimeframe.clone()]));
+                m.insert("symbols".to_string(), Value::from(vec![symbol.clone()]));
+                m.insert("symbolsAndTimeframes".to_string(), Value::from(vec![symbolAndTimeframe.clone()]));
                 m.insert("topic".to_string(), Value::Str("ohlcv".to_string()));
                 m.insert("unsubscribe".to_string(), Value::Bool(true));
             m
@@ -1519,9 +1519,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut subMessageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("candles:".to_string()), symbol)), Value::Str(":".to_string()))), timeframe));
         if is_true(&uta) {
             subMessageHash = Value::Str(format!("{}{}", Value::Str("uta:".to_string()), subMessageHash));
-            add_element_to_object(&mut subscription, &Value::Str("subMessageHashes".to_string()), Value::List(vec![subMessageHash.clone()]));
+            add_element_to_object(&mut subscription, &Value::Str("subMessageHashes".to_string()), Value::from(vec![subMessageHash.clone()]));
             let mut utaMessageHash: Value = Value::Str(format!("{}{}", Value::Str("unsubscribe:".to_string()), subMessageHash));
-            add_element_to_object(&mut subscription, &Value::Str("messageHashes".to_string()), Value::List(vec![utaMessageHash.clone()]));
+            add_element_to_object(&mut subscription, &Value::Str("messageHashes".to_string()), Value::from(vec![utaMessageHash.clone()]));
             let mut extendedParams: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("interval".to_string(), period.clone());
@@ -1541,8 +1541,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             // we have to add the topic to the messageHashes and subMessageHashes
             // because handleSubscriptionStatus needs them to remove the subscription from the client
             // without them subscription would never be removed and re-subscribe would fail because of duplicate subscriptionHash
-            add_element_to_object(&mut subscription, &Value::Str("messageHashes".to_string()), Value::List(vec![messageHash.clone(), topic.clone()]));
-            add_element_to_object(&mut subscription, &Value::Str("subMessageHashes".to_string()), Value::List(vec![subMessageHash.clone(), topic.clone()]));
+            add_element_to_object(&mut subscription, &Value::Str("messageHashes".to_string()), Value::from(vec![messageHash.clone(), topic.clone()]));
+            add_element_to_object(&mut subscription, &Value::Str("subMessageHashes".to_string()), Value::from(vec![subMessageHash.clone(), topic.clone()]));
             return self.un_subscribe(url.clone(), messageHash.clone(), topic.clone(), messageHash.clone(), &[params.clone(), subscription.clone()]).await;
         }
 
@@ -1595,7 +1595,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             m
         })]);
         let mut marketId: Value = self.safe_string_k(data.clone(), "symbol", &[]);
-        let mut candles: Value = self.safe_list_k(data.clone(), "candles", &[Value::List(vec![])]);
+        let mut candles: Value = self.safe_list_k(data.clone(), "candles", &[Value::from(vec![])]);
         let mut topic: Value = self.safe_string_k(message.clone(), "topic", &[]);
         let mut parts: Value = split(&topic, &Value::Str("_".to_string()));
         let mut interval: Value = self.safe_string(parts.clone(), Value::Int(1), &[]);
@@ -1616,7 +1616,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         let mut isContractMarket: bool = get_index_of(&topic, &Value::Str("contractMarket".to_string())).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN);
         let mut baseVolumeIndex: Value = (if isContractMarket { Value::Int(6) } else { Value::Int(5) }); // Note value 5 is incorrect and will be fixed in subsequent versions of kucoin
-        let mut parsed: Value = Value::List(vec![self.safe_timestamp(candles.clone(), Value::Int(0), &[]), self.safe_number(candles.clone(), Value::Int(1), &[]), self.safe_number(candles.clone(), Value::Int(3), &[]), self.safe_number(candles.clone(), Value::Int(4), &[]), self.safe_number(candles.clone(), Value::Int(2), &[]), self.safe_number(candles.clone(), baseVolumeIndex.clone(), &[])]);
+        let mut parsed: Value = Value::from(vec![self.safe_timestamp(candles.clone(), Value::Int(0), &[]), self.safe_number(candles.clone(), Value::Int(1), &[]), self.safe_number(candles.clone(), Value::Int(3), &[]), self.safe_number(candles.clone(), Value::Int(4), &[]), self.safe_number(candles.clone(), Value::Int(2), &[]), self.safe_number(candles.clone(), baseVolumeIndex.clone(), &[])]);
         stored.append(parsed.clone());
         client.resolve(&[stored.clone(), messageHash.clone()]);
 }
@@ -1661,7 +1661,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             stored = ArrayCacheByTimestamp::new(limit.clone());
             add_element_to_object(get_value_mut(unsafe { crate::runtime::coerce_value_to_mut(&self.ohlcvs) }, &symbol), &timeframe, stored.clone());
         }
-        let mut parsed: Value = Value::List(vec![self.safe_integer_product(data.clone(), Value::Str("O".to_string()), Value::Int(1000), &[]), self.safe_number_k(data.clone(), "o", &[]), self.safe_number_k(data.clone(), "h", &[]), self.safe_number_k(data.clone(), "l", &[]), self.safe_number_k(data.clone(), "c", &[]), self.safe_number_k(data.clone(), "v", &[])]);
+        let mut parsed: Value = Value::from(vec![self.safe_integer_product(data.clone(), Value::Str("O".to_string()), Value::Int(1000), &[]), self.safe_number_k(data.clone(), "o", &[]), self.safe_number_k(data.clone(), "h", &[]), self.safe_number_k(data.clone(), "l", &[]), self.safe_number_k(data.clone(), "c", &[]), self.safe_number_k(data.clone(), "v", &[])]);
         stored.append(parsed.clone());
         client.resolve(&[stored.clone(), messageHash.clone()]);
 }
@@ -1703,7 +1703,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             }
             return self.filter_by_since_limit(trades.clone(), &[since.clone(), limit.clone(), Value::Str("timestamp".to_string()), Value::Bool(true)]);
         }
-        return self.watch_trades_for_symbols(Value::List(vec![symbol.clone()]), &[since.clone(), limit.clone(), params.clone()]).await;
+        return self.watch_trades_for_symbols(Value::from(vec![symbol.clone()]), &[since.clone(), limit.clone(), params.clone()]).await;
 
     Value::Null
 }
@@ -1739,8 +1739,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut isFuturesMethod: Value = Value::Bool(is_equal(&firstMarket.as_map().and_then(|__m| __m.get("contract")).cloned().unwrap_or(Value::Null), &Value::Bool(true)));
         let mut marketIds: Value = self.market_ids(&[symbols.clone()]);
         let mut url: Value = self.negotiate(Value::Bool(false), &[isFuturesMethod.clone()]).await;
-        let mut messageHashes: Value = Value::List(vec![]);
-        let mut subscriptionHashes: Value = Value::List(vec![]);
+        let mut messageHashes: Value = Value::from(vec![]);
+        let mut subscriptionHashes: Value = Value::from(vec![]);
         let mut channelName: Value = Value::Str("/market/match:".to_string());
         if is_true(&isFuturesMethod) {
             channelName = Value::Str("/contractMarket/execution:".to_string());
@@ -1792,8 +1792,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut firstMarket: Value = self.get_market_from_symbols(&[symbols.clone()]);
         let mut isFuturesMethod: Value = Value::Bool(is_equal(&firstMarket.as_map().and_then(|__m| __m.get("contract")).cloned().unwrap_or(Value::Null), &Value::Bool(true)));
         let mut url: Value = self.negotiate(Value::Bool(false), &[isFuturesMethod.clone()]).await;
-        let mut messageHashes: Value = Value::List(vec![]);
-        let mut subscriptionHashes: Value = Value::List(vec![]);
+        let mut messageHashes: Value = Value::from(vec![]);
+        let mut subscriptionHashes: Value = Value::from(vec![]);
         let mut channelName: Value = Value::Str("/market/match:".to_string());
         if is_true(&isFuturesMethod) {
             channelName = Value::Str("/contractMarket/execution:".to_string());
@@ -1856,16 +1856,16 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut channel: Value = Value::Str("trade".to_string());
             let mut subscription: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("messageHashes".to_string(), Value::List(vec![messageHash.clone()]));
-                    m.insert("subMessageHashes".to_string(), Value::List(vec![subMessageHash.clone()]));
+                    m.insert("messageHashes".to_string(), Value::from(vec![messageHash.clone()]));
+                    m.insert("subMessageHashes".to_string(), Value::from(vec![subMessageHash.clone()]));
                     m.insert("topic".to_string(), Value::Str("trades".to_string()));
                     m.insert("unsubscribe".to_string(), Value::Bool(true));
-                    m.insert("symbols".to_string(), Value::List(vec![symbol.clone()]));
+                    m.insert("symbols".to_string(), Value::from(vec![symbol.clone()]));
                 m
             });
             return self.subscribe_public_uta(messageHash.clone(), channel.clone(), symbol.clone(), &[params.clone(), subscription.clone()]).await;
         }
-        return self.un_watch_trades_for_symbols(Value::List(vec![symbol.clone()]), &[params.clone()]).await;
+        return self.un_watch_trades_for_symbols(Value::from(vec![symbol.clone()]), &[params.clone()]).await;
 
     Value::Null
 }
@@ -2053,7 +2053,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 subscription = Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("method".to_string(), Value::Str("handle_order_book_subscription".to_string()).clone());
-                        m.insert("symbols".to_string(), Value::List(vec![symbol.clone()]));
+                        m.insert("symbols".to_string(), Value::from(vec![symbol.clone()]));
                         m.insert("limit".to_string(), limit.clone());
                     m
                 });
@@ -2066,7 +2066,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut orderbook: Value = self.subscribe_public_uta(messageHash.clone(), channel.clone(), symbol.clone(), &[params.clone(), subscription.clone()]).await;
             return orderbook.limit();
         }
-        return self.watch_order_book_for_symbols(Value::List(vec![symbol.clone()]), &[limit.clone(), params.clone()]).await;
+        return self.watch_order_book_for_symbols(Value::from(vec![symbol.clone()]), &[limit.clone(), params.clone()]).await;
 
     Value::Null
 }
@@ -2111,16 +2111,16 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut channel: Value = Value::Str("obu".to_string());
             let mut subscription: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("messageHashes".to_string(), Value::List(vec![messageHash.clone()]));
-                    m.insert("subMessageHashes".to_string(), Value::List(vec![subMessageHash.clone()]));
+                    m.insert("messageHashes".to_string(), Value::from(vec![messageHash.clone()]));
+                    m.insert("subMessageHashes".to_string(), Value::from(vec![subMessageHash.clone()]));
                     m.insert("topic".to_string(), Value::Str("orderbook".to_string()));
                     m.insert("unsubscribe".to_string(), Value::Bool(true));
-                    m.insert("symbols".to_string(), Value::List(vec![symbol.clone()]));
+                    m.insert("symbols".to_string(), Value::from(vec![symbol.clone()]));
                 m
             });
             return self.subscribe_public_uta(messageHash.clone(), channel.clone(), symbol.clone(), &[params.clone(), subscription.clone()]).await;
         }
-        return self.un_watch_order_book_for_symbols(Value::List(vec![symbol.clone()]), &[params.clone()]).await;
+        return self.un_watch_order_book_for_symbols(Value::from(vec![symbol.clone()]), &[params.clone()]).await;
 
     Value::Null
 }
@@ -2176,8 +2176,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             }
         }
         let mut topic: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", method, Value::Str(":".to_string()))), join(&marketIds, &Value::Str(",".to_string()))));
-        let mut messageHashes: Value = Value::List(vec![]);
-        let mut subscriptionHashes: Value = Value::List(vec![]);
+        let mut messageHashes: Value = Value::from(vec![]);
+        let mut subscriptionHashes: Value = Value::from(vec![]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_462: bool = true;
@@ -2251,8 +2251,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             }
         }
         let mut topic: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", method, Value::Str(":".to_string()))), join(&marketIds, &Value::Str(",".to_string()))));
-        let mut messageHashes: Value = Value::List(vec![]);
-        let mut subscriptionHashes: Value = Value::List(vec![]);
+        let mut messageHashes: Value = Value::from(vec![]);
+        let mut subscriptionHashes: Value = Value::from(vec![]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_463: bool = true;
@@ -2451,7 +2451,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     pub fn get_cache_index(&self, mut orderbook: Value, mut cache: Value) -> Value {
         let mut firstDelta: Value = self.safe_value(cache.clone(), Value::Int(0), &[]);
         let mut nonce: Value = self.safe_integer_k(orderbook.clone(), "nonce", &[]);
-        let mut firstDeltaStart: Value = self.safe_integer_n(firstDelta.clone(), Value::List(vec![Value::Str("sequenceStart".to_string()), Value::Str("sequence".to_string()), Value::Str("O".to_string())]), &[]);
+        let mut firstDeltaStart: Value = self.safe_integer_n(firstDelta.clone(), Value::from(vec![Value::Str("sequenceStart".to_string()), Value::Str("sequence".to_string()), Value::Str("O".to_string())]), &[]);
         if is_true(&(Value::Bool(nonce == Value::Null))) || is_true(&(Value::Bool(firstDeltaStart == Value::Null))) {
             return Value::Int(-1);
         }
@@ -2464,8 +2464,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             while { if !__for_first_465 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_465 = false; is_less_than(&i, &get_array_length(&cache)) } {
             let mut delta: Value = get_value(&cache, &i);
             let mut delta: Value = get_value(&cache, &i);
-            let mut deltaStart: Value = self.safe_integer_n(delta.clone(), Value::List(vec![Value::Str("sequenceStart".to_string()), Value::Str("sequence".to_string()), Value::Str("O".to_string())]), &[]);
-            let mut deltaEnd: Value = self.safe_integer_n(delta.clone(), Value::List(vec![Value::Str("sequenceEnd".to_string()), Value::Str("sequence".to_string()), Value::Str("C".to_string())]), &[]); // todo check
+            let mut deltaStart: Value = self.safe_integer_n(delta.clone(), Value::from(vec![Value::Str("sequenceStart".to_string()), Value::Str("sequence".to_string()), Value::Str("O".to_string())]), &[]);
+            let mut deltaEnd: Value = self.safe_integer_n(delta.clone(), Value::from(vec![Value::Str("sequenceEnd".to_string()), Value::Str("sequence".to_string()), Value::Str("C".to_string())]), &[]); // todo check
             if is_true(&(Value::Bool(deltaStart == Value::Null))) || is_true(&(Value::Bool(deltaEnd == Value::Null))) {
                 continue;
             }
@@ -2484,7 +2484,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (timestamp == Value::Null) {
             timestamp = self.safe_integer2(delta.clone(), Value::Str("time".to_string()), Value::Str("timestamp".to_string()), &[]);
         }
-        add_element_to_object(&mut orderbook, &Value::Str("nonce".to_string()), self.safe_integer_n(delta.clone(), Value::List(vec![Value::Str("sequenceEnd".to_string()), Value::Str("sequence".to_string()), Value::Str("C".to_string())]), &[timestamp.clone()]));
+        add_element_to_object(&mut orderbook, &Value::Str("nonce".to_string()), self.safe_integer_n(delta.clone(), Value::from(vec![Value::Str("sequenceEnd".to_string()), Value::Str("sequence".to_string()), Value::Str("C".to_string())]), &[timestamp.clone()]));
         add_element_to_object(&mut orderbook, &Value::Str("timestamp".to_string()), timestamp.clone());
         add_element_to_object(&mut orderbook, &Value::Str("datetime".to_string()), self.iso8601(timestamp.clone()));
         let mut change: Value = self.safe_string_k(delta.clone(), "change", &[]);
@@ -2498,20 +2498,20 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut side: Value = self.safe_string(splitChange.clone(), Value::Int(1), &[]);
             let mut quantity: Value = self.safe_number(splitChange.clone(), Value::Int(2), &[]);
             let mut type_var: Value = (if is_true(&(Value::Bool(side.as_str() == Some("buy")))) { Value::Str("bids".to_string()) } else { Value::Str("asks".to_string()) });
-            let mut value: Value = Value::List(vec![price.clone(), quantity.clone()]);
+            let mut value: Value = Value::from(vec![price.clone(), quantity.clone()]);
             if (type_var.as_str() == Some("bids")) {
                 storedBids.store_array(value.clone());
             }  else {
                 storedAsks.store_array(value.clone());
             }
         }  else if (changes != Value::Null) {
-            let mut bids: Value = self.safe_list_k(changes.clone(), "bids", &[Value::List(vec![])]);
-            let mut asks: Value = self.safe_list_k(changes.clone(), "asks", &[Value::List(vec![])]);
+            let mut bids: Value = self.safe_list_k(changes.clone(), "bids", &[Value::from(vec![])]);
+            let mut asks: Value = self.safe_list_k(changes.clone(), "asks", &[Value::from(vec![])]);
             self.handle_bid_asks(storedBids.clone(), bids.clone());
             self.handle_bid_asks(storedAsks.clone(), asks.clone());
         }  else {
-            let mut bids: Value = self.safe_list2(delta.clone(), Value::Str("bids".to_string()), Value::Str("b".to_string()), &[Value::List(vec![])]);
-            let mut asks: Value = self.safe_list2(delta.clone(), Value::Str("asks".to_string()), Value::Str("a".to_string()), &[Value::List(vec![])]);
+            let mut bids: Value = self.safe_list2(delta.clone(), Value::Str("bids".to_string()), Value::Str("b".to_string()), &[Value::from(vec![])]);
+            let mut asks: Value = self.safe_list2(delta.clone(), Value::Str("asks".to_string()), Value::Str("a".to_string()), &[Value::from(vec![])]);
             self.handle_bid_asks(storedBids.clone(), bids.clone());
             self.handle_bid_asks(storedAsks.clone(), asks.clone());
         }
@@ -2580,8 +2580,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         let mut isUnSub: Value = self.safe_bool_k(subscription.clone(), "unsubscribe", &[Value::Bool(false)]);
         if (isUnSub.as_bool() == Some(true)) {
-            let mut messageHashes: Value = self.safe_list_k(subscription.clone(), "messageHashes", &[Value::List(vec![])]);
-            let mut subMessageHashes: Value = self.safe_list_k(subscription.clone(), "subMessageHashes", &[Value::List(vec![])]);
+            let mut messageHashes: Value = self.safe_list_k(subscription.clone(), "messageHashes", &[Value::from(vec![])]);
+            let mut subMessageHashes: Value = self.safe_list_k(subscription.clone(), "subMessageHashes", &[Value::from(vec![])]);
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_468: bool = true;
@@ -2596,7 +2596,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut topic: Value = self.safe_string_k(subscription.clone(), "topic", &[]);
             if (topic.as_str() == Some("fundingRate")) {
                 // todo: add fundingRate topic to cleanCache
-                let mut symbols: Value = self.safe_list_k(subscription.clone(), "symbols", &[Value::List(vec![])]);
+                let mut symbols: Value = self.safe_list_k(subscription.clone(), "symbols", &[Value::from(vec![])]);
                 {
                                         let mut i: Value = Value::Int(0);
                     let mut __for_first_469: bool = true;
@@ -2691,10 +2691,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             if (symbol == Value::Null) {
                 channel = Value::Str(format!("{}{}", channel, Value::Str("All".to_string())));
             }
-            orders = self.subscribe_private_uta(Value::List(vec![messageHash.clone()]), messageHash.clone(), channel.clone(), &[symbol.clone(), params.clone()]).await;
+            orders = self.subscribe_private_uta(Value::from(vec![messageHash.clone()]), messageHash.clone(), channel.clone(), &[symbol.clone(), params.clone()]).await;
         }  else {
             let mut trigger: Value = self.safe_bool2(params.clone(), Value::Str("stop".to_string()), Value::Str("trigger".to_string()), &[]);
-            params = self.omit(params.clone(), Value::List(vec![Value::Str("stop".to_string()), Value::Str("trigger".to_string())]), &[]);
+            params = self.omit(params.clone(), Value::from(vec![Value::Str("stop".to_string()), Value::Str("trigger".to_string())]), &[]);
             let mut marketType: Value = Value::Null;
             { let __destr_tmp = self.handle_market_type_and_params(Value::Str("watchOrders".to_string()), &[market.clone(), params.clone()]); marketType = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
             let mut isFuturesMethod: Value = (Value::Bool(is_true(&(Value::Bool(marketType.as_str() != Some("spot")))) && is_true(&(Value::Bool(marketType.as_str() != Some("margin"))))));
@@ -3151,7 +3151,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             })]);
             messageHash = Value::Str(format!("{}{}", Value::Str("uta:".to_string()), messageHash));
             let mut channel: Value = Value::Str("execution.lite".to_string());
-            trades = self.subscribe_private_uta(Value::List(vec![messageHash.clone()]), channel.clone(), channel.clone(), &[Value::Null, params.clone()]).await;
+            trades = self.subscribe_private_uta(Value::from(vec![messageHash.clone()]), channel.clone(), channel.clone(), &[Value::Null, params.clone()]).await;
         }  else {
             let mut url: Value = self.negotiate(Value::Bool(true), &[isFuturesMethod.clone()]).await;
             let mut topic: Value = (if is_true(&isFuturesMethod) { Value::Str("/contractMarket/tradeOrders".to_string()) } else { Value::Str("/spotMarket/tradeOrders".to_string()) });
@@ -3418,7 +3418,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             });
             let mut channel: Value = Value::Str("balance".to_string());
             let __ws_arg_4 = self.extend(extendedParams.clone(), &[params.clone()]);
-            return self.subscribe_private_uta(Value::List(vec![messageHash.clone()]), subscriptionHash.clone(), channel.clone(), &[Value::Null, __ws_arg_4]).await;
+            return self.subscribe_private_uta(Value::from(vec![messageHash.clone()]), subscriptionHash.clone(), channel.clone(), &[Value::Null, __ws_arg_4]).await;
         }  else {
             let mut requestId: Value = to_string_val(&self.request_id());
             let mut request: Value = Value::Map({
@@ -3714,7 +3714,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("watchPositions".to_string()), Value::Str("uta".to_string()), &[uta.clone()]); uta = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         let mut tradeType: Value = (if is_true(&uta) { Value::Str("UNIFIED".to_string()) } else { Value::Str("TRADE".to_string()) });
         let mut messageHash: Value = Value::Str("positions".to_string());
-        let mut messageHashes: Value = Value::List(vec![]);
+        let mut messageHashes: Value = Value::from(vec![]);
         symbols = self.market_symbols(&[symbols.clone()]);
         if (symbols == Value::Null) {
             append_to_array(&mut messageHashes, messageHash.clone());
@@ -4134,11 +4134,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut unSubMessageHash: Value = Value::Str(format!("{}{}", Value::Str("unsubscribe:".to_string()), subMessageHash));
         let mut subscription: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("symbols".to_string(), Value::List(vec![symbol.clone()]));
+                m.insert("symbols".to_string(), Value::from(vec![symbol.clone()]));
                 m.insert("topic".to_string(), Value::Str("fundingRate".to_string()));
                 m.insert("unsubscribe".to_string(), Value::Bool(true));
-                m.insert("subMessageHashes".to_string(), Value::List(vec![subMessageHash.clone()]));
-                m.insert("messageHashes".to_string(), Value::List(vec![unSubMessageHash.clone()]));
+                m.insert("subMessageHashes".to_string(), Value::from(vec![subMessageHash.clone()]));
+                m.insert("messageHashes".to_string(), Value::from(vec![unSubMessageHash.clone()]));
             m
         });
         return self.subscribe_public_uta(unSubMessageHash.clone(), channel.clone(), symbol.clone(), &[params.clone(), subscription.clone()]).await;
@@ -4266,11 +4266,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut unSubMessageHash: Value = Value::Str(format!("{}{}", Value::Str("unsubscribe:".to_string()), subMessageHash));
         let mut subscription: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("symbols".to_string(), Value::List(vec![symbol.clone()]));
+                m.insert("symbols".to_string(), Value::from(vec![symbol.clone()]));
                 m.insert("topic".to_string(), Value::Str("ticker".to_string()));
                 m.insert("unsubscribe".to_string(), Value::Bool(true));
-                m.insert("subMessageHashes".to_string(), Value::List(vec![subMessageHash.clone()]));
-                m.insert("messageHashes".to_string(), Value::List(vec![unSubMessageHash.clone()]));
+                m.insert("subMessageHashes".to_string(), Value::from(vec![subMessageHash.clone()]));
+                m.insert("messageHashes".to_string(), Value::from(vec![unSubMessageHash.clone()]));
             m
         });
         return self.subscribe_public_uta(unSubMessageHash.clone(), channel.clone(), symbol.clone(), &[params.clone(), subscription.clone()]).await;

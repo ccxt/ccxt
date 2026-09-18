@@ -425,7 +425,7 @@ impl BitoproCore {
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         let mut event: Value = self.safe_string_k(message.clone(), "event", &[]);
         let mut messageHash: Value = Value::Str(format!("{}{}", add(&event, &Value::Str(":".to_string())), symbol));
-        let mut rawData: Value = self.safe_value_k(message.clone(), "data", &[Value::List(vec![])]);
+        let mut rawData: Value = self.safe_value_k(message.clone(), "data", &[Value::from(vec![])]);
         let mut trades: Value = self.parse_trades(rawData.clone(), &[market.clone()]);
         let mut tradesCache: Value = self.safe_value(self.trades.clone(), symbol.clone(), &[]);
         if (tradesCache == Value::Null) {

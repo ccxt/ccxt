@@ -161,7 +161,7 @@ impl OpinionCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), Value::Str("opinion".to_string()));
         m.insert("name".to_string(), Value::Str("Opinion".to_string()));
-        m.insert("countries".to_string(), Value::List(vec![Value::Str("HK".to_string())]));
+        m.insert("countries".to_string(), Value::from(vec![Value::Str("HK".to_string())]));
         m.insert("rateLimit".to_string(), Value::Int(67));
         m.insert("certified".to_string(), Value::Bool(false));
         m.insert("pro".to_string(), Value::Bool(true));
@@ -213,7 +213,7 @@ impl OpinionCore {
     m
 }));
         m.insert("www".to_string(), Value::Str("https://opinion.trade".to_string()));
-        m.insert("doc".to_string(), Value::List(vec![Value::Str("https://docs.opinion.trade".to_string())]));
+        m.insert("doc".to_string(), Value::from(vec![Value::Str("https://docs.opinion.trade".to_string())]));
     m
 }));
         m.insert("api".to_string(), Value::Map({
@@ -326,7 +326,7 @@ impl OpinionCore {
         m.insert("tradesLimit".to_string(), Value::Int(1000));
         m.insert("ordersLimit".to_string(), Value::Int(1000));
         m.insert("myTradesLimit".to_string(), Value::Int(1000));
-        m.insert("eventScopeParams".to_string(), Value::List(vec![Value::Str("labelId".to_string())]));
+        m.insert("eventScopeParams".to_string(), Value::from(vec![Value::Str("labelId".to_string())]));
         m.insert("defaultFetchEventsLimit".to_string(), Value::Int(20));
         m.insert("maxFetchEventsResults".to_string(), Value::Int(100));
         m.insert("maxEventsPages".to_string(), Value::Int(50));
@@ -355,18 +355,18 @@ impl OpinionCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut rest: Value = self.omit(params.clone(), Value::List(vec![Value::Str("limit".to_string())]), &[]);
+        let mut rest: Value = self.omit(params.clone(), Value::from(vec![Value::Str("limit".to_string())]), &[]);
         let mut userLimit: Value = self.safe_integer_k(params.clone(), "limit", &[]);
         let mut pageLimit: Value = self.safe_integer_k(self.options.clone(), "marketsPageLimit", &[Value::Int(20)]);
         let mut maxPages: Value = self.safe_integer_k(self.options.clone(), "maxMarketsPages", &[Value::Int(50)]);
-        let mut flatMarkets: Value = Value::List(vec![]);
+        let mut flatMarkets: Value = Value::from(vec![]);
         // seen-guard keyed by the event handle; the events themselves go through setEvents below
         // so the cache gets the base indexing (id + handle + slug) instead of a raw assignment
         let mut seenEvents: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut eventsList: Value = Value::List(vec![]);
+        let mut eventsList: Value = Value::from(vec![]);
         let mut page: Value = Value::Int(1);
         let mut fetchedRawCount: Value = Value::Int(0);
         while is_true(&Value::Bool(true)) {
@@ -383,7 +383,7 @@ impl OpinionCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-            let mut rawMarkets: Value = self.safe_list_k(result.clone(), "list", &[Value::List(vec![])]);
+            let mut rawMarkets: Value = self.safe_list_k(result.clone(), "list", &[Value::from(vec![])]);
             let mut rawMarketsLength: Value = Value::Int(rawMarkets.len() as i64);
             fetchedRawCount = self.sum(&[fetchedRawCount.clone(), rawMarketsLength.clone()]);
             // categorical parents expand into several flatMarkets entries each, so the raw,
@@ -504,9 +504,9 @@ impl OpinionCore {
         let mut resolved: Value = (Value::Bool(statusEnum.as_str() == Some("Resolved")));
         let mut resultTokenId: Value = self.safe_string_k(raw.clone(), "resultTokenId", &[]);
         let mut hasResult: bool = is_true(&resolved) && is_true(&(Value::Bool(resultTokenId != Value::Null))) && is_true(&(Value::Bool(resultTokenId.as_str() != Some(""))));
-        let mut outcomeLabels: Value = Value::List(vec![self.safe_string_k(raw.clone(), "yesLabel", &[Value::Str("YES".to_string())]), self.safe_string_k(raw.clone(), "noLabel", &[Value::Str("NO".to_string())])]);
-        let mut outcomeTokenIds: Value = Value::List(vec![self.safe_string_k(raw.clone(), "yesTokenId", &[]), self.safe_string_k(raw.clone(), "noTokenId", &[])]);
-        let mut outcomes: Value = Value::List(vec![]);
+        let mut outcomeLabels: Value = Value::from(vec![self.safe_string_k(raw.clone(), "yesLabel", &[Value::Str("YES".to_string())]), self.safe_string_k(raw.clone(), "noLabel", &[Value::Str("NO".to_string())])]);
+        let mut outcomeTokenIds: Value = Value::from(vec![self.safe_string_k(raw.clone(), "yesTokenId", &[]), self.safe_string_k(raw.clone(), "noTokenId", &[])]);
+        let mut outcomes: Value = Value::from(vec![]);
         let mut resolvedOutcome: Value = Value::Null;
         {
                         let mut i: Value = Value::Int(0);
@@ -647,7 +647,7 @@ impl OpinionCore {
         let mut eventId: Value = self.safe_string_k(params.clone(), "eventId", &[]);
         let mut slug: Value = self.safe_string_k(params.clone(), "slug", &[]);
         if is_true(&(Value::Bool(eventId != Value::Null))) || is_true(&(Value::Bool(slug != Value::Null))) {
-            let mut singleRest: Value = self.omit(params.clone(), Value::List(vec![Value::Str("eventId".to_string()), Value::Str("slug".to_string()), Value::Str("query".to_string()), Value::Str("queries".to_string()), Value::Str("tags".to_string()), Value::Str("status".to_string()), Value::Str("sort".to_string()), Value::Str("searchIn".to_string()), Value::Str("limit".to_string())]), &[]);
+            let mut singleRest: Value = self.omit(params.clone(), Value::from(vec![Value::Str("eventId".to_string()), Value::Str("slug".to_string()), Value::Str("query".to_string()), Value::Str("queries".to_string()), Value::Str("tags".to_string()), Value::Str("status".to_string()), Value::Str("sort".to_string()), Value::Str("searchIn".to_string()), Value::Str("limit".to_string())]), &[]);
             let mut singleResponse: Value = Value::Null;
             if (slug != Value::Null) {
                 let __ws_arg_1 = self.extend(Value::Map({
@@ -674,9 +674,9 @@ impl OpinionCore {
 })]);
             let mut single: Value = self.parse_event(singleData.clone());
             self.index_event_outcomes(single.clone());
-            return self.apply_event_fetch_params(Value::List(vec![single.clone()]), &[params.clone(), queries.clone()]);
+            return self.apply_event_fetch_params(Value::from(vec![single.clone()]), &[params.clone(), queries.clone()]);
         }
-        let mut rest: Value = self.omit(params.clone(), Value::List(vec![Value::Str("query".to_string()), Value::Str("queries".to_string()), Value::Str("tags".to_string()), Value::Str("status".to_string()), Value::Str("sort".to_string()), Value::Str("searchIn".to_string()), Value::Str("limit".to_string())]), &[]);
+        let mut rest: Value = self.omit(params.clone(), Value::from(vec![Value::Str("query".to_string()), Value::Str("queries".to_string()), Value::Str("tags".to_string()), Value::Str("status".to_string()), Value::Str("sort".to_string()), Value::Str("searchIn".to_string()), Value::Str("limit".to_string())]), &[]);
         let mut pageLimit: Value = self.safe_integer_k(self.options.clone(), "defaultFetchEventsLimit", &[Value::Int(20)]);
         let mut userLimit: Value = self.safe_integer_k(params.clone(), "limit", &[]);
         // bound how many events are actually FETCHED: the user limit when given, otherwise
@@ -687,7 +687,7 @@ impl OpinionCore {
             fetchCap = userLimit.clone();
         }
         let mut maxPages: Value = self.safe_integer_k(self.options.clone(), "maxEventsPages", &[Value::Int(50)]);
-        let mut rawEvents: Value = Value::List(vec![]);
+        let mut rawEvents: Value = Value::from(vec![]);
         let mut page: Value = Value::Int(1);
         let mut fetchedRawCount: Value = Value::Int(0);
         while is_true(&Value::Bool(true)) {
@@ -712,7 +712,7 @@ impl OpinionCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-            let mut pageEvents: Value = self.safe_list_k(result.clone(), "list", &[Value::List(vec![])]);
+            let mut pageEvents: Value = self.safe_list_k(result.clone(), "list", &[Value::from(vec![])]);
             let mut pageEventsLength: Value = Value::Int(pageEvents.len() as i64);
             fetchedRawCount = self.sum(&[fetchedRawCount.clone(), pageEventsLength.clone()]);
             {
@@ -729,7 +729,7 @@ impl OpinionCore {
             page = self.sum(&[page.clone(), Value::Int(1)]);
         }
         let mut rawEventsLength: Value = Value::Int(rawEvents.len() as i64);
-        let mut parsedEvents: Value = Value::List(vec![]);
+        let mut parsedEvents: Value = Value::from(vec![]);
         if (self.markets.clone() == Value::Null) {
             { let __t = self.create_safe_dictionary(&[]); self.markets = __t; }
         }
@@ -740,7 +740,7 @@ impl OpinionCore {
             let mut event: Value = self.parse_event(get_value(&rawEvents, &i));
             append_to_array(&mut parsedEvents, event.clone());
             // register the parsed markets so populateOutcomes can index their outcomes
-            let mut eventMarkets: Value = self.safe_list_k(event.clone(), "markets", &[Value::List(vec![])]);
+            let mut eventMarkets: Value = self.safe_list_k(event.clone(), "markets", &[Value::from(vec![])]);
             let mut eventMarketsLength: Value = Value::Int(eventMarkets.len() as i64);
             {
                                 let mut mi: Value = Value::Int(0);
@@ -906,9 +906,9 @@ impl OpinionCore {
         let mut slug: Value = self.safe_string_k(rawEvent.clone(), "slug", &[]);
         let mut title: Value = self.safe_string_k(rawEvent.clone(), "marketTitle", &[]);
         let mut eventHandle: Value = (if is_true(&(Value::Bool(title != Value::Null))) { self.shorten_slug(title.clone()) } else { self.shorten_slug(slug.clone()) });
-        let mut rawChildren: Value = self.safe_list_k(rawEvent.clone(), "childMarkets", &[Value::List(vec![])]);
+        let mut rawChildren: Value = self.safe_list_k(rawEvent.clone(), "childMarkets", &[Value::from(vec![])]);
         let mut rawChildrenLength: Value = Value::Int(rawChildren.len() as i64);
-        let mut marketsList: Value = Value::List(vec![]);
+        let mut marketsList: Value = Value::from(vec![]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1350: bool = true;
@@ -924,7 +924,7 @@ impl OpinionCore {
             end = self.safe_timestamp(rawEvent.clone(), Value::Str("cutoffAt".to_string()), &[]);
         }
         let mut created: Value = self.safe_timestamp(rawEvent.clone(), Value::Str("createdAt".to_string()), &[]);
-        let mut labels: Value = self.safe_list_k(rawEvent.clone(), "labels", &[Value::List(vec![])]);
+        let mut labels: Value = self.safe_list_k(rawEvent.clone(), "labels", &[Value::from(vec![])]);
         let __ws_arg_6 = self.safe_string_k(rawEvent.clone(), "rules", &[]);
         let __ws_arg_7 = self.safe_string(labels.clone(), Value::Int(0), &[]);
         let __ws_arg_8 = self.safe_number_k(rawEvent.clone(), "volume", &[]);
@@ -977,7 +977,7 @@ impl OpinionCore {
         m.insert("token_id".to_string(), tokenId.clone());
     m
 }), &[params.clone()]);
-        let mut promises: Value = Value::List(vec![self.opinion_public_get_token_latest_price(&[__ws_arg_12]).await, self.opinion_public_get_token_orderbook(&[self.extend(Value::Map({
+        let mut promises: Value = Value::from(vec![self.opinion_public_get_token_latest_price(&[__ws_arg_12]).await, self.opinion_public_get_token_orderbook(&[self.extend(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("token_id".to_string(), tokenId.clone());
     m
@@ -1038,8 +1038,8 @@ impl OpinionCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut bids: Value = self.safe_list_k(bookResult.clone(), "bids", &[Value::List(vec![])]);
-        let mut asks: Value = self.safe_list_k(bookResult.clone(), "asks", &[Value::List(vec![])]);
+        let mut bids: Value = self.safe_list_k(bookResult.clone(), "bids", &[Value::from(vec![])]);
+        let mut asks: Value = self.safe_list_k(bookResult.clone(), "asks", &[Value::from(vec![])]);
         let mut bestBid: Value = self.safe_dict(bids.clone(), Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1099,7 +1099,7 @@ impl OpinionCore {
         }
         self.load_outcomes(&[outcomes.clone()]).await;
         let mut outcomesLength: Value = Value::Int(outcomes.len() as i64);
-        let mut promises: Value = Value::List(vec![]);
+        let mut promises: Value = Value::from(vec![]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1351: bool = true;
@@ -1252,8 +1252,8 @@ impl OpinionCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut history: Value = self.safe_list_k(result.clone(), "history", &[Value::List(vec![])]);
-        let mut candles: Value = Value::List(vec![]);
+        let mut history: Value = self.safe_list_k(result.clone(), "history", &[Value::from(vec![])]);
+        let mut candles: Value = Value::from(vec![]);
         let mut historyLength: Value = Value::Int(history.len() as i64);
         {
                         let mut i: Value = Value::Int(0);
@@ -1264,7 +1264,7 @@ impl OpinionCore {
             let mut price: Value = self.safe_number_k(point.clone(), "p", &[]);
             let mut timestamp: Value = self.safe_timestamp(point.clone(), Value::Str("t".to_string()), &[]);
             if is_true(&(Value::Bool(price != Value::Null))) && is_true(&(Value::Bool(timestamp != Value::Null))) {
-                append_to_array(&mut candles, Value::List(vec![timestamp.clone(), price.clone(), price.clone(), price.clone(), price.clone(), Value::Null]));
+                append_to_array(&mut candles, Value::from(vec![timestamp.clone(), price.clone(), price.clone(), price.clone(), price.clone(), Value::Null]));
             }
         }
         }
@@ -1289,7 +1289,7 @@ impl OpinionCore {
         //     { "p": "0.001", "t": 1785495600 }
         //
         let mut price: Value = self.safe_number_k(ohlcv.clone(), "p", &[]);
-        return Value::List(vec![self.safe_timestamp(ohlcv.clone(), Value::Str("t".to_string()), &[]), price.clone(), price.clone(), price.clone(), price.clone(), Value::Null]);
+        return Value::from(vec![self.safe_timestamp(ohlcv.clone(), Value::Str("t".to_string()), &[]), price.clone(), price.clone(), price.clone(), price.clone(), Value::Null]);
 
     Value::Null
 }
@@ -1323,7 +1323,7 @@ impl OpinionCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut list: Value = self.safe_list_k(result.clone(), "list", &[Value::List(vec![])]);
+        let mut list: Value = self.safe_list_k(result.clone(), "list", &[Value::from(vec![])]);
         let mut listLength: Value = Value::Int(list.len() as i64);
         let mut quoteTokens: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1393,7 +1393,7 @@ impl OpinionCore {
         });
         let mut messageTypes: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("Order".to_string(), Value::List(vec![Value::Map({
+                m.insert("Order".to_string(), Value::from(vec![Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("name".to_string(), Value::Str("salt".to_string()));
         m.insert("type".to_string(), Value::Str("uint256".to_string()));
@@ -1570,7 +1570,7 @@ impl OpinionCore {
         let mut sideInt: Value = (if is_true(&(Value::Bool(sideStr.as_str() == Some("BUY")))) { Value::Int(0) } else { Value::Int(1) });
         let mut salt: Value = self.number_to_string(self.milliseconds());
         let mut postOnly: Value = self.safe_bool_k(params.clone(), "postOnly", &[Value::Bool(false)]);
-        let mut rest: Value = self.omit(params.clone(), Value::List(vec![Value::Str("postOnly".to_string())]), &[]);
+        let mut rest: Value = self.omit(params.clone(), Value::from(vec![Value::Str("postOnly".to_string())]), &[]);
         let mut maker: Value = self.load_multi_sign_address().await;
         // Ethereum addresses are case-insensitive - a checksummed multiSignAddress compared
         // against a differently-cased walletAddress with strict equality would pick the wrong
@@ -1764,7 +1764,7 @@ impl OpinionCore {
         m.insert("cost".to_string(), self.safe_number_k(order.clone(), "filledAmount", &[]));
         m.insert("filled".to_string(), self.safe_number_k(order.clone(), "filledShares", &[]));
         m.insert("fee".to_string(), Value::Null);
-        m.insert("trades".to_string(), Value::List(vec![]));
+        m.insert("trades".to_string(), Value::from(vec![]));
     m
 }), &[market.clone()]);
 
@@ -1810,7 +1810,7 @@ impl OpinionCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut orders: Value = self.safe_list_k(result.clone(), "list", &[Value::List(vec![])]);
+        let mut orders: Value = self.safe_list_k(result.clone(), "list", &[Value::from(vec![])]);
         return self.parse_prediction_orders(orders.clone(), &[outcomeObj.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -1961,7 +1961,7 @@ impl OpinionCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut trades: Value = self.safe_list_k(result.clone(), "list", &[Value::List(vec![])]);
+        let mut trades: Value = self.safe_list_k(result.clone(), "list", &[Value::from(vec![])]);
         let mut tradesLength: Value = Value::Int(trades.len() as i64);
         {
                         let mut i: Value = Value::Int(0);
@@ -2103,7 +2103,7 @@ impl OpinionCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut rawBalances: Value = self.safe_list_k(result.clone(), "balances", &[Value::List(vec![])]);
+        let mut rawBalances: Value = self.safe_list_k(result.clone(), "balances", &[Value::from(vec![])]);
         let mut rawBalancesLength: Value = Value::Int(rawBalances.len() as i64);
         {
                         let mut i: Value = Value::Int(0);
@@ -2139,7 +2139,7 @@ impl OpinionCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut balances: Value = self.safe_list_k(data.clone(), "balances", &[Value::List(vec![])]);
+        let mut balances: Value = self.safe_list_k(data.clone(), "balances", &[Value::from(vec![])]);
         let mut balancesLength: Value = Value::Int(balances.len() as i64);
         {
                         let mut i: Value = Value::Int(0);
@@ -2197,7 +2197,7 @@ impl OpinionCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut positions: Value = self.safe_list_k(result.clone(), "list", &[Value::List(vec![])]);
+        let mut positions: Value = self.safe_list_k(result.clone(), "list", &[Value::from(vec![])]);
         let mut parsed: Value = self.parse_prediction_positions(positions.clone(), &[]);
         if (outcomesLength.as_f64() == Some(0.0)) {
             return parsed;
@@ -2207,7 +2207,7 @@ impl OpinionCore {
             m
         });
         // copy to a plain list so the strict null checks see one shape
-        let mut outcomesList: Value = (if is_true(&(Value::Bool(outcomes == Value::Null))) { Value::List(vec![]) } else { outcomes.clone() });
+        let mut outcomesList: Value = (if is_true(&(Value::Bool(outcomes == Value::Null))) { Value::from(vec![]) } else { outcomes.clone() });
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1359: bool = true;
@@ -2219,7 +2219,7 @@ impl OpinionCore {
             }
         }
         }
-        let mut filtered: Value = Value::List(vec![]);
+        let mut filtered: Value = Value::from(vec![]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1360: bool = true;
@@ -2313,7 +2313,7 @@ impl OpinionCore {
         });
         let mut messageTypes: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("OpinionApiKeyAuth".to_string(), Value::List(vec![Value::Map({
+                m.insert("OpinionApiKeyAuth".to_string(), Value::from(vec![Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("name".to_string(), Value::Str("walletAddress".to_string()));
         m.insert("type".to_string(), Value::Str("address".to_string()));
@@ -2572,7 +2572,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     m
 })]);
             if (self.safe_integer_k(info.clone(), "marketId", &[]).as_f64() == marketId.as_f64()) {
-                let mut outcomes: Value = self.safe_list_k(market.clone(), "outcomes", &[Value::List(vec![])]);
+                let mut outcomes: Value = self.safe_list_k(market.clone(), "outcomes", &[Value::from(vec![])]);
                 let mut index: Value = (if is_true(&(Value::Bool(outcomeSide.as_f64() == Some(2.0)))) { Value::Int(1) } else { Value::Int(0) });
                 return self.safe_dict(outcomes.clone(), index.clone(), &[]);
             }
@@ -2674,7 +2674,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut bookSide: Value = (if is_true(&(Value::Bool(sideStr.as_str() == Some("bids")))) { get_value(&orderbook, &Value::Str("bids".to_string())) } else { get_value(&orderbook, &Value::Str("asks".to_string())) });
         let mut price: Value = self.safe_number_k(message.clone(), "price", &[]);
         let mut size: Value = self.safe_number_k(message.clone(), "size", &[]);
-        bookSide.store_array(Value::List(vec![price.clone(), size.clone()]));
+        bookSide.store_array(Value::from(vec![price.clone(), size.clone()]));
         let mut now: Value = self.milliseconds();
         add_element_to_object(&mut orderbook, &Value::Str("timestamp".to_string()), now.clone());
         add_element_to_object(&mut orderbook, &Value::Str("datetime".to_string()), self.iso8601(now.clone()));
@@ -2946,7 +2946,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         m.insert("cost".to_string(), self.safe_number_k(message.clone(), "filledAmount", &[]));
         m.insert("filled".to_string(), self.safe_number_k(message.clone(), "filledShares", &[]));
         m.insert("fee".to_string(), Value::Null);
-        m.insert("trades".to_string(), Value::List(vec![]));
+        m.insert("trades".to_string(), Value::from(vec![]));
     m
 }), &[outcomeObj.clone()]);
         if is_equal(&self.orders, &Value::Null) {

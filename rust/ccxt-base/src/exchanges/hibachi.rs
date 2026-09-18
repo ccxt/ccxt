@@ -176,7 +176,7 @@ impl HibachiCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), Value::Str("hibachi".to_string()));
         m.insert("name".to_string(), Value::Str("Hibachi".to_string()));
-        m.insert("countries".to_string(), Value::List(vec![Value::Str("US".to_string())]));
+        m.insert("countries".to_string(), Value::from(vec![Value::Str("US".to_string())]));
         m.insert("rateLimit".to_string(), Value::Int(100));
         m.insert("userAgent".to_string(), self.userAgents.as_map().and_then(|__m| __m.get("chrome")).cloned().unwrap_or(Value::Null));
         m.insert("certified".to_string(), Value::Bool(false));
@@ -664,7 +664,7 @@ impl HibachiCore {
         m.insert("precision".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("amount".to_string(), self.parse_number(self.parse_precision(&[self.safe_string_k(market.clone(), "underlyingDecimals", &[])]), &[]));
-        m.insert("price".to_string(), (match ((self.parse_number(self.safe_value(self.safe_list_k(market.clone(), "orderbookGranularities", &[Value::List(vec![])]), Value::Int(0), &[]), &[])).as_f64(), (Value::Int(10000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }));
+        m.insert("price".to_string(), (match ((self.parse_number(self.safe_value(self.safe_list_k(market.clone(), "orderbookGranularities", &[Value::from(vec![])]), Value::Int(0), &[]), &[])).as_f64(), (Value::Int(10000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }));
     m
 }));
         m.insert("limits".to_string(), Value::Map({
@@ -1034,8 +1034,8 @@ impl HibachiCore {
         //     ]
         // }
         //
-        let mut trades: Value = self.safe_list_k(response.clone(), "trades", &[Value::List(vec![])]);
-        let mut tradesList: Value = Value::List(vec![]);
+        let mut trades: Value = self.safe_list_k(response.clone(), "trades", &[Value::from(vec![])]);
+        let mut tradesList: Value = Value::from(vec![]);
         if (trades != Value::Null) {
             tradesList = trades.clone();
         }
@@ -1069,7 +1069,7 @@ impl HibachiCore {
             m
         });
         let __ws_arg_2 = self.extend(request.clone(), &[params.clone()]);
-        let mut rawPromises: Value = Value::List(vec![self.public_get_market_data_prices(&[__ws_arg_2]).await, self.public_get_market_data_stats(&[self.extend(request.clone(), &[params.clone()])]).await]);
+        let mut rawPromises: Value = Value::from(vec![self.public_get_market_data_prices(&[__ws_arg_2]).await, self.public_get_market_data_stats(&[self.extend(request.clone(), &[params.clone()])]).await]);
         let mut promises: Value = promise_all(&rawPromises).await;
         let mut pricesResponse: Value = promises.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         // {
@@ -1403,7 +1403,7 @@ impl HibachiCore {
         if (triggerPrice != Value::Null) {
             add_element_to_object(&mut request, &Value::Str("triggerPrice".to_string()), triggerPrice.clone());
         }
-        params = self.omit(params.clone(), Value::List(vec![Value::Str("reduceOnly".to_string()), Value::Str("reduce_only".to_string()), Value::Str("postOnly".to_string()), Value::Str("timeInForce".to_string()), Value::Str("stopPrice".to_string()), Value::Str("triggerPrice".to_string())]), &[]);
+        params = self.omit(params.clone(), Value::from(vec![Value::Str("reduceOnly".to_string()), Value::Str("reduce_only".to_string()), Value::Str("postOnly".to_string()), Value::Str("timeInForce".to_string()), Value::Str("stopPrice".to_string()), Value::Str("triggerPrice".to_string())]), &[]);
         return self.extend(request.clone(), &[params.clone()]);
 
     Value::Null
@@ -1463,7 +1463,7 @@ impl HibachiCore {
             self.load_markets(&[]).await;
         }
         let mut nonce: Value = self.nonce();
-        let mut requestOrders: Value = Value::List(vec![]);
+        let mut requestOrders: Value = Value::from(vec![]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_732: bool = true;
@@ -1495,8 +1495,8 @@ impl HibachiCore {
         //
         // { "orders": [ { nonce: '1754349993908', orderId: '589642085255349248' } ] }
         //
-        let mut ret: Value = Value::List(vec![]);
-        let mut responseOrders: Value = self.safe_list_k(response.clone(), "orders", &[Value::List(vec![])]);
+        let mut ret: Value = Value::from(vec![]);
+        let mut responseOrders: Value = self.safe_list_k(response.clone(), "orders", &[Value::from(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_733: bool = true;
@@ -1609,7 +1609,7 @@ impl HibachiCore {
             self.load_markets(&[]).await;
         }
         let mut nonce: Value = self.nonce();
-        let mut requestOrders: Value = Value::List(vec![]);
+        let mut requestOrders: Value = Value::from(vec![]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_734: bool = true;
@@ -1642,8 +1642,8 @@ impl HibachiCore {
         //
         // { "orders": [ { "orderId": "589636801329628160" } ] }
         //
-        let mut ret: Value = Value::List(vec![]);
-        let mut responseOrders: Value = self.safe_list_k(response.clone(), "orders", &[Value::List(vec![])]);
+        let mut ret: Value = Value::from(vec![]);
+        let mut responseOrders: Value = self.safe_list_k(response.clone(), "orders", &[Value::from(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_735: bool = true;
@@ -1727,7 +1727,7 @@ impl HibachiCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut orders: Value = Value::List(vec![]);
+        let mut orders: Value = Value::from(vec![]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_736: bool = true;
@@ -1748,8 +1748,8 @@ impl HibachiCore {
         //
         // { "orders": [ { "orderId": "589636801329628160" } ] }
         //
-        let mut ret: Value = Value::List(vec![]);
-        let mut responseOrders: Value = self.safe_list_k(response.clone(), "orders", &[Value::List(vec![])]);
+        let mut ret: Value = Value::from(vec![]);
+        let mut responseOrders: Value = self.safe_list_k(response.clone(), "orders", &[Value::from(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_737: bool = true;
@@ -1806,7 +1806,7 @@ impl HibachiCore {
         }
         let __ws_arg_9 = self.extend(request.clone(), &[params.clone()]);
         let mut response: Value = self.private_delete_trade_orders(&[__ws_arg_9]).await;
-        return Value::List(vec![self.safe_order(Value::Map({
+        return Value::from(vec![self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), response.clone());
     m
@@ -2041,7 +2041,7 @@ impl HibachiCore {
         // }
         //
         let mut trades: Value = self.safe_list_k(response.clone(), "trades", &[]);
-        let mut tradesList: Value = Value::List(vec![]);
+        let mut tradesList: Value = Value::from(vec![]);
         if (trades != Value::Null) {
             tradesList = trades.clone();
         }
@@ -2052,7 +2052,7 @@ impl HibachiCore {
 
     pub fn parse_ohlcv(&self, mut ohlcv: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
-        return Value::List(vec![self.safe_integer_product(ohlcv.clone(), Value::Str("timestamp".to_string()), Value::Int(1000), &[]), self.safe_number_k(ohlcv.clone(), "open", &[]), self.safe_number_k(ohlcv.clone(), "high", &[]), self.safe_number_k(ohlcv.clone(), "low", &[]), self.safe_number_k(ohlcv.clone(), "close", &[]), self.safe_number_k(ohlcv.clone(), "volumeNotional", &[])]);
+        return Value::from(vec![self.safe_integer_product(ohlcv.clone(), Value::Str("timestamp".to_string()), Value::Int(1000), &[]), self.safe_number_k(ohlcv.clone(), "open", &[]), self.safe_number_k(ohlcv.clone(), "high", &[]), self.safe_number_k(ohlcv.clone(), "low", &[]), self.safe_number_k(ohlcv.clone(), "close", &[]), self.safe_number_k(ohlcv.clone(), "volumeNotional", &[])]);
 
     Value::Null
 }
@@ -2169,7 +2169,7 @@ impl HibachiCore {
         //         ]
         //     }
         //
-        let mut orders: Value = self.safe_list_k(response.clone(), "orders", &[Value::List(vec![])]);
+        let mut orders: Value = self.safe_list_k(response.clone(), "orders", &[Value::from(vec![])]);
         let mut parsedOrders: Value = self.parse_orders(orders.clone(), &[market.clone()]);
         return self.filter_by_symbol_since_limit(parsedOrders.clone(), &[symbol.clone(), since.clone(), limit.clone()]);
 
@@ -2287,7 +2287,7 @@ impl HibachiCore {
         //     }
         //   ]
         //
-        let mut klines: Value = self.safe_list_k(response.clone(), "klines", &[Value::List(vec![])]);
+        let mut klines: Value = self.safe_list_k(response.clone(), "klines", &[Value::from(vec![])]);
         return self.parse_ohlc_vs(klines.clone(), &[market.clone(), timeframe.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -2361,7 +2361,7 @@ impl HibachiCore {
         //     ],
         //   }
         //
-        let mut data: Value = self.safe_list_k(response.clone(), "positions", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response.clone(), "positions", &[Value::from(vec![])]);
         return self.parse_positions(data.clone(), &[symbols.clone()]);
 
     Value::Null
@@ -2610,7 +2610,7 @@ impl HibachiCore {
             m
         });
         let __ws_arg_17 = self.extend(request.clone(), &[params.clone()]);
-        let mut rawPromises: Value = Value::List(vec![self.private_get_capital_history(&[__ws_arg_17]).await, self.private_get_trade_account_trading_history(&[self.extend(request.clone(), &[params.clone()])]).await]);
+        let mut rawPromises: Value = Value::from(vec![self.private_get_capital_history(&[__ws_arg_17]).await, self.private_get_trade_account_trading_history(&[self.extend(request.clone(), &[params.clone()])]).await]);
         let mut promises: Value = promise_all(&rawPromises).await;
         let mut responseCapitalHistory: Value = promises.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         //
@@ -2666,7 +2666,7 @@ impl HibachiCore {
         //     ]
         // }
         //
-        let mut rowsCapitalHistory: Value = self.safe_list_k(responseCapitalHistory.clone(), "transactions", &[Value::List(vec![])]);
+        let mut rowsCapitalHistory: Value = self.safe_list_k(responseCapitalHistory.clone(), "transactions", &[Value::from(vec![])]);
         let mut responseTradingHistory: Value = promises.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         //
         // {
@@ -2694,7 +2694,7 @@ impl HibachiCore {
         //     ]
         // }
         //
-        let mut rowsTradingHistory: Value = self.safe_list_k(responseTradingHistory.clone(), "tradingHistory", &[Value::List(vec![])]);
+        let mut rowsTradingHistory: Value = self.safe_list_k(responseTradingHistory.clone(), "tradingHistory", &[Value::from(vec![])]);
         let mut rows: Value = self.array_concat(rowsCapitalHistory.clone(), rowsTradingHistory.clone());
         return self.parse_ledger(rows.clone(), &[currency.clone(), since.clone(), limit.clone(), params.clone()]);
 
@@ -2831,7 +2831,7 @@ impl HibachiCore {
         //         },
         //     ]
         // }
-        let mut transactions: Value = self.safe_list_k(response.clone(), "transactions", &[Value::List(vec![])]);
+        let mut transactions: Value = self.safe_list_k(response.clone(), "transactions", &[Value::from(vec![])]);
         return self.parse_transactions(transactions.clone(), &[currency.clone(), since.clone(), limit.clone(), params.clone()]);
 
     Value::Null
@@ -2919,7 +2919,7 @@ impl HibachiCore {
 
     pub fn parse_settlements(&self, mut settlements: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
-        let mut result: Value = Value::List(vec![]);
+        let mut result: Value = Value::from(vec![]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_738: bool = true;
@@ -2992,7 +2992,7 @@ impl HibachiCore {
         //         ]
         //     }
         //
-        let mut data: Value = self.safe_list_k(response.clone(), "settlements", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response.clone(), "settlements", &[Value::from(vec![])]);
         let mut settlements: Value = self.parse_settlements(data.clone(), &[market.clone()]);
         let mut sorted: Value = self.sort_by(settlements.clone(), Value::Str("timestamp".to_string()), &[]);
         return self.filter_by_symbol_since_limit(sorted.clone(), &[symbol.clone(), since.clone(), limit.clone()]);
@@ -3175,8 +3175,8 @@ impl HibachiCore {
         //     ]
         // }
         //
-        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
-        let mut rates: Value = Value::List(vec![]);
+        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::from(vec![])]);
+        let mut rates: Value = Value::from(vec![]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_739: bool = true;

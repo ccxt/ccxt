@@ -159,7 +159,7 @@ impl UpbitCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), Value::Str("upbit".to_string()));
         m.insert("name".to_string(), Value::Str("Upbit".to_string()));
-        m.insert("countries".to_string(), Value::List(vec![Value::Str("KR".to_string()), Value::Str("ID".to_string()), Value::Str("SG".to_string()), Value::Str("TH".to_string())]));
+        m.insert("countries".to_string(), Value::from(vec![Value::Str("KR".to_string()), Value::Str("ID".to_string()), Value::Str("SG".to_string()), Value::Str("TH".to_string())]));
         m.insert("version".to_string(), Value::Str("v1".to_string()));
         m.insert("rateLimit".to_string(), Value::Int(50));
         m.insert("pro".to_string(), Value::Bool(true));
@@ -246,7 +246,7 @@ impl UpbitCore {
     m
 }));
         m.insert("www".to_string(), Value::Str("https://upbit.com".to_string()));
-        m.insert("doc".to_string(), Value::List(vec![Value::Str("https://docs.upbit.com/kr".to_string()), Value::Str("https://global-docs.upbit.com".to_string())]));
+        m.insert("doc".to_string(), Value::from(vec![Value::Str("https://docs.upbit.com/kr".to_string()), Value::Str("https://global-docs.upbit.com".to_string())]));
         m.insert("fees".to_string(), Value::Str("https://upbit.com/service_center/guide".to_string()));
     m
 }));
@@ -1275,7 +1275,7 @@ impl UpbitCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut orderbooks: Value = self.fetch_order_books(&[Value::List(vec![symbol.clone()]), limit.clone(), params.clone()]).await;
+        let mut orderbooks: Value = self.fetch_order_books(&[Value::from(vec![symbol.clone()]), limit.clone(), params.clone()]).await;
         return self.safe_value(orderbooks.clone(), symbol.clone(), &[]);
 
     Value::Null
@@ -1366,10 +1366,10 @@ impl UpbitCore {
             self.load_markets(&[]).await;
         }
         symbols = self.market_symbols(&[symbols.clone()]);
-        let mut tickers: Value = Value::List(vec![]);
+        let mut tickers: Value = Value::from(vec![]);
         if (symbols == Value::Null) {
             // ticker/all returns every market of the requested quote currencies with a single request
-            let mut quoteIds: Value = Value::List(vec![]);
+            let mut quoteIds: Value = Value::from(vec![]);
             let mut marketSymbols: Value = self.symbols.clone();
             {
                                 let mut i: Value = Value::Int(0);
@@ -1403,7 +1403,7 @@ impl UpbitCore {
             tickers = self.public_get_ticker_all(&[__ws_arg_3]).await;
         }  else {
             let mut ids: Value = self.market_ids(&[symbols.clone()]);
-            let mut promises: Value = Value::List(vec![]);
+            let mut promises: Value = Value::from(vec![]);
             let mut queries: Value = self.ids_query_strings(ids.clone(), Value::Int(4000)); // the url is limited to about 8000 characters once the commas are percent-encoded
             {
                                 let mut i: Value = Value::Int(0);
@@ -1429,10 +1429,10 @@ impl UpbitCore {
 
     pub fn ids_query_strings(&self, mut ids: Value, mut maxQueryLength: Value) -> Value {
         if (ids == Value::Null) {
-            return Value::List(vec![]);
+            return Value::from(vec![]);
         }
         let mut idsString: Value = Value::Str("".to_string());
-        let mut queries: Value = Value::List(vec![]);
+        let mut queries: Value = Value::from(vec![]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1100: bool = true;
@@ -1472,7 +1472,7 @@ impl UpbitCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut tickers: Value = self.fetch_tickers(&[Value::List(vec![symbol.clone()]), params.clone()]).await;
+        let mut tickers: Value = self.fetch_tickers(&[Value::from(vec![symbol.clone()]), params.clone()]).await;
         return self.safe_value(tickers.clone(), symbol.clone(), &[]);
 
     Value::Null
@@ -1723,7 +1723,7 @@ impl UpbitCore {
 
     pub fn parse_ohlcv(&self, mut ohlcv: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
-        return Value::List(vec![self.parse8601(self.safe_string_k(ohlcv.clone(), "candle_date_time_utc", &[])), self.safe_number_k(ohlcv.clone(), "opening_price", &[]), self.safe_number_k(ohlcv.clone(), "high_price", &[]), self.safe_number_k(ohlcv.clone(), "low_price", &[]), self.safe_number_k(ohlcv.clone(), "trade_price", &[]), self.safe_number_k(ohlcv.clone(), "candle_acc_trade_volume", &[])]);
+        return Value::from(vec![self.parse8601(self.safe_string_k(ohlcv.clone(), "candle_date_time_utc", &[])), self.safe_number_k(ohlcv.clone(), "opening_price", &[]), self.safe_number_k(ohlcv.clone(), "high_price", &[]), self.safe_number_k(ohlcv.clone(), "low_price", &[]), self.safe_number_k(ohlcv.clone(), "trade_price", &[]), self.safe_number_k(ohlcv.clone(), "candle_acc_trade_volume", &[])]);
 
     Value::Null
 }
@@ -1925,7 +1925,7 @@ impl UpbitCore {
             panic!("{}", crate::exchange_errors::invalid_order(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder() supports only limit or market types in the type argument.".to_string())))));
         }
         if (customType.as_str() == Some("best")) {
-            params = self.omit(params.clone(), Value::List(vec![Value::Str("ordType".to_string()), Value::Str("ord_type".to_string())]), &[]);
+            params = self.omit(params.clone(), Value::from(vec![Value::Str("ordType".to_string()), Value::Str("ord_type".to_string())]), &[]);
             add_element_to_object(&mut request, &Value::Str("ord_type".to_string()), Value::Str("best".to_string()));
             if (side.as_str() == Some("buy")) {
                 let mut orderPrice: Value = self.calc_order_price(symbol.clone(), amount.clone(), &[price.clone(), params.clone()]);
@@ -1955,7 +1955,7 @@ impl UpbitCore {
             panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires a timeInForce parameter for best type orders".to_string())))));
         }
         let mut response: Value = Value::Null;
-        params = self.omit(params.clone(), Value::List(vec![Value::Str("timeInForce".to_string()), Value::Str("time_in_force".to_string()), Value::Str("postOnly".to_string()), Value::Str("clientOrderId".to_string()), Value::Str("cost".to_string()), Value::Str("selfTradePrevention".to_string()), Value::Str("smp_type".to_string()), Value::Str("test".to_string())]), &[]);
+        params = self.omit(params.clone(), Value::from(vec![Value::Str("timeInForce".to_string()), Value::Str("time_in_force".to_string()), Value::Str("postOnly".to_string()), Value::Str("clientOrderId".to_string()), Value::Str("cost".to_string()), Value::Str("selfTradePrevention".to_string()), Value::Str("smp_type".to_string()), Value::Str("test".to_string())]), &[]);
         if (test.as_bool() == Some(true)) {
             let __ws_arg_9 = self.extend(request.clone(), &[params.clone()]);
             response = self.private_post_orders_test(&[__ws_arg_9]).await;
@@ -2075,7 +2075,7 @@ impl UpbitCore {
             panic!("{}", crate::exchange_errors::invalid_order(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" editOrder() supports only limit or market types in the type argument.".to_string())))));
         }
         if (customType.as_str() == Some("best")) {
-            params = self.omit(params.clone(), Value::List(vec![Value::Str("newOrdType".to_string()), Value::Str("new_ord_type".to_string())]), &[]);
+            params = self.omit(params.clone(), Value::from(vec![Value::Str("newOrdType".to_string()), Value::Str("new_ord_type".to_string())]), &[]);
             add_element_to_object(&mut request, &Value::Str("new_ord_type".to_string()), Value::Str("best".to_string()));
             if (side.as_str() == Some("buy")) {
                 let mut orderPrice: Value = self.calc_order_price(symbol.clone(), amount.clone(), &[price.clone(), params.clone()]);
@@ -2107,7 +2107,7 @@ impl UpbitCore {
         if (request.as_map().and_then(|__m| __m.get("new_ord_type")).cloned().unwrap_or(Value::Null).as_str() == Some("best")) && (timeInForce == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" editOrder() requires a timeInForce parameter for best type orders".to_string())))));
         }
-        params = self.omit(params.clone(), Value::List(vec![Value::Str("newTimeInForce".to_string()), Value::Str("new_time_in_force".to_string()), Value::Str("postOnly".to_string()), Value::Str("newClientOrderId".to_string()), Value::Str("cost".to_string()), Value::Str("selfTradePrevention".to_string()), Value::Str("new_smp_type".to_string())]), &[]);
+        params = self.omit(params.clone(), Value::from(vec![Value::Str("newTimeInForce".to_string()), Value::Str("new_time_in_force".to_string()), Value::Str("postOnly".to_string()), Value::Str("newClientOrderId".to_string()), Value::Str("cost".to_string()), Value::Str("selfTradePrevention".to_string()), Value::Str("new_smp_type".to_string())]), &[]);
         // console.log ('check the each request params: ', request);
         let __ws_arg_12 = self.extend(request.clone(), &[params.clone()]);
         let mut response: Value = self.private_post_orders_cancel_and_new(&[__ws_arg_12]).await;
@@ -2512,7 +2512,7 @@ impl UpbitCore {
         let mut feeCost: Value = self.safe_string_k(order.clone(), "paid_fee", &[]);
         let mut marketId: Value = self.safe_string_k(order.clone(), "market", &[]);
         market = self.safe_market(&[marketId.clone(), market.clone()]);
-        let mut trades: Value = self.safe_list_k(order.clone(), "trades", &[Value::List(vec![])]);
+        let mut trades: Value = self.safe_list_k(order.clone(), "trades", &[Value::from(vec![])]);
         trades = self.parse_trades(trades.clone(), &[market.clone(), Value::Null, Value::Null, Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("order".to_string(), id.clone());
@@ -2937,7 +2937,7 @@ impl UpbitCore {
             if (network == Value::Null) {
                 panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" withdraw() requires a network argument".to_string())))));
             }
-            params = self.omit(params.clone(), Value::List(vec![Value::Str("network".to_string())]), &[]);
+            params = self.omit(params.clone(), Value::from(vec![Value::Str("network".to_string())]), &[]);
             add_element_to_object(&mut request, &Value::Str("net_type".to_string()), network.clone());
             add_element_to_object(&mut request, &Value::Str("currency".to_string()), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             add_element_to_object(&mut request, &Value::Str("address".to_string()), address.clone());

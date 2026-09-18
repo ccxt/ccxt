@@ -146,7 +146,7 @@ impl BtcmarketsCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), Value::Str("btcmarkets".to_string()));
         m.insert("name".to_string(), Value::Str("BTC Markets".to_string()));
-        m.insert("countries".to_string(), Value::List(vec![Value::Str("AU".to_string())]));
+        m.insert("countries".to_string(), Value::from(vec![Value::Str("AU".to_string())]));
         m.insert("rateLimit".to_string(), Value::Int(1000));
         m.insert("version".to_string(), Value::Str("v3".to_string()));
         m.insert("has".to_string(), Value::Map({
@@ -261,7 +261,7 @@ impl BtcmarketsCore {
     m
 }));
         m.insert("www".to_string(), Value::Str("https://btcmarkets.net".to_string()));
-        m.insert("doc".to_string(), Value::List(vec![Value::Str("https://api.btcmarkets.net/doc/v3".to_string()), Value::Str("https://github.com/BTCMarkets/API".to_string())]));
+        m.insert("doc".to_string(), Value::from(vec![Value::Str("https://api.btcmarkets.net/doc/v3".to_string()), Value::Str("https://github.com/BTCMarkets/API".to_string())]));
     m
 }));
         m.insert("api".to_string(), Value::Map({
@@ -1060,7 +1060,7 @@ impl BtcmarketsCore {
 
     pub fn parse_ohlcv(&self, mut ohlcv: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
-        return Value::List(vec![self.parse8601(self.safe_string(ohlcv.clone(), Value::Int(0), &[])), self.safe_number(ohlcv.clone(), Value::Int(1), &[]), self.safe_number(ohlcv.clone(), Value::Int(2), &[]), self.safe_number(ohlcv.clone(), Value::Int(3), &[]), self.safe_number(ohlcv.clone(), Value::Int(4), &[]), self.safe_number(ohlcv.clone(), Value::Int(5), &[])]);
+        return Value::from(vec![self.parse8601(self.safe_string(ohlcv.clone(), Value::Int(0), &[])), self.safe_number(ohlcv.clone(), Value::Int(1), &[]), self.safe_number(ohlcv.clone(), Value::Int(2), &[]), self.safe_number(ohlcv.clone(), Value::Int(3), &[]), self.safe_number(ohlcv.clone(), Value::Int(4), &[]), self.safe_number(ohlcv.clone(), Value::Int(5), &[])]);
 
     Value::Null
 }
@@ -1475,7 +1475,7 @@ impl BtcmarketsCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut numericIds: Value = Value::List(vec![]);
+        let mut numericIds: Value = Value::from(vec![]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_454: bool = true;
@@ -1509,8 +1509,8 @@ impl BtcmarketsCore {
         //        ]
         //    }
         //
-        let mut cancelOrders: Value = self.safe_list_k(response.clone(), "cancelOrders", &[Value::List(vec![])]);
-        let mut unprocessedRequests: Value = self.safe_list_k(response.clone(), "unprocessedRequests", &[Value::List(vec![])]);
+        let mut cancelOrders: Value = self.safe_list_k(response.clone(), "cancelOrders", &[Value::from(vec![])]);
+        let mut unprocessedRequests: Value = self.safe_list_k(response.clone(), "unprocessedRequests", &[Value::from(vec![])]);
         let mut orders: Value = self.array_concat(cancelOrders.clone(), unprocessedRequests.clone());
         return self.parse_orders(orders.clone(), &[]);
 

@@ -330,7 +330,7 @@ impl LunoCore {
         //         "timestamp": 1660598775360
         //     }
         //
-        let mut rawTrades: Value = self.safe_list_k(message.clone(), "trade_updates", &[Value::List(vec![])]);
+        let mut rawTrades: Value = self.safe_list_k(message.clone(), "trade_updates", &[Value::from(vec![])]);
         let mut length: Value = Value::Int(rawTrades.len() as i64);
         if (length.as_f64() == Some(0.0)) {
             return;
@@ -502,8 +502,8 @@ impl LunoCore {
         let mut priceKey = get_arg(optional_args, 3, Value::Str("price".to_string()));
         let mut amountKey = get_arg(optional_args, 4, Value::Str("volume".to_string()));
         let mut countOrIdKey = get_arg(optional_args, 5, Value::Int(2));
-        let mut bids: Value = self.parse_order_book_bids_asks(self.safe_value(orderbook.clone(), bidsKey.clone(), &[Value::List(vec![])]), &[priceKey.clone(), amountKey.clone(), countOrIdKey.clone()]);
-        let mut asks: Value = self.parse_order_book_bids_asks(self.safe_value(orderbook.clone(), asksKey.clone(), &[Value::List(vec![])]), &[priceKey.clone(), amountKey.clone(), countOrIdKey.clone()]);
+        let mut bids: Value = self.parse_order_book_bids_asks(self.safe_value(orderbook.clone(), bidsKey.clone(), &[Value::from(vec![])]), &[priceKey.clone(), amountKey.clone(), countOrIdKey.clone()]);
+        let mut asks: Value = self.parse_order_book_bids_asks(self.safe_value(orderbook.clone(), asksKey.clone(), &[Value::from(vec![])]), &[priceKey.clone(), amountKey.clone(), countOrIdKey.clone()]);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), symbol.clone());
@@ -523,7 +523,7 @@ impl LunoCore {
         let mut amountKey = get_arg(optional_args, 1, Value::Str("volume".to_string()));
         let mut thirdKey = get_arg(optional_args, 2, Value::Int(2));
         bidasks = self.to_array(bidasks.clone());
-        let mut result: Value = Value::List(vec![]);
+        let mut result: Value = Value::from(vec![]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_488: bool = true;
@@ -542,7 +542,7 @@ impl LunoCore {
         let mut thirdKey = get_arg(optional_args, 2, Value::Int(2));
         let mut price: Value = self.safe_number(bidask.clone(), priceKey.clone(), &[]);
         let mut amount: Value = self.safe_number(bidask.clone(), amountKey.clone(), &[]);
-        let mut result: Value = Value::List(vec![price.clone(), amount.clone()]);
+        let mut result: Value = Value::from(vec![price.clone(), amount.clone()]);
         if (thirdKey != Value::Null) {
             let mut thirdValue: Value = self.safe_string(bidask.clone(), thirdKey.clone(), &[]);
             append_to_array(&mut result, thirdValue.clone());
@@ -611,8 +611,8 @@ impl LunoCore {
         let mut deleteUpdate: Value = self.safe_value_k(message.clone(), "delete_update", &[]);
         if (deleteUpdate != Value::Null) {
             let mut orderId: Value = self.safe_string_k(deleteUpdate.clone(), "order_id", &[]);
-            asksOrderSide.store_array(Value::List(vec![Value::Int(0), Value::Int(0), orderId.clone()]));
-            bidsOrderSide.store_array(Value::List(vec![Value::Int(0), Value::Int(0), orderId.clone()]));
+            asksOrderSide.store_array(Value::from(vec![Value::Int(0), Value::Int(0), orderId.clone()]));
+            bidsOrderSide.store_array(Value::from(vec![Value::Int(0), Value::Int(0), orderId.clone()]));
         }
 }
 
@@ -621,7 +621,7 @@ impl LunoCore {
             return;
         }
         let mut subscriptions: Value = object_values(&get_value(&client, &Value::Str("subscriptions".to_string())));
-        let mut handlers: Value = Value::List(vec![Value::Str("handle_order_book".to_string()).clone(), Value::Str("handle_trades".to_string()).clone()]);
+        let mut handlers: Value = Value::from(vec![Value::Str("handle_order_book".to_string()).clone(), Value::Str("handle_trades".to_string()).clone()]);
         {
                         let mut j: Value = Value::Int(0);
             let mut __for_first_489: bool = true;

@@ -124,7 +124,7 @@ impl CryptomusCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), Value::Str("cryptomus".to_string()));
         m.insert("name".to_string(), Value::Str("Cryptomus".to_string()));
-        m.insert("countries".to_string(), Value::List(vec![Value::Str("CA".to_string())]));
+        m.insert("countries".to_string(), Value::from(vec![Value::Str("CA".to_string())]));
         m.insert("rateLimit".to_string(), Value::Int(100));
         m.insert("version".to_string(), Value::Str("v2".to_string()));
         m.insert("certified".to_string(), Value::Bool(false));
@@ -594,7 +594,7 @@ impl CryptomusCore {
         //         ]
         //     }
         //
-        let mut result: Value = self.safe_list_k(response.clone(), "result", &[Value::List(vec![])]);
+        let mut result: Value = self.safe_list_k(response.clone(), "result", &[Value::from(vec![])]);
         return self.parse_markets(result.clone());
 
     Value::Null
@@ -987,7 +987,7 @@ impl CryptomusCore {
         //     }
         //
         let mut data: Value = self.safe_list_k(response.clone(), "data", &[]);
-        let mut dataList: Value = Value::List(vec![]);
+        let mut dataList: Value = Value::from(vec![]);
         if (data != Value::Null) {
             dataList = data.clone();
         }
@@ -1068,7 +1068,7 @@ impl CryptomusCore {
         //         ]
         //     }
         //
-        let mut result: Value = self.safe_list_k(response.clone(), "result", &[Value::List(vec![])]);
+        let mut result: Value = self.safe_list_k(response.clone(), "result", &[Value::from(vec![])]);
         return self.parse_balance(result.clone());
 
     Value::Null
@@ -1302,8 +1302,8 @@ impl CryptomusCore {
         //         ]
         //     }
         //
-        let mut result: Value = self.safe_list_k(response.clone(), "result", &[Value::List(vec![])]);
-        let mut orders: Value = Value::List(vec![]);
+        let mut result: Value = self.safe_list_k(response.clone(), "result", &[Value::from(vec![])]);
+        let mut orders: Value = Value::from(vec![]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_610: bool = true;
@@ -1377,7 +1377,7 @@ impl CryptomusCore {
         //             ...
         //         ]
         //     }
-        let mut result: Value = self.safe_list_k(response.clone(), "result", &[Value::List(vec![])]);
+        let mut result: Value = self.safe_list_k(response.clone(), "result", &[Value::from(vec![])]);
         return self.parse_orders(result.clone(), &[market.clone(), Value::Null, Value::Null]);
 
     Value::Null
@@ -1454,7 +1454,7 @@ impl CryptomusCore {
         let mut type_var: Value = self.safe_string_k(order.clone(), "type", &[]);
         let mut side: Value = self.safe_string_k(order.clone(), "direction", &[]);
         let mut price: Value = self.safe_number_k(order.clone(), "price", &[]);
-        let mut transaction: Value = self.safe_list_k(deal.clone(), "transactions", &[Value::List(vec![])]);
+        let mut transaction: Value = self.safe_list_k(deal.clone(), "transactions", &[Value::from(vec![])]);
         let mut fee: Value = Value::Null;
         let mut firstTx: Value = self.safe_dict(transaction.clone(), Value::Int(0), &[]);
         let mut feeCurrency: Value = self.safe_string_k(firstTx.clone(), "feeCurrency", &[]);
@@ -1594,7 +1594,7 @@ impl CryptomusCore {
         let mut takerFee: Value = self.safe_string_k(currentFeeTier.clone(), "taker_percent", &[]);
         makerFee = crate::precise::Precise::stringDiv(&makerFee, &Value::Str("100".to_string()));
         takerFee = crate::precise::Precise::stringDiv(&takerFee, &Value::Str("100".to_string()));
-        let mut feeTiers: Value = self.safe_list_k(data.clone(), "tariff_steps", &[Value::List(vec![])]);
+        let mut feeTiers: Value = self.safe_list_k(data.clone(), "tariff_steps", &[Value::from(vec![])]);
         let mut result: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -1630,8 +1630,8 @@ impl CryptomusCore {
 
     pub fn parse_fee_tiers(&self, mut feeTiers: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
-        let mut takerFees: Value = Value::List(vec![]);
-        let mut makerFees: Value = Value::List(vec![]);
+        let mut takerFees: Value = Value::from(vec![]);
+        let mut makerFees: Value = Value::from(vec![]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_612: bool = true;
@@ -1643,8 +1643,8 @@ impl CryptomusCore {
             let mut maker: Value = self.safe_string_k(tier.clone(), "maker_percent", &[]);
             maker = crate::precise::Precise::stringDiv(&maker, &Value::Str("100".to_string()));
             taker = crate::precise::Precise::stringDiv(&taker, &Value::Str("100".to_string()));
-            append_to_array(&mut makerFees, Value::List(vec![turnover.clone(), self.parse_number(maker.clone(), &[])]));
-            append_to_array(&mut takerFees, Value::List(vec![turnover.clone(), self.parse_number(taker.clone(), &[])]));
+            append_to_array(&mut makerFees, Value::from(vec![turnover.clone(), self.parse_number(maker.clone(), &[])]));
+            append_to_array(&mut takerFees, Value::from(vec![turnover.clone(), self.parse_number(taker.clone(), &[])]));
         }
         }
         return Value::Map({

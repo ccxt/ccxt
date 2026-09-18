@@ -373,7 +373,7 @@ impl BitstampCore {
         symbol = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         let mut channel: Value = add(&Value::Str("diff_order_book_".to_string()), &market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
         let mut subHash: Value = Value::Str(format!("{}{}", Value::Str("orderbook:".to_string()), symbol));
-        return self.un_watch_channel(channel.clone(), subHash.clone(), Value::Str("orderbook".to_string()), Value::List(vec![symbol.clone()]), &[params.clone()]).await;
+        return self.un_watch_channel(channel.clone(), subHash.clone(), Value::Str("orderbook".to_string()), Value::from(vec![symbol.clone()]), &[params.clone()]).await;
 
     Value::Null
 }
@@ -483,8 +483,8 @@ impl BitstampCore {
         add_element_to_object(&mut orderbook, &Value::Str("timestamp".to_string()), timestamp.clone());
         add_element_to_object(&mut orderbook, &Value::Str("datetime".to_string()), self.iso8601(timestamp.clone()));
         add_element_to_object(&mut orderbook, &Value::Str("nonce".to_string()), self.safe_integer_k(delta.clone(), "microtimestamp", &[]));
-        let mut bids: Value = self.safe_value_k(delta.clone(), "bids", &[Value::List(vec![])]);
-        let mut asks: Value = self.safe_value_k(delta.clone(), "asks", &[Value::List(vec![])]);
+        let mut bids: Value = self.safe_value_k(delta.clone(), "bids", &[Value::from(vec![])]);
+        let mut asks: Value = self.safe_value_k(delta.clone(), "asks", &[Value::from(vec![])]);
         let mut storedBids: Value = crate::value::get_value_k(&orderbook, "bids");
         let mut storedAsks: Value = crate::value::get_value_k(&orderbook, "asks");
         self.handle_bid_asks(storedBids.clone(), bids.clone());
@@ -596,7 +596,7 @@ impl BitstampCore {
         symbol = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         let mut channel: Value = add(&Value::Str("live_trades_".to_string()), &market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
         let mut subHash: Value = Value::Str(format!("{}{}", Value::Str("trades:".to_string()), symbol));
-        return self.un_watch_channel(channel.clone(), subHash.clone(), Value::Str("trades".to_string()), Value::List(vec![symbol.clone()]), &[params.clone()]).await;
+        return self.un_watch_channel(channel.clone(), subHash.clone(), Value::Str("trades".to_string()), Value::from(vec![symbol.clone()]), &[params.clone()]).await;
 
     Value::Null
 }
@@ -831,7 +831,7 @@ impl BitstampCore {
         symbol = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         self.authenticate(&[]).await;
         let mut channel: Value = add(&Value::Str(format!("{}{}", add(&Value::Str("private-my_orders_".to_string()), &market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)), Value::Str("-".to_string()))), &self.options.as_map().and_then(|__m| __m.get("userId")).cloned().unwrap_or(Value::Null));
-        return self.un_watch_channel(channel.clone(), channel.clone(), Value::Str("orders".to_string()), Value::List(vec![symbol.clone()]), &[params.clone()]).await;
+        return self.un_watch_channel(channel.clone(), channel.clone(), Value::Str("orders".to_string()), Value::from(vec![symbol.clone()]), &[params.clone()]).await;
 
     Value::Null
 }
@@ -907,7 +907,7 @@ impl BitstampCore {
         symbol = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         self.authenticate(&[]).await;
         let mut channel: Value = add(&Value::Str(format!("{}{}", add(&Value::Str("private-my_trades_".to_string()), &market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)), Value::Str("-".to_string()))), &self.options.as_map().and_then(|__m| __m.get("userId")).cloned().unwrap_or(Value::Null));
-        return self.un_watch_channel(channel.clone(), channel.clone(), Value::Str("myTrades".to_string()), Value::List(vec![symbol.clone()]), &[params.clone()]).await;
+        return self.un_watch_channel(channel.clone(), channel.clone(), Value::Str("myTrades".to_string()), Value::from(vec![symbol.clone()]), &[params.clone()]).await;
 
     Value::Null
 }
@@ -1202,7 +1202,7 @@ impl BitstampCore {
         }
         let mut subHash: Value = self.safe_string_k(subscription.clone(), "subHash", &[]);
         let mut topic: Value = self.safe_string_k(subscription.clone(), "topic", &[]);
-        let mut symbols: Value = self.safe_list_k(subscription.clone(), "symbols", &[Value::List(vec![])]);
+        let mut symbols: Value = self.safe_list_k(subscription.clone(), "symbols", &[Value::from(vec![])]);
         // the base cleanCache only prunes trades/orderbooks per symbol and
         // would wipe the whole orders/myTrades cache - rebuild those without
         // the unsubscribed symbols instead, so the markets that are still

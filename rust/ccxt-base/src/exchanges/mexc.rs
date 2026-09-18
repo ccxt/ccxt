@@ -228,7 +228,7 @@ impl MexcCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), Value::Str("mexc".to_string()));
         m.insert("name".to_string(), Value::Str("MEXC Global".to_string()));
-        m.insert("countries".to_string(), Value::List(vec![Value::Str("SC".to_string())]));
+        m.insert("countries".to_string(), Value::from(vec![Value::Str("SC".to_string())]));
         m.insert("rateLimit".to_string(), Value::Int(50));
         m.insert("version".to_string(), Value::Str("v3".to_string()));
         m.insert("certified".to_string(), Value::Bool(true));
@@ -382,8 +382,8 @@ impl MexcCore {
     m
 }));
         m.insert("www".to_string(), Value::Str("https://www.mexc.com/".to_string()));
-        m.insert("doc".to_string(), Value::List(vec![Value::Str("https://www.mexc.com/api-docs/spot-v3/introduction".to_string()), Value::Str("https://www.mexc.com/api-docs/futures/integration-guide".to_string())]));
-        m.insert("fees".to_string(), Value::List(vec![Value::Str("https://www.mexc.com/fee".to_string())]));
+        m.insert("doc".to_string(), Value::from(vec![Value::Str("https://www.mexc.com/api-docs/spot-v3/introduction".to_string()), Value::Str("https://www.mexc.com/api-docs/futures/integration-guide".to_string())]));
+        m.insert("fees".to_string(), Value::from(vec![Value::Str("https://www.mexc.com/fee".to_string())]));
         m.insert("referral".to_string(), Value::Str("https://www.mexc.com/register?inviteCode=mexc-1FQ1GNu1".to_string()));
     m
 }));
@@ -2320,7 +2320,7 @@ impl MexcCore {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut chains: Value = self.safe_list_k(rawCurrency.clone(), "networkList", &[Value::List(vec![])]);
+        let mut chains: Value = self.safe_list_k(rawCurrency.clone(), "networkList", &[Value::from(vec![])]);
         {
                         let mut j: Value = Value::Int(0);
             let mut __for_first_938: bool = true;
@@ -2404,7 +2404,7 @@ impl MexcCore {
         }
         let mut spotMarketPromise: Value = self.fetch_spot_markets(&[params.clone()]).await;
         let mut swapMarketPromise: Value = self.fetch_swap_markets(&[params.clone()]).await;
-        let mut spotMarketswapMarketVariable = promise_all(&Value::List(vec![spotMarketPromise.clone(), swapMarketPromise.clone()])).await;
+        let mut spotMarketswapMarketVariable = promise_all(&Value::from(vec![spotMarketPromise.clone(), swapMarketPromise.clone()])).await;
         let mut spotMarket: Value = spotMarketswapMarketVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut swapMarket: Value = spotMarketswapMarketVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         return self.array_concat(spotMarket.clone(), swapMarket.clone());
@@ -2469,8 +2469,8 @@ impl MexcCore {
         // Notes:
         // - 'quoteAssetPrecision' & 'baseAssetPrecision' are not currency's real blockchain precision (to view currency's actual individual precision, refer to fetchCurrencies() method).
         //
-        let mut data: Value = self.safe_list_k(response.clone(), "symbols", &[Value::List(vec![])]);
-        let mut result: Value = Value::List(vec![]);
+        let mut data: Value = self.safe_list_k(response.clone(), "symbols", &[Value::from(vec![])]);
+        let mut result: Value = Value::from(vec![]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_939: bool = true;
@@ -2626,8 +2626,8 @@ impl MexcCore {
         //         ]
         //     }
         //
-        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
-        let mut result: Value = Value::List(vec![]);
+        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::from(vec![])]);
+        let mut result: Value = Value::from(vec![]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_940: bool = true;
@@ -2804,9 +2804,9 @@ impl MexcCore {
         let mut amount: Value = self.safe_number(bidask.clone(), amountKey.clone(), &[]);
         let mut count: Value = self.safe_number(bidask.clone(), countKey.clone(), &[]);
         if (count != Value::Null) {
-            return Value::List(vec![price.clone(), amount.clone(), count.clone()]);
+            return Value::from(vec![price.clone(), amount.clone(), count.clone()]);
         }
-        return Value::List(vec![price.clone(), amount.clone()]);
+        return Value::from(vec![price.clone(), amount.clone()]);
 
     Value::Null
 }
@@ -2844,7 +2844,7 @@ impl MexcCore {
         if (limit != Value::Null) {
             add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone());
         }
-        let mut trades: Value = Value::List(vec![]);
+        let mut trades: Value = Value::from(vec![]);
         if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
             let mut until: Value = self.safe_integer2(params.clone(), Value::Str("endTime".to_string()), Value::Str("until".to_string()), &[]);
             if (since != Value::Null) {
@@ -2861,7 +2861,7 @@ impl MexcCore {
             }
             let mut method: Value = self.safe_string_k(self.options.clone(), "fetchTradesMethod", &[Value::Str("spotPublicGetAggTrades".to_string())]);
             method = self.safe_string_k(params.clone(), "method", &[method.clone()]); // AggTrades, HistoricalTrades, Trades
-            params = self.omit(params.clone(), Value::List(vec![Value::Str("method".to_string())]), &[]);
+            params = self.omit(params.clone(), Value::from(vec![Value::Str("method".to_string())]), &[]);
             if (method.as_str() == Some("spotPublicGetAggTrades")) {
                 let __ws_arg_2 = self.extend(request.clone(), &[params.clone()]);
                 trades = self.spot_public_get_agg_trades(&[__ws_arg_2]).await;
@@ -2893,7 +2893,7 @@ impl MexcCore {
             //         ]
             //     }
             //
-            trades = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
+            trades = self.safe_list_k(response.clone(), "data", &[Value::from(vec![])]);
         }
         return self.parse_trades(trades.clone(), &[market.clone(), since.clone(), limit.clone()]);
 
@@ -3107,11 +3107,11 @@ impl MexcCore {
                 m.insert("interval".to_string(), timeframeValue.clone());
             m
         });
-        let mut candles: Value = Value::List(vec![]);
+        let mut candles: Value = Value::from(vec![]);
         let mut until: Value = self.safe_integer2(params.clone(), Value::Str("until".to_string()), Value::Str("endTime".to_string()), &[]);
         let mut start: Value = since.clone();
         if is_true(&(Value::Bool(until != Value::Null))) && is_true(&(Value::Bool(since == Value::Null))) {
-            params = self.omit(params.clone(), Value::List(vec![Value::Str("until".to_string())]), &[]);
+            params = self.omit(params.clone(), Value::from(vec![Value::Str("until".to_string())]), &[]);
             let mut usedLimit: Value = (if is_true(&(Value::Bool((limit != Value::Null) && (limit != Value::Null) && (limit.as_f64() != Some(0.0))))) { limit.clone() } else { maxLimit.clone() });
             start = (match (&(until), &(((match (&(usedLimit), &(duration)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
         }
@@ -3198,7 +3198,7 @@ impl MexcCore {
 
     pub fn parse_ohlcv(&self, mut ohlcv: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
-        return Value::List(vec![self.safe_integer(ohlcv.clone(), Value::Int(0), &[]), self.safe_number(ohlcv.clone(), Value::Int(1), &[]), self.safe_number(ohlcv.clone(), Value::Int(2), &[]), self.safe_number(ohlcv.clone(), Value::Int(3), &[]), self.safe_number(ohlcv.clone(), Value::Int(4), &[]), self.safe_number(ohlcv.clone(), Value::Int(5), &[])]);
+        return Value::from(vec![self.safe_integer(ohlcv.clone(), Value::Int(0), &[]), self.safe_number(ohlcv.clone(), Value::Int(1), &[]), self.safe_number(ohlcv.clone(), Value::Int(2), &[]), self.safe_number(ohlcv.clone(), Value::Int(3), &[]), self.safe_number(ohlcv.clone(), Value::Int(4), &[]), self.safe_number(ohlcv.clone(), Value::Int(5), &[])]);
 
     Value::Null
 }
@@ -3274,11 +3274,11 @@ impl MexcCore {
             //         ]
             //     }
             //
-            tickers = self.safe_value_k(response.clone(), "data", &[Value::List(vec![])]);
+            tickers = self.safe_value_k(response.clone(), "data", &[Value::from(vec![])]);
         }
         // when it's single symbol request, the returned structure is different (singular object) for both spot & swap, thus we need to wrap inside array
         if isSingularMarket {
-            tickers = Value::List(vec![tickers.clone()]);
+            tickers = Value::from(vec![tickers.clone()]);
         }
         return self.parse_tickers(tickers.clone(), &[symbols.clone()]);
 
@@ -3512,7 +3512,7 @@ impl MexcCore {
         }
         // when it's single symbol request, the returned structure is different (singular object) for both spot & swap, thus we need to wrap inside array
         if isSingularMarket {
-            tickers = Value::List(vec![tickers.clone()]);
+            tickers = Value::from(vec![tickers.clone()]);
         }
         return self.parse_tickers(tickers.clone(), &[symbols.clone()]);
 
@@ -3676,7 +3676,7 @@ impl MexcCore {
         let mut clientOrderId: Value = self.safe_string_k(params.clone(), "clientOrderId", &[]);
         if (clientOrderId != Value::Null) {
             add_element_to_object(&mut request, &Value::Str("newClientOrderId".to_string()), clientOrderId.clone());
-            params = self.omit(params.clone(), Value::List(vec![Value::Str("type".to_string()), Value::Str("clientOrderId".to_string())]), &[]);
+            params = self.omit(params.clone(), Value::from(vec![Value::Str("type".to_string()), Value::Str("clientOrderId".to_string())]), &[]);
         }
         if (marginMode != Value::Null) {
             if (marginMode.as_str() != Some("isolated")) {
@@ -3881,7 +3881,7 @@ impl MexcCore {
             add_element_to_object(&mut request, &Value::Str("externalOid".to_string()), clientOrderId.clone());
         }
         let mut triggerPrice: Value = self.safe_number2(params.clone(), Value::Str("triggerPrice".to_string()), Value::Str("stopPrice".to_string()), &[]);
-        params = self.omit(params.clone(), Value::List(vec![Value::Str("clientOrderId".to_string()), Value::Str("externalOid".to_string()), Value::Str("postOnly".to_string()), Value::Str("stopPrice".to_string()), Value::Str("triggerPrice".to_string()), Value::Str("hedged".to_string())]), &[]);
+        params = self.omit(params.clone(), Value::from(vec![Value::Str("clientOrderId".to_string()), Value::Str("externalOid".to_string()), Value::Str("postOnly".to_string()), Value::Str("stopPrice".to_string()), Value::Str("triggerPrice".to_string()), Value::Str("hedged".to_string())]), &[]);
         let mut response: Value = Value::Null;
         if is_true(&(Value::Bool(triggerPrice != Value::Null))) && is_true(&(Value::Bool(triggerPrice.as_f64() != Some(0.0)))) {
             add_element_to_object(&mut request, &Value::Str("triggerPrice".to_string()), self.price_to_precision(symbol.clone(), triggerPrice.clone()));
@@ -3932,7 +3932,7 @@ impl MexcCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut ordersRequests: Value = Value::List(vec![]);
+        let mut ordersRequests: Value = Value::from(vec![]);
         let mut symbol: Value = Value::Null;
         {
                         let mut i: Value = Value::Int(0);
@@ -4165,8 +4165,8 @@ impl MexcCore {
             }
             let mut method: Value = self.safe_string_k(self.options.clone(), "fetchOrders", &[Value::Str("contractPrivateGetOrderListHistoryOrders".to_string())]);
             method = self.safe_string_k(query.clone(), "method", &[method.clone()]);
-            let mut ordersOfRegular: Value = Value::List(vec![]);
-            let mut ordersOfTrigger: Value = Value::List(vec![]);
+            let mut ordersOfRegular: Value = Value::from(vec![]);
+            let mut ordersOfTrigger: Value = Value::from(vec![]);
             if (method.as_str() == Some("contractPrivateGetOrderListHistoryOrders")) {
                 let __ws_arg_23 = self.extend(request.clone(), &[query.clone()]);
                 let mut response: Value = self.contract_private_get_order_list_history_orders(&[__ws_arg_23]).await;
@@ -4372,7 +4372,7 @@ impl MexcCore {
             }
             let __ws_arg_28 = self.extend(request.clone(), &[params.clone()]);
             let mut swapResponse: Value = self.contract_private_get_order_list_open_orders(&[__ws_arg_28]).await;
-            let mut data: Value = self.safe_list_k(swapResponse.clone(), "data", &[Value::List(vec![])]);
+            let mut data: Value = self.safe_list_k(swapResponse.clone(), "data", &[Value::from(vec![])]);
             return self.parse_orders(data.clone(), &[market.clone(), since.clone(), limit.clone(), params.clone()]);
         }
 
@@ -4532,9 +4532,9 @@ impl MexcCore {
             method = self.safe_string_k(query.clone(), "method", &[method.clone()]);
             let mut response: Value = Value::Null;
             if (method.as_str() == Some("contractPrivatePostOrderCancel")) {
-                response = self.contract_private_post_order_cancel(&[Value::List(vec![id.clone()])]).await; // the request cannot be changed or extended. This is the only way to send.
+                response = self.contract_private_post_order_cancel(&[Value::from(vec![id.clone()])]).await; // the request cannot be changed or extended. This is the only way to send.
             }  else if (method.as_str() == Some("contractPrivatePostPlanorderCancel")) {
-                response = self.contract_private_post_planorder_cancel(&[Value::List(vec![id.clone()])]).await; // the request cannot be changed or extended. This is the only way to send.
+                response = self.contract_private_post_planorder_cancel(&[Value::from(vec![id.clone()])]).await; // the request cannot be changed or extended. This is the only way to send.
             }  else {
                 panic!("{}", crate::exchange_errors::not_supported(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" cancelOrder() not support this method".to_string())))));
             }
@@ -4643,7 +4643,7 @@ impl MexcCore {
         if (marketType.as_str() == Some("spot")) {
             if (symbol == Value::Null) {
                 self.spot_private_delete_order_all(&[params.clone()]).await;
-                return Value::List(vec![]);
+                return Value::from(vec![]);
             }
             add_element_to_object(&mut request, &Value::Str("symbol".to_string()), self.safe_string_k(market.clone(), "id", &[]));
             let __ws_arg_32 = self.extend(request.clone(), &[params.clone()]);
@@ -4674,7 +4674,7 @@ impl MexcCore {
             //         "code": "0"
             //     }
             //
-            let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
+            let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::from(vec![])]);
             return self.parse_orders(data.clone(), &[market.clone()]);
         }
 
@@ -4876,7 +4876,7 @@ impl MexcCore {
         }
         let mut marketId: Value = self.safe_string_k(order.clone(), "symbol", &[]);
         market = self.safe_market(&[marketId.clone(), market.clone()]);
-        let mut timestamp: Value = self.safe_integer_n(order.clone(), Value::List(vec![Value::Str("time".to_string()), Value::Str("createTime".to_string()), Value::Str("transactTime".to_string())]), &[]);
+        let mut timestamp: Value = self.safe_integer_n(order.clone(), Value::from(vec![Value::Str("time".to_string()), Value::Str("createTime".to_string()), Value::Str("transactTime".to_string())]), &[]);
         let mut fee: Value = Value::Null;
         let mut feeCurrency: Value = self.safe_string_k(order.clone(), "feeCurrency", &[]);
         if (feeCurrency != Value::Null) {
@@ -5002,7 +5002,7 @@ impl MexcCore {
             let mut response: Value = self.contract_private_get_account_assets(&[params.clone()]).await;
             return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("balances".to_string(), self.safe_value_k(response.clone(), "data", &[Value::List(vec![])]));
+        m.insert("balances".to_string(), self.safe_value_k(response.clone(), "data", &[Value::from(vec![])]));
     m
 });
         }
@@ -5033,8 +5033,8 @@ impl MexcCore {
             self.load_markets(&[]).await;
         }
         let mut response: Value = self.fetch_account_helper(marketType.clone(), query.clone()).await;
-        let mut data: Value = self.safe_list_k(response.clone(), "balances", &[Value::List(vec![])]);
-        let mut result: Value = Value::List(vec![]);
+        let mut data: Value = self.safe_list_k(response.clone(), "balances", &[Value::from(vec![])]);
+        let mut result: Value = Value::from(vec![]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_942: bool = true;
@@ -5178,11 +5178,11 @@ impl MexcCore {
         //
         let mut wallet: Value = Value::Null;
         if (marketType.as_str() == Some("margin")) {
-            wallet = self.safe_list_k(response.clone(), "assets", &[Value::List(vec![])]);
+            wallet = self.safe_list_k(response.clone(), "assets", &[Value::from(vec![])]);
         }  else if (marketType.as_str() == Some("swap")) {
-            wallet = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
+            wallet = self.safe_list_k(response.clone(), "data", &[Value::from(vec![])]);
         }  else {
-            wallet = self.safe_list_k(response.clone(), "balances", &[Value::List(vec![])]);
+            wallet = self.safe_list_k(response.clone(), "balances", &[Value::from(vec![])]);
         }
         let mut result: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -5296,7 +5296,7 @@ impl MexcCore {
         { let __destr_tmp = self.handle_market_type_and_params(Value::Str("fetchBalance".to_string()), &[Value::Null, params.clone()]); marketType = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         let mut marginMode: Value = self.safe_string_k(params.clone(), "marginMode", &[]);
         let mut isMargin: Value = self.safe_bool_k(params.clone(), "margin", &[Value::Bool(false)]);
-        params = self.omit(params.clone(), Value::List(vec![Value::Str("margin".to_string()), Value::Str("marginMode".to_string())]), &[]);
+        params = self.omit(params.clone(), Value::from(vec![Value::Str("margin".to_string()), Value::Str("marginMode".to_string())]), &[]);
         let mut response: Value = Value::Null;
         if is_true(&(Value::Bool(marginMode != Value::Null))) || is_true(&(Value::Bool(isMargin.as_bool() == Some(true)))) || is_true(&(Value::Bool(marketType.as_str() == Some("margin")))) {
             let mut parsedSymbols: Value = Value::Null;
@@ -5316,7 +5316,7 @@ impl MexcCore {
             self.check_required_argument(Value::Str("fetchBalance".to_string()), parsedSymbols.clone(), Value::Str("symbol or symbols".to_string()), &[]);
             marketType = Value::Str("margin".to_string());
             add_element_to_object(&mut request, &Value::Str("symbols".to_string()), parsedSymbols.clone());
-            params = self.omit(params.clone(), Value::List(vec![Value::Str("symbol".to_string()), Value::Str("symbols".to_string())]), &[]);
+            params = self.omit(params.clone(), Value::from(vec![Value::Str("symbol".to_string()), Value::Str("symbols".to_string())]), &[]);
             let __ws_arg_36 = self.extend(request.clone(), &[params.clone()]);
             response = self.spot_private_get_margin_isolated_account(&[__ws_arg_36]).await;
         }  else if (marketType.as_str() == Some("spot")) {
@@ -5368,7 +5368,7 @@ impl MexcCore {
                 m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
-        let mut trades: Value = Value::List(vec![]);
+        let mut trades: Value = Value::from(vec![]);
         if (marketType.as_str() == Some("spot")) {
             if (since != Value::Null) {
                 add_element_to_object(&mut request, &Value::Str("startTime".to_string()), since.clone());
@@ -5419,7 +5419,7 @@ impl MexcCore {
             //         ]
             //     }
             //
-            trades = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
+            trades = self.safe_list_k(response.clone(), "data", &[Value::from(vec![])]);
         }
         return self.parse_trades(trades.clone(), &[market.clone(), since.clone(), limit.clone()]);
 
@@ -5461,7 +5461,7 @@ impl MexcCore {
         let mut marketTypequeryVariable = self.handle_market_type_and_params(Value::Str("fetchOrderTrades".to_string()), &[market.clone(), params.clone()]);
         let mut marketType: Value = marketTypequeryVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut query: Value = marketTypequeryVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
-        let mut trades: Value = Value::List(vec![]);
+        let mut trades: Value = Value::from(vec![]);
         if (marketType.as_str() == Some("spot")) {
             if (symbol == Value::Null) {
                 panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchOrderTrades() requires a symbol argument".to_string())))));
@@ -5497,7 +5497,7 @@ impl MexcCore {
             //         ]
             //     }
             //
-            trades = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
+            trades = self.safe_list_k(response.clone(), "data", &[Value::from(vec![])]);
         }
         return self.parse_trades(trades.clone(), &[market.clone(), since.clone(), limit.clone(), query.clone()]);
 
@@ -5687,8 +5687,8 @@ impl MexcCore {
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut resultList: Value = self.safe_list_k(data.clone(), "resultList", &[Value::List(vec![])]);
-        let mut result: Value = Value::List(vec![]);
+        let mut resultList: Value = self.safe_list_k(data.clone(), "resultList", &[Value::from(vec![])]);
+        let mut result: Value = Value::from(vec![]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_946: bool = true;
@@ -5900,8 +5900,8 @@ impl MexcCore {
         //    }
         //
         let mut data: Value = self.safe_value_k(response.clone(), "data", &[]);
-        let mut result: Value = self.safe_list_k(data.clone(), "resultList", &[Value::List(vec![])]);
-        let mut rates: Value = Value::List(vec![]);
+        let mut result: Value = self.safe_list_k(data.clone(), "resultList", &[Value::from(vec![])]);
+        let mut rates: Value = Value::from(vec![]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_947: bool = true;
@@ -6047,10 +6047,10 @@ impl MexcCore {
         let mut riskIncrMmr: Value = self.safe_string_k(info.clone(), "riskIncrMmr", &[]);
         let mut riskIncrImr: Value = self.safe_string_k(info.clone(), "riskIncrImr", &[]);
         let mut floor: Value = Value::Str("0".to_string());
-        let mut tiers: Value = Value::List(vec![]);
+        let mut tiers: Value = Value::from(vec![]);
         let mut quoteId: Value = self.safe_string_k(info.clone(), "quoteCoin", &[]);
         if (riskIncrVol.as_str() == Some("0")) {
-            return Value::List(vec![Value::Map({
+            return Value::from(vec![Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("tier".to_string(), Value::Int(0));
         m.insert("symbol".to_string(), self.safe_symbol(marketId.clone(), &[market.clone(), Value::Null, Value::Str("contract".to_string())]));
@@ -6571,7 +6571,7 @@ impl MexcCore {
         //         "data": []
         //     }
         //
-        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::from(vec![])]);
         return self.parse_positions(data.clone(), &[]);
 
     Value::Null
@@ -6656,7 +6656,7 @@ impl MexcCore {
         //         ]
         //     }
         //
-        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::from(vec![])]);
         return self.parse_positions(data.clone(), &[symbols.clone()]);
 
     Value::Null
@@ -6885,7 +6885,7 @@ impl MexcCore {
         }  else {
             panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchTransfers() requires a toAccountType parameter, one of \"SPOT\", \"FUTURES\"".to_string())))));
         }
-        let mut resultList: Value = Value::List(vec![]);
+        let mut resultList: Value = Value::from(vec![]);
         if (marketType.as_str() == Some("spot")) {
             if (since != Value::Null) {
                 add_element_to_object(&mut request, &Value::Str("startTime".to_string()), since.clone());
@@ -6916,7 +6916,7 @@ impl MexcCore {
             //     ],
             //     "total": 1
             // }
-            resultList = self.safe_list_k(response.clone(), "rows", &[Value::List(vec![])]);
+            resultList = self.safe_list_k(response.clone(), "rows", &[Value::from(vec![])]);
         }  else if (marketType.as_str() == Some("swap")) {
             if (limit != Value::Null) {
                 add_element_to_object(&mut request, &Value::Str("page_size".to_string()), limit.clone());
@@ -7051,7 +7051,7 @@ impl MexcCore {
         //     }
         //
         let mut currencyId: Value = self.safe_string2(transfer.clone(), Value::Str("currency".to_string()), Value::Str("asset".to_string()), &[]);
-        let mut id: Value = self.safe_string_n(transfer.clone(), Value::List(vec![Value::Str("transact_id".to_string()), Value::Str("txid".to_string()), Value::Str("tranId".to_string())]), &[]);
+        let mut id: Value = self.safe_string_n(transfer.clone(), Value::from(vec![Value::Str("transact_id".to_string()), Value::Str("txid".to_string()), Value::Str("tranId".to_string())]), &[]);
         let mut timestamp: Value = self.safe_integer2(transfer.clone(), Value::Str("createTime".to_string()), Value::Str("timestamp".to_string()), &[]);
         let mut datetime: Value = (if is_true(&(Value::Bool(timestamp != Value::Null))) { self.iso8601(timestamp.clone()) } else { Value::Null });
         let mut direction: Value = self.safe_string_k(transfer.clone(), "type", &[]);
@@ -7079,7 +7079,7 @@ impl MexcCore {
         m.insert("amount".to_string(), self.safe_number_k(transfer.clone(), "amount", &[]));
         m.insert("fromAccount".to_string(), self.parse_account_id(accountFrom.clone()));
         m.insert("toAccount".to_string(), self.parse_account_id(accountTo.clone()));
-        m.insert("status".to_string(), self.parse_transfer_status(self.safe_string_n(transfer.clone(), Value::List(vec![Value::Str("transact_state".to_string()), Value::Str("state".to_string()), Value::Str("status".to_string())]), &[])));
+        m.insert("status".to_string(), self.parse_transfer_status(self.safe_string_n(transfer.clone(), Value::from(vec![Value::Str("transact_state".to_string()), Value::Str("state".to_string()), Value::Str("status".to_string())]), &[])));
     m
 });
 
@@ -7177,7 +7177,7 @@ impl MexcCore {
         }
         if (network != Value::Null) {
             add_element_to_object(&mut request, &Value::Str("netWork".to_string()), network.clone());
-            params = self.omit(params.clone(), Value::List(vec![Value::Str("network".to_string()), Value::Str("netWork".to_string())]), &[]);
+            params = self.omit(params.clone(), Value::from(vec![Value::Str("network".to_string()), Value::Str("netWork".to_string())]), &[]);
         }
         let __ws_arg_58 = self.extend(request.clone(), &[params.clone()]);
         let mut response: Value = self.spot_private_post_capital_withdraw(&[__ws_arg_58]).await;
@@ -7334,7 +7334,7 @@ impl MexcCore {
         //        ]
         //    }
         //
-        let mut networkList: Value = self.safe_list_k(transaction.clone(), "networkList", &[Value::List(vec![])]);
+        let mut networkList: Value = self.safe_list_k(transaction.clone(), "networkList", &[Value::from(vec![])]);
         let mut result: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -7408,7 +7408,7 @@ impl MexcCore {
         //        ]
         //    }
         //
-        let mut networkList: Value = self.safe_list_k(fee.clone(), "networkList", &[Value::List(vec![])]);
+        let mut networkList: Value = self.safe_list_k(fee.clone(), "networkList", &[Value::from(vec![])]);
         let mut result: Value = self.deposit_withdraw_fee(fee.clone());
         {
                         let mut j: Value = Value::Int(0);
@@ -7498,7 +7498,7 @@ impl MexcCore {
         //         ]
         //     }
         //
-        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::from(vec![])]);
         return self.parse_leverage(data.clone(), &[market.clone()]);
 
     Value::Null
@@ -7559,7 +7559,7 @@ impl MexcCore {
         if is_true(&(Value::Bool(defaultType.as_str() == Some("margin")))) || is_true(&(Value::Bool(isMargin.as_bool() == Some(true)))) {
             marginMode = Value::Str("isolated".to_string());
         }
-        return Value::List(vec![marginMode.clone(), params.clone()]);
+        return Value::from(vec![marginMode.clone(), params.clone()]);
 
     Value::Null
 }
@@ -7646,7 +7646,7 @@ impl MexcCore {
         //        ]
         //    }
         //
-        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::from(vec![])]);
         let mut positions: Value = self.parse_positions(data.clone(), &[symbols.clone(), params.clone()]);
         return self.filter_by_since_limit(positions.clone(), &[since.clone(), limit.clone()]);
 

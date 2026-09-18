@@ -37,7 +37,7 @@ pub fn testWsCache() {
             m.insert("data".to_string(), Value::Int(4));
         m
     }));
-    assert!(ccxt::runtime::is_true(&(equals(arrayCache.clone(), Value::List(vec![Value::Map({
+    assert!(ccxt::runtime::is_true(&(equals(arrayCache.clone(), Value::from(vec![Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), Value::Str("BTC/USDT".to_string()));
         m.insert("data".to_string(), Value::Int(2));
@@ -77,7 +77,7 @@ pub fn testWsCache() {
             m.insert("data".to_string(), Value::Int(8));
         m
     }));
-    assert!(ccxt::runtime::is_true(&(equals(arrayCache.clone(), Value::List(vec![Value::Map({
+    assert!(ccxt::runtime::is_true(&(equals(arrayCache.clone(), Value::from(vec![Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), Value::Str("BTC/USDT".to_string()));
         m.insert("data".to_string(), Value::Int(6));
@@ -100,7 +100,7 @@ pub fn testWsCache() {
             m.insert("data".to_string(), Value::Int(1));
         m
     }));
-    assert!(ccxt::runtime::is_true(&(equals(arrayCache.clone(), Value::List(vec![Value::Map({
+    assert!(ccxt::runtime::is_true(&(equals(arrayCache.clone(), Value::from(vec![Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), Value::Str("BTC/USDT".to_string()));
         m.insert("data".to_string(), Value::Int(1));
@@ -120,7 +120,7 @@ pub fn testWsCache() {
             m.insert("data".to_string(), Value::Int(2));
         m
     }));
-    assert!(ccxt::runtime::is_true(&(equals(arraycache2.clone(), Value::List(vec![Value::Map({
+    assert!(ccxt::runtime::is_true(&(equals(arraycache2.clone(), Value::from(vec![Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), Value::Str("BTC/USDT".to_string()));
         m.insert("data".to_string(), Value::Int(2));
@@ -128,14 +128,14 @@ pub fn testWsCache() {
 })])))));
     // ----------------------------------------------------------------------------
     let mut timestampCache = ArrayCacheByTimestamp::new(Value::Null);
-    let mut ohlcv1: Value = Value::List(vec![Value::Int(100), Value::Int(1), Value::Int(2), Value::Int(3)]);
-    let mut ohlcv2: Value = Value::List(vec![Value::Int(200), Value::Int(5), Value::Int(6), Value::Int(7)]);
+    let mut ohlcv1: Value = Value::from(vec![Value::Int(100), Value::Int(1), Value::Int(2), Value::Int(3)]);
+    let mut ohlcv2: Value = Value::from(vec![Value::Int(200), Value::Int(5), Value::Int(6), Value::Int(7)]);
     timestampCache.append(ohlcv1.clone());
     timestampCache.append(ohlcv2.clone());
-    assert!(ccxt::runtime::is_true(&(equals(timestampCache.clone(), Value::List(vec![ohlcv1.clone(), ohlcv2.clone()])))));
-    let mut modify2: Value = Value::List(vec![Value::Int(200), Value::Int(10), Value::Int(11), Value::Int(12)]);
+    assert!(ccxt::runtime::is_true(&(equals(timestampCache.clone(), Value::from(vec![ohlcv1.clone(), ohlcv2.clone()])))));
+    let mut modify2: Value = Value::from(vec![Value::Int(200), Value::Int(10), Value::Int(11), Value::Int(12)]);
     timestampCache.append(modify2.clone());
-    assert!(ccxt::runtime::is_true(&(equals(timestampCache.clone(), Value::List(vec![ohlcv1.clone(), modify2.clone()])))));
+    assert!(ccxt::runtime::is_true(&(equals(timestampCache.clone(), Value::from(vec![ohlcv1.clone(), modify2.clone()])))));
     // ----------------------------------------------------------------------------
     let mut cacheSymbolId = ArrayCacheBySymbolById::new(Value::Null);
     let mut object1: Value = Value::Map({
@@ -162,7 +162,7 @@ pub fn testWsCache() {
     cacheSymbolId.append(object1.clone());
     cacheSymbolId.append(object2.clone());
     cacheSymbolId.append(object3.clone()); // should update index 0
-    assert!(ccxt::runtime::is_true(&(equals(cacheSymbolId.clone(), Value::List(vec![object2.clone(), object3.clone()])))));
+    assert!(ccxt::runtime::is_true(&(equals(cacheSymbolId.clone(), Value::from(vec![object2.clone(), object3.clone()])))));
     // ----------------------------------------------------------------------------
     let mut cacheSymbolId5 = ArrayCacheBySymbolById::new(Value::Int(5));
     {
@@ -178,7 +178,7 @@ pub fn testWsCache() {
         }));
     }
     }
-    assert!(ccxt::runtime::is_true(&(equals(cacheSymbolId5.clone(), Value::List(vec![Value::Map({
+    assert!(ccxt::runtime::is_true(&(equals(cacheSymbolId5.clone(), Value::from(vec![Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), Value::Str("BTC/USDT".to_string()));
         m.insert("id".to_string(), Value::Str("6".to_string()));
@@ -222,7 +222,7 @@ pub fn testWsCache() {
         }));
     }
     }
-    assert!(ccxt::runtime::is_true(&(equals(cacheSymbolId5.clone(), Value::List(vec![Value::Map({
+    assert!(ccxt::runtime::is_true(&(equals(cacheSymbolId5.clone(), Value::from(vec![Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), Value::Str("BTC/USDT".to_string()));
         m.insert("id".to_string(), Value::Str("6".to_string()));
@@ -261,7 +261,7 @@ pub fn testWsCache() {
         m
     });
     cacheSymbolId5.append(middle.clone());
-    assert!(ccxt::runtime::is_true(&(equals(cacheSymbolId5.clone(), Value::List(vec![Value::Map({
+    assert!(ccxt::runtime::is_true(&(equals(cacheSymbolId5.clone(), Value::from(vec![Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), Value::Str("BTC/USDT".to_string()));
         m.insert("id".to_string(), Value::Str("6".to_string()));
@@ -300,7 +300,7 @@ pub fn testWsCache() {
         m
     });
     cacheSymbolId5.append(otherMiddle.clone());
-    assert!(ccxt::runtime::is_true(&(equals(cacheSymbolId5.clone(), Value::List(vec![Value::Map({
+    assert!(ccxt::runtime::is_true(&(equals(cacheSymbolId5.clone(), Value::from(vec![Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), Value::Str("BTC/USDT".to_string()));
         m.insert("id".to_string(), Value::Str("6".to_string()));
@@ -344,7 +344,7 @@ pub fn testWsCache() {
         }));
     }
     }
-    assert!(ccxt::runtime::is_true(&(equals(cacheSymbolId5.clone(), Value::List(vec![Value::Map({
+    assert!(ccxt::runtime::is_true(&(equals(cacheSymbolId5.clone(), Value::from(vec![Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), Value::Str("BTC/USDT".to_string()));
         m.insert("id".to_string(), Value::Str("8".to_string()));
@@ -383,7 +383,7 @@ pub fn testWsCache() {
         m
     });
     cacheSymbolId5.append(first.clone());
-    assert!(ccxt::runtime::is_true(&(equals(cacheSymbolId5.clone(), Value::List(vec![Value::Map({
+    assert!(ccxt::runtime::is_true(&(equals(cacheSymbolId5.clone(), Value::from(vec![Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), Value::Str("BTC/USDT".to_string()));
         m.insert("id".to_string(), Value::Str("7".to_string()));
@@ -422,7 +422,7 @@ pub fn testWsCache() {
         m
     });
     cacheSymbolId5.append(another.clone());
-    assert!(ccxt::runtime::is_true(&(equals(cacheSymbolId5.clone(), Value::List(vec![Value::Map({
+    assert!(ccxt::runtime::is_true(&(equals(cacheSymbolId5.clone(), Value::from(vec![Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), Value::Str("BTC/USDT".to_string()));
         m.insert("id".to_string(), Value::Str("7".to_string()));
@@ -576,7 +576,7 @@ pub fn testWsCache() {
                 let mut i: Value = Value::Int(0);
         let mut __for_first_1426: bool = true;
         while { if !__for_first_1426 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1426 = false; i.as_f64().unwrap_or(f64::NAN) < initialLength.as_f64().unwrap_or(f64::NAN) } {
-        timestampCache2.append(Value::List(vec![(match (&(i), &(Value::Int(10))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }), (match (&(i), &(Value::Int(10))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }), (match (&(i), &(Value::Int(10))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }), (match (&(i), &(Value::Int(10))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })]));
+        timestampCache2.append(Value::from(vec![(match (&(i), &(Value::Int(10))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }), (match (&(i), &(Value::Int(10))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }), (match (&(i), &(Value::Int(10))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }), (match (&(i), &(Value::Int(10))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })]));
     }
     }
     limited = timestampCache2.get_limit(Value::Null, Value::Null);
@@ -586,7 +586,7 @@ pub fn testWsCache() {
                 let mut i: Value = Value::Int(0);
         let mut __for_first_1427: bool = true;
         while { if !__for_first_1427 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1427 = false; i.as_f64().unwrap_or(f64::NAN) < appendItemsLength.as_f64().unwrap_or(f64::NAN) } {
-        timestampCache2.append(Value::List(vec![(match (&(i), &(Value::Int(4))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }), (match (&(i), &(Value::Int(4))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }), (match (&(i), &(Value::Int(4))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }), (match (&(i), &(Value::Int(4))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })]));
+        timestampCache2.append(Value::from(vec![(match (&(i), &(Value::Int(4))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }), (match (&(i), &(Value::Int(4))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }), (match (&(i), &(Value::Int(4))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }), (match (&(i), &(Value::Int(4))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })]));
     }
     }
     outsideLimit = Value::Int(5);
@@ -880,7 +880,7 @@ pub fn testWsCache() {
             m.insert("i".to_string(), Value::Int(4));
         m
     }));
-    assert!(ccxt::runtime::is_true(&(equals(cacheClearById.clone(), Value::List(vec![Value::Map({
+    assert!(ccxt::runtime::is_true(&(equals(cacheClearById.clone(), Value::from(vec![Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), Value::Str("BTC/USDT".to_string()));
         m.insert("id".to_string(), Value::Str("a".to_string()));
@@ -898,13 +898,13 @@ pub fn testWsCache() {
     // used to merge into a reference that was no longer in the array, so the candle
     // was silently dropped and the cache stayed empty
     let mut cacheClearTimestamp = ArrayCacheByTimestamp::new(Value::Null);
-    cacheClearTimestamp.append(Value::List(vec![Value::Int(100), Value::Int(1), Value::Int(2), Value::Int(3)]));
-    cacheClearTimestamp.append(Value::List(vec![Value::Int(200), Value::Int(4), Value::Int(5), Value::Int(6)]));
+    cacheClearTimestamp.append(Value::from(vec![Value::Int(100), Value::Int(1), Value::Int(2), Value::Int(3)]));
+    cacheClearTimestamp.append(Value::from(vec![Value::Int(200), Value::Int(4), Value::Int(5), Value::Int(6)]));
     cacheClearTimestamp.clear();
     assert!(ccxt::runtime::is_true(&(Value::Bool(get_array_length(&cacheClearTimestamp).as_f64() == Some(0.0)))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&cacheClearTimestamp.get_limit(Value::Null, Value::Int(10)), &Value::Int(0)))))); // no phantom updates
-    cacheClearTimestamp.append(Value::List(vec![Value::Int(100), Value::Int(7), Value::Int(8), Value::Int(9)]));
-    assert!(ccxt::runtime::is_true(&(equals(cacheClearTimestamp.clone(), Value::List(vec![Value::List(vec![Value::Int(100), Value::Int(7), Value::Int(8), Value::Int(9)])])))));
+    cacheClearTimestamp.append(Value::from(vec![Value::Int(100), Value::Int(7), Value::Int(8), Value::Int(9)]));
+    assert!(ccxt::runtime::is_true(&(equals(cacheClearTimestamp.clone(), Value::from(vec![Value::from(vec![Value::Int(100), Value::Int(7), Value::Int(8), Value::Int(9)])])))));
     // ----------------------------------------------------------------------------
     // test clear () really resets ArrayCacheBySymbolBySide
     let mut cacheClearBySide = ArrayCacheBySymbolBySide::new(Value::Null);
@@ -1035,7 +1035,7 @@ pub fn testWsCache() {
             m.insert("i".to_string(), Value::Int(3));
         m
     }));
-    assert!(ccxt::runtime::is_true(&(equals(cacheSharedId.clone(), Value::List(vec![Value::Map({
+    assert!(ccxt::runtime::is_true(&(equals(cacheSharedId.clone(), Value::from(vec![Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), Value::Str("ETH/USDT".to_string()));
         m.insert("id".to_string(), Value::Str("shared".to_string()));
@@ -1057,20 +1057,20 @@ pub fn testWsCache() {
                 let mut i: Value = Value::Int(1);
         let mut __for_first_1428: bool = true;
         while { if !__for_first_1428 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1428 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(7).as_f64().unwrap_or(f64::NAN) } {
-        cacheTimestampLimited.append(Value::List(vec![(match (&(i), &(Value::Int(100))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }), i.clone(), i.clone(), i.clone()]));
+        cacheTimestampLimited.append(Value::from(vec![(match (&(i), &(Value::Int(100))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }), i.clone(), i.clone(), i.clone()]));
     }
     }
-    assert!(ccxt::runtime::is_true(&(equals(cacheTimestampLimited.clone(), Value::List(vec![Value::List(vec![Value::Int(400), Value::Int(4), Value::Int(4), Value::Int(4)]), Value::List(vec![Value::Int(500), Value::Int(5), Value::Int(5), Value::Int(5)]), Value::List(vec![Value::Int(600), Value::Int(6), Value::Int(6), Value::Int(6)])])))));
-    cacheTimestampLimited.append(Value::List(vec![Value::Int(100), Value::Int(9), Value::Int(9), Value::Int(9)]));
-    assert!(ccxt::runtime::is_true(&(equals(cacheTimestampLimited.clone(), Value::List(vec![Value::List(vec![Value::Int(500), Value::Int(5), Value::Int(5), Value::Int(5)]), Value::List(vec![Value::Int(600), Value::Int(6), Value::Int(6), Value::Int(6)]), Value::List(vec![Value::Int(100), Value::Int(9), Value::Int(9), Value::Int(9)])])))));
+    assert!(ccxt::runtime::is_true(&(equals(cacheTimestampLimited.clone(), Value::from(vec![Value::from(vec![Value::Int(400), Value::Int(4), Value::Int(4), Value::Int(4)]), Value::from(vec![Value::Int(500), Value::Int(5), Value::Int(5), Value::Int(5)]), Value::from(vec![Value::Int(600), Value::Int(6), Value::Int(6), Value::Int(6)])])))));
+    cacheTimestampLimited.append(Value::from(vec![Value::Int(100), Value::Int(9), Value::Int(9), Value::Int(9)]));
+    assert!(ccxt::runtime::is_true(&(equals(cacheTimestampLimited.clone(), Value::from(vec![Value::from(vec![Value::Int(500), Value::Int(5), Value::Int(5), Value::Int(5)]), Value::from(vec![Value::Int(600), Value::Int(6), Value::Int(6), Value::Int(6)]), Value::from(vec![Value::Int(100), Value::Int(9), Value::Int(9), Value::Int(9)])])))));
     // ----------------------------------------------------------------------------
     // test a shorter OHLCV update does not leave a stale tail behind - merging
     // [ 100, 9, 9 ] onto [ 100, 1, 2, 3, 4, 5 ] used to yield [ 100, 9, 9, 3, 4, 5 ]
     let mut cacheShortOhlcv = ArrayCacheByTimestamp::new(Value::Null);
-    cacheShortOhlcv.append(Value::List(vec![Value::Int(100), Value::Int(1), Value::Int(2), Value::Int(3), Value::Int(4), Value::Int(5)]));
-    cacheShortOhlcv.append(Value::List(vec![Value::Int(100), Value::Int(9), Value::Int(9)]));
+    cacheShortOhlcv.append(Value::from(vec![Value::Int(100), Value::Int(1), Value::Int(2), Value::Int(3), Value::Int(4), Value::Int(5)]));
+    cacheShortOhlcv.append(Value::from(vec![Value::Int(100), Value::Int(9), Value::Int(9)]));
     assert!(ccxt::runtime::is_true(&(Value::Bool(get_array_length(&cacheShortOhlcv).as_f64() == Some(1.0)))));
-    assert!(ccxt::runtime::is_true(&(equals(cacheShortOhlcv.clone(), Value::List(vec![Value::List(vec![Value::Int(100), Value::Int(9), Value::Int(9)])])))));
+    assert!(ccxt::runtime::is_true(&(equals(cacheShortOhlcv.clone(), Value::from(vec![Value::from(vec![Value::Int(100), Value::Int(9), Value::Int(9)])])))));
     // ----------------------------------------------------------------------------
     // test ArrayCacheByOutcomeById keys the first nesting level on the outcome and
     // not on the symbol - prediction markets stream several outcomes of the same
@@ -1101,7 +1101,7 @@ pub fn testWsCache() {
             m.insert("i".to_string(), Value::Int(3));
         m
     }));
-    assert!(ccxt::runtime::is_true(&(equals(cacheByOutcome.clone(), Value::List(vec![Value::Map({
+    assert!(ccxt::runtime::is_true(&(equals(cacheByOutcome.clone(), Value::from(vec![Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), Value::Str("TRUMP-2024".to_string()));
         m.insert("outcome".to_string(), Value::Str("no".to_string()));

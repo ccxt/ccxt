@@ -146,7 +146,7 @@ impl LunoCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), Value::Str("luno".to_string()));
         m.insert("name".to_string(), Value::Str("Luno".to_string()));
-        m.insert("countries".to_string(), Value::List(vec![Value::Str("GB".to_string()), Value::Str("SG".to_string()), Value::Str("ZA".to_string())]));
+        m.insert("countries".to_string(), Value::from(vec![Value::Str("GB".to_string()), Value::Str("SG".to_string()), Value::Str("ZA".to_string())]));
         m.insert("rateLimit".to_string(), Value::Int(200));
         m.insert("version".to_string(), Value::Str("1".to_string()));
         m.insert("pro".to_string(), Value::Bool(true));
@@ -263,7 +263,7 @@ impl LunoCore {
     m
 }));
         m.insert("www".to_string(), Value::Str("https://www.luno.com".to_string()));
-        m.insert("doc".to_string(), Value::List(vec![Value::Str("https://www.luno.com/en/developers/api".to_string()), Value::Str("https://npmjs.org/package/bitx".to_string()), Value::Str("https://github.com/bausmeier/node-bitx".to_string())]));
+        m.insert("doc".to_string(), Value::from(vec![Value::Str("https://www.luno.com/en/developers/api".to_string()), Value::Str("https://npmjs.org/package/bitx".to_string()), Value::Str("https://github.com/bausmeier/node-bitx".to_string())]));
     m
 }));
         m.insert("api".to_string(), Value::Map({
@@ -542,8 +542,8 @@ impl LunoCore {
         m.insert("maker".to_string(), self.parse_number(Value::Str("0.004".to_string()), &[]));
         m.insert("tiers".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("taker".to_string(), Value::List(vec![Value::List(vec![self.parse_number(Value::Str("0".to_string()), &[]), self.parse_number(Value::Str("0.006".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("20000".to_string()), &[]), self.parse_number(Value::Str("0.005".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("200000".to_string()), &[]), self.parse_number(Value::Str("0.004".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("1000000".to_string()), &[]), self.parse_number(Value::Str("0.003".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("2000000".to_string()), &[]), self.parse_number(Value::Str("0.002".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("5000000".to_string()), &[]), self.parse_number(Value::Str("0.0015".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("10000000".to_string()), &[]), self.parse_number(Value::Str("0.001".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("20000000".to_string()), &[]), self.parse_number(Value::Str("0.0009".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("40000000".to_string()), &[]), self.parse_number(Value::Str("0.0008".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("80000000".to_string()), &[]), self.parse_number(Value::Str("0.0007".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("120000000".to_string()), &[]), self.parse_number(Value::Str("0.0006".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("160000000".to_string()), &[]), self.parse_number(Value::Str("0.0005".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("300000000".to_string()), &[]), self.parse_number(Value::Str("0.0005".to_string()), &[])])]));
-        m.insert("maker".to_string(), Value::List(vec![Value::List(vec![self.parse_number(Value::Str("0".to_string()), &[]), self.parse_number(Value::Str("0.004".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("20000".to_string()), &[]), self.parse_number(Value::Str("0.003".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("200000".to_string()), &[]), self.parse_number(Value::Str("0.002".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("1000000".to_string()), &[]), self.parse_number(Value::Str("0.001".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("2000000".to_string()), &[]), self.parse_number(Value::Str("0.0008".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("5000000".to_string()), &[]), self.parse_number(Value::Str("0.0006".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("10000000".to_string()), &[]), self.parse_number(Value::Str("0".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("20000000".to_string()), &[]), self.parse_number(Value::Str("0".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("40000000".to_string()), &[]), self.parse_number(Value::Str("-0.0001".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("80000000".to_string()), &[]), self.parse_number(Value::Str("-0.0001".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("120000000".to_string()), &[]), self.parse_number(Value::Str("-0.0002".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("160000000".to_string()), &[]), self.parse_number(Value::Str("-0.0002".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("300000000".to_string()), &[]), self.parse_number(Value::Str("-0.0002".to_string()), &[])])]));
+        m.insert("taker".to_string(), Value::from(vec![Value::from(vec![self.parse_number(Value::Str("0".to_string()), &[]), self.parse_number(Value::Str("0.006".to_string()), &[])]), Value::from(vec![self.parse_number(Value::Str("20000".to_string()), &[]), self.parse_number(Value::Str("0.005".to_string()), &[])]), Value::from(vec![self.parse_number(Value::Str("200000".to_string()), &[]), self.parse_number(Value::Str("0.004".to_string()), &[])]), Value::from(vec![self.parse_number(Value::Str("1000000".to_string()), &[]), self.parse_number(Value::Str("0.003".to_string()), &[])]), Value::from(vec![self.parse_number(Value::Str("2000000".to_string()), &[]), self.parse_number(Value::Str("0.002".to_string()), &[])]), Value::from(vec![self.parse_number(Value::Str("5000000".to_string()), &[]), self.parse_number(Value::Str("0.0015".to_string()), &[])]), Value::from(vec![self.parse_number(Value::Str("10000000".to_string()), &[]), self.parse_number(Value::Str("0.001".to_string()), &[])]), Value::from(vec![self.parse_number(Value::Str("20000000".to_string()), &[]), self.parse_number(Value::Str("0.0009".to_string()), &[])]), Value::from(vec![self.parse_number(Value::Str("40000000".to_string()), &[]), self.parse_number(Value::Str("0.0008".to_string()), &[])]), Value::from(vec![self.parse_number(Value::Str("80000000".to_string()), &[]), self.parse_number(Value::Str("0.0007".to_string()), &[])]), Value::from(vec![self.parse_number(Value::Str("120000000".to_string()), &[]), self.parse_number(Value::Str("0.0006".to_string()), &[])]), Value::from(vec![self.parse_number(Value::Str("160000000".to_string()), &[]), self.parse_number(Value::Str("0.0005".to_string()), &[])]), Value::from(vec![self.parse_number(Value::Str("300000000".to_string()), &[]), self.parse_number(Value::Str("0.0005".to_string()), &[])])]));
+        m.insert("maker".to_string(), Value::from(vec![Value::from(vec![self.parse_number(Value::Str("0".to_string()), &[]), self.parse_number(Value::Str("0.004".to_string()), &[])]), Value::from(vec![self.parse_number(Value::Str("20000".to_string()), &[]), self.parse_number(Value::Str("0.003".to_string()), &[])]), Value::from(vec![self.parse_number(Value::Str("200000".to_string()), &[]), self.parse_number(Value::Str("0.002".to_string()), &[])]), Value::from(vec![self.parse_number(Value::Str("1000000".to_string()), &[]), self.parse_number(Value::Str("0.001".to_string()), &[])]), Value::from(vec![self.parse_number(Value::Str("2000000".to_string()), &[]), self.parse_number(Value::Str("0.0008".to_string()), &[])]), Value::from(vec![self.parse_number(Value::Str("5000000".to_string()), &[]), self.parse_number(Value::Str("0.0006".to_string()), &[])]), Value::from(vec![self.parse_number(Value::Str("10000000".to_string()), &[]), self.parse_number(Value::Str("0".to_string()), &[])]), Value::from(vec![self.parse_number(Value::Str("20000000".to_string()), &[]), self.parse_number(Value::Str("0".to_string()), &[])]), Value::from(vec![self.parse_number(Value::Str("40000000".to_string()), &[]), self.parse_number(Value::Str("-0.0001".to_string()), &[])]), Value::from(vec![self.parse_number(Value::Str("80000000".to_string()), &[]), self.parse_number(Value::Str("-0.0001".to_string()), &[])]), Value::from(vec![self.parse_number(Value::Str("120000000".to_string()), &[]), self.parse_number(Value::Str("-0.0002".to_string()), &[])]), Value::from(vec![self.parse_number(Value::Str("160000000".to_string()), &[]), self.parse_number(Value::Str("-0.0002".to_string()), &[])]), Value::from(vec![self.parse_number(Value::Str("300000000".to_string()), &[]), self.parse_number(Value::Str("-0.0002".to_string()), &[])])]));
     m
 }));
     m
@@ -799,7 +799,7 @@ impl LunoCore {
         //         ]
         //     }
         //
-        let mut currenciesData: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
+        let mut currenciesData: Value = self.safe_list_k(response.clone(), "data", &[Value::from(vec![])]);
         let mut grouped: Value = self.group_by(currenciesData.clone(), Value::Str("native_currency".to_string()), &[]);
         let mut values: Value = object_values(&grouped);
         return self.parse_currencies(values.clone());
@@ -922,8 +922,8 @@ impl LunoCore {
         //         ]
         //     }
         //
-        let mut result: Value = Value::List(vec![]);
-        let mut markets: Value = self.safe_list_k(response.clone(), "markets", &[Value::List(vec![])]);
+        let mut result: Value = Value::from(vec![]);
+        let mut markets: Value = self.safe_list_k(response.clone(), "markets", &[Value::from(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_930: bool = true;
@@ -940,12 +940,12 @@ impl LunoCore {
             // rates below are read from Luno's own Help Centre fee article for the ZAR
             // market; markets quoted in other fiat currencies are left on the
             // exchange-wide default until their schedules are verified the same way.
-            let mut fiats: Value = Value::List(vec![Value::Str("ZAR".to_string())]);
+            let mut fiats: Value = Value::from(vec![Value::Str("ZAR".to_string())]);
             // live-but-unverified counters, kept on the exchange-wide default; the market
             // list is geo-filtered so this is a superset of any one region's view, and
             // ZARU is Luno's tokenized rand ("ZAR Universal"), not fiat, but equally unverified
-            let mut unverifiedQuotes: Value = Value::List(vec![Value::Str("MYR".to_string()), Value::Str("NGN".to_string()), Value::Str("IDR".to_string()), Value::Str("KES".to_string()), Value::Str("UGX".to_string()), Value::Str("AUD".to_string()), Value::Str("GBP".to_string()), Value::Str("EUR".to_string()), Value::Str("USD".to_string()), Value::Str("ZARU".to_string())]);
-            let mut stablecoins: Value = Value::List(vec![Value::Str("USDT".to_string()), Value::Str("USDC".to_string())]);
+            let mut unverifiedQuotes: Value = Value::from(vec![Value::Str("MYR".to_string()), Value::Str("NGN".to_string()), Value::Str("IDR".to_string()), Value::Str("KES".to_string()), Value::Str("UGX".to_string()), Value::Str("AUD".to_string()), Value::Str("GBP".to_string()), Value::Str("EUR".to_string()), Value::Str("USD".to_string()), Value::Str("ZARU".to_string())]);
+            let mut stablecoins: Value = Value::from(vec![Value::Str("USDT".to_string()), Value::Str("USDC".to_string())]);
             let mut taker: Value = Value::Null;
             let mut maker: Value = Value::Null;
             if is_true(&self.in_array(quote.clone(), fiats.clone())) {
@@ -1048,8 +1048,8 @@ impl LunoCore {
     m
 }));
         let mut response: Value = self.private_get_balance(&[params.clone()]).await;
-        let mut wallets: Value = self.safe_list_k(response.clone(), "balance", &[Value::List(vec![])]);
-        let mut result: Value = Value::List(vec![]);
+        let mut wallets: Value = self.safe_list_k(response.clone(), "balance", &[Value::from(vec![])]);
+        let mut result: Value = Value::from(vec![]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_931: bool = true;
@@ -1075,7 +1075,7 @@ impl LunoCore {
 }
 
     pub fn parse_balance(&self, mut response: Value) -> Value {
-        let mut wallets: Value = self.safe_list_k(response.clone(), "balance", &[Value::List(vec![])]);
+        let mut wallets: Value = self.safe_list_k(response.clone(), "balance", &[Value::from(vec![])]);
         let mut result: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("info".to_string(), response.clone());
@@ -1324,7 +1324,7 @@ impl LunoCore {
         }
         let __ws_arg_3 = self.extend(request.clone(), &[params.clone()]);
         let mut response: Value = self.private_get_listorders(&[__ws_arg_3]).await;
-        let mut orders: Value = self.safe_list_k(response.clone(), "orders", &[Value::List(vec![])]);
+        let mut orders: Value = self.safe_list_k(response.clone(), "orders", &[Value::from(vec![])]);
         return self.parse_orders(orders.clone(), &[market.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -1465,7 +1465,7 @@ impl LunoCore {
         }
         symbols = self.market_symbols(&[symbols.clone()]);
         let mut response: Value = self.public_get_tickers(&[params.clone()]).await;
-        let mut rawTickers: Value = self.safe_list_k(response.clone(), "tickers", &[Value::List(vec![])]);
+        let mut rawTickers: Value = self.safe_list_k(response.clone(), "tickers", &[Value::from(vec![])]);
         let mut tickers: Value = self.index_by(rawTickers.clone(), Value::Str("pair".to_string()));
         let mut ids: Value = object_keys(&tickers);
         let mut result: Value = Value::Map({
@@ -1662,7 +1662,7 @@ impl LunoCore {
         //          ]
         //      }
         //
-        let mut trades: Value = self.safe_list_k(response.clone(), "trades", &[Value::List(vec![])]);
+        let mut trades: Value = self.safe_list_k(response.clone(), "trades", &[Value::from(vec![])]);
         return self.parse_trades(trades.clone(), &[market.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -1722,7 +1722,7 @@ impl LunoCore {
         //          "pair": "XBTEUR"
         //     }
         //
-        let mut ohlcvs: Value = self.safe_list_k(response.clone(), "candles", &[Value::List(vec![])]);
+        let mut ohlcvs: Value = self.safe_list_k(response.clone(), "candles", &[Value::from(vec![])]);
         return self.parse_ohlc_vs(ohlcvs.clone(), &[market.clone(), timeframe.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -1730,7 +1730,7 @@ impl LunoCore {
 
     pub fn parse_ohlcv(&self, mut ohlcv: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
-        return Value::List(vec![self.safe_integer_k(ohlcv.clone(), "timestamp", &[]), self.safe_number_k(ohlcv.clone(), "open", &[]), self.safe_number_k(ohlcv.clone(), "high", &[]), self.safe_number_k(ohlcv.clone(), "low", &[]), self.safe_number_k(ohlcv.clone(), "close", &[]), self.safe_number_k(ohlcv.clone(), "volume", &[])]);
+        return Value::from(vec![self.safe_integer_k(ohlcv.clone(), "timestamp", &[]), self.safe_number_k(ohlcv.clone(), "open", &[]), self.safe_number_k(ohlcv.clone(), "high", &[]), self.safe_number_k(ohlcv.clone(), "low", &[]), self.safe_number_k(ohlcv.clone(), "close", &[]), self.safe_number_k(ohlcv.clone(), "volume", &[])]);
 
     Value::Null
 }
@@ -1795,7 +1795,7 @@ impl LunoCore {
         //          ]
         //      }
         //
-        let mut trades: Value = self.safe_list_k(response.clone(), "trades", &[Value::List(vec![])]);
+        let mut trades: Value = self.safe_list_k(response.clone(), "trades", &[Value::from(vec![])]);
         return self.parse_trades(trades.clone(), &[market.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -2030,7 +2030,7 @@ impl LunoCore {
         });
         let __ws_arg_13 = self.extend(params.clone(), &[request.clone()]);
         let mut response: Value = self.private_get_accounts_id_transactions(&[__ws_arg_13]).await;
-        let mut entries: Value = self.safe_value_k(response.clone(), "transactions", &[Value::List(vec![])]);
+        let mut entries: Value = self.safe_value_k(response.clone(), "transactions", &[Value::from(vec![])]);
         return self.parse_ledger(entries.clone(), &[currency.clone(), since.clone(), limit.clone()]);
 
     Value::Null

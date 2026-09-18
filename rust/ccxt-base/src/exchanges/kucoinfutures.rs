@@ -220,7 +220,7 @@ impl KucoinfuturesCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("fetchMarkets".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("types".to_string(), Value::List(vec![Value::Str("swap".to_string()), Value::Str("future".to_string()), Value::Str("contract".to_string())]));
+        m.insert("types".to_string(), Value::from(vec![Value::Str("swap".to_string()), Value::Str("future".to_string()), Value::Str("contract".to_string())]));
         m.insert("fetchTickersFees".to_string(), Value::Bool(false));
     m
 }));

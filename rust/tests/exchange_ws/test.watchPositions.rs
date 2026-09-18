@@ -17,7 +17,7 @@ pub async fn testWatchPositions(mut exchange: Value, mut skippedProperties: Valu
         let mut response: Value = Value::Null;
         let mut success: Value = Value::Bool(true);
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
-            response = crate::live_dispatch::dispatch(&mut exchange, "watch_positions", vec![Value::List(vec![symbol.clone()])]).await;
+            response = crate::live_dispatch::dispatch(&mut exchange, "watch_positions", vec![Value::from(vec![symbol.clone()])]).await;
             if (response == Value::Null) {
                 panic!("{}", Value::Str(format!("{}{}", get_value(&exchange, &Value::Str("id".to_string())), Value::Str(" watch returned undefined response".to_string()))));
             }
@@ -51,7 +51,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut positionsForSymbols: Value = Value::Null;
         let mut success2: Value = Value::Bool(true);
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
-            positionsForSymbols = crate::live_dispatch::dispatch(&mut exchange, "watch_positions", vec![Value::List(vec![symbol.clone()])]).await;
+            positionsForSymbols = crate::live_dispatch::dispatch(&mut exchange, "watch_positions", vec![Value::from(vec![symbol.clone()])]).await;
          #[allow(unreachable_code)] { Value::Null }})).await;
 if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             if !is_true(&crate::tests_support::shared::is_temporary_failure(e.clone())) {

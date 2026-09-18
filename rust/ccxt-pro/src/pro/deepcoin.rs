@@ -474,7 +474,7 @@ impl DeepcoinCore {
             let mut m = indexmap::IndexMap::new();
                 m.insert("subHash".to_string(), messageHash.clone());
                 m.insert("unsubHash".to_string(), unsubHash.clone());
-                m.insert("symbols".to_string(), Value::List(vec![crate::value::get_value_k(&market, "symbol")]));
+                m.insert("symbols".to_string(), Value::from(vec![crate::value::get_value_k(&market, "symbol")]));
                 m.insert("id".to_string(), requestId.clone());
             m
         })]);
@@ -655,7 +655,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //         }
         //     ]
         //
-        let mut response: Value = self.safe_list_k(message.clone(), "r", &[Value::List(vec![])]);
+        let mut response: Value = self.safe_list_k(message.clone(), "r", &[Value::from(vec![])]);
         let mut first: Value = self.safe_dict(response.clone(), Value::Int(0), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -821,7 +821,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //         ]
         //     }
         //
-        let mut response: Value = self.safe_list_k(message.clone(), "r", &[Value::List(vec![])]);
+        let mut response: Value = self.safe_list_k(message.clone(), "r", &[Value::from(vec![])]);
         let mut first: Value = self.safe_dict(response.clone(), Value::Int(0), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -1011,7 +1011,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut subscription: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("topic".to_string(), Value::Str("ohlcv".to_string()));
-                m.insert("symbolsAndTimeframes".to_string(), Value::List(vec![Value::List(vec![symbol.clone(), timeframe.clone()])]));
+                m.insert("symbolsAndTimeframes".to_string(), Value::from(vec![Value::from(vec![symbol.clone(), timeframe.clone()])]));
             m
         });
         return self.un_watch_public(market.clone(), messageHash.clone(), Value::Str("11".to_string()), &[params.clone(), subscription.clone(), suffix.clone()]).await;
@@ -1043,7 +1043,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //         ]
         //     }
         //
-        let mut response: Value = self.safe_list_k(message.clone(), "r", &[Value::List(vec![])]);
+        let mut response: Value = self.safe_list_k(message.clone(), "r", &[Value::from(vec![])]);
         let mut first: Value = self.safe_dict(response.clone(), Value::Int(0), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -1078,7 +1078,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 
     pub fn parse_ws_ohlcv(&self, mut ohlcv: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
-        return Value::List(vec![self.safe_timestamp(ohlcv.clone(), Value::Str("B".to_string()), &[]), self.safe_number_k(ohlcv.clone(), "O", &[]), self.safe_number_k(ohlcv.clone(), "H", &[]), self.safe_number_k(ohlcv.clone(), "L", &[]), self.safe_number_k(ohlcv.clone(), "C", &[]), self.safe_number_k(ohlcv.clone(), "V", &[])]);
+        return Value::from(vec![self.safe_timestamp(ohlcv.clone(), Value::Str("B".to_string()), &[]), self.safe_number_k(ohlcv.clone(), "O", &[]), self.safe_number_k(ohlcv.clone(), "H", &[]), self.safe_number_k(ohlcv.clone(), "L", &[]), self.safe_number_k(ohlcv.clone(), "C", &[]), self.safe_number_k(ohlcv.clone(), "V", &[])]);
 
     Value::Null
 }
@@ -1175,7 +1175,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             }
             aggregation = self.number_to_string(tickSize.clone());
         }
-        return Value::List(vec![Value::Str(format!("{}{}", Value::Str("_".to_string()), aggregation)), params.clone()]);
+        return Value::from(vec![Value::Str(format!("{}{}", Value::Str("_".to_string()), aggregation)), params.clone()]);
 
     Value::Null
 }
@@ -1197,7 +1197,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //         "mt": 1760975816446
         //     }
         //
-        let mut response: Value = self.safe_list_k(message.clone(), "r", &[Value::List(vec![])]);
+        let mut response: Value = self.safe_list_k(message.clone(), "r", &[Value::from(vec![])]);
         let mut first: Value = self.safe_dict(response.clone(), Value::Int(0), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -1230,7 +1230,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 }
 
     pub fn handle_order_book_snapshot(&self, mut client: Value, mut message: Value) {
-        let mut entries: Value = self.safe_list_k(message.clone(), "r", &[Value::List(vec![])]);
+        let mut entries: Value = self.safe_list_k(message.clone(), "r", &[Value::from(vec![])]);
         let mut first: Value = self.safe_dict(entries.clone(), Value::Int(0), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -1245,8 +1245,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut orderbook: Value = get_value(&self.orderbooks, &symbol);
         let mut orderedEntries: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("bids".to_string(), Value::List(vec![]));
-                m.insert("asks".to_string(), Value::List(vec![]));
+                m.insert("bids".to_string(), Value::from(vec![]));
+                m.insert("asks".to_string(), Value::from(vec![]));
             m
         });
         {
@@ -1264,10 +1264,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut volume: Value = self.safe_number_k(entryData.clone(), "V", &[]);
             if (side.as_str() == Some("0")) {
                 // bid
-                crate::runtime::append_to_object_array(&mut orderedEntries, &Value::Str("bids".to_string()), Value::List(vec![price.clone(), volume.clone()]));
+                crate::runtime::append_to_object_array(&mut orderedEntries, &Value::Str("bids".to_string()), Value::from(vec![price.clone(), volume.clone()]));
             }  else if (side.as_str() == Some("1")) {
                 // ask
-                crate::runtime::append_to_object_array(&mut orderedEntries, &Value::Str("asks".to_string()), Value::List(vec![price.clone(), volume.clone()]));
+                crate::runtime::append_to_object_array(&mut orderedEntries, &Value::Str("asks".to_string()), Value::from(vec![price.clone(), volume.clone()]));
             }
         }
         }
@@ -1284,7 +1284,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             self.handle_order_book_message(client.clone(), cachedMessage.clone(), orderbook.clone());
         }
         }
-        crate::set_value(&mut orderbook, &Value::Str("cache".to_string()), Value::List(vec![]));
+        crate::set_value(&mut orderbook, &Value::Str("cache".to_string()), Value::from(vec![]));
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("orderbook".to_string()), Value::Str("::".to_string()))), symbol));
         client.resolve(&[orderbook.clone(), messageHash.clone()]);
 }
@@ -1307,7 +1307,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //
         let mut timestamp: Value = self.safe_integer_k(message.clone(), "mt", &[Value::Int(0)]);
         if is_greater_than(&timestamp, &crate::value::get_value_k(&orderbook, "timestamp")) {
-            let mut response: Value = self.safe_list_k(message.clone(), "r", &[Value::List(vec![])]);
+            let mut response: Value = self.safe_list_k(message.clone(), "r", &[Value::from(vec![])]);
             self.handle_deltas(orderbook.clone(), response.clone());
             add_element_to_object(&mut orderbook, &Value::Str("timestamp".to_string()), timestamp.clone());
             add_element_to_object(&mut orderbook, &Value::Str("datetime".to_string()), self.iso8601(timestamp.clone()));
@@ -1400,7 +1400,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //         ]
         //     }
         //
-        let mut result: Value = self.safe_list_k(message.clone(), "result", &[Value::List(vec![])]);
+        let mut result: Value = self.safe_list_k(message.clone(), "result", &[Value::from(vec![])]);
         let mut first: Value = self.safe_dict(result.clone(), Value::Int(0), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -1494,7 +1494,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //         ]
         //     }
         //
-        let mut result: Value = self.safe_list_k(message.clone(), "result", &[Value::List(vec![])]);
+        let mut result: Value = self.safe_list_k(message.clone(), "result", &[Value::from(vec![])]);
         let mut first: Value = self.safe_dict(result.clone(), Value::Int(0), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -1618,7 +1618,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut listenKey: Value = self.authenticate(&[]).await;
         symbols = self.market_symbols(&[symbols.clone()]);
         let mut messageHash: Value = Value::Str("positions".to_string());
-        let mut messageHashes: Value = Value::List(vec![]);
+        let mut messageHashes: Value = Value::from(vec![]);
         if (symbols != Value::Null) {
             {
                                 let mut i: Value = Value::Int(0);
@@ -1634,7 +1634,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             append_to_array(&mut messageHashes, messageHash.clone());
         }
         let mut url: Value = add(&add(&crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "private"), &Value::Str("?listenKey=".to_string())), &listenKey);
-        let mut positions: Value = self.watch_multiple(url.clone(), messageHashes.clone(), &[params.clone(), Value::List(vec![Value::Str("private".to_string())])]).await;
+        let mut positions: Value = self.watch_multiple(url.clone(), messageHashes.clone(), &[params.clone(), Value::from(vec![Value::Str("private".to_string())])]).await;
         if is_true(&self.newUpdates) {
             return positions;
         }
@@ -1667,7 +1667,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //         ]
         //     }
         //
-        let mut result: Value = self.safe_list_k(message.clone(), "result", &[Value::List(vec![])]);
+        let mut result: Value = self.safe_list_k(message.clone(), "result", &[Value::from(vec![])]);
         let mut first: Value = self.safe_dict(result.clone(), Value::Int(0), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -1825,7 +1825,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //         ]
         //     }
         //
-        let mut response: Value = self.safe_list_k(message.clone(), "r", &[Value::List(vec![])]);
+        let mut response: Value = self.safe_list_k(message.clone(), "r", &[Value::from(vec![])]);
         let mut first: Value = self.safe_dict(response.clone(), Value::Int(0), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -1878,7 +1878,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //     }
         //
         let mut messageText: Value = self.safe_string_k(message.clone(), "m", &[Value::Str("".to_string())]);
-        let mut response: Value = self.safe_list_k(message.clone(), "r", &[Value::List(vec![])]);
+        let mut response: Value = self.safe_list_k(message.clone(), "r", &[Value::from(vec![])]);
         let mut first: Value = self.safe_dict(response.clone(), Value::Int(0), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m

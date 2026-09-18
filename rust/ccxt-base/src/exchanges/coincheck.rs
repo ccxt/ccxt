@@ -124,7 +124,7 @@ impl CoincheckCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), Value::Str("coincheck".to_string()));
         m.insert("name".to_string(), Value::Str("Coincheck".to_string()));
-        m.insert("countries".to_string(), Value::List(vec![Value::Str("JP".to_string()), Value::Str("ID".to_string())]));
+        m.insert("countries".to_string(), Value::from(vec![Value::Str("JP".to_string()), Value::Str("ID".to_string())]));
         m.insert("rateLimit".to_string(), Value::Int(1500));
         m.insert("has".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -226,7 +226,7 @@ impl CoincheckCore {
 }));
         m.insert("www".to_string(), Value::Str("https://coincheck.com".to_string()));
         m.insert("doc".to_string(), Value::Str("https://coincheck.com/documents/exchange/api".to_string()));
-        m.insert("fees".to_string(), Value::List(vec![Value::Str("https://coincheck.com/exchange/fee".to_string()), Value::Str("https://coincheck.com/info/fee".to_string())]));
+        m.insert("fees".to_string(), Value::from(vec![Value::Str("https://coincheck.com/exchange/fee".to_string()), Value::Str("https://coincheck.com/info/fee".to_string())]));
     m
 }));
         m.insert("api".to_string(), Value::Map({
@@ -643,7 +643,7 @@ impl CoincheckCore {
         //         ]
         //     }
         //
-        let mut exchangeStatuses: Value = self.safe_list_k(response.clone(), "exchange_status", &[Value::List(vec![])]);
+        let mut exchangeStatuses: Value = self.safe_list_k(response.clone(), "exchange_status", &[Value::from(vec![])]);
         let mut status: Value = Value::Str("ok".to_string());
         let mut updated: Value = Value::Null;
         {
@@ -724,9 +724,9 @@ impl CoincheckCore {
             market = self.market(symbol.clone());
         }
         let mut response: Value = self.private_get_exchange_orders_opens(&[params.clone()]).await;
-        let mut rawOrders: Value = self.safe_value_k(response.clone(), "orders", &[Value::List(vec![])]);
+        let mut rawOrders: Value = self.safe_value_k(response.clone(), "orders", &[Value::from(vec![])]);
         let mut parsedOrders: Value = self.parse_orders(rawOrders.clone(), &[market.clone(), since.clone(), limit.clone()]);
-        let mut result: Value = Value::List(vec![]);
+        let mut result: Value = Value::from(vec![]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_550: bool = true;
@@ -1051,7 +1051,7 @@ impl CoincheckCore {
         //                  ]
         //      }
         //
-        let mut transactions: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
+        let mut transactions: Value = self.safe_list_k(response.clone(), "data", &[Value::from(vec![])]);
         return self.parse_trades(transactions.clone(), &[market.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -1099,7 +1099,7 @@ impl CoincheckCore {
         //          "created_at": "2021-12-08T14:10:33.000Z"
         //      }
         //
-        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::from(vec![])]);
         return self.parse_trades(data.clone(), &[market.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -1326,7 +1326,7 @@ impl CoincheckCore {
         //     }
         //   ]
         // }
-        let mut data: Value = self.safe_list_k(response.clone(), "deposits", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response.clone(), "deposits", &[Value::from(vec![])]);
         return self.parse_transactions(data.clone(), &[currency.clone(), since.clone(), limit.clone(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("type".to_string(), Value::Str("deposit".to_string()));
@@ -1392,7 +1392,7 @@ impl CoincheckCore {
         //     }
         //   ]
         // }
-        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::from(vec![])]);
         return self.parse_transactions(data.clone(), &[currency.clone(), since.clone(), limit.clone(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("type".to_string(), Value::Str("withdrawal".to_string()));

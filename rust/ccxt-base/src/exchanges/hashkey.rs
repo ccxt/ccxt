@@ -233,7 +233,7 @@ impl HashkeyCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), Value::Str("hashkey".to_string()));
         m.insert("name".to_string(), Value::Str("HashKey Global".to_string()));
-        m.insert("countries".to_string(), Value::List(vec![Value::Str("BM".to_string())]));
+        m.insert("countries".to_string(), Value::from(vec![Value::Str("BM".to_string())]));
         m.insert("rateLimit".to_string(), Value::Int(100));
         m.insert("version".to_string(), Value::Str("v1".to_string()));
         m.insert("certified".to_string(), Value::Bool(true));
@@ -809,8 +809,8 @@ impl HashkeyCore {
         m.insert("taker".to_string(), self.parse_number(Value::Str("0.0012".to_string()), &[]));
         m.insert("tiers".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("maker".to_string(), Value::List(vec![Value::List(vec![self.parse_number(Value::Str("0".to_string()), &[]), self.parse_number(Value::Str("0.0012".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("1000000".to_string()), &[]), self.parse_number(Value::Str("0.00080".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("5000000".to_string()), &[]), self.parse_number(Value::Str("0.00070".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("10000000".to_string()), &[]), self.parse_number(Value::Str("0.00060".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("50000000".to_string()), &[]), self.parse_number(Value::Str("0.00040".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("200000000".to_string()), &[]), self.parse_number(Value::Str("0.00030".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("400000000".to_string()), &[]), self.parse_number(Value::Str("0.00010".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("800000000".to_string()), &[]), self.parse_number(Value::Str("0.00".to_string()), &[])])]));
-        m.insert("taker".to_string(), Value::List(vec![Value::List(vec![self.parse_number(Value::Str("0".to_string()), &[]), self.parse_number(Value::Str("0.0012".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("1000000".to_string()), &[]), self.parse_number(Value::Str("0.00090".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("5000000".to_string()), &[]), self.parse_number(Value::Str("0.00085".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("10000000".to_string()), &[]), self.parse_number(Value::Str("0.00075".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("50000000".to_string()), &[]), self.parse_number(Value::Str("0.00065".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("200000000".to_string()), &[]), self.parse_number(Value::Str("0.00045".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("400000000".to_string()), &[]), self.parse_number(Value::Str("0.00040".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("800000000".to_string()), &[]), self.parse_number(Value::Str("0.00035".to_string()), &[])])]));
+        m.insert("maker".to_string(), Value::from(vec![Value::from(vec![self.parse_number(Value::Str("0".to_string()), &[]), self.parse_number(Value::Str("0.0012".to_string()), &[])]), Value::from(vec![self.parse_number(Value::Str("1000000".to_string()), &[]), self.parse_number(Value::Str("0.00080".to_string()), &[])]), Value::from(vec![self.parse_number(Value::Str("5000000".to_string()), &[]), self.parse_number(Value::Str("0.00070".to_string()), &[])]), Value::from(vec![self.parse_number(Value::Str("10000000".to_string()), &[]), self.parse_number(Value::Str("0.00060".to_string()), &[])]), Value::from(vec![self.parse_number(Value::Str("50000000".to_string()), &[]), self.parse_number(Value::Str("0.00040".to_string()), &[])]), Value::from(vec![self.parse_number(Value::Str("200000000".to_string()), &[]), self.parse_number(Value::Str("0.00030".to_string()), &[])]), Value::from(vec![self.parse_number(Value::Str("400000000".to_string()), &[]), self.parse_number(Value::Str("0.00010".to_string()), &[])]), Value::from(vec![self.parse_number(Value::Str("800000000".to_string()), &[]), self.parse_number(Value::Str("0.00".to_string()), &[])])]));
+        m.insert("taker".to_string(), Value::from(vec![Value::from(vec![self.parse_number(Value::Str("0".to_string()), &[]), self.parse_number(Value::Str("0.0012".to_string()), &[])]), Value::from(vec![self.parse_number(Value::Str("1000000".to_string()), &[]), self.parse_number(Value::Str("0.00090".to_string()), &[])]), Value::from(vec![self.parse_number(Value::Str("5000000".to_string()), &[]), self.parse_number(Value::Str("0.00085".to_string()), &[])]), Value::from(vec![self.parse_number(Value::Str("10000000".to_string()), &[]), self.parse_number(Value::Str("0.00075".to_string()), &[])]), Value::from(vec![self.parse_number(Value::Str("50000000".to_string()), &[]), self.parse_number(Value::Str("0.00065".to_string()), &[])]), Value::from(vec![self.parse_number(Value::Str("200000000".to_string()), &[]), self.parse_number(Value::Str("0.00045".to_string()), &[])]), Value::from(vec![self.parse_number(Value::Str("400000000".to_string()), &[]), self.parse_number(Value::Str("0.00040".to_string()), &[])]), Value::from(vec![self.parse_number(Value::Str("800000000".to_string()), &[]), self.parse_number(Value::Str("0.00035".to_string()), &[])])]));
     m
 }));
     m
@@ -824,8 +824,8 @@ impl HashkeyCore {
         m.insert("taker".to_string(), self.parse_number(Value::Str("0.00060".to_string()), &[]));
         m.insert("tiers".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("maker".to_string(), Value::List(vec![Value::List(vec![self.parse_number(Value::Str("0".to_string()), &[]), self.parse_number(Value::Str("0.00025".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("1000000".to_string()), &[]), self.parse_number(Value::Str("0.00016".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("5000000".to_string()), &[]), self.parse_number(Value::Str("0.00014".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("10000000".to_string()), &[]), self.parse_number(Value::Str("0.00012".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("50000000".to_string()), &[]), self.parse_number(Value::Str("0.000080".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("200000000".to_string()), &[]), self.parse_number(Value::Str("0.000060".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("400000000".to_string()), &[]), self.parse_number(Value::Str("0.000020".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("800000000".to_string()), &[]), self.parse_number(Value::Str("0.00".to_string()), &[])])]));
-        m.insert("taker".to_string(), Value::List(vec![Value::List(vec![self.parse_number(Value::Str("0".to_string()), &[]), self.parse_number(Value::Str("0.00060".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("1000000".to_string()), &[]), self.parse_number(Value::Str("0.00050".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("5000000".to_string()), &[]), self.parse_number(Value::Str("0.00045".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("10000000".to_string()), &[]), self.parse_number(Value::Str("0.00040".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("50000000".to_string()), &[]), self.parse_number(Value::Str("0.00035".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("200000000".to_string()), &[]), self.parse_number(Value::Str("0.00030".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("400000000".to_string()), &[]), self.parse_number(Value::Str("0.00025".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("800000000".to_string()), &[]), self.parse_number(Value::Str("0.00020".to_string()), &[])])]));
+        m.insert("maker".to_string(), Value::from(vec![Value::from(vec![self.parse_number(Value::Str("0".to_string()), &[]), self.parse_number(Value::Str("0.00025".to_string()), &[])]), Value::from(vec![self.parse_number(Value::Str("1000000".to_string()), &[]), self.parse_number(Value::Str("0.00016".to_string()), &[])]), Value::from(vec![self.parse_number(Value::Str("5000000".to_string()), &[]), self.parse_number(Value::Str("0.00014".to_string()), &[])]), Value::from(vec![self.parse_number(Value::Str("10000000".to_string()), &[]), self.parse_number(Value::Str("0.00012".to_string()), &[])]), Value::from(vec![self.parse_number(Value::Str("50000000".to_string()), &[]), self.parse_number(Value::Str("0.000080".to_string()), &[])]), Value::from(vec![self.parse_number(Value::Str("200000000".to_string()), &[]), self.parse_number(Value::Str("0.000060".to_string()), &[])]), Value::from(vec![self.parse_number(Value::Str("400000000".to_string()), &[]), self.parse_number(Value::Str("0.000020".to_string()), &[])]), Value::from(vec![self.parse_number(Value::Str("800000000".to_string()), &[]), self.parse_number(Value::Str("0.00".to_string()), &[])])]));
+        m.insert("taker".to_string(), Value::from(vec![Value::from(vec![self.parse_number(Value::Str("0".to_string()), &[]), self.parse_number(Value::Str("0.00060".to_string()), &[])]), Value::from(vec![self.parse_number(Value::Str("1000000".to_string()), &[]), self.parse_number(Value::Str("0.00050".to_string()), &[])]), Value::from(vec![self.parse_number(Value::Str("5000000".to_string()), &[]), self.parse_number(Value::Str("0.00045".to_string()), &[])]), Value::from(vec![self.parse_number(Value::Str("10000000".to_string()), &[]), self.parse_number(Value::Str("0.00040".to_string()), &[])]), Value::from(vec![self.parse_number(Value::Str("50000000".to_string()), &[]), self.parse_number(Value::Str("0.00035".to_string()), &[])]), Value::from(vec![self.parse_number(Value::Str("200000000".to_string()), &[]), self.parse_number(Value::Str("0.00030".to_string()), &[])]), Value::from(vec![self.parse_number(Value::Str("400000000".to_string()), &[]), self.parse_number(Value::Str("0.00025".to_string()), &[])]), Value::from(vec![self.parse_number(Value::Str("800000000".to_string()), &[]), self.parse_number(Value::Str("0.00020".to_string()), &[])])]));
     m
 }));
     m
@@ -1427,11 +1427,11 @@ impl HashkeyCore {
         //         ]
         //     }
         //
-        let mut spotMarkets: Value = self.safe_list_k(response.clone(), "symbols", &[Value::List(vec![])]);
-        let mut swapMarkets: Value = self.safe_list_k(response.clone(), "contracts", &[Value::List(vec![])]);
+        let mut spotMarkets: Value = self.safe_list_k(response.clone(), "symbols", &[Value::from(vec![])]);
+        let mut swapMarkets: Value = self.safe_list_k(response.clone(), "contracts", &[Value::from(vec![])]);
         let mut markets: Value = self.array_concat(spotMarkets.clone(), swapMarkets.clone());
         if is_true(&self.is_empty(markets.clone())) {
-            markets = Value::List(vec![response.clone()]); // if user provides params.symbol the exchange returns a single object instead of list of objects
+            markets = Value::from(vec![response.clone()]); // if user provides params.symbol the exchange returns a single object instead of list of objects
         }
         return self.parse_markets(markets.clone());
 
@@ -1619,7 +1619,7 @@ impl HashkeyCore {
                 subType = Value::Str("linear".to_string());
             }
         }
-        let mut filtersList: Value = self.safe_list_k(market.clone(), "filters", &[Value::List(vec![])]);
+        let mut filtersList: Value = self.safe_list_k(market.clone(), "filters", &[Value::from(vec![])]);
         let mut filters: Value = self.index_by(filtersList.clone(), Value::Str("filterType".to_string()));
         let mut priceFilter: Value = self.safe_dict_k(filters.clone(), "PRICE_FILTER", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1652,7 +1652,7 @@ impl HashkeyCore {
                 let mut minInitialMargin: Value = self.safe_string_k(first.clone(), "initialMargin", &[]);
                 let mut maxInitialMargin: Value = self.safe_string_k(last.clone(), "initialMargin", &[]);
                 if is_true(&crate::precise::Precise::stringGt(&minInitialMargin, &maxInitialMargin)) {
-                    { let __destr_tmp = Value::List(vec![maxInitialMargin.clone(), minInitialMargin.clone()]); minInitialMargin = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); maxInitialMargin = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
+                    { let __destr_tmp = Value::from(vec![maxInitialMargin.clone(), minInitialMargin.clone()]); minInitialMargin = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); maxInitialMargin = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
                 }
                 minLeverage = self.parse_to_int(crate::precise::Precise::stringDiv(&Value::Str("1".to_string()), &maxInitialMargin));
                 maxLeverage = self.parse_to_int(crate::precise::Precise::stringDiv(&Value::Str("1".to_string()), &minInitialMargin));
@@ -2112,7 +2112,7 @@ impl HashkeyCore {
         m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null));
         m.insert("side".to_string(), side.clone());
         m.insert("price".to_string(), self.safe_string2(trade.clone(), Value::Str("p".to_string()), Value::Str("price".to_string()), &[]));
-        m.insert("amount".to_string(), self.safe_string_n(trade.clone(), Value::List(vec![Value::Str("q".to_string()), Value::Str("qty".to_string()), Value::Str("quantity".to_string())]), &[]));
+        m.insert("amount".to_string(), self.safe_string_n(trade.clone(), Value::from(vec![Value::Str("q".to_string()), Value::Str("qty".to_string()), Value::Str("quantity".to_string())]), &[]));
         m.insert("cost".to_string(), Value::Null);
         m.insert("takerOrMaker".to_string(), takerOrMaker.clone());
         m.insert("type".to_string(), Value::Null);
@@ -2201,7 +2201,7 @@ impl HashkeyCore {
 
     pub fn parse_ohlcv(&self, mut ohlcv: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
-        return Value::List(vec![self.safe_integer(ohlcv.clone(), Value::Int(0), &[]), self.safe_number(ohlcv.clone(), Value::Int(1), &[]), self.safe_number(ohlcv.clone(), Value::Int(2), &[]), self.safe_number(ohlcv.clone(), Value::Int(3), &[]), self.safe_number(ohlcv.clone(), Value::Int(4), &[]), self.safe_number(ohlcv.clone(), Value::Int(5), &[])]);
+        return Value::from(vec![self.safe_integer(ohlcv.clone(), Value::Int(0), &[]), self.safe_number(ohlcv.clone(), Value::Int(1), &[]), self.safe_number(ohlcv.clone(), Value::Int(2), &[]), self.safe_number(ohlcv.clone(), Value::Int(3), &[]), self.safe_number(ohlcv.clone(), Value::Int(4), &[]), self.safe_number(ohlcv.clone(), Value::Int(5), &[])]);
 
     Value::Null
 }
@@ -2461,7 +2461,7 @@ impl HashkeyCore {
                 m.insert("info".to_string(), balance.clone());
             m
         });
-        let mut balances: Value = self.safe_list_k(balance.clone(), "balances", &[Value::List(vec![])]);
+        let mut balances: Value = self.safe_list_k(balance.clone(), "balances", &[Value::from(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_724: bool = true;
@@ -3508,7 +3508,7 @@ impl HashkeyCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut ordersRequests: Value = Value::List(vec![]);
+        let mut ordersRequests: Value = Value::from(vec![]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_725: bool = true;
@@ -3550,8 +3550,8 @@ impl HashkeyCore {
         }  else {
             panic!("{}", crate::exchange_errors::not_supported(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), Value::Str("createOrderRequest() is not supported for ".to_string()))), market.as_map().and_then(|__m| __m.get("type")).cloned().unwrap_or(Value::Null))), Value::Str(" type of markets".to_string())))));
         }
-        let mut result: Value = self.safe_list_k(response.clone(), "result", &[Value::List(vec![])]);
-        let mut responseOrders: Value = Value::List(vec![]);
+        let mut result: Value = self.safe_list_k(response.clone(), "result", &[Value::from(vec![])]);
+        let mut responseOrders: Value = Value::from(vec![]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_726: bool = true;
@@ -3684,7 +3684,7 @@ impl HashkeyCore {
         }
         let mut order: Value = self.safe_order(response.clone(), &[]);
         add_element_to_object(&mut order, &Value::Str("info".to_string()), response.clone());
-        return Value::List(vec![order.clone()]);
+        return Value::from(vec![order.clone()]);
 
     Value::Null
 }
@@ -3733,7 +3733,7 @@ impl HashkeyCore {
         }
         let mut order: Value = self.safe_order(response.clone(), &[]);
         add_element_to_object(&mut order, &Value::Str("info".to_string()), response.clone());
-        return Value::List(vec![order.clone()]);
+        return Value::from(vec![order.clone()]);
 
     Value::Null
 }
@@ -4087,7 +4087,7 @@ impl HashkeyCore {
         let mut defaultValue = get_arg(optional_args, 0, Value::Null);
         let mut isTrigger: Value = defaultValue.clone();
         { let __destr_tmp = self.handle_option_and_params2(params.clone(), methodName.clone(), Value::Str("stop".to_string()), Value::Str("trigger".to_string()), &[isTrigger.clone()]); isTrigger = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
-        return Value::List(vec![isTrigger.clone(), params.clone()]);
+        return Value::from(vec![isTrigger.clone(), params.clone()]);
 
     Value::Null
 }
@@ -4284,7 +4284,7 @@ impl HashkeyCore {
                 reduceOnly = Value::Bool(true);
             }
         }
-        return Value::List(vec![side.clone(), reduceOnly.clone()]);
+        return Value::from(vec![side.clone(), reduceOnly.clone()]);
 
     Value::Null
 }
@@ -4317,7 +4317,7 @@ impl HashkeyCore {
             timeInForce = Value::Str("PO".to_string());
         }
         type_var = self.parse_order_type(type_var.clone());
-        return Value::List(vec![type_var.clone(), timeInForce.clone(), postOnly.clone()]);
+        return Value::from(vec![type_var.clone(), timeInForce.clone(), postOnly.clone()]);
 
     Value::Null
 }
@@ -4495,7 +4495,7 @@ impl HashkeyCore {
         //         ...
         //     ]
         //
-        let mut rates: Value = Value::List(vec![]);
+        let mut rates: Value = Value::from(vec![]);
         let mut rows: Value = self.to_array(response.clone());
         {
                         let mut i: Value = Value::Int(0);
@@ -4592,7 +4592,7 @@ impl HashkeyCore {
         });
         let __ws_arg_37 = self.extend(request.clone(), &[params.clone()]);
         let mut response: Value = self.private_get_api_v1_futures_positions(&[__ws_arg_37]).await;
-        return self.parse_positions(response.clone(), &[Value::List(vec![symbol.clone()])]);
+        return self.parse_positions(response.clone(), &[Value::from(vec![symbol.clone()])]);
 
     Value::Null
 }
@@ -4911,7 +4911,7 @@ impl HashkeyCore {
         }
         let mut response: Value = self.public_get_api_v1_exchange_info(&[params.clone()]).await;
         // response is the same as in fetchMarkets()
-        let mut data: Value = self.safe_list_k(response.clone(), "contracts", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response.clone(), "contracts", &[Value::from(vec![])]);
         symbols = self.market_symbols(&[symbols.clone()]);
         return self.parse_leverage_tiers(data.clone(), &[symbols.clone(), Value::Str("symbol".to_string())]);
 
@@ -4997,10 +4997,10 @@ impl HashkeyCore {
         //         ]
         //     }
         //
-        let mut riskLimits: Value = self.safe_list_k(info.clone(), "riskLimits", &[Value::List(vec![])]);
+        let mut riskLimits: Value = self.safe_list_k(info.clone(), "riskLimits", &[Value::from(vec![])]);
         let mut marketId: Value = self.safe_string_k(info.clone(), "symbol", &[]);
         market = self.safe_market(&[marketId.clone(), market.clone()]);
-        let mut tiers: Value = Value::List(vec![]);
+        let mut tiers: Value = Value::from(vec![]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_728: bool = true;
@@ -5105,7 +5105,7 @@ impl HashkeyCore {
         //         "updateTimestamp": "1722320137809"
         //     }
         //
-        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::from(vec![])]);
         let mut result: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -5258,7 +5258,7 @@ impl HashkeyCore {
         let mut responseCodeString: Value = self.safe_string_k(response.clone(), "code", &[]);
         let mut responseCodeInteger: Value = self.safe_integer_k(response.clone(), "code", &[]); // some codes in response are returned as '0000' others as 0
         if (responseCodeInteger.as_f64() == Some(0.0)) {
-            let mut result: Value = self.safe_list_k(response.clone(), "result", &[Value::List(vec![])]); // for batch methods
+            let mut result: Value = self.safe_list_k(response.clone(), "result", &[Value::from(vec![])]); // for batch methods
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_730: bool = true;

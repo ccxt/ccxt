@@ -99,7 +99,7 @@ pub fn testMarket(mut exchange: Value, mut skippedProperties: Value, mut method:
     let mut isQuanto: bool = is_true(&(Value::Bool(quanto != Value::Null))) && is_true(&quanto);
     let mut isInactiveMarket: bool = market.as_map().and_then(|__m| __m.get("active")).cloned().unwrap_or(Value::Null).as_bool() == Some(false);
     //
-    let mut emptyAllowedFor: Value = Value::List(vec![Value::Str("margin".to_string())]);
+    let mut emptyAllowedFor: Value = Value::from(vec![Value::Str("margin".to_string())]);
     if (contract.as_bool() != Some(true)) {
         append_to_array(&mut emptyAllowedFor, Value::Str("contractSize".to_string()));
         append_to_array(&mut emptyAllowedFor, Value::Str("linear".to_string()));
@@ -128,7 +128,7 @@ pub fn testMarket(mut exchange: Value, mut skippedProperties: Value, mut method:
     if (exchange.safe_string(market.clone(), Value::Str("type".to_string()), &[]).as_str() == Some("prediction")) {
         // prediction market rows carry the unified 'market' handle, the
         // deprecated 'symbol' key is intentionally absent from their structures
-        format = exchange.omit(format.clone(), Value::List(vec![Value::Str("symbol".to_string())]), &[]);
+        format = exchange.omit(format.clone(), Value::from(vec![Value::Str("symbol".to_string())]), &[]);
     }
     crate::tests_support::shared::assert_structure(exchange.clone(), &[skippedProperties.clone(), method.clone(), market.clone(), format.clone(), emptyAllowedFor.clone()]);
     // prediction market rows are keyed by `market`; `symbol` internally by setMarkets
@@ -143,13 +143,13 @@ pub fn testMarket(mut exchange: Value, mut skippedProperties: Value, mut method:
     crate::tests_support::shared::assert_greater(exchange.clone(), &[skippedProperties.clone(), method.clone(), market.clone(), Value::Str("maker".to_string()).clone(), Value::Str("-100".to_string()).clone()]);
     crate::tests_support::shared::assert_less(exchange.clone(), &[skippedProperties.clone(), method.clone(), market.clone(), Value::Str("maker".to_string()).clone(), Value::Str("100".to_string()).clone()]);
     // validate type ('prediction' for prediction-market exchanges)
-    let mut validTypes: Value = Value::List(vec![Value::Str("spot".to_string()), Value::Str("margin".to_string()), Value::Str("swap".to_string()), Value::Str("future".to_string()), Value::Str("option".to_string()), Value::Str("index".to_string()), Value::Str("prediction".to_string()), Value::Str("other".to_string())]);
+    let mut validTypes: Value = Value::from(vec![Value::Str("spot".to_string()), Value::Str("margin".to_string()), Value::Str("swap".to_string()), Value::Str("future".to_string()), Value::Str("option".to_string()), Value::Str("index".to_string()), Value::Str("prediction".to_string()), Value::Str("other".to_string())]);
     crate::tests_support::shared::assert_in_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), market.clone(), Value::Str("type".to_string()).clone(), validTypes.clone()]);
     // validate subTypes
-    let mut validSubTypes: Value = Value::List(vec![Value::Str("linear".to_string()), Value::Str("inverse".to_string()), Value::Str("quanto".to_string()), Value::Null]);
+    let mut validSubTypes: Value = Value::from(vec![Value::Str("linear".to_string()), Value::Str("inverse".to_string()), Value::Str("quanto".to_string()), Value::Null]);
     crate::tests_support::shared::assert_in_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), market.clone(), Value::Str("subType".to_string()).clone(), validSubTypes.clone()]);
     // check if 'type' is consistent
-    let mut checkedTypes: Value = Value::List(vec![Value::Str("spot".to_string()), Value::Str("swap".to_string()), Value::Str("future".to_string()), Value::Str("option".to_string())]);
+    let mut checkedTypes: Value = Value::from(vec![Value::Str("spot".to_string()), Value::Str("swap".to_string()), Value::Str("future".to_string()), Value::Str("option".to_string())]);
     {
                 let mut i: Value = Value::Int(0);
         let mut __for_first_1433: bool = true;
@@ -162,7 +162,7 @@ pub fn testMarket(mut exchange: Value, mut skippedProperties: Value, mut method:
     }
     // check if 'subType' is consistent
     if is_true(&(Value::Bool(swap.as_bool() == Some(true)))) || is_true(&(Value::Bool(future.as_bool() == Some(true)))) {
-        let mut checkedSubTypes: Value = Value::List(vec![Value::Str("linear".to_string()), Value::Str("inverse".to_string())]);
+        let mut checkedSubTypes: Value = Value::from(vec![Value::Str("linear".to_string()), Value::Str("inverse".to_string())]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1434: bool = true;
@@ -177,10 +177,10 @@ pub fn testMarket(mut exchange: Value, mut skippedProperties: Value, mut method:
     // margin check (todo: add margin as mandatory, instead of undefined)
     if (spot.as_bool() == Some(true)) {
         // for spot market, 'margin' can be either true/false or undefined
-        crate::tests_support::shared::assert_in_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), market.clone(), Value::Str("margin".to_string()).clone(), Value::List(vec![Value::Bool(true), Value::Bool(false), Value::Null]).clone()]);
+        crate::tests_support::shared::assert_in_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), market.clone(), Value::Str("margin".to_string()).clone(), Value::from(vec![Value::Bool(true), Value::Bool(false), Value::Null]).clone()]);
     }  else {
         // otherwise, it must be false or undefined
-        crate::tests_support::shared::assert_in_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), market.clone(), Value::Str("margin".to_string()).clone(), Value::List(vec![Value::Bool(false), Value::Null]).clone()]);
+        crate::tests_support::shared::assert_in_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), market.clone(), Value::Str("margin".to_string()).clone(), Value::from(vec![Value::Bool(false), Value::Null]).clone()]);
     }
     // check mutually exclusive fields
     let mut isPrediction: bool = market.as_map().and_then(|__m| __m.get("type")).cloned().unwrap_or(Value::Null).as_str() == Some("prediction");
@@ -242,7 +242,7 @@ pub fn testMarket(mut exchange: Value, mut skippedProperties: Value, mut method:
             crate::tests_support::shared::assert_greater(exchange.clone(), &[skippedProperties.clone(), method.clone(), market.clone(), Value::Str("strike".to_string()).clone(), Value::Str("0".to_string()).clone()]);
             // optionType should be defined
             assert!(ccxt::runtime::is_true(&((Value::Bool(is_true(&(Value::Bool(in_op(&skippedProperties, &Value::Str("optionType".to_string()))))) || (market.as_map().and_then(|__m| __m.get("optionType")).cloned().unwrap_or(Value::Null) != Value::Null))))));
-            crate::tests_support::shared::assert_in_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), market.clone(), Value::Str("optionType".to_string()).clone(), Value::List(vec![Value::Str("put".to_string()), Value::Str("call".to_string())]).clone()]);
+            crate::tests_support::shared::assert_in_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), market.clone(), Value::Str("optionType".to_string()).clone(), Value::from(vec![Value::Str("put".to_string()), Value::Str("call".to_string())]).clone()]);
         }  else {
             // if not option, then strike and optionType should be undefined
             assert!(ccxt::runtime::is_true(&(Value::Bool(market.as_map().and_then(|__m| __m.get("strike")).cloned().unwrap_or(Value::Null) == Value::Null))));
@@ -317,7 +317,7 @@ pub fn testMarket(mut exchange: Value, mut skippedProperties: Value, mut method:
         })]); // in future, remove safeDict
         assert!(ccxt::runtime::is_true(&(Value::Bool(in_op(&marginModes, &Value::Str("cross".to_string()))))));
         assert!(ccxt::runtime::is_true(&(Value::Bool(in_op(&marginModes, &Value::Str("isolated".to_string()))))));
-        crate::tests_support::shared::assert_in_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), marginModes.clone(), Value::Str("cross".to_string()).clone(), Value::List(vec![Value::Bool(true), Value::Bool(false), Value::Null]).clone()]);
-        crate::tests_support::shared::assert_in_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), marginModes.clone(), Value::Str("isolated".to_string()).clone(), Value::List(vec![Value::Bool(true), Value::Bool(false), Value::Null]).clone()]);
+        crate::tests_support::shared::assert_in_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), marginModes.clone(), Value::Str("cross".to_string()).clone(), Value::from(vec![Value::Bool(true), Value::Bool(false), Value::Null]).clone()]);
+        crate::tests_support::shared::assert_in_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), marginModes.clone(), Value::Str("isolated".to_string()).clone(), Value::from(vec![Value::Bool(true), Value::Bool(false), Value::Null]).clone()]);
     }
 }

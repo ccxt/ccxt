@@ -404,7 +404,7 @@ impl HyperliquidCore {
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut statuses: Value = self.safe_list_k(data.clone(), "statuses", &[Value::List(vec![])]);
+        let mut statuses: Value = self.safe_list_k(data.clone(), "statuses", &[Value::from(vec![])]);
         return self.parse_orders(statuses.clone(), &[Value::Null]);
 
     Value::Null
@@ -442,7 +442,7 @@ impl HyperliquidCore {
         let mut orderglobalParamsVariable = self.parent.parse_create_edit_order_args(Value::Null, symbol.clone(), type_var.clone(), side.clone(), amount.clone(), &[price.clone(), params.clone()]);
         let mut order: Value = orderglobalParamsVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut globalParams: Value = orderglobalParamsVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
-        let mut orders: Value = self.create_orders_ws(Value::List(vec![order.clone()]), &[globalParams.clone()]).await;
+        let mut orders: Value = self.create_orders_ws(Value::from(vec![order.clone()]), &[globalParams.clone()]).await;
         let mut ordersLength: Value = Value::Int(orders.len() as i64);
         if (ordersLength.as_f64() == Some(0.0)) {
             return self.safe_order(Value::Map({
@@ -491,7 +491,7 @@ impl HyperliquidCore {
         let mut orderglobalParamsVariable = self.parent.parse_create_edit_order_args(id.clone(), symbol.clone(), type_var.clone(), side.clone(), amount.clone(), &[price.clone(), params.clone()]);
         let mut order: Value = orderglobalParamsVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut globalParams: Value = orderglobalParamsVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
-        let mut postRequest: Value = self.parent.edit_orders_request(Value::List(vec![order.clone()]), &[globalParams.clone()]);
+        let mut postRequest: Value = self.parent.edit_orders_request(Value::from(vec![order.clone()]), &[globalParams.clone()]);
         let mut wrapped: Value = self.wrap_as_post_action(postRequest.clone());
         let mut request: Value = self.safe_dict_k(wrapped.clone(), "request", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -508,7 +508,7 @@ impl HyperliquidCore {
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut statuses: Value = self.safe_list_k(dataObject.clone(), "statuses", &[Value::List(vec![])]);
+        let mut statuses: Value = self.safe_list_k(dataObject.clone(), "statuses", &[Value::from(vec![])]);
         let mut first: Value = self.safe_dict(statuses.clone(), Value::Int(0), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -558,8 +558,8 @@ impl HyperliquidCore {
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut statuses: Value = self.safe_list_k(data.clone(), "statuses", &[Value::List(vec![])]);
-        let mut orders: Value = Value::List(vec![]);
+        let mut statuses: Value = self.safe_list_k(data.clone(), "statuses", &[Value::from(vec![])]);
+        let mut orders: Value = Value::from(vec![]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_411: bool = true;
@@ -597,7 +597,7 @@ impl HyperliquidCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut orders: Value = self.cancel_orders_ws(Value::List(vec![id.clone()]), &[symbol.clone(), params.clone()]).await;
+        let mut orders: Value = self.cancel_orders_ws(Value::from(vec![id.clone()]), &[symbol.clone(), params.clone()]).await;
         return self.safe_dict(orders.clone(), Value::Int(0), &[]);
 
     Value::Null
@@ -719,11 +719,11 @@ impl HyperliquidCore {
         let mut marketId: Value = self.parent.coin_to_market_id(coin.clone());
         let mut market: Value = self.market(marketId.clone());
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
-        let mut rawData: Value = self.safe_list_k(entry.clone(), "levels", &[Value::List(vec![])]);
+        let mut rawData: Value = self.safe_list_k(entry.clone(), "levels", &[Value::from(vec![])]);
         let mut data: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("bids".to_string(), self.safe_list(rawData.clone(), Value::Int(0), &[Value::List(vec![])]));
-                m.insert("asks".to_string(), self.safe_list(rawData.clone(), Value::Int(1), &[Value::List(vec![])]));
+                m.insert("bids".to_string(), self.safe_list(rawData.clone(), Value::Int(0), &[Value::from(vec![])]));
+                m.insert("asks".to_string(), self.safe_list(rawData.clone(), Value::Int(1), &[Value::from(vec![])]));
             m
         });
         let mut timestamp: Value = self.safe_integer_k(entry.clone(), "time", &[]);
@@ -1168,7 +1168,7 @@ impl HyperliquidCore {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut data: Value = self.safe_list_k(entry.clone(), "fills", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(entry.clone(), "fills", &[Value::from(vec![])]);
         let mut dataLength: Value = Value::Int(data.len() as i64);
         if (dataLength.as_f64() == Some(0.0)) {
             return;
@@ -1301,7 +1301,7 @@ impl HyperliquidCore {
         //         ]
         //     }
         //
-        let mut entry: Value = self.safe_list_k(message.clone(), "data", &[Value::List(vec![])]);
+        let mut entry: Value = self.safe_list_k(message.clone(), "data", &[Value::from(vec![])]);
         let mut entryLength: Value = Value::Int(entry.len() as i64);
         if (entryLength.as_f64() == Some(0.0)) {
             return;
@@ -1731,13 +1731,13 @@ impl HyperliquidCore {
         let mut topic: Value = self.safe_value_k(message.clone(), "channel", &[]);
         let mut messageHash: Value = add(&topic, &Value::Str("::balance".to_string()));
         let mut info: Value = Value::Null;
-        let mut rawBalances: Value = Value::List(vec![]);
+        let mut rawBalances: Value = Value::from(vec![]);
         let mut account: Value = Value::Null;
         let mut timestamp: Value = Value::Null;
-        let mut data: Value = self.safe_value_k(message.clone(), "data", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_value_k(message.clone(), "data", &[Value::from(vec![])]);
         if (topic.as_str() == Some("spotState")) {
             let mut spotState: Value = self.safe_dict_k(data.clone(), "spotState", &[]);
-            rawBalances = self.safe_list_k(spotState.clone(), "balances", &[Value::List(vec![])]);
+            rawBalances = self.safe_list_k(spotState.clone(), "balances", &[Value::from(vec![])]);
             account = Value::Str("spot".to_string());
             info = rawBalances.clone();
         }
@@ -1918,8 +1918,8 @@ impl HyperliquidCore {
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut newPositions: Value = Value::List(vec![]);
-        let mut rawPositions: Value = self.safe_list_k(clearinghouseState.clone(), "assetPositions", &[Value::List(vec![])]);
+        let mut newPositions: Value = Value::from(vec![]);
+        let mut rawPositions: Value = self.safe_list_k(clearinghouseState.clone(), "assetPositions", &[Value::from(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_417: bool = true;
@@ -2130,7 +2130,7 @@ impl HyperliquidCore {
         //         ]
         //     }
         //
-        let mut data: Value = self.safe_list_k(message.clone(), "data", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(message.clone(), "data", &[Value::from(vec![])]);
         if is_equal(&self.orders, &Value::Null) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "ordersLimit", &[Value::Int(1000)]);
             self.orders = ArrayCacheBySymbolById::new(limit.clone());

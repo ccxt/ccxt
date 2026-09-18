@@ -433,7 +433,7 @@ impl HitbtcCore {
         symbols = self.market_symbols(&[symbols.clone()]);
         let mut isBatch: bool = get_index_of(&name, &Value::Str("batch".to_string())).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN);
         let mut url: Value = crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "public");
-        let mut messageHashes: Value = Value::List(vec![]);
+        let mut messageHashes: Value = Value::from(vec![]);
         if (symbols != Value::Null) && !isBatch {
             {
                                 let mut i: Value = Value::Int(0);
@@ -560,12 +560,12 @@ impl HitbtcCore {
             let mut m = indexmap::IndexMap::new();
                 m.insert("params".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("symbols".to_string(), Value::List(vec![market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)]));
+        m.insert("symbols".to_string(), Value::from(vec![market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)]));
     m
 }));
             m
         });
-        let mut orderbook: Value = self.subscribe_public(name.clone(), Value::Str("orderbooks".to_string()), &[Value::List(vec![symbol.clone()]), self.deep_extend(request.clone(), &[params.clone()])]).await;
+        let mut orderbook: Value = self.subscribe_public(name.clone(), Value::Str("orderbooks".to_string()), &[Value::from(vec![symbol.clone()]), self.deep_extend(request.clone(), &[params.clone()])]).await;
         return orderbook.limit();
 
     Value::Null
@@ -631,8 +631,8 @@ impl HitbtcCore {
                 let mut parsedSnapshot: Value = self.parse_order_book(item.clone(), symbol.clone(), &[timestamp.clone(), Value::Str("b".to_string()), Value::Str("a".to_string())]);
                 orderbook.reset(parsedSnapshot.clone());
             }  else {
-                let mut asks: Value = self.safe_list_k(item.clone(), "a", &[Value::List(vec![])]);
-                let mut bids: Value = self.safe_list_k(item.clone(), "b", &[Value::List(vec![])]);
+                let mut asks: Value = self.safe_list_k(item.clone(), "a", &[Value::from(vec![])]);
+                let mut bids: Value = self.safe_list_k(item.clone(), "b", &[Value::from(vec![])]);
                 self.handle_deltas(get_value(&orderbook, &Value::Str("asks".to_string())), asks.clone());
                 self.handle_deltas(get_value(&orderbook, &Value::Str("bids".to_string())), bids.clone());
             }
@@ -681,7 +681,7 @@ impl HitbtcCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut ticker: Value = self.watch_tickers(&[Value::List(vec![symbol.clone()]), params.clone()]).await;
+        let mut ticker: Value = self.watch_tickers(&[Value::from(vec![symbol.clone()]), params.clone()]).await;
         return self.safe_value(ticker.clone(), symbol.clone(), &[]);
 
     Value::Null
@@ -716,8 +716,8 @@ impl HitbtcCore {
                 m.insert("speed".to_string(), speed.clone());
             m
         }));
-        params = self.omit(params.clone(), Value::List(vec![Value::Str("method".to_string()), Value::Str("speed".to_string())]), &[]);
-        let mut marketIds: Value = Value::List(vec![]);
+        params = self.omit(params.clone(), Value::from(vec![Value::Str("method".to_string()), Value::Str("speed".to_string())]), &[]);
+        let mut marketIds: Value = Value::from(vec![]);
         if (symbols == Value::Null) {
             append_to_array(&mut marketIds, Value::Str("*".to_string()));
         }  else {
@@ -801,7 +801,7 @@ impl HitbtcCore {
             m
         })]);
         let mut marketIds: Value = object_keys(&data);
-        let mut result: Value = Value::List(vec![]);
+        let mut result: Value = Value::from(vec![]);
         let mut topic: Value = Value::Str("tickers".to_string());
         {
                         let mut i: Value = Value::Int(0);
@@ -912,7 +912,7 @@ impl HitbtcCore {
                 m.insert("speed".to_string(), speed.clone());
             m
         }));
-        params = self.omit(params.clone(), Value::List(vec![Value::Str("method".to_string()), Value::Str("speed".to_string())]), &[]);
+        params = self.omit(params.clone(), Value::from(vec![Value::Str("method".to_string()), Value::Str("speed".to_string())]), &[]);
         let mut marketIds: Value = self.market_ids(&[symbols.clone()]);
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -959,7 +959,7 @@ impl HitbtcCore {
             m
         })]);
         let mut marketIds: Value = object_keys(&data);
-        let mut result: Value = Value::List(vec![]);
+        let mut result: Value = Value::from(vec![]);
         let mut topic: Value = Value::Str("bidask".to_string());
         {
                         let mut i: Value = Value::Int(0);
@@ -1025,7 +1025,7 @@ impl HitbtcCore {
             let mut m = indexmap::IndexMap::new();
                 m.insert("params".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("symbols".to_string(), Value::List(vec![market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)]));
+        m.insert("symbols".to_string(), Value::from(vec![market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)]));
     m
 }));
             m
@@ -1034,7 +1034,7 @@ impl HitbtcCore {
             add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone());
         }
         let mut name: Value = Value::Str("trades".to_string());
-        let mut trades: Value = self.subscribe_public(name.clone(), Value::Str("trades".to_string()), &[Value::List(vec![symbol.clone()]), self.deep_extend(request.clone(), &[params.clone()])]).await;
+        let mut trades: Value = self.subscribe_public(name.clone(), Value::Str("trades".to_string()), &[Value::from(vec![symbol.clone()]), self.deep_extend(request.clone(), &[params.clone()])]).await;
         if is_true(&self.newUpdates) {
             limit = trades.get_limit(symbol.clone(), limit.clone());
         }
@@ -1128,7 +1128,7 @@ impl HitbtcCore {
     m
 }));
         let mut tradesArray: Value = self.to_array(trades.clone());
-        let mut result: Value = Value::List(vec![]);
+        let mut result: Value = Value::from(vec![]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_386: bool = true;
@@ -1205,7 +1205,7 @@ impl HitbtcCore {
             let mut m = indexmap::IndexMap::new();
                 m.insert("params".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("symbols".to_string(), Value::List(vec![market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)]));
+        m.insert("symbols".to_string(), Value::from(vec![market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)]));
     m
 }));
             m
@@ -1213,7 +1213,7 @@ impl HitbtcCore {
         if (limit != Value::Null) {
             add_element_to_object(get_value_mut(&mut request, &Value::Str("params".to_string())), &Value::Str("limit".to_string()), limit.clone());
         }
-        let mut ohlcv: Value = self.subscribe_public(name.clone(), Value::Str("candles".to_string()), &[Value::List(vec![symbol.clone()]), self.deep_extend(request.clone(), &[params.clone()])]).await;
+        let mut ohlcv: Value = self.subscribe_public(name.clone(), Value::Str("candles".to_string()), &[Value::from(vec![symbol.clone()]), self.deep_extend(request.clone(), &[params.clone()])]).await;
         if is_true(&self.newUpdates) {
             limit = ohlcv.get_limit(symbol.clone(), limit.clone());
         }
@@ -1305,7 +1305,7 @@ impl HitbtcCore {
 
     pub fn parse_ws_ohlcv(&self, mut ohlcv: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
-        return Value::List(vec![self.safe_integer_k(ohlcv.clone(), "t", &[]), self.safe_number_k(ohlcv.clone(), "o", &[]), self.safe_number_k(ohlcv.clone(), "h", &[]), self.safe_number_k(ohlcv.clone(), "l", &[]), self.safe_number_k(ohlcv.clone(), "c", &[]), self.safe_number_k(ohlcv.clone(), "v", &[])]);
+        return Value::from(vec![self.safe_integer_k(ohlcv.clone(), "t", &[]), self.safe_number_k(ohlcv.clone(), "o", &[]), self.safe_number_k(ohlcv.clone(), "h", &[]), self.safe_number_k(ohlcv.clone(), "l", &[]), self.safe_number_k(ohlcv.clone(), "c", &[]), self.safe_number_k(ohlcv.clone(), "v", &[])]);
 
     Value::Null
 }
@@ -1423,7 +1423,7 @@ impl HitbtcCore {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "ordersLimit", &[]);
             self.orders = ArrayCacheBySymbolById::new(limit.clone());
         }
-        let mut data: Value = self.safe_value_k(message.clone(), "params", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_value_k(message.clone(), "params", &[Value::from(vec![])]);
         if is_true(&Value::Bool(is_array(&data))) {
             {
                                 let mut i: Value = Value::Int(0);
@@ -1550,7 +1550,7 @@ impl HitbtcCore {
         let mut trades: Value = Value::Null;
         if (tradeId != Value::Null) {
             let mut trade: Value = self.parse_ws_order_trade(order.clone(), &[market.clone()]);
-            trades = Value::List(vec![trade.clone()]);
+            trades = Value::from(vec![trade.clone()]);
         }
         let mut rawStatus: Value = self.safe_string_k(order.clone(), "status", &[]);
         let mut report_type: Value = self.safe_string_k(order.clone(), "report_type", &[]);
@@ -1885,7 +1885,7 @@ impl HitbtcCore {
             m
         })]);
         if is_true(&Value::Bool(is_array(&result))) {
-            let mut parsedOrders: Value = Value::List(vec![]);
+            let mut parsedOrders: Value = Value::from(vec![]);
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_390: bool = true;

@@ -505,8 +505,8 @@ impl LbankCore {
         })]);
         let mut records: Value = self.safe_value_k(message.clone(), "records", &[]);
         if (records != Value::Null) {
-            let mut rawOHLCV: Value = self.safe_value(records.clone(), Value::Int(0), &[Value::List(vec![])]);
-            let mut parsed: Value = Value::List(vec![self.safe_integer(rawOHLCV.clone(), Value::Int(0), &[]), self.safe_number(rawOHLCV.clone(), Value::Int(1), &[]), self.safe_number(rawOHLCV.clone(), Value::Int(2), &[]), self.safe_number(rawOHLCV.clone(), Value::Int(3), &[]), self.safe_number(rawOHLCV.clone(), Value::Int(4), &[]), self.safe_number(rawOHLCV.clone(), Value::Int(5), &[])]);
+            let mut rawOHLCV: Value = self.safe_value(records.clone(), Value::Int(0), &[Value::from(vec![])]);
+            let mut parsed: Value = Value::from(vec![self.safe_integer(rawOHLCV.clone(), Value::Int(0), &[]), self.safe_number(rawOHLCV.clone(), Value::Int(1), &[]), self.safe_number(rawOHLCV.clone(), Value::Int(2), &[]), self.safe_number(rawOHLCV.clone(), Value::Int(3), &[]), self.safe_number(rawOHLCV.clone(), Value::Int(4), &[]), self.safe_number(rawOHLCV.clone(), Value::Int(5), &[])]);
             let mut timeframeId: Value = self.safe_string_k(message.clone(), "kbar", &[]);
             let mut timeframe: Value = self.find_timeframe(timeframeId.clone(), &[timeframes.clone()]);
             { let __be_tmp = self.safe_value(self.ohlcvs.clone(), symbol.clone(), &[Value::Map({
@@ -529,7 +529,7 @@ impl LbankCore {
             })]);
             let mut timeframeId: Value = self.safe_string_k(rawOHLCV.clone(), "slot", &[]);
             let mut datetime: Value = self.safe_string_k(rawOHLCV.clone(), "t", &[]);
-            let mut parsed: Value = Value::List(vec![self.parse8601(datetime.clone()), self.safe_number_k(rawOHLCV.clone(), "o", &[]), self.safe_number_k(rawOHLCV.clone(), "h", &[]), self.safe_number_k(rawOHLCV.clone(), "l", &[]), self.safe_number_k(rawOHLCV.clone(), "c", &[]), self.safe_number_k(rawOHLCV.clone(), "v", &[])]);
+            let mut parsed: Value = Value::from(vec![self.parse8601(datetime.clone()), self.safe_number_k(rawOHLCV.clone(), "o", &[]), self.safe_number_k(rawOHLCV.clone(), "h", &[]), self.safe_number_k(rawOHLCV.clone(), "l", &[]), self.safe_number_k(rawOHLCV.clone(), "c", &[]), self.safe_number_k(rawOHLCV.clone(), "v", &[])]);
             let mut timeframe: Value = self.find_timeframe(timeframeId.clone(), &[timeframes.clone()]);
             { let __be_tmp = self.safe_value(self.ohlcvs.clone(), symbol.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -824,7 +824,7 @@ impl LbankCore {
             add_element_to_object(&mut self.trades, &symbol, stored.clone());
         }
         let mut rawTrade: Value = self.safe_value_k(message.clone(), "trade", &[]);
-        let mut rawTrades: Value = self.safe_value_k(message.clone(), "trades", &[Value::List(vec![rawTrade.clone()])]);
+        let mut rawTrades: Value = self.safe_value_k(message.clone(), "trades", &[Value::from(vec![rawTrade.clone()])]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_474: bool = true;

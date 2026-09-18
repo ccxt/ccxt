@@ -211,7 +211,7 @@ impl BinancecoinmCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("fetchMarkets".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("types".to_string(), Value::List(vec![Value::Str("inverse".to_string())]));
+        m.insert("types".to_string(), Value::from(vec![Value::Str("inverse".to_string())]));
     m
 }));
         m.insert("defaultSubType".to_string(), Value::Str("inverse".to_string()));

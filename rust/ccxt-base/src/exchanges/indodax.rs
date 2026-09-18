@@ -136,7 +136,7 @@ impl IndodaxCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), Value::Str("indodax".to_string()));
         m.insert("name".to_string(), Value::Str("INDODAX".to_string()));
-        m.insert("countries".to_string(), Value::List(vec![Value::Str("ID".to_string())]));
+        m.insert("countries".to_string(), Value::from(vec![Value::Str("ID".to_string())]));
         m.insert("rateLimit".to_string(), Value::Int(50));
         m.insert("has".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -633,7 +633,7 @@ impl IndodaxCore {
         //         }
         //     ]
         //
-        let mut result: Value = Value::List(vec![]);
+        let mut result: Value = Value::from(vec![]);
         let mut rawMarkets: Value = self.to_array(response.clone());
         {
                         let mut i: Value = Value::Int(0);
@@ -1035,7 +1035,7 @@ impl IndodaxCore {
 
     pub fn parse_ohlcv(&self, mut ohlcv: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
-        return Value::List(vec![self.safe_timestamp(ohlcv.clone(), Value::Str("Time".to_string()), &[]), self.safe_number_k(ohlcv.clone(), "Open", &[]), self.safe_number_k(ohlcv.clone(), "High", &[]), self.safe_number_k(ohlcv.clone(), "Low", &[]), self.safe_number_k(ohlcv.clone(), "Close", &[]), self.safe_number_k(ohlcv.clone(), "Volume", &[])]);
+        return Value::from(vec![self.safe_timestamp(ohlcv.clone(), Value::Str("Time".to_string()), &[]), self.safe_number_k(ohlcv.clone(), "Open", &[]), self.safe_number_k(ohlcv.clone(), "High", &[]), self.safe_number_k(ohlcv.clone(), "Low", &[]), self.safe_number_k(ohlcv.clone(), "Close", &[]), self.safe_number_k(ohlcv.clone(), "Volume", &[])]);
 
     Value::Null
 }
@@ -1067,7 +1067,7 @@ impl IndodaxCore {
         let mut selectedTimeframe: Value = self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]);
         let mut now: Value = self.seconds();
         let mut until: Value = self.safe_integer_k(params.clone(), "until", &[now.clone()]);
-        params = self.omit(params.clone(), Value::List(vec![Value::Str("until".to_string())]), &[]);
+        params = self.omit(params.clone(), Value::from(vec![Value::Str("until".to_string())]), &[]);
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("to".to_string(), until.clone());
@@ -1296,7 +1296,7 @@ impl IndodaxCore {
         let mut rawOrders: Value = openOrdersResult.as_map().and_then(|__m| __m.get("orders")).cloned().unwrap_or(Value::Null);
         // { success: 1, return: { orders: null }} if no orders
         if is_true(&(Value::Bool(rawOrders == Value::Null))) || is_true(&(Value::Bool(rawOrders == Value::Null))) {
-            return Value::List(vec![]);
+            return Value::from(vec![]);
         }
         // { success: 1, return: { orders: [ ... objects ] }} for orders fetched by symbol
         if (symbol != Value::Null) {
@@ -1304,7 +1304,7 @@ impl IndodaxCore {
         }
         // { success: 1, return: { orders: { marketid: [ ... objects ] }}} if all orders are fetched
         let mut marketIds: Value = object_keys(&rawOrders);
-        let mut exchangeOrders: Value = Value::List(vec![]);
+        let mut exchangeOrders: Value = Value::from(vec![]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_835: bool = true;
@@ -1713,7 +1713,7 @@ impl IndodaxCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut transactions: Value = Value::List(vec![]);
+        let mut transactions: Value = Value::from(vec![]);
         let mut currency: Value = Value::Null;
         if (code == Value::Null) {
             let mut keys: Value = object_keys(&withdraw);
@@ -1738,8 +1738,8 @@ impl IndodaxCore {
             }
         }  else {
             currency = self.currency(code.clone());
-            let mut withdraws: Value = self.safe_value(withdraw.clone(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null), &[Value::List(vec![])]);
-            let mut deposits: Value = self.safe_value(deposit.clone(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null), &[Value::List(vec![])]);
+            let mut withdraws: Value = self.safe_value(withdraw.clone(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null), &[Value::from(vec![])]);
+            let mut deposits: Value = self.safe_value(deposit.clone(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null), &[Value::from(vec![])]);
             transactions = self.array_concat(withdraws.clone(), deposits.clone());
         }
         return self.parse_transactions(transactions.clone(), &[currency.clone(), since.clone(), limit.clone()]);
@@ -1863,7 +1863,7 @@ impl IndodaxCore {
         m.insert("addressFrom".to_string(), Value::Null);
         m.insert("address".to_string(), self.safe_string_k(transaction.clone(), "withdraw_address", &[]));
         m.insert("addressTo".to_string(), Value::Null);
-        m.insert("amount".to_string(), self.safe_number_n(transaction.clone(), Value::List(vec![Value::Str("amount".to_string()), Value::Str("withdraw_amount".to_string()), Value::Str("deposit_amount".to_string())]), &[]));
+        m.insert("amount".to_string(), self.safe_number_n(transaction.clone(), Value::from(vec![Value::Str("amount".to_string()), Value::Str("withdraw_amount".to_string()), Value::Str("deposit_amount".to_string())]), &[]));
         m.insert("type".to_string(), (if is_true(&(Value::Bool(depositId == Value::Null))) { Value::Str("withdraw".to_string()) } else { Value::Str("deposit".to_string()) }));
         m.insert("currency".to_string(), self.safe_currency_code(Value::Null, &[currency.clone()]));
         m.insert("status".to_string(), self.parse_transaction_status(status.clone()));
@@ -1978,7 +1978,7 @@ impl IndodaxCore {
                         panic!("{}", crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchDepositAddresses() missing networkId".to_string())))));
                     }
                     if get_index_of(&networkId, &Value::Str(",".to_string())).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN) {
-                        network = Value::List(vec![]);
+                        network = Value::from(vec![]);
                         if (networkId == Value::Null) {
                             panic!("{}", crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchDepositAddresses() missing networkId".to_string())))));
                         }

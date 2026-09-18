@@ -291,7 +291,7 @@ impl UpbitCore {
         }
         symbols = self.market_symbols(&[symbols.clone()]);
         if (symbols == Value::Null) {
-            symbols = Value::List(vec![]);
+            symbols = Value::from(vec![]);
         }
         let mut marketIds: Value = self.market_ids(&[symbols.clone()]);
         let mut url: Value = self.implode_params(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), Value::Map({
@@ -308,7 +308,7 @@ impl UpbitCore {
 }));
         }
         let mut subscriptions: Value = get_value(&get_value(&client, &Value::Str("subscriptions".to_string())), &subscriptionsKey);
-        let mut messageHashes: Value = Value::List(vec![]);
+        let mut messageHashes: Value = Value::from(vec![]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_627: bool = true;
@@ -323,13 +323,13 @@ impl UpbitCore {
                 add_element_to_object(&mut subscriptions, &messageHash, Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("type".to_string(), channel.clone());
-        m.insert("codes".to_string(), Value::List(vec![marketId.clone()]));
+        m.insert("codes".to_string(), Value::from(vec![marketId.clone()]));
     m
 }));
             }
         }
         }
-        let mut finalMessage: Value = Value::List(vec![Value::Map({
+        let mut finalMessage: Value = Value::from(vec![Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("ticket".to_string(), self.uuid(&[]));
     m
@@ -363,7 +363,7 @@ impl UpbitCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        return self.watch_public_multiple(Value::List(vec![symbol.clone()]), Value::Str("ticker".to_string()), &[]).await;
+        return self.watch_public_multiple(Value::from(vec![symbol.clone()]), Value::Str("ticker".to_string()), &[]).await;
 
     Value::Null
 }
@@ -415,7 +415,7 @@ impl UpbitCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        return self.watch_trades_for_symbols(Value::List(vec![symbol.clone()]), &[since.clone(), limit.clone(), params.clone()]).await;
+        return self.watch_trades_for_symbols(Value::from(vec![symbol.clone()]), &[since.clone(), limit.clone(), params.clone()]).await;
 
     Value::Null
 }
@@ -465,7 +465,7 @@ impl UpbitCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut orderbook: Value = self.watch_public_multiple(Value::List(vec![symbol.clone()]), Value::Str("orderbook".to_string()), &[]).await;
+        let mut orderbook: Value = self.watch_public_multiple(Value::from(vec![symbol.clone()]), Value::Str("orderbook".to_string()), &[]).await;
         return orderbook.limit();
 
     Value::Null
@@ -496,7 +496,7 @@ impl UpbitCore {
             panic!("{}", crate::exchange_errors::not_supported(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" watchOHLCV does not support".to_string()))), timeframe)), Value::Str(" candle.".to_string())))));
         }
         let mut timeFrameOHLCV: Value = Value::Str(format!("{}{}", Value::Str("candle.".to_string()), timeframe));
-        return self.watch_public_multiple(Value::List(vec![symbol.clone()]), timeFrameOHLCV.clone(), &[]).await;
+        return self.watch_public_multiple(Value::from(vec![symbol.clone()]), timeFrameOHLCV.clone(), &[]).await;
 
     Value::Null
 }
@@ -593,7 +593,7 @@ impl UpbitCore {
         add_element_to_object(&mut orderbook, &Value::Str("symbol".to_string()), symbol.clone());
         let mut bids: Value = get_value(&orderbook, &Value::Str("bids".to_string()));
         let mut asks: Value = get_value(&orderbook, &Value::Str("asks".to_string()));
-        let mut data: Value = self.safe_list_k(message.clone(), "orderbook_units", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(message.clone(), "orderbook_units", &[Value::from(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_629: bool = true;
@@ -722,7 +722,7 @@ impl UpbitCore {
             self.load_markets(&[]).await;
             let mut market: Value = self.market(symbol.clone());
             symbol = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
-            let mut symbols: Value = Value::List(vec![symbol.clone()]);
+            let mut symbols: Value = Value::from(vec![symbol.clone()]);
             let mut marketIds: Value = self.market_ids(&[symbols.clone()]);
             add_element_to_object(&mut request, &Value::Str("codes".to_string()), marketIds.clone());
             messageHash = add(&add(&messageHash, &Value::Str(":".to_string())), &symbol);
@@ -753,7 +753,7 @@ impl UpbitCore {
         }
         // Build subscription message with all requested private channels
         // Format: [{'ticket': uuid}, {'type': 'myOrder'}, {'type': 'myAsset'}, ...]
-        let mut requests: Value = Value::List(vec![]);
+        let mut requests: Value = Value::from(vec![]);
         let mut channelKeys: Value = object_keys(&subscriptions);
         {
                         let mut i: Value = Value::Int(0);
@@ -762,7 +762,7 @@ impl UpbitCore {
             append_to_array(&mut requests, get_value(&subscriptions, &get_value(&channelKeys, &i)));
         }
         }
-        let mut message: Value = Value::List(vec![Value::Map({
+        let mut message: Value = Value::from(vec![Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("ticket".to_string(), self.uuid(&[]));
     m
@@ -1084,7 +1084,7 @@ impl UpbitCore {
         //     "stream_type": "REALTIME"
         // }
         //
-        let mut data: Value = self.safe_list_k(message.clone(), "assets", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(message.clone(), "assets", &[Value::from(vec![])]);
         let mut timestamp: Value = self.safe_integer_k(message.clone(), "timestamp", &[]);
         add_element_to_object(&mut self.balance, &Value::Str("timestamp".to_string()), timestamp.clone());
         { let __be_tmp = self.iso8601(timestamp.clone()); add_element_to_object(&mut self.balance, &Value::Str("datetime".to_string()), __be_tmp); };

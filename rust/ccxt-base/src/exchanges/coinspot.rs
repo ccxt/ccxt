@@ -104,7 +104,7 @@ impl CoinspotCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), Value::Str("coinspot".to_string()));
         m.insert("name".to_string(), Value::Str("CoinSpot".to_string()));
-        m.insert("countries".to_string(), Value::List(vec![Value::Str("AU".to_string())]));
+        m.insert("countries".to_string(), Value::from(vec![Value::Str("AU".to_string())]));
         m.insert("rateLimit".to_string(), Value::Int(1000));
         m.insert("pro".to_string(), Value::Bool(false));
         m.insert("has".to_string(), Value::Map({
@@ -1208,7 +1208,7 @@ impl CoinspotCore {
         //         ],
         //     }
         //
-        let mut trades: Value = self.safe_list_k(response.clone(), "orders", &[Value::List(vec![])]);
+        let mut trades: Value = self.safe_list_k(response.clone(), "orders", &[Value::from(vec![])]);
         return self.parse_trades(trades.clone(), &[market.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -1275,7 +1275,7 @@ impl CoinspotCore {
         //          },
         //      ]
         // }
-        let mut buyTrades: Value = self.safe_list_k(response.clone(), "buyorders", &[Value::List(vec![])]);
+        let mut buyTrades: Value = self.safe_list_k(response.clone(), "buyorders", &[Value::from(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_591: bool = true;
@@ -1283,7 +1283,7 @@ impl CoinspotCore {
             add_element_to_object(get_value_mut(&mut buyTrades, &i), &Value::Str("side".to_string()), Value::Str("buy".to_string()));
         }
         }
-        let mut sellTrades: Value = self.safe_list_k(response.clone(), "sellorders", &[Value::List(vec![])]);
+        let mut sellTrades: Value = self.safe_list_k(response.clone(), "sellorders", &[Value::from(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_592: bool = true;

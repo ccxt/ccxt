@@ -124,7 +124,7 @@ impl P2bCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), Value::Str("p2b".to_string()));
         m.insert("name".to_string(), Value::Str("p2b".to_string()));
-        m.insert("countries".to_string(), Value::List(vec![Value::Str("LT".to_string())]));
+        m.insert("countries".to_string(), Value::from(vec![Value::Str("LT".to_string())]));
         m.insert("rateLimit".to_string(), Value::Int(100));
         m.insert("version".to_string(), Value::Str("v2".to_string()));
         m.insert("pro".to_string(), Value::Bool(true));
@@ -385,8 +385,8 @@ impl P2bCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("tierBased".to_string(), Value::Bool(true));
         m.insert("percentage".to_string(), Value::Bool(true));
-        m.insert("taker".to_string(), Value::List(vec![Value::List(vec![self.parse_number(Value::Str("0".to_string()), &[]), self.parse_number(Value::Str("0.2".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("1".to_string()), &[]), self.parse_number(Value::Str("0.19".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("5".to_string()), &[]), self.parse_number(Value::Str("0.18".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("10".to_string()), &[]), self.parse_number(Value::Str("0.17".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("25".to_string()), &[]), self.parse_number(Value::Str("0.16".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("75".to_string()), &[]), self.parse_number(Value::Str("0.15".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("100".to_string()), &[]), self.parse_number(Value::Str("0.14".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("150".to_string()), &[]), self.parse_number(Value::Str("0.13".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("300".to_string()), &[]), self.parse_number(Value::Str("0.12".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("450".to_string()), &[]), self.parse_number(Value::Str("0.11".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("500".to_string()), &[]), self.parse_number(Value::Str("0.1".to_string()), &[])])]));
-        m.insert("maker".to_string(), Value::List(vec![Value::List(vec![self.parse_number(Value::Str("0".to_string()), &[]), self.parse_number(Value::Str("0.2".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("1".to_string()), &[]), self.parse_number(Value::Str("0.18".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("5".to_string()), &[]), self.parse_number(Value::Str("0.16".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("10".to_string()), &[]), self.parse_number(Value::Str("0.14".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("25".to_string()), &[]), self.parse_number(Value::Str("0.12".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("75".to_string()), &[]), self.parse_number(Value::Str("0.1".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("100".to_string()), &[]), self.parse_number(Value::Str("0.08".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("150".to_string()), &[]), self.parse_number(Value::Str("0.06".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("300".to_string()), &[]), self.parse_number(Value::Str("0.04".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("450".to_string()), &[]), self.parse_number(Value::Str("0.02".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("500".to_string()), &[]), self.parse_number(Value::Str("0.01".to_string()), &[])])]));
+        m.insert("taker".to_string(), Value::from(vec![Value::from(vec![self.parse_number(Value::Str("0".to_string()), &[]), self.parse_number(Value::Str("0.2".to_string()), &[])]), Value::from(vec![self.parse_number(Value::Str("1".to_string()), &[]), self.parse_number(Value::Str("0.19".to_string()), &[])]), Value::from(vec![self.parse_number(Value::Str("5".to_string()), &[]), self.parse_number(Value::Str("0.18".to_string()), &[])]), Value::from(vec![self.parse_number(Value::Str("10".to_string()), &[]), self.parse_number(Value::Str("0.17".to_string()), &[])]), Value::from(vec![self.parse_number(Value::Str("25".to_string()), &[]), self.parse_number(Value::Str("0.16".to_string()), &[])]), Value::from(vec![self.parse_number(Value::Str("75".to_string()), &[]), self.parse_number(Value::Str("0.15".to_string()), &[])]), Value::from(vec![self.parse_number(Value::Str("100".to_string()), &[]), self.parse_number(Value::Str("0.14".to_string()), &[])]), Value::from(vec![self.parse_number(Value::Str("150".to_string()), &[]), self.parse_number(Value::Str("0.13".to_string()), &[])]), Value::from(vec![self.parse_number(Value::Str("300".to_string()), &[]), self.parse_number(Value::Str("0.12".to_string()), &[])]), Value::from(vec![self.parse_number(Value::Str("450".to_string()), &[]), self.parse_number(Value::Str("0.11".to_string()), &[])]), Value::from(vec![self.parse_number(Value::Str("500".to_string()), &[]), self.parse_number(Value::Str("0.1".to_string()), &[])])]));
+        m.insert("maker".to_string(), Value::from(vec![Value::from(vec![self.parse_number(Value::Str("0".to_string()), &[]), self.parse_number(Value::Str("0.2".to_string()), &[])]), Value::from(vec![self.parse_number(Value::Str("1".to_string()), &[]), self.parse_number(Value::Str("0.18".to_string()), &[])]), Value::from(vec![self.parse_number(Value::Str("5".to_string()), &[]), self.parse_number(Value::Str("0.16".to_string()), &[])]), Value::from(vec![self.parse_number(Value::Str("10".to_string()), &[]), self.parse_number(Value::Str("0.14".to_string()), &[])]), Value::from(vec![self.parse_number(Value::Str("25".to_string()), &[]), self.parse_number(Value::Str("0.12".to_string()), &[])]), Value::from(vec![self.parse_number(Value::Str("75".to_string()), &[]), self.parse_number(Value::Str("0.1".to_string()), &[])]), Value::from(vec![self.parse_number(Value::Str("100".to_string()), &[]), self.parse_number(Value::Str("0.08".to_string()), &[])]), Value::from(vec![self.parse_number(Value::Str("150".to_string()), &[]), self.parse_number(Value::Str("0.06".to_string()), &[])]), Value::from(vec![self.parse_number(Value::Str("300".to_string()), &[]), self.parse_number(Value::Str("0.04".to_string()), &[])]), Value::from(vec![self.parse_number(Value::Str("450".to_string()), &[]), self.parse_number(Value::Str("0.02".to_string()), &[])]), Value::from(vec![self.parse_number(Value::Str("500".to_string()), &[]), self.parse_number(Value::Str("0.01".to_string()), &[])])]));
     m
 }));
     m
@@ -583,7 +583,7 @@ impl P2bCore {
         //        ]
         //    }
         //
-        let mut markets: Value = self.safe_list_k(response.clone(), "result", &[Value::List(vec![])]);
+        let mut markets: Value = self.safe_list_k(response.clone(), "result", &[Value::from(vec![])]);
         return self.parse_markets(markets.clone());
 
     Value::Null
@@ -971,7 +971,7 @@ impl P2bCore {
         //        current_time: '1699255571.413828'
         //    }
         //
-        let mut result: Value = self.safe_list_k(response.clone(), "result", &[Value::List(vec![])]);
+        let mut result: Value = self.safe_list_k(response.clone(), "result", &[Value::from(vec![])]);
         return self.parse_trades(result.clone(), &[market.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -1110,7 +1110,7 @@ impl P2bCore {
         //        current_time: '1699256375.030494'
         //    }
         //
-        let mut result: Value = self.safe_list_k(response.clone(), "result", &[Value::List(vec![])]);
+        let mut result: Value = self.safe_list_k(response.clone(), "result", &[Value::from(vec![])]);
         return self.parse_ohlc_vs(result.clone(), &[market.clone(), timeframe.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -1118,7 +1118,7 @@ impl P2bCore {
 
     pub fn parse_ohlcv(&self, mut ohlcv: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
-        return Value::List(vec![self.safe_integer_product(ohlcv.clone(), Value::Int(0), Value::Int(1000), &[]), self.safe_number(ohlcv.clone(), Value::Int(1), &[]), self.safe_number(ohlcv.clone(), Value::Int(3), &[]), self.safe_number(ohlcv.clone(), Value::Int(4), &[]), self.safe_number(ohlcv.clone(), Value::Int(2), &[]), self.safe_number(ohlcv.clone(), Value::Int(5), &[])]);
+        return Value::from(vec![self.safe_integer_product(ohlcv.clone(), Value::Int(0), Value::Int(1000), &[]), self.safe_number(ohlcv.clone(), Value::Int(1), &[]), self.safe_number(ohlcv.clone(), Value::Int(3), &[]), self.safe_number(ohlcv.clone(), Value::Int(4), &[]), self.safe_number(ohlcv.clone(), Value::Int(2), &[]), self.safe_number(ohlcv.clone(), Value::Int(5), &[])]);
 
     Value::Null
 }
@@ -1397,7 +1397,7 @@ impl P2bCore {
         //        ]
         //    }
         //
-        let mut result: Value = self.safe_list_k(response.clone(), "result", &[Value::List(vec![])]);
+        let mut result: Value = self.safe_list_k(response.clone(), "result", &[Value::from(vec![])]);
         return self.parse_orders(result.clone(), &[market.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -1467,7 +1467,7 @@ impl P2bCore {
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut records: Value = self.safe_list_k(result.clone(), "records", &[Value::List(vec![])]);
+        let mut records: Value = self.safe_list_k(result.clone(), "records", &[Value::from(vec![])]);
         return self.parse_trades(records.clone(), &[market.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -1562,7 +1562,7 @@ impl P2bCore {
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut deals: Value = self.safe_list_k(result.clone(), "deals", &[Value::List(vec![])]);
+        let mut deals: Value = self.safe_list_k(result.clone(), "deals", &[Value::from(vec![])]);
         return self.parse_trades(deals.clone(), &[market.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -1656,7 +1656,7 @@ impl P2bCore {
         //    }
         //
         let mut result: Value = self.safe_value_k(response.clone(), "result", &[]);
-        let mut orders: Value = Value::List(vec![]);
+        let mut orders: Value = Value::from(vec![]);
         let mut keys: Value = object_keys(&result);
         {
                         let mut i: Value = Value::Int(0);

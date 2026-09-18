@@ -15,7 +15,7 @@ pub async fn testWatchMyTrades(mut exchange: Value, mut skippedProperties: Value
     let mut ends: Value = (match (&(now), &(Value::Int(15000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
     while now.as_f64().unwrap_or(f64::NAN) < ends.as_f64().unwrap_or(f64::NAN) {
         let mut success: Value = Value::Bool(true);
-        let mut response: Value = Value::List(vec![]);
+        let mut response: Value = Value::from(vec![]);
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
             response = crate::live_dispatch::dispatch(&mut exchange, "watch_my_trades", vec![symbol.clone()]).await;
          #[allow(unreachable_code)] { Value::Null }})).await;

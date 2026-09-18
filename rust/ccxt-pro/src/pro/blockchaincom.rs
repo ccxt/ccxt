@@ -369,7 +369,7 @@ impl BlockchaincomCore {
                 m.insert("info".to_string(), message.clone());
             m
         });
-        let mut balances: Value = self.safe_list_k(message.clone(), "balances", &[Value::List(vec![])]);
+        let mut balances: Value = self.safe_list_k(message.clone(), "balances", &[Value::from(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_183: bool = true;
@@ -468,7 +468,7 @@ impl BlockchaincomCore {
             let mut request: Value = self.safe_value(get_value(&client, &Value::Str("subscriptions".to_string())), messageHash.clone(), &[]);
             let mut timeframeId: Value = self.safe_string_k(request.clone(), "granularity", &[]);
             let mut timeframe: Value = self.find_timeframe(timeframeId.clone(), &[]);
-            let mut ohlcv: Value = self.safe_value_k(message.clone(), "price", &[Value::List(vec![])]);
+            let mut ohlcv: Value = self.safe_value_k(message.clone(), "price", &[Value::from(vec![])]);
             { let __be_tmp = self.safe_value(self.ohlcvs.clone(), symbol.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -865,7 +865,7 @@ impl BlockchaincomCore {
         }  else if (event.as_str() == Some("rejected")) {
             panic!("{}", crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), self.json(message.clone())))));
         }  else if (event.as_str() == Some("snapshot")) {
-            let mut orders: Value = self.safe_list_k(message.clone(), "orders", &[Value::List(vec![])]);
+            let mut orders: Value = self.safe_list_k(message.clone(), "orders", &[Value::from(vec![])]);
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_184: bool = true;
@@ -922,7 +922,7 @@ impl BlockchaincomCore {
         let mut marketId: Value = self.safe_string_k(order.clone(), "symbol", &[]);
         market = self.safe_market(&[marketId.clone(), market.clone()]);
         let mut tradeId: Value = self.safe_string_k(order.clone(), "tradeId", &[]);
-        let mut trades: Value = Value::List(vec![]);
+        let mut trades: Value = Value::from(vec![]);
         if (tradeId.as_str() != Some("0")) {
             append_to_array(&mut trades, Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -1074,8 +1074,8 @@ impl BlockchaincomCore {
             let mut snapshot: Value = self.parse_order_book(message.clone(), symbol.clone(), &[timestamp.clone(), Value::Str("bids".to_string()), Value::Str("asks".to_string()), Value::Str("px".to_string()), Value::Str("qty".to_string()), Value::Str("num".to_string())]);
             orderbook.reset(snapshot.clone());
         }  else if (event.as_str() == Some("updated")) {
-            let mut asks: Value = self.safe_list_k(message.clone(), "asks", &[Value::List(vec![])]);
-            let mut bids: Value = self.safe_list_k(message.clone(), "bids", &[Value::List(vec![])]);
+            let mut asks: Value = self.safe_list_k(message.clone(), "asks", &[Value::from(vec![])]);
+            let mut bids: Value = self.safe_list_k(message.clone(), "bids", &[Value::from(vec![])]);
             self.handle_deltas(get_value(&orderbook, &Value::Str("asks".to_string())), asks.clone());
             self.handle_deltas(get_value(&orderbook, &Value::Str("bids".to_string())), bids.clone());
             add_element_to_object(&mut orderbook, &Value::Str("timestamp".to_string()), timestamp.clone());

@@ -195,7 +195,7 @@ impl BybiteuCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), Value::Str("bybiteu".to_string()));
         m.insert("name".to_string(), Value::Str("Bybit EU".to_string()));
-        m.insert("countries".to_string(), Value::List(vec![Value::Str("EU".to_string())]));
+        m.insert("countries".to_string(), Value::from(vec![Value::Str("EU".to_string())]));
         m.insert("version".to_string(), Value::Str("v5".to_string()));
         m.insert("rateLimit".to_string(), Value::Int(20));
         m.insert("hostname".to_string(), Value::Str("bybit.eu".to_string()));
@@ -232,7 +232,7 @@ impl BybiteuCore {
     m
 }));
         m.insert("www".to_string(), Value::Str("https://www.bybit.com".to_string()));
-        m.insert("doc".to_string(), Value::List(vec![Value::Str("https://bybit-exchange.github.io/docs/inverse/".to_string()), Value::Str("https://bybit-exchange.github.io/docs/linear/".to_string()), Value::Str("https://github.com/bybit-exchange".to_string())]));
+        m.insert("doc".to_string(), Value::from(vec![Value::Str("https://bybit-exchange.github.io/docs/inverse/".to_string()), Value::Str("https://bybit-exchange.github.io/docs/linear/".to_string()), Value::Str("https://github.com/bybit-exchange".to_string())]));
         m.insert("fees".to_string(), Value::Str("https://help.bybit.com/hc/en-us/articles/360039261154".to_string()));
         m.insert("referral".to_string(), Value::Str("https://www.bybit.com/invite?ref=XDK12WP".to_string()));
     m

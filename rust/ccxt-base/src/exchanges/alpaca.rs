@@ -147,7 +147,7 @@ impl AlpacaCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), Value::Str("alpaca".to_string()));
         m.insert("name".to_string(), Value::Str("Alpaca".to_string()));
-        m.insert("countries".to_string(), Value::List(vec![Value::Str("US".to_string())]));
+        m.insert("countries".to_string(), Value::from(vec![Value::Str("US".to_string())]));
         m.insert("rateLimit".to_string(), Value::Int(333));
         m.insert("hostname".to_string(), Value::Str("alpaca.markets".to_string()));
         m.insert("pro".to_string(), Value::Bool(true));
@@ -877,8 +877,8 @@ impl AlpacaCore {
         m.insert("taker".to_string(), self.parse_number(Value::Str("0.0025".to_string()), &[]));
         m.insert("tiers".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("taker".to_string(), Value::List(vec![Value::List(vec![self.parse_number(Value::Str("0".to_string()), &[]), self.parse_number(Value::Str("0.0025".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("100000".to_string()), &[]), self.parse_number(Value::Str("0.0022".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("500000".to_string()), &[]), self.parse_number(Value::Str("0.0020".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("1000000".to_string()), &[]), self.parse_number(Value::Str("0.0018".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("10000000".to_string()), &[]), self.parse_number(Value::Str("0.0015".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("25000000".to_string()), &[]), self.parse_number(Value::Str("0.0013".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("50000000".to_string()), &[]), self.parse_number(Value::Str("0.0012".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("100000000".to_string()), &[]), self.parse_number(Value::Str("0.001".to_string()), &[])])]));
-        m.insert("maker".to_string(), Value::List(vec![Value::List(vec![self.parse_number(Value::Str("0".to_string()), &[]), self.parse_number(Value::Str("0.0015".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("100000".to_string()), &[]), self.parse_number(Value::Str("0.0012".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("500000".to_string()), &[]), self.parse_number(Value::Str("0.001".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("1000000".to_string()), &[]), self.parse_number(Value::Str("0.0008".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("10000000".to_string()), &[]), self.parse_number(Value::Str("0.0005".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("25000000".to_string()), &[]), self.parse_number(Value::Str("0.0002".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("50000000".to_string()), &[]), self.parse_number(Value::Str("0.0002".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("100000000".to_string()), &[]), self.parse_number(Value::Str("0.00".to_string()), &[])])]));
+        m.insert("taker".to_string(), Value::from(vec![Value::from(vec![self.parse_number(Value::Str("0".to_string()), &[]), self.parse_number(Value::Str("0.0025".to_string()), &[])]), Value::from(vec![self.parse_number(Value::Str("100000".to_string()), &[]), self.parse_number(Value::Str("0.0022".to_string()), &[])]), Value::from(vec![self.parse_number(Value::Str("500000".to_string()), &[]), self.parse_number(Value::Str("0.0020".to_string()), &[])]), Value::from(vec![self.parse_number(Value::Str("1000000".to_string()), &[]), self.parse_number(Value::Str("0.0018".to_string()), &[])]), Value::from(vec![self.parse_number(Value::Str("10000000".to_string()), &[]), self.parse_number(Value::Str("0.0015".to_string()), &[])]), Value::from(vec![self.parse_number(Value::Str("25000000".to_string()), &[]), self.parse_number(Value::Str("0.0013".to_string()), &[])]), Value::from(vec![self.parse_number(Value::Str("50000000".to_string()), &[]), self.parse_number(Value::Str("0.0012".to_string()), &[])]), Value::from(vec![self.parse_number(Value::Str("100000000".to_string()), &[]), self.parse_number(Value::Str("0.001".to_string()), &[])])]));
+        m.insert("maker".to_string(), Value::from(vec![Value::from(vec![self.parse_number(Value::Str("0".to_string()), &[]), self.parse_number(Value::Str("0.0015".to_string()), &[])]), Value::from(vec![self.parse_number(Value::Str("100000".to_string()), &[]), self.parse_number(Value::Str("0.0012".to_string()), &[])]), Value::from(vec![self.parse_number(Value::Str("500000".to_string()), &[]), self.parse_number(Value::Str("0.001".to_string()), &[])]), Value::from(vec![self.parse_number(Value::Str("1000000".to_string()), &[]), self.parse_number(Value::Str("0.0008".to_string()), &[])]), Value::from(vec![self.parse_number(Value::Str("10000000".to_string()), &[]), self.parse_number(Value::Str("0.0005".to_string()), &[])]), Value::from(vec![self.parse_number(Value::Str("25000000".to_string()), &[]), self.parse_number(Value::Str("0.0002".to_string()), &[])]), Value::from(vec![self.parse_number(Value::Str("50000000".to_string()), &[]), self.parse_number(Value::Str("0.0002".to_string()), &[])]), Value::from(vec![self.parse_number(Value::Str("100000000".to_string()), &[]), self.parse_number(Value::Str("0.00".to_string()), &[])])]));
     m
 }));
     m
@@ -894,7 +894,7 @@ impl AlpacaCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("minCostUSD".to_string(), Value::Int(10));
         m.insert("defaultExchange".to_string(), Value::Str("CBSE".to_string()));
-        m.insert("exchanges".to_string(), Value::List(vec![Value::Str("CBSE".to_string()), Value::Str("FTX".to_string()), Value::Str("GNSS".to_string()), Value::Str("ERSX".to_string())]));
+        m.insert("exchanges".to_string(), Value::from(vec![Value::Str("CBSE".to_string()), Value::Str("FTX".to_string()), Value::Str("GNSS".to_string()), Value::Str("ERSX".to_string())]));
         m.insert("createOrder".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("timeInForce".to_string(), Value::Str("gtc".to_string()));
@@ -1264,7 +1264,7 @@ impl AlpacaCore {
                 m.insert("loc".to_string(), loc.clone());
             m
         });
-        params = self.omit(params.clone(), Value::List(vec![Value::Str("loc".to_string()), Value::Str("method".to_string())]), &[]);
+        params = self.omit(params.clone(), Value::from(vec![Value::Str("loc".to_string()), Value::Str("method".to_string())]), &[]);
         let mut symbolTrades: Value = Value::Null;
         if (method.as_str() == Some("marketPublicGetV1beta3CryptoLocTrades")) {
             if (since != Value::Null) {
@@ -1295,7 +1295,7 @@ impl AlpacaCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-            symbolTrades = self.safe_list(trades.clone(), marketId.clone(), &[Value::List(vec![])]);
+            symbolTrades = self.safe_list(trades.clone(), marketId.clone(), &[Value::from(vec![])]);
         }  else if (method.as_str() == Some("marketPublicGetV1beta3CryptoLocLatestTrades")) {
             let __ws_arg_2 = self.extend(request.clone(), &[params.clone()]);
             let mut response: Value = self.market_public_get_v1beta3_crypto_loc_latest_trades(&[__ws_arg_2]).await;
@@ -1320,11 +1320,11 @@ impl AlpacaCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-            symbolTrades = Value::List(vec![symbolTrade.clone()]);
+            symbolTrades = Value::from(vec![symbolTrade.clone()]);
         }  else {
             panic!("{}", crate::exchange_errors::not_supported(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchTrades() does not support ".to_string()))), method)), Value::Str(", marketPublicGetV1beta3CryptoLocTrades and marketPublicGetV1beta3CryptoLocLatestTrades are supported".to_string())))));
         }
-        let mut symbolTradesList: Value = Value::List(vec![]);
+        let mut symbolTradesList: Value = Value::from(vec![]);
         if (symbolTrades != Value::Null) {
             symbolTradesList = symbolTrades.clone();
         }
@@ -1458,7 +1458,7 @@ impl AlpacaCore {
                 m.insert("loc".to_string(), loc.clone());
             m
         });
-        params = self.omit(params.clone(), Value::List(vec![Value::Str("loc".to_string()), Value::Str("method".to_string())]), &[]);
+        params = self.omit(params.clone(), Value::from(vec![Value::Str("loc".to_string()), Value::Str("method".to_string())]), &[]);
         let mut ohlcvs: Value = Value::Null;
         if (method.as_str() == Some("marketPublicGetV1beta3CryptoLocBars")) {
             if (limit != Value::Null) {
@@ -1508,7 +1508,7 @@ impl AlpacaCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-            ohlcvs = self.safe_list(bars.clone(), marketId.clone(), &[Value::List(vec![])]);
+            ohlcvs = self.safe_list(bars.clone(), marketId.clone(), &[Value::from(vec![])]);
             if is_true(&paginate) {
                 // the endpoint answers with a server-sized page plus a next_page_token regardless of the requested limit
                 let mut pageToken: Value = self.safe_string_k(response.clone(), "next_page_token", &[]);
@@ -1527,7 +1527,7 @@ impl AlpacaCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-                    let mut page: Value = self.safe_list(bars.clone(), marketId.clone(), &[Value::List(vec![])]);
+                    let mut page: Value = self.safe_list(bars.clone(), marketId.clone(), &[Value::from(vec![])]);
                     let mut pageLength: Value = Value::Int(page.len() as i64);
                     if (pageLength.as_f64() == Some(0.0)) {
                         break;
@@ -1564,7 +1564,7 @@ impl AlpacaCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-            ohlcvs = Value::List(vec![bar.clone()]);
+            ohlcvs = Value::from(vec![bar.clone()]);
         }  else {
             panic!("{}", crate::exchange_errors::not_supported(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchOHLCV() does not support ".to_string()))), method)), Value::Str(", marketPublicGetV1beta3CryptoLocBars and marketPublicGetV1beta3CryptoLocLatestBars are supported".to_string())))));
         }
@@ -1589,7 +1589,7 @@ impl AlpacaCore {
         //
         let mut datetime: Value = self.safe_string_k(ohlcv.clone(), "t", &[]);
         let mut timestamp: Value = self.parse8601(datetime.clone());
-        return Value::List(vec![timestamp.clone(), self.safe_number_k(ohlcv.clone(), "o", &[]), self.safe_number_k(ohlcv.clone(), "h", &[]), self.safe_number_k(ohlcv.clone(), "l", &[]), self.safe_number_k(ohlcv.clone(), "c", &[]), self.safe_number_k(ohlcv.clone(), "v", &[])]);
+        return Value::from(vec![timestamp.clone(), self.safe_number_k(ohlcv.clone(), "o", &[]), self.safe_number_k(ohlcv.clone(), "h", &[]), self.safe_number_k(ohlcv.clone(), "l", &[]), self.safe_number_k(ohlcv.clone(), "c", &[]), self.safe_number_k(ohlcv.clone(), "v", &[])]);
 
     Value::Null
 }
@@ -1613,7 +1613,7 @@ impl AlpacaCore {
             self.load_markets(&[]).await;
         }
         symbol = self.symbol(symbol.clone());
-        let mut tickers: Value = self.fetch_tickers(&[Value::List(vec![symbol.clone()]), params.clone()]).await;
+        let mut tickers: Value = self.fetch_tickers(&[Value::from(vec![symbol.clone()]), params.clone()]).await;
         return self.safe_dict(tickers.clone(), symbol.clone(), &[]);
 
     Value::Null
@@ -1707,7 +1707,7 @@ impl AlpacaCore {
         //         }
         //     }
         //
-        let mut results: Value = Value::List(vec![]);
+        let mut results: Value = Value::from(vec![]);
         let mut snapshots: Value = self.safe_dict_k(response.clone(), "snapshots", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1936,9 +1936,9 @@ impl AlpacaCore {
             defaultTIF = to_lower(&defaultTIF);
         }
         add_element_to_object(&mut request, &Value::Str("time_in_force".to_string()), defaultTIF.clone());
-        params = self.omit(params.clone(), Value::List(vec![Value::Str("timeInForce".to_string()), Value::Str("triggerPrice".to_string())]), &[]);
+        params = self.omit(params.clone(), Value::from(vec![Value::Str("timeInForce".to_string()), Value::Str("triggerPrice".to_string())]), &[]);
         add_element_to_object(&mut request, &Value::Str("client_order_id".to_string()), self.generate_client_order_id(params.clone()));
-        params = self.omit(params.clone(), Value::List(vec![Value::Str("clientOrderId".to_string())]), &[]);
+        params = self.omit(params.clone(), Value::from(vec![Value::Str("clientOrderId".to_string())]), &[]);
         let __ws_arg_11 = self.extend(request.clone(), &[params.clone()]);
         let mut order: Value = self.trader_private_post_v2_orders(&[__ws_arg_11]).await;
         return self.parse_order(order.clone(), &[market.clone()]);
@@ -1996,7 +1996,7 @@ impl AlpacaCore {
         if is_true(&Value::Bool(is_array(&response))) {
             return self.parse_orders(response.clone(), &[]);
         }  else {
-            return Value::List(vec![self.safe_order(Value::Map({
+            return Value::from(vec![self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), response.clone());
     m
@@ -2214,7 +2214,7 @@ impl AlpacaCore {
             add_element_to_object(&mut request, &Value::Str("time_in_force".to_string()), to_lower(&timeInForce));
         }
         add_element_to_object(&mut request, &Value::Str("client_order_id".to_string()), self.generate_client_order_id(params.clone()));
-        params = self.omit(params.clone(), Value::List(vec![Value::Str("clientOrderId".to_string())]), &[]);
+        params = self.omit(params.clone(), Value::from(vec![Value::Str("clientOrderId".to_string())]), &[]);
         let __ws_arg_17 = self.extend(request.clone(), &[params.clone()]);
         let mut response: Value = self.trader_private_patch_v2_orders_order_id(&[__ws_arg_17]).await;
         return self.parse_order(response.clone(), &[market.clone()]);
@@ -2608,8 +2608,8 @@ impl AlpacaCore {
             //         }
             //     ]
             //
-            let mut filtered: Value = Value::List(vec![]);
-            let mut ledger: Value = Value::List(vec![]);
+            let mut filtered: Value = Value::from(vec![]);
+            let mut ledger: Value = Value::from(vec![]);
             if is_true(&Value::Bool(is_array(&activities))) {
                 ledger = activities.clone();
             }
@@ -2648,8 +2648,8 @@ impl AlpacaCore {
         //         "fees": "0.1"
         //     }
         //
-        let mut results: Value = Value::List(vec![]);
-        let mut transfers: Value = Value::List(vec![]);
+        let mut results: Value = Value::from(vec![]);
+        let mut transfers: Value = Value::from(vec![]);
         if is_true(&Value::Bool(is_array(&response))) {
             transfers = response.clone();
         }
@@ -2999,7 +2999,7 @@ impl AlpacaCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut positions: Value = self.safe_list_k(response.clone(), "positions", &[Value::List(vec![])]);
+        let mut positions: Value = self.safe_list_k(response.clone(), "positions", &[Value::from(vec![])]);
         let mut result: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("info".to_string(), response.clone());

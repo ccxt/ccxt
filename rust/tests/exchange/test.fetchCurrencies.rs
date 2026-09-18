@@ -15,7 +15,7 @@ pub async fn testFetchCurrencies(mut exchange: Value, mut skippedProperties: Val
     // todo: try to invent something to avoid undefined undefined, i.e. maybe move into private and force it to have a value
     let mut numInactiveCurrencies: Value = Value::Int(0);
     let mut maxInactiveCurrenciesPercentage: Value = exchange.safe_integer(skippedProperties.clone(), Value::Str("maxInactiveCurrenciesPercentage".to_string()), &[Value::Int(50)]); // no more than X% currencies should be inactive
-    let mut requiredActiveCurrencies: Value = Value::List(vec![Value::Str("BTC".to_string()), Value::Str("ETH".to_string()), Value::Str("USDT".to_string()), Value::Str("USDC".to_string())]);
+    let mut requiredActiveCurrencies: Value = Value::from(vec![Value::Str("BTC".to_string()), Value::Str("ETH".to_string()), Value::Str("USDT".to_string()), Value::Str("USDC".to_string())]);
     let mut features: Value = get_value(&exchange, &Value::Str("features".to_string()));
     let mut featuresSpot: Value = exchange.safe_dict(features.clone(), Value::Str("spot".to_string()), &[Value::Map({
         let mut m = indexmap::IndexMap::new();

@@ -12,7 +12,7 @@ use super::*;
 pub async fn testWatchLiquidationsForSymbols(mut exchange: Value, mut skippedProperties: Value, mut symbol: Value) -> Value {
     let mut method: Value = Value::Str("watchLiquidationsForSymbols".to_string());
     // we have to skip some exchanges here due to the frequency of trading
-    let mut skippedExchanges: Value = Value::List(vec![]);
+    let mut skippedExchanges: Value = Value::from(vec![]);
     if is_true(&exchange.in_array(get_value(&exchange, &Value::Str("id".to_string())), skippedExchanges.clone())) {
         let mut m1: Value = (Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", get_value(&exchange, &Value::Str("id".to_string())), Value::Str(" ".to_string()))), method)), Value::Str("() test skipped".to_string()))));
         println_val(&m1);
@@ -28,7 +28,7 @@ pub async fn testWatchLiquidationsForSymbols(mut exchange: Value, mut skippedPro
     let mut ends: Value = (match (&(now), &(Value::Int(10000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
     while now.as_f64().unwrap_or(f64::NAN) < ends.as_f64().unwrap_or(f64::NAN) {
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
-            response = crate::live_dispatch::dispatch(&mut exchange, "watch_liquidations_for_symbols", vec![Value::List(vec![symbol.clone()])]).await;
+            response = crate::live_dispatch::dispatch(&mut exchange, "watch_liquidations_for_symbols", vec![Value::from(vec![symbol.clone()])]).await;
             now = date_now();
             let mut isArray: Value = Value::Bool(is_array(&response));
             assert!(ccxt::runtime::is_true(&(isArray.clone())));

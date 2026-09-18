@@ -428,7 +428,7 @@ impl BitrueCore {
         //      "u": 2285311
         //    }
         //
-        let mut balances: Value = self.safe_value_k(message.clone(), "B", &[Value::List(vec![])]);
+        let mut balances: Value = self.safe_value_k(message.clone(), "B", &[Value::from(vec![])]);
         self.parse_ws_balances(balances.clone());
         let mut messageHash: Value = Value::Str("balance".to_string());
         client.resolve(&[self.balance.clone(), messageHash.clone()]);
@@ -731,8 +731,8 @@ impl BitrueCore {
         })]);
         let mut parseable: Value = tick.clone();
         if isFutures {
-            let mut rawAsks: Value = self.safe_list_k(tick.clone(), "asks", &[Value::List(vec![])]);
-            let mut rawBuys: Value = self.safe_list_k(tick.clone(), "buys", &[Value::List(vec![])]);
+            let mut rawAsks: Value = self.safe_list_k(tick.clone(), "asks", &[Value::from(vec![])]);
+            let mut rawBuys: Value = self.safe_list_k(tick.clone(), "buys", &[Value::from(vec![])]);
             parseable = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("asks".to_string(), self.parse_contract_bids_asks(rawAsks.clone(), symbol.clone()));
@@ -777,7 +777,7 @@ impl BitrueCore {
 }
 
     pub fn parse_contract_bids_asks(&self, mut bidsAsks: Value, mut symbol: Value) -> Value {
-        let mut result: Value = Value::List(vec![]);
+        let mut result: Value = Value::from(vec![]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_156: bool = true;
@@ -787,7 +787,7 @@ impl BitrueCore {
             let mut price: Value = self.safe_number(level.clone(), Value::Int(0), &[]);
             let mut rawAmount: Value = self.safe_number(level.clone(), Value::Int(1), &[]);
             let mut amount: Value = self.convert_from_raw_quantity(symbol.clone(), rawAmount.clone());
-            append_to_array(&mut result, Value::List(vec![price.clone(), amount.clone()]));
+            append_to_array(&mut result, Value::from(vec![price.clone(), amount.clone()]));
         }
         }
         return result;
@@ -895,7 +895,7 @@ impl BitrueCore {
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut data: Value = self.safe_list_k(tick.clone(), "data", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(tick.clone(), "data", &[Value::from(vec![])]);
         let mut appended: bool = false;
         let mut stored: Value = self.safe_value(self.trades.clone(), symbol.clone(), &[]);
         {
@@ -1075,7 +1075,7 @@ impl BitrueCore {
         let mut close: Value = self.safe_number_k(tick.clone(), "close", &[]);
         let mut rawVol: Value = self.safe_number_k(tick.clone(), "vol", &[]);
         let mut baseVolume: Value = self.convert_from_raw_quantity(symbol.clone(), rawVol.clone());
-        return Value::List(vec![timestamp.clone(), open.clone(), high.clone(), low.clone(), close.clone(), baseVolume.clone()]);
+        return Value::from(vec![timestamp.clone(), open.clone(), high.clone(), low.clone(), close.clone(), baseVolume.clone()]);
 
     Value::Null
 }

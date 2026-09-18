@@ -476,8 +476,8 @@ impl LighterCore {
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        self.handle_deltas(crate::value::get_value_k(&orderbook, "asks"), self.safe_list_k(data.clone(), "asks", &[Value::List(vec![])]));
-        self.handle_deltas(crate::value::get_value_k(&orderbook, "bids"), self.safe_list_k(data.clone(), "bids", &[Value::List(vec![])]));
+        self.handle_deltas(crate::value::get_value_k(&orderbook, "asks"), self.safe_list_k(data.clone(), "asks", &[Value::from(vec![])]));
+        self.handle_deltas(crate::value::get_value_k(&orderbook, "bids"), self.safe_list_k(data.clone(), "bids", &[Value::from(vec![])]));
         add_element_to_object(&mut orderbook, &Value::Str("nonce".to_string()), self.safe_integer_k(data.clone(), "offset", &[]));
         let mut timestamp: Value = self.safe_integer_k(message.clone(), "timestamp", &[]);
         add_element_to_object(&mut orderbook, &Value::Str("timestamp".to_string()), timestamp.clone());
@@ -776,7 +776,7 @@ impl LighterCore {
                 m.insert("channel".to_string(), Value::Str("market_stats/all".to_string()));
             m
         });
-        let mut messageHashes: Value = Value::List(vec![]);
+        let mut messageHashes: Value = Value::from(vec![]);
         let mut symbolsLength: Value = Value::Int(0);
         if (symbols != Value::Null) {
             symbolsLength = Value::Int(symbols.len() as i64);
@@ -1012,12 +1012,12 @@ impl LighterCore {
         //         "type": "subscribed/trade"
         //     }
         //
-        let mut liquidationData: Value = self.safe_list_k(message.clone(), "liquidation_trades", &[Value::List(vec![])]);
+        let mut liquidationData: Value = self.safe_list_k(message.clone(), "liquidation_trades", &[Value::from(vec![])]);
         let mut liquidationDataLength: Value = Value::Int(liquidationData.len() as i64);
         if liquidationDataLength.as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN) {
             self.handle_liquidation(client.clone(), message.clone());
         }
-        let mut data: Value = self.safe_list_k(message.clone(), "trades", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(message.clone(), "trades", &[Value::from(vec![])]);
         let mut channel: Value = self.safe_string_k(message.clone(), "channel", &[Value::Str("".to_string())]);
         let mut parts: Value = split(&channel, &Value::Str(":".to_string()));
         let mut marketId: Value = parts.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
@@ -1261,7 +1261,7 @@ impl LighterCore {
             let mut marketId: Value = get_value(&marketIds, &i);
             let mut marketId: Value = get_value(&marketIds, &i);
             let mut market: Value = self.safe_market(&[marketId.clone()]);
-            let mut trades: Value = self.safe_list(data.clone(), marketId.clone(), &[Value::List(vec![])]);
+            let mut trades: Value = self.safe_list(data.clone(), marketId.clone(), &[Value::from(vec![])]);
             let mut tradesLength: Value = Value::Int(trades.len() as i64);
             {
                                 let mut j: Value = Value::Int(0);
@@ -1463,7 +1463,7 @@ impl LighterCore {
         //         "type": "subscribed/trade"
         //     }
         //
-        let mut data: Value = self.safe_list_k(message.clone(), "liquidation_trades", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(message.clone(), "liquidation_trades", &[Value::from(vec![])]);
         let mut channel: Value = self.safe_string_k(message.clone(), "channel", &[Value::Str("".to_string())]);
         let mut parts: Value = split(&channel, &Value::Str(":".to_string()));
         let mut marketId: Value = parts.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
@@ -1919,7 +1919,7 @@ impl LighterCore {
             m
         });
         let mut rawMessage: Value = self.watch(url.clone(), messageHash.clone(), &[message.clone(), messageHash.clone(), subscription.clone()]).await;
-        return self.parse_orders(Value::List(vec![rawMessage.clone()]), &[]);
+        return self.parse_orders(Value::from(vec![rawMessage.clone()]), &[]);
 
     Value::Null
 }
@@ -1974,7 +1974,7 @@ impl LighterCore {
             let mut marketId: Value = get_value(&marketIds, &i);
             let mut marketId: Value = get_value(&marketIds, &i);
             let mut market: Value = self.safe_market(&[marketId.clone()]);
-            let mut orders: Value = self.safe_list(data.clone(), marketId.clone(), &[Value::List(vec![])]);
+            let mut orders: Value = self.safe_list(data.clone(), marketId.clone(), &[Value::from(vec![])]);
             {
                                 let mut j: Value = Value::Int(0);
                 let mut __for_first_483: bool = true;

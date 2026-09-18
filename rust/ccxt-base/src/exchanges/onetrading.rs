@@ -139,7 +139,7 @@ impl OnetradingCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), Value::Str("onetrading".to_string()));
         m.insert("name".to_string(), Value::Str("One Trading".to_string()));
-        m.insert("countries".to_string(), Value::List(vec![Value::Str("AT".to_string())]));
+        m.insert("countries".to_string(), Value::from(vec![Value::Str("AT".to_string())]));
         m.insert("rateLimit".to_string(), Value::Int(300));
         m.insert("version".to_string(), Value::Str("v1".to_string()));
         m.insert("pro".to_string(), Value::Bool(true));
@@ -283,7 +283,7 @@ impl OnetradingCore {
     m
 }));
         m.insert("www".to_string(), Value::Str("https://onetrading.com/".to_string()));
-        m.insert("doc".to_string(), Value::List(vec![Value::Str("https://docs.onetrading.com".to_string())]));
+        m.insert("doc".to_string(), Value::from(vec![Value::Str("https://docs.onetrading.com".to_string())]));
         m.insert("fees".to_string(), Value::Str("https://onetrading.com/fees".to_string()));
     m
 }));
@@ -473,10 +473,10 @@ impl OnetradingCore {
         m.insert("percentage".to_string(), Value::Bool(true));
         m.insert("taker".to_string(), self.parse_number(Value::Str("0.0015".to_string()), &[]));
         m.insert("maker".to_string(), self.parse_number(Value::Str("0.001".to_string()), &[]));
-        m.insert("tiers".to_string(), Value::List(vec![Value::Map({
+        m.insert("tiers".to_string(), Value::from(vec![Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("taker".to_string(), Value::List(vec![Value::List(vec![self.parse_number(Value::Str("0".to_string()), &[]), self.parse_number(Value::Str("0.0015".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("100".to_string()), &[]), self.parse_number(Value::Str("0.0013".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("250".to_string()), &[]), self.parse_number(Value::Str("0.0013".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("1000".to_string()), &[]), self.parse_number(Value::Str("0.001".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("5000".to_string()), &[]), self.parse_number(Value::Str("0.0009".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("10000".to_string()), &[]), self.parse_number(Value::Str("0.00075".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("20000".to_string()), &[]), self.parse_number(Value::Str("0.00065".to_string()), &[])])]));
-        m.insert("maker".to_string(), Value::List(vec![Value::List(vec![self.parse_number(Value::Str("0".to_string()), &[]), self.parse_number(Value::Str("0.001".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("100".to_string()), &[]), self.parse_number(Value::Str("0.001".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("250".to_string()), &[]), self.parse_number(Value::Str("0.0009".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("1000".to_string()), &[]), self.parse_number(Value::Str("0.00075".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("5000".to_string()), &[]), self.parse_number(Value::Str("0.0006".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("10000".to_string()), &[]), self.parse_number(Value::Str("0.0005".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("20000".to_string()), &[]), self.parse_number(Value::Str("0.0005".to_string()), &[])])]));
+        m.insert("taker".to_string(), Value::from(vec![Value::from(vec![self.parse_number(Value::Str("0".to_string()), &[]), self.parse_number(Value::Str("0.0015".to_string()), &[])]), Value::from(vec![self.parse_number(Value::Str("100".to_string()), &[]), self.parse_number(Value::Str("0.0013".to_string()), &[])]), Value::from(vec![self.parse_number(Value::Str("250".to_string()), &[]), self.parse_number(Value::Str("0.0013".to_string()), &[])]), Value::from(vec![self.parse_number(Value::Str("1000".to_string()), &[]), self.parse_number(Value::Str("0.001".to_string()), &[])]), Value::from(vec![self.parse_number(Value::Str("5000".to_string()), &[]), self.parse_number(Value::Str("0.0009".to_string()), &[])]), Value::from(vec![self.parse_number(Value::Str("10000".to_string()), &[]), self.parse_number(Value::Str("0.00075".to_string()), &[])]), Value::from(vec![self.parse_number(Value::Str("20000".to_string()), &[]), self.parse_number(Value::Str("0.00065".to_string()), &[])])]));
+        m.insert("maker".to_string(), Value::from(vec![Value::from(vec![self.parse_number(Value::Str("0".to_string()), &[]), self.parse_number(Value::Str("0.001".to_string()), &[])]), Value::from(vec![self.parse_number(Value::Str("100".to_string()), &[]), self.parse_number(Value::Str("0.001".to_string()), &[])]), Value::from(vec![self.parse_number(Value::Str("250".to_string()), &[]), self.parse_number(Value::Str("0.0009".to_string()), &[])]), Value::from(vec![self.parse_number(Value::Str("1000".to_string()), &[]), self.parse_number(Value::Str("0.00075".to_string()), &[])]), Value::from(vec![self.parse_number(Value::Str("5000".to_string()), &[]), self.parse_number(Value::Str("0.0006".to_string()), &[])]), Value::from(vec![self.parse_number(Value::Str("10000".to_string()), &[]), self.parse_number(Value::Str("0.0005".to_string()), &[])]), Value::from(vec![self.parse_number(Value::Str("20000".to_string()), &[]), self.parse_number(Value::Str("0.0005".to_string()), &[])])]));
     m
 })]));
     m
@@ -593,7 +593,7 @@ impl OnetradingCore {
         m.insert("method".to_string(), Value::Str("fetchPrivateTradingFees".to_string()));
     m
 }));
-        m.insert("fiat".to_string(), Value::List(vec![Value::Str("EUR".to_string()), Value::Str("CHF".to_string())]));
+        m.insert("fiat".to_string(), Value::from(vec![Value::Str("EUR".to_string()), Value::Str("CHF".to_string())]));
     m
 }));
         m.insert("features".to_string(), Value::Map({
@@ -1014,8 +1014,8 @@ impl OnetradingCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut spotFeeTiers: Value = self.safe_list_k(spotFees.clone(), "fee_tiers", &[Value::List(vec![])]);
-        let mut futuresFeeTiers: Value = self.safe_list_k(futuresFees.clone(), "fee_tiers", &[Value::List(vec![])]);
+        let mut spotFeeTiers: Value = self.safe_list_k(spotFees.clone(), "fee_tiers", &[Value::from(vec![])]);
+        let mut futuresFeeTiers: Value = self.safe_list_k(futuresFees.clone(), "fee_tiers", &[Value::from(vec![])]);
         let mut spotTiers: Value = self.parse_fee_tiers(spotFeeTiers.clone(), &[]);
         let mut futuresTiers: Value = self.parse_fee_tiers(futuresFeeTiers.clone(), &[]);
         let mut firstSpotTier: Value = self.safe_dict(spotTiers.clone(), Value::Int(0), &[Value::Map({
@@ -1150,8 +1150,8 @@ impl OnetradingCore {
 
     pub fn parse_fee_tiers(&self, mut feeTiers: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
-        let mut takerFees: Value = Value::List(vec![]);
-        let mut makerFees: Value = Value::List(vec![]);
+        let mut takerFees: Value = Value::from(vec![]);
+        let mut makerFees: Value = Value::from(vec![]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1026: bool = true;
@@ -1163,8 +1163,8 @@ impl OnetradingCore {
             let mut maker: Value = self.safe_string_k(tier.clone(), "maker_fee", &[]);
             maker = crate::precise::Precise::stringDiv(&maker, &Value::Str("100".to_string()));
             taker = crate::precise::Precise::stringDiv(&taker, &Value::Str("100".to_string()));
-            append_to_array(&mut makerFees, Value::List(vec![volume.clone(), self.parse_number(maker.clone(), &[])]));
-            append_to_array(&mut takerFees, Value::List(vec![volume.clone(), self.parse_number(taker.clone(), &[])]));
+            append_to_array(&mut makerFees, Value::from(vec![volume.clone(), self.parse_number(maker.clone(), &[])]));
+            append_to_array(&mut takerFees, Value::from(vec![volume.clone(), self.parse_number(taker.clone(), &[])]));
         }
         }
         return Value::Map({
@@ -1462,7 +1462,7 @@ impl OnetradingCore {
             m
         })]);
         let mut volumeField: Value = self.safe_string_k(options.clone(), "volume", &[Value::Str("total_amount".to_string())]);
-        return Value::List(vec![alignedTimestamp.clone(), self.safe_number_k(ohlcv.clone(), "open", &[]), self.safe_number_k(ohlcv.clone(), "high", &[]), self.safe_number_k(ohlcv.clone(), "low", &[]), self.safe_number_k(ohlcv.clone(), "close", &[]), self.safe_number(ohlcv.clone(), volumeField.clone(), &[])]);
+        return Value::from(vec![alignedTimestamp.clone(), self.safe_number_k(ohlcv.clone(), "open", &[]), self.safe_number_k(ohlcv.clone(), "high", &[]), self.safe_number_k(ohlcv.clone(), "low", &[]), self.safe_number_k(ohlcv.clone(), "close", &[]), self.safe_number(ohlcv.clone(), volumeField.clone(), &[])]);
 
     Value::Null
 }
@@ -1626,7 +1626,7 @@ impl OnetradingCore {
 }
 
     pub fn parse_balance(&self, mut response: Value) -> Value {
-        let mut balances: Value = self.safe_list_k(response.clone(), "balances", &[Value::List(vec![])]);
+        let mut balances: Value = self.safe_list_k(response.clone(), "balances", &[Value::from(vec![])]);
         let mut result: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("info".to_string(), response.clone());
@@ -1778,7 +1778,7 @@ impl OnetradingCore {
         let mut type_var: Value = self.safe_string_lower(rawOrder.clone(), Value::Str("type".to_string()), &[]);
         let mut timeInForce: Value = self.parse_time_in_force(self.safe_string_k(rawOrder.clone(), "time_in_force", &[]));
         let mut postOnly: Value = self.safe_value_k(rawOrder.clone(), "is_post_only", &[]);
-        let mut rawTrades: Value = self.safe_value_k(order.clone(), "trades", &[Value::List(vec![])]);
+        let mut rawTrades: Value = self.safe_value_k(order.clone(), "trades", &[Value::from(vec![])]);
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id.clone());
@@ -1862,14 +1862,14 @@ impl OnetradingCore {
         if (uppercaseType.as_str() == Some("LIMIT")) || (uppercaseType.as_str() == Some("STOP")) {
             priceIsRequired = true;
         }
-        let mut triggerPrice: Value = self.safe_number_n(params.clone(), Value::List(vec![Value::Str("triggerPrice".to_string()), Value::Str("trigger_price".to_string()), Value::Str("stopPrice".to_string())]), &[]);
+        let mut triggerPrice: Value = self.safe_number_n(params.clone(), Value::from(vec![Value::Str("triggerPrice".to_string()), Value::Str("trigger_price".to_string()), Value::Str("stopPrice".to_string())]), &[]);
         if (triggerPrice != Value::Null) {
             if (uppercaseType.as_str() == Some("MARKET")) {
                 panic!("{}", crate::exchange_errors::bad_request(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder() cannot place stop market orders, only stop limit".to_string())))));
             }
             add_element_to_object(&mut request, &Value::Str("trigger_price".to_string()), self.price_to_precision(symbol.clone(), triggerPrice.clone()));
             add_element_to_object(&mut request, &Value::Str("type".to_string()), Value::Str("STOP".to_string()));
-            params = self.omit(params.clone(), Value::List(vec![Value::Str("triggerPrice".to_string()), Value::Str("trigger_price".to_string()), Value::Str("stopPrice".to_string())]), &[]);
+            params = self.omit(params.clone(), Value::from(vec![Value::Str("triggerPrice".to_string()), Value::Str("trigger_price".to_string()), Value::Str("stopPrice".to_string())]), &[]);
         }  else if (uppercaseType.as_str() == Some("STOP")) {
             panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires a triggerPrice param for ".to_string()))), type_var)), Value::Str(" orders".to_string())))));
         }
@@ -1879,7 +1879,7 @@ impl OnetradingCore {
         let mut clientOrderId: Value = self.safe_string2(params.clone(), Value::Str("clientOrderId".to_string()), Value::Str("client_id".to_string()), &[]);
         if (clientOrderId != Value::Null) {
             add_element_to_object(&mut request, &Value::Str("client_id".to_string()), clientOrderId.clone());
-            params = self.omit(params.clone(), Value::List(vec![Value::Str("clientOrderId".to_string()), Value::Str("client_id".to_string())]), &[]);
+            params = self.omit(params.clone(), Value::from(vec![Value::Str("clientOrderId".to_string()), Value::Str("client_id".to_string())]), &[]);
         }
         let mut timeInForce: Value = self.safe_string2(params.clone(), Value::Str("timeInForce".to_string()), Value::Str("time_in_force".to_string()), &[Value::Str("GOOD_TILL_CANCELLED".to_string())]);
         params = self.omit(params.clone(), Value::Str("timeInForce".to_string()), &[]);
@@ -1912,7 +1912,7 @@ impl OnetradingCore {
             self.load_markets(&[]).await;
         }
         let mut clientOrderId: Value = self.safe_string2(params.clone(), Value::Str("clientOrderId".to_string()), Value::Str("client_id".to_string()), &[]);
-        params = self.omit(params.clone(), Value::List(vec![Value::Str("clientOrderId".to_string()), Value::Str("client_id".to_string())]), &[]);
+        params = self.omit(params.clone(), Value::from(vec![Value::Str("clientOrderId".to_string()), Value::Str("client_id".to_string())]), &[]);
         let mut method: Value = Value::Str("privateDeleteAccountOrdersOrderId".to_string());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1965,7 +1965,7 @@ impl OnetradingCore {
         }
         let __ws_arg_6 = self.extend(request.clone(), &[params.clone()]);
         let mut response: Value = self.private_delete_account_orders(&[__ws_arg_6]).await;
-        return Value::List(vec![self.safe_order(Value::Map({
+        return Value::from(vec![self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), response.clone());
     m
@@ -2010,7 +2010,7 @@ impl OnetradingCore {
         m.insert("info".to_string(), response.clone());
     m
 }), &[]);
-        return Value::List(vec![order.clone()]);
+        return Value::from(vec![order.clone()]);
 
     Value::Null
 }
@@ -2170,7 +2170,7 @@ impl OnetradingCore {
         //         "max_page_size": 100
         //     }
         //
-        let mut orderHistory: Value = self.safe_list_k(response.clone(), "order_history", &[Value::List(vec![])]);
+        let mut orderHistory: Value = self.safe_list_k(response.clone(), "order_history", &[Value::from(vec![])]);
         return self.parse_orders(orderHistory.clone(), &[market.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -2270,7 +2270,7 @@ impl OnetradingCore {
         //         "cursor": "string"
         //     }
         //
-        let mut tradeHistory: Value = self.safe_value_k(response.clone(), "trade_history", &[Value::List(vec![])]);
+        let mut tradeHistory: Value = self.safe_value_k(response.clone(), "trade_history", &[Value::from(vec![])]);
         let mut market: Value = Value::Null;
         if (symbol != Value::Null) {
             market = self.market(symbol.clone());
@@ -2355,7 +2355,7 @@ impl OnetradingCore {
         //         "cursor": "string"
         //     }
         //
-        let mut tradeHistory: Value = self.safe_list_k(response.clone(), "trade_history", &[Value::List(vec![])]);
+        let mut tradeHistory: Value = self.safe_list_k(response.clone(), "trade_history", &[Value::from(vec![])]);
         return self.parse_trades(tradeHistory.clone(), &[market.clone(), since.clone(), limit.clone()]);
 
     Value::Null

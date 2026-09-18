@@ -192,7 +192,7 @@ impl DeepcoinCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), Value::Str("deepcoin".to_string()));
         m.insert("name".to_string(), Value::Str("DeepCoin".to_string()));
-        m.insert("countries".to_string(), Value::List(vec![Value::Str("SG".to_string())]));
+        m.insert("countries".to_string(), Value::from(vec![Value::Str("SG".to_string())]));
         m.insert("rateLimit".to_string(), Value::Int(200));
         m.insert("version".to_string(), Value::Str("v1".to_string()));
         m.insert("certified".to_string(), Value::Bool(false));
@@ -847,7 +847,7 @@ impl DeepcoinCore {
 }));
         m.insert("fetchMarkets".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("types".to_string(), Value::List(vec![Value::Str("spot".to_string()), Value::Str("swap".to_string())]));
+        m.insert("types".to_string(), Value::from(vec![Value::Str("spot".to_string()), Value::Str("swap".to_string())]));
     m
 }));
         m.insert("timeInForce".to_string(), Value::Map({
@@ -960,15 +960,15 @@ impl DeepcoinCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut types: Value = Value::List(vec![Value::Str("spot".to_string()), Value::Str("swap".to_string())]);
+        let mut types: Value = Value::from(vec![Value::Str("spot".to_string()), Value::Str("swap".to_string())]);
         let mut fetchMarketsOption: Value = self.safe_dict_k(self.options.clone(), "fetchMarkets", &[]);
         if (fetchMarketsOption != Value::Null) {
             types = self.safe_list_k(fetchMarketsOption.clone(), "types", &[types.clone()]);
         }  else {
             types = self.safe_list_k(self.options.clone(), "fetchMarkets", &[types.clone()]); // backward-support
         }
-        let mut promises: Value = Value::List(vec![]);
-        let mut result: Value = Value::List(vec![]);
+        let mut promises: Value = Value::from(vec![]);
+        let mut result: Value = Value::from(vec![]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_613: bool = true;
@@ -1030,7 +1030,7 @@ impl DeepcoinCore {
         //         ]
         //     }
         //
-        let mut dataResponse: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
+        let mut dataResponse: Value = self.safe_list_k(response.clone(), "data", &[Value::from(vec![])]);
         return self.parse_markets(dataResponse.clone());
 
     Value::Null
@@ -1200,7 +1200,7 @@ impl DeepcoinCore {
             if is_true(&(Value::Bool(market != Value::Null))) && is_true(&(Value::Bool(market.as_map().and_then(|__m| __m.get("swap")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)))) {
                 let mut additionalId: Value = Value::Str(format!("{}{}", self.safe_string_k(market.clone(), "baseId", &[Value::Str("".to_string())]), self.safe_string_k(market.clone(), "quoteId", &[Value::Str("".to_string())])));
                 if (self.markets_by_id.clone() != Value::Null) {
-                    add_element_to_object(&mut self.markets_by_id, &additionalId, Value::List(vec![market.clone()])); // some endpoints return swap market id as base+quote
+                    add_element_to_object(&mut self.markets_by_id, &additionalId, Value::from(vec![market.clone()])); // some endpoints return swap market id as base+quote
                 }
             }
         }
@@ -1376,7 +1376,7 @@ impl DeepcoinCore {
         //         ]
         //     }
         //
-        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::from(vec![])]);
         return self.parse_ohlc_vs(data.clone(), &[market.clone(), timeframe.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -1411,7 +1411,7 @@ impl DeepcoinCore {
         });
         let __ws_arg_11 = self.extend(request.clone(), &[params.clone()]);
         let mut response: Value = self.public_get_deepcoin_market_tickers(&[__ws_arg_11]).await;
-        let mut tickers: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
+        let mut tickers: Value = self.safe_list_k(response.clone(), "data", &[Value::from(vec![])]);
         return self.parse_tickers(tickers.clone(), &[symbols.clone()]);
 
     Value::Null
@@ -1518,7 +1518,7 @@ impl DeepcoinCore {
         add_element_to_object(&mut request, &Value::Str("productGroup".to_string()), productGroup.clone());
         let __ws_arg_12 = self.extend(request.clone(), &[params.clone()]);
         let mut response: Value = self.public_get_deepcoin_market_trades(&[__ws_arg_12]).await;
-        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::from(vec![])]);
         return self.parse_trades(data.clone(), &[market.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -1674,7 +1674,7 @@ impl DeepcoinCore {
                 m.insert("datetime".to_string(), Value::Null);
             m
         });
-        let mut balances: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
+        let mut balances: Value = self.safe_list_k(response.clone(), "data", &[Value::from(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_616: bool = true;
@@ -1750,7 +1750,7 @@ impl DeepcoinCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut items: Value = self.safe_list_k(data.clone(), "data", &[Value::List(vec![])]);
+        let mut items: Value = self.safe_list_k(data.clone(), "data", &[Value::from(vec![])]);
         let mut transactionParams: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), Value::Str("deposit".to_string()));
@@ -1816,7 +1816,7 @@ impl DeepcoinCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut items: Value = self.safe_list_k(data.clone(), "data", &[Value::List(vec![])]);
+        let mut items: Value = self.safe_list_k(data.clone(), "data", &[Value::from(vec![])]);
         let mut transactionParams: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), Value::Str("withdrawal".to_string()));
@@ -1958,7 +1958,7 @@ impl DeepcoinCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut list: Value = self.safe_list_k(data.clone(), "list", &[Value::List(vec![])]);
+        let mut list: Value = self.safe_list_k(data.clone(), "list", &[Value::from(vec![])]);
         let mut additionalParams: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("currency".to_string(), code.clone());
@@ -1997,7 +1997,7 @@ impl DeepcoinCore {
         if (network != Value::Null) {
             params = self.omit(params.clone(), Value::Str("network".to_string()), &[]);
         }
-        let mut addressess: Value = self.fetch_deposit_addresses(&[Value::List(vec![code.clone()]), params.clone()]).await;
+        let mut addressess: Value = self.fetch_deposit_addresses(&[Value::from(vec![code.clone()]), params.clone()]).await;
         let mut length: Value = Value::Int(addressess.len() as i64);
         let mut address: Value = self.safe_dict(addressess.clone(), Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2133,7 +2133,7 @@ impl DeepcoinCore {
         //         ]
         //     }
         //
-        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::from(vec![])]);
         return self.parse_ledger(data.clone(), &[currency.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -2467,7 +2467,7 @@ impl DeepcoinCore {
 })]);
         let mut stopLossPrice: Value = self.safe_string_k(stopLoss.clone(), "triggerPrice", &[]);
         if (stopLossPrice != Value::Null) {
-            params = self.omit(params.clone(), Value::List(vec![Value::Str("stopLoss".to_string())]), &[]);
+            params = self.omit(params.clone(), Value::from(vec![Value::Str("stopLoss".to_string())]), &[]);
             add_element_to_object(&mut request, &Value::Str("slTriggerPx".to_string()), self.price_to_precision(symbol.clone(), stopLossPrice.clone()));
         }
         let mut takeProfit: Value = self.safe_dict_k(params.clone(), "takeProfit", &[Value::Map({
@@ -2476,7 +2476,7 @@ impl DeepcoinCore {
 })]);
         let mut takeProfitPrice: Value = self.safe_string_k(takeProfit.clone(), "triggerPrice", &[]);
         if (takeProfitPrice != Value::Null) {
-            params = self.omit(params.clone(), Value::List(vec![Value::Str("takeProfit".to_string())]), &[]);
+            params = self.omit(params.clone(), Value::from(vec![Value::Str("takeProfit".to_string())]), &[]);
             add_element_to_object(&mut request, &Value::Str("tpTriggerPx".to_string()), self.price_to_precision(symbol.clone(), takeProfitPrice.clone()));
         }
         let mut isMarketOrder: bool = type_var.as_str() == Some("market");
@@ -2631,7 +2631,7 @@ impl DeepcoinCore {
         if is_true(&(Value::Bool(timeInForce != Value::Null))) && is_true(&(Value::Bool(timeInForce.as_str() == Some("IOC")))) {
             type_var = Value::Str("ioc".to_string());
         }
-        return Value::List(vec![type_var.clone(), params.clone()]);
+        return Value::from(vec![type_var.clone(), params.clone()]);
 
     Value::Null
 }
@@ -2786,7 +2786,7 @@ impl DeepcoinCore {
         //         ]
         //     }
         //
-        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::from(vec![])]);
         let mut entry: Value = self.safe_dict(data.clone(), Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -2827,7 +2827,7 @@ impl DeepcoinCore {
         });
         let __ws_arg_20 = self.extend(request.clone(), &[params.clone()]);
         let mut response: Value = self.private_get_deepcoin_trade_order_by_id(&[__ws_arg_20]).await;
-        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::from(vec![])]);
         let mut length: Value = Value::Int(data.len() as i64);
         if (length.as_f64() == Some(0.0)) {
             panic!("{}", crate::exchange_errors::order_not_found(Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchOpenOrder() could not find order id ".to_string()))), id))));
@@ -2981,7 +2981,7 @@ impl DeepcoinCore {
             response = self.private_get_deepcoin_trade_orders_history(&[__ws_arg_22]).await;
         }
         // todo handle with since, until and pagination
-        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::from(vec![])]);
         return self.parse_orders(data.clone(), &[market.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -3187,7 +3187,7 @@ impl DeepcoinCore {
             let __ws_arg_24 = self.extend(request.clone(), &[params.clone()]);
             response = self.private_get_deepcoin_trade_v2_orders_pending(&[__ws_arg_24]).await;
         }
-        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::from(vec![])]);
         return self.parse_orders(data.clone(), &[market.clone(), since.clone(), limit.clone(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("status".to_string(), Value::Str("open".to_string()));
@@ -3295,7 +3295,7 @@ impl DeepcoinCore {
         });
         let __ws_arg_27 = self.extend(request.clone(), &[params.clone()]);
         let mut response: Value = self.private_post_deepcoin_trade_swap_cancel_all(&[__ws_arg_27]).await;
-        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::from(vec![])]);
         return self.parse_orders(data.clone(), &[market.clone()]);
 
     Value::Null
@@ -3355,7 +3355,7 @@ impl DeepcoinCore {
             if (takeProfitPrice != Value::Null) {
                 add_element_to_object(&mut request, &Value::Str("tpTriggerPx".to_string()), (if is_true(&(Value::Bool(symbol.as_str() != Some("")))) { self.price_to_precision(symbol.clone(), takeProfitPrice.clone()) } else { self.number_to_string(takeProfitPrice.clone()) }));
             }
-            params = self.omit(params.clone(), Value::List(vec![Value::Str("stopLossPrice".to_string()), Value::Str("takeProfitPrice".to_string())]), &[]);
+            params = self.omit(params.clone(), Value::from(vec![Value::Str("stopLossPrice".to_string()), Value::Str("takeProfitPrice".to_string())]), &[]);
             let __ws_arg_28 = self.extend(request.clone(), &[params.clone()]);
             response = self.private_post_deepcoin_trade_replace_order_sltp(&[__ws_arg_28]).await;
         }  else {
@@ -3417,7 +3417,7 @@ impl DeepcoinCore {
         });
         let __ws_arg_30 = self.extend(request.clone(), &[params.clone()]);
         let mut response: Value = self.private_post_deepcoin_trade_batch_cancel_order(&[__ws_arg_30]).await;
-        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::from(vec![])]);
         return self.parse_orders(data.clone(), &[market.clone()]);
 
     Value::Null
@@ -3619,8 +3619,8 @@ impl DeepcoinCore {
         });
         let __ws_arg_31 = self.extend(request.clone(), &[params.clone()]);
         let mut response: Value = self.private_get_deepcoin_account_positions(&[__ws_arg_31]).await;
-        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
-        return self.parse_positions(data.clone(), &[Value::List(vec![market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null)])]);
+        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::from(vec![])]);
+        return self.parse_positions(data.clone(), &[Value::from(vec![market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null)])]);
 
     Value::Null
 }
@@ -3683,7 +3683,7 @@ impl DeepcoinCore {
         //         ]
         //     }
         //
-        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::from(vec![])]);
         return self.parse_positions(data.clone(), &[symbols.clone()]);
 
     Value::Null
@@ -3865,7 +3865,7 @@ impl DeepcoinCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut rates: Value = self.safe_list_k(data.clone(), "current_fund_rates", &[Value::List(vec![])]);
+        let mut rates: Value = self.safe_list_k(data.clone(), "current_fund_rates", &[Value::from(vec![])]);
         return self.parse_funding_rates(rates.clone(), &[symbols.clone()]);
 
     Value::Null
@@ -3918,7 +3918,7 @@ impl DeepcoinCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut rates: Value = self.safe_list_k(data.clone(), "current_fund_rates", &[Value::List(vec![])]);
+        let mut rates: Value = self.safe_list_k(data.clone(), "current_fund_rates", &[Value::from(vec![])]);
         let mut entry: Value = self.safe_dict(rates.clone(), Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -4027,7 +4027,7 @@ impl DeepcoinCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut rows: Value = self.safe_list_k(data.clone(), "rows", &[Value::List(vec![])]);
+        let mut rows: Value = self.safe_list_k(data.clone(), "rows", &[Value::from(vec![])]);
         return self.parse_funding_rate_histories(rows.clone(), &[market.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -4141,7 +4141,7 @@ impl DeepcoinCore {
         //         ]
         //     }
         //
-        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::from(vec![])]);
         return self.parse_trades(data.clone(), &[market.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -4224,12 +4224,12 @@ impl DeepcoinCore {
         }  else {
             if (positionId != Value::Null) {
                 params = self.omit(params.clone(), Value::Str("positionId".to_string()), &[]);
-                add_element_to_object(&mut request, &Value::Str("positionIds".to_string()), Value::List(vec![positionId.clone()]));
+                add_element_to_object(&mut request, &Value::Str("positionIds".to_string()), Value::from(vec![positionId.clone()]));
             }
             let __ws_arg_39 = self.extend(request.clone(), &[params.clone()]);
             response = self.private_post_deepcoin_trade_close_position_by_ids(&[__ws_arg_39]).await;
         }
-        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::from(vec![])]);
         return self.parse_order(data.clone(), &[market.clone()]);
 
     Value::Null
@@ -4327,7 +4327,7 @@ impl DeepcoinCore {
             self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), msg.clone(), feedback.clone());
             panic!("{}", crate::exchange_errors::exchange_error(feedback));
         }  else {
-            let mut list: Value = self.safe_list_k(data.clone(), "list", &[Value::List(vec![])]);
+            let mut list: Value = self.safe_list_k(data.clone(), "list", &[Value::from(vec![])]);
             if is_true(&(Value::Bool(in_op(&data, &Value::Str("list".to_string()))))) && is_true(&(Value::Bool(list == Value::Null))) {
                 panic!("{}", crate::exchange_errors::null_response(feedback));
             }

@@ -367,7 +367,7 @@ impl WhitebitCore {
         // so that can't be part of the message hash, and the user can only subscribe
         // to one timeframe per symbol
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("candles:".to_string()), symbol));
-        let mut reqParams: Value = Value::List(vec![marketId.clone(), interval.clone()]);
+        let mut reqParams: Value = Value::from(vec![marketId.clone(), interval.clone()]);
         let mut method: Value = Value::Str("candles_subscribe".to_string());
         let mut ohlcv: Value = self.watch_public(messageHash.clone(), method.clone(), &[reqParams.clone(), params.clone()]).await;
         if is_true(&self.newUpdates) {
@@ -397,7 +397,7 @@ impl WhitebitCore {
         //     "id": null
         // }
         //
-        let mut params: Value = self.safe_list_k(message.clone(), "params", &[Value::List(vec![])]);
+        let mut params: Value = self.safe_list_k(message.clone(), "params", &[Value::from(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_655: bool = true;
@@ -464,7 +464,7 @@ impl WhitebitCore {
         let mut defaultPriceInterval: Value = self.safe_string_k(options.clone(), "priceInterval", &[Value::Str("0".to_string())]);
         let mut priceInterval: Value = self.safe_string_k(params.clone(), "priceInterval", &[defaultPriceInterval.clone()]);
         params = self.omit(params.clone(), Value::Str("priceInterval".to_string()), &[]);
-        let mut reqParams: Value = Value::List(vec![market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null), limit.clone(), priceInterval.clone(), Value::Bool(true)]);
+        let mut reqParams: Value = Value::from(vec![market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null), limit.clone(), priceInterval.clone(), Value::Bool(true)]);
         let mut orderbook: Value = self.watch_public(messageHash.clone(), method.clone(), &[reqParams.clone(), params.clone()]).await;
         return orderbook.limit();
 
@@ -509,7 +509,7 @@ impl WhitebitCore {
         //     "id":null
         //  }
         //
-        let mut params: Value = self.safe_value_k(message.clone(), "params", &[Value::List(vec![])]);
+        let mut params: Value = self.safe_value_k(message.clone(), "params", &[Value::from(vec![])]);
         let mut isSnapshot: Value = self.safe_value(params.clone(), Value::Int(0), &[]);
         let mut marketId: Value = self.safe_string(params.clone(), Value::Int(2), &[]);
         let mut market: Value = self.safe_market(&[marketId.clone()]);
@@ -527,8 +527,8 @@ impl WhitebitCore {
             let mut snapshot: Value = self.parse_order_book(data.clone(), symbol.clone(), &[]);
             orderbook.reset(snapshot.clone());
         }  else {
-            let mut asks: Value = self.safe_value_k(data.clone(), "asks", &[Value::List(vec![])]);
-            let mut bids: Value = self.safe_value_k(data.clone(), "bids", &[Value::List(vec![])]);
+            let mut asks: Value = self.safe_value_k(data.clone(), "asks", &[Value::from(vec![])]);
+            let mut bids: Value = self.safe_value_k(data.clone(), "bids", &[Value::from(vec![])]);
             self.handle_deltas(get_value(&orderbook, &Value::Str("asks".to_string())), asks.clone());
             self.handle_deltas(get_value(&orderbook, &Value::Str("bids".to_string())), bids.clone());
         }
@@ -600,8 +600,8 @@ impl WhitebitCore {
         let mut method: Value = Value::Str("market_subscribe".to_string());
         let mut url: Value = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null);
         let mut id: Value = self.nonce();
-        let mut messageHashes: Value = Value::List(vec![]);
-        let mut args: Value = Value::List(vec![]);
+        let mut messageHashes: Value = Value::from(vec![]);
+        let mut args: Value = Value::from(vec![]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_657: bool = true;
@@ -645,7 +645,7 @@ impl WhitebitCore {
         //       "id": null
         //   }
         //
-        let mut tickers: Value = self.safe_value_k(message.clone(), "params", &[Value::List(vec![])]);
+        let mut tickers: Value = self.safe_value_k(message.clone(), "params", &[Value::from(vec![])]);
         let mut marketId: Value = self.safe_string(tickers.clone(), Value::Int(0), &[]);
         let mut market: Value = self.safe_market(&[marketId.clone()]);
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
@@ -745,7 +745,7 @@ impl WhitebitCore {
         //        ]
         //    }
         //
-        let mut params: Value = self.safe_value_k(message.clone(), "params", &[Value::List(vec![])]);
+        let mut params: Value = self.safe_value_k(message.clone(), "params", &[Value::from(vec![])]);
         let mut marketId: Value = self.safe_string(params.clone(), Value::Int(0), &[]);
         let mut market: Value = self.safe_market(&[marketId.clone()]);
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
@@ -755,7 +755,7 @@ impl WhitebitCore {
             stored = ArrayCache::new(limit.clone());
             add_element_to_object(&mut self.trades, &symbol, stored.clone());
         }
-        let mut data: Value = self.safe_value(params.clone(), Value::Int(1), &[Value::List(vec![])]);
+        let mut data: Value = self.safe_value(params.clone(), Value::Int(1), &[Value::from(vec![])]);
         let mut parsedTrades: Value = self.parse_trades(data.clone(), &[market.clone()]);
         {
                         let mut j: Value = Value::Int(0);
@@ -979,7 +979,7 @@ impl WhitebitCore {
         //     "id": null
         // }
         //
-        let mut params: Value = self.safe_value_k(message.clone(), "params", &[Value::List(vec![])]);
+        let mut params: Value = self.safe_value_k(message.clone(), "params", &[Value::from(vec![])]);
         let mut data: Value = self.safe_value(params.clone(), Value::Int(1), &[]);
         if is_equal(&self.orders, &Value::Null) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "ordersLimit", &[Value::Int(1000)]);
@@ -1158,7 +1158,7 @@ impl WhitebitCore {
         if is_true(&fetchBalanceSnapshot) && is_true(&awaitBalanceSnapshot) {
             crate::exchange_stubs::ws_await_flight(&client.future(&[Value::Str(format!("{}{}", type_var, Value::Str(":fetchBalanceSnapshot".to_string())))])).await;
         }
-        return self.watch_private(messageHash.clone(), method.clone(), &[Value::List(vec![]), params.clone()]).await;
+        return self.watch_private(messageHash.clone(), method.clone(), &[Value::from(vec![]), params.clone()]).await;
 
     Value::Null
 }
@@ -1236,7 +1236,7 @@ impl WhitebitCore {
             return;
         }
         let mut isMargin: bool = get_index_of(&method, &Value::Str("Margin".to_string())).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN);
-        let mut data: Value = self.safe_list_k(message.clone(), "params", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(message.clone(), "params", &[Value::from(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_661: bool = true;
@@ -1291,7 +1291,7 @@ impl WhitebitCore {
 }
 
     pub async fn watch_public(&mut self, mut messageHash: Value, mut method: Value, optional_args: &[Value]) -> Value {
-        let mut reqParams = get_arg(optional_args, 0, Value::List(vec![]));
+        let mut reqParams = get_arg(optional_args, 0, Value::from(vec![]));
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1324,7 +1324,7 @@ impl WhitebitCore {
         let mut id: Value = self.nonce();
         let mut client: Value = self.safe_value(self.clients.clone(), url.clone(), &[]);
         let mut request: Value = Value::Null;
-        let mut marketIds: Value = Value::List(vec![]);
+        let mut marketIds: Value = Value::from(vec![]);
         if (client == Value::Null) {
             let mut subscription: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -1335,9 +1335,9 @@ impl WhitebitCore {
             if (marketId != Value::Null) {
                 add_element_to_object(&mut subscription, &marketId, Value::Bool(true));
             }
-            marketIds = Value::List(vec![marketId.clone()]);
+            marketIds = Value::from(vec![marketId.clone()]);
             if is_true(&isNested) {
-                marketIds = Value::List(vec![marketIds.clone()]);
+                marketIds = Value::from(vec![marketIds.clone()]);
             }
             request = Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -1367,10 +1367,10 @@ impl WhitebitCore {
                 return self.watch(url.clone(), messageHash.clone(), &[request.clone(), method.clone(), subscription.clone()]).await;
             }  else {
                 // resubscribe
-                let mut marketIdsNew: Value = Value::List(vec![]);
+                let mut marketIdsNew: Value = Value::from(vec![]);
                 marketIdsNew = object_keys(&subscription);
                 if is_true(&isNested) {
-                    marketIdsNew = Value::List(vec![marketIdsNew.clone()]);
+                    marketIdsNew = Value::from(vec![marketIdsNew.clone()]);
                 }
                 let mut resubRequest: Value = Value::Map({
                     let mut m = indexmap::IndexMap::new();
@@ -1390,7 +1390,7 @@ impl WhitebitCore {
 }
 
     pub async fn watch_private(&mut self, mut messageHash: Value, mut method: Value, optional_args: &[Value]) -> Value {
-        let mut reqParams = get_arg(optional_args, 0, Value::List(vec![]));
+        let mut reqParams = get_arg(optional_args, 0, Value::from(vec![]));
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1465,7 +1465,7 @@ impl WhitebitCore {
                 let mut m = indexmap::IndexMap::new();
                     m.insert("id".to_string(), id.clone());
                     m.insert("method".to_string(), Value::Str("authorize".to_string()));
-                    m.insert("params".to_string(), Value::List(vec![token.clone(), Value::Str("public".to_string())]));
+                    m.insert("params".to_string(), Value::from(vec![token.clone(), Value::Str("public".to_string())]));
                 m
             });
             let mut subscription: Value = Value::Map({
@@ -1624,7 +1624,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), Value::Int(0));
         m.insert("method".to_string(), Value::Str("ping".to_string()));
-        m.insert("params".to_string(), Value::List(vec![]));
+        m.insert("params".to_string(), Value::from(vec![]));
     m
 });
 

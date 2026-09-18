@@ -297,7 +297,7 @@ impl OkxCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), Value::Str("okx".to_string()));
         m.insert("name".to_string(), Value::Str("OKX".to_string()));
-        m.insert("countries".to_string(), Value::List(vec![Value::Str("CN".to_string()), Value::Str("US".to_string())]));
+        m.insert("countries".to_string(), Value::from(vec![Value::Str("CN".to_string()), Value::Str("US".to_string())]));
         m.insert("version".to_string(), Value::Str("v5".to_string()));
         m.insert("rateLimit".to_string(), (match (&(Value::Int(100)), &(Value::Float(1.1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }));
         m.insert("pro".to_string(), Value::Bool(true));
@@ -3462,7 +3462,7 @@ impl OkxCore {
         m.insert("createMarketBuyOrderRequiresPrice".to_string(), Value::Bool(false));
         m.insert("fetchMarkets".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("types".to_string(), Value::List(vec![Value::Str("spot".to_string()), Value::Str("future".to_string()), Value::Str("swap".to_string()), Value::Str("option".to_string())]));
+        m.insert("types".to_string(), Value::from(vec![Value::Str("spot".to_string()), Value::Str("future".to_string()), Value::Str("swap".to_string()), Value::Str("option".to_string())]));
     m
 }));
         m.insert("timeDifference".to_string(), Value::Int(0));
@@ -3908,7 +3908,7 @@ impl OkxCore {
         //         ]
         //     }
         //
-        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::from(vec![])]);
         let mut dataLength: Value = Value::Int(data.len() as i64);
         let mut update: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -3967,7 +3967,7 @@ impl OkxCore {
         //         "msg": ""
         //     }
         //
-        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::from(vec![])]);
         let mut first: Value = self.safe_dict(data.clone(), Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -4029,8 +4029,8 @@ impl OkxCore {
         //         "msg": ""
         //     }
         //
-        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
-        let mut result: Value = Value::List(vec![]);
+        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::from(vec![])]);
+        let mut result: Value = Value::from(vec![]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_991: bool = true;
@@ -4077,15 +4077,15 @@ impl OkxCore {
         if is_equal(&self.options.as_map().and_then(|__m| __m.get("adjustForTimeDifference")).cloned().unwrap_or(Value::Null), &Value::Bool(true)) {
             self.load_time_difference(&[]).await;
         }
-        let mut types: Value = Value::List(vec![Value::Str("spot".to_string()), Value::Str("future".to_string()), Value::Str("swap".to_string()), Value::Str("option".to_string())]);
+        let mut types: Value = Value::from(vec![Value::Str("spot".to_string()), Value::Str("future".to_string()), Value::Str("swap".to_string()), Value::Str("option".to_string())]);
         let mut fetchMarketsOption: Value = self.safe_dict_k(self.options.clone(), "fetchMarkets", &[]);
         if (fetchMarketsOption != Value::Null) {
             types = self.safe_list_k(fetchMarketsOption.clone(), "types", &[types.clone()]);
         }  else {
             types = self.safe_list_k(self.options.clone(), "fetchMarkets", &[types.clone()]); // backward-support
         }
-        let mut promises: Value = Value::List(vec![]);
-        let mut result: Value = Value::List(vec![]);
+        let mut promises: Value = Value::from(vec![]);
+        let mut result: Value = Value::from(vec![]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_992: bool = true;
@@ -4322,8 +4322,8 @@ impl OkxCore {
             m
         });
         if (type_var.as_str() == Some("option")) {
-            let mut optionsUnderlying: Value = self.safe_list_k(self.options.clone(), "defaultUnderlying", &[Value::List(vec![Value::Str("BTC-USD".to_string()), Value::Str("ETH-USD".to_string())])]);
-            let mut promises: Value = Value::List(vec![]);
+            let mut optionsUnderlying: Value = self.safe_list_k(self.options.clone(), "defaultUnderlying", &[Value::from(vec![Value::Str("BTC-USD".to_string()), Value::Str("ETH-USD".to_string())])]);
+            let mut promises: Value = Value::from(vec![]);
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_994: bool = true;
@@ -4336,7 +4336,7 @@ impl OkxCore {
             }
             }
             let mut promisesResult: Value = promise_all(&promises).await;
-            let mut markets: Value = Value::List(vec![]);
+            let mut markets: Value = Value::from(vec![]);
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_995: bool = true;
@@ -4345,7 +4345,7 @@ impl OkxCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-                let mut options: Value = self.safe_list_k(res.clone(), "data", &[Value::List(vec![])]);
+                let mut options: Value = self.safe_list_k(res.clone(), "data", &[Value::from(vec![])]);
                 markets = self.array_concat(markets.clone(), options.clone());
             }
             }
@@ -4386,8 +4386,8 @@ impl OkxCore {
         //         "msg": ""
         //     }
         //
-        let mut dataResponse: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
-        let mut marketsWithoutTest: Value = Value::List(vec![]);
+        let mut dataResponse: Value = self.safe_list_k(response.clone(), "data", &[Value::from(vec![])]);
+        let mut marketsWithoutTest: Value = Value::from(vec![]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_996: bool = true;
@@ -4485,7 +4485,7 @@ impl OkxCore {
         //        "msg": ""
         //    }
         //
-        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::from(vec![])]);
         let mut dataByCurrencyId: Value = self.group_by(data.clone(), Value::Str("ccy".to_string()), &[]);
         let mut currencies: Value = object_values(&dataByCurrencyId);
         return self.parse_currencies(currencies.clone());
@@ -4660,7 +4660,7 @@ impl OkxCore {
         // [ price, totalQty, nonRpiQty, count ] - totalQty already includes the
         // rpi liquidity, so index 0 and 1 stay the price and the amount
         //
-        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::from(vec![])]);
         let mut first: Value = self.safe_dict(data.clone(), Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -4801,7 +4801,7 @@ impl OkxCore {
         //         ]
         //     }
         //
-        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::from(vec![])]);
         let mut first: Value = self.safe_dict(data.clone(), Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -4875,7 +4875,7 @@ impl OkxCore {
         //         ]
         //     }
         //
-        let mut tickers: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
+        let mut tickers: Value = self.safe_list_k(response.clone(), "data", &[Value::from(vec![])]);
         return self.parse_tickers(tickers.clone(), &[symbols.clone()]);
 
     Value::Null
@@ -4964,7 +4964,7 @@ impl OkxCore {
         }
         let __ws_arg_18 = self.extend(request.clone(), &[params.clone()]);
         let mut response: Value = self.public_get_public_mark_price(&[__ws_arg_18]).await;
-        let mut tickers: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
+        let mut tickers: Value = self.safe_list_k(response.clone(), "data", &[Value::from(vec![])]);
         return self.parse_tickers(tickers.clone(), &[symbols.clone()]);
 
     Value::Null
@@ -5158,7 +5158,7 @@ impl OkxCore {
         //         "msg": ""
         //     }
         //
-        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::from(vec![])]);
         return self.parse_trades(data.clone(), &[market.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -5182,7 +5182,7 @@ impl OkxCore {
         let mut res: Value = self.handle_market_type_and_params(Value::Str("fetchOHLCV".to_string()), &[market.clone(), Value::Null]);
         let mut type_var: Value = get_value(&res, &Value::Int(0));
         let mut volumeIndex: Value = (if is_true(&(Value::Bool(type_var.as_str() == Some("spot")))) { Value::Int(5) } else { Value::Int(6) });
-        return Value::List(vec![self.safe_integer(ohlcv.clone(), Value::Int(0), &[]), self.safe_number(ohlcv.clone(), Value::Int(1), &[]), self.safe_number(ohlcv.clone(), Value::Int(2), &[]), self.safe_number(ohlcv.clone(), Value::Int(3), &[]), self.safe_number(ohlcv.clone(), Value::Int(4), &[]), self.safe_number(ohlcv.clone(), volumeIndex.clone(), &[])]);
+        return Value::from(vec![self.safe_integer(ohlcv.clone(), Value::Int(0), &[]), self.safe_number(ohlcv.clone(), Value::Int(1), &[]), self.safe_number(ohlcv.clone(), Value::Int(2), &[]), self.safe_number(ohlcv.clone(), Value::Int(3), &[]), self.safe_number(ohlcv.clone(), Value::Int(4), &[]), self.safe_number(ohlcv.clone(), volumeIndex.clone(), &[])]);
 
     Value::Null
 }
@@ -5227,7 +5227,7 @@ impl OkxCore {
             return self.fetch_paginated_call_deterministic(Value::Str("fetchOHLCV".to_string()), &[symbol.clone(), since.clone(), limit.clone(), timeframe.clone(), params.clone(), Value::Int(200)]).await;
         }
         let mut priceType: Value = self.safe_string_k(params.clone(), "price", &[]);
-        let mut isMarkOrIndex: Value = self.in_array(priceType.clone(), Value::List(vec![Value::Str("mark".to_string()), Value::Str("index".to_string())]));
+        let mut isMarkOrIndex: Value = self.in_array(priceType.clone(), Value::from(vec![Value::Str("mark".to_string()), Value::Str("index".to_string())]));
         params = self.omit(params.clone(), Value::Str("price".to_string()), &[]);
         let mut options: Value = self.safe_dict_k(self.options.clone(), "fetchOHLCV", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -5319,7 +5319,7 @@ impl OkxCore {
         //         ]
         //     }
         //
-        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::from(vec![])]);
         return self.parse_ohlc_vs(data.clone(), &[market.clone(), timeframe.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -5392,8 +5392,8 @@ impl OkxCore {
         //         ]
         //     }
         //
-        let mut rates: Value = Value::List(vec![]);
-        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
+        let mut rates: Value = Value::from(vec![]);
+        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::from(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_998: bool = true;
@@ -5434,13 +5434,13 @@ impl OkxCore {
                 m.insert("info".to_string(), response.clone());
             m
         });
-        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::from(vec![])]);
         let mut first: Value = self.safe_dict(data.clone(), Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
         let mut timestamp: Value = self.safe_integer_k(first.clone(), "uTime", &[]);
-        let mut details: Value = self.safe_list_k(first.clone(), "details", &[Value::List(vec![])]);
+        let mut details: Value = self.safe_list_k(first.clone(), "details", &[Value::from(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_999: bool = true;
@@ -5478,7 +5478,7 @@ impl OkxCore {
                 m.insert("info".to_string(), response.clone());
             m
         });
-        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::from(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1000: bool = true;
@@ -5568,7 +5568,7 @@ impl OkxCore {
         //         "msg": ""
         //     }
         //
-        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::from(vec![])]);
         let mut first: Value = self.safe_dict(data.clone(), Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -5715,7 +5715,7 @@ impl OkxCore {
         }
         let mut spot: Value = market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null);
         let mut contract: Value = market.as_map().and_then(|__m| __m.get("contract")).cloned().unwrap_or(Value::Null);
-        let mut triggerPrice: Value = self.safe_value_n(params.clone(), Value::List(vec![Value::Str("triggerPrice".to_string()), Value::Str("stopPrice".to_string()), Value::Str("triggerPx".to_string())]), &[]);
+        let mut triggerPrice: Value = self.safe_value_n(params.clone(), Value::from(vec![Value::Str("triggerPrice".to_string()), Value::Str("stopPrice".to_string()), Value::Str("triggerPx".to_string())]), &[]);
         let mut timeInForce: Value = self.safe_string_k(params.clone(), "timeInForce", &[Value::Str("GTC".to_string())]);
         // const takeProfitPrice = this.safeValue2 (params, 'takeProfitPrice', 'tpTriggerPx');
         let mut tpOrdPx: Value = self.safe_number_k(params.clone(), "tpOrdPx", &[price.clone()]);
@@ -5781,7 +5781,7 @@ impl OkxCore {
         let mut isMarketOrder: Value = Value::Bool(type_var.as_str() == Some("market"));
         let mut postOnly: Value = Value::Bool(false);
         { let __destr_tmp = self.handle_post_only(isMarketOrder.clone(), Value::Bool(type_var.as_str() == Some("post_only")), &[params.clone()]); postOnly = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
-        params = self.omit(params.clone(), Value::List(vec![Value::Str("currency".to_string()), Value::Str("ccy".to_string()), Value::Str("marginMode".to_string()), Value::Str("timeInForce".to_string()), Value::Str("stopPrice".to_string()), Value::Str("triggerPrice".to_string()), Value::Str("clientOrderId".to_string()), Value::Str("stopLossPrice".to_string()), Value::Str("takeProfitPrice".to_string()), Value::Str("slOrdPx".to_string()), Value::Str("tpOrdPx".to_string()), Value::Str("margin".to_string()), Value::Str("stopLoss".to_string()), Value::Str("takeProfit".to_string()), Value::Str("trailingPercent".to_string())]), &[]);
+        params = self.omit(params.clone(), Value::from(vec![Value::Str("currency".to_string()), Value::Str("ccy".to_string()), Value::Str("marginMode".to_string()), Value::Str("timeInForce".to_string()), Value::Str("stopPrice".to_string()), Value::Str("triggerPrice".to_string()), Value::Str("clientOrderId".to_string()), Value::Str("stopLossPrice".to_string()), Value::Str("takeProfitPrice".to_string()), Value::Str("slOrdPx".to_string()), Value::Str("tpOrdPx".to_string()), Value::Str("margin".to_string()), Value::Str("stopLoss".to_string()), Value::Str("takeProfit".to_string()), Value::Str("trailingPercent".to_string())]), &[]);
         let mut ioc: bool = is_true(&(Value::Bool(timeInForce.as_str() == Some("IOC")))) || is_true(&(Value::Bool(type_var.as_str() == Some("ioc"))));
         let mut fok: bool = is_true(&(Value::Bool(timeInForce.as_str() == Some("FOK")))) || is_true(&(Value::Bool(type_var.as_str() == Some("fok"))));
         // const conditional = (stopLossPrice !== undefined) || (takeProfitPrice !== undefined) || (type === 'conditional');
@@ -5801,7 +5801,7 @@ impl OkxCore {
                     let mut createMarketBuyOrderRequiresPrice: Value = Value::Bool(true);
                     { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("createOrder".to_string()), Value::Str("createMarketBuyOrderRequiresPrice".to_string()), &[Value::Bool(true)]); createMarketBuyOrderRequiresPrice = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
                     let mut notional: Value = self.safe_number2(params.clone(), Value::Str("cost".to_string()), Value::Str("sz".to_string()), &[]);
-                    params = self.omit(params.clone(), Value::List(vec![Value::Str("cost".to_string()), Value::Str("sz".to_string())]), &[]);
+                    params = self.omit(params.clone(), Value::from(vec![Value::Str("cost".to_string()), Value::Str("sz".to_string())]), &[]);
                     if is_true(&createMarketBuyOrderRequiresPrice) {
                         if (price != Value::Null) {
                             if (notional == Value::Null) {
@@ -5847,7 +5847,7 @@ impl OkxCore {
                 m
             });
             if hasStopLoss {
-                let mut stopLossTriggerPrice: Value = self.safe_value_n(stopLoss.clone(), Value::List(vec![Value::Str("triggerPrice".to_string()), Value::Str("stopPrice".to_string()), Value::Str("slTriggerPx".to_string())]), &[]);
+                let mut stopLossTriggerPrice: Value = self.safe_value_n(stopLoss.clone(), Value::from(vec![Value::Str("triggerPrice".to_string()), Value::Str("stopPrice".to_string()), Value::Str("slTriggerPx".to_string())]), &[]);
                 if (stopLossTriggerPrice == Value::Null) {
                     panic!("{}", crate::exchange_errors::invalid_order(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires a trigger price in params[\"stopLoss\"][\"triggerPrice\"], or params[\"stopLoss\"][\"stopPrice\"], or params[\"stopLoss\"][\"slTriggerPx\"] for a stop loss order".to_string())))));
                 }
@@ -5857,7 +5857,7 @@ impl OkxCore {
                     m
                 });
                 add_element_to_object(&mut slOrder, &Value::Str("slTriggerPx".to_string()), slTriggerPx.clone());
-                let mut stopLossLimitPrice: Value = self.safe_value_n(stopLoss.clone(), Value::List(vec![Value::Str("price".to_string()), Value::Str("stopLossPrice".to_string()), Value::Str("slOrdPx".to_string())]), &[]);
+                let mut stopLossLimitPrice: Value = self.safe_value_n(stopLoss.clone(), Value::from(vec![Value::Str("price".to_string()), Value::Str("stopLossPrice".to_string()), Value::Str("slOrdPx".to_string())]), &[]);
                 let mut stopLossOrderType: Value = self.safe_string_k(stopLoss.clone(), "type", &[]);
                 if (stopLossOrderType != Value::Null) {
                     let mut stopLossLimitOrderType: bool = stopLossOrderType.as_str() == Some("limit");
@@ -5888,7 +5888,7 @@ impl OkxCore {
                 attachAlgoOrd = self.extend(attachAlgoOrd.clone(), &[slOrder.clone()]);
             }
             if hasTakeProfit {
-                let mut takeProfitTriggerPrice: Value = self.safe_value_n(takeProfit.clone(), Value::List(vec![Value::Str("triggerPrice".to_string()), Value::Str("stopPrice".to_string()), Value::Str("tpTriggerPx".to_string())]), &[]);
+                let mut takeProfitTriggerPrice: Value = self.safe_value_n(takeProfit.clone(), Value::from(vec![Value::Str("triggerPrice".to_string()), Value::Str("stopPrice".to_string()), Value::Str("tpTriggerPx".to_string())]), &[]);
                 if (takeProfitTriggerPrice == Value::Null) {
                     panic!("{}", crate::exchange_errors::invalid_order(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires a trigger price in params[\"takeProfit\"][\"triggerPrice\"], or params[\"takeProfit\"][\"stopPrice\"], or params[\"takeProfit\"][\"tpTriggerPx\"] for a take profit order".to_string())))));
                 }
@@ -5897,7 +5897,7 @@ impl OkxCore {
                     m
                 });
                 add_element_to_object(&mut tpOrder, &Value::Str("tpTriggerPx".to_string()), self.price_to_precision(symbol.clone(), takeProfitTriggerPrice.clone()));
-                let mut takeProfitLimitPrice: Value = self.safe_value_n(takeProfit.clone(), Value::List(vec![Value::Str("price".to_string()), Value::Str("takeProfitPrice".to_string()), Value::Str("tpOrdPx".to_string())]), &[]);
+                let mut takeProfitLimitPrice: Value = self.safe_value_n(takeProfit.clone(), Value::from(vec![Value::Str("price".to_string()), Value::Str("takeProfitPrice".to_string()), Value::Str("tpOrdPx".to_string())]), &[]);
                 let mut takeProfitOrderType: Value = self.safe_string2(takeProfit.clone(), Value::Str("type".to_string()), Value::Str("tpOrdKind".to_string()), &[]);
                 if (takeProfitOrderType != Value::Null) {
                     let mut takeProfitLimitOrderType: bool = takeProfitOrderType.as_str() == Some("limit");
@@ -5932,7 +5932,7 @@ impl OkxCore {
             let mut attachOrdKeys: Value = object_keys(&attachAlgoOrd);
             let mut attachOrdLen: Value = Value::Int(attachOrdKeys.len() as i64);
             if attachOrdLen.as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN) {
-                add_element_to_object(&mut request, &Value::Str("attachAlgoOrds".to_string()), Value::List(vec![attachAlgoOrd.clone()]));
+                add_element_to_object(&mut request, &Value::Str("attachAlgoOrds".to_string()), Value::from(vec![attachAlgoOrd.clone()]));
             }
         }
         // algo order details
@@ -5984,7 +5984,7 @@ impl OkxCore {
             }
         }  else {
             add_element_to_object(&mut request, &Value::Str("clOrdId".to_string()), clientOrderId.clone());
-            params = self.omit(params.clone(), Value::List(vec![Value::Str("clOrdId".to_string()), Value::Str("clientOrderId".to_string())]), &[]);
+            params = self.omit(params.clone(), Value::from(vec![Value::Str("clOrdId".to_string()), Value::Str("clientOrderId".to_string())]), &[]);
         }
         return self.extend(request.clone(), &[params.clone()]);
 
@@ -6046,7 +6046,7 @@ impl OkxCore {
             // keep the request body the same
             // submit a single order in an array to the batch order endpoint
             // because it has a lower ratelimit
-            request = Value::List(vec![request.clone()]);
+            request = Value::from(vec![request.clone()]);
         }
         let mut response: Value = Value::Null;
         if (method.as_str() == Some("privatePostTradeOrder")) {
@@ -6056,7 +6056,7 @@ impl OkxCore {
         }  else {
             response = self.private_post_trade_batch_orders(&[request.clone()]).await;
         }
-        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::from(vec![])]);
         let mut first: Value = self.safe_dict(data.clone(), Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -6086,7 +6086,7 @@ impl OkxCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut ordersRequests: Value = Value::List(vec![]);
+        let mut ordersRequests: Value = Value::from(vec![]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1001: bool = true;
@@ -6133,7 +6133,7 @@ impl OkxCore {
         //     "msg": "",
         //     "outTime": "1697979038586493"
         // }
-        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::from(vec![])]);
         return self.parse_orders(data.clone(), &[]);
 
     Value::Null
@@ -6237,7 +6237,7 @@ impl OkxCore {
                 add_element_to_object(&mut request, &Value::Str("newPx".to_string()), self.price_to_precision(symbol.clone(), price.clone()));
             }
         }
-        params = self.omit(params.clone(), Value::List(vec![Value::Str("clOrdId".to_string()), Value::Str("clientOrderId".to_string()), Value::Str("takeProfitPrice".to_string()), Value::Str("stopLossPrice".to_string()), Value::Str("stopLoss".to_string()), Value::Str("takeProfit".to_string()), Value::Str("postOnly".to_string())]), &[]);
+        params = self.omit(params.clone(), Value::from(vec![Value::Str("clOrdId".to_string()), Value::Str("clientOrderId".to_string()), Value::Str("takeProfitPrice".to_string()), Value::Str("stopLossPrice".to_string()), Value::Str("stopLoss".to_string()), Value::Str("takeProfit".to_string()), Value::Str("postOnly".to_string())]), &[]);
         return self.extend(request.clone(), &[params.clone()]);
 
     Value::Null
@@ -6313,7 +6313,7 @@ impl OkxCore {
         //        "msg": ""
         //     }
         //
-        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::from(vec![])]);
         let mut first: Value = self.safe_dict(data.clone(), Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -6352,7 +6352,7 @@ impl OkxCore {
         let mut trailing: Value = self.safe_bool_k(params.clone(), "trailing", &[Value::Bool(false)]);
         let mut isTrigger: bool = is_true(&(Value::Bool(trigger != Value::Null))) && (!is_equal(&trigger, &Value::Bool(false)));
         if isTrigger || is_true(&(Value::Bool(trailing.as_bool() == Some(true)))) {
-            let mut orderInner: Value = self.cancel_orders(Value::List(vec![id.clone()]), &[symbol.clone(), params.clone()]).await;
+            let mut orderInner: Value = self.cancel_orders(Value::from(vec![id.clone()]), &[symbol.clone(), params.clone()]).await;
             return self.safe_dict(orderInner.clone(), Value::Int(0), &[]);
         }
         if (self.markets.clone() == Value::Null) {
@@ -6370,11 +6370,11 @@ impl OkxCore {
         }  else {
             add_element_to_object(&mut request, &Value::Str("ordId".to_string()), id.clone());
         }
-        let mut query: Value = self.omit(params.clone(), Value::List(vec![Value::Str("clOrdId".to_string()), Value::Str("clientOrderId".to_string())]), &[]);
+        let mut query: Value = self.omit(params.clone(), Value::from(vec![Value::Str("clOrdId".to_string()), Value::Str("clientOrderId".to_string())]), &[]);
         let __ws_arg_36 = self.extend(request.clone(), &[query.clone()]);
         let mut response: Value = self.private_post_trade_cancel_order(&[__ws_arg_36]).await;
         // {"code":"0","data":[{"clOrdId":"","ordId":"317251910906576896","sCode":"0","sMsg":""}],"msg":""}
-        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::from(vec![])]);
         let mut order: Value = self.safe_dict(data.clone(), Value::Int(0), &[]);
         return self.parse_order(order.clone(), &[market.clone()]);
 
@@ -6425,7 +6425,7 @@ impl OkxCore {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol.clone());
-        let mut request: Value = Value::List(vec![]);
+        let mut request: Value = Value::from(vec![]);
         let mut options: Value = self.safe_dict_k(self.options.clone(), "cancelOrders", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -6535,10 +6535,10 @@ impl OkxCore {
         //         "msg": ""
         //     }
         //
-        let mut ordersData: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
+        let mut ordersData: Value = self.safe_list_k(response.clone(), "data", &[Value::from(vec![])]);
         // the request-only keys must not be merged onto every parsed order: a clientOrderId[]
         // request would otherwise come back as a list under the unified string field
-        let mut orderParams: Value = self.omit(params.clone(), Value::List(vec![Value::Str("clOrdId".to_string()), Value::Str("clientOrderId".to_string()), Value::Str("algoId".to_string()), Value::Str("stop".to_string()), Value::Str("trigger".to_string()), Value::Str("trailing".to_string()), Value::Str("method".to_string())]), &[]);
+        let mut orderParams: Value = self.omit(params.clone(), Value::from(vec![Value::Str("clOrdId".to_string()), Value::Str("clientOrderId".to_string()), Value::Str("algoId".to_string()), Value::Str("stop".to_string()), Value::Str("trigger".to_string()), Value::Str("trailing".to_string()), Value::Str("method".to_string())]), &[]);
         return self.parse_orders(ordersData.clone(), &[market.clone(), Value::Null, Value::Null, orderParams.clone()]);
 
     Value::Null
@@ -6564,7 +6564,7 @@ impl OkxCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut request: Value = Value::List(vec![]);
+        let mut request: Value = Value::from(vec![]);
         let mut options: Value = self.safe_dict_k(self.options.clone(), "cancelOrders", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -6640,7 +6640,7 @@ impl OkxCore {
         //         "msg": ""
         //     }
         //
-        let mut ordersData: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
+        let mut ordersData: Value = self.safe_list_k(response.clone(), "data", &[Value::from(vec![])]);
         return self.parse_orders(ordersData.clone(), &[Value::Null, Value::Null, Value::Null, params.clone()]);
 
     Value::Null
@@ -6980,7 +6980,7 @@ impl OkxCore {
         m.insert("price".to_string(), price.clone());
         m.insert("stopLossPrice".to_string(), stopLossPrice.clone());
         m.insert("takeProfitPrice".to_string(), takeProfitPrice.clone());
-        m.insert("triggerPrice".to_string(), self.safe_number_n(order.clone(), Value::List(vec![Value::Str("triggerPx".to_string()), Value::Str("moveTriggerPx".to_string())]), &[]));
+        m.insert("triggerPrice".to_string(), self.safe_number_n(order.clone(), Value::from(vec![Value::Str("triggerPx".to_string()), Value::Str("moveTriggerPx".to_string())]), &[]));
         m.insert("average".to_string(), average.clone());
         m.insert("cost".to_string(), cost.clone());
         m.insert("amount".to_string(), amount.clone());
@@ -7049,7 +7049,7 @@ impl OkxCore {
                 add_element_to_object(&mut request, &Value::Str("ordId".to_string()), id.clone());
             }
         }
-        let mut query: Value = self.omit(params.clone(), Value::List(vec![Value::Str("method".to_string()), Value::Str("clOrdId".to_string()), Value::Str("clientOrderId".to_string()), Value::Str("stop".to_string()), Value::Str("trigger".to_string())]), &[]);
+        let mut query: Value = self.omit(params.clone(), Value::from(vec![Value::Str("method".to_string()), Value::Str("clOrdId".to_string()), Value::Str("clientOrderId".to_string()), Value::Str("stop".to_string()), Value::Str("trigger".to_string())]), &[]);
         let mut response: Value = Value::Null;
         if (method.as_str() == Some("privateGetTradeOrderAlgo")) {
             let __ws_arg_38 = self.extend(request.clone(), &[query.clone()]);
@@ -7154,7 +7154,7 @@ impl OkxCore {
         //         ]
         //     }
         //
-        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::from(vec![])]);
         let mut order: Value = self.safe_dict(data.clone(), Value::Int(0), &[]);
         return self.parse_order(order.clone(), &[market.clone()]);
 
@@ -7229,7 +7229,7 @@ impl OkxCore {
         }  else if is_true(&(Value::Bool(trigger != Value::Null))) && is_true(&(Value::Bool(ordType == Value::Null))) {
             add_element_to_object(&mut request, &Value::Str("ordType".to_string()), Value::Str("trigger".to_string()));
         }
-        let mut query: Value = self.omit(params.clone(), Value::List(vec![Value::Str("method".to_string()), Value::Str("stop".to_string()), Value::Str("trigger".to_string()), Value::Str("trailing".to_string())]), &[]);
+        let mut query: Value = self.omit(params.clone(), Value::from(vec![Value::Str("method".to_string()), Value::Str("stop".to_string()), Value::Str("trigger".to_string()), Value::Str("trailing".to_string())]), &[]);
         let mut response: Value = Value::Null;
         if (method.as_str() == Some("privateGetTradeOrdersAlgoPending")) {
             let __ws_arg_40 = self.extend(request.clone(), &[query.clone()]);
@@ -7333,7 +7333,7 @@ impl OkxCore {
         //         "msg": ""
         //     }
         //
-        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::from(vec![])]);
         return self.parse_orders(data.clone(), &[market.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -7420,10 +7420,10 @@ impl OkxCore {
             let mut until: Value = self.safe_integer_k(query.clone(), "until", &[]);
             if (until != Value::Null) {
                 add_element_to_object(&mut request, &Value::Str("end".to_string()), until.clone());
-                query = self.omit(query.clone(), Value::List(vec![Value::Str("until".to_string())]), &[]);
+                query = self.omit(query.clone(), Value::from(vec![Value::Str("until".to_string())]), &[]);
             }
         }
-        let mut send: Value = self.omit(query.clone(), Value::List(vec![Value::Str("method".to_string()), Value::Str("stop".to_string()), Value::Str("trigger".to_string()), Value::Str("trailing".to_string())]), &[]);
+        let mut send: Value = self.omit(query.clone(), Value::from(vec![Value::Str("method".to_string()), Value::Str("stop".to_string()), Value::Str("trigger".to_string()), Value::Str("trailing".to_string())]), &[]);
         let mut response: Value = Value::Null;
         if (method.as_str() == Some("privateGetTradeOrdersAlgoHistory")) {
             let __ws_arg_42 = self.extend(request.clone(), &[send.clone()]);
@@ -7531,7 +7531,7 @@ impl OkxCore {
         //         "msg": ""
         //     }
         //
-        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::from(vec![])]);
         return self.parse_orders(data.clone(), &[market.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -7620,11 +7620,11 @@ impl OkxCore {
             let mut until: Value = self.safe_integer_k(query.clone(), "until", &[]);
             if (until != Value::Null) {
                 add_element_to_object(&mut request, &Value::Str("end".to_string()), until.clone());
-                query = self.omit(query.clone(), Value::List(vec![Value::Str("until".to_string())]), &[]);
+                query = self.omit(query.clone(), Value::from(vec![Value::Str("until".to_string())]), &[]);
             }
             add_element_to_object(&mut request, &Value::Str("state".to_string()), Value::Str("filled".to_string()));
         }
-        let mut send: Value = self.omit(query.clone(), Value::List(vec![Value::Str("method".to_string()), Value::Str("stop".to_string()), Value::Str("trigger".to_string()), Value::Str("trailing".to_string())]), &[]);
+        let mut send: Value = self.omit(query.clone(), Value::from(vec![Value::Str("method".to_string()), Value::Str("stop".to_string()), Value::Str("trigger".to_string()), Value::Str("trailing".to_string())]), &[]);
         let mut response: Value = Value::Null;
         if (method.as_str() == Some("privateGetTradeOrdersAlgoHistory")) {
             let __ws_arg_44 = self.extend(request.clone(), &[send.clone()]);
@@ -7731,7 +7731,7 @@ impl OkxCore {
         //         "msg": ""
         //     }
         //
-        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::from(vec![])]);
         return self.parse_orders(data.clone(), &[market.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -7813,7 +7813,7 @@ impl OkxCore {
         //         "msg": ""
         //     }
         //
-        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::from(vec![])]);
         return self.parse_trades(data.clone(), &[market.clone(), since.clone(), limit.clone(), query.clone()]);
 
     Value::Null
@@ -7977,7 +7977,7 @@ impl OkxCore {
         //         ]
         //     }
         //
-        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::from(vec![])]);
         return self.parse_ledger(data.clone(), &[currency.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -8112,7 +8112,7 @@ impl OkxCore {
         //     }
         //
         let mut address: Value = self.safe_string_k(depositAddress.clone(), "addr", &[]);
-        let mut tag: Value = self.safe_string_n(depositAddress.clone(), Value::List(vec![Value::Str("tag".to_string()), Value::Str("pmtId".to_string()), Value::Str("memo".to_string())]), &[]);
+        let mut tag: Value = self.safe_string_n(depositAddress.clone(), Value::from(vec![Value::Str("tag".to_string()), Value::Str("pmtId".to_string()), Value::Str("memo".to_string())]), &[]);
         if (tag == Value::Null) {
             let mut addrEx: Value = self.safe_dict_k(depositAddress.clone(), "addrEx", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -8236,9 +8236,9 @@ impl OkxCore {
         //         ]
         //     }
         //
-        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::from(vec![])]);
         let mut filtered: Value = self.filter_by(data.clone(), Value::Str("selected".to_string()), Value::Bool(true), &[]);
-        let mut parsed: Value = self.parse_deposit_addresses(filtered.clone(), &[Value::List(vec![currency.as_map().and_then(|__m| __m.get("code")).cloned().unwrap_or(Value::Null)]), Value::Bool(false)]);
+        let mut parsed: Value = self.parse_deposit_addresses(filtered.clone(), &[Value::from(vec![currency.as_map().and_then(|__m| __m.get("code")).cloned().unwrap_or(Value::Null)]), Value::Bool(false)]);
         return self.index_by(parsed.clone(), Value::Str("network".to_string()));
 
     Value::Null
@@ -8350,7 +8350,7 @@ impl OkxCore {
             }
         }
         add_element_to_object(&mut request, &Value::Str("fee".to_string()), self.number_to_string(fee.clone())); // withdrawals to OKCoin or OKX are fee-free, please set 0
-        let mut query: Value = self.omit(params.clone(), Value::List(vec![Value::Str("fee".to_string())]), &[]);
+        let mut query: Value = self.omit(params.clone(), Value::from(vec![Value::Str("fee".to_string())]), &[]);
         let __ws_arg_53 = self.extend(request.clone(), &[query.clone()]);
         let mut response: Value = self.private_post_asset_withdrawal(&[__ws_arg_53]).await;
         //
@@ -8366,7 +8366,7 @@ impl OkxCore {
         //         ]
         //     }
         //
-        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::from(vec![])]);
         let mut transaction: Value = self.safe_dict(data.clone(), Value::Int(0), &[]);
         return self.parse_transaction(transaction.clone(), &[currency.clone()]);
 
@@ -8458,7 +8458,7 @@ impl OkxCore {
         //         ]
         //     }
         //
-        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::from(vec![])]);
         return self.parse_transactions(data.clone(), &[currency.clone(), since.clone(), limit.clone(), params.clone()]);
 
     Value::Null
@@ -8582,7 +8582,7 @@ impl OkxCore {
         //         ]
         //     }
         //
-        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::from(vec![])]);
         return self.parse_transactions(data.clone(), &[currency.clone(), since.clone(), limit.clone(), params.clone()]);
 
     Value::Null
@@ -8640,7 +8640,7 @@ impl OkxCore {
         //        "msg": ''
         //    }
         //
-        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::from(vec![])]);
         let mut withdrawal: Value = self.safe_dict(data.clone(), Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -8864,7 +8864,7 @@ impl OkxCore {
         //        "msg": ""
         //     }
         //
-        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::from(vec![])]);
         return self.parse_leverage(data.clone(), &[market.clone()]);
 
     Value::Null
@@ -8986,7 +8986,7 @@ impl OkxCore {
         //         ]
         //     }
         //
-        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::from(vec![])]);
         let mut position: Value = self.safe_dict(data.clone(), Value::Int(0), &[]);
         if (position == Value::Null) {
             panic!("{}", crate::exchange_errors::null_response(Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchPosition() could not find a position for ".to_string()))), symbol))));
@@ -9021,7 +9021,7 @@ impl OkxCore {
             m
         });
         if (symbols != Value::Null) {
-            let mut marketIds: Value = Value::List(vec![]);
+            let mut marketIds: Value = Value::from(vec![]);
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_1007: bool = true;
@@ -9096,8 +9096,8 @@ impl OkxCore {
         //         ]
         //     }
         //
-        let mut positions: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
-        let mut result: Value = Value::List(vec![]);
+        let mut positions: Value = self.safe_list_k(response.clone(), "data", &[Value::from(vec![])]);
+        let mut result: Value = Value::from(vec![]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1008: bool = true;
@@ -9125,7 +9125,7 @@ impl OkxCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        return self.fetch_positions(&[Value::List(vec![symbol.clone()]), params.clone()]).await;
+        return self.fetch_positions(&[Value::from(vec![symbol.clone()]), params.clone()]).await;
 
     Value::Null
 }
@@ -9373,7 +9373,7 @@ impl OkxCore {
         //         ]
         //     }
         //
-        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::from(vec![])]);
         let mut rawTransfer: Value = self.safe_dict(data.clone(), Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -9529,7 +9529,7 @@ impl OkxCore {
         //         "msg": ""
         //     }
         //
-        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::from(vec![])]);
         let mut transfer: Value = self.safe_dict(data.clone(), Value::Int(0), &[]);
         return self.parse_transfer(transfer.clone(), &[]);
 
@@ -9608,7 +9608,7 @@ impl OkxCore {
         //        "msg": ""
         //    }
         //
-        let mut transfers: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
+        let mut transfers: Value = self.safe_list_k(response.clone(), "data", &[Value::from(vec![])]);
         return self.parse_transfers(transfers.clone(), &[currency.clone(), since.clone(), limit.clone(), params.clone()]);
 
     Value::Null
@@ -9846,7 +9846,7 @@ impl OkxCore {
         //        "msg": ""
         //    }
         //
-        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::from(vec![])]);
         let mut entry: Value = self.safe_dict(data.clone(), Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -9916,7 +9916,7 @@ impl OkxCore {
         //        "msg": ""
         //    }
         //
-        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::from(vec![])]);
         return self.parse_funding_rates(data.clone(), &[symbols.clone()]);
 
     Value::Null
@@ -9999,8 +9999,8 @@ impl OkxCore {
         //        "type": "8"
         //    }
         //
-        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
-        let mut result: Value = Value::List(vec![]);
+        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::from(vec![])]);
+        let mut result: Value = Value::from(vec![]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1011: bool = true;
@@ -10210,7 +10210,7 @@ impl OkxCore {
         if is_true(&(Value::Bool(lever == Value::Null))) || is_true(&(lever.as_f64().unwrap_or(f64::NAN) < Value::Int(1).as_f64().unwrap_or(f64::NAN))) || is_true(&(lever.as_f64().unwrap_or(f64::NAN) > Value::Int(125).as_f64().unwrap_or(f64::NAN))) {
             panic!("{}", crate::exchange_errors::bad_request(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" setMarginMode() params[\"lever\"] should be between 1 and 125".to_string())))));
         }
-        params = self.omit(params.clone(), Value::List(vec![Value::Str("leverage".to_string())]), &[]);
+        params = self.omit(params.clone(), Value::from(vec![Value::Str("leverage".to_string())]), &[]);
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("lever".to_string(), lever.clone());
@@ -10254,7 +10254,7 @@ impl OkxCore {
         //        ],
         //    }
         //
-        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::from(vec![])]);
         // code-keyed dict (CrossBorrowRates); base fetchCrossBorrowRate looks up by code
         let mut rates: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -10314,7 +10314,7 @@ impl OkxCore {
         //        "msg": ""
         //    }
         //
-        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::from(vec![])]);
         let mut rate: Value = self.safe_dict(data.clone(), Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -10375,7 +10375,7 @@ impl OkxCore {
             let mut code: Value = self.safe_currency_code(self.safe_string_k(item.clone(), "ccy", &[]), &[]);
             if is_true(&(Value::Bool(code != Value::Null))) && is_true(&(Value::Bool((codes == Value::Null) || is_true(&self.in_array(code.clone(), codes.clone()))))) {
                 if !is_true(&(Value::Bool(in_op(&borrowRateHistories, &code)))) {
-                    add_element_to_object(&mut borrowRateHistories, &code, Value::List(vec![]));
+                    add_element_to_object(&mut borrowRateHistories, &code, Value::from(vec![]));
                 }
                 let mut borrowRateStructure: Value = self.parse_borrow_rate(item.clone(), &[]);
                 // GET /api/v5/finance/savings/lending-rate-history returns annualized rates, unlike the hourly cross-margin endpoint
@@ -10449,7 +10449,7 @@ impl OkxCore {
         //         "msg": ""
         //     }
         //
-        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::from(vec![])]);
         return self.parse_borrow_rate_histories(data.clone(), codes.clone(), since.clone(), limit.clone());
 
     Value::Null
@@ -10504,7 +10504,7 @@ impl OkxCore {
         //         "msg": ""
         //     }
         //
-        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::from(vec![])]);
         return self.parse_borrow_rate_history(data.clone(), code.clone(), since.clone(), limit.clone());
 
     Value::Null
@@ -10520,7 +10520,7 @@ impl OkxCore {
         }
         let mut market: Value = self.market(symbol.clone());
         let mut posSide: Value = self.safe_string_k(params.clone(), "posSide", &[Value::Str("net".to_string())]);
-        params = self.omit(params.clone(), Value::List(vec![Value::Str("posSide".to_string())]), &[]);
+        params = self.omit(params.clone(), Value::from(vec![Value::Str("posSide".to_string())]), &[]);
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("instId".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
@@ -10545,7 +10545,7 @@ impl OkxCore {
         //       "msg": ""
         //     }
         //
-        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::from(vec![])]);
         let mut entry: Value = self.safe_dict(data.clone(), Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -10746,7 +10746,7 @@ impl OkxCore {
         //        ]
         //    }
         //
-        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::from(vec![])]);
         return self.parse_market_leverage_tiers(data.clone(), &[market.clone()]);
 
     Value::Null
@@ -10778,7 +10778,7 @@ impl OkxCore {
         //        ...
         //    ]
         //
-        let mut tiers: Value = Value::List(vec![]);
+        let mut tiers: Value = Value::from(vec![]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1015: bool = true;
@@ -10877,7 +10877,7 @@ impl OkxCore {
         //        "msg": ""
         //    }
         //
-        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::from(vec![])]);
         let mut interest: Value = self.parse_borrow_interests(data.clone(), &[]);
         return self.filter_by_currency_since_limit(interest.clone(), &[code.clone(), since.clone(), limit.clone()]);
 
@@ -10951,7 +10951,7 @@ impl OkxCore {
         //         "msg": ""
         //     }
         //
-        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::from(vec![])]);
         let mut loan: Value = self.safe_dict(data.clone(), Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -11011,7 +11011,7 @@ impl OkxCore {
         //         "msg": ""
         //     }
         //
-        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::from(vec![])]);
         let mut loan: Value = self.safe_dict(data.clone(), Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -11097,7 +11097,7 @@ impl OkxCore {
         //         "msg": ""
         //     }
         //
-        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::from(vec![])]);
         return self.parse_open_interest(data.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null), &[market.clone()]);
 
     Value::Null
@@ -11170,7 +11170,7 @@ impl OkxCore {
         //         "msg": ""
         //     }
         //
-        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::from(vec![])]);
         return self.parse_open_interests(data.clone(), &[symbols.clone()]);
 
     Value::Null
@@ -11242,7 +11242,7 @@ impl OkxCore {
             let mut until: Value = self.safe_integer_k(params.clone(), "until", &[]);
             if (until != Value::Null) {
                 add_element_to_object(&mut request, &Value::Str("end".to_string()), until.clone());
-                params = self.omit(params.clone(), Value::List(vec![Value::Str("until".to_string())]), &[]);
+                params = self.omit(params.clone(), Value::from(vec![Value::Str("until".to_string())]), &[]);
             }
             let __ws_arg_83 = self.extend(request.clone(), &[params.clone()]);
             response = self.public_get_rubik_stat_contracts_open_interest_volume(&[__ws_arg_83]).await;
@@ -11261,7 +11261,7 @@ impl OkxCore {
         //        "msg": ''
         //    }
         //
-        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::from(vec![])]);
         return self.parse_open_interests_history(data.clone(), &[Value::Null, since.clone(), limit.clone()]);
 
     Value::Null
@@ -11572,7 +11572,7 @@ impl OkxCore {
         //         "msg": ""
         //     }
         //
-        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::from(vec![])]);
         let mut settlements: Value = self.parse_settlements(data.clone(), market.clone());
         let mut sorted: Value = self.sort_by(settlements.clone(), Value::Str("timestamp".to_string()), &[]);
         return self.filter_by_symbol_since_limit(sorted.clone(), &[market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null), since.clone(), limit.clone()]);
@@ -11615,7 +11615,7 @@ impl OkxCore {
         //         "ts":"1684656000000"
         //     }
         //
-        let mut result: Value = Value::List(vec![]);
+        let mut result: Value = Value::from(vec![]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1019: bool = true;
@@ -11623,7 +11623,7 @@ impl OkxCore {
             let mut entry: Value = get_value(&settlements, &i);
             let mut entry: Value = get_value(&settlements, &i);
             let mut timestamp: Value = self.safe_integer_k(entry.clone(), "ts", &[]);
-            let mut details: Value = self.safe_list_k(entry.clone(), "details", &[Value::List(vec![])]);
+            let mut details: Value = self.safe_list_k(entry.clone(), "details", &[Value::from(vec![])]);
             {
                                 let mut j: Value = Value::Int(0);
                 let mut __for_first_1018: bool = true;
@@ -11689,7 +11689,7 @@ impl OkxCore {
         //         "msg": ""
         //     }
         //
-        let mut underlyings: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
+        let mut underlyings: Value = self.safe_list_k(response.clone(), "data", &[Value::from(vec![])]);
         return underlyings.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
 
     Value::Null
@@ -11753,7 +11753,7 @@ impl OkxCore {
         //         "msg": ""
         //     }
         //
-        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::from(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1020: bool = true;
@@ -11824,7 +11824,7 @@ impl OkxCore {
                 add_element_to_object(&mut request, &Value::Str("expTime".to_string()), self.safe_string(optionParts.clone(), Value::Int(2), &[]));
             }
         }
-        params = self.omit(params.clone(), Value::List(vec![Value::Str("uly".to_string()), Value::Str("instFamily".to_string())]), &[]);
+        params = self.omit(params.clone(), Value::from(vec![Value::Str("uly".to_string()), Value::Str("instFamily".to_string())]), &[]);
         let __ws_arg_89 = self.extend(request.clone(), &[params.clone()]);
         let mut response: Value = self.public_get_public_opt_summary(&[__ws_arg_89]).await;
         //
@@ -11856,7 +11856,7 @@ impl OkxCore {
         //         "msg": ""
         //     }
         //
-        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::from(vec![])]);
         return self.parse_all_greeks(data.clone(), &[symbols.clone()]);
 
     Value::Null
@@ -11989,7 +11989,7 @@ impl OkxCore {
         //        "outTime": "1701877077102579"
         //    }
         //
-        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::from(vec![])]);
         let mut order: Value = self.safe_dict(data.clone(), Value::Int(0), &[]);
         return self.parse_order(order.clone(), &[market.clone()]);
 
@@ -12047,7 +12047,7 @@ impl OkxCore {
         //         ]
         //     }
         //
-        let mut result: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
+        let mut result: Value = self.safe_list_k(response.clone(), "data", &[Value::from(vec![])]);
         let mut chain: Value = self.safe_dict(result.clone(), Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -12110,7 +12110,7 @@ impl OkxCore {
         //         ]
         //     }
         //
-        let mut result: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
+        let mut result: Value = self.safe_list_k(response.clone(), "data", &[Value::from(vec![])]);
         return self.parse_option_chain(result.clone(), &[Value::Null, Value::Str("instId".to_string())]);
 
     Value::Null
@@ -12221,7 +12221,7 @@ impl OkxCore {
         //         "msg": ""
         //     }
         //
-        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::from(vec![])]);
         let mut result: Value = self.safe_dict(data.clone(), Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -12290,7 +12290,7 @@ impl OkxCore {
         //         "msg": ""
         //     }
         //
-        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::from(vec![])]);
         let mut result: Value = self.safe_dict(data.clone(), Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -12351,7 +12351,7 @@ impl OkxCore {
         //         "msg": ""
         //     }
         //
-        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::from(vec![])]);
         let mut result: Value = self.safe_dict(data.clone(), Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -12428,7 +12428,7 @@ impl OkxCore {
         //         "msg": ""
         //     }
         //
-        let mut rows: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
+        let mut rows: Value = self.safe_list_k(response.clone(), "data", &[Value::from(vec![])]);
         return self.parse_conversions(rows.clone(), &[code.clone(), Value::Str("baseCcy".to_string()), Value::Str("quoteCcy".to_string()), since.clone(), limit.clone()]);
 
     Value::Null
@@ -12499,7 +12499,7 @@ impl OkxCore {
         m.insert("info".to_string(), conversion.clone());
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
-        m.insert("id".to_string(), self.safe_string_n(conversion.clone(), Value::List(vec![Value::Str("clQReqId".to_string()), Value::Str("tradeId".to_string()), Value::Str("quoteId".to_string())]), &[]));
+        m.insert("id".to_string(), self.safe_string_n(conversion.clone(), Value::from(vec![Value::Str("clQReqId".to_string()), Value::Str("tradeId".to_string()), Value::Str("quoteId".to_string())]), &[]));
         m.insert("fromCurrency".to_string(), fromCode.clone());
         m.insert("fromAmount".to_string(), self.safe_number2(conversion.clone(), Value::Str("baseSz".to_string()), Value::Str("fillBaseSz".to_string()), &[]));
         m.insert("toCurrency".to_string(), toCode.clone());
@@ -12546,7 +12546,7 @@ impl OkxCore {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::from(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1021: bool = true;
@@ -12629,7 +12629,7 @@ impl OkxCore {
         let mut code: Value = self.safe_string_k(response.clone(), "code", &[]);
         if is_true(&(Value::Bool(code.as_str() != Some("0")))) && is_true(&(Value::Bool(code.as_str() != Some("2")))) {
             let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), body));
-            let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
+            let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::from(vec![])]);
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_1022: bool = true;
@@ -12761,7 +12761,7 @@ impl OkxCore {
         //        msg: ''
         //    }
         //
-        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::from(vec![])]);
         let mut modifications: Value = self.parse_margin_modifications(data.clone(), &[]);
         return self.filter_by_symbol_since_limit(modifications.clone(), &[symbol.clone(), since.clone(), limit.clone()]);
 
@@ -12800,7 +12800,7 @@ impl OkxCore {
         }
         let mut marginMode: Value = self.safe_string_k(params.clone(), "marginMode", &[]);
         let mut instType: Value = self.safe_string_upper(params.clone(), Value::Str("instType".to_string()), &[]);
-        params = self.omit(params.clone(), Value::List(vec![Value::Str("until".to_string()), Value::Str("marginMode".to_string()), Value::Str("instType".to_string())]), &[]);
+        params = self.omit(params.clone(), Value::from(vec![Value::Str("until".to_string()), Value::Str("marginMode".to_string()), Value::Str("instType".to_string())]), &[]);
         if (limit == Value::Null) {
             limit = Value::Int(100);
         }
@@ -12857,7 +12857,7 @@ impl OkxCore {
         //        msg: ''
         //    }
         //
-        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::from(vec![])]);
         let mut positions: Value = self.parse_positions(data.clone(), &[symbols.clone(), params.clone()]);
         return self.filter_by_since_limit(positions.clone(), &[since.clone(), limit.clone()]);
 
@@ -12925,8 +12925,8 @@ impl OkxCore {
         //         "msg": ""
         //     }
         //
-        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
-        let mut result: Value = Value::List(vec![]);
+        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::from(vec![])]);
+        let mut result: Value = Value::from(vec![]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1023: bool = true;

@@ -157,7 +157,7 @@ impl CoinbaseexchangeCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), Value::Str("coinbaseexchange".to_string()));
         m.insert("name".to_string(), Value::Str("Coinbase Exchange".to_string()));
-        m.insert("countries".to_string(), Value::List(vec![Value::Str("US".to_string())]));
+        m.insert("countries".to_string(), Value::from(vec![Value::Str("US".to_string())]));
         m.insert("rateLimit".to_string(), Value::Int(100));
         m.insert("userAgent".to_string(), self.userAgents.as_map().and_then(|__m| __m.get("chrome")).cloned().unwrap_or(Value::Null));
         m.insert("pro".to_string(), Value::Bool(true));
@@ -297,7 +297,7 @@ impl CoinbaseexchangeCore {
 }));
         m.insert("www".to_string(), Value::Str("https://coinbase.com/".to_string()));
         m.insert("doc".to_string(), Value::Str("https://docs.cloud.coinbase.com/exchange/docs/".to_string()));
-        m.insert("fees".to_string(), Value::List(vec![Value::Str("https://docs.pro.coinbase.com/#fees".to_string()), Value::Str("https://support.pro.coinbase.com/customer/en/portal/articles/2945310-fees".to_string())]));
+        m.insert("fees".to_string(), Value::from(vec![Value::Str("https://docs.pro.coinbase.com/#fees".to_string()), Value::Str("https://support.pro.coinbase.com/customer/en/portal/articles/2945310-fees".to_string())]));
     m
 }));
         m.insert("requiredCredentials".to_string(), Value::Map({
@@ -1110,7 +1110,7 @@ impl CoinbaseexchangeCore {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut supportedNetworks: Value = self.safe_list_k(rawCurrency.clone(), "supported_networks", &[Value::List(vec![])]);
+        let mut supportedNetworks: Value = self.safe_list_k(rawCurrency.clone(), "supported_networks", &[Value::from(vec![])]);
         {
                         let mut j: Value = Value::Int(0);
             let mut __for_first_535: bool = true;
@@ -1244,7 +1244,7 @@ impl CoinbaseexchangeCore {
         //         }
         //     ]
         //
-        let mut result: Value = Value::List(vec![]);
+        let mut result: Value = Value::from(vec![]);
         let mut rawMarkets: Value = self.to_array(response.clone());
         {
                         let mut i: Value = Value::Int(0);
@@ -1649,8 +1649,8 @@ impl CoinbaseexchangeCore {
             while { if !__for_first_538 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_538 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(marketIds.len() as i64).as_f64().unwrap_or(f64::NAN) } {
             let mut marketId: Value = get_value(&marketIds, &i);
             let mut marketId: Value = get_value(&marketIds, &i);
-            let mut entry: Value = self.safe_value(response.clone(), marketId.clone(), &[Value::List(vec![])]);
-            let mut first: Value = self.safe_value(entry.clone(), Value::Int(0), &[Value::List(vec![])]);
+            let mut entry: Value = self.safe_value(response.clone(), marketId.clone(), &[Value::from(vec![])]);
+            let mut first: Value = self.safe_value(entry.clone(), Value::Int(0), &[Value::from(vec![])]);
             let mut market: Value = self.safe_market(&[marketId.clone(), Value::Null, delimiter.clone()]);
             let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
             add_element_to_object(&mut result, &symbol, self.parse_ticker(first.clone(), &[market.clone()]));
@@ -1826,7 +1826,7 @@ impl CoinbaseexchangeCore {
         }
         let mut until: Value = self.safe_value2(params.clone(), Value::Str("until".to_string()), Value::Str("end_date".to_string()), &[]);
         if (until != Value::Null) {
-            params = self.omit(params.clone(), Value::List(vec![Value::Str("until".to_string())]), &[]);
+            params = self.omit(params.clone(), Value::from(vec![Value::Str("until".to_string())]), &[]);
             add_element_to_object(&mut request, &Value::Str("end_date".to_string()), self.iso8601(until.clone()));
         }
         let __ws_arg_9 = self.extend(request.clone(), &[params.clone()]);
@@ -1927,7 +1927,7 @@ impl CoinbaseexchangeCore {
 
     pub fn parse_ohlcv(&self, mut ohlcv: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
-        return Value::List(vec![self.safe_timestamp(ohlcv.clone(), Value::Int(0), &[]), self.safe_number(ohlcv.clone(), Value::Int(3), &[]), self.safe_number(ohlcv.clone(), Value::Int(2), &[]), self.safe_number(ohlcv.clone(), Value::Int(1), &[]), self.safe_number(ohlcv.clone(), Value::Int(4), &[]), self.safe_number(ohlcv.clone(), Value::Int(5), &[])]);
+        return Value::from(vec![self.safe_timestamp(ohlcv.clone(), Value::Int(0), &[]), self.safe_number(ohlcv.clone(), Value::Int(3), &[]), self.safe_number(ohlcv.clone(), Value::Int(2), &[]), self.safe_number(ohlcv.clone(), Value::Int(1), &[]), self.safe_number(ohlcv.clone(), Value::Int(4), &[]), self.safe_number(ohlcv.clone(), Value::Int(5), &[])]);
 
     Value::Null
 }
@@ -1975,7 +1975,7 @@ impl CoinbaseexchangeCore {
             add_element_to_object(&mut request, &Value::Str("granularity".to_string()), timeframe.clone());
         }
         let mut until: Value = self.safe_value2(params.clone(), Value::Str("until".to_string()), Value::Str("end".to_string()), &[]);
-        params = self.omit(params.clone(), Value::List(vec![Value::Str("until".to_string())]), &[]);
+        params = self.omit(params.clone(), Value::from(vec![Value::Str("until".to_string())]), &[]);
         if (since != Value::Null) {
             add_element_to_object(&mut request, &Value::Str("start".to_string()), self.iso8601(since.clone()));
             if (limit == Value::Null) {
@@ -2149,7 +2149,7 @@ impl CoinbaseexchangeCore {
             response = self.private_get_orders_id(&[__ws_arg_12]).await;
         }  else {
             add_element_to_object(&mut request, &Value::Str("client_oid".to_string()), clientOrderId.clone());
-            params = self.omit(params.clone(), Value::List(vec![Value::Str("clientOrderId".to_string()), Value::Str("client_oid".to_string())]), &[]);
+            params = self.omit(params.clone(), Value::from(vec![Value::Str("clientOrderId".to_string()), Value::Str("client_oid".to_string())]), &[]);
             let __ws_arg_13 = self.extend(request.clone(), &[params.clone()]);
             response = self.private_get_orders_client_client_oid(&[__ws_arg_13]).await;
         }
@@ -2273,7 +2273,7 @@ impl CoinbaseexchangeCore {
         }
         let mut until: Value = self.safe_value2(params.clone(), Value::Str("until".to_string()), Value::Str("end_date".to_string()), &[]);
         if (until != Value::Null) {
-            params = self.omit(params.clone(), Value::List(vec![Value::Str("until".to_string())]), &[]);
+            params = self.omit(params.clone(), Value::from(vec![Value::Str("until".to_string())]), &[]);
             add_element_to_object(&mut request, &Value::Str("end_date".to_string()), self.iso8601(until.clone()));
         }
         let __ws_arg_16 = self.extend(request.clone(), &[params.clone()]);
@@ -2348,7 +2348,7 @@ impl CoinbaseexchangeCore {
         if (clientOrderId != Value::Null) {
             add_element_to_object(&mut request, &Value::Str("client_oid".to_string()), clientOrderId.clone());
         }
-        let mut triggerPrice: Value = self.safe_number_n(params.clone(), Value::List(vec![Value::Str("stopPrice".to_string()), Value::Str("stop_price".to_string()), Value::Str("triggerPrice".to_string())]), &[]);
+        let mut triggerPrice: Value = self.safe_number_n(params.clone(), Value::from(vec![Value::Str("stopPrice".to_string()), Value::Str("stop_price".to_string()), Value::Str("triggerPrice".to_string())]), &[]);
         if (triggerPrice != Value::Null) {
             add_element_to_object(&mut request, &Value::Str("stop_price".to_string()), self.price_to_precision(symbol.clone(), triggerPrice.clone()));
         }
@@ -2360,7 +2360,7 @@ impl CoinbaseexchangeCore {
         if is_equal(&postOnly, &Value::Bool(true)) {
             add_element_to_object(&mut request, &Value::Str("post_only".to_string()), Value::Bool(true));
         }
-        params = self.omit(params.clone(), Value::List(vec![Value::Str("timeInForce".to_string()), Value::Str("time_in_force".to_string()), Value::Str("stopPrice".to_string()), Value::Str("stop_price".to_string()), Value::Str("clientOrderId".to_string()), Value::Str("client_oid".to_string()), Value::Str("postOnly".to_string()), Value::Str("post_only".to_string()), Value::Str("triggerPrice".to_string())]), &[]);
+        params = self.omit(params.clone(), Value::from(vec![Value::Str("timeInForce".to_string()), Value::Str("time_in_force".to_string()), Value::Str("stopPrice".to_string()), Value::Str("stop_price".to_string()), Value::Str("clientOrderId".to_string()), Value::Str("client_oid".to_string()), Value::Str("postOnly".to_string()), Value::Str("post_only".to_string()), Value::Str("triggerPrice".to_string())]), &[]);
         if (type_var.as_str() == Some("limit")) {
             add_element_to_object(&mut request, &Value::Str("price".to_string()), self.price_to_precision(symbol.clone(), price.clone()));
             add_element_to_object(&mut request, &Value::Str("size".to_string()), self.amount_to_precision(symbol.clone(), amount.clone()));
@@ -2371,7 +2371,7 @@ impl CoinbaseexchangeCore {
                     cost = (match (&(amount), &(price)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
                 }
             }  else {
-                params = self.omit(params.clone(), Value::List(vec![Value::Str("cost".to_string()), Value::Str("funds".to_string())]), &[]);
+                params = self.omit(params.clone(), Value::from(vec![Value::Str("cost".to_string()), Value::Str("funds".to_string())]), &[]);
             }
             if (cost != Value::Null) {
                 add_element_to_object(&mut request, &Value::Str("funds".to_string()), self.cost_to_precision(symbol.clone(), cost.clone()));
@@ -2414,7 +2414,7 @@ impl CoinbaseexchangeCore {
             add_element_to_object(&mut request, &Value::Str("id".to_string()), id.clone());
         }  else {
             add_element_to_object(&mut request, &Value::Str("client_oid".to_string()), clientOrderId.clone());
-            params = self.omit(params.clone(), Value::List(vec![Value::Str("clientOrderId".to_string()), Value::Str("client_oid".to_string())]), &[]);
+            params = self.omit(params.clone(), Value::from(vec![Value::Str("clientOrderId".to_string()), Value::Str("client_oid".to_string())]), &[]);
         }
         let mut market: Value = Value::Null;
         if (symbol != Value::Null) {
@@ -2467,7 +2467,7 @@ impl CoinbaseexchangeCore {
         }
         let __ws_arg_21 = self.extend(request.clone(), &[params.clone()]);
         let mut response: Value = self.private_delete_orders(&[__ws_arg_21]).await;
-        return Value::List(vec![self.safe_order(Value::Map({
+        return Value::from(vec![self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), response.clone());
     m
@@ -2683,7 +2683,7 @@ impl CoinbaseexchangeCore {
         }
         let mut until: Value = self.safe_value2(params.clone(), Value::Str("until".to_string()), Value::Str("end_date".to_string()), &[]);
         if (until != Value::Null) {
-            params = self.omit(params.clone(), Value::List(vec![Value::Str("until".to_string())]), &[]);
+            params = self.omit(params.clone(), Value::from(vec![Value::Str("until".to_string())]), &[]);
             add_element_to_object(&mut request, &Value::Str("end_date".to_string()), self.iso8601(until.clone()));
         }
         let __ws_arg_25 = self.extend(request.clone(), &[params.clone()]);

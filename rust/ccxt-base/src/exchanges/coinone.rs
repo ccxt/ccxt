@@ -120,7 +120,7 @@ impl CoinoneCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), Value::Str("coinone".to_string()));
         m.insert("name".to_string(), Value::Str("CoinOne".to_string()));
-        m.insert("countries".to_string(), Value::List(vec![Value::Str("KR".to_string())]));
+        m.insert("countries".to_string(), Value::from(vec![Value::Str("KR".to_string())]));
         m.insert("rateLimit".to_string(), Value::Int(50));
         m.insert("version".to_string(), Value::Str("v2".to_string()));
         m.insert("pro".to_string(), Value::Bool(false));
@@ -754,7 +754,7 @@ impl CoinoneCore {
         //         ]
         //     }
         //
-        let mut currencies: Value = self.safe_list_k(response.clone(), "currencies", &[Value::List(vec![])]);
+        let mut currencies: Value = self.safe_list_k(response.clone(), "currencies", &[Value::from(vec![])]);
         return self.parse_currencies(currencies.clone());
 
     Value::Null
@@ -856,8 +856,8 @@ impl CoinoneCore {
         //         ]
         //     }
         //
-        let mut tickers: Value = self.safe_list_k(response.clone(), "tickers", &[Value::List(vec![])]);
-        let mut result: Value = Value::List(vec![]);
+        let mut tickers: Value = self.safe_list_k(response.clone(), "tickers", &[Value::from(vec![])]);
+        let mut result: Value = Value::from(vec![]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_576: bool = true;
@@ -945,7 +945,7 @@ impl CoinoneCore {
                 m.insert("info".to_string(), response.clone());
             m
         });
-        let mut balances: Value = self.omit(response.clone(), Value::List(vec![Value::Str("errorCode".to_string()), Value::Str("result".to_string()), Value::Str("normalWallets".to_string())]), &[]);
+        let mut balances: Value = self.omit(response.clone(), Value::from(vec![Value::Str("errorCode".to_string()), Value::Str("result".to_string()), Value::Str("normalWallets".to_string())]), &[]);
         let mut currencyIds: Value = object_keys(&balances);
         {
                         let mut i: Value = Value::Int(0);
@@ -1122,7 +1122,7 @@ impl CoinoneCore {
         //         ]
         //     }
         //
-        let mut data: Value = self.safe_list_k(response.clone(), "tickers", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response.clone(), "tickers", &[Value::from(vec![])]);
         return self.parse_tickers(data.clone(), &[symbols.clone()]);
 
     Value::Null
@@ -1187,7 +1187,7 @@ impl CoinoneCore {
         //         ]
         //     }
         //
-        let mut data: Value = self.safe_list_k(response.clone(), "tickers", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response.clone(), "tickers", &[Value::from(vec![])]);
         let mut ticker: Value = self.safe_dict(data.clone(), Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1227,8 +1227,8 @@ impl CoinoneCore {
         //
         let mut timestamp: Value = self.safe_integer_k(ticker.clone(), "timestamp", &[]);
         let mut last: Value = self.safe_string_k(ticker.clone(), "last", &[]);
-        let mut asks: Value = self.safe_list_k(ticker.clone(), "best_asks", &[Value::List(vec![])]);
-        let mut bids: Value = self.safe_list_k(ticker.clone(), "best_bids", &[Value::List(vec![])]);
+        let mut asks: Value = self.safe_list_k(ticker.clone(), "best_asks", &[Value::from(vec![])]);
+        let mut bids: Value = self.safe_list_k(ticker.clone(), "best_bids", &[Value::from(vec![])]);
         let mut baseId: Value = self.safe_string_k(ticker.clone(), "target_currency", &[]);
         let mut quoteId: Value = self.safe_string_k(ticker.clone(), "quote_currency", &[]);
         let mut base: Value = self.safe_currency_code(baseId.clone(), &[]);
@@ -1383,7 +1383,7 @@ impl CoinoneCore {
         //         ]
         //     }
         //
-        let mut data: Value = self.safe_list_k(response.clone(), "transactions", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response.clone(), "transactions", &[Value::from(vec![])]);
         return self.parse_trades(data.clone(), &[market.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -1565,7 +1565,7 @@ impl CoinoneCore {
             side = Value::Str("buy".to_string());
         }
         let mut remainingString: Value = self.safe_string2(order.clone(), Value::Str("remainQty".to_string()), Value::Str("remain_qty".to_string()), &[]);
-        let mut amountString: Value = self.safe_string_n(order.clone(), Value::List(vec![Value::Str("originalQty".to_string()), Value::Str("qty".to_string()), Value::Str("original_qty".to_string())]), &[]);
+        let mut amountString: Value = self.safe_string_n(order.clone(), Value::from(vec![Value::Str("originalQty".to_string()), Value::Str("qty".to_string()), Value::Str("original_qty".to_string())]), &[]);
         let mut status: Value = self.safe_string_k(order.clone(), "status", &[]);
         // https://github.com/ccxt/ccxt/pull/7067
         if (status.as_str() == Some("live")) {
@@ -1670,7 +1670,7 @@ impl CoinoneCore {
         //         ]
         //     }
         //
-        let mut openOrders: Value = self.safe_list2(response.clone(), Value::Str("open_orders".to_string()), Value::Str("limitOrders".to_string()), &[Value::List(vec![])]);
+        let mut openOrders: Value = self.safe_list2(response.clone(), Value::Str("open_orders".to_string()), Value::Str("limitOrders".to_string()), &[Value::from(vec![])]);
         return self.parse_orders(openOrders.clone(), &[market.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -1728,7 +1728,7 @@ impl CoinoneCore {
         //         ]
         //     }
         //
-        let mut completeOrders: Value = self.safe_list_k(response.clone(), "completeOrders", &[Value::List(vec![])]);
+        let mut completeOrders: Value = self.safe_list_k(response.clone(), "completeOrders", &[Value::from(vec![])]);
         return self.parse_trades(completeOrders.clone(), &[market.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -1851,7 +1851,7 @@ impl CoinoneCore {
             add_element_to_object(&mut depositAddress, &Value::Str("info".to_string()), address.clone());
             if is_true(&(Value::Bool((secondPart.as_str() == Some("tag")) || (secondPart.as_str() == Some("memo"))))) {
                 add_element_to_object(&mut depositAddress, &Value::Str("tag".to_string()), value.clone());
-                add_element_to_object(&mut depositAddress, &Value::Str("info".to_string()), Value::List(vec![address.clone(), value.clone()]));
+                add_element_to_object(&mut depositAddress, &Value::Str("info".to_string()), Value::from(vec![address.clone(), value.clone()]));
             }
             if (code != Value::Null) {
                 add_element_to_object(&mut result, &code, depositAddress.clone());

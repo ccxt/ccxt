@@ -14,12 +14,12 @@ pub async fn testFetchTickers(mut exchange: Value, mut skippedProperties: Value,
     // is impractical and the "every active market has a ticker" check doesn't apply — test
     // fetchTickers by the outcome handle instead
     if is_true(&exchange.safe_bool(get_value(&exchange, &Value::Str("has".to_string())), Value::Str("prediction".to_string()), &[Value::Bool(false)])) {
-        let mut predictionResult: Value = fetchTickersHelperTest(exchange.clone(), skippedProperties.clone(), Value::List(vec![symbol.clone()]), &[]).await;
-        return Value::List(vec![predictionResult.clone()]);
+        let mut predictionResult: Value = fetchTickersHelperTest(exchange.clone(), skippedProperties.clone(), Value::from(vec![symbol.clone()]), &[]).await;
+        return Value::from(vec![predictionResult.clone()]);
     }
     let mut withoutSymbol: Value = fetchTickersHelperTest(exchange.clone(), skippedProperties.clone(), Value::Null, &[]).await;
-    let mut withSymbol: Value = fetchTickersHelperTest(exchange.clone(), skippedProperties.clone(), Value::List(vec![symbol.clone()]), &[]).await;
-    let mut results: Value = promise_all(&Value::List(vec![withoutSymbol.clone(), withSymbol.clone()])).await;
+    let mut withSymbol: Value = fetchTickersHelperTest(exchange.clone(), skippedProperties.clone(), Value::from(vec![symbol.clone()]), &[]).await;
+    let mut results: Value = promise_all(&Value::from(vec![withoutSymbol.clone(), withSymbol.clone()])).await;
     fetchTickersAmountsTest(exchange.clone(), skippedProperties.clone(), results.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null));
     return results;
 

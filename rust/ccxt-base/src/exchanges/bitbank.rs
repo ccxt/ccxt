@@ -136,7 +136,7 @@ impl BitbankCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), Value::Str("bitbank".to_string()));
         m.insert("name".to_string(), Value::Str("bitbank".to_string()));
-        m.insert("countries".to_string(), Value::List(vec![Value::Str("JP".to_string())]));
+        m.insert("countries".to_string(), Value::from(vec![Value::Str("JP".to_string())]));
         m.insert("version".to_string(), Value::Str("v1".to_string()));
         m.insert("rateLimit".to_string(), Value::Int(100));
         m.insert("has".to_string(), Value::Map({
@@ -595,7 +595,7 @@ impl BitbankCore {
         //     }
         //
         let mut data: Value = self.safe_value_k(response.clone(), "data", &[]);
-        let mut pairs: Value = self.safe_value_k(data.clone(), "pairs", &[Value::List(vec![])]);
+        let mut pairs: Value = self.safe_value_k(data.clone(), "pairs", &[Value::from(vec![])]);
         return self.parse_markets(pairs.clone());
 
     Value::Null
@@ -866,7 +866,7 @@ impl BitbankCore {
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut trades: Value = self.safe_list_k(data.clone(), "transactions", &[Value::List(vec![])]);
+        let mut trades: Value = self.safe_list_k(data.clone(), "transactions", &[Value::from(vec![])]);
         return self.parse_trades(trades.clone(), &[market.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -921,7 +921,7 @@ impl BitbankCore {
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut pairs: Value = self.safe_list_k(data.clone(), "pairs", &[Value::List(vec![])]);
+        let mut pairs: Value = self.safe_list_k(data.clone(), "pairs", &[Value::from(vec![])]);
         let mut result: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -954,7 +954,7 @@ impl BitbankCore {
 
     pub fn parse_ohlcv(&self, mut ohlcv: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
-        return Value::List(vec![self.safe_integer(ohlcv.clone(), Value::Int(5), &[]), self.safe_number(ohlcv.clone(), Value::Int(0), &[]), self.safe_number(ohlcv.clone(), Value::Int(1), &[]), self.safe_number(ohlcv.clone(), Value::Int(2), &[]), self.safe_number(ohlcv.clone(), Value::Int(3), &[]), self.safe_number(ohlcv.clone(), Value::Int(4), &[])]);
+        return Value::from(vec![self.safe_integer(ohlcv.clone(), Value::Int(5), &[]), self.safe_number(ohlcv.clone(), Value::Int(0), &[]), self.safe_number(ohlcv.clone(), Value::Int(1), &[]), self.safe_number(ohlcv.clone(), Value::Int(2), &[]), self.safe_number(ohlcv.clone(), Value::Int(3), &[]), self.safe_number(ohlcv.clone(), Value::Int(4), &[])]);
 
     Value::Null
 }
@@ -1021,12 +1021,12 @@ impl BitbankCore {
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut candlestick: Value = self.safe_value_k(data.clone(), "candlestick", &[Value::List(vec![])]);
+        let mut candlestick: Value = self.safe_value_k(data.clone(), "candlestick", &[Value::from(vec![])]);
         let mut first: Value = self.safe_value(candlestick.clone(), Value::Int(0), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut ohlcv: Value = self.safe_list_k(first.clone(), "ohlcv", &[Value::List(vec![])]);
+        let mut ohlcv: Value = self.safe_list_k(first.clone(), "ohlcv", &[Value::from(vec![])]);
         return self.parse_ohlc_vs(ohlcv.clone(), &[market.clone(), timeframe.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -1044,7 +1044,7 @@ impl BitbankCore {
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut assets: Value = self.safe_list_k(data.clone(), "assets", &[Value::List(vec![])]);
+        let mut assets: Value = self.safe_list_k(data.clone(), "assets", &[Value::from(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_312: bool = true;
@@ -1342,7 +1342,7 @@ impl BitbankCore {
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut orders: Value = self.safe_list_k(data.clone(), "orders", &[Value::List(vec![])]);
+        let mut orders: Value = self.safe_list_k(data.clone(), "orders", &[Value::from(vec![])]);
         return self.parse_orders(orders.clone(), &[market.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -1391,7 +1391,7 @@ impl BitbankCore {
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut trades: Value = self.safe_list_k(data.clone(), "trades", &[Value::List(vec![])]);
+        let mut trades: Value = self.safe_list_k(data.clone(), "trades", &[Value::from(vec![])]);
         return self.parse_trades(trades.clone(), &[market.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -1427,7 +1427,7 @@ impl BitbankCore {
             m
         })]);
         // Not sure about this if there could be more than one account...
-        let mut accounts: Value = self.safe_value_k(data.clone(), "accounts", &[Value::List(vec![])]);
+        let mut accounts: Value = self.safe_value_k(data.clone(), "accounts", &[Value::from(vec![])]);
         let mut firstAccount: Value = self.safe_value(accounts.clone(), Value::Int(0), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m

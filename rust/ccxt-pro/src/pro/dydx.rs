@@ -370,7 +370,7 @@ impl DydxCore {
         let mut market: Value = self.safe_market(&[marketId.clone()]);
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         let mut content: Value = self.safe_dict_k(message.clone(), "contents", &[]);
-        let mut rawTrades: Value = self.safe_list_k(content.clone(), "trades", &[Value::List(vec![])]);
+        let mut rawTrades: Value = self.safe_list_k(content.clone(), "trades", &[Value::from(vec![])]);
         let mut stored: Value = self.safe_value(self.trades.clone(), symbol.clone(), &[]);
         if (stored == Value::Null) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
@@ -528,8 +528,8 @@ impl DydxCore {
             orderbook = self.order_book(&[]);
         }
         add_element_to_object(&mut orderbook, &Value::Str("symbol".to_string()), symbol.clone());
-        let mut asks: Value = self.safe_list_k(content.clone(), "asks", &[Value::List(vec![])]);
-        let mut bids: Value = self.safe_list_k(content.clone(), "bids", &[Value::List(vec![])]);
+        let mut asks: Value = self.safe_list_k(content.clone(), "asks", &[Value::from(vec![])]);
+        let mut bids: Value = self.safe_list_k(content.clone(), "bids", &[Value::from(vec![])]);
         self.handle_deltas(crate::value::get_value_k(&orderbook, "asks"), asks.clone());
         self.handle_deltas(crate::value::get_value_k(&orderbook, "bids"), bids.clone());
         add_element_to_object(&mut orderbook, &Value::Str("nonce".to_string()), self.safe_integer_k(message.clone(), "message_id", &[]));

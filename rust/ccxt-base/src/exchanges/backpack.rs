@@ -185,7 +185,7 @@ impl BackpackCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), Value::Str("backpack".to_string()));
         m.insert("name".to_string(), Value::Str("Backpack".to_string()));
-        m.insert("countries".to_string(), Value::List(vec![Value::Str("JP".to_string())]));
+        m.insert("countries".to_string(), Value::from(vec![Value::Str("JP".to_string())]));
         m.insert("rateLimit".to_string(), Value::Int(50));
         m.insert("version".to_string(), Value::Str("v1".to_string()));
         m.insert("certified".to_string(), Value::Bool(false));
@@ -1115,7 +1115,7 @@ impl BackpackCore {
     pub fn parse_currency(&self, mut rawCurrency: Value) -> Value {
         let mut currencyId: Value = self.safe_string_k(rawCurrency.clone(), "symbol", &[]);
         let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
-        let mut networks: Value = self.safe_list_k(rawCurrency.clone(), "tokens", &[Value::List(vec![])]);
+        let mut networks: Value = self.safe_list_k(rawCurrency.clone(), "tokens", &[Value::from(vec![])]);
         let mut parsedNetworks: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -1680,7 +1680,7 @@ impl BackpackCore {
 
     pub fn parse_ohlcv(&self, mut ohlcv: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
-        return Value::List(vec![self.parse8601(self.safe_string_k(ohlcv.clone(), "start", &[])), self.safe_number_k(ohlcv.clone(), "open", &[]), self.safe_number_k(ohlcv.clone(), "high", &[]), self.safe_number_k(ohlcv.clone(), "low", &[]), self.safe_number_k(ohlcv.clone(), "close", &[]), self.safe_number_k(ohlcv.clone(), "volume", &[])]);
+        return Value::from(vec![self.parse8601(self.safe_string_k(ohlcv.clone(), "start", &[])), self.safe_number_k(ohlcv.clone(), "open", &[]), self.safe_number_k(ohlcv.clone(), "high", &[]), self.safe_number_k(ohlcv.clone(), "low", &[]), self.safe_number_k(ohlcv.clone(), "close", &[]), self.safe_number_k(ohlcv.clone(), "volume", &[])]);
 
     Value::Null
 }
@@ -1872,7 +1872,7 @@ impl BackpackCore {
         //         }
         //     ]
         //
-        let mut rates: Value = Value::List(vec![]);
+        let mut rates: Value = Value::from(vec![]);
         let mut rawRates: Value = self.to_array(response.clone());
         {
                         let mut i: Value = Value::Int(0);
@@ -1987,7 +1987,7 @@ impl BackpackCore {
         }
         let mut until: Value = self.safe_integer_k(params.clone(), "until", &[]);
         if (until != Value::Null) {
-            params = self.omit(params.clone(), Value::List(vec![Value::Str("until".to_string())]), &[]);
+            params = self.omit(params.clone(), Value::from(vec![Value::Str("until".to_string())]), &[]);
             add_element_to_object(&mut request, &Value::Str("to".to_string()), until.clone());
         }
         let mut fillType: Value = self.safe_string_k(params.clone(), "fillType", &[]);
@@ -2616,7 +2616,7 @@ impl BackpackCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut ordersRequests: Value = Value::List(vec![]);
+        let mut ordersRequests: Value = Value::from(vec![]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_238: bool = true;
@@ -2674,7 +2674,7 @@ impl BackpackCore {
             let mut cost: Value = self.safe_string2(params.clone(), Value::Str("cost".to_string()), Value::Str("quoteQuantity".to_string()), &[]);
             if (cost != Value::Null) {
                 add_element_to_object(&mut request, &Value::Str("quoteQuantity".to_string()), self.cost_to_precision(symbol.clone(), cost.clone()));
-                params = self.omit(params.clone(), Value::List(vec![Value::Str("cost".to_string()), Value::Str("quoteQuantity".to_string())]), &[]);
+                params = self.omit(params.clone(), Value::from(vec![Value::Str("cost".to_string()), Value::Str("quoteQuantity".to_string())]), &[]);
             }  else {
                 add_element_to_object(&mut request, &quantityKey, self.amount_to_precision(symbol.clone(), amount.clone()));
             }

@@ -319,7 +319,7 @@ impl DeribitCore {
 }));
     m
 }));
-        m.insert("currencies".to_string(), Value::List(vec![Value::Str("BTC".to_string()), Value::Str("ETH".to_string()), Value::Str("SOL".to_string()), Value::Str("USDC".to_string())]));
+        m.insert("currencies".to_string(), Value::from(vec![Value::Str("BTC".to_string()), Value::Str("ETH".to_string()), Value::Str("SOL".to_string()), Value::Str("USDC".to_string())]));
     m
 }));
         m.insert("streaming".to_string(), Value::Map({
@@ -360,8 +360,8 @@ impl DeribitCore {
         self.authenticate(&[params.clone()]).await;
         let mut messageHash: Value = Value::Str("balance".to_string());
         let mut url: Value = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null);
-        let mut currencies: Value = self.safe_list_k(self.options.clone(), "currencies", &[Value::List(vec![])]);
-        let mut channels: Value = Value::List(vec![]);
+        let mut currencies: Value = self.safe_list_k(self.options.clone(), "currencies", &[Value::from(vec![])]);
+        let mut channels: Value = Value::from(vec![]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_310: bool = true;
@@ -487,7 +487,7 @@ impl DeribitCore {
                 m.insert("method".to_string(), Value::Str("public/subscribe".to_string()));
                 m.insert("params".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("channels".to_string(), Value::List(vec![Value::Str(format!("{}{}", Value::Str(format!("{}{}", add(&Value::Str("ticker.".to_string()), &market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)), Value::Str(".".to_string()))), interval))]));
+        m.insert("channels".to_string(), Value::from(vec![Value::Str(format!("{}{}", Value::Str(format!("{}{}", add(&Value::Str("ticker.".to_string()), &market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)), Value::Str(".".to_string()))), interval))]));
     m
 }));
                 m.insert("id".to_string(), self.request_id());
@@ -528,7 +528,7 @@ impl DeribitCore {
         if (interval.as_str() == Some("raw")) {
             self.authenticate(&[]).await;
         }
-        let mut channels: Value = Value::List(vec![]);
+        let mut channels: Value = Value::from(vec![]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_311: bool = true;
@@ -630,7 +630,7 @@ impl DeribitCore {
         }
         symbols = self.market_symbols(&[symbols.clone(), Value::Null, Value::Bool(false)]);
         let mut url: Value = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null);
-        let mut channels: Value = Value::List(vec![]);
+        let mut channels: Value = Value::from(vec![]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_312: bool = true;
@@ -741,7 +741,7 @@ impl DeribitCore {
     m
 }));
         add_element_to_object(&mut params, &Value::Str("callerMethodName".to_string()), Value::Str("watchTrades".to_string()));
-        return self.watch_trades_for_symbols(Value::List(vec![symbol.clone()]), &[since.clone(), limit.clone(), params.clone()]).await;
+        return self.watch_trades_for_symbols(Value::from(vec![symbol.clone()]), &[since.clone(), limit.clone(), params.clone()]).await;
 
     Value::Null
 }
@@ -812,7 +812,7 @@ impl DeribitCore {
         let mut interval: Value = self.safe_string(parts.clone(), Value::Int(2), &[]);
         let mut symbol: Value = self.safe_symbol(marketId.clone(), &[]);
         let mut market: Value = self.safe_market(&[marketId.clone()]);
-        let mut trades: Value = self.safe_list_k(params.clone(), "data", &[Value::List(vec![])]);
+        let mut trades: Value = self.safe_list_k(params.clone(), "data", &[Value::from(vec![])]);
         if (self.safe_value(self.trades.clone(), symbol.clone(), &[]) == Value::Null) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
             add_element_to_object(&mut self.trades, &symbol, ArrayCache::new(limit.clone()));
@@ -868,7 +868,7 @@ impl DeribitCore {
                 m.insert("method".to_string(), Value::Str("private/subscribe".to_string()));
                 m.insert("params".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("channels".to_string(), Value::List(vec![channel.clone()]));
+        m.insert("channels".to_string(), Value::from(vec![channel.clone()]));
     m
 }));
                 m.insert("id".to_string(), self.request_id());
@@ -919,7 +919,7 @@ impl DeribitCore {
             m
         })]);
         let mut channel: Value = self.safe_string_k(params.clone(), "channel", &[Value::Str("".to_string())]);
-        let mut trades: Value = self.safe_value_k(params.clone(), "data", &[Value::List(vec![])]);
+        let mut trades: Value = self.safe_value_k(params.clone(), "data", &[Value::from(vec![])]);
         let mut cachedTrades: Value = self.myTrades.clone();
         if is_equal(&cachedTrades, &Value::Null) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
@@ -962,7 +962,7 @@ impl DeribitCore {
     m
 }));
         add_element_to_object(&mut params, &Value::Str("callerMethodName".to_string()), Value::Str("watchOrderBook".to_string()));
-        return self.watch_order_book_for_symbols(Value::List(vec![symbol.clone()]), &[limit.clone(), params.clone()]).await;
+        return self.watch_order_book_for_symbols(Value::from(vec![symbol.clone()]), &[limit.clone(), params.clone()]).await;
 
     Value::Null
 }
@@ -1081,8 +1081,8 @@ impl DeribitCore {
             { let __be_tmp = self.counted_order_book(&[]); add_element_to_object(&mut self.orderbooks, &symbol, __be_tmp); };
         }
         let mut storedOrderBook: Value = get_value(&self.orderbooks, &symbol);
-        let mut asks: Value = self.safe_list_k(data.clone(), "asks", &[Value::List(vec![])]);
-        let mut bids: Value = self.safe_list_k(data.clone(), "bids", &[Value::List(vec![])]);
+        let mut asks: Value = self.safe_list_k(data.clone(), "asks", &[Value::from(vec![])]);
+        let mut bids: Value = self.safe_list_k(data.clone(), "bids", &[Value::from(vec![])]);
         self.handle_deltas(get_value(&storedOrderBook, &Value::Str("asks".to_string())), asks.clone());
         self.handle_deltas(get_value(&storedOrderBook, &Value::Str("bids".to_string())), bids.clone());
         add_element_to_object(&mut storedOrderBook, &Value::Str("nonce".to_string()), timestamp.clone());
@@ -1095,22 +1095,22 @@ impl DeribitCore {
 }
 
     pub fn clean_order_book(&self, mut data: Value) -> Value {
-        let mut bids: Value = self.safe_list_k(data.clone(), "bids", &[Value::List(vec![])]);
-        let mut asks: Value = self.safe_list_k(data.clone(), "asks", &[Value::List(vec![])]);
-        let mut cleanedBids: Value = Value::List(vec![]);
+        let mut bids: Value = self.safe_list_k(data.clone(), "bids", &[Value::from(vec![])]);
+        let mut asks: Value = self.safe_list_k(data.clone(), "asks", &[Value::from(vec![])]);
+        let mut cleanedBids: Value = Value::from(vec![]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_315: bool = true;
             while { if !__for_first_315 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_315 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(bids.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-            append_to_array(&mut cleanedBids, Value::List(vec![get_value(&get_value(&bids, &i), &Value::Int(1)), get_value(&get_value(&bids, &i), &Value::Int(2))]));
+            append_to_array(&mut cleanedBids, Value::from(vec![get_value(&get_value(&bids, &i), &Value::Int(1)), get_value(&get_value(&bids, &i), &Value::Int(2))]));
         }
         }
-        let mut cleanedAsks: Value = Value::List(vec![]);
+        let mut cleanedAsks: Value = Value::from(vec![]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_316: bool = true;
             while { if !__for_first_316 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_316 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(asks.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-            append_to_array(&mut cleanedAsks, Value::List(vec![get_value(&get_value(&asks, &i), &Value::Int(1)), get_value(&get_value(&asks, &i), &Value::Int(2))]));
+            append_to_array(&mut cleanedAsks, Value::from(vec![get_value(&get_value(&asks, &i), &Value::Int(1)), get_value(&get_value(&asks, &i), &Value::Int(2))]));
         }
         }
         add_element_to_object(&mut data, &Value::Str("bids".to_string()), cleanedBids.clone());
@@ -1124,9 +1124,9 @@ impl DeribitCore {
         let mut price: Value = get_value(&delta, &Value::Int(1));
         let mut amount: Value = get_value(&delta, &Value::Int(2));
         if (get_value(&delta, &Value::Int(0)).as_str() == Some("new")) || (get_value(&delta, &Value::Int(0)).as_str() == Some("change")) {
-            bookside.store_array(Value::List(vec![price.clone(), amount.clone(), Value::Int(1)]));
+            bookside.store_array(Value::from(vec![price.clone(), amount.clone(), Value::Int(1)]));
         }  else if (get_value(&delta, &Value::Int(0)).as_str() == Some("delete")) {
-            bookside.store_array(Value::List(vec![price.clone(), amount.clone(), Value::Int(0)]));
+            bookside.store_array(Value::from(vec![price.clone(), amount.clone(), Value::Int(0)]));
         }
 }
 
@@ -1178,7 +1178,7 @@ impl DeribitCore {
                 m.insert("method".to_string(), Value::Str("private/subscribe".to_string()));
                 m.insert("params".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("channels".to_string(), Value::List(vec![channel.clone()]));
+        m.insert("channels".to_string(), Value::from(vec![channel.clone()]));
     m
 }));
                 m.insert("id".to_string(), self.request_id());
@@ -1242,12 +1242,12 @@ impl DeribitCore {
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut orders: Value = Value::List(vec![]);
+        let mut orders: Value = Value::from(vec![]);
         if is_true(&Value::Bool(is_array(&data))) {
             orders = self.parse_orders(data.clone(), &[]);
         }  else {
             let mut order: Value = self.parse_order(data.clone(), &[]);
-            orders = Value::List(vec![order.clone()]);
+            orders = Value::from(vec![order.clone()]);
         }
         let mut cachedOrders: Value = self.orders.clone();
         {
@@ -1284,7 +1284,7 @@ impl DeribitCore {
             self.load_markets(&[]).await;
         }
         symbol = self.symbol(symbol.clone());
-        let mut ohlcvs: Value = self.watch_ohlcv_for_symbols(Value::List(vec![Value::List(vec![symbol.clone(), timeframe.clone()])]), &[since.clone(), limit.clone(), params.clone()]).await;
+        let mut ohlcvs: Value = self.watch_ohlcv_for_symbols(Value::from(vec![Value::from(vec![symbol.clone(), timeframe.clone()])]), &[since.clone(), limit.clone(), params.clone()]).await;
         return get_value(&get_value(&ohlcvs, &symbol), &timeframe);
 
     Value::Null
@@ -1380,14 +1380,14 @@ impl DeribitCore {
         let mut parsed: Value = self.parse_ws_ohlcv(ohlcv.clone(), &[market.clone()]);
         stored.append(parsed.clone());
         add_element_to_object(get_value_mut(unsafe { crate::runtime::coerce_value_to_mut(&self.ohlcvs) }, &symbol), &unifiedTimeframe, stored.clone());
-        let mut resolveData: Value = Value::List(vec![symbol.clone(), unifiedTimeframe.clone(), stored.clone()]);
+        let mut resolveData: Value = Value::from(vec![symbol.clone(), unifiedTimeframe.clone(), stored.clone()]);
         let mut messageHash: Value = add(&Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("chart.trades|".to_string()), symbol)), Value::Str("|".to_string()))), &rawTimeframe);
         client.resolve(&[resolveData.clone(), messageHash.clone()]);
 }
 
     pub fn parse_ws_ohlcv(&self, mut ohlcv: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
-        return Value::List(vec![self.safe_integer_k(ohlcv.clone(), "tick", &[]), self.safe_number_k(ohlcv.clone(), "open", &[]), self.safe_number_k(ohlcv.clone(), "high", &[]), self.safe_number_k(ohlcv.clone(), "low", &[]), self.safe_number_k(ohlcv.clone(), "close", &[]), self.safe_number_k(ohlcv.clone(), "volume", &[])]);
+        return Value::from(vec![self.safe_integer_k(ohlcv.clone(), "tick", &[]), self.safe_number_k(ohlcv.clone(), "open", &[]), self.safe_number_k(ohlcv.clone(), "high", &[]), self.safe_number_k(ohlcv.clone(), "low", &[]), self.safe_number_k(ohlcv.clone(), "close", &[]), self.safe_number_k(ohlcv.clone(), "volume", &[])]);
 
     Value::Null
 }
@@ -1402,8 +1402,8 @@ impl DeribitCore {
             self.load_markets(&[]).await;
         }
         let mut url: Value = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null);
-        let mut rawSubscriptions: Value = Value::List(vec![]);
-        let mut messageHashes: Value = Value::List(vec![]);
+        let mut rawSubscriptions: Value = Value::from(vec![]);
+        let mut messageHashes: Value = Value::from(vec![]);
         let mut isOHLCV: bool = channelName.as_str() == Some("chart.trades");
         let mut symbols: Value = (if isOHLCV { self.get_list_from_object_values(symbolsArray.clone(), Value::Int(0)) } else { symbolsArray.clone() });
         self.market_symbols(&[symbols.clone(), Value::Null, Value::Bool(false)]);

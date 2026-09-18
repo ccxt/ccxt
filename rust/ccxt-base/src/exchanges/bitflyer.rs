@@ -134,7 +134,7 @@ impl BitflyerCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), Value::Str("bitflyer".to_string()));
         m.insert("name".to_string(), Value::Str("bitFlyer".to_string()));
-        m.insert("countries".to_string(), Value::List(vec![Value::Str("JP".to_string())]));
+        m.insert("countries".to_string(), Value::from(vec![Value::Str("JP".to_string())]));
         m.insert("version".to_string(), Value::Str("v1".to_string()));
         m.insert("rateLimit".to_string(), Value::Int(1000));
         m.insert("hostname".to_string(), Value::Str("bitflyer.com".to_string()));
@@ -618,7 +618,7 @@ impl BitflyerCore {
         //
         let mut markets: Value = self.array_concat(self.to_array(jp_markets.clone()), self.to_array(us_markets.clone()));
         markets = self.array_concat(markets.clone(), self.to_array(eu_markets.clone()));
-        let mut result: Value = Value::List(vec![]);
+        let mut result: Value = Value::from(vec![]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_338: bool = true;
@@ -1730,7 +1730,7 @@ impl BitflyerCore {
         if (api.as_str() == Some("private")) {
             self.check_required_credentials(&[]);
             let mut nonce: Value = to_string_val(&self.nonce());
-            let mut content: Value = Value::List(vec![nonce.clone(), method.clone(), request.clone()]);
+            let mut content: Value = Value::from(vec![nonce.clone(), method.clone(), request.clone()]);
             let mut auth: Value = join(&content, &Value::Str("".to_string()));
             if Value::Int(object_keys(&params).len() as i64).as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN) {
                 if (method.as_str() != Some("GET")) {

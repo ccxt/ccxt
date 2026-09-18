@@ -122,7 +122,7 @@ impl IndependentreserveCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), Value::Str("independentreserve".to_string()));
         m.insert("name".to_string(), Value::Str("Independent Reserve".to_string()));
-        m.insert("countries".to_string(), Value::List(vec![Value::Str("AU".to_string()), Value::Str("NZ".to_string())]));
+        m.insert("countries".to_string(), Value::from(vec![Value::Str("AU".to_string()), Value::Str("NZ".to_string())]));
         m.insert("rateLimit".to_string(), Value::Int(1000));
         m.insert("pro".to_string(), Value::Bool(true));
         m.insert("has".to_string(), Value::Map({
@@ -676,7 +676,7 @@ impl IndependentreserveCore {
         let mut quoteCurrenciesPromise: Value = self.public_get_get_valid_secondary_currency_codes(&[params.clone()]).await;
         //     ['Aud', 'Usd', 'Nzd', 'Sgd']
         let mut limitsPromise: Value = self.public_get_get_order_minimum_volumes(&[params.clone()]).await;
-        let mut baseCurrenciesquoteCurrencieslimitsVariable = promise_all(&Value::List(vec![baseCurrenciesPromise.clone(), quoteCurrenciesPromise.clone(), limitsPromise.clone()])).await;
+        let mut baseCurrenciesquoteCurrencieslimitsVariable = promise_all(&Value::from(vec![baseCurrenciesPromise.clone(), quoteCurrenciesPromise.clone(), limitsPromise.clone()])).await;
         let mut baseCurrencies: Value = baseCurrenciesquoteCurrencieslimitsVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut quoteCurrencies: Value = baseCurrenciesquoteCurrencieslimitsVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         let mut limits: Value = baseCurrenciesquoteCurrencieslimitsVariable.as_array().and_then(|__arr| __arr.get(2)).cloned().unwrap_or(Value::Null);
@@ -688,7 +688,7 @@ impl IndependentreserveCore {
         //         "Xrp": 1.0,
         //     }
         //
-        let mut result: Value = Value::List(vec![]);
+        let mut result: Value = Value::from(vec![]);
         let mut baseCurrencyIds: Value = self.to_array(baseCurrencies.clone());
         let mut quoteCurrencyIds: Value = self.to_array(quoteCurrencies.clone());
         {
@@ -1167,7 +1167,7 @@ impl IndependentreserveCore {
         add_element_to_object(&mut request, &Value::Str("pageSize".to_string()), limit.clone());
         let __ws_arg_3 = self.extend(request.clone(), &[params.clone()]);
         let mut response: Value = self.private_post_get_open_orders(&[__ws_arg_3]).await;
-        let mut data: Value = self.safe_list_k(response.clone(), "Data", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response.clone(), "Data", &[Value::from(vec![])]);
         return self.parse_orders(data.clone(), &[market.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -1211,7 +1211,7 @@ impl IndependentreserveCore {
         add_element_to_object(&mut request, &Value::Str("pageSize".to_string()), limit.clone());
         let __ws_arg_4 = self.extend(request.clone(), &[params.clone()]);
         let mut response: Value = self.private_post_get_closed_orders(&[__ws_arg_4]).await;
-        let mut data: Value = self.safe_list_k(response.clone(), "Data", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response.clone(), "Data", &[Value::from(vec![])]);
         return self.parse_orders(data.clone(), &[market.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -1254,7 +1254,7 @@ impl IndependentreserveCore {
         if (symbol != Value::Null) {
             market = self.market(symbol.clone());
         }
-        let mut data: Value = self.safe_list_k(response.clone(), "Data", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response.clone(), "Data", &[Value::from(vec![])]);
         return self.parse_trades(data.clone(), &[market.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -1336,7 +1336,7 @@ impl IndependentreserveCore {
         });
         let __ws_arg_6 = self.extend(request.clone(), &[params.clone()]);
         let mut response: Value = self.public_get_get_recent_trades(&[__ws_arg_6]).await;
-        let mut trades: Value = self.safe_list_k(response.clone(), "Trades", &[Value::List(vec![])]);
+        let mut trades: Value = self.safe_list_k(response.clone(), "Trades", &[Value::from(vec![])]);
         return self.parse_trades(trades.clone(), &[market.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -1686,7 +1686,7 @@ impl IndependentreserveCore {
         }  else {
             self.check_required_credentials(&[]);
             let mut nonce: Value = self.nonce();
-            let mut auth: Value = Value::List(vec![url.clone(), Value::Str(format!("{}{}", Value::Str("apiKey=".to_string()), self.apiKey.clone())), Value::Str(format!("{}{}", Value::Str("nonce=".to_string()), to_string_val(&nonce)))]);
+            let mut auth: Value = Value::from(vec![url.clone(), Value::Str(format!("{}{}", Value::Str("apiKey=".to_string()), self.apiKey.clone())), Value::Str(format!("{}{}", Value::Str("nonce=".to_string()), to_string_val(&nonce)))]);
             let mut keys: Value = object_keys(&params);
             {
                                 let mut i: Value = Value::Int(0);

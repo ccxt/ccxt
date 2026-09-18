@@ -21,14 +21,14 @@ pub fn testOrderBook(mut exchange: Value, mut skippedProperties: Value, mut meth
     let mut format: Value = Value::Map({
         let mut m = indexmap::IndexMap::new();
             m.insert("symbol".to_string(), Value::Str("ETH/BTC".to_string()));
-            m.insert("asks".to_string(), Value::List(vec![Value::List(vec![exchange.parse_number(Value::Str("1.24".to_string()), &[]), exchange.parse_number(Value::Str("0.453".to_string()), &[])]), Value::List(vec![exchange.parse_number(Value::Str("1.25".to_string()), &[]), exchange.parse_number(Value::Str("0.157".to_string()), &[])])]));
-            m.insert("bids".to_string(), Value::List(vec![Value::List(vec![exchange.parse_number(Value::Str("1.23".to_string()), &[]), exchange.parse_number(Value::Str("0.123".to_string()), &[])]), Value::List(vec![exchange.parse_number(Value::Str("1.22".to_string()), &[]), exchange.parse_number(Value::Str("0.543".to_string()), &[])])]));
+            m.insert("asks".to_string(), Value::from(vec![Value::from(vec![exchange.parse_number(Value::Str("1.24".to_string()), &[]), exchange.parse_number(Value::Str("0.453".to_string()), &[])]), Value::from(vec![exchange.parse_number(Value::Str("1.25".to_string()), &[]), exchange.parse_number(Value::Str("0.157".to_string()), &[])])]));
+            m.insert("bids".to_string(), Value::from(vec![Value::from(vec![exchange.parse_number(Value::Str("1.23".to_string()), &[]), exchange.parse_number(Value::Str("0.123".to_string()), &[])]), Value::from(vec![exchange.parse_number(Value::Str("1.22".to_string()), &[]), exchange.parse_number(Value::Str("0.543".to_string()), &[])])]));
             m.insert("timestamp".to_string(), Value::Int(1504224000000));
             m.insert("datetime".to_string(), Value::Str("2017-09-01T00:00:00".to_string()));
             m.insert("nonce".to_string(), Value::Int(134234234));
         m
     });
-    let mut emptyAllowedFor: Value = Value::List(vec![Value::Str("nonce".to_string())]);
+    let mut emptyAllowedFor: Value = Value::from(vec![Value::Str("nonce".to_string())]);
     crate::tests_support::shared::assert_structure(exchange.clone(), &[skippedProperties.clone(), method.clone(), orderbook.clone(), format.clone(), emptyAllowedFor.clone()]);
     crate::tests_support::shared::assert_timestamp_and_datetime(exchange.clone(), &[skippedProperties.clone(), method.clone(), orderbook.clone()]);
     crate::tests_support::shared::assert_symbol(exchange.clone(), &[skippedProperties.clone(), method.clone(), orderbook.clone(), Value::Str("symbol".to_string()).clone(), symbol.clone()]);

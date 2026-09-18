@@ -521,8 +521,8 @@ impl ParadexCore {
         }
         let mut orderbookData: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("bids".to_string(), Value::List(vec![]));
-                m.insert("asks".to_string(), Value::List(vec![]));
+                m.insert("bids".to_string(), Value::from(vec![]));
+                m.insert("asks".to_string(), Value::from(vec![]));
             m
         });
         let mut inserts: Value = self.safe_list_k(data.clone(), "inserts", &[]);
@@ -535,9 +535,9 @@ impl ParadexCore {
             let mut price: Value = self.safe_string_k(insert.clone(), "price", &[]);
             let mut size: Value = self.safe_string_k(insert.clone(), "size", &[]);
             if (side.as_str() == Some("BUY")) {
-                crate::runtime::append_to_object_array(&mut orderbookData, &Value::Str("bids".to_string()), Value::List(vec![price.clone(), size.clone()]));
+                crate::runtime::append_to_object_array(&mut orderbookData, &Value::Str("bids".to_string()), Value::from(vec![price.clone(), size.clone()]));
             }  else {
-                crate::runtime::append_to_object_array(&mut orderbookData, &Value::Str("asks".to_string()), Value::List(vec![price.clone(), size.clone()]));
+                crate::runtime::append_to_object_array(&mut orderbookData, &Value::Str("asks".to_string()), Value::from(vec![price.clone(), size.clone()]));
             }
         }
         }
@@ -619,7 +619,7 @@ impl ParadexCore {
 }));
             m
         });
-        let mut messageHashes: Value = Value::List(vec![]);
+        let mut messageHashes: Value = Value::from(vec![]);
         if (symbols != Value::Null) && is_true(&Value::Bool(is_array(&symbols))) {
             {
                                 let mut i: Value = Value::Int(0);
@@ -870,7 +870,7 @@ impl ParadexCore {
 }));
             m
         });
-        let mut messageHashes: Value = Value::List(vec![]);
+        let mut messageHashes: Value = Value::from(vec![]);
         if (symbols != Value::Null) {
             let mut symbolsLength: Value = Value::Int(symbols.len() as i64);
             if symbolsLength.as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN) {

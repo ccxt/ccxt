@@ -201,7 +201,7 @@ impl BequantCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), Value::Str("bequant".to_string()));
         m.insert("name".to_string(), Value::Str("Bequant".to_string()));
-        m.insert("countries".to_string(), Value::List(vec![Value::Str("MT".to_string())]));
+        m.insert("countries".to_string(), Value::from(vec![Value::Str("MT".to_string())]));
         m.insert("pro".to_string(), Value::Bool(true));
         m.insert("urls".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -219,8 +219,8 @@ impl BequantCore {
     m
 }));
         m.insert("www".to_string(), Value::Str("https://bequant.io".to_string()));
-        m.insert("doc".to_string(), Value::List(vec![Value::Str("https://api.bequant.io/".to_string())]));
-        m.insert("fees".to_string(), Value::List(vec![Value::Str("https://bequant.io/fees-and-limits".to_string())]));
+        m.insert("doc".to_string(), Value::from(vec![Value::Str("https://api.bequant.io/".to_string())]));
+        m.insert("fees".to_string(), Value::from(vec![Value::Str("https://bequant.io/fees-and-limits".to_string())]));
         m.insert("referral".to_string(), Value::Str("https://bequant.io".to_string()));
     m
 }));

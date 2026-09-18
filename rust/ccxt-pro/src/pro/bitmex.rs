@@ -335,7 +335,7 @@ impl BitmexCore {
             self.load_markets(&[]).await;
         }
         symbol = self.symbol(symbol.clone());
-        let mut tickers: Value = self.watch_tickers(&[Value::List(vec![symbol.clone()]), params.clone()]).await;
+        let mut tickers: Value = self.watch_tickers(&[Value::from(vec![symbol.clone()]), params.clone()]).await;
         return get_value(&tickers, &symbol);
 
     Value::Null
@@ -362,8 +362,8 @@ impl BitmexCore {
         symbols = self.market_symbols(&[symbols.clone(), Value::Null, Value::Bool(true)]);
         let mut name: Value = Value::Str("instrument".to_string());
         let mut url: Value = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null);
-        let mut messageHashes: Value = Value::List(vec![]);
-        let mut rawSubscriptions: Value = Value::List(vec![]);
+        let mut messageHashes: Value = Value::from(vec![]);
+        let mut rawSubscriptions: Value = Value::from(vec![]);
         if (symbols != Value::Null) {
             {
                                 let mut i: Value = Value::Int(0);
@@ -630,7 +630,7 @@ impl BitmexCore {
         //         ]
         //     }
         //
-        let mut data: Value = self.safe_list_k(message.clone(), "data", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(message.clone(), "data", &[Value::from(vec![])]);
         let mut tickers: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -681,7 +681,7 @@ impl BitmexCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        return self.watch_liquidations_for_symbols(Value::List(vec![symbol.clone()]), &[since.clone(), limit.clone(), params.clone()]).await;
+        return self.watch_liquidations_for_symbols(Value::from(vec![symbol.clone()]), &[since.clone(), limit.clone(), params.clone()]).await;
 
     Value::Null
 }
@@ -708,8 +708,8 @@ impl BitmexCore {
             self.load_markets(&[]).await;
         }
         symbols = self.market_symbols(&[symbols.clone(), Value::Null, Value::Bool(true), Value::Bool(true)]);
-        let mut messageHashes: Value = Value::List(vec![]);
-        let mut subscriptionHashes: Value = Value::List(vec![]);
+        let mut messageHashes: Value = Value::from(vec![]);
+        let mut subscriptionHashes: Value = Value::from(vec![]);
         if is_true(&self.is_empty(symbols.clone())) {
             append_to_array(&mut subscriptionHashes, Value::Str("liquidation".to_string()));
             append_to_array(&mut messageHashes, Value::Str("liquidations".to_string()));
@@ -770,8 +770,8 @@ impl BitmexCore {
         //        ]
         //    }
         //
-        let mut rawLiquidations: Value = self.safe_list_k(message.clone(), "data", &[Value::List(vec![])]);
-        let mut newLiquidations: Value = Value::List(vec![]);
+        let mut rawLiquidations: Value = self.safe_list_k(message.clone(), "data", &[Value::from(vec![])]);
+        let mut newLiquidations: Value = Value::from(vec![]);
         if (self.liquidations.clone() == Value::Null) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "liquidationsLimit", &[Value::Int(1000)]);
             self.liquidations = ArrayCache::new(limit.clone());
@@ -824,7 +824,7 @@ impl BitmexCore {
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("op".to_string(), Value::Str("subscribe".to_string()));
-                m.insert("args".to_string(), Value::List(vec![messageHash.clone()]));
+                m.insert("args".to_string(), Value::from(vec![messageHash.clone()]));
             m
         });
         let __ws_arg_2 = self.extend(request.clone(), &[params.clone()]);
@@ -1000,7 +1000,7 @@ impl BitmexCore {
         //     }
         //
         let mut table: Value = Value::Str("trade".to_string());
-        let mut data: Value = self.safe_value_k(message.clone(), "data", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_value_k(message.clone(), "data", &[Value::from(vec![])]);
         let mut dataByMarketIds: Value = self.group_by(data.clone(), Value::Str("symbol".to_string()), &[]);
         let mut marketIds: Value = object_keys(&dataByMarketIds);
         {
@@ -1049,7 +1049,7 @@ impl BitmexCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        return self.watch_trades_for_symbols(Value::List(vec![symbol.clone()]), &[since.clone(), limit.clone(), params.clone()]).await;
+        return self.watch_trades_for_symbols(Value::from(vec![symbol.clone()]), &[since.clone(), limit.clone(), params.clone()]).await;
 
     Value::Null
 }
@@ -1072,7 +1072,7 @@ impl BitmexCore {
             let mut request: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("op".to_string(), Value::Str("authKeyExpires".to_string()));
-                    m.insert("args".to_string(), Value::List(vec![self.apiKey.clone(), timestamp.clone(), signature.clone()]));
+                    m.insert("args".to_string(), Value::from(vec![self.apiKey.clone(), timestamp.clone(), signature.clone()]));
                 m
             });
             let mut message: Value = self.extend(request.clone(), &[params.clone()]);
@@ -1132,7 +1132,7 @@ impl BitmexCore {
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("op".to_string(), Value::Str("subscribe".to_string()));
-                m.insert("args".to_string(), Value::List(vec![subscriptionHash.clone()]));
+                m.insert("args".to_string(), Value::from(vec![subscriptionHash.clone()]));
             m
         });
         let mut newPositions: Value = self.watch(url.clone(), messageHash.clone(), &[request.clone(), subscriptionHash.clone()]).await;
@@ -1297,8 +1297,8 @@ impl BitmexCore {
             self.positions = ArrayCacheBySymbolBySide::new(Value::Null);
         }
         let mut cache: Value = self.positions.clone();
-        let mut rawPositions: Value = self.safe_list_k(message.clone(), "data", &[Value::List(vec![])]);
-        let mut newPositions: Value = Value::List(vec![]);
+        let mut rawPositions: Value = self.safe_list_k(message.clone(), "data", &[Value::from(vec![])]);
+        let mut newPositions: Value = Value::from(vec![]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_139: bool = true;
@@ -1384,7 +1384,7 @@ impl BitmexCore {
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("op".to_string(), Value::Str("subscribe".to_string()));
-                m.insert("args".to_string(), Value::List(vec![subscriptionHash.clone()]));
+                m.insert("args".to_string(), Value::from(vec![subscriptionHash.clone()]));
             m
         });
         let mut orders: Value = self.watch(url.clone(), messageHash.clone(), &[request.clone(), subscriptionHash.clone()]).await;
@@ -1546,7 +1546,7 @@ impl BitmexCore {
         //         ]
         //     }
         //
-        let mut data: Value = self.safe_list_k(message.clone(), "data", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(message.clone(), "data", &[Value::from(vec![])]);
         let mut messageHash: Value = Value::Str("order".to_string());
         // initial subscription response with multiple orders
         let mut dataLength: Value = Value::Int(data.len() as i64);
@@ -1626,7 +1626,7 @@ impl BitmexCore {
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("op".to_string(), Value::Str("subscribe".to_string()));
-                m.insert("args".to_string(), Value::List(vec![subscriptionHash.clone()]));
+                m.insert("args".to_string(), Value::from(vec![subscriptionHash.clone()]));
             m
         });
         let mut trades: Value = self.watch(url.clone(), messageHash.clone(), &[request.clone(), subscriptionHash.clone()]).await;
@@ -1697,9 +1697,9 @@ impl BitmexCore {
         //     }
         //
         let mut messageHash: Value = self.safe_string_k(message.clone(), "table", &[]);
-        let mut data: Value = self.safe_value_k(message.clone(), "data", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_value_k(message.clone(), "data", &[Value::from(vec![])]);
         let mut dataByExecType: Value = self.group_by(data.clone(), Value::Str("execType".to_string()), &[]);
-        let mut rawTrades: Value = self.safe_value_k(dataByExecType.clone(), "Trade", &[Value::List(vec![])]);
+        let mut rawTrades: Value = self.safe_value_k(dataByExecType.clone(), "Trade", &[Value::from(vec![])]);
         let mut trades: Value = self.parse_trades(rawTrades.clone(), &[]);
         if is_equal(&self.myTrades, &Value::Null) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
@@ -1751,7 +1751,7 @@ impl BitmexCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        return self.watch_order_book_for_symbols(Value::List(vec![symbol.clone()]), &[limit.clone(), params.clone()]).await;
+        return self.watch_order_book_for_symbols(Value::from(vec![symbol.clone()]), &[limit.clone(), params.clone()]).await;
 
     Value::Null
 }
@@ -1786,8 +1786,8 @@ impl BitmexCore {
             self.load_markets(&[]).await;
         }
         symbols = self.market_symbols(&[symbols.clone()]);
-        let mut topics: Value = Value::List(vec![]);
-        let mut messageHashes: Value = Value::List(vec![]);
+        let mut topics: Value = Value::from(vec![]);
+        let mut messageHashes: Value = Value::from(vec![]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_145: bool = true;
@@ -1838,8 +1838,8 @@ impl BitmexCore {
         }
         symbols = self.market_symbols(&[symbols.clone(), Value::Null, Value::Bool(false)]);
         let mut table: Value = Value::Str("trade".to_string());
-        let mut topics: Value = Value::List(vec![]);
-        let mut messageHashes: Value = Value::List(vec![]);
+        let mut topics: Value = Value::from(vec![]);
+        let mut messageHashes: Value = Value::from(vec![]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_146: bool = true;
@@ -1903,7 +1903,7 @@ impl BitmexCore {
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("op".to_string(), Value::Str("subscribe".to_string()));
-                m.insert("args".to_string(), Value::List(vec![messageHash.clone()]));
+                m.insert("args".to_string(), Value::from(vec![messageHash.clone()]));
             m
         });
         let __ws_arg_5 = self.extend(request.clone(), &[params.clone()]);
@@ -1986,7 +1986,7 @@ impl BitmexCore {
         let mut interval: Value = replace_str(&table, &Value::Str("tradeBin".to_string()), &Value::Str("".to_string()));
         let mut timeframe: Value = self.find_timeframe(interval.clone(), &[]);
         let mut duration: Value = self.parse_timeframe(timeframe.clone());
-        let mut candles: Value = self.safe_list_k(message.clone(), "data", &[Value::List(vec![])]);
+        let mut candles: Value = self.safe_list_k(message.clone(), "data", &[Value::from(vec![])]);
         let mut results: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -2001,7 +2001,7 @@ impl BitmexCore {
             let mut market: Value = self.safe_market(&[marketId.clone()]);
             let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
             let mut messageHash: Value = add(&add(&table, &Value::Str(":".to_string())), &market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
-            let mut result: Value = Value::List(vec![(match (&(self.parse_to_int(self.parse8601(self.safe_string_k(candle.clone(), "timestamp", &[])))), &((match (&(duration), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }), Value::Null, self.safe_float_k(candle.clone(), "high", &[]), self.safe_float_k(candle.clone(), "low", &[]), self.safe_float_k(candle.clone(), "close", &[]), self.safe_float_k(candle.clone(), "volume", &[])]);
+            let mut result: Value = Value::from(vec![(match (&(self.parse_to_int(self.parse8601(self.safe_string_k(candle.clone(), "timestamp", &[])))), &((match (&(duration), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }), Value::Null, self.safe_float_k(candle.clone(), "high", &[]), self.safe_float_k(candle.clone(), "low", &[]), self.safe_float_k(candle.clone(), "close", &[]), self.safe_float_k(candle.clone(), "volume", &[])]);
             { let __be_tmp = self.safe_value(self.ohlcvs.clone(), symbol.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -2098,7 +2098,7 @@ impl BitmexCore {
         if (table == Value::Null) {
             return;
         }
-        let mut data: Value = self.safe_list_k(message.clone(), "data", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(message.clone(), "data", &[Value::from(vec![])]);
         // if it's an initial snapshot
         if (action.as_str() == Some("partial")) {
             let mut filter: Value = self.safe_dict_k(message.clone(), "filter", &[Value::Map({
@@ -2137,7 +2137,7 @@ impl BitmexCore {
                 side = (if is_true(&(Value::Bool(side.as_str() == Some("Buy")))) { Value::Str("bids".to_string()) } else { Value::Str("asks".to_string()) });
                 let mut bookside: Value = get_value(&orderbook, &side);
                 let mut bookside: Value = get_value(&orderbook, &side);
-                bookside.store_array(Value::List(vec![price.clone(), size.clone(), id.clone()]));
+                bookside.store_array(Value::from(vec![price.clone(), size.clone(), id.clone()]));
                 let mut datetime: Value = self.safe_string_k(get_value(&data, &i), "timestamp", &[]);
                 add_element_to_object(&mut orderbook, &Value::Str("timestamp".to_string()), self.parse8601(datetime.clone()));
                 add_element_to_object(&mut orderbook, &Value::Str("datetime".to_string()), datetime.clone());
@@ -2172,7 +2172,7 @@ impl BitmexCore {
                 side = (if is_true(&(Value::Bool(side.as_str() == Some("Buy")))) { Value::Str("bids".to_string()) } else { Value::Str("asks".to_string()) });
                 let mut bookside: Value = get_value(&orderbook, &side);
                 let mut bookside: Value = get_value(&orderbook, &side);
-                bookside.store_array(Value::List(vec![price.clone(), size.clone(), id.clone()]));
+                bookside.store_array(Value::from(vec![price.clone(), size.clone(), id.clone()]));
                 let mut datetime: Value = self.safe_string_k(get_value(&data, &i), "timestamp", &[]);
                 add_element_to_object(&mut orderbook, &Value::Str("timestamp".to_string()), self.parse8601(datetime.clone()));
                 add_element_to_object(&mut orderbook, &Value::Str("datetime".to_string()), datetime.clone());
@@ -2230,7 +2230,7 @@ impl BitmexCore {
                 let mut m = indexmap::IndexMap::new();
                 m
             })]);
-            let mut args: Value = self.safe_list_k(request.clone(), "args", &[Value::List(vec![])]);
+            let mut args: Value = self.safe_list_k(request.clone(), "args", &[Value::from(vec![])]);
             let mut numArgs: Value = Value::Int(args.len() as i64);
             if numArgs.as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN) {
                 let mut messageHash: Value = args.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);

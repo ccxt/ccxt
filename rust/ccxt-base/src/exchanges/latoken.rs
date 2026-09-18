@@ -143,7 +143,7 @@ impl LatokenCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), Value::Str("latoken".to_string()));
         m.insert("name".to_string(), Value::Str("Latoken".to_string()));
-        m.insert("countries".to_string(), Value::List(vec![Value::Str("KY".to_string())]));
+        m.insert("countries".to_string(), Value::from(vec![Value::Str("KY".to_string())]));
         m.insert("version".to_string(), Value::Str("v2".to_string()));
         m.insert("rateLimit".to_string(), Value::Int(1000));
         m.insert("has".to_string(), Value::Map({
@@ -259,7 +259,7 @@ impl LatokenCore {
     m
 }));
         m.insert("www".to_string(), Value::Str("https://latoken.com".to_string()));
-        m.insert("doc".to_string(), Value::List(vec![Value::Str("https://api.latoken.com".to_string())]));
+        m.insert("doc".to_string(), Value::from(vec![Value::Str("https://api.latoken.com".to_string())]));
         m.insert("fees".to_string(), Value::Str("https://latoken.com/fees".to_string()));
         m.insert("referral".to_string(), Value::Str("https://latoken.com/invite?r=mvgp2djk".to_string()));
     m
@@ -830,7 +830,7 @@ impl LatokenCore {
     m
 })]);
         let mut currenciesById: Value = self.index_by(currencies.clone(), Value::Str("id".to_string()));
-        let mut result: Value = Value::List(vec![]);
+        let mut result: Value = Value::from(vec![]);
         let mut rawMarkets: Value = self.to_array(response.clone());
         {
                         let mut i: Value = Value::Int(0);
@@ -1043,7 +1043,7 @@ impl LatokenCore {
         })]);
         let mut accountType: Value = self.safe_string(types.clone(), type_var.clone(), &[type_var.clone()]);
         let mut balancesByType: Value = self.group_by(response.clone(), Value::Str("type".to_string()), &[]);
-        let mut balances: Value = self.safe_list(balancesByType.clone(), accountType.clone(), &[Value::List(vec![])]);
+        let mut balances: Value = self.safe_list(balancesByType.clone(), accountType.clone(), &[Value::from(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_905: bool = true;
@@ -1130,10 +1130,10 @@ impl LatokenCore {
         // observed live on 2026-08-17 with bestAskQuantity -0.1791852 served
         // for over half an hour - such a level is a deleted level their
         // aggregation failed to drop, so it is removed here
-        let mut rawAsks: Value = self.safe_list_k(response.clone(), "ask", &[Value::List(vec![])]);
-        let mut rawBids: Value = self.safe_list_k(response.clone(), "bid", &[Value::List(vec![])]);
-        let mut asks: Value = Value::List(vec![]);
-        let mut bids: Value = Value::List(vec![]);
+        let mut rawAsks: Value = self.safe_list_k(response.clone(), "ask", &[Value::from(vec![])]);
+        let mut rawBids: Value = self.safe_list_k(response.clone(), "bid", &[Value::from(vec![])]);
+        let mut asks: Value = Value::from(vec![]);
+        let mut bids: Value = Value::from(vec![]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_906: bool = true;
@@ -1535,7 +1535,7 @@ impl LatokenCore {
         if (limit != Value::Null) {
             add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone()); // default 100
         }
-        let mut response: Value = Value::List(vec![]);
+        let mut response: Value = Value::from(vec![]);
         if (symbol != Value::Null) {
             market = self.market(symbol.clone());
             add_element_to_object(&mut request, &Value::Str("currency".to_string()), market.as_map().and_then(|__m| __m.get("baseId")).cloned().unwrap_or(Value::Null));
@@ -1781,7 +1781,7 @@ impl LatokenCore {
         });
         let mut market: Value = Value::Null;
         let mut isTrigger: Value = self.safe_value2(params.clone(), Value::Str("trigger".to_string()), Value::Str("stop".to_string()), &[]);
-        params = self.omit(params.clone(), Value::List(vec![Value::Str("stop".to_string()), Value::Str("trigger".to_string())]), &[]);
+        params = self.omit(params.clone(), Value::from(vec![Value::Str("stop".to_string()), Value::Str("trigger".to_string())]), &[]);
         if (limit != Value::Null) {
             add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone()); // default 100
         }
@@ -1838,7 +1838,7 @@ impl LatokenCore {
             m
         });
         let mut isTrigger: Value = self.safe_value2(params.clone(), Value::Str("trigger".to_string()), Value::Str("stop".to_string()), &[]);
-        params = self.omit(params.clone(), Value::List(vec![Value::Str("stop".to_string()), Value::Str("trigger".to_string())]), &[]);
+        params = self.omit(params.clone(), Value::from(vec![Value::Str("stop".to_string()), Value::Str("trigger".to_string())]), &[]);
         let mut response: Value = Value::Null;
         if is_equal(&isTrigger, &Value::Bool(true)) {
             let __ws_arg_13 = self.extend(request.clone(), &[params.clone()]);
@@ -1901,7 +1901,7 @@ impl LatokenCore {
             add_element_to_object(&mut request, &Value::Str("price".to_string()), self.price_to_precision(symbol.clone(), price.clone()));
         }
         let mut triggerPrice: Value = self.safe_string2(params.clone(), Value::Str("triggerPrice".to_string()), Value::Str("stopPrice".to_string()), &[]);
-        params = self.omit(params.clone(), Value::List(vec![Value::Str("triggerPrice".to_string()), Value::Str("stopPrice".to_string())]), &[]);
+        params = self.omit(params.clone(), Value::from(vec![Value::Str("triggerPrice".to_string()), Value::Str("stopPrice".to_string())]), &[]);
         let mut response: Value = Value::Null;
         if (triggerPrice != Value::Null) {
             add_element_to_object(&mut request, &Value::Str("stopPrice".to_string()), self.price_to_precision(symbol.clone(), triggerPrice.clone()));
@@ -1943,7 +1943,7 @@ impl LatokenCore {
             m
         });
         let mut isTrigger: Value = self.safe_value2(params.clone(), Value::Str("trigger".to_string()), Value::Str("stop".to_string()), &[]);
-        params = self.omit(params.clone(), Value::List(vec![Value::Str("stop".to_string()), Value::Str("trigger".to_string())]), &[]);
+        params = self.omit(params.clone(), Value::from(vec![Value::Str("stop".to_string()), Value::Str("trigger".to_string())]), &[]);
         let mut response: Value = Value::Null;
         if is_equal(&isTrigger, &Value::Bool(true)) {
             let __ws_arg_17 = self.extend(request.clone(), &[params.clone()]);
@@ -1983,7 +1983,7 @@ impl LatokenCore {
         });
         let mut market: Value = Value::Null;
         let mut isTrigger: Value = self.safe_value2(params.clone(), Value::Str("trigger".to_string()), Value::Str("stop".to_string()), &[]);
-        params = self.omit(params.clone(), Value::List(vec![Value::Str("stop".to_string()), Value::Str("trigger".to_string())]), &[]);
+        params = self.omit(params.clone(), Value::from(vec![Value::Str("stop".to_string()), Value::Str("trigger".to_string())]), &[]);
         let mut response: Value = Value::Null;
         if (symbol != Value::Null) {
             market = self.market(symbol.clone());
@@ -2005,7 +2005,7 @@ impl LatokenCore {
                 response = self.private_post_auth_order_cancel_all(&[__ws_arg_22]).await;
             }
         }
-        return Value::List(vec![self.safe_order(Value::Map({
+        return Value::from(vec![self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), response.clone());
     m
@@ -2073,7 +2073,7 @@ impl LatokenCore {
         if (code != Value::Null) {
             currency = self.currency(code.clone());
         }
-        let mut content: Value = self.safe_list_k(response.clone(), "content", &[Value::List(vec![])]);
+        let mut content: Value = self.safe_list_k(response.clone(), "content", &[Value::from(vec![])]);
         return self.parse_transactions(content.clone(), &[currency.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -2233,7 +2233,7 @@ impl LatokenCore {
         //         "hasContent": true
         //     }
         //
-        let mut transfers: Value = self.safe_list_k(response.clone(), "content", &[Value::List(vec![])]);
+        let mut transfers: Value = self.safe_list_k(response.clone(), "content", &[Value::from(vec![])]);
         return self.parse_transfers(transfers.clone(), &[currency.clone(), since.clone(), limit.clone()]);
 
     Value::Null

@@ -313,10 +313,10 @@ impl GeminiCore {
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), Value::Str("subscribe".to_string()));
-                m.insert("subscriptions".to_string(), Value::List(vec![Value::Map({
+                m.insert("subscriptions".to_string(), Value::from(vec![Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("name".to_string(), Value::Str("l2".to_string()));
-        m.insert("symbols".to_string(), Value::List(vec![to_upper(&marketId)]));
+        m.insert("symbols".to_string(), Value::from(vec![to_upper(&marketId)]));
     m
 })]));
             m
@@ -582,10 +582,10 @@ impl GeminiCore {
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), Value::Str("subscribe".to_string()));
-                m.insert("subscriptions".to_string(), Value::List(vec![Value::Map({
+                m.insert("subscriptions".to_string(), Value::from(vec![Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("name".to_string(), Value::Str(format!("{}{}", Value::Str("candles_".to_string()), timeframeId)));
-        m.insert("symbols".to_string(), Value::List(vec![self.safe_string_upper(market.clone(), Value::Str("id".to_string()), &[])]));
+        m.insert("symbols".to_string(), Value::from(vec![self.safe_string_upper(market.clone(), Value::Str("id".to_string()), &[])]));
     m
 })]));
             m
@@ -634,7 +634,7 @@ impl GeminiCore {
         let mut marketId: Value = to_lower(&self.safe_string_k(message.clone(), "symbol", &[Value::Str("".to_string())]));
         let mut market: Value = self.safe_market(&[marketId.clone()]);
         let mut symbol: Value = self.safe_symbol(marketId.clone(), &[market.clone()]);
-        let mut changes: Value = self.safe_list_k(message.clone(), "changes", &[Value::List(vec![])]);
+        let mut changes: Value = self.safe_list_k(message.clone(), "changes", &[Value::from(vec![])]);
         let mut timeframe: Value = self.find_timeframe(timeframeId.clone(), &[]);
         let mut ohlcvsBySymbol: Value = self.safe_value(self.ohlcvs.clone(), symbol.clone(), &[]);
         if (ohlcvsBySymbol == Value::Null) {
@@ -696,10 +696,10 @@ impl GeminiCore {
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), Value::Str("subscribe".to_string()));
-                m.insert("subscriptions".to_string(), Value::List(vec![Value::Map({
+                m.insert("subscriptions".to_string(), Value::from(vec![Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("name".to_string(), Value::Str("l2".to_string()));
-        m.insert("symbols".to_string(), Value::List(vec![to_upper(&marketId)]));
+        m.insert("symbols".to_string(), Value::from(vec![to_upper(&marketId)]));
     m
 })]));
             m
@@ -714,7 +714,7 @@ impl GeminiCore {
 
     pub fn handle_order_book(&mut self, mut client: Value, mut message: Value) {
         let mut isInitial: bool = is_true(&(Value::Bool(in_op(&message, &Value::Str("auction_events".to_string()))))) && is_true(&(Value::Bool(in_op(&message, &Value::Str("trades".to_string()))))) && is_true(&(Value::Bool(in_op(&message, &Value::Str("changes".to_string())))));
-        let mut changes: Value = self.safe_list_k(message.clone(), "changes", &[Value::List(vec![])]);
+        let mut changes: Value = self.safe_list_k(message.clone(), "changes", &[Value::from(vec![])]);
         let mut marketId: Value = self.safe_string_lower(message.clone(), Value::Str("symbol".to_string()), &[]);
         let mut market: Value = self.safe_market(&[marketId.clone()]);
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
@@ -883,8 +883,8 @@ impl GeminiCore {
         if is_true(&(Value::Bool(firstMarket.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() != Some(true)))) && is_true(&(Value::Bool(firstMarket.as_map().and_then(|__m| __m.get("linear")).cloned().unwrap_or(Value::Null).as_bool() != Some(true)))) {
             panic!("{}", crate::exchange_errors::not_supported(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" watchMultiple supports only spot or linear-swap symbols".to_string())))));
         }
-        let mut messageHashes: Value = Value::List(vec![]);
-        let mut marketIds: Value = Value::List(vec![]);
+        let mut messageHashes: Value = Value::from(vec![]);
+        let mut marketIds: Value = Value::from(vec![]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_366: bool = true;
@@ -1282,9 +1282,9 @@ impl GeminiCore {
             if (events == Value::Null) {
                 return;
             }
-            let mut orderBookItems: Value = Value::List(vec![]);
-            let mut bidaskItems: Value = Value::List(vec![]);
-            let mut collectedEventsOfTrades: Value = Value::List(vec![]);
+            let mut orderBookItems: Value = Value::from(vec![]);
+            let mut bidaskItems: Value = Value::from(vec![]);
+            let mut collectedEventsOfTrades: Value = Value::from(vec![]);
             let mut eventsLength: Value = Value::Int(events.len() as i64);
             {
                                 let mut i: Value = Value::Int(0);
@@ -1293,7 +1293,7 @@ impl GeminiCore {
                 let mut event: Value = get_value(&events, &i);
                 let mut event: Value = get_value(&events, &i);
                 let mut eventType: Value = self.safe_string_k(event.clone(), "type", &[]);
-                let mut isOrderBook: bool = is_true(&(Value::Bool(eventType.as_str() == Some("change")))) && is_true(&(Value::Bool(in_op(&event, &Value::Str("side".to_string()))))) && is_true(&self.in_array(crate::value::get_value_k(&event, "side"), Value::List(vec![Value::Str("ask".to_string()), Value::Str("bid".to_string())])));
+                let mut isOrderBook: bool = is_true(&(Value::Bool(eventType.as_str() == Some("change")))) && is_true(&(Value::Bool(in_op(&event, &Value::Str("side".to_string()))))) && is_true(&self.in_array(crate::value::get_value_k(&event, "side"), Value::from(vec![Value::Str("ask".to_string()), Value::Str("bid".to_string())])));
                 let mut eventReason: Value = self.safe_string_k(event.clone(), "reason", &[]);
                 let mut isBidAsk: bool = is_true(&(Value::Bool(eventReason.as_str() == Some("top-of-book")))) || is_true(&(Value::Bool(isOrderBook && is_true(&(Value::Bool(eventReason.as_str() == Some("initial")))) && (eventsLength.as_f64() == Some(2.0)))));
                 if isBidAsk {

@@ -432,7 +432,7 @@ impl HollaexCore {
             stored = ArrayCache::new(limit.clone());
             add_element_to_object(&mut self.trades, &symbol, stored.clone());
         }
-        let mut data: Value = self.safe_value_k(message.clone(), "data", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_value_k(message.clone(), "data", &[Value::from(vec![])]);
         let mut parsedTrades: Value = self.parse_trades(data.clone(), &[market.clone()]);
         {
                         let mut j: Value = Value::Int(0);
@@ -670,7 +670,7 @@ impl HollaexCore {
         let mut stored: Value = self.orders.clone();
         let mut rawOrders: Value = Value::Null;
         if !is_true(&Value::Bool(is_array(&data))) {
-            rawOrders = Value::List(vec![data.clone()]);
+            rawOrders = Value::from(vec![data.clone()]);
         }  else {
             rawOrders = data.clone();
         }
@@ -786,7 +786,7 @@ impl HollaexCore {
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("op".to_string(), Value::Str("subscribe".to_string()));
-                m.insert("args".to_string(), Value::List(vec![messageHash.clone()]));
+                m.insert("args".to_string(), Value::from(vec![messageHash.clone()]));
             m
         });
         let mut message: Value = self.extend(request.clone(), &[params.clone()]);
@@ -827,7 +827,7 @@ impl HollaexCore {
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("op".to_string(), Value::Str("subscribe".to_string()));
-                m.insert("args".to_string(), Value::List(vec![messageHash.clone()]));
+                m.insert("args".to_string(), Value::from(vec![messageHash.clone()]));
             m
         });
         let mut message: Value = self.extend(request.clone(), &[params.clone()]);

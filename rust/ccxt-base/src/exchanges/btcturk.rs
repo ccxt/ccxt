@@ -130,7 +130,7 @@ impl BtcturkCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), Value::Str("btcturk".to_string()));
         m.insert("name".to_string(), Value::Str("BTCTurk".to_string()));
-        m.insert("countries".to_string(), Value::List(vec![Value::Str("TR".to_string())]));
+        m.insert("countries".to_string(), Value::from(vec![Value::Str("TR".to_string())]));
         m.insert("rateLimit".to_string(), Value::Int(100));
         m.insert("pro".to_string(), Value::Bool(false));
         m.insert("has".to_string(), Value::Map({
@@ -572,7 +572,7 @@ impl BtcturkCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut markets: Value = self.safe_list_k(data.clone(), "symbols", &[Value::List(vec![])]);
+        let mut markets: Value = self.safe_list_k(data.clone(), "symbols", &[Value::from(vec![])]);
         return self.parse_markets(markets.clone());
 
     Value::Null
@@ -584,7 +584,7 @@ impl BtcturkCore {
         let mut quoteId: Value = self.safe_string_k(entry.clone(), "denominator", &[]);
         let mut base: Value = self.safe_currency_code(baseId.clone(), &[]);
         let mut quote: Value = self.safe_currency_code(quoteId.clone(), &[]);
-        let mut filters: Value = self.safe_list_k(entry.clone(), "filters", &[Value::List(vec![])]);
+        let mut filters: Value = self.safe_list_k(entry.clone(), "filters", &[Value::from(vec![])]);
         let mut minPrice: Value = Value::Null;
         let mut maxPrice: Value = Value::Null;
         let mut minAmount: Value = Value::Null;
@@ -675,7 +675,7 @@ impl BtcturkCore {
 }
 
     pub fn parse_balance(&self, mut response: Value) -> Value {
-        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::from(vec![])]);
         let mut result: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("info".to_string(), response.clone());
@@ -872,7 +872,7 @@ impl BtcturkCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut tickers: Value = self.fetch_tickers(&[Value::List(vec![symbol.clone()]), params.clone()]).await;
+        let mut tickers: Value = self.fetch_tickers(&[Value::from(vec![symbol.clone()]), params.clone()]).await;
         return self.safe_value(tickers.clone(), symbol.clone(), &[]);
 
     Value::Null
@@ -999,7 +999,7 @@ impl BtcturkCore {
         //     }
         //
         let mut data: Value = self.safe_list_k(response.clone(), "data", &[]);
-        let mut dataList: Value = Value::List(vec![]);
+        let mut dataList: Value = Value::from(vec![]);
         if (data != Value::Null) {
             dataList = data.clone();
         }
@@ -1010,7 +1010,7 @@ impl BtcturkCore {
 
     pub fn parse_ohlcv(&self, mut ohlcv: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
-        return Value::List(vec![self.safe_timestamp(ohlcv.clone(), Value::Str("timestamp".to_string()), &[]), self.safe_number_k(ohlcv.clone(), "open", &[]), self.safe_number_k(ohlcv.clone(), "high", &[]), self.safe_number_k(ohlcv.clone(), "low", &[]), self.safe_number_k(ohlcv.clone(), "close", &[]), self.safe_number_k(ohlcv.clone(), "volume", &[])]);
+        return Value::from(vec![self.safe_timestamp(ohlcv.clone(), Value::Str("timestamp".to_string()), &[]), self.safe_number_k(ohlcv.clone(), "open", &[]), self.safe_number_k(ohlcv.clone(), "high", &[]), self.safe_number_k(ohlcv.clone(), "low", &[]), self.safe_number_k(ohlcv.clone(), "close", &[]), self.safe_number_k(ohlcv.clone(), "volume", &[])]);
 
     Value::Null
 }
@@ -1080,13 +1080,13 @@ impl BtcturkCore {
         let mut since = get_arg(optional_args, 2, Value::Null);
         let mut limit = get_arg(optional_args, 3, Value::Null);
         let mut tail = get_arg(optional_args, 4, Value::Bool(false));
-        let mut results: Value = Value::List(vec![]);
-        let mut timestamp: Value = self.safe_list_k(ohlcvs.clone(), "t", &[Value::List(vec![])]);
-        let mut high: Value = self.safe_list_k(ohlcvs.clone(), "h", &[Value::List(vec![])]);
-        let mut open: Value = self.safe_list_k(ohlcvs.clone(), "o", &[Value::List(vec![])]);
-        let mut low: Value = self.safe_list_k(ohlcvs.clone(), "l", &[Value::List(vec![])]);
-        let mut close: Value = self.safe_list_k(ohlcvs.clone(), "c", &[Value::List(vec![])]);
-        let mut volume: Value = self.safe_list_k(ohlcvs.clone(), "v", &[Value::List(vec![])]);
+        let mut results: Value = Value::from(vec![]);
+        let mut timestamp: Value = self.safe_list_k(ohlcvs.clone(), "t", &[Value::from(vec![])]);
+        let mut high: Value = self.safe_list_k(ohlcvs.clone(), "h", &[Value::from(vec![])]);
+        let mut open: Value = self.safe_list_k(ohlcvs.clone(), "o", &[Value::from(vec![])]);
+        let mut low: Value = self.safe_list_k(ohlcvs.clone(), "l", &[Value::from(vec![])]);
+        let mut close: Value = self.safe_list_k(ohlcvs.clone(), "c", &[Value::from(vec![])]);
+        let mut volume: Value = self.safe_list_k(ohlcvs.clone(), "v", &[Value::from(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_457: bool = true;
@@ -1229,8 +1229,8 @@ impl BtcturkCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut bids: Value = self.safe_list_k(data.clone(), "bids", &[Value::List(vec![])]);
-        let mut asks: Value = self.safe_list_k(data.clone(), "asks", &[Value::List(vec![])]);
+        let mut bids: Value = self.safe_list_k(data.clone(), "bids", &[Value::from(vec![])]);
+        let mut asks: Value = self.safe_list_k(data.clone(), "asks", &[Value::from(vec![])]);
         return self.parse_orders(self.array_concat(bids.clone(), asks.clone()), &[market.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -1434,7 +1434,7 @@ impl BtcturkCore {
         //     }
         //
         let mut data: Value = self.safe_list_k(response.clone(), "data", &[]);
-        let mut dataList: Value = Value::List(vec![]);
+        let mut dataList: Value = Value::from(vec![]);
         if (data != Value::Null) {
             dataList = data.clone();
         }

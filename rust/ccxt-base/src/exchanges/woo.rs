@@ -244,7 +244,7 @@ impl WooCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), Value::Str("woo".to_string()));
         m.insert("name".to_string(), Value::Str("WOO X".to_string()));
-        m.insert("countries".to_string(), Value::List(vec![Value::Str("KY".to_string())]));
+        m.insert("countries".to_string(), Value::from(vec![Value::Str("KY".to_string())]));
         m.insert("rateLimit".to_string(), Value::Int(100));
         m.insert("version".to_string(), Value::Str("v1".to_string()));
         m.insert("certified".to_string(), Value::Bool(true));
@@ -380,8 +380,8 @@ impl WooCore {
     m
 }));
         m.insert("www".to_string(), Value::Str("https://woox.io/".to_string()));
-        m.insert("doc".to_string(), Value::List(vec![Value::Str("https://developer.woox.io/".to_string()), Value::Str("https://docs.woox.io/".to_string())]));
-        m.insert("fees".to_string(), Value::List(vec![Value::Str("https://support.woox.io/hc/en-001/articles/4404611795353--Trading-Fees".to_string())]));
+        m.insert("doc".to_string(), Value::from(vec![Value::Str("https://developer.woox.io/".to_string()), Value::Str("https://docs.woox.io/".to_string())]));
+        m.insert("fees".to_string(), Value::from(vec![Value::Str("https://support.woox.io/hc/en-001/articles/4404611795353--Trading-Fees".to_string())]));
         m.insert("referral".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), Value::Str("https://woox.io/register?ref=DIJT0CNL".to_string()));
@@ -1644,7 +1644,7 @@ impl WooCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut rows: Value = self.safe_list_k(data.clone(), "rows", &[Value::List(vec![])]);
+        let mut rows: Value = self.safe_list_k(data.clone(), "rows", &[Value::from(vec![])]);
         return self.parse_markets(rows.clone());
 
     Value::Null
@@ -1807,7 +1807,7 @@ impl WooCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut rows: Value = self.safe_list_k(data.clone(), "rows", &[Value::List(vec![])]);
+        let mut rows: Value = self.safe_list_k(data.clone(), "rows", &[Value::from(vec![])]);
         return self.parse_trades(rows.clone(), &[market.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -1860,7 +1860,7 @@ impl WooCore {
         let mut price: Value = self.safe_string2(trade.clone(), Value::Str("executed_price".to_string()), Value::Str("executedPrice".to_string()), &[]);
         let mut amount: Value = self.safe_string2(trade.clone(), Value::Str("executed_quantity".to_string()), Value::Str("executedQuantity".to_string()), &[]);
         let mut order_id: Value = self.safe_string2(trade.clone(), Value::Str("order_id".to_string()), Value::Str("orderId".to_string()), &[]);
-        let mut fee: Value = self.parse_token_and_fee_temp(trade.clone(), Value::List(vec![Value::Str("fee_asset".to_string()), Value::Str("feeAsset".to_string())]), Value::List(vec![Value::Str("fee".to_string())]));
+        let mut fee: Value = self.parse_token_and_fee_temp(trade.clone(), Value::from(vec![Value::Str("fee_asset".to_string()), Value::Str("feeAsset".to_string())]), Value::from(vec![Value::Str("fee".to_string())]));
         let mut feeCost: Value = self.safe_string_k(fee.clone(), "cost", &[]);
         if is_true(&(Value::Bool(fee != Value::Null))) && is_true(&(Value::Bool(feeCost != Value::Null))) {
             add_element_to_object(&mut fee, &Value::Str("cost".to_string()), feeCost.clone());
@@ -2154,11 +2154,11 @@ impl WooCore {
         //     "success": true
         // }
         //
-        let mut tokenResponsetokenNetworkResponseVariable = promise_all(&Value::List(vec![tokenResponsePromise.clone(), tokenNetworkResponsePromise.clone()])).await;
+        let mut tokenResponsetokenNetworkResponseVariable = promise_all(&Value::from(vec![tokenResponsePromise.clone(), tokenNetworkResponsePromise.clone()])).await;
         let mut tokenResponse: Value = tokenResponsetokenNetworkResponseVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut tokenNetworkResponse: Value = tokenResponsetokenNetworkResponseVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
-        let mut tokenRows: Value = self.safe_list_k(tokenResponse.clone(), "rows", &[Value::List(vec![])]);
-        let mut tokenNetworkRows: Value = self.safe_list_k(tokenNetworkResponse.clone(), "rows", &[Value::List(vec![])]);
+        let mut tokenRows: Value = self.safe_list_k(tokenResponse.clone(), "rows", &[Value::from(vec![])]);
+        let mut tokenNetworkRows: Value = self.safe_list_k(tokenNetworkResponse.clone(), "rows", &[Value::from(vec![])]);
         let mut networksById: Value = self.group_by(tokenNetworkRows.clone(), Value::Str("token".to_string()), &[]);
         let mut tokensById: Value = self.group_by(tokenRows.clone(), Value::Str("balance_token".to_string()), &[]);
         let mut currencyIds: Value = object_keys(&tokensById);
@@ -2445,7 +2445,7 @@ impl WooCore {
     m
 }));
         let mut reduceOnly: Value = self.safe_bool2(params.clone(), Value::Str("reduceOnly".to_string()), Value::Str("reduce_only".to_string()), &[]);
-        params = self.omit(params.clone(), Value::List(vec![Value::Str("reduceOnly".to_string()), Value::Str("reduce_only".to_string())]), &[]);
+        params = self.omit(params.clone(), Value::from(vec![Value::Str("reduceOnly".to_string()), Value::Str("reduce_only".to_string())]), &[]);
         let mut orderType: Value = to_upper(&type_var);
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
@@ -2498,8 +2498,8 @@ impl WooCore {
         }
         if is_true(&isMarket) && !isConditional {
             // for market buy it requires the amount of quote currency to spend
-            let mut cost: Value = self.safe_string_n(params.clone(), Value::List(vec![Value::Str("cost".to_string()), Value::Str("order_amount".to_string()), Value::Str("orderAmount".to_string())]), &[]);
-            params = self.omit(params.clone(), Value::List(vec![Value::Str("cost".to_string()), Value::Str("order_amount".to_string()), Value::Str("orderAmount".to_string())]), &[]);
+            let mut cost: Value = self.safe_string_n(params.clone(), Value::from(vec![Value::Str("cost".to_string()), Value::Str("order_amount".to_string()), Value::Str("orderAmount".to_string())]), &[]);
+            params = self.omit(params.clone(), Value::from(vec![Value::Str("cost".to_string()), Value::Str("order_amount".to_string()), Value::Str("orderAmount".to_string())]), &[]);
             let mut isPriceProvided: bool = price != Value::Null;
             if is_true(&(Value::Bool(market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)))) && is_true(&(Value::Bool(isPriceProvided || is_true(&(Value::Bool(cost != Value::Null)))))) {
                 let mut quoteAmount: Value = Value::Null;
@@ -2518,7 +2518,7 @@ impl WooCore {
         }  else if (algoType.as_str() != Some("POSITIONAL_TP_SL")) {
             add_element_to_object(&mut request, &Value::Str("quantity".to_string()), self.amount_to_precision(symbol.clone(), amount.clone()));
         }
-        let mut clientOrderId: Value = self.safe_string_n(params.clone(), Value::List(vec![Value::Str("clOrdID".to_string()), Value::Str("clientOrderId".to_string()), Value::Str("client_order_id".to_string())]), &[]);
+        let mut clientOrderId: Value = self.safe_string_n(params.clone(), Value::from(vec![Value::Str("clOrdID".to_string()), Value::Str("clientOrderId".to_string()), Value::Str("client_order_id".to_string())]), &[]);
         if (clientOrderId != Value::Null) {
             add_element_to_object(&mut request, &clientOrderIdKey, clientOrderId.clone());
         }
@@ -2546,7 +2546,7 @@ impl WooCore {
                     m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
                     m.insert("reduceOnly".to_string(), Value::Bool(false));
                     m.insert("algoType".to_string(), Value::Str("POSITIONAL_TP_SL".to_string()));
-                    m.insert("childOrders".to_string(), Value::List(vec![]));
+                    m.insert("childOrders".to_string(), Value::from(vec![]));
                 m
             });
             let mut childOrders: Value = outterOrder.as_map().and_then(|__m| __m.get("childOrders")).cloned().unwrap_or(Value::Null);
@@ -2577,9 +2577,9 @@ impl WooCore {
                 });
                 append_to_array(&mut childOrders, takeProfitOrder.clone());
             }
-            add_element_to_object(&mut request, &Value::Str("childOrders".to_string()), Value::List(vec![outterOrder.clone()]));
+            add_element_to_object(&mut request, &Value::Str("childOrders".to_string()), Value::from(vec![outterOrder.clone()]));
         }
-        params = self.omit(params.clone(), Value::List(vec![Value::Str("clOrdID".to_string()), Value::Str("clientOrderId".to_string()), Value::Str("client_order_id".to_string()), Value::Str("postOnly".to_string()), Value::Str("timeInForce".to_string()), Value::Str("stopPrice".to_string()), Value::Str("triggerPrice".to_string()), Value::Str("stopLoss".to_string()), Value::Str("takeProfit".to_string()), Value::Str("trailingPercent".to_string()), Value::Str("trailingAmount".to_string()), Value::Str("trailingTriggerPrice".to_string())]), &[]);
+        params = self.omit(params.clone(), Value::from(vec![Value::Str("clOrdID".to_string()), Value::Str("clientOrderId".to_string()), Value::Str("client_order_id".to_string()), Value::Str("postOnly".to_string()), Value::Str("timeInForce".to_string()), Value::Str("stopPrice".to_string()), Value::Str("triggerPrice".to_string()), Value::Str("stopLoss".to_string()), Value::Str("takeProfit".to_string()), Value::Str("trailingPercent".to_string()), Value::Str("trailingAmount".to_string()), Value::Str("trailingTriggerPrice".to_string())]), &[]);
         let mut response: Value = Value::Null;
         if isConditional {
             let __ws_arg_2 = self.extend(request.clone(), &[params.clone()]);
@@ -2658,7 +2658,7 @@ impl WooCore {
         let mut clientOrderIdUnified: Value = self.safe_string2(params.clone(), Value::Str("clOrdID".to_string()), Value::Str("clientOrderId".to_string()), &[]);
         let mut clientOrderIdExchangeSpecific: Value = self.safe_string_k(params.clone(), "client_order_id", &[clientOrderIdUnified.clone()]);
         let mut isByClientOrder: bool = clientOrderIdExchangeSpecific != Value::Null;
-        let mut triggerPrice: Value = self.safe_number_n(params.clone(), Value::List(vec![Value::Str("triggerPrice".to_string()), Value::Str("stopPrice".to_string()), Value::Str("takeProfitPrice".to_string()), Value::Str("stopLossPrice".to_string())]), &[]);
+        let mut triggerPrice: Value = self.safe_number_n(params.clone(), Value::from(vec![Value::Str("triggerPrice".to_string()), Value::Str("stopPrice".to_string()), Value::Str("takeProfitPrice".to_string()), Value::Str("stopLossPrice".to_string())]), &[]);
         if (triggerPrice != Value::Null) {
             add_element_to_object(&mut request, &Value::Str("triggerPrice".to_string()), self.price_to_precision(symbol.clone(), triggerPrice.clone()));
         }
@@ -2680,7 +2680,7 @@ impl WooCore {
             }
         }
         let mut isTrigger: Value = self.safe_bool2(params.clone(), Value::Str("trigger".to_string()), Value::Str("stop".to_string()), &[Value::Bool(false)]);
-        params = self.omit(params.clone(), Value::List(vec![Value::Str("clOrdID".to_string()), Value::Str("clientOrderId".to_string()), Value::Str("client_order_id".to_string()), Value::Str("stopPrice".to_string()), Value::Str("triggerPrice".to_string()), Value::Str("takeProfitPrice".to_string()), Value::Str("stopLossPrice".to_string()), Value::Str("trailingTriggerPrice".to_string()), Value::Str("trailingAmount".to_string()), Value::Str("trailingPercent".to_string()), Value::Str("trigger".to_string()), Value::Str("stop".to_string())]), &[]);
+        params = self.omit(params.clone(), Value::from(vec![Value::Str("clOrdID".to_string()), Value::Str("clientOrderId".to_string()), Value::Str("client_order_id".to_string()), Value::Str("stopPrice".to_string()), Value::Str("triggerPrice".to_string()), Value::Str("takeProfitPrice".to_string()), Value::Str("stopLossPrice".to_string()), Value::Str("trailingTriggerPrice".to_string()), Value::Str("trailingAmount".to_string()), Value::Str("trailingPercent".to_string()), Value::Str("trigger".to_string()), Value::Str("stop".to_string())]), &[]);
         let mut isConditional: bool = is_true(&(Value::Bool(isTrigger.as_bool() == Some(true)))) || isTrailing || is_true(&(Value::Bool(triggerPrice != Value::Null))) || is_true(&(Value::Bool(self.safe_value_k(params.clone(), "childOrders", &[]) != Value::Null)));
         let mut response: Value = Value::Null;
         if isConditional {
@@ -2743,7 +2743,7 @@ impl WooCore {
     m
 }));
         let mut isTrigger: Value = self.safe_bool2(params.clone(), Value::Str("trigger".to_string()), Value::Str("stop".to_string()), &[Value::Bool(false)]);
-        params = self.omit(params.clone(), Value::List(vec![Value::Str("trigger".to_string()), Value::Str("stop".to_string())]), &[]);
+        params = self.omit(params.clone(), Value::from(vec![Value::Str("trigger".to_string()), Value::Str("stop".to_string())]), &[]);
         if is_true(&(Value::Bool(isTrigger.as_bool() != Some(true)))) && is_true(&(Value::Bool(symbol == Value::Null))) {
             panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" cancelOrder() requires a symbol argument".to_string())))));
         }
@@ -2760,7 +2760,7 @@ impl WooCore {
         });
         let mut clientOrderIdUnified: Value = self.safe_string2(params.clone(), Value::Str("clOrdID".to_string()), Value::Str("clientOrderId".to_string()), &[]);
         let mut clientOrderIdExchangeSpecific: Value = self.safe_string_k(params.clone(), "client_order_id", &[clientOrderIdUnified.clone()]);
-        params = self.omit(params.clone(), Value::List(vec![Value::Str("clOrdID".to_string()), Value::Str("clientOrderId".to_string()), Value::Str("client_order_id".to_string())]), &[]);
+        params = self.omit(params.clone(), Value::from(vec![Value::Str("clOrdID".to_string()), Value::Str("clientOrderId".to_string()), Value::Str("client_order_id".to_string())]), &[]);
         let mut isByClientOrder: bool = clientOrderIdExchangeSpecific != Value::Null;
         let mut response: Value = Value::Null;
         if (isTrigger.as_bool() == Some(true)) {
@@ -2826,7 +2826,7 @@ impl WooCore {
             self.load_markets(&[]).await;
         }
         let mut trigger: Value = self.safe_bool2(params.clone(), Value::Str("stop".to_string()), Value::Str("trigger".to_string()), &[]);
-        params = self.omit(params.clone(), Value::List(vec![Value::Str("stop".to_string()), Value::Str("trigger".to_string())]), &[]);
+        params = self.omit(params.clone(), Value::from(vec![Value::Str("stop".to_string()), Value::Str("trigger".to_string())]), &[]);
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -2856,7 +2856,7 @@ impl WooCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        return Value::List(vec![self.safe_order(Value::Map({
+        return Value::from(vec![self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), data.clone());
     m
@@ -2920,7 +2920,7 @@ impl WooCore {
             market = self.market(symbol.clone());
         }
         let mut trigger: Value = self.safe_bool2(params.clone(), Value::Str("stop".to_string()), Value::Str("trigger".to_string()), &[]);
-        params = self.omit(params.clone(), Value::List(vec![Value::Str("stop".to_string()), Value::Str("trigger".to_string())]), &[]);
+        params = self.omit(params.clone(), Value::from(vec![Value::Str("stop".to_string()), Value::Str("trigger".to_string())]), &[]);
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -2991,7 +2991,7 @@ impl WooCore {
         });
         let mut market: Value = Value::Null;
         let mut trigger: Value = self.safe_bool2(params.clone(), Value::Str("stop".to_string()), Value::Str("trigger".to_string()), &[]);
-        params = self.omit(params.clone(), Value::List(vec![Value::Str("stop".to_string()), Value::Str("trigger".to_string())]), &[]);
+        params = self.omit(params.clone(), Value::from(vec![Value::Str("stop".to_string()), Value::Str("trigger".to_string())]), &[]);
         if (symbol != Value::Null) {
             market = self.market(symbol.clone());
             add_element_to_object(&mut request, &Value::Str("symbol".to_string()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
@@ -3000,7 +3000,7 @@ impl WooCore {
             add_element_to_object(&mut request, &Value::Str("startTime".to_string()), since.clone());
         }
         let mut until: Value = self.safe_integer_k(params.clone(), "until", &[]); // unified in milliseconds
-        params = self.omit(params.clone(), Value::List(vec![Value::Str("until".to_string())]), &[]);
+        params = self.omit(params.clone(), Value::from(vec![Value::Str("until".to_string())]), &[]);
         if (until != Value::Null) {
             add_element_to_object(&mut request, &Value::Str("endTime".to_string()), until.clone());
         }
@@ -3019,7 +3019,7 @@ impl WooCore {
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut orders: Value = self.safe_list_k(data.clone(), "rows", &[Value::List(vec![])]);
+        let mut orders: Value = self.safe_list_k(data.clone(), "rows", &[Value::from(vec![])]);
         return self.parse_orders(orders.clone(), &[market.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -3470,7 +3470,7 @@ impl WooCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut rows: Value = self.safe_list_k(data.clone(), "rows", &[Value::List(vec![])]);
+        let mut rows: Value = self.safe_list_k(data.clone(), "rows", &[Value::from(vec![])]);
         let mut first: Value = self.safe_dict(rows.clone(), Value::Int(0), &[]);
         if (first == Value::Null) {
             panic!("{}", crate::exchange_errors::bad_symbol(Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchTicker() could not find ticker data for ".to_string()))), symbol))));
@@ -3534,9 +3534,9 @@ impl WooCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut rows: Value = self.safe_list_k(data.clone(), "rows", &[Value::List(vec![])]);
+        let mut rows: Value = self.safe_list_k(data.clone(), "rows", &[Value::from(vec![])]);
         let mut timestamp: Value = self.safe_integer_k(response.clone(), "timestamp", &[]);
-        let mut result: Value = Value::List(vec![]);
+        let mut result: Value = Value::from(vec![]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1129: bool = true;
@@ -3633,7 +3633,7 @@ impl WooCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut rows: Value = self.safe_list_k(data.clone(), "rows", &[Value::List(vec![])]);
+        let mut rows: Value = self.safe_list_k(data.clone(), "rows", &[Value::from(vec![])]);
         return self.parse_ohlc_vs(rows.clone(), &[market.clone(), timeframe.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -3641,7 +3641,7 @@ impl WooCore {
 
     pub fn parse_ohlcv(&self, mut ohlcv: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
-        return Value::List(vec![self.safe_integer_k(ohlcv.clone(), "startTimestamp", &[]), self.safe_number_k(ohlcv.clone(), "open", &[]), self.safe_number_k(ohlcv.clone(), "high", &[]), self.safe_number_k(ohlcv.clone(), "low", &[]), self.safe_number_k(ohlcv.clone(), "close", &[]), self.safe_number_k(ohlcv.clone(), "volume", &[])]);
+        return Value::from(vec![self.safe_integer_k(ohlcv.clone(), "startTimestamp", &[]), self.safe_number_k(ohlcv.clone(), "open", &[]), self.safe_number_k(ohlcv.clone(), "high", &[]), self.safe_number_k(ohlcv.clone(), "low", &[]), self.safe_number_k(ohlcv.clone(), "close", &[]), self.safe_number_k(ohlcv.clone(), "volume", &[])]);
 
     Value::Null
 }
@@ -3698,7 +3698,7 @@ impl WooCore {
         //       }
         //     ]
         // }
-        let mut trades: Value = self.safe_list_k(response.clone(), "rows", &[Value::List(vec![])]);
+        let mut trades: Value = self.safe_list_k(response.clone(), "rows", &[Value::from(vec![])]);
         return self.parse_trades(trades.clone(), &[market.clone(), since.clone(), limit.clone(), params.clone()]);
 
     Value::Null
@@ -3745,7 +3745,7 @@ impl WooCore {
             add_element_to_object(&mut request, &Value::Str("startTime".to_string()), since.clone());
         }
         let mut until: Value = self.safe_integer_k(params.clone(), "until", &[]); // unified in milliseconds
-        params = self.omit(params.clone(), Value::List(vec![Value::Str("until".to_string())]), &[]);
+        params = self.omit(params.clone(), Value::from(vec![Value::Str("until".to_string())]), &[]);
         if (until != Value::Null) {
             add_element_to_object(&mut request, &Value::Str("endTime".to_string()), until.clone());
         }
@@ -3787,7 +3787,7 @@ impl WooCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut trades: Value = self.safe_list_k(data.clone(), "rows", &[Value::List(vec![])]);
+        let mut trades: Value = self.safe_list_k(data.clone(), "rows", &[Value::from(vec![])]);
         return self.parse_trades(trades.clone(), &[market.clone(), since.clone(), limit.clone(), params.clone()]);
 
     Value::Null
@@ -3853,19 +3853,19 @@ impl WooCore {
         //         "timestamp": 1721295317627
         //     }
         //
-        let mut mainAccountResponsesubAccountResponseVariable = promise_all(&Value::List(vec![mainAccountPromise.clone(), subAccountPromise.clone()])).await;
+        let mut mainAccountResponsesubAccountResponseVariable = promise_all(&Value::from(vec![mainAccountPromise.clone(), subAccountPromise.clone()])).await;
         let mut mainAccountResponse: Value = mainAccountResponsesubAccountResponseVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut subAccountResponse: Value = mainAccountResponsesubAccountResponseVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         let mut mainData: Value = self.safe_dict_k(mainAccountResponse.clone(), "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut mainRows: Value = Value::List(vec![mainData.clone()]);
+        let mut mainRows: Value = Value::from(vec![mainData.clone()]);
         let mut subData: Value = self.safe_dict_k(subAccountResponse.clone(), "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut subRows: Value = self.safe_list_k(subData.clone(), "rows", &[Value::List(vec![])]);
+        let mut subRows: Value = self.safe_list_k(subData.clone(), "rows", &[Value::from(vec![])]);
         let mut rows: Value = self.array_concat(mainRows.clone(), subRows.clone());
         return self.parse_accounts(rows.clone(), &[params.clone()]);
 
@@ -3877,7 +3877,7 @@ impl WooCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), account.clone());
         m.insert("id".to_string(), self.safe_string_k(account.clone(), "applicationId", &[]));
-        m.insert("name".to_string(), self.safe_string_n(account.clone(), Value::List(vec![Value::Str("name".to_string()), Value::Str("account".to_string()), Value::Str("alias".to_string())]), &[]));
+        m.insert("name".to_string(), self.safe_string_n(account.clone(), Value::from(vec![Value::Str("name".to_string()), Value::Str("account".to_string()), Value::Str("alias".to_string())]), &[]));
         m.insert("code".to_string(), Value::Null);
         m.insert("type".to_string(), self.safe_string_lower(account.clone(), Value::Str("accountType".to_string()), &[Value::Str("subaccount".to_string())]));
     m
@@ -3938,7 +3938,7 @@ impl WooCore {
                 m.insert("info".to_string(), response.clone());
             m
         });
-        let mut balances: Value = self.safe_list_k(response.clone(), "holding", &[Value::List(vec![])]);
+        let mut balances: Value = self.safe_list_k(response.clone(), "holding", &[Value::from(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1130: bool = true;
@@ -4022,7 +4022,7 @@ impl WooCore {
             panic!("{}", crate::exchange_errors::bad_request(Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str("  can not determine a network code, please provide unified \"network\" param, one from the following: ".to_string()))), self.json(supportedNetworks.clone())))));
         }
         let mut currentyNetworkId: Value = self.safe_string_k(networkEntry.clone(), "currencyNetworkId", &[]);
-        return Value::List(vec![currentyNetworkId.clone(), params.clone()]);
+        return Value::from(vec![currentyNetworkId.clone(), params.clone()]);
 
     Value::Null
 }
@@ -4122,7 +4122,7 @@ impl WooCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        return Value::List(vec![currency.clone(), self.safe_list_k(data.clone(), "rows", &[Value::List(vec![])])]);
+        return Value::from(vec![currency.clone(), self.safe_list_k(data.clone(), "rows", &[Value::from(vec![])])]);
 
     Value::Null
 }
@@ -4185,7 +4185,7 @@ impl WooCore {
         let mut side: Value = self.safe_string_k(item.clone(), "tokenSide", &[]);
         let mut direction: Value = (if is_true(&(Value::Bool(side.as_str() == Some("DEPOSIT")))) { Value::Str("in".to_string()) } else { Value::Str("out".to_string()) });
         let mut timestamp: Value = self.safe_timestamp(item.clone(), Value::Str("createdTime".to_string()), &[]);
-        let mut fee: Value = self.parse_token_and_fee_temp(item.clone(), Value::List(vec![Value::Str("feeToken".to_string())]), Value::List(vec![Value::Str("feeAmount".to_string())]));
+        let mut fee: Value = self.parse_token_and_fee_temp(item.clone(), Value::from(vec![Value::Str("feeToken".to_string())]), Value::from(vec![Value::Str("feeAmount".to_string())]));
         return self.safe_ledger_entry(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), item.clone());
@@ -4326,7 +4326,7 @@ impl WooCore {
         let __ws_arg_25 = self.extend(request.clone(), &[params.clone()]);
         let mut currencyRows: Value = self.get_asset_history_rows(&[code.clone(), since.clone(), limit.clone(), __ws_arg_25]).await;
         let mut currency: Value = self.safe_value(currencyRows.clone(), Value::Int(0), &[]);
-        let mut rows: Value = self.safe_list(currencyRows.clone(), Value::Int(1), &[Value::List(vec![])]);
+        let mut rows: Value = self.safe_list(currencyRows.clone(), Value::Int(1), &[Value::from(vec![])]);
         return self.parse_transactions(rows.clone(), &[currency.clone(), since.clone(), limit.clone(), params.clone()]);
 
     Value::Null
@@ -4359,18 +4359,18 @@ impl WooCore {
         let mut networkizedCode: Value = self.safe_string_k(transaction.clone(), "token", &[]);
         let mut currencyDefined: Value = self.get_currency_from_chaincode(networkizedCode.clone(), currency.clone());
         let mut code: Value = crate::value::get_value_k(&currencyDefined, "code");
-        let mut movementDirection: Value = self.safe_string_lower_n(transaction.clone(), Value::List(vec![Value::Str("token_side".to_string()), Value::Str("tokenSide".to_string()), Value::Str("type".to_string())]), &[]);
+        let mut movementDirection: Value = self.safe_string_lower_n(transaction.clone(), Value::from(vec![Value::Str("token_side".to_string()), Value::Str("tokenSide".to_string()), Value::Str("type".to_string())]), &[]);
         if (movementDirection.as_str() == Some("withdraw")) {
             movementDirection = Value::Str("withdrawal".to_string());
         }
-        let mut fee: Value = self.parse_token_and_fee_temp(transaction.clone(), Value::List(vec![Value::Str("fee_token".to_string()), Value::Str("feeToken".to_string())]), Value::List(vec![Value::Str("fee_amount".to_string()), Value::Str("feeAmount".to_string())]));
-        let mut addressTo: Value = self.safe_string_n(transaction.clone(), Value::List(vec![Value::Str("target_address".to_string()), Value::Str("targetAddress".to_string()), Value::Str("addressTo".to_string())]), &[]);
+        let mut fee: Value = self.parse_token_and_fee_temp(transaction.clone(), Value::from(vec![Value::Str("fee_token".to_string()), Value::Str("feeToken".to_string())]), Value::from(vec![Value::Str("fee_amount".to_string()), Value::Str("feeAmount".to_string())]));
+        let mut addressTo: Value = self.safe_string_n(transaction.clone(), Value::from(vec![Value::Str("target_address".to_string()), Value::Str("targetAddress".to_string()), Value::Str("addressTo".to_string())]), &[]);
         let mut addressFrom: Value = self.safe_string2(transaction.clone(), Value::Str("source_address".to_string()), Value::Str("sourceAddress".to_string()), &[]);
-        let mut timestamp: Value = self.safe_timestamp_n(transaction.clone(), Value::List(vec![Value::Str("created_time".to_string()), Value::Str("createdTime".to_string())]), &[self.safe_integer_k(transaction.clone(), "timestamp", &[])]);
+        let mut timestamp: Value = self.safe_timestamp_n(transaction.clone(), Value::from(vec![Value::Str("created_time".to_string()), Value::Str("createdTime".to_string())]), &[self.safe_integer_k(transaction.clone(), "timestamp", &[])]);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), transaction.clone());
-        m.insert("id".to_string(), self.safe_string_n(transaction.clone(), Value::List(vec![Value::Str("id".to_string()), Value::Str("withdraw_id".to_string()), Value::Str("withdrawId".to_string())]), &[]));
+        m.insert("id".to_string(), self.safe_string_n(transaction.clone(), Value::from(vec![Value::Str("id".to_string()), Value::Str("withdraw_id".to_string()), Value::Str("withdrawId".to_string())]), &[]));
         m.insert("txid".to_string(), self.safe_string2(transaction.clone(), Value::Str("tx_id".to_string()), Value::Str("txId".to_string()), &[]));
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
@@ -4513,7 +4513,7 @@ impl WooCore {
             add_element_to_object(&mut request, &Value::Str("startTime".to_string()), since.clone());
         }
         let mut until: Value = self.safe_integer_k(params.clone(), "until", &[]); // unified in milliseconds
-        params = self.omit(params.clone(), Value::List(vec![Value::Str("until".to_string())]), &[]);
+        params = self.omit(params.clone(), Value::from(vec![Value::Str("until".to_string())]), &[]);
         if (until != Value::Null) {
             add_element_to_object(&mut request, &Value::Str("endTime".to_string()), until.clone());
         }
@@ -4554,7 +4554,7 @@ impl WooCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut rows: Value = self.safe_list_k(data.clone(), "rows", &[Value::List(vec![])]);
+        let mut rows: Value = self.safe_list_k(data.clone(), "rows", &[Value::from(vec![])]);
         return self.parse_transfers(rows.clone(), &[currency.clone(), since.clone(), limit.clone(), params.clone()]);
 
     Value::Null
@@ -4968,7 +4968,7 @@ impl WooCore {
             add_element_to_object(&mut request, &Value::Str("startTime".to_string()), since.clone());
         }
         let mut until: Value = self.safe_integer_k(params.clone(), "until", &[]); // unified in milliseconds
-        params = self.omit(params.clone(), Value::List(vec![Value::Str("until".to_string())]), &[]);
+        params = self.omit(params.clone(), Value::from(vec![Value::Str("until".to_string())]), &[]);
         if (until != Value::Null) {
             add_element_to_object(&mut request, &Value::Str("endTime".to_string()), until.clone());
         }
@@ -5008,7 +5008,7 @@ impl WooCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut rows: Value = self.safe_list_k(data.clone(), "rows", &[Value::List(vec![])]);
+        let mut rows: Value = self.safe_list_k(data.clone(), "rows", &[Value::from(vec![])]);
         return self.parse_incomes(rows.clone(), &[market.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -5140,7 +5140,7 @@ impl WooCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut rows: Value = self.safe_list_k(data.clone(), "rows", &[Value::List(vec![])]);
+        let mut rows: Value = self.safe_list_k(data.clone(), "rows", &[Value::from(vec![])]);
         let mut first: Value = self.safe_dict(rows.clone(), Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -5194,7 +5194,7 @@ impl WooCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut rows: Value = self.safe_list_k(data.clone(), "rows", &[Value::List(vec![])]);
+        let mut rows: Value = self.safe_list_k(data.clone(), "rows", &[Value::from(vec![])]);
         return self.parse_funding_rates(rows.clone(), &[symbols.clone()]);
 
     Value::Null
@@ -5271,8 +5271,8 @@ impl WooCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut rows: Value = self.safe_list_k(data.clone(), "rows", &[Value::List(vec![])]);
-        let mut rates: Value = Value::List(vec![]);
+        let mut rows: Value = self.safe_list_k(data.clone(), "rows", &[Value::from(vec![])]);
+        let mut rates: Value = Value::from(vec![]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1131: bool = true;
@@ -5390,7 +5390,7 @@ impl WooCore {
         }
         let mut longLeverage: Value = spotLeverage.clone();
         let mut shortLeverage: Value = spotLeverage.clone();
-        let mut details: Value = self.safe_list_k(leverage.clone(), "details", &[Value::List(vec![])]);
+        let mut details: Value = self.safe_list_k(leverage.clone(), "details", &[Value::from(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1132: bool = true;
@@ -5597,7 +5597,7 @@ impl WooCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut positions: Value = self.safe_list_k(result.clone(), "positions", &[Value::List(vec![])]);
+        let mut positions: Value = self.safe_list_k(result.clone(), "positions", &[Value::from(vec![])]);
         let mut first: Value = self.safe_dict(positions.clone(), Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -5674,7 +5674,7 @@ impl WooCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut positions: Value = self.safe_list_k(result.clone(), "positions", &[Value::List(vec![])]);
+        let mut positions: Value = self.safe_list_k(result.clone(), "positions", &[Value::from(vec![])]);
         return self.parse_positions(positions.clone(), &[symbols.clone()]);
 
     Value::Null
@@ -6015,7 +6015,7 @@ impl WooCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut rows: Value = self.safe_list_k(data.clone(), "tradeVos", &[Value::List(vec![])]);
+        let mut rows: Value = self.safe_list_k(data.clone(), "tradeVos", &[Value::from(vec![])]);
         return self.parse_conversions(rows.clone(), &[code.clone(), Value::Str("sellAsset".to_string()), Value::Str("buyAsset".to_string()), since.clone(), limit.clone()]);
 
     Value::Null
@@ -6116,7 +6116,7 @@ impl WooCore {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut data: Value = self.safe_list_k(response.clone(), "rows", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response.clone(), "rows", &[Value::from(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1133: bool = true;
@@ -6239,7 +6239,7 @@ impl WooCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut positions: Value = self.safe_list_k(result.clone(), "positions", &[Value::List(vec![])]);
+        let mut positions: Value = self.safe_list_k(result.clone(), "positions", &[Value::from(vec![])]);
         return self.parse_adl_ranks(positions.clone(), &[symbols.clone()]);
 
     Value::Null

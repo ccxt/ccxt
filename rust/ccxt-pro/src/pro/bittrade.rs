@@ -795,8 +795,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             return orderbook;
         }
         if (is_less_than_or_equal(&prevSeqNum, &crate::value::get_value_k(&orderbook, "nonce"))) && (is_greater_than(&seqNum, &crate::value::get_value_k(&orderbook, "nonce"))) {
-            let mut asks: Value = self.safe_value_k(tick.clone(), "asks", &[Value::List(vec![])]);
-            let mut bids: Value = self.safe_value_k(tick.clone(), "bids", &[Value::List(vec![])]);
+            let mut asks: Value = self.safe_value_k(tick.clone(), "asks", &[Value::from(vec![])]);
+            let mut bids: Value = self.safe_value_k(tick.clone(), "bids", &[Value::from(vec![])]);
             self.handle_deltas(crate::value::get_value_k(&orderbook, "asks"), asks.clone());
             self.handle_deltas(crate::value::get_value_k(&orderbook, "bids"), bids.clone());
             add_element_to_object(&mut orderbook, &Value::Str("nonce".to_string()), seqNum.clone());

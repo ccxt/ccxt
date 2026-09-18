@@ -11,7 +11,7 @@ use super::*;
 
 pub async fn testFetchLeverageTiers(mut exchange: Value, mut skippedProperties: Value, mut symbol: Value) -> Value {
     let mut method: Value = Value::Str("fetchLeverageTiers".to_string());
-    let mut tiers: Value = crate::live_dispatch::dispatch(&mut exchange, "fetch_leverage_tiers", vec![Value::List(vec![symbol.clone()])]).await;
+    let mut tiers: Value = crate::live_dispatch::dispatch(&mut exchange, "fetch_leverage_tiers", vec![Value::from(vec![symbol.clone()])]).await;
     // const format = {
     //     'RAY/USDT': [
     //       {},

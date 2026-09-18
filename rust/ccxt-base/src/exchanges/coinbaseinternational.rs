@@ -187,7 +187,7 @@ impl CoinbaseinternationalCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), Value::Str("coinbaseinternational".to_string()));
         m.insert("name".to_string(), Value::Str("Coinbase International".to_string()));
-        m.insert("countries".to_string(), Value::List(vec![Value::Str("US".to_string())]));
+        m.insert("countries".to_string(), Value::from(vec![Value::Str("US".to_string())]));
         m.insert("certified".to_string(), Value::Bool(false));
         m.insert("pro".to_string(), Value::Bool(true));
         m.insert("rateLimit".to_string(), Value::Int(100));
@@ -302,8 +302,8 @@ impl CoinbaseinternationalCore {
     m
 }));
         m.insert("www".to_string(), Value::Str("https://international.coinbase.com".to_string()));
-        m.insert("doc".to_string(), Value::List(vec![Value::Str("https://docs.cloud.coinbase.com/intx/docs".to_string())]));
-        m.insert("fees".to_string(), Value::List(vec![Value::Str("https://help.coinbase.com/en/international-exchange/trading-deposits-withdrawals/international-exchange-fees".to_string())]));
+        m.insert("doc".to_string(), Value::from(vec![Value::Str("https://docs.cloud.coinbase.com/intx/docs".to_string())]));
+        m.insert("fees".to_string(), Value::from(vec![Value::Str("https://help.coinbase.com/en/international-exchange/trading-deposits-withdrawals/international-exchange-fees".to_string())]));
         m.insert("referral".to_string(), Value::Str("".to_string()));
     m
 }));
@@ -654,8 +654,8 @@ impl CoinbaseinternationalCore {
         m.insert("percentage".to_string(), Value::Bool(true));
         m.insert("tiers".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("taker".to_string(), Value::List(vec![Value::List(vec![self.parse_number(Value::Str("0".to_string()), &[]), self.parse_number(Value::Str("0.004".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("1000000".to_string()), &[]), self.parse_number(Value::Str("0.004".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("5000000".to_string()), &[]), self.parse_number(Value::Str("0.0035".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("10000000".to_string()), &[]), self.parse_number(Value::Str("0.0035".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("50000000".to_string()), &[]), self.parse_number(Value::Str("0.003".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("250000000".to_string()), &[]), self.parse_number(Value::Str("0.0025".to_string()), &[])])]));
-        m.insert("maker".to_string(), Value::List(vec![Value::List(vec![self.parse_number(Value::Str("0".to_string()), &[]), self.parse_number(Value::Str("0.002".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("1000000".to_string()), &[]), self.parse_number(Value::Str("0.0016".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("5000000".to_string()), &[]), self.parse_number(Value::Str("0.001".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("10000000".to_string()), &[]), self.parse_number(Value::Str("0.0008".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("50000000".to_string()), &[]), self.parse_number(Value::Str("0.0005".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("250000000".to_string()), &[]), self.parse_number(Value::Str("0".to_string()), &[])])]));
+        m.insert("taker".to_string(), Value::from(vec![Value::from(vec![self.parse_number(Value::Str("0".to_string()), &[]), self.parse_number(Value::Str("0.004".to_string()), &[])]), Value::from(vec![self.parse_number(Value::Str("1000000".to_string()), &[]), self.parse_number(Value::Str("0.004".to_string()), &[])]), Value::from(vec![self.parse_number(Value::Str("5000000".to_string()), &[]), self.parse_number(Value::Str("0.0035".to_string()), &[])]), Value::from(vec![self.parse_number(Value::Str("10000000".to_string()), &[]), self.parse_number(Value::Str("0.0035".to_string()), &[])]), Value::from(vec![self.parse_number(Value::Str("50000000".to_string()), &[]), self.parse_number(Value::Str("0.003".to_string()), &[])]), Value::from(vec![self.parse_number(Value::Str("250000000".to_string()), &[]), self.parse_number(Value::Str("0.0025".to_string()), &[])])]));
+        m.insert("maker".to_string(), Value::from(vec![Value::from(vec![self.parse_number(Value::Str("0".to_string()), &[]), self.parse_number(Value::Str("0.002".to_string()), &[])]), Value::from(vec![self.parse_number(Value::Str("1000000".to_string()), &[]), self.parse_number(Value::Str("0.0016".to_string()), &[])]), Value::from(vec![self.parse_number(Value::Str("5000000".to_string()), &[]), self.parse_number(Value::Str("0.001".to_string()), &[])]), Value::from(vec![self.parse_number(Value::Str("10000000".to_string()), &[]), self.parse_number(Value::Str("0.0008".to_string()), &[])]), Value::from(vec![self.parse_number(Value::Str("50000000".to_string()), &[]), self.parse_number(Value::Str("0.0005".to_string()), &[])]), Value::from(vec![self.parse_number(Value::Str("250000000".to_string()), &[]), self.parse_number(Value::Str("0".to_string()), &[])])]));
     m
 }));
     m
@@ -829,11 +829,11 @@ impl CoinbaseinternationalCore {
         let mut portfolio: Value = Value::Null;
         { let __destr_tmp = self.handle_option_and_params(params.clone(), methodName.clone(), Value::Str("portfolio".to_string()), &[]); portfolio = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         if is_true(&(Value::Bool(portfolio != Value::Null))) && is_true(&(Value::Bool(portfolio.as_str() != Some("")))) {
-            return Value::List(vec![portfolio.clone(), params.clone()]);
+            return Value::from(vec![portfolio.clone(), params.clone()]);
         }
         let mut defaultPortfolio: Value = self.safe_string_k(self.options.clone(), "portfolio", &[]);
         if is_true(&(Value::Bool(defaultPortfolio != Value::Null))) && is_true(&(Value::Bool(defaultPortfolio.as_str() != Some("")))) {
-            return Value::List(vec![defaultPortfolio.clone(), params.clone()]);
+            return Value::from(vec![defaultPortfolio.clone(), params.clone()]);
         }
         let mut accounts: Value = self.fetch_accounts(&[]).await;
         {
@@ -849,7 +849,7 @@ impl CoinbaseinternationalCore {
             if (self.safe_bool_k(info.clone(), "is_default", &[]).as_bool() == Some(true)) {
                 let mut portfolioId: Value = self.safe_string_k(info.clone(), "portfolio_id", &[]);
                 add_element_to_object(&mut self.options, &Value::Str("portfolio".to_string()), portfolioId.clone());
-                return Value::List(vec![portfolioId.clone(), params.clone()]);
+                return Value::from(vec![portfolioId.clone(), params.clone()]);
             }
         }
         }
@@ -880,7 +880,7 @@ impl CoinbaseinternationalCore {
                 networkId = self.network_code_to_id(network.clone(), &[currencyCode.clone()]);
             }
         }
-        return Value::List(vec![networkId.clone(), params.clone()]);
+        return Value::from(vec![networkId.clone(), params.clone()]);
 
     Value::Null
 }
@@ -983,7 +983,7 @@ impl CoinbaseinternationalCore {
         //       ]
         //   }
         //
-        let mut candles: Value = self.safe_list_k(response.clone(), "aggregations", &[Value::List(vec![])]);
+        let mut candles: Value = self.safe_list_k(response.clone(), "aggregations", &[Value::from(vec![])]);
         return self.parse_ohlc_vs(candles.clone(), &[market.clone(), timeframe.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -991,7 +991,7 @@ impl CoinbaseinternationalCore {
 
     pub fn parse_ohlcv(&self, mut ohlcv: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
-        return Value::List(vec![self.parse8601(self.safe_string2(ohlcv.clone(), Value::Str("start".to_string()), Value::Str("time".to_string()), &[])), self.safe_number_k(ohlcv.clone(), "open", &[]), self.safe_number_k(ohlcv.clone(), "high", &[]), self.safe_number_k(ohlcv.clone(), "low", &[]), self.safe_number_k(ohlcv.clone(), "close", &[]), self.safe_number_k(ohlcv.clone(), "volume", &[])]);
+        return Value::from(vec![self.parse8601(self.safe_string2(ohlcv.clone(), Value::Str("start".to_string()), Value::Str("time".to_string()), &[])), self.safe_number_k(ohlcv.clone(), "open", &[]), self.safe_number_k(ohlcv.clone(), "high", &[]), self.safe_number_k(ohlcv.clone(), "low", &[]), self.safe_number_k(ohlcv.clone(), "close", &[]), self.safe_number_k(ohlcv.clone(), "volume", &[])]);
 
     Value::Null
 }
@@ -1061,7 +1061,7 @@ impl CoinbaseinternationalCore {
         //        ]
         //    }
         //
-        let mut rawRates: Value = self.safe_list_k(response.clone(), "results", &[Value::List(vec![])]);
+        let mut rawRates: Value = self.safe_list_k(response.clone(), "results", &[Value::from(vec![])]);
         return self.parse_funding_rate_histories(rawRates.clone(), &[market.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -1156,7 +1156,7 @@ impl CoinbaseinternationalCore {
         }
         let __ws_arg_2 = self.extend(request.clone(), &[params.clone()]);
         let mut response: Value = self.v1_private_get_transfers(&[__ws_arg_2]).await;
-        let mut fundings: Value = self.safe_list_k(response.clone(), "results", &[Value::List(vec![])]);
+        let mut fundings: Value = self.safe_list_k(response.clone(), "results", &[Value::from(vec![])]);
         return self.parse_incomes(fundings.clone(), &[market.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -1254,7 +1254,7 @@ impl CoinbaseinternationalCore {
         }
         let __ws_arg_3 = self.extend(request.clone(), &[params.clone()]);
         let mut response: Value = self.v1_private_get_transfers(&[__ws_arg_3]).await;
-        let mut transfers: Value = self.safe_list_k(response.clone(), "results", &[Value::List(vec![])]);
+        let mut transfers: Value = self.safe_list_k(response.clone(), "results", &[Value::from(vec![])]);
         return self.parse_transfers(transfers.clone(), &[currency.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -1505,7 +1505,7 @@ impl CoinbaseinternationalCore {
         let mut currencyId: Value = self.safe_string_k(network.clone(), "asset_name", &[]);
         let mut currencyCode: Value = self.safe_currency_code(currencyId.clone(), &[]);
         let mut networkId: Value = self.safe_string_k(network.clone(), "network_arn_id", &[]);
-        let mut networkIdForCode: Value = self.safe_string_n(network.clone(), Value::List(vec![Value::Str("network_name".to_string()), Value::Str("display_name".to_string()), Value::Str("network_arn_id".to_string())]), &[Value::Str("".to_string())]);
+        let mut networkIdForCode: Value = self.safe_string_n(network.clone(), Value::from(vec![Value::Str("network_name".to_string()), Value::Str("display_name".to_string()), Value::Str("network_arn_id".to_string())]), &[Value::Str("".to_string())]);
         return self.safe_network(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), network.clone());
@@ -1659,7 +1659,7 @@ impl CoinbaseinternationalCore {
         //        ]
         //    }
         //
-        let mut rawTransactions: Value = self.safe_list_k(response.clone(), "results", &[Value::List(vec![])]);
+        let mut rawTransactions: Value = self.safe_list_k(response.clone(), "results", &[Value::from(vec![])]);
         return self.parse_transactions(rawTransactions.clone(), &[]);
 
     Value::Null
@@ -1899,12 +1899,12 @@ impl CoinbaseinternationalCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut addressFrom: Value = self.safe_string_n(transaction.clone(), Value::List(vec![Value::Str("from_address".to_string()), Value::Str("from_cb_account".to_string()), self.safe_string_n(fromPorfolio.clone(), Value::List(vec![Value::Str("id".to_string()), Value::Str("uuid".to_string()), Value::Str("name".to_string())]), &[]), Value::Str("from_counterparty_id".to_string())]), &[]);
+        let mut addressFrom: Value = self.safe_string_n(transaction.clone(), Value::from(vec![Value::Str("from_address".to_string()), Value::Str("from_cb_account".to_string()), self.safe_string_n(fromPorfolio.clone(), Value::from(vec![Value::Str("id".to_string()), Value::Str("uuid".to_string()), Value::Str("name".to_string())]), &[]), Value::Str("from_counterparty_id".to_string())]), &[]);
         let mut toPorfolio: Value = self.safe_dict_k(transaction.clone(), "from_portfolio", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut addressTo: Value = self.safe_string_n(transaction.clone(), Value::List(vec![Value::Str("to_address".to_string()), Value::Str("to_cb_account".to_string()), self.safe_string_n(toPorfolio.clone(), Value::List(vec![Value::Str("id".to_string()), Value::Str("uuid".to_string()), Value::Str("name".to_string())]), &[]), Value::Str("to_counterparty_id".to_string())]), &[]);
+        let mut addressTo: Value = self.safe_string_n(transaction.clone(), Value::from(vec![Value::Str("to_address".to_string()), Value::Str("to_cb_account".to_string()), self.safe_string_n(toPorfolio.clone(), Value::from(vec![Value::Str("id".to_string()), Value::Str("uuid".to_string()), Value::Str("name".to_string())]), &[]), Value::Str("to_counterparty_id".to_string())]), &[]);
         let mut code: Value = self.safe_string_k(currency.clone(), "code", &[]);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2230,7 +2230,7 @@ impl CoinbaseinternationalCore {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut rows: Value = Value::List(vec![]);
+        let mut rows: Value = Value::from(vec![]);
         if is_true(&Value::Bool(is_array(&instruments))) {
             rows = instruments.clone();
         }
@@ -2487,7 +2487,7 @@ impl CoinbaseinternationalCore {
         }
         let mut market: Value = self.market(symbol.clone());
         let mut typeId: Value = to_upper(&type_var);
-        let mut triggerPrice: Value = self.safe_number_n(params.clone(), Value::List(vec![Value::Str("triggerPrice".to_string()), Value::Str("stopPrice".to_string()), Value::Str("stop_price".to_string())]), &[]);
+        let mut triggerPrice: Value = self.safe_number_n(params.clone(), Value::from(vec![Value::Str("triggerPrice".to_string()), Value::Str("stopPrice".to_string()), Value::Str("stop_price".to_string())]), &[]);
         let mut clientOrderIdprefix: Value = self.safe_string_k(self.options.clone(), "brokerId", &[Value::Str("nfqkvdjp".to_string())]);
         let mut clientOrderId: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", clientOrderIdprefix, Value::Str("-".to_string()))), self.uuid(&[])));
         clientOrderId = slice(&clientOrderId, &Value::Int(0), &Value::Int(17));
@@ -2537,7 +2537,7 @@ impl CoinbaseinternationalCore {
             add_element_to_object(&mut request, &Value::Str("post_only".to_string()), postOnly.clone());
         }
         add_element_to_object(&mut request, &Value::Str("tif".to_string()), tif.clone());
-        params = self.omit(params.clone(), Value::List(vec![Value::Str("client_order_id".to_string()), Value::Str("user".to_string()), Value::Str("postOnly".to_string()), Value::Str("timeInForce".to_string())]), &[]);
+        params = self.omit(params.clone(), Value::from(vec![Value::Str("client_order_id".to_string()), Value::Str("user".to_string()), Value::Str("postOnly".to_string()), Value::Str("timeInForce".to_string())]), &[]);
         let __ws_arg_14 = self.extend(request.clone(), &[params.clone()]);
         let mut response: Value = self.v1_private_post_orders(&[__ws_arg_14]).await;
         return self.parse_order(response.clone(), &[market.clone()]);
@@ -2764,7 +2764,7 @@ impl CoinbaseinternationalCore {
         if (price != Value::Null) {
             add_element_to_object(&mut request, &Value::Str("price".to_string()), self.price_to_precision(symbol.clone(), price.clone()));
         }
-        let mut triggerPrice: Value = self.safe_number_n(params.clone(), Value::List(vec![Value::Str("stopPrice".to_string()), Value::Str("stop_price".to_string()), Value::Str("triggerPrice".to_string())]), &[]);
+        let mut triggerPrice: Value = self.safe_number_n(params.clone(), Value::from(vec![Value::Str("stopPrice".to_string()), Value::Str("stop_price".to_string()), Value::Str("triggerPrice".to_string())]), &[]);
         if (triggerPrice != Value::Null) {
             add_element_to_object(&mut request, &Value::Str("stop_price".to_string()), triggerPrice.clone());
         }
@@ -2911,7 +2911,7 @@ impl CoinbaseinternationalCore {
         //        ]
         //    }
         //
-        let mut rawOrders: Value = self.safe_list_k(response.clone(), "results", &[Value::List(vec![])]);
+        let mut rawOrders: Value = self.safe_list_k(response.clone(), "results", &[Value::from(vec![])]);
         return self.parse_orders(rawOrders.clone(), &[market.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -2971,7 +2971,7 @@ impl CoinbaseinternationalCore {
         }
         let mut until: Value = self.safe_string_k(params.clone(), "until", &[]);
         if (until != Value::Null) {
-            params = self.omit(params.clone(), Value::List(vec![Value::Str("until".to_string())]), &[]);
+            params = self.omit(params.clone(), Value::from(vec![Value::Str("until".to_string())]), &[]);
             add_element_to_object(&mut request, &Value::Str("ref_datetime".to_string()), self.iso8601(until.clone()));
         }
         let __ws_arg_20 = self.extend(request.clone(), &[params.clone()]);
@@ -3016,7 +3016,7 @@ impl CoinbaseinternationalCore {
         //        ]
         //    }
         //
-        let mut trades: Value = self.safe_list_k(response.clone(), "results", &[Value::List(vec![])]);
+        let mut trades: Value = self.safe_list_k(response.clone(), "results", &[Value::from(vec![])]);
         return self.parse_trades(trades.clone(), &[market.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -3082,7 +3082,7 @@ impl CoinbaseinternationalCore {
 }
 
     pub fn sign(&self, mut path: Value, optional_args: &[Value]) -> Value {
-        let mut api = get_arg(optional_args, 0, Value::List(vec![]));
+        let mut api = get_arg(optional_args, 0, Value::from(vec![]));
         let mut method = get_arg(optional_args, 1, Value::Str("GET".to_string()));
         let mut params = get_arg(optional_args, 2, Value::Map({
     let mut m = indexmap::IndexMap::new();

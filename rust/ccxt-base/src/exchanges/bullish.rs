@@ -197,7 +197,7 @@ impl BullishCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), Value::Str("bullish".to_string()));
         m.insert("name".to_string(), Value::Str("Bullish".to_string()));
-        m.insert("countries".to_string(), Value::List(vec![Value::Str("DE".to_string())]));
+        m.insert("countries".to_string(), Value::from(vec![Value::Str("DE".to_string())]));
         m.insert("version".to_string(), Value::Str("v3".to_string()));
         m.insert("rateLimit".to_string(), Value::Int(20));
         m.insert("pro".to_string(), Value::Bool(true));
@@ -336,7 +336,7 @@ impl BullishCore {
 }));
         m.insert("www".to_string(), Value::Str("https://bullish.com/".to_string()));
         m.insert("referral".to_string(), Value::Str("".to_string()));
-        m.insert("doc".to_string(), Value::List(vec![Value::Str("https://api.exchange.bullish.com/docs/api/rest/".to_string())]));
+        m.insert("doc".to_string(), Value::from(vec![Value::Str("https://api.exchange.bullish.com/docs/api/rest/".to_string())]));
     m
 }));
         m.insert("api".to_string(), Value::Map({
@@ -1583,7 +1583,7 @@ impl BullishCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        promise_all(&Value::List(vec![self.load_markets(&[]).await, self.handle_token(&[]).await])).await;
+        promise_all(&Value::from(vec![self.load_markets(&[]).await, self.handle_token(&[]).await])).await;
         let mut tradingAccountId: Value = self.load_account(&[params.clone()]).await;
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1913,7 +1913,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 }
              } }
         }
-        return Value::List(vec![]);
+        return Value::from(vec![]);
 
     Value::Null
 }
@@ -1997,7 +1997,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
 
     pub fn parse_ohlcv(&self, mut ohlcv: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
-        return Value::List(vec![self.safe_integer_k(ohlcv.clone(), "createdAtTimestamp", &[]), self.safe_number_k(ohlcv.clone(), "open", &[]), self.safe_number_k(ohlcv.clone(), "high", &[]), self.safe_number_k(ohlcv.clone(), "low", &[]), self.safe_number_k(ohlcv.clone(), "close", &[]), self.safe_number_k(ohlcv.clone(), "volume", &[])]);
+        return Value::from(vec![self.safe_integer_k(ohlcv.clone(), "createdAtTimestamp", &[]), self.safe_number_k(ohlcv.clone(), "open", &[]), self.safe_number_k(ohlcv.clone(), "high", &[]), self.safe_number_k(ohlcv.clone(), "low", &[]), self.safe_number_k(ohlcv.clone(), "close", &[]), self.safe_number_k(ohlcv.clone(), "volume", &[])]);
 
     Value::Null
 }
@@ -2061,7 +2061,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         //         }, ...
         //     ]
         //
-        let mut rates: Value = Value::List(vec![]);
+        let mut rates: Value = Value::from(vec![]);
         let mut result: Value = self.to_array(response.clone());
         {
                         let mut i: Value = Value::Int(0);
@@ -2113,7 +2113,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        promise_all(&Value::List(vec![self.load_markets(&[]).await, self.handle_token(&[]).await])).await;
+        promise_all(&Value::from(vec![self.load_markets(&[]).await, self.handle_token(&[]).await])).await;
         let mut tradingAccountId: Value = self.load_account(&[params.clone()]).await;
         let mut paginate: Value = self.safe_bool_k(params.clone(), "paginate", &[Value::Bool(false)]);
         if (paginate.as_bool() == Some(true)) {
@@ -2136,7 +2136,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         }
         let mut method: Value = Value::Str("privateGetV2HistoryOrders".to_string());
         { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("fetchOrders".to_string()), Value::Str("method".to_string()), &[method.clone()]); method = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
-        let mut response: Value = Value::List(vec![]);
+        let mut response: Value = Value::from(vec![]);
         if (method.as_str() == Some("privateGetV2Orders")) {
             //
             //     [
@@ -2400,7 +2400,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        promise_all(&Value::List(vec![self.load_markets(&[]).await, self.handle_token(&[]).await])).await;
+        promise_all(&Value::from(vec![self.load_markets(&[]).await, self.handle_token(&[]).await])).await;
         let mut tradingAccountId: Value = self.load_account(&[params.clone()]).await;
         let mut market: Value = Value::Null;
         if (symbol != Value::Null) {
@@ -2444,7 +2444,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        promise_all(&Value::List(vec![self.load_markets(&[]).await, self.handle_token(&[]).await])).await;
+        promise_all(&Value::from(vec![self.load_markets(&[]).await, self.handle_token(&[]).await])).await;
         let mut tradingAccountId: Value = self.load_account(&[params.clone()]).await;
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
@@ -2509,7 +2509,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        promise_all(&Value::List(vec![self.load_markets(&[]).await, self.handle_token(&[]).await])).await;
+        promise_all(&Value::from(vec![self.load_markets(&[]).await, self.handle_token(&[]).await])).await;
         let mut tradingAccountId: Value = self.load_account(&[params.clone()]).await;
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
@@ -2562,7 +2562,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        promise_all(&Value::List(vec![self.load_markets(&[]).await, self.handle_token(&[]).await])).await;
+        promise_all(&Value::from(vec![self.load_markets(&[]).await, self.handle_token(&[]).await])).await;
         let mut tradingAccountId: Value = self.load_account(&[params.clone()]).await;
         if (symbol == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" cancelOrder() requires a symbol argument".to_string())))));
@@ -2599,7 +2599,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        promise_all(&Value::List(vec![self.load_markets(&[]).await, self.handle_token(&[]).await])).await;
+        promise_all(&Value::from(vec![self.load_markets(&[]).await, self.handle_token(&[]).await])).await;
         let mut tradingAccountId: Value = self.load_account(&[params.clone()]).await;
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -2622,7 +2622,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         //         "requestId": "633900538459062272"
         //     }
         //
-        let mut orders: Value = Value::List(vec![response.clone()]);
+        let mut orders: Value = Value::from(vec![response.clone()]);
         return self.parse_orders(orders.clone(), &[market.clone()]);
 
     Value::Null
@@ -2787,7 +2787,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        promise_all(&Value::List(vec![self.load_markets(&[]).await, self.handle_token(&[]).await])).await;
+        promise_all(&Value::from(vec![self.load_markets(&[]).await, self.handle_token(&[]).await])).await;
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -2836,7 +2836,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         //         "totalCount": 1
         //     }
         //
-        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::from(vec![])]);
         let mut currency: Value = Value::Null;
         if (code != Value::Null) {
             currency = self.currency(code.clone());
@@ -2867,7 +2867,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        promise_all(&Value::List(vec![self.load_markets(&[]).await, self.handle_token(&[]).await])).await;
+        promise_all(&Value::from(vec![self.load_markets(&[]).await, self.handle_token(&[]).await])).await;
         // todo check this method properly
         let mut currency: Value = self.currency(code.clone());
         let mut request: Value = Value::Map({
@@ -2935,7 +2935,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut currencyId: Value = self.safe_string_k(transaction.clone(), "symbol", &[]);
         let mut code: Value = self.safe_currency_code(currencyId.clone(), &[currency.clone()]);
         let mut status: Value = self.safe_string_k(transaction.clone(), "status", &[]);
-        let mut sources: Value = self.safe_list_k(transactionDetails.clone(), "sources", &[Value::List(vec![])]);
+        let mut sources: Value = self.safe_list_k(transactionDetails.clone(), "sources", &[Value::from(vec![])]);
         let mut source: Value = self.safe_dict(sources.clone(), Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -3053,7 +3053,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        promise_all(&Value::List(vec![self.load_markets(&[]).await, self.handle_token(&[]).await])).await;
+        promise_all(&Value::from(vec![self.load_markets(&[]).await, self.handle_token(&[]).await])).await;
         let mut response: Value = self.private_get_v1_accounts_trading_accounts(&[params.clone()]).await;
         return self.parse_accounts(response.clone(), &[params.clone()]);
 
@@ -3088,7 +3088,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        promise_all(&Value::List(vec![self.load_markets(&[]).await, self.handle_token(&[]).await])).await;
+        promise_all(&Value::from(vec![self.load_markets(&[]).await, self.handle_token(&[]).await])).await;
         let mut currency: Value = self.currency(code.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -3185,7 +3185,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        promise_all(&Value::List(vec![self.load_markets(&[]).await, self.handle_token(&[]).await])).await;
+        promise_all(&Value::from(vec![self.load_markets(&[]).await, self.handle_token(&[]).await])).await;
         let mut tradingAccountId: Value = self.load_account(&[params.clone()]).await;
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -3266,7 +3266,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        promise_all(&Value::List(vec![self.load_markets(&[]).await, self.handle_token(&[]).await])).await;
+        promise_all(&Value::from(vec![self.load_markets(&[]).await, self.handle_token(&[]).await])).await;
         let mut tradingAccountId: Value = self.load_account(&[params.clone()]).await;
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -3397,7 +3397,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        promise_all(&Value::List(vec![self.load_markets(&[]).await, self.handle_token(&[]).await])).await;
+        promise_all(&Value::from(vec![self.load_markets(&[]).await, self.handle_token(&[]).await])).await;
         let mut tradingAccountId: Value = self.load_account(&[params.clone()]).await;
         let mut maxLimit: Value = Value::Int(100);
         let mut paginate: Value = Value::Bool(false);
@@ -3454,7 +3454,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        promise_all(&Value::List(vec![self.load_markets(&[]).await, self.handle_token(&[]).await])).await;
+        promise_all(&Value::from(vec![self.load_markets(&[]).await, self.handle_token(&[]).await])).await;
         // todo check this method properly
         let mut currency: Value = self.currency(code.clone());
         let mut request: Value = Value::Map({
@@ -3571,7 +3571,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        promise_all(&Value::List(vec![self.load_markets(&[]).await, self.handle_token(&[]).await])).await;
+        promise_all(&Value::from(vec![self.load_markets(&[]).await, self.handle_token(&[]).await])).await;
         let mut tradingAccountId: Value = self.load_account(&[params.clone()]).await;
         let mut currency: Value = self.currency(code.clone());
         let mut request: Value = Value::Map({

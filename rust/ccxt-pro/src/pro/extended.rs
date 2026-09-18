@@ -390,8 +390,8 @@ impl ExtendedCore {
             client.reject(&[Value::from(error.clone()), messageHash.clone()]);
             return;
         }
-        self.handle_deltas(get_value(&orderbook, &Value::Str("bids".to_string())), self.safe_list_k(data.clone(), "b", &[Value::List(vec![])]));
-        self.handle_deltas(get_value(&orderbook, &Value::Str("asks".to_string())), self.safe_list_k(data.clone(), "a", &[Value::List(vec![])]));
+        self.handle_deltas(get_value(&orderbook, &Value::Str("bids".to_string())), self.safe_list_k(data.clone(), "b", &[Value::from(vec![])]));
+        self.handle_deltas(get_value(&orderbook, &Value::Str("asks".to_string())), self.safe_list_k(data.clone(), "a", &[Value::from(vec![])]));
         add_element_to_object(&mut orderbook, &Value::Str("timestamp".to_string()), timestamp.clone());
         add_element_to_object(&mut orderbook, &Value::Str("datetime".to_string()), self.iso8601(timestamp.clone()));
         add_element_to_object(&mut orderbook, &Value::Str("nonce".to_string()), nonce.clone());
@@ -576,7 +576,7 @@ impl ExtendedCore {
                 add_element_to_object(&mut result, &code, account.clone());
             }
         }
-        let mut spotBalances: Value = self.safe_list_k(data.clone(), "spotBalances", &[Value::List(vec![])]);
+        let mut spotBalances: Value = self.safe_list_k(data.clone(), "spotBalances", &[Value::from(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_326: bool = true;
@@ -680,7 +680,7 @@ impl ExtendedCore {
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut rawTrades: Value = self.safe_list_k(data.clone(), "trades", &[Value::List(vec![])]);
+        let mut rawTrades: Value = self.safe_list_k(data.clone(), "trades", &[Value::from(vec![])]);
         let mut symbols: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -796,8 +796,8 @@ impl ExtendedCore {
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut rawPositions: Value = self.safe_list_k(data.clone(), "positions", &[Value::List(vec![])]);
-        let mut newPositions: Value = Value::List(vec![]);
+        let mut rawPositions: Value = self.safe_list_k(data.clone(), "positions", &[Value::from(vec![])]);
+        let mut newPositions: Value = Value::from(vec![]);
         let mut first: Value = self.safe_dict(rawPositions.clone(), Value::Int(0), &[]);
         if (first == Value::Null) {
             return;
@@ -1145,7 +1145,7 @@ impl ExtendedCore {
         //         "seq": 2
         //     }
         //
-        let mut data: Value = self.safe_list_k(message.clone(), "data", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(message.clone(), "data", &[Value::from(vec![])]);
         let mut first: Value = self.safe_dict(data.clone(), Value::Int(0), &[]);
         if (first == Value::Null) {
             return;
@@ -1220,7 +1220,7 @@ impl ExtendedCore {
                 candleType = Value::Str("trades".to_string());
             }
         }
-        params = self.omit(params.clone(), Value::List(vec![Value::Str("candleType".to_string()), Value::Str("price".to_string())]), &[]);
+        params = self.omit(params.clone(), Value::from(vec![Value::Str("candleType".to_string()), Value::Str("price".to_string())]), &[]);
         let mut interval: Value = self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]);
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("ohlcv:".to_string()), symbol)), Value::Str(":".to_string()))), timeframe)), Value::Str(":".to_string()))), candleType));
         let __ws_arg_2 = self.extend(Value::Map({
@@ -1291,7 +1291,7 @@ impl ExtendedCore {
             return;
         }
         add_element_to_object(&mut subscription, &Value::Str("nonce".to_string()), nonce.clone());
-        let mut data: Value = self.safe_list_k(message.clone(), "data", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(message.clone(), "data", &[Value::from(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_336: bool = true;

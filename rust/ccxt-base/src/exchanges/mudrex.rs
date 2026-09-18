@@ -140,7 +140,7 @@ impl MudrexCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), Value::Str("mudrex".to_string()));
         m.insert("name".to_string(), Value::Str("Mudrex".to_string()));
-        m.insert("countries".to_string(), Value::List(vec![Value::Str("IN".to_string())]));
+        m.insert("countries".to_string(), Value::from(vec![Value::Str("IN".to_string())]));
         m.insert("rateLimit".to_string(), Value::Int(100));
         m.insert("version".to_string(), Value::Str("v1".to_string()));
         m.insert("pro".to_string(), Value::Bool(true));
@@ -546,7 +546,7 @@ impl MudrexCore {
         }
         let mut success: Value = self.safe_bool_k(response.clone(), "success", &[Value::Bool(true)]);
         if (success.as_bool() != Some(true)) {
-            let mut errors: Value = self.safe_list_k(response.clone(), "errors", &[Value::List(vec![])]);
+            let mut errors: Value = self.safe_list_k(response.clone(), "errors", &[Value::from(vec![])]);
             let mut first: Value = self.safe_dict(errors.clone(), Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -579,7 +579,7 @@ impl MudrexCore {
 
     pub fn parse_ohlcv(&self, mut ohlcv: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
-        return Value::List(vec![self.safe_timestamp(ohlcv.clone(), Value::Int(0), &[]), self.safe_number(ohlcv.clone(), Value::Int(1), &[]), self.safe_number(ohlcv.clone(), Value::Int(2), &[]), self.safe_number(ohlcv.clone(), Value::Int(3), &[]), self.safe_number(ohlcv.clone(), Value::Int(4), &[]), self.safe_number(ohlcv.clone(), Value::Int(5), &[])]);
+        return Value::from(vec![self.safe_timestamp(ohlcv.clone(), Value::Int(0), &[]), self.safe_number(ohlcv.clone(), Value::Int(1), &[]), self.safe_number(ohlcv.clone(), Value::Int(2), &[]), self.safe_number(ohlcv.clone(), Value::Int(3), &[]), self.safe_number(ohlcv.clone(), Value::Int(4), &[]), self.safe_number(ohlcv.clone(), Value::Int(5), &[])]);
 
     Value::Null
 }
@@ -672,7 +672,7 @@ impl MudrexCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut ohlcvs: Value = self.safe_list(assetTicks.clone(), to_lower(&assetPair), &[Value::List(vec![])]);
+        let mut ohlcvs: Value = self.safe_list(assetTicks.clone(), to_lower(&assetPair), &[Value::from(vec![])]);
         return self.parse_ohlc_vs(ohlcvs.clone(), &[market.clone(), timeframe.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -767,8 +767,8 @@ impl MudrexCore {
         });
         let __ws_arg_4 = self.extend(request.clone(), &[params.clone()]);
         let mut response: Value = self.private_get_futures(&[__ws_arg_4]).await;
-        let mut data: Value = self.safe_value_k(response.clone(), "data", &[Value::List(vec![])]);
-        let mut rows: Value = (if is_true(&Value::Bool(is_array(&data))) { data.clone() } else { self.safe_list_k(data.clone(), "items", &[Value::List(vec![])]) });
+        let mut data: Value = self.safe_value_k(response.clone(), "data", &[Value::from(vec![])]);
+        let mut rows: Value = (if is_true(&Value::Bool(is_array(&data))) { data.clone() } else { self.safe_list_k(data.clone(), "items", &[Value::from(vec![])]) });
         let mut resultTickers: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -843,7 +843,7 @@ impl MudrexCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut aggregated: Value = Value::List(vec![]);
+        let mut aggregated: Value = Value::from(vec![]);
         let mut offset: Value = Value::Int(0);
         let mut pageLimit: Value = Value::Int(100);
         let mut paging: Value = Value::Bool(true);
@@ -855,18 +855,18 @@ impl MudrexCore {
                 m
             }), &[params.clone()]);
             let mut response: Value = self.private_get_futures(&[q.clone()]).await;
-            let mut data: Value = self.safe_value_k(response.clone(), "data", &[Value::List(vec![])]);
-            let mut items: Value = Value::List(vec![]);
+            let mut data: Value = self.safe_value_k(response.clone(), "data", &[Value::from(vec![])]);
+            let mut items: Value = Value::from(vec![]);
             if is_object(&data) && !is_true(&Value::Bool(is_array(&data))) {
-                items = self.safe_list_k(data.clone(), "items", &[Value::List(vec![])]);
+                items = self.safe_list_k(data.clone(), "items", &[Value::from(vec![])]);
                 // hoisted - inline length reads within conditionals become strlen for php, fatal on arrays
                 let mut itemsLength: Value = Value::Int(items.len() as i64);
                 if is_true(&(Value::Bool(itemsLength == Value::Null))) || is_true(&(Value::Bool(itemsLength.as_f64() == Some(0.0)))) {
-                    items = self.safe_list_k(data.clone(), "results", &[Value::List(vec![])]);
+                    items = self.safe_list_k(data.clone(), "results", &[Value::from(vec![])]);
                     itemsLength = Value::Int(items.len() as i64);
                 }
                 if is_true(&(Value::Bool(itemsLength.as_f64() == Some(0.0)))) && is_true(&(Value::Bool(in_op(&data, &Value::Str("symbol".to_string()))))) {
-                    items = Value::List(vec![data.clone()]);
+                    items = Value::from(vec![data.clone()]);
                 }
             }  else {
                 items = self.to_array(data.clone());
@@ -890,7 +890,7 @@ impl MudrexCore {
                 offset = self.sum(&[offset.clone(), pageLimit.clone()]);
             }
         }
-        let mut result: Value = Value::List(vec![]);
+        let mut result: Value = Value::from(vec![]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_960: bool = true;
@@ -1001,8 +1001,8 @@ impl MudrexCore {
         }
         let mut type_var: Value = Value::Null;
         { let __destr_tmp = self.handle_market_type_and_params(Value::Str("fetchBalance".to_string()), &[Value::Null, params.clone(), Value::Str("swap".to_string())]); type_var = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
-        let mut requested: Value = self.safe_string_n(params.clone(), Value::List(vec![Value::Str("trade_currency".to_string()), Value::Str("tradeCurrency".to_string()), Value::Str("currency".to_string())]), &[]);
-        params = self.omit(params.clone(), Value::List(vec![Value::Str("trade_currency".to_string()), Value::Str("tradeCurrency".to_string()), Value::Str("currency".to_string())]), &[]);
+        let mut requested: Value = self.safe_string_n(params.clone(), Value::from(vec![Value::Str("trade_currency".to_string()), Value::Str("tradeCurrency".to_string()), Value::Str("currency".to_string())]), &[]);
+        params = self.omit(params.clone(), Value::from(vec![Value::Str("trade_currency".to_string()), Value::Str("tradeCurrency".to_string()), Value::Str("currency".to_string())]), &[]);
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -1138,7 +1138,7 @@ impl MudrexCore {
                 m.insert("leverage".to_string(), leverage.clone());
             m
         });
-        params = self.omit(params.clone(), Value::List(vec![Value::Str("marginType".to_string())]), &[]);
+        params = self.omit(params.clone(), Value::from(vec![Value::Str("marginType".to_string())]), &[]);
         let __ws_arg_8 = self.extend(request.clone(), &[params.clone()]);
         let mut response: Value = self.private_post_futures_asset_id_leverage(&[__ws_arg_8]).await;
         return response;
@@ -1188,7 +1188,7 @@ impl MudrexCore {
             if (positionId == Value::Null) {
                 panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires a positionId parameter to place a stopLossPrice or takeProfitPrice order".to_string())))));
             }
-            params = self.omit(params.clone(), Value::List(vec![Value::Str("stopLossPrice".to_string()), Value::Str("takeProfitPrice".to_string()), Value::Str("positionId".to_string()), Value::Str("position_id".to_string())]), &[]);
+            params = self.omit(params.clone(), Value::from(vec![Value::Str("stopLossPrice".to_string()), Value::Str("takeProfitPrice".to_string()), Value::Str("positionId".to_string()), Value::Str("position_id".to_string())]), &[]);
             let mut riskRequest: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("position_id".to_string(), positionId.clone());
@@ -1228,13 +1228,13 @@ impl MudrexCore {
         let mut stopLoss: Value = self.safe_dict_k(params.clone(), "stopLoss", &[]);
         if (takeProfit != Value::Null) {
             add_element_to_object(&mut request, &Value::Str("is_takeprofit".to_string()), Value::Bool(true));
-            add_element_to_object(&mut request, &Value::Str("takeprofit_price".to_string()), self.price_to_precision(symbol.clone(), self.safe_string_n(takeProfit.clone(), Value::List(vec![Value::Str("triggerPrice".to_string()), Value::Str("stopPrice".to_string()), Value::Str("price".to_string())]), &[])));
+            add_element_to_object(&mut request, &Value::Str("takeprofit_price".to_string()), self.price_to_precision(symbol.clone(), self.safe_string_n(takeProfit.clone(), Value::from(vec![Value::Str("triggerPrice".to_string()), Value::Str("stopPrice".to_string()), Value::Str("price".to_string())]), &[])));
         }
         if (stopLoss != Value::Null) {
             add_element_to_object(&mut request, &Value::Str("is_stoploss".to_string()), Value::Bool(true));
-            add_element_to_object(&mut request, &Value::Str("stoploss_price".to_string()), self.price_to_precision(symbol.clone(), self.safe_string_n(stopLoss.clone(), Value::List(vec![Value::Str("triggerPrice".to_string()), Value::Str("stopPrice".to_string()), Value::Str("price".to_string())]), &[])));
+            add_element_to_object(&mut request, &Value::Str("stoploss_price".to_string()), self.price_to_precision(symbol.clone(), self.safe_string_n(stopLoss.clone(), Value::from(vec![Value::Str("triggerPrice".to_string()), Value::Str("stopPrice".to_string()), Value::Str("price".to_string())]), &[])));
         }
-        params = self.omit(params.clone(), Value::List(vec![Value::Str("leverage".to_string()), Value::Str("reduceOnly".to_string()), Value::Str("takeProfit".to_string()), Value::Str("stopLoss".to_string())]), &[]);
+        params = self.omit(params.clone(), Value::from(vec![Value::Str("leverage".to_string()), Value::Str("reduceOnly".to_string()), Value::Str("takeProfit".to_string()), Value::Str("stopLoss".to_string())]), &[]);
         let __ws_arg_10 = self.extend(request.clone(), &[params.clone()]);
         let mut response: Value = self.private_post_futures_asset_id_order(&[__ws_arg_10]).await;
         let mut data: Value = self.safe_dict_k(response.clone(), "data", &[response.clone()]);
@@ -1382,8 +1382,8 @@ impl MudrexCore {
         m.insert("remaining".to_string(), Value::Null);
         m.insert("status".to_string(), status.clone());
         m.insert("fee".to_string(), Value::Null);
-        m.insert("trades".to_string(), Value::List(vec![]));
-        m.insert("fees".to_string(), Value::List(vec![]));
+        m.insert("trades".to_string(), Value::from(vec![]));
+        m.insert("fees".to_string(), Value::from(vec![]));
         m.insert("lastUpdateTimestamp".to_string(), self.parse8601(self.safe_string_k(order.clone(), "updated_at", &[])));
         m.insert("reduceOnly".to_string(), self.safe_bool_k(order.clone(), "reduce_only", &[]));
     m
@@ -1501,13 +1501,13 @@ impl MudrexCore {
         }  else {
             response = self.private_get_futures_orders(&[request.clone()]).await;
         }
-        let mut data: Value = self.safe_value_k(response.clone(), "data", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_value_k(response.clone(), "data", &[Value::from(vec![])]);
         let mut rows: Value = self.to_array(data.clone());
         let mut market: Value = Value::Null;
         if (symbol != Value::Null) {
             market = self.market(symbol.clone());
         }
-        let mut orders: Value = Value::List(vec![]);
+        let mut orders: Value = Value::from(vec![]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_961: bool = true;
@@ -1617,12 +1617,12 @@ impl MudrexCore {
         });
         let __ws_arg_14 = self.extend(q.clone(), &[params.clone()]);
         let mut response: Value = self.private_get_futures_positions(&[__ws_arg_14]).await;
-        let mut data: Value = self.safe_value_k(response.clone(), "data", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_value_k(response.clone(), "data", &[Value::from(vec![])]);
         if (data == Value::Null) {
-            return Value::List(vec![]);
+            return Value::from(vec![]);
         }
         let mut rows: Value = self.to_array(data.clone());
-        let mut outPos: Value = Value::List(vec![]);
+        let mut outPos: Value = Value::from(vec![]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_962: bool = true;
@@ -1694,7 +1694,7 @@ impl MudrexCore {
         //         ]
         //     }
         //
-        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::from(vec![])]);
         let mut positions: Value = self.parse_positions(data.clone(), &[symbols.clone()]);
         return self.filter_by_since_limit(positions.clone(), &[since.clone(), limit.clone()]);
 
@@ -1784,7 +1784,7 @@ impl MudrexCore {
         let mut amount: Value = self.safe_value_k(params.clone(), "amount", &[]);
         if (positionId == Value::Null) {
             let mut market: Value = self.market(symbol.clone());
-            let mut positions: Value = self.fetch_positions(&[Value::List(vec![symbol.clone()]), params.clone()]).await;
+            let mut positions: Value = self.fetch_positions(&[Value::from(vec![symbol.clone()]), params.clone()]).await;
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_963: bool = true;
@@ -1817,12 +1817,12 @@ impl MudrexCore {
             if (orderType.as_str() == Some("LIMIT")) && (lp != Value::Null) {
                 add_element_to_object(&mut request, &Value::Str("limit_price".to_string()), lp.clone());
             }
-            params = self.omit(params.clone(), Value::List(vec![Value::Str("order_type".to_string()), Value::Str("limit_price".to_string()), Value::Str("amount".to_string()), Value::Str("position_id".to_string())]), &[]);
+            params = self.omit(params.clone(), Value::from(vec![Value::Str("order_type".to_string()), Value::Str("limit_price".to_string()), Value::Str("amount".to_string()), Value::Str("position_id".to_string())]), &[]);
             let __ws_arg_16 = self.extend(request.clone(), &[params.clone()]);
             let mut partialResponse: Value = self.private_post_futures_positions_position_id_close_partial(&[__ws_arg_16]).await;
             return partialResponse;
         }
-        params = self.omit(params.clone(), Value::List(vec![Value::Str("position_id".to_string())]), &[]);
+        params = self.omit(params.clone(), Value::from(vec![Value::Str("position_id".to_string())]), &[]);
         let __ws_arg_17 = self.extend(request.clone(), &[params.clone()]);
         let mut response: Value = self.private_post_futures_positions_position_id_close(&[__ws_arg_17]).await;
         return response;
@@ -1851,7 +1851,7 @@ impl MudrexCore {
         }
         let mut positionId: Value = self.safe_string_k(params.clone(), "position_id", &[]);
         if (positionId == Value::Null) {
-            let mut positions: Value = self.fetch_positions(&[Value::List(vec![symbol.clone()]), params.clone()]).await;
+            let mut positions: Value = self.fetch_positions(&[Value::from(vec![symbol.clone()]), params.clone()]).await;
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_964: bool = true;
@@ -1874,7 +1874,7 @@ impl MudrexCore {
                 m.insert("margin".to_string(), self.cost_to_precision(symbol.clone(), amount.clone()));
             m
         });
-        params = self.omit(params.clone(), Value::List(vec![Value::Str("position_id".to_string())]), &[]);
+        params = self.omit(params.clone(), Value::from(vec![Value::Str("position_id".to_string())]), &[]);
         let __ws_arg_18 = self.extend(request.clone(), &[params.clone()]);
         let mut response: Value = self.private_post_futures_positions_position_id_add_margin(&[__ws_arg_18]).await;
         return response;
@@ -1937,7 +1937,7 @@ impl MudrexCore {
             // every fill produces a TRANSACTION row plus a REBATE row and funding rows share the page, so over-request and paginate until the unified limit is satisfied
             pageSize = (match (&(limit), &(Value::Int(2))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
         }
-        let mut allRows: Value = Value::List(vec![]);
+        let mut allRows: Value = Value::from(vec![]);
         let mut transactionsCount: Value = Value::Int(0);
         let mut calls: Value = Value::Int(0);
         let mut offset: Value = Value::Int(0);
@@ -1953,7 +1953,7 @@ impl MudrexCore {
             }
             let __ws_arg_19 = self.extend(request.clone(), &[params.clone()]);
             let mut response: Value = self.private_get_futures_fee_history(&[__ws_arg_19]).await;
-            let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
+            let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::from(vec![])]);
             let mut dataLength: Value = Value::Int(data.len() as i64);
             {
                                 let mut i: Value = Value::Int(0);
@@ -1980,10 +1980,10 @@ impl MudrexCore {
             }
         }
         // a REBATE row is a partial refund of one fill's TRANSACTION fee, matched by symbol, time and notional - each rebate is consumed once, so equal fills sharing a key net exactly one refund apiece
-        let mut rebateKeys: Value = Value::List(vec![]);
-        let mut rebateAmounts: Value = Value::List(vec![]);
-        let mut transactions: Value = Value::List(vec![]);
-        let mut transactionKeys: Value = Value::List(vec![]);
+        let mut rebateKeys: Value = Value::from(vec![]);
+        let mut rebateAmounts: Value = Value::from(vec![]);
+        let mut transactions: Value = Value::from(vec![]);
+        let mut transactionKeys: Value = Value::from(vec![]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_966: bool = true;
@@ -2001,7 +2001,7 @@ impl MudrexCore {
             }
         }
         }
-        let mut rows: Value = Value::List(vec![]);
+        let mut rows: Value = Value::from(vec![]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_968: bool = true;

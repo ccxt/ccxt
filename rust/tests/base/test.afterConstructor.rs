@@ -23,10 +23,10 @@ fn helperTestInitThrottler() {
     assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&get_value(&tokenBucket, &Value::Str("delay".to_string())), &Value::Float(0.001))))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&get_value(&tokenBucket, &Value::Str("refillRate".to_string())), &divide(&Value::Int(1), &rateLimit))))));
     // fix decimal/integer issues across langs
-    assert!(ccxt::runtime::is_true(&(exchange.in_array(get_value(&tokenBucket, &Value::Str("capacity".to_string())), Value::List(vec![Value::Int(1), Value::Int(1)])))));
+    assert!(ccxt::runtime::is_true(&(exchange.in_array(get_value(&tokenBucket, &Value::Str("capacity".to_string())), Value::from(vec![Value::Int(1), Value::Int(1)])))));
     let mut cost: Value = exchange.parse_to_numeric(exchange.safe_string2(tokenBucket.clone(), Value::Str("cost".to_string()), Value::Str("defaultCost".to_string()), &[])); // python sync, todo fix
-    assert!(ccxt::runtime::is_true(&(exchange.in_array(cost.clone(), Value::List(vec![Value::Int(1), Value::Int(1)])))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(!is_true(&(Value::Bool(in_op(&tokenBucket, &Value::Str("maxCapacity".to_string()))))) || is_true(&exchange.in_array(get_value(&tokenBucket, &Value::Str("maxCapacity".to_string())), Value::List(vec![Value::Int(1000), Value::Int(1000)])))))));
+    assert!(ccxt::runtime::is_true(&(exchange.in_array(cost.clone(), Value::from(vec![Value::Int(1), Value::Int(1)])))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(!is_true(&(Value::Bool(in_op(&tokenBucket, &Value::Str("maxCapacity".to_string()))))) || is_true(&exchange.in_array(get_value(&tokenBucket, &Value::Str("maxCapacity".to_string())), Value::from(vec![Value::Int(1000), Value::Int(1000)])))))));
 }
 fn helperTestSandboxState(mut exchange: ccxt::exchange::Exchange, mut expectEnabled: Value) {
     assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.prop(&&Value::Str("urls".to_string())) != Value::Null))));
@@ -118,7 +118,7 @@ fn helperTestProperties() {
     //
     // userAgents
     //
-    let mut keys: Value = Value::List(vec![Value::Str("chrome".to_string()), Value::Str("chrome39".to_string()), Value::Str("chrome100".to_string())]);
+    let mut keys: Value = Value::from(vec![Value::Str("chrome".to_string()), Value::Str("chrome39".to_string()), Value::Str("chrome100".to_string())]);
     assert!(ccxt::runtime::is_true(&(Value::Bool(crate::tests_support::shared::exchange_prop(&exchange.clone_self(), Value::Str("userAgents".to_string())) != Value::Null))));
     {
                 let mut i: Value = Value::Int(0);
@@ -227,7 +227,7 @@ fn helperTestProperties() {
     assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.prop(&&Value::Str("certified".to_string())).as_bool() == Some(false)))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.prop(&&Value::Str("pro".to_string())).as_bool() == Some(false)))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.prop(&&Value::Str("alias".to_string())).as_bool() == Some(false)))));
-    let mut httpExceptionKeys: Value = Value::List(vec![Value::Str("400".to_string()), Value::Str("401".to_string()), Value::Str("403".to_string()), Value::Str("404".to_string()), Value::Str("405".to_string()), Value::Str("407".to_string()), Value::Str("408".to_string()), Value::Str("409".to_string()), Value::Str("410".to_string()), Value::Str("418".to_string()), Value::Str("422".to_string()), Value::Str("429".to_string()), Value::Str("451".to_string()), Value::Str("500".to_string()), Value::Str("501".to_string()), Value::Str("502".to_string()), Value::Str("503".to_string()), Value::Str("504".to_string()), Value::Str("511".to_string()), Value::Str("520".to_string()), Value::Str("521".to_string()), Value::Str("522".to_string()), Value::Str("525".to_string()), Value::Str("526".to_string()), Value::Str("530".to_string())]);
+    let mut httpExceptionKeys: Value = Value::from(vec![Value::Str("400".to_string()), Value::Str("401".to_string()), Value::Str("403".to_string()), Value::Str("404".to_string()), Value::Str("405".to_string()), Value::Str("407".to_string()), Value::Str("408".to_string()), Value::Str("409".to_string()), Value::Str("410".to_string()), Value::Str("418".to_string()), Value::Str("422".to_string()), Value::Str("429".to_string()), Value::Str("451".to_string()), Value::Str("500".to_string()), Value::Str("501".to_string()), Value::Str("502".to_string()), Value::Str("503".to_string()), Value::Str("504".to_string()), Value::Str("511".to_string()), Value::Str("520".to_string()), Value::Str("521".to_string()), Value::Str("522".to_string()), Value::Str("525".to_string()), Value::Str("526".to_string()), Value::Str("530".to_string())]);
     // php errors with below, bcz integer key cast
     // testSharedMethods.assertDeepEqual (exchange, {}, 'httpExceptionKeys', Object.keys (testSharedMethods.exchangeProp (exchange, 'httpExceptions')), httpExceptionKeys); // todo: add better deepAssert with error classes
     assert!(ccxt::runtime::is_true(&(Value::Bool(Value::Int((object_keys(&crate::tests_support::shared::exchange_prop(&exchange.clone_self(), Value::Str("httpExceptions".to_string())))).len() as i64).as_f64() == Value::Int(httpExceptionKeys.len() as i64).as_f64()))));

@@ -218,7 +218,7 @@ impl BitmexCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), Value::Str("bitmex".to_string()));
         m.insert("name".to_string(), Value::Str("BitMEX".to_string()));
-        m.insert("countries".to_string(), Value::List(vec![Value::Str("SC".to_string())]));
+        m.insert("countries".to_string(), Value::from(vec![Value::Str("SC".to_string())]));
         m.insert("version".to_string(), Value::Str("v1".to_string()));
         m.insert("userAgent".to_string(), Value::Null);
         m.insert("rateLimit".to_string(), Value::Int(100));
@@ -347,7 +347,7 @@ impl BitmexCore {
     m
 }));
         m.insert("www".to_string(), Value::Str("https://www.bitmex.com".to_string()));
-        m.insert("doc".to_string(), Value::List(vec![Value::Str("https://www.bitmex.com/app/apiOverview".to_string()), Value::Str("https://github.com/BitMEX/api-connectors/tree/master/official-http".to_string())]));
+        m.insert("doc".to_string(), Value::from(vec![Value::Str("https://www.bitmex.com/app/apiOverview".to_string()), Value::Str("https://github.com/BitMEX/api-connectors/tree/master/official-http".to_string())]));
         m.insert("fees".to_string(), Value::Str("https://www.bitmex.com/app/fees".to_string()));
         m.insert("referral".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1271,7 +1271,7 @@ impl BitmexCore {
         let mut code: Value = self.safe_currency_code(asset.clone(), &[]);
         let mut id: Value = self.safe_string_k(currency.clone(), "currency", &[]);
         let mut name: Value = self.safe_string_k(currency.clone(), "name", &[]);
-        let mut chains: Value = self.safe_list_k(currency.clone(), "networks", &[Value::List(vec![])]);
+        let mut chains: Value = self.safe_list_k(currency.clone(), "networks", &[Value::from(vec![])]);
         let mut depositEnabled: Value = Value::Bool(false);
         let mut withdrawEnabled: Value = Value::Bool(false);
         let mut networks: Value = Value::Map({
@@ -1746,8 +1746,8 @@ impl BitmexCore {
         let mut result: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), symbol.clone());
-                m.insert("bids".to_string(), Value::List(vec![]));
-                m.insert("asks".to_string(), Value::List(vec![]));
+                m.insert("bids".to_string(), Value::from(vec![]));
+                m.insert("asks".to_string(), Value::from(vec![]));
                 m.insert("timestamp".to_string(), Value::Null);
                 m.insert("datetime".to_string(), Value::Null);
                 m.insert("nonce".to_string(), Value::Null);
@@ -1767,7 +1767,7 @@ impl BitmexCore {
             // https://github.com/ccxt/ccxt/issues/4927
             // the exchange sometimes returns null price in the orderbook
             if (price != Value::Null) {
-                crate::runtime::append_to_object_array(&mut result, &side, Value::List(vec![price.clone(), amount.clone()]));
+                crate::runtime::append_to_object_array(&mut result, &side, Value::from(vec![price.clone(), amount.clone()]));
             }
         }
         }
@@ -1859,7 +1859,7 @@ impl BitmexCore {
         }
         let mut until: Value = self.safe_integer2(params.clone(), Value::Str("until".to_string()), Value::Str("endTime".to_string()), &[]);
         if (until != Value::Null) {
-            params = self.omit(params.clone(), Value::List(vec![Value::Str("until".to_string())]), &[]);
+            params = self.omit(params.clone(), Value::from(vec![Value::Str("until".to_string())]), &[]);
             add_element_to_object(&mut request, &Value::Str("endTime".to_string()), self.iso8601(until.clone()));
         }
         request = self.deep_extend(request.clone(), &[params.clone()]);
@@ -1929,7 +1929,7 @@ impl BitmexCore {
 }));
         // Bitmex barfs if you set 'open': false in the filter...
         let mut orders: Value = self.fetch_orders(&[symbol.clone(), since.clone(), limit.clone(), params.clone()]).await;
-        return self.filter_by_array(orders.clone(), Value::Str("status".to_string()), &[Value::List(vec![Value::Str("closed".to_string()), Value::Str("canceled".to_string())]), Value::Bool(false)]);
+        return self.filter_by_array(orders.clone(), Value::Str("status".to_string()), &[Value::from(vec![Value::Str("closed".to_string()), Value::Str("canceled".to_string())]), Value::Bool(false)]);
 
     Value::Null
 }
@@ -1979,7 +1979,7 @@ impl BitmexCore {
         }
         let mut until: Value = self.safe_integer2(params.clone(), Value::Str("until".to_string()), Value::Str("endTime".to_string()), &[]);
         if (until != Value::Null) {
-            params = self.omit(params.clone(), Value::List(vec![Value::Str("until".to_string())]), &[]);
+            params = self.omit(params.clone(), Value::from(vec![Value::Str("until".to_string())]), &[]);
             add_element_to_object(&mut request, &Value::Str("endTime".to_string()), self.iso8601(until.clone()));
         }
         request = self.deep_extend(request.clone(), &[params.clone()]);
@@ -2207,7 +2207,7 @@ impl BitmexCore {
         }
         let __ws_arg_3 = self.extend(request.clone(), &[params.clone()]);
         let mut response: Value = self.private_get_user_wallet_history(&[__ws_arg_3]).await;
-        let mut transactions: Value = self.filter_by_array(response.clone(), Value::Str("transactType".to_string()), &[Value::List(vec![Value::Str("Withdrawal".to_string()), Value::Str("Deposit".to_string())]), Value::Bool(false)]);
+        let mut transactions: Value = self.filter_by_array(response.clone(), Value::Str("transactType".to_string()), &[Value::from(vec![Value::Str("Withdrawal".to_string()), Value::Str("Deposit".to_string())]), Value::Bool(false)]);
         return self.parse_transactions(transactions.clone(), &[currency.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -2446,7 +2446,7 @@ impl BitmexCore {
         let mut marketId: Value = self.safe_string_k(ohlcv.clone(), "symbol", &[]);
         market = self.safe_market(&[marketId.clone(), market.clone()]);
         let mut volume: Value = self.convert_from_raw_quantity(market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null), self.safe_string_k(ohlcv.clone(), "volume", &[]), &[]);
-        return Value::List(vec![self.parse8601(self.safe_string_k(ohlcv.clone(), "timestamp", &[])), self.safe_number_k(ohlcv.clone(), "open", &[]), self.safe_number_k(ohlcv.clone(), "high", &[]), self.safe_number_k(ohlcv.clone(), "low", &[]), self.safe_number_k(ohlcv.clone(), "close", &[]), volume.clone()]);
+        return Value::from(vec![self.parse8601(self.safe_string_k(ohlcv.clone(), "timestamp", &[])), self.safe_number_k(ohlcv.clone(), "open", &[]), self.safe_number_k(ohlcv.clone(), "high", &[]), self.safe_number_k(ohlcv.clone(), "low", &[]), self.safe_number_k(ohlcv.clone(), "close", &[]), volume.clone()]);
 
     Value::Null
 }
@@ -2499,7 +2499,7 @@ impl BitmexCore {
         }
         let mut until: Value = self.safe_integer_k(params.clone(), "until", &[]);
         if (until != Value::Null) {
-            params = self.omit(params.clone(), Value::List(vec![Value::Str("until".to_string())]), &[]);
+            params = self.omit(params.clone(), Value::from(vec![Value::Str("until".to_string())]), &[]);
             add_element_to_object(&mut request, &Value::Str("endTime".to_string()), self.iso8601(until.clone()));
         }
         let mut duration: Value = (match (&(self.parse_timeframe(timeframe.clone())), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
@@ -2845,7 +2845,7 @@ impl BitmexCore {
         }
         let mut until: Value = self.safe_integer2(params.clone(), Value::Str("until".to_string()), Value::Str("endTime".to_string()), &[]);
         if (until != Value::Null) {
-            params = self.omit(params.clone(), Value::List(vec![Value::Str("until".to_string())]), &[]);
+            params = self.omit(params.clone(), Value::from(vec![Value::Str("until".to_string())]), &[]);
             add_element_to_object(&mut request, &Value::Str("endTime".to_string()), self.iso8601(until.clone()));
         }
         let __ws_arg_6 = self.extend(request.clone(), &[params.clone()]);
@@ -2890,7 +2890,7 @@ impl BitmexCore {
             }
         }
         let mut postOnly: Value = self.safe_bool_k(params.clone(), "postOnly", &[]);
-        params = self.omit(params.clone(), Value::List(vec![Value::Str("reduceOnly".to_string()), Value::Str("postOnly".to_string())]), &[]);
+        params = self.omit(params.clone(), Value::from(vec![Value::Str("reduceOnly".to_string()), Value::Str("postOnly".to_string())]), &[]);
         let mut brokerId: Value = self.safe_string_k(self.options.clone(), "brokerId", &[Value::Str("CCXT".to_string())]);
         let mut qty: Value = self.parse_to_int(self.amount_to_precision(symbol.clone(), amount.clone()));
         let mut request: Value = Value::Map({
@@ -2902,7 +2902,7 @@ impl BitmexCore {
                 m.insert("text".to_string(), brokerId.clone());
             m
         });
-        let mut execInstructions: Value = Value::List(vec![]);
+        let mut execInstructions: Value = Value::from(vec![]);
         if is_equal(&reduceOnly, &Value::Bool(true)) {
             append_to_array(&mut execInstructions, Value::Str("ReduceOnly".to_string()));
         }
@@ -2914,7 +2914,7 @@ impl BitmexCore {
             add_element_to_object(&mut request, &Value::Str("execInst".to_string()), join(&execInstructions, &Value::Str(",".to_string())));
         }
         // support for unified trigger format
-        let mut triggerPrice: Value = self.safe_number_n(params.clone(), Value::List(vec![Value::Str("triggerPrice".to_string()), Value::Str("stopPx".to_string()), Value::Str("stopPrice".to_string())]), &[]);
+        let mut triggerPrice: Value = self.safe_number_n(params.clone(), Value::from(vec![Value::Str("triggerPrice".to_string()), Value::Str("stopPx".to_string()), Value::Str("stopPrice".to_string())]), &[]);
         let mut trailingAmount: Value = self.safe_string2(params.clone(), Value::Str("trailingAmount".to_string()), Value::Str("pegOffsetValue".to_string()), &[]);
         let mut isTriggerOrder: bool = triggerPrice != Value::Null;
         let mut isTrailingAmountOrder: bool = trailingAmount != Value::Null;
@@ -2922,7 +2922,7 @@ impl BitmexCore {
             let mut triggerDirection: Value = self.safe_string_k(params.clone(), "triggerDirection", &[]);
             let mut triggerAbove: bool = is_true(&(Value::Bool(triggerDirection.as_str() == Some("ascending")))) || is_true(&(Value::Bool(triggerDirection.as_str() == Some("above"))));
             if is_true(&(Value::Bool(type_var.as_str() == Some("limit")))) || is_true(&(Value::Bool(type_var.as_str() == Some("market")))) {
-                self.check_required_argument(Value::Str("createOrder".to_string()), triggerDirection.clone(), Value::Str("triggerDirection".to_string()), &[Value::List(vec![Value::Str("above".to_string()), Value::Str("below".to_string())])]);
+                self.check_required_argument(Value::Str("createOrder".to_string()), triggerDirection.clone(), Value::Str("triggerDirection".to_string()), &[Value::from(vec![Value::Str("above".to_string()), Value::Str("below".to_string())])]);
             }
             if (type_var.as_str() == Some("limit")) {
                 if (side.as_str() == Some("buy")) {
@@ -2952,7 +2952,7 @@ impl BitmexCore {
                 add_element_to_object(&mut request, &Value::Str("stopPx".to_string()), self.parse_to_numeric(self.price_to_precision(symbol.clone(), triggerPrice.clone())));
             }
             add_element_to_object(&mut request, &Value::Str("ordType".to_string()), orderType.clone());
-            params = self.omit(params.clone(), Value::List(vec![Value::Str("triggerPrice".to_string()), Value::Str("stopPrice".to_string()), Value::Str("stopPx".to_string()), Value::Str("triggerDirection".to_string()), Value::Str("trailingAmount".to_string())]), &[]);
+            params = self.omit(params.clone(), Value::from(vec![Value::Str("triggerPrice".to_string()), Value::Str("stopPrice".to_string()), Value::Str("stopPx".to_string()), Value::Str("triggerDirection".to_string()), Value::Str("trailingAmount".to_string())]), &[]);
         }
         if is_true(&(Value::Bool(orderType.as_str() == Some("Limit")))) || is_true(&(Value::Bool(orderType.as_str() == Some("StopLimit")))) || is_true(&(Value::Bool(orderType.as_str() == Some("LimitIfTouched")))) {
             add_element_to_object(&mut request, &Value::Str("price".to_string()), self.parse_to_numeric(self.price_to_precision(symbol.clone(), price.clone())));
@@ -2960,7 +2960,7 @@ impl BitmexCore {
         let mut clientOrderId: Value = self.safe_string2(params.clone(), Value::Str("clOrdID".to_string()), Value::Str("clientOrderId".to_string()), &[]);
         if (clientOrderId != Value::Null) {
             add_element_to_object(&mut request, &Value::Str("clOrdID".to_string()), clientOrderId.clone());
-            params = self.omit(params.clone(), Value::List(vec![Value::Str("clOrdID".to_string()), Value::Str("clientOrderId".to_string())]), &[]);
+            params = self.omit(params.clone(), Value::from(vec![Value::Str("clOrdID".to_string()), Value::Str("clientOrderId".to_string())]), &[]);
         }
         let __ws_arg_7 = self.extend(request.clone(), &[params.clone()]);
         let mut response: Value = self.private_post_order(&[__ws_arg_7]).await;
@@ -2989,7 +2989,7 @@ impl BitmexCore {
             let mut triggerDirection: Value = self.safe_string_k(params.clone(), "triggerDirection", &[]);
             let mut triggerAbove: bool = is_true(&(Value::Bool(triggerDirection.as_str() == Some("ascending")))) || is_true(&(Value::Bool(triggerDirection.as_str() == Some("above"))));
             if is_true(&(Value::Bool(type_var.as_str() == Some("limit")))) || is_true(&(Value::Bool(type_var.as_str() == Some("market")))) {
-                self.check_required_argument(Value::Str("editOrder".to_string()), triggerDirection.clone(), Value::Str("triggerDirection".to_string()), &[Value::List(vec![Value::Str("above".to_string()), Value::Str("below".to_string())])]);
+                self.check_required_argument(Value::Str("editOrder".to_string()), triggerDirection.clone(), Value::Str("triggerDirection".to_string()), &[Value::from(vec![Value::Str("above".to_string()), Value::Str("below".to_string())])]);
             }
             let mut orderType: Value = Value::Null;
             if (type_var.as_str() == Some("limit")) {
@@ -3011,7 +3011,7 @@ impl BitmexCore {
                 trailingAmount = add(&Value::Str("-".to_string()), &trailingAmount);
             }
             add_element_to_object(&mut request, &Value::Str("pegOffsetValue".to_string()), self.parse_to_numeric(trailingAmount.clone()));
-            params = self.omit(params.clone(), Value::List(vec![Value::Str("triggerDirection".to_string()), Value::Str("trailingAmount".to_string())]), &[]);
+            params = self.omit(params.clone(), Value::from(vec![Value::Str("triggerDirection".to_string()), Value::Str("trailingAmount".to_string())]), &[]);
         }
         let mut origClOrdID: Value = self.safe_string2(params.clone(), Value::Str("origClOrdID".to_string()), Value::Str("clientOrderId".to_string()), &[]);
         if (origClOrdID != Value::Null) {
@@ -3020,7 +3020,7 @@ impl BitmexCore {
             if (clientOrderId != Value::Null) {
                 add_element_to_object(&mut request, &Value::Str("clOrdID".to_string()), clientOrderId.clone());
             }
-            params = self.omit(params.clone(), Value::List(vec![Value::Str("origClOrdID".to_string()), Value::Str("clOrdID".to_string()), Value::Str("clientOrderId".to_string())]), &[]);
+            params = self.omit(params.clone(), Value::from(vec![Value::Str("origClOrdID".to_string()), Value::Str("clOrdID".to_string()), Value::Str("clientOrderId".to_string())]), &[]);
         }  else {
             add_element_to_object(&mut request, &Value::Str("orderID".to_string()), id.clone());
         }
@@ -3069,7 +3069,7 @@ impl BitmexCore {
             add_element_to_object(&mut request, &Value::Str("orderID".to_string()), id.clone());
         }  else {
             add_element_to_object(&mut request, &Value::Str("clOrdID".to_string()), clientOrderId.clone());
-            params = self.omit(params.clone(), Value::List(vec![Value::Str("clOrdID".to_string()), Value::Str("clientOrderId".to_string())]), &[]);
+            params = self.omit(params.clone(), Value::from(vec![Value::Str("clOrdID".to_string()), Value::Str("clientOrderId".to_string())]), &[]);
         }
         let __ws_arg_9 = self.extend(request.clone(), &[params.clone()]);
         let mut response: Value = self.private_delete_order(&[__ws_arg_9]).await;
@@ -3118,7 +3118,7 @@ impl BitmexCore {
             add_element_to_object(&mut request, &Value::Str("orderID".to_string()), ids.clone());
         }  else {
             add_element_to_object(&mut request, &Value::Str("clOrdID".to_string()), clientOrderId.clone());
-            params = self.omit(params.clone(), Value::List(vec![Value::Str("clOrdID".to_string()), Value::Str("clientOrderId".to_string())]), &[]);
+            params = self.omit(params.clone(), Value::from(vec![Value::Str("clOrdID".to_string()), Value::Str("clientOrderId".to_string())]), &[]);
         }
         let __ws_arg_10 = self.extend(request.clone(), &[params.clone()]);
         let mut response: Value = self.private_delete_order(&[__ws_arg_10]).await;
@@ -3572,7 +3572,7 @@ impl BitmexCore {
         }
         let mut response: Value = self.public_get_instrument_active_and_indices(&[params.clone()]).await;
         // same response as under "fetchMarkets"
-        let mut filteredResponse: Value = Value::List(vec![]);
+        let mut filteredResponse: Value = Value::from(vec![]);
         let mut rawItems: Value = self.to_array(response.clone());
         {
                         let mut i: Value = Value::Int(0);
@@ -3668,7 +3668,7 @@ impl BitmexCore {
         }  else if (symbol != Value::Null) {
             let mut splitSymbol: Value = split(&symbol, &Value::Str(":".to_string()));
             let mut splitSymbolLength: Value = Value::Int(splitSymbol.len() as i64);
-            let mut timeframes: Value = Value::List(vec![Value::Str("nearest".to_string()), Value::Str("daily".to_string()), Value::Str("weekly".to_string()), Value::Str("monthly".to_string()), Value::Str("quarterly".to_string()), Value::Str("biquarterly".to_string()), Value::Str("perpetual".to_string())]);
+            let mut timeframes: Value = Value::from(vec![Value::Str("nearest".to_string()), Value::Str("daily".to_string()), Value::Str("weekly".to_string()), Value::Str("monthly".to_string()), Value::Str("quarterly".to_string()), Value::Str("biquarterly".to_string()), Value::Str("perpetual".to_string())]);
             if is_true(&(splitSymbolLength.as_f64().unwrap_or(f64::NAN) > Value::Int(1).as_f64().unwrap_or(f64::NAN))) && is_true(&self.in_array(splitSymbol.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null), timeframes.clone())) {
                 let mut code: Value = self.currency(splitSymbol.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null));
                 symbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", code.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null), Value::Str(":".to_string()))), splitSymbol.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null)));
@@ -3685,7 +3685,7 @@ impl BitmexCore {
             add_element_to_object(&mut request, &Value::Str("count".to_string()), limit.clone());
         }
         let mut until: Value = self.safe_integer_k(params.clone(), "until", &[]);
-        params = self.omit(params.clone(), Value::List(vec![Value::Str("until".to_string())]), &[]);
+        params = self.omit(params.clone(), Value::from(vec![Value::Str("until".to_string())]), &[]);
         if (until != Value::Null) {
             add_element_to_object(&mut request, &Value::Str("endTime".to_string()), self.iso8601(until.clone()));
         }
@@ -3884,7 +3884,7 @@ impl BitmexCore {
         //        ]
         //    }
         //
-        let mut networks: Value = self.safe_list_k(fee.clone(), "networks", &[Value::List(vec![])]);
+        let mut networks: Value = self.safe_list_k(fee.clone(), "networks", &[Value::from(vec![])]);
         let mut networksLength: Value = Value::Int(networks.len() as i64);
         let mut result: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -4376,7 +4376,7 @@ impl BitmexCore {
         let mut market = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
-        let mut result: Value = Value::List(vec![]);
+        let mut result: Value = Value::from(vec![]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_390: bool = true;

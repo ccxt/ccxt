@@ -454,7 +454,7 @@ impl NadoCore {
     m
 }));
         self.load_markets(&[]).await;
-        return self.un_watch_trades_for_symbols(Value::List(vec![symbol.clone()]), &[params.clone()]).await;
+        return self.un_watch_trades_for_symbols(Value::from(vec![symbol.clone()]), &[params.clone()]).await;
 
     Value::Null
 }
@@ -483,8 +483,8 @@ impl NadoCore {
             panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" watchTradesForSymbols() requires a non-empty array of symbols".to_string())))));
         }
         symbols = self.market_symbols(&[symbols.clone(), Value::Null, Value::Bool(false), Value::Bool(true), Value::Bool(true)]);
-        let mut markets: Value = Value::List(vec![]);
-        let mut messageHashes: Value = Value::List(vec![]);
+        let mut markets: Value = Value::from(vec![]);
+        let mut messageHashes: Value = Value::from(vec![]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_507: bool = true;
@@ -525,8 +525,8 @@ impl NadoCore {
             panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" unWatchTradesForSymbols() requires a non-empty array of symbols".to_string())))));
         }
         symbols = self.market_symbols(&[symbols.clone(), Value::Null, Value::Bool(false), Value::Bool(true), Value::Bool(true)]);
-        let mut markets: Value = Value::List(vec![]);
-        let mut messageHashes: Value = Value::List(vec![]);
+        let mut markets: Value = Value::from(vec![]);
+        let mut messageHashes: Value = Value::from(vec![]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_508: bool = true;
@@ -585,7 +585,7 @@ impl NadoCore {
     m
 }));
         self.load_markets(&[]).await;
-        return self.un_watch_order_book_for_symbols(Value::List(vec![symbol.clone()]), &[params.clone()]).await;
+        return self.un_watch_order_book_for_symbols(Value::from(vec![symbol.clone()]), &[params.clone()]).await;
 
     Value::Null
 }
@@ -612,8 +612,8 @@ impl NadoCore {
             panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" watchOrderBookForSymbols() requires a non-empty array of symbols".to_string())))));
         }
         symbols = self.market_symbols(&[symbols.clone(), Value::Null, Value::Bool(false), Value::Bool(true), Value::Bool(true)]);
-        let mut markets: Value = Value::List(vec![]);
-        let mut messageHashes: Value = Value::List(vec![]);
+        let mut markets: Value = Value::from(vec![]);
+        let mut messageHashes: Value = Value::from(vec![]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_509: bool = true;
@@ -656,8 +656,8 @@ impl NadoCore {
             panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" unWatchOrderBookForSymbols() requires a non-empty array of symbols".to_string())))));
         }
         symbols = self.market_symbols(&[symbols.clone(), Value::Null, Value::Bool(false), Value::Bool(true), Value::Bool(true)]);
-        let mut markets: Value = Value::List(vec![]);
-        let mut messageHashes: Value = Value::List(vec![]);
+        let mut markets: Value = Value::from(vec![]);
+        let mut messageHashes: Value = Value::from(vec![]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_510: bool = true;
@@ -734,9 +734,9 @@ impl NadoCore {
             panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" watchOHLCVForSymbols() requires a an array of symbols and timeframes, like  [['BTC/USDT0:USDT0', '1m'], ['ETH/USDT0:USDT0', '5m']]".to_string())))));
         }
         self.load_markets(&[]).await;
-        let mut markets: Value = Value::List(vec![]);
-        let mut messageHashes: Value = Value::List(vec![]);
-        let mut subscriptionParams: Value = Value::List(vec![]);
+        let mut markets: Value = Value::from(vec![]);
+        let mut messageHashes: Value = Value::from(vec![]);
+        let mut subscriptionParams: Value = Value::from(vec![]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_511: bool = true;
@@ -786,7 +786,7 @@ impl NadoCore {
     m
 }));
         self.load_markets(&[]).await;
-        return self.un_watch_ohlcv_for_symbols(Value::List(vec![Value::List(vec![symbol.clone(), timeframe.clone()])]), &[params.clone()]).await;
+        return self.un_watch_ohlcv_for_symbols(Value::from(vec![Value::from(vec![symbol.clone(), timeframe.clone()])]), &[params.clone()]).await;
 
     Value::Null
 }
@@ -810,9 +810,9 @@ impl NadoCore {
             panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" unWatchOHLCVForSymbols() requires a an array of symbols and timeframes, like  [['BTC/USDT0:USDT0', '1m'], ['ETH/USDT0:USDT0', '5m']]".to_string())))));
         }
         self.load_markets(&[]).await;
-        let mut markets: Value = Value::List(vec![]);
-        let mut messageHashes: Value = Value::List(vec![]);
-        let mut subscriptionParams: Value = Value::List(vec![]);
+        let mut markets: Value = Value::from(vec![]);
+        let mut messageHashes: Value = Value::from(vec![]);
+        let mut subscriptionParams: Value = Value::from(vec![]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_512: bool = true;
@@ -853,7 +853,7 @@ impl NadoCore {
 }));
         self.load_markets(&[]).await;
         symbol = self.symbol(symbol.clone());
-        let mut tickers: Value = self.watch_tickers(&[Value::List(vec![symbol.clone()]), params.clone()]).await;
+        let mut tickers: Value = self.watch_tickers(&[Value::from(vec![symbol.clone()]), params.clone()]).await;
         return get_value(&tickers, &symbol);
 
     Value::Null
@@ -874,7 +874,7 @@ impl NadoCore {
     m
 }));
         self.load_markets(&[]).await;
-        return self.un_watch_tickers(&[Value::List(vec![symbol.clone()]), params.clone()]).await;
+        return self.un_watch_tickers(&[Value::from(vec![symbol.clone()]), params.clone()]).await;
 
     Value::Null
 }
@@ -1505,7 +1505,7 @@ impl NadoCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut orders: Value = self.cancel_orders_ws(Value::List(vec![id.clone()]), &[symbol.clone(), params.clone()]).await;
+        let mut orders: Value = self.cancel_orders_ws(Value::from(vec![id.clone()]), &[symbol.clone(), params.clone()]).await;
         return self.safe_dict(orders.clone(), Value::Int(0), &[]);
 
     Value::Null
@@ -1568,8 +1568,8 @@ impl NadoCore {
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut cancelledOrders: Value = self.safe_list_k(data.clone(), "cancelled_orders", &[Value::List(vec![])]);
-        let mut result: Value = Value::List(vec![]);
+        let mut cancelledOrders: Value = self.safe_list_k(data.clone(), "cancelled_orders", &[Value::from(vec![])]);
+        let mut result: Value = Value::from(vec![]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_513: bool = true;
@@ -1631,8 +1631,8 @@ impl NadoCore {
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut cancelledOrders: Value = self.safe_list_k(data.clone(), "cancelled_orders", &[Value::List(vec![])]);
-        let mut result: Value = Value::List(vec![]);
+        let mut cancelledOrders: Value = self.safe_list_k(data.clone(), "cancelled_orders", &[Value::from(vec![])]);
+        let mut result: Value = Value::from(vec![]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_514: bool = true;
@@ -1701,7 +1701,7 @@ impl NadoCore {
         m.insert("subscribeHash".to_string(), subscribeHash.clone());
     m
 }));
-            self.watch_multiple(url.clone(), Value::List(vec![subscribeHash.clone()]), &[request.clone(), Value::List(vec![subscribeHash.clone()]), subscription.clone()]).await;
+            self.watch_multiple(url.clone(), Value::from(vec![subscribeHash.clone()]), &[request.clone(), Value::from(vec![subscribeHash.clone()]), subscription.clone()]).await;
         }
         return self.watch(url.clone(), messageHash.clone(), &[]).await;
 
@@ -1738,7 +1738,7 @@ impl NadoCore {
         m.insert("subscribeHash".to_string(), subscribeHash.clone());
     m
 }));
-        self.watch_multiple(url.clone(), Value::List(vec![subscribeHash.clone()]), &[request.clone(), Value::List(vec![messageHash.clone()]), subscription.clone()]).await;
+        self.watch_multiple(url.clone(), Value::from(vec![subscribeHash.clone()]), &[request.clone(), Value::from(vec![messageHash.clone()]), subscription.clone()]).await;
         return self.watch(url.clone(), messageHash.clone(), &[]).await;
 
     Value::Null
@@ -1840,7 +1840,7 @@ impl NadoCore {
         });
         let mut messageTypes: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("StreamAuthentication".to_string(), Value::List(vec![Value::Map({
+                m.insert("StreamAuthentication".to_string(), Value::from(vec![Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("name".to_string(), Value::Str("sender".to_string()));
         m.insert("type".to_string(), Value::Str("bytes32".to_string()));
@@ -1921,7 +1921,7 @@ impl NadoCore {
         m.insert("subscribeHash".to_string(), subscribeHash.clone());
     m
 }));
-                    self.watch_multiple(url.clone(), Value::List(vec![subscribeHash.clone()]), &[request.clone(), Value::List(vec![subscribeHash.clone()]), subscription.clone()]).await;
+                    self.watch_multiple(url.clone(), Value::from(vec![subscribeHash.clone()]), &[request.clone(), Value::from(vec![subscribeHash.clone()]), subscription.clone()]).await;
                 }
             }
         }
@@ -1966,7 +1966,7 @@ impl NadoCore {
         let mut subscriptionParams = get_arg(optional_args, 1, Value::Null);
         let mut url: Value = get_value(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), &Value::Str("subscriptions".to_string()));
         let mut client: Value = self.client(&[url.clone()]);
-        let mut results: Value = Value::List(vec![]);
+        let mut results: Value = Value::from(vec![]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_516: bool = true;
@@ -1989,7 +1989,7 @@ impl NadoCore {
         m.insert("unsubscribeHash".to_string(), unsubscribeHash.clone());
     m
 }));
-            append_to_array(&mut results, self.watch_multiple(url.clone(), Value::List(vec![unsubscribeHash.clone()]), &[request.clone(), Value::List(vec![unsubscribeHash.clone()]), subscription.clone()]).await);
+            append_to_array(&mut results, self.watch_multiple(url.clone(), Value::from(vec![unsubscribeHash.clone()]), &[request.clone(), Value::from(vec![unsubscribeHash.clone()]), subscription.clone()]).await);
         }
         }
         return results;
@@ -2186,7 +2186,7 @@ impl NadoCore {
         let mut parsed: Value = self.parse_ohlcv(message.clone(), &[market.clone()]);
         stored.append(parsed.clone());
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("ohlcv:".to_string()), timeframe)), Value::Str(":".to_string()))), symbol));
-        client.resolve(&[Value::List(vec![symbol.clone(), timeframe.clone(), stored.clone()]), messageHash.clone()]);
+        client.resolve(&[Value::from(vec![symbol.clone(), timeframe.clone(), stored.clone()]), messageHash.clone()]);
 }
 
     pub fn parse_ws_order(&self, mut order: Value, optional_args: &[Value]) -> Value {
@@ -2498,7 +2498,7 @@ impl NadoCore {
 }
 
     pub fn handle_delta(&self, mut bookside: Value, mut delta: Value) {
-        let mut bidAsk: Value = Value::List(vec![self.parent.parse_x18(self.safe_string(delta.clone(), Value::Int(0), &[])), self.parent.parse_x18(self.safe_string(delta.clone(), Value::Int(1), &[]))]);
+        let mut bidAsk: Value = Value::from(vec![self.parent.parse_x18(self.safe_string(delta.clone(), Value::Int(0), &[])), self.parent.parse_x18(self.safe_string(delta.clone(), Value::Int(1), &[]))]);
         bookside.store_array(bidAsk.clone());
 }
 
@@ -2549,8 +2549,8 @@ impl NadoCore {
             client.reject(&[Value::from(error.clone()), messageHash.clone()]);
             return;
         }
-        let mut asks: Value = self.safe_list_k(message.clone(), "asks", &[Value::List(vec![])]);
-        let mut bids: Value = self.safe_list_k(message.clone(), "bids", &[Value::List(vec![])]);
+        let mut asks: Value = self.safe_list_k(message.clone(), "asks", &[Value::from(vec![])]);
+        let mut bids: Value = self.safe_list_k(message.clone(), "bids", &[Value::from(vec![])]);
         self.handle_deltas(get_value(&orderbook, &Value::Str("asks".to_string())), asks.clone());
         self.handle_deltas(get_value(&orderbook, &Value::Str("bids".to_string())), bids.clone());
         let mut timestamp: Value = self.parse_ws_timestamp(message.clone(), Value::Str("max_timestamp".to_string()));
