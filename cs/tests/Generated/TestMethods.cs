@@ -135,10 +135,10 @@ public partial class testMainClass
             {
                 for (int i = 0; i < testFileNames.Count; postFixIncrement(ref i))
                 {
-                    string? testFileName = ((string)getValue(testFileNames, i));
+                    string? testFileName = ((string)testFileNames[i]);
                     for (int j = 0; isLessThan(j, getArrayLength(possibleMethodNames)); postFixIncrement(ref j))
                     {
-                        string? methodName = ((string)getValue(possibleMethodNames, j));
+                        string? methodName = ((string)possibleMethodNames[j]);
                         methodName = ((string)methodName).Replace((string)"()", (string)"");
                         if (isEqual(testFileName, methodName))
                         {
@@ -172,7 +172,7 @@ public partial class testMainClass
         List<object> objkeys = new List<object>(((IDictionary<string,object>)reqCreds).Keys);
         for (int i = 0; i < objkeys.Count; postFixIncrement(ref i))
         {
-            string? credential = ((string)getValue(objkeys, i));
+            string? credential = ((string)objkeys[i]);
             object isRequired = getValue(reqCreds, credential);
             if ((isEqual(isRequired, true)) && (isEqual(getExchangeProp(exchange, credential), null)))
             {
@@ -212,7 +212,7 @@ public partial class testMainClass
             List<object> settingKeys = new List<object>(((IDictionary<string,object>)exchangeSettings).Keys);
             for (int i = 0; i < settingKeys.Count; postFixIncrement(ref i))
             {
-                string? key = ((string)getValue(settingKeys, i));
+                string? key = ((string)settingKeys[i]);
                 object settingValue = getValue(exchangeSettings, key);
                 bool settingIsEmpty = ((settingValue == null)) || ((settingValue == null)) || (isEqual(settingValue, "")) || (isEqual(settingValue, false)) || (isEqual(settingValue, 0));
                 if (!settingIsEmpty)
@@ -355,7 +355,7 @@ public partial class testMainClass
         List<object> methodNames = new List<object>() {methodName, add(add(methodName, "."), this.ext)};
         for (int i = 0; i < getArrayLength(methodNames); postFixIncrement(ref i))
         {
-            object mName = getValue(methodNames, i);
+            object mName = methodNames[i];
             if (inOp(this.skippedMethods, mName))
             {
                 // if whole method is skipped, by assigning a string to it, i.e. "fetchOrders":"blabla"
@@ -381,7 +381,7 @@ public partial class testMainClass
         List<object> objectNames = new List<object>(((IDictionary<string,object>)objectSkips).Keys);
         for (int i = 0; i < objectNames.Count; postFixIncrement(ref i))
         {
-            string? objectName = ((string)getValue(objectNames, i));
+            string? objectName = ((string)objectNames[i]);
             object objectMethods = getValue(objectSkips, objectName);
             if (isTrue(exchange.inArray(methodName, objectMethods)))
             {
@@ -600,7 +600,7 @@ public partial class testMainClass
         List<object> promises = new List<object>() {};
         for (int i = 0; i < testNames.Count; postFixIncrement(ref i))
         {
-            string? testName = ((string)getValue(testNames, i));
+            string? testName = ((string)testNames[i]);
             object testArgs = getValue(tests, testName);
             ((IList<object>)promises).Add(this.testSafe(testName, exchange, testArgs, isPublicTest));
         }
@@ -611,7 +611,7 @@ public partial class testMainClass
         List<object> failedMethods = new List<object>() {};
         for (int i = 0; i < testNames.Count; postFixIncrement(ref i))
         {
-            string? testName = ((string)getValue(testNames, i));
+            string? testName = ((string)testNames[i]);
             object testReturnedValue = getValue(results, i);
             if (!isEqual(testReturnedValue, true))
             {
@@ -697,7 +697,7 @@ public partial class testMainClass
         List<object> keys = new List<object>(((IDictionary<string,object>)markets).Keys);
         for (int i = 0; i < keys.Count; postFixIncrement(ref i))
         {
-            string? key = ((string)getValue(keys, i));
+            string? key = ((string)keys[i]);
             object market = getValue(markets, key);
             if (isTrue(spot) && (isEqual(getValue(market, "spot"), true)))
             {
@@ -724,7 +724,7 @@ public partial class testMainClass
         {
             for (int i = 0; i < getArrayLength(codes); postFixIncrement(ref i))
             {
-                string? currentCode = ((string)getValue(codes, i));
+                string? currentCode = ((string)codes[i]);
                 object marketsArrayForCurrentCode = exchange.filterBy(currentTypeMarkets, "base", currentCode);
                 object indexedMkts = exchange.indexBy(marketsArrayForCurrentCode, "symbol");
                 List<object> symbolsArrayForCurrentCode = new List<object>(((IDictionary<string,object>)indexedMkts).Keys);
@@ -838,7 +838,7 @@ public partial class testMainClass
         List<object> tickerSymbols = new List<object>(((IDictionary<string,object>)tickers).Keys);
         for (int i = 0; i < tickerSymbols.Count; postFixIncrement(ref i))
         {
-            string? tickerSymbol = ((string)getValue(tickerSymbols, i));
+            string? tickerSymbol = ((string)tickerSymbols[i]);
             object market = exchange.safeDict(exchange.markets, tickerSymbol);
             if ((market != null))
             {
@@ -1003,7 +1003,7 @@ public partial class testMainClass
             List<object> pinnedKeys = new List<object>(((IDictionary<string,object>)exchange.markets).Keys);
             for (int i = 0; i < pinnedKeys.Count; postFixIncrement(ref i))
             {
-                object pinnedMarket = getValue(exchange.markets, getValue(pinnedKeys, i));
+                object pinnedMarket = getValue(exchange.markets, pinnedKeys[i]);
                 object pinnedOutcomes = exchange.safeList(pinnedMarket, "outcomes", new List<object>() {});
                 for (int j = 0; isLessThan(j, getArrayLength(pinnedOutcomes)); postFixIncrement(ref j))
                 {
@@ -1029,7 +1029,7 @@ public partial class testMainClass
             List<object> marketKeys = new List<object>(((IDictionary<string,object>)exchange.markets).Keys);
             for (int i = 0; i < marketKeys.Count; postFixIncrement(ref i))
             {
-                object market = getValue(exchange.markets, getValue(marketKeys, i));
+                object market = getValue(exchange.markets, marketKeys[i]);
                 object outcomesList = exchange.safeList(market, "outcomes", new List<object>() {});
                 int outcomesListLength = getArrayLength(outcomesList);
                 if (isGreaterThan(outcomesListLength, 0))
@@ -1694,7 +1694,7 @@ public partial class testMainClass
         {
             if (i > 2)
             {
-                string? current = ((string)getValue(urlParts, i));
+                string? current = ((string)urlParts[i]);
                 if (getIndexOf(current, "?") > -1)
                 {
                     // handle urls like this: /v1/account/accounts?AccessK
@@ -1716,7 +1716,7 @@ public partial class testMainClass
         List<object> parts = ((string)url).Split(new [] {((string)"&")}, StringSplitOptions.None).ToList<object>();
         for (int i = 0; i < parts.Count; postFixIncrement(ref i))
         {
-            string? part = ((string)getValue(parts, i));
+            string? part = ((string)parts[i]);
             List<object> keyValue = ((string)part).Split(new [] {((string)"=")}, StringSplitOptions.None).ToList<object>();
             int keysLength = keyValue.Count;
             if ((keysLength != 2))
@@ -1788,7 +1788,7 @@ public partial class testMainClass
             List<object> keys = new List<object>(((IDictionary<string,object>)value).Keys);
             for (int i = 0; i < keys.Count; postFixIncrement(ref i))
             {
-                if (!isTrue(this.isVacantValue(exchange, getValue(value, getValue(keys, i)))))
+                if (!isTrue(this.isVacantValue(exchange, getValue(value, keys[i]))))
                 {
                     return false;
                 }
@@ -1806,7 +1806,7 @@ public partial class testMainClass
         object count = 0;
         for (int i = 0; i < keys.Count; postFixIncrement(ref i))
         {
-            string? key = ((string)getValue(keys, i));
+            string? key = ((string)keys[i]);
             if (!isTrue((exchange.inArray(key, otherKeys))) && isTrue(this.isVacantValue(exchange, getValue(target, key))))
             {
                 continue;
@@ -1864,7 +1864,7 @@ public partial class testMainClass
             // iterate over the keys
             for (int i = 0; i < storedOutputKeys.Count; postFixIncrement(ref i))
             {
-                object key = getValue(storedOutputKeys, i);
+                object key = storedOutputKeys[i];
                 if (isTrue(exchange.inArray(key, skipKeys)))
                 {
                     continue;
@@ -2176,7 +2176,7 @@ public partial class testMainClass
                 List<object> storedHeaderKeys = new List<object>(((IDictionary<string,object>)storedHeaders).Keys);
                 for (int i = 0; i < storedHeaderKeys.Count; postFixIncrement(ref i))
                 {
-                    string? headerKey = ((string)getValue(storedHeaderKeys, i));
+                    string? headerKey = ((string)storedHeaderKeys[i]);
                     object storedHeaderValue = getValue(storedHeaders, headerKey);
                     object sentHeaderValue = exchange.safeString(sentHeaders, headerKey);
                     this.assertStaticError(isEqual(sentHeaderValue, storedHeaderValue), ("header mismatch for " + headerKey), storedHeaderValue, sentHeaderValue);
@@ -2389,7 +2389,7 @@ public partial class testMainClass
         List<object> methodsNames = new List<object>(((IDictionary<string,object>)methods).Keys);
         for (int i = 0; i < methodsNames.Count; postFixIncrement(ref i))
         {
-            string? method = ((string)getValue(methodsNames, i));
+            string? method = ((string)methodsNames[i]);
             object results = getValue(methods, method);
             for (int j = 0; isLessThan(j, getArrayLength(results)); postFixIncrement(ref j))
             {
@@ -2625,7 +2625,7 @@ public partial class testMainClass
         List<object> methodsNames = new List<object>(((IDictionary<string,object>)methods).Keys);
         for (int i = 0; i < methodsNames.Count; postFixIncrement(ref i))
         {
-            string? method = ((string)getValue(methodsNames, i));
+            string? method = ((string)methodsNames[i]);
             object results = getValue(methods, method);
             for (int j = 0; isLessThan(j, getArrayLength(results)); postFixIncrement(ref j))
             {
@@ -2718,7 +2718,7 @@ public partial class testMainClass
         List<object> methodsNames = new List<object>(((IDictionary<string,object>)methods).Keys);
         for (int i = 0; i < methodsNames.Count; postFixIncrement(ref i))
         {
-            string? method = ((string)getValue(methodsNames, i));
+            string? method = ((string)methodsNames[i]);
             object results = getValue(methods, method);
             for (int j = 0; isLessThan(j, getArrayLength(results)); postFixIncrement(ref j))
             {
@@ -2787,7 +2787,7 @@ public partial class testMainClass
         List<object> methodsNames = new List<object>(((IDictionary<string,object>)methods).Keys);
         for (int i = 0; i < methodsNames.Count; postFixIncrement(ref i))
         {
-            string? method = ((string)getValue(methodsNames, i));
+            string? method = ((string)methodsNames[i]);
             object results = getValue(methods, method);
             int resultsLength = getArrayLength(results);
             sum = exchange.sum(sum, resultsLength);
@@ -2879,7 +2879,7 @@ public partial class testMainClass
         }
         for (int i = 0; i < exchanges.Count; postFixIncrement(ref i))
         {
-            string? exchangeName = ((string)getValue(exchanges, i));
+            string? exchangeName = ((string)exchanges[i]);
             object exchangeData = getValue(staticData, exchangeName);
             object disabled = this.checkIfExchangeIsDisabled(exchangeName, exchangeData);
             if (isTrue(disabled))

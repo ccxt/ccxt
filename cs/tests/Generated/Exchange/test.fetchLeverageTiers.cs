@@ -21,7 +21,7 @@ public partial class testMainClass : BaseTest
         testSharedMethods.assertNonEmtpyArray(exchange, skippedProperties, method, tierKeys, symbol);
         for (int i = 0; i < tierKeys.Count; postFixIncrement(ref i))
         {
-            object tiersForSymbol = getValue(tiers, getValue(tierKeys, i));
+            object tiersForSymbol = getValue(tiers, tierKeys[i]);
             testSharedMethods.assertNonEmtpyArray(exchange, skippedProperties, method, tiersForSymbol, symbol);
             for (int j = 0; j < getArrayLength(tiersForSymbol); postFixIncrement(ref j))
             {

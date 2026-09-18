@@ -940,7 +940,7 @@ public partial class bitstamp : ccxt.bitstamp
         IList<object> entries = this.toArray(cache);
         for (int i = 0; i < getArrayLength(entries); postFixIncrement(ref i))
         {
-            object entry = getValue(entries, i);
+            object entry = entries[i];
             string? entrySymbol = this.safeString(entry, "symbol");
             if (!this.inArray(entrySymbol, symbols))
             {
@@ -1004,7 +1004,7 @@ public partial class bitstamp : ccxt.bitstamp
         List<object> keys = new List<object>(((IDictionary<string,object>)methods).Keys);
         for (int i = 0; i < keys.Count; postFixIncrement(ref i))
         {
-            string? key = ((string)getValue(keys, i));
+            string? key = ((string)keys[i]);
             if (getIndexOf(channel, key) > -1)
             {
                 object method = getValue(methods, key);

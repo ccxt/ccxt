@@ -693,7 +693,7 @@ public partial class backpack : Exchange
         Dictionary<string, object> parsedNetworks = new Dictionary<string, object>() {};
         for (int j = 0; j < networks.Count; postFixIncrement(ref j))
         {
-            object network = getValue(networks, j);
+            object network = networks[j];
             string? networkId = this.safeString(network, "blockchain");
             string? networkIdLowerCase = this.safeStringLower(network, "blockchain");
             object networkCode = this.networkIdToCode(networkIdLowerCase, code);
@@ -1362,7 +1362,7 @@ public partial class backpack : Exchange
         IList<object> rawRates = this.toArray(response);
         for (int i = 0; i < getArrayLength(rawRates); postFixIncrement(ref i))
         {
-            object rate = getValue(rawRates, i);
+            object rate = rawRates[i];
             string? datetime = this.safeString(rate, "intervalEndTimestamp");
             Int64? timestamp = this.parse8601(datetime);
             ((IList<object>)rates).Add(new Dictionary<string, object>() {
@@ -1629,7 +1629,7 @@ public partial class backpack : Exchange
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         for (int i = 0; i < balanceKeys.Count; postFixIncrement(ref i))
         {
-            string? id = ((string)getValue(balanceKeys, i));
+            string? id = ((string)balanceKeys[i]);
             string? code = this.safeCurrencyCode(id);
             object balance = getValue(response, id);
             Dictionary<string, object> account = this.account();

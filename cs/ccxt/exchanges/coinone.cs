@@ -610,7 +610,7 @@ public partial class coinone : Exchange
         List<object> currencyIds = new List<object>(((IDictionary<string,object>)balances).Keys);
         for (int i = 0; i < currencyIds.Count; postFixIncrement(ref i))
         {
-            string? currencyId = ((string)getValue(currencyIds, i));
+            string? currencyId = ((string)currencyIds[i]);
             object balance = getValue(balances, currencyId);
             string? code = this.safeCurrencyCode(currencyId);
             Dictionary<string, object> account = this.account();
@@ -1432,7 +1432,7 @@ public partial class coinone : Exchange
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         for (int i = 0; i < keys.Count; postFixIncrement(ref i))
         {
-            string? key = ((string)getValue(keys, i));
+            string? key = ((string)keys[i]);
             object value = getValue(walletAddress, key);
             if (((value == null)) || ((value == null)) || (isEqual(value, "")) || (isEqual(value, "-1")))
             {

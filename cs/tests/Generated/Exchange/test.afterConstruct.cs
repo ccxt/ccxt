@@ -44,7 +44,7 @@ public partial class testMainClass : BaseTest
             List<object> collectedNetworkIds = new List<object>() {};
             for (int i = 0; i < networkCodes.Count; postFixIncrement(ref i))
             {
-                string? networkCode = ((string)getValue(networkCodes, i));
+                string? networkCode = ((string)networkCodes[i]);
                 object networkId = getValue(getValue(exchange.options, "networks"), networkCode);
                 if (!isTrue(exchange.inArray(networkCode, allowedUnifiedAliases)))
                 {
@@ -56,14 +56,14 @@ public partial class testMainClass : BaseTest
             List<object> collectedNetworkCodes = new List<object>() {};
             for (int i = 0; i < networkCodes.Count; postFixIncrement(ref i))
             {
-                string networkCodeLower = ((string)(getValue(networkCodes, i))).ToLower();
-                assert(!isTrue(exchange.inArray(networkCodeLower, collectedNetworkCodes)), (add("exchange.options[\"networks\"] contains multiple networkCodes with the same networkCode \"", getValue(networkCodes, i)) + "\" in different uppercase/lowercase format"));
+                string networkCodeLower = ((string)(networkCodes[i])).ToLower();
+                assert(!isTrue(exchange.inArray(networkCodeLower, collectedNetworkCodes)), (add("exchange.options[\"networks\"] contains multiple networkCodes with the same networkCode \"", networkCodes[i]) + "\" in different uppercase/lowercase format"));
                 ((IList<object>)collectedNetworkCodes).Add(networkCodeLower);
             }
             // 5) test networkCodeToId & networkIdToCode
             for (int i = 0; i < networkCodes.Count; postFixIncrement(ref i))
             {
-                string? networkCode = ((string)getValue(networkCodes, i));
+                string? networkCode = ((string)networkCodes[i]);
                 object networkId = getValue(getValue(exchange.options, "networks"), networkCode);
                 // check networkCodeToId
                 object networkIdConverted = exchange.networkCodeToId(networkCode);

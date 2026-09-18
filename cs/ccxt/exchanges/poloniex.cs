@@ -2811,7 +2811,7 @@ public partial class poloniex : Exchange
             List<object> details = this.safeList(response, "details", new List<object>() {});
             for (int i = 0; i < details.Count; postFixIncrement(ref i))
             {
-                object balance = getValue(details, i);
+                object balance = details[i];
                 string? currencyId = this.safeString(balance, "ccy");
                 string? code = this.safeCurrencyCode(currencyId);
                 Dictionary<string, object> account = this.account();
@@ -2954,7 +2954,7 @@ public partial class poloniex : Exchange
         List<object> symbols = this.symbols;
         for (int i = 0; i < getArrayLength(symbols); postFixIncrement(ref i))
         {
-            object symbol = getValue(symbols, i);
+            object symbol = symbols[i];
             ((IDictionary<string,object>)result)[(string)symbol] = new Dictionary<string, object>() {
                 { "info", response },
                 { "symbol", symbol },
@@ -3462,7 +3462,7 @@ public partial class poloniex : Exchange
         }
         for (int i = 0; i < getArrayLength(entries); postFixIncrement(ref i))
         {
-            object entry = getValue(entries, i);
+            object entry = entries[i];
             List<object> currencies = new List<object>(((IDictionary<string,object>)entry).Keys);
             string? currencyId = this.safeString(currencies, 0);
             ((IDictionary<string,object>)data)[(string)((string)currencyId)] = getValue(entry, ((string)currencyId));
@@ -3498,7 +3498,7 @@ public partial class poloniex : Exchange
         List<object> responseKeys = new List<object>(((IDictionary<string,object>)response).Keys);
         for (int i = 0; i < responseKeys.Count; postFixIncrement(ref i))
         {
-            string? currencyId = ((string)getValue(responseKeys, i));
+            string? currencyId = ((string)responseKeys[i]);
             string? code = this.safeCurrencyCode(currencyId);
             object feeInfo = getValue(response, currencyId);
             if (((code != null)) && ((isEqual(codes, null)) || (this.inArray(code, codes))))
@@ -3816,7 +3816,7 @@ public partial class poloniex : Exchange
         List<object> data = this.safeList(leverage, "data", new List<object>() {});
         for (int i = 0; i < data.Count; postFixIncrement(ref i))
         {
-            object entry = getValue(data, i);
+            object entry = data[i];
             marketId = this.safeString(entry, "symbol");
             // mgnMode arrives upper case; parseOrder and parsePosition read the
             // same field with safeStringLower

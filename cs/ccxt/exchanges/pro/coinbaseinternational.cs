@@ -101,7 +101,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
             productIds = marketIds;
             for (int i = 0; i < getArrayLength(parsedSymbols); postFixIncrement(ref i))
             {
-                ((IList<object>)messageHashes).Add(add(add(name, "::"), getValue(parsedSymbols, i)));
+                ((IList<object>)messageHashes).Add(add(add(name, "::"), parsedSymbols[i]));
             }
         } else if ((symbolsLength == 1))
         {
@@ -266,7 +266,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         List<object> output = new List<object>() {};
         for (int i = 0; i < getArrayLength(symbols); postFixIncrement(ref i))
         {
-            object symbol = getValue(symbols, i);
+            object symbol = symbols[i];
             Dictionary<string, object> market = this.market(symbol);
             if (isEqual(getValue(market, "active"), true))
             {
@@ -564,7 +564,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         List<object> data = this.safeList(message, "candles", new List<object>() {});
         for (int i = 0; i < data.Count; postFixIncrement(ref i))
         {
-            object tick = getValue(data, i);
+            object tick = data[i];
             object parsed = this.parseOHLCV(tick, market);
             callDynamically(stored, "append", new object[] {parsed});
         }

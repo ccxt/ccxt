@@ -1309,7 +1309,7 @@ public partial class aster : Exchange
         List<object> fapiRowsFiltered = new List<object>() {};
         for (int i = 0; i < fapiRows.Count; postFixIncrement(ref i))
         {
-            object market = getValue(fapiRows, i);
+            object market = fapiRows[i];
             // tmp skip some markets with base = undefined
             if ((this.safeString(market, "baseAsset") != null))
             {
@@ -2112,9 +2112,9 @@ public partial class aster : Exchange
         List<object> results = new List<object>() {};
         for (int i = 0; i < getArrayLength(rows); postFixIncrement(ref i))
         {
-            string? marketId = this.safeString(getValue(rows, i), "symbol");
+            string? marketId = this.safeString(rows[i], "symbol");
             Dictionary<string, object> safeMarket = this.safeMarket(marketId, null, null, marketType);
-            Dictionary<string, object> priceData = this.extend(this.parseLastPrice(getValue(rows, i), safeMarket), parameters);
+            Dictionary<string, object> priceData = this.extend(this.parseLastPrice(rows[i], safeMarket), parameters);
             ((IList<object>)results).Add(priceData);
         }
         symbols = this.marketSymbols(symbols);
@@ -4100,7 +4100,7 @@ public partial class aster : Exchange
         object maintenanceMarginPercentageString = null;
         for (int i = 0; i < leverageBracket.Count; postFixIncrement(ref i))
         {
-            object bracket = getValue(leverageBracket, i);
+            object bracket = leverageBracket[i];
             if (isTrue(Precise.stringLt(notionalStringAbs, getValue(bracket, 0))))
             {
                 break;
@@ -4309,7 +4309,7 @@ public partial class aster : Exchange
         List<object> result = new List<object>() {};
         for (int i = 0; i < getArrayLength(rawPositions); postFixIncrement(ref i))
         {
-            object rawPosition = getValue(rawPositions, i);
+            object rawPosition = rawPositions[i];
             string? entryPriceString = this.safeString(rawPosition, "entryPrice");
             if (isTrue(Precise.stringGt(entryPriceString, "0")))
             {
@@ -4368,7 +4368,7 @@ public partial class aster : Exchange
         Dictionary<string, object> balances = new Dictionary<string, object>() {};
         for (int i = 0; i < assets.Count; postFixIncrement(ref i))
         {
-            object entry = getValue(assets, i);
+            object entry = assets[i];
             string? currencyId = this.safeString(entry, "asset");
             string? code = this.safeCurrencyCode(currencyId);
             string? crossWalletBalance = this.safeString(entry, "crossWalletBalance");
@@ -4384,7 +4384,7 @@ public partial class aster : Exchange
         List<object> result = new List<object>() {};
         for (int i = 0; i < positions.Count; postFixIncrement(ref i))
         {
-            object position = getValue(positions, i);
+            object position = positions[i];
             string? marketId = this.safeString(position, "symbol");
             Dictionary<string, object> market = this.safeMarket(marketId, null, null, "contract");
             object code = ((bool) (isEqual(getValue(market, "linear"), true))) ? getValue(market, "quote") : getValue(market, "base");
@@ -4454,7 +4454,7 @@ public partial class aster : Exchange
         object maintenanceMarginPercentageString = null;
         for (int i = 0; i < leverageBracket.Count; postFixIncrement(ref i))
         {
-            object bracket = getValue(leverageBracket, i);
+            object bracket = leverageBracket[i];
             if (isTrue(Precise.stringLt(notionalStringAbs, getValue(bracket, 0))))
             {
                 break;
@@ -4667,14 +4667,14 @@ public partial class aster : Exchange
             IList<object> entries = this.toArray(response);
             for (int i = 0; i < getArrayLength(entries); postFixIncrement(ref i))
             {
-                object entry = getValue(entries, i);
+                object entry = entries[i];
                 string? marketId = this.safeString(entry, "symbol");
                 string? symbol = this.safeSymbol(marketId, null, null, "contract");
                 List<object> brackets = this.safeList(entry, "brackets", new List<object>() {});
                 List<object> result = new List<object>() {};
                 for (int j = 0; j < brackets.Count; postFixIncrement(ref j))
                 {
-                    object bracket = getValue(brackets, j);
+                    object bracket = brackets[j];
                     string? floorValue = this.safeString(bracket, "notionalFloor");
                     string? maintenanceMarginPercentage = this.safeString(bracket, "maintMarginRatio");
                     ((IList<object>)result).Add(new List<object>() {floorValue, maintenanceMarginPercentage});
@@ -5048,7 +5048,7 @@ public partial class aster : Exchange
         List<object> keys = new List<object>(((IDictionary<string,object>)values).Keys);
         for (int i = 0; i < keys.Count; postFixIncrement(ref i))
         {
-            object key = getValue(keys, i);
+            object key = keys[i];
             object value = getValue(values, key);
             bool isObj = ((value is IList<object>) || (value.GetType().IsGenericType && value.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))) || isTrue(this.isDictionary(value));
             string? valueJsonified = ((bool) isObj) ? this.json(value) : ((object)value).ToString();
@@ -5064,7 +5064,7 @@ public partial class aster : Exchange
         List<object> keys = new List<object>(((IDictionary<string,object>)dict).Keys);
         for (int i = 0; i < keys.Count; postFixIncrement(ref i))
         {
-            string? key = ((string)getValue(keys, i));
+            string? key = ((string)keys[i]);
             object value = getValue(dict, key);
             string capitalizedKey = this.capitalize(key);
             ((IDictionary<string,object>)capitalized)[(string)capitalizedKey] = value;

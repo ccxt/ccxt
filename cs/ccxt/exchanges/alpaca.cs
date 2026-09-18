@@ -1245,7 +1245,7 @@ public partial class alpaca : Exchange
         List<object> marketIds = new List<object>(((IDictionary<string,object>)snapshots).Keys);
         for (int i = 0; i < marketIds.Count; postFixIncrement(ref i))
         {
-            string? marketId = ((string)getValue(marketIds, i));
+            string? marketId = ((string)marketIds[i]);
             Dictionary<string, object> market = this.safeMarket(marketId);
             IDictionary<string, object> entry = this.safeDict(snapshots, marketId);
             IDictionary<string, object> dailyBar = this.safeDict(entry, "dailyBar", new Dictionary<string, object>() {});
@@ -2163,7 +2163,7 @@ public partial class alpaca : Exchange
             }
             for (int i = 0; i < getArrayLength(ledger); postFixIncrement(ref i))
             {
-                object entry = getValue(ledger, i);
+                object entry = ledger[i];
                 string? activityType = this.safeString(entry, "activity_type");
                 string? amount = this.safeString(entry, "net_amount");
                 bool isIncoming = ((activityType == "CSD")) || (((activityType == "TRANS")) && !isTrue(Precise.stringLt(amount, "0")));
@@ -2201,7 +2201,7 @@ public partial class alpaca : Exchange
         }
         for (int i = 0; i < getArrayLength(transfers); postFixIncrement(ref i))
         {
-            object entry = getValue(transfers, i);
+            object entry = transfers[i];
             string? direction = this.safeString(entry, "direction");
             if (isEqual(direction, type))
             {
@@ -2523,7 +2523,7 @@ public partial class alpaca : Exchange
         }
         for (int i = 0; i < positions.Count; postFixIncrement(ref i))
         {
-            object position = getValue(positions, i);
+            object position = positions[i];
             string? positionSymbol = this.safeString(position, "symbol");
             if ((positionSymbol == null))
             {

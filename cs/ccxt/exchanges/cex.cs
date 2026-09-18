@@ -422,7 +422,7 @@ public partial class cex : Exchange
         List<object> keys = new List<object>(((IDictionary<string,object>)rawNetworks).Keys);
         for (int j = 0; j < keys.Count; postFixIncrement(ref j))
         {
-            string? networkId = ((string)getValue(keys, j));
+            string? networkId = ((string)keys[j]);
             object rawNetwork = getValue(rawNetworks, networkId);
             object networkCode = this.networkIdToCode(networkId, code);
             bool deposit = (this.safeString(rawNetwork, "deposit") == "enabled");
@@ -966,7 +966,7 @@ public partial class cex : Exchange
         List<object> keys = new List<object>(((IDictionary<string,object>)response).Keys);
         for (int i = 0; i < keys.Count; postFixIncrement(ref i))
         {
-            string? key = ((string)getValue(keys, i));
+            string? key = ((string)keys[i]);
             IDictionary<string, object> market = null;
             if (isTrue(useKeyAsId))
             {
@@ -981,7 +981,7 @@ public partial class cex : Exchange
         List<object> symbols = this.symbols;
         for (int i = 0; i < getArrayLength(symbols); postFixIncrement(ref i))
         {
-            object symbol = getValue(symbols, i);
+            object symbol = symbols[i];
             if (!(inOp(result, symbol)))
             {
                 Dictionary<string, object> market = this.market(symbol);
@@ -1116,7 +1116,7 @@ public partial class cex : Exchange
         List<object> keys = new List<object>(((IDictionary<string,object>)response).Keys);
         for (int i = 0; i < keys.Count; postFixIncrement(ref i))
         {
-            string? key = ((string)getValue(keys, i));
+            string? key = ((string)keys[i]);
             IDictionary<string, object> balance = this.safeDict(response, key, new Dictionary<string, object>() {});
             string? code = this.safeCurrencyCode(key);
             Dictionary<string, object> account = new Dictionary<string, object>() {
@@ -1587,7 +1587,7 @@ public partial class cex : Exchange
         List<object> orders = new List<object>() {};
         for (int i = 0; i < ids.Count; postFixIncrement(ref i))
         {
-            object id = getValue(ids, i);
+            object id = ids[i];
             ((IList<object>)orders).Add(new Dictionary<string, object>() {
                 { "clientOrderId", id },
             });

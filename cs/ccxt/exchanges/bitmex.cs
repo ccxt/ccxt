@@ -755,7 +755,7 @@ public partial class bitmex : Exchange
         double? precision = this.parseNumber(precisionString);
         for (int j = 0; j < chains.Count; postFixIncrement(ref j))
         {
-            object chain = getValue(chains, j);
+            object chain = chains[j];
             string? networkId = this.safeString(chain, "asset");
             object network = this.networkIdToCode(networkId, code);
             string? withdrawalFeeRaw = this.safeString(chain, "withdrawalFee");
@@ -1410,7 +1410,7 @@ public partial class bitmex : Exchange
         IList<object> orders = this.toArray(response);
         for (int i = 0; i < getArrayLength(orders); postFixIncrement(ref i))
         {
-            object order = getValue(orders, i);
+            object order = orders[i];
             string side = ((bool) (isEqual(getValue(order, "side"), "Sell"))) ? "asks" : "bids";
             object amount = this.convertFromRawQuantity(symbol, this.safeString(order, "size"));
             double? price = this.safeNumber(order, "price");
@@ -2032,7 +2032,7 @@ public partial class bitmex : Exchange
         IList<object> rawTickers = this.toArray(response);
         for (int i = 0; i < getArrayLength(rawTickers); postFixIncrement(ref i))
         {
-            Dictionary<string, object> ticker = this.parseTicker(getValue(rawTickers, i));
+            Dictionary<string, object> ticker = this.parseTicker(rawTickers[i]);
             string? symbol = this.safeString(ticker, "symbol");
             if ((symbol != null))
             {
@@ -2187,7 +2187,7 @@ public partial class bitmex : Exchange
             // so the previous close becomes the current open, and we drop the first candle
             for (int i = 0; i < getArrayLength(result); postFixIncrement(ref i))
             {
-                ((List<object>)getValue(result, i))[Convert.ToInt32(0)] = subtract(this.parseToInt(getValue(getValue(result, i), 0)), duration);
+                ((List<object>)result[i])[Convert.ToInt32(0)] = subtract(this.parseToInt(getValue(result[i], 0)), duration);
             }
         }
         return ccxt.BaseExchange.ToOHLCVList(result);
@@ -3287,7 +3287,7 @@ public partial class bitmex : Exchange
         IList<object> rawItems = this.toArray(response);
         for (int i = 0; i < getArrayLength(rawItems); postFixIncrement(ref i))
         {
-            object item = getValue(rawItems, i);
+            object item = rawItems[i];
             string? marketId = this.safeString(item, "symbol");
             Dictionary<string, object> market = this.safeMarket(marketId);
             bool? swap = this.safeBool(market, "swap", false);

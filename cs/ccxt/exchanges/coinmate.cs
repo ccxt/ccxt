@@ -495,7 +495,7 @@ public partial class coinmate : Exchange
         List<object> result = new List<object>() {};
         for (int i = 0; i < data.Count; postFixIncrement(ref i))
         {
-            object market = getValue(data, i);
+            object market = data[i];
             string? id = this.safeString(market, "name");
             string? baseId = this.safeString(market, "firstCurrency");
             string? quoteId = this.safeString(market, "secondCurrency");
@@ -564,7 +564,7 @@ public partial class coinmate : Exchange
         List<object> currencyIds = new List<object>(((IDictionary<string,object>)balances).Keys);
         for (int i = 0; i < currencyIds.Count; postFixIncrement(ref i))
         {
-            string? currencyId = ((string)getValue(currencyIds, i));
+            string? currencyId = ((string)currencyIds[i]);
             string? code = this.safeCurrencyCode(currencyId);
             object balance = this.safeValue(balances, currencyId);
             Dictionary<string, object> account = this.account();
@@ -707,8 +707,8 @@ public partial class coinmate : Exchange
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         for (int i = 0; i < keys.Count; postFixIncrement(ref i))
         {
-            Dictionary<string, object> market = this.market(getValue(keys, i));
-            Dictionary<string, object> ticker = this.parseTicker(this.safeValue(data, getValue(keys, i)), market);
+            Dictionary<string, object> market = this.market(keys[i]);
+            Dictionary<string, object> ticker = this.parseTicker(this.safeValue(data, keys[i]), market);
             ((IDictionary<string,object>)result)[(string)getValue(market, "symbol")] = ticker;
         }
         return ccxt.BaseExchange.ToTickers(this.filterByArrayTickers(result, "symbol", symbols));

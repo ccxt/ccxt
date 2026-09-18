@@ -67,8 +67,8 @@ public partial class testMainClass : BaseTest
             {
                 if (!isEqual(j, i))
                 {
-                    string? proxyFirst = ((string)getValue(possibleOptionsArray, i));
-                    string? proxySecond = ((string)getValue(possibleOptionsArray, j));
+                    string? proxyFirst = ((string)possibleOptionsArray[i]);
+                    string? proxySecond = ((string)possibleOptionsArray[j]);
                     exchange.setProperty(exchange, proxyFirst, "0.0.0.0"); // actual value does not matter
                     exchange.setProperty(exchange, proxySecond, "0.0.0.0"); // actual value does not matter
                     bool exceptionCaught = false;

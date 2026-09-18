@@ -32,7 +32,7 @@ public partial class testMainClass : BaseTest
         assert(((codesLength == freeLength)) || ((codesLength == usedLength)), add("free and total and used codes have different lengths", logText));
         for (int i = 0; i < getArrayLength(allCodes); postFixIncrement(ref i))
         {
-            object code = getValue(allCodes, i);
+            object code = allCodes[i];
             // testSharedMethods.assertCurrencyCode (exchange, skippedProperties, method, entry, code);
             assert(inOp(getValue(entry, "total"), code), add((add("code ", code) + " not in total"), logText));
             assert(inOp(getValue(entry, "free"), code), add((add("code ", code) + " not in free"), logText));

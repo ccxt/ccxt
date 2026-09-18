@@ -270,7 +270,7 @@ public partial class btcbox : Exchange
         List<object> markets = new List<object>() {};
         for (int i = 0; i < marketIds.Count; postFixIncrement(ref i))
         {
-            string? marketId = ((string)getValue(marketIds, i));
+            string? marketId = ((string)marketIds[i]);
             List<object> symbolParts = ((string)marketId).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
             string baseCurr = ((string)this.safeString(symbolParts, 0, ""));
             string? quote = this.safeString(symbolParts, 1, "");
@@ -404,7 +404,7 @@ public partial class btcbox : Exchange
         List<object> codes = new List<object>(((IDictionary<string,object>)this.currencies).Keys);
         for (int i = 0; i < codes.Count; postFixIncrement(ref i))
         {
-            string? code = ((string)getValue(codes, i));
+            string? code = ((string)codes[i]);
             Dictionary<string, object> currency = this.currency(((string)code));
             object currencyId = getValue(currency, "id");
             object free = add(currencyId, "_balance");
@@ -849,7 +849,7 @@ public partial class btcbox : Exchange
         {
             for (int i = 0; i < getArrayLength(orders); postFixIncrement(ref i))
             {
-                ((IDictionary<string,object>)getValue(orders, i))["status"] = "open";
+                ((IDictionary<string,object>)orders[i])["status"] = "open";
             }
         }
         return ccxt.BaseExchange.ToOrderList(orders);

@@ -1464,7 +1464,7 @@ public partial class lighter : Exchange
         List<object> result = new List<object>() {};
         for (int i = 0; i < getArrayLength(markets); postFixIncrement(ref i))
         {
-            object market = getValue(markets, i);
+            object market = markets[i];
             string? id = this.safeString(market, "market_id");
             object type = this.safeString(market, "market_type");
             type = ((bool) (isEqual(type, "perp"))) ? "swap" : type;
@@ -2062,10 +2062,10 @@ public partial class lighter : Exchange
         List<object> result = new List<object>() {};
         for (int i = 0; i < data.Count; postFixIncrement(ref i))
         {
-            string? exchange = this.safeString(getValue(data, i), "exchange");
+            string? exchange = this.safeString(data[i], "exchange");
             if ((exchange == "lighter"))
             {
-                ((IList<object>)result).Add(getValue(data, i));
+                ((IList<object>)result).Add(data[i]);
             }
         }
         return ccxt.BaseExchange.ToFundingRates(this.parseFundingRates(result, symbols));
@@ -2150,13 +2150,13 @@ public partial class lighter : Exchange
         List<object> accounts = this.safeList(response, "accounts", new List<object>() {});
         for (int i = 0; i < accounts.Count; postFixIncrement(ref i))
         {
-            object account = getValue(accounts, i);
+            object account = accounts[i];
             if ((type == "spot"))
             {
                 List<object> assets = this.safeList(account, "assets", new List<object>() {});
                 for (int j = 0; j < assets.Count; postFixIncrement(ref j))
                 {
-                    object asset = getValue(assets, j);
+                    object asset = assets[j];
                     string? codeId = this.safeString(asset, "symbol");
                     string? code = this.safeCurrencyCode(codeId);
                     IDictionary<string, object> balance = this.safeDict(result, code, this.account());
@@ -2280,11 +2280,11 @@ public partial class lighter : Exchange
         List<object> accounts = this.safeList(response, "accounts", new List<object>() {});
         for (int i = 0; i < accounts.Count; postFixIncrement(ref i))
         {
-            object account = getValue(accounts, i);
+            object account = accounts[i];
             List<object> positions = this.safeList(account, "positions", new List<object>() {});
             for (int j = 0; j < positions.Count; postFixIncrement(ref j))
             {
-                ((IList<object>)allPositions).Add(getValue(positions, j));
+                ((IList<object>)allPositions).Add(positions[j]);
             }
         }
         return ccxt.BaseExchange.ToPositionList(this.parsePositions(allPositions, symbols));
@@ -3429,7 +3429,7 @@ public partial class lighter : Exchange
         List<object> data = this.safeList(response, "trades", new List<object>() {});
         for (int i = 0; i < data.Count; postFixIncrement(ref i))
         {
-            ((IDictionary<string,object>)getValue(data, i))["account_index"] = accountIndex;
+            ((IDictionary<string,object>)data[i])["account_index"] = accountIndex;
         }
         string? nextCursor = this.safeString(response, "next_cursor");
         IDictionary<string, object> first = this.safeDict(data, 0);

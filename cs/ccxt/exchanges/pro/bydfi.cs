@@ -298,7 +298,7 @@ public partial class bydfi : ccxt.bydfi
         List<object> keys = new List<object>(((IDictionary<string,object>)subscriptions).Keys);
         for (int i = 0; i < keys.Count; postFixIncrement(ref i))
         {
-            string? key = ((string)getValue(keys, i));
+            string? key = ((string)keys[i]);
             if ((getIndexOf(key, "ticker::") == 0))
             {
                 ((IList<object>)messageHashes).Add(key);
@@ -1105,7 +1105,7 @@ public partial class bydfi : ccxt.bydfi
             };
             for (int i = 0; i < balances.Count; postFixIncrement(ref i))
             {
-                object balance = getValue(balances, i);
+                object balance = balances[i];
                 string? currencyId = this.safeString(balance, "a");
                 string? code = this.safeCurrencyCode(currencyId);
                 Dictionary<string, object> account = this.account();
@@ -1147,7 +1147,7 @@ public partial class bydfi : ccxt.bydfi
         bool? subHashIsPrefix = this.safeBool(subscription, "subHashIsPrefix", false);
         for (int i = 0; i < messageHashes.Count; postFixIncrement(ref i))
         {
-            object unsubHash = getValue(messageHashes, i);
+            object unsubHash = messageHashes[i];
             string subHash = ((string)unsubHash).Replace((string)"unsubscribe::", (string)"");
             this.cleanUnsubscription(client as WebSocketClient, subHash, unsubHash, subHashIsPrefix);
         }

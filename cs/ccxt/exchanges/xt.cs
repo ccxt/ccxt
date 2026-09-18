@@ -1315,7 +1315,7 @@ public partial class xt : Exchange
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         for (int i = 0; i < currenciesData.Count; postFixIncrement(ref i))
         {
-            object entry = getValue(currenciesData, i);
+            object entry = currenciesData[i];
             string? currencyId = this.safeString(entry, "currency");
             string? code = this.safeCurrencyCode(currencyId);
             IDictionary<string, object> networkEntry = this.safeDict(chainsDataIndexed, currencyId, new Dictionary<string, object>() {});
@@ -1323,7 +1323,7 @@ public partial class xt : Exchange
             Dictionary<string, object> networks = new Dictionary<string, object>() {};
             for (int j = 0; j < rawNetworks.Count; postFixIncrement(ref j))
             {
-                object rawNetwork = getValue(rawNetworks, j);
+                object rawNetwork = rawNetworks[j];
                 string? networkId = this.safeString(rawNetwork, "chain");
                 object networkCode = this.networkIdToCode(networkId, code);
                 if ((networkCode != null))
@@ -1697,7 +1697,7 @@ public partial class xt : Exchange
         double? amountPrecision = null;
         for (int i = 0; i < filters.Count; postFixIncrement(ref i))
         {
-            object entry = getValue(filters, i);
+            object entry = filters[i];
             string? filter = this.safeString(entry, "filter");
             if ((filter == "QUANTITY"))
             {
@@ -2275,7 +2275,7 @@ public partial class xt : Exchange
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         for (int i = 0; i < tickers.Count; postFixIncrement(ref i))
         {
-            Dictionary<string, object> ticker = this.parseTicker(getValue(tickers, i), market);
+            Dictionary<string, object> ticker = this.parseTicker(tickers[i], market);
             object symbol = getValue(ticker, "symbol");
             if ((symbol != null))
             {
@@ -2372,7 +2372,7 @@ public partial class xt : Exchange
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         for (int i = 0; i < tickers.Count; postFixIncrement(ref i))
         {
-            object rawTicker = getValue(tickers, i);
+            object rawTicker = tickers[i];
             // the spot and contract payloads share the same field names, so
             // the market type cannot be inferred from the entry itself
             string? marketId = this.safeString(rawTicker, "s");
@@ -5622,7 +5622,7 @@ public partial class xt : Exchange
         List<object> rates = new List<object>() {};
         for (int i = 0; i < items.Count; postFixIncrement(ref i))
         {
-            object entry = getValue(items, i);
+            object entry = items[i];
             string? marketId = this.safeString(entry, "symbol");
             string? symbolInner = this.safeSymbol(marketId, market);
             Int64? timestamp = this.safeInteger(entry, "createdTime");
@@ -5909,7 +5909,7 @@ public partial class xt : Exchange
         List<object> symbols = this.symbols;
         for (int i = 0; i < getArrayLength(symbols); postFixIncrement(ref i))
         {
-            object symbol = getValue(symbols, i);
+            object symbol = symbols[i];
             Dictionary<string, object> market = this.market(symbol);
             object matchesSubType = ((bool) (isInverse)) ? getValue(market, "inverse") : getValue(market, "linear");
             if ((isEqual(getValue(market, "contract"), true)) && (isEqual(matchesSubType, true)))
@@ -6005,7 +6005,7 @@ public partial class xt : Exchange
         List<object> result = new List<object>() {};
         for (int i = 0; i < items.Count; postFixIncrement(ref i))
         {
-            object entry = getValue(items, i);
+            object entry = items[i];
             ((IList<object>)result).Add(this.parseFundingHistory(entry, market));
         }
         List<object> sorted = this.sortBy(result, "timestamp");
@@ -6166,7 +6166,7 @@ public partial class xt : Exchange
         Dictionary<string, object> breakBySymbolSide = this.indexPositionBreakList(this.safeList(breakResponse, "result", new List<object>() {}));
         for (int i = 0; i < positions.Count; postFixIncrement(ref i))
         {
-            object entry = getValue(positions, i);
+            object entry = positions[i];
             string? marketId = this.safeString(entry, "symbol");
             Dictionary<string, object> marketInner = this.safeMarket(marketId, null, null, "contract");
             string? positionSize = this.safeString(entry, "positionSize");
@@ -6260,7 +6260,7 @@ public partial class xt : Exchange
         List<object> result = new List<object>() {};
         for (int i = 0; i < positions.Count; postFixIncrement(ref i))
         {
-            object entry = getValue(positions, i);
+            object entry = positions[i];
             string? marketId = this.safeString(entry, "symbol");
             Dictionary<string, object> marketInner = this.safeMarket(marketId, null, null, "contract");
             object merged = this.mergePositionBreakInfo(entry, breakBySymbolSide);

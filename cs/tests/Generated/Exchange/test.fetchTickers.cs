@@ -39,7 +39,7 @@ public partial class testMainClass : BaseTest
         for (int i = 0; i < values.Count; postFixIncrement(ref i))
         {
             // todo: symbol check here
-            object ticker = getValue(values, i);
+            object ticker = values[i];
             try
             {
                 testTicker(exchange, skippedProperties, method, ticker, checkedSymbol);

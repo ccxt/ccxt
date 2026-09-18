@@ -90,7 +90,7 @@ public partial class deribit : ccxt.deribit
         List<object> channels = new List<object>() {};
         for (int i = 0; i < currencies.Count; postFixIncrement(ref i))
         {
-            object currencyCode = getValue(currencies, i);
+            object currencyCode = currencies[i];
             ((IList<object>)channels).Add(add("user.portfolio.", currencyCode));
         }
         Dictionary<string, object> subscribe = new Dictionary<string, object>() {
@@ -481,7 +481,7 @@ public partial class deribit : ccxt.deribit
         object stored = getValue(this.trades, symbol);
         for (int i = 0; i < trades.Count; postFixIncrement(ref i))
         {
-            object trade = getValue(trades, i);
+            object trade = trades[i];
             Dictionary<string, object> parsed = this.parseTrade(trade, market);
             callDynamically(stored, "append", new object[] {parsed});
         }
@@ -576,7 +576,7 @@ public partial class deribit : ccxt.deribit
         Dictionary<string, object> marketIds = new Dictionary<string, object>() {};
         for (int i = 0; i < getArrayLength(parsed); postFixIncrement(ref i))
         {
-            object trade = getValue(parsed, i);
+            object trade = parsed[i];
             callDynamically(cachedTrades, "append", new object[] {trade});
             object symbol = getValue(trade, "symbol");
             ((IDictionary<string,object>)marketIds)[(string)((string)symbol)] = true;
@@ -740,12 +740,12 @@ public partial class deribit : ccxt.deribit
         List<object> cleanedBids = new List<object>() {};
         for (int i = 0; i < bids.Count; postFixIncrement(ref i))
         {
-            ((IList<object>)cleanedBids).Add(new List<object>() {getValue(getValue(bids, i), 1), getValue(getValue(bids, i), 2)});
+            ((IList<object>)cleanedBids).Add(new List<object>() {getValue(bids[i], 1), getValue(bids[i], 2)});
         }
         List<object> cleanedAsks = new List<object>() {};
         for (int i = 0; i < asks.Count; postFixIncrement(ref i))
         {
-            ((IList<object>)cleanedAsks).Add(new List<object>() {getValue(getValue(asks, i), 1), getValue(getValue(asks, i), 2)});
+            ((IList<object>)cleanedAsks).Add(new List<object>() {getValue(asks[i], 1), getValue(asks[i], 2)});
         }
         ((IDictionary<string,object>)data)["bids"] = cleanedBids;
         ((IDictionary<string,object>)data)["asks"] = cleanedAsks;
@@ -877,7 +877,7 @@ public partial class deribit : ccxt.deribit
         object cachedOrders = this.orders;
         for (int i = 0; i < getArrayLength(orders); postFixIncrement(ref i))
         {
-            callDynamically(cachedOrders, "append", new object[] {getValue(orders, i)});
+            callDynamically(cachedOrders, "append", new object[] {orders[i]});
         }
         (client as WebSocketClient).resolve(this.orders, channel);
     }

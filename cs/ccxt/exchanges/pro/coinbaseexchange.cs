@@ -801,7 +801,7 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
                         // update the reference
                         for (int i = 0; i < keys.Count; postFixIncrement(ref i))
                         {
-                            string? key = ((string)getValue(keys, i));
+                            string? key = ((string)keys[i]);
                             if (!isEqual(getValue(order, key), null))
                             {
                                 ((IDictionary<string,object>)previousOrder)[(string)key] = getValue(order, key);
@@ -1039,7 +1039,7 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
             };
             for (int i = 0; i < changes.Count; postFixIncrement(ref i))
             {
-                object change = getValue(changes, i);
+                object change = changes[i];
                 string? key = this.safeString(change, 0);
                 string? side = this.safeString(sides, key);
                 double? price = this.safeNumber(change, 1);

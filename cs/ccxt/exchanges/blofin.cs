@@ -1355,7 +1355,7 @@ public partial class blofin : Exchange
         List<object> data = this.safeList(response, "data", new List<object>() {});
         for (int i = 0; i < getArrayLength(data); postFixIncrement(ref i))
         {
-            object rate = getValue(data, i);
+            object rate = data[i];
             Int64? timestamp = this.safeInteger(rate, "fundingTime");
             ((IList<object>)rates).Add(new Dictionary<string, object>() {
                 { "info", rate },
@@ -1499,7 +1499,7 @@ public partial class blofin : Exchange
         List<object> details = this.safeList(data, "details", new List<object>() {});
         for (int i = 0; i < getArrayLength(details); postFixIncrement(ref i))
         {
-            object balance = getValue(details, i);
+            object balance = details[i];
             string? currencyId = this.safeString(balance, "currency");
             string? code = this.safeCurrencyCode(currencyId);
             Dictionary<string, object> account = this.account();
@@ -1545,7 +1545,7 @@ public partial class blofin : Exchange
         List<object> data = this.safeList(response, "data", new List<object>() {});
         for (int i = 0; i < getArrayLength(data); postFixIncrement(ref i))
         {
-            object balance = getValue(data, i);
+            object balance = data[i];
             string? currencyId = this.safeString(balance, "currency");
             string? code = this.safeCurrencyCode(currencyId);
             Dictionary<string, object> account = this.account();

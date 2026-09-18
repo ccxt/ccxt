@@ -1010,7 +1010,7 @@ public partial class bitfinex : ccxt.bitfinex
         List<object> updatesKeys = new List<object>(((IDictionary<string,object>)updatedTypes).Keys);
         for (int i = 0; i < updatesKeys.Count; postFixIncrement(ref i))
         {
-            string? type = ((string)getValue(updatesKeys, i));
+            string? type = ((string)updatesKeys[i]);
             string messageHash = ("balance:" + type);
             (client as WebSocketClient).resolve(getValue(this.balance, type), messageHash);
         }
@@ -1071,7 +1071,7 @@ public partial class bitfinex : ccxt.bitfinex
         List<object> subMessageHashes = this.safeList(subscription, "subMessageHashes", new List<object>() {});
         for (int i = 0; i < messageHashes.Count; postFixIncrement(ref i))
         {
-            object messageHash = getValue(messageHashes, i);
+            object messageHash = messageHashes[i];
             object subHash = getValue(subMessageHashes, i);
             this.cleanUnsubscription(client as WebSocketClient, subHash, messageHash);
         }
@@ -1269,7 +1269,7 @@ public partial class bitfinex : ccxt.bitfinex
             }
             for (int i = 0; i < data.Count; postFixIncrement(ref i))
             {
-                object value = getValue(data, i);
+                object value = data[i];
                 Dictionary<string, object> parsed = ((Dictionary<string, object>)this.parseWsOrder(value));
                 object symbol = getValue(parsed, "symbol");
                 ((IDictionary<string,object>)symbolIds)[(string)((string)symbol)] = true;
@@ -1287,7 +1287,7 @@ public partial class bitfinex : ccxt.bitfinex
         List<object> keys = new List<object>(((IDictionary<string,object>)symbolIds).Keys);
         for (int i = 0; i < keys.Count; postFixIncrement(ref i))
         {
-            string? symbol = ((string)getValue(keys, i));
+            string? symbol = ((string)keys[i]);
             Dictionary<string, object> market = this.market(symbol);
             string messageHash = add((name + ":"), getValue(market, "id"));
             (client as WebSocketClient).resolve(this.orders, messageHash);

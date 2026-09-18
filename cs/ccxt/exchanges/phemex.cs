@@ -1341,7 +1341,7 @@ public partial class phemex : Exchange
         List<object> result = new List<object>() {};
         for (int i = 0; i < getArrayLength(products); postFixIncrement(ref i))
         {
-            object market = getValue(products, i);
+            object market = products[i];
             string? type = this.safeStringLower(market, "type");
             if (((type == "perpetual")) || ((type == "perpetualv2")) || ((type == "perpetualpilot")))
             {
@@ -1471,7 +1471,7 @@ public partial class phemex : Exchange
         List<object> sides = new List<object>() {bidsKey, asksKey};
         for (int i = 0; i < getArrayLength(sides); postFixIncrement(ref i))
         {
-            object side = getValue(sides, i);
+            object side = sides[i];
             List<object> orders = new List<object>() {};
             object bidasks = this.safeValue(orderbook, side);
             for (int k = 0; isLessThan(k, getArrayLength(bidasks)); postFixIncrement(ref k))
@@ -2389,7 +2389,7 @@ public partial class phemex : Exchange
         List<object> data = this.safeList(response, "data", new List<object>() {});
         for (int i = 0; i < data.Count; postFixIncrement(ref i))
         {
-            object balance = getValue(data, i);
+            object balance = data[i];
             string? currencyId = this.safeString(balance, "currency");
             string? code = this.safeCurrencyCode(currencyId);
             object currency = this.safeValue(this.currencies, code, new Dictionary<string, object>() {});
@@ -4512,7 +4512,7 @@ public partial class phemex : Exchange
         List<object> result = new List<object>() {};
         for (int i = 0; i < positions.Count; postFixIncrement(ref i))
         {
-            object position = getValue(positions, i);
+            object position = positions[i];
             ((IList<object>)result).Add(this.parsePosition(position));
         }
         return ccxt.BaseExchange.ToPositionList(this.filterByArrayPositions(result, "symbol", symbols, false));
@@ -4834,7 +4834,7 @@ public partial class phemex : Exchange
         List<object> result = new List<object>() {};
         for (int i = 0; i < rows.Count; postFixIncrement(ref i))
         {
-            object entry = getValue(rows, i);
+            object entry = rows[i];
             Int64? timestamp = this.safeInteger(entry, "createTime");
             string? execFee = this.safeString2(entry, "execFeeEv", "execFeeRv");
             string? currencyCode = this.safeCurrencyCode(this.safeString(entry, "currency"));
@@ -6253,7 +6253,7 @@ public partial class phemex : Exchange
         List<object> result = new List<object>() {};
         for (int i = 0; i < ranks.Count; postFixIncrement(ref i))
         {
-            object rank = getValue(ranks, i);
+            object rank = ranks[i];
             ((IList<object>)result).Add(this.parseADLRank(rank));
         }
         return ccxt.BaseExchange.ToADLList(this.filterByArrayADLRanks(result, "symbol", symbols, false));

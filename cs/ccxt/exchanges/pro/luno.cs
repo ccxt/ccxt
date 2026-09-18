@@ -111,7 +111,7 @@ public partial class luno : ccxt.luno
         }
         for (int i = 0; i < rawTrades.Count; postFixIncrement(ref i))
         {
-            object rawTrade = getValue(rawTrades, i);
+            object rawTrade = rawTrades[i];
             Dictionary<string, object> trade = this.parseTrade(rawTrade, market);
             callDynamically(stored, "append", new object[] {trade});
         }
@@ -374,7 +374,7 @@ public partial class luno : ccxt.luno
         List<object> handlers = new List<object>() {this.handleOrderBook, this.handleTrades};
         for (int j = 0; j < getArrayLength(handlers); postFixIncrement(ref j))
         {
-            object handler = getValue(handlers, j);
+            object handler = handlers[j];
             DynamicInvoker.InvokeMethod(handler, new object[] { client, message, getValue(subscriptions, 0)});
         }
     }

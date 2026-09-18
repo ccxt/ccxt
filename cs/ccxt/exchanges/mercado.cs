@@ -354,7 +354,7 @@ public partial class mercado : Exchange
         IList<object> coins = this.toArray(response);
         for (int i = 0; i < getArrayLength(coins); postFixIncrement(ref i))
         {
-            object coin = getValue(coins, i);
+            object coin = coins[i];
             object baseId = coin;
             string quoteId = "BRL";
             object bs = this.safeCurrencyCode(baseId);
@@ -605,7 +605,7 @@ public partial class mercado : Exchange
         List<object> currencyIds = new List<object>(((IDictionary<string,object>)balances).Keys);
         for (int i = 0; i < currencyIds.Count; postFixIncrement(ref i))
         {
-            string? currencyId = ((string)getValue(currencyIds, i));
+            string? currencyId = ((string)currencyIds[i]);
             string? code = this.safeCurrencyCode(currencyId);
             if (inOp(balances, currencyId))
             {
@@ -1145,7 +1145,7 @@ public partial class mercado : Exchange
             List<object> trades = this.safeList(getValue(orders, i), "trades", new List<object>() {});
             for (int y = 0; y < trades.Count; postFixIncrement(ref y))
             {
-                ((IList<object>)result).Add(getValue(trades, y));
+                ((IList<object>)result).Add(trades[y]);
             }
         }
         return ((List<object>)((object)(result)));

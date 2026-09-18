@@ -780,7 +780,7 @@ public partial class upbit : Exchange
         IList<object> orderbooks = this.toArray(response);
         for (int i = 0; i < getArrayLength(orderbooks); postFixIncrement(ref i))
         {
-            object orderbook = getValue(orderbooks, i);
+            object orderbook = orderbooks[i];
             string? marketId = this.safeString(orderbook, "market");
             string? symbol = this.safeSymbol(marketId, null, "-");
             Int64? timestamp = this.safeInteger(orderbook, "timestamp");
@@ -901,7 +901,7 @@ public partial class upbit : Exchange
             List<object> marketSymbols = this.symbols;
             for (int i = 0; i < getArrayLength(marketSymbols); postFixIncrement(ref i))
             {
-                Dictionary<string, object> market = this.market(getValue(marketSymbols, i));
+                Dictionary<string, object> market = this.market(marketSymbols[i]);
                 string? quoteId = ((string)getValue(market, "quoteId"));
                 if (!this.inArray(quoteId, quoteIds))
                 {
@@ -929,7 +929,7 @@ public partial class upbit : Exchange
             List<object> queries = this.idsQueryStrings(ids, 4000); // the url is limited to about 8000 characters once the commas are percent-encoded
             for (int i = 0; i < getArrayLength(queries); postFixIncrement(ref i))
             {
-                object idsQuery = getValue(queries, i);
+                object idsQuery = queries[i];
                 ((IList<object>)promises).Add(this.publicGetTicker(this.extend(new Dictionary<string, object>() {
                     { "markets", idsQuery },
                 }, parameters)));

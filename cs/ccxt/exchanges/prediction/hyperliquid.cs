@@ -216,7 +216,7 @@ public partial class hyperliquid : PredictionExchange
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         for (int i = 0; i < parts.Count; postFixIncrement(ref i))
         {
-            string? part = ((string)getValue(parts, i));
+            string? part = ((string)parts[i]);
             int colonIndex = getIndexOf(part, ":");
             if (colonIndex > -1)
             {
@@ -310,7 +310,7 @@ public partial class hyperliquid : PredictionExchange
                     List<object> thresholds = new List<object>() {};
                     for (int i = 0; i < thresholdParts.Count; postFixIncrement(ref i))
                     {
-                        string trimmed = ((string)getValue(thresholdParts, i)).Trim();
+                        string trimmed = ((string)thresholdParts[i]).Trim();
                         if (((string)trimmed).Length > 0)
                         {
                             ((IList<object>)thresholds).Add(trimmed);
@@ -761,7 +761,7 @@ public partial class hyperliquid : PredictionExchange
         List<object> outcomeHandles = new List<object>(((IDictionary<string,object>)outcomesMap).Keys);
         for (int i = 0; i < outcomeHandles.Count; postFixIncrement(ref i))
         {
-            string? outcomeHandle = ((string)getValue(outcomeHandles, i));
+            string? outcomeHandle = ((string)outcomeHandles[i]);
             if (!isEqual(outcomes, null) && !(inOp(requestedOutcomeSymbols, outcomeHandle)))
             {
                 continue;
@@ -897,12 +897,12 @@ public partial class hyperliquid : PredictionExchange
         List<object> asks = new List<object>() {};
         for (int i = 0; i < rawBids.Count; postFixIncrement(ref i))
         {
-            object entry = getValue(rawBids, i);
+            object entry = rawBids[i];
             ((IList<object>)bids).Add(new List<object> {this.safeNumber(entry, "px"), this.safeNumber(entry, "sz")});
         }
         for (int i = 0; i < rawAsks.Count; postFixIncrement(ref i))
         {
-            object entry = getValue(rawAsks, i);
+            object entry = rawAsks[i];
             ((IList<object>)asks).Add(new List<object> {this.safeNumber(entry, "px"), this.safeNumber(entry, "sz")});
         }
         object orderbook = this.parseOrderBook(new Dictionary<string, object>() {
@@ -1051,7 +1051,7 @@ public partial class hyperliquid : PredictionExchange
         List<object> balances = this.safeList(response, "balances", new List<object>() {});
         for (int i = 0; i < balances.Count; postFixIncrement(ref i))
         {
-            object balance = getValue(balances, i);
+            object balance = balances[i];
             string? coin = this.safeString(balance, "coin");
             string? total = this.safeString(balance, "total");
             string? used = this.safeString(balance, "hold");
@@ -1317,7 +1317,7 @@ public partial class hyperliquid : PredictionExchange
         }
         for (int i = 0; i < getArrayLength(candidates); postFixIncrement(ref i))
         {
-            object key = getValue(candidates, i);
+            object key = candidates[i];
             if (inOp(this.outcomes, key))
             {
                 return this.safeDict(this.outcomes, key, new Dictionary<string, object>() {});
@@ -1593,7 +1593,7 @@ public partial class hyperliquid : PredictionExchange
         List<object> orders = new List<object>() {};
         for (int i = 0; i < statuses.Count; postFixIncrement(ref i))
         {
-            object status = getValue(statuses, i);
+            object status = statuses[i];
             string? error = this.safeString(status, "error");
             if ((error != null))
             {
@@ -2127,13 +2127,13 @@ public partial class hyperliquid : PredictionExchange
         List<object> lowerQueries = new List<object>() {};
         for (int i = 0; i < getArrayLength(queries); postFixIncrement(ref i))
         {
-            string queryString = ((string)getValue(queries, i));
+            string queryString = ((string)queries[i]);
             ((IList<object>)lowerQueries).Add(((string)queryString).ToLower());
         }
         int lowerQueriesLength = getArrayLength(lowerQueries);
         for (int i = 0; i < getArrayLength(marketValues); postFixIncrement(ref i))
         {
-            object mkt = getValue(marketValues, i);
+            object mkt = marketValues[i];
             if (!isTrue(this.safeBool(mkt, "prediction", false)))
             {
                 continue;
@@ -2152,7 +2152,7 @@ public partial class hyperliquid : PredictionExchange
                 bool matches = false;
                 for (int qi = 0; qi < getArrayLength(lowerQueries); postFixIncrement(ref qi))
                 {
-                    List<object> words = ((string)getValue(lowerQueries, qi)).Split(new [] {((string)" ")}, StringSplitOptions.None).ToList<object>();
+                    List<object> words = ((string)lowerQueries[qi]).Split(new [] {((string)" ")}, StringSplitOptions.None).ToList<object>();
                     int wordsLength = words.Count;
                     bool allWords = true;
                     for (int wi = 0; wi < wordsLength; postFixIncrement(ref wi))
@@ -2201,7 +2201,7 @@ public partial class hyperliquid : PredictionExchange
         List<object> groupKeys = new List<object>(((IDictionary<string,object>)groupMap).Keys);
         for (int gi = 0; gi < groupKeys.Count; postFixIncrement(ref gi))
         {
-            string? key = ((string)getValue(groupKeys, gi));
+            string? key = ((string)groupKeys[gi]);
             object groupMarkets = getValue(groupMap, key);
             object eventVar = this.parseEvent(new Dictionary<string, object>() {
                 { "parentSymbol", key },
@@ -2592,7 +2592,7 @@ public partial class hyperliquid : PredictionExchange
         List<object> statuses = this.safeList(data, "statuses", new List<object>() {});
         for (int i = 0; i < statuses.Count; postFixIncrement(ref i))
         {
-            string? message = this.safeString(getValue(statuses, i), "error");
+            string? message = this.safeString(statuses[i], "error");
             if ((message != null))
             {
                 string feedback = add((this.id + " "), body);

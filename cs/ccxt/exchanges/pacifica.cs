@@ -1026,7 +1026,7 @@ public partial class pacifica : Exchange
         List<object> spotBalances = this.safeList(data, "spot_balances", new List<object>() {});
         for (int i = 0; i < spotBalances.Count; postFixIncrement(ref i))
         {
-            object balance = getValue(spotBalances, i);
+            object balance = spotBalances[i];
             string? currencyId = this.safeString(balance, "symbol");
             string? code = this.safeCurrencyCode(currencyId);
             Dictionary<string, object> account = this.account();
@@ -2078,7 +2078,7 @@ public partial class pacifica : Exchange
         List<object> ordersToReturn = new List<object>() {};
         for (int i = 0; i < results.Count; postFixIncrement(ref i))
         {
-            object order = getValue(results, i);
+            object order = results[i];
             string? error = this.safeString(order, "error");
             bool? success = this.safeBool(order, "success", false);
             string? status = null;
@@ -2150,7 +2150,7 @@ public partial class pacifica : Exchange
         List<object> ordersToReturn = new List<object>() {};
         for (int i = 0; i < results.Count; postFixIncrement(ref i))
         {
-            object order = getValue(results, i);
+            object order = results[i];
             string? error = this.safeString(order, "error");
             bool? success = this.safeBool(order, "success", false);
             string? status = null;
@@ -2188,7 +2188,7 @@ public partial class pacifica : Exchange
         parameters = this.omit(parameters, "clientOrderIds");
         for (int i = 0; i < clientOrderIds.Count; postFixIncrement(ref i))
         {
-            object cloid = getValue(clientOrderIds, i);
+            object cloid = clientOrderIds[i];
             Dictionary<string, object> cloidParams = new Dictionary<string, object>() {
                 { "clientOrderId", cloid },
             };
@@ -2534,7 +2534,7 @@ public partial class pacifica : Exchange
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         for (int i = 0; i < data.Count; postFixIncrement(ref i))
         {
-            object info = getValue(data, i);
+            object info = data[i];
             Dictionary<string, object> ticker = this.parseTicker(info);
             string? symbol = this.safeString(ticker, "symbol");
             if ((symbol != null))
@@ -3141,7 +3141,7 @@ public partial class pacifica : Exchange
         List<object> result = new List<object>() {};
         for (int i = 0; i < data.Count; postFixIncrement(ref i))
         {
-            ((IList<object>)result).Add(this.parsePosition(getValue(data, i), null));
+            ((IList<object>)result).Add(this.parsePosition(data[i], null));
         }
         return ccxt.BaseExchange.ToPositionList(this.filterByArrayPositions(result, "symbol", symbols, false));
     }

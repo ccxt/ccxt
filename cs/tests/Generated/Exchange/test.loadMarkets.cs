@@ -23,7 +23,7 @@ public partial class testMainClass : BaseTest
         List<object> marketValues = new List<object>(((IDictionary<string,object>)markets).Values);
         for (int i = 0; i < marketValues.Count; postFixIncrement(ref i))
         {
-            testMarket(exchange, skippedProperties, method, getValue(marketValues, i));
+            testMarket(exchange, skippedProperties, method, marketValues[i]);
         }
         // market-type coverage (inlined: a nested helper breaks Java emit into a missing TestLoadedMarketTypes class)
         List<object> marketTypes = new List<object>() {"spot", "swap", "future", "option", "index"};
@@ -31,7 +31,7 @@ public partial class testMainClass : BaseTest
         List<object> allMarkets = new List<object>(((IDictionary<string,object>)exchange.markets).Values);
         for (int i = 0; i < allMarkets.Count; postFixIncrement(ref i))
         {
-            object market = getValue(allMarkets, i);
+            object market = allMarkets[i];
             if (!isTrue(exchange.inArray(getValue(market, "type"), collectedTypes)))
             {
                 ((IList<object>)collectedTypes).Add(getValue(market, "type"));
@@ -39,7 +39,7 @@ public partial class testMainClass : BaseTest
         }
         for (int i = 0; i < getArrayLength(marketTypes); postFixIncrement(ref i))
         {
-            string? mType = ((string)getValue(marketTypes, i));
+            string? mType = ((string)marketTypes[i]);
             if (!isEqual(getValue(exchange.has, mType), null) && !isEqual(getValue(exchange.has, mType), false))
             {
                 bool skipMarketTypes = (inOp(skippedProperties, "optionsNotLoadedByDefault")) && isEqual(mType, "option");

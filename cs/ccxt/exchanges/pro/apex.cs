@@ -814,7 +814,7 @@ public partial class apex : ccxt.apex
         List<object> keys = new List<object>(((IDictionary<string,object>)symbols).Keys);
         for (int i = 0; i < keys.Count; postFixIncrement(ref i))
         {
-            string currentMessageHash = add("myTrades:", getValue(keys, i));
+            string currentMessageHash = add("myTrades:", keys[i]);
             (client as WebSocketClient).resolve(trades, currentMessageHash);
         }
         // non-symbol specific
@@ -870,7 +870,7 @@ public partial class apex : ccxt.apex
         List<object> symbolsArray = new List<object>(((IDictionary<string,object>)symbols).Keys);
         for (int i = 0; i < symbolsArray.Count; postFixIncrement(ref i))
         {
-            string currentMessageHash = add("orders:", getValue(symbolsArray, i));
+            string currentMessageHash = add("orders:", symbolsArray[i]);
             (client as WebSocketClient).resolve(orders, currentMessageHash);
         }
         string messageHash = "orders";
@@ -900,7 +900,7 @@ public partial class apex : ccxt.apex
         object cache = this.positions;
         for (int i = 0; i < getArrayLength(promises); postFixIncrement(ref i))
         {
-            object positions = getValue(promises, i);
+            object positions = promises[i];
             for (int ii = 0; ii < getArrayLength(positions); postFixIncrement(ref ii))
             {
                 object position = getValue(positions, ii);
@@ -972,7 +972,7 @@ public partial class apex : ccxt.apex
         List<object> messageHashes = this.findMessageHashes(client as WebSocketClient, "positions::");
         for (int i = 0; i < getArrayLength(messageHashes); postFixIncrement(ref i))
         {
-            object messageHash = getValue(messageHashes, i);
+            object messageHash = messageHashes[i];
             List<object> parts = ((string)messageHash).Split(new [] {((string)"::")}, StringSplitOptions.None).ToList<object>();
             string? symbolsString = ((string)getValue(parts, 1));
             List<object> symbols = ((string)symbolsString).Split(new [] {((string)",")}, StringSplitOptions.None).ToList<object>();
@@ -1157,8 +1157,8 @@ public partial class apex : ccxt.apex
         List<object> keys = new List<object>(((IDictionary<string,object>)methods).Keys);
         for (int i = 0; i < keys.Count; postFixIncrement(ref i))
         {
-            string? key = ((string)getValue(keys, i));
-            if (getIndexOf(topic, getValue(keys, i)) >= 0)
+            string? key = ((string)keys[i]);
+            if (getIndexOf(topic, keys[i]) >= 0)
             {
                 object method = getValue(methods, key);
                 DynamicInvoker.InvokeMethod(method, new object[] { client, message});

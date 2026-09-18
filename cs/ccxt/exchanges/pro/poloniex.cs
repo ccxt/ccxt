@@ -373,7 +373,7 @@ public partial class poloniex : ccxt.poloniex
         List<object> orders = new List<object>() {};
         for (int i = 0; i < data.Count; postFixIncrement(ref i))
         {
-            object order = getValue(data, i);
+            object order = data[i];
             Dictionary<string, object> parsedOrder = ((Dictionary<string, object>)this.parseWsOrder(order));
             ((IList<object>)orders).Add(parsedOrder);
         }
@@ -738,7 +738,7 @@ public partial class poloniex : ccxt.poloniex
         List<object> data = this.safeList(message, "data", new List<object>() {});
         for (int i = 0; i < data.Count; postFixIncrement(ref i))
         {
-            object item = getValue(data, i);
+            object item = data[i];
             string? marketId = this.safeString(item, "symbol");
             if ((marketId != null))
             {
@@ -1031,7 +1031,7 @@ public partial class poloniex : ccxt.poloniex
         }
         for (int i = 0; i < getArrayLength(marketIds); postFixIncrement(ref i))
         {
-            string? marketId = ((string)getValue(marketIds, i));
+            string? marketId = ((string)marketIds[i]);
             Dictionary<string, object> market = this.market(marketId);
             string? symbol = ((string)getValue(market, "symbol"));
             string messageHash = ("orders::" + symbol);
@@ -1142,7 +1142,7 @@ public partial class poloniex : ccxt.poloniex
         Dictionary<string, object> newTickers = new Dictionary<string, object>() {};
         for (int i = 0; i < data.Count; postFixIncrement(ref i))
         {
-            object item = getValue(data, i);
+            object item = data[i];
             string? marketId = this.safeString(item, "symbol");
             if ((marketId != null))
             {
@@ -1161,7 +1161,7 @@ public partial class poloniex : ccxt.poloniex
         List<object> messageHashes = this.findMessageHashes(client as WebSocketClient, "ticker::");
         for (int i = 0; i < getArrayLength(messageHashes); postFixIncrement(ref i))
         {
-            object messageHash = getValue(messageHashes, i);
+            object messageHash = messageHashes[i];
             List<object> parts = ((string)messageHash).Split(new [] {((string)"::")}, StringSplitOptions.None).ToList<object>();
             string? symbolsString = ((string)getValue(parts, 1));
             List<object> symbols = ((string)symbolsString).Split(new [] {((string)",")}, StringSplitOptions.None).ToList<object>();
@@ -1230,7 +1230,7 @@ public partial class poloniex : ccxt.poloniex
         bool update = (type == "update");
         for (int i = 0; i < data.Count; postFixIncrement(ref i))
         {
-            object item = getValue(data, i);
+            object item = data[i];
             string? marketId = this.safeString(item, "symbol");
             Dictionary<string, object> market = this.safeMarket(marketId);
             string? symbol = ((string)getValue(market, "symbol"));

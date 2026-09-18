@@ -1692,7 +1692,7 @@ public partial class bullish : Exchange
         IList<object> result = this.toArray(response);
         for (int i = 0; i < getArrayLength(result); postFixIncrement(ref i))
         {
-            object entry = getValue(result, i);
+            object entry = result[i];
             string? datetime = this.safeString(entry, "updatedAtDatetime");
             ((IList<object>)rates).Add(new Dictionary<string, object>() {
                 { "info", entry },
@@ -2585,7 +2585,7 @@ public partial class bullish : Exchange
             IList<object> accounts = this.toArray(response);
             for (int i = 0; i < getArrayLength(accounts); postFixIncrement(ref i))
             {
-                object account = getValue(accounts, i);
+                object account = accounts[i];
                 string? name = this.safeString(account, "tradingAccountName");
                 if ((name == "Primary Account"))
                 {

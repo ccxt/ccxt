@@ -2523,7 +2523,7 @@ public partial class okx : Exchange
         };
         for (int i = 0; i < getArrayLength(data); postFixIncrement(ref i))
         {
-            object eventVar = getValue(data, i);
+            object eventVar = data[i];
             string? state = this.safeString(eventVar, "state");
             ((IDictionary<string,object>)update)["eta"] = this.safeInteger(eventVar, "end");
             ((IDictionary<string,object>)update)["url"] = this.safeString(eventVar, "href");
@@ -2624,7 +2624,7 @@ public partial class okx : Exchange
         List<object> result = new List<object>() {};
         for (int i = 0; i < getArrayLength(data); postFixIncrement(ref i))
         {
-            object account = getValue(data, i);
+            object account = data[i];
             string? accountId = this.safeString(account, "uid");
             string? type = this.safeString(account, "acctLv");
             ((IList<object>)result).Add(new Dictionary<string, object>() {
@@ -2671,12 +2671,12 @@ public partial class okx : Exchange
         List<object> result = new List<object>() {};
         for (int i = 0; i < getArrayLength(types); postFixIncrement(ref i))
         {
-            ((IList<object>)promises).Add(this.FetchMarketsByType(getValue(types, i), parameters));
+            ((IList<object>)promises).Add(this.FetchMarketsByType(types[i], parameters));
         }
         promises = await promiseAll(promises);
         for (int i = 0; i < getArrayLength(promises); postFixIncrement(ref i))
         {
-            result = this.arrayConcat(result, getValue(promises, i));
+            result = this.arrayConcat(result, promises[i]);
         }
         return ccxt.BaseExchange.ToMarketInterfaceList(result);
     }
@@ -2880,7 +2880,7 @@ public partial class okx : Exchange
             List<object> promises = new List<object>() {};
             for (int i = 0; i < getArrayLength(optionsUnderlying); postFixIncrement(ref i))
             {
-                object underlying = getValue(optionsUnderlying, i);
+                object underlying = optionsUnderlying[i];
                 ((IDictionary<string,object>)request)["uly"] = underlying;
                 ((IList<object>)promises).Add(this.publicGetPublicInstruments(this.extend(request, parameters)));
             }
@@ -2932,7 +2932,7 @@ public partial class okx : Exchange
         List<object> marketsWithoutTest = new List<object>() {};
         for (int i = 0; i < getArrayLength(dataResponse); postFixIncrement(ref i))
         {
-            object data = getValue(dataResponse, i);
+            object data = dataResponse[i];
             string? instId = this.safeString(data, "instId", "");
             if ((instId == ""))
             {
@@ -3884,7 +3884,7 @@ public partial class okx : Exchange
         List<object> data = this.safeList(response, "data", new List<object>() {});
         for (int i = 0; i < getArrayLength(data); postFixIncrement(ref i))
         {
-            object rate = getValue(data, i);
+            object rate = data[i];
             Int64? timestamp = this.safeInteger(rate, "fundingTime");
             ((IList<object>)rates).Add(new Dictionary<string, object>() {
                 { "info", rate },
@@ -3920,7 +3920,7 @@ public partial class okx : Exchange
         List<object> details = this.safeList(first, "details", new List<object>() {});
         for (int i = 0; i < getArrayLength(details); postFixIncrement(ref i))
         {
-            object balance = getValue(details, i);
+            object balance = details[i];
             string? currencyId = this.safeString(balance, "ccy");
             string? code = this.safeCurrencyCode(currencyId);
             Dictionary<string, object> account = this.account();
@@ -3954,7 +3954,7 @@ public partial class okx : Exchange
         List<object> data = this.safeList(response, "data", new List<object>() {});
         for (int i = 0; i < getArrayLength(data); postFixIncrement(ref i))
         {
-            object balance = getValue(data, i);
+            object balance = data[i];
             string? currencyId = this.safeString(balance, "ccy");
             string? code = this.safeCurrencyCode(currencyId);
             Dictionary<string, object> account = this.account();
@@ -7602,7 +7602,7 @@ public partial class okx : Exchange
         List<object> result = new List<object>() {};
         for (int i = 0; i < getArrayLength(positions); postFixIncrement(ref i))
         {
-            ((IList<object>)result).Add(this.parsePosition(getValue(positions, i)));
+            ((IList<object>)result).Add(this.parsePosition(positions[i]));
         }
         return ccxt.BaseExchange.ToPositionList(this.filterByArrayPositions(result, "symbol", this.marketSymbols(symbols), false));
     }
@@ -8444,7 +8444,7 @@ public partial class okx : Exchange
         List<object> result = new List<object>() {};
         for (int i = 0; i < getArrayLength(data); postFixIncrement(ref i))
         {
-            object entry = getValue(data, i);
+            object entry = data[i];
             Int64? timestamp = this.safeInteger(entry, "ts");
             string? instId = this.safeString(entry, "instId");
             Dictionary<string, object> marketInner = this.safeMarket(instId);
@@ -8718,7 +8718,7 @@ public partial class okx : Exchange
         Dictionary<string, object> rates = new Dictionary<string, object>() {};
         for (int i = 0; i < getArrayLength(data); postFixIncrement(ref i))
         {
-            object rate = this.parseBorrowRate(getValue(data, i));
+            object rate = this.parseBorrowRate(data[i]);
             string? code = this.safeString(rate, "currency");
             if ((code != null))
             {
@@ -8823,7 +8823,7 @@ public partial class okx : Exchange
         List<object> keys = new List<object>(((IDictionary<string,object>)borrowRateHistories).Keys);
         for (int i = 0; i < keys.Count; postFixIncrement(ref i))
         {
-            string? code = ((string)getValue(keys, i));
+            string? code = ((string)keys[i]);
             ((IDictionary<string,object>)borrowRateHistories)[(string)code] = this.filterByCurrencySinceLimit(getValue(borrowRateHistories, code),((string)code), since, limit);
         }
         return ((Dictionary<string, object>)((object)(borrowRateHistories)));
@@ -9828,7 +9828,7 @@ public partial class okx : Exchange
         List<object> depositWithdrawCodes = new List<object>(((IDictionary<string,object>)depositWithdrawFees).Keys);
         for (int i = 0; i < depositWithdrawCodes.Count; postFixIncrement(ref i))
         {
-            string? code = ((string)getValue(depositWithdrawCodes, i));
+            string? code = ((string)depositWithdrawCodes[i]);
             Dictionary<string, object> currency = this.currency(((string)code));
             ((IDictionary<string,object>)depositWithdrawFees)[(string)code] = this.assignDefaultDepositWithdrawFees(getValue(depositWithdrawFees, code), currency);
         }
@@ -9944,7 +9944,7 @@ public partial class okx : Exchange
             List<object> details = this.safeList(entry, "details", new List<object>() {});
             for (int j = 0; j < getArrayLength(details); postFixIncrement(ref j))
             {
-                Dictionary<string, object> settlement = this.parseSettlement(getValue(details, j), market);
+                Dictionary<string, object> settlement = this.parseSettlement(details[j], market);
                 ((IList<object>)result).Add(this.extend(settlement, new Dictionary<string, object>() {
                     { "timestamp", timestamp },
                     { "datetime", this.iso8601(timestamp) },
@@ -10059,7 +10059,7 @@ public partial class okx : Exchange
         List<object> data = this.safeList(response, "data", new List<object>() {});
         for (int i = 0; i < getArrayLength(data); postFixIncrement(ref i))
         {
-            object entry = getValue(data, i);
+            object entry = data[i];
             string? entryMarketId = this.safeString(entry, "instId");
             if ((entryMarketId == marketId))
             {
@@ -10780,7 +10780,7 @@ public partial class okx : Exchange
         List<object> data = this.safeList(response, "data", new List<object>() {});
         for (int i = 0; i < getArrayLength(data); postFixIncrement(ref i))
         {
-            object entry = getValue(data, i);
+            object entry = data[i];
             string? id = this.safeString(entry, "ccy");
             string? code = this.safeCurrencyCode(id);
             if ((code != null))
@@ -10851,7 +10851,7 @@ public partial class okx : Exchange
             List<object> data = this.safeList(response, "data", new List<object>() {});
             for (int i = 0; i < getArrayLength(data); postFixIncrement(ref i))
             {
-                object error = getValue(data, i);
+                object error = data[i];
                 string? errorCode = this.safeString(error, "sCode");
                 string? message = this.safeString(error, "sMsg");
                 this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), errorCode, feedback);
@@ -11135,7 +11135,7 @@ public partial class okx : Exchange
         List<object> result = new List<object>() {};
         for (int i = 0; i < getArrayLength(data); postFixIncrement(ref i))
         {
-            object entry = getValue(data, i);
+            object entry = data[i];
             ((IList<object>)result).Add(new Dictionary<string, object>() {
                 { "timestamp", this.safeString(entry, 0) },
                 { "longShortRatio", this.safeString(entry, 1) },

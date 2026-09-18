@@ -305,7 +305,7 @@ public partial class pacifica : ccxt.pacifica
         List<object> ordersToReturn = new List<object>() {};
         for (int i = 0; i < results.Count; postFixIncrement(ref i))
         {
-            object order = getValue(results, i);
+            object order = results[i];
             string? error = this.safeString(order, "error");
             bool? success = this.safeBool(order, "success", false);
             string? marketId = this.safeString(order, "symbol");
@@ -782,7 +782,7 @@ public partial class pacifica : ccxt.pacifica
         List<object> data = this.safeList(message, "data", new List<object>() {});
         for (int i = 0; i < data.Count; postFixIncrement(ref i))
         {
-            object info = getValue(data, i);
+            object info = data[i];
             string? marketId = this.safeString(info, "symbol");
             Dictionary<string, object> market = this.safeMarket(marketId);
             string? symbol = ((string)getValue(market, "symbol"));
@@ -841,7 +841,7 @@ public partial class pacifica : ccxt.pacifica
         }
         for (int i = 0; i < data.Count; postFixIncrement(ref i))
         {
-            object rawTrade = getValue(data, i);
+            object rawTrade = data[i];
             Dictionary<string, object> parsed = ((Dictionary<string, object>)this.parseWsTrade(rawTrade));
             object symbol = getValue(parsed, "symbol");
             if ((symbol != null))
@@ -853,7 +853,7 @@ public partial class pacifica : ccxt.pacifica
         List<object> keys = new List<object>(((IDictionary<string,object>)symbols).Keys);
         for (int i = 0; i < keys.Count; postFixIncrement(ref i))
         {
-            string currentMessageHash = add("myTrades:", getValue(keys, i));
+            string currentMessageHash = add("myTrades:", keys[i]);
             (client as WebSocketClient).resolve(trades, currentMessageHash);
         }
         // non-symbol specific
@@ -1336,7 +1336,7 @@ public partial class pacifica : ccxt.pacifica
         Dictionary<string, object> marketSymbols = new Dictionary<string, object>() {};
         for (int i = 0; i < data.Count; postFixIncrement(ref i))
         {
-            object rawOrder = getValue(data, i);
+            object rawOrder = data[i];
             Dictionary<string, object> order = this.parseOrder(rawOrder);
             callDynamically(stored, "append", new object[] {order});
             string? symbol = this.safeString(order, "symbol");
@@ -1348,7 +1348,7 @@ public partial class pacifica : ccxt.pacifica
         List<object> keys = new List<object>(((IDictionary<string,object>)marketSymbols).Keys);
         for (int i = 0; i < keys.Count; postFixIncrement(ref i))
         {
-            string? symbol = ((string)getValue(keys, i));
+            string? symbol = ((string)keys[i]);
             string innerMessageHash = ((messageHash + ":") + symbol);
             (client as WebSocketClient).resolve(stored, innerMessageHash);
         }
@@ -1416,7 +1416,7 @@ public partial class pacifica : ccxt.pacifica
         List<object> symbols = new List<object>(((IDictionary<string,object>)this.tickers).Keys);
         for (int i = 0; i < symbols.Count; postFixIncrement(ref i))
         {
-            ((IDictionary<string,object>)this.tickers).Remove((string)getValue(symbols, i));
+            ((IDictionary<string,object>)this.tickers).Remove((string)symbols[i]);
         }
     }
 
@@ -1560,8 +1560,8 @@ public partial class pacifica : ccxt.pacifica
         List<object> keys = new List<object>(((IDictionary<string,object>)methods).Keys);
         for (int i = 0; i < keys.Count; postFixIncrement(ref i))
         {
-            string? key = ((string)getValue(keys, i));
-            if (getIndexOf(topic, getValue(keys, i)) >= 0)
+            string? key = ((string)keys[i]);
+            if (getIndexOf(topic, keys[i]) >= 0)
             {
                 object method = getValue(methods, key);
                 DynamicInvoker.InvokeMethod(method, new object[] { client, message});

@@ -427,7 +427,7 @@ public partial class zebpay : Exchange
         List<object> types = this.safeList(fetchMarketsOptions, "types", defaultMarkets);
         for (int i = 0; i < types.Count; postFixIncrement(ref i))
         {
-            object type = getValue(types, i);
+            object type = types[i];
             if (isEqual(type, "spot"))
             {
                 ((IList<object>)promisesUnresolved).Add(this.FetchSpotMarkets(parameters));
@@ -507,7 +507,7 @@ public partial class zebpay : Exchange
         object withdraw = false;
         for (int j = 0; j < chains.Count; postFixIncrement(ref j))
         {
-            object chain = getValue(chains, j);
+            object chain = chains[j];
             string? networkId = this.safeString(chain, "chainId");
             object networkCode = this.networkIdToCode(networkId, code);
             bool depositAllowed = (this.safeBool(chain, "isDepositEnabled") == true);
@@ -686,7 +686,7 @@ public partial class zebpay : Exchange
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         for (int i = 0; i < fees.Count; postFixIncrement(ref i))
         {
-            object fee = this.parseTradingFee(getValue(fees, i));
+            object fee = this.parseTradingFee(fees[i]);
             object symbol = getValue(fee, "symbol");
             if ((symbol != null))
             {
@@ -1880,7 +1880,7 @@ public partial class zebpay : Exchange
         List<object> markets = this.safeList(data, "symbols", new List<object>() {});
         for (int i = 0; i < markets.Count; postFixIncrement(ref i))
         {
-            object market = getValue(markets, i);
+            object market = markets[i];
             string? id = this.safeString(market, "symbol");
             string? baseId = this.safeString(market, "baseAsset");
             string? quoteId = this.safeString(market, "quoteAsset");
@@ -1962,7 +1962,7 @@ public partial class zebpay : Exchange
         List<object> markets = this.safeList(data, "symbols", new List<object>() {});
         for (int i = 0; i < markets.Count; postFixIncrement(ref i))
         {
-            object market = getValue(markets, i);
+            object market = markets[i];
             string? id = this.safeString(market, "symbol");
             string? baseId = this.safeString(market, "baseAsset");
             string? quoteId = this.safeString(market, "quoteAsset");
@@ -2016,7 +2016,7 @@ public partial class zebpay : Exchange
         List<object> currencyList = this.safeList(response, "data", new List<object>() {});
         for (int i = 0; i < currencyList.Count; postFixIncrement(ref i))
         {
-            object entry = getValue(currencyList, i);
+            object entry = currencyList[i];
             Dictionary<string, object> account = this.account();
             ((IDictionary<string,object>)account)["total"] = this.safeString(entry, "total");
             ((IDictionary<string,object>)account)["free"] = this.safeString(entry, "free");

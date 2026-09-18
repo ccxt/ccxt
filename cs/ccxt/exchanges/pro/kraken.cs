@@ -641,7 +641,7 @@ public partial class kraken : ccxt.kraken
         IList<object> parsed = this.parseTrades(data, market);
         for (int i = 0; i < getArrayLength(parsed); postFixIncrement(ref i))
         {
-            callDynamically(stored, "append", new object[] {getValue(parsed, i)});
+            callDynamically(stored, "append", new object[] {parsed[i]});
         }
         (client as WebSocketClient).resolve(stored, messageHash);
     }
@@ -925,7 +925,7 @@ public partial class kraken : ccxt.kraken
             {
                 for (int i = 0; i < getArrayLength(symbols); postFixIncrement(ref i))
                 {
-                    object symbol = getValue(symbols, i);
+                    object symbol = symbols[i];
                     Dictionary<string, object> market = this.market(symbol);
                     object info = this.safeValue(market, "info", new Dictionary<string, object>() {});
                     string wsName = ((string)this.safeString(info, "wsname"));
@@ -1069,7 +1069,7 @@ public partial class kraken : ccxt.kraken
             List<object> keys = new List<object>() {"asks", "bids"};
             for (int i = 0; i < getArrayLength(keys); postFixIncrement(ref i))
             {
-                string? key = ((string)getValue(keys, i));
+                string? key = ((string)keys[i]);
                 object bookside = getValue(orderbook, key);
                 List<object> deltas = this.safeList(first, key, new List<object>() {});
                 int deltasLength = deltas.Count;
@@ -1359,7 +1359,7 @@ public partial class kraken : ccxt.kraken
             List<object> keys = new List<object>(((IDictionary<string,object>)symbols).Keys);
             for (int i = 0; i < keys.Count; postFixIncrement(ref i))
             {
-                string messageHash = add((name + ":"), getValue(keys, i));
+                string messageHash = add((name + ":"), keys[i]);
                 (client as WebSocketClient).resolve(this.myTrades, messageHash);
             }
         }
@@ -1518,7 +1518,7 @@ public partial class kraken : ccxt.kraken
             List<object> keys = new List<object>(((IDictionary<string,object>)symbols).Keys);
             for (int i = 0; i < keys.Count; postFixIncrement(ref i))
             {
-                string messageHash = add((name + ":"), getValue(keys, i));
+                string messageHash = add((name + ":"), keys[i]);
                 (client as WebSocketClient).resolve(this.orders, messageHash);
             }
         }
@@ -1689,10 +1689,10 @@ public partial class kraken : ccxt.kraken
         };
         for (int i = 0; i < getArrayLength(data); postFixIncrement(ref i))
         {
-            string? currencyId = this.safeString(getValue(data, i), "asset");
+            string? currencyId = this.safeString(data[i], "asset");
             string code = ((string)this.safeCurrencyCode(currencyId));
             Dictionary<string, object> account = this.account();
-            string? eq = this.safeString(getValue(data, i), "balance");
+            string? eq = this.safeString(data[i], "balance");
             ((IDictionary<string,object>)account)["total"] = eq;
             ((IDictionary<string,object>)result)[(string)code] = account;
         }

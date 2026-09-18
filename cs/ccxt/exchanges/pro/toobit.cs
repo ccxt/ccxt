@@ -414,7 +414,7 @@ public partial class toobit : ccxt.toobit
         List<object> data = this.safeList(message, "data", new List<object>() {});
         for (int i = 0; i < data.Count; postFixIncrement(ref i))
         {
-            object parsed = this.parseWsOHLCV(getValue(data, i), market);
+            object parsed = this.parseWsOHLCV(data[i], market);
             callDynamically(stored, "append", new object[] {parsed});
         }
         string messageHash = ((("ohlcv::" + symbol) + "::") + timeframe);
@@ -554,7 +554,7 @@ public partial class toobit : ccxt.toobit
         Dictionary<string, object> newTickers = new Dictionary<string, object>() {};
         for (int i = 0; i < data.Count; postFixIncrement(ref i))
         {
-            object ticker = getValue(data, i);
+            object ticker = data[i];
             Dictionary<string, object> parsed = ((Dictionary<string, object>)this.parseWsTicker(ticker));
             object symbol = getValue(parsed, "symbol");
             if ((symbol != null))
@@ -676,7 +676,7 @@ public partial class toobit : ccxt.toobit
         List<object> data = this.safeList(message, "data", new List<object>() {});
         for (int i = 0; i < data.Count; postFixIncrement(ref i))
         {
-            object entry = getValue(data, i);
+            object entry = data[i];
             string messageHash = ((("orderBook::" + symbol) + "::") + "diffDepth");
             if (!(inOp(this.orderbooks, symbol)))
             {
@@ -859,7 +859,7 @@ public partial class toobit : ccxt.toobit
         ((IDictionary<string,object>)getValue(this.balance, type))["datetime"] = this.iso8601(timestamp);
         for (int i = 0; i < data.Count; postFixIncrement(ref i))
         {
-            object balance = getValue(data, i);
+            object balance = data[i];
             string? currencyId = this.safeString(balance, "a");
             string? code = this.safeCurrencyCode(currencyId);
             Dictionary<string, object> account = this.account();
@@ -1275,7 +1275,7 @@ public partial class toobit : ccxt.toobit
         List<object> messageHashes = this.findMessageHashes(client as WebSocketClient, (accountType + ":positions::"));
         for (int i = 0; i < getArrayLength(messageHashes); postFixIncrement(ref i))
         {
-            object messageHash = getValue(messageHashes, i);
+            object messageHash = messageHashes[i];
             List<object> parts = ((string)messageHash).Split(new [] {((string)"::")}, StringSplitOptions.None).ToList<object>();
             string? symbolsString = ((string)getValue(parts, 1));
             List<object> symbols = ((string)symbolsString).Split(new [] {((string)",")}, StringSplitOptions.None).ToList<object>();
@@ -1395,7 +1395,7 @@ public partial class toobit : ccxt.toobit
             List<object> messageHashes = new List<object>(((IDictionary<string, ccxt.Exchange.Future>)client.futures).Keys);
             for (int i = 0; i < messageHashes.Count; postFixIncrement(ref i))
             {
-                string? messageHash = ((string)getValue(messageHashes, i));
+                string? messageHash = ((string)messageHashes[i]);
                 ((WebSocketClient)client).reject(error, messageHash);
             }
             ((IDictionary<string,object>)getValue(this.options, "ws"))["listenKey"] = null;

@@ -16,7 +16,7 @@ public partial class testMainClass : BaseTest
         testSharedMethods.assertNonEmtpyArray(exchange, skippedProperties, method, marketValues);
         for (int i = 0; i < marketValues.Count; postFixIncrement(ref i))
         {
-            testMarket(exchange, skippedProperties, method, getValue(marketValues, i));
+            testMarket(exchange, skippedProperties, method, marketValues[i]);
         }
         detectMarketConflicts(exchange, markets);
         return true;

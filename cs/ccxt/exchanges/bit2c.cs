@@ -347,7 +347,7 @@ public partial class bit2c : Exchange
         List<object> codes = new List<object>(((IDictionary<string,object>)this.currencies).Keys);
         for (int i = 0; i < codes.Count; postFixIncrement(ref i))
         {
-            string? code = ((string)getValue(codes, i));
+            string? code = ((string)codes[i]);
             Dictionary<string, object> account = this.account();
             Dictionary<string, object> currency = this.currency(((string)code));
             string uppercase = ((string)getValue(currency, "id")).ToUpper();
@@ -457,7 +457,7 @@ public partial class bit2c : Exchange
         List<object> asks = new List<object>() {};
         for (int i = 0; i < rawBids.Count; postFixIncrement(ref i))
         {
-            object bidRow = getValue(rawBids, i);
+            object bidRow = rawBids[i];
             string? bidAmount = this.safeString(bidRow, 1);
             if (isTrue(Precise.stringGt(bidAmount, "0")))
             {
@@ -466,7 +466,7 @@ public partial class bit2c : Exchange
         }
         for (int i = 0; i < rawAsks.Count; postFixIncrement(ref i))
         {
-            object askRow = getValue(rawAsks, i);
+            object askRow = rawAsks[i];
             string? askAmount = this.safeString(askRow, 1);
             if (isTrue(Precise.stringGt(askAmount, "0")))
             {
@@ -632,7 +632,7 @@ public partial class bit2c : Exchange
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         for (int i = 0; i < keys.Count; postFixIncrement(ref i))
         {
-            string? marketId = ((string)getValue(keys, i));
+            string? marketId = ((string)keys[i]);
             string? symbol = this.safeSymbol(marketId);
             object fee = this.safeValue(fees, marketId);
             string? makerString = this.safeString(fee, "FeeMaker");
@@ -1007,7 +1007,7 @@ public partial class bit2c : Exchange
         List<object> strParts = ((string)str).Split(new [] {((string)",")}, StringSplitOptions.None).ToList<object>();
         for (int i = 0; isLessThan(i, getArrayLength(strParts)); postFixIncrement(ref i))
         {
-            newString = add(newString, getValue(strParts, i));
+            newString = add(newString, strParts[i]);
         }
         return ((string?)((object)(newString)));
     }

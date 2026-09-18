@@ -146,7 +146,7 @@ public partial class blofin : ccxt.blofin
         }
         for (int i = 0; i < getArrayLength(data); postFixIncrement(ref i))
         {
-            object rawTrade = getValue(data, i);
+            object rawTrade = data[i];
             Dictionary<string, object> trade = ((Dictionary<string, object>)this.parseWsTrade(rawTrade));
             object symbol = getValue(trade, "symbol");
             object stored = this.safeValue(this.trades, symbol);
@@ -336,7 +336,7 @@ public partial class blofin : ccxt.blofin
         List<object> data = this.safeList(message, "data");
         for (int i = 0; i < getArrayLength(data); postFixIncrement(ref i))
         {
-            Dictionary<string, object> ticker = ((Dictionary<string, object>)this.parseWsTicker(getValue(data, i)));
+            Dictionary<string, object> ticker = ((Dictionary<string, object>)this.parseWsTicker(data[i]));
             object symbol = getValue(ticker, "symbol");
             object messageHash = add(add(channelName, ":"), symbol);
             ((IDictionary<string,object>)this.tickers)[(string)((string)symbol)] = ticker;
@@ -401,7 +401,7 @@ public partial class blofin : ccxt.blofin
         List<object> data = this.safeList(message, "data");
         for (int i = 0; i < getArrayLength(data); postFixIncrement(ref i))
         {
-            Dictionary<string, object> ticker = ((Dictionary<string, object>)this.parseWsBidAsk(getValue(data, i)));
+            Dictionary<string, object> ticker = ((Dictionary<string, object>)this.parseWsBidAsk(data[i]));
             object symbol = getValue(ticker, "symbol");
             string messageHash = add("bidask:", symbol);
             ((IDictionary<string,object>)this.bidsasks)[(string)((string)symbol)] = ticker;
@@ -516,7 +516,7 @@ public partial class blofin : ccxt.blofin
         }
         for (int i = 0; i < getArrayLength(data); postFixIncrement(ref i))
         {
-            object candle = getValue(data, i);
+            object candle = data[i];
             object parsed = this.parseOHLCV(candle, market);
             callDynamically(stored, "append", new object[] {parsed});
         }
@@ -661,7 +661,7 @@ public partial class blofin : ccxt.blofin
         List<object> data = this.safeList(message, "data");
         for (int i = 0; i < getArrayLength(data); postFixIncrement(ref i))
         {
-            Dictionary<string, object> order = ((Dictionary<string, object>)this.parseWsOrder(getValue(data, i)));
+            Dictionary<string, object> order = ((Dictionary<string, object>)this.parseWsOrder(data[i]));
             object symbol = getValue(order, "symbol");
             object messageHash = add(add(channelName, ":"), symbol);
             callDynamically(orders, "append", new object[] {order});
@@ -723,7 +723,7 @@ public partial class blofin : ccxt.blofin
         List<object> newPositions = new List<object>() {};
         for (int i = 0; i < getArrayLength(data); postFixIncrement(ref i))
         {
-            Dictionary<string, object> position = ((Dictionary<string, object>)this.parseWsPosition(getValue(data, i)));
+            Dictionary<string, object> position = ((Dictionary<string, object>)this.parseWsPosition(data[i]));
             ((IList<object>)newPositions).Add(position);
             callDynamically(cache, "append", new object[] {position});
             object messageHash = add(add(channelName, ":"), getValue(position, "symbol"));
