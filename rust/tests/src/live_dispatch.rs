@@ -360,8 +360,8 @@ pub async fn dispatch(ex: &mut Value, method: &str, args: Vec<Value>) -> Value {
     (entry.write_mock)(entry.ptr.0, mock);
     // same contract for the url-keyed mock, so a method that calls several
     // endpoints gets the body matching each request's url
-    let mockByUrl = ccxt::get_value(ex, &Value::Str("__fetchResponseByUrl".to_string()));
-    (entry.write_mock_by_url)(entry.ptr.0, mockByUrl);
+    let mock_by_url = ccxt::get_value(ex, &Value::Str("__fetchResponseByUrl".to_string()));
+    (entry.write_mock_by_url)(entry.ptr.0, mock_by_url);
     // Clear the snapshot's mock so it doesn't leak into a subsequent
     // dispatch on the same exchange.
     if let Value::Dict(m) = &mut *ex { std::sync::Arc::make_mut(m).shift_remove("__fetchResponse"); }
@@ -479,9 +479,9 @@ fn build_core(id: &str, cfg: Value, ws: bool) -> Option<CoreEntry> {
                 let core: &mut $core = unsafe { &mut *(ptr as *mut $core) };
                 core.mock_response = response;
             }
-            fn write_mock_by_url(ptr: *mut (), responsesByUrl: Value) {
+            fn write_mock_by_url(ptr: *mut (), responses_by_url: Value) {
                 let core: &mut $core = unsafe { &mut *(ptr as *mut $core) };
-                core.mock_response_by_url = responsesByUrl;
+                core.mock_response_by_url = responses_by_url;
             }
             fn drop_core(ptr: *mut ()) {
                 // SAFETY: `ptr` came from `Box::into_raw` of a
