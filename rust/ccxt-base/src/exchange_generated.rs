@@ -794,7 +794,7 @@ pub trait ExchangeBase:
 
     fn url_encoder_for_proxy_url(&self, mut targetUrl: Value) -> Value {
         // to be overriden
-        let mut includesQuery: bool = get_index_of(&targetUrl, &Value::Str("?".to_string())).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN);
+        let mut includesQuery: bool = Value::Int(targetUrl.as_str().and_then(|__s| __s.find("?")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN);
         let mut finalUrl: Value = (if includesQuery { self.encode_uri_component(targetUrl.clone()) } else { targetUrl.clone() });
         return finalUrl;
 
@@ -913,7 +913,7 @@ pub trait ExchangeBase:
         // check the address is not the same letter like 'aaaaa' nor too short nor has a space
         let mut uniqChars: Value = (self.unique(self.string_to_chars_array(address.clone())));
         let mut length: Value = Value::Int(uniqChars.len() as i64); // py transpiler trick
-        if (length.as_f64() == Some(1.0)) || Value::Int(address.len() as i64).as_f64().unwrap_or(f64::NAN) < self.minFundingAddressLength.as_f64().unwrap_or(f64::NAN) || get_index_of(&address, &Value::Str(" ".to_string())).as_f64().unwrap_or(f64::NAN) > Value::Int(-1).as_f64().unwrap_or(f64::NAN) {
+        if (length.as_f64() == Some(1.0)) || Value::Int(address.len() as i64).as_f64().unwrap_or(f64::NAN) < self.minFundingAddressLength.as_f64().unwrap_or(f64::NAN) || Value::Int(address.as_str().and_then(|__s| __s.find(" ")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) > Value::Int(-1).as_f64().unwrap_or(f64::NAN) {
             panic!("{}", crate::exchange_errors::invalid_address(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" address is invalid or has less than ".to_string()))), to_string_val(&self.minFundingAddressLength))), Value::Str(" characters: \"".to_string()))), to_string_val(&address))), Value::Str("\"".to_string())))));
         }
         return address;
@@ -2007,7 +2007,7 @@ pub trait ExchangeBase:
         // in JS:     1 === 1.0 is true
         // in Python: 1 == 1.0 is true
         // in PHP:    1 == 1.0 is true, but 1 === 1.0 is false.
-        if get_index_of(&stringVersion, &Value::Str(".".to_string())).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN) {
+        if Value::Int(stringVersion.as_str().and_then(|__s| __s.find(".")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN) {
             return crate::runtime::parse_float(&stringVersion);
         }
         return crate::runtime::parse_int(&stringVersion);
@@ -2805,7 +2805,7 @@ pub trait ExchangeBase:
                 {
                                         let mut j: Value = Value::Int(1);
                     let mut __for_first_87: bool = true;
-                    while { if !__for_first_87 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_87 = false; j.as_f64().unwrap_or(f64::NAN) < get_array_length(&groupedCurrenciesCode).as_f64().unwrap_or(f64::NAN) } {
+                    while { if !__for_first_87 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_87 = false; j.as_f64().unwrap_or(f64::NAN) < Value::Int(groupedCurrenciesCode.len() as i64).as_f64().unwrap_or(f64::NAN) } {
                     let mut currentCurrency: Value = get_value(&groupedCurrenciesCode, &j);
                     let mut currentCurrency: Value = get_value(&groupedCurrenciesCode, &j);
                     if (self.precisionMode.as_f64() == Value::Int(crate::runtime::TICK_SIZE).as_f64()) {
@@ -2856,7 +2856,7 @@ pub trait ExchangeBase:
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_89: bool = true;
-            while { if !__for_first_89 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_89 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&sourceExchangeHelpers).as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_89 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_89 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(sourceExchangeHelpers.len() as i64).as_f64().unwrap_or(f64::NAN) } {
             let mut helper: Value = get_value(&sourceExchangeHelpers, &i);
             let mut helper: Value = get_value(&sourceExchangeHelpers, &i);
             if (get_value(&get_value(&sourceExchange, &Value::Str("options".to_string())), &helper) != Value::Null) {
@@ -3188,7 +3188,7 @@ pub trait ExchangeBase:
             {
                                 let mut j: Value = Value::Int(0);
                 let mut __for_first_94: bool = true;
-                while { if !__for_first_94 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_94 = false; j.as_f64().unwrap_or(f64::NAN) < get_array_length(&entryFees).as_f64().unwrap_or(f64::NAN) } {
+                while { if !__for_first_94 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_94 = false; j.as_f64().unwrap_or(f64::NAN) < Value::Int(entryFees.len() as i64).as_f64().unwrap_or(f64::NAN) } {
                 { let __be_tmp = self.safe_number_k(get_value(&entryFees, &j), "cost", &[]); add_element_to_object(get_value_mut(&mut entryFees, &j), &Value::Str("cost".to_string()), __be_tmp); };
             }
             }
@@ -4005,7 +4005,7 @@ pub trait ExchangeBase:
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_104: bool = true;
-            while { if !__for_first_104 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_104 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&timestamps).as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_104 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_104 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(timestamps.len() as i64).as_f64().unwrap_or(f64::NAN) } {
             append_to_array(&mut result, Value::List(vec![(if is_true(&ms) { self.safe_integer(timestamps.clone(), i.clone(), &[]) } else { self.safe_timestamp(timestamps.clone(), i.clone(), &[]) }), self.safe_value(opens.clone(), i.clone(), &[]), self.safe_value(highs.clone(), i.clone(), &[]), self.safe_value(lows.clone(), i.clone(), &[]), self.safe_value(closes.clone(), i.clone(), &[]), self.safe_value(volumes.clone(), i.clone(), &[])]));
         }
         }
@@ -9009,9 +9009,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             return Value::Null;
         }
         // parse YYMMDD to datetime string
-        let mut year: Value = slice(&date, &Value::Int(0), &Value::Int(2));
-        let mut month: Value = slice(&date, &Value::Int(2), &Value::Int(4));
-        let mut day: Value = slice(&date, &Value::Int(4), &Value::Int(6));
+        let mut year: Value = date.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = __l.min(0); let __j = __l.min(2); if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::Str).unwrap_or(Value::Null);
+        let mut month: Value = date.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = __l.min(2); let __j = __l.min(4); if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::Str).unwrap_or(Value::Null);
+        let mut day: Value = date.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = __l.min(4); let __j = __l.min(6); if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::Str).unwrap_or(Value::Null);
         // the milliseconds are spelled out because every caller writes the result into
         // expiryDatetime, which types.ts documents in the ISO 8601 form with them
         let mut reconstructedDate: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("20".to_string()), year)), Value::Str("-".to_string()))), month)), Value::Str("-".to_string()))), day)), Value::Str("T00:00:00.000Z".to_string())));
@@ -9025,10 +9025,10 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             return Value::Null;
         }
         // parse 240119 to 19JAN24
-        let mut year: Value = slice(&date, &Value::Int(0), &Value::Int(2));
-        let mut monthRaw: Value = slice(&date, &Value::Int(2), &Value::Int(4));
+        let mut year: Value = date.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = __l.min(0); let __j = __l.min(2); if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::Str).unwrap_or(Value::Null);
+        let mut monthRaw: Value = date.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = __l.min(2); let __j = __l.min(4); if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::Str).unwrap_or(Value::Null);
         let mut month: Value = Value::Null;
-        let mut day: Value = slice(&date, &Value::Int(4), &Value::Int(6));
+        let mut day: Value = date.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = __l.min(4); let __j = __l.min(6); if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::Str).unwrap_or(Value::Null);
         if (monthRaw.as_str() == Some("01")) {
             month = Value::Str("JAN".to_string());
         }  else if (monthRaw.as_str() == Some("02")) {
@@ -9085,10 +9085,10 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         if (Value::Int(date.len() as i64).as_f64() == Some(6.0)) {
             date = Value::Str(format!("{}{}", Value::Str("0".to_string()), date));
         }
-        let mut year: Value = slice(&date, &Value::Int(0), &Value::Int(2));
-        let mut monthName: Value = slice(&date, &Value::Int(2), &Value::Int(5));
+        let mut year: Value = date.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = __l.min(0); let __j = __l.min(2); if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::Str).unwrap_or(Value::Null);
+        let mut monthName: Value = date.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = __l.min(2); let __j = __l.min(5); if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::Str).unwrap_or(Value::Null);
         let mut month: Value = self.safe_string(monthMappping.clone(), monthName.clone(), &[]);
-        let mut day: Value = slice(&date, &Value::Int(5), &Value::Int(7));
+        let mut day: Value = date.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = __l.min(5); let __j = __l.min(7); if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::Str).unwrap_or(Value::Null);
         let mut reconstructedDate: Value = Value::Str(format!("{}{}", add(&day, &month), year));
         return reconstructedDate;
 
@@ -9267,13 +9267,13 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     fn clean_cache(&mut self, mut subscription: Value) {
         let mut topic: Value = self.safe_string_k(subscription.clone(), "topic", &[]);
         let mut symbols: Value = self.safe_list_k(subscription.clone(), "symbols", &[Value::List(vec![])]);
-        let mut symbolsLength: Value = get_array_length(&symbols);
+        let mut symbolsLength: Value = Value::Int(symbols.len() as i64);
         if (topic.as_str() == Some("ohlcv")) {
             let mut symbolsAndTimeframes: Value = self.safe_list_k(subscription.clone(), "symbolsAndTimeframes", &[Value::List(vec![])]);
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_174: bool = true;
-                while { if !__for_first_174 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_174 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&symbolsAndTimeframes).as_f64().unwrap_or(f64::NAN) } {
+                while { if !__for_first_174 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_174 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(symbolsAndTimeframes.len() as i64).as_f64().unwrap_or(f64::NAN) } {
                 let mut symbolAndTimeFrame: Value = get_value(&symbolsAndTimeframes, &i);
                 let mut symbolAndTimeFrame: Value = get_value(&symbolsAndTimeframes, &i);
                 let mut symbol: Value = self.safe_string(symbolAndTimeFrame.clone(), Value::Int(0), &[]);
@@ -9295,7 +9295,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_175: bool = true;
-                while { if !__for_first_175 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_175 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&symbols).as_f64().unwrap_or(f64::NAN) } {
+                while { if !__for_first_175 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_175 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(symbols.len() as i64).as_f64().unwrap_or(f64::NAN) } {
                 let mut symbol: Value = get_value(&symbols, &i);
                 let mut symbol: Value = get_value(&symbols, &i);
                 if (topic.as_str() == Some("trades")) {
