@@ -1676,7 +1676,7 @@ public partial class apex : Exchange
         {
             string formattedUint32 = "4294967295";
             string? zkSignAccountId = Precise.stringMod(accountId, formattedUint32);
-            object expireTime = add(timestampSeconds, (multiply(3600, 24) * 28));
+            object expireTime = (timestampSeconds + (multiply(3600, 24) * 28));
             Dictionary<string, object> orderToSign = new Dictionary<string, object>() {
                 { "zkAccountId", zkSignAccountId },
                 { "receiverAddress", ethAddress },

@@ -301,7 +301,7 @@ public partial class coinbase : ccxt.coinbase
             string? currentToken = this.safeString(this.options, "wsToken");
             Int64? tokenTimestamp = this.safeInteger(this.options, "wsTokenTimestamp", 0);
             Int64 seconds = this.seconds();
-            if ((currentToken == null) || isLessThan(add(tokenTimestamp, 120), seconds))
+            if ((currentToken == null) || isLessThan((tokenTimestamp + 120), seconds))
             {
                 // we should generate new token
                 string token = this.createAuthToken(seconds);
