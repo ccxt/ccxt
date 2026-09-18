@@ -3186,7 +3186,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 }));
         if is_true(&(Value::Bool(matches!(&config, Value::Dict(__d) if __d.contains_key("byType"))))) && is_true(&(Value::Bool(in_op(&params, &Value::Str("type".to_string()))))) {
             let mut type_var: Value = crate::value::get_value_k(&params, "type");
-            let mut byType: Value = crate::value::get_value_k(&config, "byType");
+            let mut byType: Value = config.as_map().and_then(|__m| __m.get("byType")).cloned().unwrap_or(Value::Null);
             if is_true(&Value::Bool(in_op(&byType, &type_var))) {
                 return get_value(&byType, &type_var);
             }

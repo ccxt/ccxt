@@ -1165,9 +1165,9 @@ impl CoinsphCore {
     m
 }));
         if is_true(&(Value::Bool(matches!(&config, Value::Dict(__d) if __d.contains_key("noSymbol"))))) && !is_true(&(Value::Bool(in_op(&params, &Value::Str("symbol".to_string()))))) {
-            return crate::value::get_value_k(&config, "noSymbol");
+            return config.as_map().and_then(|__m| __m.get("noSymbol")).cloned().unwrap_or(Value::Null);
         }  else if is_true(&(Value::Bool(matches!(&config, Value::Dict(__d) if __d.contains_key("noSymbolAndNoSymbols"))))) && !is_true(&(Value::Bool(in_op(&params, &Value::Str("symbol".to_string()))))) && !is_true(&(Value::Bool(in_op(&params, &Value::Str("symbols".to_string()))))) {
-            return crate::value::get_value_k(&config, "noSymbolAndNoSymbols");
+            return config.as_map().and_then(|__m| __m.get("noSymbolAndNoSymbols")).cloned().unwrap_or(Value::Null);
         }  else if is_true(&(Value::Bool(matches!(&config, Value::Dict(__d) if __d.contains_key("byNumberOfSymbols"))))) && is_true(&(Value::Bool(in_op(&params, &Value::Str("symbols".to_string()))))) {
             let mut symbols: Value = crate::value::get_value_k(&params, "symbols");
             let mut symbolsAmount: Value = get_array_length(&symbols);

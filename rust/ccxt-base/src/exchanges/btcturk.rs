@@ -1145,7 +1145,7 @@ impl BtcturkCore {
             add_element_to_object(&mut request, &Value::Str("price".to_string()), self.price_to_precision(symbol.clone(), price.clone()));
         }
         if is_true(&Value::Bool(matches!(&params, Value::Dict(__d) if __d.contains_key("clientOrderId")))) {
-            add_element_to_object(&mut request, &Value::Str("newClientOrderId".to_string()), crate::value::get_value_k(&params, "clientOrderId"));
+            add_element_to_object(&mut request, &Value::Str("newClientOrderId".to_string()), params.as_map().and_then(|__m| __m.get("clientOrderId")).cloned().unwrap_or(Value::Null));
         }  else if !is_true(&(Value::Bool(matches!(&params, Value::Dict(__d) if __d.contains_key("newClientOrderId"))))) {
             add_element_to_object(&mut request, &Value::Str("newClientOrderId".to_string()), self.uuid(&[]));
         }

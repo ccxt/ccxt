@@ -2149,7 +2149,7 @@ impl BitfinexCore {
                 m.insert("nonce".to_string(), Value::Null);
             m
         });
-        let mut priceIndex: Value = (if is_true(&(Value::Bool(crate::value::get_value_k(&fullRequest, "precision").as_str() == Some("R0")))) { Value::Int(1) } else { Value::Int(0) });
+        let mut priceIndex: Value = (if is_true(&(Value::Bool(fullRequest.as_map().and_then(|__m| __m.get("precision")).cloned().unwrap_or(Value::Null).as_str() == Some("R0")))) { Value::Int(1) } else { Value::Int(0) });
         let mut orders: Value = self.to_array(orderbook.clone());
         {
                         let mut i: Value = Value::Int(0);

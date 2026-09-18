@@ -3230,7 +3230,7 @@ impl BitvavoCore {
     m
 }));
         if is_true(&(Value::Bool(matches!(&config, Value::Dict(__d) if __d.contains_key("noMarket"))))) && !is_true(&(Value::Bool(in_op(&params, &Value::Str("market".to_string()))))) {
-            return crate::value::get_value_k(&config, "noMarket");
+            return config.as_map().and_then(|__m| __m.get("noMarket")).cloned().unwrap_or(Value::Null);
         }
         return self.safe_value_k(config.clone(), "cost", &[Value::Int(1)]);
 
