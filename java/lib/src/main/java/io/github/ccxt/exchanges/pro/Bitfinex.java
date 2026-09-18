@@ -565,7 +565,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
         if (Helpers.isEqual(messageLength, 2))
         {
             // initial snapshot
-            Object trades = this.safeList(message, 1, new ArrayList<Object>(Arrays.asList()));
+            List<Object> trades = (List<Object>) this.safeList(message, 1, new ArrayList<Object>(Arrays.asList()));
             // needs to be reversed to make chronological order
             Object length = ((List<?>)trades).size();
             for (var i = 0; Helpers.isLessThan(i, length); i++)
@@ -1165,8 +1165,8 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
         String subMessageHash = this.safeString(client.subscriptions, unSubChannel);
         Map<String, Object> subscription = (Map<String, Object>) this.safeDict(client.subscriptions, Helpers.add("unsubscribe:", subMessageHash));
         ((Map<String,Object>)client.subscriptions).remove((String)unSubChannel);
-        Object messageHashes = this.safeList(subscription, "messageHashes", new ArrayList<Object>(Arrays.asList()));
-        Object subMessageHashes = this.safeList(subscription, "subMessageHashes", new ArrayList<Object>(Arrays.asList()));
+        List<Object> messageHashes = (List<Object>) this.safeList(subscription, "messageHashes", new ArrayList<Object>(Arrays.asList()));
+        List<Object> subMessageHashes = (List<Object>) this.safeList(subscription, "subMessageHashes", new ArrayList<Object>(Arrays.asList()));
         for (var i = 0; i < ((List<?>)messageHashes).size(); i++)
         {
             Object messageHash = Helpers.GetValue(messageHashes, i);
@@ -1361,7 +1361,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
         //        ]
         //    ]
         //
-        Object data = this.safeList(message, 2, new ArrayList<Object>(Arrays.asList()));
+        List<Object> data = (List<Object>) this.safeList(message, 2, new ArrayList<Object>(Arrays.asList()));
         String messageType = this.safeString(message, 1);
         if (java.util.Objects.equals(this.orders, null))
         {

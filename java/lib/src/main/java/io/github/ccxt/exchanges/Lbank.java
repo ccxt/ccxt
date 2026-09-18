@@ -601,7 +601,7 @@ public class Lbank extends LbankApi
             //        "ts": "1747973911431"
             //    }
             //
-            Object currenciesData = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> currenciesData = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> grouped = this.groupBy(currenciesData, "assetCode");
             Object values = Helpers.objectValues(grouped);
             return this.parseCurrencies(values);
@@ -719,7 +719,7 @@ public class Lbank extends LbankApi
             //         "ts": 1691560288484
             //     }
             //
-            Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)data).size(); i++)
             {
@@ -825,7 +825,7 @@ public class Lbank extends LbankApi
             //         "success": true
             //     }
             //
-            Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)data).size(); i++)
             {
@@ -1111,7 +1111,7 @@ public class Lbank extends LbankApi
             //         "success": true
             //     }
             //
-            Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseTickers(data, symbols);
         }).thenApply(Tickers::new);
 
@@ -1413,7 +1413,7 @@ public class Lbank extends LbankApi
             //           "ts":1647021999308
             //      }
             //
-            Object trades = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> trades = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseTrades(trades, market, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
@@ -1483,7 +1483,7 @@ public class Lbank extends LbankApi
                 put( "size", parsedLimit );
             }};
             Map<String, Object> response = (this.spotPublicGetKline(this.extend(request, parameters))).join();
-            Object ohlcvs = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> ohlcvs = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             //
             //
             // [
@@ -1784,7 +1784,7 @@ public class Lbank extends LbankApi
             //     "result": "true",
             //     "success": True,
             // }
-            Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseFundingRates(data, symbols);
         }).thenApply(FundingRates::new);
 
@@ -1931,7 +1931,7 @@ public class Lbank extends LbankApi
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Map<String, Object> response = (this.spotPrivatePostSupplementCustomerTradeFee(this.extend(request, parameters))).join();
-            Object fees = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> fees = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> result = new HashMap<String, Object>() {{}};
             for (var i = 0; i < ((List<?>)fees).size(); i++)
             {
@@ -2406,7 +2406,7 @@ public class Lbank extends LbankApi
             //          "ts":1647455270776
             //      }
             //
-            Object result = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> result = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             Object numOrders = ((List<?>)result).size();
             if (Helpers.isEqual(numOrders, 1))
             {
@@ -2483,7 +2483,7 @@ public class Lbank extends LbankApi
             //          "ts":1648509742164
             //      }
             //
-            Object trades = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> trades = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseTrades(trades, market, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
@@ -2559,7 +2559,7 @@ public class Lbank extends LbankApi
             //      }
             //
             Object result = this.safeValue(response, "data", new HashMap<String, Object>() {{}});
-            Object orders = this.safeList(result, "orders", new ArrayList<Object>(Arrays.asList()));
+            List<Object> orders = (List<Object>) this.safeList(result, "orders", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(orders, market, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
@@ -2633,7 +2633,7 @@ public class Lbank extends LbankApi
             //     }
             //
             Object result = this.safeValue(response, "data", new HashMap<String, Object>() {{}});
-            Object orders = this.safeList(result, "orders", new ArrayList<Object>(Arrays.asList()));
+            List<Object> orders = (List<Object>) this.safeList(result, "orders", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(orders, market, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
@@ -2741,7 +2741,7 @@ public class Lbank extends LbankApi
             //          "ts":1648506641468
             //      }
             //
-            Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(data);
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
@@ -3140,7 +3140,7 @@ public class Lbank extends LbankApi
             //      }
             //
             Object data = this.safeValue(response, "data", new HashMap<String, Object>() {{}});
-            Object deposits = this.safeList(data, "depositOrders", new ArrayList<Object>(Arrays.asList()));
+            List<Object> deposits = (List<Object>) this.safeList(data, "depositOrders", new ArrayList<Object>(Arrays.asList()));
             return this.parseTransactions(deposits, currency, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
@@ -3209,7 +3209,7 @@ public class Lbank extends LbankApi
             //      }
             //
             Object data = this.safeValue(response, "data", new HashMap<String, Object>() {{}});
-            Object withdraws = this.safeList(data, "withdraws", new ArrayList<Object>(Arrays.asList()));
+            List<Object> withdraws = (List<Object>) this.safeList(data, "withdraws", new ArrayList<Object>(Arrays.asList()));
             return this.parseTransactions(withdraws, currency, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
@@ -3304,14 +3304,14 @@ public class Lbank extends LbankApi
             //        "code": 0
             //    }
             //
-            Object result = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> result = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> withdrawFees = new HashMap<String, Object>() {{}};
             for (var i = 0; i < ((List<?>)result).size(); i++)
             {
                 Object entry = Helpers.GetValue(result, i);
                 String currencyId = this.safeString(entry, "coin");
                 String code = this.safeCurrencyCode(currencyId);
-                Object networkList = this.safeList(entry, "networkList", new ArrayList<Object>(Arrays.asList()));
+                List<Object> networkList = (List<Object>) this.safeList(entry, "networkList", new ArrayList<Object>(Arrays.asList()));
                 if (!java.util.Objects.equals(code, null))
                 {
                     Helpers.addElementToObject(withdrawFees, code, new HashMap<String, Object>() {{}});
@@ -3384,7 +3384,7 @@ public class Lbank extends LbankApi
             //        "ts": "1663364435973"
             //    }
             //
-            Object result = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> result = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> withdrawFees = new HashMap<String, Object>() {{}};
             for (var i = 0; i < ((List<?>)result).size(); i++)
             {
@@ -3511,7 +3511,7 @@ public class Lbank extends LbankApi
             //        "code": 0
             //    }
             //
-            Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseDepositWithdrawFees(data, codes, "coin");
         });
 
@@ -3661,7 +3661,7 @@ public class Lbank extends LbankApi
         Object currency = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Object result = this.depositWithdrawFee(fee);
         String code = this.safeString(currency, "code");
-        Object networkList = this.safeList(fee, "networkList", new ArrayList<Object>(Arrays.asList()));
+        List<Object> networkList = (List<Object>) this.safeList(fee, "networkList", new ArrayList<Object>(Arrays.asList()));
         for (var j = 0; j < ((List<?>)networkList).size(); j++)
         {
             Object networkEntry = Helpers.GetValue(networkList, j);

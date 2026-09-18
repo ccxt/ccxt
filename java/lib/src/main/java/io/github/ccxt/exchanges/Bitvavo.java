@@ -742,7 +742,7 @@ final Object finalBase = base;
         String code = this.safeCurrencyCode(id);
         Object isFiat = this.inArray(code, fiatCurrencies);
         Map<String, Object> networks = new HashMap<String, Object>() {{}};
-        Object networksArray = this.safeList(rawCurrency, "networks", new ArrayList<Object>(Arrays.asList()));
+        List<Object> networksArray = (List<Object>) this.safeList(rawCurrency, "networks", new ArrayList<Object>(Arrays.asList()));
         Boolean deposit = java.util.Objects.equals(this.safeString(rawCurrency, "depositStatus"), "OK");
         Boolean withdrawal = java.util.Objects.equals(this.safeString(rawCurrency, "withdrawalStatus"), "OK");
         Boolean active = Helpers.isTrue(deposit) && Helpers.isTrue(withdrawal);
@@ -1474,7 +1474,7 @@ final Object finalBase = base;
             //         "maxItems": 0
             //     }
             //
-            Object accounts = this.safeList(response, "items", new ArrayList<Object>(Arrays.asList()));
+            List<Object> accounts = (List<Object>) this.safeList(response, "items", new ArrayList<Object>(Arrays.asList()));
             return this.parseAccounts(accounts);
         }).thenApply(res -> ((List<?>) res).stream().map(Account::new).collect(Collectors.toList()));
 
@@ -1640,7 +1640,7 @@ final Object finalBase = base;
             //         "limit": 25
             //     }
             //
-            Object items = this.safeList(response, "items", new ArrayList<Object>(Arrays.asList()));
+            List<Object> items = (List<Object>) this.safeList(response, "items", new ArrayList<Object>(Arrays.asList()));
             return this.parseTransfers(items, currency, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(TransferEntry::new).collect(Collectors.toList()));
 
@@ -2770,7 +2770,7 @@ final Object finalBase = base;
             //         "maxItems": 100
             //     }
             //
-            Object items = this.safeList(response, "items", new ArrayList<Object>(Arrays.asList()));
+            List<Object> items = (List<Object>) this.safeList(response, "items", new ArrayList<Object>(Arrays.asList()));
             return this.parseLedger(items, currency, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(LedgerEntry::new).collect(Collectors.toList()));
 

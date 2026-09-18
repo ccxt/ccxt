@@ -949,7 +949,7 @@ public class Bithumb extends BithumbApi
                 //
                 Map<String, Object> result = (Map<String, Object>) this.safeDict(response, 0, new HashMap<String, Object>() {{}});
                 timestamp = this.safeInteger(result, "timestamp");
-                Object orderBookUnits = this.safeList(result, "orderbook_units", new ArrayList<Object>(Arrays.asList()));
+                List<Object> orderBookUnits = (List<Object>) this.safeList(result, "orderbook_units", new ArrayList<Object>(Arrays.asList()));
                 List<Object> bids = new ArrayList<Object>(Arrays.asList());
                 List<Object> asks = new ArrayList<Object>(Arrays.asList());
                 for (var i = 0; i < ((List<?>)orderBookUnits).size(); i++)
@@ -1950,7 +1950,7 @@ public class Bithumb extends BithumbApi
             //         ]
             //     }
             //
-            Object data = this.safeList(response, "batch_orders_response", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = (List<Object>) this.safeList(response, "batch_orders_response", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(data, market);
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
@@ -2330,7 +2330,7 @@ public class Bithumb extends BithumbApi
                     //         ]
                     //     }
                     //
-                    Object orders = this.safeList(response, "orders", new ArrayList<Object>(Arrays.asList()));
+                    List<Object> orders = (List<Object>) this.safeList(response, "orders", new ArrayList<Object>(Arrays.asList()));
                     data = this.safeDict(orders, 0, new HashMap<String, Object>() {{}});
                 } else
                 {
@@ -2632,7 +2632,7 @@ public class Bithumb extends BithumbApi
             symbol = ((Map<String, Object>)market).get("symbol");
         }
         String id = this.safeStringN(order, new ArrayList<Object>(Arrays.asList("order_id", "uuid", "algo_order_id")));
-        Object rawTrades = this.safeList2(order, "contract", "trades", new ArrayList<Object>(Arrays.asList()));
+        List<Object> rawTrades = (List<Object>) this.safeList2(order, "contract", "trades", new ArrayList<Object>(Arrays.asList()));
         Double feeCost = this.safeNumber(order, "reserved_fee");
         Object fee = null;
         if (!java.util.Objects.equals(feeCost, null))
@@ -2761,7 +2761,7 @@ public class Bithumb extends BithumbApi
                 ((Map<String, Object>)request).put("payment_currency", ((Map<String, Object>)market).get("quote"));
                 response = (this.privatePostInfoOrders(this.extend(request, parameters))).join();
             }
-            Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(data, market, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
@@ -2809,7 +2809,7 @@ public class Bithumb extends BithumbApi
             parameters = this.omit(parameters, "twap");
             if (!Helpers.isTrue(twap))
             {
-                Object clientOrderIds = this.safeList2(parameters, "client_order_ids", "clientOrderIds");
+                List<Object> clientOrderIds = (List<Object>) this.safeList2(parameters, "client_order_ids", "clientOrderIds");
                 if (!java.util.Objects.equals(clientOrderIds, null))
                 {
                     ((Map<String, Object>)request).put("client_order_ids", clientOrderIds);
@@ -3091,7 +3091,7 @@ public class Bithumb extends BithumbApi
                 market = this.market(symbol);
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
-            Object clientOrderIds = this.safeList2(parameters, "client_order_ids", "clientOrderIds");
+            List<Object> clientOrderIds = (List<Object>) this.safeList2(parameters, "client_order_ids", "clientOrderIds");
             if (!java.util.Objects.equals(clientOrderIds, null))
             {
                 ((Map<String, Object>)request).put("client_order_ids", clientOrderIds);
@@ -3112,7 +3112,7 @@ public class Bithumb extends BithumbApi
             //         "fail": []
             //     }
             //
-            Object data = this.safeList(response, "success", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = (List<Object>) this.safeList(response, "success", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(data, market);
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 

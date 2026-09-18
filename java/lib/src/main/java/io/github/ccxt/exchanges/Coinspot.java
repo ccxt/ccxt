@@ -902,7 +902,7 @@ public class Coinspot extends CoinspotApi
             //         ],
             //     }
             //
-            Object trades = this.safeList(response, "orders", new ArrayList<Object>(Arrays.asList()));
+            List<Object> trades = (List<Object>) this.safeList(response, "orders", new ArrayList<Object>(Arrays.asList()));
             return this.parseTrades(trades, market, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
@@ -969,12 +969,12 @@ public class Coinspot extends CoinspotApi
             //          },
             //      ]
             // }
-            Object buyTrades = this.safeList(response, "buyorders", new ArrayList<Object>(Arrays.asList()));
+            List<Object> buyTrades = (List<Object>) this.safeList(response, "buyorders", new ArrayList<Object>(Arrays.asList()));
             for (var i = 0; i < ((List<?>)buyTrades).size(); i++)
             {
                 Helpers.addElementToObject(Helpers.GetValue(buyTrades, i), "side", "buy");
             }
-            Object sellTrades = this.safeList(response, "sellorders", new ArrayList<Object>(Arrays.asList()));
+            List<Object> sellTrades = (List<Object>) this.safeList(response, "sellorders", new ArrayList<Object>(Arrays.asList()));
             for (var i = 0; i < ((List<?>)sellTrades).size(); i++)
             {
                 Helpers.addElementToObject(Helpers.GetValue(sellTrades, i), "side", "sell");

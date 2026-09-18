@@ -426,7 +426,7 @@ public class Coincheck extends CoincheckApi
             //         ]
             //     }
             //
-            Object exchangeStatuses = this.safeList(response, "exchange_status", new ArrayList<Object>(Arrays.asList()));
+            List<Object> exchangeStatuses = (List<Object>) this.safeList(response, "exchange_status", new ArrayList<Object>(Arrays.asList()));
             String status = "ok";
             Object updated = null;
             for (var i = 0; i < ((List<?>)exchangeStatuses).size(); i++)
@@ -837,7 +837,7 @@ public class Coincheck extends CoincheckApi
             //                  ]
             //      }
             //
-            Object transactions = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> transactions = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseTrades(transactions, market, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
@@ -885,7 +885,7 @@ public class Coincheck extends CoincheckApi
             //          "created_at": "2021-12-08T14:10:33.000Z"
             //      }
             //
-            Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseTrades(data, market, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
@@ -1108,7 +1108,7 @@ public class Coincheck extends CoincheckApi
             //     }
             //   ]
             // }
-            Object data = this.safeList(response, "deposits", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = (List<Object>) this.safeList(response, "deposits", new ArrayList<Object>(Arrays.asList()));
             return this.parseTransactions(data, currency, since, limit, new HashMap<String, Object>() {{
                 put( "type", "deposit" );
             }});
@@ -1172,7 +1172,7 @@ public class Coincheck extends CoincheckApi
             //     }
             //   ]
             // }
-            Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseTransactions(data, currency, since, limit, new HashMap<String, Object>() {{
                 put( "type", "withdrawal" );
             }});

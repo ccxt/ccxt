@@ -258,8 +258,8 @@ public class Independentreserve extends io.github.ccxt.exchanges.Independentrese
 }}));
         } else
         {
-            Object asks = this.safeList(orderBook, "Offers", new ArrayList<Object>(Arrays.asList()));
-            Object bids = this.safeList(orderBook, "Bids", new ArrayList<Object>(Arrays.asList()));
+            List<Object> asks = (List<Object>) this.safeList(orderBook, "Offers", new ArrayList<Object>(Arrays.asList()));
+            List<Object> bids = (List<Object>) this.safeList(orderBook, "Bids", new ArrayList<Object>(Arrays.asList()));
             this.handleDeltas(Helpers.GetValue(orderbook, "asks"), asks);
             this.handleDeltas(Helpers.GetValue(orderbook, "bids"), bids);
             Helpers.addElementToObject(orderbook, "timestamp", timestamp);

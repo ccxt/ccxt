@@ -790,23 +790,23 @@ public class Kraken extends KrakenApi
                 String quoteId = this.safeCurrencyCode(quoteIdRaw);
                 String base = baseId;
                 String quote = quoteId;
-                Object makerFees = this.safeList(market, "fees_maker", new ArrayList<Object>(Arrays.asList()));
-                Object firstMakerFee = this.safeList(makerFees, 0, new ArrayList<Object>(Arrays.asList()));
+                List<Object> makerFees = (List<Object>) this.safeList(market, "fees_maker", new ArrayList<Object>(Arrays.asList()));
+                List<Object> firstMakerFee = (List<Object>) this.safeList(makerFees, 0, new ArrayList<Object>(Arrays.asList()));
                 String firstMakerFeeRate = this.safeString(firstMakerFee, 1);
                 Object maker = null;
                 if (!java.util.Objects.equals(firstMakerFeeRate, null))
                 {
                     maker = this.parseNumber(Precise.stringDiv(firstMakerFeeRate, "100"));
                 }
-                Object takerFees = this.safeList(market, "fees", new ArrayList<Object>(Arrays.asList()));
-                Object firstTakerFee = this.safeList(takerFees, 0, new ArrayList<Object>(Arrays.asList()));
+                List<Object> takerFees = (List<Object>) this.safeList(market, "fees", new ArrayList<Object>(Arrays.asList()));
+                List<Object> firstTakerFee = (List<Object>) this.safeList(takerFees, 0, new ArrayList<Object>(Arrays.asList()));
                 String firstTakerFeeRate = this.safeString(firstTakerFee, 1);
                 Object taker = null;
                 if (!java.util.Objects.equals(firstTakerFeeRate, null))
                 {
                     taker = this.parseNumber(Precise.stringDiv(firstTakerFeeRate, "100"));
                 }
-                Object leverageBuy = this.safeList(market, "leverage_buy", new ArrayList<Object>(Arrays.asList()));
+                List<Object> leverageBuy = (List<Object>) this.safeList(market, "leverage_buy", new ArrayList<Object>(Arrays.asList()));
                 Object leverageBuyLength = ((List<?>)leverageBuy).size();
                 Object precisionPrice = this.parseNumber(this.parsePrecision(this.safeString(market, "pair_decimals")));
                 Object precisionAmount = this.parseNumber(this.parsePrecision(this.safeString(market, "lot_decimals")));
@@ -1482,7 +1482,7 @@ public class Kraken extends KrakenApi
             //         }
             //     }
             Object result = this.safeValue(response, "result", new HashMap<String, Object>() {{}});
-            Object ohlcvs = this.safeList(result, ((Map<String, Object>)market).get("id"), new ArrayList<Object>(Arrays.asList()));
+            List<Object> ohlcvs = (List<Object>) this.safeList(result, ((Map<String, Object>)market).get("id"), new ArrayList<Object>(Arrays.asList()));
             return this.parseOHLCVs(ohlcvs, market, timeframe, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
 
@@ -2493,12 +2493,12 @@ public class Kraken extends KrakenApi
         String id = this.safeStringN(order, new ArrayList<Object>(Arrays.asList("id", "txid", "order_id", "amend_id")));
         if ((java.util.Objects.equals(id, null)) || Helpers.isTrue((id.startsWith(((String)"[")))))
         {
-            Object txid = this.safeList(order, "txid");
+            List<Object> txid = (List<Object>) this.safeList(order, "txid");
             id = this.safeString(txid, 0);
         }
         String userref = this.safeString(order, "userref");
         String clientOrderId = this.safeString(order, "cl_ord_id", userref);
-        Object rawTrades = this.safeList(order, "trades", new ArrayList<Object>(Arrays.asList()));
+        List<Object> rawTrades = (List<Object>) this.safeList(order, "trades", new ArrayList<Object>(Arrays.asList()));
         List<Object> trades = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ((List<?>)rawTrades).size(); i++)
         {
@@ -3770,7 +3770,7 @@ final Object finalId = id;
             //                       "time":  1529223212,
             //                     "status": "Success"                                                       } ] }
             //
-            Object depositResult = this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
+            List<Object> depositResult = (List<Object>) this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
             return this.parseTransactionsByType("deposit", depositResult, code, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
@@ -4234,7 +4234,7 @@ final Object finalId = id;
             //     }
             //
             symbols = this.marketSymbols(symbols);
-            Object result = this.safeList(response, "result");
+            List<Object> result = (List<Object>) this.safeList(response, "result");
             Object results = this.parsePositions(result, symbols);
             return this.filterByArrayPositions(results, "symbol", symbols, false);
         }).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));
@@ -4522,7 +4522,7 @@ final Object finalId = id;
                     Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
                     if (((Map<?, ?>)result).containsKey("orders"))
                     {
-                        Object orders = this.safeList(result, "orders", new ArrayList<Object>(Arrays.asList()));
+                        List<Object> orders = (List<Object>) this.safeList(result, "orders", new ArrayList<Object>(Arrays.asList()));
                         for (var i = 0; i < ((List<?>)orders).size(); i++)
                         {
                             Object order = Helpers.GetValue(orders, i);

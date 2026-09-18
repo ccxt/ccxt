@@ -487,8 +487,8 @@ public class Bit2c extends Bit2cApi
             // feed filters these rows out, so a non-positive amount is a dead order
             // their full snapshot failed to purge - it is removed here, which also
             // uncrosses the book. rows are positional price and amount pairs
-            Object rawBids = this.safeList(orderbook, "bids", new ArrayList<Object>(Arrays.asList()));
-            Object rawAsks = this.safeList(orderbook, "asks", new ArrayList<Object>(Arrays.asList()));
+            List<Object> rawBids = (List<Object>) this.safeList(orderbook, "bids", new ArrayList<Object>(Arrays.asList()));
+            List<Object> rawAsks = (List<Object>) this.safeList(orderbook, "asks", new ArrayList<Object>(Arrays.asList()));
             List<Object> bids = new ArrayList<Object>(Arrays.asList());
             List<Object> asks = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)rawBids).size(); i++)
@@ -823,7 +823,7 @@ public class Bit2c extends Bit2cApi
             Map<String, Object> response = (this.privateGetOrderMyOrders(this.extend(request, parameters))).join();
             Object orders = this.safeValue(response, ((Map<String, Object>)market).get("id"), new HashMap<String, Object>() {{}});
             Object asks = this.safeValue(orders, "ask", new ArrayList<Object>(Arrays.asList()));
-            Object bids = this.safeList(orders, "bid", new ArrayList<Object>(Arrays.asList()));
+            List<Object> bids = (List<Object>) this.safeList(orders, "bid", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(this.arrayConcat(asks, bids), market, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 

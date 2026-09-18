@@ -1138,7 +1138,7 @@ public class Coinbaseexchange extends io.github.ccxt.exchanges.Coinbaseexchange
         {
             io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) Helpers.GetValue(this.orderbooks, symbol);
             Long timestamp = this.parse8601(this.safeString(message, "time"));
-            Object changes = this.safeList(message, "changes", new ArrayList<Object>(Arrays.asList()));
+            List<Object> changes = (List<Object>) this.safeList(message, "changes", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> sides = new HashMap<String, Object>() {{
                 put( "sell", "asks" );
                 put( "buy", "bids" );

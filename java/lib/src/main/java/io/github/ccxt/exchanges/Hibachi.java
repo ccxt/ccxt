@@ -468,7 +468,7 @@ public class Hibachi extends HibachiApi
             //     "underlyingDecimals": 9,
             //     "underlyingSymbol": "ETH"
             // },
-            Object rows = this.safeList(response, "futureContracts");
+            List<Object> rows = (List<Object>) this.safeList(response, "futureContracts");
             return this.parseMarkets(rows);
         });
 
@@ -746,7 +746,7 @@ public class Hibachi extends HibachiApi
             //     ]
             // }
             //
-            Object trades = this.safeList(response, "trades", new ArrayList<Object>(Arrays.asList()));
+            List<Object> trades = (List<Object>) this.safeList(response, "trades", new ArrayList<Object>(Arrays.asList()));
             Object tradesList = new ArrayList<Object>(Arrays.asList());
             if (!java.util.Objects.equals(trades, null))
             {
@@ -1213,7 +1213,7 @@ public class Hibachi extends HibachiApi
             // { "orders": [ { nonce: '1754349993908', orderId: '589642085255349248' } ] }
             //
             List<Object> ret = new ArrayList<Object>(Arrays.asList());
-            Object responseOrders = this.safeList(response, "orders", new ArrayList<Object>(Arrays.asList()));
+            List<Object> responseOrders = (List<Object>) this.safeList(response, "orders", new ArrayList<Object>(Arrays.asList()));
             for (var i = 0; i < ((List<?>)responseOrders).size(); i++)
             {
                 Object responseOrder = Helpers.GetValue(responseOrders, i);
@@ -1346,7 +1346,7 @@ public class Hibachi extends HibachiApi
             // { "orders": [ { "orderId": "589636801329628160" } ] }
             //
             List<Object> ret = new ArrayList<Object>(Arrays.asList());
-            Object responseOrders = this.safeList(response, "orders", new ArrayList<Object>(Arrays.asList()));
+            List<Object> responseOrders = (List<Object>) this.safeList(response, "orders", new ArrayList<Object>(Arrays.asList()));
             for (var i = 0; i < ((List<?>)responseOrders).size(); i++)
             {
                 Object responseOrder = Helpers.GetValue(responseOrders, i);
@@ -1440,7 +1440,7 @@ public class Hibachi extends HibachiApi
             // { "orders": [ { "orderId": "589636801329628160" } ] }
             //
             List<Object> ret = new ArrayList<Object>(Arrays.asList());
-            Object responseOrders = this.safeList(response, "orders", new ArrayList<Object>(Arrays.asList()));
+            List<Object> responseOrders = (List<Object>) this.safeList(response, "orders", new ArrayList<Object>(Arrays.asList()));
             for (var i = 0; i < ((List<?>)responseOrders).size(); i++)
             {
                 Object responseOrder = Helpers.GetValue(responseOrders, i);
@@ -1759,7 +1759,7 @@ public class Hibachi extends HibachiApi
             //     ]
             // }
             //
-            Object trades = this.safeList(response, "trades");
+            List<Object> trades = (List<Object>) this.safeList(response, "trades");
             Object tradesList = new ArrayList<Object>(Arrays.asList());
             if (!java.util.Objects.equals(trades, null))
             {
@@ -1934,7 +1934,7 @@ public class Hibachi extends HibachiApi
             //         ]
             //     }
             //
-            Object orders = this.safeList(response, "orders", new ArrayList<Object>(Arrays.asList()));
+            List<Object> orders = (List<Object>) this.safeList(response, "orders", new ArrayList<Object>(Arrays.asList()));
             List<Object> parsedOrders = this.parseOrders(orders, market);
             return this.filterBySymbolSinceLimit(parsedOrders, symbol, since, limit);
         });
@@ -2058,7 +2058,7 @@ public class Hibachi extends HibachiApi
             //     }
             //   ]
             //
-            Object klines = this.safeList(response, "klines", new ArrayList<Object>(Arrays.asList()));
+            List<Object> klines = (List<Object>) this.safeList(response, "klines", new ArrayList<Object>(Arrays.asList()));
             return this.parseOHLCVs(klines, market, timeframe, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
 
@@ -2131,7 +2131,7 @@ public class Hibachi extends HibachiApi
             //     ],
             //   }
             //
-            Object data = this.safeList(response, "positions", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = (List<Object>) this.safeList(response, "positions", new ArrayList<Object>(Arrays.asList()));
             return this.parsePositions(data, symbols);
         }).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));
 
@@ -2437,7 +2437,7 @@ public class Hibachi extends HibachiApi
             //     ]
             // }
             //
-            Object rowsCapitalHistory = this.safeList(responseCapitalHistory, "transactions", new ArrayList<Object>(Arrays.asList()));
+            List<Object> rowsCapitalHistory = (List<Object>) this.safeList(responseCapitalHistory, "transactions", new ArrayList<Object>(Arrays.asList()));
             Object responseTradingHistory = Helpers.GetValue(promises, 1);
             //
             // {
@@ -2465,7 +2465,7 @@ public class Hibachi extends HibachiApi
             //     ]
             // }
             //
-            Object rowsTradingHistory = this.safeList(responseTradingHistory, "tradingHistory", new ArrayList<Object>(Arrays.asList()));
+            List<Object> rowsTradingHistory = (List<Object>) this.safeList(responseTradingHistory, "tradingHistory", new ArrayList<Object>(Arrays.asList()));
             List<Object> rows = (List<Object>) this.arrayConcat(rowsCapitalHistory, rowsTradingHistory);
             return this.parseLedger(rows, currency, since, limit, parameters);
         }).thenApply(res -> ((List<?>) res).stream().map(LedgerEntry::new).collect(Collectors.toList()));
@@ -2598,7 +2598,7 @@ public class Hibachi extends HibachiApi
             //         },
             //     ]
             // }
-            Object transactions = this.safeList(response, "transactions", new ArrayList<Object>(Arrays.asList()));
+            List<Object> transactions = (List<Object>) this.safeList(response, "transactions", new ArrayList<Object>(Arrays.asList()));
             return this.parseTransactions(transactions, currency, since, limit, parameters);
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
@@ -2758,7 +2758,7 @@ public class Hibachi extends HibachiApi
             //         ]
             //     }
             //
-            Object data = this.safeList(response, "settlements", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = (List<Object>) this.safeList(response, "settlements", new ArrayList<Object>(Arrays.asList()));
             Object settlements = this.parseSettlements(data, market);
             List<Object> sorted = this.sortBy(settlements, "timestamp");
             return this.filterBySymbolSinceLimit(sorted, symbol, since, limit);
@@ -2935,7 +2935,7 @@ public class Hibachi extends HibachiApi
             //     ]
             // }
             //
-            Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             List<Object> rates = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)data).size(); i++)
             {

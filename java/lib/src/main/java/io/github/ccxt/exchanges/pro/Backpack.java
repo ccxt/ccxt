@@ -1193,8 +1193,8 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
         Helpers.addElementToObject(orderbook, "timestamp", timestamp);
         Helpers.addElementToObject(orderbook, "datetime", this.iso8601(timestamp));
         Helpers.addElementToObject(orderbook, "nonce", this.safeInteger(delta, "u"));
-        Object bids = this.safeList(delta, "b", new ArrayList<Object>(Arrays.asList()));
-        Object asks = this.safeList(delta, "a", new ArrayList<Object>(Arrays.asList()));
+        List<Object> bids = (List<Object>) this.safeList(delta, "b", new ArrayList<Object>(Arrays.asList()));
+        List<Object> asks = (List<Object>) this.safeList(delta, "a", new ArrayList<Object>(Arrays.asList()));
         Object storedBids = Helpers.GetValue(orderbook, "bids");
         Object storedAsks = Helpers.GetValue(orderbook, "asks");
         this.handleBidAsks(storedBids, bids);

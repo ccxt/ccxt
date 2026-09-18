@@ -229,7 +229,7 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
         String marketId = this.safeString(data, "symbol");
         String symbol = this.safeSymbol(marketId);
         Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-        Object rawTrades = this.safeList(data, "trades", new ArrayList<Object>(Arrays.asList()));
+        List<Object> rawTrades = (List<Object>) this.safeList(data, "trades", new ArrayList<Object>(Arrays.asList()));
         List<Object> trades = this.parseTrades(rawTrades, market);
         if (!(((Map<?, ?>)this.trades).containsKey(symbol)))
         {
@@ -414,7 +414,7 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
             put( "asks", asks );
         }};
         Object parsed = this.parseOrderBook(snapshot, symbol, timestamp);
-        Object sequenceNumberRange = this.safeList(data, "sequenceNumberRange", new ArrayList<Object>(Arrays.asList()));
+        List<Object> sequenceNumberRange = (List<Object>) this.safeList(data, "sequenceNumberRange", new ArrayList<Object>(Arrays.asList()));
         if (((List<?>)sequenceNumberRange).size() > 0)
         {
             Object lastIndex = Helpers.subtract(((List<?>)sequenceNumberRange).size(), 1);
@@ -807,7 +807,7 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
         String messageType = this.safeString(message, "type");
         if (java.util.Objects.equals(messageType, "snapshot"))
         {
-            Object data = this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
             Helpers.addElementToObject(this.balance, tradingAccountId, this.parseBalance(data));
         } else
         {

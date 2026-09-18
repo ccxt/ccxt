@@ -930,7 +930,7 @@ public class Independentreserve extends IndependentreserveApi
             ((Map<String, Object>)request).put("pageIndex", 1);
             ((Map<String, Object>)request).put("pageSize", limit);
             Map<String, Object> response = (this.privatePostGetOpenOrders(this.extend(request, parameters))).join();
-            Object data = this.safeList(response, "Data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = (List<Object>) this.safeList(response, "Data", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(data, market, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
@@ -974,7 +974,7 @@ public class Independentreserve extends IndependentreserveApi
             ((Map<String, Object>)request).put("pageIndex", 1);
             ((Map<String, Object>)request).put("pageSize", limit);
             Map<String, Object> response = (this.privatePostGetClosedOrders(this.extend(request, parameters))).join();
-            Object data = this.safeList(response, "Data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = (List<Object>) this.safeList(response, "Data", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(data, market, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
@@ -1019,7 +1019,7 @@ public class Independentreserve extends IndependentreserveApi
             {
                 market = this.market(symbol);
             }
-            Object data = this.safeList(response, "Data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = (List<Object>) this.safeList(response, "Data", new ArrayList<Object>(Arrays.asList()));
             return this.parseTrades(data, market, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
@@ -1102,7 +1102,7 @@ public class Independentreserve extends IndependentreserveApi
                 put( "numberOfRecentTradesToRetrieve", 50 );
             }};
             Map<String, Object> response = (this.publicGetGetRecentTrades(this.extend(request, parameters))).join();
-            Object trades = this.safeList(response, "Trades", new ArrayList<Object>(Arrays.asList()));
+            List<Object> trades = (List<Object>) this.safeList(response, "Trades", new ArrayList<Object>(Arrays.asList()));
             return this.parseTrades(trades, market, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 

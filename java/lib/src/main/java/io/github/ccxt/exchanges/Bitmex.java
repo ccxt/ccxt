@@ -789,7 +789,7 @@ public class Bitmex extends BitmexApi
         String code = this.safeCurrencyCode(asset);
         String id = this.safeString(currency, "currency");
         String name = this.safeString(currency, "name");
-        Object chains = this.safeList(currency, "networks", new ArrayList<Object>(Arrays.asList()));
+        List<Object> chains = (List<Object>) this.safeList(currency, "networks", new ArrayList<Object>(Arrays.asList()));
         Boolean depositEnabled = false;
         Boolean withdrawEnabled = false;
         Map<String, Object> networks = new HashMap<String, Object>() {{}};
@@ -3863,7 +3863,7 @@ public class Bitmex extends BitmexApi
         //    }
         //
         Object currency = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-        Object networks = this.safeList(fee, "networks", new ArrayList<Object>(Arrays.asList()));
+        List<Object> networks = (List<Object>) this.safeList(fee, "networks", new ArrayList<Object>(Arrays.asList()));
         Object networksLength = ((List<?>)networks).size();
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", fee );

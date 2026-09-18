@@ -729,7 +729,7 @@ public class Backpack extends BackpackApi
     {
         String currencyId = this.safeString(rawCurrency, "symbol");
         String code = this.safeCurrencyCode(currencyId);
-        Object networks = this.safeList(rawCurrency, "tokens", new ArrayList<Object>(Arrays.asList()));
+        List<Object> networks = (List<Object>) this.safeList(rawCurrency, "tokens", new ArrayList<Object>(Arrays.asList()));
         Map<String, Object> parsedNetworks = new HashMap<String, Object>() {{}};
         for (var j = 0; j < ((List<?>)networks).size(); j++)
         {

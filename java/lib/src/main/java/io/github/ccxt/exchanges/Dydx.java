@@ -868,7 +868,7 @@ public class Dydx extends DydxApi
             //     ]
             // }
             //
-            Object rows = this.safeList(response, "trades", new ArrayList<Object>(Arrays.asList()));
+            List<Object> rows = (List<Object>) this.safeList(response, "trades", new ArrayList<Object>(Arrays.asList()));
             return this.parseTrades(rows, market, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
@@ -964,7 +964,7 @@ public class Dydx extends DydxApi
             //     ]
             // }
             //
-            Object rows = this.safeList(response, "candles", new ArrayList<Object>(Arrays.asList()));
+            List<Object> rows = (List<Object>) this.safeList(response, "candles", new ArrayList<Object>(Arrays.asList()));
             return this.parseOHLCVs(rows, market, timeframe, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
 
@@ -1027,7 +1027,7 @@ public class Dydx extends DydxApi
             // }
             //
             List<Object> rates = new ArrayList<Object>(Arrays.asList());
-            Object rows = this.safeList(response, "historicalFunding", new ArrayList<Object>(Arrays.asList()));
+            List<Object> rows = (List<Object>) this.safeList(response, "historicalFunding", new ArrayList<Object>(Arrays.asList()));
             for (var i = 0; i < ((List<?>)rows).size(); i++)
             {
                 Object entry = Helpers.GetValue(rows, i);
@@ -1479,7 +1479,7 @@ public class Dydx extends DydxApi
             //     ]
             // }
             //
-            Object rows = this.safeList(response, "positions", new ArrayList<Object>(Arrays.asList()));
+            List<Object> rows = (List<Object>) this.safeList(response, "positions", new ArrayList<Object>(Arrays.asList()));
             return this.parsePositions(rows, symbols);
         }).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));
 
@@ -2067,7 +2067,7 @@ public class Dydx extends DydxApi
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            Object clientOrderIds = this.safeList(parameters, "clientOrderIds");
+            List<Object> clientOrderIds = (List<Object>) this.safeList(parameters, "clientOrderIds");
             if (java.util.Objects.equals(clientOrderIds, null))
             {
                 throw new NotSupported((this.id + " cancelOrders only support clientOrderIds.")) ;
@@ -2942,7 +2942,7 @@ public class Dydx extends DydxApi
             //     ]
             // }
             //
-            Object rows = this.safeList(response, "subaccounts", new ArrayList<Object>(Arrays.asList()));
+            List<Object> rows = (List<Object>) this.safeList(response, "subaccounts", new ArrayList<Object>(Arrays.asList()));
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)rows).size(); i++)
             {

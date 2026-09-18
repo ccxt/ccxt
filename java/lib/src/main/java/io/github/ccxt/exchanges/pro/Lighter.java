@@ -716,13 +716,13 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
         //         "type": "subscribed/trade"
         //     }
         //
-        Object liquidationData = this.safeList(message, "liquidation_trades", new ArrayList<Object>(Arrays.asList()));
+        List<Object> liquidationData = (List<Object>) this.safeList(message, "liquidation_trades", new ArrayList<Object>(Arrays.asList()));
         Object liquidationDataLength = ((List<?>)liquidationData).size();
         if (Helpers.isGreaterThan(liquidationDataLength, 0))
         {
             this.handleLiquidation(client, message);
         }
-        Object data = this.safeList(message, "trades", new ArrayList<Object>(Arrays.asList()));
+        List<Object> data = (List<Object>) this.safeList(message, "trades", new ArrayList<Object>(Arrays.asList()));
         String channel = this.safeString(message, "channel", "");
         Object parts = Helpers.split(channel, ":");
         String marketId = (String) Helpers.GetValue(parts, 1);
@@ -963,7 +963,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
         {
             Object marketId = Helpers.GetValue(marketIds, i);
             Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
-            Object trades = this.safeList(data, marketId, new ArrayList<Object>(Arrays.asList()));
+            List<Object> trades = (List<Object>) this.safeList(data, marketId, new ArrayList<Object>(Arrays.asList()));
             Object tradesLength = ((List<?>)trades).size();
             for (var j = 0; Helpers.isLessThan(j, tradesLength); j++)
             {
@@ -1165,7 +1165,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
         //         "type": "subscribed/trade"
         //     }
         //
-        Object data = this.safeList(message, "liquidation_trades", new ArrayList<Object>(Arrays.asList()));
+        List<Object> data = (List<Object>) this.safeList(message, "liquidation_trades", new ArrayList<Object>(Arrays.asList()));
         String channel = this.safeString(message, "channel", "");
         Object parts = Helpers.split(channel, ":");
         String marketId = (String) Helpers.GetValue(parts, 1);
@@ -1652,7 +1652,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
         {
             Object marketId = Helpers.GetValue(marketIds, i);
             Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
-            Object orders = this.safeList(data, marketId, new ArrayList<Object>(Arrays.asList()));
+            List<Object> orders = (List<Object>) this.safeList(data, marketId, new ArrayList<Object>(Arrays.asList()));
             for (var j = 0; j < ((List<?>)orders).size(); j++)
             {
                 Object order = this.parseOrder(Helpers.GetValue(orders, j), market);

@@ -289,7 +289,7 @@ public class Mudrex extends io.github.ccxt.exchanges.Mudrex
 
     public void handleTicker(Client client, Object message)
     {
-        Object data = this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
+        List<Object> data = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
         for (var i = 0; i < ((List<?>)data).size(); i++)
         {
             Object t = Helpers.GetValue(data, i);

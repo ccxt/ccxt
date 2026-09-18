@@ -344,7 +344,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
             ((List<Object>)tickers).add(this.parseTicker(ticker));
         } else if (Helpers.inOp(message, "data"))
         {
-            Object data = this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
             for (var i = 0; i < ((List<?>)data).size(); i++)
             {
                 ((List<Object>)tickers).add(this.parsePerpetualTicker(Helpers.GetValue(data, i)));
@@ -927,8 +927,8 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
             {
                 io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) Helpers.GetValue(this.orderbooks, symbol);
                 Object changes = this.safeDict2(message, "book", "orderbook_p", new HashMap<String, Object>() {{}});
-                Object asks = this.safeList(changes, "asks", new ArrayList<Object>(Arrays.asList()));
-                Object bids = this.safeList(changes, "bids", new ArrayList<Object>(Arrays.asList()));
+                List<Object> asks = (List<Object>) this.safeList(changes, "asks", new ArrayList<Object>(Arrays.asList()));
+                List<Object> bids = (List<Object>) this.safeList(changes, "bids", new ArrayList<Object>(Arrays.asList()));
                 this.customHandleDeltas(Helpers.GetValue(orderbook, "asks"), asks, market);
                 this.customHandleDeltas(Helpers.GetValue(orderbook, "bids"), bids, market);
                 Helpers.addElementToObject(orderbook, "nonce", nonce);

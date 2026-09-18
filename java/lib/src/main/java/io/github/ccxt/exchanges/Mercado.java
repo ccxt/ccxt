@@ -1175,7 +1175,7 @@ public class Mercado extends MercadoApi
             }};
             Map<String, Object> response = (this.privatePostListOrders(this.extend(request, parameters))).join();
             Object responseData = this.safeValue(response, "response_data", new HashMap<String, Object>() {{}});
-            Object orders = this.safeList(responseData, "orders", new ArrayList<Object>(Arrays.asList()));
+            List<Object> orders = (List<Object>) this.safeList(responseData, "orders", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(orders, market, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
@@ -1215,7 +1215,7 @@ public class Mercado extends MercadoApi
             }};
             Map<String, Object> response = (this.privatePostListOrders(this.extend(request, parameters))).join();
             Object responseData = this.safeValue(response, "response_data", new HashMap<String, Object>() {{}});
-            Object orders = this.safeList(responseData, "orders", new ArrayList<Object>(Arrays.asList()));
+            List<Object> orders = (List<Object>) this.safeList(responseData, "orders", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(orders, market, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
@@ -1268,7 +1268,7 @@ public class Mercado extends MercadoApi
         List<Object> result = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(orders)); i++)
         {
-            Object trades = this.safeList(Helpers.GetValue(orders, i), "trades", new ArrayList<Object>(Arrays.asList()));
+            List<Object> trades = (List<Object>) this.safeList(Helpers.GetValue(orders, i), "trades", new ArrayList<Object>(Arrays.asList()));
             for (var y = 0; y < ((List<?>)trades).size(); y++)
             {
                 ((List<Object>)result).add(Helpers.GetValue(trades, y));

@@ -427,7 +427,7 @@ public class Bitopro extends BitoproApi
             //         ]
             //     }
             //
-            Object currencies = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> currencies = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseCurrencies(currencies);
         });
 
@@ -483,7 +483,7 @@ public class Bitopro extends BitoproApi
 
             Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             Map<String, Object> response = (this.publicGetProvisioningTradingPairs()).join();
-            Object markets = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> markets = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             //
             //     {
             //         "data":[
@@ -683,7 +683,7 @@ public class Bitopro extends BitoproApi
                 (this.loadMarkets()).join();
             }
             Map<String, Object> response = (this.publicGetTickers()).join();
-            Object tickers = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> tickers = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             //
             //     {
             //         "data":[
@@ -893,7 +893,7 @@ public class Bitopro extends BitoproApi
                 put( "pair", ((Map<String, Object>)market).get("id") );
             }};
             Map<String, Object> response = (this.publicGetTradesPair(this.extend(request, parameters))).join();
-            Object trades = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> trades = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             //
             //     {
             //         "data":[
@@ -1073,7 +1073,7 @@ public class Bitopro extends BitoproApi
                 ((Map<String, Object>)request).put("to", this.sum(((Map<String, Object>)request).get("from"), Helpers.multiply(limit, timeframeInSeconds)));
             }
             Map<String, Object> response = (this.publicGetTradingHistoryPair(this.extend(request, parameters))).join();
-            Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             //
             //     {
             //         "data":[
@@ -1193,7 +1193,7 @@ public class Bitopro extends BitoproApi
                 (this.loadMarkets()).join();
             }
             Map<String, Object> response = (this.privateGetAccountsBalance(parameters)).join();
-            Object balances = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> balances = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             //
             //     {
             //         "data":[
@@ -1669,7 +1669,7 @@ final Object finalJ = j;
                 ((Map<String, Object>)request).put("limit", limit);
             }
             Map<String, Object> response = (this.privateGetOrdersAllPair(this.extend(request, parameters))).join();
-            Object orders = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> orders = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             if (java.util.Objects.equals(orders, null))
             {
                 orders = new ArrayList<Object>(Arrays.asList());
@@ -1737,7 +1737,7 @@ final Object finalJ = j;
                 ((Map<String, Object>)request).put("pair", ((Map<String, Object>)market).get("id"));
             }
             Map<String, Object> response = (this.privateGetOrdersOpen(this.extend(request, parameters))).join();
-            Object orders = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> orders = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(orders, market, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
@@ -1804,7 +1804,7 @@ final Object finalJ = j;
                 put( "pair", ((Map<String, Object>)market).get("id") );
             }};
             Map<String, Object> response = (this.privateGetOrdersTradesPair(this.extend(request, parameters))).join();
-            Object trades = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> trades = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             //
             //     {
             //         "data":[
@@ -1973,7 +1973,7 @@ final Object finalJ = j;
                 ((Map<String, Object>)request).put("limit", limit);
             }
             Map<String, Object> response = (this.privateGetWalletDepositHistoryCurrency(this.extend(request, parameters))).join();
-            Object result = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> result = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             //
             //     {
             //         "data":[
@@ -2041,7 +2041,7 @@ final Object finalJ = j;
                 ((Map<String, Object>)request).put("limit", limit);
             }
             Map<String, Object> response = (this.privateGetWalletWithdrawHistoryCurrency(this.extend(request, parameters))).join();
-            Object result = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> result = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             //
             //     {
             //         "data":[
@@ -2253,7 +2253,7 @@ final Object finalJ = j;
             //         ]
             //     }
             //
-            Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseDepositWithdrawFees(data, codes, "currency");
         }).thenApply(DepositWithdrawFees::new);
 

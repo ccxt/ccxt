@@ -2389,7 +2389,7 @@ public class Upbit extends UpbitApi
         String feeCost = this.safeString(order, "paid_fee");
         String marketId = this.safeString(order, "market");
         market = this.safeMarket(marketId, market);
-        Object trades = this.safeList(order, "trades", new ArrayList<Object>(Arrays.asList()));
+        List<Object> trades = (List<Object>) this.safeList(order, "trades", new ArrayList<Object>(Arrays.asList()));
         final Object finalType = type;
         trades = this.parseTrades(trades, market, null, null, new HashMap<String, Object>() {{
             put( "order", id );

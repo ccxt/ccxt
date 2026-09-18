@@ -1023,8 +1023,8 @@ public class Hashkey extends HashkeyApi
             //         ]
             //     }
             //
-            Object spotMarkets = this.safeList(response, "symbols", new ArrayList<Object>(Arrays.asList()));
-            Object swapMarkets = this.safeList(response, "contracts", new ArrayList<Object>(Arrays.asList()));
+            List<Object> spotMarkets = (List<Object>) this.safeList(response, "symbols", new ArrayList<Object>(Arrays.asList()));
+            List<Object> swapMarkets = (List<Object>) this.safeList(response, "contracts", new ArrayList<Object>(Arrays.asList()));
             List<Object> markets = (List<Object>) this.arrayConcat(spotMarkets, swapMarkets);
             if (Helpers.isTrue(this.isEmpty(markets)))
             {
@@ -1221,7 +1221,7 @@ public class Hashkey extends HashkeyApi
                 subType = "linear";
             }
         }
-        Object filtersList = this.safeList(market, "filters", new ArrayList<Object>(Arrays.asList()));
+        List<Object> filtersList = (List<Object>) this.safeList(market, "filters", new ArrayList<Object>(Arrays.asList()));
         Map<String, Object> filters = this.indexBy(filtersList, "filterType");
         Map<String, Object> priceFilter = (Map<String, Object>) this.safeDict(filters, "PRICE_FILTER", new HashMap<String, Object>() {{}});
         Map<String, Object> amountFilter = (Map<String, Object>) this.safeDict(filters, "LOT_SIZE", new HashMap<String, Object>() {{}});
@@ -1238,7 +1238,7 @@ public class Hashkey extends HashkeyApi
             amountPrecisionString = Precise.stringDiv(amountPrecisionString, contractSizeString);
             amountMinLimitString = Precise.stringDiv(amountMinLimitString, contractSizeString);
             amountMaxLimitString = Precise.stringDiv(amountMaxLimitString, contractSizeString);
-            Object riskLimits = this.safeList(market, "riskLimits");
+            List<Object> riskLimits = (List<Object>) this.safeList(market, "riskLimits");
             if (!java.util.Objects.equals(riskLimits, null))
             {
                 Map<String, Object> first = (Map<String, Object>) this.safeDict(riskLimits, 0);
@@ -1343,7 +1343,7 @@ public class Hashkey extends HashkeyApi
 
             Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             Map<String, Object> response = (this.publicGetApiV1ExchangeInfo(parameters)).join();
-            Object coins = this.safeList(response, "coins");
+            List<Object> coins = (List<Object>) this.safeList(response, "coins");
             //
             //     {
             //         ...
@@ -1380,7 +1380,7 @@ public class Hashkey extends HashkeyApi
     {
         String currencyId = this.safeString(rawCurrency, "coinId");
         String code = this.safeCurrencyCode(currencyId);
-        Object networks = this.safeList(rawCurrency, "chainTypes");
+        List<Object> networks = (List<Object>) this.safeList(rawCurrency, "chainTypes");
         Map<String, Object> parsedNetworks = new HashMap<String, Object>() {{}};
         for (var j = 0; j < ((List<?>)networks).size(); j++)
         {
@@ -2131,7 +2131,7 @@ public class Hashkey extends HashkeyApi
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", balance );
         }};
-        Object balances = this.safeList(balance, "balances", new ArrayList<Object>(Arrays.asList()));
+        List<Object> balances = (List<Object>) this.safeList(balance, "balances", new ArrayList<Object>(Arrays.asList()));
         for (var i = 0; i < ((List<?>)balances).size(); i++)
         {
             Object balanceEntry = Helpers.GetValue(balances, i);
@@ -3343,7 +3343,7 @@ public class Hashkey extends HashkeyApi
             {
                 throw new NotSupported((Helpers.add(((this.id + " ") + "createOrderRequest() is not supported for "), ((Map<String, Object>)market).get("type")) + " type of markets")) ;
             }
-            Object result = this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
+            List<Object> result = (List<Object>) this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
             List<Object> responseOrders = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)result).size(); i++)
             {
@@ -4809,7 +4809,7 @@ public class Hashkey extends HashkeyApi
             }
             Map<String, Object> response = (this.publicGetApiV1ExchangeInfo(parameters)).join();
             // response is the same as in fetchMarkets()
-            Object data = this.safeList(response, "contracts", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = (List<Object>) this.safeList(response, "contracts", new ArrayList<Object>(Arrays.asList()));
             symbols = this.marketSymbols(symbols);
             return this.parseLeverageTiers(data, symbols, "symbol");
         }).thenApply(LeverageTiers::new);
@@ -4896,7 +4896,7 @@ public class Hashkey extends HashkeyApi
         //     }
         //
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-        Object riskLimits = this.safeList(info, "riskLimits", new ArrayList<Object>(Arrays.asList()));
+        List<Object> riskLimits = (List<Object>) this.safeList(info, "riskLimits", new ArrayList<Object>(Arrays.asList()));
         String marketId = this.safeString(info, "symbol");
         market = this.safeMarket(marketId, market);
         List<Object> tiers = new ArrayList<Object>(Arrays.asList());
@@ -5002,7 +5002,7 @@ final Object finalI = i;
             //         "updateTimestamp": "1722320137809"
             //     }
             //
-            Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> result = new HashMap<String, Object>() {{}};
             for (var i = 0; i < ((List<?>)data).size(); i++)
             {
@@ -5143,7 +5143,7 @@ final Object finalI = i;
         Long responseCodeInteger = this.safeInteger(response, "code"); // some codes in response are returned as '0000' others as 0
         if (Helpers.isEqual(responseCodeInteger, 0))
         {
-            Object result = this.safeList(response, "result", new ArrayList<Object>(Arrays.asList())); // for batch methods
+            List<Object> result = (List<Object>) this.safeList(response, "result", new ArrayList<Object>(Arrays.asList())); // for batch methods
             for (var i = 0; i < ((List<?>)result).size(); i++)
             {
                 Map<String, Object> entry = (Map<String, Object>) this.safeDict(result, i);

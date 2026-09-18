@@ -131,7 +131,7 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
             Object trades = (this.helperForWatchMultipleConstruct("trades", symbols, parameters)).join();
             if (Helpers.isTrue(this.newUpdates))
             {
-                Object first = this.safeList(trades, 0);
+                List<Object> first = (List<Object>) this.safeList(trades, 0);
                 String tradeSymbol = this.safeString(first, "symbol");
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{tradeSymbol, limit});
             }
@@ -409,7 +409,7 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
         Object marketId = this.safeString(message, "symbol", "").toLowerCase();
         Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
         String symbol = this.safeSymbol(marketId, market);
-        Object changes = this.safeList(message, "changes", new ArrayList<Object>(Arrays.asList()));
+        List<Object> changes = (List<Object>) this.safeList(message, "changes", new ArrayList<Object>(Arrays.asList()));
         Object timeframe = this.findTimeframe(timeframeId);
         Object ohlcvsBySymbol = this.safeValue(this.ohlcvs, symbol);
         if (java.util.Objects.equals(ohlcvsBySymbol, null))
@@ -486,7 +486,7 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
     public void handleOrderBook(Client client, Object message)
     {
         Boolean isInitial = (Helpers.inOp(message, "auction_events")) && (Helpers.inOp(message, "trades")) && (Helpers.inOp(message, "changes"));
-        Object changes = this.safeList(message, "changes", new ArrayList<Object>(Arrays.asList()));
+        List<Object> changes = (List<Object>) this.safeList(message, "changes", new ArrayList<Object>(Arrays.asList()));
         String marketId = this.safeStringLower(message, "symbol");
         Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
         Object symbol = ((Map<String, Object>)market).get("symbol");
@@ -1060,7 +1060,7 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
         {
             Long ts = this.safeInteger(message, "timestampms", this.milliseconds());
             Long eventId = this.safeInteger(message, "eventId");
-            Object events = this.safeList(message, "events");
+            List<Object> events = (List<Object>) this.safeList(message, "events");
             if (java.util.Objects.equals(events, null))
             {
                 return;

@@ -728,7 +728,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
         //
         Map<String, Object> parameters = (Map<String, Object>) this.safeDict(message, "params");
         String topic = this.safeString(parameters, "channel");
-        Object rawOrders = this.safeList(parameters, "data", new ArrayList<Object>(Arrays.asList()));
+        List<Object> rawOrders = (List<Object>) this.safeList(parameters, "data", new ArrayList<Object>(Arrays.asList()));
         for (var i = 0; i < ((List<?>)rawOrders).size(); i++)
         {
             Object data = Helpers.GetValue(rawOrders, i);
@@ -840,7 +840,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
         }
         Map<String, Object> parameters = (Map<String, Object>) this.safeDict(message, "params");
         String topic = this.safeString(parameters, "channel");
-        Object rawTrades = this.safeList(parameters, "data", new ArrayList<Object>(Arrays.asList()));
+        List<Object> rawTrades = (List<Object>) this.safeList(parameters, "data", new ArrayList<Object>(Arrays.asList()));
         for (var i = 0; i < ((List<?>)rawTrades).size(); i++)
         {
             Object trade = this.parseTrade(message);
@@ -961,7 +961,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
         // }
         //
         String messageHash = "authenticated";
-        Object ids = this.safeList(message, "result", new ArrayList<Object>(Arrays.asList()));
+        List<Object> ids = (List<Object>) this.safeList(message, "result", new ArrayList<Object>(Arrays.asList()));
         if (((List<?>)ids).size() > 0)
         {
             // client.resolve (message, messageHash);

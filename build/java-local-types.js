@@ -3646,6 +3646,9 @@ export function installJavaLocalTypes (transpiler) {
     // numeric patchers are installed after this installer, so a declaration only THEY
     // retype is not recorded here (a missed removal, never a wrong one).
     patchJavaRedundantStringCasts (transpiler);
+    // (7) hx2 java-02: safeList* locals -> java.util.List<Object> (additive section at the
+    // bottom of this file; the wrapper only moves declarations still printing `Object x = `)
+    patchJavaSafeListLocalTypes (transpiler);
 }
 
 // ===== 4. dataflow engine: accumulators, local propagation, ternary arms, scope safety =====
@@ -7086,4 +7089,127 @@ export function patchJavaParamTypes (transpiler) {
         return upstream (node);
     };
     printer._javaParamTypesPatched = true;
+}
+
+// ===== 10. safeList* locals (hx2 java-02): `Object x = this.safeList(..)` -> java.util.List<Object>
+// The accessor hands back the found element only when Helpers.isArray(value) (a List<?> or a java
+// array) and otherwise the caller's default, so the default argument is proven list-shaped first.
+// Everything else (later writes, receivers, argument casts) is the shared isSafeToNarrow scan.
+const JAVA_SAFE_LIST_NAMES = new Map ([ [ 'safeList', 2 ], [ 'safeList2', 3 ], [ 'safeListN', 2 ] ]);
+const JAVA_SAFE_LIST_TYPE = 'java.util.List<Object>';
+const JAVA_SAFE_LIST_CAST = '(java.util.List<Object>)';
+
+// a default argument whose box is a List or null on every path: absent, null/undefined, an array
+// literal (prints `new ArrayList<Object>(Arrays.asList(..))`), or a call the hand-written base
+// declares java.util.List<Object> (toArray) / a List-returning accessor, recursing on safeList*
+function safeListDefaultIsList (printer, call, name) {
+    const index = JAVA_SAFE_LIST_NAMES.get (name);
+    if (index === undefined || call.arguments.length <= index) {
+        return true;
+    }
+    const arg = unwrapParens (call.arguments[index]);
+    if (arg === undefined || arg.kind === ts.SyntaxKind.NullKeyword) {
+        return true;
+    }
+    if (ts.isIdentifier (arg) && arg.escapedText === 'undefined') {
+        return true;
+    }
+    if (ts.isArrayLiteralExpression (arg)) {
+        return true;
+    }
+    if (!isThisCall (arg)) {
+        return false;
+    }
+    const inner = String (arg.expression.name.escapedText);
+    if (inner === 'toArray' || JAVA_LIST_RETURN_METHODS.has (inner)) {
+        // toArray is an instance FIELD assigned from a function (like parse8601), so it is
+        // accepted by name; the hand-written base declares java.util.List<Object> toArray
+        return inner === 'toArray' || resolvesToMethodNamed (printer, arg, inner);
+    }
+    if (JAVA_SAFE_LIST_NAMES.has (inner) && resolvesToBaseAccessor (printer, arg, inner)) {
+        return safeListDefaultIsList (printer, arg, inner);
+    }
+    return false;
+}
+
+// the initializer's checker type is an array: the bare accessor is declared `any[]`, and
+// `as List` / `as any[]` assert one; `as any` and every non-array type stay untyped
+function safeListInitializerIsList (printer, initializer) {
+    try {
+        const checker = printer.getChecker ();
+        const type = checker.getTypeAtLocation (initializer);
+        if (type === undefined) {
+            return false;
+        }
+        const members = type.isUnion () ? type.types : [ type ];
+        return members.some ((member) => member !== undefined
+            && (checker.isArrayType (member) || checker.isTupleType (member)));
+    } catch (e) {
+        return false;
+    }
+}
+
+function safeListLocalTypeOf (printer, declaration, isProFile) {
+    let initializer = unwrapParens (declaration.initializer);
+    // `this.safeList(..) as List` / `as any[]` — the TS author asserts an array; the printer
+    // drops the assertion and emits the bare call, so unwrap it and keep the same proof
+    if (initializer !== undefined && (ts.isAsExpression (initializer) || ts.isTypeAssertionExpression (initializer))) {
+        initializer = unwrapParens (initializer.expression);
+    }
+    if (initializer === undefined || !isThisCall (initializer)) {
+        return undefined;
+    }
+    const name = String (initializer.expression.name.escapedText);
+    if (!JAVA_SAFE_LIST_NAMES.has (name) || !resolvesToBaseAccessor (printer, initializer, name)) {
+        return undefined;
+    }
+    if (!safeListInitializerIsList (printer, initializer)) {
+        return undefined;
+    }
+    if (!safeListDefaultIsList (printer, initializer, name)) {
+        return undefined;
+    }
+    if (!isSafeToNarrow (printer, declaration, declaration.name.escapedText, JAVA_SAFE_LIST_TYPE, isProFile, {})) {
+        return undefined;
+    }
+    return name;
+}
+
+// additive patcher: chains with every wrapper above (it only rewrites a declaration still printing
+// the `Object <name> = ` marker) and is installed at the bottom of installJavaLocalTypes
+export function patchJavaSafeListLocalTypes (transpiler) {
+    const printer = transpiler?.javaTranspiler;
+    if (!printer || typeof printer.printVariableDeclarationList !== 'function' || printer._javaSafeListTypesPatched) {
+        return;
+    }
+    printer._javaSafeListTypesPatched = true;
+    const upstream = printer.printVariableDeclarationList.bind (printer);
+    printer.printVariableDeclarationList = function (node, identation) {
+        const printed = upstream (node, identation);
+        const declarations = node?.declarations;
+        if (declarations === undefined || declarations.length !== 1) {
+            return printed;
+        }
+        const declaration = declarations[0];
+        if (declaration.initializer === undefined || declaration.name?.kind !== ts.SyntaxKind.Identifier) {
+            return printed;
+        }
+        const isProFile = /[\\/]pro[\\/]/.test (declaration.getSourceFile ().fileName);
+        const name = safeListLocalTypeOf (printer, declaration, isProFile);
+        if (name === undefined) {
+            return printed;
+        }
+        const iden = printer.getIden (identation);
+        const printedName = printer.printNode (declaration.name, 0);
+        const marker = `${iden}${printer.VAR_TOKEN} ${printedName} = `;
+        const at = printed.lastIndexOf (marker);
+        if (at === -1) {
+            return printed; // another family already moved the type token / unexpected shape
+        }
+        const value = printed.slice (at + marker.length);
+        if (!value.startsWith ('this.' + name + '(')) {
+            return printed;
+        }
+        return printed.slice (0, at) + `${iden}${JAVA_SAFE_LIST_TYPE} ${printedName} = ${JAVA_SAFE_LIST_CAST} ${value}`;
+    };
 }

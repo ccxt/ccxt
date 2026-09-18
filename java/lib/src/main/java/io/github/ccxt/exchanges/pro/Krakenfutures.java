@@ -361,7 +361,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
             Object trades = (this.watchMultiHelper("trade", "trade", symbols, null, parameters)).join();
             if (Helpers.isTrue(this.newUpdates))
             {
-                Object first = this.safeList(trades, 0);
+                List<Object> first = (List<Object>) this.safeList(trades, 0);
                 String tradeSymbol = this.safeString(first, "symbol");
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{tradeSymbol, limit});
             }
@@ -469,7 +469,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
             this.positions = new ArrayCache.ArrayCacheBySymbolBySide();
         }
         Object cache = this.positions;
-        Object rawPositions = this.safeList(message, "positions");
+        List<Object> rawPositions = (List<Object>) this.safeList(message, "positions");
         if (java.util.Objects.equals(rawPositions, null))
         {
             // an open_positions frame without the positions key is malformed;
@@ -758,7 +758,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
             io.github.ccxt.ws.ArrayCache tradesArray = (io.github.ccxt.ws.ArrayCache) Helpers.GetValue(this.trades, symbol);
             if (java.util.Objects.equals(channel, "trade_snapshot"))
             {
-                Object trades = this.safeList(message, "trades", new ArrayList<Object>(Arrays.asList()));
+                List<Object> trades = (List<Object>) this.safeList(message, "trades", new ArrayList<Object>(Arrays.asList()));
                 Object length = ((List<?>)trades).size();
                 for (var i = 0; Helpers.isLessThan(i, length); i++)
                 {
@@ -1128,7 +1128,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
         //            ...
         //        ]
         //    }
-        Object orders = this.safeList(message, "orders", new ArrayList<Object>(Arrays.asList()));
+        List<Object> orders = (List<Object>) this.safeList(message, "orders", new ArrayList<Object>(Arrays.asList()));
         Long limit = this.safeInteger(this.options, "ordersLimit");
         this.orders = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         String feed = this.safeString(message, "feed");
@@ -1454,12 +1454,12 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
         Long timestamp = this.safeInteger(message, "timestamp");
         Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook(new HashMap<String, Object>() {{}}, limit));
         io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) Helpers.GetValue(this.orderbooks, symbol);
-        Object bids = this.safeList(message, "bids");
+        List<Object> bids = (List<Object>) this.safeList(message, "bids");
         if (java.util.Objects.equals(bids, null))
         {
             return;
         }
-        Object asks = this.safeList(message, "asks");
+        List<Object> asks = (List<Object>) this.safeList(message, "asks");
         if (java.util.Objects.equals(asks, null))
         {
             return;
@@ -1783,7 +1783,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
         //        ]
         //    }
         //
-        Object trades = this.safeList(message, "fills", new ArrayList<Object>(Arrays.asList()));
+        List<Object> trades = (List<Object>) this.safeList(message, "fills", new ArrayList<Object>(Arrays.asList()));
         Object stored = this.myTrades;
         if (java.util.Objects.equals(stored, null))
         {

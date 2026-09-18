@@ -288,7 +288,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
 
     public void handleTradesInner(Client client, Object message)
     {
-        Object data = this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
+        List<Object> data = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
         String symbol = this.safeString(((Map<String, Object>)this.options).get("watchTrades"), "symbol");
         if (java.util.Objects.equals(symbol, null))
         {
@@ -1104,7 +1104,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
         //     }
         //
         String symbol = this.safeString(message, "oid"); // symbol is set as requestId in watchOrders
-        Object rawOrders = this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
+        List<Object> rawOrders = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
         Object myOrders = this.orders;
         if (java.util.Objects.equals(myOrders, null))
         {
@@ -1418,7 +1418,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
         //         "pair": "BTC:USD"
         //     }
         //
-        Object data = this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
+        List<Object> data = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
         String pair = this.safeString(message, "pair");
         Object symbol = this.pairToSymbol(pair);
         String messageHash = ("ohlcv:" + symbol);

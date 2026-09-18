@@ -602,7 +602,7 @@ public class Hollaex extends HollaexApi
     {
         String id = this.safeString(rawCurrency, "symbol");
         String code = this.safeCurrencyCode(id);
-        Object withdrawalLimits = this.safeList(rawCurrency, "withdrawal_limits", new ArrayList<Object>(Arrays.asList()));
+        List<Object> withdrawalLimits = (List<Object>) this.safeList(rawCurrency, "withdrawal_limits", new ArrayList<Object>(Arrays.asList()));
         String rawType = this.safeString(rawCurrency, "type");
         String type = (((java.util.Objects.equals(rawType, "blockchain")))) ? "crypto" : "other";
         Map<String, Object> rawNetworks = (Map<String, Object>) this.safeDict(rawCurrency, "withdrawal_fees", new HashMap<String, Object>() {{}});
@@ -949,7 +949,7 @@ public class Hollaex extends HollaexApi
             //         ]
             //     }
             //
-            Object trades = this.safeList(response, ((Map<String, Object>)market).get("id"), new ArrayList<Object>(Arrays.asList()));
+            List<Object> trades = (List<Object>) this.safeList(response, ((Map<String, Object>)market).get("id"), new ArrayList<Object>(Arrays.asList()));
             return this.parseTrades(trades, market, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
@@ -1482,7 +1482,7 @@ public class Hollaex extends HollaexApi
             //         ]
             //     }
             //
-            Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(data, market, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
@@ -1797,7 +1797,7 @@ public class Hollaex extends HollaexApi
             //         ]
             //     }
             //
-            Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseTrades(data, market, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
@@ -1978,7 +1978,7 @@ public class Hollaex extends HollaexApi
             //         ]
             //     }
             //
-            Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseTransactions(data, currency, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
@@ -2108,7 +2108,7 @@ public class Hollaex extends HollaexApi
             //         ]
             //     }
             //
-            Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseTransactions(data, currency, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 

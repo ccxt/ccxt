@@ -541,7 +541,7 @@ public class Luno extends LunoApi
             //         ]
             //     }
             //
-            Object currenciesData = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> currenciesData = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> grouped = this.groupBy(currenciesData, "native_currency");
             Object values = Helpers.objectValues(grouped);
             return this.parseCurrencies(values);
@@ -644,7 +644,7 @@ public class Luno extends LunoApi
             //     }
             //
             List<Object> result = new ArrayList<Object>(Arrays.asList());
-            Object markets = this.safeList(response, "markets", new ArrayList<Object>(Arrays.asList()));
+            List<Object> markets = (List<Object>) this.safeList(response, "markets", new ArrayList<Object>(Arrays.asList()));
             for (var i = 0; i < ((List<?>)markets).size(); i++)
             {
                 Object market = Helpers.GetValue(markets, i);
@@ -760,7 +760,7 @@ public class Luno extends LunoApi
 
             Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             Map<String, Object> response = (this.privateGetBalance(parameters)).join();
-            Object wallets = this.safeList(response, "balance", new ArrayList<Object>(Arrays.asList()));
+            List<Object> wallets = (List<Object>) this.safeList(response, "balance", new ArrayList<Object>(Arrays.asList()));
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)wallets).size(); i++)
             {
@@ -782,7 +782,7 @@ public class Luno extends LunoApi
 
     public Object parseBalance(Object response)
     {
-        Object wallets = this.safeList(response, "balance", new ArrayList<Object>(Arrays.asList()));
+        List<Object> wallets = (List<Object>) this.safeList(response, "balance", new ArrayList<Object>(Arrays.asList()));
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", response );
             put( "timestamp", null );
@@ -1038,7 +1038,7 @@ public class Luno extends LunoApi
                 ((Map<String, Object>)request).put("pair", ((Map<String, Object>)market).get("id"));
             }
             Map<String, Object> response = (this.privateGetListorders(this.extend(request, parameters))).join();
-            Object orders = this.safeList(response, "orders", new ArrayList<Object>(Arrays.asList()));
+            List<Object> orders = (List<Object>) this.safeList(response, "orders", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(orders, market, since, limit);
         });
 
@@ -1181,7 +1181,7 @@ public class Luno extends LunoApi
             }
             symbols = this.marketSymbols(symbols);
             Map<String, Object> response = (this.publicGetTickers(parameters)).join();
-            Object rawTickers = this.safeList(response, "tickers", new ArrayList<Object>(Arrays.asList()));
+            List<Object> rawTickers = (List<Object>) this.safeList(response, "tickers", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> tickers = this.indexBy(rawTickers, "pair");
             Object ids = Helpers.objectKeys(tickers);
             Map<String, Object> result = new HashMap<String, Object>() {{}};
@@ -1389,7 +1389,7 @@ public class Luno extends LunoApi
             //          ]
             //      }
             //
-            Object trades = this.safeList(response, "trades", new ArrayList<Object>(Arrays.asList()));
+            List<Object> trades = (List<Object>) this.safeList(response, "trades", new ArrayList<Object>(Arrays.asList()));
             return this.parseTrades(trades, market, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
@@ -1450,7 +1450,7 @@ public class Luno extends LunoApi
             //          "pair": "XBTEUR"
             //     }
             //
-            Object ohlcvs = this.safeList(response, "candles", new ArrayList<Object>(Arrays.asList()));
+            List<Object> ohlcvs = (List<Object>) this.safeList(response, "candles", new ArrayList<Object>(Arrays.asList()));
             return this.parseOHLCVs(ohlcvs, market, timeframe, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
 
@@ -1532,7 +1532,7 @@ public class Luno extends LunoApi
             //          ]
             //      }
             //
-            Object trades = this.safeList(response, "trades", new ArrayList<Object>(Arrays.asList()));
+            List<Object> trades = (List<Object>) this.safeList(response, "trades", new ArrayList<Object>(Arrays.asList()));
             return this.parseTrades(trades, market, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 

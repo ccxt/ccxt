@@ -152,7 +152,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
         //     "id": null
         // }
         //
-        Object parameters = this.safeList(message, "params", new ArrayList<Object>(Arrays.asList()));
+        List<Object> parameters = (List<Object>) this.safeList(message, "params", new ArrayList<Object>(Arrays.asList()));
         for (var i = 0; i < ((List<?>)parameters).size(); i++)
         {
             Object data = Helpers.GetValue(parameters, i);
@@ -1024,7 +1024,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
             return;
         }
         Boolean isMargin = (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(method, "Margin"), 0));
-        Object data = this.safeList(message, "params", new ArrayList<Object>(Arrays.asList()));
+        List<Object> data = (List<Object>) this.safeList(message, "params", new ArrayList<Object>(Arrays.asList()));
         for (var i = 0; i < ((List<?>)data).size(); i++)
         {
             Map<String, Object> balanceDict = (Map<String, Object>) this.safeDict(data, i, new HashMap<String, Object>() {{}});
