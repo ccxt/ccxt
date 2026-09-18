@@ -1783,7 +1783,7 @@ public partial class BaseExchange
             return ((bool) (!isEqual(defaultValue, null))) ? defaultValue : methodDict;
         }
         List<object> splited = ((string)paramName).Split(new [] {((string)".")}, StringSplitOptions.None).ToList<object>(); // can be only parent key (`stopLoss`) or with child (`stopLoss.triggerPrice`)
-        object parentKey = getValue(splited, 0);
+        object parentKey = (splited != null && 0 < splited.Count ? splited[0] : null);
         string? subKey = this.safeString(splited, 1);
         if (!(inOp(methodDict, parentKey)))
         {
@@ -2095,25 +2095,25 @@ public partial class BaseExchange
         {
             Dictionary<string, object> result = this.extend(cleanStructure, market);
             // set undefined swap/future/etc
-            if (isEqual(getValue(result, "spot"), true))
+            if (isEqual((result != null && result.ContainsKey("spot") ? result["spot"] : null), true))
             {
-                if (isEqual(getValue(result, "contract"), null))
+                if (isEqual((result != null && result.ContainsKey("contract") ? result["contract"] : null), null))
                 {
                     ((IDictionary<string,object>)result)["contract"] = false;
                 }
-                if (isEqual(getValue(result, "swap"), null))
+                if (isEqual((result != null && result.ContainsKey("swap") ? result["swap"] : null), null))
                 {
                     ((IDictionary<string,object>)result)["swap"] = false;
                 }
-                if (isEqual(getValue(result, "future"), null))
+                if (isEqual((result != null && result.ContainsKey("future") ? result["future"] : null), null))
                 {
                     ((IDictionary<string,object>)result)["future"] = false;
                 }
-                if (isEqual(getValue(result, "option"), null))
+                if (isEqual((result != null && result.ContainsKey("option") ? result["option"] : null), null))
                 {
                     ((IDictionary<string,object>)result)["option"] = false;
                 }
-                if (isEqual(getValue(result, "index"), null))
+                if (isEqual((result != null && result.ContainsKey("index") ? result["index"] : null), null))
                 {
                     ((IDictionary<string,object>)result)["index"] = false;
                 }
@@ -3423,7 +3423,7 @@ public partial class BaseExchange
             if (!isEqual(startRegex, null))
             {
                 List<object> splitted_by_start = ((string)content).Split(new [] {((string)startRegex)}, StringSplitOptions.None).ToList<object>();
-                content = getValue(splitted_by_start, 1); // we need second part after start
+                content = (splitted_by_start != null && 1 < splitted_by_start.Count ? splitted_by_start[1] : null); // we need second part after start
             }
             if ((content == null))
             {
@@ -3432,7 +3432,7 @@ public partial class BaseExchange
             if (!isEqual(endRegex, null))
             {
                 List<object> splitted_by_end = ((string)content).Split(new [] {((string)endRegex)}, StringSplitOptions.None).ToList<object>();
-                content = getValue(splitted_by_end, 0); // we need first part after start
+                content = (splitted_by_end != null && 0 < splitted_by_end.Count ? splitted_by_end[0] : null); // we need first part after start
             }
             if ((isEqual(returnAsJson, true)) && ((content is string)))
             {
@@ -5512,7 +5512,7 @@ public partial class BaseExchange
             } else
             {
                 List<object> keys = new List<object>(((IDictionary<string,object>)addressStructures).Keys);
-                string? key = ((string)getValue(keys, 0));
+                string? key = ((string)(keys != null && 0 < keys.Count ? keys[0] : null));
                 return ccxt.BaseExchange.ToDepositAddress(this.safeDict(addressStructures, key));
             }
         } else
@@ -6688,8 +6688,8 @@ public partial class BaseExchange
         int numNetworks = networkKeys.Count;
         if ((numNetworks == 1))
         {
-            ((IDictionary<string,object>)fee)["withdraw"] = getValue(getValue(getValue(fee, "networks"), getValue(networkKeys, 0)), "withdraw");
-            ((IDictionary<string,object>)fee)["deposit"] = getValue(getValue(getValue(fee, "networks"), getValue(networkKeys, 0)), "deposit");
+            ((IDictionary<string,object>)fee)["withdraw"] = getValue(getValue(getValue(fee, "networks"), (networkKeys != null && 0 < networkKeys.Count ? networkKeys[0] : null)), "withdraw");
+            ((IDictionary<string,object>)fee)["deposit"] = getValue(getValue(getValue(fee, "networks"), (networkKeys != null && 0 < networkKeys.Count ? networkKeys[0] : null)), "deposit");
             return fee;
         }
         string? currencyCode = this.safeString(currency, "code");
