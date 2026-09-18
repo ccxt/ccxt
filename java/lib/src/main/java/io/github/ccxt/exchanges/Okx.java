@@ -2594,20 +2594,20 @@ public class Okx extends OkxApi
             {
                 Object eventVar = Helpers.GetValue(data, i);
                 String state = this.safeString(eventVar, "state");
-                Helpers.addElementToObject(update, "eta", this.safeInteger(eventVar, "end"));
-                Helpers.addElementToObject(update, "url", this.safeString(eventVar, "href"));
+                ((Map<String, Object>)update).put("eta", this.safeInteger(eventVar, "end"));
+                ((Map<String, Object>)update).put("url", this.safeString(eventVar, "href"));
                 if (java.util.Objects.equals(state, "ongoing"))
                 {
-                    Helpers.addElementToObject(update, "status", "maintenance");
+                    ((Map<String, Object>)update).put("status", "maintenance");
                 } else if (java.util.Objects.equals(state, "scheduled"))
                 {
-                    Helpers.addElementToObject(update, "status", "ok");
+                    ((Map<String, Object>)update).put("status", "ok");
                 } else if (java.util.Objects.equals(state, "completed"))
                 {
-                    Helpers.addElementToObject(update, "status", "ok");
+                    ((Map<String, Object>)update).put("status", "ok");
                 } else if (java.util.Objects.equals(state, "canceled"))
                 {
-                    Helpers.addElementToObject(update, "status", "ok");
+                    ((Map<String, Object>)update).put("status", "ok");
                 }
             }
             return update;
@@ -3165,7 +3165,7 @@ public class Okx extends OkxApi
             {
                 final Object finalNetworkId = networkId;
                 final Object finalNetworkCode = networkCode;
-                Helpers.addElementToObject(networks, networkCode, new HashMap<String, Object>() {{
+                ((Map<String, Object>)networks).put((String)networkCode, new HashMap<String, Object>() {{
     put( "id", finalNetworkId );
     put( "network", finalNetworkCode );
     put( "active", null );
@@ -4097,18 +4097,18 @@ public class Okx extends OkxApi
             // it may be incorrect to use total, free and used for swap accounts
             String eq = this.safeString(balance, "eq");
             String availEq = this.safeString(balance, "availEq");
-            Helpers.addElementToObject(account, "total", eq);
+            ((Map<String, Object>)account).put("total", eq);
             if (java.util.Objects.equals(availEq, null))
             {
-                Helpers.addElementToObject(account, "free", this.safeString(balance, "availBal"));
-                Helpers.addElementToObject(account, "used", this.safeString(balance, "frozenBal"));
+                ((Map<String, Object>)account).put("free", this.safeString(balance, "availBal"));
+                ((Map<String, Object>)account).put("used", this.safeString(balance, "frozenBal"));
             } else
             {
-                Helpers.addElementToObject(account, "free", availEq);
+                ((Map<String, Object>)account).put("free", availEq);
             }
             if (!java.util.Objects.equals(code, null))
             {
-                Helpers.addElementToObject(result, code, account);
+                ((Map<String, Object>)result).put((String)code, account);
             }
         }
         ((Map<String, Object>)result).put("timestamp", timestamp);
@@ -4129,12 +4129,12 @@ public class Okx extends OkxApi
             String code = this.safeCurrencyCode(currencyId);
             Object account = this.account();
             // it may be incorrect to use total, free and used for swap accounts
-            Helpers.addElementToObject(account, "total", this.safeString(balance, "bal"));
-            Helpers.addElementToObject(account, "free", this.safeString(balance, "availBal"));
-            Helpers.addElementToObject(account, "used", this.safeString(balance, "frozenBal"));
+            ((Map<String, Object>)account).put("total", this.safeString(balance, "bal"));
+            ((Map<String, Object>)account).put("free", this.safeString(balance, "availBal"));
+            ((Map<String, Object>)account).put("used", this.safeString(balance, "frozenBal"));
             if (!java.util.Objects.equals(code, null))
             {
-                Helpers.addElementToObject(result, code, account);
+                ((Map<String, Object>)result).put((String)code, account);
             }
         }
         return this.safeBalance(result);
@@ -5433,7 +5433,7 @@ public class Okx extends OkxApi
                 Map<String, Object> requestItem = new HashMap<String, Object>() {{
                     put( "instId", ((Map<String, Object>)market).get("id") );
                 }};
-                Helpers.addElementToObject(requestItem, idKey, (((!java.util.Objects.equals(clientOrderId, null)))) ? clientOrderId : id);
+                ((Map<String, Object>)requestItem).put((String)idKey, (((!java.util.Objects.equals(clientOrderId, null)))) ? clientOrderId : id);
                 ((List<Object>)request).add(requestItem);
             }
             Object response = null;
@@ -9211,7 +9211,7 @@ public class Okx extends OkxApi
                 String code = this.safeString(rate, "currency");
                 if (!java.util.Objects.equals(code, null))
                 {
-                    Helpers.addElementToObject(rates, code, rate);
+                    ((Map<String, Object>)rates).put((String)code, rate);
                 }
             }
             return rates;
@@ -9308,11 +9308,11 @@ public class Okx extends OkxApi
             {
                 if (!(((Map<?, ?>)borrowRateHistories).containsKey(code)))
                 {
-                    Helpers.addElementToObject(borrowRateHistories, code, new ArrayList<Object>(Arrays.asList()));
+                    ((Map<String, Object>)borrowRateHistories).put((String)code, new ArrayList<Object>(Arrays.asList()));
                 }
                 Object borrowRateStructure = this.parseBorrowRate(item);
                 // GET /api/v5/finance/savings/lending-rate-history returns annualized rates, unlike the hourly cross-margin endpoint
-                Helpers.addElementToObject(borrowRateStructure, "period", 31536000000L);
+                ((Map<String, Object>)borrowRateStructure).put("period", 31536000000L);
                 Object borrrowRateCode = Helpers.GetValue(borrowRateHistories, code);
                 ((List<Object>)borrrowRateCode).add(borrowRateStructure);
             }
@@ -9321,7 +9321,7 @@ public class Okx extends OkxApi
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
             Object code = Helpers.GetValue(keys, i);
-            Helpers.addElementToObject(borrowRateHistories, code, this.filterByCurrencySinceLimit(Helpers.GetValue(borrowRateHistories, code), code, since, limit));
+            ((Map<String, Object>)borrowRateHistories).put((String)code, this.filterByCurrencySinceLimit(Helpers.GetValue(borrowRateHistories, code), code, since, limit));
         }
         return borrowRateHistories;
     }
@@ -10389,7 +10389,7 @@ public class Okx extends OkxApi
                 Object depositWithdrawFee = this.safeDict(depositWithdrawFees, code);
                 if (java.util.Objects.equals(depositWithdrawFee, null))
                 {
-                    Helpers.addElementToObject(depositWithdrawFees, code, this.depositWithdrawFee(new HashMap<String, Object>() {{}}));
+                    ((Map<String, Object>)depositWithdrawFees).put((String)code, this.depositWithdrawFee(new HashMap<String, Object>() {{}}));
                 }
                 if (!java.util.Objects.equals(currencyId, null))
                 {
@@ -10427,7 +10427,7 @@ public class Okx extends OkxApi
         {
             Object code = Helpers.GetValue(depositWithdrawCodes, i);
             Map<String, Object> currency = (Map<String, Object>) this.currency(code);
-            Helpers.addElementToObject(depositWithdrawFees, code, this.assignDefaultDepositWithdrawFees(Helpers.GetValue(depositWithdrawFees, code), currency));
+            ((Map<String, Object>)depositWithdrawFees).put((String)code, this.assignDefaultDepositWithdrawFees(Helpers.GetValue(depositWithdrawFees, code), currency));
         }
         return depositWithdrawFees;
     }
@@ -11461,7 +11461,7 @@ public class Okx extends OkxApi
                 if (!java.util.Objects.equals(code, null))
                 {
                     final Object finalCode = code;
-                    Helpers.addElementToObject(result, code, new HashMap<String, Object>() {{
+                    ((Map<String, Object>)result).put((String)code, new HashMap<String, Object>() {{
         put( "info", entry );
         put( "id", id );
         put( "code", finalCode );

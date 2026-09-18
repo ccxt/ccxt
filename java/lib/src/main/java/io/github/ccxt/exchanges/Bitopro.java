@@ -1000,7 +1000,7 @@ public class Bitopro extends BitoproApi
             for (var i = 0; i < ((List<?>)symbols).size(); i++)
             {
                 Object symbol = Helpers.GetValue(symbols, i);
-                Helpers.addElementToObject(result, symbol, new HashMap<String, Object>() {{
+                ((Map<String, Object>)result).put((String)symbol, new HashMap<String, Object>() {{
         put( "info", first );
         put( "symbol", symbol );
         put( "maker", maker );
@@ -1168,7 +1168,7 @@ public class Bitopro extends BitoproApi
             }};
             if (!java.util.Objects.equals(code, null))
             {
-                Helpers.addElementToObject(result, code, account);
+                ((Map<String, Object>)result).put((String)code, account);
             }
         }
         return this.safeBalance(result);
@@ -1503,7 +1503,7 @@ final Object finalJ = j;
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (!java.util.Objects.equals(id, null))
             {
-                Helpers.addElementToObject(request, id, ids);
+                ((Map<String, Object>)request).put((String)id, ids);
             }
             Map<String, Object> response = (this.privatePutOrders(this.extend(request, parameters))).join();
             //

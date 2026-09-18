@@ -1146,7 +1146,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
             Object symbol = ((Map<String, Object>)parsed).get("symbol");
             if (!java.util.Objects.equals(symbol, null))
             {
-                Helpers.addElementToObject(symbols, symbol, true);
+                ((Map<String, Object>)symbols).put((String)symbol, true);
             }
             Helpers.callDynamically(cachedOrders, "append", new Object[]{parsed});
         }
@@ -1687,10 +1687,10 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
                 Object key = Helpers.GetValue(holdingKeys, i);
                 String code = this.safeCurrencyCode(key);
                 Object newAccount = this.account();
-                Helpers.addElementToObject(newAccount, "total", this.safeString(holding, key));
+                ((Map<String, Object>)newAccount).put("total", this.safeString(holding, key));
                 if (!java.util.Objects.equals(code, null))
                 {
-                    Helpers.addElementToObject(holdingResult, code, newAccount);
+                    ((Map<String, Object>)holdingResult).put((String)code, newAccount);
                 }
             }
             Helpers.addElementToObject(this.balance, "cash", holdingResult);
@@ -1713,10 +1713,10 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
                 Object future = this.safeValue(futures, key);
                 String currencyId = this.safeString(future, "unit");
                 String code = this.safeCurrencyCode(currencyId);
-                Helpers.addElementToObject(newAccount, "free", this.safeString(future, "available"));
-                Helpers.addElementToObject(newAccount, "used", this.safeString(future, "initial_margin"));
-                Helpers.addElementToObject(newAccount, "total", this.safeString(future, "balance"));
-                Helpers.addElementToObject(futuresResult, symbol, new HashMap<String, Object>() {{}});
+                ((Map<String, Object>)newAccount).put("free", this.safeString(future, "available"));
+                ((Map<String, Object>)newAccount).put("used", this.safeString(future, "initial_margin"));
+                ((Map<String, Object>)newAccount).put("total", this.safeString(future, "balance"));
+                ((Map<String, Object>)futuresResult).put((String)symbol, new HashMap<String, Object>() {{}});
                 if ((!java.util.Objects.equals(symbol, null)) && (!java.util.Objects.equals(code, null)))
                 {
                     Helpers.addElementToObject(Helpers.GetValue(futuresResult, symbol), code, newAccount);
@@ -1741,12 +1741,12 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
                 Object flexFuture = this.safeValue(flexFutureCurrencies, key);
                 String code = this.safeCurrencyCode(key);
                 Object newAccount = this.account();
-                Helpers.addElementToObject(newAccount, "free", this.safeString(flexFuture, "available"));
-                Helpers.addElementToObject(newAccount, "used", this.safeString(flexFuture, "collateral_value"));
-                Helpers.addElementToObject(newAccount, "total", this.safeString(flexFuture, "quantity"));
+                ((Map<String, Object>)newAccount).put("free", this.safeString(flexFuture, "available"));
+                ((Map<String, Object>)newAccount).put("used", this.safeString(flexFuture, "collateral_value"));
+                ((Map<String, Object>)newAccount).put("total", this.safeString(flexFuture, "quantity"));
                 if (!java.util.Objects.equals(code, null))
                 {
-                    Helpers.addElementToObject(flexFuturesResult, code, newAccount);
+                    ((Map<String, Object>)flexFuturesResult).put((String)code, newAccount);
                 }
             }
             Helpers.addElementToObject(this.balance, "flex", flexFuturesResult);
@@ -1798,7 +1798,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
             Object parsedTrade = this.parseWsMyTrade(trade);
             if (!java.util.Objects.equals(((Map<String, Object>)parsedTrade).get("symbol"), null))
             {
-                Helpers.addElementToObject(tradeSymbols, ((Map<String, Object>)parsedTrade).get("symbol"), true);
+                ((Map<String, Object>)tradeSymbols).put((String)((Map<String, Object>)parsedTrade).get("symbol"), true);
             }
             Helpers.callDynamically(stored, "append", new Object[]{parsedTrade});
         }

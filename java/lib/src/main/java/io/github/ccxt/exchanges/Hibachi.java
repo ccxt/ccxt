@@ -481,7 +481,7 @@ public class Hibachi extends HibachiApi
         Map<String, Object> result = new HashMap<String, Object>() {{}};
         Map<String, Object> networks = new HashMap<String, Object>() {{}};
         String networkId = "ARBITRUM";
-        Helpers.addElementToObject(networks, networkId, new HashMap<String, Object>() {{
+        ((Map<String, Object>)networks).put((String)networkId, new HashMap<String, Object>() {{
     put( "id", networkId );
     put( "network", networkId );
     put( "limits", new HashMap<String, Object>() {{
@@ -503,7 +503,7 @@ public class Hibachi extends HibachiApi
         if (!java.util.Objects.equals(code, null))
         {
             final Object finalCode = code;
-            Helpers.addElementToObject(result, code, this.safeCurrencyStructure(new HashMap<String, Object>() {{
+            ((Map<String, Object>)result).put((String)code, this.safeCurrencyStructure(new HashMap<String, Object>() {{
     put( "id", "USDT" );
     put( "name", "USDT" );
     put( "type", "fiat" );
@@ -538,11 +538,11 @@ public class Hibachi extends HibachiApi
         // Hibachi only supports USDT on Arbitrum at this time
         String code = this.safeCurrencyCode("USDT");
         Object account = this.account();
-        Helpers.addElementToObject(account, "total", this.safeString(response, "balance"));
-        Helpers.addElementToObject(account, "free", this.safeString(response, "maximalWithdraw"));
+        ((Map<String, Object>)account).put("total", this.safeString(response, "balance"));
+        ((Map<String, Object>)account).put("free", this.safeString(response, "maximalWithdraw"));
         if (!java.util.Objects.equals(code, null))
         {
-            Helpers.addElementToObject(result, code, account);
+            ((Map<String, Object>)result).put((String)code, account);
         }
         return this.safeBalance(result);
     }
@@ -985,7 +985,7 @@ public class Hibachi extends HibachiApi
             for (var i = 0; i < ((List<?>)symbols).size(); i++)
             {
                 Object symbol = Helpers.GetValue(symbols, i);
-                Helpers.addElementToObject(result, symbol, new HashMap<String, Object>() {{
+                ((Map<String, Object>)result).put((String)symbol, new HashMap<String, Object>() {{
         put( "info", response );
         put( "symbol", symbol );
         put( "maker", makerFeeRate );

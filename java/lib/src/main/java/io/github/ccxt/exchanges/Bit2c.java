@@ -380,10 +380,10 @@ public class Bit2c extends Bit2cApi
             Object uppercase = ((String)((Map<String, Object>)currency).get("id")).toUpperCase();
             if (Helpers.inOp(response, uppercase))
             {
-                Helpers.addElementToObject(account, "free", this.safeString(response, ("AVAILABLE_" + uppercase)));
-                Helpers.addElementToObject(account, "total", this.safeString(response, uppercase));
+                ((Map<String, Object>)account).put("free", this.safeString(response, ("AVAILABLE_" + uppercase)));
+                ((Map<String, Object>)account).put("total", this.safeString(response, uppercase));
             }
-            Helpers.addElementToObject(result, code, account);
+            ((Map<String, Object>)result).put((String)code, account);
         }
         return this.safeBalance(result);
     }
@@ -693,7 +693,7 @@ public class Bit2c extends Bit2cApi
                 String takerString = this.safeString(fee, "FeeTaker");
                 Object maker = this.parseNumber(Precise.stringDiv(makerString, "100"));
                 Object taker = this.parseNumber(Precise.stringDiv(takerString, "100"));
-                Helpers.addElementToObject(result, symbol, new HashMap<String, Object>() {{
+                ((Map<String, Object>)result).put((String)symbol, new HashMap<String, Object>() {{
         put( "info", fee );
         put( "symbol", symbol );
         put( "taker", taker );

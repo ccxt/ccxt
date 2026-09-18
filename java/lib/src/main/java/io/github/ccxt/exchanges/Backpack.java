@@ -740,7 +740,7 @@ public class Backpack extends BackpackApi
             if (!java.util.Objects.equals(networkCode, null))
             {
                 final Object finalNetworkCode = networkCode;
-                Helpers.addElementToObject(parsedNetworks, networkCode, new HashMap<String, Object>() {{
+                ((Map<String, Object>)parsedNetworks).put((String)networkCode, new HashMap<String, Object>() {{
     put( "id", networkId );
     put( "network", finalNetworkCode );
     put( "limits", new HashMap<String, Object>() {{
@@ -1188,7 +1188,7 @@ public class Backpack extends BackpackApi
             }
             Long timestamp = this.parseToInt(Helpers.divide(microseconds, 1000));
             Object orderbook = this.parseOrderBook(response, symbol, timestamp);
-            Helpers.addElementToObject(orderbook, "nonce", this.safeInteger(response, "lastUpdateId"));
+            ((Map<String, Object>)orderbook).put("nonce", this.safeInteger(response, "lastUpdateId"));
             return orderbook;
         }).thenApply(OrderBook::new);
 
@@ -1783,11 +1783,11 @@ public class Backpack extends BackpackApi
             String locked = this.safeString(balance, "locked");
             String staked = this.safeString(balance, "staked");
             String used = Precise.stringAdd(locked, staked);
-            Helpers.addElementToObject(account, "free", this.safeString(balance, "available"));
-            Helpers.addElementToObject(account, "used", used);
+            ((Map<String, Object>)account).put("free", this.safeString(balance, "available"));
+            ((Map<String, Object>)account).put("used", used);
             if (!java.util.Objects.equals(code, null))
             {
-                Helpers.addElementToObject(result, code, account);
+                ((Map<String, Object>)result).put((String)code, account);
             }
         }
         return this.safeBalance(result);
@@ -2261,7 +2261,7 @@ public class Backpack extends BackpackApi
         if (java.util.Objects.equals(type, "limit"))
         {
             ((Map<String, Object>)request).put("price", this.priceToPrecision(symbol, price));
-            Helpers.addElementToObject(request, quantityKey, this.amountToPrecision(symbol, amount));
+            ((Map<String, Object>)request).put((String)quantityKey, this.amountToPrecision(symbol, amount));
         } else if (java.util.Objects.equals(type, "market"))
         {
             String cost = this.safeString2(parameters, "cost", "quoteQuantity");
@@ -2271,7 +2271,7 @@ public class Backpack extends BackpackApi
                 parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("cost", "quoteQuantity")));
             } else
             {
-                Helpers.addElementToObject(request, quantityKey, this.amountToPrecision(symbol, amount));
+                ((Map<String, Object>)request).put((String)quantityKey, this.amountToPrecision(symbol, amount));
             }
         }
         // trigger orders

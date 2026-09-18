@@ -1255,11 +1255,11 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
                 String currencyId = this.safeString(balance, "a");
                 String code = this.safeCurrencyCode(currencyId);
                 Object account = this.account();
-                Helpers.addElementToObject(account, "total", this.safeString(balance, "wb"));
-                Helpers.addElementToObject(account, "used", this.safeString(balance, "tfm"));
+                ((Map<String, Object>)account).put("total", this.safeString(balance, "wb"));
+                ((Map<String, Object>)account).put("used", this.safeString(balance, "tfm"));
                 if (!java.util.Objects.equals(code, null))
                 {
-                    Helpers.addElementToObject(result, code, account);
+                    ((Map<String, Object>)result).put((String)code, account);
                 }
             }
             Object parsedBalance = this.safeBalance(result);

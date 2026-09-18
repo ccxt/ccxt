@@ -248,9 +248,9 @@ public class Paymium extends PaymiumApi
             {
                 Object account = this.account();
                 String used = ("locked_" + currencyId);
-                Helpers.addElementToObject(account, "free", this.safeString(response, free));
-                Helpers.addElementToObject(account, "used", this.safeString(response, used));
-                Helpers.addElementToObject(result, code, account);
+                ((Map<String, Object>)account).put("free", this.safeString(response, free));
+                ((Map<String, Object>)account).put("used", this.safeString(response, used));
+                ((Map<String, Object>)result).put((String)code, account);
             }
         }
         return this.safeBalance(result);

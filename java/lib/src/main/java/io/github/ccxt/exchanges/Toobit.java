@@ -974,7 +974,7 @@ public class Toobit extends ToobitApi
                 if (!java.util.Objects.equals(parsed, null))
                 {
                     Object code = ((Map<String, Object>)parsed).get("code");
-                    Helpers.addElementToObject(result, code, parsed);
+                    ((Map<String, Object>)result).put((String)code, parsed);
                 }
             }
             return result;
@@ -996,7 +996,7 @@ public class Toobit extends ToobitApi
             if (!java.util.Objects.equals(networkCode, null))
             {
                 final Object finalNetworkCode = networkCode;
-                Helpers.addElementToObject(networks, networkCode, new HashMap<String, Object>() {{
+                ((Map<String, Object>)networks).put((String)networkCode, new HashMap<String, Object>() {{
     put( "id", networkId );
     put( "network", finalNetworkCode );
     put( "margin", null );
@@ -2050,12 +2050,12 @@ public class Toobit extends ToobitApi
             Object balance = Helpers.GetValue(balances, i);
             String code = this.safeCurrencyCode(this.safeString(balance, "asset"));
             Object account = this.account();
-            Helpers.addElementToObject(account, "free", this.safeString2(balance, "free", "availableBalance"));
-            Helpers.addElementToObject(account, "total", this.safeString2(balance, "total", "balance"));
-            Helpers.addElementToObject(account, "used", this.safeString(balance, "locked"));
+            ((Map<String, Object>)account).put("free", this.safeString2(balance, "free", "availableBalance"));
+            ((Map<String, Object>)account).put("total", this.safeString2(balance, "total", "balance"));
+            ((Map<String, Object>)account).put("used", this.safeString(balance, "locked"));
             if (!java.util.Objects.equals(code, null))
             {
-                Helpers.addElementToObject(result, code, account);
+                ((Map<String, Object>)result).put((String)code, account);
             }
         }
         return this.safeBalance(result);
@@ -3160,7 +3160,7 @@ public class Toobit extends ToobitApi
             String marketId = this.safeString(entry, "symbol");
             market = this.safeMarket(marketId, market);
             Object fee = this.parseTradingFee(entry, market);
-            Helpers.addElementToObject(result, ((Map<String, Object>)market).get("symbol"), fee);
+            ((Map<String, Object>)result).put((String)((Map<String, Object>)market).get("symbol"), fee);
             return result;
         }).thenApply(TradingFees::new);
 

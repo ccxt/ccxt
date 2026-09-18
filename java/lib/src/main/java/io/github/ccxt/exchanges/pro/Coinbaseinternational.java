@@ -281,7 +281,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
             if (Helpers.isTrue(this.newUpdates))
             {
                 Map<String, Object> result = new HashMap<String, Object>() {{}};
-                Helpers.addElementToObject(result, symbol, fundingRate);
+                ((Map<String, Object>)result).put((String)symbol, fundingRate);
                 return result;
             }
             return this.filterByArray(this.fundingRates, "symbol", symbols);

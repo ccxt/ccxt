@@ -481,12 +481,12 @@ public class Btcturk extends BtcturkApi
             String currencyId = this.safeString(entry, "asset");
             String code = this.safeCurrencyCode(currencyId);
             Object account = this.account();
-            Helpers.addElementToObject(account, "total", this.safeString(entry, "balance"));
-            Helpers.addElementToObject(account, "free", this.safeString(entry, "free"));
-            Helpers.addElementToObject(account, "used", this.safeString(entry, "locked"));
+            ((Map<String, Object>)account).put("total", this.safeString(entry, "balance"));
+            ((Map<String, Object>)account).put("free", this.safeString(entry, "free"));
+            ((Map<String, Object>)account).put("used", this.safeString(entry, "locked"));
             if (!java.util.Objects.equals(code, null))
             {
-                Helpers.addElementToObject(result, code, account);
+                ((Map<String, Object>)result).put((String)code, account);
             }
         }
         return this.safeBalance(result);

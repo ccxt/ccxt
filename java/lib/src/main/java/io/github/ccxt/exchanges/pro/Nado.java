@@ -1380,7 +1380,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
             if (java.util.Objects.equals(clientSubscription, null))
             {
                 String id = this.safeString(request, "id");
-                Helpers.addElementToObject(client.subscriptions, Helpers.add("subscription:", id), new HashMap<String, Object>() {{
+                ((Map)client.subscriptions).put((String)Helpers.add("subscription:", id), new HashMap<String, Object>() {{
         put( "subscribeHash", subscribeHash );
     }});
                 this.watchMultiple(url, new ArrayList<Object>(Arrays.asList(subscribeHash)), request, new ArrayList<Object>(Arrays.asList(subscribeHash)), subscription);
@@ -1413,7 +1413,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
             Map<String, Object> subscription = new HashMap<String, Object>() {{
                 put( "streamType", streamType );
             }};
-            Helpers.addElementToObject(client.subscriptions, Helpers.add("subscription:", this.numberToString(id)), new HashMap<String, Object>() {{
+            ((Map)client.subscriptions).put((String)Helpers.add("subscription:", this.numberToString(id)), new HashMap<String, Object>() {{
         put( "subscribeHash", subscribeHash );
     }});
             this.watchMultiple(url, new ArrayList<Object>(Arrays.asList(subscribeHash)), request, new ArrayList<Object>(Arrays.asList(messageHash)), subscription);
@@ -1441,7 +1441,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
                 put( "messageHash", messageHash );
             }};
             Client client = this.client(url);
-            Helpers.addElementToObject(client.subscriptions, Helpers.add("unsubscription:", this.numberToString(id)), new HashMap<String, Object>() {{
+            ((Map)client.subscriptions).put((String)Helpers.add("unsubscription:", this.numberToString(id)), new HashMap<String, Object>() {{
         put( "messageHash", messageHash );
         put( "unsubscribeHash", unsubscribeHash );
     }});
@@ -1499,7 +1499,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
                 put( "tx", tx );
                 put( "signature", signature );
             }};
-            Helpers.addElementToObject(client.subscriptions, Helpers.add("authentication:", this.numberToString(id)), messageHash);
+            ((Map)client.subscriptions).put((String)Helpers.add("authentication:", this.numberToString(id)), messageHash);
             return (this.watch(url, messageHash, this.extend(request, parameters), messageHash, null)).join();
         });
 
@@ -1573,7 +1573,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
                             put( "streamType", streamType );
                             put( "symbol", Nado.this.safeString(market, "symbol") );
                         }};
-                        Helpers.addElementToObject(client.subscriptions, Helpers.add("subscription:", this.numberToString(id)), new HashMap<String, Object>() {{
+                        ((Map)client.subscriptions).put((String)Helpers.add("subscription:", this.numberToString(id)), new HashMap<String, Object>() {{
         put( "subscribeHash", subscribeHash );
     }});
                         this.watchMultiple(url, new ArrayList<Object>(Arrays.asList(subscribeHash)), request, new ArrayList<Object>(Arrays.asList(subscribeHash)), subscription);
@@ -1600,7 +1600,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
             }};
             String unsubscribeHash = ("unsubscribe:" + messageHash);
             Client client = this.client(url);
-            Helpers.addElementToObject(client.subscriptions, Helpers.add("unsubscription:", this.numberToString(id)), new HashMap<String, Object>() {{
+            ((Map)client.subscriptions).put((String)Helpers.add("unsubscription:", this.numberToString(id)), new HashMap<String, Object>() {{
         put( "messageHash", messageHash );
         put( "unsubscribeHash", unsubscribeHash );
     }});
@@ -1630,7 +1630,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
                     put( "id", id );
                     put( "messageHash", messageHash );
                 }};
-                Helpers.addElementToObject(client.subscriptions, Helpers.add("unsubscription:", this.numberToString(id)), new HashMap<String, Object>() {{
+                ((Map)client.subscriptions).put((String)Helpers.add("unsubscription:", this.numberToString(id)), new HashMap<String, Object>() {{
         put( "messageHash", messageHash );
         put( "unsubscribeHash", unsubscribeHash );
     }});
@@ -2077,7 +2077,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
         Helpers.addElementToObject(this.bidsasks, symbol, ticker);
         Helpers.addElementToObject(this.tickers, symbol, ticker);
         Map<String, Object> tickers = new HashMap<String, Object>() {{}};
-        Helpers.addElementToObject(tickers, symbol, ticker);
+        ((Map<String, Object>)tickers).put((String)symbol, ticker);
         client.resolve(ticker, ("bidask:" + symbol));
         client.resolve(ticker, ("ticker:" + symbol));
         client.resolve(tickers, "bidask");
@@ -2118,7 +2118,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
                     put( "info", bbo );
                 }}, market);
                 Object symbol = ((Map<String, Object>)market).get("symbol");
-                Helpers.addElementToObject(result, symbol, ticker);
+                ((Map<String, Object>)result).put((String)symbol, ticker);
             }
         }
         return result;
@@ -2253,7 +2253,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
         if (!java.util.Objects.equals(messageHash, null))
         {
             ((Map<String,Object>)client.subscriptions).remove(Helpers.add("authentication:", id));
-            Helpers.addElementToObject(client.subscriptions, messageHash, true);
+            ((Map)client.subscriptions).put((String)messageHash, true);
             client.resolve(message, messageHash);
         }
     }

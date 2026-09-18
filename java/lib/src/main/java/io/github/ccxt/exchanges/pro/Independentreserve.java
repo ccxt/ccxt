@@ -253,7 +253,7 @@ public class Independentreserve extends io.github.ccxt.exchanges.Independentrese
             Helpers.callDynamically(orderbook, "reset", new Object[]{snapshot});
             // write through the parent index: php copies arrays by value, so
             // mutating the local bind would not persist the flag
-            Helpers.addElementToObject(client.subscriptions, messageHash, this.extend(subscription, new HashMap<String, Object>() {{
+            ((Map)client.subscriptions).put((String)messageHash, this.extend(subscription, new HashMap<String, Object>() {{
     put( "receivedSnapshot", true );
 }}));
         } else

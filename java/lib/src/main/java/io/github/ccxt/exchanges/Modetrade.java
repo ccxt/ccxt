@@ -1058,7 +1058,7 @@ public class Modetrade extends ModetradeApi
                 minPrecision = (((java.util.Objects.equals(minPrecision, null)))) ? precision : Precise.stringMin(precision, minPrecision);
             }
             final Object finalPrecision = precision;
-            Helpers.addElementToObject(resultingNetworks, networkId, new HashMap<String, Object>() {{
+            ((Map<String, Object>)resultingNetworks).put((String)networkId, new HashMap<String, Object>() {{
     put( "id", networkId );
     put( "network", networkId );
     put( "limits", new HashMap<String, Object>() {{
@@ -1682,7 +1682,7 @@ public class Modetrade extends ModetradeApi
                 for (var i = 0; i < ((List<?>)symbols).size(); i++)
                 {
                     Object symbol = Helpers.GetValue(symbols, i);
-                    Helpers.addElementToObject(result, symbol, new HashMap<String, Object>() {{
+                    ((Map<String, Object>)result).put((String)symbol, new HashMap<String, Object>() {{
         put( "info", response );
         put( "symbol", symbol );
         put( "maker", Modetrade.this.parseNumber(Precise.stringDiv(maker, "10000")) );
@@ -2047,7 +2047,7 @@ public class Modetrade extends ModetradeApi
         String orderQtyKey = ((Helpers.isTrue(isConditional))) ? "quantity" : "order_quantity";
         String priceKey = ((Helpers.isTrue(isConditional))) ? "price" : "order_price";
         String typeKey = ((Helpers.isTrue(isConditional))) ? "type" : "order_type";
-        Helpers.addElementToObject(request, typeKey, orderType); // LIMIT/MARKET/IOC/FOK/POST_ONLY/ASK/BID
+        ((Map<String, Object>)request).put((String)typeKey, orderType); // LIMIT/MARKET/IOC/FOK/POST_ONLY/ASK/BID
         if (!Helpers.isTrue(isConditional))
         {
             if (Helpers.isTrue(postOnly))
@@ -2067,14 +2067,14 @@ public class Modetrade extends ModetradeApi
         }
         if (!java.util.Objects.equals(price, null))
         {
-            Helpers.addElementToObject(request, priceKey, this.priceToPrecision(symbol, price));
+            ((Map<String, Object>)request).put((String)priceKey, this.priceToPrecision(symbol, price));
         }
         if (Helpers.isTrue(isMarket) && !Helpers.isTrue(isConditional))
         {
-            Helpers.addElementToObject(request, orderQtyKey, this.amountToPrecision(symbol, amount));
+            ((Map<String, Object>)request).put((String)orderQtyKey, this.amountToPrecision(symbol, amount));
         } else if (!java.util.Objects.equals(algoType, "POSITIONAL_TP_SL"))
         {
-            Helpers.addElementToObject(request, orderQtyKey, this.amountToPrecision(symbol, amount));
+            ((Map<String, Object>)request).put((String)orderQtyKey, this.amountToPrecision(symbol, amount));
         }
         String clientOrderId = this.safeStringN(parameters, new ArrayList<Object>(Arrays.asList("clOrdID", "clientOrderId", "client_order_id")));
         if (!java.util.Objects.equals(clientOrderId, null))
@@ -2301,11 +2301,11 @@ public class Modetrade extends ModetradeApi
             String priceKey = ((Helpers.isTrue(isConditional))) ? "price" : "order_price";
             if (!java.util.Objects.equals(price, null))
             {
-                Helpers.addElementToObject(request, priceKey, this.priceToPrecision(symbol, price));
+                ((Map<String, Object>)request).put((String)priceKey, this.priceToPrecision(symbol, price));
             }
             if (!java.util.Objects.equals(amount, null))
             {
-                Helpers.addElementToObject(request, orderQtyKey, this.amountToPrecision(symbol, amount));
+                ((Map<String, Object>)request).put((String)orderQtyKey, this.amountToPrecision(symbol, amount));
             }
             parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("stopPrice", "triggerPrice", "takeProfitPrice", "stopLossPrice", "trailingTriggerPrice", "trailingAmount", "trailingPercent")));
             Object response = null;
@@ -3027,11 +3027,11 @@ public class Modetrade extends ModetradeApi
             Object balance = Helpers.GetValue(balances, i);
             String code = this.safeCurrencyCode(this.safeString(balance, "token"));
             Object account = this.account();
-            Helpers.addElementToObject(account, "total", this.safeString(balance, "holding"));
-            Helpers.addElementToObject(account, "used", this.safeString(balance, "frozen"));
+            ((Map<String, Object>)account).put("total", this.safeString(balance, "holding"));
+            ((Map<String, Object>)account).put("used", this.safeString(balance, "frozen"));
             if (!java.util.Objects.equals(code, null))
             {
-                Helpers.addElementToObject(result, code, account);
+                ((Map<String, Object>)result).put((String)code, account);
             }
         }
         return this.safeBalance(result);

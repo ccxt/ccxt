@@ -973,8 +973,8 @@ public class Xt extends io.github.ccxt.exchanges.Xt
             }};
             Object fundingRate = this.parseFundingRate(raw);
             Long timestamp = this.safeInteger(data, "t");
-            Helpers.addElementToObject(fundingRate, "timestamp", timestamp);
-            Helpers.addElementToObject(fundingRate, "datetime", this.iso8601(timestamp));
+            ((Map<String, Object>)fundingRate).put("timestamp", timestamp);
+            ((Map<String, Object>)fundingRate).put("datetime", this.iso8601(timestamp));
             Object symbol = ((Map<String, Object>)fundingRate).get("symbol");
             Helpers.addElementToObject(this.fundingRates, ((String)symbol), fundingRate);
             String eventVar = this.safeString(message, "event");
@@ -1767,9 +1767,9 @@ public class Xt extends io.github.ccxt.exchanges.Xt
         String currencyId = this.safeString2(data, "c", "coin");
         String code = this.safeCurrencyCode(currencyId);
         Object account = this.account();
-        Helpers.addElementToObject(account, "free", this.safeString(data, "availableBalance"));
-        Helpers.addElementToObject(account, "used", this.safeString(data, "f"));
-        Helpers.addElementToObject(account, "total", this.safeString2(data, "b", "walletBalance"));
+        ((Map<String, Object>)account).put("free", this.safeString(data, "availableBalance"));
+        ((Map<String, Object>)account).put("used", this.safeString(data, "f"));
+        ((Map<String, Object>)account).put("total", this.safeString2(data, "b", "walletBalance"));
         if (!java.util.Objects.equals(code, null))
         {
             Helpers.addElementToObject(this.balance, code, account);

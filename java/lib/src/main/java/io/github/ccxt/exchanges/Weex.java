@@ -1098,7 +1098,7 @@ public class Weex extends WeexApi
             if (!java.util.Objects.equals(networkCode, null))
             {
                 final Object finalNetworkCode = networkCode;
-                Helpers.addElementToObject(networks, networkCode, new HashMap<String, Object>() {{
+                ((Map<String, Object>)networks).put((String)networkCode, new HashMap<String, Object>() {{
     put( "info", chain );
     put( "id", networkId );
     put( "network", finalNetworkCode );
@@ -1826,7 +1826,7 @@ public class Weex extends WeexApi
             //     }
             //
             Object orderbook = this.parseOrderBook(response, symbol);
-            Helpers.addElementToObject(orderbook, "nonce", this.safeInteger(response, "lastUpdateId"));
+            ((Map<String, Object>)orderbook).put("nonce", this.safeInteger(response, "lastUpdateId"));
             return orderbook;
         }).thenApply(OrderBook::new);
 
@@ -2540,12 +2540,12 @@ public class Weex extends WeexApi
             }
             String code = this.safeCurrencyCode(currencyId);
             Object account = this.account();
-            Helpers.addElementToObject(account, "free", this.safeString2(entry, "availableBalance", "free"));
-            Helpers.addElementToObject(account, "used", this.safeString2(entry, "frozen", "locked"));
-            Helpers.addElementToObject(account, "total", this.safeString(entry, "balance"));
+            ((Map<String, Object>)account).put("free", this.safeString2(entry, "availableBalance", "free"));
+            ((Map<String, Object>)account).put("used", this.safeString2(entry, "frozen", "locked"));
+            ((Map<String, Object>)account).put("total", this.safeString(entry, "balance"));
             if (!java.util.Objects.equals(code, null))
             {
-                Helpers.addElementToObject(result, code, account);
+                ((Map<String, Object>)result).put((String)code, account);
             }
         }
         return this.safeBalance(result);

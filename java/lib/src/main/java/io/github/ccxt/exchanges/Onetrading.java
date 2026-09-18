@@ -800,7 +800,7 @@ public class Onetrading extends OnetradingApi
                 Object symbol = Helpers.GetValue(symbols, i);
                 Map<String, Object> market = (Map<String, Object>) this.market(symbol);
                 Object tierObject = (((java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true)))) ? firstSpotTier : firstFuturesTier;
-                Helpers.addElementToObject(result, symbol, new HashMap<String, Object>() {{
+                ((Map<String, Object>)result).put((String)symbol, new HashMap<String, Object>() {{
         put( "info", spotFees );
         put( "symbol", symbol );
         put( "maker", Onetrading.this.safeNumber(tierObject, "maker_fee") );
@@ -878,7 +878,7 @@ public class Onetrading extends OnetradingApi
                 Map<String, Object> market = (Map<String, Object>) this.market(symbol);
                 String makerFee = (((java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true)))) ? spotMakerFee : futuresMakerFee;
                 String takerFee = (((java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true)))) ? spotTakerFee : futuresTakerFee;
-                Helpers.addElementToObject(result, symbol, new HashMap<String, Object>() {{
+                ((Map<String, Object>)result).put((String)symbol, new HashMap<String, Object>() {{
         put( "info", response );
         put( "symbol", symbol );
         put( "maker", Onetrading.this.parseNumber(makerFee) );
@@ -1067,7 +1067,7 @@ public class Onetrading extends OnetradingApi
                 Object symbol = ((Map<String, Object>)ticker).get("symbol");
                 if (!java.util.Objects.equals(symbol, null))
                 {
-                    Helpers.addElementToObject(result, symbol, ticker);
+                    ((Map<String, Object>)result).put((String)symbol, ticker);
                 }
             }
             return this.filterByArrayTickers(result, "symbol", symbols);
@@ -1384,11 +1384,11 @@ public class Onetrading extends OnetradingApi
             String currencyId = this.safeString(balance, "currency_code");
             String code = this.safeCurrencyCode(currencyId);
             Object account = this.account();
-            Helpers.addElementToObject(account, "free", this.safeString(balance, "available"));
-            Helpers.addElementToObject(account, "used", this.safeString(balance, "locked"));
+            ((Map<String, Object>)account).put("free", this.safeString(balance, "available"));
+            ((Map<String, Object>)account).put("used", this.safeString(balance, "locked"));
             if (!java.util.Objects.equals(code, null))
             {
-                Helpers.addElementToObject(result, code, account);
+                ((Map<String, Object>)result).put((String)code, account);
             }
         }
         return this.safeBalance(result);

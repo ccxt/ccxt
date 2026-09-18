@@ -833,7 +833,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
             Object rawTrade = Helpers.GetValue(data, i);
             Object parsed = this.parseWsTrade(rawTrade);
             Object symbol = ((Map<String, Object>)parsed).get("symbol");
-            Helpers.addElementToObject(symbols, ((String)symbol), true);
+            ((Map<String, Object>)symbols).put((String)((String)symbol), true);
             Helpers.callDynamically(trades, "append", new Object[]{parsed});
         }
         Object keys = Helpers.objectKeys(symbols);
@@ -1442,14 +1442,14 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
         {
             code = "USDC";
             Object marginSummary = this.safeDict(balance, "marginSummary", new HashMap<String, Object>() {{}});
-            Helpers.addElementToObject(account, "free", this.safeString(balance, "withdrawable"));
-            Helpers.addElementToObject(account, "used", this.safeString(marginSummary, "totalMarginUsed"));
-            Helpers.addElementToObject(account, "total", this.safeString(marginSummary, "accountValue"));
+            ((Map<String, Object>)account).put("free", this.safeString(balance, "withdrawable"));
+            ((Map<String, Object>)account).put("used", this.safeString(marginSummary, "totalMarginUsed"));
+            ((Map<String, Object>)account).put("total", this.safeString(marginSummary, "accountValue"));
         } else
         {
             code = this.safeCurrencyCode(currencyId);
-            Helpers.addElementToObject(account, "used", this.safeString(balance, "hold"));
-            Helpers.addElementToObject(account, "total", this.safeString(balance, "total"));
+            ((Map<String, Object>)account).put("used", this.safeString(balance, "hold"));
+            ((Map<String, Object>)account).put("total", this.safeString(balance, "total"));
         }
         if (!java.util.Objects.equals(accountType, null))
         {
@@ -1784,7 +1784,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
             Object order = this.parseOrder(rawOrder);
             Helpers.callDynamically(stored, "append", new Object[]{order});
             String symbol = this.safeString(order, "symbol");
-            Helpers.addElementToObject(marketSymbols, symbol, true);
+            ((Map<String, Object>)marketSymbols).put((String)symbol, true);
         }
         Object keys = Helpers.objectKeys(marketSymbols);
         for (var i = 0; i < ((List<?>)keys).size(); i++)

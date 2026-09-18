@@ -88,7 +88,7 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
             String subscriptionsKey = "upbitPublicSubscriptions";
             if (!(((Map<?, ?>)client.subscriptions).containsKey(subscriptionsKey)))
             {
-                Helpers.addElementToObject(client.subscriptions, subscriptionsKey, new HashMap<String, Object>() {{}});
+                ((Map)client.subscriptions).put((String)subscriptionsKey, new HashMap<String, Object>() {{}});
             }
             Object subscriptions = Helpers.GetValue(client.subscriptions, subscriptionsKey);
             List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
@@ -507,7 +507,7 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
             String subscriptionsKey = "upbitPrivateSubscriptions";
             if (!(((Map<?, ?>)client.subscriptions).containsKey(subscriptionsKey)))
             {
-                Helpers.addElementToObject(client.subscriptions, subscriptionsKey, new HashMap<String, Object>() {{}});
+                ((Map)client.subscriptions).put((String)subscriptionsKey, new HashMap<String, Object>() {{}});
             }
             Object channelKey = channel;
             if (!java.util.Objects.equals(symbol, null))
@@ -873,8 +873,8 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
             String available = this.safeString(balance, "balance");
             String frozen = this.safeString(balance, "locked");
             Object account = this.account();
-            Helpers.addElementToObject(account, "free", available);
-            Helpers.addElementToObject(account, "used", frozen);
+            ((Map<String, Object>)account).put("free", available);
+            ((Map<String, Object>)account).put("used", frozen);
             if (!java.util.Objects.equals(code, null))
             {
                 Helpers.addElementToObject(this.balance, code, account);

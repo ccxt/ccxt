@@ -2414,7 +2414,7 @@ public class Htx extends HtxApi
             for (var i = 0; i < ((List<?>)symbols).size(); i++)
             {
                 Object symbol = Helpers.GetValue(symbols, i);
-                Helpers.addElementToObject(result, symbol, (this.fetchTradingLimitsById(this.marketId(symbol), parameters)).join());
+                ((Map<String, Object>)result).put((String)symbol, (this.fetchTradingLimitsById(this.marketId(symbol), parameters)).join());
             }
             return result;
         });
@@ -3500,7 +3500,7 @@ public class Htx extends HtxApi
                 Object tick = this.safeValue(response, "tick");
                 Long timestamp = this.safeInteger(tick, "ts", this.safeInteger(response, "ts"));
                 Object result = this.parseOrderBook(tick, symbol, timestamp);
-                Helpers.addElementToObject(result, "nonce", this.safeInteger(tick, "version"));
+                ((Map<String, Object>)result).put("nonce", this.safeInteger(tick, "version"));
                 return result;
             }
             throw new ExchangeError(((this.id + " fetchOrderBook() returned unrecognized response: ") + this.json(response))) ;
@@ -4517,7 +4517,7 @@ public class Htx extends HtxApi
             {
                 final Object finalUniqueChainId = uniqueChainId;
                 final Object finalNetworkCode = networkCode;
-                Helpers.addElementToObject(networks, networkCode, new HashMap<String, Object>() {{
+                ((Map<String, Object>)networks).put((String)networkCode, new HashMap<String, Object>() {{
     put( "info", chainEntry );
     put( "id", finalUniqueChainId );
     put( "network", finalNetworkCode );
@@ -4861,11 +4861,11 @@ public class Htx extends HtxApi
                     String currencyId = this.safeString(balance, "currency");
                     String code = this.safeCurrencyCode(currencyId);
                     Object account = this.account();
-                    Helpers.addElementToObject(account, "free", this.safeString(balance, "available_margin"));
-                    Helpers.addElementToObject(account, "total", this.safeString(balance, "equity"));
+                    ((Map<String, Object>)account).put("free", this.safeString(balance, "available_margin"));
+                    ((Map<String, Object>)account).put("total", this.safeString(balance, "equity"));
                     if (!java.util.Objects.equals(code, null))
                     {
-                        Helpers.addElementToObject(result, code, account);
+                        ((Map<String, Object>)result).put((String)code, account);
                     }
                 }
                 result = this.safeBalance(result);
@@ -4885,7 +4885,7 @@ public class Htx extends HtxApi
                             String code = this.safeCurrencyCode(currencyId);
                             if (!java.util.Objects.equals(code, null))
                             {
-                                Helpers.addElementToObject(subResult, code, this.parseMarginBalanceHelper(balance, code, subResult));
+                                ((Map<String, Object>)subResult).put((String)code, this.parseMarginBalanceHelper(balance, code, subResult));
                             }
                         }
                         Object subCodes = Helpers.objectKeys(subResult);
@@ -4906,7 +4906,7 @@ public class Htx extends HtxApi
                         String code = this.safeCurrencyCode(currencyId);
                         if (!java.util.Objects.equals(code, null))
                         {
-                            Helpers.addElementToObject(result, code, this.parseMarginBalanceHelper(balance, code, result));
+                            ((Map<String, Object>)result).put((String)code, this.parseMarginBalanceHelper(balance, code, result));
                         }
                     }
                     result = this.safeBalance(result);
@@ -4919,11 +4919,11 @@ public class Htx extends HtxApi
                     String currencyId = this.safeString(balance, "symbol");
                     String code = this.safeCurrencyCode(currencyId);
                     Object account = this.account();
-                    Helpers.addElementToObject(account, "free", this.safeString(balance, "margin_available"));
-                    Helpers.addElementToObject(account, "used", this.safeString(balance, "margin_frozen"));
+                    ((Map<String, Object>)account).put("free", this.safeString(balance, "margin_available"));
+                    ((Map<String, Object>)account).put("used", this.safeString(balance, "margin_frozen"));
                     if (!java.util.Objects.equals(code, null))
                     {
-                        Helpers.addElementToObject(result, code, account);
+                        ((Map<String, Object>)result).put((String)code, account);
                     }
                 }
                 result = this.safeBalance(result);

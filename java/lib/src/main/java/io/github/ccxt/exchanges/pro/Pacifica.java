@@ -665,7 +665,7 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
         Long nonce = this.safeInteger(entry, "li");
         if ((!java.util.Objects.equals(nonce, null)) && (!Helpers.isEqual(nonce, 0)))
         {
-            Helpers.addElementToObject(snapshot, "nonce", nonce);
+            ((Map<String, Object>)snapshot).put("nonce", nonce);
         }
         if (!(((Map<?, ?>)this.orderbooks).containsKey(symbol)))
         {
@@ -973,7 +973,7 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
             Object symbol = ((Map<String, Object>)parsed).get("symbol");
             if (!java.util.Objects.equals(symbol, null))
             {
-                Helpers.addElementToObject(symbols, symbol, true);
+                ((Map<String, Object>)symbols).put((String)symbol, true);
             }
             Helpers.callDynamically(trades, "append", new Object[]{parsed});
         }
@@ -1504,7 +1504,7 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
             String symbol = this.safeString(order, "symbol");
             if (!java.util.Objects.equals(symbol, null))
             {
-                Helpers.addElementToObject(marketSymbols, symbol, true);
+                ((Map<String, Object>)marketSymbols).put((String)symbol, true);
             }
         }
         Object keys = Helpers.objectKeys(marketSymbols);

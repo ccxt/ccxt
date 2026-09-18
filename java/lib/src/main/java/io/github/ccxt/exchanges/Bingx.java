@@ -1387,7 +1387,7 @@ public class Bingx extends BingxApi
             if (!java.util.Objects.equals(networkCode, null))
             {
                 final Object finalNetworkCode = networkCode;
-                Helpers.addElementToObject(networks, networkCode, new HashMap<String, Object>() {{
+                ((Map<String, Object>)networks).put((String)networkCode, new HashMap<String, Object>() {{
     put( "info", rawNetwork );
     put( "id", network );
     put( "network", finalNetworkCode );
@@ -2295,7 +2295,7 @@ public class Bingx extends BingxApi
             Long nonce = this.safeInteger(orderbook, "lastUpdateId");
             Long timestamp = (Long) this.safeInteger2(orderbook, "T", "ts");
             Object result = this.parseOrderBook(orderbook, ((Map<String, Object>)market).get("symbol"), timestamp, "bids", "asks", 0, 1);
-            Helpers.addElementToObject(result, "nonce", nonce);
+            ((Map<String, Object>)result).put("nonce", nonce);
             return result;
         }).thenApply(OrderBook::new);
 
@@ -3342,12 +3342,12 @@ public class Bingx extends BingxApi
                 }
                 String code = this.safeCurrencyCode(currencyId);
                 Object account = this.account();
-                Helpers.addElementToObject(account, "free", this.safeString2(balance, "availableMargin", "availableBalance"));
-                Helpers.addElementToObject(account, "used", this.safeString(balance, "usedMargin"));
-                Helpers.addElementToObject(account, "total", this.safeString(balance, "maxWithdrawAmount"));
+                ((Map<String, Object>)account).put("free", this.safeString2(balance, "availableMargin", "availableBalance"));
+                ((Map<String, Object>)account).put("used", this.safeString(balance, "usedMargin"));
+                ((Map<String, Object>)account).put("total", this.safeString(balance, "maxWithdrawAmount"));
                 if (!java.util.Objects.equals(code, null))
                 {
-                    Helpers.addElementToObject(result, code, account);
+                    ((Map<String, Object>)result).put((String)code, account);
                 }
             }
         } else
@@ -3358,11 +3358,11 @@ public class Bingx extends BingxApi
                 String currencyId = this.safeString(balance, "asset");
                 String code = this.safeCurrencyCode(currencyId);
                 Object account = this.account();
-                Helpers.addElementToObject(account, "free", this.safeString(balance, "free"));
-                Helpers.addElementToObject(account, "used", this.safeString(balance, "locked"));
+                ((Map<String, Object>)account).put("free", this.safeString(balance, "free"));
+                ((Map<String, Object>)account).put("used", this.safeString(balance, "locked"));
                 if (!java.util.Objects.equals(code, null))
                 {
-                    Helpers.addElementToObject(result, code, account);
+                    ((Map<String, Object>)result).put((String)code, account);
                 }
             }
         }
@@ -3810,7 +3810,7 @@ public class Bingx extends BingxApi
         String clientOrderId = this.safeString2(parameters, exchangeClientOrderId, "clientOrderId");
         if (!java.util.Objects.equals(clientOrderId, null))
         {
-            Helpers.addElementToObject(request, exchangeClientOrderId, clientOrderId);
+            ((Map<String, Object>)request).put((String)exchangeClientOrderId, clientOrderId);
         }
         String timeInForce = this.safeStringUpper(parameters, "timeInForce");
         List<Object> postOnlyparametersVariable = (List<Object>) this.handlePostOnly(isMarketOrder, java.util.Objects.equals(timeInForce, "PostOnly"), parameters);
@@ -5108,7 +5108,7 @@ public class Bingx extends BingxApi
             if (java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true))
             {
                 String spotReqKey = ((Helpers.isTrue(areClientOrderIds))) ? "clientOrderIDs" : "orderIds";
-                Helpers.addElementToObject(request, spotReqKey, String.join(",", (List<String>)parsedIds));
+                ((Map<String, Object>)request).put((String)spotReqKey, String.join(",", (List<String>)parsedIds));
                 response = (this.spotV1PrivatePostTradeCancelOrders(this.extend(request, parameters))).join();
             } else
             {
@@ -6711,7 +6711,7 @@ public class Bingx extends BingxApi
                 if (!java.util.Objects.equals(since, null))
                 {
                     String startTimeReq = (((java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true)))) ? "startTime" : "startTs";
-                    Helpers.addElementToObject(request, startTimeReq, since);
+                    ((Map<String, Object>)request).put((String)startTimeReq, since);
                 } else if (java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true))
                 {
                     ((Map<String, Object>)request).put("startTs", Helpers.subtract(now, ((((30L * 24L) * 60L) * 60L) * 1000L))); // 30 days for swap
@@ -6721,7 +6721,7 @@ public class Bingx extends BingxApi
                 if (!java.util.Objects.equals(until, null))
                 {
                     String endTimeReq = (((java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true)))) ? "endTime" : "endTs";
-                    Helpers.addElementToObject(request, endTimeReq, until);
+                    ((Map<String, Object>)request).put((String)endTimeReq, until);
                 } else if (java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true))
                 {
                     ((Map<String, Object>)request).put("endTs", now);
@@ -6826,7 +6826,7 @@ public class Bingx extends BingxApi
                 if ((java.util.Objects.equals(codes, null)) || Helpers.isTrue((this.inArray(code, codes))))
                 {
                     Object entry = Helpers.GetValue(response, code);
-                    Helpers.addElementToObject(depositWithdrawFees, code, this.parseDepositWithdrawFee(entry));
+                    ((Map<String, Object>)depositWithdrawFees).put((String)code, this.parseDepositWithdrawFee(entry));
                 }
             }
             return depositWithdrawFees;

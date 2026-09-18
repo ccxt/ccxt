@@ -739,7 +739,7 @@ public class Delta extends DeltaApi
             if (!java.util.Objects.equals(networkCode, null))
             {
                 final Object finalNetworkCode = networkCode;
-                Helpers.addElementToObject(networks, networkCode, new HashMap<String, Object>() {{
+                ((Map<String, Object>)networks).put((String)networkCode, new HashMap<String, Object>() {{
     put( "id", networkId );
     put( "network", finalNetworkCode );
     put( "name", Delta.this.safeString(chain, "name") );
@@ -827,7 +827,7 @@ public class Delta extends DeltaApi
             {
                 continue;
             }
-            Helpers.addElementToObject(result, numericIdString, item);
+            ((Map<String, Object>)result).put((String)numericIdString, item);
         }
         return result;
     }
@@ -1639,7 +1639,7 @@ public class Delta extends DeltaApi
                 Object symbol = ((Map<String, Object>)ticker).get("symbol");
                 if (!java.util.Objects.equals(symbol, null))
                 {
-                    Helpers.addElementToObject(result, symbol, ticker);
+                    ((Map<String, Object>)result).put((String)symbol, ticker);
                 }
             }
             return this.filterByArrayTickers(result, "symbol", symbols);
@@ -1965,8 +1965,8 @@ public class Delta extends DeltaApi
             Object currency = this.safeDict(currenciesByNumericId, currencyId);
             Object code = (((java.util.Objects.equals(currency, null)))) ? currencyId : ((Map<String, Object>)currency).get("code");
             Object account = this.account();
-            Helpers.addElementToObject(account, "total", this.safeString(balance, "balance"));
-            Helpers.addElementToObject(account, "free", this.safeString(balance, "available_balance"));
+            ((Map<String, Object>)account).put("total", this.safeString(balance, "balance"));
+            ((Map<String, Object>)account).put("free", this.safeString(balance, "available_balance"));
             Helpers.addElementToObject(result, code, account);
         }
         return this.safeBalance(result);

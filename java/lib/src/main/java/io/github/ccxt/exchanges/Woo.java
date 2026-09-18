@@ -1470,7 +1470,7 @@ public class Woo extends WooApi
             for (var i = 0; i < ((List<?>)symbols).size(); i++)
             {
                 Object symbol = Helpers.GetValue(symbols, i);
-                Helpers.addElementToObject(result, symbol, new HashMap<String, Object>() {{
+                ((Map<String, Object>)result).put((String)symbol, new HashMap<String, Object>() {{
         put( "info", response );
         put( "symbol", symbol );
         put( "maker", Woo.this.parseNumber(Precise.stringDiv(maker, "10000")) );
@@ -1594,7 +1594,7 @@ public class Woo extends WooApi
                 String code = this.safeString(parsed, "code");
                 if (!java.util.Objects.equals(code, null))
                 {
-                    Helpers.addElementToObject(result, code, parsed);
+                    ((Map<String, Object>)result).put((String)code, parsed);
                 }
             }
             return result;
@@ -1620,7 +1620,7 @@ public class Woo extends WooApi
             if (!java.util.Objects.equals(networkCode, null))
             {
                 final Object finalNetworkCode = networkCode;
-                Helpers.addElementToObject(resultingNetworks, networkCode, new HashMap<String, Object>() {{
+                ((Map<String, Object>)resultingNetworks).put((String)networkCode, new HashMap<String, Object>() {{
     put( "id", networkId );
     put( "currencyNetworkId", specialNetworkId );
     put( "network", finalNetworkCode );
@@ -1934,7 +1934,7 @@ public class Woo extends WooApi
             String clientOrderId = this.safeStringN(parameters, new ArrayList<Object>(Arrays.asList("clOrdID", "clientOrderId", "client_order_id")));
             if (!java.util.Objects.equals(clientOrderId, null))
             {
-                Helpers.addElementToObject(request, clientOrderIdKey, clientOrderId);
+                ((Map<String, Object>)request).put((String)clientOrderIdKey, clientOrderId);
             }
             if (Helpers.isTrue(isTrailing))
             {
@@ -3394,11 +3394,11 @@ public class Woo extends WooApi
             Object balance = Helpers.GetValue(balances, i);
             String code = this.safeCurrencyCode(this.safeString(balance, "token"));
             Object account = this.account();
-            Helpers.addElementToObject(account, "total", this.safeString(balance, "holding"));
-            Helpers.addElementToObject(account, "free", this.safeString(balance, "availableBalance"));
+            ((Map<String, Object>)account).put("total", this.safeString(balance, "holding"));
+            ((Map<String, Object>)account).put("free", this.safeString(balance, "availableBalance"));
             if (!java.util.Objects.equals(code, null))
             {
-                Helpers.addElementToObject(result, code, account);
+                ((Map<String, Object>)result).put((String)code, account);
             }
         }
         return this.safeBalance(result);
@@ -3888,9 +3888,9 @@ public class Woo extends WooApi
             Object fillResponseFromRequest = this.safeBool(transferOptions, "fillResponseFromRequest", true);
             if (java.util.Objects.equals(fillResponseFromRequest, true))
             {
-                Helpers.addElementToObject(transfer, "amount", amount);
-                Helpers.addElementToObject(transfer, "fromAccount", fromAccount);
-                Helpers.addElementToObject(transfer, "toAccount", toAccount);
+                ((Map<String, Object>)transfer).put("amount", amount);
+                ((Map<String, Object>)transfer).put("fromAccount", fromAccount);
+                ((Map<String, Object>)transfer).put("toAccount", toAccount);
             }
             return transfer;
         }).thenApply(TransferEntry::new);
@@ -5531,7 +5531,7 @@ public class Woo extends WooApi
                 if (!java.util.Objects.equals(code, null))
                 {
                     final Object finalCode = code;
-                    Helpers.addElementToObject(result, code, new HashMap<String, Object>() {{
+                    ((Map<String, Object>)result).put((String)code, new HashMap<String, Object>() {{
         put( "info", entry );
         put( "id", id );
         put( "code", finalCode );

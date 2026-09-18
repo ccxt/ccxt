@@ -418,7 +418,7 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
         if (((List<?>)sequenceNumberRange).size() > 0)
         {
             Object lastIndex = Helpers.subtract(((List<?>)sequenceNumberRange).size(), 1);
-            Helpers.addElementToObject(parsed, "nonce", this.safeInteger(sequenceNumberRange, lastIndex));
+            ((Map<String, Object>)parsed).put("nonce", this.safeInteger(sequenceNumberRange, lastIndex));
         }
         Helpers.callDynamically(orderbook, "reset", new Object[]{parsed});
         Helpers.addElementToObject(this.orderbooks, symbol, orderbook);
@@ -569,7 +569,7 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
                 String symbol = this.safeString(parsedOrder, "symbol");
                 if (!java.util.Objects.equals(symbol, null))
                 {
-                    Helpers.addElementToObject(symbols, symbol, true);
+                    ((Map<String, Object>)symbols).put((String)symbol, true);
                 }
             }
             String messageHash = "orders";
@@ -702,7 +702,7 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
                 String symbol = this.safeString(parsedTrade, "symbol");
                 if (!java.util.Objects.equals(symbol, null))
                 {
-                    Helpers.addElementToObject(symbols, symbol, true);
+                    ((Map<String, Object>)symbols).put((String)symbol, true);
                 }
             }
             String messageHash = "myTrades";
@@ -814,8 +814,8 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
             Object data = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
             String assetId = this.safeString(data, "assetSymbol");
             Object account = this.account();
-            Helpers.addElementToObject(account, "total", this.safeString(data, "availableQuantity"));
-            Helpers.addElementToObject(account, "used", this.safeString(data, "lockedQuantity"));
+            ((Map<String, Object>)account).put("total", this.safeString(data, "availableQuantity"));
+            ((Map<String, Object>)account).put("used", this.safeString(data, "lockedQuantity"));
             String code = this.safeCurrencyCode(assetId);
             if ((!java.util.Objects.equals(tradingAccountId, null)) && (!java.util.Objects.equals(code, null)))
             {

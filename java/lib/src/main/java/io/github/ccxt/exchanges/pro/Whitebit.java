@@ -1034,9 +1034,9 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
                 String currencyId = this.safeString(balanceDict, "a");
                 String code = this.safeCurrencyCode(currencyId);
                 Object account = this.account();
-                Helpers.addElementToObject(account, "free", this.safeString(balanceDict, "av"));
-                Helpers.addElementToObject(account, "total", this.safeString(balanceDict, "B"));
-                Helpers.addElementToObject(account, "debt", this.safeString(balanceDict, "b"));
+                ((Map<String, Object>)account).put("free", this.safeString(balanceDict, "av"));
+                ((Map<String, Object>)account).put("total", this.safeString(balanceDict, "B"));
+                ((Map<String, Object>)account).put("debt", this.safeString(balanceDict, "b"));
                 if (!java.util.Objects.equals(code, null))
                 {
                     Helpers.addElementToObject(this.balance, code, account);
@@ -1050,8 +1050,8 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
                     Object rawBalance = this.safeDict(balanceDict, currencyId, new HashMap<String, Object>() {{}});
                     String code = this.safeCurrencyCode(currencyId);
                     Object account = this.account();
-                    Helpers.addElementToObject(account, "free", this.safeString(rawBalance, "available"));
-                    Helpers.addElementToObject(account, "used", this.safeString(rawBalance, "freeze"));
+                    ((Map<String, Object>)account).put("free", this.safeString(rawBalance, "available"));
+                    ((Map<String, Object>)account).put("used", this.safeString(rawBalance, "freeze"));
                     if (!java.util.Objects.equals(code, null))
                     {
                         Helpers.addElementToObject(this.balance, code, account);
@@ -1114,7 +1114,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
                 Object marketId = ((Map<String, Object>)market).get("id");
                 if (!java.util.Objects.equals(marketId, null))
                 {
-                    Helpers.addElementToObject(subscription, marketId, true);
+                    ((Map<String, Object>)subscription).put((String)marketId, true);
                 }
                 marketIds = new ArrayList<Object>(Arrays.asList(marketId));
                 if (Helpers.isTrue(isNested))
@@ -1141,7 +1141,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
                 {
                     if (!java.util.Objects.equals(marketId, null))
                     {
-                        Helpers.addElementToObject(subscription, marketId, true);
+                        ((Map<String, Object>)subscription).put((String)marketId, true);
                     }
                     hasSymbolSubscription = false;
                 }

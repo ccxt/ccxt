@@ -1146,7 +1146,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         Object result = this.safeDict(message, "result");
         Long timestamp = this.safeInteger(result, "T");
         Object orderbook = this.parseOrderBook(result, null, timestamp);
-        Helpers.addElementToObject(orderbook, "nonce", this.safeInteger2(result, "lastUpdateId", "u"));
+        ((Map<String, Object>)orderbook).put("nonce", this.safeInteger2(result, "lastUpdateId", "u"));
         client.resolve(orderbook, messageHash);
     }
 
@@ -1525,7 +1525,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                     Object underlying = Helpers.add(Helpers.add(baseIdLower, ""), quoteIdLower);
                     if (!(((Map<?, ?>)seenUnderlyings).containsKey(underlying)))
                     {
-                        Helpers.addElementToObject(seenUnderlyings, underlying, true);
+                        ((Map<String, Object>)seenUnderlyings).put((String)underlying, true);
                         ((List<Object>)subParams).add((underlying + "@optionTrade"));
                     }
                 }
@@ -1632,7 +1632,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                     Object underlying = Helpers.add(Helpers.add(baseIdLower, ""), quoteIdLower);
                     if (!(((Map<?, ?>)seenUnderlyings).containsKey(underlying)))
                     {
-                        Helpers.addElementToObject(seenUnderlyings, underlying, true);
+                        ((Map<String, Object>)seenUnderlyings).put((String)underlying, true);
                         ((List<Object>)subParams).add((underlying + "@optionTrade"));
                     }
                 }
@@ -2936,7 +2936,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                         Object underlying = Helpers.add(Helpers.add(baseIdLower, ""), quoteIdLower);
                         if (!(((Map<?, ?>)seenUnderlyings).containsKey(underlying)))
                         {
-                            Helpers.addElementToObject(seenUnderlyings, underlying, true);
+                            ((Map<String, Object>)seenUnderlyings).put((String)underlying, true);
                             ((List<Object>)subscriptionArgs).add((underlying + "@optionMarkPrice"));
                         }
                     } else if (Helpers.isTrue(isOptionTicker))
@@ -2952,7 +2952,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                         Object subscriptionArg = Helpers.add((underlying + "@optionTicker@"), expiryDate);
                         if (!(((Map<?, ?>)seenUnderlyings).containsKey(subscriptionArg)))
                         {
-                            Helpers.addElementToObject(seenUnderlyings, subscriptionArg, true);
+                            ((Map<String, Object>)seenUnderlyings).put((String)subscriptionArg, true);
                             ((List<Object>)subscriptionArgs).add(subscriptionArg);
                         }
                     } else
@@ -3355,7 +3355,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             Object symbol = ((Map<String, Object>)parsedTicker).get("symbol");
             if (!java.util.Objects.equals(symbol, null))
             {
-                Helpers.addElementToObject(newTickers, symbol, parsedTicker);
+                ((Map<String, Object>)newTickers).put((String)symbol, parsedTicker);
             }
             if (Helpers.isTrue(isBidAsk))
             {
@@ -3453,7 +3453,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 return null;
             }
             client.future(messageHash); // created ahead of the request below, so concurrent callers can find it
-            Helpers.addElementToObject(client.subscriptions, marketType, true);
+            ((Map)client.subscriptions).put((String)marketType, true);
             Object requestId = this.requestId(url);
             Object requestHash = String.valueOf(requestId);
             Map<String, Object> message = new HashMap<String, Object>() {{
@@ -4444,10 +4444,10 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 {
                     previousValue = this.numberToString(previousValue);
                 }
-                Helpers.addElementToObject(account, "free", Precise.stringAdd(previousValue, delta));
+                ((Map<String, Object>)account).put("free", Precise.stringAdd(previousValue, delta));
             } else
             {
-                Helpers.addElementToObject(account, "free", delta);
+                ((Map<String, Object>)account).put("free", delta);
             }
             if ((!java.util.Objects.equals(accountType, null)) && (!java.util.Objects.equals(code, null)))
             {
@@ -4467,9 +4467,9 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 String currencyId = this.safeString(entry, "a");
                 String code = this.safeCurrencyCode(currencyId);
                 Object account = this.account();
-                Helpers.addElementToObject(account, "free", this.safeString(entry, "f"));
-                Helpers.addElementToObject(account, "used", this.safeString(entry, "l"));
-                Helpers.addElementToObject(account, "total", this.safeString(entry, wallet));
+                ((Map<String, Object>)account).put("free", this.safeString(entry, "f"));
+                ((Map<String, Object>)account).put("used", this.safeString(entry, "l"));
+                ((Map<String, Object>)account).put("total", this.safeString(entry, wallet));
                 if ((!java.util.Objects.equals(accountType, null)) && (!java.util.Objects.equals(code, null)))
                 {
                     Helpers.addElementToObject(Helpers.GetValue(this.balance, accountType), code, account);
@@ -5893,7 +5893,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 put( "info", rate );
             }});
             Helpers.addElementToObject(this.tickers, symbol, parsed);
-            Helpers.addElementToObject(tickers, symbol, parsed);
+            ((Map<String, Object>)tickers).put((String)symbol, parsed);
             client.resolve(parsed, ("stock:price:" + symbol));
         }
         client.resolve(tickers, "stock:price");
@@ -6858,7 +6858,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             if (!java.util.Objects.equals(code, null))
             {
                 Object account = this.account();
-                Helpers.addElementToObject(account, "total", this.safeString(entry, "b"));
+                ((Map<String, Object>)account).put("total", this.safeString(entry, "b"));
                 Helpers.addElementToObject(Helpers.GetValue(this.balance, accountType), code, account);
             }
         }

@@ -1279,7 +1279,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
         {
             Object bidask = this.parseWsBidAsk(Helpers.GetValue(this.orderbooks, symbol), market);
             Map<String, Object> newBidsAsks = new HashMap<String, Object>() {{}};
-            Helpers.addElementToObject(newBidsAsks, symbol, bidask);
+            ((Map<String, Object>)newBidsAsks).put((String)symbol, bidask);
             Helpers.addElementToObject(this.bidsasks, symbol, bidask);
             client.resolve(newBidsAsks, ("bidask:" + symbol));
         }
@@ -1831,7 +1831,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
             {
                 continue;
             }
-            Helpers.addElementToObject(symbols, symbol, true);
+            ((Map<String, Object>)symbols).put((String)symbol, true);
             Helpers.callDynamically(trades, "append", new Object[]{parsed});
         }
         Object keys = Helpers.objectKeys(symbols);
@@ -2465,7 +2465,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
             {
                 continue;
             }
-            Helpers.addElementToObject(symbols, symbol, true);
+            ((Map<String, Object>)symbols).put((String)symbol, true);
             Helpers.callDynamically(orders, "append", new Object[]{parsed});
         }
         Object symbolsArray = Helpers.objectKeys(symbols);
@@ -2795,11 +2795,11 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
         Object account = this.account();
         String currencyId = this.safeString2(balance, "a", "coin");
         String code = this.safeCurrencyCode(currencyId);
-        Helpers.addElementToObject(account, "free", this.safeStringN(balance, new ArrayList<Object>(Arrays.asList("availableToWithdraw", "f", "free"))));
+        ((Map<String, Object>)account).put("free", this.safeStringN(balance, new ArrayList<Object>(Arrays.asList("availableToWithdraw", "f", "free"))));
         String used = this.safeString2(balance, "l", "locked");
         if (!java.util.Objects.equals(used, null))
         {
-            Helpers.addElementToObject(account, "used", used);
+            ((Map<String, Object>)account).put("used", used);
         } else
         {
             // the unified account wallet stream has no locked field, the margin
@@ -2807,12 +2807,12 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
             // is derived from those, see https://github.com/ccxt/ccxt/issues/24365
             String totalPositionIm = this.safeString(balance, "totalPositionIM", "0");
             String totalOrderIm = this.safeString(balance, "totalOrderIM", "0");
-            Helpers.addElementToObject(account, "used", Precise.stringAdd(totalPositionIm, totalOrderIm));
+            ((Map<String, Object>)account).put("used", Precise.stringAdd(totalPositionIm, totalOrderIm));
         }
         // on the unified rows the free amount and the margin are both measured
         // against the equity, which includes the unrealized pnl, so the equity
         // is the consistent total, the spot rows fall back to the wallet balance
-        Helpers.addElementToObject(account, "total", this.safeString2(balance, "equity", "walletBalance"));
+        ((Map<String, Object>)account).put("total", this.safeString2(balance, "equity", "walletBalance"));
         if (!java.util.Objects.equals(accountType, null))
         {
             if (java.util.Objects.equals(this.safeValue(this.balance, accountType), null))

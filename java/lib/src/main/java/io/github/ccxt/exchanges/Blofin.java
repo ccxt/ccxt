@@ -1614,12 +1614,12 @@ public class Blofin extends BlofinApi
             String availEq = this.safeString(balance, "available");
             if ((java.util.Objects.equals(eq, null)) || (java.util.Objects.equals(availEq, null)))
             {
-                Helpers.addElementToObject(account, "free", this.safeString(balance, "availableEquity"));
-                Helpers.addElementToObject(account, "used", this.safeString(balance, "frozen"));
+                ((Map<String, Object>)account).put("free", this.safeString(balance, "availableEquity"));
+                ((Map<String, Object>)account).put("used", this.safeString(balance, "frozen"));
             } else
             {
-                Helpers.addElementToObject(account, "total", eq);
-                Helpers.addElementToObject(account, "free", availEq);
+                ((Map<String, Object>)account).put("total", eq);
+                ((Map<String, Object>)account).put("free", availEq);
             }
             Helpers.addElementToObject(result, code, account);
         }
@@ -1656,9 +1656,9 @@ public class Blofin extends BlofinApi
             Object code = this.safeCurrencyCode(currencyId);
             Object account = this.account();
             // it may be incorrect to use total, free and used for swap accounts
-            Helpers.addElementToObject(account, "total", this.safeString(balance, "balance"));
-            Helpers.addElementToObject(account, "free", this.safeString(balance, "available"));
-            Helpers.addElementToObject(account, "used", this.safeString(balance, "frozen"));
+            ((Map<String, Object>)account).put("total", this.safeString(balance, "balance"));
+            ((Map<String, Object>)account).put("free", this.safeString(balance, "available"));
+            ((Map<String, Object>)account).put("used", this.safeString(balance, "frozen"));
             Helpers.addElementToObject(result, code, account);
         }
         return this.safeBalance(result);
@@ -1763,7 +1763,7 @@ public class Blofin extends BlofinApi
         } else
         {
             String key = (((!java.util.Objects.equals(triggerPriceAny, null)))) ? "orderPrice" : "price";
-            Helpers.addElementToObject(request, key, this.priceToPrecision(symbol, price));
+            ((Map<String, Object>)request).put((String)key, this.priceToPrecision(symbol, price));
         }
         Boolean postOnly = false;
         List<Object> postOnlyparametersVariable = (List<Object>) this.handlePostOnly(isMarketOrder, java.util.Objects.equals(type, "post_only"), parameters);

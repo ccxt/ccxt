@@ -930,7 +930,7 @@ public class Cryptocom extends CryptocomApi
             if (!java.util.Objects.equals(network, null))
             {
                 final Object finalNetwork = network;
-                Helpers.addElementToObject(networks, network, new HashMap<String, Object>() {{
+                ((Map<String, Object>)networks).put((String)network, new HashMap<String, Object>() {{
     put( "info", chain );
     put( "id", networkId );
     put( "network", finalNetwork );
@@ -1628,11 +1628,11 @@ public class Cryptocom extends CryptocomApi
             String currencyId = this.safeString(balance, "instrument_name");
             String code = this.safeCurrencyCode(currencyId);
             Object account = this.account();
-            Helpers.addElementToObject(account, "total", this.safeString(balance, "quantity"));
-            Helpers.addElementToObject(account, "used", this.safeString(balance, "reserved_qty"));
+            ((Map<String, Object>)account).put("total", this.safeString(balance, "quantity"));
+            ((Map<String, Object>)account).put("used", this.safeString(balance, "reserved_qty"));
             if (!java.util.Objects.equals(code, null))
             {
-                Helpers.addElementToObject(result, code, account);
+                ((Map<String, Object>)result).put((String)code, account);
             }
         }
         return this.safeBalance(result);
@@ -2785,7 +2785,7 @@ public class Cryptocom extends CryptocomApi
                 if (!java.util.Objects.equals(network, null))
                 {
                     final Object finalNetwork = network;
-                    Helpers.addElementToObject(result, network, new HashMap<String, Object>() {{
+                    ((Map<String, Object>)result).put((String)network, new HashMap<String, Object>() {{
         put( "info", value );
         put( "currency", responseCode );
         put( "network", finalNetwork );
@@ -4479,7 +4479,7 @@ public class Cryptocom extends CryptocomApi
                 put( "percentage", null );
                 put( "tierBased", null );
             }};
-            Helpers.addElementToObject(result, symbol, tradingFee);
+            ((Map<String, Object>)result).put((String)symbol, tradingFee);
         }
         return result;
     }

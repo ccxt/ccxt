@@ -972,8 +972,8 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
             String currencyId = this.safeString(asset, "currency");
             String code = this.safeCurrencyCode(currencyId);
             Object account = this.account();
-            Helpers.addElementToObject(account, "free", this.safeString(asset, "balance"));
-            Helpers.addElementToObject(account, "used", this.safeString(asset, "locked"));
+            ((Map<String, Object>)account).put("free", this.safeString(asset, "balance"));
+            ((Map<String, Object>)account).put("used", this.safeString(asset, "locked"));
             if (!java.util.Objects.equals(code, null))
             {
                 Helpers.addElementToObject(this.balance, code, account);
@@ -1003,7 +1003,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
     {
         Object wsOptions = this.safeDict(this.options, "ws", new HashMap<String, Object>() {{}});
         Object subscriptions = this.safeDict(wsOptions, "gen2Subscriptions", new HashMap<String, Object>() {{}});
-        Helpers.addElementToObject(subscriptions, subscriptionType, subscription);
+        ((Map<String, Object>)subscriptions).put((String)subscriptionType, subscription);
         ((Map<String, Object>)wsOptions).put("gen2Subscriptions", subscriptions);
         Helpers.addElementToObject(this.options, "ws", wsOptions);
         List<Object> request = new ArrayList<Object>(Arrays.asList(new HashMap<String, Object>() {{

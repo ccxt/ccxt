@@ -215,11 +215,11 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
             {
                 if (Helpers.isTrue(updateFree))
                 {
-                    Helpers.addElementToObject(account, "free", free);
+                    ((Map<String, Object>)account).put("free", free);
                 }
                 if (Helpers.isTrue(updateUsed))
                 {
-                    Helpers.addElementToObject(account, "used", used);
+                    ((Map<String, Object>)account).put("used", used);
                 }
                 if (!java.util.Objects.equals(code, null))
                 {

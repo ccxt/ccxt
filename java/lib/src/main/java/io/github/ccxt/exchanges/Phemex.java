@@ -1543,10 +1543,10 @@ public class Phemex extends PhemexApi
             {
                 ((List<Object>)orders).add(this.customParseBidAsk(Helpers.GetValue(bidasks, k), priceKey, amountKey, market));
             }
-            Helpers.addElementToObject(result, side, orders);
+            ((Map<String, Object>)result).put((String)side, orders);
         }
-        Helpers.addElementToObject(result, bidsKey, this.sortBy(Helpers.GetValue(result, bidsKey), 0, true));
-        Helpers.addElementToObject(result, asksKey, this.sortBy(Helpers.GetValue(result, asksKey), 0));
+        ((Map<String, Object>)result).put((String)bidsKey, this.sortBy(Helpers.GetValue(result, bidsKey), 0, true));
+        ((Map<String, Object>)result).put((String)asksKey, this.sortBy(Helpers.GetValue(result, asksKey), 0));
         return result;
     }
 
@@ -2520,9 +2520,9 @@ public class Phemex extends PhemexApi
             String used = Precise.stringAdd(lockedTradingBalance, lockedWithdraw);
             Object lastUpdateTimeNs = this.safeIntegerProduct(balance, "lastUpdateTimeNs", 0.000001);
             timestamp = (((java.util.Objects.equals(timestamp, null)))) ? lastUpdateTimeNs : Helpers.mathMax(timestamp, lastUpdateTimeNs);
-            Helpers.addElementToObject(account, "total", total);
-            Helpers.addElementToObject(account, "used", used);
-            Helpers.addElementToObject(result, ((String)code), account);
+            ((Map<String, Object>)account).put("total", total);
+            ((Map<String, Object>)account).put("used", used);
+            ((Map<String, Object>)result).put((String)((String)code), account);
         }
         ((Map<String, Object>)result).put("timestamp", timestamp);
         ((Map<String, Object>)result).put("datetime", this.iso8601(timestamp));
@@ -2574,9 +2574,9 @@ public class Phemex extends PhemexApi
         String accountBalanceEv = this.safeString2(balance, "accountBalanceEv", "accountBalanceRv");
         String totalUsedBalanceEv = this.safeString2(balance, "totalUsedBalanceEv", "totalUsedBalanceRv");
         Boolean needsConversion = (!java.util.Objects.equals(code, "USDT"));
-        Helpers.addElementToObject(account, "total", ((Helpers.isTrue(needsConversion))) ? this.fromEn(accountBalanceEv, valueScale) : accountBalanceEv);
-        Helpers.addElementToObject(account, "used", ((Helpers.isTrue(needsConversion))) ? this.fromEn(totalUsedBalanceEv, valueScale) : totalUsedBalanceEv);
-        Helpers.addElementToObject(result, ((String)code), account);
+        ((Map<String, Object>)account).put("total", ((Helpers.isTrue(needsConversion))) ? this.fromEn(accountBalanceEv, valueScale) : accountBalanceEv);
+        ((Map<String, Object>)account).put("used", ((Helpers.isTrue(needsConversion))) ? this.fromEn(totalUsedBalanceEv, valueScale) : totalUsedBalanceEv);
+        ((Map<String, Object>)result).put((String)((String)code), account);
         return this.safeBalance(result);
     }
 

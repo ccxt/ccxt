@@ -1166,8 +1166,8 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
         String currencyId = this.safeString(balance, "currency_code");
         String code = this.safeCurrencyCode(currencyId);
         Object account = this.account();
-        Helpers.addElementToObject(account, "free", this.safeString(balance, "new_available"));
-        Helpers.addElementToObject(account, "used", this.safeString(balance, "new_locked"));
+        ((Map<String, Object>)account).put("free", this.safeString(balance, "new_available"));
+        ((Map<String, Object>)account).put("used", this.safeString(balance, "new_locked"));
         if (!java.util.Objects.equals(code, null))
         {
             Helpers.addElementToObject(this.balance, code, account);
@@ -1237,7 +1237,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
             {
                 if (!java.util.Objects.equals(marketId, null))
                 {
-                    Helpers.addElementToObject(subscription, marketId, new HashMap<String, Object>() {{}});
+                    ((Map<String, Object>)subscription).put((String)marketId, new HashMap<String, Object>() {{}});
                 }
             }
             if ((!java.util.Objects.equals(marketId, null)) && (!java.util.Objects.equals(timeframe, null)))
@@ -1524,7 +1524,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
             for (var i = 0; i < ((List<?>)marketIds).size(); i++)
             {
                 Object marketId = Helpers.GetValue(marketIds, i);
-                Helpers.addElementToObject(subscription, marketId, true);
+                ((Map<String, Object>)subscription).put((String)marketId, true);
             }
             Helpers.addElementToObject(request, "type", type);
             Helpers.addElementToObject(Helpers.GetValue(Helpers.GetValue(request, "channels"), 0), "instrument_codes", Helpers.objectKeys(subscription));

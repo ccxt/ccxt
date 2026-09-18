@@ -1390,7 +1390,7 @@ public class Hashkey extends HashkeyApi
             if (!java.util.Objects.equals(networkCode, null))
             {
                 final Object finalNetworkCode = networkCode;
-                Helpers.addElementToObject(parsedNetworks, networkCode, new HashMap<String, Object>() {{
+                ((Map<String, Object>)parsedNetworks).put((String)networkCode, new HashMap<String, Object>() {{
     put( "id", networkId );
     put( "network", finalNetworkCode );
     put( "limits", new HashMap<String, Object>() {{
@@ -2138,12 +2138,12 @@ public class Hashkey extends HashkeyApi
             String currencyId = this.safeString(balanceEntry, "asset");
             String code = this.safeCurrencyCode(currencyId);
             Object account = this.account();
-            Helpers.addElementToObject(account, "total", this.safeString(balanceEntry, "total"));
-            Helpers.addElementToObject(account, "free", this.safeString(balanceEntry, "free"));
-            Helpers.addElementToObject(account, "used", this.safeString(balanceEntry, "locked"));
+            ((Map<String, Object>)account).put("total", this.safeString(balanceEntry, "total"));
+            ((Map<String, Object>)account).put("free", this.safeString(balanceEntry, "free"));
+            ((Map<String, Object>)account).put("used", this.safeString(balanceEntry, "locked"));
             if (!java.util.Objects.equals(code, null))
             {
-                Helpers.addElementToObject(result, code, account);
+                ((Map<String, Object>)result).put((String)code, account);
             }
         }
         return this.safeBalance(result);
@@ -2164,16 +2164,16 @@ public class Hashkey extends HashkeyApi
         String currencyId = this.safeString(balance, "asset");
         String code = this.safeCurrencyCode(currencyId);
         Object account = this.account();
-        Helpers.addElementToObject(account, "total", this.safeString(balance, "balance"));
+        ((Map<String, Object>)account).put("total", this.safeString(balance, "balance"));
         String positionMargin = this.safeString(balance, "positionMargin");
         String orderMargin = this.safeString(balance, "orderMargin");
-        Helpers.addElementToObject(account, "used", Precise.stringAdd(positionMargin, orderMargin));
+        ((Map<String, Object>)account).put("used", Precise.stringAdd(positionMargin, orderMargin));
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", balance );
         }};
         if (!java.util.Objects.equals(code, null))
         {
-            Helpers.addElementToObject(result, code, account);
+            ((Map<String, Object>)result).put((String)code, account);
         }
         return this.safeBalance(result);
     }
@@ -2225,7 +2225,7 @@ public class Hashkey extends HashkeyApi
             //     }
             //
             Object depositAddress = this.parseDepositAddress(response, currency);
-            Helpers.addElementToObject(depositAddress, "network", networkCode);
+            ((Map<String, Object>)depositAddress).put("network", networkCode);
             return depositAddress;
         }).thenApply(DepositAddress::new);
 
@@ -5008,7 +5008,7 @@ final Object finalI = i;
             {
                 Object fee = this.safeDict(data, i, new HashMap<String, Object>() {{}});
                 Object parsedFee = this.parseTradingFee(fee);
-                Helpers.addElementToObject(result, ((String)((Map<String, Object>)parsedFee).get("symbol")), parsedFee);
+                ((Map<String, Object>)result).put((String)((String)((Map<String, Object>)parsedFee).get("symbol")), parsedFee);
             }
             return result;
         }).thenApply(TradingFees::new);

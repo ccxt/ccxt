@@ -1400,8 +1400,8 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
             String currencyId = this.safeString(balance, "instrument_name");
             String code = this.safeCurrencyCode(currencyId);
             Object account = this.account();
-            Helpers.addElementToObject(account, "total", this.safeString(balance, "quantity"));
-            Helpers.addElementToObject(account, "used", this.safeString(balance, "reserved_qty"));
+            ((Map<String, Object>)account).put("total", this.safeString(balance, "quantity"));
+            ((Map<String, Object>)account).put("used", this.safeString(balance, "reserved_qty"));
             if (!java.util.Objects.equals(code, null))
             {
                 Helpers.addElementToObject(this.balance, code, account);

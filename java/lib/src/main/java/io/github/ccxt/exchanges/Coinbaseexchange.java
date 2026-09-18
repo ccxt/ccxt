@@ -756,7 +756,7 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
             if (!java.util.Objects.equals(networkCode, null))
             {
                 final Object finalNetworkCode = networkCode;
-                Helpers.addElementToObject(networks, networkCode, new HashMap<String, Object>() {{
+                ((Map<String, Object>)networks).put((String)networkCode, new HashMap<String, Object>() {{
     put( "id", networkId );
     put( "name", Coinbaseexchange.this.safeString(network, "name") );
     put( "network", finalNetworkCode );
@@ -1013,12 +1013,12 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
             String currencyId = this.safeString(balance, "currency");
             String code = this.safeCurrencyCode(currencyId);
             Object account = this.account();
-            Helpers.addElementToObject(account, "free", this.safeString(balance, "available"));
-            Helpers.addElementToObject(account, "used", this.safeString(balance, "hold"));
-            Helpers.addElementToObject(account, "total", this.safeString(balance, "balance"));
+            ((Map<String, Object>)account).put("free", this.safeString(balance, "available"));
+            ((Map<String, Object>)account).put("used", this.safeString(balance, "hold"));
+            ((Map<String, Object>)account).put("total", this.safeString(balance, "balance"));
             if (!java.util.Objects.equals(code, null))
             {
-                Helpers.addElementToObject(result, code, account);
+                ((Map<String, Object>)result).put((String)code, account);
             }
         }
         return this.safeBalance(result);
@@ -1093,7 +1093,7 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
             //     }
             //
             Object orderbook = this.parseOrderBook(response, symbol);
-            Helpers.addElementToObject(orderbook, "nonce", this.safeInteger(response, "sequence"));
+            ((Map<String, Object>)orderbook).put("nonce", this.safeInteger(response, "sequence"));
             return orderbook;
         }).thenApply(OrderBook::new);
 
@@ -1245,7 +1245,7 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
                 Object first = this.safeValue(entry, 0, new ArrayList<Object>(Arrays.asList()));
                 Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, null, delimiter);
                 Object symbol = ((Map<String, Object>)market).get("symbol");
-                Helpers.addElementToObject(result, symbol, this.parseTicker(first, market));
+                ((Map<String, Object>)result).put((String)symbol, this.parseTicker(first, market));
             }
             return this.filterByArrayTickers(result, "symbol", symbols);
         }).thenApply(Tickers::new);
@@ -1539,7 +1539,7 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
             for (var i = 0; i < ((List<?>)this.symbols).size(); i++)
             {
                 Object symbol = Helpers.GetValue(this.symbols, i);
-                Helpers.addElementToObject(result, symbol, new HashMap<String, Object>() {{
+                ((Map<String, Object>)result).put((String)symbol, new HashMap<String, Object>() {{
         put( "info", response );
         put( "symbol", symbol );
         put( "maker", maker );

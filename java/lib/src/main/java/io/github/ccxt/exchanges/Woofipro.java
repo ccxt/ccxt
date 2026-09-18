@@ -1110,7 +1110,7 @@ public class Woofipro extends WoofiproApi
                 {
                     throw new ExchangeError((this.id + " fetchCurrencies() could not resolve parsed")) ;
                 }
-                Helpers.addElementToObject(result, ((Map<String, Object>)parsed).get("code"), parsed);
+                ((Map<String, Object>)result).put((String)((Map<String, Object>)parsed).get("code"), parsed);
             }
             return result;
         });
@@ -1135,7 +1135,7 @@ public class Woofipro extends WoofiproApi
             if (!java.util.Objects.equals(networkCode, null))
             {
                 final Object finalNetworkCode = networkCode;
-                Helpers.addElementToObject(resultingNetworks, networkCode, new HashMap<String, Object>() {{
+                ((Map<String, Object>)resultingNetworks).put((String)networkCode, new HashMap<String, Object>() {{
     put( "id", networkId );
     put( "network", finalNetworkCode );
     put( "limits", new HashMap<String, Object>() {{
@@ -2069,7 +2069,7 @@ public class Woofipro extends WoofiproApi
             for (var i = 0; i < ((List<?>)symbols).size(); i++)
             {
                 Object symbol = Helpers.GetValue(symbols, i);
-                Helpers.addElementToObject(result, symbol, new HashMap<String, Object>() {{
+                ((Map<String, Object>)result).put((String)symbol, new HashMap<String, Object>() {{
         put( "info", response );
         put( "symbol", symbol );
         put( "maker", Woofipro.this.parseNumber(Precise.stringDiv(maker, "10000")) );
@@ -2421,7 +2421,7 @@ public class Woofipro extends WoofiproApi
         String orderQtyKey = ((Helpers.isTrue(isConditional))) ? "quantity" : "order_quantity";
         String priceKey = ((Helpers.isTrue(isConditional))) ? "price" : "order_price";
         String typeKey = ((Helpers.isTrue(isConditional))) ? "type" : "order_type";
-        Helpers.addElementToObject(request, typeKey, orderType); // LIMIT/MARKET/IOC/FOK/POST_ONLY/ASK/BID
+        ((Map<String, Object>)request).put((String)typeKey, orderType); // LIMIT/MARKET/IOC/FOK/POST_ONLY/ASK/BID
         if (!Helpers.isTrue(isConditional))
         {
             if (Helpers.isTrue(postOnly))
@@ -2441,14 +2441,14 @@ public class Woofipro extends WoofiproApi
         }
         if (!java.util.Objects.equals(price, null))
         {
-            Helpers.addElementToObject(request, priceKey, this.priceToPrecision(symbol, price));
+            ((Map<String, Object>)request).put((String)priceKey, this.priceToPrecision(symbol, price));
         }
         if (Helpers.isTrue(isMarket) && !Helpers.isTrue(isConditional))
         {
-            Helpers.addElementToObject(request, orderQtyKey, this.amountToPrecision(symbol, amount));
+            ((Map<String, Object>)request).put((String)orderQtyKey, this.amountToPrecision(symbol, amount));
         } else if (!java.util.Objects.equals(algoType, "POSITIONAL_TP_SL"))
         {
-            Helpers.addElementToObject(request, orderQtyKey, this.amountToPrecision(symbol, amount));
+            ((Map<String, Object>)request).put((String)orderQtyKey, this.amountToPrecision(symbol, amount));
         }
         String clientOrderId = this.safeStringN(parameters, new ArrayList<Object>(Arrays.asList("clOrdID", "clientOrderId", "client_order_id")));
         if (!java.util.Objects.equals(clientOrderId, null))
@@ -2668,11 +2668,11 @@ public class Woofipro extends WoofiproApi
             String priceKey = ((Helpers.isTrue(isConditional))) ? "price" : "order_price";
             if (!java.util.Objects.equals(price, null))
             {
-                Helpers.addElementToObject(request, priceKey, this.priceToPrecision(symbol, price));
+                ((Map<String, Object>)request).put((String)priceKey, this.priceToPrecision(symbol, price));
             }
             if (!java.util.Objects.equals(amount, null))
             {
-                Helpers.addElementToObject(request, orderQtyKey, this.amountToPrecision(symbol, amount));
+                ((Map<String, Object>)request).put((String)orderQtyKey, this.amountToPrecision(symbol, amount));
             }
             parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("stopPrice", "triggerPrice", "takeProfitPrice", "stopLossPrice", "trailingTriggerPrice", "trailingAmount", "trailingPercent")));
             Object response = null;
@@ -3397,11 +3397,11 @@ public class Woofipro extends WoofiproApi
             Object balance = Helpers.GetValue(balances, i);
             String code = this.safeCurrencyCode(this.safeString(balance, "token"));
             Object account = this.account();
-            Helpers.addElementToObject(account, "total", this.safeString(balance, "holding"));
-            Helpers.addElementToObject(account, "used", this.safeString(balance, "frozen"));
+            ((Map<String, Object>)account).put("total", this.safeString(balance, "holding"));
+            ((Map<String, Object>)account).put("used", this.safeString(balance, "frozen"));
             if (!java.util.Objects.equals(code, null))
             {
-                Helpers.addElementToObject(result, code, account);
+                ((Map<String, Object>)result).put((String)code, account);
             }
         }
         return this.safeBalance(result);
@@ -4083,8 +4083,8 @@ public class Woofipro extends WoofiproApi
             // }
             //
             Object modification = this.parseMarginModification(response, market);
-            Helpers.addElementToObject(modification, "type", (((java.util.Objects.equals(type, "ADD")))) ? "add" : "reduce");
-            Helpers.addElementToObject(modification, "amount", this.parseNumber(this.numberToString(amount)));
+            ((Map<String, Object>)modification).put("type", (((java.util.Objects.equals(type, "ADD")))) ? "add" : "reduce");
+            ((Map<String, Object>)modification).put("amount", this.parseNumber(this.numberToString(amount)));
             return modification;
         });
 

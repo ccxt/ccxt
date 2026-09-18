@@ -607,10 +607,10 @@ public class Coinmate extends CoinmateApi
             Object code = this.safeCurrencyCode(currencyId);
             Object balance = this.safeValue(balances, currencyId);
             Object account = this.account();
-            Helpers.addElementToObject(account, "free", this.safeString(balance, "available"));
-            Helpers.addElementToObject(account, "used", this.safeString(balance, "reserved"));
-            Helpers.addElementToObject(account, "total", this.safeString(balance, "balance"));
-            Helpers.addElementToObject(result, ((String)code), account);
+            ((Map<String, Object>)account).put("free", this.safeString(balance, "available"));
+            ((Map<String, Object>)account).put("used", this.safeString(balance, "reserved"));
+            ((Map<String, Object>)account).put("total", this.safeString(balance, "balance"));
+            ((Map<String, Object>)result).put((String)((String)code), account);
         }
         return this.safeBalance(result);
     }
@@ -768,7 +768,7 @@ public class Coinmate extends CoinmateApi
             {
                 Map<String, Object> market = (Map<String, Object>) this.market(Helpers.GetValue(keys, i));
                 Object ticker = this.parseTicker(this.safeValue(data, Helpers.GetValue(keys, i)), market);
-                Helpers.addElementToObject(result, ((Map<String, Object>)market).get("symbol"), ticker);
+                ((Map<String, Object>)result).put((String)((Map<String, Object>)market).get("symbol"), ticker);
             }
             return this.filterByArrayTickers(result, "symbol", symbols);
         }).thenApply(Tickers::new);
@@ -1048,12 +1048,12 @@ public class Coinmate extends CoinmateApi
             Object fillResponseFromRequest = this.safeBool(withdrawOptions, "fillResponseFromRequest", true);
             if (java.util.Objects.equals(fillResponseFromRequest, true))
             {
-                Helpers.addElementToObject(transaction, "amount", amount);
-                Helpers.addElementToObject(transaction, "currency", code);
-                Helpers.addElementToObject(transaction, "address", address);
-                Helpers.addElementToObject(transaction, "tag", tag);
-                Helpers.addElementToObject(transaction, "type", "withdrawal");
-                Helpers.addElementToObject(transaction, "status", "pending");
+                ((Map<String, Object>)transaction).put("amount", amount);
+                ((Map<String, Object>)transaction).put("currency", code);
+                ((Map<String, Object>)transaction).put("address", address);
+                ((Map<String, Object>)transaction).put("tag", tag);
+                ((Map<String, Object>)transaction).put("type", "withdrawal");
+                ((Map<String, Object>)transaction).put("status", "pending");
             }
             return transaction;
         }).thenApply(Transaction::new);

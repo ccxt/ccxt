@@ -545,7 +545,7 @@ public class Cryptomus extends CryptomusApi
             if (!java.util.Objects.equals(networkCode, null))
             {
                 final Object finalNetworkCode = networkCode;
-                Helpers.addElementToObject(networks, networkCode, new HashMap<String, Object>() {{
+                ((Map<String, Object>)networks).put((String)networkCode, new HashMap<String, Object>() {{
     put( "id", networkId );
     put( "network", finalNetworkCode );
     put( "limits", new HashMap<String, Object>() {{
@@ -856,11 +856,11 @@ public class Cryptomus extends CryptomusApi
             String currencyId = this.safeString(balanceEntry, "ticker");
             String code = this.safeCurrencyCode(currencyId);
             Object account = this.account();
-            Helpers.addElementToObject(account, "free", this.safeString(balanceEntry, "available"));
-            Helpers.addElementToObject(account, "used", this.safeString(balanceEntry, "held"));
+            ((Map<String, Object>)account).put("free", this.safeString(balanceEntry, "available"));
+            ((Map<String, Object>)account).put("used", this.safeString(balanceEntry, "held"));
             if (!java.util.Objects.equals(code, null))
             {
-                Helpers.addElementToObject(result, code, account);
+                ((Map<String, Object>)result).put((String)code, account);
             }
         }
         return this.safeBalance(result);
@@ -1373,7 +1373,7 @@ public class Cryptomus extends CryptomusApi
                 Object symbol = Helpers.GetValue(symbols, i);
                 final Object finalMakerFee = makerFee;
                 final Object finalTakerFee = takerFee;
-                Helpers.addElementToObject(result, symbol, new HashMap<String, Object>() {{
+                ((Map<String, Object>)result).put((String)symbol, new HashMap<String, Object>() {{
         put( "info", response );
         put( "symbol", symbol );
         put( "maker", Cryptomus.this.parseNumber(finalMakerFee) );

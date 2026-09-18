@@ -625,10 +625,10 @@ public class Coinspot extends CoinspotApi
                     Object balance = Helpers.GetValue(currencies, currencyId);
                     String code = this.safeCurrencyCode(currencyId);
                     Object account = this.account();
-                    Helpers.addElementToObject(account, "total", this.safeString(balance, "balance"));
+                    ((Map<String, Object>)account).put("total", this.safeString(balance, "balance"));
                     if (!java.util.Objects.equals(code, null))
                     {
-                        Helpers.addElementToObject(result, code, account);
+                        ((Map<String, Object>)result).put((String)code, account);
                     }
                 }
             }
@@ -640,10 +640,10 @@ public class Coinspot extends CoinspotApi
                 Object currencyId = Helpers.GetValue(currencyIds, i);
                 String code = this.safeCurrencyCode(currencyId);
                 Object account = this.account();
-                Helpers.addElementToObject(account, "total", this.safeString(balances, currencyId));
+                ((Map<String, Object>)account).put("total", this.safeString(balances, currencyId));
                 if (!java.util.Objects.equals(code, null))
                 {
-                    Helpers.addElementToObject(result, code, account);
+                    ((Map<String, Object>)result).put((String)code, account);
                 }
             }
         }
@@ -858,7 +858,7 @@ public class Coinspot extends CoinspotApi
                 {
                     Object symbol = ((Map<String, Object>)market).get("symbol");
                     Object ticker = Helpers.GetValue(prices, id);
-                    Helpers.addElementToObject(result, symbol, this.parseTicker(ticker, market));
+                    ((Map<String, Object>)result).put((String)symbol, this.parseTicker(ticker, market));
                 }
             }
             return this.filterByArrayTickers(result, "symbol", symbols);

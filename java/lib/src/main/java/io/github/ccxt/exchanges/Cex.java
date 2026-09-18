@@ -468,7 +468,7 @@ public class Cex extends CexApi
             if (!java.util.Objects.equals(networkCode, null))
             {
                 final Object finalNetworkCode = networkCode;
-                Helpers.addElementToObject(networks, networkCode, new HashMap<String, Object>() {{
+                ((Map<String, Object>)networks).put((String)networkCode, new HashMap<String, Object>() {{
     put( "id", networkId );
     put( "network", finalNetworkCode );
     put( "margin", null );
@@ -1065,7 +1065,7 @@ public class Cex extends CexApi
             Object parsed = this.parseTradingFee(Helpers.GetValue(response, key), market);
             if (!java.util.Objects.equals(((Map<String, Object>)parsed).get("symbol"), null))
             {
-                Helpers.addElementToObject(result, ((Map<String, Object>)parsed).get("symbol"), parsed);
+                ((Map<String, Object>)result).put((String)((Map<String, Object>)parsed).get("symbol"), parsed);
             }
         }
         List<Object> symbols = this.symbols;
@@ -1075,7 +1075,7 @@ public class Cex extends CexApi
             if (!(((Map<?, ?>)result).containsKey(symbol)))
             {
                 Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-                Helpers.addElementToObject(result, symbol, this.parseTradingFee(response, market));
+                ((Map<String, Object>)result).put((String)symbol, this.parseTradingFee(response, market));
             }
         }
         return result;
@@ -1226,7 +1226,7 @@ public class Cex extends CexApi
             }};
             if (!java.util.Objects.equals(code, null))
             {
-                Helpers.addElementToObject(result, code, account);
+                ((Map<String, Object>)result).put((String)code, account);
             }
         }
         return this.safeBalance(result);

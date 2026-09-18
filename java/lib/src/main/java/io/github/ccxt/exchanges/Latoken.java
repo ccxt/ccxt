@@ -793,11 +793,11 @@ public class Latoken extends LatokenApi
                 }
                 String code = this.safeCurrencyCode(currencyId);
                 Object account = this.account();
-                Helpers.addElementToObject(account, "free", this.safeString(balance, "available"));
-                Helpers.addElementToObject(account, "used", this.safeString(balance, "blocked"));
+                ((Map<String, Object>)account).put("free", this.safeString(balance, "available"));
+                ((Map<String, Object>)account).put("used", this.safeString(balance, "blocked"));
                 if (!java.util.Objects.equals(code, null))
                 {
-                    Helpers.addElementToObject(result, code, account);
+                    ((Map<String, Object>)result).put((String)code, account);
                 }
             }
             ((Map<String, Object>)result).put("timestamp", maxTimestamp);
@@ -2018,8 +2018,8 @@ public class Latoken extends LatokenApi
         Double feeCost = this.safeNumber(transaction, "transactionFee");
         if (!java.util.Objects.equals(feeCost, null))
         {
-            Helpers.addElementToObject(fee, "cost", feeCost);
-            Helpers.addElementToObject(fee, "currency", code);
+            ((Map<String, Object>)fee).put("cost", feeCost);
+            ((Map<String, Object>)fee).put("currency", code);
         }
         String type = this.parseTransactionType(this.safeString(transaction, "type"));
         return new HashMap<String, Object>() {{

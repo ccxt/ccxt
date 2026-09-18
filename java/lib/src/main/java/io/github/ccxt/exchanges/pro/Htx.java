@@ -688,7 +688,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             {
                 return;
             }
-            Helpers.addElementToObject(snapshot, "nonce", nonce);
+            ((Map<String, Object>)snapshot).put("nonce", nonce);
             Long snapshotTimestamp = this.safeInteger(message, "ts");
             Helpers.addElementToObject(subscription, "lastTimestamp", snapshotTimestamp);
             Long snapshotLimit = this.safeInteger(subscription, "limit");
@@ -711,7 +711,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
                             delayTime = this.sum(1000, Helpers.subtract(lastTimestamp, snapshotTimestamp));
                         }
                         Helpers.addElementToObject(subscription, "numAttempts", numAttempts);
-                        Helpers.addElementToObject(client.subscriptions, messageHash, subscription);
+                        ((Map)client.subscriptions).put((String)messageHash, subscription);
                         this.scheduleCallback(delayTime, "watchOrderBookSnapshot", client, message, subscription);
                     }
                 } else
@@ -2051,7 +2051,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
                 Helpers.addElementToObject(Helpers.GetValue(this.positions, url), marginMode, cache);
             }
             ((List<Object>)newPositions).add(position);
-            Helpers.addElementToObject(positionsByMarginMode, marginMode, this.safeValue(positionsByMarginMode, marginMode, new ArrayList<Object>(Arrays.asList())));
+            ((Map<String, Object>)positionsByMarginMode).put((String)marginMode, this.safeValue(positionsByMarginMode, marginMode, new ArrayList<Object>(Arrays.asList())));
             ((List<Object>)Helpers.GetValue(positionsByMarginMode, marginMode)).add(position);
             Helpers.callDynamically(cache, "append", new Object[]{position});
         }
@@ -2347,8 +2347,8 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             String currencyId = this.safeString(data, "currency");
             String code = this.safeCurrencyCode(currencyId);
             Object account = this.account();
-            Helpers.addElementToObject(account, "free", this.safeString(data, "available"));
-            Helpers.addElementToObject(account, "total", this.safeString(data, "balance"));
+            ((Map<String, Object>)account).put("free", this.safeString(data, "available"));
+            ((Map<String, Object>)account).put("total", this.safeString(data, "balance"));
             if (!java.util.Objects.equals(code, null))
             {
                 Helpers.addElementToObject(this.balance, code, account);
@@ -2378,8 +2378,8 @@ public class Htx extends io.github.ccxt.exchanges.Htx
                         continue;
                     }
                     Object account = this.account();
-                    Helpers.addElementToObject(account, "free", this.safeString(detail, "withdraw_available"));
-                    Helpers.addElementToObject(account, "total", this.safeString(detail, "equity"));
+                    ((Map<String, Object>)account).put("free", this.safeString(detail, "withdraw_available"));
+                    ((Map<String, Object>)account).put("total", this.safeString(detail, "equity"));
                     Helpers.addElementToObject(this.balance, code, account);
                 }
                 this.balance = this.safeBalance(this.balance);
@@ -2430,8 +2430,8 @@ public class Htx extends io.github.ccxt.exchanges.Htx
                 String code = this.safeCurrencyCode(marginAsset);
                 String marginFrozen = this.safeString(first, "margin_frozen");
                 Object unifiedAccount = this.account();
-                Helpers.addElementToObject(unifiedAccount, "free", this.safeString(first, "withdraw_available"));
-                Helpers.addElementToObject(unifiedAccount, "used", marginFrozen);
+                ((Map<String, Object>)unifiedAccount).put("free", this.safeString(first, "withdraw_available"));
+                ((Map<String, Object>)unifiedAccount).put("used", marginFrozen);
                 if (!java.util.Objects.equals(code, null))
                 {
                     Helpers.addElementToObject(this.balance, code, unifiedAccount);
@@ -2449,9 +2449,9 @@ public class Htx extends io.github.ccxt.exchanges.Htx
                     if (!java.util.Objects.equals(code, null))
                     {
                         Object account = this.account();
-                        Helpers.addElementToObject(account, "free", this.safeString2(first, "withdraw_available", "margin_available"));
-                        Helpers.addElementToObject(account, "used", this.safeString(first, "margin_frozen"));
-                        Helpers.addElementToObject(account, "total", this.safeString(first, "margin_balance"));
+                        ((Map<String, Object>)account).put("free", this.safeString2(first, "withdraw_available", "margin_available"));
+                        ((Map<String, Object>)account).put("used", this.safeString(first, "margin_frozen"));
+                        ((Map<String, Object>)account).put("total", this.safeString(first, "margin_balance"));
                         Helpers.addElementToObject(this.balance, code, account);
                         this.balance = this.safeBalance(this.balance);
                     }
@@ -2462,8 +2462,8 @@ public class Htx extends io.github.ccxt.exchanges.Htx
                     {
                         Object isolatedBalance = Helpers.GetValue(data, i);
                         Object account = this.account();
-                        Helpers.addElementToObject(account, "free", this.safeString(isolatedBalance, "margin_balance", "margin_available"));
-                        Helpers.addElementToObject(account, "used", this.safeString(isolatedBalance, "margin_frozen"));
+                        ((Map<String, Object>)account).put("free", this.safeString(isolatedBalance, "margin_balance", "margin_available"));
+                        ((Map<String, Object>)account).put("used", this.safeString(isolatedBalance, "margin_frozen"));
                         String currencyId = this.safeString2(isolatedBalance, "margin_asset", "symbol");
                         String code = this.safeCurrencyCode(currencyId);
                         if (!java.util.Objects.equals(code, null))
@@ -2482,8 +2482,8 @@ public class Htx extends io.github.ccxt.exchanges.Htx
                     String currencyId = this.safeString(balance, "symbol");
                     String code = this.safeCurrencyCode(currencyId);
                     Object account = this.account();
-                    Helpers.addElementToObject(account, "free", this.safeString(balance, "margin_available"));
-                    Helpers.addElementToObject(account, "used", this.safeString(balance, "margin_frozen"));
+                    ((Map<String, Object>)account).put("free", this.safeString(balance, "margin_available"));
+                    ((Map<String, Object>)account).put("used", this.safeString(balance, "margin_frozen"));
                     if (!java.util.Objects.equals(code, null))
                     {
                         Helpers.addElementToObject(this.balance, code, account);

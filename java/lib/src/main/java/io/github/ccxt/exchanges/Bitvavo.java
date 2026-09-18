@@ -758,7 +758,7 @@ final Object finalBase = base;
             {
                 final Object finalNetworkCode = networkCode;
                 final Object finalDeposit = deposit;
-                Helpers.addElementToObject(networks, networkCode, new HashMap<String, Object>() {{
+                ((Map<String, Object>)networks).put((String)networkCode, new HashMap<String, Object>() {{
     put( "info", rawCurrency );
     put( "id", networkId );
     put( "network", finalNetworkCode );
@@ -1168,7 +1168,7 @@ final Object finalBase = base;
         for (var i = 0; i < ((List<?>)this.symbols).size(); i++)
         {
             Object symbol = Helpers.GetValue(this.symbols, i);
-            Helpers.addElementToObject(result, symbol, new HashMap<String, Object>() {{
+            ((Map<String, Object>)result).put((String)symbol, new HashMap<String, Object>() {{
     put( "info", fees );
     put( "symbol", symbol );
     put( "maker", maker );
@@ -1277,7 +1277,7 @@ final Object finalBase = base;
             //     }
             //
             Object orderbook = this.parseOrderBook(response, ((Map<String, Object>)market).get("symbol"));
-            Helpers.addElementToObject(orderbook, "nonce", this.safeInteger(response, "nonce"));
+            ((Map<String, Object>)orderbook).put("nonce", this.safeInteger(response, "nonce"));
             return orderbook;
         }).thenApply(OrderBook::new);
 
@@ -1397,11 +1397,11 @@ final Object finalBase = base;
             String currencyId = this.safeString(balance, "symbol");
             String code = this.safeCurrencyCode(currencyId);
             Object account = this.account();
-            Helpers.addElementToObject(account, "free", this.safeString(balance, "available"));
-            Helpers.addElementToObject(account, "used", this.safeString(balance, "inOrder"));
+            ((Map<String, Object>)account).put("free", this.safeString(balance, "available"));
+            ((Map<String, Object>)account).put("used", this.safeString(balance, "inOrder"));
             if (!java.util.Objects.equals(code, null))
             {
-                Helpers.addElementToObject(result, code, account);
+                ((Map<String, Object>)result).put((String)code, account);
             }
         }
         return this.safeBalance(result);

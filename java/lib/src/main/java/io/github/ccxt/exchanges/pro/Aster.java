@@ -1863,9 +1863,9 @@ public class Aster extends io.github.ccxt.exchanges.Aster
             String currencyId = this.safeString(entry, "a");
             String code = this.safeCurrencyCode(currencyId);
             Object account = this.account();
-            Helpers.addElementToObject(account, "free", this.safeString(entry, "f"));
-            Helpers.addElementToObject(account, "used", this.safeString(entry, "l"));
-            Helpers.addElementToObject(account, "total", this.safeString(entry, wallet));
+            ((Map<String, Object>)account).put("free", this.safeString(entry, "f"));
+            ((Map<String, Object>)account).put("used", this.safeString(entry, "l"));
+            ((Map<String, Object>)account).put("total", this.safeString(entry, wallet));
             if ((!java.util.Objects.equals(accountType, null)) && (!java.util.Objects.equals(code, null)))
             {
                 Helpers.addElementToObject(Helpers.GetValue(this.balance, accountType), code, account);

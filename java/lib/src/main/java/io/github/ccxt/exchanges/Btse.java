@@ -1309,7 +1309,7 @@ public class Btse extends BtseApi
                     {
                         continue;
                     }
-                    Helpers.addElementToObject(useds, usedCode, Precise.stringAdd(this.safeString(useds, usedCode, "0"), this.safeString(usedRow, "balance")));
+                    ((Map<String, Object>)useds).put((String)usedCode, Precise.stringAdd(this.safeString(useds, usedCode, "0"), this.safeString(usedRow, "balance")));
                 }
                 for (var j = 0; j < ((List<?>)assets).size(); j++)
                 {
@@ -1319,8 +1319,8 @@ public class Btse extends BtseApi
                     {
                         continue;
                     }
-                    Helpers.addElementToObject(totals, code, Precise.stringAdd(this.safeString(totals, code, "0"), this.safeString(assetRow, "balance")));
-                    Helpers.addElementToObject(useds, code, this.safeString(useds, code, "0"));
+                    ((Map<String, Object>)totals).put((String)code, Precise.stringAdd(this.safeString(totals, code, "0"), this.safeString(assetRow, "balance")));
+                    ((Map<String, Object>)useds).put((String)code, this.safeString(useds, code, "0"));
                 }
             } else
             {
@@ -1331,8 +1331,8 @@ public class Btse extends BtseApi
                 {
                     continue;
                 }
-                Helpers.addElementToObject(totals, code, Precise.stringAdd(this.safeString(totals, code, "0"), this.safeString2(row, "totalAmount", "total")));
-                Helpers.addElementToObject(frees, code, Precise.stringAdd(this.safeString(frees, code, "0"), this.safeString2(row, "availableAmount", "available")));
+                ((Map<String, Object>)totals).put((String)code, Precise.stringAdd(this.safeString(totals, code, "0"), this.safeString2(row, "totalAmount", "total")));
+                ((Map<String, Object>)frees).put((String)code, Precise.stringAdd(this.safeString(frees, code, "0"), this.safeString2(row, "availableAmount", "available")));
             }
         }
         Object codes = Helpers.objectKeys(totals);
@@ -1340,10 +1340,10 @@ public class Btse extends BtseApi
         {
             Object code = Helpers.GetValue(codes, i);
             Object account = this.account();
-            Helpers.addElementToObject(account, "total", this.safeString(totals, code));
-            Helpers.addElementToObject(account, "free", this.safeString(frees, code));
-            Helpers.addElementToObject(account, "used", this.safeString(useds, code));
-            Helpers.addElementToObject(result, code, account);
+            ((Map<String, Object>)account).put("total", this.safeString(totals, code));
+            ((Map<String, Object>)account).put("free", this.safeString(frees, code));
+            ((Map<String, Object>)account).put("used", this.safeString(useds, code));
+            ((Map<String, Object>)result).put((String)code, account);
         }
         return this.safeBalance(result);
     }
@@ -1430,7 +1430,7 @@ public class Btse extends BtseApi
                             put( "info", level );
                         }});
                     }
-                    Helpers.addElementToObject(result, symbol, tiers); // rows arrive ordered by level ascending, avoid sortBy which compares numeric keys lexicographically in some transpiled runtimes
+                    ((Map<String, Object>)result).put((String)symbol, tiers); // rows arrive ordered by level ascending, avoid sortBy which compares numeric keys lexicographically in some transpiled runtimes
                 }
             }
             // the exchange only provides the cap of each risk tier, so the floor
@@ -1452,7 +1452,7 @@ public class Btse extends BtseApi
                     }
                 }
                 // php copies arrays by value, so the mutated list must be written back explicitly
-                Helpers.addElementToObject(result, symbolKey, tiersList);
+                ((Map<String, Object>)result).put((String)symbolKey, tiersList);
             }
             return result;
         }).thenApply(LeverageTiers::new);
@@ -3388,7 +3388,7 @@ public class Btse extends BtseApi
                 Object symbol = ((Map<String, Object>)market).get("symbol");
                 Double makerFee = this.safeNumber(feeInfo, "makerFee");
                 Double takerFee = this.safeNumber(feeInfo, "takerFee");
-                Helpers.addElementToObject(result, symbol, new HashMap<String, Object>() {{
+                ((Map<String, Object>)result).put((String)symbol, new HashMap<String, Object>() {{
         put( "info", feeInfo );
         put( "symbol", symbol );
         put( "maker", makerFee );
@@ -3488,7 +3488,7 @@ public class Btse extends BtseApi
             {
                 Object historyType = Helpers.GetValue(typesList, i);
                 Helpers.addElementToObject(allowed, historyType, true);
-                Helpers.addElementToObject(allowed, this.capitalize(((String)historyType).toLowerCase()), true);
+                ((Map<String, Object>)allowed).put((String)this.capitalize(((String)historyType).toLowerCase()), true);
             }
             List<Object> rows = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)rawRows).size(); i++)

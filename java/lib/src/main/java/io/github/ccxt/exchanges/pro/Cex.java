@@ -144,12 +144,12 @@ public class Cex extends io.github.ccxt.exchanges.Cex
         {
             Object currencyId = Helpers.GetValue(currencyIds, i);
             Object account = this.account();
-            Helpers.addElementToObject(account, "free", this.safeString(freeBalance, currencyId));
-            Helpers.addElementToObject(account, "used", this.safeString(usedBalance, currencyId));
+            ((Map<String, Object>)account).put("free", this.safeString(freeBalance, currencyId));
+            ((Map<String, Object>)account).put("used", this.safeString(usedBalance, currencyId));
             String code = this.safeCurrencyCode(currencyId);
             if (!java.util.Objects.equals(code, null))
             {
-                Helpers.addElementToObject(result, code, account);
+                ((Map<String, Object>)result).put((String)code, account);
             }
         }
         this.balance = this.safeBalance(result);
@@ -1203,7 +1203,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
         Long incrementalId = this.safeInteger(data, "id");
         io.github.ccxt.ws.WsOrderBook orderbook = this.orderBook(new HashMap<String, Object>() {{}});
         Object snapshot = this.parseOrderBook(data, symbol, timestamp, "bids", "asks");
-        Helpers.addElementToObject(snapshot, "nonce", incrementalId);
+        ((Map<String, Object>)snapshot).put("nonce", incrementalId);
         Helpers.callDynamically(orderbook, "reset", new Object[]{snapshot});
         Helpers.addElementToObject(Helpers.GetValue(this.options, "orderbook"), symbol, new HashMap<String, Object>() {{
     put( "incrementalId", incrementalId );

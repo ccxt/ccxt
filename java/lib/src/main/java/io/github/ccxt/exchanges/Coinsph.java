@@ -806,7 +806,7 @@ public class Coinsph extends CoinsphApi
             if (!java.util.Objects.equals(networkCode, null))
             {
                 final Object finalNetworkCode = networkCode;
-                Helpers.addElementToObject(networks, networkCode, new HashMap<String, Object>() {{
+                ((Map<String, Object>)networks).put((String)networkCode, new HashMap<String, Object>() {{
     put( "info", networkItem );
     put( "id", network );
     put( "network", finalNetworkCode );
@@ -1304,7 +1304,7 @@ public class Coinsph extends CoinsphApi
             //     }
             //
             Object orderbook = this.parseOrderBook(response, symbol);
-            Helpers.addElementToObject(orderbook, "nonce", this.safeInteger(response, "lastUpdateId"));
+            ((Map<String, Object>)orderbook).put("nonce", this.safeInteger(response, "lastUpdateId"));
             return orderbook;
         }).thenApply(OrderBook::new);
 
@@ -1695,11 +1695,11 @@ public class Coinsph extends CoinsphApi
             String currencyId = this.safeString(balance, "asset");
             String code = this.safeCurrencyCode(currencyId);
             Object account = this.account();
-            Helpers.addElementToObject(account, "free", this.safeString(balance, "free"));
-            Helpers.addElementToObject(account, "used", this.safeString(balance, "locked"));
+            ((Map<String, Object>)account).put("free", this.safeString(balance, "free"));
+            ((Map<String, Object>)account).put("used", this.safeString(balance, "locked"));
             if (!java.util.Objects.equals(code, null))
             {
-                Helpers.addElementToObject(result, code, account);
+                ((Map<String, Object>)result).put((String)code, account);
             }
         }
         return this.safeBalance(result);
@@ -2326,7 +2326,7 @@ public class Coinsph extends CoinsphApi
                 Object symbol = ((Map<String, Object>)fee).get("symbol");
                 if (!java.util.Objects.equals(symbol, null))
                 {
-                    Helpers.addElementToObject(result, symbol, fee);
+                    ((Map<String, Object>)result).put((String)symbol, fee);
                 }
             }
             return result;

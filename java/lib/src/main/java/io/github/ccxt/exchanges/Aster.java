@@ -2633,12 +2633,12 @@ public class Aster extends AsterApi
             String currencyId = this.safeString(balance, "asset");
             String code = this.safeCurrencyCode(currencyId);
             Object account = this.account();
-            Helpers.addElementToObject(account, "free", this.safeString2(balance, "free", "availableBalance"));
-            Helpers.addElementToObject(account, "used", this.safeString(balance, "locked"));
-            Helpers.addElementToObject(account, "total", this.safeString(balance, "balance"));
+            ((Map<String, Object>)account).put("free", this.safeString2(balance, "free", "availableBalance"));
+            ((Map<String, Object>)account).put("used", this.safeString(balance, "locked"));
+            ((Map<String, Object>)account).put("total", this.safeString(balance, "balance"));
             if (!java.util.Objects.equals(code, null))
             {
-                Helpers.addElementToObject(result, code, account);
+                ((Map<String, Object>)result).put((String)code, account);
             }
         }
         return this.safeBalance(result);
@@ -4720,7 +4720,7 @@ public class Aster extends AsterApi
             String crossUnPnl = this.safeString(entry, "crossUnPnl");
             if (!java.util.Objects.equals(code, null))
             {
-                Helpers.addElementToObject(balances, code, new HashMap<String, Object>() {{
+                ((Map<String, Object>)balances).put((String)code, new HashMap<String, Object>() {{
     put( "crossMargin", Precise.stringAdd(crossWalletBalance, crossUnPnl) );
     put( "crossWalletBalance", crossWalletBalance );
 }});
@@ -5457,7 +5457,7 @@ public class Aster extends AsterApi
             Object key = Helpers.GetValue(keys, i);
             Object value = Helpers.GetValue(dict, key);
             Object capitalizedKey = this.capitalize(key);
-            Helpers.addElementToObject(capitalized, capitalizedKey, value);
+            ((Map<String, Object>)capitalized).put((String)capitalizedKey, value);
         }
         return capitalized;
     }

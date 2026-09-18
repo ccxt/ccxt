@@ -3233,7 +3233,7 @@ public class Derive extends DeriveApi
                 }
                 if (!java.util.Objects.equals(code, null))
                 {
-                    Helpers.addElementToObject(result, code, account);
+                    ((Map<String, Object>)result).put((String)code, account);
                 }
             }
         }

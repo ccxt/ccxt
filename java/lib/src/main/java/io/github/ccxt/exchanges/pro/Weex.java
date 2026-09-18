@@ -1175,7 +1175,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
         if (java.util.Objects.equals(eventVar, "depthSnapshot"))
         {
             Object parsed = this.parseOrderBook(message, symbol, timestamp, "b", "a");
-            Helpers.addElementToObject(parsed, "nonce", nonce);
+            ((Map<String, Object>)parsed).put("nonce", nonce);
             Helpers.callDynamically(orderbook, "reset", new Object[]{parsed});
         } else
         {
@@ -1503,7 +1503,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             Object symbol = ((Map<String, Object>)parsed).get("symbol");
             if (!java.util.Objects.equals(symbol, null))
             {
-                Helpers.addElementToObject(symbols, symbol, true);
+                ((Map<String, Object>)symbols).put((String)symbol, true);
             }
             Helpers.callDynamically(trades, "append", new Object[]{parsed});
         }
@@ -1756,7 +1756,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             Object symbol = ((Map<String, Object>)parsed).get("symbol");
             if (!java.util.Objects.equals(symbol, null))
             {
-                Helpers.addElementToObject(symbols, symbol, true);
+                ((Map<String, Object>)symbols).put((String)symbol, true);
             }
         }
         String messageHash = "orders";
@@ -2111,9 +2111,9 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             String currencyId = this.safeString(entry, "coin");
             String code = this.safeCurrencyCode(currencyId);
             Object account = this.account();
-            Helpers.addElementToObject(account, "free", this.safeString2(entry, "available", "amount"));
-            Helpers.addElementToObject(account, "used", this.safeString(entry, "frozen"));
-            Helpers.addElementToObject(account, "total", this.safeString2(entry, "equity", "legacyAmount"));
+            ((Map<String, Object>)account).put("free", this.safeString2(entry, "available", "amount"));
+            ((Map<String, Object>)account).put("used", this.safeString(entry, "frozen"));
+            ((Map<String, Object>)account).put("total", this.safeString2(entry, "equity", "legacyAmount"));
             if ((!java.util.Objects.equals(accountType, null)) && (!java.util.Objects.equals(code, null)))
             {
                 Helpers.addElementToObject(Helpers.GetValue(this.balance, accountType), code, account);

@@ -1095,8 +1095,8 @@ public class Pacifica extends PacificaApi
                 put( "info", data );
             }};
             Object usdcAccount = this.account();
-            Helpers.addElementToObject(usdcAccount, "total", this.safeString(data, "balance"));
-            Helpers.addElementToObject(usdcAccount, "used", this.safeString(data, "total_margin_used"));
+            ((Map<String, Object>)usdcAccount).put("total", this.safeString(data, "balance"));
+            ((Map<String, Object>)usdcAccount).put("used", this.safeString(data, "total_margin_used"));
             ((Map<String, Object>)result).put("USDC", usdcAccount);
             Object spotBalances = this.safeList(data, "spot_balances", new ArrayList<Object>(Arrays.asList()));
             for (var i = 0; i < ((List<?>)spotBalances).size(); i++)
@@ -1105,12 +1105,12 @@ public class Pacifica extends PacificaApi
                 String currencyId = this.safeString(balance, "symbol");
                 String code = this.safeCurrencyCode(currencyId);
                 Object account = this.account();
-                Helpers.addElementToObject(account, "total", this.safeString(balance, "amount"));
-                Helpers.addElementToObject(account, "free", this.safeString(balance, "available_to_withdraw"));
+                ((Map<String, Object>)account).put("total", this.safeString(balance, "amount"));
+                ((Map<String, Object>)account).put("free", this.safeString(balance, "available_to_withdraw"));
                 // skip a spot USDC entry so it can't clobber the perp-collateral account above
                 if ((!java.util.Objects.equals(code, null)) && !(((Map<?, ?>)result).containsKey(code)))
                 {
-                    Helpers.addElementToObject(result, code, account);
+                    ((Map<String, Object>)result).put((String)code, account);
                 }
             }
             Long timestamp = this.safeInteger(data, "updated_at");
@@ -1285,7 +1285,7 @@ public class Pacifica extends PacificaApi
             Object marketId = Helpers.GetValue(Helpers.GetValue(settings, i), "symbol");
             Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
             Object symbol = ((Map<String, Object>)market).get("symbol");
-            Helpers.addElementToObject(settingsBySymbol, symbol, Helpers.GetValue(settings, i));
+            ((Map<String, Object>)settingsBySymbol).put((String)symbol, Helpers.GetValue(settings, i));
         }
         return settingsBySymbol;
     }
@@ -2763,7 +2763,7 @@ public class Pacifica extends PacificaApi
                 String symbol = this.safeString(ticker, "symbol");
                 if (!java.util.Objects.equals(symbol, null))
                 {
-                    Helpers.addElementToObject(result, symbol, ticker);
+                    ((Map<String, Object>)result).put((String)symbol, ticker);
                 }
             }
             return this.filterByArrayTickers(result, "symbol", symbols);

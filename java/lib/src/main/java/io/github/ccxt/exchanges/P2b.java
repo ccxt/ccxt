@@ -1001,7 +1001,7 @@ public class P2b extends P2bApi
                 put( "free", available );
                 put( "used", used );
             }};
-            Helpers.addElementToObject(result, ((String)code), account);
+            ((Map<String, Object>)result).put((String)((String)code), account);
         }
         return this.safeBalance(result);
     }

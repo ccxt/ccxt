@@ -2738,11 +2738,11 @@ public class Alpaca extends AlpacaApi
         if (!java.util.Objects.equals(code, null))
         {
             Object cashAccount = this.account();
-            Helpers.addElementToObject(cashAccount, "free", this.safeString(account, "cash")); // cash already excludes the amounts held for open orders, verified live 2026-09-16
+            ((Map<String, Object>)cashAccount).put("free", this.safeString(account, "cash")); // cash already excludes the amounts held for open orders, verified live 2026-09-16
             String equity = this.safeString(account, "equity");
             String positionsValue = this.safeString(account, "position_market_value");
-            Helpers.addElementToObject(cashAccount, "total", Precise.stringSub(equity, positionsValue)); // equity minus the positions market value equals cash plus open-order holds; stringSub degrades to undefined when either field is absent and safeBalance then derives the total from free
-            Helpers.addElementToObject(result, code, cashAccount);
+            ((Map<String, Object>)cashAccount).put("total", Precise.stringSub(equity, positionsValue)); // equity minus the positions market value equals cash plus open-order holds; stringSub degrades to undefined when either field is absent and safeBalance then derives the total from free
+            ((Map<String, Object>)result).put((String)code, cashAccount);
         }
         for (var i = 0; i < ((List<?>)positions).size(); i++)
         {
@@ -2774,9 +2774,9 @@ public class Alpaca extends AlpacaApi
             if ((!java.util.Objects.equals(positionCode, null)) && !(((Map<?, ?>)result).containsKey(positionCode)))
             {
                 Object positionAccount = this.account();
-                Helpers.addElementToObject(positionAccount, "free", this.safeString(position, "qty_available"));
-                Helpers.addElementToObject(positionAccount, "total", this.safeString(position, "qty"));
-                Helpers.addElementToObject(result, positionCode, positionAccount);
+                ((Map<String, Object>)positionAccount).put("free", this.safeString(position, "qty_available"));
+                ((Map<String, Object>)positionAccount).put("total", this.safeString(position, "qty"));
+                ((Map<String, Object>)result).put((String)positionCode, positionAccount);
             }
         }
         return this.safeBalance(result);

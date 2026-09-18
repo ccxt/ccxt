@@ -1110,7 +1110,7 @@ public class Hitbtc extends HitbtcApi
             if (!java.util.Objects.equals(networkCode, null))
             {
                 final Object finalNetworkCode = networkCode;
-                Helpers.addElementToObject(networks, networkCode, new HashMap<String, Object>() {{
+                ((Map<String, Object>)networks).put((String)networkCode, new HashMap<String, Object>() {{
     put( "info", rawNetwork );
     put( "id", networkId );
     put( "network", finalNetworkCode );
@@ -1264,11 +1264,11 @@ public class Hitbtc extends HitbtcApi
             String currencyId = this.safeString(entry, "currency");
             String code = this.safeCurrencyCode(currencyId);
             Object account = this.account();
-            Helpers.addElementToObject(account, "free", this.safeString(entry, "available"));
-            Helpers.addElementToObject(account, "used", this.safeString(entry, "reserved"));
+            ((Map<String, Object>)account).put("free", this.safeString(entry, "available"));
+            ((Map<String, Object>)account).put("used", this.safeString(entry, "reserved"));
             if (!java.util.Objects.equals(code, null))
             {
-                Helpers.addElementToObject(result, code, account);
+                ((Map<String, Object>)result).put((String)code, account);
             }
         }
         return this.safeBalance(result);
@@ -1419,7 +1419,7 @@ public class Hitbtc extends HitbtcApi
                 Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
                 Object symbol = ((Map<String, Object>)market).get("symbol");
                 Object entry = this.safeDict(response, marketId, new HashMap<String, Object>() {{}});
-                Helpers.addElementToObject(result, symbol, this.parseTicker(entry, market));
+                ((Map<String, Object>)result).put((String)symbol, this.parseTicker(entry, market));
             }
             return this.filterByArrayTickers(result, "symbol", symbols);
         }).thenApply(Tickers::new);
@@ -2007,7 +2007,7 @@ public class Hitbtc extends HitbtcApi
                 Object orderbook = this.safeDict(response, marketId, new HashMap<String, Object>() {{}});
                 String symbol = this.safeSymbol(marketId);
                 Long timestamp = this.parse8601(this.safeString(orderbook, "timestamp"));
-                Helpers.addElementToObject(result, symbol, this.parseOrderBook(orderbook, symbol, timestamp, "bid", "ask"));
+                ((Map<String, Object>)result).put((String)symbol, this.parseOrderBook(orderbook, symbol, timestamp, "bid", "ask"));
             }
             return result;
         }).thenApply(OrderBooks::new);
@@ -2169,7 +2169,7 @@ public class Hitbtc extends HitbtcApi
                 Object symbol = ((Map<String, Object>)fee).get("symbol");
                 if (!java.util.Objects.equals(symbol, null))
                 {
-                    Helpers.addElementToObject(result, symbol, fee);
+                    ((Map<String, Object>)result).put((String)symbol, fee);
                 }
             }
             return result;
@@ -3532,7 +3532,7 @@ public class Hitbtc extends HitbtcApi
                 Map<String, Object> marketInner = (Map<String, Object>) this.market(marketId);
                 Object symbol = ((Map<String, Object>)marketInner).get("symbol");
                 Object fundingRate = this.parseFundingRate(rawFundingRate, marketInner);
-                Helpers.addElementToObject(fundingRates, symbol, fundingRate);
+                ((Map<String, Object>)fundingRates).put((String)symbol, fundingRate);
             }
             return this.filterByArray(fundingRates, "symbol", symbols);
         }).thenApply(FundingRates::new);

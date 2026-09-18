@@ -1285,10 +1285,10 @@ public class Deepcoin extends DeepcoinApi
             String symbol = this.safeString(balance, "ccy");
             Object code = this.safeCurrencyCode(symbol);
             Object account = this.account();
-            Helpers.addElementToObject(account, "total", this.safeString(balance, "bal"));
-            Helpers.addElementToObject(account, "used", this.safeString(balance, "frozenBal"));
-            Helpers.addElementToObject(account, "free", this.safeString(balance, "availBal"));
-            Helpers.addElementToObject(result, ((String)code), account);
+            ((Map<String, Object>)account).put("total", this.safeString(balance, "bal"));
+            ((Map<String, Object>)account).put("used", this.safeString(balance, "frozenBal"));
+            ((Map<String, Object>)account).put("free", this.safeString(balance, "availBal"));
+            ((Map<String, Object>)result).put((String)((String)code), account);
         }
         return this.safeBalance(result);
     }
@@ -1838,9 +1838,9 @@ public class Deepcoin extends DeepcoinApi
             Object fillResponseFromRequest = this.safeBool(transferOptions, "fillResponseFromRequest", true);
             if (java.util.Objects.equals(fillResponseFromRequest, true))
             {
-                Helpers.addElementToObject(transfer, "fromAccount", fromAccount);
-                Helpers.addElementToObject(transfer, "toAccount", toAccount);
-                Helpers.addElementToObject(transfer, "amount", amount);
+                ((Map<String, Object>)transfer).put("fromAccount", fromAccount);
+                ((Map<String, Object>)transfer).put("toAccount", toAccount);
+                ((Map<String, Object>)transfer).put("amount", amount);
             }
             return transfer;
         }).thenApply(TransferEntry::new);

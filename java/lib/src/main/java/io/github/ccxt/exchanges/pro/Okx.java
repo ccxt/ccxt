@@ -533,7 +533,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
                 Map<String, Object> result = new HashMap<String, Object>() {{}};
                 if (!java.util.Objects.equals(symbol, null))
                 {
-                    Helpers.addElementToObject(result, symbol, fundingRate);
+                    ((Map<String, Object>)result).put((String)symbol, fundingRate);
                 }
                 return result;
             }
@@ -817,7 +817,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
         {
             Object ticker = this.parseTicker(Helpers.GetValue(data, i));
             Helpers.addElementToObject(this.tickers, symbol, ticker);
-            Helpers.addElementToObject(newTickers, symbol, ticker);
+            ((Map<String, Object>)newTickers).put((String)symbol, ticker);
         }
         Object messageHash = Helpers.add(Helpers.add(channel, "::"), symbol);
         client.resolve(newTickers, messageHash);
@@ -2683,7 +2683,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             Object symbol = ((Map<String, Object>)trade).get("symbol");
             if (!java.util.Objects.equals(symbol, null))
             {
-                Helpers.addElementToObject(symbols, symbol, true);
+                ((Map<String, Object>)symbols).put((String)symbol, true);
             }
         }
         Object messageHash = Helpers.add(channel, "::myTrades");

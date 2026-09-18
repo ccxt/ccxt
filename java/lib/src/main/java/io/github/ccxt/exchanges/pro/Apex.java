@@ -908,7 +908,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
             Object rawTrade = Helpers.GetValue(lists, i);
             Object parsed = this.parseWsTrade(rawTrade);
             Object symbol = ((Map<String, Object>)parsed).get("symbol");
-            Helpers.addElementToObject(symbols, ((String)symbol), true);
+            ((Map<String, Object>)symbols).put((String)((String)symbol), true);
             Helpers.callDynamically(trades, "append", new Object[]{parsed});
         }
         Object keys = Helpers.objectKeys(symbols);
@@ -964,7 +964,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
         {
             Object parsed = this.parseOrder(Helpers.GetValue(lists, i));
             Object symbol = ((Map<String, Object>)parsed).get("symbol");
-            Helpers.addElementToObject(symbols, ((String)symbol), true);
+            ((Map<String, Object>)symbols).put((String)((String)symbol), true);
             Helpers.callDynamically(orders, "append", new Object[]{parsed});
         }
         Object symbolsArray = Helpers.objectKeys(symbols);

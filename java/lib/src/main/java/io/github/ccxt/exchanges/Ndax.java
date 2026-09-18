@@ -1633,11 +1633,11 @@ public class Ndax extends NdaxApi
             {
                 String code = this.safeCurrencyCode(currencyId);
                 Object account = this.account();
-                Helpers.addElementToObject(account, "total", this.safeString(balance, "Amount"));
-                Helpers.addElementToObject(account, "used", this.safeString(balance, "Hold"));
+                ((Map<String, Object>)account).put("total", this.safeString(balance, "Amount"));
+                ((Map<String, Object>)account).put("used", this.safeString(balance, "Hold"));
                 if (!java.util.Objects.equals(code, null))
                 {
-                    Helpers.addElementToObject(result, code, account);
+                    ((Map<String, Object>)result).put((String)code, account);
                 }
             }
         }

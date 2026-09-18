@@ -1355,7 +1355,7 @@ public class Kraken extends KrakenApi
                 Map<String, Object> market = (Map<String, Object>) this.safeMarket(id);
                 Object symbol = ((Map<String, Object>)market).get("symbol");
                 Object ticker = Helpers.GetValue(tickers, id);
-                Helpers.addElementToObject(result, symbol, this.parseTicker(ticker, market));
+                ((Map<String, Object>)result).put((String)symbol, this.parseTicker(ticker, market));
             }
             return this.filterByArrayTickers(result, "symbol", symbols);
         }).thenApply(Tickers::new);
@@ -1947,11 +1947,11 @@ public class Kraken extends KrakenApi
             String code = this.safeCurrencyCode(currencyId);
             Object balance = this.safeValue(balances, currencyId, new HashMap<String, Object>() {{}});
             Object account = this.account();
-            Helpers.addElementToObject(account, "used", this.safeString(balance, "hold_trade"));
-            Helpers.addElementToObject(account, "total", this.safeString(balance, "balance"));
+            ((Map<String, Object>)account).put("used", this.safeString(balance, "hold_trade"));
+            ((Map<String, Object>)account).put("total", this.safeString(balance, "balance"));
             if (!java.util.Objects.equals(code, null))
             {
-                Helpers.addElementToObject(result, code, account);
+                ((Map<String, Object>)result).put((String)code, account);
             }
         }
         return this.safeBalance(result);

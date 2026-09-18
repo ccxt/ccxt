@@ -597,7 +597,7 @@ public class Zebpay extends ZebpayApi
                 final Object finalWithdrawFeeString = withdrawFeeString;
                 final Object finalMinNetworkWithdrawString = minNetworkWithdrawString;
                 final Object finalMinNetworkDepositString = minNetworkDepositString;
-                Helpers.addElementToObject(networks, networkCode, new HashMap<String, Object>() {{
+                ((Map<String, Object>)networks).put((String)networkCode, new HashMap<String, Object>() {{
     put( "info", chain );
     put( "id", networkId );
     put( "network", finalNetworkCode );
@@ -769,7 +769,7 @@ public class Zebpay extends ZebpayApi
                 Object symbol = ((Map<String, Object>)fee).get("symbol");
                 if (!java.util.Objects.equals(symbol, null))
                 {
-                    Helpers.addElementToObject(result, symbol, fee);
+                    ((Map<String, Object>)result).put((String)symbol, fee);
                 }
             }
             return result;
@@ -829,7 +829,7 @@ public class Zebpay extends ZebpayApi
             }
             Object bookData = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             Object orderbook = this.parseOrderBook(bookData, ((Map<String, Object>)market).get("symbol"), null, "bids", "asks", 0, 1);
-            Helpers.addElementToObject(orderbook, "nonce", this.safeInteger(bookData, "nonce"));
+            ((Map<String, Object>)orderbook).put("nonce", this.safeInteger(bookData, "nonce"));
             return orderbook;
         }).thenApply(OrderBook::new);
 
@@ -2240,14 +2240,14 @@ public class Zebpay extends ZebpayApi
         {
             Object entry = Helpers.GetValue(currencyList, i);
             Object account = this.account();
-            Helpers.addElementToObject(account, "total", this.safeString(entry, "total"));
-            Helpers.addElementToObject(account, "free", this.safeString(entry, "free"));
-            Helpers.addElementToObject(account, "used", this.safeString(entry, "used"));
+            ((Map<String, Object>)account).put("total", this.safeString(entry, "total"));
+            ((Map<String, Object>)account).put("free", this.safeString(entry, "free"));
+            ((Map<String, Object>)account).put("used", this.safeString(entry, "used"));
             String currencyId = this.safeString(entry, "currency");
             String code = this.safeCurrencyCode(currencyId);
             if (!java.util.Objects.equals(code, null))
             {
-                Helpers.addElementToObject(result, code, account);
+                ((Map<String, Object>)result).put((String)code, account);
             }
         }
         return this.safeBalance(result);

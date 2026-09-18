@@ -766,7 +766,7 @@ public class Bitteam extends BitteamApi
         if ((!java.util.Objects.equals(blockChain, null)) && (!java.util.Objects.equals(blockChain, "")))
         {
             fee = this.parseNumber(withdrawCommissionFixed);
-            Helpers.addElementToObject(feesByNetworkId, blockChain, fee);
+            ((Map<String, Object>)feesByNetworkId).put((String)blockChain, fee);
         } else
         {
             feesByNetworkId = withdrawCommissionFixed;
@@ -786,7 +786,7 @@ public class Bitteam extends BitteamApi
             if (!java.util.Objects.equals(networkCode, null))
             {
                 final Object finalNetworkCode = networkCode;
-                Helpers.addElementToObject(networks, networkCode, new HashMap<String, Object>() {{
+                ((Map<String, Object>)networks).put((String)networkCode, new HashMap<String, Object>() {{
     put( "id", networkId );
     put( "network", finalNetworkCode );
     put( "deposit", deposit );
@@ -2478,7 +2478,7 @@ public class Bitteam extends BitteamApi
             String currencyCode = this.safeCurrencyCode(((String)rawCurrencyId).toLowerCase());
             if (!java.util.Objects.equals(currencyCode, null))
             {
-                Helpers.addElementToObject(balance, currencyCode, new HashMap<String, Object>() {{
+                ((Map<String, Object>)balance).put((String)currencyCode, new HashMap<String, Object>() {{
     put( "free", free );
     put( "used", used );
     put( "total", total );

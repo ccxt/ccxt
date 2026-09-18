@@ -1018,7 +1018,7 @@ public class Krakenfutures extends KrakenfuturesApi
                 String uid = this.safeString(schedule, "uid");
                 if (!java.util.Objects.equals(uid, null))
                 {
-                    Helpers.addElementToObject(schedulesByUid, uid, schedule);
+                    ((Map<String, Object>)schedulesByUid).put((String)uid, schedule);
                 }
             }
             Map<String, Object> result = new HashMap<String, Object>() {{}};
@@ -1034,7 +1034,7 @@ public class Krakenfutures extends KrakenfuturesApi
                     continue;
                 }
                 String volume = this.safeString(volumes, uid, "0");
-                Helpers.addElementToObject(result, symbol, this.parseTradingFee(schedule, market, volume));
+                ((Map<String, Object>)result).put((String)symbol, this.parseTradingFee(schedule, market, volume));
             }
             return result;
         }).thenApply(TradingFees::new);
@@ -3579,21 +3579,21 @@ public class Krakenfutures extends KrakenfuturesApi
             Object account = this.account();
             if (Helpers.isTrue(isFlex))
             {
-                Helpers.addElementToObject(account, "total", this.safeString(balance, "quantity"));
-                Helpers.addElementToObject(account, "free", this.safeString(balance, "available"));
+                ((Map<String, Object>)account).put("total", this.safeString(balance, "quantity"));
+                ((Map<String, Object>)account).put("free", this.safeString(balance, "available"));
             } else if (Helpers.isTrue(isCash))
             {
-                Helpers.addElementToObject(account, "used", "0.0");
-                Helpers.addElementToObject(account, "total", balance);
+                ((Map<String, Object>)account).put("used", "0.0");
+                ((Map<String, Object>)account).put("total", balance);
             } else
             {
                 Object auxiliary = this.safeValue(response, "auxiliary");
-                Helpers.addElementToObject(account, "free", this.safeString(auxiliary, "af"));
-                Helpers.addElementToObject(account, "total", this.safeString(auxiliary, "pv"));
+                ((Map<String, Object>)account).put("free", this.safeString(auxiliary, "af"));
+                ((Map<String, Object>)account).put("total", this.safeString(auxiliary, "pv"));
             }
             if (!java.util.Objects.equals(code, null))
             {
-                Helpers.addElementToObject(result, code, account);
+                ((Map<String, Object>)result).put((String)code, account);
             }
         }
         return this.safeBalance(result);

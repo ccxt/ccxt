@@ -668,11 +668,11 @@ public class Mercado extends MercadoApi
             {
                 Object balance = this.safeValue(balances, currencyId, new HashMap<String, Object>() {{}});
                 Object account = this.account();
-                Helpers.addElementToObject(account, "free", this.safeString(balance, "available"));
-                Helpers.addElementToObject(account, "total", this.safeString(balance, "total"));
+                ((Map<String, Object>)account).put("free", this.safeString(balance, "available"));
+                ((Map<String, Object>)account).put("total", this.safeString(balance, "total"));
                 if (!java.util.Objects.equals(code, null))
                 {
-                    Helpers.addElementToObject(result, code, account);
+                    ((Map<String, Object>)result).put((String)code, account);
                 }
             }
         }

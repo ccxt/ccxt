@@ -2826,7 +2826,7 @@ public class Bybit extends BybitApi
             if (!java.util.Objects.equals(networkCode, null))
             {
                 final Object finalNetworkCode = networkCode;
-                Helpers.addElementToObject(networks, networkCode, new HashMap<String, Object>() {{
+                ((Map<String, Object>)networks).put((String)networkCode, new HashMap<String, Object>() {{
     put( "info", chain );
     put( "id", networkId );
     put( "network", finalNetworkCode );
@@ -4837,9 +4837,9 @@ public class Bybit extends BybitApi
             // usdc wallet
             String code = "USDC";
             Object account = this.account();
-            Helpers.addElementToObject(account, "free", this.safeString(responseResult, "availableBalance"));
-            Helpers.addElementToObject(account, "total", this.safeString(responseResult, "walletBalance"));
-            Helpers.addElementToObject(result, code, account);
+            ((Map<String, Object>)account).put("free", this.safeString(responseResult, "availableBalance"));
+            ((Map<String, Object>)account).put("total", this.safeString(responseResult, "walletBalance"));
+            ((Map<String, Object>)result).put((String)code, account);
         } else
         {
             for (var i = 0; i < ((List<?>)currencyList).size(); i++)
@@ -4857,13 +4857,13 @@ public class Bybit extends BybitApi
                         String interest = this.safeString(coinEntry, "accruedInterest");
                         if ((!java.util.Objects.equals(loan, null)) && (!java.util.Objects.equals(interest, null)))
                         {
-                            Helpers.addElementToObject(account, "debt", Precise.stringAdd(loan, interest));
+                            ((Map<String, Object>)account).put("debt", Precise.stringAdd(loan, interest));
                         }
-                        Helpers.addElementToObject(account, "total", this.safeString(coinEntry, "walletBalance"));
+                        ((Map<String, Object>)account).put("total", this.safeString(coinEntry, "walletBalance"));
                         String free = this.safeString2(coinEntry, "availableToWithdraw", "free");
                         if (!java.util.Objects.equals(free, null))
                         {
-                            Helpers.addElementToObject(account, "free", free);
+                            ((Map<String, Object>)account).put("free", free);
                         } else
                         {
                             String locked = this.safeString(coinEntry, "locked", "0");
@@ -4871,14 +4871,14 @@ public class Bybit extends BybitApi
                             String totalOrderIm = this.safeString(coinEntry, "totalOrderIM", "0");
                             String totalUsed = Precise.stringAdd(locked, totalPositionIm);
                             totalUsed = Precise.stringAdd(totalUsed, totalOrderIm);
-                            Helpers.addElementToObject(account, "used", totalUsed);
+                            ((Map<String, Object>)account).put("used", totalUsed);
                         }
                         // account['used'] = this.safeString (coinEntry, 'locked');
                         String currencyId = this.safeString(coinEntry, "coin");
                         String code = this.safeCurrencyCode(currencyId);
                         if (!java.util.Objects.equals(code, null))
                         {
-                            Helpers.addElementToObject(result, code, account);
+                            ((Map<String, Object>)result).put((String)code, account);
                         }
                     }
                 } else
@@ -4888,16 +4888,16 @@ public class Bybit extends BybitApi
                     String interest = this.safeString(entry, "interest");
                     if ((!java.util.Objects.equals(loan, null)) && (!java.util.Objects.equals(interest, null)))
                     {
-                        Helpers.addElementToObject(account, "debt", Precise.stringAdd(loan, interest));
+                        ((Map<String, Object>)account).put("debt", Precise.stringAdd(loan, interest));
                     }
-                    Helpers.addElementToObject(account, "total", this.safeString2(entry, "total", "walletBalance"));
-                    Helpers.addElementToObject(account, "free", this.safeStringN(entry, new ArrayList<Object>(Arrays.asList("free", "availableBalanceWithoutConvert", "availableBalance", "transferBalance"))));
-                    Helpers.addElementToObject(account, "used", this.safeString(entry, "locked"));
+                    ((Map<String, Object>)account).put("total", this.safeString2(entry, "total", "walletBalance"));
+                    ((Map<String, Object>)account).put("free", this.safeStringN(entry, new ArrayList<Object>(Arrays.asList("free", "availableBalanceWithoutConvert", "availableBalance", "transferBalance"))));
+                    ((Map<String, Object>)account).put("used", this.safeString(entry, "locked"));
                     String currencyId = this.safeStringN(entry, new ArrayList<Object>(Arrays.asList("tokenId", "coin", "currencyCoin")));
                     String code = this.safeCurrencyCode(currencyId);
                     if (!java.util.Objects.equals(code, null))
                     {
-                        Helpers.addElementToObject(result, code, account);
+                        ((Map<String, Object>)result).put((String)code, account);
                     }
                 }
             }
@@ -6562,7 +6562,7 @@ public class Bybit extends BybitApi
                 Map<String, Object> orderItem = new HashMap<String, Object>() {{
                     put( "symbol", ((Map<String, Object>)market).get("id") );
                 }};
-                Helpers.addElementToObject(orderItem, idKey, (((java.util.Objects.equals(idKey, "orderId")))) ? id : clientOrderId);
+                ((Map<String, Object>)orderItem).put((String)idKey, (((java.util.Objects.equals(idKey, "orderId")))) ? id : clientOrderId);
                 ((List<Object>)ordersRequests).add(orderItem);
             }
             final Object finalCategory = category;
@@ -8088,7 +8088,7 @@ public class Bybit extends BybitApi
             if (!java.util.Objects.equals(code, null))
             {
                 currency = this.currency(code);
-                Helpers.addElementToObject(request, currencyKey, ((Map<String, Object>)currency).get("id"));
+                ((Map<String, Object>)request).put((String)currencyKey, ((Map<String, Object>)currency).get("id"));
             }
             if (!java.util.Objects.equals(limit, null))
             {
@@ -10243,7 +10243,7 @@ public class Bybit extends BybitApi
                 Object symbol = ((Map<String, Object>)fee).get("symbol");
                 if (!java.util.Objects.equals(symbol, null))
                 {
-                    Helpers.addElementToObject(result, symbol, fee);
+                    ((Map<String, Object>)result).put((String)symbol, fee);
                 }
             }
             return result;
@@ -11176,7 +11176,7 @@ public class Bybit extends BybitApi
             }
             Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, null, null, "contract");
             Object symbol = ((Map<String, Object>)market).get("symbol");
-            Helpers.addElementToObject(tiers, symbol, this.parseMarketLeverageTiers(this.sortBy(entry, "id"), market));
+            ((Map<String, Object>)tiers).put((String)symbol, this.parseMarketLeverageTiers(this.sortBy(entry, "id"), market));
         }
         return tiers;
     }
@@ -11746,7 +11746,7 @@ final Object finalMarket = market;
                 if (!java.util.Objects.equals(code, null))
                 {
                     final Object finalCode = code;
-                    Helpers.addElementToObject(result, code, new HashMap<String, Object>() {{
+                    ((Map<String, Object>)result).put((String)code, new HashMap<String, Object>() {{
         put( "info", entry );
         put( "id", id );
         put( "code", finalCode );

@@ -783,11 +783,11 @@ public class Btcmarkets extends BtcmarketsApi
             String currencyId = this.safeString(balance, "assetName");
             String code = this.safeCurrencyCode(currencyId);
             Object account = this.account();
-            Helpers.addElementToObject(account, "used", this.safeString(balance, "locked"));
-            Helpers.addElementToObject(account, "total", this.safeString(balance, "balance"));
+            ((Map<String, Object>)account).put("used", this.safeString(balance, "locked"));
+            ((Map<String, Object>)account).put("total", this.safeString(balance, "balance"));
             if (!java.util.Objects.equals(code, null))
             {
-                Helpers.addElementToObject(result, code, account);
+                ((Map<String, Object>)result).put((String)code, account);
             }
         }
         return this.safeBalance(result);
@@ -928,7 +928,7 @@ public class Btcmarkets extends BtcmarketsApi
             //
             Long timestamp = this.safeIntegerProduct(response, "snapshotId", 0.001);
             Object orderbook = this.parseOrderBook(response, symbol, timestamp);
-            Helpers.addElementToObject(orderbook, "nonce", this.safeInteger(response, "snapshotId"));
+            ((Map<String, Object>)orderbook).put("nonce", this.safeInteger(response, "snapshotId"));
             return orderbook;
         }).thenApply(OrderBook::new);
 

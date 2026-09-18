@@ -3063,7 +3063,7 @@ public class Dydx extends DydxApi
     public Object parseBalance(Object response)
     {
         Object account = this.account();
-        Helpers.addElementToObject(account, "free", this.safeString(response, "freeCollateral"));
+        ((Map<String, Object>)account).put("free", this.safeString(response, "freeCollateral"));
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", response );
             put( "USDC", account );

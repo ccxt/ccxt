@@ -1986,8 +1986,8 @@ public class Bullish extends BullishApi
             }
             String sinceDate = this.iso8601(since);
             String untilDate = this.iso8601(until);
-            Helpers.addElementToObject(parameters, sinceKey, sinceDate);
-            Helpers.addElementToObject(parameters, untilKey, untilDate);
+            ((Map<String, Object>)parameters).put((String)sinceKey, sinceDate);
+            ((Map<String, Object>)parameters).put((String)untilKey, untilDate);
         }
         return parameters;
     }
@@ -2747,8 +2747,8 @@ public class Bullish extends BullishApi
         Double feeCost = this.safeNumber(transaction, "fee");
         if (!java.util.Objects.equals(feeCost, null))
         {
-            Helpers.addElementToObject(fee, "cost", feeCost);
-            Helpers.addElementToObject(fee, "currency", code);
+            ((Map<String, Object>)fee).put("cost", feeCost);
+            ((Map<String, Object>)fee).put("currency", code);
         }
         return new HashMap<String, Object>() {{
             put( "id", id );
@@ -3086,9 +3086,9 @@ public class Bullish extends BullishApi
             put( "info", response );
         }};
         Object account = this.account();
-        Helpers.addElementToObject(account, "free", this.safeString(response, "availableQuantity"));
-        Helpers.addElementToObject(account, "used", this.safeString(response, "lockedQuantity"));
-        Helpers.addElementToObject(result, ((String)code), account);
+        ((Map<String, Object>)account).put("free", this.safeString(response, "availableQuantity"));
+        ((Map<String, Object>)account).put("used", this.safeString(response, "lockedQuantity"));
+        ((Map<String, Object>)result).put((String)((String)code), account);
         return this.safeBalance(result);
     }
 
@@ -3103,11 +3103,11 @@ public class Bullish extends BullishApi
             String symbol = this.safeString(balance, "assetSymbol");
             String code = this.safeCurrencyCode(symbol);
             Object account = this.account();
-            Helpers.addElementToObject(account, "total", this.safeString(balance, "availableQuantity"));
-            Helpers.addElementToObject(account, "used", this.safeString(balance, "lockedQuantity"));
+            ((Map<String, Object>)account).put("total", this.safeString(balance, "availableQuantity"));
+            ((Map<String, Object>)account).put("used", this.safeString(balance, "lockedQuantity"));
             if (!java.util.Objects.equals(code, null))
             {
-                Helpers.addElementToObject(result, code, account);
+                ((Map<String, Object>)result).put((String)code, account);
             }
         }
         return this.safeBalance(result);
@@ -3350,10 +3350,10 @@ public class Bullish extends BullishApi
             Object transfer = this.parseTransfer(response, currency);
             if (java.util.Objects.equals(fillResponseFromRequest, true))
             {
-                Helpers.addElementToObject(transfer, "fromAccount", fromAccount);
-                Helpers.addElementToObject(transfer, "toAccount", toAccount);
-                Helpers.addElementToObject(transfer, "amount", amount);
-                Helpers.addElementToObject(transfer, "currency", code);
+                ((Map<String, Object>)transfer).put("fromAccount", fromAccount);
+                ((Map<String, Object>)transfer).put("toAccount", toAccount);
+                ((Map<String, Object>)transfer).put("amount", amount);
+                ((Map<String, Object>)transfer).put("currency", code);
             }
             return transfer;
         }).thenApply(TransferEntry::new);

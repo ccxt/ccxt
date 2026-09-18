@@ -1354,7 +1354,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
                         throw new AuthenticationError((this.id + " authenticate() received an empty token")) ;
                     }
                     Helpers.addElementToObject(subscription, "start", now);
-                    Helpers.addElementToObject(client.subscriptions, authenticated, subscription);
+                    ((Map)client.subscriptions).put((String)authenticated, subscription);
                     // settle the flight and wake every waiter - resolve () also
                     // clears the registry entry, so the next refresh re-leads
                     client.resolve(token, messageHash);
@@ -1493,7 +1493,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
                 Object parsed = this.parseWsTrade(trade);
                 Helpers.callDynamically(stored, "append", new Object[]{parsed});
                 Object symbol = ((String)Helpers.GetValue(parsed, "symbol"));
-                Helpers.addElementToObject(symbols, symbol, true);
+                ((Map<String, Object>)symbols).put((String)symbol, true);
             }
             String name = "myTrades";
             client.resolve(this.myTrades, name);
@@ -1665,7 +1665,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
                 Helpers.callDynamically(stored, "append", new Object[]{newOrder});
                 if (!java.util.Objects.equals(symbol, null))
                 {
-                    Helpers.addElementToObject(symbols, symbol, true);
+                    ((Map<String, Object>)symbols).put((String)symbol, true);
                 }
             }
             String name = "orders";
@@ -1862,8 +1862,8 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
             Object code = ((String)this.safeCurrencyCode(currencyId));
             Object account = this.account();
             String eq = this.safeString(Helpers.GetValue(data, i), "balance");
-            Helpers.addElementToObject(account, "total", eq);
-            Helpers.addElementToObject(result, code, account);
+            ((Map<String, Object>)account).put("total", eq);
+            ((Map<String, Object>)result).put((String)code, account);
         }
         String type = "spot";
         Object balance = this.safeBalance(result);
@@ -1924,7 +1924,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
         String channelId = this.safeString(message, "channelID");
         if (!java.util.Objects.equals(channelId, null))
         {
-            Helpers.addElementToObject(client.subscriptions, channelId, message);
+            ((Map)client.subscriptions).put((String)channelId, message);
         }
     }
 

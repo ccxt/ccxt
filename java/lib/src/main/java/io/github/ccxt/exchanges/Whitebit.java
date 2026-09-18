@@ -1032,7 +1032,7 @@ public class Whitebit extends WhitebitApi
             if (!java.util.Objects.equals(networkCode, null))
             {
                 final Object finalNetworkCode = networkCode;
-                Helpers.addElementToObject(networks, networkCode, new HashMap<String, Object>() {{
+                ((Map<String, Object>)networks).put((String)networkCode, new HashMap<String, Object>() {{
     put( "id", networkId );
     put( "network", finalNetworkCode );
     put( "active", null );
@@ -1141,12 +1141,12 @@ public class Whitebit extends WhitebitApi
                 Object withdraw = this.safeValue(data, "withdraw", new HashMap<String, Object>() {{}});
                 if (!java.util.Objects.equals(code, null))
                 {
-                    Helpers.addElementToObject(withdrawFees, code, this.safeString(withdraw, "fixed"));
+                    ((Map<String, Object>)withdrawFees).put((String)code, this.safeString(withdraw, "fixed"));
                 }
                 Object deposit = this.safeValue(data, "deposit", new HashMap<String, Object>() {{}});
                 if (!java.util.Objects.equals(code, null))
                 {
-                    Helpers.addElementToObject(depositFees, code, this.safeString(deposit, "fixed"));
+                    ((Map<String, Object>)depositFees).put((String)code, this.safeString(deposit, "fixed"));
                 }
             }
             return new HashMap<String, Object>() {{
@@ -1287,7 +1287,7 @@ public class Whitebit extends WhitebitApi
                 Object depositWithdrawFee = this.safeValue(depositWithdrawFees, code);
                 if (java.util.Objects.equals(depositWithdrawFee, null))
                 {
-                    Helpers.addElementToObject(depositWithdrawFees, code, this.depositWithdrawFee(new HashMap<String, Object>() {{}}));
+                    ((Map<String, Object>)depositWithdrawFees).put((String)code, this.depositWithdrawFee(new HashMap<String, Object>() {{}}));
                 }
                 Helpers.addElementToObject(Helpers.GetValue(Helpers.GetValue(depositWithdrawFees, code), "info"), entry, feeInfo);
                 String networkId = this.safeString(splitEntry, 1);
@@ -1329,7 +1329,7 @@ public class Whitebit extends WhitebitApi
         {
             Object code = Helpers.GetValue(depositWithdrawCodes, i);
             Map<String, Object> currency = (Map<String, Object>) this.currency(code);
-            Helpers.addElementToObject(depositWithdrawFees, code, this.assignDefaultDepositWithdrawFees(Helpers.GetValue(depositWithdrawFees, code), currency));
+            ((Map<String, Object>)depositWithdrawFees).put((String)code, this.assignDefaultDepositWithdrawFees(Helpers.GetValue(depositWithdrawFees, code), currency));
         }
         return depositWithdrawFees;
     }
@@ -1383,7 +1383,7 @@ public class Whitebit extends WhitebitApi
                 takerFee = Precise.stringDiv(takerFee, "100");
                 final Object finalMakerFee = makerFee;
                 final Object finalTakerFee = takerFee;
-                Helpers.addElementToObject(result, symbol, new HashMap<String, Object>() {{
+                ((Map<String, Object>)result).put((String)symbol, new HashMap<String, Object>() {{
         put( "info", fee );
         put( "symbol", ((Map<String, Object>)market).get("symbol") );
         put( "percentage", true );
@@ -1699,7 +1699,7 @@ public class Whitebit extends WhitebitApi
                     ((Map<String, Object>)limits).put("networks", ((Map<String, Object>)currency).get("networks"));
                 }
                 final Object finalCurrency = currency;
-                Helpers.addElementToObject(result, code, new HashMap<String, Object>() {{
+                ((Map<String, Object>)result).put((String)code, new HashMap<String, Object>() {{
         put( "info", finalCurrency );
         put( "limits", limits );
     }});
@@ -2108,7 +2108,7 @@ public class Whitebit extends WhitebitApi
                 Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
                 Object ticker = this.parseTicker(Helpers.GetValue(response, marketId), market);
                 Object symbol = ((Map<String, Object>)ticker).get("symbol");
-                Helpers.addElementToObject(result, ((String)symbol), ticker);
+                ((Map<String, Object>)result).put((String)((String)symbol), ticker);
             }
             return this.filterByArrayTickers(result, "symbol", symbols);
         }).thenApply(Tickers::new);
@@ -3060,20 +3060,20 @@ public class Whitebit extends WhitebitApi
             if (!java.util.Objects.equals(balance, null) && Helpers.isTrue(this.isDictionary(balance)))
             {
                 Object account = this.account();
-                Helpers.addElementToObject(account, "free", this.safeString2(balance, "available", "main_balance"));
-                Helpers.addElementToObject(account, "used", this.safeString(balance, "freeze"));
-                Helpers.addElementToObject(account, "total", this.safeString(balance, "main_balance"));
+                ((Map<String, Object>)account).put("free", this.safeString2(balance, "available", "main_balance"));
+                ((Map<String, Object>)account).put("used", this.safeString(balance, "freeze"));
+                ((Map<String, Object>)account).put("total", this.safeString(balance, "main_balance"));
                 if (!java.util.Objects.equals(code, null))
                 {
-                    Helpers.addElementToObject(result, code, account);
+                    ((Map<String, Object>)result).put((String)code, account);
                 }
             } else
             {
                 Object account = this.account();
-                Helpers.addElementToObject(account, "total", balance);
+                ((Map<String, Object>)account).put("total", balance);
                 if (!java.util.Objects.equals(code, null))
                 {
-                    Helpers.addElementToObject(result, code, account);
+                    ((Map<String, Object>)result).put((String)code, account);
                 }
             }
         }

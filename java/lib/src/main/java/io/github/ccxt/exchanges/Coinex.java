@@ -1323,7 +1323,7 @@ public class Coinex extends CoinexApi
             }};
             if (!java.util.Objects.equals(networkCode, null))
             {
-                Helpers.addElementToObject(networks, networkCode, network);
+                ((Map<String, Object>)networks).put((String)networkCode, network);
             }
         }
         return this.safeCurrencyStructure(new HashMap<String, Object>() {{
@@ -2130,7 +2130,7 @@ public class Coinex extends CoinexApi
                 String marketId = this.safeString(entry, "market");
                 Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, null, null, type);
                 Object symbol = ((Map<String, Object>)market).get("symbol");
-                Helpers.addElementToObject(result, symbol, this.parseTradingFee(entry, market));
+                ((Map<String, Object>)result).put((String)symbol, this.parseTradingFee(entry, market));
             }
             return result;
         }).thenApply(TradingFees::new);
@@ -2295,14 +2295,14 @@ public class Coinex extends CoinexApi
                 Object baseAccount = this.account();
                 String baseCurrencyId = this.safeString(entry, "base_ccy");
                 String baseCurrencyCode = this.safeCurrencyCode(baseCurrencyId);
-                Helpers.addElementToObject(baseAccount, "free", this.safeString(free, "base_ccy"));
-                Helpers.addElementToObject(baseAccount, "used", this.safeString(used, "base_ccy"));
+                ((Map<String, Object>)baseAccount).put("free", this.safeString(free, "base_ccy"));
+                ((Map<String, Object>)baseAccount).put("used", this.safeString(used, "base_ccy"));
                 String baseDebt = this.safeString(loan, "base_ccy");
                 String baseInterest = this.safeString(interest, "base_ccy");
-                Helpers.addElementToObject(baseAccount, "debt", Precise.stringAdd(baseDebt, baseInterest));
+                ((Map<String, Object>)baseAccount).put("debt", Precise.stringAdd(baseDebt, baseInterest));
                 if (!java.util.Objects.equals(baseCurrencyCode, null))
                 {
-                    Helpers.addElementToObject(result, baseCurrencyCode, baseAccount);
+                    ((Map<String, Object>)result).put((String)baseCurrencyCode, baseAccount);
                 }
             }
             return this.safeBalance(result);
@@ -2344,11 +2344,11 @@ public class Coinex extends CoinexApi
                 String currencyId = this.safeString(entry, "ccy");
                 String code = this.safeCurrencyCode(currencyId);
                 Object account = this.account();
-                Helpers.addElementToObject(account, "free", this.safeString(entry, "available"));
-                Helpers.addElementToObject(account, "used", this.safeString(entry, "frozen"));
+                ((Map<String, Object>)account).put("free", this.safeString(entry, "available"));
+                ((Map<String, Object>)account).put("used", this.safeString(entry, "frozen"));
                 if (!java.util.Objects.equals(code, null))
                 {
-                    Helpers.addElementToObject(result, code, account);
+                    ((Map<String, Object>)result).put((String)code, account);
                 }
             }
             return this.safeBalance(result);
@@ -2393,11 +2393,11 @@ public class Coinex extends CoinexApi
                 String currencyId = this.safeString(entry, "ccy");
                 String code = this.safeCurrencyCode(currencyId);
                 Object account = this.account();
-                Helpers.addElementToObject(account, "free", this.safeString(entry, "available"));
-                Helpers.addElementToObject(account, "used", this.safeString(entry, "frozen"));
+                ((Map<String, Object>)account).put("free", this.safeString(entry, "available"));
+                ((Map<String, Object>)account).put("used", this.safeString(entry, "frozen"));
                 if (!java.util.Objects.equals(code, null))
                 {
-                    Helpers.addElementToObject(result, code, account);
+                    ((Map<String, Object>)result).put((String)code, account);
                 }
             }
             return this.safeBalance(result);
@@ -2439,11 +2439,11 @@ public class Coinex extends CoinexApi
                 String currencyId = this.safeString(entry, "ccy");
                 String code = this.safeCurrencyCode(currencyId);
                 Object account = this.account();
-                Helpers.addElementToObject(account, "free", this.safeString(entry, "available"));
-                Helpers.addElementToObject(account, "used", this.safeString(entry, "frozen"));
+                ((Map<String, Object>)account).put("free", this.safeString(entry, "available"));
+                ((Map<String, Object>)account).put("used", this.safeString(entry, "frozen"));
                 if (!java.util.Objects.equals(code, null))
                 {
-                    Helpers.addElementToObject(result, code, account);
+                    ((Map<String, Object>)result).put((String)code, account);
                 }
             }
             return this.safeBalance(result);
@@ -6097,7 +6097,7 @@ final Object finalI = i;
                 {
                     if (!java.util.Objects.equals(code, null))
                     {
-                        Helpers.addElementToObject(result, code, this.parseDepositWithdrawFee(item));
+                        ((Map<String, Object>)result).put((String)code, this.parseDepositWithdrawFee(item));
                     }
                 }
             }
