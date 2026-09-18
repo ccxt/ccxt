@@ -4594,7 +4594,7 @@ public partial class bitget : Exchange
         //
         List<object> tiers = new List<object>() {};
         object minNotional = 0;
-        for (int i = 0; isLessThan(i, getArrayLength(info)); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(info); postFixIncrement(ref i))
         {
             object item = getValue(info, i);
             double? minimumNotional = this.safeNumber2(item, "startUnit", "minTierValue");
@@ -6892,7 +6892,7 @@ public partial class bitget : Exchange
         //         "balance": "0.01"
         //     }
         //
-        for (int i = 0; isLessThan(i, getArrayLength(balance)); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(balance); postFixIncrement(ref i))
         {
             object entry = getValue(balance, i);
             Dictionary<string, object> account = this.account();
@@ -6962,7 +6962,7 @@ public partial class bitget : Exchange
         //           // "symbol": "BTCUSDT" // only for isolated margin
         //       }
         //
-        for (int i = 0; isLessThan(i, getArrayLength(balance)); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(balance); postFixIncrement(ref i))
         {
             object entry = getValue(balance, i);
             Dictionary<string, object> account = this.account();
@@ -8722,7 +8722,7 @@ public partial class bitget : Exchange
         productType = (string)((IList<object>)productTypeparametersVariable)[0];
         parameters = ((IList<object>)productTypeparametersVariable)[1];
         List<object> requestList = new List<object>() {};
-        for (int i = 0; isLessThan(i, getArrayLength(ids)); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(ids); postFixIncrement(ref i))
         {
             object individualId = getValue(ids, i);
             Dictionary<string, object> order = new Dictionary<string, object>() {
@@ -11796,7 +11796,7 @@ public partial class bitget : Exchange
     public virtual object parseFundingHistories(object contracts, object market = null, object since = null, object limit = null)
     {
         List<object> result = new List<object>() {};
-        for (int i = 0; isLessThan(i, getArrayLength(contracts)); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(contracts); postFixIncrement(ref i))
         {
             object contract = getValue(contracts, i);
             // for non-uta, we've set bussinessType in request payload. Not sure why this existed.

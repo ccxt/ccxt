@@ -4386,7 +4386,7 @@ public partial class binance : Exchange
                     defaultType = defaultSubType;
                 }
                 // end diff
-                for (int i = 0; isLessThan(i, getArrayLength(markets)); postFixIncrement(ref i))
+                for (int i = 0; i < getArrayLength(markets); postFixIncrement(ref i))
                 {
                     object market = getValue(markets, i);
                     if (isEqual(this.safeValue(market, defaultType), true))
@@ -4705,7 +4705,7 @@ public partial class binance : Exchange
     public virtual Dictionary<string, object> parseCurrenciesCustom(object responseCurrencies, object marginablesById)
     {
         Dictionary<string, object> result = new Dictionary<string, object>() {};
-        for (int i = 0; isLessThan(i, getArrayLength(responseCurrencies)); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(responseCurrencies); postFixIncrement(ref i))
         {
             Dictionary<string, object> parsed = this.parseCurrency(getValue(responseCurrencies, i));
             if ((parsed == null))
@@ -5536,7 +5536,7 @@ public partial class binance : Exchange
         bool cross = (isEqual(type, "margin")) || (isEqual(marginMode, "cross"));
         if (isTrue(isPortfolioMargin))
         {
-            for (int i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+            for (int i = 0; i < getArrayLength(response); postFixIncrement(ref i))
             {
                 object entry = getValue(response, i);
                 Dictionary<string, object> account = this.account();
@@ -5632,7 +5632,7 @@ public partial class binance : Exchange
             }
         } else if (isEqual(type, "funding"))
         {
-            for (int i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+            for (int i = 0; i < getArrayLength(response); postFixIncrement(ref i))
             {
                 object entry = getValue(response, i);
                 Dictionary<string, object> account = this.account();
@@ -5655,7 +5655,7 @@ public partial class binance : Exchange
             {
                 balances = this.safeList(response, "assets", new List<object>() {});
             }
-            for (int i = 0; isLessThan(i, getArrayLength(balances)); postFixIncrement(ref i))
+            for (int i = 0; i < getArrayLength(balances); postFixIncrement(ref i))
             {
                 object balance = getValue(balances, i);
                 // skip stale/uninitialized assets, whose updateTime is 0, their balances are not valid (see https://github.com/ccxt/ccxt/issues/27997)
@@ -6617,7 +6617,7 @@ public partial class binance : Exchange
     public virtual object parseTickersForRolling(object response, object symbols)
     {
         List<object> results = new List<object>() {};
-        for (int i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(response); postFixIncrement(ref i))
         {
             string? marketId = this.safeString(getValue(response, i), "symbol");
             Dictionary<string, object> tickerMarket = this.safeMarket(marketId, null, null, "spot");
@@ -15212,7 +15212,7 @@ public partial class binance : Exchange
         //     ]
         //
         List<object> result = new List<object>() {};
-        for (int i = 0; isLessThan(i, getArrayLength(settlements)); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(settlements); postFixIncrement(ref i))
         {
             ((IList<object>)result).Add(this.parseSettlement(getValue(settlements, i), market));
         }
@@ -15572,7 +15572,7 @@ public partial class binance : Exchange
         } else if ((isEqual(api, "private")) || (isEqual(api, "eapiPrivate")) || (isEqual(api, "sapi") && !isEqual(path, "system/status")) || (isEqual(api, "sapiV2")) || (isEqual(api, "sapiV3")) || (isEqual(api, "sapiV4")) || (isEqual(api, "dapiPrivate")) || (isEqual(api, "dapiPrivateV2")) || (isEqual(api, "fapiPrivate")) || (isEqual(api, "fapiPrivateV2")) || (isEqual(api, "fapiPrivateV3")) || (isEqual(api, "papiV2") || isEqual(api, "papi") && !isEqual(path, "ping")))
         {
             this.checkRequiredCredentials();
-            if ((isGreaterThan(getIndexOf(url, "testnet.binancefuture.com"), -1)) && isTrue(this.isSandboxModeEnabled) && ((this.safeBool(this.options, "disableFuturesSandboxWarning") != true)))
+            if ((getIndexOf(url, "testnet.binancefuture.com") > -1) && isTrue(this.isSandboxModeEnabled) && ((this.safeBool(this.options, "disableFuturesSandboxWarning") != true)))
             {
                 throw new NotSupported ((string)(this.id + " testnet/sandbox mode is not supported for futures anymore, please check the deprecation announcement https://t.me/ccxt_announcements/92 and consider using the demo trading instead.")) ;
             }
@@ -15582,7 +15582,7 @@ public partial class binance : Exchange
                 string? newClientOrderId = this.safeString(parameters, "newClientOrderId");
                 if ((newClientOrderId == null))
                 {
-                    bool isSpotOrMargin = (isGreaterThan(getIndexOf(api, "sapi"), -1) || isEqual(api, "private"));
+                    bool isSpotOrMargin = (getIndexOf(api, "sapi") > -1 || isEqual(api, "private"));
                     string marketType = ((bool) isSpotOrMargin) ? "spot" : "future";
                     string defaultId = ((bool) (!isSpotOrMargin)) ? "x-xcKtGhcu" : "x-TKT5PX2F";
                     IDictionary<string, object> broker = this.safeDict(this.options, "broker", new Dictionary<string, object>() {});
@@ -15634,7 +15634,7 @@ public partial class binance : Exchange
             if ((isEqual(api, "sapi")) && (isEqual(path, "asset/dust")))
             {
                 query = this.urlencodeWithArrayRepeat(extendedParams);
-            } else if ((isEqual(path, "batchOrders")) || (isGreaterThanOrEqual(getIndexOf(path, "sub-account"), 0)) || (isEqual(path, "capital/withdraw/apply")) || (isGreaterThanOrEqual(getIndexOf(path, "staking"), 0)) || (isGreaterThanOrEqual(getIndexOf(path, "simple-earn"), 0)))
+            } else if ((isEqual(path, "batchOrders")) || (getIndexOf(path, "sub-account") >= 0) || (isEqual(path, "capital/withdraw/apply")) || (getIndexOf(path, "staking") >= 0) || (getIndexOf(path, "simple-earn") >= 0))
             {
                 if ((isEqual(method, "DELETE")) && (isEqual(path, "batchOrders")))
                 {
