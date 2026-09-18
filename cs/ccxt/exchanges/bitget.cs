@@ -14128,7 +14128,7 @@ public partial class bitget : Exchange
                     Dictionary<string, object> sortedParams = this.keysort(parameters);
                     string queryInner = ("?" + this.urlencode(sortedParams, true));
                     // check #21169 pr
-                    if (getIndexOf(queryInner, "%24") > -1)
+                    if (((string)queryInner).IndexOf("%24", StringComparison.Ordinal) > -1)
                     {
                         queryInner = ((string)queryInner).Replace((string)"%24", (string)"$");
                     }

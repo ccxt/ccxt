@@ -693,7 +693,7 @@ public partial class BaseExchange
     public virtual object urlEncoderForProxyUrl(object targetUrl)
     {
         // to be overriden
-        bool includesQuery = getIndexOf(targetUrl, "?") >= 0;
+        bool includesQuery = ((string)targetUrl).IndexOf("?", StringComparison.Ordinal) >= 0;
         object finalUrl = ((bool) includesQuery) ? this.encodeURIComponent(targetUrl) : targetUrl;
         return finalUrl;
     }
@@ -818,7 +818,7 @@ public partial class BaseExchange
         // check the address is not the same letter like 'aaaaa' nor too short nor has a space
         object uniqChars = (this.unique(this.stringToCharsArray(address)));
         int length = getArrayLength(uniqChars); // py transpiler trick
-        if ((length == 1) || isLessThan(((string)address).Length, this.minFundingAddressLength) || getIndexOf(address, " ") > -1)
+        if ((length == 1) || isLessThan(((string)address).Length, this.minFundingAddressLength) || ((string)address).IndexOf(" ", StringComparison.Ordinal) > -1)
         {
             throw new InvalidAddress ((string)(((((this.id + " address is invalid or has less than ") + ((object)this.minFundingAddressLength).ToString()) + " characters: \"") + ((object)address).ToString()) + "\"")) ;
         }
@@ -1502,7 +1502,7 @@ public partial class BaseExchange
         // in JS:     1 === 1.0 is true
         // in Python: 1 == 1.0 is true
         // in PHP:    1 == 1.0 is true, but 1 === 1.0 is false.
-        if (getIndexOf(stringVersion, ".") >= 0)
+        if (((string)stringVersion).IndexOf(".", StringComparison.Ordinal) >= 0)
         {
             return parseFloat(stringVersion);
         }

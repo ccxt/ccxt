@@ -4278,7 +4278,7 @@ public partial class binance : Exchange
         List<object> optionParts = ((string)symbol).Split(new [] {((string)"-")}, StringSplitOptions.None).ToList<object>();
         List<object> symbolBase = ((string)symbol).Split(new [] {((string)"/")}, StringSplitOptions.None).ToList<object>();
         object bs = null;
-        if (getIndexOf(symbol, "/") > -1)
+        if (((string)symbol).IndexOf("/", StringComparison.Ordinal) > -1)
         {
             bs = this.safeString(symbolBase, 0);
         } else
@@ -4395,7 +4395,7 @@ public partial class binance : Exchange
                     }
                 }
                 return ccxt.BaseExchange.ToDict(getValue(markets, 0));
-            } else if ((getIndexOf(symbol, "/") > -1) && (getIndexOf(symbol, ":") < 0))
+            } else if ((((string)symbol).IndexOf("/", StringComparison.Ordinal) > -1) && (((string)symbol).IndexOf(":", StringComparison.Ordinal) < 0))
             {
                 if (((defaultType != null)) && (!isEqual(defaultType, "spot")))
                 {
@@ -4410,7 +4410,7 @@ public partial class binance : Exchange
                         return ccxt.BaseExchange.ToDict(getValue(this.markets, futuresSymbol));
                     }
                 }
-            } else if ((getIndexOf(symbol, "-C") > -1) || (getIndexOf(symbol, "-P") > -1))
+            } else if ((((string)symbol).IndexOf("-C", StringComparison.Ordinal) > -1) || (((string)symbol).IndexOf("-P", StringComparison.Ordinal) > -1))
             {
                 return this.createExpiredOptionMarket(symbol);
             }
@@ -4420,7 +4420,7 @@ public partial class binance : Exchange
 
     public override Dictionary<string, object> safeMarket(object marketId = null, object market = null, object delimiter = null, object marketType = null)
     {
-        bool isOption = (!isEqual(marketId, null)) && ((getIndexOf(marketId, "-C") > -1) || (getIndexOf(marketId, "-P") > -1));
+        bool isOption = (!isEqual(marketId, null)) && ((((string)marketId).IndexOf("-C", StringComparison.Ordinal) > -1) || (((string)marketId).IndexOf("-P", StringComparison.Ordinal) > -1));
         if (isOption && ((isEqual(this.markets_by_id, null)) || !(inOp(this.markets_by_id, marketId))))
         {
             // handle expired option contracts
@@ -7321,7 +7321,7 @@ public partial class binance : Exchange
         if (!isEqual(limit, null))
         {
             bool isFutureOrSwap = (isEqual(getValue(market, "swap"), true)) || (isEqual(getValue(market, "future"), true));
-            bool isHistoricalEndpoint = ((method != null)) && (getIndexOf(method, "GetHistoricalTrades") >= 0);
+            bool isHistoricalEndpoint = ((method != null)) && (((string)method).IndexOf("GetHistoricalTrades", StringComparison.Ordinal) >= 0);
             int maxLimitForContractHistorical = ((bool) isHistoricalEndpoint) ? 500 : 1000;
             ((IDictionary<string,object>)request)["limit"] = ((bool) ((isFutureOrSwap == true))) ? mathMin(limit, maxLimitForContractHistorical) : limit; // default = 500, maximum = 1000
         }
@@ -11830,7 +11830,7 @@ public partial class binance : Exchange
             }
         }
         string? txid = this.safeString(transaction, "txId");
-        if (((txid != null)) && (getIndexOf(txid, "Internal transfer ") >= 0))
+        if (((txid != null)) && (((string)txid).IndexOf("Internal transfer ", StringComparison.Ordinal) >= 0))
         {
             txid = slice(txid, 18, null);
         }
@@ -15671,7 +15671,7 @@ public partial class binance : Exchange
                 query = this.urlencode(extendedParams);
             }
             object signature = null;
-            if (getIndexOf(this.secret, "PRIVATE KEY") > -1)
+            if (((string)this.secret).IndexOf("PRIVATE KEY", StringComparison.Ordinal) > -1)
             {
                 if (((string)this.secret).Length > 120)
                 {
@@ -15754,15 +15754,15 @@ public partial class binance : Exchange
         // will switch "code" checks eventually, when we know all of them
         if ((isGreaterThanOrEqual(code, 400)) && (!isEqual(body, null)))
         {
-            if (getIndexOf(body, "Price * QTY is zero or less") >= 0)
+            if (((string)body).IndexOf("Price * QTY is zero or less", StringComparison.Ordinal) >= 0)
             {
                 throw new InvalidOrder ((string)add((this.id + " order cost = amount * price is zero or less "), body)) ;
             }
-            if (getIndexOf(body, "LOT_SIZE") >= 0)
+            if (((string)body).IndexOf("LOT_SIZE", StringComparison.Ordinal) >= 0)
             {
                 throw new InvalidOrder ((string)add((this.id + " order amount should be evenly divisible by lot size "), body)) ;
             }
-            if (getIndexOf(body, "PRICE_FILTER") >= 0)
+            if (((string)body).IndexOf("PRICE_FILTER", StringComparison.Ordinal) >= 0)
             {
                 throw new InvalidOrder ((string)add((this.id + " order price is invalid, i.e. exceeds allowed price precision, exceeds min price or max price limits or is invalid value in general, use this.priceToPrecision (symbol, amount) "), body)) ;
             }
