@@ -739,7 +739,7 @@ public partial class bydfi : Exchange
         return ccxt.BaseExchange.ToOrderBook(orderBook);
     }
 
-    public virtual object getClosestLimit(object limit)
+    public virtual object getClosestLimit(Int64? limit)
     {
         List<object> limits = new List<object>() {5, 10, 20, 50, 100, 500, 1000};
         object result = 1000;
@@ -1693,7 +1693,7 @@ public partial class bydfi : Exchange
         return ccxt.BaseExchange.ToOrderList(this.parseOrders(data));
     }
 
-    public virtual Dictionary<string, object> createEditOrderRequest(string? id, object symbol, string? type, string? side, object amount = null, object price = null, object parameters = null)
+    public virtual Dictionary<string, object> createEditOrderRequest(string? id, object symbol, string? type, string? side, double? amount = null, double? price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         string? clientOrderId = this.safeString(parameters, "clientOrderId");

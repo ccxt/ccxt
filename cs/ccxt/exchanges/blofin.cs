@@ -1606,7 +1606,7 @@ public partial class blofin : Exchange
         return ccxt.BaseExchange.ToBalances(this.parseBalanceByType(response));
     }
 
-    public virtual Dictionary<string, object> createOrderRequest(string? symbol, object type, object side, object amount, object price = null, object parameters = null)
+    public virtual Dictionary<string, object> createOrderRequest(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isEqual(type, null))
@@ -1918,7 +1918,7 @@ public partial class blofin : Exchange
         return ccxt.BaseExchange.ToOrder(order);
     }
 
-    public virtual Dictionary<string, object> createTpslOrderRequest(string? symbol, object type, object side, object amount = null, object price = null, object parameters = null)
+    public virtual Dictionary<string, object> createTpslOrderRequest(object symbol, object type, object side, double? amount = null, double? price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> market = this.market(symbol);
@@ -2665,7 +2665,7 @@ public partial class blofin : Exchange
             { "10", "trade" },
             { "11", "trade" },
         };
-        return this.safeString(types, type, type);
+        return this.safeString(types, ((string)type), type);
     }
 
     public override Dictionary<string, object> parseLedgerEntry(object item, object currency = null)
@@ -3161,7 +3161,7 @@ public partial class blofin : Exchange
             throw new BadRequest (add(this.id, " fetchLeverages() requires a marginMode parameter that must be either cross or isolated")) ;
         }
         symbols = this.marketSymbols(symbols);
-        IList<object> symbolsList = symbols;
+        object symbolsList = symbols;
         object instIds = "";
         for (int i = 0; isLessThan(i, getArrayLength(symbolsList)); postFixIncrement(ref i))
         {

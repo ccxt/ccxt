@@ -3638,7 +3638,7 @@ public partial class gate : Exchange
         return ccxt.BaseExchange.ToFundingHistoryList(this.parseFundingHistories(response, symbolVar, since, limit));
     }
 
-    public virtual object parseFundingHistories(object response, object symbol, object since, object limit)
+    public virtual object parseFundingHistories(object response, object symbol, Int64? since, Int64? limit)
     {
         List<object> result = new List<object>() {};
         for (int i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))

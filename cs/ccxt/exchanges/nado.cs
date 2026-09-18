@@ -1464,7 +1464,7 @@ public partial class nado : Exchange
         return ccxt.BaseExchange.ToTransactionList(await this.queryTransactionsByEventType("withdraw_collateral", "withdrawal", "fetchWithdrawals",code, since, limit, parameters));
     }
 
-    public async virtual Task<object> queryTransactionsByEventType(object eventType, object transactionType, object methodName, string code = null, object since = null, object limit = null, object parameters = null)
+    public async virtual Task<object> queryTransactionsByEventType(object eventType, object transactionType, object methodName, string code = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.walletAddress, null))

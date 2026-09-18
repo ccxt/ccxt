@@ -1077,13 +1077,13 @@ public partial class BaseExchange
         throw new NotSupported (add(this.id, " watchMyLiquidationsForSymbols() is not supported yet")) ;
     }
 
-    public async virtual Task<object> unWatchOrders(string? symbol = null, object parameters = null)
+    public async virtual Task<object> unWatchOrders(object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported (add(this.id, " unWatchOrders() is not supported yet")) ;
     }
 
-    public async virtual Task<object> unWatchTrades(string? symbol, object parameters = null)
+    public async virtual Task<object> unWatchTrades(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported (add(this.id, " unWatchTrades() is not supported yet")) ;
@@ -1101,7 +1101,7 @@ public partial class BaseExchange
         throw new NotSupported (add(this.id, " watchOHLCVForSymbols() is not supported yet")) ;
     }
 
-    public async virtual Task<object> unWatchOHLCVForSymbols(IList<object> symbolsAndTimeframes, object parameters = null)
+    public async virtual Task<object> unWatchOHLCVForSymbols(object symbolsAndTimeframes, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported (add(this.id, " unWatchOHLCVForSymbols() is not supported yet")) ;
@@ -1125,7 +1125,7 @@ public partial class BaseExchange
         throw new NotSupported (add(this.id, " unWatchTicker() is not supported yet")) ;
     }
 
-    public async virtual Task<object> unWatchMarkPrice(string? symbol, object parameters = null)
+    public async virtual Task<object> unWatchMarkPrice(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported (add(this.id, " unWatchMarkPrice() is not supported yet")) ;
@@ -2265,7 +2265,7 @@ public partial class BaseExchange
         // Validate that source exchange has loaded markets
         if ((isEqual(sourceExchange.markets, null)) || (isEqual(sourceExchange.markets, null)))
         {
-            throw new ExchangeError ("setMarketsFromExchange() source exchange must have loaded markets first. Can call by using loadMarkets function") ;
+            throw new ExchangeError ((string)"setMarketsFromExchange() source exchange must have loaded markets first. Can call by using loadMarkets function") ;
         }
         // Set all market-related data
         this.markets = sourceExchange.markets;
@@ -2793,13 +2793,13 @@ public partial class BaseExchange
         cost = Precise.stringMul(cost, rate);
         return new Dictionary<string, object>() {
             { "type", takerOrMaker },
-            { "currency", getValue(market, key) },
+            { "currency", getValue(market, ((string)key)) },
             { "rate", this.parseNumber(rate) },
             { "cost", this.parseNumber(cost) },
         };
     }
 
-    public virtual object calculateFee(string? symbol, string? type, string? side, object amount, object price, object takerOrMaker = null, object parameters = null)
+    public virtual object calculateFee(object symbol, string? type, string? side, double? amount, double? price, object takerOrMaker = null, object parameters = null)
     {
         /**
         * @method
@@ -3241,7 +3241,7 @@ public partial class BaseExchange
         throw new NotSupported (add(this.id, " repayCrossMargin is not support yet")) ;
     }
 
-    public async virtual Task<Dictionary<string, object>> repayIsolatedMargin(string? symbol, string code, double amount, object parameters = null)
+    public async virtual Task<Dictionary<string, object>> repayIsolatedMargin(object symbol, string code, double amount, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported (add(this.id, " repayIsolatedMargin is not support yet")) ;
@@ -3253,19 +3253,19 @@ public partial class BaseExchange
         throw new NotSupported (add(this.id, " borrowCrossMargin is not support yet")) ;
     }
 
-    public async virtual Task<Dictionary<string, object>> borrowIsolatedMargin(string? symbol, string code, double amount, object parameters = null)
+    public async virtual Task<Dictionary<string, object>> borrowIsolatedMargin(object symbol, string code, double amount, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported (add(this.id, " borrowIsolatedMargin is not support yet")) ;
     }
 
-    public async virtual Task<Dictionary<string, object>> borrowMargin(string code, object amount, object symbol = null, object parameters = null)
+    public async virtual Task<Dictionary<string, object>> borrowMargin(string code, double? amount, object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported (add(this.id, " borrowMargin is deprecated, please use borrowCrossMargin or borrowIsolatedMargin instead")) ;
     }
 
-    public async virtual Task<Dictionary<string, object>> repayMargin(string code, double amount, string? symbol = null, object parameters = null)
+    public async virtual Task<Dictionary<string, object>> repayMargin(string code, double amount, object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported (add(this.id, " repayMargin is deprecated, please use repayCrossMargin or repayIsolatedMargin instead")) ;
@@ -3442,7 +3442,7 @@ public partial class BaseExchange
                     return jsoned;  // if parsing was not successfull, exception should be thrown
                 } else
                 {
-                    throw new BadResponse ("could not parse the response into json") ;
+                    throw new BadResponse ((string)"could not parse the response into json") ;
                 }
             } else
             {
@@ -4140,7 +4140,7 @@ public partial class BaseExchange
         return this.parseTradesHelper(false, trades, market, since, limit, parameters);
     }
 
-    public virtual IList<object> parseWsTrades(object trades, IDictionary<string, object> market = null, object since = null, object limit = null, object parameters = null)
+    public virtual IList<object> parseWsTrades(object trades, IDictionary<string, object> market = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         return this.parseTradesHelper(true, trades, market, since, limit, parameters);
@@ -4176,7 +4176,7 @@ public partial class BaseExchange
         return this.filterByCurrencySinceLimit(result,((string)code), since, limit);
     }
 
-    public virtual IList<object> parseLedger(object data, object currency = null, object since = null, object limit = null, object parameters = null)
+    public virtual IList<object> parseLedger(object data, object currency = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         List<object> result = new List<object>() {};
@@ -4635,7 +4635,7 @@ public partial class BaseExchange
         return ((List<object>)((object)(ohlcvs)));
     }
 
-    public virtual object parseTradingViewOHLCV(Dictionary<string, object> ohlcvs, IDictionary<string, object> market = null, string timeframe = null, object since = null, object limit = null)
+    public virtual object parseTradingViewOHLCV(Dictionary<string, object> ohlcvs, IDictionary<string, object> market = null, string timeframe = null, Int64? since = null, object limit = null)
     {
         string timeframeVar = timeframe;
         timeframeVar ??= "1m";
@@ -5215,7 +5215,7 @@ public partial class BaseExchange
         throw new NotSupported (add(this.id, " unWatchTickers() is not supported yet")) ;
     }
 
-    public async virtual Task<object> unWatchFundingRate(string? symbol, object parameters = null)
+    public async virtual Task<object> unWatchFundingRate(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported (add(this.id, " unWatchFundingRate() is not supported yet")) ;
@@ -5374,13 +5374,13 @@ public partial class BaseExchange
         throw new NotSupported (add(this.id, " cancelContractOrder() is not supported yet")) ;
     }
 
-    public async virtual Task<List<ccxt.Order>> CancelAllSpotOrders(string? symbol = null, object parameters = null)
+    public async virtual Task<List<ccxt.Order>> CancelAllSpotOrders(object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported (add(this.id, " cancelAllSpotOrders() is not supported yet")) ;
     }
 
-    public async virtual Task<List<ccxt.Order>> CancelAllContractOrders(string? symbol = null, object parameters = null)
+    public async virtual Task<List<ccxt.Order>> CancelAllContractOrders(object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported (add(this.id, " cancelAllContractOrders() is not supported yet")) ;
@@ -5398,7 +5398,7 @@ public partial class BaseExchange
         throw new NotSupported (add(this.id, " cancelOrdersForSymbols() is not supported yet")) ;
     }
 
-    public async virtual Task<List<ccxt.Liquidation>> FetchMyLiquidations(string? symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async virtual Task<List<ccxt.Liquidation>> FetchMyLiquidations(object symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported (add(this.id, " fetchMyLiquidations() is not supported yet")) ;
@@ -5476,7 +5476,7 @@ public partial class BaseExchange
         throw new NotSupported (add(this.id, " fetchFundingRateHistory() is not supported yet")) ;
     }
 
-    public async virtual Task<List<ccxt.FundingHistory>> FetchFundingHistory(string? symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async virtual Task<List<ccxt.FundingHistory>> FetchFundingHistory(object symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported (add(this.id, " fetchFundingHistory() is not supported yet")) ;
@@ -5652,7 +5652,7 @@ public partial class BaseExchange
         for (int i = 0; isLessThan(i, leverageSuffixes.Count); postFixIncrement(ref i))
         {
             string? leverageSuffix = ((string)getValue(leverageSuffixes, i));
-            bool endsWithSuffix = ((string)currencyCode).EndsWith(leverageSuffix);
+            bool endsWithSuffix = ((string)currencyCode).EndsWith(((string)leverageSuffix));
             if (endsWithSuffix)
             {
                 if (!isTrue(checkBaseCoin))
@@ -5661,7 +5661,7 @@ public partial class BaseExchange
                 } else
                 {
                     // check if base currency is inside dict
-                    string baseCurrencyCode = ((string)currencyCode).Replace(leverageSuffix, (string)"");
+                    string baseCurrencyCode = ((string)currencyCode).Replace((string)leverageSuffix, (string)"");
                     if ((!isEqual(existingCurrencies, null)) && (inOp(existingCurrencies, baseCurrencyCode)))
                     {
                         return true;
@@ -5931,7 +5931,7 @@ public partial class BaseExchange
         return this.filterByValueSinceLimit(array, "currency", code, since, limit, "timestamp", tail);
     }
 
-    public virtual IList<object> filterBySymbolsSinceLimit(object array, object symbols = null, object since = null, object limit = null, object tail = null)
+    public virtual IList<object> filterBySymbolsSinceLimit(object array, object symbols = null, Int64? since = null, Int64? limit = null, object tail = null)
     {
         tail ??= false;
         object result = this.filterByArray(array, "symbol", symbols, false);
@@ -6091,12 +6091,12 @@ public partial class BaseExchange
             object item = getValue(info, i);
             object borrowRate = this.parseIsolatedBorrowRate(item);
             string? symbol = this.safeString(borrowRate, "symbol");
-            result[(string)symbol] = borrowRate;
+            result[(string)((string)symbol)] = borrowRate;
         }
         return ((object)result);
     }
 
-    public virtual object parseFundingRateHistories(object response, IDictionary<string, object> market = null, object since = null, object limit = null)
+    public virtual object parseFundingRateHistories(object response, IDictionary<string, object> market = null, Int64? since = null, Int64? limit = null)
     {
         List<object> rates = new List<object>() {};
         for (int i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
@@ -6140,7 +6140,7 @@ public partial class BaseExchange
         throw new NotSupported (add(this.id, " parseLongShortRatio() is not supported yet")) ;
     }
 
-    public virtual object parseLongShortRatioHistory(object response, IDictionary<string, object> market = null, object since = null, object limit = null)
+    public virtual object parseLongShortRatioHistory(object response, IDictionary<string, object> market = null, Int64? since = null, Int64? limit = null)
     {
         List<object> rates = new List<object>() {};
         for (int i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
@@ -6647,7 +6647,7 @@ public partial class BaseExchange
             string? code = this.safeString(currency, "code");
             if ((isEqual(codes, null)) || (this.inArray(code, codes)))
             {
-                depositWithdrawFees[(string)code] = this.parseDepositWithdrawFee(dictionary, currency);
+                depositWithdrawFees[(string)((string)code)] = this.parseDepositWithdrawFee(dictionary, currency);
             }
         }
         return ((Dictionary<string, object>)((object)(depositWithdrawFees)));
@@ -6710,7 +6710,7 @@ public partial class BaseExchange
         throw new NotSupported (add(this.id, " parseIncome () is not supported yet")) ;
     }
 
-    public virtual object parseIncomes(object incomes, IDictionary<string, object> market = null, object since = null, object limit = null)
+    public virtual object parseIncomes(object incomes, IDictionary<string, object> market = null, Int64? since = null, Int64? limit = null)
     {
         /**
          * @ignore
@@ -6756,7 +6756,7 @@ public partial class BaseExchange
         return ((Dictionary<string, object>)((object)(market)));
     }
 
-    public virtual List<object> parseWsOHLCVs(object ohlcvs, IDictionary<string, object> market = null, string timeframe = null, object since = null, object limit = null)
+    public virtual List<object> parseWsOHLCVs(object ohlcvs, IDictionary<string, object> market = null, string timeframe = null, Int64? since = null, Int64? limit = null)
     {
         object timeframeVar = timeframe;
         timeframeVar ??= "1m";
@@ -7207,7 +7207,7 @@ public partial class BaseExchange
         return this.filterBySinceLimit(sorted, since, limit, key);
     }
 
-    public async virtual Task<object> fetchPaginatedCallIncremental(object method, object symbol = null, object since = null, object limit = null, object parameters = null, object pageKey = null, object maxEntriesPerRequest = null)
+    public async virtual Task<object> fetchPaginatedCallIncremental(object method, object symbol = null, Int64? since = null, Int64? limit = null, object parameters = null, object pageKey = null, object maxEntriesPerRequest = null)
     {
         parameters ??= new Dictionary<string, object>();
         object maxCalls = 10;
@@ -7378,7 +7378,7 @@ public partial class BaseExchange
         throw new NotSupported (add(this.id, " parseLiquidation () is not supported yet")) ;
     }
 
-    public virtual IList<object> parseLiquidations(object liquidations, IDictionary<string, object> market = null, object since = null, object limit = null)
+    public virtual IList<object> parseLiquidations(object liquidations, IDictionary<string, object> market = null, Int64? since = null, Int64? limit = null)
     {
         /**
          * @ignore
@@ -7508,7 +7508,7 @@ public partial class BaseExchange
         throw new NotSupported (add(this.id, " parseLeverage () is not supported yet")) ;
     }
 
-    public virtual object parseConversions(object conversions, string code = null, object fromCurrencyKey = null, object toCurrencyKey = null, object since = null, object limit = null, object parameters = null)
+    public virtual object parseConversions(object conversions, string code = null, object fromCurrencyKey = null, object toCurrencyKey = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         object codeVar = code;
         parameters ??= new Dictionary<string, object>();
@@ -7724,7 +7724,7 @@ public partial class BaseExchange
         throw new NotSupported (add(this.id, " withdrawWs () is not supported yet")) ;
     }
 
-    public async virtual Task<object> unWatchMyTrades(string? symbol = null, object parameters = null)
+    public async virtual Task<object> unWatchMyTrades(object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported (add(this.id, " unWatchMyTrades () is not supported yet")) ;
@@ -7766,16 +7766,16 @@ public partial class BaseExchange
             for (int i = 0; isLessThan(i, clientSubscriptions.Count); postFixIncrement(ref i))
             {
                 string? sub = ((string)getValue(clientSubscriptions, i));
-                if (((sub != null)) && (!isEqual(subHash, null)) && sub.StartsWith(((string)subHash)))
+                if (((sub != null)) && (!isEqual(subHash, null)) && ((string)sub).StartsWith(((string)subHash)))
                 {
-                    ((IDictionary<string,object>)client.subscriptions).Remove(sub);
+                    ((IDictionary<string,object>)client.subscriptions).Remove((string)sub);
                 }
             }
             List<object> clientFutures = new List<object>(((IDictionary<string, ccxt.Exchange.Future>)client.futures).Keys);
             for (int i = 0; isLessThan(i, clientFutures.Count); postFixIncrement(ref i))
             {
                 string? future = ((string)getValue(clientFutures, i));
-                if (((future != null)) && (!isEqual(subHash, null)) && future.StartsWith(((string)subHash)))
+                if (((future != null)) && (!isEqual(subHash, null)) && ((string)future).StartsWith(((string)subHash)))
                 {
                     var error = new UnsubscribeError(add(add(this.id, " "), future));
                     client.reject(error, future);
@@ -7863,7 +7863,7 @@ public partial class BaseExchange
                     object futures = (client as WebSocketClient).futures;
                     if (((futures != null)) && (inOp(futures, "fetchPositionsSnapshot")))
                     {
-                        ((IDictionary<string,object>)futures).Remove("fetchPositionsSnapshot");
+                        ((IDictionary<string,object>)futures).Remove((string)"fetchPositionsSnapshot");
                     }
                 }
             } else if ((topic == "ticker" || topic == "markPrice") && (!isEqual(this.tickers, null)))
@@ -7874,7 +7874,7 @@ public partial class BaseExchange
                     string? tickerSymbol = ((string)getValue(tickerSymbols, i));
                     if (inOp(this.tickers, tickerSymbol))
                     {
-                        ((IDictionary<string,object>)this.tickers).Remove(tickerSymbol);
+                        ((IDictionary<string,object>)this.tickers).Remove((string)tickerSymbol);
                     }
                 }
             } else if (topic == "bidsasks" && (!isEqual(this.bidsasks, null)))
@@ -7885,7 +7885,7 @@ public partial class BaseExchange
                     string? bidsaskSymbol = ((string)getValue(bidsaskSymbols, i));
                     if (inOp(this.bidsasks, bidsaskSymbol))
                     {
-                        ((IDictionary<string,object>)this.bidsasks).Remove(bidsaskSymbol);
+                        ((IDictionary<string,object>)this.bidsasks).Remove((string)bidsaskSymbol);
                     }
                 }
             }

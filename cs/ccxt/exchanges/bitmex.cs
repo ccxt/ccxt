@@ -4179,7 +4179,7 @@ public partial class bitmex : Exchange
         return ccxt.BaseExchange.ToDictList(this.parseSettlements(response, market, since, limit));
     }
 
-    public virtual object parseSettlements(object settlements, IDictionary<string, object> market = null, object since = null, object limit = null)
+    public virtual object parseSettlements(object settlements, IDictionary<string, object> market = null, Int64? since = null, Int64? limit = null)
     {
         List<object> result = new List<object>() {};
         for (int i = 0; isLessThan(i, getArrayLength(settlements)); postFixIncrement(ref i))

@@ -1058,7 +1058,7 @@ public partial class myriad : PredictionExchange
      * @description builds and EIP-712 signs a single order-book order; shared by createOrder and createOrders
      * @returns {object} a dict with the signed order, signature, timeInForce and networkId
      */
-    public virtual Dictionary<string, object> buildOrderbookOrder(object outcome, object type, object side, object amount, object price = null, object parameters = null)
+    public virtual Dictionary<string, object> buildOrderbookOrder(object outcome, object type, object side, double? amount, double? price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.privateKey, null))
@@ -3769,7 +3769,7 @@ public partial class myriad : PredictionExchange
         return ccxt.BaseExchange.ToPredictionOrderBookSnapshot((orderbook as IOrderBook).limit());
     }
 
-    public async virtual Task seedOrderBook(object outcome, object sym, object limit = null)
+    public async virtual Task seedOrderBook(object outcome, object sym, Int64? limit = null)
     {
         // the order book channel streams deltas only, so seed the live book from the REST snapshot
         object snapshot = ccxt.BaseExchange.FromPredictionOrderBook(await this.FetchOrderBook(((string)outcome),ccxt.BaseExchange.ToInt64Arg(limit)));

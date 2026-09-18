@@ -723,7 +723,7 @@ public partial class hitbtc : ccxt.hitbtc
         return message;
     }
 
-    public override IList<object> parseWsTrades(object trades, IDictionary<string, object> market = null, object since = null, object limit = null, object parameters = null)
+    public override IList<object> parseWsTrades(object trades, IDictionary<string, object> market = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         IList<object> tradesArray = this.toArray(trades);

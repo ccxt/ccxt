@@ -3311,7 +3311,7 @@ public partial class coinbase : Exchange
         return null;
     }
 
-    public virtual Dictionary<string, object> prepareAccountRequest(object limit = null, object parameters = null)
+    public virtual Dictionary<string, object> prepareAccountRequest(Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         string? accountId = this.safeString2(parameters, "account_id", "accountId");
@@ -3329,7 +3329,7 @@ public partial class coinbase : Exchange
         return ((Dictionary<string, object>)((object)(request)));
     }
 
-    public async virtual Task<object> prepareAccountRequestWithCurrencyCode(string code = null, object limit = null, object parameters = null)
+    public async virtual Task<object> prepareAccountRequestWithCurrencyCode(string code = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object accountId = this.safeString2(parameters, "account_id", "accountId");

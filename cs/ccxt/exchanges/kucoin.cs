@@ -10897,7 +10897,7 @@ public partial class kucoin : Exchange
         return ccxt.BaseExchange.ToDictList(this.parseBorrowRateHistory(rows,code, since, limit));
     }
 
-    public virtual Dictionary<string, object> parseBorrowRateHistories(object response, object codes, object since, object limit)
+    public virtual Dictionary<string, object> parseBorrowRateHistories(object response, object codes, Int64? since, Int64? limit)
     {
         //
         //     [

@@ -1867,7 +1867,7 @@ public partial class grvt : Exchange
         }
     }
 
-    public async virtual Task<object> internalFetchTransfers(object req, IDictionary<string, object> currency = null, object since = null, object limit = null)
+    public async virtual Task<object> internalFetchTransfers(object req, IDictionary<string, object> currency = null, Int64? since = null, Int64? limit = null)
     {
         Dictionary<string, object> response = await this.privateTradingPostFullV1TransferHistory(req);
         //

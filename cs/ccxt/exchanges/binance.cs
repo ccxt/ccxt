@@ -4547,7 +4547,7 @@ public partial class binance : Exchange
      * @param {int} [params.lastTradeTokenId] last record id from the previous page
      * @returns {object} the response from the exchange
      */
-    public virtual object tokenizedConvertHistory(object since = null, object limit = null, object parameters = null)
+    public virtual object tokenizedConvertHistory(Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -7527,7 +7527,7 @@ public partial class binance : Exchange
         return ccxt.BaseExchange.ToOrder(this.parseOrder(data, market));
     }
 
-    public virtual Dictionary<string, object> editSpotOrderRequest(string? id, object symbol, object type, object side, object amount, object price = null, object parameters = null)
+    public virtual Dictionary<string, object> editSpotOrderRequest(string? id, object symbol, object type, object side, double? amount, double? price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isEqual(type, null))

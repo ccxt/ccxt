@@ -780,7 +780,7 @@ public partial class upbit : Exchange
         IList<object> orderbooks = this.toArray(response);
         for (int i = 0; isLessThan(i, orderbooks?.Count ?? 0); postFixIncrement(ref i))
         {
-            object orderbook = orderbooks[i];
+            object orderbook = getValue(orderbooks, i);
             string? marketId = this.safeString(orderbook, "market");
             string? symbol = this.safeSymbol(marketId, null, "-");
             Int64? timestamp = this.safeInteger(orderbook, "timestamp");
@@ -901,7 +901,7 @@ public partial class upbit : Exchange
             List<object> marketSymbols = this.symbols;
             for (int i = 0; isLessThan(i, marketSymbols?.Count ?? 0); postFixIncrement(ref i))
             {
-                Dictionary<string, object> market = this.market(marketSymbols[i]);
+                Dictionary<string, object> market = this.market(getValue(marketSymbols, i));
                 string? quoteId = ((string)GetValue(market, "quoteId"));
                 if (!this.inArray(quoteId, quoteIds))
                 {
@@ -929,7 +929,7 @@ public partial class upbit : Exchange
             List<object> queries = this.idsQueryStrings(ids, 4000); // the url is limited to about 8000 characters once the commas are percent-encoded
             for (int i = 0; isLessThan(i, queries?.Count ?? 0); postFixIncrement(ref i))
             {
-                object idsQuery = queries[i];
+                object idsQuery = getValue(queries, i);
                 ((IList<object>)promises).Add(this.publicGetTicker(this.extend(new Dictionary<string, object>() {
                     { "markets", idsQuery },
                 }, parameters)));
@@ -1349,7 +1349,7 @@ public partial class upbit : Exchange
         return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(ohlcvs, market,timeframeVar, since, limitVar));
     }
 
-    public virtual string? calcOrderPrice(string? symbol, object amount, object price = null, object parameters = null)
+    public virtual string? calcOrderPrice(object symbol, double? amount, double? price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         string? quoteAmount = null;

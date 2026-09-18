@@ -1059,7 +1059,7 @@ public partial class opinion : PredictionExchange
         return add(add(add("0x", this.remove0xPrefix(getValue(sig, "r"))), this.remove0xPrefix(getValue(sig, "s"))), this.intToBase16(getValue(sig, "v")));
     }
 
-    public virtual Dictionary<string, object> opinionOrderRawAmounts(object isMarket, object side, object amount, object price, object decimals)
+    public virtual Dictionary<string, object> opinionOrderRawAmounts(object isMarket, object side, double? amount, double? price, object decimals)
     {
         string decimalsStr = "1";
         for (int i = 0; isLessThan(i, decimals); postFixIncrement(ref i))
@@ -2008,7 +2008,7 @@ public partial class opinion : PredictionExchange
         return ccxt.BaseExchange.ToPredictionOrderBookSnapshot((orderbook as IOrderBook).limit());
     }
 
-    public async virtual Task seedOrderBook(object outcome, object sym, object limit = null)
+    public async virtual Task seedOrderBook(object outcome, object sym, Int64? limit = null)
     {
         // the depth channel streams single-level deltas only, so seed the live book from the REST snapshot
         object snapshot = ccxt.BaseExchange.FromPredictionOrderBook(await this.FetchOrderBook(((string)outcome),ccxt.BaseExchange.ToInt64Arg(limit)));
