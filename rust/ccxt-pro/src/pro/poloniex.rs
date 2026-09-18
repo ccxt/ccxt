@@ -1022,7 +1022,7 @@ impl PoloniexCore {
             m
         })]);
         let mut timeframe: Value = self.find_timeframe(channel.clone(), &[timeframes.clone()]);
-        let mut messageHash: Value = Value::Str(format!("{}{}", add(&channel, &Value::Str("::".to_string())), symbol));
+        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", channel, Value::Str("::".to_string()))), symbol));
         let mut parsed: Value = self.parse_ws_ohlcv(data.clone(), &[market.clone()]);
         { let __be_tmp = self.safe_value(self.ohlcvs.clone(), symbol.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1075,7 +1075,7 @@ impl PoloniexCore {
                 let mut trade: Value = self.parse_ws_trade(item.clone(), &[]);
                 let mut symbol: Value = trade.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
                 let mut type_var: Value = Value::Str("trades".to_string());
-                let mut messageHash: Value = add(&Value::Str(format!("{}{}", type_var, Value::Str("::".to_string()))), &symbol);
+                let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", type_var, Value::Str("::".to_string()))), symbol));
                 let mut tradesArray: Value = (if is_true(&(Value::Bool(symbol == Value::Null))) { Value::Null } else { self.safe_value(self.trades.clone(), symbol.clone(), &[]) });
                 if (tradesArray == Value::Null) {
                     let mut tradesLimit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);

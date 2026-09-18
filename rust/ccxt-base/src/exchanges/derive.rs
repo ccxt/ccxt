@@ -1504,7 +1504,7 @@ impl DeriveCore {
         let mut base: Value = self.safe_currency_code(baseId.clone(), &[]);
         let mut quote: Value = self.safe_currency_code(quoteId.clone(), &[]);
         let mut marketId: Value = self.safe_string_k(market.clone(), "instrument_name", &[]);
-        let mut symbol: Value = add(&add(&base, &Value::Str("/".to_string())), &quote);
+        let mut symbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".to_string()))), quote));
         let mut settleId: Value = Value::Null;
         let mut settle: Value = Value::Null;
         let mut expiry: Value = Value::Null;
@@ -1518,7 +1518,7 @@ impl DeriveCore {
             margin = Value::Bool(false);
             settleId = Value::Str("USDC".to_string());
             settle = self.safe_currency_code(settleId.clone(), &[]);
-            symbol = add(&Value::Str(format!("{}{}", add(&add(&base, &Value::Str("/".to_string())), &quote), Value::Str(":".to_string()))), &settle);
+            symbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".to_string()))), quote)), Value::Str(":".to_string()))), settle));
             swap = Value::Bool(true);
             linear = Value::Bool(true);
             inverse = Value::Bool(false);
@@ -1533,7 +1533,7 @@ impl DeriveCore {
             expiry = self.safe_timestamp(optionDetails.clone(), Value::Str("expiry".to_string()), &[]);
             strike = self.safe_integer_k(optionDetails.clone(), "strike", &[]);
             optionLetter = self.safe_string_k(optionDetails.clone(), "option_type", &[]);
-            symbol = add(&Value::Str(format!("{}{}", add(&Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", add(&Value::Str(format!("{}{}", add(&add(&base, &Value::Str("/".to_string())), &quote), Value::Str(":".to_string()))), &settle), Value::Str("-".to_string()))), self.yymmdd(expiry.clone(), &[]))), Value::Str("-".to_string()))), &self.number_to_string(strike.clone())), Value::Str("-".to_string()))), &optionLetter);
+            symbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".to_string()))), quote)), Value::Str(":".to_string()))), settle)), Value::Str("-".to_string()))), self.yymmdd(expiry.clone(), &[]))), Value::Str("-".to_string()))), self.number_to_string(strike.clone()))), Value::Str("-".to_string()))), optionLetter));
             if (optionLetter.as_str() == Some("P")) {
                 optionType = Value::Str("put".to_string());
             }  else {

@@ -466,7 +466,7 @@ impl GrvtCore {
             let mut symbol: Value = get_value(&symbols, &i);
             let mut market: Value = self.market(symbol.clone());
             let mut marketId: Value = market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null);
-            append_to_array(&mut rawHashes, Value::Str(format!("{}{}", add(&marketId, &Value::Str("@".to_string())), to_string_val(&interval))));
+            append_to_array(&mut rawHashes, Value::Str(format!("{}{}", Value::Str(format!("{}{}", marketId, Value::Str("@".to_string()))), to_string_val(&interval))));
             append_to_array(&mut messageHashes, Value::Str(format!("{}{}", Value::Str("ticker::".to_string()), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null))));
         }
         }
@@ -646,7 +646,7 @@ impl GrvtCore {
             let mut market: Value = self.market(symbol.clone());
             let mut marketId: Value = market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null);
             let mut limitRaw: Value = self.safe_integer_k(params.clone(), "limit", &[Value::Int(50)]); // 50, 200, 500, 1000
-            append_to_array(&mut rawHashes, Value::Str(format!("{}{}", add(&marketId, &Value::Str("@".to_string())), to_string_val(&limitRaw))));
+            append_to_array(&mut rawHashes, Value::Str(format!("{}{}", Value::Str(format!("{}{}", marketId, Value::Str("@".to_string()))), to_string_val(&limitRaw))));
             append_to_array(&mut messageHashes, Value::Str(format!("{}{}", Value::Str("trade::".to_string()), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null))));
         }
         }
@@ -782,7 +782,7 @@ impl GrvtCore {
             let mut marketId: Value = market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null);
             let mut unfiedTimeframe: Value = self.safe_string(data.clone(), Value::Int(1), &[Value::Str("1".to_string())]);
             let mut timeframeId: Value = self.safe_string(self.timeframes.clone(), unfiedTimeframe.clone(), &[unfiedTimeframe.clone()]);
-            append_to_array(&mut rawHashes, Value::Str(format!("{}{}", Value::Str(format!("{}{}", add(&marketId, &Value::Str("@".to_string())), timeframeId)), Value::Str("-TRADE".to_string()))));
+            append_to_array(&mut rawHashes, Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", marketId, Value::Str("@".to_string()))), timeframeId)), Value::Str("-TRADE".to_string()))));
             append_to_array(&mut messageHashes, Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("ohlcv::".to_string()), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null))), Value::Str("::".to_string()))), unfiedTimeframe)));
         }
         }
@@ -839,7 +839,7 @@ impl GrvtCore {
         let mut secondPart: Value = self.safe_string(parts.clone(), Value::Int(1), &[Value::Str("".to_string())]);
         let mut timeframeId: Value = replace_str(&secondPart, &Value::Str("-TRADE".to_string()), &Value::Str("".to_string()));
         let mut timeframe: Value = self.find_timeframe(timeframeId.clone(), &[]);
-        let mut messageHash: Value = add(&Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("ohlcv::".to_string()), symbol)), Value::Str("::".to_string()))), &timeframe);
+        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("ohlcv::".to_string()), symbol)), Value::Str("::".to_string()))), timeframe));
         { let __be_tmp = self.safe_value(self.ohlcvs.clone(), symbol.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -932,7 +932,7 @@ impl GrvtCore {
             let mut symbol: Value = get_value(&symbols, &i);
             let mut market: Value = self.market(symbol.clone());
             let mut marketId: Value = market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null);
-            append_to_array(&mut rawHashes, Value::Str(format!("{}{}", add(&marketId, &Value::Str("@".to_string())), extraPart)));
+            append_to_array(&mut rawHashes, Value::Str(format!("{}{}", Value::Str(format!("{}{}", marketId, Value::Str("@".to_string()))), extraPart)));
             append_to_array(&mut messageHashes, Value::Str(format!("{}{}", Value::Str("orderbook::".to_string()), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null))));
         }
         }
@@ -1092,7 +1092,7 @@ impl GrvtCore {
         let mut rawHashes: Value = Value::List(vec![]);
         if (symbol != Value::Null) {
             let mut market: Value = self.market(symbol.clone());
-            append_to_array(&mut rawHashes, add(&Value::Str(format!("{}{}", subAccountId, Value::Str("-".to_string()))), &market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)));
+            append_to_array(&mut rawHashes, Value::Str(format!("{}{}", Value::Str(format!("{}{}", subAccountId, Value::Str("-".to_string()))), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null))));
             append_to_array(&mut messageHashes, Value::Str(format!("{}{}", Value::Str("myTrades::".to_string()), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null))));
         }  else {
             append_to_array(&mut messageHashes, Value::Str("myTrades".to_string()));
@@ -1160,7 +1160,7 @@ impl GrvtCore {
         }
         let mut trade: Value = self.parse_ws_my_trade(data.clone(), &[]);
         self.myTrades.append(trade.clone());
-        client.resolve(&[self.myTrades.clone(), add(&Value::Str("myTrades::".to_string()), &trade.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null))]);
+        client.resolve(&[self.myTrades.clone(), Value::Str(format!("{}{}", Value::Str("myTrades::".to_string()), trade.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null)))]);
         client.resolve(&[self.myTrades.clone(), Value::Str("myTrades".to_string())]);
 }
 
@@ -1206,7 +1206,7 @@ impl GrvtCore {
                 let mut symbol: Value = get_value(&symbols, &i);
                 let mut symbol: Value = get_value(&symbols, &i);
                 let mut market: Value = self.market(symbol.clone());
-                append_to_array(&mut rawHashes, add(&Value::Str(format!("{}{}", subAccountId, Value::Str("-".to_string()))), &market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)));
+                append_to_array(&mut rawHashes, Value::Str(format!("{}{}", Value::Str(format!("{}{}", subAccountId, Value::Str("-".to_string()))), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null))));
                 append_to_array(&mut messageHashes, Value::Str(format!("{}{}", Value::Str("positions::".to_string()), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null))));
             }
             }
@@ -1268,7 +1268,7 @@ impl GrvtCore {
         self.positions.append(position.clone());
         let mut newPositions: Value = Value::List(vec![]);
         append_to_array(&mut newPositions, position.clone());
-        client.resolve(&[newPositions.clone(), add(&Value::Str("positions::".to_string()), &symbol)]);
+        client.resolve(&[newPositions.clone(), Value::Str(format!("{}{}", Value::Str("positions::".to_string()), symbol))]);
         client.resolve(&[newPositions.clone(), Value::Str("positions".to_string())]);
 }
 
@@ -1311,7 +1311,7 @@ impl GrvtCore {
         }  else {
             let mut market: Value = self.market(symbol.clone());
             append_to_array(&mut messageHashes, Value::Str(format!("{}{}", Value::Str("order::".to_string()), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null))));
-            append_to_array(&mut rawHashes, add(&Value::Str(format!("{}{}", subAccountId, Value::Str("-".to_string()))), &market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)));
+            append_to_array(&mut rawHashes, Value::Str(format!("{}{}", Value::Str(format!("{}{}", subAccountId, Value::Str("-".to_string()))), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null))));
         }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1402,7 +1402,7 @@ impl GrvtCore {
         let mut order: Value = self.parse_ws_order(data.clone(), &[]);
         self.orders.append(order.clone());
         client.resolve(&[self.orders.clone(), Value::Str("orders".to_string())]);
-        client.resolve(&[self.orders.clone(), add(&Value::Str("order::".to_string()), &order.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null))]);
+        client.resolve(&[self.orders.clone(), Value::Str(format!("{}{}", Value::Str("order::".to_string()), order.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null)))]);
 }
 
     pub fn parse_ws_order(&self, mut order: Value, optional_args: &[Value]) -> Value {

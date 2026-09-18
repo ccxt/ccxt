@@ -837,7 +837,7 @@ impl WhitebitCore {
         let mut parsed: Value = self.parse_ws_trade(trade.clone(), &[]);
         stored.append(parsed.clone());
         let mut symbol: Value = parsed.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
-        let mut messageHash: Value = add(&Value::Str("myTrades:".to_string()), &symbol);
+        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("myTrades:".to_string()), symbol));
         client.resolve(&[stored.clone(), messageHash.clone()]);
 }
 
@@ -995,7 +995,7 @@ impl WhitebitCore {
         let mut parsed: Value = self.parse_ws_order(__ws_arg_1, &[]);
         stored.append(parsed.clone());
         let mut symbol: Value = parsed.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
-        let mut messageHash: Value = add(&Value::Str("orders:".to_string()), &symbol);
+        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("orders:".to_string()), symbol));
         client.resolve(&[self.orders.clone(), messageHash.clone()]);
 }
 

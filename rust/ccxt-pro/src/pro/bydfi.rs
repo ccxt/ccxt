@@ -474,7 +474,7 @@ impl BydfiCore {
         let mut market: Value = self.market(symbol.clone());
         let mut marketId: Value = market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null);
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("ticker::".to_string()), symbol));
-        let mut channel: Value = add(&marketId, &Value::Str("@ticker".to_string()));
+        let mut channel: Value = Value::Str(format!("{}{}", marketId, Value::Str("@ticker".to_string())));
         return self.watch_public(Value::List(vec![messageHash.clone()]), Value::List(vec![channel.clone()]), &[params.clone()]).await;
 
     Value::Null
@@ -535,7 +535,7 @@ impl BydfiCore {
                 let mut symbol: Value = get_value(&symbols, &i);
                 let mut marketId: Value = self.market_id(symbol.clone());
                 append_to_array(&mut messageHashes, Value::Str(format!("{}{}", messageHash, symbol)));
-                append_to_array(&mut channels, add(&marketId, &channel));
+                append_to_array(&mut channels, Value::Str(format!("{}{}", marketId, channel)));
             }
             }
         }
@@ -588,7 +588,7 @@ impl BydfiCore {
                         continue;
                     }
                     let mut marketId: Value = self.market_id(symbol.clone());
-                    append_to_array(&mut channels, add(&marketId, &channel));
+                    append_to_array(&mut channels, Value::Str(format!("{}{}", marketId, channel)));
                 }
             }
             }
@@ -603,7 +603,7 @@ impl BydfiCore {
                 let mut symbol: Value = get_value(&symbols, &i);
                 let mut marketId: Value = self.market_id(symbol.clone());
                 append_to_array(&mut messageHashes, Value::Str(format!("{}{}", messageHash, symbol)));
-                append_to_array(&mut channels, add(&marketId, &channel));
+                append_to_array(&mut channels, Value::Str(format!("{}{}", marketId, channel)));
             }
             }
             add_element_to_object(&mut subscription, &Value::Str("symbols".to_string()), symbols.clone());
@@ -655,7 +655,7 @@ impl BydfiCore {
         //
         let mut ticker: Value = self.parse_ticker(message.clone(), &[]);
         let mut symbol: Value = ticker.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
-        let mut messageHash: Value = add(&Value::Str("ticker::".to_string()), &symbol);
+        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("ticker::".to_string()), symbol));
         add_element_to_object(&mut self.tickers, &symbol, ticker.clone());
         client.resolve(&[get_value(&self.tickers, &symbol), messageHash.clone()]);
         client.resolve(&[self.tickers.clone(), Value::Str("ticker::all".to_string())]);
@@ -747,8 +747,8 @@ impl BydfiCore {
                 m
             })]);
             let mut interval: Value = self.safe_string(timeframes.clone(), tf.clone(), &[tf.clone()]);
-            append_to_array(&mut channels, add(&add(&market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null), &Value::Str("@kline_".to_string())), &interval));
-            append_to_array(&mut messageHashes, add(&Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("ohlcv::".to_string()), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null))), Value::Str("::".to_string()))), &interval));
+            append_to_array(&mut channels, Value::Str(format!("{}{}", Value::Str(format!("{}{}", market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null), Value::Str("@kline_".to_string()))), interval)));
+            append_to_array(&mut messageHashes, Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("ohlcv::".to_string()), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null))), Value::Str("::".to_string()))), interval)));
         }
         }
         let mut symboltimeframecandlesVariable = self.watch_public(messageHashes.clone(), channels.clone(), &[params.clone()]).await;
@@ -795,8 +795,8 @@ impl BydfiCore {
             let mut market: Value = self.market(marketId.clone());
             let mut tf: Value = self.safe_string(symbolAndTimeframe.clone(), Value::Int(1), &[]);
             let mut interval: Value = self.safe_string(self.timeframes.clone(), tf.clone(), &[tf.clone()]);
-            append_to_array(&mut channels, add(&add(&market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null), &Value::Str("@kline_".to_string())), &interval));
-            append_to_array(&mut messageHashes, add(&Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("unsubscribe::ohlcv::".to_string()), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null))), Value::Str("::".to_string()))), &interval));
+            append_to_array(&mut channels, Value::Str(format!("{}{}", Value::Str(format!("{}{}", market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null), Value::Str("@kline_".to_string()))), interval)));
+            append_to_array(&mut messageHashes, Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("unsubscribe::ohlcv::".to_string()), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null))), Value::Str("::".to_string()))), interval)));
         }
         }
         params = self.extend(params.clone(), &[Value::Map({
@@ -853,7 +853,7 @@ impl BydfiCore {
         let mut ohlcv: Value = get_value(&get_value(&self.ohlcvs, &symbol), &timeframe);
         let mut parsed: Value = self.parse_ws_ohlcv(message.clone(), &[]);
         ohlcv.append(parsed.clone());
-        let mut messageHash: Value = add(&Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("ohlcv::".to_string()), symbol)), Value::Str("::".to_string()))), &timeframe);
+        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("ohlcv::".to_string()), symbol)), Value::Str("::".to_string()))), timeframe));
         client.resolve(&[Value::List(vec![symbol.clone(), timeframe.clone(), ohlcv.clone()]), messageHash.clone()]);
 }
 
@@ -934,7 +934,7 @@ impl BydfiCore {
             let mut symbol: Value = get_value(&symbols, &i);
             let mut symbol: Value = get_value(&symbols, &i);
             let mut market: Value = self.market(symbol.clone());
-            append_to_array(&mut channels, Value::Str(format!("{}{}", Value::Str(format!("{}{}", add(&market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null), &Value::Str("@depth".to_string())), depth)), channelSuffix)));
+            append_to_array(&mut channels, Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null), Value::Str("@depth".to_string()))), depth)), channelSuffix)));
             append_to_array(&mut messageHashes, Value::Str(format!("{}{}", Value::Str("orderbook::".to_string()), symbol)));
         }
         }
@@ -980,7 +980,7 @@ impl BydfiCore {
             let mut symbol: Value = get_value(&symbols, &i);
             let mut symbol: Value = get_value(&symbols, &i);
             let mut market: Value = self.market(symbol.clone());
-            append_to_array(&mut channels, Value::Str(format!("{}{}", Value::Str(format!("{}{}", add(&market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null), &Value::Str("@depth".to_string())), depth)), channelSuffix)));
+            append_to_array(&mut channels, Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null), Value::Str("@depth".to_string()))), depth)), channelSuffix)));
             append_to_array(&mut messageHashes, Value::Str(format!("{}{}", Value::Str("unsubscribe::orderbook::".to_string()), symbol)));
         }
         }

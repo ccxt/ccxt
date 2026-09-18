@@ -907,7 +907,7 @@ impl BithumbCore {
         }
         let mut quoteId: Value = self.safe_string2(market.clone(), Value::Str("quoteId".to_string()), Value::Str("quote".to_string()), &[]);
         let mut baseId: Value = self.safe_string2(market.clone(), Value::Str("baseId".to_string()), Value::Str("base".to_string()), &[]);
-        return add(&add(&quoteId, &Value::Str("-".to_string())), &baseId);
+        return Value::Str(format!("{}{}", Value::Str(format!("{}{}", quoteId, Value::Str("-".to_string()))), baseId));
 
     Value::Null
 }
@@ -1082,7 +1082,7 @@ impl BithumbCore {
                     let mut entry: Value = self.deep_extend(Value::Map({
                         let mut m = indexmap::IndexMap::new();
                             m.insert("id".to_string(), currencyId.clone());
-                            m.insert("symbol".to_string(), Value::Str(format!("{}{}", add(&base, &Value::Str("/".to_string())), quote)));
+                            m.insert("symbol".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".to_string()))), quote)));
                             m.insert("base".to_string(), base.clone());
                             m.insert("quote".to_string(), quote.clone());
                             m.insert("settle".to_string(), Value::Null);
@@ -1194,9 +1194,9 @@ impl BithumbCore {
                 let mut account: Value = self.account();
                 let mut currency: Value = self.currency(code.clone());
                 let mut lowerCurrencyId: Value = self.safe_string_lower(currency.clone(), Value::Str("id".to_string()), &[]);
-                add_element_to_object(&mut account, &Value::Str("total".to_string()), self.safe_string(balances.clone(), add(&Value::Str("total_".to_string()), &lowerCurrencyId), &[]));
-                add_element_to_object(&mut account, &Value::Str("used".to_string()), self.safe_string(balances.clone(), add(&Value::Str("in_use_".to_string()), &lowerCurrencyId), &[]));
-                add_element_to_object(&mut account, &Value::Str("free".to_string()), self.safe_string(balances.clone(), add(&Value::Str("available_".to_string()), &lowerCurrencyId), &[]));
+                add_element_to_object(&mut account, &Value::Str("total".to_string()), self.safe_string(balances.clone(), Value::Str(format!("{}{}", Value::Str("total_".to_string()), lowerCurrencyId)), &[]));
+                add_element_to_object(&mut account, &Value::Str("used".to_string()), self.safe_string(balances.clone(), Value::Str(format!("{}{}", Value::Str("in_use_".to_string()), lowerCurrencyId)), &[]));
+                add_element_to_object(&mut account, &Value::Str("free".to_string()), self.safe_string(balances.clone(), Value::Str(format!("{}{}", Value::Str("available_".to_string()), lowerCurrencyId)), &[]));
                 add_element_to_object(&mut result, &code, account.clone());
             }
             }
@@ -1764,7 +1764,7 @@ impl BithumbCore {
                     let mut ticker: Value = get_value(&data, &currencyId);
                     let mut ticker: Value = get_value(&data, &currencyId);
                     let mut base: Value = self.safe_currency_code(currencyId.clone(), &[]);
-                    let mut symbol: Value = Value::Str(format!("{}{}", add(&base, &Value::Str("/".to_string())), quote));
+                    let mut symbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".to_string()))), quote));
                     let mut market: Value = self.safe_market(&[symbol.clone()]);
                     add_element_to_object(&mut ticker, &Value::Str("date".to_string()), timestamp.clone());
                     add_element_to_object(&mut result, &symbol, self.parse_ticker(ticker.clone(), &[market.clone()]));
@@ -2386,7 +2386,7 @@ impl BithumbCore {
         }  else if (side.as_str() == Some("sell")) {
             sideRequest = Value::Str("ask".to_string());
         }  else {
-            panic!("{}", crate::exchange_errors::invalid_order(add(&Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder() invalid side ".to_string()))), &side)));
+            panic!("{}", crate::exchange_errors::invalid_order(Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder() invalid side ".to_string()))), side))));
         }
         add_element_to_object(&mut request, &Value::Str("side".to_string()), sideRequest.clone());
         let mut timeInForce: Value = self.safe_string2(params.clone(), Value::Str("timeInForce".to_string()), Value::Str("time_in_force".to_string()), &[]);
@@ -4226,7 +4226,7 @@ impl BithumbCore {
         if (error != Value::Null) {
             let mut errorName: Value = self.safe_string_k(error.clone(), "name", &[]);
             let mut message: Value = self.safe_string_k(error.clone(), "message", &[]);
-            let mut feedback: Value = add(&Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), &message);
+            let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), message));
             if (errorName != Value::Null) {
                 self.throw_exactly_matched_exception(self.exceptions.clone(), errorName.clone(), feedback.clone());
             }
@@ -4248,7 +4248,7 @@ impl BithumbCore {
                 }  else if (message.as_str() == Some("거래 진행중인 내역이 존재하지 않습니다.")) {
                     return Value::Null;
                 }
-                let mut feedback: Value = add(&Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), &message);
+                let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), message));
                 self.throw_exactly_matched_exception(self.exceptions.clone(), status.clone(), feedback.clone());
                 self.throw_exactly_matched_exception(self.exceptions.clone(), message.clone(), feedback.clone());
                 panic!("{}", crate::exchange_errors::exchange_error(feedback));

@@ -1320,7 +1320,7 @@ impl BackpackCore {
         let mut quoteId: Value = self.safe_string_k(market.clone(), "quoteSymbol", &[]);
         let mut base: Value = self.safe_currency_code(baseId.clone(), &[]);
         let mut quote: Value = self.safe_currency_code(quoteId.clone(), &[]);
-        let mut symbol: Value = add(&add(&base, &Value::Str("/".to_string())), &quote);
+        let mut symbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".to_string()))), quote));
         let mut filters: Value = self.safe_dict_k(market.clone(), "filters", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1354,7 +1354,7 @@ impl BackpackCore {
             inverse = Value::Bool(false);
             settleId = self.safe_string_k(market.clone(), "quoteSymbol", &[]);
             settle = self.safe_currency_code(settleId.clone(), &[]);
-            symbol = Value::Str(format!("{}{}", symbol, add(&Value::Str(":".to_string()), &settle)));
+            symbol = Value::Str(format!("{}{}", symbol, Value::Str(format!("{}{}", Value::Str(":".to_string()), settle))));
             contractSize = Value::Int(1);
         }
         let mut orderBookState: Value = self.safe_string_k(market.clone(), "orderBookState", &[]);

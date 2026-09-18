@@ -1422,7 +1422,7 @@ impl ParadexCore {
         let mut base: Value = self.safe_currency_code(baseId.clone(), &[]);
         let mut settleId: Value = self.safe_string_k(market.clone(), "settlement_currency", &[]);
         let mut settle: Value = self.safe_currency_code(settleId.clone(), &[]);
-        let mut symbol: Value = add(&Value::Str(format!("{}{}", add(&add(&base, &Value::Str("/".to_string())), &quote), Value::Str(":".to_string()))), &settle);
+        let mut symbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".to_string()))), quote)), Value::Str(":".to_string()))), settle));
         let mut expiry: Value = self.safe_integer_k(market.clone(), "expiry_at", &[]);
         let mut optionType: Value = self.safe_string_k(market.clone(), "option_type", &[]);
         let mut strikePrice: Value = self.safe_string_k(market.clone(), "strike_price", &[]);
@@ -1431,7 +1431,7 @@ impl ParadexCore {
         if is_true(&isOption) {
             let mut optionTypeSuffix: Value = (if is_true(&(Value::Bool(optionType.as_str() == Some("CALL")))) { Value::Str("C".to_string()) } else { Value::Str("P".to_string()) });
             let mut deliveryValue: Value = (if is_true(&(Value::Bool(expiry.as_f64() == Some(0.0)))) { Value::Str("".to_string()) } else { Value::Str(format!("{}{}", self.yymmdd(expiry.clone(), &[]), Value::Str("-".to_string()))) });
-            symbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", add(&Value::Str(format!("{}{}", Value::Str(format!("{}{}", symbol, Value::Str("-".to_string()))), deliveryValue)), &strikePrice), Value::Str("-".to_string()))), optionTypeSuffix));
+            symbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", symbol, Value::Str("-".to_string()))), deliveryValue)), strikePrice)), Value::Str("-".to_string()))), optionTypeSuffix));
             makerFee = self.parse_number(Value::Str("0.0003".to_string()), &[]);
         }  else {
             expiry = Value::Null;

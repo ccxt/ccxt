@@ -975,7 +975,7 @@ impl KrakenfuturesCore {
                     inverse = Value::Bool(false);
                 }
                 linear = Value::Bool(!is_true(&inverse));
-                symbol = add(&Value::Str(format!("{}{}", add(&add(&base, &Value::Str("/".to_string())), &quote), Value::Str(":".to_string()))), &settle);
+                symbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".to_string()))), quote)), Value::Str(":".to_string()))), settle));
                 if is_true(&future) {
                     symbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", symbol, Value::Str("-".to_string()))), self.yymmdd(expiry.clone(), &[])));
                 }
@@ -4479,9 +4479,9 @@ impl KrakenfuturesCore {
             let mut marketId: Value = market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null);
             let mut splitId: Value = split(&marketId, &Value::Str("_".to_string()));
             if (market.as_map().and_then(|__m| __m.get("inverse")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
-                return add(&Value::Str("fi_".to_string()), &self.safe_string(splitId.clone(), Value::Int(1), &[]));
+                return Value::Str(format!("{}{}", Value::Str("fi_".to_string()), self.safe_string(splitId.clone(), Value::Int(1), &[])));
             }  else {
-                return add(&Value::Str("fv_".to_string()), &self.safe_string(splitId.clone(), Value::Int(1), &[]));
+                return Value::Str(format!("{}{}", Value::Str("fv_".to_string()), self.safe_string(splitId.clone(), Value::Int(1), &[])));
             }
         }  else {
             return account;
@@ -4767,7 +4767,7 @@ impl KrakenfuturesCore {
             m
         })]);
         let mut access: Value = self.safe_string(methodAccess.clone(), path.clone(), &[Value::Str("public".to_string())]);
-        let mut endpoint: Value = Value::Str(format!("{}{}", add(&version, &Value::Str("/".to_string())), self.implode_params(path.clone(), params.clone())));
+        let mut endpoint: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", version, Value::Str("/".to_string()))), self.implode_params(path.clone(), params.clone())));
         params = self.omit(params.clone(), self.extract_params(path.clone()), &[]);
         let mut query: Value = endpoint.clone();
         let mut postData: Value = Value::Str("".to_string());

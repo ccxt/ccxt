@@ -1210,7 +1210,7 @@ impl CoincheckCore {
             m
         });
         if (type_var.as_str() == Some("market")) {
-            add_element_to_object(&mut request, &Value::Str("order_type".to_string()), add(&Value::Str(format!("{}{}", type_var, Value::Str("_".to_string()))), &side));
+            add_element_to_object(&mut request, &Value::Str("order_type".to_string()), Value::Str(format!("{}{}", Value::Str(format!("{}{}", type_var, Value::Str("_".to_string()))), side)));
             if (side.as_str() == Some("sell")) {
                 add_element_to_object(&mut request, &Value::Str("amount".to_string()), amount.clone());
             }  else {

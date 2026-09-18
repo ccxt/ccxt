@@ -741,9 +741,9 @@ impl BinanceCore {
 
     pub fn get_private_ws_url(&self, mut type_var: Value, mut listenKey: Value) -> Value {
         if (type_var.as_str() == Some("future")) {
-            return add(&add(&self.get_ws_url(type_var.clone(), Value::Str("private".to_string())), &Value::Str("?listenKey=".to_string())), &listenKey);
+            return Value::Str(format!("{}{}", add(&self.get_ws_url(type_var.clone(), Value::Str("private".to_string())), &Value::Str("?listenKey=".to_string())), listenKey));
         }
-        return add(&add(&get_value(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), &type_var), &Value::Str("/".to_string())), &listenKey);
+        return Value::Str(format!("{}{}", add(&get_value(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), &type_var), &Value::Str("/".to_string())), listenKey));
 
     Value::Null
 }
@@ -877,7 +877,7 @@ impl BinanceCore {
                 let mut __for_first_55: bool = true;
                 while { if !__for_first_55 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_55 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(symbols.len() as i64).as_f64().unwrap_or(f64::NAN) } {
                 let mut market: Value = self.market(get_value(&symbols, &i));
-                append_to_array(&mut subscriptionHashes, add(&market.as_map().and_then(|__m| __m.get("lowercaseId")).cloned().unwrap_or(Value::Null), &Value::Str("@forceOrder".to_string())));
+                append_to_array(&mut subscriptionHashes, Value::Str(format!("{}{}", market.as_map().and_then(|__m| __m.get("lowercaseId")).cloned().unwrap_or(Value::Null), Value::Str("@forceOrder".to_string()))));
                 append_to_array(&mut messageHashes, Value::Str(format!("{}{}", Value::Str("liquidations::".to_string()), get_value(&symbols, &i))));
             }
             }
@@ -1318,7 +1318,7 @@ impl BinanceCore {
             let mut symbol: Value = get_value(&symbols, &i);
             let mut market: Value = self.market(symbol.clone());
             append_to_array(&mut messageHashes, Value::Str(format!("{}{}", Value::Str("orderbook::".to_string()), symbol)));
-            let mut subscriptionHash: Value = Value::Str(format!("{}{}", add(&market.as_map().and_then(|__m| __m.get("lowercaseId")).cloned().unwrap_or(Value::Null), &Value::Str("@".to_string())), name));
+            let mut subscriptionHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", market.as_map().and_then(|__m| __m.get("lowercaseId")).cloned().unwrap_or(Value::Null), Value::Str("@".to_string()))), name));
             if (watchOrderBookRate == Value::Null) {
                 panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" watchOrderBookForSymbols() watchOrderBookRate is required".to_string())))));
             }
@@ -1403,7 +1403,7 @@ impl BinanceCore {
             append_to_array(&mut subMessageHashes, Value::Str(format!("{}{}", Value::Str("orderbook::".to_string()), symbol)));
             append_to_array(&mut messageHashes, Value::Str(format!("{}{}", Value::Str("unsubscribe:orderbook:".to_string()), symbol)));
             let mut streamId: Value = market.as_map().and_then(|__m| __m.get("lowercaseId")).cloned().unwrap_or(Value::Null);
-            let mut subscriptionHash: Value = Value::Str(format!("{}{}", add(&streamId, &Value::Str("@".to_string())), name));
+            let mut subscriptionHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", streamId, Value::Str("@".to_string()))), name));
             let mut symbolHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", subscriptionHash, Value::Str("@".to_string()))), watchOrderBookRate)), Value::Str("ms".to_string())));
             append_to_array(&mut subParams, symbolHash.clone());
         }
@@ -1552,7 +1552,7 @@ impl BinanceCore {
 
     pub async fn fetch_order_book_snapshot(&mut self, mut client: Value, mut message: Value, mut subscription: Value) -> Value {
         let mut symbol: Value = self.safe_string_k(subscription.clone(), "symbol", &[]);
-        let mut messageHash: Value = add(&Value::Str("orderbook::".to_string()), &symbol);
+        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("orderbook::".to_string()), symbol));
         {
             let mut defaultLimit: Value = self.safe_integer_k(self.options.clone(), "watchOrderBookLimit", &[Value::Int(1000)]);
             let mut type_var: Value = self.safe_value_k(subscription.clone(), "type", &[]);
@@ -1884,7 +1884,7 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
                 append_to_array(&mut messageHashes, Value::Str(format!("{}{}", Value::Str("trade::".to_string()), symbol)));
                 let mut baseIdLower: Value = self.safe_string_lower(market.clone(), Value::Str("baseId".to_string()), &[Value::Str("".to_string())]);
                 let mut quoteIdLower: Value = self.safe_string_lower(market.clone(), Value::Str("quoteId".to_string()), &[Value::Str("".to_string())]);
-                let mut underlying: Value = add(&add(&baseIdLower, &Value::Str("".to_string())), &quoteIdLower);
+                let mut underlying: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", baseIdLower, Value::Str("".to_string()))), quoteIdLower));
                 if !is_true(&(Value::Bool(in_op(&seenUnderlyings, &underlying)))) {
                     add_element_to_object(&mut seenUnderlyings, &underlying, Value::Bool(true));
                     append_to_array(&mut subParams, Value::Str(format!("{}{}", underlying, Value::Str("@optionTrade".to_string()))));
@@ -1900,7 +1900,7 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
                 let mut symbol: Value = get_value(&symbols, &i);
                 let mut market: Value = self.market(symbol.clone());
                 append_to_array(&mut messageHashes, Value::Str(format!("{}{}", Value::Str("trade::".to_string()), symbol)));
-                let mut rawHash: Value = Value::Str(format!("{}{}", add(&market.as_map().and_then(|__m| __m.get("lowercaseId")).cloned().unwrap_or(Value::Null), &Value::Str("@".to_string())), name));
+                let mut rawHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", market.as_map().and_then(|__m| __m.get("lowercaseId")).cloned().unwrap_or(Value::Null), Value::Str("@".to_string()))), name));
                 append_to_array(&mut subParams, rawHash.clone());
             }
             }
@@ -1995,7 +1995,7 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
                 append_to_array(&mut messageHashes, Value::Str(format!("{}{}", Value::Str("unsubscribe:trade:".to_string()), symbol)));
                 let mut baseIdLower: Value = self.safe_string_lower(market.clone(), Value::Str("baseId".to_string()), &[Value::Str("".to_string())]);
                 let mut quoteIdLower: Value = self.safe_string_lower(market.clone(), Value::Str("quoteId".to_string()), &[Value::Str("".to_string())]);
-                let mut underlying: Value = add(&add(&baseIdLower, &Value::Str("".to_string())), &quoteIdLower);
+                let mut underlying: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", baseIdLower, Value::Str("".to_string()))), quoteIdLower));
                 if !is_true(&(Value::Bool(in_op(&seenUnderlyings, &underlying)))) {
                     add_element_to_object(&mut seenUnderlyings, &underlying, Value::Bool(true));
                     append_to_array(&mut subParams, Value::Str(format!("{}{}", underlying, Value::Str("@optionTrade".to_string()))));
@@ -2012,7 +2012,7 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
                 let mut market: Value = self.market(symbol.clone());
                 append_to_array(&mut subMessageHashes, Value::Str(format!("{}{}", Value::Str("trade::".to_string()), symbol)));
                 append_to_array(&mut messageHashes, Value::Str(format!("{}{}", Value::Str("unsubscribe:trade:".to_string()), symbol)));
-                let mut rawHash: Value = Value::Str(format!("{}{}", add(&market.as_map().and_then(|__m| __m.get("lowercaseId")).cloned().unwrap_or(Value::Null), &Value::Str("@".to_string())), name));
+                let mut rawHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", market.as_map().and_then(|__m| __m.get("lowercaseId")).cloned().unwrap_or(Value::Null), Value::Str("@".to_string()))), name));
                 append_to_array(&mut subParams, rawHash.clone());
             }
             }
@@ -2643,7 +2643,7 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
         let mut isSpot: Value = self.is_spot_url(client.clone());
         let mut marketType: Value = (if is_true(&isSpot) { Value::Str("spot".to_string()) } else { Value::Str("contract".to_string()) });
         let mut symbol: Value = self.safe_symbol(marketId.clone(), &[Value::Null, Value::Null, marketType.clone()]);
-        let mut messageHash: Value = add(&Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("ohlcv::".to_string()), symbol)), Value::Str("::".to_string()))), &unifiedTimeframe);
+        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("ohlcv::".to_string()), symbol)), Value::Str("::".to_string()))), unifiedTimeframe));
         { let __be_tmp = self.safe_value(self.ohlcvs.clone(), symbol.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -3129,7 +3129,7 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
                 let mut __for_first_70: bool = true;
                 while { if !__for_first_70 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_70 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(symbols.len() as i64).as_f64().unwrap_or(f64::NAN) } {
                 let mut stockTicker: Value = self.get_stock_ticker_from_symbol(get_value(&symbols, &i));
-                append_to_array(&mut stockStreams, add(&stockTicker, &Value::Str("@quote".to_string())));
+                append_to_array(&mut stockStreams, Value::Str(format!("{}{}", stockTicker, Value::Str("@quote".to_string()))));
                 append_to_array(&mut stockMessageHashes, Value::Str(format!("{}{}", Value::Str("stock:quote:".to_string()), get_value(&symbols, &i))));
             }
             }
@@ -3223,15 +3223,15 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
                 let mut symbol: Value = get_value(&symbols, &i);
                 let mut symbol: Value = get_value(&symbols, &i);
                 let mut market: Value = self.market(symbol.clone());
-                append_to_array(&mut messageHashes, Value::Str(format!("{}{}", Value::Str(format!("{}{}", add(&Value::Str(format!("{}{}", unifiedPrefix, Value::Str(":".to_string()))), &channelName), Value::Str("@".to_string()))), symbol)));
+                append_to_array(&mut messageHashes, Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", unifiedPrefix, Value::Str(":".to_string()))), channelName)), Value::Str("@".to_string()))), symbol)));
                 if is_true(&isUnsubscribe) {
-                    append_to_array(&mut unsubscribeMessageHashes, Value::Str(format!("{}{}", Value::Str(format!("{}{}", add(&Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("unsubscribe::".to_string()), unifiedPrefix)), Value::Str(":".to_string()))), &channelName), Value::Str("@".to_string()))), symbol)));
+                    append_to_array(&mut unsubscribeMessageHashes, Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("unsubscribe::".to_string()), unifiedPrefix)), Value::Str(":".to_string()))), channelName)), Value::Str("@".to_string()))), symbol)));
                 }
                 if isOptionMarkPrice {
                     // subscribe per underlying, not per contract
                     let mut baseIdLower: Value = self.safe_string_lower(market.clone(), Value::Str("baseId".to_string()), &[Value::Str("".to_string())]);
                     let mut quoteIdLower: Value = self.safe_string_lower(market.clone(), Value::Str("quoteId".to_string()), &[Value::Str("".to_string())]);
-                    let mut underlying: Value = add(&add(&baseIdLower, &Value::Str("".to_string())), &quoteIdLower);
+                    let mut underlying: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", baseIdLower, Value::Str("".to_string()))), quoteIdLower));
                     if !is_true(&(Value::Bool(in_op(&seenUnderlyings, &underlying)))) {
                         add_element_to_object(&mut seenUnderlyings, &underlying, Value::Bool(true));
                         append_to_array(&mut subscriptionArgs, Value::Str(format!("{}{}", underlying, Value::Str("@optionMarkPrice".to_string()))));
@@ -3244,15 +3244,15 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
                     let mut expiryDate: Value = self.safe_string(parts.clone(), Value::Int(1), &[]);
                     let mut baseIdLower: Value = self.safe_string_lower(market.clone(), Value::Str("baseId".to_string()), &[Value::Str("".to_string())]);
                     let mut quoteIdLower: Value = self.safe_string_lower(market.clone(), Value::Str("quoteId".to_string()), &[Value::Str("".to_string())]);
-                    let mut underlying: Value = add(&add(&baseIdLower, &Value::Str("".to_string())), &quoteIdLower);
-                    let mut subscriptionArg: Value = add(&Value::Str(format!("{}{}", underlying, Value::Str("@optionTicker@".to_string()))), &expiryDate);
+                    let mut underlying: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", baseIdLower, Value::Str("".to_string()))), quoteIdLower));
+                    let mut subscriptionArg: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", underlying, Value::Str("@optionTicker@".to_string()))), expiryDate));
                     if !is_true(&(Value::Bool(in_op(&seenUnderlyings, &subscriptionArg)))) {
                         add_element_to_object(&mut seenUnderlyings, &subscriptionArg, Value::Bool(true));
                         append_to_array(&mut subscriptionArgs, subscriptionArg.clone());
                     }
                 }  else {
                     let mut streamId: Value = market.as_map().and_then(|__m| __m.get("lowercaseId")).cloned().unwrap_or(Value::Null);
-                    append_to_array(&mut subscriptionArgs, Value::Str(format!("{}{}", add(&add(&streamId, &Value::Str("@".to_string())), &channelName), suffix)));
+                    append_to_array(&mut subscriptionArgs, Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", streamId, Value::Str("@".to_string()))), channelName)), suffix)));
                 }
             }
             }
@@ -3273,8 +3273,8 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
                     // isOptionMarkPrice: one stream covers all contracts for the underlying
                     append_to_array(&mut subscriptionArgs, Value::Str(format!("{}{}", underlying, Value::Str("@optionMarkPrice".to_string()))));
                 }
-                append_to_array(&mut messageHashes, add(&Value::Str(format!("{}{}", unifiedPrefix, Value::Str("s:".to_string()))), &channelName));
-                append_to_array(&mut unsubscribeMessageHashes, add(&Value::Str("unsubscribe::".to_string()), &channelName));
+                append_to_array(&mut messageHashes, Value::Str(format!("{}{}", Value::Str(format!("{}{}", unifiedPrefix, Value::Str("s:".to_string()))), channelName)));
+                append_to_array(&mut unsubscribeMessageHashes, Value::Str(format!("{}{}", Value::Str("unsubscribe::".to_string()), channelName)));
             }  else if isBidAsk {
                 if (marketType.as_str() == Some("spot")) {
                     panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", add(&Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), &methodName), Value::Str("() requires symbols for this channel for spot markets".to_string())))));
@@ -3287,14 +3287,14 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
                 append_to_array(&mut messageHashes, Value::Str(format!("{}{}", Value::Str(format!("{}{}", unifiedPrefix, Value::Str("s:".to_string()))), channelName)));
                 append_to_array(&mut unsubscribeMessageHashes, Value::Str(format!("{}{}", Value::Str("unsubscribe::".to_string()), channelName)));
             }  else {
-                append_to_array(&mut subscriptionArgs, Value::Str(format!("{}{}", add(&Value::Str("!".to_string()), &channelName), Value::Str("@arr".to_string()))));
-                append_to_array(&mut messageHashes, add(&Value::Str(format!("{}{}", unifiedPrefix, Value::Str("s:".to_string()))), &channelName));
-                append_to_array(&mut unsubscribeMessageHashes, add(&Value::Str("unsubscribe::".to_string()), &channelName));
+                append_to_array(&mut subscriptionArgs, Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("!".to_string()), channelName)), Value::Str("@arr".to_string()))));
+                append_to_array(&mut messageHashes, Value::Str(format!("{}{}", Value::Str(format!("{}{}", unifiedPrefix, Value::Str("s:".to_string()))), channelName)));
+                append_to_array(&mut unsubscribeMessageHashes, Value::Str(format!("{}{}", Value::Str("unsubscribe::".to_string()), channelName)));
             }
         }
         let mut streamHash: Value = channelName.clone();
         if (symbols != Value::Null) {
-            streamHash = Value::Str(format!("{}{}", add(&channelName, &Value::Str("::".to_string())), join(&symbols, &Value::Str(",".to_string()))));
+            streamHash = Value::Str(format!("{}{}", Value::Str(format!("{}{}", channelName, Value::Str("::".to_string()))), join(&symbols, &Value::Str(",".to_string()))));
         }
         let mut url: Value = Value::Str(format!("{}{}", add(&self.get_ws_url(rawMarketType.clone(), self.get_future_ws_category(channelName.clone())), &Value::Str("/".to_string())), self.stream(rawMarketType.clone(), streamHash.clone(), &[])));
         let mut requestId: Value = self.request_id(url.clone());
@@ -3643,7 +3643,7 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
                     add_element_to_object(&mut self.tickers, &symbol, parsedTicker.clone());
                 }
             }
-            let mut messageHash: Value = add(&Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", unifiedPrefix, Value::Str(":".to_string()))), channelName)), Value::Str("@".to_string()))), &symbol);
+            let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", unifiedPrefix, Value::Str(":".to_string()))), channelName)), Value::Str("@".to_string()))), symbol));
             append_to_array(&mut resolvedMessageHashes, messageHash.clone());
             client.resolve(&[parsedTicker.clone(), messageHash.clone()]);
         }
@@ -3651,7 +3651,7 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
         // resolve batch endpoint
         let mut length: Value = Value::Int(resolvedMessageHashes.len() as i64);
         if length.as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN) {
-            let mut batchMessageHash: Value = add(&Value::Str(format!("{}{}", unifiedPrefix, Value::Str("s:".to_string()))), &channelName);
+            let mut batchMessageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", unifiedPrefix, Value::Str("s:".to_string()))), channelName));
             client.resolve(&[newTickers.clone(), batchMessageHash.clone()]);
         }
 }
@@ -6926,7 +6926,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
             let mut myTrades: Value = self.myTrades.clone();
             myTrades.append(trade.clone());
             client.resolve(&[self.myTrades.clone(), messageHash.clone()]);
-            let mut messageHashSymbol: Value = add(&Value::Str(format!("{}{}", messageHash, Value::Str(":".to_string()))), &symbol);
+            let mut messageHashSymbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", messageHash, Value::Str(":".to_string()))), symbol));
             client.resolve(&[self.myTrades.clone(), messageHashSymbol.clone()]);
         }
 }
@@ -7231,7 +7231,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut event: Value = self.safe_string_k(message.clone(), "e", &[]);
         if is_true(&Value::Bool(is_array(&message))) {
             let mut arrayMessage: Value = message.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
-            event = add(&self.safe_string_k(arrayMessage.clone(), "e", &[]), &Value::Str("@arr".to_string()));
+            event = Value::Str(format!("{}{}", self.safe_string_k(arrayMessage.clone(), "e", &[]), Value::Str("@arr".to_string())));
         }
         method = self.safe_value(methods.clone(), event.clone(), &[]);
         if (method == Value::Null) {

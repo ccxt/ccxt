@@ -1523,7 +1523,7 @@ impl BitrueCore {
         }
         let mut base: Value = self.safe_currency_code(baseId.clone(), &[]);
         let mut quote: Value = self.safe_currency_code(quoteId.clone(), &[]);
-        let mut symbol: Value = add(&add(&base, &Value::Str("/".to_string())), &quote);
+        let mut symbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".to_string()))), quote));
         if (settle != Value::Null) {
             symbol = Value::Str(format!("{}{}", symbol, Value::Str(format!("{}{}", Value::Str(":".to_string()), settle))));
         }
@@ -3864,9 +3864,9 @@ impl BitrueCore {
         if is_true(&(Value::Bool((type_var.as_str() == Some("api")) && (version.as_str() == Some("kline"))))) || is_true(&(Value::Bool((type_var.as_str() == Some("open")) && is_greater_than_or_equal(&get_index_of(&path, &Value::Str("listenKey".to_string())), &Value::Int(0))))) {
             url = get_value(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), &type_var);
         }  else {
-            url = add(&add(&get_value(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), &type_var), &Value::Str("/".to_string())), &version);
+            url = Value::Str(format!("{}{}", add(&get_value(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), &type_var), &Value::Str("/".to_string())), version));
         }
-        url = Value::Str(format!("{}{}", add(&url, &Value::Str("/".to_string())), self.implode_params(path.clone(), params.clone())));
+        url = Value::Str(format!("{}{}", Value::Str(format!("{}{}", url, Value::Str("/".to_string()))), self.implode_params(path.clone(), params.clone())));
         params = self.omit(params.clone(), self.extract_params(path.clone()), &[]);
         if (access.as_str() == Some("private")) {
             self.check_required_credentials(&[]);
@@ -3900,7 +3900,7 @@ impl BitrueCore {
                 }  else if (type_var.as_str() == Some("dapi")) {
                     signPath = Value::Str("/dapi".to_string());
                 }
-                signPath = add(&Value::Str(format!("{}{}", add(&add(&signPath, &Value::Str("/".to_string())), &version), Value::Str("/".to_string()))), &path);
+                signPath = add(&Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", signPath, Value::Str("/".to_string()))), version)), Value::Str("/".to_string()))), &path);
                 let mut signMessage: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", timestamp, method)), signPath));
                 if (method.as_str() == Some("GET")) {
                     let mut keys: Value = object_keys(&params);

@@ -2504,7 +2504,7 @@ impl XtCore {
         let mut base: Value = self.safe_currency_code(baseId.clone(), &[]);
         let mut quote: Value = self.safe_currency_code(quoteId.clone(), &[]);
         let mut state: Value = self.safe_string_k(market.clone(), "state", &[]);
-        let mut symbol: Value = add(&add(&base, &Value::Str("/".to_string())), &quote);
+        let mut symbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".to_string()))), quote));
         let mut filters: Value = self.safe_list_k(market.clone(), "filters", &[Value::List(vec![])]);
         let mut minAmount: Value = Value::Null;
         let mut maxAmount: Value = Value::Null;
@@ -2549,13 +2549,13 @@ impl XtCore {
         let mut spot: Value = Value::Bool(true);
         let mut type_var: Value = Value::Str("spot".to_string());
         if (underlyingType.as_str() == Some("U_BASED")) {
-            symbol = add(&Value::Str(format!("{}{}", symbol, Value::Str(":".to_string()))), &quote);
+            symbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", symbol, Value::Str(":".to_string()))), quote));
             settleId = baseId.clone();
             settle = quote.clone();
             linear = Value::Bool(true);
             inverse = Value::Bool(false);
         }  else if (underlyingType.as_str() == Some("COIN_BASED")) {
-            symbol = add(&Value::Str(format!("{}{}", symbol, Value::Str(":".to_string()))), &base);
+            symbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", symbol, Value::Str(":".to_string()))), base));
             settleId = baseId.clone();
             settle = base.clone();
             linear = Value::Bool(false);
@@ -6983,7 +6983,7 @@ impl XtCore {
             // endpoint, including here and on position/list; there is no one-way/net
             // mode that would report 'BOTH', see setLeverage()/setMarginMode() which
             // both validate positionSide against exactly ['LONG', 'SHORT'])
-            let mut key: Value = add(&add(&self.safe_string_k(breakEntry.clone(), "symbol", &[]), &Value::Str("_".to_string())), &self.safe_string_k(breakEntry.clone(), "positionSide", &[]));
+            let mut key: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.safe_string_k(breakEntry.clone(), "symbol", &[]), Value::Str("_".to_string()))), self.safe_string_k(breakEntry.clone(), "positionSide", &[])));
             add_element_to_object(&mut breakBySymbolSide, &key, breakEntry.clone());
         }
         }
@@ -7000,7 +7000,7 @@ impl XtCore {
  */
     pub fn merge_position_break_info(&self, mut entry: Value, mut breakBySymbolSide: Value) -> Value {
         let mut marketId: Value = self.safe_string_k(entry.clone(), "symbol", &[]);
-        let mut key: Value = add(&add(&marketId, &Value::Str("_".to_string())), &self.safe_string_k(entry.clone(), "positionSide", &[]));
+        let mut key: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", marketId, Value::Str("_".to_string()))), self.safe_string_k(entry.clone(), "positionSide", &[])));
         let mut breakEntry: Value = self.safe_dict(breakBySymbolSide.clone(), key.clone(), &[]);
         if (breakEntry == Value::Null) {
             return entry;
@@ -7710,9 +7710,9 @@ impl XtCore {
         let mut payload: Value = Value::Null;
         if is_true(&(Value::Bool(endpoint.as_str() == Some("spot")))) || is_true(&(Value::Bool(endpoint.as_str() == Some("user")))) {
             if signed {
-                payload = Value::Str(format!("{}{}", add(&Value::Str("/".to_string()), &self.version), request));
+                payload = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("/".to_string()), self.version.clone())), request));
             }  else {
-                payload = Value::Str(format!("{}{}", Value::Str(format!("{}{}", add(&Value::Str("/".to_string()), &self.version), Value::Str("/public".to_string()))), request));
+                payload = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("/".to_string()), self.version.clone())), Value::Str("/public".to_string()))), request));
             }
         }  else {
             payload = request.clone();
@@ -7752,7 +7752,7 @@ impl XtCore {
             body = (if isUndefinedBody { Value::Null } else { self.json(body.clone()) });
             let mut payloadString: Value = Value::Null;
             if is_true(&(Value::Bool(endpoint.as_str() == Some("spot")))) || is_true(&(Value::Bool(endpoint.as_str() == Some("user")))) {
-                payloadString = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", add(&Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("xt-validate-algorithms=HmacSHA256&xt-validate-appkey=".to_string()), self.apiKey.clone())), Value::Str("&xt-validate-recvwindow=".to_string()))), &recvWindow), Value::Str("&xt-validate-t".to_string()))), Value::Str("imestamp=".to_string()))), timestamp));
+                payloadString = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("xt-validate-algorithms=HmacSHA256&xt-validate-appkey=".to_string()), self.apiKey.clone())), Value::Str("&xt-validate-recvwindow=".to_string()))), recvWindow)), Value::Str("&xt-validate-t".to_string()))), Value::Str("imestamp=".to_string()))), timestamp));
                 if isUndefinedBody {
                     if (urlencoded.as_str() != Some("")) {
                         url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".to_string()), urlencoded))));

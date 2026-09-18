@@ -1670,7 +1670,7 @@ impl WooCore {
         let mut quote: Value = self.safe_currency_code(quoteId.clone(), &[]);
         let mut settleId: Value = Value::Null;
         let mut settle: Value = Value::Null;
-        let mut symbol: Value = add(&add(&base, &Value::Str("/".to_string())), &quote);
+        let mut symbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".to_string()))), quote));
         let mut contractSize: Value = Value::Null;
         let mut linear: Value = Value::Null;
         let mut inverse: Value = Value::Null;
@@ -1680,7 +1680,7 @@ impl WooCore {
             margin = Value::Bool(false);
             settleId = self.safe_string(parts.clone(), Value::Int(2), &[]);
             settle = self.safe_currency_code(settleId.clone(), &[]);
-            symbol = add(&Value::Str(format!("{}{}", add(&add(&base, &Value::Str("/".to_string())), &quote), Value::Str(":".to_string()))), &settle);
+            symbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".to_string()))), quote)), Value::Str(":".to_string()))), settle));
             contractSize = self.parse_number(Value::Str("1".to_string()), &[]);
             linear = Value::Bool(true);
             inverse = Value::Bool(false);
@@ -4230,7 +4230,7 @@ impl WooCore {
             let mut firstPart: Value = self.safe_string(parts.clone(), Value::Int(0), &[]);
             let mut currencyId: Value = self.safe_string(parts.clone(), Value::Int(1), &[firstPart.clone()]);
             if is_greater_than(&partsLength, &Value::Int(2)) {
-                currencyId = add(&currencyId, &add(&Value::Str("_".to_string()), &self.safe_string(parts.clone(), Value::Int(2), &[])));
+                currencyId = Value::Str(format!("{}{}", currencyId, Value::Str(format!("{}{}", Value::Str("_".to_string()), self.safe_string(parts.clone(), Value::Int(2), &[])))));
             }
             currency = self.safe_currency(currencyId.clone(), &[]);
         }
@@ -5466,7 +5466,7 @@ impl WooCore {
             let __ws_arg_38 = self.extend(request.clone(), &[params.clone()]);
             return self.v3_private_put_futures_leverage(&[__ws_arg_38]).await;
         }  else {
-            panic!("{}", crate::exchange_errors::not_supported(Value::Str(format!("{}{}", add(&Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchLeverage() is not supported for ".to_string()))), &self.safe_string_k(market.clone(), "type", &[])), Value::Str(" markets".to_string())))));
+            panic!("{}", crate::exchange_errors::not_supported(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchLeverage() is not supported for ".to_string()))), self.safe_string_k(market.clone(), "type", &[]))), Value::Str(" markets".to_string())))));
         }
 
     Value::Null

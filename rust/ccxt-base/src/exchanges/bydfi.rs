@@ -979,7 +979,7 @@ impl BydfiCore {
         let mut base: Value = self.safe_currency_code(baseId.clone(), &[]);
         let mut quote: Value = self.safe_currency_code(quoteId.clone(), &[]);
         let mut settle: Value = self.safe_currency_code(settleId.clone(), &[]);
-        let mut symbol: Value = add(&Value::Str(format!("{}{}", add(&add(&base, &Value::Str("/".to_string())), &quote), Value::Str(":".to_string()))), &settle);
+        let mut symbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".to_string()))), quote)), Value::Str(":".to_string()))), settle));
         let mut inverse: Value = self.safe_bool_k(market.clone(), "reverse", &[]);
         let mut limitMaxQty: Value = self.safe_string_k(market.clone(), "limitMaxQty", &[]);
         let mut marketMaxQty: Value = self.safe_string_k(market.clone(), "marketMaxQty", &[]);

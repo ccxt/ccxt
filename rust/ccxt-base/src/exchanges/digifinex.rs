@@ -1383,12 +1383,12 @@ impl DigifinexCore {
             let mut spot: Value = Value::Bool(settle == Value::Null);
             let mut swap: Value = Value::Bool(!is_true(&spot));
             let mut margin: Value = (if is_true(&(Value::Bool(marginMode != Value::Null))) { Value::Bool(true) } else { Value::Null });
-            let mut symbol: Value = add(&add(&base, &Value::Str("/".to_string())), &quote);
+            let mut symbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".to_string()))), quote));
             let mut isInverse: Value = Value::Null;
             let mut isLinear: Value = Value::Null;
             if is_true(&swap) {
                 type_var = Value::Str("swap".to_string());
-                symbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", add(&add(&base, &Value::Str("/".to_string())), &quote), Value::Str(":".to_string()))), settle));
+                symbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".to_string()))), quote)), Value::Str(":".to_string()))), settle));
                 isInverse = self.safe_value_k(market.clone(), "is_inverse", &[]);
                 isLinear = (if is_true(&(Value::Bool(isInverse.as_bool() != Some(true)))) { Value::Bool(true) } else { Value::Bool(false) });
                 let mut isTrading: Value = self.safe_value_k(market.clone(), "isTrading", &[]);
@@ -1508,7 +1508,7 @@ impl DigifinexCore {
             append_to_array(&mut result, Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("id".to_string(), id.clone());
-                    m.insert("symbol".to_string(), add(&add(&base, &Value::Str("/".to_string())), &quote));
+                    m.insert("symbol".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".to_string()))), quote)));
                     m.insert("base".to_string(), base.clone());
                     m.insert("quote".to_string(), quote.clone());
                     m.insert("settle".to_string(), Value::Null);

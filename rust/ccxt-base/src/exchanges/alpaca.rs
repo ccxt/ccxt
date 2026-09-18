@@ -1151,7 +1151,7 @@ impl AlpacaCore {
         if (quote == Value::Null) && (assetClass.as_str() == Some("us_equity")) {
             quote = Value::Str("USD".to_string());
         }
-        let mut symbol: Value = add(&add(&base, &Value::Str("/".to_string())), &quote);
+        let mut symbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".to_string()))), quote));
         let mut status: Value = self.safe_string_k(asset.clone(), "status", &[]);
         let mut active: Value = (Value::Bool(status.as_str() == Some("active")));
         let mut minAmount: Value = self.safe_number_k(asset.clone(), "min_order_size", &[]);
@@ -2793,7 +2793,7 @@ impl AlpacaCore {
         if (activityType != Value::Null) {
             let mut netAmount: Value = self.safe_string_k(transaction.clone(), "net_amount", &[]);
             let mut isIncoming: bool = is_true(&(Value::Bool(activityType.as_str() == Some("CSD")))) || is_true(&(Value::Bool(is_true(&(Value::Bool(activityType.as_str() == Some("TRANS")))) && !is_true(&crate::precise::Precise::stringLt(&netAmount, &Value::Str("0".to_string()))))));
-            timestamp = self.parse8601(add(&self.safe_string_k(transaction.clone(), "date", &[]), &Value::Str("T00:00:00Z".to_string())));
+            timestamp = self.parse8601(Value::Str(format!("{}{}", self.safe_string_k(transaction.clone(), "date", &[]), Value::Str("T00:00:00Z".to_string()))));
             datetime = self.iso8601(timestamp.clone());
             type_var = (if isIncoming { Value::Str("deposit".to_string()) } else { Value::Str("withdrawal".to_string()) });
             amount = self.parse_number(crate::precise::Precise::stringAbs(&netAmount), &[]);

@@ -2495,7 +2495,7 @@ impl MexcCore {
             append_to_array(&mut result, Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("id".to_string(), id.clone());
-                    m.insert("symbol".to_string(), add(&add(&base, &Value::Str("/".to_string())), &quote));
+                    m.insert("symbol".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".to_string()))), quote)));
                     m.insert("base".to_string(), base.clone());
                     m.insert("quote".to_string(), quote.clone());
                     m.insert("settle".to_string(), Value::Null);
@@ -2646,7 +2646,7 @@ impl MexcCore {
             append_to_array(&mut result, Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("id".to_string(), id.clone());
-                    m.insert("symbol".to_string(), add(&Value::Str(format!("{}{}", add(&add(&base, &Value::Str("/".to_string())), &quote), Value::Str(":".to_string()))), &settle));
+                    m.insert("symbol".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".to_string()))), quote)), Value::Str(":".to_string()))), settle)));
                     m.insert("base".to_string(), base.clone());
                     m.insert("quote".to_string(), quote.clone());
                     m.insert("settle".to_string(), settle.clone());
@@ -6283,7 +6283,7 @@ impl MexcCore {
             }
         }
         if (result == Value::Null) {
-            panic!("{}", crate::exchange_errors::invalid_address(Value::Str(format!("{}{}", add(&Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchDepositAddress() cannot find a deposit address for ".to_string()))), code)), Value::Str(", and network".to_string()))), &network), Value::Str("consider creating one using .createDepositAddress() method or in MEXC website".to_string())))));
+            panic!("{}", crate::exchange_errors::invalid_address(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchDepositAddress() cannot find a deposit address for ".to_string()))), code)), Value::Str(", and network".to_string()))), network)), Value::Str("consider creating one using .createDepositAddress() method or in MEXC website".to_string())))));
         }
         return result;
 
@@ -7730,7 +7730,7 @@ impl MexcCore {
             if (section.as_str() == Some("broker")) {
                 url = add(&add(&get_value(&get_value(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), &section), &access), &Value::Str("/".to_string())), &path);
             }  else {
-                url = add(&Value::Str(format!("{}{}", add(&add(&get_value(&get_value(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), &section), &access), &Value::Str("/api/".to_string())), &self.version), Value::Str("/".to_string()))), &path);
+                url = add(&Value::Str(format!("{}{}", Value::Str(format!("{}{}", add(&get_value(&get_value(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), &section), &access), &Value::Str("/api/".to_string())), self.version.clone())), Value::Str("/".to_string()))), &path);
             }
             let mut urlParams: Value = params.clone();
             if (access.as_str() == Some("private")) {

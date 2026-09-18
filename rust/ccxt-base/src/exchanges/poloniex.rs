@@ -1578,7 +1578,7 @@ impl PoloniexCore {
         return self.safe_market_structure(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id.clone());
-        m.insert("symbol".to_string(), add(&add(&base, &Value::Str("/".to_string())), &quote));
+        m.insert("symbol".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".to_string()))), quote)));
         m.insert("base".to_string(), base.clone());
         m.insert("quote".to_string(), quote.clone());
         m.insert("settle".to_string(), Value::Null);
@@ -1681,12 +1681,12 @@ impl PoloniexCore {
         let mut status: Value = self.safe_string_k(market.clone(), "status", &[]);
         let mut active: Value = Value::Bool(status.as_str() == Some("OPEN"));
         let mut linear: Value = Value::Bool(market.as_map().and_then(|__m| __m.get("ctType")).cloned().unwrap_or(Value::Null).as_str() == Some("LINEAR"));
-        let mut symbol: Value = add(&add(&base, &Value::Str("/".to_string())), &quote);
+        let mut symbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".to_string()))), quote));
         if is_true(&linear) {
-            symbol = Value::Str(format!("{}{}", symbol, add(&Value::Str(":".to_string()), &settle)));
+            symbol = Value::Str(format!("{}{}", symbol, Value::Str(format!("{}{}", Value::Str(":".to_string()), settle))));
         }  else {
             // actually, exchange does not have any inverse future now
-            symbol = Value::Str(format!("{}{}", symbol, add(&Value::Str(":".to_string()), &base)));
+            symbol = Value::Str(format!("{}{}", symbol, Value::Str(format!("{}{}", Value::Str(":".to_string()), base))));
         }
         let mut alias: Value = self.safe_string_k(market.clone(), "alias", &[]);
         let mut type_var: Value = Value::Str("swap".to_string());

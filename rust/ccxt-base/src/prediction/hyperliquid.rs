@@ -2038,7 +2038,7 @@ impl HyperliquidCore {
             let mut status: Value = get_value(&statuses, &i);
             let mut error: Value = self.safe_string_k(status.clone(), "error", &[]);
             if (error != Value::Null) {
-                panic!("{}", crate::exchange_errors::order_not_found(Value::Str(format!("{}{}", Value::Str(format!("{}{}", add(&Value::Str(format!("{}{}", self.id.clone(), Value::Str(" cancelOrders() failed for ".to_string()))), &self.safe_string(requestIds.clone(), i.clone(), &[self.safe_string(requestIds.clone(), Value::Int(0), &[])])), Value::Str(": ".to_string()))), error))));
+                panic!("{}", crate::exchange_errors::order_not_found(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" cancelOrders() failed for ".to_string()))), self.safe_string(requestIds.clone(), i.clone(), &[self.safe_string(requestIds.clone(), Value::Int(0), &[])]))), Value::Str(": ".to_string()))), error))));
             }
             let mut success: bool = is_true(&(Value::Bool(status.as_str() == Some("success")))) || is_true(&(Value::Bool(self.safe_string_k(status.clone(), "status", &[]).as_str() == Some("success"))));
             if !success {
@@ -2256,7 +2256,7 @@ impl HyperliquidCore {
             let mut outcomeObj: Value = self.outcome(outcome.clone());
             let mut expected: Value = self.safe_string_k(outcomeObj.clone(), "outcome", &[]);
             if (self.safe_string_k(parsed.clone(), "outcome", &[]).as_str() != expected.as_str()) {
-                panic!("{}", crate::exchange_errors::order_not_found(add(&Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchOrder() order ".to_string()))), id)), Value::Str(" is not in outcome ".to_string()))), &expected)));
+                panic!("{}", crate::exchange_errors::order_not_found(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchOrder() order ".to_string()))), id)), Value::Str(" is not in outcome ".to_string()))), expected))));
             }
         }
         return parsed;

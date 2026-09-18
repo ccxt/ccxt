@@ -908,7 +908,7 @@ impl BtcmarketsCore {
         let mut id: Value = self.safe_string_k(market.clone(), "marketId", &[]);
         let mut base: Value = self.safe_currency_code(baseId.clone(), &[]);
         let mut quote: Value = self.safe_currency_code(quoteId.clone(), &[]);
-        let mut symbol: Value = add(&add(&base, &Value::Str("/".to_string())), &quote);
+        let mut symbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".to_string()))), quote));
         let mut fees: Value = self.safe_value(self.safe_dict_k(self.options.clone(), "fees", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1917,7 +1917,7 @@ impl BtcmarketsCore {
 }));
         let mut headers = get_arg(optional_args, 3, Value::Null);
         let mut body = get_arg(optional_args, 4, Value::Null);
-        let mut request: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", add(&Value::Str("/".to_string()), &self.version), Value::Str("/".to_string()))), self.implode_params(path.clone(), params.clone())));
+        let mut request: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("/".to_string()), self.version.clone())), Value::Str("/".to_string()))), self.implode_params(path.clone(), params.clone())));
         let mut query: Value = self.keysort(self.omit(params.clone(), self.extract_params(path.clone()), &[]), &[]);
         if (api.as_str() == Some("private")) {
             self.check_required_credentials(&[]);

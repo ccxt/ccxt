@@ -562,7 +562,7 @@ impl LighterCore {
         symbol = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("channel".to_string(), add(&Value::Str("order_book/".to_string()), &market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)));
+                m.insert("channel".to_string(), Value::Str(format!("{}{}", Value::Str("order_book/".to_string()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null))));
             m
         });
         let mut messageHash: Value = self.get_message_hash(Value::Str("orderbook".to_string()), &[symbol.clone()]);
@@ -594,7 +594,7 @@ impl LighterCore {
         symbol = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("channel".to_string(), add(&Value::Str("order_book/".to_string()), &market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)));
+                m.insert("channel".to_string(), Value::Str(format!("{}{}", Value::Str("order_book/".to_string()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null))));
             m
         });
         let mut subMessageHash: Value = self.get_message_hash(Value::Str("orderbook".to_string()), &[symbol.clone()]);
@@ -709,7 +709,7 @@ impl LighterCore {
         symbol = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("channel".to_string(), add(&Value::Str("market_stats/".to_string()), &market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)));
+                m.insert("channel".to_string(), Value::Str(format!("{}{}", Value::Str("market_stats/".to_string()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null))));
             m
         });
         let mut messageHash: Value = self.get_message_hash(Value::Str("ticker".to_string()), &[symbol.clone()]);
@@ -740,7 +740,7 @@ impl LighterCore {
         symbol = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("channel".to_string(), add(&Value::Str("market_stats/".to_string()), &market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)));
+                m.insert("channel".to_string(), Value::Str(format!("{}{}", Value::Str("market_stats/".to_string()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null))));
             m
         });
         let mut subMessageHash: Value = self.get_message_hash(Value::Str("ticker".to_string()), &[symbol.clone()]);
@@ -1067,7 +1067,7 @@ impl LighterCore {
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("channel".to_string(), add(&Value::Str("trade/".to_string()), &market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)));
+                m.insert("channel".to_string(), Value::Str(format!("{}{}", Value::Str("trade/".to_string()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null))));
             m
         });
         let mut messageHash: Value = self.get_message_hash(Value::Str("trade".to_string()), &[market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null)]);
@@ -1098,7 +1098,7 @@ impl LighterCore {
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("channel".to_string(), add(&Value::Str("trade/".to_string()), &market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)));
+                m.insert("channel".to_string(), Value::Str(format!("{}{}", Value::Str("trade/".to_string()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null))));
             m
         });
         let mut subMessageHash: Value = self.get_message_hash(Value::Str("trade".to_string()), &[market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null)]);
@@ -1320,7 +1320,7 @@ impl LighterCore {
         }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("channel".to_string(), add(&Value::Str("account_all_trades/".to_string()), &self.number_to_string(accountIndex.clone())));
+                m.insert("channel".to_string(), Value::Str(format!("{}{}", Value::Str("account_all_trades/".to_string()), self.number_to_string(accountIndex.clone()))));
             m
         });
         let __ws_arg_11 = self.extend(request.clone(), &[params.clone()]);
@@ -1358,7 +1358,7 @@ impl LighterCore {
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("unsubscribe:".to_string()), subMessageHash));
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("channel".to_string(), add(&Value::Str("account_all_trades/".to_string()), &self.number_to_string(accountIndex.clone())));
+                m.insert("channel".to_string(), Value::Str(format!("{}{}", Value::Str("account_all_trades/".to_string()), self.number_to_string(accountIndex.clone()))));
             m
         });
         let __ws_arg_12 = self.extend(request.clone(), &[params.clone()]);
@@ -1513,7 +1513,7 @@ impl LighterCore {
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("channel".to_string(), add(&Value::Str("trade/".to_string()), &market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)));
+                m.insert("channel".to_string(), Value::Str(format!("{}{}", Value::Str("trade/".to_string()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null))));
             m
         });
         let mut messageHash: Value = self.get_message_hash(Value::Str("liquidations".to_string()), &[symbol.clone()]);
@@ -1551,11 +1551,11 @@ impl LighterCore {
             m
         });
         if (type_var.as_str() == Some("spot")) {
-            add_element_to_object(&mut request, &Value::Str("channel".to_string()), add(&Value::Str("account_all_assets/".to_string()), &self.number_to_string(accountIndex.clone())));
+            add_element_to_object(&mut request, &Value::Str("channel".to_string()), Value::Str(format!("{}{}", Value::Str("account_all_assets/".to_string()), self.number_to_string(accountIndex.clone()))));
             let __ws_arg_14 = self.extend(request.clone(), &[params.clone()]);
             return self.subscribe_private(messageHash.clone(), &[__ws_arg_14]).await;
         }  else {
-            add_element_to_object(&mut request, &Value::Str("channel".to_string()), add(&Value::Str("user_stats/".to_string()), &self.number_to_string(accountIndex.clone())));
+            add_element_to_object(&mut request, &Value::Str("channel".to_string()), Value::Str(format!("{}{}", Value::Str("user_stats/".to_string()), self.number_to_string(accountIndex.clone()))));
             let __ws_arg_15 = self.extend(request.clone(), &[params.clone()]);
             return self.subscribe_public(messageHash.clone(), &[__ws_arg_15]).await;
         }
@@ -1704,10 +1704,10 @@ impl LighterCore {
         if (symbol != Value::Null) {
             let mut market: Value = self.market(symbol.clone());
             messageHash = self.get_message_hash(Value::Str("orders".to_string()), &[market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null)]);
-            add_element_to_object(&mut request, &Value::Str("channel".to_string()), add(&Value::Str(format!("{}{}", add(&Value::Str("account_orders/".to_string()), &market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)), Value::Str("/".to_string()))), &self.number_to_string(accountIndex.clone())));
+            add_element_to_object(&mut request, &Value::Str("channel".to_string()), Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("account_orders/".to_string()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null))), Value::Str("/".to_string()))), self.number_to_string(accountIndex.clone()))));
         }  else {
             messageHash = self.get_message_hash(Value::Str("orders".to_string()), &[]);
-            add_element_to_object(&mut request, &Value::Str("channel".to_string()), add(&Value::Str("account_all_orders/".to_string()), &self.number_to_string(accountIndex.clone())));
+            add_element_to_object(&mut request, &Value::Str("channel".to_string()), Value::Str(format!("{}{}", Value::Str("account_all_orders/".to_string()), self.number_to_string(accountIndex.clone()))));
         }
         let __ws_arg_16 = self.extend(request.clone(), &[params.clone()]);
         let mut orders: Value = self.subscribe_private(messageHash.clone(), &[__ws_arg_16]).await;
@@ -1747,10 +1747,10 @@ impl LighterCore {
         if (symbol != Value::Null) {
             let mut market: Value = self.market(symbol.clone());
             subMessageHash = self.get_message_hash(Value::Str("orders".to_string()), &[market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null)]);
-            add_element_to_object(&mut request, &Value::Str("channel".to_string()), add(&Value::Str(format!("{}{}", add(&Value::Str("account_orders/".to_string()), &market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)), Value::Str("/".to_string()))), &self.number_to_string(accountIndex.clone())));
+            add_element_to_object(&mut request, &Value::Str("channel".to_string()), Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("account_orders/".to_string()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null))), Value::Str("/".to_string()))), self.number_to_string(accountIndex.clone()))));
         }  else {
             subMessageHash = self.get_message_hash(Value::Str("orders".to_string()), &[]);
-            add_element_to_object(&mut request, &Value::Str("channel".to_string()), add(&Value::Str("account_all_orders/".to_string()), &self.number_to_string(accountIndex.clone())));
+            add_element_to_object(&mut request, &Value::Str("channel".to_string()), Value::Str(format!("{}{}", Value::Str("account_all_orders/".to_string()), self.number_to_string(accountIndex.clone()))));
         }
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("unsubscribe:".to_string()), subMessageHash));
         let __ws_arg_17 = self.extend(request.clone(), &[params.clone()]);
@@ -1929,7 +1929,7 @@ impl LighterCore {
         //     {"code":200,"id":"1786459718284","predicted_execution_time_ms":1786459719662,"tx_hash":"9959d3feb30d0a89fcfd4532f071ac99a98ee1202aa2a7f2c1299932b1e540b6ecdabd2b92616a14","type":"jsonapi/sendtx"}
         //
         let mut id: Value = self.safe_string_k(message.clone(), "id", &[]);
-        client.resolve(&[message.clone(), add(&Value::Str("jsonapi/sendtx:".to_string()), &id)]);
+        client.resolve(&[message.clone(), Value::Str(format!("{}{}", Value::Str("jsonapi/sendtx:".to_string()), id))]);
 }
 
     pub fn handle_orders(&mut self, mut client: Value, mut message: Value) -> Value {

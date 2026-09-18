@@ -3791,8 +3791,8 @@ impl OkxCore {
         let mut timestamp: Value = self.parse8601(datetime.clone());
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("id".to_string(), add(&Value::Str(format!("{}{}", add(&Value::Str(format!("{}{}", add(&Value::Str(format!("{}{}", Value::Str(format!("{}{}", add(&base, &Value::Str("-".to_string())), quote)), Value::Str("-".to_string()))), &expiry), Value::Str("-".to_string()))), &strike), Value::Str("-".to_string()))), &optionType));
-        m.insert("symbol".to_string(), add(&Value::Str(format!("{}{}", add(&Value::Str(format!("{}{}", add(&Value::Str(format!("{}{}", add(&Value::Str(format!("{}{}", Value::Str(format!("{}{}", add(&base, &Value::Str("/".to_string())), quote)), Value::Str(":".to_string()))), &settle), Value::Str("-".to_string()))), &expiry), Value::Str("-".to_string()))), &strike), Value::Str("-".to_string()))), &optionType));
+        m.insert("id".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("-".to_string()))), quote)), Value::Str("-".to_string()))), expiry)), Value::Str("-".to_string()))), strike)), Value::Str("-".to_string()))), optionType)));
+        m.insert("symbol".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".to_string()))), quote)), Value::Str(":".to_string()))), settle)), Value::Str("-".to_string()))), expiry)), Value::Str("-".to_string()))), strike)), Value::Str("-".to_string()))), optionType)));
         m.insert("base".to_string(), base.clone());
         m.insert("quote".to_string(), quote.clone());
         m.insert("settle".to_string(), settle.clone());
@@ -4191,7 +4191,7 @@ impl OkxCore {
         }
         let mut base: Value = self.safe_currency_code(baseId.clone(), &[]);
         let mut quote: Value = self.safe_currency_code(quoteId.clone(), &[]);
-        let mut symbol: Value = add(&add(&base, &Value::Str("/".to_string())), &quote);
+        let mut symbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".to_string()))), quote));
         // handle preopen empty markets
         if (base.as_str() == Some("")) || (quote.as_str() == Some("")) {
             symbol = id.clone();
@@ -4215,7 +4215,7 @@ impl OkxCore {
                 optionType = self.safe_string_k(market.clone(), "optType", &[]);
                 if (expiry != Value::Null) {
                     let mut ymd: Value = self.yymmdd(expiry.clone(), &[]);
-                    symbol = add(&Value::Str(format!("{}{}", add(&Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", symbol, Value::Str("-".to_string()))), ymd)), Value::Str("-".to_string()))), &strikePrice), Value::Str("-".to_string()))), &optionType);
+                    symbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", symbol, Value::Str("-".to_string()))), ymd)), Value::Str("-".to_string()))), strikePrice)), Value::Str("-".to_string()))), optionType));
                     optionType = (if is_true(&(Value::Bool(optionType.as_str() == Some("P")))) { Value::Str("put".to_string()) } else { Value::Str("call".to_string()) });
                 }
             }
@@ -5544,7 +5544,7 @@ impl OkxCore {
         if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
             add_element_to_object(&mut request, &Value::Str("instId".to_string()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
         }  else if is_true(&(Value::Bool(market.as_map().and_then(|__m| __m.get("swap")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)))) || is_true(&(Value::Bool(market.as_map().and_then(|__m| __m.get("future")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)))) || is_true(&(Value::Bool(market.as_map().and_then(|__m| __m.get("option")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)))) {
-            add_element_to_object(&mut request, &Value::Str("uly".to_string()), add(&add(&market.as_map().and_then(|__m| __m.get("baseId")).cloned().unwrap_or(Value::Null), &Value::Str("-".to_string())), &market.as_map().and_then(|__m| __m.get("quoteId")).cloned().unwrap_or(Value::Null)));
+            add_element_to_object(&mut request, &Value::Str("uly".to_string()), Value::Str(format!("{}{}", Value::Str(format!("{}{}", market.as_map().and_then(|__m| __m.get("baseId")).cloned().unwrap_or(Value::Null), Value::Str("-".to_string()))), market.as_map().and_then(|__m| __m.get("quoteId")).cloned().unwrap_or(Value::Null))));
         }  else {
             panic!("{}", crate::exchange_errors::not_supported(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchTradingFee() supports spot, swap, future or option markets only".to_string())))));
         }
@@ -9624,7 +9624,7 @@ impl OkxCore {
         let mut headers = get_arg(optional_args, 3, Value::Null);
         let mut body = get_arg(optional_args, 4, Value::Null);
         let mut isArray: bool = is_array(&params);
-        let mut request: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", add(&Value::Str("/api/".to_string()), &self.version), Value::Str("/".to_string()))), self.implode_params(path.clone(), params.clone())));
+        let mut request: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("/api/".to_string()), self.version.clone())), Value::Str("/".to_string()))), self.implode_params(path.clone(), params.clone())));
         let mut query: Value = self.omit(params.clone(), self.extract_params(path.clone()), &[]);
         let mut url: Value = Value::Str(format!("{}{}", self.implode_hostname(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("rest")).cloned().unwrap_or(Value::Null)), request));
         // const type = this.getPathAuthenticationType (path);
@@ -9668,7 +9668,7 @@ impl OkxCore {
                     m.insert("OK-ACCESS-TIMESTAMP".to_string(), timestamp.clone());
                 m
             });
-            let mut auth: Value = Value::Str(format!("{}{}", add(&timestamp, &method), request));
+            let mut auth: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", timestamp, method)), request));
             if (method.as_str() == Some("GET")) {
                 if Value::Int(object_keys(&query).len() as i64).as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN) {
                     let mut urlencodedQuery: Value = Value::Str(format!("{}{}", Value::Str("?".to_string()), self.urlencode(query.clone(), &[])));
@@ -11543,7 +11543,7 @@ impl OkxCore {
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("instType".to_string(), self.convert_to_instrument_type(type_var.clone()));
-                m.insert("uly".to_string(), add(&add(&market.as_map().and_then(|__m| __m.get("baseId")).cloned().unwrap_or(Value::Null), &Value::Str("-".to_string())), &market.as_map().and_then(|__m| __m.get("quoteId")).cloned().unwrap_or(Value::Null)));
+                m.insert("uly".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", market.as_map().and_then(|__m| __m.get("baseId")).cloned().unwrap_or(Value::Null), Value::Str("-".to_string()))), market.as_map().and_then(|__m| __m.get("quoteId")).cloned().unwrap_or(Value::Null))));
             m
         });
         if (since != Value::Null) {

@@ -527,7 +527,7 @@ impl OkxCore {
         });
         if (symbol != Value::Null) {
             let mut market: Value = self.market(symbol.clone());
-            messageHash = add(&messageHash, &add(&Value::Str(":".to_string()), &market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)));
+            messageHash = add(&messageHash, &Value::Str(format!("{}{}", Value::Str(":".to_string()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null))));
             add_element_to_object(&mut firstArgument, &Value::Str("instId".to_string()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
         }
         let mut request: Value = Value::Map({
@@ -766,7 +766,7 @@ impl OkxCore {
             let mut __for_first_533: bool = true;
             while { if !__for_first_533 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_533 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(data.len() as i64).as_f64().unwrap_or(f64::NAN) } {
             let mut trade: Value = self.parse_trade(get_value(&data, &i), &[]);
-            let mut messageHash: Value = Value::Str(format!("{}{}", add(&channel, &Value::Str(":".to_string())), symbol));
+            let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", channel, Value::Str(":".to_string()))), symbol));
             let mut stored: Value = self.safe_value(self.trades.clone(), symbol.clone(), &[]);
             if (stored == Value::Null) {
                 stored = ArrayCache::new(tradesLimit.clone());
@@ -897,7 +897,7 @@ impl OkxCore {
             if (symbol != Value::Null) {
                 add_element_to_object(&mut self.fundingRates, &symbol, fundingRate.clone());
             }
-            client.resolve(&[fundingRate.clone(), add(&Value::Str(format!("{}{}", Value::Str("funding-rate".to_string()), Value::Str(":".to_string()))), &fundingRate.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null))]);
+            client.resolve(&[fundingRate.clone(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("funding-rate".to_string()), Value::Str(":".to_string()))), fundingRate.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null)))]);
         }
         }
 }
@@ -1138,7 +1138,7 @@ impl OkxCore {
             add_element_to_object(&mut newTickers, &symbol, ticker.clone());
         }
         }
-        let mut messageHash: Value = Value::Str(format!("{}{}", add(&channel, &Value::Str("::".to_string())), symbol));
+        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", channel, Value::Str("::".to_string()))), symbol));
         client.resolve(&[newTickers.clone(), messageHash.clone()]);
 }
 
@@ -1260,7 +1260,7 @@ impl OkxCore {
         if (symbol != Value::Null) {
             add_element_to_object(&mut self.bidsasks, &symbol, parsedTicker.clone());
         }
-        let mut messageHash: Value = add(&Value::Str("bidask::".to_string()), &symbol);
+        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("bidask::".to_string()), symbol));
         client.resolve(&[parsedTicker.clone(), messageHash.clone()]);
 }
 
@@ -1417,7 +1417,7 @@ impl OkxCore {
             let mut cache: Value = self.liquidations.clone();
             cache.append(liquidation.clone());
             client.resolve(&[Value::List(vec![liquidation.clone()]), Value::Str("liquidations".to_string())]);
-            client.resolve(&[Value::List(vec![liquidation.clone()]), add(&Value::Str("liquidations::".to_string()), &symbol)]);
+            client.resolve(&[Value::List(vec![liquidation.clone()]), Value::Str(format!("{}{}", Value::Str("liquidations::".to_string()), symbol))]);
         }
         }
 }
@@ -1544,7 +1544,7 @@ impl OkxCore {
             let mut cache: Value = self.liquidations.clone();
             cache.append(liquidation.clone());
             client.resolve(&[Value::List(vec![liquidation.clone()]), Value::Str("myLiquidations".to_string())]);
-            client.resolve(&[Value::List(vec![liquidation.clone()]), add(&Value::Str("myLiquidations::".to_string()), &symbol)]);
+            client.resolve(&[Value::List(vec![liquidation.clone()]), Value::Str(format!("{}{}", Value::Str("myLiquidations::".to_string()), symbol))]);
         }
         }
 }
@@ -1882,7 +1882,7 @@ impl OkxCore {
                 }
             }
             stored.append(parsed.clone());
-            let mut messageHash: Value = add(&Value::Str(format!("{}{}", channel, Value::Str(":".to_string()))), &market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+            let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", channel, Value::Str(":".to_string()))), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)));
             client.resolve(&[stored.clone(), messageHash.clone()]);
             // for multiOHLCV we need special object, as opposed to other "multi"
             // methods, because OHLCV response item does not contain symbol
@@ -2263,7 +2263,7 @@ impl OkxCore {
             m
         });
         let mut limit: Value = self.safe_integer(depths.clone(), channel.clone(), &[]);
-        let mut messageHash: Value = Value::Str(format!("{}{}", add(&channel, &Value::Str(":".to_string())), symbol));
+        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", channel, Value::Str(":".to_string()))), symbol));
         if (action.as_str() == Some("snapshot")) {
             {
                                 let mut i: Value = Value::Int(0);
@@ -2941,7 +2941,7 @@ impl OkxCore {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_554: bool = true;
                 while { if !__for_first_554 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_554 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(marketIds.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-                let mut messageHash: Value = add(&add(&channel, &Value::Str(":".to_string())), &get_value(&marketIds, &i));
+                let mut messageHash: Value = add(&Value::Str(format!("{}{}", channel, Value::Str(":".to_string()))), &get_value(&marketIds, &i));
                 client.resolve(&[stored.clone(), messageHash.clone()]);
             }
             }
@@ -3050,7 +3050,7 @@ impl OkxCore {
             }
         }
         }
-        let mut messageHash: Value = add(&channel, &Value::Str("::myTrades".to_string()));
+        let mut messageHash: Value = Value::Str(format!("{}{}", channel, Value::Str("::myTrades".to_string())));
         client.resolve(&[self.myTrades.clone(), messageHash.clone()]);
         let mut tradeSymbols: Value = object_keys(&symbols);
         {

@@ -372,7 +372,7 @@ impl BitmexCore {
                 let mut symbol: Value = get_value(&symbols, &i);
                 let mut symbol: Value = get_value(&symbols, &i);
                 let mut market: Value = self.market(symbol.clone());
-                let mut subscription: Value = add(&Value::Str(format!("{}{}", name, Value::Str(":".to_string()))), &market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+                let mut subscription: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", name, Value::Str(":".to_string()))), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)));
                 append_to_array(&mut rawSubscriptions, subscription.clone());
                 let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("ticker:".to_string()), symbol));
                 append_to_array(&mut messageHashes, messageHash.clone());
@@ -721,7 +721,7 @@ impl BitmexCore {
                 let mut symbol: Value = get_value(&symbols, &i);
                 let mut symbol: Value = get_value(&symbols, &i);
                 let mut market: Value = self.market(symbol.clone());
-                append_to_array(&mut subscriptionHashes, add(&Value::Str("liquidation:".to_string()), &market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)));
+                append_to_array(&mut subscriptionHashes, Value::Str(format!("{}{}", Value::Str("liquidation:".to_string()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null))));
                 append_to_array(&mut messageHashes, Value::Str(format!("{}{}", Value::Str("liquidations::".to_string()), symbol)));
             }
             }
@@ -1730,7 +1730,7 @@ impl BitmexCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_144: bool = true;
             while { if !__for_first_144 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_144 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(keys.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-            client.resolve(&[stored.clone(), Value::Str(format!("{}{}", add(&messageHash, &Value::Str(":".to_string())), get_value(&keys, &i)))]);
+            client.resolve(&[stored.clone(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", messageHash, Value::Str(":".to_string()))), get_value(&keys, &i)))]);
         }
         }
 }
@@ -1795,7 +1795,7 @@ impl BitmexCore {
             let mut symbol: Value = get_value(&symbols, &i);
             let mut symbol: Value = get_value(&symbols, &i);
             let mut market: Value = self.market(symbol.clone());
-            let mut topic: Value = add(&Value::Str(format!("{}{}", table, Value::Str(":".to_string()))), &market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+            let mut topic: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", table, Value::Str(":".to_string()))), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)));
             append_to_array(&mut topics, topic.clone());
             let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", table, Value::Str(":".to_string()))), symbol));
             append_to_array(&mut messageHashes, messageHash.clone());
@@ -1847,7 +1847,7 @@ impl BitmexCore {
             let mut symbol: Value = get_value(&symbols, &i);
             let mut symbol: Value = get_value(&symbols, &i);
             let mut market: Value = self.market(symbol.clone());
-            let mut topic: Value = add(&Value::Str(format!("{}{}", table, Value::Str(":".to_string()))), &market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+            let mut topic: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", table, Value::Str(":".to_string()))), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)));
             append_to_array(&mut topics, topic.clone());
             let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", table, Value::Str(":".to_string()))), symbol));
             append_to_array(&mut messageHashes, messageHash.clone());
@@ -1898,7 +1898,7 @@ impl BitmexCore {
         let mut market: Value = self.market(symbol.clone());
         symbol = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         let mut table: Value = Value::Str(format!("{}{}", Value::Str("tradeBin".to_string()), self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()])));
-        let mut messageHash: Value = add(&Value::Str(format!("{}{}", table, Value::Str(":".to_string()))), &market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", table, Value::Str(":".to_string()))), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)));
         let mut url: Value = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null);
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -2000,7 +2000,7 @@ impl BitmexCore {
             let mut marketId: Value = self.safe_string_k(candle.clone(), "symbol", &[]);
             let mut market: Value = self.safe_market(&[marketId.clone()]);
             let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
-            let mut messageHash: Value = add(&add(&table, &Value::Str(":".to_string())), &market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+            let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", table, Value::Str(":".to_string()))), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)));
             let mut result: Value = Value::List(vec![(match (&(self.parse_to_int(self.parse8601(self.safe_string_k(candle.clone(), "timestamp", &[])))), &((match (&(duration), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }), Value::Null, self.safe_float_k(candle.clone(), "high", &[]), self.safe_float_k(candle.clone(), "low", &[]), self.safe_float_k(candle.clone(), "close", &[]), self.safe_float_k(candle.clone(), "volume", &[])]);
             { let __be_tmp = self.safe_value(self.ohlcvs.clone(), symbol.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();

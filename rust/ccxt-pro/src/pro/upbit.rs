@@ -543,7 +543,7 @@ impl UpbitCore {
         if (symbol != Value::Null) {
             add_element_to_object(&mut self.tickers, &symbol, ticker.clone());
         }
-        let mut messageHash: Value = add(&Value::Str("ticker:".to_string()), &symbol);
+        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("ticker:".to_string()), symbol));
         client.resolve(&[ticker.clone(), messageHash.clone()]);
 }
 
@@ -1003,7 +1003,7 @@ impl UpbitCore {
         myTrades.append(trade.clone());
         let mut messageHash: Value = Value::Str("myTrades".to_string());
         client.resolve(&[myTrades.clone(), messageHash.clone()]);
-        messageHash = add(&Value::Str("myTrades:".to_string()), &trade.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null));
+        messageHash = Value::Str(format!("{}{}", Value::Str("myTrades:".to_string()), trade.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null)));
         client.resolve(&[myTrades.clone(), messageHash.clone()]);
 }
 
@@ -1040,7 +1040,7 @@ impl UpbitCore {
         cachedOrders.append(parsed.clone());
         let mut messageHash: Value = Value::Str("myOrder".to_string());
         client.resolve(&[self.orders.clone(), messageHash.clone()]);
-        messageHash = add(&Value::Str(format!("{}{}", messageHash, Value::Str(":".to_string()))), &symbol);
+        messageHash = Value::Str(format!("{}{}", Value::Str(format!("{}{}", messageHash, Value::Str(":".to_string()))), symbol));
         client.resolve(&[self.orders.clone(), messageHash.clone()]);
 }
 

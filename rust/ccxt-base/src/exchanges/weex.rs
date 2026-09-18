@@ -1661,7 +1661,7 @@ impl WeexCore {
         let mut quote: Value = self.safe_currency_code(quoteId.clone(), &[]);
         let mut settle: Value = self.safe_currency_code(settleId.clone(), &[]);
         let mut active: Value = Value::Bool(true);
-        let mut symbol: Value = add(&add(&base, &Value::Str("/".to_string())), &quote);
+        let mut symbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".to_string()))), quote));
         let mut isSpot: Value = Value::Bool(true);
         let mut isLinear: Value = Value::Null;
         let mut isInverse: Value = Value::Null;
@@ -2679,7 +2679,7 @@ impl WeexCore {
         let mut collectCycle: Value = self.safe_string_k(contract.clone(), "collectCycle", &[]);
         if (collectCycle != Value::Null) {
             interval = crate::precise::Precise::stringDiv(&collectCycle, &Value::Str("60".to_string()));
-            interval = add(&interval, &Value::Str("h".to_string()));
+            interval = Value::Str(format!("{}{}", interval, Value::Str("h".to_string())));
         }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();

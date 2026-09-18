@@ -401,7 +401,7 @@ impl MexcCore {
         let mut market: Value = self.market(symbol.clone());
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("ticker:".to_string()), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null)));
         if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
-            let mut channel: Value = add(&Value::Str("spot@public.aggre.bookTicker.v3.api.pb@100ms@".to_string()), &market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+            let mut channel: Value = Value::Str(format!("{}{}", Value::Str("spot@public.aggre.bookTicker.v3.api.pb@100ms@".to_string()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)));
             return self.watch_spot_public(channel.clone(), messageHash.clone(), &[params.clone()]).await;
         }  else {
             let mut channel: Value = Value::Str("sub.ticker".to_string());
@@ -652,7 +652,7 @@ impl MexcCore {
                 add_element_to_object(&mut self.tickers, &symbol, ticker.clone());
             }
             append_to_array(&mut result, ticker.clone());
-            let mut messageHash: Value = add(&Value::Str("ticker:".to_string()), &symbol);
+            let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("ticker:".to_string()), symbol));
             client.resolve(&[ticker.clone(), messageHash.clone()]);
         }
         }
@@ -761,7 +761,7 @@ impl MexcCore {
             while { if !__for_first_491 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_491 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(symbols.len() as i64).as_f64().unwrap_or(f64::NAN) } {
             if isSpot {
                 let mut market: Value = self.market(get_value(&symbols, &i));
-                append_to_array(&mut topics, add(&Value::Str("spot@public.aggre.bookTicker.v3.api.pb@100ms@".to_string()), &market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)));
+                append_to_array(&mut topics, Value::Str(format!("{}{}", Value::Str("spot@public.aggre.bookTicker.v3.api.pb@100ms@".to_string()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null))));
             }
             append_to_array(&mut messageHashes, Value::Str(format!("{}{}", Value::Str("bidask:".to_string()), get_value(&symbols, &i))));
         }
@@ -863,7 +863,7 @@ impl MexcCore {
 }));
         self.check_required_credentials(&[]);
         let mut listenKey: Value = self.authenticate(channel.clone(), &[]).await;
-        let mut url: Value = add(&add(&crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "spot"), &Value::Str("?listenKey=".to_string())), &listenKey);
+        let mut url: Value = Value::Str(format!("{}{}", add(&crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "spot"), &Value::Str("?listenKey=".to_string())), listenKey));
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("method".to_string(), Value::Str("SUBSCRIPTION".to_string()));
@@ -957,7 +957,7 @@ impl MexcCore {
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("candles:".to_string()), symbol)), Value::Str(":".to_string()))), timeframe));
         let mut ohlcv: Value = Value::Null;
         if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
-            let mut channel: Value = add(&Value::Str(format!("{}{}", add(&Value::Str("spot@public.kline.v3.api.pb@".to_string()), &market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)), Value::Str("@".to_string()))), &timeframeId);
+            let mut channel: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("spot@public.kline.v3.api.pb@".to_string()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null))), Value::Str("@".to_string()))), timeframeId));
             ohlcv = self.watch_spot_public(channel.clone(), messageHash.clone(), &[params.clone()]).await;
         }  else {
             let mut channel: Value = Value::Str("sub.kline".to_string());
@@ -1072,7 +1072,7 @@ impl MexcCore {
             symbol = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
             parsed = self.parse_ws_ohlcv(rawOhlcv.clone(), &[market.clone()]);
         }
-        let mut messageHash: Value = add(&Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("candles:".to_string()), symbol)), Value::Str(":".to_string()))), &timeframe);
+        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("candles:".to_string()), symbol)), Value::Str(":".to_string()))), timeframe));
         let mut symbolOhlcvs: Value = self.safe_value(self.ohlcvs.clone(), symbol.clone(), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -1174,7 +1174,7 @@ impl MexcCore {
         if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
             let mut frequency: Value = Value::Null;
             { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("watchOrderBook".to_string()), Value::Str("frequency".to_string()), &[Value::Str("100ms".to_string())]); frequency = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
-            let mut channel: Value = add(&Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("spot@public.aggre.depth.v3.api.pb@".to_string()), frequency)), Value::Str("@".to_string()))), &market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+            let mut channel: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("spot@public.aggre.depth.v3.api.pb@".to_string()), frequency)), Value::Str("@".to_string()))), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)));
             orderbook = self.watch_spot_public(channel.clone(), messageHash.clone(), &[params.clone()]).await;
         }  else {
             let mut channel: Value = Value::Str("sub.depth".to_string());
@@ -1405,7 +1405,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("trades:".to_string()), symbol));
         let mut trades: Value = Value::Null;
         if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
-            let mut channel: Value = add(&Value::Str("spot@public.aggre.deals.v3.api.pb@100ms@".to_string()), &market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+            let mut channel: Value = Value::Str(format!("{}{}", Value::Str("spot@public.aggre.deals.v3.api.pb@100ms@".to_string()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)));
             trades = self.watch_spot_public(channel.clone(), messageHash.clone(), &[params.clone()]).await;
         }  else {
             let mut channel: Value = Value::Str("sub.deal".to_string());
@@ -2207,7 +2207,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (symbol != Value::Null) {
             add_element_to_object(&mut self.fundingRates, &symbol, fundingRate.clone());
         }
-        let mut messageHash: Value = add(&Value::Str("fundingRate:".to_string()), &symbol);
+        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("fundingRate:".to_string()), symbol));
         client.resolve(&[fundingRate.clone(), messageHash.clone()]);
 }
 
@@ -2232,7 +2232,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut url: Value = Value::Null;
         let mut channel: Value = Value::Null;
         if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
-            channel = add(&Value::Str("spot@public.aggre.bookTicker.v3.api.pb@100ms@".to_string()), &market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+            channel = Value::Str(format!("{}{}", Value::Str("spot@public.aggre.bookTicker.v3.api.pb@100ms@".to_string()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)));
             url = crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "spot");
             add_element_to_object(&mut params, &Value::Str("unsubscribed".to_string()), Value::Bool(true));
             self.spawn(&[Value::Str("watch_spot_public".to_string()).clone(), channel.clone(), messageHash.clone(), params.clone()]);
@@ -2340,7 +2340,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             while { if !__for_first_495 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_495 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(symbols.len() as i64).as_f64().unwrap_or(f64::NAN) } {
             if isSpot {
                 let mut market: Value = self.market(get_value(&symbols, &i));
-                append_to_array(&mut topics, add(&Value::Str("spot@public.aggre.bookTicker.v3.api.pb@100ms@".to_string()), &market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)));
+                append_to_array(&mut topics, Value::Str(format!("{}{}", Value::Str("spot@public.aggre.bookTicker.v3.api.pb@100ms@".to_string()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null))));
             }
             append_to_array(&mut messageHashes, Value::Str(format!("{}{}", Value::Str("unsubscribe:bidask:".to_string()), get_value(&symbols, &i))));
         }
@@ -2391,7 +2391,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut url: Value = Value::Null;
         if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
             url = crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "spot");
-            let mut channel: Value = add(&Value::Str(format!("{}{}", add(&Value::Str("spot@public.kline.v3.api.pb@".to_string()), &market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)), Value::Str("@".to_string()))), &timeframeId);
+            let mut channel: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("spot@public.kline.v3.api.pb@".to_string()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null))), Value::Str("@".to_string()))), timeframeId));
             add_element_to_object(&mut params, &Value::Str("unsubscribed".to_string()), Value::Bool(true));
             self.spawn(&[Value::Str("watch_spot_public".to_string()).clone(), channel.clone(), messageHash.clone(), params.clone()]);
         }  else {
@@ -2437,7 +2437,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             url = crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "spot");
             let mut frequency: Value = Value::Null;
             { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("watchOrderBook".to_string()), Value::Str("frequency".to_string()), &[Value::Str("100ms".to_string())]); frequency = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
-            let mut channel: Value = add(&Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("spot@public.aggre.depth.v3.api.pb@".to_string()), frequency)), Value::Str("@".to_string()))), &market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+            let mut channel: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("spot@public.aggre.depth.v3.api.pb@".to_string()), frequency)), Value::Str("@".to_string()))), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)));
             add_element_to_object(&mut params, &Value::Str("unsubscribed".to_string()), Value::Bool(true));
             self.spawn(&[Value::Str("watch_spot_public".to_string()).clone(), channel.clone(), messageHash.clone(), params.clone()]);
         }  else {
@@ -2480,7 +2480,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut url: Value = Value::Null;
         if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
             url = crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "spot");
-            let mut channel: Value = add(&Value::Str("spot@public.aggre.deals.v3.api.pb@100ms@".to_string()), &market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+            let mut channel: Value = Value::Str(format!("{}{}", Value::Str("spot@public.aggre.deals.v3.api.pb@100ms@".to_string()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)));
             add_element_to_object(&mut params, &Value::Str("unsubscribed".to_string()), Value::Bool(true));
             self.spawn(&[Value::Str("watch_spot_public".to_string()).clone(), channel.clone(), messageHash.clone(), params.clone()]);
         }  else {
@@ -2534,7 +2534,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 let mut symbol: Value = self.safe_string(splitHashes.clone(), Value::Int(2), &[]);
                 let mut splitHashesLength: Value = Value::Int(splitHashes.len() as i64); // hoisted - inline .length within conditionals becomes strlen for php, fatal on arrays
                 if splitHashesLength.as_f64().unwrap_or(f64::NAN) > Value::Int(4).as_f64().unwrap_or(f64::NAN) {
-                    symbol = add(&symbol, &add(&Value::Str(":".to_string()), &self.safe_string(splitHashes.clone(), Value::Int(3), &[])));
+                    symbol = Value::Str(format!("{}{}", symbol, Value::Str(format!("{}{}", Value::Str(":".to_string()), self.safe_string(splitHashes.clone(), Value::Int(3), &[])))));
                 }
                 if is_true(&(Value::Bool(symbol != Value::Null))) && is_true(&(Value::Bool(in_op(&self.ohlcvs, &symbol)))) {
                     remove(&mut self.ohlcvs, &symbol);

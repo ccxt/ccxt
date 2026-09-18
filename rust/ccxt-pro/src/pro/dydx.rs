@@ -580,7 +580,7 @@ impl DydxCore {
             let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), Value::Str("subscribe".to_string()));
                 m.insert("channel".to_string(), Value::Str("v4_candles".to_string()));
-                m.insert("id".to_string(), Value::Str(format!("{}{}", add(&market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null), &Value::Str("/".to_string())), resolution)));
+                m.insert("id".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null), Value::Str("/".to_string()))), resolution)));
             m
         });
         let __ws_arg_4 = self.extend(request.clone(), &[params.clone()]);
@@ -621,7 +621,7 @@ impl DydxCore {
             let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), Value::Str("unsubscribe".to_string()));
                 m.insert("channel".to_string(), Value::Str("v4_candles".to_string()));
-                m.insert("id".to_string(), Value::Str(format!("{}{}", add(&market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null), &Value::Str("/".to_string())), resolution)));
+                m.insert("id".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null), Value::Str("/".to_string()))), resolution)));
             m
         });
         let __ws_arg_5 = self.extend(request.clone(), &[params.clone()]);
@@ -711,7 +711,7 @@ impl DydxCore {
     pub fn handle_error_message(&self, mut client: Value, mut message: Value) -> Value {
         let _try_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
             let mut msg: Value = self.safe_string_k(message.clone(), "message", &[]);
-            panic!("{}", crate::exchange_errors::exchange_error(add(&Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), &msg)));
+            panic!("{}", crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), msg))));
          #[allow(unreachable_code)] { Value::Null }}));
 if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             client.reject(&[e.clone()]);

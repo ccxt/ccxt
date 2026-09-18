@@ -651,7 +651,7 @@ impl IndodaxCore {
             append_to_array(&mut result, Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("id".to_string(), id.clone());
-                    m.insert("symbol".to_string(), add(&add(&base, &Value::Str("/".to_string())), &quote));
+                    m.insert("symbol".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".to_string()))), quote)));
                     m.insert("base".to_string(), base.clone());
                     m.insert("quote".to_string(), quote.clone());
                     m.insert("settle".to_string(), Value::Null);
@@ -833,8 +833,8 @@ impl IndodaxCore {
         //
         let mut symbol: Value = self.safe_symbol(Value::Null, &[market.clone()]);
         let mut timestamp: Value = self.safe_timestamp(ticker.clone(), Value::Str("server_time".to_string()), &[]);
-        let mut baseVolume: Value = add(&Value::Str("vol_".to_string()), &self.safe_string_lower(market.clone(), Value::Str("baseId".to_string()), &[]));
-        let mut quoteVolume: Value = add(&Value::Str("vol_".to_string()), &self.safe_string_lower(market.clone(), Value::Str("quoteId".to_string()), &[]));
+        let mut baseVolume: Value = Value::Str(format!("{}{}", Value::Str("vol_".to_string()), self.safe_string_lower(market.clone(), Value::Str("baseId".to_string()), &[])));
+        let mut quoteVolume: Value = Value::Str(format!("{}{}", Value::Str("vol_".to_string()), self.safe_string_lower(market.clone(), Value::Str("quoteId".to_string()), &[])));
         let mut last: Value = self.safe_string_k(ticker.clone(), "last", &[]);
         return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1170,12 +1170,12 @@ impl IndodaxCore {
             if is_true(&(Value::Bool(market.as_map().and_then(|__m| __m.get("baseId")).cloned().unwrap_or(Value::Null).as_str() == Some("idr")))) && is_true(&(Value::Bool(in_op(&order, &Value::Str("remain_rp".to_string()))))) {
                 baseId = Value::Str("rp".to_string());
             }
-            cost = self.safe_string(order.clone(), add(&Value::Str("order_".to_string()), &quoteId), &[]);
-            amount = self.safe_string(order.clone(), add(&Value::Str("order_".to_string()), &baseId), &[]);
-            remaining = self.safe_string(order.clone(), add(&Value::Str("remain_".to_string()), &baseId), &[]);
+            cost = self.safe_string(order.clone(), Value::Str(format!("{}{}", Value::Str("order_".to_string()), quoteId)), &[]);
+            amount = self.safe_string(order.clone(), Value::Str(format!("{}{}", Value::Str("order_".to_string()), baseId)), &[]);
+            remaining = self.safe_string(order.clone(), Value::Str(format!("{}{}", Value::Str("remain_".to_string()), baseId)), &[]);
             // filled buy orders on idr-quoted markets carry the executed base amount
             // only in a dynamic receive_{base} field, https://github.com/ccxt/ccxt/issues/26413
-            filled = self.safe_string(order.clone(), add(&Value::Str("receive_".to_string()), &baseId), &[]);
+            filled = self.safe_string(order.clone(), Value::Str(format!("{}{}", Value::Str("receive_".to_string()), baseId)), &[]);
         }
         let mut timestamp: Value = self.safe_integer_k(order.clone(), "submit_time", &[]);
         let mut fee: Value = Value::Null;

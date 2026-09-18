@@ -1092,13 +1092,13 @@ impl DeepcoinCore {
         let mut settle: Value = Value::Null;
         let mut base: Value = self.safe_currency_code(baseId.clone(), &[]);
         let mut quote: Value = self.safe_currency_code(quoteId.clone(), &[]);
-        let mut symbol: Value = add(&add(&base, &Value::Str("/".to_string())), &quote);
+        let mut symbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".to_string()))), quote));
         let mut isLinear: Value = Value::Null;
         if is_true(&swap) {
             isLinear = (Value::Bool(quoteId.as_str() != Some("USD")));
             settleId = (if is_true(&isLinear) { quoteId.clone() } else { baseId.clone() });
             settle = self.safe_currency_code(settleId.clone(), &[]);
-            symbol = add(&Value::Str(format!("{}{}", symbol, Value::Str(":".to_string()))), &settle);
+            symbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", symbol, Value::Str(":".to_string()))), settle));
         }
         let mut fees: Value = self.safe_dict2(self.fees.clone(), type_var.clone(), Value::Str("trading".to_string()), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -4256,7 +4256,7 @@ impl DeepcoinCore {
             self.check_required_credentials(&[]);
             let mut timestamp: Value = self.milliseconds();
             let mut dateTime: Value = self.iso8601(timestamp.clone());
-            let mut payload: Value = add(&Value::Str(format!("{}{}", add(&dateTime, &method), Value::Str("/".to_string()))), &requestPath);
+            let mut payload: Value = add(&Value::Str(format!("{}{}", Value::Str(format!("{}{}", dateTime, method)), Value::Str("/".to_string()))), &requestPath);
             headers = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("DC-ACCESS-KEY".to_string(), self.apiKey.clone());

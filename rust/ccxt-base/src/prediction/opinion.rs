@@ -2514,7 +2514,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     pub async fn subscribe_opinion_channel(&mut self, mut messageHash: Value, mut channel: Value, mut marketId: Value) -> Value {
         self.load_api_key().await;
         let mut url: Value = self.opinion_ws_url();
-        let mut subscriptionKey: Value = add(&Value::Str(format!("{}{}", channel, Value::Str(":".to_string()))), &self.number_to_string(marketId.clone()));
+        let mut subscriptionKey: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", channel, Value::Str(":".to_string()))), self.number_to_string(marketId.clone())));
         let mut subscribeMsg: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("action".to_string(), Value::Str("SUBSCRIBE".to_string()));
@@ -2607,11 +2607,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut marketId: Value = self.safe_integer_k(info.clone(), "marketId", &[]);
         let mut sym: Value = self.safe_outcome_symbol(outcome.clone(), &[outcomeObj.clone()]);
         let mut channel: Value = Value::Str("market.depth.diff".to_string());
-        let mut messageHash: Value = add(&Value::Str("orderbook::".to_string()), &sym);
+        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("orderbook::".to_string()), sym));
         self.load_api_key().await;
         let mut url: Value = self.opinion_ws_url();
         let mut client: Value = self.client(&[url.clone()]);
-        let mut subscriptionKey: Value = add(&Value::Str(format!("{}{}", channel, Value::Str(":".to_string()))), &self.number_to_string(marketId.clone()));
+        let mut subscriptionKey: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", channel, Value::Str(":".to_string()))), self.number_to_string(marketId.clone())));
         let mut isNewSubscription: bool = self.safe_value(get_value(&client, &Value::Str("subscriptions".to_string())), subscriptionKey.clone(), &[]) == Value::Null;
         if isNewSubscription {
             self.seed_order_book(outcome.clone(), sym.clone(), &[limit.clone()]).await;
@@ -2702,7 +2702,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 })]);
         let mut marketId: Value = self.safe_integer_k(info.clone(), "marketId", &[]);
         let mut sym: Value = self.safe_outcome_symbol(outcome.clone(), &[outcomeObj.clone()]);
-        let mut messageHash: Value = add(&Value::Str("ticker::".to_string()), &sym);
+        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("ticker::".to_string()), sym));
         return self.subscribe_opinion_channel(messageHash.clone(), Value::Str("market.last.price".to_string()), marketId.clone()).await;
 
     Value::Null
@@ -2768,7 +2768,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 })]);
         let mut marketId: Value = self.safe_integer_k(info.clone(), "marketId", &[]);
         let mut sym: Value = self.safe_outcome_symbol(outcome.clone(), &[outcomeObj.clone()]);
-        let mut messageHash: Value = add(&Value::Str("trades::".to_string()), &sym);
+        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("trades::".to_string()), sym));
         let mut trades: Value = self.subscribe_opinion_channel(messageHash.clone(), Value::Str("market.last.trade".to_string()), marketId.clone()).await;
         return self.filter_by_since_limit(trades.clone(), &[since.clone(), limit.clone(), Value::Str("timestamp".to_string()), Value::Bool(true)]);
 

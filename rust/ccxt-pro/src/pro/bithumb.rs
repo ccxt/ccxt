@@ -1107,7 +1107,7 @@ impl BithumbCore {
             }
             if (errorCode.as_str() != Some("0000")) {
                 let mut msg: Value = self.safe_string_k(message.clone(), "resmsg", &[]);
-                panic!("{}", crate::exchange_errors::exchange_error(add(&Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), &msg)));
+                panic!("{}", crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), msg))));
             }
             return Value::Bool(true);
          #[allow(unreachable_code)] { Value::Null }}));
@@ -1373,7 +1373,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut cachedOrders: Value = self.orders.clone();
         cachedOrders.append(parsed.clone());
         client.resolve(&[cachedOrders.clone(), messageHash.clone()]);
-        let mut symbolSpecificMessageHash: Value = add(&Value::Str(format!("{}{}", messageHash, Value::Str(":".to_string()))), &symbol);
+        let mut symbolSpecificMessageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", messageHash, Value::Str(":".to_string()))), symbol));
         client.resolve(&[cachedOrders.clone(), symbolSpecificMessageHash.clone()]);
 }
 

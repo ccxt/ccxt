@@ -2303,9 +2303,9 @@ impl NadoCore {
             let mut quoteId: Value = self.safe_string_k(quoteAsset.clone(), "product_id", &[rawQuoteId.clone()]);
             let mut settleId: Value = (if is_true(&contract) { quoteId.clone() } else { Value::Null });
             let mut settle: Value = (if is_true(&contract) { quote.clone() } else { Value::Null });
-            let mut symbol: Value = add(&add(&base, &Value::Str("/".to_string())), &quote);
+            let mut symbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".to_string()))), quote));
             if is_true(&contract) {
-                symbol = Value::Str(format!("{}{}", symbol, add(&Value::Str(":".to_string()), &settle)));
+                symbol = Value::Str(format!("{}{}", symbol, Value::Str(format!("{}{}", Value::Str(":".to_string()), settle))));
             }
             let mut tradingStatus: Value = self.safe_string_k(market.clone(), "trading_status", &[]);
             let mut active: Value = (Value::Bool(tradingStatus.as_str() != Some("not_tradable")));

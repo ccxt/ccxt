@@ -1351,7 +1351,7 @@ impl WhitebitCore {
         let mut type_var: Value = Value::Null;
         let mut settle: Value = Value::Null;
         let mut settleId: Value = Value::Null;
-        let mut symbol: Value = add(&add(&base, &Value::Str("/".to_string())), &quote);
+        let mut symbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".to_string()))), quote));
         let mut swap: Value = Value::Bool(is_true(&(Value::Bool(typeId.as_str() == Some("futures")))) || is_true(&(Value::Bool(typeId.as_str() == Some("tradfiFutures")))));
         let mut margin: Value = Value::Bool((is_equal(&isCollateral, &Value::Bool(true))) && !is_true(&swap));
         let mut contract: Value = Value::Bool(false);
@@ -1361,7 +1361,7 @@ impl WhitebitCore {
         if is_true(&swap) {
             settleId = quoteId.clone();
             settle = self.safe_currency_code(settleId.clone(), &[]);
-            symbol = add(&Value::Str(format!("{}{}", symbol, Value::Str(":".to_string()))), &settle);
+            symbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", symbol, Value::Str(":".to_string()))), settle));
             type_var = Value::Str("swap".to_string());
             contract = Value::Bool(true);
             linear = Value::Bool(true);
@@ -5736,7 +5736,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 m
             });
         }
-        add_element_to_object(&mut headers, &Value::Str("User-Agent".to_string()), add(&Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("ccxt/".to_string()), self.id.clone())), Value::Str("-".to_string()))), &self.version));
+        add_element_to_object(&mut headers, &Value::Str("User-Agent".to_string()), Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("ccxt/".to_string()), self.id.clone())), Value::Str("-".to_string()))), self.version.clone())));
         let mut pathWithParams: Value = Value::Str(format!("{}{}", Value::Str("/".to_string()), self.implode_params(path.clone(), params.clone())));
         let mut url: Value = add(&get_value(&get_value(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), &version), &accessibility), &pathWithParams);
         if (accessibility.as_str() == Some("public")) {

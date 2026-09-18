@@ -836,8 +836,8 @@ impl DeltaCore {
         let mut optionTypeUnified: Value = (if is_true(&(Value::Bool(optionType.as_str() == Some("C")))) { Value::Str("call".to_string()) } else { Value::Str("put".to_string()) });
         return self.safe_market_structure(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("id".to_string(), add(&Value::Str(format!("{}{}", add(&Value::Str(format!("{}{}", add(&add(&optionType, &Value::Str("-".to_string())), &base), Value::Str("-".to_string()))), &strike), Value::Str("-".to_string()))), &expiry));
-        m.insert("symbol".to_string(), add(&Value::Str(format!("{}{}", add(&Value::Str(format!("{}{}", add(&Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", add(&base, &Value::Str("/".to_string())), quote)), Value::Str(":".to_string()))), settle)), Value::Str("-".to_string()))), &expiry), Value::Str("-".to_string()))), &strike), Value::Str("-".to_string()))), &optionType));
+        m.insert("id".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", optionType, Value::Str("-".to_string()))), base)), Value::Str("-".to_string()))), strike)), Value::Str("-".to_string()))), expiry)));
+        m.insert("symbol".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".to_string()))), quote)), Value::Str(":".to_string()))), settle)), Value::Str("-".to_string()))), expiry)), Value::Str("-".to_string()))), strike)), Value::Str("-".to_string()))), optionType)));
         m.insert("base".to_string(), base.clone());
         m.insert("quote".to_string(), quote.clone());
         m.insert("settle".to_string(), settle.clone());
@@ -1465,9 +1465,9 @@ impl DeltaCore {
             }
             let mut linear: Value = (Value::Bool(settle.as_str() == quote.as_str()));
             let mut optionType: Value = Value::Null;
-            let mut symbol: Value = add(&add(&base, &Value::Str("/".to_string())), &quote);
+            let mut symbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".to_string()))), quote));
             if is_true(&swap) || is_true(&future) || is_true(&option) {
-                symbol = add(&Value::Str(format!("{}{}", symbol, Value::Str(":".to_string()))), &settle);
+                symbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", symbol, Value::Str(":".to_string()))), settle));
                 if is_true(&future) || is_true(&option) {
                     symbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", symbol, Value::Str("-".to_string()))), self.yymmdd(expiry.clone(), &[])));
                     if is_true(&option) {
@@ -1481,7 +1481,7 @@ impl DeltaCore {
                             letter = Value::Str("M".to_string());
                             optionType = Value::Str("move".to_string());
                         }
-                        symbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", add(&Value::Str(format!("{}{}", symbol, Value::Str("-".to_string()))), &strike), Value::Str("-".to_string()))), letter));
+                        symbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", symbol, Value::Str("-".to_string()))), strike)), Value::Str("-".to_string()))), letter));
                     }  else {
                         type_var = Value::Str("future".to_string());
                     }
@@ -2331,7 +2331,7 @@ impl DeltaCore {
         }
         let mut price: Value = self.safe_string_k(params.clone(), "price", &[]);
         if (price.as_str() == Some("mark")) {
-            add_element_to_object(&mut request, &Value::Str("symbol".to_string()), add(&Value::Str("MARK:".to_string()), &market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)));
+            add_element_to_object(&mut request, &Value::Str("symbol".to_string()), Value::Str(format!("{}{}", Value::Str("MARK:".to_string()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null))));
         }  else if (price.as_str() == Some("index")) {
             add_element_to_object(&mut request, &Value::Str("symbol".to_string()), crate::value::get_value_k(&crate::value::get_value_k(&market.as_map().and_then(|__m| __m.get("info")).cloned().unwrap_or(Value::Null), "spot_index"), "symbol"));
         }  else {
@@ -5187,7 +5187,7 @@ impl DeltaCore {
     m
 }));
         let mut body = get_arg(optional_args, 4, Value::Null);
-        let mut requestPath: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", add(&Value::Str("/".to_string()), &self.version), Value::Str("/".to_string()))), self.implode_params(path.clone(), params.clone())));
+        let mut requestPath: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("/".to_string()), self.version.clone())), Value::Str("/".to_string()))), self.implode_params(path.clone(), params.clone())));
         let mut url: Value = add(&get_value(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), &api), &requestPath);
         let mut query: Value = self.omit(params.clone(), self.extract_params(path.clone()), &[]);
         if (api.as_str() == Some("public")) {

@@ -1063,7 +1063,7 @@ impl BlockchaincomCore {
         let mut type_var: Value = self.safe_string_k(message.clone(), "channel", &[]);
         let mut marketId: Value = self.safe_string_k(message.clone(), "symbol", &[]);
         let mut symbol: Value = self.safe_symbol(marketId.clone(), &[]);
-        let mut messageHash: Value = add(&Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("orderbook:".to_string()), symbol)), Value::Str(":".to_string()))), &type_var);
+        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("orderbook:".to_string()), symbol)), Value::Str(":".to_string()))), type_var));
         let mut datetime: Value = self.safe_string_k(message.clone(), "timestamp", &[]);
         let mut timestamp: Value = self.parse8601(datetime.clone());
         if (self.safe_value(self.orderbooks.clone(), symbol.clone(), &[]) == Value::Null) {
@@ -1081,7 +1081,7 @@ impl BlockchaincomCore {
             add_element_to_object(&mut orderbook, &Value::Str("timestamp".to_string()), timestamp.clone());
             add_element_to_object(&mut orderbook, &Value::Str("datetime".to_string()), datetime.clone());
         }  else {
-            panic!("{}", crate::exchange_errors::not_supported(Value::Str(format!("{}{}", add(&Value::Str(format!("{}{}", self.id.clone(), Value::Str(" watchOrderBook() does not support ".to_string()))), &event), Value::Str(" yet".to_string())))));
+            panic!("{}", crate::exchange_errors::not_supported(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" watchOrderBook() does not support ".to_string()))), event)), Value::Str(" yet".to_string())))));
         }
         client.resolve(&[orderbook.clone(), messageHash.clone()]);
 }

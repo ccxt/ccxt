@@ -790,7 +790,7 @@ impl CexCore {
         }
         let mut base: Value = self.safe_currency_code(baseId.clone(), &[]);
         let mut quote: Value = self.safe_currency_code(quoteId.clone(), &[]);
-        let mut symbol: Value = add(&add(&base, &Value::Str("/".to_string())), &quote);
+        let mut symbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".to_string()))), quote));
         let mut timestamp: Value = self.safe_integer_k(ticker.clone(), "timestamp", &[]);
         if (timestamp != Value::Null) {
             timestamp = (match (&(timestamp), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
@@ -1017,7 +1017,7 @@ impl CexCore {
         }
         let mut trade: Value = self.parse_ws_trade(data.clone(), &[]);
         stored.append(trade.clone());
-        let mut messageHash: Value = add(&Value::Str("myTrades:".to_string()), &trade.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null));
+        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("myTrades:".to_string()), trade.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null)));
         client.resolve(&[stored.clone(), messageHash.clone()]);
 }
 
@@ -1053,10 +1053,10 @@ impl CexCore {
         let mut quoteId: Value = self.safe_string_k(trade.clone(), "symbol2", &[]);
         let mut base: Value = self.safe_currency_code(baseId.clone(), &[]);
         let mut quote: Value = self.safe_currency_code(quoteId.clone(), &[]);
-        let mut symbol: Value = add(&add(&base, &Value::Str("/".to_string())), &quote);
+        let mut symbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".to_string()))), quote));
         let mut amount: Value = self.safe_string_k(trade.clone(), "amount", &[]);
         if (side.as_str() == Some("sell")) {
-            symbol = add(&add(&quote, &Value::Str("/".to_string())), &base);
+            symbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", quote, Value::Str("/".to_string()))), base));
             amount = crate::precise::Precise::stringDiv(&amount, &price); // due to rounding errors amount in not exact to trade
         }
         let mut parsedTrade: Value = Value::Map({
@@ -1176,7 +1176,7 @@ impl CexCore {
         }
         let mut base: Value = self.safe_currency_code(baseId.clone(), &[]);
         let mut quote: Value = self.safe_currency_code(quoteId.clone(), &[]);
-        let mut symbol: Value = add(&add(&base, &Value::Str("/".to_string())), &quote);
+        let mut symbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".to_string()))), quote));
         let mut market: Value = self.safe_market(&[symbol.clone()]);
         remains = self.currency_from_precision(base.clone(), remains.clone());
         if is_equal(&self.orders, &Value::Null) {
@@ -1394,7 +1394,7 @@ impl CexCore {
         }
         }
         self.orders = myOrders.clone();
-        let mut messageHash: Value = add(&Value::Str("orders:".to_string()), &symbol);
+        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("orders:".to_string()), symbol));
         let mut ordersLength: Value = get_array_length(&myOrders);
         if ordersLength.as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN) {
             client.resolve(&[myOrders.clone(), messageHash.clone()]);
@@ -1500,7 +1500,7 @@ impl CexCore {
         let mut quoteId: Value = self.safe_string(parts.clone(), Value::Int(1), &[]);
         let mut base: Value = self.safe_currency_code(baseId.clone(), &[]);
         let mut quote: Value = self.safe_currency_code(quoteId.clone(), &[]);
-        let mut symbol: Value = add(&add(&base, &Value::Str("/".to_string())), &quote);
+        let mut symbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".to_string()))), quote));
         return symbol;
 
     Value::Null
@@ -1592,7 +1592,7 @@ impl CexCore {
             let mut m = indexmap::IndexMap::new();
                 m.insert("e".to_string(), Value::Str("init-ohlcv".to_string()));
                 m.insert("i".to_string(), timeframe.clone());
-                m.insert("rooms".to_string(), Value::List(vec![add(&Value::Str(format!("{}{}", add(&Value::Str("pair-".to_string()), &market.as_map().and_then(|__m| __m.get("baseId")).cloned().unwrap_or(Value::Null)), Value::Str("-".to_string()))), &market.as_map().and_then(|__m| __m.get("quoteId")).cloned().unwrap_or(Value::Null))]));
+                m.insert("rooms".to_string(), Value::List(vec![Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("pair-".to_string()), market.as_map().and_then(|__m| __m.get("baseId")).cloned().unwrap_or(Value::Null))), Value::Str("-".to_string()))), market.as_map().and_then(|__m| __m.get("quoteId")).cloned().unwrap_or(Value::Null)))]));
             m
         });
         let __ws_arg_0 = self.extend(request.clone(), &[params.clone()]);
@@ -1632,7 +1632,7 @@ impl CexCore {
         let mut quoteId: Value = self.safe_string(parts.clone(), Value::Int(1), &[]);
         let mut base: Value = self.safe_currency_code(baseId.clone(), &[]);
         let mut quote: Value = self.safe_currency_code(quoteId.clone(), &[]);
-        let mut symbol: Value = add(&add(&base, &Value::Str("/".to_string())), &quote);
+        let mut symbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".to_string()))), quote));
         let mut market: Value = self.safe_market(&[symbol.clone()]);
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("ohlcv:".to_string()), symbol));
         let mut data: Value = self.safe_value_k(message.clone(), "data", &[Value::List(vec![])]);
@@ -2054,7 +2054,7 @@ impl CexCore {
             })]);
             let mut error: Value = self.safe_string_k(data.clone(), "error", &[]);
             let mut event: Value = self.safe_string_k(message.clone(), "e", &[Value::Str("".to_string())]);
-            let mut feedback: Value = add(&Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), event)), Value::Str(" ".to_string()))), &error);
+            let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), event)), Value::Str(" ".to_string()))), error));
             self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), error.clone(), feedback.clone());
             self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), error.clone(), feedback.clone());
             panic!("{}", crate::exchange_errors::exchange_error(feedback));

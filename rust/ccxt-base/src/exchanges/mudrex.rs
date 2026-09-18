@@ -613,7 +613,7 @@ impl MudrexCore {
         let mut priceType: Value = self.safe_string_k(params.clone(), "price", &[]);
         params = self.omit(params.clone(), Value::Str("price".to_string()), &[]);
         // the endpoint expects the pair in "BASE/QUOTE" format (comma-separated for multiple)
-        let mut assetPair: Value = add(&add(&market.as_map().and_then(|__m| __m.get("baseId")).cloned().unwrap_or(Value::Null), &Value::Str("/".to_string())), &market.as_map().and_then(|__m| __m.get("quoteId")).cloned().unwrap_or(Value::Null));
+        let mut assetPair: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", market.as_map().and_then(|__m| __m.get("baseId")).cloned().unwrap_or(Value::Null), Value::Str("/".to_string()))), market.as_map().and_then(|__m| __m.get("quoteId")).cloned().unwrap_or(Value::Null)));
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("assets".to_string(), assetPair.clone());

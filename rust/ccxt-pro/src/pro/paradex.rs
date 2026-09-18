@@ -366,7 +366,7 @@ impl ParadexCore {
         let mut messageHash: Value = Value::Str("trades.".to_string());
         if (symbol != Value::Null) {
             let mut market: Value = self.market(symbol.clone());
-            messageHash = add(&messageHash, &market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+            messageHash = Value::Str(format!("{}{}", messageHash, market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)));
         }  else {
             messageHash = Value::Str(format!("{}{}", messageHash, Value::Str("ALL".to_string())));
         }
@@ -454,7 +454,7 @@ impl ParadexCore {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol.clone());
-        let mut messageHash: Value = Value::Str(format!("{}{}", add(&Value::Str("order_book.".to_string()), &market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)), Value::Str(".snapshot@15@100ms".to_string())));
+        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("order_book.".to_string()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null))), Value::Str(".snapshot@15@100ms".to_string())));
         let mut url: Value = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null);
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -675,7 +675,7 @@ impl ParadexCore {
         if (symbol != Value::Null) {
             let mut market: Value = self.market(symbol.clone());
             symbol = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
-            channel = add(&channel, &market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+            channel = Value::Str(format!("{}{}", channel, market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)));
             messageHash = Value::Str(format!("{}{}", messageHash, Value::Str(format!("{}{}", Value::Str(":".to_string()), symbol))));
         }  else {
             channel = Value::Str(format!("{}{}", channel, Value::Str("ALL".to_string())));
@@ -790,7 +790,7 @@ impl ParadexCore {
         let mut market: Value = self.safe_market(&[marketId.clone()]);
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         let mut channel: Value = self.safe_string_k(params.clone(), "channel", &[]);
-        let mut messageHash: Value = Value::Str(format!("{}{}", add(&channel, &Value::Str(".".to_string())), symbol));
+        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", channel, Value::Str(".".to_string()))), symbol));
         let mut ticker: Value = self.parse_ticker(data.clone(), &[market.clone()]);
         add_element_to_object(&mut self.tickers, &symbol, ticker.clone());
         client.resolve(&[ticker.clone(), channel.clone()]);
@@ -934,7 +934,7 @@ impl ParadexCore {
         let mut symbol: Value = fundingRate.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         add_element_to_object(&mut self.fundingRates, &symbol, fundingRate.clone());
         let mut channel: Value = self.safe_string_k(params.clone(), "channel", &[]);
-        let mut messageHash: Value = add(&add(&channel, &Value::Str(".".to_string())), &symbol);
+        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", channel, Value::Str(".".to_string()))), symbol));
         client.resolve(&[fundingRate.clone(), messageHash.clone()]);
 }
 
@@ -974,7 +974,7 @@ impl ParadexCore {
         m.insert("previousFundingRate".to_string(), Value::Null);
         m.insert("previousFundingTimestamp".to_string(), Value::Null);
         m.insert("previousFundingDatetime".to_string(), Value::Null);
-        m.insert("interval".to_string(), add(&fundingPeriod, &Value::Str("h".to_string())));
+        m.insert("interval".to_string(), Value::Str(format!("{}{}", fundingPeriod, Value::Str("h".to_string()))));
     m
 });
 

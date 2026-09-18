@@ -1506,9 +1506,9 @@ impl BitmexCore {
         let mut expiryDatetime: Value = Value::Null;
         let mut symbol: Value = Value::Null;
         if is_true(&spot) {
-            symbol = add(&add(&base, &Value::Str("/".to_string())), &quote);
+            symbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".to_string()))), quote));
         }  else if is_true(&contract) {
-            symbol = add(&Value::Str(format!("{}{}", add(&add(&base, &Value::Str("/".to_string())), &quote), Value::Str(":".to_string()))), &settle);
+            symbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".to_string()))), quote)), Value::Str(":".to_string()))), settle));
             if (linear.as_bool() == Some(true)) {
                 let mut multiplierString: Value = self.safe_string2(market.clone(), Value::Str("underlyingToPositionMultiplier".to_string()), Value::Str("underlyingToSettleMultiplier".to_string()), &[]);
                 contractSize = crate::precise::Precise::stringAbs(&crate::precise::Precise::stringDiv(&Value::Str("1".to_string()), &multiplierString));
@@ -2941,7 +2941,7 @@ impl BitmexCore {
                 let mut isStopSellOrder: bool = is_true(&(Value::Bool(side.as_str() == Some("sell")))) && is_true(&(Value::Bool(is_true(&(Value::Bool(orderType.as_str() == Some("Stop")))) || is_true(&(Value::Bool(orderType.as_str() == Some("StopLimit")))))));
                 let mut isBuyIfTouchedOrder: bool = is_true(&(Value::Bool(side.as_str() == Some("buy")))) && is_true(&(Value::Bool(is_true(&(Value::Bool(orderType.as_str() == Some("MarketIfTouched")))) || is_true(&(Value::Bool(orderType.as_str() == Some("LimitIfTouched")))))));
                 if isStopSellOrder || isBuyIfTouchedOrder {
-                    trailingAmount = add(&Value::Str("-".to_string()), &trailingAmount);
+                    trailingAmount = Value::Str(format!("{}{}", Value::Str("-".to_string()), trailingAmount));
                 }
                 add_element_to_object(&mut request, &Value::Str("pegOffsetValue".to_string()), self.parse_to_numeric(trailingAmount.clone()));
                 add_element_to_object(&mut request, &Value::Str("pegPriceType".to_string()), Value::Str("TrailingStopPeg".to_string()));
@@ -3008,7 +3008,7 @@ impl BitmexCore {
             let mut isStopSellOrder: bool = is_true(&(Value::Bool(side.as_str() == Some("sell")))) && is_true(&(Value::Bool(is_true(&(Value::Bool(orderType.as_str() == Some("Stop")))) || is_true(&(Value::Bool(orderType.as_str() == Some("StopLimit")))))));
             let mut isBuyIfTouchedOrder: bool = is_true(&(Value::Bool(side.as_str() == Some("buy")))) && is_true(&(Value::Bool(is_true(&(Value::Bool(orderType.as_str() == Some("MarketIfTouched")))) || is_true(&(Value::Bool(orderType.as_str() == Some("LimitIfTouched")))))));
             if isStopSellOrder || isBuyIfTouchedOrder {
-                trailingAmount = add(&Value::Str("-".to_string()), &trailingAmount);
+                trailingAmount = Value::Str(format!("{}{}", Value::Str("-".to_string()), trailingAmount));
             }
             add_element_to_object(&mut request, &Value::Str("pegOffsetValue".to_string()), self.parse_to_numeric(trailingAmount.clone()));
             params = self.omit(params.clone(), Value::List(vec![Value::Str("triggerDirection".to_string()), Value::Str("trailingAmount".to_string())]), &[]);
@@ -4039,7 +4039,7 @@ impl BitmexCore {
         let mut baseSymbol: Value = self.safe_currency_code(baseId.clone(), &[]);
         let mut symbol: Value = baseSymbol.clone();
         if (quoteSymbol != Value::Null) {
-            symbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", add(&baseSymbol, &Value::Str("/".to_string())), quoteSymbol)), Value::Str(":".to_string()))), quoteSymbol));
+            symbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", baseSymbol, Value::Str("/".to_string()))), quoteSymbol)), Value::Str(":".to_string()))), quoteSymbol));
         }
         let mut openInterest: Value = self.safe_number_k(interest.clone(), "openInterest", &[]);
         let mut openValue: Value = self.safe_number_k(interest.clone(), "openValue", &[]);
@@ -4492,7 +4492,7 @@ impl BitmexCore {
 }));
         let mut headers = get_arg(optional_args, 3, Value::Null);
         let mut body = get_arg(optional_args, 4, Value::Null);
-        let mut query: Value = add(&Value::Str(format!("{}{}", add(&Value::Str("/api/".to_string()), &self.version), Value::Str("/".to_string()))), &path);
+        let mut query: Value = add(&Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("/api/".to_string()), self.version.clone())), Value::Str("/".to_string()))), &path);
         if (method.as_str() == Some("GET")) {
             if Value::Int(object_keys(&params).len() as i64).as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN) {
                 query = Value::Str(format!("{}{}", query, Value::Str(format!("{}{}", Value::Str("?".to_string()), self.urlencode(params.clone(), &[])))));

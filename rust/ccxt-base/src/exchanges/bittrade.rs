@@ -1273,7 +1273,7 @@ impl BittradeCore {
             append_to_array(&mut result, Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("id".to_string(), Value::Str(format!("{}{}", baseId, quoteId)));
-                    m.insert("symbol".to_string(), add(&add(&base, &Value::Str("/".to_string())), &quote));
+                    m.insert("symbol".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".to_string()))), quote)));
                     m.insert("base".to_string(), base.clone());
                     m.insert("quote".to_string(), quote.clone());
                     m.insert("settle".to_string(), Value::Null);
@@ -2509,7 +2509,7 @@ impl BittradeCore {
             let mut m = indexmap::IndexMap::new();
                 m.insert("account-id".to_string(), self.accounts.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
                 m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
-                m.insert("type".to_string(), Value::Str(format!("{}{}", add(&side, &Value::Str("-".to_string())), type_var)));
+                m.insert("type".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", side, Value::Str("-".to_string()))), type_var)));
             m
         });
         let mut clientOrderId: Value = self.safe_string2(params.clone(), Value::Str("clientOrderId".to_string()), Value::Str("client-order-id".to_string()), &[]); // must be 64 chars max and unique within 24 hours
@@ -2519,7 +2519,7 @@ impl BittradeCore {
                 m
             })]);
             let mut brokerId: Value = self.safe_string_k(broker.clone(), "id", &[]);
-            add_element_to_object(&mut request, &Value::Str("client-order-id".to_string()), add(&brokerId, &self.uuid(&[])));
+            add_element_to_object(&mut request, &Value::Str("client-order-id".to_string()), Value::Str(format!("{}{}", brokerId, self.uuid(&[]))));
         }  else {
             add_element_to_object(&mut request, &Value::Str("client-order-id".to_string()), clientOrderId.clone());
         }
@@ -3099,7 +3099,7 @@ impl BittradeCore {
         if (api.as_str() == Some("market")) {
             url = add(&url, &api);
         }  else if is_true(&(Value::Bool(api.as_str() == Some("public")))) || is_true(&(Value::Bool(api.as_str() == Some("private")))) {
-            url = add(&url, &self.version);
+            url = Value::Str(format!("{}{}", url, self.version.clone()));
         }  else if is_true(&(Value::Bool(api.as_str() == Some("v2Public")))) || is_true(&(Value::Bool(api.as_str() == Some("v2Private")))) {
             url = Value::Str(format!("{}{}", url, Value::Str("v2".to_string())));
         }

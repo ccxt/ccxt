@@ -490,7 +490,7 @@ impl DeepcoinCore {
     m
 }));
         let mut listenKey: Value = self.authenticate(&[]).await;
-        let mut url: Value = add(&add(&crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "private"), &Value::Str("?listenKey=".to_string())), &listenKey);
+        let mut url: Value = Value::Str(format!("{}{}", add(&crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "private"), &Value::Str("?listenKey=".to_string())), listenKey));
         return self.watch(url.clone(), messageHash.clone(), &[Value::Null, Value::Str("private".to_string()), params.clone()]).await;
 
     Value::Null
@@ -1072,7 +1072,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut ohlcv: Value = self.parse_ws_ohlcv(data.clone(), &[market.clone()]);
             stored.append(ohlcv.clone());
         }
-        let mut messageHash: Value = add(&Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("ohlcv".to_string()), Value::Str("::".to_string()))), symbol)), Value::Str("::".to_string()))), &timeframe);
+        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("ohlcv".to_string()), Value::Str("::".to_string()))), symbol)), Value::Str("::".to_string()))), timeframe));
         client.resolve(&[stored.clone(), messageHash.clone()]);
 }
 
@@ -1171,7 +1171,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             })]);
             let mut tickSize: Value = self.safe_number_k(precision.clone(), "price", &[]);
             if (tickSize == Value::Null) {
-                panic!("{}", crate::exchange_errors::bad_request(Value::Str(format!("{}{}", add(&Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), methodName)), Value::Str("() requires a params[\"aggregation\"] price level for ".to_string()))), &symbol), Value::Str(" because the market has no price precision".to_string())))));
+                panic!("{}", crate::exchange_errors::bad_request(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), methodName)), Value::Str("() requires a params[\"aggregation\"] price level for ".to_string()))), symbol)), Value::Str(" because the market has no price precision".to_string())))));
             }
             aggregation = self.number_to_string(tickSize.clone());
         }
@@ -1633,7 +1633,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }  else {
             append_to_array(&mut messageHashes, messageHash.clone());
         }
-        let mut url: Value = add(&add(&crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "private"), &Value::Str("?listenKey=".to_string())), &listenKey);
+        let mut url: Value = Value::Str(format!("{}{}", add(&crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "private"), &Value::Str("?listenKey=".to_string())), listenKey));
         let mut positions: Value = self.watch_multiple(url.clone(), messageHashes.clone(), &[params.clone(), Value::List(vec![Value::Str("private".to_string())])]).await;
         if is_true(&self.newUpdates) {
             return positions;
@@ -1843,7 +1843,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m
             })]); // original watch subscription
             let mut subHash: Value = self.safe_string_k(subscription.clone(), "subHash", &[]);
-            let mut unsubHash: Value = add(&Value::Str("unsubscribe::".to_string()), &subHash);
+            let mut unsubHash: Value = Value::Str(format!("{}{}", Value::Str("unsubscribe::".to_string()), subHash));
             let mut unsubsciption: Value = self.safe_dict(get_value(&client, &Value::Str("subscriptions".to_string())), unsubHash.clone(), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m

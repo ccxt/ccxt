@@ -633,7 +633,7 @@ impl HibachiCore {
         let mut quote: Value = self.safe_currency_code(quoteId.clone(), &[]);
         let mut settleId: Value = self.safe_string_k(market.clone(), "settlementSymbol", &[]);
         let mut settle: Value = self.safe_currency_code(settleId.clone(), &[]);
-        let mut symbol: Value = add(&Value::Str(format!("{}{}", add(&add(&base, &Value::Str("/".to_string())), &quote), Value::Str(":".to_string()))), &settle);
+        let mut symbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".to_string()))), quote)), Value::Str(":".to_string()))), settle));
         let mut created: Value = self.safe_integer_product(market.clone(), Value::Str("marketCreationTimestamp".to_string()), Value::Int(1000), &[]);
         return self.safe_market_structure(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1309,8 +1309,8 @@ impl HibachiCore {
         let mut amountStr: Value = self.amount_to_precision(self.safe_string_k(market.clone(), "symbol", &[]), amount.clone());
         let mut feeRateStr: Value = self.number_to_string(feeRate.clone());
         let mut info: Value = self.safe_dict_k(market.clone(), "info", &[]);
-        let mut underlying: Value = add(&Value::Str("1e".to_string()), &self.safe_string_k(info.clone(), "underlyingDecimals", &[]));
-        let mut settlement: Value = add(&Value::Str("1e".to_string()), &self.safe_string_k(info.clone(), "settlementDecimals", &[]));
+        let mut underlying: Value = Value::Str(format!("{}{}", Value::Str("1e".to_string()), self.safe_string_k(info.clone(), "underlyingDecimals", &[])));
+        let mut settlement: Value = Value::Str(format!("{}{}", Value::Str("1e".to_string()), self.safe_string_k(info.clone(), "settlementDecimals", &[])));
         let mut one: Value = Value::Str("1".to_string());
         let mut feeRateFactor: Value = Value::Str("100000000".to_string()); // 10^8
         let mut priceFactor: Value = Value::Str("4294967296".to_string()); // 2^32

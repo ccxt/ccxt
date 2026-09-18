@@ -2071,11 +2071,11 @@ impl CoinbaseinternationalCore {
         let mut typeId: Value = self.safe_string_k(market.clone(), "type", &[]); // 'SPOT', 'PERP'
         let mut isSpot: Value = (Value::Bool(typeId.as_str() == Some("SPOT")));
         let mut fees: Value = self.fees.clone();
-        let mut symbol: Value = add(&add(&baseId, &Value::Str("/".to_string())), &quoteId);
+        let mut symbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", baseId, Value::Str("/".to_string()))), quoteId));
         let mut settleId: Value = Value::Null;
         if !is_true(&isSpot) {
             settleId = quoteId.clone();
-            symbol = Value::Str(format!("{}{}", symbol, add(&Value::Str(":".to_string()), &quoteId)));
+            symbol = Value::Str(format!("{}{}", symbol, Value::Str(format!("{}{}", Value::Str(":".to_string()), quoteId))));
         }
         let mut isLinear: Value = (if is_true(&isSpot) { Value::Null } else { (Value::Bool(settleId.as_str() == quoteId.as_str())) });
         let mut isInverse: Value = (if is_true(&isSpot) { Value::Null } else { (Value::Bool(settleId.as_str() != quoteId.as_str())) });

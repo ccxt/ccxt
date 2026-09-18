@@ -667,13 +667,13 @@ impl ToobitCore {
                 selectedTimeframe = rawTimeframe.clone();
             }
             append_to_array(&mut marketIds, marketId.clone());
-            append_to_array(&mut messageHashes, Value::Str(format!("{}{}", Value::Str(format!("{}{}", add(&Value::Str("ohlcv::".to_string()), &symbolStr), Value::Str("::".to_string()))), unfiedTimeframe)));
+            append_to_array(&mut messageHashes, Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("ohlcv::".to_string()), symbolStr)), Value::Str("::".to_string()))), unfiedTimeframe)));
         }
         }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), join(&marketIds, &Value::Str(",".to_string())));
-                m.insert("topic".to_string(), add(&Value::Str("kline_".to_string()), &selectedTimeframe));
+                m.insert("topic".to_string(), Value::Str(format!("{}{}", Value::Str("kline_".to_string()), selectedTimeframe)));
                 m.insert("event".to_string(), Value::Str("sub".to_string()));
             m
         });
@@ -749,7 +749,7 @@ impl ToobitCore {
             stored.append(parsed.clone());
         }
         }
-        let mut messageHash: Value = add(&Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("ohlcv::".to_string()), symbol)), Value::Str("::".to_string()))), &timeframe);
+        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("ohlcv::".to_string()), symbol)), Value::Str("::".to_string()))), timeframe));
         let mut resolveData: Value = Value::List(vec![symbol.clone(), timeframe.clone(), stored.clone()]);
         client.resolve(&[resolveData.clone(), messageHash.clone()]);
 }
@@ -916,7 +916,7 @@ impl ToobitCore {
             if (symbol != Value::Null) {
                 add_element_to_object(&mut newTickers, &symbol, parsed.clone());
             }
-            let mut messageHash: Value = add(&Value::Str("ticker::".to_string()), &symbol);
+            let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("ticker::".to_string()), symbol));
             client.resolve(&[parsed.clone(), messageHash.clone()]);
         }
         }
@@ -1358,7 +1358,7 @@ impl ToobitCore {
         orders.append(order.clone());
         let mut messageHash: Value = Value::Str("orders".to_string());
         client.resolve(&[orders.clone(), messageHash.clone()]);
-        messageHash = add(&Value::Str("orders:".to_string()), &self.safe_string_k(order.clone(), "symbol", &[]));
+        messageHash = Value::Str(format!("{}{}", Value::Str("orders:".to_string()), self.safe_string_k(order.clone(), "symbol", &[])));
         client.resolve(&[orders.clone(), messageHash.clone()]);
 }
 
@@ -1480,7 +1480,7 @@ impl ToobitCore {
         }
         let mut trade: Value = self.parse_my_trade(message.clone(), &[]);
         myTrades.append(trade.clone());
-        let mut messageHash: Value = add(&Value::Str("myTrades:".to_string()), &trade.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null));
+        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("myTrades:".to_string()), trade.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null)));
         client.resolve(&[myTrades.clone(), messageHash.clone()]);
         messageHash = Value::Str("myTrades".to_string());
         client.resolve(&[myTrades.clone(), messageHash.clone()]);
@@ -1841,7 +1841,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         let mut code: Value = self.safe_string_k(message.clone(), "code", &[]);
         if (code != Value::Null) {
             let mut desc: Value = self.safe_string_k(message.clone(), "desc", &[]);
-            let mut msg: Value = add(&Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" code: ".to_string()))), code)), Value::Str(" message: ".to_string()))), &desc);
+            let mut msg: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" code: ".to_string()))), code)), Value::Str(" message: ".to_string()))), desc));
             let mut exception = Value::from(crate::exchange_errors::exchange_error(msg)); // c# fix
             client.reject(&[exception.clone()]);
             return Value::Bool(true);

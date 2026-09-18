@@ -557,7 +557,7 @@ impl BitflyerCore {
             m
         });
         let mut month: Value = self.safe_string(months.clone(), monthName.clone(), &[]);
-        return self.parse8601(Value::Str(format!("{}{}", add(&Value::Str(format!("{}{}", add(&add(&year, &Value::Str("-".to_string())), &month), Value::Str("-".to_string()))), &day), Value::Str("T00:00:00Z".to_string()))));
+        return self.parse8601(Value::Str(format!("{}{}", add(&Value::Str(format!("{}{}", Value::Str(format!("{}{}", add(&year, &Value::Str("-".to_string())), month)), Value::Str("-".to_string()))), &day), Value::Str("T00:00:00Z".to_string()))));
 
     Value::Null
 }
@@ -667,7 +667,7 @@ impl BitflyerCore {
             }
             let mut base: Value = self.safe_currency_code(baseId.clone(), &[]);
             let mut quote: Value = self.safe_currency_code(quoteId.clone(), &[]);
-            let mut symbol: Value = add(&add(&base, &Value::Str("/".to_string())), &quote);
+            let mut symbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".to_string()))), quote));
             let mut taker: Value = self.fees.as_map().and_then(|__m| __m.get("trading")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("taker")).cloned().unwrap_or(Value::Null);
             let mut maker: Value = self.fees.as_map().and_then(|__m| __m.get("trading")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("maker")).cloned().unwrap_or(Value::Null);
             let mut contract: Value = Value::Bool(is_true(&swap) || is_true(&future));
@@ -1715,7 +1715,7 @@ impl BitflyerCore {
 }));
         let mut headers = get_arg(optional_args, 3, Value::Null);
         let mut body = get_arg(optional_args, 4, Value::Null);
-        let mut request: Value = Value::Str(format!("{}{}", add(&Value::Str("/".to_string()), &self.version), Value::Str("/".to_string())));
+        let mut request: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("/".to_string()), self.version.clone())), Value::Str("/".to_string())));
         if (api.as_str() == Some("private")) {
             request = Value::Str(format!("{}{}", request, Value::Str("me/".to_string())));
         }

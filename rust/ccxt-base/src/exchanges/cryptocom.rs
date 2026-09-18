@@ -1664,7 +1664,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut marginSellEnabled: Value = self.safe_bool_k(market.clone(), "margin_sell_enabled", &[]);
             let mut expiryString: Value = self.omit_zero(self.safe_string_k(market.clone(), "expiry_timestamp_ms", &[]));
             let mut expiry: Value = (if is_true(&(Value::Bool(expiryString != Value::Null))) { crate::runtime::parse_int(&expiryString) } else { Value::Null });
-            let mut symbol: Value = add(&add(&base, &Value::Str("/".to_string())), &quote);
+            let mut symbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".to_string()))), quote));
             let mut type_var: Value = Value::Null;
             let mut contract: Value = Value::Null;
             if (inst_type.as_str() == Some("CCY_PAIR")) {
@@ -1672,16 +1672,16 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 contract = Value::Bool(false);
             }  else if (inst_type.as_str() == Some("PERPETUAL_SWAP")) {
                 type_var = Value::Str("swap".to_string());
-                symbol = add(&Value::Str(format!("{}{}", symbol, Value::Str(":".to_string()))), &quote);
+                symbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", symbol, Value::Str(":".to_string()))), quote));
                 contract = Value::Bool(true);
             }  else if (inst_type.as_str() == Some("FUTURE")) {
                 type_var = Value::Str("future".to_string());
-                symbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", add(&Value::Str(format!("{}{}", symbol, Value::Str(":".to_string()))), &quote), Value::Str("-".to_string()))), self.yymmdd(expiry.clone(), &[])));
+                symbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", symbol, Value::Str(":".to_string()))), quote)), Value::Str("-".to_string()))), self.yymmdd(expiry.clone(), &[])));
                 contract = Value::Bool(true);
             }  else if (inst_type.as_str() == Some("WARRANT")) {
                 type_var = Value::Str("option".to_string());
                 let mut symbolOptionType: Value = (if is_true(&(Value::Bool(optionType.as_str() == Some("call")))) { Value::Str("C".to_string()) } else { Value::Str("P".to_string()) });
-                symbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", add(&Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", add(&Value::Str(format!("{}{}", symbol, Value::Str(":".to_string()))), &quote), Value::Str("-".to_string()))), self.yymmdd(expiry.clone(), &[]))), Value::Str("-".to_string()))), &strike), Value::Str("-".to_string()))), symbolOptionType));
+                symbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", symbol, Value::Str(":".to_string()))), quote)), Value::Str("-".to_string()))), self.yymmdd(expiry.clone(), &[]))), Value::Str("-".to_string()))), strike)), Value::Str("-".to_string()))), symbolOptionType));
                 contract = Value::Bool(true);
             }
             let mut isLinear: Value = (if is_true(&(Value::Bool(contract.as_bool() == Some(true)))) { Value::Bool(true) } else { Value::Null });

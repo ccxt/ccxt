@@ -4712,8 +4712,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut outcomeObj: Value = self.load_outcome(outcome.clone(), &[]).await;
         let mut tokenId: Value = self.safe_string_k(outcomeObj.clone(), "outcomeId", &[]);
         outcome = self.safe_string_k(outcomeObj.clone(), "outcome", &[]);
-        let mut messageHash: Value = add(&Value::Str("orderbook::".to_string()), &outcome);
-        let mut subscribeHash: Value = add(&Value::Str("subscribe::".to_string()), &tokenId);
+        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("orderbook::".to_string()), outcome));
+        let mut subscribeHash: Value = Value::Str(format!("{}{}", Value::Str("subscribe::".to_string()), tokenId));
         let mut subscribeMsg: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("assets_ids".to_string(), Value::List(vec![tokenId.clone()]));
@@ -4747,8 +4747,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut outcomeObj: Value = self.load_outcome(outcome.clone(), &[]).await;
         let mut tokenId: Value = self.safe_string_k(outcomeObj.clone(), "outcomeId", &[]);
         outcome = self.safe_string_k(outcomeObj.clone(), "outcome", &[]);
-        let mut messageHash: Value = add(&Value::Str("trades::".to_string()), &outcome);
-        let mut subscribeHash: Value = add(&Value::Str("subscribe::".to_string()), &tokenId);
+        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("trades::".to_string()), outcome));
+        let mut subscribeHash: Value = Value::Str(format!("{}{}", Value::Str("subscribe::".to_string()), tokenId));
         let mut subscribeMsg: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("assets_ids".to_string(), Value::List(vec![tokenId.clone()]));
@@ -4778,8 +4778,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut outcomeObj: Value = self.load_outcome(outcome.clone(), &[]).await;
         let mut tokenId: Value = self.safe_string_k(outcomeObj.clone(), "outcomeId", &[]);
         outcome = self.safe_string_k(outcomeObj.clone(), "outcome", &[]);
-        let mut messageHash: Value = add(&Value::Str("ticker::".to_string()), &outcome);
-        let mut subscribeHash: Value = add(&Value::Str("subscribe::".to_string()), &tokenId);
+        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("ticker::".to_string()), outcome));
+        let mut subscribeHash: Value = Value::Str(format!("{}{}", Value::Str("subscribe::".to_string()), tokenId));
         let mut subscribeMsg: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("assets_ids".to_string(), Value::List(vec![tokenId.clone()]));
@@ -4887,7 +4887,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (outcome != Value::Null) {
             let mut outcomeObj: Value = self.load_outcome(outcome.clone(), &[]).await;
             outcome = self.safe_string_k(outcomeObj.clone(), "outcome", &[]);
-            messageHash = add(&Value::Str("orders::".to_string()), &outcome);
+            messageHash = Value::Str(format!("{}{}", Value::Str("orders::".to_string()), outcome));
         }
         let mut orders: Value = self.subscribe_user_channel(messageHash.clone(), &[params.clone()]).await;
         if is_true(&self.newUpdates) {
@@ -4922,7 +4922,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (outcome != Value::Null) {
             let mut outcomeObj: Value = self.load_outcome(outcome.clone(), &[]).await;
             outcome = self.safe_string_k(outcomeObj.clone(), "outcome", &[]);
-            messageHash = add(&Value::Str("myTrades::".to_string()), &outcome);
+            messageHash = Value::Str(format!("{}{}", Value::Str("myTrades::".to_string()), outcome));
         }
         let mut trades: Value = self.subscribe_user_channel(messageHash.clone(), &[params.clone()]).await;
         if is_true(&self.newUpdates) {

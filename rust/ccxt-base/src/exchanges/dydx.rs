@@ -989,7 +989,7 @@ impl DydxCore {
         let mut quote: Value = self.safe_currency_code(quoteId.clone(), &[]);
         let mut settleId: Value = Value::Str("USDC".to_string());
         let mut settle: Value = self.safe_currency_code(settleId.clone(), &[]);
-        let mut symbol: Value = add(&Value::Str(format!("{}{}", add(&add(&base, &Value::Str("/".to_string())), &quote), Value::Str(":".to_string()))), &settle);
+        let mut symbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".to_string()))), quote)), Value::Str(":".to_string()))), settle));
         let mut contract: Value = Value::Bool(true);
         let mut swap: Value = Value::Bool(true);
         let mut amountPrecisionStr: Value = self.safe_string_k(market.clone(), "stepSize", &[]);
@@ -1391,7 +1391,7 @@ impl DydxCore {
         if is_true(&(Value::Bool(self.walletAddress.clone() != Value::Null))) && is_true(&(Value::Bool(self.walletAddress.as_str() != Some("")))) {
             return Value::List(vec![self.walletAddress.clone(), params.clone()]);
         }
-        panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", add(&Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), &methodName), Value::Str("() requires a user parameter inside 'params' or the walletAddress set".to_string())))));
+        panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), methodName)), Value::Str("() requires a user parameter inside 'params' or the walletAddress set".to_string())))));
 
     Value::Null
 }

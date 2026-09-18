@@ -1503,7 +1503,7 @@ impl BitfinexCore {
             let mut splitQuote: Value = split(&quote, &Value::Str("F0".to_string()));
             base = self.safe_string(splitBase.clone(), Value::Int(0), &[]);
             quote = self.safe_string(splitQuote.clone(), Value::Int(0), &[]);
-            let mut symbol: Value = add(&add(&base, &Value::Str("/".to_string())), &quote);
+            let mut symbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".to_string()))), quote));
             // baseId = 'f' + baseId;
             // quoteId = 'f' + quoteId;
             let mut settle: Value = Value::Null;
@@ -1511,13 +1511,13 @@ impl BitfinexCore {
             if is_true(&swap) {
                 settle = quote.clone();
                 settleId = quote.clone();
-                symbol = add(&Value::Str(format!("{}{}", symbol, Value::Str(":".to_string()))), &settle);
+                symbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", symbol, Value::Str(":".to_string()))), settle));
             }
             let mut minOrderSizeString: Value = self.safe_string(market.clone(), Value::Int(3), &[]);
             let mut maxOrderSizeString: Value = self.safe_string(market.clone(), Value::Int(4), &[]);
             append_to_array(&mut result, Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("id".to_string(), add(&Value::Str("t".to_string()), &id));
+                    m.insert("id".to_string(), Value::Str(format!("{}{}", Value::Str("t".to_string()), id)));
                     m.insert("symbol".to_string(), symbol.clone());
                     m.insert("base".to_string(), base.clone());
                     m.insert("quote".to_string(), quote.clone());
@@ -2094,7 +2094,7 @@ impl BitfinexCore {
             let mut start: Value = (match (&(Value::Int(currencyId.len() as i64)), &(Value::Int(2))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
             let mut isDerivativeCode: bool = slice(&currencyId, &start, &Value::Null).as_str() == Some("F0");
             if !isDerivativeCode {
-                currencyId = add(&currencyId, &Value::Str("F0".to_string()));
+                currencyId = Value::Str(format!("{}{}", currencyId, Value::Str("F0".to_string())));
             }
         }  else if (type_var.as_str() != Some("margin")) {
             currencyId = self.safe_string(underlying.clone(), Value::Int(1), &[transferId.clone()]);
@@ -2906,7 +2906,7 @@ impl BitfinexCore {
         if (status.as_str() != Some("SUCCESS")) {
             let mut errorCode: Value = self.safe_string(response.clone(), Value::Int(5), &[]);
             let mut errorText: Value = self.safe_string(response.clone(), Value::Int(7), &[]);
-            panic!("{}", crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", add(&Value::Str(format!("{}{}", add(&Value::Str(format!("{}{}", add(&Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), &status), Value::Str(": ".to_string()))), &errorText), Value::Str(" (#".to_string()))), &errorCode), Value::Str(")".to_string())))));
+            panic!("{}", crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), status)), Value::Str(": ".to_string()))), errorText)), Value::Str(" (#".to_string()))), errorCode)), Value::Str(")".to_string())))));
         }
         let mut orders: Value = self.safe_list(response.clone(), Value::Int(4), &[Value::List(vec![])]);
         let mut order: Value = self.safe_list(orders.clone(), Value::Int(0), &[]);
@@ -4332,7 +4332,7 @@ impl BitfinexCore {
         if (api.as_str() == Some("v1")) {
             request = add(&api, &request);
         }  else {
-            request = add(&self.version, &request);
+            request = Value::Str(format!("{}{}", self.version.clone(), request));
         }
         let mut url: Value = Value::Str(format!("{}{}", add(&get_value(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), &api), &Value::Str("/".to_string())), request));
         if (api.as_str() == Some("public")) {
@@ -5421,7 +5421,7 @@ impl BitfinexCore {
         if (status.as_str() != Some("SUCCESS")) {
             let mut errorCode: Value = self.safe_string(response.clone(), Value::Int(5), &[]);
             let mut errorText: Value = self.safe_string(response.clone(), Value::Int(7), &[]);
-            panic!("{}", crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", add(&Value::Str(format!("{}{}", add(&Value::Str(format!("{}{}", add(&Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), &status), Value::Str(": ".to_string()))), &errorText), Value::Str(" (#".to_string()))), &errorCode), Value::Str(")".to_string())))));
+            panic!("{}", crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), status)), Value::Str(": ".to_string()))), errorText)), Value::Str(" (#".to_string()))), errorCode)), Value::Str(")".to_string())))));
         }
         let mut order: Value = self.safe_list(response.clone(), Value::Int(4), &[Value::List(vec![])]);
         let mut newOrder: Value = Value::Map({

@@ -1309,9 +1309,9 @@ impl BlofinCore {
         let mut settle: Value = self.safe_currency_code(settleId.clone(), &[]);
         let mut base: Value = self.safe_currency_code(baseId.clone(), &[]);
         let mut quote: Value = self.safe_currency_code(quoteId.clone(), &[]);
-        let mut symbol: Value = add(&add(&base, &Value::Str("/".to_string())), &quote);
+        let mut symbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".to_string()))), quote));
         if is_true(&swap) {
-            symbol = add(&Value::Str(format!("{}{}", symbol, Value::Str(":".to_string()))), &settle);
+            symbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", symbol, Value::Str(":".to_string()))), settle));
         }
         let mut expiry: Value = Value::Null;
         let mut strikePrice: Value = Value::Null;
@@ -3829,9 +3829,9 @@ impl BlofinCore {
             let mut entry: Value = get_value(&symbolsList, &i);
             let mut entryMarket: Value = self.market(entry.clone());
             if i.as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN) {
-                instIds = add(&Value::Str(format!("{}{}", instIds, Value::Str(",".to_string()))), &entryMarket.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+                instIds = Value::Str(format!("{}{}", Value::Str(format!("{}{}", instIds, Value::Str(",".to_string()))), entryMarket.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)));
             }  else {
-                instIds = add(&instIds, &entryMarket.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+                instIds = Value::Str(format!("{}{}", instIds, entryMarket.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)));
             }
         }
         }
@@ -4395,7 +4395,7 @@ impl BlofinCore {
 }));
         let mut headers = get_arg(optional_args, 3, Value::Null);
         let mut body = get_arg(optional_args, 4, Value::Null);
-        let mut request: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", add(&Value::Str("/api/".to_string()), &self.version), Value::Str("/".to_string()))), self.implode_params(path.clone(), params.clone())));
+        let mut request: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("/api/".to_string()), self.version.clone())), Value::Str("/".to_string()))), self.implode_params(path.clone(), params.clone())));
         let mut query: Value = self.omit(params.clone(), self.extract_params(path.clone()), &[]);
         let mut url: Value = add(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("rest")).cloned().unwrap_or(Value::Null), &request);
         // const type = this.getPathAuthenticationType (path);

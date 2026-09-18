@@ -2049,14 +2049,14 @@ impl AsterCore {
             swap = Value::Bool(true);
             settleId = self.safe_string_k(market.clone(), "marginAsset", &[]);
             settle = self.safe_currency_code(settleId.clone(), &[]);
-            symbol = add(&Value::Str(format!("{}{}", add(&add(&base, &Value::Str("/".to_string())), &quote), Value::Str(":".to_string()))), &settle);
+            symbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".to_string()))), quote)), Value::Str(":".to_string()))), settle));
             linear = Value::Bool(settle.as_str() == quote.as_str());
             inverse = Value::Bool(settle.as_str() == base.as_str());
             contractSize = self.safe_number2(market.clone(), Value::Str("contractSize".to_string()), Value::Str("unit".to_string()), &[self.parse_number(Value::Str("1".to_string()), &[])]);
         }  else {
             spot = Value::Bool(true);
             swap = Value::Bool(false);
-            symbol = add(&add(&base, &Value::Str("/".to_string())), &quote);
+            symbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".to_string()))), quote));
         }
         // filters
         let mut filters: Value = self.safe_list_k(market.clone(), "filters", &[Value::List(vec![])]);

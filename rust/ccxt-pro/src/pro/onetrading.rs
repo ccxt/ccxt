@@ -731,7 +731,7 @@ impl OnetradingCore {
             let mut changes: Value = self.safe_value_k(message.clone(), "changes", &[Value::List(vec![])]);
             self.handle_deltas(orderbook.clone(), changes.clone());
         }  else {
-            panic!("{}", crate::exchange_errors::not_supported(add(&Value::Str(format!("{}{}", self.id.clone(), Value::Str(" watchOrderBook() did not recognize message type ".to_string()))), &type_var)));
+            panic!("{}", crate::exchange_errors::not_supported(Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" watchOrderBook() did not recognize message type ".to_string()))), type_var))));
         }
         add_element_to_object(&mut orderbook, &Value::Str("nonce".to_string()), timestamp.clone());
         add_element_to_object(&mut orderbook, &Value::Str("timestamp".to_string()), timestamp.clone());
@@ -878,7 +878,7 @@ impl OnetradingCore {
         let mut order: Value = self.parse_trading_order(message.clone(), &[]);
         let mut orders: Value = self.orders.clone();
         orders.append(order.clone());
-        client.resolve(&[self.orders.clone(), add(&Value::Str("orders:".to_string()), &order.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null))]);
+        client.resolve(&[self.orders.clone(), Value::Str(format!("{}{}", Value::Str("orders:".to_string()), order.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null)))]);
         client.resolve(&[self.orders.clone(), Value::Str("orders".to_string())]);
 }
 
@@ -1378,7 +1378,7 @@ impl OnetradingCore {
             symbol = self.safe_string_k(parsed.clone(), "symbol", &[Value::Str("".to_string())]);
             orders.append(parsed.clone());
         }
-        client.resolve(&[self.orders.clone(), add(&Value::Str("orders:".to_string()), &symbol)]);
+        client.resolve(&[self.orders.clone(), Value::Str(format!("{}{}", Value::Str("orders:".to_string()), symbol))]);
         client.resolve(&[self.orders.clone(), Value::Str("orders".to_string())]);
         // update balance
         let mut balanceKeys: Value = Value::List(vec![Value::Str("locked".to_string()), Value::Str("unlocked".to_string()), Value::Str("spent".to_string()), Value::Str("spent_on_fees".to_string()), Value::Str("credited".to_string()), Value::Str("deducted".to_string())]);
@@ -1599,7 +1599,7 @@ impl OnetradingCore {
             m
         })]);
         let mut timeframe: Value = self.find_timeframe(timeframeId.clone(), &[timeframes.clone()]);
-        let mut channel: Value = add(&Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("ohlcv.".to_string()), symbol)), Value::Str(".".to_string()))), &timeframe);
+        let mut channel: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("ohlcv.".to_string()), symbol)), Value::Str(".".to_string()))), timeframe));
         let mut parsed: Value = Value::List(vec![self.parse8601(dateTime.clone()), self.safe_number_k(message.clone(), "open", &[]), self.safe_number_k(message.clone(), "high", &[]), self.safe_number_k(message.clone(), "low", &[]), self.safe_number_k(message.clone(), "close", &[]), self.safe_number_k(message.clone(), "volume", &[])]);
         { let __be_tmp = self.safe_value(self.ohlcvs.clone(), symbol.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();

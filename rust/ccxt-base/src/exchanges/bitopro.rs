@@ -744,7 +744,7 @@ impl BitoproCore {
         let mut quoteId: Value = self.safe_string_k(market.clone(), "quote", &[]);
         let mut base: Value = self.safe_currency_code(baseId.clone(), &[]);
         let mut quote: Value = self.safe_currency_code(quoteId.clone(), &[]);
-        let mut symbol: Value = add(&add(&base, &Value::Str("/".to_string())), &quote);
+        let mut symbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".to_string()))), quote));
         let mut limits: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("amount".to_string(), Value::Map({
@@ -2195,7 +2195,7 @@ impl BitoproCore {
             params = self.omit(params.clone(), Value::List(vec![Value::Str("network".to_string())]), &[]);
             let mut networkId: Value = (if is_true(&(Value::Bool(requestedNetwork == Value::Null))) { Value::Null } else { self.safe_string(networks.clone(), requestedNetwork.clone(), &[]) });
             if (networkId == Value::Null) {
-                panic!("{}", crate::exchange_errors::exchange_error(add(&Value::Str(format!("{}{}", self.id.clone(), Value::Str(" invalid network ".to_string()))), &requestedNetwork)));
+                panic!("{}", crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" invalid network ".to_string()))), requestedNetwork))));
             }
             add_element_to_object(&mut request, &Value::Str("protocol".to_string()), networkId.clone());
         }

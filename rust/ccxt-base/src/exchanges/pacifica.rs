@@ -1347,9 +1347,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut base: Value = self.safe_currency_code(baseId.clone(), &[]);
         let mut quote: Value = self.safe_currency_code(quoteId.clone(), &[]);
         let mut settle: Value = self.safe_currency_code(settleId.clone(), &[]);
-        let mut symbol: Value = add(&add(&base, &Value::Str("/".to_string())), &quote);
+        let mut symbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".to_string()))), quote));
         if is_true(&isSwap) {
-            symbol = add(&Value::Str(format!("{}{}", symbol, Value::Str(":".to_string()))), &settle);
+            symbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", symbol, Value::Str(":".to_string()))), settle));
         }
         let mut fees: Value = self.safe_dict(self.fees.clone(), type_var.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -4808,7 +4808,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut isTestnet: Value = self.isSandboxModeEnabled.clone();
         let mut urlKey: Value = (if is_true(&(isTestnet)) { Value::Str("test".to_string()) } else { Value::Str("api".to_string()) });
         let mut host: Value = self.implode_hostname(get_value(&get_value(&self.urls, &urlKey), &api));
-        let mut url: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", add(&Value::Str(format!("{}{}", host, Value::Str("/api/".to_string()))), &self.version), Value::Str("/".to_string()))), self.implode_params(path.clone(), params.clone())));
+        let mut url: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", host, Value::Str("/api/".to_string()))), self.version.clone())), Value::Str("/".to_string()))), self.implode_params(path.clone(), params.clone())));
         params = self.omit(params.clone(), self.extract_params(path.clone()), &[]);
         let mut paramsLen: Value = Value::Int(object_keys(&params).len() as i64);
         headers = Value::Map({
@@ -4958,7 +4958,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut originAddress: Value = Value::Null;
         { let __destr_tmp = self.handle_origin_and_single_address(Value::Str("postActionRequest".to_string()), params.clone()); originAddress = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         if (originAddress == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", add(&Value::Str(format!("{}{}", self.id.clone(), Value::Str(" action: ".to_string()))), &operationType), Value::Str(" postActionRequest() requires \"originAddress\" in params or \"walletAddress\" in requiredCredentials".to_string())))));
+            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" action: ".to_string()))), operationType)), Value::Str(" postActionRequest() requires \"originAddress\" in params or \"walletAddress\" in requiredCredentials".to_string())))));
         }
         add_element_to_object(&mut finalHeaders, &Value::Str("account".to_string()), originAddress.clone());
         if (agentAddress != Value::Null) {

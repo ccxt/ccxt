@@ -520,7 +520,7 @@ impl LbankCore {
                 add_element_to_object(get_value_mut(unsafe { crate::runtime::coerce_value_to_mut(&self.ohlcvs) }, &symbol), &timeframe, stored.clone());
             }
             stored.append(parsed.clone());
-            let mut messageHash: Value = add(&Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("fetchOHLCV:".to_string()), symbol)), Value::Str(":".to_string()))), &timeframeId);
+            let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("fetchOHLCV:".to_string()), symbol)), Value::Str(":".to_string()))), timeframeId));
             client.resolve(&[stored.clone(), messageHash.clone()]);
         }  else {
             let mut rawOHLCV: Value = self.safe_value_k(message.clone(), "kbar", &[Value::Map({
@@ -542,7 +542,7 @@ impl LbankCore {
                 add_element_to_object(get_value_mut(unsafe { crate::runtime::coerce_value_to_mut(&self.ohlcvs) }, &symbol), &timeframe, stored.clone());
             }
             stored.append(parsed.clone());
-            let mut messageHash: Value = add(&Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("ohlcv:".to_string()), symbol)), Value::Str(":".to_string()))), &timeframeId);
+            let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("ohlcv:".to_string()), symbol)), Value::Str(":".to_string()))), timeframeId));
             client.resolve(&[stored.clone(), messageHash.clone()]);
         }
 }

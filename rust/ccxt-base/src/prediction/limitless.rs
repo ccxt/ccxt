@@ -4240,7 +4240,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             self.check_required_credentials(&[]);
             let mut timestamp: Value = self.iso8601(self.milliseconds());
             let mut newline: Value = Value::Str("\n".to_string()); // eslint-disable-line quotes
-            let mut payload: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", add(&timestamp, &newline), method)), newline)), url)), newline)), bodyString));
+            let mut payload: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", timestamp, newline)), method)), newline)), url)), newline)), bodyString));
             let mut signature: Value = self.hmac(self.encode(payload.clone()), self.base64_to_binary(self.secret.clone(), &[]), Value::Str("sha256".to_string()), &[Value::Str("base64".to_string())]);
             headers = self.extend(headers.clone(), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();

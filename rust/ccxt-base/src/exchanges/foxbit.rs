@@ -1506,7 +1506,7 @@ impl FoxbitCore {
     m
 })]);
             if (type_var.as_str() != Some("LIMIT")) && (type_var.as_str() != Some("MARKET")) && (type_var.as_str() != Some("STOP_MARKET")) && (type_var.as_str() != Some("STOP_LIMIT")) && (type_var.as_str() != Some("INSTANT")) {
-                panic!("{}", crate::exchange_errors::invalid_order(Value::Str(format!("{}{}", add(&Value::Str("Invalid order type: ".to_string()), &type_var), Value::Str(". Must be one of: limit, market, stop_market, stop_limit, instant.".to_string())))));
+                panic!("{}", crate::exchange_errors::invalid_order(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("Invalid order type: ".to_string()), type_var)), Value::Str(". Must be one of: limit, market, stop_market, stop_limit, instant.".to_string())))));
             }
             let mut timeInForce: Value = self.safe_string_upper(orderParams.clone(), Value::Str("timeInForce".to_string()), &[]);
             let mut postOnly: Value = self.safe_bool_k(orderParams.clone(), "postOnly", &[Value::Bool(false)]);
@@ -2278,7 +2278,7 @@ impl FoxbitCore {
         let mut quoteId: Value = self.safe_string_k(quoteAssets.clone(), "symbol", &[]);
         let mut base: Value = self.safe_currency_code(baseId.clone(), &[]);
         let mut quote: Value = self.safe_currency_code(quoteId.clone(), &[]);
-        let mut symbol: Value = add(&add(&base, &Value::Str("/".to_string())), &quote);
+        let mut symbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".to_string()))), quote));
         let mut fees: Value = self.safe_dict_k(market.clone(), "default_fees", &[]);
         return self.safe_market_structure(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2813,7 +2813,7 @@ impl FoxbitCore {
             }
         }
         if (error != Value::Null) {
-            let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", add(&Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), &message), Value::Str(" details: ".to_string()))), detailsString));
+            let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), message)), Value::Str(" details: ".to_string()))), detailsString));
             self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), message.clone(), feedback.clone());
             self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), detailsString.clone(), feedback.clone());
             self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), code.clone(), feedback.clone());

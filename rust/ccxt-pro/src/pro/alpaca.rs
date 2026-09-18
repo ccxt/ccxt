@@ -371,7 +371,7 @@ impl AlpacaCore {
         //
         let mut ticker: Value = self.parse_ticker(message.clone(), &[]);
         let mut symbol: Value = ticker.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
-        let mut messageHash: Value = add(&Value::Str("ticker:".to_string()), &symbol);
+        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("ticker:".to_string()), symbol));
         if (symbol != Value::Null) {
             add_element_to_object(&mut self.tickers, &symbol, ticker.clone());
         }
@@ -828,7 +828,7 @@ impl AlpacaCore {
         orders.append(order.clone());
         let mut messageHash: Value = Value::Str("orders".to_string());
         client.resolve(&[orders.clone(), messageHash.clone()]);
-        messageHash = add(&Value::Str("orders:".to_string()), &order.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null));
+        messageHash = Value::Str(format!("{}{}", Value::Str("orders:".to_string()), order.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null)));
         client.resolve(&[orders.clone(), messageHash.clone()]);
 }
 
@@ -900,7 +900,7 @@ impl AlpacaCore {
             return;
         }
         myTrades.append(trade.clone());
-        let mut messageHash: Value = add(&Value::Str("myTrades:".to_string()), &trade.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null));
+        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("myTrades:".to_string()), trade.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null)));
         client.resolve(&[myTrades.clone(), messageHash.clone()]);
         messageHash = Value::Str("myTrades".to_string());
         client.resolve(&[myTrades.clone(), messageHash.clone()]);
@@ -1028,7 +1028,7 @@ impl AlpacaCore {
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        panic!("{}", crate::exchange_errors::exchange_error(add(&Value::Str(format!("{}{}", add(&Value::Str(format!("{}{}", self.id.clone(), Value::Str(" code: ".to_string()))), &code), Value::Str(" message: ".to_string()))), &msg)));
+        panic!("{}", crate::exchange_errors::exchange_error(add(&Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" code: ".to_string()))), code)), Value::Str(" message: ".to_string()))), &msg)));
 
     Value::Null
 }

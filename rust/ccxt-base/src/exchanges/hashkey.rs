@@ -1601,10 +1601,10 @@ impl HashkeyCore {
             isSpot = Value::Bool(false);
             isSwap = Value::Bool(true);
             baseId = self.safe_string_k(market.clone(), "underlying", &[]);
-            suffix = Value::Str(format!("{}{}", suffix, add(&Value::Str(":".to_string()), &settleId)));
+            suffix = Value::Str(format!("{}{}", suffix, Value::Str(format!("{}{}", Value::Str(":".to_string()), settleId))));
         }
         let mut base: Value = self.safe_currency_code(baseId.clone(), &[]);
-        let mut symbol: Value = Value::Str(format!("{}{}", add(&add(&base, &Value::Str("/".to_string())), &quote), suffix));
+        let mut symbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".to_string()))), quote)), suffix));
         let mut status: Value = self.safe_string_k(market.clone(), "status", &[]);
         let mut active: Value = Value::Bool(status.as_str() == Some("TRADING"));
         let mut isLinear: Value = Value::Null;
@@ -5206,14 +5206,14 @@ impl HashkeyCore {
     m
 })]);
                 query = self.custom_urlencode(&[__ws_arg_44]);
-                url = Value::Str(format!("{}{}", url, add(&Value::Str("?".to_string()), &query)));
+                url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".to_string()), query))));
             }  else {
                 let mut totalParams: Value = self.extend(additionalParams.clone(), &[params.clone()]);
                 signature = self.hmac(self.encode(self.custom_urlencode(&[totalParams.clone()])), self.encode(self.secret.clone()), Value::Str("sha256".to_string()), &[]);
                 add_element_to_object(&mut totalParams, &Value::Str("signature".to_string()), signature.clone());
                 query = self.custom_urlencode(&[totalParams.clone()]);
                 if (method.as_str() == Some("GET")) {
-                    url = Value::Str(format!("{}{}", url, add(&Value::Str("?".to_string()), &query)));
+                    url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".to_string()), query))));
                 }  else {
                     body = query.clone();
                 }

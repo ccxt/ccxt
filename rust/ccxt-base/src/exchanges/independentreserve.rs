@@ -710,7 +710,7 @@ impl IndependentreserveCore {
                 append_to_array(&mut result, Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("id".to_string(), id.clone());
-                        m.insert("symbol".to_string(), add(&add(&base, &Value::Str("/".to_string())), &quote));
+                        m.insert("symbol".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".to_string()))), quote)));
                         m.insert("base".to_string(), base.clone());
                         m.insert("quote".to_string(), quote.clone());
                         m.insert("settle".to_string(), Value::Null);
@@ -1002,7 +1002,7 @@ impl IndependentreserveCore {
         if is_true(&(Value::Bool(baseId != Value::Null))) && is_true(&(Value::Bool(quoteId != Value::Null))) {
             base = self.safe_currency_code(baseId.clone(), &[]);
             quote = self.safe_currency_code(quoteId.clone(), &[]);
-            symbol = add(&add(&base, &Value::Str("/".to_string())), &quote);
+            symbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".to_string()))), quote));
         }  else if (market != Value::Null) {
             symbol = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
             base = market.as_map().and_then(|__m| __m.get("base")).cloned().unwrap_or(Value::Null);

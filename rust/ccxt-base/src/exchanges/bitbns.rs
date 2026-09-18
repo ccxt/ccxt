@@ -664,12 +664,12 @@ impl BitbnsCore {
 })]);
             let mut usdt: bool = quoteId.as_str() == Some("USDT");
             // INR markets don't need a _INR prefix
-            let mut uppercaseId: Value = (if usdt { (Value::Str(format!("{}{}", add(&baseId, &Value::Str("_".to_string())), quoteId))) } else { baseId.clone() });
+            let mut uppercaseId: Value = (if usdt { (Value::Str(format!("{}{}", Value::Str(format!("{}{}", baseId, Value::Str("_".to_string()))), quoteId))) } else { baseId.clone() });
             append_to_array(&mut result, Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("id".to_string(), id.clone());
                     m.insert("uppercaseId".to_string(), uppercaseId.clone());
-                    m.insert("symbol".to_string(), add(&add(&base, &Value::Str("/".to_string())), &quote));
+                    m.insert("symbol".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".to_string()))), quote)));
                     m.insert("base".to_string(), base.clone());
                     m.insert("quote".to_string(), quote.clone());
                     m.insert("settle".to_string(), Value::Null);
@@ -902,7 +902,7 @@ impl BitbnsCore {
                 // note that "Money" stands for INR - the only fiat in bitbns
                 let mut account: Value = self.account();
                 add_element_to_object(&mut account, &Value::Str("free".to_string()), self.safe_string(data.clone(), key.clone(), &[]));
-                add_element_to_object(&mut account, &Value::Str("used".to_string()), self.safe_string(data.clone(), add(&Value::Str("inorder".to_string()), &currencyId), &[]));
+                add_element_to_object(&mut account, &Value::Str("used".to_string()), self.safe_string(data.clone(), Value::Str(format!("{}{}", Value::Str("inorder".to_string()), currencyId)), &[]));
                 if (currencyId.as_str() == Some("Money")) {
                     currencyId = Value::Str("INR".to_string());
                 }

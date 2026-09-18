@@ -519,7 +519,7 @@ impl AsterCore {
             let mut symbol: Value = get_value(&symbols, &i);
             let mut symbol: Value = get_value(&symbols, &i);
             let mut market: Value = self.market(symbol.clone());
-            append_to_array(&mut subscriptionArgs, add(&self.safe_string_lower(market.clone(), Value::Str("id".to_string()), &[]), &Value::Str("@ticker".to_string())));
+            append_to_array(&mut subscriptionArgs, Value::Str(format!("{}{}", self.safe_string_lower(market.clone(), Value::Str("id".to_string()), &[]), Value::Str("@ticker".to_string()))));
             append_to_array(&mut messageHashes, Value::Str(format!("{}{}", Value::Str("ticker:".to_string()), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null))));
         }
         }
@@ -589,7 +589,7 @@ impl AsterCore {
             let mut symbol: Value = get_value(&symbols, &i);
             let mut symbol: Value = get_value(&symbols, &i);
             let mut market: Value = self.market(symbol.clone());
-            append_to_array(&mut subscriptionArgs, add(&self.safe_string_lower(market.clone(), Value::Str("id".to_string()), &[]), &Value::Str("@ticker".to_string())));
+            append_to_array(&mut subscriptionArgs, Value::Str(format!("{}{}", self.safe_string_lower(market.clone(), Value::Str("id".to_string()), &[]), Value::Str("@ticker".to_string()))));
             append_to_array(&mut messageHashes, Value::Str(format!("{}{}", Value::Str("unsubscribe:ticker:".to_string()), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null))));
         }
         }
@@ -700,7 +700,7 @@ impl AsterCore {
             let mut symbol: Value = get_value(&symbols, &i);
             let mut market: Value = self.market(symbol.clone());
             let mut suffix: Value = (if is_true(&(Value::Bool(use1sFreq.as_bool() == Some(true)))) { Value::Str("@1s".to_string()) } else { Value::Str("".to_string()) });
-            append_to_array(&mut subscriptionArgs, Value::Str(format!("{}{}", add(&self.safe_string_lower(market.clone(), Value::Str("id".to_string()), &[]), &Value::Str("@markPrice".to_string())), suffix)));
+            append_to_array(&mut subscriptionArgs, Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.safe_string_lower(market.clone(), Value::Str("id".to_string()), &[]), Value::Str("@markPrice".to_string()))), suffix)));
             append_to_array(&mut messageHashes, Value::Str(format!("{}{}", Value::Str("ticker:".to_string()), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null))));
         }
         }
@@ -771,7 +771,7 @@ impl AsterCore {
             let mut symbol: Value = get_value(&symbols, &i);
             let mut market: Value = self.market(symbol.clone());
             let mut suffix: Value = (if is_true(&(Value::Bool(use1sFreq.as_bool() == Some(true)))) { Value::Str("@1s".to_string()) } else { Value::Str("".to_string()) });
-            append_to_array(&mut subscriptionArgs, Value::Str(format!("{}{}", add(&self.safe_string_lower(market.clone(), Value::Str("id".to_string()), &[]), &Value::Str("@markPrice".to_string())), suffix)));
+            append_to_array(&mut subscriptionArgs, Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.safe_string_lower(market.clone(), Value::Str("id".to_string()), &[]), Value::Str("@markPrice".to_string()))), suffix)));
             append_to_array(&mut messageHashes, Value::Str(format!("{}{}", Value::Str("unsubscribe:ticker:".to_string()), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null))));
         }
         }
@@ -819,7 +819,7 @@ impl AsterCore {
         let mut ticker: Value = message.clone();
         let mut parsed: Value = self.parse_ws_ticker(ticker.clone(), marketType.clone());
         let mut symbol: Value = parsed.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
-        let mut messageHash: Value = add(&Value::Str("ticker:".to_string()), &symbol);
+        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("ticker:".to_string()), symbol));
         if (symbol != Value::Null) {
             add_element_to_object(&mut self.tickers, &symbol, parsed.clone());
             client.resolve(&[get_value(&self.tickers, &symbol), messageHash.clone()]);
@@ -919,7 +919,7 @@ impl AsterCore {
             let mut symbol: Value = get_value(&symbols, &i);
             let mut symbol: Value = get_value(&symbols, &i);
             let mut market: Value = self.market(symbol.clone());
-            append_to_array(&mut subscriptionArgs, add(&self.safe_string_lower(market.clone(), Value::Str("id".to_string()), &[]), &Value::Str("@bookTicker".to_string())));
+            append_to_array(&mut subscriptionArgs, Value::Str(format!("{}{}", self.safe_string_lower(market.clone(), Value::Str("id".to_string()), &[]), Value::Str("@bookTicker".to_string()))));
             append_to_array(&mut messageHashes, Value::Str(format!("{}{}", Value::Str("bidask:".to_string()), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null))));
         }
         }
@@ -986,7 +986,7 @@ impl AsterCore {
             let mut symbol: Value = get_value(&symbols, &i);
             let mut symbol: Value = get_value(&symbols, &i);
             let mut market: Value = self.market(symbol.clone());
-            append_to_array(&mut subscriptionArgs, add(&self.safe_string_lower(market.clone(), Value::Str("id".to_string()), &[]), &Value::Str("@bookTicker".to_string())));
+            append_to_array(&mut subscriptionArgs, Value::Str(format!("{}{}", self.safe_string_lower(market.clone(), Value::Str("id".to_string()), &[]), Value::Str("@bookTicker".to_string()))));
             append_to_array(&mut messageHashes, Value::Str(format!("{}{}", Value::Str("unsubscribe:bidask:".to_string()), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null))));
         }
         }
@@ -1020,7 +1020,7 @@ impl AsterCore {
         if (symbol != Value::Null) {
             add_element_to_object(&mut self.bidsasks, &symbol, ticker.clone());
         }
-        let mut messageHash: Value = add(&Value::Str("bidask:".to_string()), &symbol);
+        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("bidask:".to_string()), symbol));
         client.resolve(&[ticker.clone(), messageHash.clone()]);
 }
 
@@ -1143,7 +1143,7 @@ impl AsterCore {
             let mut symbol: Value = get_value(&symbols, &i);
             let mut market: Value = self.market(symbol.clone());
             let mut marketId: Value = self.safe_string_lower(market.clone(), Value::Str("id".to_string()), &[]);
-            append_to_array(&mut subscriptionArgs, add(&marketId, &Value::Str("@aggTrade".to_string())));
+            append_to_array(&mut subscriptionArgs, Value::Str(format!("{}{}", marketId, Value::Str("@aggTrade".to_string()))));
             append_to_array(&mut messageHashes, Value::Str(format!("{}{}", Value::Str("trade::".to_string()), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null))));
         }
         }
@@ -1204,7 +1204,7 @@ impl AsterCore {
             let mut symbol: Value = get_value(&symbols, &i);
             let mut symbol: Value = get_value(&symbols, &i);
             let mut market: Value = self.market(symbol.clone());
-            append_to_array(&mut subscriptionArgs, add(&self.safe_string_lower(market.clone(), Value::Str("id".to_string()), &[]), &Value::Str("@aggTrade".to_string())));
+            append_to_array(&mut subscriptionArgs, Value::Str(format!("{}{}", self.safe_string_lower(market.clone(), Value::Str("id".to_string()), &[]), Value::Str("@aggTrade".to_string()))));
             append_to_array(&mut messageHashes, Value::Str(format!("{}{}", Value::Str("unsubscribe:trade:".to_string()), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null))));
         }
         }
@@ -1504,7 +1504,7 @@ impl AsterCore {
             let mut symbol: Value = get_value(&symbols, &i);
             let mut symbol: Value = get_value(&symbols, &i);
             let mut market: Value = self.market(symbol.clone());
-            append_to_array(&mut subscriptionArgs, Value::Str(format!("{}{}", add(&self.safe_string_lower(market.clone(), Value::Str("id".to_string()), &[]), &Value::Str("@depth".to_string())), to_string_val(&limit))));
+            append_to_array(&mut subscriptionArgs, Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.safe_string_lower(market.clone(), Value::Str("id".to_string()), &[]), Value::Str("@depth".to_string()))), to_string_val(&limit))));
             append_to_array(&mut messageHashes, Value::Str(format!("{}{}", Value::Str("orderbook:".to_string()), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null))));
         }
         }
@@ -1568,7 +1568,7 @@ impl AsterCore {
             let mut symbol: Value = get_value(&symbols, &i);
             let mut symbol: Value = get_value(&symbols, &i);
             let mut market: Value = self.market(symbol.clone());
-            append_to_array(&mut subscriptionArgs, add(&add(&self.safe_string_lower(market.clone(), Value::Str("id".to_string()), &[]), &Value::Str("@depth".to_string())), &limit));
+            append_to_array(&mut subscriptionArgs, add(&Value::Str(format!("{}{}", self.safe_string_lower(market.clone(), Value::Str("id".to_string()), &[]), Value::Str("@depth".to_string()))), &limit));
             append_to_array(&mut messageHashes, Value::Str(format!("{}{}", Value::Str("unsubscribe:orderbook:".to_string()), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null))));
         }
         }
@@ -1731,8 +1731,8 @@ impl AsterCore {
             symbolString = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
             let mut unfiedTimeframe: Value = self.safe_string(data.clone(), Value::Int(1), &[]);
             let mut timeframeId: Value = (if is_true(&(Value::Bool(unfiedTimeframe == Value::Null))) { Value::Null } else { self.safe_string(self.timeframes.clone(), unfiedTimeframe.clone(), &[unfiedTimeframe.clone()]) });
-            append_to_array(&mut subscriptionArgs, add(&add(&self.safe_string_lower(market.clone(), Value::Str("id".to_string()), &[]), &Value::Str("@kline_".to_string())), &timeframeId));
-            append_to_array(&mut messageHashes, add(&Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("ohlcv:".to_string()), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null))), Value::Str(":".to_string()))), &unfiedTimeframe));
+            append_to_array(&mut subscriptionArgs, Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.safe_string_lower(market.clone(), Value::Str("id".to_string()), &[]), Value::Str("@kline_".to_string()))), timeframeId)));
+            append_to_array(&mut messageHashes, Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("ohlcv:".to_string()), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null))), Value::Str(":".to_string()))), unfiedTimeframe)));
         }
         }
         crate::set_value(&mut request, &crate::Value::Str("params".to_string()), subscriptionArgs.clone());
@@ -1802,8 +1802,8 @@ impl AsterCore {
             symbolString = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
             let mut unfiedTimeframe: Value = self.safe_string(data.clone(), Value::Int(1), &[]);
             let mut timeframeId: Value = (if is_true(&(Value::Bool(unfiedTimeframe == Value::Null))) { Value::Null } else { self.safe_string(self.timeframes.clone(), unfiedTimeframe.clone(), &[unfiedTimeframe.clone()]) });
-            append_to_array(&mut subscriptionArgs, add(&add(&self.safe_string_lower(market.clone(), Value::Str("id".to_string()), &[]), &Value::Str("@kline_".to_string())), &timeframeId));
-            append_to_array(&mut messageHashes, add(&Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("unsubscribe:ohlcv:".to_string()), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null))), Value::Str(":".to_string()))), &unfiedTimeframe));
+            append_to_array(&mut subscriptionArgs, Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.safe_string_lower(market.clone(), Value::Str("id".to_string()), &[]), Value::Str("@kline_".to_string()))), timeframeId)));
+            append_to_array(&mut messageHashes, Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("unsubscribe:ohlcv:".to_string()), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null))), Value::Str(":".to_string()))), unfiedTimeframe)));
         }
         }
         crate::set_value(&mut request, &crate::Value::Str("params".to_string()), subscriptionArgs.clone());
@@ -2010,7 +2010,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
             m
         })]);
         let mut listenKey: Value = self.safe_string(listenKeyOptions.clone(), type_var.clone(), &[]);
-        let mut url: Value = add(&add(&get_value(&crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "private"), &type_var), &Value::Str("/".to_string())), &listenKey);
+        let mut url: Value = Value::Str(format!("{}{}", add(&get_value(&crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "private"), &type_var), &Value::Str("/".to_string())), listenKey));
         return url;
 
     Value::Null
@@ -2454,7 +2454,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         { let __destr_tmp = self.handle_market_type_and_params(Value::Str("watchOrders".to_string()), &[market.clone(), params.clone(), type_var.clone()]); type_var = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         self.authenticate(&[type_var.clone(), params.clone()]).await;
         if (market != Value::Null) {
-            messageHash = Value::Str(format!("{}{}", messageHash, add(&Value::Str("::".to_string()), &symbol)));
+            messageHash = Value::Str(format!("{}{}", messageHash, Value::Str(format!("{}{}", Value::Str("::".to_string()), symbol))));
         }
         let mut url: Value = self.get_private_url(&[type_var.clone()]);
         let mut client: Value = self.client(&[url.clone()]);
@@ -2502,7 +2502,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         { let __destr_tmp = self.handle_market_type_and_params(Value::Str("watchMyTrades".to_string()), &[market.clone(), params.clone(), type_var.clone()]); type_var = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         self.authenticate(&[type_var.clone(), params.clone()]).await;
         if (market != Value::Null) {
-            messageHash = Value::Str(format!("{}{}", messageHash, add(&Value::Str("::".to_string()), &symbol)));
+            messageHash = Value::Str(format!("{}{}", messageHash, Value::Str(format!("{}{}", Value::Str("::".to_string()), symbol))));
         }
         let mut url: Value = self.get_private_url(&[type_var.clone()]);
         let mut client: Value = self.client(&[url.clone()]);
@@ -2608,7 +2608,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
             let mut myTrades: Value = self.myTrades.clone();
             myTrades.append(trade.clone());
             client.resolve(&[self.myTrades.clone(), messageHash.clone()]);
-            let mut messageHashSymbol: Value = add(&Value::Str(format!("{}{}", messageHash, Value::Str("::".to_string()))), &symbol);
+            let mut messageHashSymbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", messageHash, Value::Str("::".to_string()))), symbol));
             client.resolve(&[self.myTrades.clone(), messageHashSymbol.clone()]);
         }
 }

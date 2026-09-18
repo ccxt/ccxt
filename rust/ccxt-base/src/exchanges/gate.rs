@@ -3376,8 +3376,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut timestamp: Value = self.parse8601(datetime.clone());
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("id".to_string(), add(&Value::Str(format!("{}{}", add(&Value::Str(format!("{}{}", add(&Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", add(&base, &Value::Str("_".to_string())), quote)), Value::Str("-".to_string()))), Value::Str("20".to_string()))), &expiry), Value::Str("-".to_string()))), &strike), Value::Str("-".to_string()))), &optionType));
-        m.insert("symbol".to_string(), add(&Value::Str(format!("{}{}", add(&Value::Str(format!("{}{}", add(&Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", add(&base, &Value::Str("/".to_string())), quote)), Value::Str(":".to_string()))), settle)), Value::Str("-".to_string()))), &expiry), Value::Str("-".to_string()))), &strike), Value::Str("-".to_string()))), &optionType));
+        m.insert("id".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("_".to_string()))), quote)), Value::Str("-".to_string()))), Value::Str("20".to_string()))), expiry)), Value::Str("-".to_string()))), strike)), Value::Str("-".to_string()))), optionType)));
+        m.insert("symbol".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".to_string()))), quote)), Value::Str(":".to_string()))), settle)), Value::Str("-".to_string()))), expiry)), Value::Str("-".to_string()))), strike)), Value::Str("-".to_string()))), optionType)));
         m.insert("base".to_string(), base.clone());
         m.insert("quote".to_string(), quote.clone());
         m.insert("settle".to_string(), settle.clone());
@@ -3578,7 +3578,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             append_to_array(&mut result, Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("id".to_string(), id.clone());
-                    m.insert("symbol".to_string(), add(&add(&base, &Value::Str("/".to_string())), &quote));
+                    m.insert("symbol".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".to_string()))), quote)));
                     m.insert("base".to_string(), base.clone());
                     m.insert("quote".to_string(), quote.clone());
                     m.insert("settle".to_string(), Value::Null);
@@ -3847,10 +3847,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut symbol: Value = Value::Str("".to_string());
         let mut marketType: Value = Value::Str("swap".to_string());
         if (date != Value::Null) {
-            symbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", add(&Value::Str(format!("{}{}", add(&add(&base, &Value::Str("/".to_string())), &quote), Value::Str(":".to_string()))), &settle), Value::Str("-".to_string()))), self.yymmdd(expiry.clone(), &[Value::Str("".to_string())])));
+            symbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".to_string()))), quote)), Value::Str(":".to_string()))), settle)), Value::Str("-".to_string()))), self.yymmdd(expiry.clone(), &[Value::Str("".to_string())])));
             marketType = Value::Str("future".to_string());
         }  else {
-            symbol = add(&Value::Str(format!("{}{}", add(&add(&base, &Value::Str("/".to_string())), &quote), Value::Str(":".to_string()))), &settle);
+            symbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".to_string()))), quote)), Value::Str(":".to_string()))), settle));
         }
         let mut priceDeviate: Value = self.safe_string_k(market.clone(), "order_price_deviate", &[]);
         let mut markPrice: Value = self.safe_string_k(market.clone(), "mark_price", &[]);
@@ -3967,13 +3967,13 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 let mut quoteId: Value = self.safe_string(parts.clone(), Value::Int(1), &[]);
                 let mut base: Value = self.safe_currency_code(baseId.clone(), &[]);
                 let mut quote: Value = self.safe_currency_code(quoteId.clone(), &[]);
-                let mut symbol: Value = add(&add(&base, &Value::Str("/".to_string())), &quote);
+                let mut symbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".to_string()))), quote));
                 let mut expiry: Value = self.safe_timestamp(market.clone(), Value::Str("expiration_time".to_string()), &[]);
                 let mut strike: Value = self.safe_string_k(market.clone(), "strike_price", &[]);
                 let mut isCall: Value = self.safe_value_k(market.clone(), "is_call", &[]);
                 let mut optionLetter: Value = (if (is_equal(&isCall, &Value::Bool(true))) { Value::Str("C".to_string()) } else { Value::Str("P".to_string()) });
                 let mut optionType: Value = (if (is_equal(&isCall, &Value::Bool(true))) { Value::Str("call".to_string()) } else { Value::Str("put".to_string()) });
-                symbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", add(&Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", add(&Value::Str(format!("{}{}", symbol, Value::Str(":".to_string()))), &quote), Value::Str("-".to_string()))), self.yymmdd(expiry.clone(), &[]))), Value::Str("-".to_string()))), &strike), Value::Str("-".to_string()))), optionLetter));
+                symbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", symbol, Value::Str(":".to_string()))), quote)), Value::Str("-".to_string()))), self.yymmdd(expiry.clone(), &[]))), Value::Str("-".to_string()))), strike)), Value::Str("-".to_string()))), optionLetter));
                 let mut priceDeviate: Value = self.safe_string_k(market.clone(), "order_price_deviate", &[]);
                 let mut markPrice: Value = self.safe_string_k(market.clone(), "mark_price", &[]);
                 let mut minMultiplier: Value = crate::precise::Precise::stringSub(&Value::Str("1".to_string()), &priceDeviate);
@@ -5882,7 +5882,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut isMark: bool = price.as_str() == Some("mark");
             let mut isIndex: bool = price.as_str() == Some("index");
             if isMark || isIndex {
-                add_element_to_object(&mut request, &Value::Str("contract".to_string()), add(&Value::Str(format!("{}{}", price, Value::Str("_".to_string()))), &market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)));
+                add_element_to_object(&mut request, &Value::Str("contract".to_string()), Value::Str(format!("{}{}", Value::Str(format!("{}{}", price, Value::Str("_".to_string()))), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null))));
                 params = self.omit(params.clone(), Value::Str("price".to_string()), &[]);
             }
             if (market.as_map().and_then(|__m| __m.get("future")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
@@ -9616,7 +9616,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut nonce: Value = self.nonce();
             let mut timestamp: Value = self.parse_to_int((match ((nonce).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }));
             let mut timestampString: Value = to_string_val(&timestamp);
-            let mut signaturePath: Value = Value::Str(format!("{}{}", add(&Value::Str("/api/".to_string()), &self.version), entirePath));
+            let mut signaturePath: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("/api/".to_string()), self.version.clone())), entirePath));
             let mut payloadArray: Value = Value::List(vec![to_upper(&method), signaturePath.clone(), rawQueryString.clone(), bodySignature.clone(), timestampString.clone()]);
             // eslint-disable-next-line quotes
             let mut payload: Value = join(&payloadArray, &Value::Str("\n".to_string()));
@@ -10813,7 +10813,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let __ws_arg_113 = self.extend(request.clone(), &[params.clone()]);
             response = self.private_unified_get_accounts(&[__ws_arg_113]).await;
         }  else {
-            panic!("{}", crate::exchange_errors::not_supported(Value::Str(format!("{}{}", add(&Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchLeverage() does not support ".to_string()))), &self.safe_string_k(market.clone(), "type", &[])), Value::Str(" markets".to_string())))));
+            panic!("{}", crate::exchange_errors::not_supported(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchLeverage() does not support ".to_string()))), self.safe_string_k(market.clone(), "type", &[]))), Value::Str(" markets".to_string())))));
         }
         return self.parse_leverage(response.clone(), &[market.clone()]);
 

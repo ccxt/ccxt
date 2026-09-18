@@ -610,7 +610,7 @@ impl RevolutxCore {
 })]);
             let mut base: Value = self.safe_string_k(market.clone(), "base", &[]);
             let mut quote: Value = self.safe_string_k(market.clone(), "quote", &[]);
-            let mut marketId: Value = add(&add(&base, &Value::Str("-".to_string())), &quote);
+            let mut marketId: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("-".to_string()))), quote));
             let mut marketData: Value = self.extend(market.clone(), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("id".to_string(), marketId.clone());

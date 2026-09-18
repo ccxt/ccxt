@@ -154,7 +154,7 @@ fn helperBatchNetworkTests() {
                 let mut chainMapping: Value = get_value(&defaultNetworkCodeReplacements, &chainBaseCoin);
                 let mut primaryNetworkCode: Value = get_value(&chainMapping, &Value::Str("primary".to_string()));
                 let mut secondaryNetworkCode: Value = get_value(&chainMapping, &Value::Str("secondary".to_string()));
-                let mut msg: Value = Value::Str(format!("{}{}", add(&Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("network protocol test failed for networkCode:".to_string()), randomNetworkCode)), Value::Str(" & currencyCode: ".to_string()))), randomCurrencyCode)), Value::Str(", result: ".to_string()))), &result), Value::Str(", expected: ".to_string())));
+                let mut msg: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("network protocol test failed for networkCode:".to_string()), randomNetworkCode)), Value::Str(" & currencyCode: ".to_string()))), randomCurrencyCode)), Value::Str(", result: ".to_string()))), result)), Value::Str(", expected: ".to_string())));
                 if is_equal(&randomNetworkCode, &primaryNetworkCode) {
                     if (randomCurrencyCode.as_str() == chainBaseCoin.as_str()) {
                         assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&result, &primaryNetworkCode)))));

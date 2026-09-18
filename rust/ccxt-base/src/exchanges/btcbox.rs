@@ -562,7 +562,7 @@ impl BtcboxCore {
         let mut base: Value = self.safe_currency_code(baseId.clone(), &[]);
         let mut quoteId: Value = self.safe_string_k(market.clone(), "quote", &[]);
         let mut quote: Value = self.safe_currency_code(quoteId.clone(), &[]);
-        let mut symbol: Value = add(&add(&base, &Value::Str("/".to_string())), &quote);
+        let mut symbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".to_string()))), quote));
         return self.safe_market_structure(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), self.safe_string_k(market.clone(), "symbol", &[]));
@@ -1193,13 +1193,13 @@ impl BtcboxCore {
 }));
         let mut headers = get_arg(optional_args, 3, Value::Null);
         let mut body = get_arg(optional_args, 4, Value::Null);
-        let mut url: Value = add(&Value::Str(format!("{}{}", add(&add(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("rest")).cloned().unwrap_or(Value::Null), &Value::Str("/".to_string())), &self.version), Value::Str("/".to_string()))), &path);
+        let mut url: Value = add(&Value::Str(format!("{}{}", Value::Str(format!("{}{}", add(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("rest")).cloned().unwrap_or(Value::Null), &Value::Str("/".to_string())), self.version.clone())), Value::Str("/".to_string()))), &path);
         if (api.as_str() == Some("public")) {
             if Value::Int(object_keys(&params).len() as i64).as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN) {
                 url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".to_string()), self.urlencode(params.clone(), &[])))));
             }
         }  else if (api.as_str() == Some("webApi")) {
-            url = add(&add(&self.urls.as_map().and_then(|__m| __m.get("www")).cloned().unwrap_or(Value::Null), &Value::Str("/".to_string())), &path);
+            url = add(&Value::Str(format!("{}{}", self.urls.as_map().and_then(|__m| __m.get("www")).cloned().unwrap_or(Value::Null), Value::Str("/".to_string()))), &path);
         }  else {
             self.check_required_credentials(&[]);
             let mut nonce: Value = to_string_val(&self.nonce());

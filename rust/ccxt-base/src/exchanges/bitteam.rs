@@ -791,7 +791,7 @@ impl BitteamCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id.clone());
         m.insert("numericId".to_string(), numericId.clone());
-        m.insert("symbol".to_string(), add(&add(&base, &Value::Str("/".to_string())), &quote));
+        m.insert("symbol".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".to_string()))), quote)));
         m.insert("base".to_string(), base.clone());
         m.insert("quote".to_string(), quote.clone());
         m.insert("settle".to_string(), Value::Null);
@@ -3106,12 +3106,12 @@ impl BitteamCore {
                 if is_true(&(get_index_of(&url, &Value::Str("/ccxt/order/".to_string())).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN))) && is_true(&(Value::Bool(method.as_str() == Some("GET")))) {
                     let mut parts: Value = split(&url, &Value::Str("/order/".to_string()));
                     let mut orderId: Value = self.safe_string(parts.clone(), Value::Int(1), &[]);
-                    panic!("{}", crate::exchange_errors::order_not_found(Value::Str(format!("{}{}", add(&Value::Str(format!("{}{}", self.id.clone(), Value::Str(" order ".to_string()))), &orderId), Value::Str(" not found".to_string())))));
+                    panic!("{}", crate::exchange_errors::order_not_found(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" order ".to_string()))), orderId)), Value::Str(" not found".to_string())))));
                 }
                 if get_index_of(&url, &Value::Str("/cmc/orderbook/".to_string())).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN) {
                     let mut parts: Value = split(&url, &Value::Str("/cmc/orderbook/".to_string()));
                     let mut symbolId: Value = self.safe_string(parts.clone(), Value::Int(1), &[]);
-                    panic!("{}", crate::exchange_errors::bad_symbol(Value::Str(format!("{}{}", add(&Value::Str(format!("{}{}", self.id.clone(), Value::Str(" symbolId ".to_string()))), &symbolId), Value::Str(" not found".to_string())))));
+                    panic!("{}", crate::exchange_errors::bad_symbol(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" symbolId ".to_string()))), symbolId)), Value::Str(" not found".to_string())))));
                 }
             }
             let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), body));

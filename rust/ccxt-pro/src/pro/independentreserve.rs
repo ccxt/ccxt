@@ -444,12 +444,12 @@ impl IndependentreserveCore {
         let mut quoteId: Value = self.safe_string(parts.clone(), Value::Int(3), &[]);
         let mut base: Value = self.safe_currency_code(baseId.clone(), &[]);
         let mut quote: Value = self.safe_currency_code(quoteId.clone(), &[]);
-        let mut symbol: Value = add(&add(&base, &Value::Str("/".to_string())), &quote);
+        let mut symbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".to_string()))), quote));
         let mut orderBook: Value = self.safe_dict_k(message.clone(), "Data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut messageHash: Value = add(&Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("orderbook:".to_string()), symbol)), Value::Str(":".to_string()))), &depth);
+        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("orderbook:".to_string()), symbol)), Value::Str(":".to_string()))), depth));
         let mut subscription: Value = self.safe_value(get_value(&client, &Value::Str("subscriptions".to_string())), messageHash.clone(), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m

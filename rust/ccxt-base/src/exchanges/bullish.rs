@@ -1318,7 +1318,7 @@ impl BullishCore {
         let mut quoteId: Value = self.safe_string_k(market.clone(), "quoteSymbol", &[]);
         let mut base: Value = self.safe_currency_code(baseId.clone(), &[]);
         let mut quote: Value = self.safe_currency_code(quoteId.clone(), &[]);
-        let mut symbol: Value = add(&add(&base, &Value::Str("/".to_string())), &quote);
+        let mut symbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".to_string()))), quote));
         let mut basePrecision: Value = self.safe_string_k(market.clone(), "basePrecision", &[]);
         let mut quotePrecision: Value = self.safe_string_k(market.clone(), "quotePrecision", &[]);
         let mut amountPrecision: Value = self.safe_string_k(market.clone(), "quantityPrecision", &[]);
@@ -1351,7 +1351,7 @@ impl BullishCore {
             margin = self.safe_bool_k(market.clone(), "marginTradingEnabled", &[]);
         }  else {
             contractSize = self.safe_number_k(market.clone(), "contractMultiplier", &[]);
-            symbol = Value::Str(format!("{}{}", symbol, add(&Value::Str(":".to_string()), &settle)));
+            symbol = Value::Str(format!("{}{}", symbol, Value::Str(format!("{}{}", Value::Str(":".to_string()), settle))));
             linear = Value::Bool(settle.as_str() == quote.as_str());
             inverse = Value::Bool(!is_true(&linear));
             if (type_var.as_str() == Some("swap")) {
@@ -1368,7 +1368,7 @@ impl BullishCore {
                     option = Value::Bool(true);
                     optionType = self.safe_string_lower(market.clone(), Value::Str("optionType".to_string()), &[]);
                     strike = self.parse_to_numeric(self.safe_string_k(market.clone(), "optionStrikePrice", &[]));
-                    symbol = Value::Str(format!("{}{}", symbol, add(&Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("-".to_string()), self.number_to_string(strike.clone()))), Value::Str("-".to_string()))), &self.safe_string(idParts.clone(), Value::Int(4), &[]))));
+                    symbol = Value::Str(format!("{}{}", symbol, Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("-".to_string()), self.number_to_string(strike.clone()))), Value::Str("-".to_string()))), self.safe_string(idParts.clone(), Value::Int(4), &[])))));
                 }
             }
         }

@@ -1360,7 +1360,7 @@ impl DeribitCore {
             base = self.safe_string(symbolBase.clone(), Value::Int(0), &[]);
             expiry = self.safe_string(optionParts.clone(), Value::Int(1), &[]);
             if get_index_of(&symbol, &Value::Str("USDC".to_string())).as_f64().unwrap_or(f64::NAN) > Value::Int(-1).as_f64().unwrap_or(f64::NAN) {
-                base = add(&base, &Value::Str("_USDC".to_string()));
+                base = Value::Str(format!("{}{}", base, Value::Str("_USDC".to_string())));
             }
         }  else {
             base = self.safe_string(optionParts.clone(), Value::Int(0), &[]);
@@ -1384,8 +1384,8 @@ impl DeribitCore {
         let mut optionType: Value = self.safe_string(optionParts.clone(), Value::Int(3), &[]);
         let mut datetime: Value = self.convert_expire_date(expiry.clone());
         let mut timestamp: Value = self.parse8601(datetime.clone());
-        let mut id: Value = add(&Value::Str(format!("{}{}", add(&Value::Str(format!("{}{}", add(&Value::Str(format!("{}{}", base, Value::Str("-".to_string()))), &self.convert_expire_date_to_market_id_date(expiry.clone())), Value::Str("-".to_string()))), &strike), Value::Str("-".to_string()))), &optionType);
-        let mut symbolExpired: Value = add(&Value::Str(format!("{}{}", add(&Value::Str(format!("{}{}", add(&Value::Str(format!("{}{}", add(&Value::Str(format!("{}{}", Value::Str(format!("{}{}", add(&splitBase, &Value::Str("/".to_string())), quote)), Value::Str(":".to_string()))), &settle), Value::Str("-".to_string()))), &expiry), Value::Str("-".to_string()))), &strike), Value::Str("-".to_string()))), &optionType);
+        let mut id: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("-".to_string()))), self.convert_expire_date_to_market_id_date(expiry.clone()))), Value::Str("-".to_string()))), strike)), Value::Str("-".to_string()))), optionType));
+        let mut symbolExpired: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", splitBase, Value::Str("/".to_string()))), quote)), Value::Str(":".to_string()))), settle)), Value::Str("-".to_string()))), expiry)), Value::Str("-".to_string()))), strike)), Value::Str("-".to_string()))), optionType));
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id.clone());
@@ -1885,16 +1885,16 @@ impl DeribitCore {
                 let mut inverse: Value = Value::Null;
                 let mut linear: Value = Value::Null;
                 if is_true(&isSpot) {
-                    symbol = add(&add(&base, &Value::Str("/".to_string())), &quote);
+                    symbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".to_string()))), quote));
                 }  else if !isComboMarket {
-                    symbol = add(&Value::Str(format!("{}{}", add(&add(&base, &Value::Str("/".to_string())), &quote), Value::Str(":".to_string()))), &settle);
+                    symbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".to_string()))), quote)), Value::Str(":".to_string()))), settle));
                     if is_true(&option) || is_true(&future) {
                         symbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", symbol, Value::Str("-".to_string()))), self.yymmdd(expiry.clone(), &[Value::Str("".to_string())])));
                         if is_true(&option) {
                             strike = self.safe_number_k(market.clone(), "strike", &[]);
                             optionType = self.safe_string_k(market.clone(), "option_type", &[]);
                             let mut letter: Value = (if is_true(&(Value::Bool(optionType.as_str() == Some("call")))) { Value::Str("C".to_string()) } else { Value::Str("P".to_string()) });
-                            symbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", add(&Value::Str(format!("{}{}", symbol, Value::Str("-".to_string()))), &self.number_to_string(strike.clone())), Value::Str("-".to_string()))), letter));
+                            symbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", symbol, Value::Str("-".to_string()))), self.number_to_string(strike.clone()))), Value::Str("-".to_string()))), letter));
                         }
                     }
                     inverse = (Value::Bool(quote.as_str() != settle.as_str()));
@@ -5470,7 +5470,7 @@ impl DeribitCore {
 }));
         let mut headers = get_arg(optional_args, 3, Value::Null);
         let mut body = get_arg(optional_args, 4, Value::Null);
-        let mut request: Value = add(&Value::Str(format!("{}{}", add(&Value::Str(format!("{}{}", add(&Value::Str(format!("{}{}", Value::Str("/".to_string()), Value::Str("api/".to_string()))), &self.version), Value::Str("/".to_string()))), &api), Value::Str("/".to_string()))), &path);
+        let mut request: Value = add(&Value::Str(format!("{}{}", add(&Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("/".to_string()), Value::Str("api/".to_string()))), self.version.clone())), Value::Str("/".to_string()))), &api), Value::Str("/".to_string()))), &path);
         if (api.as_str() == Some("public")) {
             if Value::Int(object_keys(&params).len() as i64).as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN) {
                 request = Value::Str(format!("{}{}", request, Value::Str(format!("{}{}", Value::Str("?".to_string()), self.urlencode(params.clone(), &[])))));

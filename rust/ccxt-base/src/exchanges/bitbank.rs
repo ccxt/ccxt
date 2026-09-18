@@ -610,7 +610,7 @@ impl BitbankCore {
         return self.safe_market_structure(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id.clone());
-        m.insert("symbol".to_string(), add(&add(&base, &Value::Str("/".to_string())), &quote));
+        m.insert("symbol".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".to_string()))), quote)));
         m.insert("base".to_string(), base.clone());
         m.insert("quote".to_string(), quote.clone());
         m.insert("settle".to_string(), Value::Null);
@@ -1593,12 +1593,12 @@ impl BitbankCore {
             }  else {
                 auth = nonce.clone();
             }
-            url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", add(&self.version, &Value::Str("/".to_string())), self.implode_params(path.clone(), params.clone())))));
+            url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.version.clone(), Value::Str("/".to_string()))), self.implode_params(path.clone(), params.clone())))));
             if (method.as_str() == Some("POST")) {
                 body = self.json(query.clone());
                 auth = add(&auth, &body);
             }  else {
-                auth = Value::Str(format!("{}{}", auth, add(&Value::Str(format!("{}{}", add(&Value::Str("/".to_string()), &self.version), Value::Str("/".to_string()))), &path)));
+                auth = Value::Str(format!("{}{}", auth, add(&Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("/".to_string()), self.version.clone())), Value::Str("/".to_string()))), &path)));
                 if Value::Int(object_keys(&query).len() as i64).as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN) {
                     query = self.urlencode(query.clone(), &[]);
                     url = Value::Str(format!("{}{}", url, add(&Value::Str("?".to_string()), &query)));

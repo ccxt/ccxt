@@ -319,7 +319,7 @@ impl BitoproCore {
         if (limit == Value::Null) {
             endPart = market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null);
         }  else {
-            endPart = Value::Str(format!("{}{}", add(&market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null), &Value::Str(":".to_string())), self.number_to_string(limit.clone())));
+            endPart = Value::Str(format!("{}{}", Value::Str(format!("{}{}", market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null), Value::Str(":".to_string()))), self.number_to_string(limit.clone())));
         }
         let mut orderbook: Value = self.watch_public(Value::Str("order-books".to_string()), messageHash.clone(), endPart.clone()).await;
         return orderbook.limit();
@@ -353,7 +353,7 @@ impl BitoproCore {
         let mut market: Value = self.safe_market(&[marketId.clone(), Value::Null, Value::Str("_".to_string())]);
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         let mut event: Value = self.safe_string_k(message.clone(), "event", &[]);
-        let mut messageHash: Value = Value::Str(format!("{}{}", add(&event, &Value::Str(":".to_string())), symbol));
+        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", event, Value::Str(":".to_string()))), symbol));
         let mut orderbook: Value = self.safe_value(self.orderbooks.clone(), symbol.clone(), &[]);
         if (orderbook == Value::Null) {
             orderbook = self.order_book(&[Value::Map({
@@ -424,7 +424,7 @@ impl BitoproCore {
         let mut market: Value = self.safe_market(&[marketId.clone(), Value::Null, Value::Str("_".to_string())]);
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         let mut event: Value = self.safe_string_k(message.clone(), "event", &[]);
-        let mut messageHash: Value = Value::Str(format!("{}{}", add(&event, &Value::Str(":".to_string())), symbol));
+        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", event, Value::Str(":".to_string()))), symbol));
         let mut rawData: Value = self.safe_value_k(message.clone(), "data", &[Value::List(vec![])]);
         let mut trades: Value = self.parse_trades(rawData.clone(), &[market.clone()]);
         let mut tradesCache: Value = self.safe_value(self.trades.clone(), symbol.clone(), &[]);
@@ -514,7 +514,7 @@ impl BitoproCore {
         let mut quoteId: Value = self.safe_string_k(data.clone(), "quote", &[]);
         let mut base: Value = self.safe_currency_code(baseId.clone(), &[]);
         let mut quote: Value = self.safe_currency_code(quoteId.clone(), &[]);
-        let mut symbol: Value = self.symbol(add(&add(&base, &Value::Str("/".to_string())), &quote));
+        let mut symbol: Value = self.symbol(Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".to_string()))), quote)));
         let mut messageHash: Value = self.safe_string_k(message.clone(), "event", &[]);
         if is_equal(&self.myTrades, &Value::Null) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
@@ -524,7 +524,7 @@ impl BitoproCore {
         let mut parsed: Value = self.parse_ws_trade(data.clone(), &[]);
         trades.append(parsed.clone());
         client.resolve(&[trades.clone(), messageHash.clone()]);
-        client.resolve(&[trades.clone(), Value::Str(format!("{}{}", add(&messageHash, &Value::Str(":".to_string())), symbol))]);
+        client.resolve(&[trades.clone(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", messageHash, Value::Str(":".to_string()))), symbol))]);
 }
 
     pub fn parse_ws_trade(&self, mut trade: Value, optional_args: &[Value]) -> Value {
@@ -554,7 +554,7 @@ impl BitoproCore {
         let mut quoteId: Value = self.safe_string_k(trade.clone(), "quote", &[]);
         let mut base: Value = self.safe_currency_code(baseId.clone(), &[]);
         let mut quote: Value = self.safe_currency_code(quoteId.clone(), &[]);
-        let mut symbol: Value = self.symbol(add(&add(&base, &Value::Str("/".to_string())), &quote));
+        let mut symbol: Value = self.symbol(Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".to_string()))), quote)));
         market = self.safe_market(&[symbol.clone(), market.clone()]);
         let mut price: Value = self.safe_string_k(trade.clone(), "price", &[]);
         let mut type_var: Value = self.safe_string_lower(trade.clone(), Value::Str("orderType".to_string()), &[]);
@@ -661,7 +661,7 @@ impl BitoproCore {
         let mut market: Value = self.safe_market(&[marketId.clone(), Value::Null, Value::Str("_".to_string())]);
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         let mut event: Value = self.safe_string_k(message.clone(), "event", &[]);
-        let mut messageHash: Value = Value::Str(format!("{}{}", add(&event, &Value::Str(":".to_string())), symbol));
+        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", event, Value::Str(":".to_string()))), symbol));
         let mut result: Value = self.parse_ticker(message.clone(), &[market.clone()]);
         add_element_to_object(&mut result, &Value::Str("symbol".to_string()), self.safe_string_k(market.clone(), "symbol", &[])); // symbol returned from REST's parseTicker is distorted for WS, so re-set it from market object
         let mut timestamp: Value = self.safe_integer_k(message.clone(), "timestamp", &[]);

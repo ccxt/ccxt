@@ -2506,7 +2506,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             }
             self.sleep(Value::Int(2000)).await;
         }
-        panic!("{}", crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", add(&Value::Str(format!("{}{}", self.id.clone(), Value::Str(" transaction ".to_string()))), &txHash), Value::Str(" not mined within timeout".to_string())))));
+        panic!("{}", crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" transaction ".to_string()))), txHash)), Value::Str(" not mined within timeout".to_string())))));
 
     Value::Null
 } }

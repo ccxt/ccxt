@@ -2241,7 +2241,7 @@ impl CoinexCore {
             let mut quoteId: Value = self.safe_string_k(market.clone(), "quote_ccy", &[]);
             let mut base: Value = self.safe_currency_code(baseId.clone(), &[]);
             let mut quote: Value = self.safe_currency_code(quoteId.clone(), &[]);
-            let mut symbol: Value = add(&add(&base, &Value::Str("/".to_string())), &quote);
+            let mut symbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".to_string()))), quote));
             append_to_array(&mut result, Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("id".to_string(), id.clone());
@@ -2357,7 +2357,7 @@ impl CoinexCore {
             let mut quote: Value = self.safe_currency_code(quoteId.clone(), &[]);
             let mut settleId: Value = (if is_true(&(Value::Bool(subType.as_str() == Some("linear")))) { Value::Str("USDT".to_string()) } else { baseId.clone() });
             let mut settle: Value = self.safe_currency_code(settleId.clone(), &[]);
-            let mut symbol: Value = add(&Value::Str(format!("{}{}", add(&add(&base, &Value::Str("/".to_string())), &quote), Value::Str(":".to_string()))), &settle);
+            let mut symbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".to_string()))), quote)), Value::Str(":".to_string()))), settle));
             let mut leveragesLength: Value = Value::Int(leverages.len() as i64);
             append_to_array(&mut result, Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -3904,7 +3904,7 @@ impl CoinexCore {
                 m
             })]);
             if (type_var.as_str() != Some("limit")) {
-                panic!("{}", crate::exchange_errors::not_supported(Value::Str(format!("{}{}", add(&Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrders() does not support ".to_string()))), &type_var), Value::Str(" orders, only limit orders are accepted".to_string())))));
+                panic!("{}", crate::exchange_errors::not_supported(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrders() does not support ".to_string()))), type_var)), Value::Str(" orders, only limit orders are accepted".to_string())))));
             }
             reduceOnly = self.safe_value_k(orderParams.clone(), "reduceOnly", &[]);
             let mut triggerPrice: Value = self.safe_number2(orderParams.clone(), Value::Str("stopPrice".to_string()), Value::Str("triggerPrice".to_string()), &[]);

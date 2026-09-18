@@ -1187,7 +1187,7 @@ impl KrakenCore {
             }
             let mut status: Value = self.safe_string_k(market.clone(), "status", &[]);
             let mut isActive: Value = Value::Bool(status.as_str() == Some("online"));
-            let mut symbol: Value = (if (!isSynthetic) { (add(&Value::Str(format!("{}{}", base, Value::Str("/".to_string()))), &quote)) } else { id.clone() });
+            let mut symbol: Value = (if (!isSynthetic) { (Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".to_string()))), quote))) } else { id.clone() });
             append_to_array(&mut result, Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("id".to_string(), id.clone());
@@ -1466,7 +1466,7 @@ impl KrakenCore {
             let mut parts: Value = split(&currencyId, &Value::Str(".".to_string()));
             let mut firstPart: Value = self.safe_string(parts.clone(), Value::Int(0), &[]);
             let mut secondPart: Value = self.safe_string(parts.clone(), Value::Int(1), &[]);
-            return add(&add(&self.super_safe_currency_code(firstPart.clone(), currency.clone()), &Value::Str(".".to_string())), &secondPart);
+            return Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.super_safe_currency_code(firstPart.clone(), currency.clone()), Value::Str(".".to_string()))), secondPart));
         }
         return self.super_safe_currency_code(currencyId.clone(), currency.clone());
 
@@ -2647,7 +2647,7 @@ impl KrakenCore {
         let mut quoteId: Value = slice(&id, &quoteIdStart, &quoteIdEnd);
         let mut base: Value = self.safe_currency_code(baseId.clone(), &[]);
         let mut quote: Value = self.safe_currency_code(quoteId.clone(), &[]);
-        let mut symbol: Value = add(&add(&base, &Value::Str("/".to_string())), &quote);
+        let mut symbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".to_string()))), quote));
         market = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), symbol.clone());
@@ -2831,7 +2831,7 @@ impl KrakenCore {
             if (part4.as_str() == Some("limit")) || (part4.as_str() == Some("market")) {
                 rawType = part4.clone(); // eg, limit, market
             }  else {
-                rawType = add(&add(&part4, &Value::Str(" ".to_string())), &part5); // eg. stop loss, take profit, trailing stop
+                rawType = Value::Str(format!("{}{}", Value::Str(format!("{}{}", part4, Value::Str(" ".to_string()))), part5)); // eg. stop loss, take profit, trailing stop
             }
             if (rawType.as_str() == Some("stop loss")) || (rawType.as_str() == Some("take profit")) {
                 triggerPrice = self.safe_string(parts.clone(), Value::Int(6), &[]);
@@ -4811,7 +4811,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 }));
         let mut headers = get_arg(optional_args, 3, Value::Null);
         let mut body = get_arg(optional_args, 4, Value::Null);
-        let mut url: Value = add(&Value::Str(format!("{}{}", add(&Value::Str(format!("{}{}", add(&Value::Str("/".to_string()), &self.version), Value::Str("/".to_string()))), &api), Value::Str("/".to_string()))), &path);
+        let mut url: Value = add(&Value::Str(format!("{}{}", add(&Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("/".to_string()), self.version.clone())), Value::Str("/".to_string()))), &api), Value::Str("/".to_string()))), &path);
         if (api.as_str() == Some("public")) {
             if Value::Int(object_keys(&params).len() as i64).as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN) {
                 // rawencode is used to address https://github.com/ccxt/ccxt/issues/12872

@@ -1438,7 +1438,7 @@ impl HitbtcCore {
             let mut feeCurrency: Value = self.safe_currency_code(feeCurrencyId.clone(), &[]);
             let mut settleId: Value = Value::Null;
             let mut settle: Value = Value::Null;
-            let mut symbol: Value = add(&add(&base, &Value::Str("/".to_string())), &quote);
+            let mut symbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".to_string()))), quote));
             let mut type_var: Value = Value::Str("spot".to_string());
             let mut contractSize: Value = Value::Null;
             let mut linear: Value = Value::Null;
@@ -1449,7 +1449,7 @@ impl HitbtcCore {
                 settle = self.safe_currency_code(settleId.clone(), &[]);
                 linear = (Value::Bool(is_true(&(Value::Bool(quote != Value::Null))) && is_true(&(Value::Bool(quote.as_str() == settle.as_str())))));
                 inverse = Value::Bool(!is_true(&linear));
-                symbol = add(&Value::Str(format!("{}{}", symbol, Value::Str(":".to_string()))), &settle);
+                symbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", symbol, Value::Str(":".to_string()))), settle));
                 if is_true(&future) {
                     symbol = add(&Value::Str(format!("{}{}", symbol, Value::Str("-".to_string()))), &expiry);
                     type_var = Value::Str("future".to_string());
