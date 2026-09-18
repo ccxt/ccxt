@@ -1698,7 +1698,7 @@ public class Luno extends LunoApi
             Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(entry, null))
             {
-                entry = Helpers.opNeg(1);
+                entry = -1;
             }
             if (java.util.Objects.equals(limit, null))
             {
@@ -1763,7 +1763,7 @@ public class Luno extends LunoApi
             if (java.util.Objects.equals(min_row, null) && java.util.Objects.equals(max_row, null))
             {
                 max_row = 0; // Default to most recent transactions
-                min_row = Helpers.opNeg(1000); // Maximum number of records supported
+                min_row = -1000; // Maximum number of records supported
             } else if (java.util.Objects.equals(min_row, null) || java.util.Objects.equals(max_row, null))
             {
                 throw new ExchangeError((this.id + " fetchLedger() require both params 'max_row' and 'min_row' or neither to be defined")) ;

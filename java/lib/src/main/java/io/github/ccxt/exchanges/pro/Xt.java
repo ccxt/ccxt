@@ -189,7 +189,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
         Long firstDeltaNonce = (Long) this.safeInteger2(firstDelta, "i", "u");
         if ((!java.util.Objects.equals(nonce, null)) && (!java.util.Objects.equals(firstDeltaNonce, null)) && (Helpers.isLessThan(nonce, Helpers.subtract(firstDeltaNonce, 1))))
         {
-            return Helpers.opNeg(1);
+            return -1;
         }
         for (var i = 0; i < Helpers.getArrayLength(cache); i++)
         {

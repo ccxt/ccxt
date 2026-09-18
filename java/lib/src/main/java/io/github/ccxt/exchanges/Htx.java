@@ -9571,7 +9571,7 @@ public class Htx extends HtxApi
                     String id = this.safeString(options, "id", "AA03022abc");
                     if (!Boolean.TRUE.equals(isArrayParams))
                     {
-                        if ((Helpers.isEqual(Helpers.getIndexOf(pathString, "cancel"), Helpers.opNeg(1))) && Helpers.isTrue(((String)pathString).endsWith("order")))
+                        if ((Helpers.isEqual(Helpers.getIndexOf(pathString, "cancel"), -1)) && Helpers.isTrue(((String)pathString).endsWith("order")))
                         {
                             // swap order placement
                             String channelCode = this.safeString(parameters, "channel_code");

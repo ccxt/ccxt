@@ -2561,7 +2561,7 @@ public class Bithumb extends BithumbApi
         Object timestamp = null;
         if (!java.util.Objects.equals(datetime, null))
         {
-            if (Helpers.isGreaterThan(Helpers.getIndexOf(datetime, "+09:00"), Helpers.opNeg(1)))
+            if (Helpers.isGreaterThan(Helpers.getIndexOf(datetime, "+09:00"), -1))
             {
                 Object normalized = Helpers.replace(datetime, (String)"+09:00", (String)"Z");
                 Long normalizedTimestamp = this.parse8601(normalized);
@@ -3296,7 +3296,7 @@ public class Bithumb extends BithumbApi
         currency = this.safeCurrency(currencyId, currency);
         String datetime = this.safeString(transaction, "created_at");
         Object timestamp = this.parse8601(datetime);
-        if ((!java.util.Objects.equals(datetime, null)) && (Helpers.isGreaterThan(Helpers.getIndexOf(datetime, "+09:00"), Helpers.opNeg(1))))
+        if ((!java.util.Objects.equals(datetime, null)) && (Helpers.isGreaterThan(Helpers.getIndexOf(datetime, "+09:00"), -1)))
         {
             Object normalized = Helpers.replace(datetime, (String)"+09:00", (String)"Z");
             Long normalizedTimestamp = this.parse8601(normalized);
@@ -3894,7 +3894,7 @@ public class Bithumb extends BithumbApi
             return null;
         }
         Object finalNumberStr = numberStr;
-        while (Helpers.isGreaterThan(Helpers.getIndexOf(finalNumberStr, ","), Helpers.opNeg(1)))
+        while (Helpers.isGreaterThan(Helpers.getIndexOf(finalNumberStr, ","), -1))
         {
             finalNumberStr = Helpers.replace(((String)finalNumberStr), ",", "");
         }

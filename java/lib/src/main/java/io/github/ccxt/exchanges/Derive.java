@@ -1642,7 +1642,7 @@ public class Derive extends DeriveApi
     public Object signOrder(Object order, Object privateKey)
     {
         Object hashOrder = this.hashOrderMessage(order);
-        return this.signHash(Helpers.slice(hashOrder, Helpers.opNeg(64), null), Helpers.slice(privateKey, Helpers.opNeg(64), null));
+        return this.signHash(Helpers.slice(hashOrder, -64, null), Helpers.slice(privateKey, -64, null));
     }
 
     public Object hashMessage(Object message)
@@ -1658,7 +1658,7 @@ public class Derive extends DeriveApi
     public Object signHash(Object hash, Object privateKey)
     {
         this.checkRequiredCredentials();
-        Object signature = ecdsa(Helpers.slice(hash, Helpers.opNeg(64), null), Helpers.slice(privateKey, Helpers.opNeg(64), null), secp256k1(), null);
+        Object signature = ecdsa(Helpers.slice(hash, -64, null), Helpers.slice(privateKey, -64, null), secp256k1(), null);
         Object r = Helpers.GetValue(signature, "r");
         Object s = Helpers.GetValue(signature, "s");
         String v = this.intToBase16(this.sum(27, Helpers.GetValue(signature, "v")));
@@ -1667,7 +1667,7 @@ public class Derive extends DeriveApi
 
     public Object signMessage(Object message, Object privateKey)
     {
-        return this.signHash(this.hashMessage(message), Helpers.slice(privateKey, Helpers.opNeg(64), null));
+        return this.signHash(this.hashMessage(message), Helpers.slice(privateKey, -64, null));
     }
 
     public String parseUnits(Object num, Object... optionalArgs)

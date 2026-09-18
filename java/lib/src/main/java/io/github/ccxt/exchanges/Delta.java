@@ -468,7 +468,7 @@ public class Delta extends DeltaApi
         String base = null;
         Object expiry = null;
         String optionType = null;
-        if (Helpers.isGreaterThan(Helpers.getIndexOf(symbol, "/"), Helpers.opNeg(1)))
+        if (Helpers.isGreaterThan(Helpers.getIndexOf(symbol, "/"), -1))
         {
             base = this.safeString(symbolBase, 0);
             expiry = this.safeString(optionParts, 1);

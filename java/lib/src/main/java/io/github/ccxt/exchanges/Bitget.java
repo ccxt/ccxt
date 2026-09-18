@@ -14756,7 +14756,7 @@ final Object finalMinNotional = minNotional;
                     Map<String, Object> sortedParams = this.keysort(parameters);
                     Object queryInner = ("?" + this.urlencode(sortedParams, true));
                     // check #21169 pr
-                    if (Helpers.isGreaterThan(Helpers.getIndexOf(queryInner, "%24"), Helpers.opNeg(1)))
+                    if (Helpers.isGreaterThan(Helpers.getIndexOf(queryInner, "%24"), -1))
                     {
                         queryInner = Helpers.replace(((String)queryInner), "%24", "$");
                     }

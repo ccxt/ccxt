@@ -1492,7 +1492,7 @@ public class Dydx extends DydxApi
 
     public Object signHash(Object hash, Object privateKey)
     {
-        Object signature = ecdsa(Helpers.slice(hash, Helpers.opNeg(64), null), Helpers.slice(privateKey, Helpers.opNeg(64), null), secp256k1(), null);
+        Object signature = ecdsa(Helpers.slice(hash, -64, null), Helpers.slice(privateKey, -64, null), secp256k1(), null);
         Object r = Helpers.GetValue(signature, "r");
         Object s = Helpers.GetValue(signature, "s");
         return new HashMap<String, Object>() {{
@@ -1504,7 +1504,7 @@ public class Dydx extends DydxApi
 
     public Object signMessage(Object message, Object privateKey)
     {
-        return this.signHash(this.hashMessage(message), Helpers.slice(privateKey, Helpers.opNeg(64), null));
+        return this.signHash(this.hashMessage(message), Helpers.slice(privateKey, -64, null));
     }
 
     public Object signOnboardingAction()
@@ -1952,7 +1952,7 @@ public class Dydx extends DydxApi
                 throw new ArgumentsRequired((this.id + " cancelOrder() requires a clientOrderId parameter, cancelling using id is not currently supported.")) ;
             }
             Object idString = String.valueOf(id);
-            if (!java.util.Objects.equals(id, null) && Helpers.isGreaterThan(Helpers.getIndexOf(idString, "-"), Helpers.opNeg(1)))
+            if (!java.util.Objects.equals(id, null) && Helpers.isGreaterThan(Helpers.getIndexOf(idString, "-"), -1))
             {
                 throw new NotSupported((this.id + " cancelOrder() cancelling using id is not currently supported, please use provide the clientOrderId parameter.")) ;
             }

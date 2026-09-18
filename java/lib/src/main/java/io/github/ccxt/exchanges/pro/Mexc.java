@@ -923,11 +923,11 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
         Long firstDeltaNonce = this.safeIntegerN(firstDelta, new ArrayList<Object>(Arrays.asList("r", "version", "fromVersion")));
         if ((java.util.Objects.equals(nonce, null)) || (java.util.Objects.equals(firstDeltaNonce, null)))
         {
-            return Helpers.opNeg(1);
+            return -1;
         }
         if (Helpers.isLessThan(nonce, (firstDeltaNonce - 1L)))
         {
-            return Helpers.opNeg(1);
+            return -1;
         }
         for (var i = 0; i < Helpers.getArrayLength(cache); i++)
         {
@@ -2429,7 +2429,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
         if (java.util.Objects.equals(msg, "PONG"))
         {
             this.handlePong(client, message);
-        } else if (Helpers.isGreaterThan(Helpers.getIndexOf(msg, "@"), Helpers.opNeg(1)))
+        } else if (Helpers.isGreaterThan(Helpers.getIndexOf(msg, "@"), -1))
         {
             List<Object> parts = (List<Object>) Helpers.split(msg, "@");
             String channel = this.safeString(parts, 1);

@@ -173,7 +173,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                     put( "optionMarket", 200 );
                 }} );
                 put( "streamBySubscriptionsHash", Binance.this.createSafeDictionary() );
-                put( "streamIndex", Helpers.opNeg(1) );
+                put( "streamIndex", -1 );
                 put( "watchOrderBookRate", 100 );
                 put( "liquidationsLimit", 1000 );
                 put( "myLiquidationsLimit", 1000 );
@@ -246,7 +246,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
 
     public Object isSpotUrl(Client client)
     {
-        return (Helpers.isGreaterThan(Helpers.getIndexOf(client.url, "/stream"), Helpers.opNeg(1))) || (Helpers.isGreaterThan(Helpers.getIndexOf(client.url, "demo-stream"), Helpers.opNeg(1)));
+        return (Helpers.isGreaterThan(Helpers.getIndexOf(client.url, "/stream"), -1)) || (Helpers.isGreaterThan(Helpers.getIndexOf(client.url, "demo-stream"), -1));
     }
 
     public Object stream(Object type, Object subscriptionHash, Object... optionalArgs)
@@ -256,7 +256,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         String stream = this.safeString(streamBySubscriptionsHash, subscriptionHash);
         if (java.util.Objects.equals(stream, null))
         {
-            Object streamIndex = this.safeInteger(this.options, "streamIndex", Helpers.opNeg(1));
+            Object streamIndex = this.safeInteger(this.options, "streamIndex", -1);
             Object streamLimits = this.safeValue(this.options, "streamLimits");
             Object streamLimit = this.safeInteger(streamLimits, type);
             streamIndex = Helpers.add(streamIndex, 1);
@@ -3404,7 +3404,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         extendedParams = this.keysort(extendedParams);
         Object query = this.rawencode(extendedParams);
         Object signature = null;
-        if (Helpers.isGreaterThan(Helpers.getIndexOf(this.secret, "PRIVATE KEY"), Helpers.opNeg(1)))
+        if (Helpers.isGreaterThan(Helpers.getIndexOf(this.secret, "PRIVATE KEY"), -1))
         {
             if (this.secret.length() > 120)
             {

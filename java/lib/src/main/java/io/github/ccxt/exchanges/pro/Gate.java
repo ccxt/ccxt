@@ -867,7 +867,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
         Long firstDeltaStart = this.safeInteger(firstDelta, "U");
         if ((!java.util.Objects.equals(nonce, null)) && (!java.util.Objects.equals(firstDeltaStart, null)) && (Helpers.isLessThan(nonce, firstDeltaStart)))
         {
-            return Helpers.opNeg(1);
+            return -1;
         }
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(cache)); i++)
         {
