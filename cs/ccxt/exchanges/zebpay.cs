@@ -1755,7 +1755,7 @@ public partial class zebpay : Exchange
         //    }
         //
         List<object> positions = this.safeList(response, "data", new List<object>() {});
-        object result = this.parsePositions(positions);
+        IList<object> result = this.parsePositions(positions);
         return ccxt.BaseExchange.ToPositionList(this.filterByArrayPositions(result, "symbol", symbols, false));
     }
 

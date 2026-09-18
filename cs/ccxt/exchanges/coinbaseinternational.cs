@@ -1394,7 +1394,7 @@ public partial class coinbaseinternational : Exchange
         //        }
         //    ]
         //
-        object positions = this.parsePositions(response);
+        IList<object> positions = this.parsePositions(response);
         if (isTrue(this.isEmpty(symbols)))
         {
             return ccxt.BaseExchange.ToPositionList(positions);

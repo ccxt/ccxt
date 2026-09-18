@@ -2385,7 +2385,7 @@ public partial class hibachi : Exchange
         };
     }
 
-    public virtual object parseSettlements(object settlements, IDictionary<string, object> market = null)
+    public virtual List<object> parseSettlements(object settlements, IDictionary<string, object> market = null)
     {
         List<object> result = new List<object>() {};
         for (int i = 0; isLessThan(i, getArrayLength(settlements)); postFixIncrement(ref i))
@@ -2454,7 +2454,7 @@ public partial class hibachi : Exchange
         //     }
         //
         List<object> data = this.safeList(response, "settlements", new List<object>() {});
-        object settlements = this.parseSettlements(data, market);
+        List<object> settlements = this.parseSettlements(data, market);
         List<object> sorted = this.sortBy(settlements, "timestamp");
         return ccxt.BaseExchange.ToDictList(this.filterBySymbolSinceLimit(sorted, symbol, since, limit));
     }

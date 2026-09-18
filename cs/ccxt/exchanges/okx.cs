@@ -8719,7 +8719,7 @@ public partial class okx : Exchange
         Dictionary<string, object> rates = new Dictionary<string, object>() {};
         for (int i = 0; isLessThan(i, data.Count); postFixIncrement(ref i))
         {
-            object rate = this.parseBorrowRate(getValue(data, i));
+            Dictionary<string, object> rate = this.parseBorrowRate(getValue(data, i));
             string? code = this.safeString(rate, "currency");
             if ((code != null))
             {
@@ -8768,7 +8768,7 @@ public partial class okx : Exchange
         return ccxt.BaseExchange.ToCrossBorrowRate(this.parseBorrowRate(rate));
     }
 
-    public override object parseBorrowRate(object info, Dictionary<string, object> currency = null)
+    public override Dictionary<string, object> parseBorrowRate(object info, Dictionary<string, object> currency = null)
     {
         //
         //    {
@@ -8814,9 +8814,9 @@ public partial class okx : Exchange
                 {
                     borrowRateHistories[(string)code] = new List<object>() {};
                 }
-                object borrowRateStructure = this.parseBorrowRate(item);
+                Dictionary<string, object> borrowRateStructure = this.parseBorrowRate(item);
                 // GET /api/v5/finance/savings/lending-rate-history returns annualized rates, unlike the hourly cross-margin endpoint
-                ((IDictionary<string,object>)borrowRateStructure)["period"] = 31536000000;
+                borrowRateStructure["period"] = 31536000000;
                 object borrrowRateCode = getValue(borrowRateHistories, code);
                 ((IList<object>)borrrowRateCode).Add(borrowRateStructure);
             }
@@ -9262,7 +9262,7 @@ public partial class okx : Exchange
         //    }
         //
         List<object> data = this.safeList(response, "data", new List<object>() {});
-        object interest = this.parseBorrowInterests(data);
+        List<object> interest = this.parseBorrowInterests(data);
         return ccxt.BaseExchange.ToBorrowInterestList(this.filterByCurrencySinceLimit(interest,code, since, limit));
     }
 
@@ -9899,7 +9899,7 @@ public partial class okx : Exchange
         //     }
         //
         List<object> data = this.safeList(response, "data", new List<object>() {});
-        object settlements = this.parseSettlements(data, market);
+        List<object> settlements = this.parseSettlements(data, market);
         List<object> sorted = this.sortBy(settlements, "timestamp");
         return ccxt.BaseExchange.ToDictList(this.filterBySymbolSinceLimit(sorted, GetValue(market, "symbol"), since, limit));
     }
@@ -9923,7 +9923,7 @@ public partial class okx : Exchange
         };
     }
 
-    public virtual object parseSettlements(object settlements, IDictionary<string, object> market)
+    public virtual List<object> parseSettlements(object settlements, IDictionary<string, object> market)
     {
         //
         //     {
@@ -11070,7 +11070,7 @@ public partial class okx : Exchange
         //    }
         //
         List<object> data = this.safeList(response, "data", new List<object>() {});
-        object positions = this.parsePositions(data, symbols, parameters);
+        IList<object> positions = this.parsePositions(data, symbols, parameters);
         return ccxt.BaseExchange.ToPositionList(this.filterBySinceLimit(positions, since, limitVar));
     }
 

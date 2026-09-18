@@ -1165,7 +1165,7 @@ public partial class poloniex : ccxt.poloniex
             List<object> parts = messageHash.Split(new [] {"::"}, StringSplitOptions.None).ToList<object>();
             string? symbolsString = ((string)getValue(parts, 1));
             List<object> symbols = symbolsString.Split(new [] {","}, StringSplitOptions.None).ToList<object>();
-            object tickers = this.filterByArray(newTickers, "symbol", symbols);
+            Dictionary<string, object> tickers = ((Dictionary<string, object>)this.filterByArray(newTickers, "symbol", symbols));
             if (!isTrue(this.isEmpty(tickers)))
             {
                 callDynamically(client, "resolve", new object[] {tickers, messageHash});

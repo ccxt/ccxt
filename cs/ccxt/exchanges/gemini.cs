@@ -1418,7 +1418,7 @@ public partial class gemini : Exchange
         //         },
         //     ]
         //
-        object result = this.parseTickers(response, symbols);
+        Dictionary<string, object> result = this.parseTickers(response, symbols);
         List<object> brokenPairs = this.safeList(this.options, "brokenPairs", new List<object>() {});
         return ccxt.BaseExchange.ToTickers(this.removeKeysFromDict(result, brokenPairs));
     }

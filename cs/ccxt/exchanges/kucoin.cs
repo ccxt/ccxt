@@ -3593,7 +3593,7 @@ public partial class kucoin : Exchange
         //    }
         //
         List<object> data = this.safeList(response, "data");
-        object tickers = this.parseTickers(data, symbols);
+        Dictionary<string, object> tickers = this.parseTickers(data, symbols);
         return ccxt.BaseExchange.ToTickers(this.filterByArrayTickers(tickers, "symbol", symbols));
     }
 
@@ -10518,7 +10518,7 @@ public partial class kucoin : Exchange
         return this.safeValue(config, "cost", 1);
     }
 
-    public override object parseBorrowRate(object info, Dictionary<string, object> currency = null)
+    public override Dictionary<string, object> parseBorrowRate(object info, Dictionary<string, object> currency = null)
     {
         //
         //     {
@@ -10681,7 +10681,7 @@ public partial class kucoin : Exchange
         //
         IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         List<object> assets = (isEqual(marginMode, "isolated")) ? this.safeList(data, "assets", new List<object>() {}) : this.safeList(data, "accounts", new List<object>() {});
-        object interest = this.parseBorrowInterests(assets, market);
+        List<object> interest = this.parseBorrowInterests(assets, market);
         IList<object> filteredByCurrency = this.filterByCurrencySinceLimit(interest,code, since, limit);
         return ccxt.BaseExchange.ToBorrowInterestList(this.filterBySymbolSinceLimit(filteredByCurrency, symbol, since, limit));
     }
@@ -10919,7 +10919,7 @@ public partial class kucoin : Exchange
                 {
                     borrowRateHistories[(string)code] = new List<object>() {};
                 }
-                object borrowRateStructure = this.parseBorrowRate(item);
+                Dictionary<string, object> borrowRateStructure = this.parseBorrowRate(item);
                 object borrowRateHistoriesCode = getValue(borrowRateHistories, code);
                 ((IList<object>)borrowRateHistoriesCode).Add(borrowRateStructure);
             }

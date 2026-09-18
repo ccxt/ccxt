@@ -1635,7 +1635,7 @@ public partial class opinion : PredictionExchange
         object response = await this.opinionPrivateGetPositionsUserWalletAddress(this.extend(request, parameters));
         IDictionary<string, object> result = this.safeDict(response, "result", new Dictionary<string, object>() {});
         List<object> positions = this.safeList(result, "list", new List<object>() {});
-        object parsed = this.parsePredictionPositions(positions);
+        List<object> parsed = this.parsePredictionPositions(positions);
         if (isEqual(outcomesLength, 0))
         {
             return ccxt.BaseExchange.ToPredictionPositionList(parsed);
@@ -1653,7 +1653,7 @@ public partial class opinion : PredictionExchange
             }
         }
         List<object> filtered = new List<object>() {};
-        for (int i = 0; isLessThan(i, getArrayLength(parsed)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, parsed?.Count ?? 0); postFixIncrement(ref i))
         {
             IDictionary<string, object> position = ((IDictionary<string, object>)getValue(parsed, i));
             IDictionary<string, object> info = this.safeDict(position, "info", new Dictionary<string, object>() {});

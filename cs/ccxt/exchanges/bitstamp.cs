@@ -2701,7 +2701,7 @@ public partial class bitstamp : Exchange
         {
             currency = this.currency(code);
         }
-        object transactions = this.filterByArray(response, "type", new List<object>() {"0", "1"}, false);
+        IList<object> transactions = ((IList<object>)this.filterByArray(response, "type", new List<object>() {"0", "1"}, false));
         return ccxt.BaseExchange.ToTransactionList(this.parseTransactions(transactions, currency, since, limit));
     }
 

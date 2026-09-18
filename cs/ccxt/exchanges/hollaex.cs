@@ -764,7 +764,7 @@ public partial class hollaex : Exchange
         return ccxt.BaseExchange.ToTickers(this.parseTickers(response, symbols));
     }
 
-    public override object parseTickers(object tickers, IList<object> symbols = null, object parameters = null)
+    public override Dictionary<string, object> parseTickers(object tickers, IList<object> symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> result = new Dictionary<string, object>() {};
@@ -778,7 +778,7 @@ public partial class hollaex : Exchange
             string? symbol = ((string)GetValue(market, "symbol"));
             result[(string)symbol] = this.extend(this.parseTicker(ticker, market), parameters);
         }
-        return this.filterByArrayTickers(result, "symbol", symbols);
+        return ((Dictionary<string, object>)((object)(this.filterByArrayTickers(result, "symbol", symbols))));
     }
 
     public override Dictionary<string, object> parseTicker(object ticker, object market = null)
