@@ -71,11 +71,23 @@ jobs:
           cache-dependency-path: go/go.sum
       - name: Install Rust toolchain
         run: |
-          if ! command -v cargo >/dev/null 2>&1 && [ ! -x "$HOME/.cargo/bin/cargo" ]; then
-            curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain stable --profile minimal
+          if command -v cargo >/dev/null 2>&1; then
+            cargo --version
+            exit 0
           fi
-          echo "$HOME/.cargo/bin" >> "$GITHUB_PATH"
-          "$HOME/.cargo/bin/cargo" --version || cargo --version
+          # self-hosted runners may export RUSTUP_HOME/CARGO_HOME pointing at a root-owned
+          # directory (e.g. /opt/rustup), which rustup-init cannot create without sudo
+          writable_dir() { mkdir -p "$1" 2>/dev/null && [ -w "$1" ]; }
+          writable_dir "${RUSTUP_HOME:-$HOME/.rustup}" || RUSTUP_HOME="$HOME/.rustup"
+          writable_dir "${CARGO_HOME:-$HOME/.cargo}" || CARGO_HOME="$HOME/.cargo"
+          export RUSTUP_HOME="${RUSTUP_HOME:-$HOME/.rustup}" CARGO_HOME="${CARGO_HOME:-$HOME/.cargo}"
+          if ! "$CARGO_HOME/bin/cargo" --version >/dev/null 2>&1; then
+            curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --no-modify-path --default-toolchain stable --profile minimal
+          fi
+          echo "RUSTUP_HOME=$RUSTUP_HOME" >> "$GITHUB_ENV"
+          echo "CARGO_HOME=$CARGO_HOME" >> "$GITHUB_ENV"
+          echo "$CARGO_HOME/bin" >> "$GITHUB_PATH"
+          "$CARGO_HOME/bin/cargo" --version
       - name: Install NPM dependencies
         run: npm ci
       - name: Composer install
