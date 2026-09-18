@@ -131,13 +131,16 @@ selftest proves by flagging the still-`isEqual(symbol, null)` parameter site at 
 ## Farm
 
 ```
-HEAD 0f53eaf2cef549ead133b33a8a69ae990fd98f0a job=813 exit=0 branch_update=unchanged generator=978697f0d35378ed89d47e367be60a41b3f33e7c
-ccxt-farm status 813 → state=succeeded exit_code=0 targets=cs transpile_forced_by=generator
-ccxt-farm log 813 --step buildCS → "Build succeeded. 0 Warning(s) 0 Error(s)" (ccxt + tests + cli)
+code commit 0f53eaf2cef549ead133b33a8a69ae990fd98f0a job=813 exit=0 branch_update=unchanged generator=978697f0d35378ed89d47e367be60a41b3f33e7c
+report-only tip                              job=823 exit=0 branch_update=unchanged generator=978697f0d35378ed89d47e367be60a41b3f33e7c
+ccxt-farm status 813/823 → state=succeeded exit_code=0 targets=cs transpile_forced_by=generator
+ccxt-farm log 813/823 --step buildCS → "Build succeeded. 0 Warning(s) 0 Error(s)" (ccxt + tests + cli)
 ```
 
 `branch_update=unchanged` is the farm's own `--force` regeneration of the committed sha returning the
-same tree — the committed generated tree is exactly the one that compiled.
+same tree — the committed generated tree is exactly the one that compiled. The report commits carry no
+build input (`git diff 0f53eaf2cef <tip> -- cs/ build/ ts/src package.json` is empty) and the branch has
+no farm `[Automated changes]` commit on top, so the unit branch is only this unit's own commits.
 
 Fixed point locally: the four tier regens (104 rest ids / 76 ws ids / 7 prediction ids / `--tests`) were
 run twice; `git diff -- cs/ | sha256sum` is identical both times
