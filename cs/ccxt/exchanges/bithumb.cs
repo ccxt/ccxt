@@ -625,8 +625,8 @@ public partial class bithumb : Exchange
                     { "strike", null },
                     { "optionType", null },
                     { "precision", new Dictionary<string, object>() {
-                        { "amount", parseInt("4") },
-                        { "price", parseInt("4") },
+                        { "amount", 4L },
+                        { "price", 4L },
                     } },
                     { "limits", new Dictionary<string, object>() {
                         { "leverage", new Dictionary<string, object>() {
@@ -712,8 +712,8 @@ public partial class bithumb : Exchange
                         { "strike", null },
                         { "optionType", null },
                         { "precision", new Dictionary<string, object>() {
-                            { "amount", parseInt("4") },
-                            { "price", parseInt("4") },
+                            { "amount", 4L },
+                            { "price", 4L },
                         } },
                         { "limits", new Dictionary<string, object>() {
                             { "leverage", new Dictionary<string, object>() {

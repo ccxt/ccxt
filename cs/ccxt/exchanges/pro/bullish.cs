@@ -382,7 +382,7 @@ public partial class bullish : ccxt.bullish
         // 302 ='53714.0000000'
         for (int i = 0; isLessThan(i, getArrayLength(entry)); i++)
         {
-            if (!isEqual(mod(i, 2), 0))
+            if (!isEqual(((Int64)i % 2L), 0))
             {
                 continue;
             }

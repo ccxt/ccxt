@@ -1944,7 +1944,7 @@ public partial class PredictionExchange : BaseExchange
         }
         // prepend a nibble so the hex has an even number of characters (whole bytes)
         int hexLength = ((string)hex).Length;
-        if (!isEqual((mod(hexLength, 2)), 0))
+        if (!isEqual((((Int64)hexLength % 2L)), 0))
         {
             return ("0" + (hex));
         }

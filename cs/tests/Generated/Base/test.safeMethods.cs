@@ -321,28 +321,28 @@ public partial class BaseTest
             List<object> inputList = new List<object>() {"Hi", 2};
             // safeFloat
             // @ts-expect-error
-            Assert(isEqual(exchange.safeFloat(inputDict, "i"), parseFloat(1)));
+            Assert(isEqual(exchange.safeFloat(inputDict, "i"), 1.0));
             Assert(isEqual(exchange.safeFloat(inputDict, "f"), 0.123));
             // @ts-expect-error
-            Assert(isEqual(exchange.safeFloat(inputDict, "strNumber"), parseFloat(3)));
+            Assert(isEqual(exchange.safeFloat(inputDict, "strNumber"), 3.0));
             // @ts-expect-error
-            Assert(isEqual(exchange.safeFloat(inputList, 1), parseFloat(2)));
+            Assert(isEqual(exchange.safeFloat(inputList, 1), 2.0));
             // safeFloat2
             // @ts-expect-error
-            Assert(isEqual(exchange.safeFloat2(inputDict, "a", "i"), parseFloat(1)));
+            Assert(isEqual(exchange.safeFloat2(inputDict, "a", "i"), 1.0));
             Assert(isEqual(exchange.safeFloat2(inputDict, "a", "f"), 0.123));
             // @ts-expect-error
-            Assert(isEqual(exchange.safeFloat2(inputDict, "a", "strNumber"), parseFloat(3)));
+            Assert(isEqual(exchange.safeFloat2(inputDict, "a", "strNumber"), 3.0));
             // @ts-expect-error
-            Assert(isEqual(exchange.safeFloat2(inputList, 2, 1), parseFloat(2)));
+            Assert(isEqual(exchange.safeFloat2(inputList, 2, 1), 2.0));
             // safeFloatN
             // @ts-expect-error
-            Assert(isEqual(exchange.safeFloatN(inputDict, new List<object>() {"a", "b", "i"}), parseFloat(1)));
+            Assert(isEqual(exchange.safeFloatN(inputDict, new List<object>() {"a", "b", "i"}), 1.0));
             Assert(isEqual(exchange.safeFloatN(inputDict, new List<object>() {"a", "b", "f"}), 0.123));
             // @ts-expect-error
-            Assert(isEqual(exchange.safeFloatN(inputDict, new List<object>() {"a", "b", "strNumber"}), parseFloat(3)));
+            Assert(isEqual(exchange.safeFloatN(inputDict, new List<object>() {"a", "b", "strNumber"}), 3.0));
             // @ts-expect-error
-            Assert(isEqual(exchange.safeFloatN(inputList, new List<object>() {3, 2, 1}), parseFloat(2)));
+            Assert(isEqual(exchange.safeFloatN(inputList, new List<object>() {3, 2, 1}), 2.0));
             // safeFloat - negative paths (missing key, empty string, non-numeric string, undefined container)
             Assert(isEqual(exchange.safeFloat(inputDict, "nonexistent"), null), "safeFloat failed for missing key");
             Assert(isEqual(exchange.safeFloat(inputDict, "nonexistent", 5), 5), "safeFloat failed for missing key with default");

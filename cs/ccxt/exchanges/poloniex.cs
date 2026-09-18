@@ -3030,7 +3030,7 @@ public partial class poloniex : Exchange
         List<object> bidsResult = new List<object>() {};
         for (int i = 0; isLessThan(i, getArrayLength(asks)); i++)
         {
-            if (isLessThan((mod(i, 2)), 1))
+            if (isLessThan((((Int64)i % 2L)), 1))
             {
                 double? price = this.safeNumber(asks, i);
                 double? amount = this.safeNumber(asks, this.sum(i, 1));
@@ -3039,7 +3039,7 @@ public partial class poloniex : Exchange
         }
         for (int i = 0; isLessThan(i, getArrayLength(bids)); i++)
         {
-            if (isLessThan((mod(i, 2)), 1))
+            if (isLessThan((((Int64)i % 2L)), 1))
             {
                 double? price = this.safeNumber(bids, i);
                 double? amount = this.safeNumber(bids, this.sum(i, 1));
