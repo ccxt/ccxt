@@ -1359,7 +1359,7 @@ public partial class onetrading : ccxt.onetrading
             { "STOP_TRACKED", this.handleTrading },
             { "STOP_TRIGGERED", this.handleTrading },
         };
-        object handler = this.safeValue(handlers, type);
+        Delegate handler = ((Delegate)this.safeValue(handlers, type));
         if ((handler != null))
         {
             DynamicInvoker.InvokeMethod(handler, new object[] { client, message});

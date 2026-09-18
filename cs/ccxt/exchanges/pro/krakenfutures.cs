@@ -1862,7 +1862,7 @@ public partial class krakenfutures : ccxt.krakenfutures
                 { "balances_snapshot", this.handleBalance },
                 { "open_positions", this.handlePositions },
             };
-            object method = this.safeValue(methods, feed);
+            Delegate method = ((Delegate)this.safeValue(methods, feed));
             if ((method != null))
             {
                 DynamicInvoker.InvokeMethod(method, new object[] { client, message});

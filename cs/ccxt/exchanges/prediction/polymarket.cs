@@ -3758,7 +3758,7 @@ public partial class polymarket : PredictionExchange
         {
             this.trades = new Dictionary<string, object>() {};
         }
-        object stored = this.safeValue(this.trades, outcome);
+        ccxt.pro.ArrayCache stored = ((ccxt.pro.ArrayCache)this.safeValue(this.trades, outcome));
         if ((stored == null))
         {
             Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);

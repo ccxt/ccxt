@@ -697,7 +697,7 @@ public partial class bitmex : ccxt.bitmex
             string? symbol = ((string)GetValue(market, "symbol"));
             string messageHash = add(add(table, ":"), symbol);
             IList<object> trades = this.parseTrades(getValue(dataByMarketIds, marketId), market);
-            object stored = this.safeValue(this.trades, symbol);
+            ccxt.pro.ArrayCache stored = ((ccxt.pro.ArrayCache)this.safeValue(this.trades, symbol));
             if ((stored == null))
             {
                 Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);
@@ -1910,7 +1910,7 @@ public partial class bitmex : ccxt.bitmex
                 { "liquidation", this.handleLiquidation },
                 { "position", this.handlePositions },
             };
-            object method = this.safeValue(methods, table);
+            Delegate method = ((Delegate)this.safeValue(methods, table));
             if ((method == null))
             {
                 object request = this.safeValue(message, "request", new Dictionary<string, object>() {});

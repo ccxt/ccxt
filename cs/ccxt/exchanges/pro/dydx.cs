@@ -124,7 +124,7 @@ public partial class dydx : ccxt.dydx
         string? symbol = ((string)GetValue(market, "symbol"));
         IDictionary<string, object> content = this.safeDict(message, "contents");
         List<object> rawTrades = this.safeList(content, "trades", new List<object>() {});
-        object stored = this.safeValue(this.trades, symbol);
+        ccxt.pro.ArrayCache stored = ((ccxt.pro.ArrayCache)this.safeValue(this.trades, symbol));
         if ((stored == null))
         {
             Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);
@@ -464,7 +464,7 @@ public partial class dydx : ccxt.dydx
                 { "v4_orderbook", this.handleOrderBook },
                 { "v4_candles", this.handleOHLCV },
             };
-            object method = this.safeValue(methods, topic);
+            Delegate method = ((Delegate)this.safeValue(methods, topic));
             if ((method != null))
             {
                 DynamicInvoker.InvokeMethod(method, new object[] { client, message});

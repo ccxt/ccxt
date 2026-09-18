@@ -207,7 +207,7 @@ public partial class bittrade : ccxt.bittrade
         string? marketId = this.safeString(parts, 1);
         Dictionary<string, object> market = this.safeMarket(marketId);
         string? symbol = ((string)GetValue(market, "symbol"));
-        object tradesCache = this.safeValue(this.trades, symbol);
+        ccxt.pro.ArrayCache tradesCache = ((ccxt.pro.ArrayCache)this.safeValue(this.trades, symbol));
         if ((tradesCache == null))
         {
             Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);
@@ -644,7 +644,7 @@ public partial class bittrade : ccxt.bittrade
                 { "trade", this.handleTrades },
                 { "kline", this.handleOHLCV },
             };
-            object method = this.safeValue(methods, methodName);
+            Delegate method = ((Delegate)this.safeValue(methods, methodName));
             if ((method != null))
             {
                 DynamicInvoker.InvokeMethod(method, new object[] { client, message});

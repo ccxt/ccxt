@@ -476,7 +476,7 @@ public partial class bitfinex : ccxt.bitfinex
         object messageHash = add(add(channel, ":"), marketId);
         Int64? tradesLimit = this.safeInteger(this.options, "tradesLimit", 1000);
         string? symbol = ((string)GetValue(market, "symbol"));
-        object stored = this.safeValue(this.trades, symbol);
+        ccxt.pro.ArrayCache stored = ((ccxt.pro.ArrayCache)this.safeValue(this.trades, symbol));
         if ((stored == null))
         {
             stored = new ArrayCache(tradesLimit);
@@ -1472,7 +1472,7 @@ public partial class bitfinex : ccxt.bitfinex
                     { "unsubscribed", this.handleUnsubscriptionStatus },
                     { "auth", this.handleAuthenticationMessage },
                 };
-                object method = this.safeValue(methods, eventVar);
+                Delegate method = ((Delegate)this.safeValue(methods, eventVar));
                 if ((method != null))
                 {
                     DynamicInvoker.InvokeMethod(method, new object[] { client, message});

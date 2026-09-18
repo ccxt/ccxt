@@ -534,7 +534,7 @@ public partial class coinex : ccxt.coinex
         string? symbol = ((string)GetValue(market, "symbol"));
         string messageHash = add("myTrades:", symbol);
         string messageWithType = add("myTrades:", GetValue(market, "type"));
-        object stored = this.safeValue(this.trades, symbol);
+        ccxt.pro.ArrayCache stored = ((ccxt.pro.ArrayCache)this.safeValue(this.trades, symbol));
         if ((stored == null))
         {
             Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);
@@ -597,7 +597,7 @@ public partial class coinex : ccxt.coinex
         Dictionary<string, object> market = this.safeMarket(marketId, null, null, defaultType);
         string? symbol = ((string)GetValue(market, "symbol"));
         string messageHash = add("trades:", symbol);
-        object stored = this.safeValue(this.trades, symbol);
+        ccxt.pro.ArrayCache stored = ((ccxt.pro.ArrayCache)this.safeValue(this.trades, symbol));
         if ((stored == null))
         {
             Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);
@@ -1505,7 +1505,7 @@ public partial class coinex : ccxt.coinex
             { "stop.update", this.handleOrders },
             { "bbo.update", this.handleBidAsk },
         };
-        object handler = this.safeValue(handlers, method);
+        Delegate handler = ((Delegate)this.safeValue(handlers, method));
         if ((handler != null))
         {
             DynamicInvoker.InvokeMethod(handler, new object[] { client, message});

@@ -3804,7 +3804,7 @@ public partial class kucoin : ccxt.kucoin
             { "funding-fee", this.handleUtaFundingRate },
             { "mark-price", this.handleUtaTicker },
         };
-        object method = this.safeValue(methods, subject);
+        Delegate method = ((Delegate)this.safeValue(methods, subject));
         if ((method != null))
         {
             DynamicInvoker.InvokeMethod(method, new object[] { client, message});
@@ -3874,7 +3874,7 @@ public partial class kucoin : ccxt.kucoin
             { "pong", this.handlePong },
             { "error", this.handleErrorMessage },
         };
-        object method = this.safeValue(methods, type);
+        Delegate method = ((Delegate)this.safeValue(methods, type));
         if ((method != null))
         {
             DynamicInvoker.InvokeMethod(method, new object[] { client, message});

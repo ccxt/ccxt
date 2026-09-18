@@ -1153,7 +1153,7 @@ public partial class toobit : ccxt.toobit
         string? url = this.getUserStreamUrl();
         var client = this.client(url);
         this.setPositionsCache(client, type, symbols);
-        object cache = this.safeValue(this.positions, type);
+        ccxt.pro.ArrayCache cache = ((ccxt.pro.ArrayCache)this.safeValue(this.positions, type));
         if ((cache == null))
         {
             object snapshot = await client.future(add(type, ":fetchPositionsSnapshot"));

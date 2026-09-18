@@ -1144,7 +1144,7 @@ public partial class gate : ccxt.gate
         {
             object trade = getValue(parsedTrades, i);
             object symbol = getValue(trade, "symbol");
-            object cachedTrades = this.safeValue(this.trades, symbol);
+            ccxt.pro.ArrayCache cachedTrades = ((ccxt.pro.ArrayCache)this.safeValue(this.trades, symbol));
             if ((cachedTrades == null))
             {
                 Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);
@@ -1589,7 +1589,7 @@ public partial class gate : ccxt.gate
         this.setPositionsCache(client, type, symbols);
         object fetchPositionsSnapshot = this.handleOption("watchPositions", "fetchPositionsSnapshot", true);
         object awaitPositionsSnapshot = this.handleOption("watchPositions", "awaitPositionsSnapshot", true);
-        object cache = this.safeValue(this.positions, type);
+        ccxt.pro.ArrayCache cache = ((ccxt.pro.ArrayCache)this.safeValue(this.positions, type));
         if ((isEqual(fetchPositionsSnapshot, true)) && (isEqual(awaitPositionsSnapshot, true)) && ((cache == null)))
         {
             return ccxt.BaseExchange.ToPositionList(await client.future(add(type, ":fetchPositionsSnapshot")));

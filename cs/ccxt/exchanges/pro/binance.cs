@@ -1777,7 +1777,7 @@ public partial class binance : ccxt.binance
         string? symbol = ((string)GetValue(market, "symbol"));
         string messageHash = add("trade::", symbol);
         Dictionary<string, object> trade = this.parseWsTrade(message, market);
-        object tradesArray = this.safeValue(this.trades, symbol);
+        ccxt.pro.ArrayCache tradesArray = ((ccxt.pro.ArrayCache)this.safeValue(this.trades, symbol));
         if ((tradesArray == null))
         {
             Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);
@@ -5677,7 +5677,7 @@ public partial class binance : ccxt.binance
         this.setPositionsCache(client, type, symbols, isPortfolioMargin);
         object fetchPositionsSnapshot = this.handleOption("watchPositions", "fetchPositionsSnapshot", true);
         object awaitPositionsSnapshot = this.handleOption("watchPositions", "awaitPositionsSnapshot", true);
-        object cache = this.safeValue(this.positions, type);
+        ccxt.pro.ArrayCache cache = ((ccxt.pro.ArrayCache)this.safeValue(this.positions, type));
         if ((isEqual(fetchPositionsSnapshot, true)) && (isEqual(awaitPositionsSnapshot, true)) && ((cache == null)))
         {
             object snapshot = await client.future(add(type, ":fetchPositionsSnapshot"));

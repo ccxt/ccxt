@@ -1546,7 +1546,7 @@ public partial class pacifica : ccxt.pacifica
             { "subscribe", this.handleSubscriptionResponse },
             { "unsubscribe", this.handleSubscriptionResponse },
         };
-        object exacMethod = this.safeValue(methods, topic);
+        Delegate exacMethod = ((Delegate)this.safeValue(methods, topic));
         if ((exacMethod != null))
         {
             DynamicInvoker.InvokeMethod(exacMethod, new object[] { client, message});

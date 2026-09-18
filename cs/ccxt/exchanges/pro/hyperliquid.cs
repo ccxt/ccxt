@@ -1959,7 +1959,7 @@ public partial class hyperliquid : ccxt.hyperliquid
             { "clearinghouseState", this.handleBalance },
             { "spotState", this.handleBalance },
         };
-        object exacMethod = this.safeValue(methods, topic);
+        Delegate exacMethod = ((Delegate)this.safeValue(methods, topic));
         if ((exacMethod != null))
         {
             DynamicInvoker.InvokeMethod(exacMethod, new object[] { client, message});

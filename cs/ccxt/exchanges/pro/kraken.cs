@@ -630,7 +630,7 @@ public partial class kraken : ccxt.kraken
         object trade = getValue(data, 0);
         string symbol = ((string)this.safeString(trade, "symbol"));
         string? messageHash = this.getMessageHash("trade", null, symbol);
-        object stored = this.safeValue(this.trades, symbol);
+        ccxt.pro.ArrayCache stored = ((ccxt.pro.ArrayCache)this.safeValue(this.trades, symbol));
         if ((stored == null))
         {
             Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);
@@ -1822,7 +1822,7 @@ public partial class kraken : ccxt.kraken
                 { "myTrades", this.handleMyTrades },
                 { "orders", this.handleOrders },
             };
-            object method = this.safeValue(methods, channel);
+            Delegate method = ((Delegate)this.safeValue(methods, channel));
             if ((method != null))
             {
                 DynamicInvoker.InvokeMethod(method, new object[] { client, message});
@@ -1841,7 +1841,7 @@ public partial class kraken : ccxt.kraken
                 { "cancel_all", this.handleCancelAllOrders },
                 { "pong", this.handlePong },
             };
-            object method = this.safeValue(methods, eventVar);
+            Delegate method = ((Delegate)this.safeValue(methods, eventVar));
             if ((method != null))
             {
                 DynamicInvoker.InvokeMethod(method, new object[] { client, message});

@@ -377,7 +377,7 @@ public partial class okx : ccxt.okx
         {
             Dictionary<string, object> trade = this.parseTrade(getValue(data, i));
             object messageHash = add(add(channel, ":"), symbol);
-            object stored = this.safeValue(this.trades, symbol);
+            ccxt.pro.ArrayCache stored = ((ccxt.pro.ArrayCache)this.safeValue(this.trades, symbol));
             if ((stored == null))
             {
                 stored = new ArrayCache(tradesLimit);
@@ -2937,7 +2937,7 @@ public partial class okx : ccxt.okx
                 { "cancel-order", this.handlePlaceOrders },
                 { "mass-cancel", this.handleCancelAllOrders },
             };
-            object method = this.safeValue(methods, eventVar);
+            Delegate method = ((Delegate)this.safeValue(methods, eventVar));
             if ((method != null))
             {
                 DynamicInvoker.InvokeMethod(method, new object[] { client, message});
@@ -2972,7 +2972,7 @@ public partial class okx : ccxt.okx
                 { "liquidation-orders", this.handleLiquidation },
                 { "balance_and_position", this.handleBalanceAndPosition },
             };
-            object method = this.safeValue(methods, channel);
+            Delegate method = ((Delegate)this.safeValue(methods, channel));
             if ((method == null))
             {
                 if ((getIndexOf(channel, "candle") == 0))

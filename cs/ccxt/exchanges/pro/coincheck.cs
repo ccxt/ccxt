@@ -168,7 +168,7 @@ public partial class coincheck : ccxt.coincheck
         //
         object first = this.safeValue(message, 0, new List<object>() {});
         string? symbol = this.symbol(this.safeString(first, 2));
-        object stored = this.safeValue(this.trades, symbol);
+        ccxt.pro.ArrayCache stored = ((ccxt.pro.ArrayCache)this.safeValue(this.trades, symbol));
         if ((stored == null))
         {
             Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);

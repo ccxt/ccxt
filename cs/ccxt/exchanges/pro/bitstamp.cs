@@ -390,7 +390,7 @@ public partial class bitstamp : ccxt.bitstamp
         string messageHash = add("trades:", symbol);
         IDictionary<string, object> data = ((IDictionary<string, object>)this.safeValue(message, "data"));
         Dictionary<string, object> trade = this.parseWsTrade(data, market);
-        object tradesArray = this.safeValue(this.trades, symbol);
+        ccxt.pro.ArrayCache tradesArray = ((ccxt.pro.ArrayCache)this.safeValue(this.trades, symbol));
         if ((tradesArray == null))
         {
             Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);

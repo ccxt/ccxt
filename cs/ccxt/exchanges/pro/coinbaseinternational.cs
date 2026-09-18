@@ -912,7 +912,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         {
             this.handleOHLCV(client, (Dictionary<string, object>)message);
         }
-        object method = this.safeValue(methods, channel);
+        Delegate method = ((Delegate)this.safeValue(methods, channel));
         if ((method != null))
         {
             DynamicInvoker.InvokeMethod(method, new object[] { client, message});

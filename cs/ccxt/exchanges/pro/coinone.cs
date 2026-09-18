@@ -327,7 +327,7 @@ public partial class coinone : ccxt.coinone
         object data = this.safeValue(message, "data", new Dictionary<string, object>() {});
         Dictionary<string, object> trade = this.parseWsTrade(data);
         object symbol = GetValue(trade, "symbol");
-        object stored = this.safeValue(this.trades, symbol);
+        ccxt.pro.ArrayCache stored = ((ccxt.pro.ArrayCache)this.safeValue(this.trades, symbol));
         if ((stored == null))
         {
             Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);
@@ -421,7 +421,7 @@ public partial class coinone : ccxt.coinone
                 { "TICKER", this.handleTicker },
                 { "TRADE", this.handleTrades },
             };
-            object exacMethod = this.safeValue(methods, topic);
+            Delegate exacMethod = ((Delegate)this.safeValue(methods, topic));
             if ((exacMethod != null))
             {
                 DynamicInvoker.InvokeMethod(exacMethod, new object[] { client, message});
