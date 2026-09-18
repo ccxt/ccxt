@@ -680,7 +680,12 @@ func (this *Bitvavo) watchOHLCVForSymbolsBody(ch chan any, symbolsAndTimeframes 
 		if !(ccxt.InOp(marketIdsByInterval, interval)) {
 			ccxt.AddElementToObject(marketIdsByInterval, interval, []any{})
 		}
-		var intervalIds any = ccxt.GetValue(marketIdsByInterval, interval)
+		var intervalIds any = func() any {
+			if interval == nil {
+				return nil
+			}
+			return marketIdsByInterval[*interval]
+		}()
 		ccxt.AppendToArray(&intervalIds, ccxt.GetValue(market, "id"))
 		ccxt.AppendToArray(&messageHashes, ccxt.Add(ccxt.Add(ccxt.Add("multi:"+name+"@", ccxt.GetValue(market, "id")), "_"), interval))
 	}
@@ -777,7 +782,12 @@ func (this *Bitvavo) unWatchOHLCVForSymbolsBody(ch chan any, symbolsAndTimeframe
 		if !(ccxt.InOp(marketIdsByInterval, interval)) {
 			ccxt.AddElementToObject(marketIdsByInterval, interval, []any{})
 		}
-		var intervalIds any = ccxt.GetValue(marketIdsByInterval, interval)
+		var intervalIds any = func() any {
+			if interval == nil {
+				return nil
+			}
+			return marketIdsByInterval[*interval]
+		}()
 		ccxt.AppendToArray(&intervalIds, ccxt.GetValue(market, "id"))
 		// both the single-symbol and the multi-symbol watch hashes must be released
 		ccxt.AppendToArray(&subMessageHashes, ccxt.Add(ccxt.Add(ccxt.Add(name+"@", ccxt.GetValue(market, "id")), "_"), interval))

@@ -11965,7 +11965,12 @@ func (this *Kucoin) ParseBorrowRateHistories(response any, codes any, since any,
 				AddElementToObject(borrowRateHistories, code, []any{})
 			}
 			var borrowRateStructure any = this.ParseBorrowRate(item)
-			var borrowRateHistoriesCode any = GetValue(borrowRateHistories, code)
+			var borrowRateHistoriesCode any = func() any {
+				if code == nil {
+					return nil
+				}
+				return borrowRateHistories[*code]
+			}()
 			AppendToArray(&borrowRateHistoriesCode, borrowRateStructure)
 		}
 	}
@@ -14421,7 +14426,12 @@ func (this *Kucoin) fetchLeverageTiersBody(ch chan any, optionalArgs ...any) any
 			if !(InOp(result, symbol)) {
 				AddElementToObject(result, symbol, []any{})
 			}
-			retRes1155016 := GetValue(result, symbol)
+			retRes1155016 := func() any {
+				if symbol == nil {
+					return nil
+				}
+				return result[*symbol]
+			}()
 			AppendToArray(&retRes1155016, tier)
 		}
 	}

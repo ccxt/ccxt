@@ -3717,7 +3717,12 @@ func (this *Lbank) ParsePublicDepositWithdrawFees(response any, optionalArgs ...
 					if IsEqual(resultValue, nil) {
 						AddElementToObject(result, code, this.DepositWithdrawFee([]any{fee}))
 					} else {
-						var resultCodeInfo any = GetValue(GetValue(result, code), "info")
+						var resultCodeInfo any = GetValue(func() any {
+							if code == nil {
+								return nil
+							}
+							return result[*code]
+						}(), "info")
 						AppendToArray(&resultCodeInfo, fee)
 					}
 					var networkCode any = this.NetworkIdToCode(this.SafeString(fee, "chain"), code)

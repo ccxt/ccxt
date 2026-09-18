@@ -9452,7 +9452,12 @@ func (this *Okx) ParseBorrowRateHistories(response any, codes any, since any, li
 			var borrowRateStructure any = this.ParseBorrowRate(item)
 			// GET /api/v5/finance/savings/lending-rate-history returns annualized rates, unlike the hourly cross-margin endpoint
 			AddElementToObject(borrowRateStructure, "period", 31536000000)
-			var borrrowRateCode any = GetValue(borrowRateHistories, code)
+			var borrrowRateCode any = func() any {
+				if code == nil {
+					return nil
+				}
+				return borrowRateHistories[*code]
+			}()
 			AppendToArray(&borrrowRateCode, borrowRateStructure)
 		}
 	}

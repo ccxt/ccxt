@@ -1357,7 +1357,12 @@ func (this *Kalshi) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 			ccxt.AppendToArray(&tickers, ticker)
 		}
 		// reassign after push, plain mutation through a local is lost in transpiled php (arrays are value types there)
-		var grouped any = ccxt.GetValue(outcomesByTicker, ticker)
+		var grouped any = func() any {
+			if ticker == nil {
+				return nil
+			}
+			return outcomesByTicker[*ticker]
+		}()
 		ccxt.AppendToArray(&grouped, outcomeObj)
 		ccxt.AddElementToObject(outcomesByTicker, ticker, grouped)
 	}
@@ -1388,7 +1393,12 @@ func (this *Kalshi) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 			if (marketTicker == nil) || !(ccxt.InOp(outcomesByTicker, marketTicker)) {
 				continue
 			}
-			var grouped any = ccxt.GetValue(outcomesByTicker, marketTicker)
+			var grouped any = func() any {
+				if marketTicker == nil {
+					return nil
+				}
+				return outcomesByTicker[*marketTicker]
+			}()
 			for j := 0; j < ccxt.GetArrayLength(grouped); j++ {
 				var ticker any = this.ParsePredictionTicker(raw, ccxt.GetValue(grouped, j))
 				var symbolKey *string = this.SafeString(ticker, "outcome")
