@@ -12500,9 +12500,9 @@ public Object describe()
             return null;
         }
         // parse YYMMDD to datetime string
-        Object year = Helpers.slice(date, 0, 2);
-        Object month = Helpers.slice(date, 2, 4);
-        Object day = Helpers.slice(date, 4, 6);
+        Object year = (date == null ? null : ((String)date).substring(0, Math.min(2, ((String)date).length())));
+        Object month = (date == null ? null : ((String)date).substring(Math.min(2, ((String)date).length()), Math.min(4, ((String)date).length())));
+        Object day = (date == null ? null : ((String)date).substring(Math.min(4, ((String)date).length()), Math.min(6, ((String)date).length())));
         // the milliseconds are spelled out because every caller writes the result into
         // expiryDatetime, which types.ts documents in the ISO 8601 form with them
         Object reconstructedDate = (((((("20" + year) + "-") + month) + "-") + day) + "T00:00:00.000Z");
@@ -12516,10 +12516,10 @@ public Object describe()
             return null;
         }
         // parse 240119 to 19JAN24
-        Object year = Helpers.slice(date, 0, 2);
-        Object monthRaw = Helpers.slice(date, 2, 4);
+        Object year = (date == null ? null : ((String)date).substring(0, Math.min(2, ((String)date).length())));
+        Object monthRaw = (date == null ? null : ((String)date).substring(Math.min(2, ((String)date).length()), Math.min(4, ((String)date).length())));
         String month = null;
-        Object day = Helpers.slice(date, 4, 6);
+        Object day = (date == null ? null : ((String)date).substring(Math.min(4, ((String)date).length()), Math.min(6, ((String)date).length())));
         if (java.util.Objects.equals(monthRaw, "01"))
         {
             month = "JAN";
@@ -12587,10 +12587,10 @@ public Object describe()
         {
             date = ("0" + date);
         }
-        Object year = Helpers.slice(date, 0, 2);
-        Object monthName = Helpers.slice(date, 2, 5);
+        Object year = (date == null ? null : ((String)date).substring(0, Math.min(2, ((String)date).length())));
+        Object monthName = (date == null ? null : ((String)date).substring(Math.min(2, ((String)date).length()), Math.min(5, ((String)date).length())));
         String month = this.safeString(monthMappping, monthName);
-        Object day = Helpers.slice(date, 5, 7);
+        Object day = (date == null ? null : ((String)date).substring(Math.min(5, ((String)date).length()), Math.min(7, ((String)date).length())));
         Object reconstructedDate = Helpers.add(Helpers.add(day, month), year);
         return reconstructedDate;
     }
