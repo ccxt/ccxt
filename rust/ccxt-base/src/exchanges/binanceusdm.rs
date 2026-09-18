@@ -199,7 +199,7 @@ impl BinanceusdmCore {
         m.insert("urls".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("logo".to_string(), Value::Str("https://github.com/user-attachments/assets/871cbea7-eebb-4b28-b260-c1c91df0487a".to_string()));
-        m.insert("doc".to_string(), Value::List(vec![Value::Str("https://binance-docs.github.io/apidocs/futures/en/".to_string()), Value::Str("https://binance-docs.github.io/apidocs/spot/en".to_string()), Value::Str("https://developers.binance.com/en".to_string())]));
+        m.insert("doc".to_string(), Value::from(vec![Value::Str("https://binance-docs.github.io/apidocs/futures/en/".to_string()), Value::Str("https://binance-docs.github.io/apidocs/spot/en".to_string()), Value::Str("https://developers.binance.com/en".to_string())]));
     m
 }));
         m.insert("has".to_string(), Value::Map({
@@ -217,7 +217,7 @@ impl BinanceusdmCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("fetchMarkets".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("types".to_string(), Value::List(vec![Value::Str("linear".to_string())]));
+        m.insert("types".to_string(), Value::from(vec![Value::Str("linear".to_string())]));
     m
 }));
         m.insert("defaultType".to_string(), Value::Str("swap".to_string()));

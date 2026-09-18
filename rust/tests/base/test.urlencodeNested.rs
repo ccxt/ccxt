@@ -24,7 +24,7 @@ pub fn testUrlencodeNested() {
         m.insert("target".to_string(), Value::Str("+&".to_string()));
     m
 }));
-            m.insert("d".to_string(), Value::List(vec![Value::Int(1), Value::Int(2)]));
+            m.insert("d".to_string(), Value::from(vec![Value::Int(1), Value::Int(2)]));
         m
     });
     let mut expected2a: Value = Value::Str("b[c]=2&b[target]=%2B%26&d[0]=1&d[1]=2".to_string());

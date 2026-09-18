@@ -17,7 +17,7 @@ pub fn testUrlencodeWithArrayRepeat() {
     let mut dict2: Value = Value::Map({
         let mut m = indexmap::IndexMap::new();
             m.insert("a".to_string(), Value::Int(1));
-            m.insert("product_ids".to_string(), Value::List(vec![Value::Str("AA".to_string()), Value::Str("BB".to_string())]));
+            m.insert("product_ids".to_string(), Value::from(vec![Value::Str("AA".to_string()), Value::Str("BB".to_string())]));
         m
     });
     let mut expected2a: Value = Value::Str("a=1&product_ids=AA&product_ids=BB".to_string());

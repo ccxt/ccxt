@@ -21,7 +21,7 @@ pub async fn testFetchLastPrices(mut exchange: Value, mut skippedProperties: Val
         response = crate::live_dispatch::dispatch(&mut exchange, "fetch_last_prices", vec![]).await;
      #[allow(unreachable_code)] { Value::Null }})).await;
 if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
-        response = crate::live_dispatch::dispatch(&mut exchange, "fetch_last_prices", vec![Value::List(vec![symbol.clone()])]).await;
+        response = crate::live_dispatch::dispatch(&mut exchange, "fetch_last_prices", vec![Value::from(vec![symbol.clone()])]).await;
         checkedSymbol = symbol.clone();
     }
     crate::tests_support::shared::assert_dictionary_response(exchange.clone(), &[method.clone(), response.clone(), checkedSymbol.clone()]);

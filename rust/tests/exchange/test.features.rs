@@ -10,8 +10,8 @@ use crate::test_helpers::*;
 use super::*;
 
 pub async fn testFeatures(mut exchange: Value, mut skippedProperties: Value) -> Value {
-    let mut marketTypes: Value = Value::List(vec![Value::Str("spot".to_string()), Value::Str("swap".to_string()), Value::Str("future".to_string()), Value::Str("option".to_string())]);
-    let mut subTypes: Value = Value::List(vec![Value::Str("linear".to_string()), Value::Str("inverse".to_string())]);
+    let mut marketTypes: Value = Value::from(vec![Value::Str("spot".to_string()), Value::Str("swap".to_string()), Value::Str("future".to_string()), Value::Str("option".to_string())]);
+    let mut subTypes: Value = Value::from(vec![Value::Str("linear".to_string()), Value::Str("inverse".to_string())]);
     let mut features: Value = get_value(&exchange, &Value::Str("features".to_string()));
     let mut keys: Value = object_keys(&features);
     {

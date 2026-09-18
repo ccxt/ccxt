@@ -54,7 +54,7 @@ pub fn testTicker(mut exchange: Value, mut skippedProperties: Value, mut method:
         m
     });
     // todo: atm, many exchanges fail, so temporarily decrease stict mode
-    let mut emptyAllowedFor: Value = Value::List(vec![Value::Str("timestamp".to_string()), Value::Str("datetime".to_string()), Value::Str("open".to_string()), Value::Str("high".to_string()), Value::Str("low".to_string()), Value::Str("close".to_string()), Value::Str("last".to_string()), Value::Str("baseVolume".to_string()), Value::Str("quoteVolume".to_string()), Value::Str("previousClose".to_string()), Value::Str("bidVolume".to_string()), Value::Str("askVolume".to_string()), Value::Str("vwap".to_string()), Value::Str("change".to_string()), Value::Str("percentage".to_string()), Value::Str("average".to_string())]);
+    let mut emptyAllowedFor: Value = Value::from(vec![Value::Str("timestamp".to_string()), Value::Str("datetime".to_string()), Value::Str("open".to_string()), Value::Str("high".to_string()), Value::Str("low".to_string()), Value::Str("close".to_string()), Value::Str("last".to_string()), Value::Str("baseVolume".to_string()), Value::Str("quoteVolume".to_string()), Value::Str("previousClose".to_string()), Value::Str("bidVolume".to_string()), Value::Str("askVolume".to_string()), Value::Str("vwap".to_string()), Value::Str("change".to_string()), Value::Str("percentage".to_string()), Value::Str("average".to_string())]);
     // trick csharp-transpiler for string
     if !is_true(&(contains(&to_string_val(&method), &Value::Str("BidsAsks".to_string())))) {
         append_to_array(&mut emptyAllowedFor, Value::Str("bid".to_string()));
@@ -87,7 +87,7 @@ pub fn testTicker(mut exchange: Value, mut skippedProperties: Value, mut method:
         }
     }
     // only check "above zero" values if exchange is not supposed to have exotic index markets
-    let mut isStandardMarket: Value = (Value::Bool((market != Value::Null) && is_true(&exchange.in_array(market.as_map().and_then(|__m| __m.get("type")).cloned().unwrap_or(Value::Null), Value::List(vec![Value::Str("spot".to_string()), Value::Str("swap".to_string()), Value::Str("future".to_string()), Value::Str("option".to_string())])))));
+    let mut isStandardMarket: Value = (Value::Bool((market != Value::Null) && is_true(&exchange.in_array(market.as_map().and_then(|__m| __m.get("type")).cloned().unwrap_or(Value::Null), Value::from(vec![Value::Str("spot".to_string()), Value::Str("swap".to_string()), Value::Str("future".to_string()), Value::Str("option".to_string())])))));
     let mut valuesShouldBePositive: Value = isStandardMarket; // || (market === undefined) atm, no check for index markets
     if is_true(&valuesShouldBePositive) && !(in_op(&skippedProperties, &Value::Str("positiveValues".to_string()))) {
         crate::tests_support::shared::assert_greater(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("open".to_string()).clone(), Value::Str("0".to_string()).clone()]);
@@ -269,7 +269,7 @@ pub fn testTicker(mut exchange: Value, mut skippedProperties: Value, mut method:
         //
         // change
         //
-        let mut approxValue: Value = exchange.safe_string_n(entry.clone(), Value::List(vec![Value::Str("open".to_string()), Value::Str("close".to_string()), Value::Str("average".to_string()), Value::Str("bid".to_string()), Value::Str("ask".to_string()), Value::Str("vwap".to_string()), Value::Str("previousClose".to_string())]), &[]);
+        let mut approxValue: Value = exchange.safe_string_n(entry.clone(), Value::from(vec![Value::Str("open".to_string()), Value::Str("close".to_string()), Value::Str("average".to_string()), Value::Str("bid".to_string()), Value::Str("ask".to_string()), Value::Str("vwap".to_string()), Value::Str("previousClose".to_string())]), &[]);
         if (change != Value::Null) {
             // - should be above -price and (for non-options) below +price*maxIncrease
             assert!(ccxt::runtime::is_true(&(ccxt::precise::Precise::stringGe(&change, &ccxt::precise::Precise::stringNeg(&approxValue)))));

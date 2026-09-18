@@ -117,7 +117,7 @@ impl PaymiumCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), Value::Str("paymium".to_string()));
         m.insert("name".to_string(), Value::Str("Paymium".to_string()));
-        m.insert("countries".to_string(), Value::List(vec![Value::Str("FR".to_string()), Value::Str("EU".to_string())]));
+        m.insert("countries".to_string(), Value::from(vec![Value::Str("FR".to_string()), Value::Str("EU".to_string())]));
         m.insert("rateLimit".to_string(), Value::Int(2000));
         m.insert("version".to_string(), Value::Str("v1".to_string()));
         m.insert("has".to_string(), Value::Map({
@@ -161,7 +161,7 @@ impl PaymiumCore {
 }));
         m.insert("www".to_string(), Value::Str("https://www.paymium.com".to_string()));
         m.insert("fees".to_string(), Value::Str("https://www.paymium.com/page/help/fees".to_string()));
-        m.insert("doc".to_string(), Value::List(vec![Value::Str("https://github.com/Paymium/api-documentation".to_string()), Value::Str("https://www.paymium.com/page/developers".to_string()), Value::Str("https://paymium.github.io/api-documentation/".to_string())]));
+        m.insert("doc".to_string(), Value::from(vec![Value::Str("https://github.com/Paymium/api-documentation".to_string()), Value::Str("https://www.paymium.com/page/developers".to_string()), Value::Str("https://paymium.github.io/api-documentation/".to_string())]));
         m.insert("referral".to_string(), Value::Str("https://www.paymium.com/page/sign-up?referral=eDAzPoRQFMvaAB8sf-qj".to_string()));
     m
 }));

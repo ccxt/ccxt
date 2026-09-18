@@ -201,7 +201,7 @@ impl BinanceusCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), Value::Str("binanceus".to_string()));
         m.insert("name".to_string(), Value::Str("Binance US".to_string()));
-        m.insert("countries".to_string(), Value::List(vec![Value::Str("US".to_string())]));
+        m.insert("countries".to_string(), Value::from(vec![Value::Str("US".to_string())]));
         m.insert("certified".to_string(), Value::Bool(false));
         m.insert("urls".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -255,7 +255,7 @@ impl BinanceusCore {
         m.insert("defaultType".to_string(), Value::Str("spot".to_string()));
         m.insert("fetchMarkets".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("types".to_string(), Value::List(vec![Value::Str("spot".to_string())]));
+        m.insert("types".to_string(), Value::from(vec![Value::Str("spot".to_string())]));
     m
 }));
     m

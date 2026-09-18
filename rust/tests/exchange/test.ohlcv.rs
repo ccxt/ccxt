@@ -10,8 +10,8 @@ use crate::test_helpers::*;
 use super::*;
 
 pub fn testOHLCV(mut exchange: Value, mut skippedProperties: Value, mut method: Value, mut entry: Value, mut symbol: Value, mut now: Value) {
-    let mut format: Value = Value::List(vec![Value::Int(1638230400000), exchange.parse_number(Value::Str("0.123".to_string()), &[]), exchange.parse_number(Value::Str("0.125".to_string()), &[]), exchange.parse_number(Value::Str("0.121".to_string()), &[]), exchange.parse_number(Value::Str("0.122".to_string()), &[]), exchange.parse_number(Value::Str("123.456".to_string()), &[])]);
-    let mut emptyNotAllowedFor: Value = Value::List(vec![Value::Int(0), Value::Int(1), Value::Int(2), Value::Int(3), Value::Int(4), Value::Int(5)]);
+    let mut format: Value = Value::from(vec![Value::Int(1638230400000), exchange.parse_number(Value::Str("0.123".to_string()), &[]), exchange.parse_number(Value::Str("0.125".to_string()), &[]), exchange.parse_number(Value::Str("0.121".to_string()), &[]), exchange.parse_number(Value::Str("0.122".to_string()), &[]), exchange.parse_number(Value::Str("123.456".to_string()), &[])]);
+    let mut emptyNotAllowedFor: Value = Value::from(vec![Value::Int(0), Value::Int(1), Value::Int(2), Value::Int(3), Value::Int(4), Value::Int(5)]);
     crate::tests_support::shared::assert_structure(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), format.clone(), emptyNotAllowedFor.clone()]);
     crate::tests_support::shared::assert_timestamp_and_datetime(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), now.clone(), Value::Int(0).clone()]);
     let mut logText: Value = crate::tests_support::shared::log_template(exchange.clone(), method.clone(), entry.clone());

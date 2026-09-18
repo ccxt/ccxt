@@ -122,7 +122,7 @@ impl ZaifCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), Value::Str("zaif".to_string()));
         m.insert("name".to_string(), Value::Str("Zaif".to_string()));
-        m.insert("countries".to_string(), Value::List(vec![Value::Str("JP".to_string())]));
+        m.insert("countries".to_string(), Value::from(vec![Value::Str("JP".to_string())]));
         m.insert("rateLimit".to_string(), Value::Int(100));
         m.insert("version".to_string(), Value::Str("1".to_string()));
         m.insert("has".to_string(), Value::Map({
@@ -195,7 +195,7 @@ impl ZaifCore {
     m
 }));
         m.insert("www".to_string(), Value::Str("https://zaif.jp".to_string()));
-        m.insert("doc".to_string(), Value::List(vec![Value::Str("https://techbureau-api-document.readthedocs.io/ja/latest/index.html".to_string()), Value::Str("https://corp.zaif.jp/api-docs".to_string()), Value::Str("https://corp.zaif.jp/api-docs/api_links".to_string()), Value::Str("https://www.npmjs.com/package/zaif.jp".to_string()), Value::Str("https://github.com/you21979/node-zaif".to_string())]));
+        m.insert("doc".to_string(), Value::from(vec![Value::Str("https://techbureau-api-document.readthedocs.io/ja/latest/index.html".to_string()), Value::Str("https://corp.zaif.jp/api-docs".to_string()), Value::Str("https://corp.zaif.jp/api-docs/api_links".to_string()), Value::Str("https://www.npmjs.com/package/zaif.jp".to_string()), Value::Str("https://github.com/you21979/node-zaif".to_string())]));
         m.insert("fees".to_string(), Value::Str("https://zaif.jp/fee?lang=en".to_string()));
     m
 }));
@@ -900,7 +900,7 @@ impl ZaifCore {
     m
 })]);
             if (Value::Int(object_keys(&firstTrade).len() as i64).as_f64() == Some(0.0)) {
-                trades = Value::List(vec![]);
+                trades = Value::from(vec![]);
             }
         }
         return self.parse_trades(trades.clone(), &[market.clone(), since.clone(), limit.clone()]);

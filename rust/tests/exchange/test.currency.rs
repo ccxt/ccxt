@@ -20,7 +20,7 @@ pub fn testCurrency(mut exchange: Value, mut skippedProperties: Value, mut metho
         m
     });
     // todo: remove fee from empty
-    let mut emptyAllowedFor: Value = Value::List(vec![Value::Str("name".to_string()), Value::Str("fee".to_string())]);
+    let mut emptyAllowedFor: Value = Value::from(vec![Value::Str("name".to_string()), Value::Str("fee".to_string())]);
     // todo: info key needs to be added in base, when exchange does not have fetchCurrencies
     let mut isNative: Value = Value::Bool(is_true(&(get_value(&exchange, &Value::Str("has".to_string())).as_map().and_then(|__m| __m.get("fetchCurrencies")).cloned().unwrap_or(Value::Null) != Value::Null)) && (!is_equal(&get_value(&exchange, &Value::Str("has".to_string())).as_map().and_then(|__m| __m.get("fetchCurrencies")).cloned().unwrap_or(Value::Null), &Value::Bool(false))) && is_true(&(get_value(&exchange, &Value::Str("has".to_string())).as_map().and_then(|__m| __m.get("fetchCurrencies")).cloned().unwrap_or(Value::Null).as_str() != Some("emulated"))));
     let mut currencyType: Value = exchange.safe_string(entry.clone(), Value::Str("type".to_string()), &[]);
@@ -55,7 +55,7 @@ pub fn testCurrency(mut exchange: Value, mut skippedProperties: Value, mut metho
     m
 }));
         add_element_to_object(&mut format, &Value::Str("type".to_string()), Value::Str("crypto".to_string())); // crypto, fiat, leverage, other
-        crate::tests_support::shared::assert_in_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("type".to_string()).clone(), Value::List(vec![Value::Str("fiat".to_string()), Value::Str("crypto".to_string()), Value::Str("leveraged".to_string()), Value::Str("other".to_string()), Value::Null]).clone()]); // todo: remove undefined
+        crate::tests_support::shared::assert_in_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("type".to_string()).clone(), Value::from(vec![Value::Str("fiat".to_string()), Value::Str("crypto".to_string()), Value::Str("leveraged".to_string()), Value::Str("other".to_string()), Value::Null]).clone()]); // todo: remove undefined
         // only require "deposit" & "withdraw" values, when currency is not fiat, or when it's fiat, but not skipped
         if (currencyType.as_str() != Some("crypto")) && (in_op(&skippedProperties, &Value::Str("depositForNonCrypto".to_string()))) {
             append_to_array(&mut emptyAllowedFor, Value::Str("deposit".to_string()));

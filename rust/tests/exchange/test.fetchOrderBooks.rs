@@ -14,7 +14,7 @@ pub async fn testFetchOrderBooks(mut exchange: Value, mut skippedProperties: Val
     let mut symbols: Value = get_value(&exchange, &Value::Str("symbols".to_string()));
     assert!(ccxt::runtime::is_true(&((symbols != Value::Null))));
     let mut symbol: Value = symbols.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
-    let mut orderBooks: Value = crate::live_dispatch::dispatch(&mut exchange, "fetch_order_books", vec![Value::List(vec![symbol.clone()])]).await;
+    let mut orderBooks: Value = crate::live_dispatch::dispatch(&mut exchange, "fetch_order_books", vec![Value::from(vec![symbol.clone()])]).await;
     crate::tests_support::shared::assert_dictionary_response(exchange.clone(), &[method.clone(), orderBooks.clone()]);
     let mut orderBookKeys: Value = object_keys(&orderBooks);
     assert!(ccxt::runtime::is_true(&((Value::Int(orderBookKeys.len() as i64).as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN)))));

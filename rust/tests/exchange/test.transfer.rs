@@ -26,11 +26,11 @@ pub fn testTransfer(mut exchange: Value, mut skippedProperties: Value, mut metho
             m.insert("status".to_string(), Value::Str("ok".to_string()));
         m
     });
-    let mut emptyAllowedFor: Value = Value::List(vec![Value::Str("fromAccount".to_string()), Value::Str("toAccount".to_string())]);
+    let mut emptyAllowedFor: Value = Value::from(vec![Value::Str("fromAccount".to_string()), Value::Str("toAccount".to_string())]);
     crate::tests_support::shared::assert_structure(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), format.clone(), emptyAllowedFor.clone()]);
     crate::tests_support::shared::assert_timestamp_and_datetime(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), exchange.milliseconds().clone()]);
     crate::tests_support::shared::assert_currency_code(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), entry.as_map().and_then(|__m| __m.get("currency")).cloned().unwrap_or(Value::Null).clone(), requestedCode.clone()]);
     //
-    crate::tests_support::shared::assert_in_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("status".to_string()).clone(), Value::List(vec![Value::Str("ok".to_string()), Value::Str("pending".to_string()), Value::Str("failed".to_string())]).clone()]);
+    crate::tests_support::shared::assert_in_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("status".to_string()).clone(), Value::from(vec![Value::Str("ok".to_string()), Value::Str("pending".to_string()), Value::Str("failed".to_string())]).clone()]);
     crate::tests_support::shared::assert_greater_or_equal(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("amount".to_string()).clone(), Value::Str("0".to_string()).clone()]);
 }

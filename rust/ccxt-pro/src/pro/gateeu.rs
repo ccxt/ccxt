@@ -204,7 +204,7 @@ impl GateeuCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), Value::Str("gateeu".to_string()));
         m.insert("name".to_string(), Value::Str("Gate EU".to_string()));
-        m.insert("countries".to_string(), Value::List(vec![Value::Str("EU".to_string())]));
+        m.insert("countries".to_string(), Value::from(vec![Value::Str("EU".to_string())]));
         m.insert("certified".to_string(), Value::Bool(false));
         m.insert("urls".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();

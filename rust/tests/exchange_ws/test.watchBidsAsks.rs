@@ -11,8 +11,8 @@ use super::*;
 
 pub async fn testWatchBidsAsks(mut exchange: Value, mut skippedProperties: Value, mut symbol: Value) -> Value {
     let mut withoutSymbol: Value = testWatchBidsAsksHelper(exchange.clone(), skippedProperties.clone(), Value::Null, &[]).await;
-    let mut withSymbol: Value = testWatchBidsAsksHelper(exchange.clone(), skippedProperties.clone(), Value::List(vec![symbol.clone()]), &[]).await;
-    promise_all(&Value::List(vec![withSymbol.clone(), withoutSymbol.clone()])).await;
+    let mut withSymbol: Value = testWatchBidsAsksHelper(exchange.clone(), skippedProperties.clone(), Value::from(vec![symbol.clone()]), &[]).await;
+    promise_all(&Value::from(vec![withSymbol.clone(), withoutSymbol.clone()])).await;
 
     Value::Null
 }

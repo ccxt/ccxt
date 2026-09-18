@@ -195,7 +195,7 @@ impl BinanceusCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), Value::Str("binanceus".to_string()));
         m.insert("name".to_string(), Value::Str("Binance US".to_string()));
-        m.insert("countries".to_string(), Value::List(vec![Value::Str("US".to_string())]));
+        m.insert("countries".to_string(), Value::from(vec![Value::Str("US".to_string())]));
         m.insert("hostname".to_string(), Value::Str("binance.us".to_string()));
         m.insert("rateLimit".to_string(), Value::Int(50));
         m.insert("certified".to_string(), Value::Bool(false));
@@ -235,7 +235,7 @@ impl BinanceusCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("fetchMarkets".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("types".to_string(), Value::List(vec![Value::Str("spot".to_string())]));
+        m.insert("types".to_string(), Value::from(vec![Value::Str("spot".to_string())]));
     m
 }));
         m.insert("defaultType".to_string(), Value::Str("spot".to_string()));
@@ -353,7 +353,7 @@ impl BinanceusCore {
         m.insert("depth".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), Value::Int(1));
-        m.insert("byLimit".to_string(), Value::List(vec![Value::List(vec![Value::Int(100), Value::Int(1)]), Value::List(vec![Value::Int(500), Value::Int(5)]), Value::List(vec![Value::Int(1000), Value::Int(10)]), Value::List(vec![Value::Int(5000), Value::Int(50)])]));
+        m.insert("byLimit".to_string(), Value::from(vec![Value::from(vec![Value::Int(100), Value::Int(1)]), Value::from(vec![Value::Int(500), Value::Int(5)]), Value::from(vec![Value::Int(1000), Value::Int(10)]), Value::from(vec![Value::Int(5000), Value::Int(50)])]));
     m
 }));
         m.insert("klines".to_string(), Value::Map({

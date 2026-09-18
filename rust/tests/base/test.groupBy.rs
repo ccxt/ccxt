@@ -14,7 +14,7 @@ pub fn testGroupBy() {
             m.insert("id".to_string(), Value::Str("sampleexchange".to_string()));
         m
     }));
-    let mut sampleArray: Value = Value::List(vec![Value::Map({
+    let mut sampleArray: Value = Value::from(vec![Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("foo".to_string(), Value::Str("a".to_string()));
     m
@@ -42,12 +42,12 @@ pub fn testGroupBy() {
     let mut currentValue: Value = exchange.group_by(sampleArray.clone(), Value::Str("foo".to_string()), &[]);
     let mut storedValue: Value = Value::Map({
         let mut m = indexmap::IndexMap::new();
-            m.insert("a".to_string(), Value::List(vec![Value::Map({
+            m.insert("a".to_string(), Value::from(vec![Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("foo".to_string(), Value::Str("a".to_string()));
     m
 })]));
-            m.insert("b".to_string(), Value::List(vec![Value::Map({
+            m.insert("b".to_string(), Value::from(vec![Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("foo".to_string(), Value::Str("b".to_string()));
     m
@@ -56,7 +56,7 @@ pub fn testGroupBy() {
         m.insert("foo".to_string(), Value::Str("b".to_string()));
     m
 })]));
-            m.insert("c".to_string(), Value::List(vec![Value::Map({
+            m.insert("c".to_string(), Value::from(vec![Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("foo".to_string(), Value::Str("c".to_string()));
     m

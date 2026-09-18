@@ -125,7 +125,7 @@ impl BtcboxCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), Value::Str("btcbox".to_string()));
         m.insert("name".to_string(), Value::Str("BtcBox".to_string()));
-        m.insert("countries".to_string(), Value::List(vec![Value::Str("JP".to_string())]));
+        m.insert("countries".to_string(), Value::from(vec![Value::Str("JP".to_string())]));
         m.insert("rateLimit".to_string(), Value::Int(1000));
         m.insert("version".to_string(), Value::Str("v1".to_string()));
         m.insert("pro".to_string(), Value::Bool(false));
@@ -449,7 +449,7 @@ impl BtcboxCore {
 }));
         let mut promise1: Value = self.public_get_tickers(&[]).await;
         let mut promise2: Value = self.fetch_web_endpoint(Value::Str("fetchMarkets".to_string()), Value::Str("webApiGetAjaxCoinCoinInfo".to_string()), Value::Bool(true), &[]).await;
-        let mut response1response2Variable = promise_all(&Value::List(vec![promise1.clone(), promise2.clone()])).await;
+        let mut response1response2Variable = promise_all(&Value::from(vec![promise1.clone(), promise2.clone()])).await;
         let mut response1: Value = response1response2Variable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut response2: Value = response1response2Variable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         //
@@ -458,7 +458,7 @@ impl BtcboxCore {
     m
 })]);
         let mut marketIds: Value = object_keys(&response1);
-        let mut markets: Value = Value::List(vec![]);
+        let mut markets: Value = Value::from(vec![]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_450: bool = true;

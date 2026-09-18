@@ -20,7 +20,7 @@ pub async fn testAfterConstruct(mut exchange: Value, mut skippedProperties: Valu
 pub fn testOptionsNetworks(mut exchange: Value, mut skippedProperties: Value) {
     if !(in_op(&skippedProperties, &Value::Str("networks".to_string()))) {
         // only allow these whitelisted unified networkCodes to be repeated
-        let mut allowedUnifiedAliases: Value = Value::List(vec![Value::Str("BTC".to_string()), Value::Str("ERC20".to_string()), Value::Str("ETH".to_string()), Value::Str("TRX".to_string()), Value::Str("TRC20".to_string()), Value::Str("BRC20".to_string()), Value::Str("CRONOS".to_string()), Value::Str("CRC20".to_string()), Value::Str("CRO".to_string()), Value::Str("BEP20".to_string()), Value::Str("BSC".to_string()), Value::Str("HECO".to_string()), Value::Str("HRC20".to_string()), Value::Str("HT".to_string()), Value::Str("OP".to_string()), Value::Str("OPTIMISM".to_string()), Value::Str("SOL".to_string()), Value::Str("POLYGON".to_string()), Value::Str("MATIC".to_string()), Value::Str("CARDANO".to_string()), Value::Str("ADA".to_string()), Value::Str("ATOM".to_string()), Value::Str("COSMOS".to_string())]);
+        let mut allowedUnifiedAliases: Value = Value::from(vec![Value::Str("BTC".to_string()), Value::Str("ERC20".to_string()), Value::Str("ETH".to_string()), Value::Str("TRX".to_string()), Value::Str("TRC20".to_string()), Value::Str("BRC20".to_string()), Value::Str("CRONOS".to_string()), Value::Str("CRC20".to_string()), Value::Str("CRO".to_string()), Value::Str("BEP20".to_string()), Value::Str("BSC".to_string()), Value::Str("HECO".to_string()), Value::Str("HRC20".to_string()), Value::Str("HT".to_string()), Value::Str("OP".to_string()), Value::Str("OPTIMISM".to_string()), Value::Str("SOL".to_string()), Value::Str("POLYGON".to_string()), Value::Str("MATIC".to_string()), Value::Str("CARDANO".to_string()), Value::Str("ADA".to_string()), Value::Str("ATOM".to_string()), Value::Str("COSMOS".to_string())]);
         // safeDict, not exchange.options['networks']: a direct missing-key access throws
         // KeyError in Python (e.g. an exchange whose options has no 'networks', like the
         // hyperliquid prediction market)
@@ -39,7 +39,7 @@ pub fn testOptionsNetworks(mut exchange: Value, mut skippedProperties: Value) {
         //
         let mut networkCodes: Value = object_keys(&get_value(&exchange, &Value::Str("options".to_string())).as_map().and_then(|__m| __m.get("networks")).cloned().unwrap_or(Value::Null));
         // 3) ensure that the same network-id is not assigned to multiple networkCodes
-        let mut collectedNetworkIds: Value = Value::List(vec![]);
+        let mut collectedNetworkIds: Value = Value::from(vec![]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1441: bool = true;
@@ -53,7 +53,7 @@ pub fn testOptionsNetworks(mut exchange: Value, mut skippedProperties: Value) {
         }
         }
         // 4) ensure that there are no same networkCode with different case (uppercase/lowercase)
-        let mut collectedNetworkCodes: Value = Value::List(vec![]);
+        let mut collectedNetworkCodes: Value = Value::from(vec![]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1442: bool = true;

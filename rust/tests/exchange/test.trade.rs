@@ -36,7 +36,7 @@ pub fn testTrade(mut exchange: Value, mut skippedProperties: Value, mut method: 
             m.insert("price".to_string(), exchange.parse_number(Value::Str("0.06917684".to_string()), &[]));
             m.insert("amount".to_string(), exchange.parse_number(Value::Str("1.5".to_string()), &[]));
             m.insert("cost".to_string(), exchange.parse_number(Value::Str("0.10376526".to_string()), &[]));
-            m.insert("fees".to_string(), Value::List(vec![]));
+            m.insert("fees".to_string(), Value::from(vec![]));
             m.insert("fee".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), exchange.parse_number(Value::Str("0.001".to_string()), &[]));
@@ -47,18 +47,18 @@ pub fn testTrade(mut exchange: Value, mut skippedProperties: Value, mut method: 
     });
     // todo: add takeOrMaker as mandatory (atm, many exchanges fail)
     // removed side because some public endpoints return trades without side
-    let mut emptyAllowedFor: Value = Value::List(vec![Value::Str("fees".to_string()), Value::Str("fee".to_string()), Value::Str("symbol".to_string()), Value::Str("order".to_string()), Value::Str("id".to_string()), Value::Str("takerOrMaker".to_string())]);
+    let mut emptyAllowedFor: Value = Value::from(vec![Value::Str("fees".to_string()), Value::Str("fee".to_string()), Value::Str("symbol".to_string()), Value::Str("order".to_string()), Value::Str("id".to_string()), Value::Str("takerOrMaker".to_string())]);
     crate::tests_support::shared::assert_structure(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), format.clone(), emptyAllowedFor.clone()]);
     crate::tests_support::shared::assert_timestamp_and_datetime(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), now.clone()]);
     crate::tests_support::shared::assert_symbol(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("symbol".to_string()).clone(), symbol.clone()]);
     //
-    crate::tests_support::shared::assert_in_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("side".to_string()).clone(), Value::List(vec![Value::Str("buy".to_string()), Value::Str("sell".to_string())]).clone()]);
+    crate::tests_support::shared::assert_in_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("side".to_string()).clone(), Value::from(vec![Value::Str("buy".to_string()), Value::Str("sell".to_string())]).clone()]);
     if is_true(&isPublicTrade) {
         // for public trades (fetchTrades & watchTrades), it must be either 'taker' or undefined
-        crate::tests_support::shared::assert_in_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("takerOrMaker".to_string()).clone(), Value::List(vec![Value::Str("taker".to_string()), Value::Null]).clone()]);
+        crate::tests_support::shared::assert_in_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("takerOrMaker".to_string()).clone(), Value::from(vec![Value::Str("taker".to_string()), Value::Null]).clone()]);
     }  else {
         // for private trades (fetchMyTrades & watchMyTrades), it can be any
-        crate::tests_support::shared::assert_in_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("takerOrMaker".to_string()).clone(), Value::List(vec![Value::Str("taker".to_string()), Value::Str("maker".to_string()), Value::Null]).clone()]);
+        crate::tests_support::shared::assert_in_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("takerOrMaker".to_string()).clone(), Value::from(vec![Value::Str("taker".to_string()), Value::Str("maker".to_string()), Value::Null]).clone()]);
     }
     crate::tests_support::shared::assert_fee_structure(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("fee".to_string()).clone()]);
     if !(in_op(&skippedProperties, &Value::Str("fees".to_string()))) {

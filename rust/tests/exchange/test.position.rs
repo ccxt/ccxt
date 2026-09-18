@@ -63,12 +63,12 @@ pub fn testPosition(mut exchange: Value, mut skippedProperties: Value, mut metho
             m.insert("percentage".to_string(), exchange.parse_number(Value::Str("1.234".to_string()), &[]));
         m
     });
-    let mut emptyotAllowedFor: Value = Value::List(vec![Value::Str("liquidationPrice".to_string()), Value::Str("initialMargin".to_string()), Value::Str("initialMarginPercentage".to_string()), Value::Str("maintenanceMargin".to_string()), Value::Str("maintenanceMarginPercentage".to_string()), Value::Str("marginRatio".to_string())]);
+    let mut emptyotAllowedFor: Value = Value::from(vec![Value::Str("liquidationPrice".to_string()), Value::Str("initialMargin".to_string()), Value::Str("initialMarginPercentage".to_string()), Value::Str("maintenanceMargin".to_string()), Value::Str("maintenanceMarginPercentage".to_string()), Value::Str("marginRatio".to_string())]);
     crate::tests_support::shared::assert_structure(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), format.clone(), emptyotAllowedFor.clone()]);
     crate::tests_support::shared::assert_timestamp_and_datetime(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), now.clone()]);
     crate::tests_support::shared::assert_symbol(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("symbol".to_string()).clone(), symbol.clone()]);
-    crate::tests_support::shared::assert_in_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("side".to_string()).clone(), Value::List(vec![Value::Str("long".to_string()), Value::Str("short".to_string())]).clone()]);
-    crate::tests_support::shared::assert_in_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("marginMode".to_string()).clone(), Value::List(vec![Value::Str("cross".to_string()), Value::Str("isolated".to_string())]).clone()]);
+    crate::tests_support::shared::assert_in_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("side".to_string()).clone(), Value::from(vec![Value::Str("long".to_string()), Value::Str("short".to_string())]).clone()]);
+    crate::tests_support::shared::assert_in_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("marginMode".to_string()).clone(), Value::from(vec![Value::Str("cross".to_string()), Value::Str("isolated".to_string())]).clone()]);
     crate::tests_support::shared::assert_greater(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("leverage".to_string()).clone(), Value::Str("0".to_string()).clone()]);
     crate::tests_support::shared::assert_less_or_equal(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("leverage".to_string()).clone(), Value::Str("200".to_string()).clone()]);
     crate::tests_support::shared::assert_greater(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("initialMargin".to_string()).clone(), Value::Str("0".to_string()).clone()]);

@@ -195,7 +195,7 @@ impl FmfwioCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), Value::Str("fmfwio".to_string()));
         m.insert("name".to_string(), Value::Str("FMFW.io".to_string()));
-        m.insert("countries".to_string(), Value::List(vec![Value::Str("KN".to_string())]));
+        m.insert("countries".to_string(), Value::from(vec![Value::Str("KN".to_string())]));
         m.insert("urls".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("logo".to_string(), Value::Str("https://user-images.githubusercontent.com/1294454/159177712-b685b40c-5269-4cea-ac83-f7894c49525d.jpg".to_string()));

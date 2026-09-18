@@ -199,7 +199,7 @@ impl BinancecoinmCore {
         m.insert("urls".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("logo".to_string(), Value::Str("https://github.com/user-attachments/assets/387cfc4e-5f33-48cd-8f5c-cd4854dabf0c".to_string()));
-        m.insert("doc".to_string(), Value::List(vec![Value::Str("https://binance-docs.github.io/apidocs/delivery/en/".to_string()), Value::Str("https://binance-docs.github.io/apidocs/spot/en".to_string()), Value::Str("https://developers.binance.com/en".to_string())]));
+        m.insert("doc".to_string(), Value::from(vec![Value::Str("https://binance-docs.github.io/apidocs/delivery/en/".to_string()), Value::Str("https://binance-docs.github.io/apidocs/spot/en".to_string()), Value::Str("https://developers.binance.com/en".to_string())]));
     m
 }));
         m.insert("has".to_string(), Value::Map({
@@ -217,7 +217,7 @@ impl BinancecoinmCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("fetchMarkets".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("types".to_string(), Value::List(vec![Value::Str("inverse".to_string())]));
+        m.insert("types".to_string(), Value::from(vec![Value::Str("inverse".to_string())]));
     m
 }));
         m.insert("defaultSubType".to_string(), Value::Str("inverse".to_string()));

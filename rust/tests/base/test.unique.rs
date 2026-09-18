@@ -16,8 +16,8 @@ pub fn testUnique() {
     }));
     // in different langs, the order (sort) is not guaranteed, so we sort the results before comparing them
     // todo: `unique` is primarily meant for strings atm, add numeric support
-    crate::tests_support::shared::assert_deep_equal(&exchange.clone_self(), &[Value::Null.clone(), Value::Str("testUnique".to_string()).clone(), exchange.unique(Value::List(vec![])).clone(), Value::List(vec![]).clone()]);
+    crate::tests_support::shared::assert_deep_equal(&exchange.clone_self(), &[Value::Null.clone(), Value::Str("testUnique".to_string()).clone(), exchange.unique(Value::from(vec![])).clone(), Value::from(vec![]).clone()]);
     // testSharedMethods.assertDeepEqual (exchange, undefined, 'testUnique',  exchange.sort (exchange.unique ([ 1, 2, 3 ])), [ 1, 2, 3 ]);
     // testSharedMethods.assertDeepEqual (exchange, undefined, 'testUnique',  exchange.sort (exchange.unique ([ 1, 2, 3, 4, 1 ])), [ 1, 2, 3, 4 ]);
-    crate::tests_support::shared::assert_deep_equal(&exchange.clone_self(), &[Value::Null.clone(), Value::Str("testUnique".to_string()).clone(), exchange.sort(exchange.unique(Value::List(vec![Value::Str("a".to_string()), Value::Str("a".to_string()), Value::Str("b".to_string()), Value::Str("c".to_string()), Value::Str("a".to_string()), Value::Str("c".to_string())])), &[]).clone(), Value::List(vec![Value::Str("a".to_string()), Value::Str("b".to_string()), Value::Str("c".to_string())]).clone()]);
+    crate::tests_support::shared::assert_deep_equal(&exchange.clone_self(), &[Value::Null.clone(), Value::Str("testUnique".to_string()).clone(), exchange.sort(exchange.unique(Value::from(vec![Value::Str("a".to_string()), Value::Str("a".to_string()), Value::Str("b".to_string()), Value::Str("c".to_string()), Value::Str("a".to_string()), Value::Str("c".to_string())])), &[]).clone(), Value::from(vec![Value::Str("a".to_string()), Value::Str("b".to_string()), Value::Str("c".to_string())]).clone()]);
 }

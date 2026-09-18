@@ -14,8 +14,8 @@ fn equals(a: Value, b: Value) -> Value {
 pub fn testWsOrderBook() {
     let mut orderBookInput: Value = Value::Map({
         let mut m = indexmap::IndexMap::new();
-            m.insert("bids".to_string(), Value::List(vec![Value::List(vec![Value::Int(10), Value::Int(10)]), Value::List(vec![Value::Float(9.1), Value::Int(11)]), Value::List(vec![Value::Float(8.2), Value::Int(12)]), Value::List(vec![Value::Float(7.3), Value::Int(13)]), Value::List(vec![Value::Float(6.4), Value::Int(14)]), Value::List(vec![Value::Float(4.5), Value::Int(13)]), Value::List(vec![Value::Float(4.5), Value::Int(0)])]));
-            m.insert("asks".to_string(), Value::List(vec![Value::List(vec![Value::Float(16.6), Value::Int(10)]), Value::List(vec![Value::Float(15.5), Value::Int(11)]), Value::List(vec![Value::Float(14.4), Value::Int(12)]), Value::List(vec![Value::Float(13.3), Value::Int(13)]), Value::List(vec![Value::Float(12.2), Value::Int(14)]), Value::List(vec![Value::Float(11.1), Value::Int(13)])]));
+            m.insert("bids".to_string(), Value::from(vec![Value::from(vec![Value::Int(10), Value::Int(10)]), Value::from(vec![Value::Float(9.1), Value::Int(11)]), Value::from(vec![Value::Float(8.2), Value::Int(12)]), Value::from(vec![Value::Float(7.3), Value::Int(13)]), Value::from(vec![Value::Float(6.4), Value::Int(14)]), Value::from(vec![Value::Float(4.5), Value::Int(13)]), Value::from(vec![Value::Float(4.5), Value::Int(0)])]));
+            m.insert("asks".to_string(), Value::from(vec![Value::from(vec![Value::Float(16.6), Value::Int(10)]), Value::from(vec![Value::Float(15.5), Value::Int(11)]), Value::from(vec![Value::Float(14.4), Value::Int(12)]), Value::from(vec![Value::Float(13.3), Value::Int(13)]), Value::from(vec![Value::Float(12.2), Value::Int(14)]), Value::from(vec![Value::Float(11.1), Value::Int(13)])]));
             m.insert("timestamp".to_string(), Value::Int(1574827239000));
             m.insert("nonce".to_string(), Value::Int(69));
             m.insert("symbol".to_string(), Value::Null);
@@ -23,8 +23,8 @@ pub fn testWsOrderBook() {
     });
     let mut orderBookTarget: Value = Value::Map({
         let mut m = indexmap::IndexMap::new();
-            m.insert("bids".to_string(), Value::List(vec![Value::List(vec![Value::Int(10), Value::Int(10)]), Value::List(vec![Value::Float(9.1), Value::Int(11)]), Value::List(vec![Value::Float(8.2), Value::Int(12)]), Value::List(vec![Value::Float(7.3), Value::Int(13)]), Value::List(vec![Value::Float(6.4), Value::Int(14)])]));
-            m.insert("asks".to_string(), Value::List(vec![Value::List(vec![Value::Float(11.1), Value::Int(13)]), Value::List(vec![Value::Float(12.2), Value::Int(14)]), Value::List(vec![Value::Float(13.3), Value::Int(13)]), Value::List(vec![Value::Float(14.4), Value::Int(12)]), Value::List(vec![Value::Float(15.5), Value::Int(11)]), Value::List(vec![Value::Float(16.6), Value::Int(10)])]));
+            m.insert("bids".to_string(), Value::from(vec![Value::from(vec![Value::Int(10), Value::Int(10)]), Value::from(vec![Value::Float(9.1), Value::Int(11)]), Value::from(vec![Value::Float(8.2), Value::Int(12)]), Value::from(vec![Value::Float(7.3), Value::Int(13)]), Value::from(vec![Value::Float(6.4), Value::Int(14)])]));
+            m.insert("asks".to_string(), Value::from(vec![Value::from(vec![Value::Float(11.1), Value::Int(13)]), Value::from(vec![Value::Float(12.2), Value::Int(14)]), Value::from(vec![Value::Float(13.3), Value::Int(13)]), Value::from(vec![Value::Float(14.4), Value::Int(12)]), Value::from(vec![Value::Float(15.5), Value::Int(11)]), Value::from(vec![Value::Float(16.6), Value::Int(10)])]));
             m.insert("timestamp".to_string(), Value::Int(1574827239000));
             m.insert("datetime".to_string(), Value::Str("2019-11-27T04:00:39.000Z".to_string()));
             m.insert("nonce".to_string(), Value::Int(69));
@@ -33,8 +33,8 @@ pub fn testWsOrderBook() {
     });
     let mut storeBid: Value = Value::Map({
         let mut m = indexmap::IndexMap::new();
-            m.insert("bids".to_string(), Value::List(vec![Value::List(vec![Value::Int(10), Value::Int(10)]), Value::List(vec![Value::Float(9.1), Value::Int(11)]), Value::List(vec![Value::Float(8.2), Value::Int(12)]), Value::List(vec![Value::Float(7.3), Value::Int(13)]), Value::List(vec![Value::Float(6.4), Value::Int(14)]), Value::List(vec![Value::Int(3), Value::Int(4)])]));
-            m.insert("asks".to_string(), Value::List(vec![Value::List(vec![Value::Float(11.1), Value::Int(13)]), Value::List(vec![Value::Float(12.2), Value::Int(14)]), Value::List(vec![Value::Float(13.3), Value::Int(13)]), Value::List(vec![Value::Float(14.4), Value::Int(12)]), Value::List(vec![Value::Float(15.5), Value::Int(11)]), Value::List(vec![Value::Float(16.6), Value::Int(10)])]));
+            m.insert("bids".to_string(), Value::from(vec![Value::from(vec![Value::Int(10), Value::Int(10)]), Value::from(vec![Value::Float(9.1), Value::Int(11)]), Value::from(vec![Value::Float(8.2), Value::Int(12)]), Value::from(vec![Value::Float(7.3), Value::Int(13)]), Value::from(vec![Value::Float(6.4), Value::Int(14)]), Value::from(vec![Value::Int(3), Value::Int(4)])]));
+            m.insert("asks".to_string(), Value::from(vec![Value::from(vec![Value::Float(11.1), Value::Int(13)]), Value::from(vec![Value::Float(12.2), Value::Int(14)]), Value::from(vec![Value::Float(13.3), Value::Int(13)]), Value::from(vec![Value::Float(14.4), Value::Int(12)]), Value::from(vec![Value::Float(15.5), Value::Int(11)]), Value::from(vec![Value::Float(16.6), Value::Int(10)])]));
             m.insert("timestamp".to_string(), Value::Int(1574827239000));
             m.insert("datetime".to_string(), Value::Str("2019-11-27T04:00:39.000Z".to_string()));
             m.insert("nonce".to_string(), Value::Int(69));
@@ -43,8 +43,8 @@ pub fn testWsOrderBook() {
     });
     let mut limitedOrderBookTarget: Value = Value::Map({
         let mut m = indexmap::IndexMap::new();
-            m.insert("bids".to_string(), Value::List(vec![Value::List(vec![Value::Int(10), Value::Int(10)]), Value::List(vec![Value::Float(9.1), Value::Int(11)]), Value::List(vec![Value::Float(8.2), Value::Int(12)]), Value::List(vec![Value::Float(7.3), Value::Int(13)]), Value::List(vec![Value::Float(6.4), Value::Int(14)])]));
-            m.insert("asks".to_string(), Value::List(vec![Value::List(vec![Value::Float(11.1), Value::Int(13)]), Value::List(vec![Value::Float(12.2), Value::Int(14)]), Value::List(vec![Value::Float(13.3), Value::Int(13)]), Value::List(vec![Value::Float(14.4), Value::Int(12)]), Value::List(vec![Value::Float(15.5), Value::Int(11)])]));
+            m.insert("bids".to_string(), Value::from(vec![Value::from(vec![Value::Int(10), Value::Int(10)]), Value::from(vec![Value::Float(9.1), Value::Int(11)]), Value::from(vec![Value::Float(8.2), Value::Int(12)]), Value::from(vec![Value::Float(7.3), Value::Int(13)]), Value::from(vec![Value::Float(6.4), Value::Int(14)])]));
+            m.insert("asks".to_string(), Value::from(vec![Value::from(vec![Value::Float(11.1), Value::Int(13)]), Value::from(vec![Value::Float(12.2), Value::Int(14)]), Value::from(vec![Value::Float(13.3), Value::Int(13)]), Value::from(vec![Value::Float(14.4), Value::Int(12)]), Value::from(vec![Value::Float(15.5), Value::Int(11)])]));
             m.insert("timestamp".to_string(), Value::Int(1574827239000));
             m.insert("datetime".to_string(), Value::Str("2019-11-27T04:00:39.000Z".to_string()));
             m.insert("nonce".to_string(), Value::Int(69));
@@ -53,8 +53,8 @@ pub fn testWsOrderBook() {
     });
     let mut limitedDeletedOrderBookTarget: Value = Value::Map({
         let mut m = indexmap::IndexMap::new();
-            m.insert("bids".to_string(), Value::List(vec![Value::List(vec![Value::Int(10), Value::Int(10)]), Value::List(vec![Value::Float(9.1), Value::Int(11)]), Value::List(vec![Value::Float(8.2), Value::Int(12)]), Value::List(vec![Value::Float(7.3), Value::Int(13)]), Value::List(vec![Value::Float(6.4), Value::Int(14)])]));
-            m.insert("asks".to_string(), Value::List(vec![Value::List(vec![Value::Float(11.1), Value::Int(13)]), Value::List(vec![Value::Float(12.2), Value::Int(14)]), Value::List(vec![Value::Float(13.3), Value::Int(13)]), Value::List(vec![Value::Float(14.4), Value::Int(12)])]));
+            m.insert("bids".to_string(), Value::from(vec![Value::from(vec![Value::Int(10), Value::Int(10)]), Value::from(vec![Value::Float(9.1), Value::Int(11)]), Value::from(vec![Value::Float(8.2), Value::Int(12)]), Value::from(vec![Value::Float(7.3), Value::Int(13)]), Value::from(vec![Value::Float(6.4), Value::Int(14)])]));
+            m.insert("asks".to_string(), Value::from(vec![Value::from(vec![Value::Float(11.1), Value::Int(13)]), Value::from(vec![Value::Float(12.2), Value::Int(14)]), Value::from(vec![Value::Float(13.3), Value::Int(13)]), Value::from(vec![Value::Float(14.4), Value::Int(12)])]));
             m.insert("timestamp".to_string(), Value::Int(1574827239000));
             m.insert("datetime".to_string(), Value::Str("2019-11-27T04:00:39.000Z".to_string()));
             m.insert("nonce".to_string(), Value::Int(69));
@@ -63,8 +63,8 @@ pub fn testWsOrderBook() {
     });
     let mut indexedOrderBookInput: Value = Value::Map({
         let mut m = indexmap::IndexMap::new();
-            m.insert("bids".to_string(), Value::List(vec![Value::List(vec![Value::Int(10), Value::Int(10), Value::Str("1234".to_string())]), Value::List(vec![Value::Float(9.1), Value::Int(11), Value::Str("1235".to_string())]), Value::List(vec![Value::Float(8.2), Value::Int(12), Value::Str("1236".to_string())]), Value::List(vec![Value::Float(7.3), Value::Int(13), Value::Str("1237".to_string())]), Value::List(vec![Value::Float(6.4), Value::Int(14), Value::Str("1238".to_string())]), Value::List(vec![Value::Float(4.5), Value::Int(13), Value::Str("1239".to_string())])]));
-            m.insert("asks".to_string(), Value::List(vec![Value::List(vec![Value::Float(16.6), Value::Int(10), Value::Str("1240".to_string())]), Value::List(vec![Value::Float(15.5), Value::Int(11), Value::Str("1241".to_string())]), Value::List(vec![Value::Float(14.4), Value::Int(12), Value::Str("1242".to_string())]), Value::List(vec![Value::Float(13.3), Value::Int(13), Value::Str("1243".to_string())]), Value::List(vec![Value::Float(12.2), Value::Int(14), Value::Str("1244".to_string())]), Value::List(vec![Value::Float(11.1), Value::Int(13), Value::Str("1244".to_string())])]));
+            m.insert("bids".to_string(), Value::from(vec![Value::from(vec![Value::Int(10), Value::Int(10), Value::Str("1234".to_string())]), Value::from(vec![Value::Float(9.1), Value::Int(11), Value::Str("1235".to_string())]), Value::from(vec![Value::Float(8.2), Value::Int(12), Value::Str("1236".to_string())]), Value::from(vec![Value::Float(7.3), Value::Int(13), Value::Str("1237".to_string())]), Value::from(vec![Value::Float(6.4), Value::Int(14), Value::Str("1238".to_string())]), Value::from(vec![Value::Float(4.5), Value::Int(13), Value::Str("1239".to_string())])]));
+            m.insert("asks".to_string(), Value::from(vec![Value::from(vec![Value::Float(16.6), Value::Int(10), Value::Str("1240".to_string())]), Value::from(vec![Value::Float(15.5), Value::Int(11), Value::Str("1241".to_string())]), Value::from(vec![Value::Float(14.4), Value::Int(12), Value::Str("1242".to_string())]), Value::from(vec![Value::Float(13.3), Value::Int(13), Value::Str("1243".to_string())]), Value::from(vec![Value::Float(12.2), Value::Int(14), Value::Str("1244".to_string())]), Value::from(vec![Value::Float(11.1), Value::Int(13), Value::Str("1244".to_string())])]));
             m.insert("timestamp".to_string(), Value::Int(1574827239000));
             m.insert("nonce".to_string(), Value::Int(69));
             m.insert("symbol".to_string(), Value::Null);
@@ -72,8 +72,8 @@ pub fn testWsOrderBook() {
     });
     let mut indexedOrderBookTarget: Value = Value::Map({
         let mut m = indexmap::IndexMap::new();
-            m.insert("bids".to_string(), Value::List(vec![Value::List(vec![Value::Int(10), Value::Int(10), Value::Str("1234".to_string())]), Value::List(vec![Value::Float(9.1), Value::Int(11), Value::Str("1235".to_string())]), Value::List(vec![Value::Float(8.2), Value::Int(12), Value::Str("1236".to_string())]), Value::List(vec![Value::Float(7.3), Value::Int(13), Value::Str("1237".to_string())]), Value::List(vec![Value::Float(6.4), Value::Int(14), Value::Str("1238".to_string())]), Value::List(vec![Value::Float(4.5), Value::Int(13), Value::Str("1239".to_string())])]));
-            m.insert("asks".to_string(), Value::List(vec![Value::List(vec![Value::Float(11.1), Value::Int(13), Value::Str("1244".to_string())]), Value::List(vec![Value::Float(13.3), Value::Int(13), Value::Str("1243".to_string())]), Value::List(vec![Value::Float(14.4), Value::Int(12), Value::Str("1242".to_string())]), Value::List(vec![Value::Float(15.5), Value::Int(11), Value::Str("1241".to_string())]), Value::List(vec![Value::Float(16.6), Value::Int(10), Value::Str("1240".to_string())])]));
+            m.insert("bids".to_string(), Value::from(vec![Value::from(vec![Value::Int(10), Value::Int(10), Value::Str("1234".to_string())]), Value::from(vec![Value::Float(9.1), Value::Int(11), Value::Str("1235".to_string())]), Value::from(vec![Value::Float(8.2), Value::Int(12), Value::Str("1236".to_string())]), Value::from(vec![Value::Float(7.3), Value::Int(13), Value::Str("1237".to_string())]), Value::from(vec![Value::Float(6.4), Value::Int(14), Value::Str("1238".to_string())]), Value::from(vec![Value::Float(4.5), Value::Int(13), Value::Str("1239".to_string())])]));
+            m.insert("asks".to_string(), Value::from(vec![Value::from(vec![Value::Float(11.1), Value::Int(13), Value::Str("1244".to_string())]), Value::from(vec![Value::Float(13.3), Value::Int(13), Value::Str("1243".to_string())]), Value::from(vec![Value::Float(14.4), Value::Int(12), Value::Str("1242".to_string())]), Value::from(vec![Value::Float(15.5), Value::Int(11), Value::Str("1241".to_string())]), Value::from(vec![Value::Float(16.6), Value::Int(10), Value::Str("1240".to_string())])]));
             m.insert("timestamp".to_string(), Value::Int(1574827239000));
             m.insert("datetime".to_string(), Value::Str("2019-11-27T04:00:39.000Z".to_string()));
             m.insert("nonce".to_string(), Value::Int(69));
@@ -82,8 +82,8 @@ pub fn testWsOrderBook() {
     });
     let mut limitedIndexedOrderBookTarget: Value = Value::Map({
         let mut m = indexmap::IndexMap::new();
-            m.insert("bids".to_string(), Value::List(vec![Value::List(vec![Value::Int(10), Value::Int(10), Value::Str("1234".to_string())]), Value::List(vec![Value::Float(9.1), Value::Int(11), Value::Str("1235".to_string())]), Value::List(vec![Value::Float(8.2), Value::Int(12), Value::Str("1236".to_string())]), Value::List(vec![Value::Float(7.3), Value::Int(13), Value::Str("1237".to_string())]), Value::List(vec![Value::Float(6.4), Value::Int(14), Value::Str("1238".to_string())])]));
-            m.insert("asks".to_string(), Value::List(vec![Value::List(vec![Value::Float(11.1), Value::Int(13), Value::Str("1244".to_string())]), Value::List(vec![Value::Float(13.3), Value::Int(13), Value::Str("1243".to_string())]), Value::List(vec![Value::Float(14.4), Value::Int(12), Value::Str("1242".to_string())]), Value::List(vec![Value::Float(15.5), Value::Int(11), Value::Str("1241".to_string())]), Value::List(vec![Value::Float(16.6), Value::Int(10), Value::Str("1240".to_string())])]));
+            m.insert("bids".to_string(), Value::from(vec![Value::from(vec![Value::Int(10), Value::Int(10), Value::Str("1234".to_string())]), Value::from(vec![Value::Float(9.1), Value::Int(11), Value::Str("1235".to_string())]), Value::from(vec![Value::Float(8.2), Value::Int(12), Value::Str("1236".to_string())]), Value::from(vec![Value::Float(7.3), Value::Int(13), Value::Str("1237".to_string())]), Value::from(vec![Value::Float(6.4), Value::Int(14), Value::Str("1238".to_string())])]));
+            m.insert("asks".to_string(), Value::from(vec![Value::from(vec![Value::Float(11.1), Value::Int(13), Value::Str("1244".to_string())]), Value::from(vec![Value::Float(13.3), Value::Int(13), Value::Str("1243".to_string())]), Value::from(vec![Value::Float(14.4), Value::Int(12), Value::Str("1242".to_string())]), Value::from(vec![Value::Float(15.5), Value::Int(11), Value::Str("1241".to_string())]), Value::from(vec![Value::Float(16.6), Value::Int(10), Value::Str("1240".to_string())])]));
             m.insert("timestamp".to_string(), Value::Int(1574827239000));
             m.insert("datetime".to_string(), Value::Str("2019-11-27T04:00:39.000Z".to_string()));
             m.insert("nonce".to_string(), Value::Int(69));
@@ -132,8 +132,8 @@ pub fn testWsOrderBook() {
     // }
     let mut overwrite1234: Value = Value::Map({
         let mut m = indexmap::IndexMap::new();
-            m.insert("bids".to_string(), Value::List(vec![Value::List(vec![Value::Float(9.1), Value::Int(11), Value::Str("1235".to_string())]), Value::List(vec![Value::Int(9), Value::Int(3), Value::Str("1231".to_string())]), Value::List(vec![Value::Int(9), Value::Int(1), Value::Str("1232".to_string())]), Value::List(vec![Value::Float(8.2), Value::Int(12), Value::Str("1236".to_string())]), Value::List(vec![Value::Float(7.3), Value::Int(13), Value::Str("1237".to_string())]), Value::List(vec![Value::Float(6.4), Value::Int(14), Value::Str("1238".to_string())]), Value::List(vec![Value::Float(4.5), Value::Int(13), Value::Str("1239".to_string())]), Value::List(vec![Value::Int(4), Value::Int(2), Value::Str("12399".to_string())])]));
-            m.insert("asks".to_string(), Value::List(vec![Value::List(vec![Value::Float(11.1), Value::Int(13), Value::Str("1244".to_string())]), Value::List(vec![Value::Float(13.3), Value::Int(13), Value::Str("1243".to_string())]), Value::List(vec![Value::Float(14.4), Value::Int(12), Value::Str("1242".to_string())]), Value::List(vec![Value::Float(15.5), Value::Int(11), Value::Str("1241".to_string())]), Value::List(vec![Value::Float(16.6), Value::Int(10), Value::Str("1240".to_string())])]));
+            m.insert("bids".to_string(), Value::from(vec![Value::from(vec![Value::Float(9.1), Value::Int(11), Value::Str("1235".to_string())]), Value::from(vec![Value::Int(9), Value::Int(3), Value::Str("1231".to_string())]), Value::from(vec![Value::Int(9), Value::Int(1), Value::Str("1232".to_string())]), Value::from(vec![Value::Float(8.2), Value::Int(12), Value::Str("1236".to_string())]), Value::from(vec![Value::Float(7.3), Value::Int(13), Value::Str("1237".to_string())]), Value::from(vec![Value::Float(6.4), Value::Int(14), Value::Str("1238".to_string())]), Value::from(vec![Value::Float(4.5), Value::Int(13), Value::Str("1239".to_string())]), Value::from(vec![Value::Int(4), Value::Int(2), Value::Str("12399".to_string())])]));
+            m.insert("asks".to_string(), Value::from(vec![Value::from(vec![Value::Float(11.1), Value::Int(13), Value::Str("1244".to_string())]), Value::from(vec![Value::Float(13.3), Value::Int(13), Value::Str("1243".to_string())]), Value::from(vec![Value::Float(14.4), Value::Int(12), Value::Str("1242".to_string())]), Value::from(vec![Value::Float(15.5), Value::Int(11), Value::Str("1241".to_string())]), Value::from(vec![Value::Float(16.6), Value::Int(10), Value::Str("1240".to_string())])]));
             m.insert("timestamp".to_string(), Value::Int(1574827239000));
             m.insert("datetime".to_string(), Value::Str("2019-11-27T04:00:39.000Z".to_string()));
             m.insert("nonce".to_string(), Value::Int(69));
@@ -142,8 +142,8 @@ pub fn testWsOrderBook() {
     });
     let mut overwrite1244: Value = Value::Map({
         let mut m = indexmap::IndexMap::new();
-            m.insert("bids".to_string(), Value::List(vec![Value::List(vec![Value::Int(10), Value::Int(10), Value::Str("1234".to_string())]), Value::List(vec![Value::Float(9.1), Value::Int(11), Value::Str("1235".to_string())]), Value::List(vec![Value::Float(8.2), Value::Int(12), Value::Str("1236".to_string())]), Value::List(vec![Value::Float(7.3), Value::Int(13), Value::Str("1237".to_string())]), Value::List(vec![Value::Float(6.4), Value::Int(14), Value::Str("1238".to_string())]), Value::List(vec![Value::Float(4.5), Value::Int(13), Value::Str("1239".to_string())])]));
-            m.insert("asks".to_string(), Value::List(vec![Value::List(vec![Value::Float(13.3), Value::Int(13), Value::Str("1243".to_string())]), Value::List(vec![Value::Float(13.5), Value::Int(13), Value::Str("1244".to_string())]), Value::List(vec![Value::Float(14.4), Value::Int(12), Value::Str("1242".to_string())]), Value::List(vec![Value::Float(15.5), Value::Int(11), Value::Str("1241".to_string())]), Value::List(vec![Value::Float(16.6), Value::Int(10), Value::Str("1240".to_string())])]));
+            m.insert("bids".to_string(), Value::from(vec![Value::from(vec![Value::Int(10), Value::Int(10), Value::Str("1234".to_string())]), Value::from(vec![Value::Float(9.1), Value::Int(11), Value::Str("1235".to_string())]), Value::from(vec![Value::Float(8.2), Value::Int(12), Value::Str("1236".to_string())]), Value::from(vec![Value::Float(7.3), Value::Int(13), Value::Str("1237".to_string())]), Value::from(vec![Value::Float(6.4), Value::Int(14), Value::Str("1238".to_string())]), Value::from(vec![Value::Float(4.5), Value::Int(13), Value::Str("1239".to_string())])]));
+            m.insert("asks".to_string(), Value::from(vec![Value::from(vec![Value::Float(13.3), Value::Int(13), Value::Str("1243".to_string())]), Value::from(vec![Value::Float(13.5), Value::Int(13), Value::Str("1244".to_string())]), Value::from(vec![Value::Float(14.4), Value::Int(12), Value::Str("1242".to_string())]), Value::from(vec![Value::Float(15.5), Value::Int(11), Value::Str("1241".to_string())]), Value::from(vec![Value::Float(16.6), Value::Int(10), Value::Str("1240".to_string())])]));
             m.insert("timestamp".to_string(), Value::Int(1574827239000));
             m.insert("datetime".to_string(), Value::Str("2019-11-27T04:00:39.000Z".to_string()));
             m.insert("nonce".to_string(), Value::Int(69));
@@ -152,8 +152,8 @@ pub fn testWsOrderBook() {
     });
     let mut countedOrderBookInput: Value = Value::Map({
         let mut m = indexmap::IndexMap::new();
-            m.insert("bids".to_string(), Value::List(vec![Value::List(vec![Value::Int(10), Value::Int(10), Value::Int(1)]), Value::List(vec![Value::Float(9.1), Value::Int(11), Value::Int(1)]), Value::List(vec![Value::Float(8.2), Value::Int(12), Value::Int(1)]), Value::List(vec![Value::Float(7.3), Value::Int(13), Value::Int(1)]), Value::List(vec![Value::Float(7.3), Value::Int(0), Value::Int(1)]), Value::List(vec![Value::Float(6.4), Value::Int(14), Value::Int(5)]), Value::List(vec![Value::Float(4.5), Value::Int(13), Value::Int(5)]), Value::List(vec![Value::Float(4.5), Value::Int(13), Value::Int(1)]), Value::List(vec![Value::Float(4.5), Value::Int(13), Value::Int(0)])]));
-            m.insert("asks".to_string(), Value::List(vec![Value::List(vec![Value::Float(16.6), Value::Int(10), Value::Int(1)]), Value::List(vec![Value::Float(15.5), Value::Int(11), Value::Int(1)]), Value::List(vec![Value::Float(14.4), Value::Int(12), Value::Int(1)]), Value::List(vec![Value::Float(13.3), Value::Int(13), Value::Int(3)]), Value::List(vec![Value::Float(12.2), Value::Int(14), Value::Int(3)]), Value::List(vec![Value::Float(11.1), Value::Int(13), Value::Int(3)]), Value::List(vec![Value::Float(11.1), Value::Int(13), Value::Int(12)])]));
+            m.insert("bids".to_string(), Value::from(vec![Value::from(vec![Value::Int(10), Value::Int(10), Value::Int(1)]), Value::from(vec![Value::Float(9.1), Value::Int(11), Value::Int(1)]), Value::from(vec![Value::Float(8.2), Value::Int(12), Value::Int(1)]), Value::from(vec![Value::Float(7.3), Value::Int(13), Value::Int(1)]), Value::from(vec![Value::Float(7.3), Value::Int(0), Value::Int(1)]), Value::from(vec![Value::Float(6.4), Value::Int(14), Value::Int(5)]), Value::from(vec![Value::Float(4.5), Value::Int(13), Value::Int(5)]), Value::from(vec![Value::Float(4.5), Value::Int(13), Value::Int(1)]), Value::from(vec![Value::Float(4.5), Value::Int(13), Value::Int(0)])]));
+            m.insert("asks".to_string(), Value::from(vec![Value::from(vec![Value::Float(16.6), Value::Int(10), Value::Int(1)]), Value::from(vec![Value::Float(15.5), Value::Int(11), Value::Int(1)]), Value::from(vec![Value::Float(14.4), Value::Int(12), Value::Int(1)]), Value::from(vec![Value::Float(13.3), Value::Int(13), Value::Int(3)]), Value::from(vec![Value::Float(12.2), Value::Int(14), Value::Int(3)]), Value::from(vec![Value::Float(11.1), Value::Int(13), Value::Int(3)]), Value::from(vec![Value::Float(11.1), Value::Int(13), Value::Int(12)])]));
             m.insert("timestamp".to_string(), Value::Int(1574827239000));
             m.insert("nonce".to_string(), Value::Int(69));
             m.insert("symbol".to_string(), Value::Null);
@@ -161,8 +161,8 @@ pub fn testWsOrderBook() {
     });
     let mut countedOrderBookTarget: Value = Value::Map({
         let mut m = indexmap::IndexMap::new();
-            m.insert("bids".to_string(), Value::List(vec![Value::List(vec![Value::Int(10), Value::Int(10), Value::Int(1)]), Value::List(vec![Value::Float(9.1), Value::Int(11), Value::Int(1)]), Value::List(vec![Value::Float(8.2), Value::Int(12), Value::Int(1)]), Value::List(vec![Value::Float(6.4), Value::Int(14), Value::Int(5)])]));
-            m.insert("asks".to_string(), Value::List(vec![Value::List(vec![Value::Float(11.1), Value::Int(13), Value::Int(12)]), Value::List(vec![Value::Float(12.2), Value::Int(14), Value::Int(3)]), Value::List(vec![Value::Float(13.3), Value::Int(13), Value::Int(3)]), Value::List(vec![Value::Float(14.4), Value::Int(12), Value::Int(1)]), Value::List(vec![Value::Float(15.5), Value::Int(11), Value::Int(1)]), Value::List(vec![Value::Float(16.6), Value::Int(10), Value::Int(1)])]));
+            m.insert("bids".to_string(), Value::from(vec![Value::from(vec![Value::Int(10), Value::Int(10), Value::Int(1)]), Value::from(vec![Value::Float(9.1), Value::Int(11), Value::Int(1)]), Value::from(vec![Value::Float(8.2), Value::Int(12), Value::Int(1)]), Value::from(vec![Value::Float(6.4), Value::Int(14), Value::Int(5)])]));
+            m.insert("asks".to_string(), Value::from(vec![Value::from(vec![Value::Float(11.1), Value::Int(13), Value::Int(12)]), Value::from(vec![Value::Float(12.2), Value::Int(14), Value::Int(3)]), Value::from(vec![Value::Float(13.3), Value::Int(13), Value::Int(3)]), Value::from(vec![Value::Float(14.4), Value::Int(12), Value::Int(1)]), Value::from(vec![Value::Float(15.5), Value::Int(11), Value::Int(1)]), Value::from(vec![Value::Float(16.6), Value::Int(10), Value::Int(1)])]));
             m.insert("timestamp".to_string(), Value::Int(1574827239000));
             m.insert("datetime".to_string(), Value::Str("2019-11-27T04:00:39.000Z".to_string()));
             m.insert("nonce".to_string(), Value::Int(69));
@@ -171,8 +171,8 @@ pub fn testWsOrderBook() {
     });
     let mut storedCountedOrderbookTarget: Value = Value::Map({
         let mut m = indexmap::IndexMap::new();
-            m.insert("bids".to_string(), Value::List(vec![Value::List(vec![Value::Int(10), Value::Int(10), Value::Int(1)]), Value::List(vec![Value::Float(9.1), Value::Int(11), Value::Int(1)]), Value::List(vec![Value::Float(8.2), Value::Int(12), Value::Int(1)]), Value::List(vec![Value::Float(6.4), Value::Int(14), Value::Int(5)]), Value::List(vec![Value::Int(1), Value::Int(1), Value::Int(6)])]));
-            m.insert("asks".to_string(), Value::List(vec![Value::List(vec![Value::Float(11.1), Value::Int(13), Value::Int(12)]), Value::List(vec![Value::Float(12.2), Value::Int(14), Value::Int(3)]), Value::List(vec![Value::Float(13.3), Value::Int(13), Value::Int(3)]), Value::List(vec![Value::Float(14.4), Value::Int(12), Value::Int(1)]), Value::List(vec![Value::Float(15.5), Value::Int(11), Value::Int(1)]), Value::List(vec![Value::Float(16.6), Value::Int(10), Value::Int(1)])]));
+            m.insert("bids".to_string(), Value::from(vec![Value::from(vec![Value::Int(10), Value::Int(10), Value::Int(1)]), Value::from(vec![Value::Float(9.1), Value::Int(11), Value::Int(1)]), Value::from(vec![Value::Float(8.2), Value::Int(12), Value::Int(1)]), Value::from(vec![Value::Float(6.4), Value::Int(14), Value::Int(5)]), Value::from(vec![Value::Int(1), Value::Int(1), Value::Int(6)])]));
+            m.insert("asks".to_string(), Value::from(vec![Value::from(vec![Value::Float(11.1), Value::Int(13), Value::Int(12)]), Value::from(vec![Value::Float(12.2), Value::Int(14), Value::Int(3)]), Value::from(vec![Value::Float(13.3), Value::Int(13), Value::Int(3)]), Value::from(vec![Value::Float(14.4), Value::Int(12), Value::Int(1)]), Value::from(vec![Value::Float(15.5), Value::Int(11), Value::Int(1)]), Value::from(vec![Value::Float(16.6), Value::Int(10), Value::Int(1)])]));
             m.insert("timestamp".to_string(), Value::Int(1574827239000));
             m.insert("datetime".to_string(), Value::Str("2019-11-27T04:00:39.000Z".to_string()));
             m.insert("nonce".to_string(), Value::Int(69));
@@ -181,8 +181,8 @@ pub fn testWsOrderBook() {
     });
     let mut limitedCountedOrderBookTarget: Value = Value::Map({
         let mut m = indexmap::IndexMap::new();
-            m.insert("bids".to_string(), Value::List(vec![Value::List(vec![Value::Int(10), Value::Int(10), Value::Int(1)]), Value::List(vec![Value::Float(9.1), Value::Int(11), Value::Int(1)]), Value::List(vec![Value::Float(8.2), Value::Int(12), Value::Int(1)]), Value::List(vec![Value::Float(6.4), Value::Int(14), Value::Int(5)])]));
-            m.insert("asks".to_string(), Value::List(vec![Value::List(vec![Value::Float(11.1), Value::Int(13), Value::Int(12)]), Value::List(vec![Value::Float(12.2), Value::Int(14), Value::Int(3)]), Value::List(vec![Value::Float(13.3), Value::Int(13), Value::Int(3)]), Value::List(vec![Value::Float(14.4), Value::Int(12), Value::Int(1)]), Value::List(vec![Value::Float(15.5), Value::Int(11), Value::Int(1)])]));
+            m.insert("bids".to_string(), Value::from(vec![Value::from(vec![Value::Int(10), Value::Int(10), Value::Int(1)]), Value::from(vec![Value::Float(9.1), Value::Int(11), Value::Int(1)]), Value::from(vec![Value::Float(8.2), Value::Int(12), Value::Int(1)]), Value::from(vec![Value::Float(6.4), Value::Int(14), Value::Int(5)])]));
+            m.insert("asks".to_string(), Value::from(vec![Value::from(vec![Value::Float(11.1), Value::Int(13), Value::Int(12)]), Value::from(vec![Value::Float(12.2), Value::Int(14), Value::Int(3)]), Value::from(vec![Value::Float(13.3), Value::Int(13), Value::Int(3)]), Value::from(vec![Value::Float(14.4), Value::Int(12), Value::Int(1)]), Value::from(vec![Value::Float(15.5), Value::Int(11), Value::Int(1)])]));
             m.insert("timestamp".to_string(), Value::Int(1574827239000));
             m.insert("datetime".to_string(), Value::Str("2019-11-27T04:00:39.000Z".to_string()));
             m.insert("nonce".to_string(), Value::Int(69));
@@ -266,19 +266,19 @@ pub fn testWsOrderBook() {
     assert!(ccxt::runtime::is_true(&(equals(limitedIndexedOrderBook.clone(), limitedIndexedOrderBookTarget.clone()))));
     indexedOrderBook.limit();
     assert!(ccxt::runtime::is_true(&(equals(indexedOrderBook.clone(), indexedOrderBookTarget.clone()))));
-    indexedOrderBook.store_array_to_bids(Value::List(vec![Value::Int(1000), Value::Int(0), Value::Str("12345".to_string())]));
+    indexedOrderBook.store_array_to_bids(Value::from(vec![Value::Int(1000), Value::Int(0), Value::Str("12345".to_string())]));
     assert!(ccxt::runtime::is_true(&(equals(indexedOrderBook.clone(), indexedOrderBookTarget.clone()))));
-    indexedOrderBook.store_array_to_bids(Value::List(vec![Value::Int(10), Value::Int(0), Value::Str("1234".to_string())]));
-    indexedOrderBook.store_array_to_bids(Value::List(vec![Value::Int(10), Value::Int(2), Value::Str("1231".to_string())]));
-    indexedOrderBook.store_array_to_bids(Value::List(vec![Value::Int(10), Value::Int(1), Value::Str("1232".to_string())]));
-    indexedOrderBook.store_array_to_bids(Value::List(vec![Value::Int(4), Value::Int(2), Value::Str("12399".to_string())]));
-    indexedOrderBook.store_array_to_bids(Value::List(vec![Value::Int(9), Value::Int(2), Value::Str("1231".to_string())]));
-    indexedOrderBook.store_array_to_bids(Value::List(vec![Value::Int(9), Value::Int(3), Value::Str("1231".to_string())]));
-    indexedOrderBook.store_array_to_bids(Value::List(vec![Value::Int(9), Value::Int(1), Value::Str("1232".to_string())]));
+    indexedOrderBook.store_array_to_bids(Value::from(vec![Value::Int(10), Value::Int(0), Value::Str("1234".to_string())]));
+    indexedOrderBook.store_array_to_bids(Value::from(vec![Value::Int(10), Value::Int(2), Value::Str("1231".to_string())]));
+    indexedOrderBook.store_array_to_bids(Value::from(vec![Value::Int(10), Value::Int(1), Value::Str("1232".to_string())]));
+    indexedOrderBook.store_array_to_bids(Value::from(vec![Value::Int(4), Value::Int(2), Value::Str("12399".to_string())]));
+    indexedOrderBook.store_array_to_bids(Value::from(vec![Value::Int(9), Value::Int(2), Value::Str("1231".to_string())]));
+    indexedOrderBook.store_array_to_bids(Value::from(vec![Value::Int(9), Value::Int(3), Value::Str("1231".to_string())]));
+    indexedOrderBook.store_array_to_bids(Value::from(vec![Value::Int(9), Value::Int(1), Value::Str("1232".to_string())]));
     indexedOrderBook.limit();
     assert!(ccxt::runtime::is_true(&(equals(indexedOrderBook.clone(), overwrite1234.clone()))));
     indexedOrderBook = IndexedOrderBook::new(indexedOrderBookInput.clone(), Value::Null);
-    indexedOrderBook.store_array_to_asks(Value::List(vec![Value::Float(13.5), Value::Int(13), Value::Str("1244".to_string())]));
+    indexedOrderBook.store_array_to_asks(Value::from(vec![Value::Float(13.5), Value::Int(13), Value::Str("1244".to_string())]));
     indexedOrderBook.limit();
     assert!(ccxt::runtime::is_true(&(equals(indexedOrderBook.clone(), overwrite1244.clone()))));
     // --------------------------------------------------------------------------------------------------------------------
@@ -288,8 +288,8 @@ pub fn testWsOrderBook() {
     // and limit() then dereferenced one of those holes
     let mut noopDeltas = IndexedOrderBook::new(Value::Map({
         let mut m = indexmap::IndexMap::new();
-            m.insert("bids".to_string(), Value::List(vec![Value::List(vec![Value::Int(100), Value::Int(1), Value::Str("a".to_string())]), Value::List(vec![Value::Int(101), Value::Int(0), Value::Str("ghost".to_string())]), Value::List(vec![Value::Int(102), Value::Int(1), Value::Str("c".to_string())])]));
-            m.insert("asks".to_string(), Value::List(vec![Value::List(vec![Value::Int(200), Value::Int(0), Value::Str("ghost".to_string())]), Value::List(vec![Value::Int(201), Value::Int(1), Value::Str("d".to_string())])]));
+            m.insert("bids".to_string(), Value::from(vec![Value::from(vec![Value::Int(100), Value::Int(1), Value::Str("a".to_string())]), Value::from(vec![Value::Int(101), Value::Int(0), Value::Str("ghost".to_string())]), Value::from(vec![Value::Int(102), Value::Int(1), Value::Str("c".to_string())])]));
+            m.insert("asks".to_string(), Value::from(vec![Value::from(vec![Value::Int(200), Value::Int(0), Value::Str("ghost".to_string())]), Value::from(vec![Value::Int(201), Value::Int(1), Value::Str("d".to_string())])]));
         m
     }), Value::Int(2));
     assert!(ccxt::runtime::is_true(&(Value::Bool(get_array_length(&get_value(&noopDeltas, &Value::Str("bids".to_string()))).as_f64() == Some(2.0)))));
@@ -309,10 +309,10 @@ pub fn testWsOrderBook() {
     assert!(ccxt::runtime::is_true(&(equals(limitedCountedOrderBook.clone(), limitedCountedOrderBookTarget.clone()))));
     countedOrderBook.limit();
     assert!(ccxt::runtime::is_true(&(equals(countedOrderBook.clone(), countedOrderBookTarget.clone()))));
-    countedOrderBook.store_array_to_bids(Value::List(vec![Value::Int(5), Value::Int(0), Value::Int(6)]));
+    countedOrderBook.store_array_to_bids(Value::from(vec![Value::Int(5), Value::Int(0), Value::Int(6)]));
     countedOrderBook.limit();
     assert!(ccxt::runtime::is_true(&(equals(countedOrderBook.clone(), countedOrderBookTarget.clone()))));
-    countedOrderBook.store_array_to_bids(Value::List(vec![Value::Int(1), Value::Int(1), Value::Int(6)]));
+    countedOrderBook.store_array_to_bids(Value::from(vec![Value::Int(1), Value::Int(1), Value::Int(6)]));
     countedOrderBook.limit();
     assert!(ccxt::runtime::is_true(&(equals(countedOrderBook.clone(), storedCountedOrderbookTarget.clone()))));
     // --------------------------------------------------------------------------------------------------------------------
@@ -386,16 +386,16 @@ pub fn testWsOrderBook() {
     desyncBook.reset(orderBookInput.clone());
     desyncBook.limit();
     // a delta beyond the trimmed tail must reinsert cleanly
-    desyncBook.store_array_to_bids(Value::List(vec![Value::Float(6.4), Value::Int(14)]));
+    desyncBook.store_array_to_bids(Value::from(vec![Value::Float(6.4), Value::Int(14)]));
     // a delta on a surviving level must update that level in place
-    desyncBook.store_array_to_asks(Value::List(vec![Value::Float(11.1), Value::Int(7)]));
+    desyncBook.store_array_to_asks(Value::from(vec![Value::Float(11.1), Value::Int(7)]));
     // a delete on a surviving level must remove exactly that level
-    desyncBook.store_array_to_bids(Value::List(vec![Value::Float(9.1), Value::Int(0)]));
+    desyncBook.store_array_to_bids(Value::from(vec![Value::Float(9.1), Value::Int(0)]));
     desyncBook.limit();
     let mut desyncTarget: Value = Value::Map({
         let mut m = indexmap::IndexMap::new();
-            m.insert("bids".to_string(), Value::List(vec![Value::List(vec![Value::Int(10), Value::Int(10)]), Value::List(vec![Value::Float(8.2), Value::Int(12)]), Value::List(vec![Value::Float(6.4), Value::Int(14)])]));
-            m.insert("asks".to_string(), Value::List(vec![Value::List(vec![Value::Float(11.1), Value::Int(7)]), Value::List(vec![Value::Float(12.2), Value::Int(14)]), Value::List(vec![Value::Float(13.3), Value::Int(13)])]));
+            m.insert("bids".to_string(), Value::from(vec![Value::from(vec![Value::Int(10), Value::Int(10)]), Value::from(vec![Value::Float(8.2), Value::Int(12)]), Value::from(vec![Value::Float(6.4), Value::Int(14)])]));
+            m.insert("asks".to_string(), Value::from(vec![Value::from(vec![Value::Float(11.1), Value::Int(7)]), Value::from(vec![Value::Float(12.2), Value::Int(14)]), Value::from(vec![Value::Float(13.3), Value::Int(13)])]));
             m.insert("timestamp".to_string(), Value::Int(1574827239000));
             m.insert("datetime".to_string(), Value::Str("2019-11-27T04:00:39.000Z".to_string()));
             m.insert("nonce".to_string(), Value::Int(69));
@@ -405,7 +405,7 @@ pub fn testWsOrderBook() {
     assert!(ccxt::runtime::is_true(&(equals(desyncBook.clone(), desyncTarget.clone()))));
     // every row must be a well formed price and amount pair, the php
     // corruption produced rows holding only an amount
-    let mut desyncSides: Value = Value::List(vec![get_value(&desyncBook, &Value::Str("bids".to_string())), get_value(&desyncBook, &Value::Str("asks".to_string()))]);
+    let mut desyncSides: Value = Value::from(vec![get_value(&desyncBook, &Value::Str("bids".to_string())), get_value(&desyncBook, &Value::Str("asks".to_string()))]);
     {
                 let mut i: Value = Value::Int(0);
         let mut __for_first_1431: bool = true;
@@ -429,8 +429,8 @@ pub fn testWsOrderBook() {
     // cleanly and a delete of a trimmed id must be a no op
     let mut trimIndexedInput: Value = Value::Map({
         let mut m = indexmap::IndexMap::new();
-            m.insert("bids".to_string(), Value::List(vec![Value::List(vec![Value::Int(10), Value::Int(1), Value::Str("x".to_string())]), Value::List(vec![Value::Int(9), Value::Int(1), Value::Str("y".to_string())]), Value::List(vec![Value::Int(8), Value::Int(1), Value::Str("z".to_string())]), Value::List(vec![Value::Int(7), Value::Int(1), Value::Str("w".to_string())]), Value::List(vec![Value::Int(6), Value::Int(1), Value::Str("v".to_string())])]));
-            m.insert("asks".to_string(), Value::List(vec![Value::List(vec![Value::Int(11), Value::Int(1), Value::Str("a".to_string())]), Value::List(vec![Value::Int(12), Value::Int(1), Value::Str("b".to_string())]), Value::List(vec![Value::Int(13), Value::Int(1), Value::Str("c".to_string())]), Value::List(vec![Value::Int(14), Value::Int(1), Value::Str("d".to_string())]), Value::List(vec![Value::Int(15), Value::Int(1), Value::Str("e".to_string())])]));
+            m.insert("bids".to_string(), Value::from(vec![Value::from(vec![Value::Int(10), Value::Int(1), Value::Str("x".to_string())]), Value::from(vec![Value::Int(9), Value::Int(1), Value::Str("y".to_string())]), Value::from(vec![Value::Int(8), Value::Int(1), Value::Str("z".to_string())]), Value::from(vec![Value::Int(7), Value::Int(1), Value::Str("w".to_string())]), Value::from(vec![Value::Int(6), Value::Int(1), Value::Str("v".to_string())])]));
+            m.insert("asks".to_string(), Value::from(vec![Value::from(vec![Value::Int(11), Value::Int(1), Value::Str("a".to_string())]), Value::from(vec![Value::Int(12), Value::Int(1), Value::Str("b".to_string())]), Value::from(vec![Value::Int(13), Value::Int(1), Value::Str("c".to_string())]), Value::from(vec![Value::Int(14), Value::Int(1), Value::Str("d".to_string())]), Value::from(vec![Value::Int(15), Value::Int(1), Value::Str("e".to_string())])]));
             m.insert("timestamp".to_string(), Value::Int(1574827239000));
             m.insert("nonce".to_string(), Value::Int(70));
             m.insert("symbol".to_string(), Value::Null);
@@ -438,8 +438,8 @@ pub fn testWsOrderBook() {
     });
     let mut trimIndexedTarget: Value = Value::Map({
         let mut m = indexmap::IndexMap::new();
-            m.insert("bids".to_string(), Value::List(vec![Value::List(vec![Value::Int(10), Value::Int(1), Value::Str("x".to_string())]), Value::List(vec![Value::Int(9), Value::Int(1), Value::Str("y".to_string())]), Value::List(vec![Value::Int(8), Value::Int(1), Value::Str("z".to_string())])]));
-            m.insert("asks".to_string(), Value::List(vec![Value::List(vec![Value::Int(11), Value::Int(1), Value::Str("a".to_string())]), Value::List(vec![Value::Int(12), Value::Int(1), Value::Str("b".to_string())]), Value::List(vec![Value::Int(13), Value::Int(1), Value::Str("c".to_string())])]));
+            m.insert("bids".to_string(), Value::from(vec![Value::from(vec![Value::Int(10), Value::Int(1), Value::Str("x".to_string())]), Value::from(vec![Value::Int(9), Value::Int(1), Value::Str("y".to_string())]), Value::from(vec![Value::Int(8), Value::Int(1), Value::Str("z".to_string())])]));
+            m.insert("asks".to_string(), Value::from(vec![Value::from(vec![Value::Int(11), Value::Int(1), Value::Str("a".to_string())]), Value::from(vec![Value::Int(12), Value::Int(1), Value::Str("b".to_string())]), Value::from(vec![Value::Int(13), Value::Int(1), Value::Str("c".to_string())])]));
             m.insert("timestamp".to_string(), Value::Int(1574827239000));
             m.insert("datetime".to_string(), Value::Str("2019-11-27T04:00:39.000Z".to_string()));
             m.insert("nonce".to_string(), Value::Int(70));
@@ -449,13 +449,13 @@ pub fn testWsOrderBook() {
     let mut trimIndexedBook = IndexedOrderBook::new(trimIndexedInput.clone(), Value::Int(3));
     trimIndexedBook.limit();
     // update of a trimmed id reinserts cleanly
-    trimIndexedBook.store_array_to_asks(Value::List(vec![Value::Int(15), Value::Int(2), Value::Str("e".to_string())]));
-    trimIndexedBook.store_array_to_bids(Value::List(vec![Value::Int(7), Value::Int(2), Value::Str("w".to_string())]));
+    trimIndexedBook.store_array_to_asks(Value::from(vec![Value::Int(15), Value::Int(2), Value::Str("e".to_string())]));
+    trimIndexedBook.store_array_to_bids(Value::from(vec![Value::Int(7), Value::Int(2), Value::Str("w".to_string())]));
     // delete of a trimmed id is a no op, on both sides via ids that were
     // trimmed and never reinserted (d on asks, v on bids); the final limit
     // below also re-trims the reinserted w, exercising the cleanup twice
-    trimIndexedBook.store_array_to_asks(Value::List(vec![Value::Int(14), Value::Int(0), Value::Str("d".to_string())]));
-    trimIndexedBook.store_array_to_bids(Value::List(vec![Value::Int(6), Value::Int(0), Value::Str("v".to_string())]));
+    trimIndexedBook.store_array_to_asks(Value::from(vec![Value::Int(14), Value::Int(0), Value::Str("d".to_string())]));
+    trimIndexedBook.store_array_to_bids(Value::from(vec![Value::Int(6), Value::Int(0), Value::Str("v".to_string())]));
     trimIndexedBook.limit();
     assert!(ccxt::runtime::is_true(&(equals(trimIndexedBook.clone(), trimIndexedTarget.clone()))));
 }

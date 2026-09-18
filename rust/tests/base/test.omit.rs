@@ -44,7 +44,7 @@ pub fn testOmit() {
             m.insert("foo".to_string(), Value::Int(2));
             m.insert("bar".to_string(), Value::Int(3));
         m
-    }), Value::List(vec![Value::Str("foo".to_string())]), &[]).clone(), Value::Map({
+    }), Value::from(vec![Value::Str("foo".to_string())]), &[]).clone(), Value::Map({
         let mut m = indexmap::IndexMap::new();
             m.insert("bar".to_string(), Value::Int(3));
         m

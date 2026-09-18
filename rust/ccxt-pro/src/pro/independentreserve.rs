@@ -475,8 +475,8 @@ impl IndependentreserveCore {
     m
 })]));
         }  else {
-            let mut asks: Value = self.safe_list_k(orderBook.clone(), "Offers", &[Value::List(vec![])]);
-            let mut bids: Value = self.safe_list_k(orderBook.clone(), "Bids", &[Value::List(vec![])]);
+            let mut asks: Value = self.safe_list_k(orderBook.clone(), "Offers", &[Value::from(vec![])]);
+            let mut bids: Value = self.safe_list_k(orderBook.clone(), "Bids", &[Value::from(vec![])]);
             self.handle_deltas(get_value(&orderbook, &Value::Str("asks".to_string())), asks.clone());
             self.handle_deltas(get_value(&orderbook, &Value::Str("bids".to_string())), bids.clone());
             add_element_to_object(&mut orderbook, &Value::Str("timestamp".to_string()), timestamp.clone());

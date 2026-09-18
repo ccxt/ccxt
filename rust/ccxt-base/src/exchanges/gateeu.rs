@@ -195,7 +195,7 @@ impl GateeuCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), Value::Str("gateeu".to_string()));
         m.insert("name".to_string(), Value::Str("Gate EU".to_string()));
-        m.insert("countries".to_string(), Value::List(vec![Value::Str("EU".to_string())]));
+        m.insert("countries".to_string(), Value::from(vec![Value::Str("EU".to_string())]));
         m.insert("version".to_string(), Value::Str("v4".to_string()));
         m.insert("rateLimit".to_string(), Value::Int(20));
         m.insert("pro".to_string(), Value::Bool(true));
@@ -246,7 +246,7 @@ impl GateeuCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("fetchMarkets".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("types".to_string(), Value::List(vec![Value::Str("spot".to_string())]));
+        m.insert("types".to_string(), Value::from(vec![Value::Str("spot".to_string())]));
     m
 }));
         m.insert("mica".to_string(), Value::Bool(true));

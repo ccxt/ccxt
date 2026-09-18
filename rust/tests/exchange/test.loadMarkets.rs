@@ -30,8 +30,8 @@ pub async fn testLoadMarkets(mut exchange: Value, mut skippedProperties: Value) 
     }
     }
     // market-type coverage (inlined: a nested helper breaks Java emit into a missing TestLoadedMarketTypes class)
-    let mut marketTypes: Value = Value::List(vec![Value::Str("spot".to_string()), Value::Str("swap".to_string()), Value::Str("future".to_string()), Value::Str("option".to_string()), Value::Str("index".to_string())]);
-    let mut collectedTypes: Value = Value::List(vec![]);
+    let mut marketTypes: Value = Value::from(vec![Value::Str("spot".to_string()), Value::Str("swap".to_string()), Value::Str("future".to_string()), Value::Str("option".to_string()), Value::Str("index".to_string())]);
+    let mut collectedTypes: Value = Value::from(vec![]);
     let mut allMarkets: Value = object_values(&get_value(&exchange, &Value::Str("markets".to_string())));
     {
                 let mut i: Value = Value::Int(0);
