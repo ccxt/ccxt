@@ -2147,7 +2147,12 @@ func (this *BaseExchange) Delay(timeout any, method any, args ...any) {
 // 62 symbol-based methods that hang off *Exchange. Only regular WS venues (whose core embeds Exchange)
 // use it; prediction venues embed BaseExchange and never call it.
 func (this *Exchange) LoadOrderBookAsync(client any, messageHash any, symbol any, optionalArgs ...any) <-chan any {
-	limit := GetArg(optionalArgs, 0, nil)
+	// generated callers pass typed pointer locals (*string symbol, *int64 limit); the
+	// `.(string)` assertions below need the plain values, and a panic here would be
+	// swallowed by Spawn and leave the watch future unresolved
+	symbol = derefScalar(symbol)
+	messageHash = derefScalar(messageHash)
+	limit := derefScalar(GetArg(optionalArgs, 0, nil))
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	maxRetries := this.HandleOption("watchOrderBook", "snapshotMaxRetries", 3)
 	tries := 0
