@@ -110,7 +110,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
 
     public String getAccountTypeFromUrl(Object url)
     {
-        if (Helpers.isGreaterThan(Helpers.getIndexOf(url, "fstream"), Helpers.opNeg(1)))
+        if (Helpers.isGreaterThan(Helpers.getIndexOf(url, "fstream"), -1))
         {
             return "swap";
         }

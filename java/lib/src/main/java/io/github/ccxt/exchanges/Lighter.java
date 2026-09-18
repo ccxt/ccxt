@@ -845,7 +845,7 @@ public class Lighter extends LighterApi
     public Object signHash(Object hash, Object privateKey)
     {
         this.checkRequiredCredentials();
-        Object signature = ecdsa(Helpers.slice(hash, Helpers.opNeg(64), null), Helpers.slice(privateKey, Helpers.opNeg(64), null), secp256k1(), null);
+        Object signature = ecdsa(Helpers.slice(hash, -64, null), Helpers.slice(privateKey, -64, null), secp256k1(), null);
         Object r = Helpers.GetValue(signature, "r");
         Object s = Helpers.GetValue(signature, "s");
         String v = this.intToBase16(this.sum(27, Helpers.GetValue(signature, "v")));
@@ -1081,7 +1081,7 @@ public class Lighter extends LighterApi
         if (Helpers.isTrue(postOnly))
         {
             timeInForceNum = 2;
-            orderExpiry = Helpers.opNeg(1);
+            orderExpiry = -1;
         } else
         {
             if (!Helpers.isTrue(isMarketOrder))
@@ -1093,7 +1093,7 @@ public class Lighter extends LighterApi
                 } else if (java.util.Objects.equals(timeInForce, "gtt"))
                 {
                     timeInForceNum = 1;
-                    orderExpiry = Helpers.opNeg(1);
+                    orderExpiry = -1;
                 }
             }
         }
@@ -1612,7 +1612,7 @@ public class Lighter extends LighterApi
                 String type = this.safeString(market, "market_type");
                 type = (((java.util.Objects.equals(type, "perp")))) ? "swap" : type;
                 Object baseId = this.safeString(market, "symbol");
-                if (!java.util.Objects.equals(baseId, null) && !Helpers.isEqual(Helpers.getIndexOf(baseId, "/"), Helpers.opNeg(1)))
+                if (!java.util.Objects.equals(baseId, null) && !Helpers.isEqual(Helpers.getIndexOf(baseId, "/"), -1))
                 {
                     baseId = Helpers.GetValue(Helpers.split(baseId, "/"), 0);
                 }

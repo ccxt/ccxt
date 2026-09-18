@@ -1799,7 +1799,7 @@ public class TestMain extends BaseTest
             if (Helpers.isGreaterThan(i, 2))
             {
                 String current = (String) Helpers.GetValue(urlParts, i);
-                if (Helpers.isGreaterThan(Helpers.getIndexOf(current, "?"), Helpers.opNeg(1)))
+                if (Helpers.isGreaterThan(Helpers.getIndexOf(current, "?"), -1))
                 {
                     // handle urls like this: /v1/account/accounts?AccessK
                     Object currentParts = Helpers.split(current, "?");

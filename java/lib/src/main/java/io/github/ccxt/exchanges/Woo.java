@@ -1284,7 +1284,7 @@ public class Woo extends WooApi
         Object timestamp = null;
         if (!java.util.Objects.equals(timestampString, null))
         {
-            if (Helpers.isGreaterThan(Helpers.getIndexOf(timestampString, "."), Helpers.opNeg(1)))
+            if (Helpers.isGreaterThan(Helpers.getIndexOf(timestampString, "."), -1))
             {
                 timestamp = this.safeTimestamp2(trade, "executed_timestamp", "executedTimestamp");
             } else
@@ -4222,7 +4222,7 @@ public class Woo extends WooApi
                 {
                     String applicationId = "bc830de7-50f3-460b-9ee0-f430f83f9dad";
                     String brokerId = this.safeString(this.options, "brokerId", applicationId);
-                    Boolean isTrigger = Helpers.isGreaterThan(Helpers.getIndexOf(path, "algo"), Helpers.opNeg(1));
+                    Boolean isTrigger = Helpers.isGreaterThan(Helpers.getIndexOf(path, "algo"), -1);
                     if (Helpers.isTrue(isTrigger))
                     {
                         ((Map<String, Object>)parameters).put("brokerId", brokerId);
@@ -5162,7 +5162,7 @@ public class Woo extends WooApi
         Object timestamp = null;
         if (!java.util.Objects.equals(timestampString, null))
         {
-            if (Helpers.isGreaterThan(Helpers.getIndexOf(timestampString, "."), Helpers.opNeg(1)))
+            if (Helpers.isGreaterThan(Helpers.getIndexOf(timestampString, "."), -1))
             {
                 timestamp = this.safeTimestamp(position, "timestamp");
             } else

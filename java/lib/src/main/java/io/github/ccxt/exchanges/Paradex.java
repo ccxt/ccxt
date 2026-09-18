@@ -1851,7 +1851,7 @@ public class Paradex extends ParadexApi
 
     public Object signHash(Object hash, Object privateKey)
     {
-        Object signature = ecdsa(Helpers.slice(hash, Helpers.opNeg(64), null), Helpers.slice(privateKey, Helpers.opNeg(64), null), secp256k1(), null);
+        Object signature = ecdsa(Helpers.slice(hash, -64, null), Helpers.slice(privateKey, -64, null), secp256k1(), null);
         Object r = Helpers.GetValue(signature, "r");
         Object s = Helpers.GetValue(signature, "s");
         String v = this.intToBase16(this.sum(27, Helpers.GetValue(signature, "v")));
@@ -1860,7 +1860,7 @@ public class Paradex extends ParadexApi
 
     public Object signMessage(Object message, Object privateKey)
     {
-        return this.signHash(this.hashMessage(message), Helpers.slice(privateKey, Helpers.opNeg(64), null));
+        return this.signHash(this.hashMessage(message), Helpers.slice(privateKey, -64, null));
     }
 
     public CompletableFuture<Object> getSystemConfig()

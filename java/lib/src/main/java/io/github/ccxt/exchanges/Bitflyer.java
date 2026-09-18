@@ -435,14 +435,14 @@ public class Bitflyer extends BitflyerApi
                         baseId = Helpers.slice(id, 0, 3);
                         quoteId = Helpers.slice(id, 3, 6);
                         // last 9 chars are expiry date
-                        Object expiryDate = Helpers.slice(id, Helpers.opNeg(9), null);
+                        Object expiryDate = Helpers.slice(id, -9, null);
                         expiry = this.parseExpiryDate(expiryDate);
                     } else
                     {
                         Object splitAlias = Helpers.split(alias, "_");
                         String currencyIds = this.safeString(splitAlias, 0);
-                        baseId = Helpers.slice(currencyIds, 0, Helpers.opNeg(3));
-                        quoteId = Helpers.slice(currencyIds, Helpers.opNeg(3), null);
+                        baseId = Helpers.slice(currencyIds, 0, -3);
+                        quoteId = Helpers.slice(currencyIds, -3, null);
                         Object splitId = Helpers.split(id, currencyIds);
                         String expiryDate = this.safeString(splitId, 1);
                         expiry = this.parseExpiryDate(expiryDate);

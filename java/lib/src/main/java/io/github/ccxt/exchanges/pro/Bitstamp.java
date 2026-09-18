@@ -268,12 +268,12 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
         Long firstElementNonce = this.safeInteger(firstElement, "microtimestamp");
         if (java.util.Objects.equals(firstElementNonce, null))
         {
-            return Helpers.opNeg(1);
+            return -1;
         }
         Long nonce = this.safeInteger(orderbook, "nonce");
         if ((java.util.Objects.equals(nonce, null)) || (Helpers.isLessThan(nonce, firstElementNonce)))
         {
-            return Helpers.opNeg(1);
+            return -1;
         }
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(deltas)); i++)
         {
@@ -969,7 +969,7 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
         {
             return;
         }
-        if (Helpers.isGreaterThan(Helpers.getIndexOf(channel, "order_book"), Helpers.opNeg(1)))
+        if (Helpers.isGreaterThan(Helpers.getIndexOf(channel, "order_book"), -1))
         {
             this.handleOrderBookSubscription(client, message);
         }
@@ -1098,7 +1098,7 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
             Object key = Helpers.GetValue(keys, i);
-            if (Helpers.isGreaterThan(Helpers.getIndexOf(channel, key), Helpers.opNeg(1)))
+            if (Helpers.isGreaterThan(Helpers.getIndexOf(channel, key), -1))
             {
                 Object method = Helpers.GetValue(methods, key);
                 Helpers.callDynamically(this, method, new Object[] {client, message});

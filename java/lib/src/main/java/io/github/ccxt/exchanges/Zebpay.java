@@ -2420,7 +2420,7 @@ public class Zebpay extends ZebpayApi
         Object headers = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : null;
         Object body = optionalArgs != null && optionalArgs.length > 4 ? optionalArgs[4] : null;
         parameters = this.omit(parameters, "defaultType");
-        Boolean isV1 = Helpers.isGreaterThan(Helpers.getIndexOf(path, "v1/"), Helpers.opNeg(1));
+        Boolean isV1 = Helpers.isGreaterThan(Helpers.getIndexOf(path, "v1/"), -1);
         String marketType = ((Helpers.isTrue(isV1))) ? "swap" : "spot";
         Object url = Helpers.GetValue(((Map<String, Object>)this.urls).get("api"), marketType);
         String tail = ("/api/" + this.implodeParams(path, parameters));

@@ -984,16 +984,16 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
         if (Helpers.inOp(message, "channel"))
         {
             String channel = this.safeString(message, "channel");
-            if (Helpers.isGreaterThan(Helpers.getIndexOf(channel, "_depth_step"), Helpers.opNeg(1)))
+            if (Helpers.isGreaterThan(Helpers.getIndexOf(channel, "_depth_step"), -1))
             {
                 this.handleOrderBook(client, message);
-            } else if (Helpers.isGreaterThan(Helpers.getIndexOf(channel, "_trade_ticker"), Helpers.opNeg(1)))
+            } else if (Helpers.isGreaterThan(Helpers.getIndexOf(channel, "_trade_ticker"), -1))
             {
                 this.handleTrades(client, message);
-            } else if (Helpers.isGreaterThan(Helpers.getIndexOf(channel, "_kline_"), Helpers.opNeg(1)))
+            } else if (Helpers.isGreaterThan(Helpers.getIndexOf(channel, "_kline_"), -1))
             {
                 this.handleOHLCV(client, message);
-            } else if (Helpers.isGreaterThan(Helpers.getIndexOf(channel, "_ticker"), Helpers.opNeg(1)))
+            } else if (Helpers.isGreaterThan(Helpers.getIndexOf(channel, "_ticker"), -1))
             {
                 this.handleTicker(client, message);
             }

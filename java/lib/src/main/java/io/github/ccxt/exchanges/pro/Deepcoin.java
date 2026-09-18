@@ -155,7 +155,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
                 put( "Action", finalAction );
                 put( "FilterValue", Helpers.add(Helpers.add("DeepCoin_", finalMarketId), suffix) );
                 put( "LocalNo", requestId );
-                put( "ResumeNo", Helpers.opNeg(1) );
+                put( "ResumeNo", -1 );
                 put( "TopicID", topicID );
             }} );
         }};

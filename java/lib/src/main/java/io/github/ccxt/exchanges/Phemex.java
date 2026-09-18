@@ -995,7 +995,7 @@ public class Phemex extends PhemexApi
         if (java.util.Objects.equals(settle, "USDT"))
         {
             contractSize = this.parseNumber("1");
-        } else if (!Helpers.isEqual(Helpers.getIndexOf(contractSizeString, " "), Helpers.opNeg(1)))
+        } else if (!Helpers.isEqual(Helpers.getIndexOf(contractSizeString, " "), -1))
         {
             // "1 USD"
             // "0.005 ETH"
@@ -5691,7 +5691,7 @@ final Object finalI = i;
             {
                 throw new ArgumentsRequired((this.id + " setLeverage() requires a symbol argument")) ;
             }
-            if ((Helpers.isLessThan(leverage, Helpers.opNeg(100))) || (Helpers.isGreaterThan(leverage, 100)))
+            if ((Helpers.isLessThan(leverage, -100)) || (Helpers.isGreaterThan(leverage, 100)))
             {
                 throw new BadRequest((this.id + " setLeverage() leverage should be between -100 and 100")) ;
             }

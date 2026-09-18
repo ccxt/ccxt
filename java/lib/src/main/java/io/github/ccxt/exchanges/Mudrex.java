@@ -696,7 +696,7 @@ public class Mudrex extends MudrexApi
         Object base = ms;
         if (!java.util.Objects.equals(ms, null) && Helpers.isTrue(ms.endsWith(((String)"USDT"))))
         {
-            base = Helpers.slice(ms, 0, Helpers.opNeg(4));
+            base = Helpers.slice(ms, 0, -4);
         }
         String quote = "USDT";
         String settle = "USDT";

@@ -998,7 +998,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
             return;
         }
         String marketId = this.safeString(topicParts, Helpers.subtract(topicLength, 1));
-        Boolean isSpot = Helpers.isGreaterThan(Helpers.getIndexOf(client.url, "spot"), Helpers.opNeg(1));
+        Boolean isSpot = Helpers.isGreaterThan(Helpers.getIndexOf(client.url, "spot"), -1);
         String marketType = ((Helpers.isTrue(isSpot))) ? "spot" : "contract";
         Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, null, null, marketType);
         Object symbol = ((Map<String, Object>)market).get("symbol");

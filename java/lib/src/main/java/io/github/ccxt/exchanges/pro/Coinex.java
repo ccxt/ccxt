@@ -568,7 +568,7 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
         //
         Object data = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         String marketId = this.safeString(data, "market");
-        Boolean isSpot = Helpers.isGreaterThan(Helpers.getIndexOf(client.url, "spot"), Helpers.opNeg(1));
+        Boolean isSpot = Helpers.isGreaterThan(Helpers.getIndexOf(client.url, "spot"), -1);
         String defaultType = ((Helpers.isTrue(isSpot))) ? "spot" : "swap";
         Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, null, null, defaultType);
         Object symbol = ((Map<String, Object>)market).get("symbol");
@@ -632,7 +632,7 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
         Object data = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         Object trades = this.safeList(data, "deal_list", new ArrayList<Object>(Arrays.asList()));
         String marketId = this.safeString(data, "market");
-        Boolean isSpot = Helpers.isGreaterThan(Helpers.getIndexOf(client.url, "spot"), Helpers.opNeg(1));
+        Boolean isSpot = Helpers.isGreaterThan(Helpers.getIndexOf(client.url, "spot"), -1);
         String defaultType = ((Helpers.isTrue(isSpot))) ? "spot" : "swap";
         Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, null, null, defaultType);
         Object symbol = ((Map<String, Object>)market).get("symbol");
@@ -1062,7 +1062,7 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
         //         "id": null
         //     }
         //
-        Boolean isSpot = Helpers.isGreaterThan(Helpers.getIndexOf(client.url, "spot"), Helpers.opNeg(1));
+        Boolean isSpot = Helpers.isGreaterThan(Helpers.getIndexOf(client.url, "spot"), -1);
         String defaultType = ((Helpers.isTrue(isSpot))) ? "spot" : "swap";
         Object data = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         Object depth = this.safeDict(data, "depth", new HashMap<String, Object>() {{}});

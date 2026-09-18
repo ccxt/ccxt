@@ -2469,7 +2469,7 @@ public class Bybit extends BybitApi
         Object symbolBase = Helpers.split(symbol, "/");
         String base = null;
         Object expiry = null;
-        if (Helpers.isGreaterThan(Helpers.getIndexOf(symbol, "/"), Helpers.opNeg(1)))
+        if (Helpers.isGreaterThan(Helpers.getIndexOf(symbol, "/"), -1))
         {
             base = this.safeString(symbolBase, 0);
             expiry = this.safeString(optionParts, 1);
@@ -2577,7 +2577,7 @@ public class Bybit extends BybitApi
         Object market = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
         Object delimiter = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
         Object marketType = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : null;
-        Boolean isOption = (!java.util.Objects.equals(marketId, null)) && ((Helpers.isGreaterThan(Helpers.getIndexOf(marketId, "-C"), Helpers.opNeg(1))) || (Helpers.isGreaterThan(Helpers.getIndexOf(marketId, "-P"), Helpers.opNeg(1))));
+        Boolean isOption = (!java.util.Objects.equals(marketId, null)) && ((Helpers.isGreaterThan(Helpers.getIndexOf(marketId, "-C"), -1)) || (Helpers.isGreaterThan(Helpers.getIndexOf(marketId, "-P"), -1)));
         if (Helpers.isTrue(isOption) && ((java.util.Objects.equals(this.markets_by_id, null)) || !(((Map<?, ?>)this.markets_by_id).containsKey(marketId))))
         {
             // handle expired option contracts
@@ -3726,7 +3726,7 @@ public class Bybit extends BybitApi
                     Object symbol = Helpers.GetValue(symbols, i);
                     // using safeMarket here because if the user provides for instance BTCUSDT and "type": "spot" in params we should
                     // infer the market type from the type provided and not from the conflicting id (BTCUSDT might be swap or spot)
-                    Boolean isExchangeSpecificSymbol = (Helpers.isEqual(Helpers.getIndexOf(symbol, "/"), Helpers.opNeg(1)));
+                    Boolean isExchangeSpecificSymbol = (Helpers.isEqual(Helpers.getIndexOf(symbol, "/"), -1));
                     if (Helpers.isTrue(isExchangeSpecificSymbol))
                     {
                         market = this.safeMarket(symbol, null, null, defaultType);
@@ -5417,7 +5417,7 @@ public class Bybit extends BybitApi
             Map<String, Object> req = new HashMap<String, Object>() {{
                 put( "cost", cost );
             }};
-            return (this.createOrder((Object)(symbol), (Object)("market"), (Object)("buy"), (Object)(Helpers.opNeg(1)), (Object)(null), (Object)(this.extend(req, parameters)))).join();
+            return (this.createOrder((Object)(symbol), (Object)("market"), (Object)("buy"), (Object)(-1), (Object)(null), (Object)(this.extend(req, parameters)))).join();
         }).thenApply(Order::new);
 
     }
@@ -5456,7 +5456,7 @@ public class Bybit extends BybitApi
             Map<String, Object> req = new HashMap<String, Object>() {{
                 put( "cost", cost );
             }};
-            return (this.createOrder((Object)(symbol), (Object)("market"), (Object)("sell"), (Object)(Helpers.opNeg(1)), (Object)(null), (Object)(this.extend(req, parameters)))).join();
+            return (this.createOrder((Object)(symbol), (Object)("market"), (Object)("sell"), (Object)(-1), (Object)(null), (Object)(this.extend(req, parameters)))).join();
         }).thenApply(Order::new);
 
     }
@@ -12493,7 +12493,7 @@ final Object finalMarket = market;
                     url = (url + ("?" + queryEncoded));
                 }
                 Object signature = null;
-                if (Helpers.isGreaterThan(Helpers.getIndexOf(this.secret, "PRIVATE KEY"), Helpers.opNeg(1)))
+                if (Helpers.isGreaterThan(Helpers.getIndexOf(this.secret, "PRIVATE KEY"), -1))
                 {
                     signature = rsa(authFull, this.secret, sha256());
                 } else
@@ -12512,7 +12512,7 @@ final Object finalMarket = market;
                 Map<String, Object> sortedQuery = this.keysort(query);
                 Object auth = this.rawencode(sortedQuery, true);
                 Object signature = null;
-                if (Helpers.isGreaterThan(Helpers.getIndexOf(this.secret, "PRIVATE KEY"), Helpers.opNeg(1)))
+                if (Helpers.isGreaterThan(Helpers.getIndexOf(this.secret, "PRIVATE KEY"), -1))
                 {
                     signature = rsa(auth, this.secret, sha256());
                 } else
@@ -12608,7 +12608,7 @@ final Object finalMarket = market;
             {
                 feedback = ((this.id + " ") + body);
             }
-            if (Helpers.isGreaterThan(Helpers.getIndexOf(body, "Withdraw address chain or destination tag are not equal"), Helpers.opNeg(1)))
+            if (Helpers.isGreaterThan(Helpers.getIndexOf(body, "Withdraw address chain or destination tag are not equal"), -1))
             {
                 feedback = (feedback + "; You might also need to ensure the address is whitelisted");
             }

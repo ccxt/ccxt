@@ -837,11 +837,11 @@ public class Deribit extends DeribitApi
         Object symbolBase = Helpers.split(symbol, "/");
         Object base = null;
         Object expiry = null;
-        if (Helpers.isGreaterThan(Helpers.getIndexOf(symbol, "/"), Helpers.opNeg(1)))
+        if (Helpers.isGreaterThan(Helpers.getIndexOf(symbol, "/"), -1))
         {
             base = this.safeString(symbolBase, 0);
             expiry = this.safeString(optionParts, 1);
-            if (Helpers.isGreaterThan(Helpers.getIndexOf(symbol, "USDC"), Helpers.opNeg(1)))
+            if (Helpers.isGreaterThan(Helpers.getIndexOf(symbol, "USDC"), -1))
             {
                 base = Helpers.add(base, "_USDC");
             }
@@ -850,7 +850,7 @@ public class Deribit extends DeribitApi
             base = this.safeString(optionParts, 0);
             expiry = this.convertMarketIdExpireDate(this.safeString(optionParts, 1));
         }
-        if (Helpers.isGreaterThan(Helpers.getIndexOf(symbol, "USDC"), Helpers.opNeg(1)))
+        if (Helpers.isGreaterThan(Helpers.getIndexOf(symbol, "USDC"), -1))
         {
             quote = "USDC";
             settle = "USDC";
@@ -863,7 +863,7 @@ public class Deribit extends DeribitApi
         {
             throw new ExchangeError((this.id + " createExpiredOptionMarket() missing base")) ;
         }
-        if (Helpers.isGreaterThan(Helpers.getIndexOf(base, "_"), Helpers.opNeg(1)))
+        if (Helpers.isGreaterThan(Helpers.getIndexOf(base, "_"), -1))
         {
             Object splitSymbol = Helpers.split(base, "_");
             splitBase = this.safeString(splitSymbol, 0);

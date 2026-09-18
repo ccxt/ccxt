@@ -136,7 +136,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
         Boolean isBusiness = (java.util.Objects.equals(access, "business"));
         Boolean isPublic = (java.util.Objects.equals(access, "public"));
         Object url = ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
-        if (Helpers.isTrue(isBusiness) || (Helpers.isGreaterThan(Helpers.getIndexOf(channel, "candle"), Helpers.opNeg(1))) || (java.util.Objects.equals(channel, "orders-algo")))
+        if (Helpers.isTrue(isBusiness) || (Helpers.isGreaterThan(Helpers.getIndexOf(channel, "candle"), -1)) || (java.util.Objects.equals(channel, "orders-algo")))
         {
             return Helpers.add(Helpers.add(url, "/business"), sandboxSuffix);
         } else if (Helpers.isTrue(isPublic))
@@ -1795,7 +1795,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
         Long prevSeqId = this.safeInteger(message, "prevSeqId");
         Object nonce = Helpers.GetValue(orderbook, "nonce");
         Object error = null;
-        if (!java.util.Objects.equals(prevSeqId, null) && !Helpers.isEqual(prevSeqId, Helpers.opNeg(1)) && !Helpers.isEqual(nonce, prevSeqId))
+        if (!java.util.Objects.equals(prevSeqId, null) && !Helpers.isEqual(prevSeqId, -1) && !Helpers.isEqual(nonce, prevSeqId))
         {
             error = new InvalidNonce((this.id + " watchOrderBook received invalid nonce"));
         }
@@ -3316,7 +3316,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
         } else if (Helpers.isTrue(channel.startsWith(((String)"bbo"))) || Helpers.isTrue(channel.startsWith(((String)"book"))))
         {
             this.handleUnsubscriptionOrderBook(client, symbol, channel);
-        } else if (Helpers.isGreaterThan(Helpers.getIndexOf(channel, "tickers"), Helpers.opNeg(1)))
+        } else if (Helpers.isGreaterThan(Helpers.getIndexOf(channel, "tickers"), -1))
         {
             this.handleUnsubscriptionTicker(client, symbol, channel);
         } else if (Helpers.isTrue(channel.startsWith(((String)"candle"))))

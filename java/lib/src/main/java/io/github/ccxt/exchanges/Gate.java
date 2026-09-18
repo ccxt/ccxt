@@ -2074,7 +2074,7 @@ public class Gate extends GateApi
         Object marketIdBase = Helpers.split(symbol, "_");
         String base = null;
         String expiry = this.safeString(optionParts, 1);
-        if (Helpers.isGreaterThan(Helpers.getIndexOf(symbol, "/"), Helpers.opNeg(1)))
+        if (Helpers.isGreaterThan(Helpers.getIndexOf(symbol, "/"), -1))
         {
             base = this.safeString(symbolBase, 0);
         } else
@@ -2141,7 +2141,7 @@ public class Gate extends GateApi
         Object market = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
         Object delimiter = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
         Object marketType = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : null;
-        Boolean isOption = (!java.util.Objects.equals(marketId, null)) && ((Helpers.isGreaterThan(Helpers.getIndexOf(marketId, "-C"), Helpers.opNeg(1))) || (Helpers.isGreaterThan(Helpers.getIndexOf(marketId, "-P"), Helpers.opNeg(1))));
+        Boolean isOption = (!java.util.Objects.equals(marketId, null)) && ((Helpers.isGreaterThan(Helpers.getIndexOf(marketId, "-C"), -1)) || (Helpers.isGreaterThan(Helpers.getIndexOf(marketId, "-P"), -1)));
         if (Helpers.isTrue(isOption) && ((java.util.Objects.equals(this.markets_by_id, null)) || !(((Map<?, ?>)this.markets_by_id).containsKey(marketId))))
         {
             // handle expired option contracts
@@ -9048,7 +9048,7 @@ final Object finalI = i;
         Object authentication = Helpers.GetValue(api, 0); // public, private
         Object type = Helpers.GetValue(api, 1); // spot, margin, future, delivery
         Object query = this.omit(parameters, this.extractParams(path));
-        Boolean containsSettle = Helpers.isGreaterThan(Helpers.getIndexOf(path, "settle"), Helpers.opNeg(1));
+        Boolean containsSettle = Helpers.isGreaterThan(Helpers.getIndexOf(path, "settle"), -1);
         if (Helpers.isTrue(containsSettle) && (java.util.Objects.equals(((String)path).endsWith("batch_cancel_orders"), true)))
         {
             // special case where we need to extract the settle from the path

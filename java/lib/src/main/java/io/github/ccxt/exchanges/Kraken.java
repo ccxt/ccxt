@@ -2094,7 +2094,7 @@ public class Kraken extends KrakenApi
             }};
             Object orderRequest = this.orderRequest("createOrder", symbol, type, request, amount, price, parameters);
             String flags = this.safeString(Helpers.GetValue(orderRequest, 0), "oflags", "");
-            Boolean isUsingCost = Helpers.isGreaterThan(Helpers.getIndexOf(flags, "viqc"), Helpers.opNeg(1));
+            Boolean isUsingCost = Helpers.isGreaterThan(Helpers.getIndexOf(flags, "viqc"), -1);
             Map<String, Object> response = (this.privatePostAddOrder(this.extend(Helpers.GetValue(orderRequest, 0), Helpers.GetValue(orderRequest, 1)))).join();
             //
             //     {
@@ -2468,7 +2468,7 @@ public class Kraken extends KrakenApi
             price = this.safeString2(order, "limitprice", "price", price);
         }
         String flags = this.safeString(order, "oflags", "");
-        Boolean isPostOnly = Helpers.isGreaterThan(Helpers.getIndexOf(flags, "post"), Helpers.opNeg(1));
+        Boolean isPostOnly = Helpers.isGreaterThan(Helpers.getIndexOf(flags, "post"), -1);
         Double average = this.safeNumber(order, "price");
         if (!java.util.Objects.equals(market, null))
         {
@@ -2623,7 +2623,7 @@ final Object finalId = id;
         String cost = this.safeString(parameters, "cost");
         String flags = this.safeString(parameters, "oflags");
         parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("cost", "oflags")));
-        Boolean isViqcOrder = (!java.util.Objects.equals(flags, null)) && (Helpers.isGreaterThan(Helpers.getIndexOf(flags, "viqc"), Helpers.opNeg(1))); // volume in quote currency
+        Boolean isViqcOrder = (!java.util.Objects.equals(flags, null)) && (Helpers.isGreaterThan(Helpers.getIndexOf(flags, "viqc"), -1)); // volume in quote currency
         if (Helpers.isTrue(isMarketOrder) && (!java.util.Objects.equals(cost, null) || Helpers.isTrue(isViqcOrder)))
         {
             if (java.util.Objects.equals(cost, null) && (!java.util.Objects.equals(amount, null)))

@@ -2456,7 +2456,7 @@ public class Okx extends OkxApi
         Object optionParts = Helpers.split(symbol, "-");
         Object symbolBase = Helpers.split(symbol, "/");
         String base = null;
-        if (Helpers.isGreaterThan(Helpers.getIndexOf(symbol, "/"), Helpers.opNeg(1)))
+        if (Helpers.isGreaterThan(Helpers.getIndexOf(symbol, "/"), -1))
         {
             base = this.safeString(symbolBase, 0);
         } else

@@ -1549,7 +1549,7 @@ public class Hibachi extends HibachiApi
 
             Object tag = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
             Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
-            Object withdrawAddress = Helpers.slice(address, Helpers.opNeg(40), null);
+            Object withdrawAddress = Helpers.slice(address, -40, null);
             // Get the withdraw fees
             Map<String, Object> exchangeInfo = (this.publicGetMarketExchangeInfo(parameters)).join();
             // {
@@ -1625,7 +1625,7 @@ public class Hibachi extends HibachiApi
         {
             // For Trustless account, the key length is 66 including '0x' and we use ECDSA to sign the message
             Object hash = this.hash(message, sha256(), "hex");
-            Object signature = ecdsa(Helpers.slice(hash, Helpers.opNeg(64), null), Helpers.slice(privateKey, Helpers.opNeg(64), null), secp256k1(), null);
+            Object signature = ecdsa(Helpers.slice(hash, -64, null), Helpers.slice(privateKey, -64, null), secp256k1(), null);
             Object r = Helpers.GetValue(signature, "r");
             Object s = Helpers.GetValue(signature, "s");
             String v = this.intToBase16(Helpers.GetValue(signature, "v"));

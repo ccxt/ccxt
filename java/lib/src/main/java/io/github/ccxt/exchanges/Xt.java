@@ -7203,7 +7203,7 @@ final Object finalMarket = market;
                 {
                     throw new NullResponse((this.id + " sign() returned empty body")) ;
                 }
-                if (Helpers.isGreaterThan(Helpers.getIndexOf(payload, "future"), Helpers.opNeg(1)))
+                if (Helpers.isGreaterThan(Helpers.getIndexOf(payload, "future"), -1))
                 {
                     Helpers.addElementToObject(body, "clientMedia", id);
                     if (java.util.Objects.equals(body, null))

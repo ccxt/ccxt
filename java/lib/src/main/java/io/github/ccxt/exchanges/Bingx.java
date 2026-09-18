@@ -4744,12 +4744,12 @@ public class Bingx extends BingxApi
         Object triggerPrice = stopPrice;
         if (!java.util.Objects.equals(stopPrice, null))
         {
-            if ((Helpers.isGreaterThan(Helpers.getIndexOf(rawType, "stop"), Helpers.opNeg(1))) && (java.util.Objects.equals(stopLossPrice, null)))
+            if ((Helpers.isGreaterThan(Helpers.getIndexOf(rawType, "stop"), -1)) && (java.util.Objects.equals(stopLossPrice, null)))
             {
                 stopLossPrice = stopPrice;
                 triggerPrice = null;
             }
-            if ((Helpers.isGreaterThan(Helpers.getIndexOf(rawType, "take"), Helpers.opNeg(1))) && (java.util.Objects.equals(takeProfitPrice, null)))
+            if ((Helpers.isGreaterThan(Helpers.getIndexOf(rawType, "take"), -1)) && (java.util.Objects.equals(takeProfitPrice, null)))
             {
                 takeProfitPrice = stopPrice;
                 triggerPrice = null;

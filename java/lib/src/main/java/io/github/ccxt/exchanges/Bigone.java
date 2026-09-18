@@ -317,7 +317,7 @@ public class Bigone extends BigoneApi
                 put( "transfer", new HashMap<String, Object>() {{
                     put( "fillResponseFromRequest", true );
                 }} );
-                put( "exchangeMillisecondsCorrection", Helpers.opNeg(100) );
+                put( "exchangeMillisecondsCorrection", -100 );
                 put( "fetchCurrencies", new HashMap<String, Object>() {{
                     put( "webApiEnable", true );
                     put( "webApiRetries", 5 );

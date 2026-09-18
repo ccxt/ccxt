@@ -1705,7 +1705,7 @@ public class Hyperliquid extends HyperliquidApi
                 {
                     // optimization if limit is provided
                     Object timeframeInMilliseconds = Helpers.multiply(this.parseTimeframe(timeframe), 1000);
-                    since = this.sum(until, Helpers.multiply(Helpers.multiply(timeframeInMilliseconds, limit), Helpers.opNeg(1)));
+                    since = this.sum(until, Helpers.multiply(Helpers.multiply(timeframeInMilliseconds, limit), -1));
                     if (Helpers.isLessThan(since, 0))
                     {
                         since = 0;
@@ -1893,7 +1893,7 @@ public class Hyperliquid extends HyperliquidApi
 
     public Object signHash(Object hash, Object privateKey)
     {
-        Object signature = ecdsa(Helpers.slice(hash, Helpers.opNeg(64), null), Helpers.slice(privateKey, Helpers.opNeg(64), null), secp256k1(), null);
+        Object signature = ecdsa(Helpers.slice(hash, -64, null), Helpers.slice(privateKey, -64, null), secp256k1(), null);
         return new HashMap<String, Object>() {{
             put( "r", ("0x" + Helpers.GetValue(signature, "r")) );
             put( "s", ("0x" + Helpers.GetValue(signature, "s")) );
@@ -1903,7 +1903,7 @@ public class Hyperliquid extends HyperliquidApi
 
     public Object signMessage(Object message, Object privateKey)
     {
-        return this.signHash(this.hashMessage(message), Helpers.slice(privateKey, Helpers.opNeg(64), null));
+        return this.signHash(this.hashMessage(message), Helpers.slice(privateKey, -64, null));
     }
 
     public Object constructPhantomAgent(Object hash, Object... optionalArgs)
@@ -6070,11 +6070,11 @@ final Object finalClientOrderId = clientOrderId;
             String code = this.safeString(hip3Dict, "code", coin);
             return ((((code + "/") + quote) + ":") + quote);
         }
-        if (Helpers.isGreaterThan(Helpers.getIndexOf(coin, "/"), Helpers.opNeg(1)) || Helpers.isGreaterThan(Helpers.getIndexOf(coin, "@"), Helpers.opNeg(1)))
+        if (Helpers.isGreaterThan(Helpers.getIndexOf(coin, "/"), -1) || Helpers.isGreaterThan(Helpers.getIndexOf(coin, "@"), -1))
         {
             return coin;  // spot
         }
-        if (Helpers.isGreaterThan(Helpers.getIndexOf(coin, ":"), Helpers.opNeg(1)))
+        if (Helpers.isGreaterThan(Helpers.getIndexOf(coin, ":"), -1))
         {
             coin = Helpers.replace(((String)coin), ":", "-"); // hip3
         }

@@ -5059,7 +5059,7 @@ public class Aster extends AsterApi
 
     public Object signMessage(Object message, Object privateKey)
     {
-        return this.signHash(this.keccakMessage(message), Helpers.slice(privateKey, Helpers.opNeg(64), null));
+        return this.signHash(this.keccakMessage(message), Helpers.slice(privateKey, -64, null));
     }
 
     public Object signWithdrawPayload(Object withdrawPayload, Object network)
@@ -5306,7 +5306,7 @@ public class Aster extends AsterApi
     public Object signHash(Object hash, Object privateKey)
     {
         this.checkRequiredCredentials();
-        Object signature = ecdsa(Helpers.slice(hash, Helpers.opNeg(64), null), Helpers.slice(privateKey, Helpers.opNeg(64), null), secp256k1(), null);
+        Object signature = ecdsa(Helpers.slice(hash, -64, null), Helpers.slice(privateKey, -64, null), secp256k1(), null);
         Object r = Helpers.GetValue(signature, "r");
         Object s = Helpers.GetValue(signature, "s");
         String v = this.intToBase16(this.sum(27, Helpers.GetValue(signature, "v")));
@@ -5445,7 +5445,7 @@ public class Aster extends AsterApi
             Object encoded = this.encodeURIComponent(valueJsonified);
             encodedString = (encodedString + (((key + "=") + encoded) + "&"));
         }
-        return Helpers.slice(encodedString, 0, Helpers.opNeg(1));
+        return Helpers.slice(encodedString, 0, -1);
     }
 
     public Object capitalizeKeys(Object dict)

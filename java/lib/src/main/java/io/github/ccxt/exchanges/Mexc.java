@@ -3522,7 +3522,7 @@ public class Mexc extends MexcApi
                     }
                 } else if (!java.util.Objects.equals(until, null))
                 {
-                    ((Map<String, Object>)request).put("start_time", this.sum(until, Helpers.multiply(((Map<String, Object>)this.options).get("maxTimeTillEnd"), Helpers.opNeg(1))));
+                    ((Map<String, Object>)request).put("start_time", this.sum(until, Helpers.multiply(((Map<String, Object>)this.options).get("maxTimeTillEnd"), -1)));
                     ((Map<String, Object>)request).put("end_time", until);
                 }
                 if (!java.util.Objects.equals(limit, null))

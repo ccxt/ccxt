@@ -2472,7 +2472,7 @@ public class Foxbit extends FoxbitApi
             {
                 throw new ArgumentsRequired((this.id + " parseLedgerEntry() requires a amount argument")) ;
             }
-            realAmount = Helpers.multiply(amount, Helpers.opNeg(1));
+            realAmount = Helpers.multiply(amount, -1);
         }
         if (java.util.Objects.equals(balance, null))
         {

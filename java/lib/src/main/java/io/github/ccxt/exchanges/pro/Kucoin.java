@@ -2159,11 +2159,11 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
         Object firstDeltaStart = this.safeIntegerN(firstDelta, new ArrayList<Object>(Arrays.asList("sequenceStart", "sequence", "O")));
         if ((java.util.Objects.equals(nonce, null)) || (java.util.Objects.equals(firstDeltaStart, null)))
         {
-            return Helpers.opNeg(1);
+            return -1;
         }
         if (Helpers.isLessThan(nonce, Helpers.subtract(firstDeltaStart, 1)))
         {
-            return Helpers.opNeg(1);
+            return -1;
         }
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(cache)); i++)
         {
