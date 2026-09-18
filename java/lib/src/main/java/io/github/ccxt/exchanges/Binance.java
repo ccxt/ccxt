@@ -4340,7 +4340,7 @@ public class Binance extends BinanceApi
         Object optionParts = Helpers.split(symbol, "-");
         Object symbolBase = Helpers.split(symbol, "/");
         String base = null;
-        if (Helpers.isGreaterThan(Helpers.getIndexOf(symbol, "/"), Helpers.opNeg(1)))
+        if (Helpers.isGreaterThan(Helpers.getIndexOf(symbol, "/"), -1))
         {
             base = this.safeString(symbolBase, 0);
         } else
@@ -4459,7 +4459,7 @@ public class Binance extends BinanceApi
                     }
                 }
                 return Helpers.GetValue(markets, 0);
-            } else if ((Helpers.isGreaterThan(Helpers.getIndexOf(symbol, "/"), Helpers.opNeg(1))) && (Helpers.isLessThan(Helpers.getIndexOf(symbol, ":"), 0)))
+            } else if ((Helpers.isGreaterThan(Helpers.getIndexOf(symbol, "/"), -1)) && (Helpers.isLessThan(Helpers.getIndexOf(symbol, ":"), 0)))
             {
                 if ((!java.util.Objects.equals(defaultType, null)) && (!java.util.Objects.equals(defaultType, "spot")))
                 {
@@ -4474,7 +4474,7 @@ public class Binance extends BinanceApi
                         return Helpers.GetValue(this.markets, futuresSymbol);
                     }
                 }
-            } else if ((Helpers.isGreaterThan(Helpers.getIndexOf(symbol, "-C"), Helpers.opNeg(1))) || (Helpers.isGreaterThan(Helpers.getIndexOf(symbol, "-P"), Helpers.opNeg(1))))
+            } else if ((Helpers.isGreaterThan(Helpers.getIndexOf(symbol, "-C"), -1)) || (Helpers.isGreaterThan(Helpers.getIndexOf(symbol, "-P"), -1)))
             {
                 return this.createExpiredOptionMarket(symbol);
             }
@@ -4488,7 +4488,7 @@ public class Binance extends BinanceApi
         Object market = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
         Object delimiter = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
         Object marketType = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : null;
-        Boolean isOption = (!java.util.Objects.equals(marketId, null)) && ((Helpers.isGreaterThan(Helpers.getIndexOf(marketId, "-C"), Helpers.opNeg(1))) || (Helpers.isGreaterThan(Helpers.getIndexOf(marketId, "-P"), Helpers.opNeg(1))));
+        Boolean isOption = (!java.util.Objects.equals(marketId, null)) && ((Helpers.isGreaterThan(Helpers.getIndexOf(marketId, "-C"), -1)) || (Helpers.isGreaterThan(Helpers.getIndexOf(marketId, "-P"), -1)));
         if (Helpers.isTrue(isOption) && ((java.util.Objects.equals(this.markets_by_id, null)) || !(((Map<?, ?>)this.markets_by_id).containsKey(marketId))))
         {
             // handle expired option contracts
@@ -15362,7 +15362,7 @@ final Object finalMarket = market;
                     } else
                     {
                         response = new HashMap<String, Object>() {{
-                            put( "code", Helpers.opNeg(4046) );
+                            put( "code", -4046 );
                             put( "msg", "No need to change margin type." );
                         }};
                     }
@@ -16183,7 +16183,7 @@ final Object finalMarket = market;
         } else if ((java.util.Objects.equals(api, "private")) || (java.util.Objects.equals(api, "eapiPrivate")) || (java.util.Objects.equals(api, "sapi") && !java.util.Objects.equals(path, "system/status")) || (java.util.Objects.equals(api, "sapiV2")) || (java.util.Objects.equals(api, "sapiV3")) || (java.util.Objects.equals(api, "sapiV4")) || (java.util.Objects.equals(api, "dapiPrivate")) || (java.util.Objects.equals(api, "dapiPrivateV2")) || (java.util.Objects.equals(api, "fapiPrivate")) || (java.util.Objects.equals(api, "fapiPrivateV2")) || (java.util.Objects.equals(api, "fapiPrivateV3")) || (java.util.Objects.equals(api, "papiV2") || java.util.Objects.equals(api, "papi") && !java.util.Objects.equals(path, "ping")))
         {
             this.checkRequiredCredentials();
-            if ((Helpers.isGreaterThan(Helpers.getIndexOf(url, "testnet.binancefuture.com"), Helpers.opNeg(1))) && Helpers.isTrue(this.isSandboxModeEnabled) && (!java.util.Objects.equals(this.safeBool(this.options, "disableFuturesSandboxWarning"), true)))
+            if ((Helpers.isGreaterThan(Helpers.getIndexOf(url, "testnet.binancefuture.com"), -1)) && Helpers.isTrue(this.isSandboxModeEnabled) && (!java.util.Objects.equals(this.safeBool(this.options, "disableFuturesSandboxWarning"), true)))
             {
                 throw new NotSupported((this.id + " testnet/sandbox mode is not supported for futures anymore, please check the deprecation announcement https://t.me/ccxt_announcements/92 and consider using the demo trading instead.")) ;
             }
@@ -16193,7 +16193,7 @@ final Object finalMarket = market;
                 Object newClientOrderId = this.safeString(parameters, "newClientOrderId");
                 if (java.util.Objects.equals(newClientOrderId, null))
                 {
-                    Boolean isSpotOrMargin = (Helpers.isGreaterThan(Helpers.getIndexOf(api, "sapi"), Helpers.opNeg(1)) || java.util.Objects.equals(api, "private"));
+                    Boolean isSpotOrMargin = (Helpers.isGreaterThan(Helpers.getIndexOf(api, "sapi"), -1) || java.util.Objects.equals(api, "private"));
                     String marketType = ((Helpers.isTrue(isSpotOrMargin))) ? "spot" : "future";
                     Object defaultId = ((Helpers.isTrue((!Helpers.isTrue(isSpotOrMargin))))) ? "x-xcKtGhcu" : "x-TKT5PX2F";
                     Object broker = this.safeDict(this.options, "broker", new HashMap<String, Object>() {{}});
@@ -16282,7 +16282,7 @@ final Object finalMarket = market;
                 query = this.urlencode(extendedParams);
             }
             Object signature = null;
-            if (Helpers.isGreaterThan(Helpers.getIndexOf(this.secret, "PRIVATE KEY"), Helpers.opNeg(1)))
+            if (Helpers.isGreaterThan(Helpers.getIndexOf(this.secret, "PRIVATE KEY"), -1))
             {
                 if (this.secret.length() > 120)
                 {

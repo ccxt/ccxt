@@ -4472,7 +4472,7 @@ public Object describe()
     public Object getCacheIndex(Object orderbook, Object deltas)
     {
         // return the first index of the cache that can be applied to the orderbook or -1 if not possible.
-        return Helpers.opNeg(1);
+        return -1;
     }
 
     public Object arraysConcat(Object arraysOfArrays)
@@ -4686,7 +4686,7 @@ public Object describe()
         // check the address is not the same letter like 'aaaaa' nor too short nor has a space
         Object uniqChars = (this.unique(this.stringToCharsArray(address)));
         Object length = ((List<?>)uniqChars).size(); // py transpiler trick
-        if (Helpers.isEqual(length, 1) || Helpers.isLessThan(((String)address).length(), this.minFundingAddressLength) || Helpers.isGreaterThan(Helpers.getIndexOf(address, " "), Helpers.opNeg(1)))
+        if (Helpers.isEqual(length, 1) || Helpers.isLessThan(((String)address).length(), this.minFundingAddressLength) || Helpers.isGreaterThan(Helpers.getIndexOf(address, " "), -1))
         {
             throw new InvalidAddress((((((this.id + " address is invalid or has less than ") + String.valueOf(this.minFundingAddressLength)) + " characters: \"") + String.valueOf(address)) + "\"")) ;
         }
@@ -5737,7 +5737,7 @@ public Object describe()
 
     public void initRestRateLimiter()
     {
-        if (java.util.Objects.equals(this.rateLimit, null) || (!java.util.Objects.equals(this.id, null) && Helpers.isEqual(this.rateLimit, Helpers.opNeg(1))))
+        if (java.util.Objects.equals(this.rateLimit, null) || (!java.util.Objects.equals(this.id, null) && Helpers.isEqual(this.rateLimit, -1)))
         {
             throw new ExchangeError((this.id + ".rateLimit property is not configured")) ;
         }
@@ -8996,7 +8996,7 @@ public Object describe()
             {
                 continue;
             }
-            Boolean isFirstCandle = Helpers.isEqual(candle, Helpers.opNeg(1));
+            Boolean isFirstCandle = Helpers.isEqual(candle, -1);
             if (Helpers.isTrue(isFirstCandle) || Helpers.isGreaterThanOrEqual(openingTime, this.sum(Helpers.GetValue(Helpers.GetValue(ohlcvs, candle), i_timestamp), ms)))
             {
                 // moved to a new timeframe -> create a new candle from opening trade
@@ -10565,7 +10565,7 @@ public Object describe()
         } else
         {
             Object parsedPrecision = "1";
-            for (var i = 0; Helpers.isLessThan(i, Helpers.subtract(Helpers.multiply(precisionNumber, Helpers.opNeg(1)), 1)); i++)
+            for (var i = 0; Helpers.isLessThan(i, Helpers.subtract(Helpers.multiply(precisionNumber, -1), 1)); i++)
             {
                 parsedPrecision = (parsedPrecision + "0");
             }
