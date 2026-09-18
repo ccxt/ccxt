@@ -104,7 +104,10 @@ public partial class BaseExchange
         return encoded;
     }
 
-    public object ethEncodeStructuredData(object domain2, object messageTypes2, object messageData2)
+    // the only return path hands back Nethereum's Eip712TypedDataSigner.EncodeTypedDataRaw
+    // (vendored: cs/ccxt/static/.../Eip712TypedDataSigner.cs, `public byte[]`), so the declared
+    // type names the box the value already has
+    public byte[] ethEncodeStructuredData(object domain2, object messageTypes2, object messageData2)
     {
         // const domain =({"chainId":1337,"verifyingContract":"0x0000000000000000000000000000000000000000"})
         // const messageTypes = {"Agent":[{"name":"source","type":"uint256"},{"name":"connectionId","type":"bytes32"}]}

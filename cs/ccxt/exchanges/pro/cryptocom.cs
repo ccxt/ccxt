@@ -308,7 +308,7 @@ public partial class cryptocom : ccxt.cryptocom
         //
         string? marketId = this.safeString(message, "instrument_name");
         Dictionary<string, object> market = this.safeMarket(marketId);
-        object symbol = getValue(market, "symbol");
+        string? symbol = ((string)getValue(market, "symbol"));
         object data = this.safeValue(message, "data");
         data = this.safeValue(data, 0);
         Int64? timestamp = this.safeInteger(data, "t");
@@ -482,7 +482,7 @@ public partial class cryptocom : ccxt.cryptocom
         string? marketId = this.safeString(message, "instrument_name");
         string? symbolSpecificMessageHash = this.safeString(message, "subscription");
         Dictionary<string, object> market = this.safeMarket(marketId);
-        object symbol = getValue(market, "symbol");
+        string? symbol = ((string)getValue(market, "symbol"));
         object stored = this.safeValue(this.trades, symbol);
         if (isTrue(isEqual(stored, null)))
         {
@@ -609,7 +609,7 @@ public partial class cryptocom : ccxt.cryptocom
             object marketId = getValue(marketIds, i);
             ((IList<object>)messageHashes).Add(add("ticker.", marketId));
         }
-        object url = getValue(getValue(getValue(this.urls, "api"), "ws"), "public");
+        string? url = ((string)getValue(getValue(getValue(this.urls, "api"), "ws"), "public"));
         Int64 id = this.nonce();
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "method", "subscribe" },
@@ -692,7 +692,7 @@ public partial class cryptocom : ccxt.cryptocom
         for (int i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
         {
             object ticker = getValue(data, i);
-            object parsed = this.parseWsTicker(ticker, market);
+            Dictionary<string, object> parsed = ((Dictionary<string, object>)this.parseWsTicker(ticker, market));
             object symbol = getValue(parsed, "symbol");
             if (isTrue(!isEqual(symbol, null)))
             {
@@ -776,7 +776,7 @@ public partial class cryptocom : ccxt.cryptocom
             ((IList<object>)messageHashes).Add(add("bidask.", getValue(symbols, i)));
             ((IList<object>)topics).Add(add("ticker.", marketId));
         }
-        object url = getValue(getValue(getValue(this.urls, "api"), "ws"), "public");
+        string? url = ((string)getValue(getValue(getValue(this.urls, "api"), "ws"), "public"));
         Int64 id = this.nonce();
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "method", "subscribe" },
@@ -799,7 +799,7 @@ public partial class cryptocom : ccxt.cryptocom
     {
         List<object> data = this.safeList(message, "data", new List<object>() {});
         IDictionary<string, object> ticker = this.safeDict(data, 0, new Dictionary<string, object>() {});
-        object parsedTicker = this.parseWsBidAsk(ticker);
+        Dictionary<string, object> parsedTicker = ((Dictionary<string, object>)this.parseWsBidAsk(ticker));
         object symbol = getValue(parsedTicker, "symbol");
         if (isTrue(!isEqual(symbol, null)))
         {
@@ -842,7 +842,7 @@ public partial class cryptocom : ccxt.cryptocom
     public async override Task<List<ccxt.OHLCV>> WatchOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         object symbolVar = symbol;
-        object timeframeVar = timeframe;
+        string timeframeVar = timeframe;
         object limitVar = limit;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
@@ -907,9 +907,9 @@ public partial class cryptocom : ccxt.cryptocom
         string? messageHash = this.safeString(message, "subscription");
         string? marketId = this.safeString(message, "instrument_name");
         Dictionary<string, object> market = this.safeMarket(marketId);
-        object symbol = getValue(market, "symbol");
+        string? symbol = ((string)getValue(market, "symbol"));
         string? interval = this.safeString(message, "interval");
-        object timeframe = this.findTimeframe(interval);
+        string? timeframe = this.findTimeframe(interval);
         ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = this.safeValue(this.ohlcvs, symbol, new Dictionary<string, object>() {});
         object stored = this.safeValue(this.safeValue(this.ohlcvs, symbol), timeframe);
         if (isTrue(isEqual(stored, null)))
@@ -1042,7 +1042,7 @@ public partial class cryptocom : ccxt.cryptocom
             await this.loadMarkets();
         }
         await this.authenticate();
-        object url = getValue(getValue(getValue(this.urls, "api"), "ws"), "private");
+        string? url = ((string)getValue(getValue(getValue(this.urls, "api"), "ws"), "private"));
         Int64 id = this.nonce();
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "method", "subscribe" },
@@ -1112,7 +1112,7 @@ public partial class cryptocom : ccxt.cryptocom
         // don't remove the future from the .futures cache
         if (isTrue(inOp(client.futures, messageHash)))
         {
-            Future future = ((Future)getValue(client.futures, messageHash));
+            var future = getValue(client.futures, messageHash);
             (future as Future).resolve(cache);
             callDynamically(client as WebSocketClient, "resolve", new object[] {cache, "positions"});
         }
@@ -1158,7 +1158,7 @@ public partial class cryptocom : ccxt.cryptocom
         for (int i = 0; isLessThan(i, getArrayLength(rawPositions)); postFixIncrement(ref i))
         {
             object rawPosition = getValue(rawPositions, i);
-            object position = this.parsePosition(rawPosition);
+            Dictionary<string, object> position = this.parsePosition(rawPosition);
             ((IList<object>)newPositions).Add(position);
             callDynamically(cache, "append", new object[] {position});
         }
@@ -1341,7 +1341,7 @@ public partial class cryptocom : ccxt.cryptocom
         //
         string? messageHash = this.safeString(message, "id");
         object rawOrder = this.safeValue(message, "result", new Dictionary<string, object>() {});
-        object order = this.parseOrder(rawOrder);
+        Dictionary<string, object> order = this.parseOrder(rawOrder);
         callDynamically(client as WebSocketClient, "resolve", new object[] {order, messageHash});
     }
 
@@ -1419,7 +1419,7 @@ public partial class cryptocom : ccxt.cryptocom
     public async virtual Task<object> watchPublic(object messageHash, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object url = getValue(getValue(getValue(this.urls, "api"), "ws"), "public");
+        string? url = ((string)getValue(getValue(getValue(this.urls, "api"), "ws"), "public"));
         Int64 id = this.nonce();
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "method", "subscribe" },
@@ -1435,7 +1435,7 @@ public partial class cryptocom : ccxt.cryptocom
     public async virtual Task<object> watchPublicMultiple(object messageHashes, object topics, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object url = getValue(getValue(getValue(this.urls, "api"), "ws"), "public");
+        string? url = ((string)getValue(getValue(getValue(this.urls, "api"), "ws"), "public"));
         Int64 id = this.nonce();
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "method", "subscribe" },
@@ -1452,7 +1452,7 @@ public partial class cryptocom : ccxt.cryptocom
     {
         parameters ??= new Dictionary<string, object>();
         subExtend ??= new Dictionary<string, object>();
-        object url = getValue(getValue(getValue(this.urls, "api"), "ws"), "public");
+        string? url = ((string)getValue(getValue(getValue(this.urls, "api"), "ws"), "public"));
         Int64 id = this.nonce();
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "method", "unsubscribe" },
@@ -1477,7 +1477,7 @@ public partial class cryptocom : ccxt.cryptocom
     {
         parameters ??= new Dictionary<string, object>();
         await this.authenticate();
-        object url = getValue(getValue(getValue(this.urls, "api"), "ws"), "private");
+        string? url = ((string)getValue(getValue(getValue(this.urls, "api"), "ws"), "private"));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "id", nonce },
             { "nonce", nonce },
@@ -1490,7 +1490,7 @@ public partial class cryptocom : ccxt.cryptocom
     {
         parameters ??= new Dictionary<string, object>();
         await this.authenticate();
-        object url = getValue(getValue(getValue(this.urls, "api"), "ws"), "private");
+        string? url = ((string)getValue(getValue(getValue(this.urls, "api"), "ws"), "private"));
         Int64 id = this.nonce();
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "method", "subscribe" },
@@ -1642,7 +1642,7 @@ public partial class cryptocom : ccxt.cryptocom
     {
         parameters ??= new Dictionary<string, object>();
         this.checkRequiredCredentials();
-        object url = getValue(getValue(getValue(this.urls, "api"), "ws"), "private");
+        string? url = ((string)getValue(getValue(getValue(this.urls, "api"), "ws"), "private"));
         var client = this.client(url);
         string messageHash = "authenticated";
         var future = client.reusableFuture(messageHash);
@@ -1651,7 +1651,7 @@ public partial class cryptocom : ccxt.cryptocom
         {
             string method = "public/auth";
             string nonce = ((object)this.nonce()).ToString();
-            object auth = add(add(add(method, nonce), this.apiKey), nonce);
+            string auth = add(add(add(method, nonce), this.apiKey), nonce);
             string signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
             Dictionary<string, object> request = new Dictionary<string, object>() {
                 { "id", nonce },
@@ -1676,7 +1676,7 @@ public partial class cryptocom : ccxt.cryptocom
         //
         //  { id: 1648132625434, method: "public/auth", code: 0 }
         //
-        Future future = ((Future)this.safeValue((client as WebSocketClient).futures, "authenticated"));
+        var future = this.safeValue((client as WebSocketClient).futures, "authenticated");
         (future as Future).resolve(true);
     }
 

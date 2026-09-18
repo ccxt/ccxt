@@ -31,7 +31,7 @@ func TestFilterBy() {
 	}, map[string]any{
 		"foo": "c",
 	}}
-	var currentValue any = exchange.FilterBy(sampleArray, "foo", "a")
+	var currentValue []any = exchange.FilterBy(sampleArray, "foo", "a")
 	var storedValue []any = []any{map[string]any{
 		"foo": "a",
 	}, map[string]any{
