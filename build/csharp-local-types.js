@@ -1896,6 +1896,10 @@ function awaitedCallIsPrintedAsProven (value, initializer) {
     if (call?.kind !== ts.SyntaxKind.CallExpression) {
         return false;
     }
+    // `await client.future (hash)` prints as that very call (the resolve-box family, U45)
+    if (clientFutureHashArgument (call) !== undefined && value.startsWith ('await client.future(')) {
+        return true;
+    }
     const name = printedBareCalleeName (call);
     return name !== undefined && value.startsWith ('await ' + name + '(');
 }
@@ -2121,6 +2125,11 @@ const CSHARP_LOCAL_WS_MEMBER_TYPES = {
     'isSandboxModeEnabled': 'bool',
     'orders': 'ccxt.pro.ArrayCache',
     'myTrades': 'ccxt.pro.ArrayCache',
+    // `public IDictionary<string, object> markets_by_id { get; set; } = null;` — the read's
+    // static type is the interface every writer stores (createSafeDictionary / a sibling
+    // exchange's map / null), so the declaration needs no cast. Tree-wide census: no generated
+    // class declares or hides the property.
+    'markets_by_id': 'IDictionary<string, object>',
 };
 
 // `let x: <alias> = undefined` -> nullable C# type (the null initialiser forces `?`)
@@ -2175,6 +2184,9 @@ const LIST_TYPES = [ 'List<object>', 'IList<object>' ];
 const COLLECTION_LOCAL_TYPES = [ 'Dictionary<string, object>', 'IDictionary<string, object>', 'List<object>', 'IList<object>' ];
 // the concrete ws orderbooks; all implement ccxt.pro.IOrderBook (cs/ccxt/ws/OrderBook.cs)
 const ORDERBOOK_IMPL_TYPES = [ 'ccxt.pro.OrderBook', 'ccxt.pro.IndexedOrderBook', 'ccxt.pro.CountedOrderBook' ];
+// a later `orderbook = this.orderBook (...)` write joins the map-read initializer along this
+// edge: the same object under the interface spelling (the same widening `assignable` uses)
+const ORDERBOOK_WIDENING_EDGES = ORDERBOOK_IMPL_TYPES.map ((impl) => [ impl, 'ccxt.pro.IOrderBook' ]);
 
 // the ArrayCache subclasses (cs/ccxt/ws/ArrayCache.cs) a write to this.orders / this.myTrades
 // can store; naming the base class moves no box (implicit reference conversion). Both
@@ -2754,6 +2766,34 @@ function integerOverloadCallType (initializer) {
     return (callee.name?.escapedText === 'sum') ? 'Int64' : undefined;
 }
 
+// `this.clients[url]` (printed `getValue(this.clients, url)`) and
+// `this.safeValue (this.clients, url)` — the hand-written
+// `ConcurrentDictionary<string, WebSocketClient> clients` (cs/ccxt/ws/Exchange.WsBridge.cs).
+// Every value the map holds is a WebSocketClient or null (client() GetOrAdd / TryRemove), so
+// the `(WebSocketClient)` cast back is exact. Declaration family only: the ternary-arm table
+// leaves `clients` out on purpose (CSHARP_LOCAL_THIS_ARM_MEMBER_TYPES).
+function clientsMapReadCastType (initializer) {
+    const clientsProperty = (n) => n?.kind === ts.SyntaxKind.PropertyAccessExpression
+        && n.expression?.kind === ts.SyntaxKind.ThisKeyword
+        && n.name?.escapedText === 'clients';
+    if (initializer?.kind === ts.SyntaxKind.ElementAccessExpression && clientsProperty (initializer.expression)) {
+        return 'WebSocketClient';
+    }
+    if (initializer?.kind === ts.SyntaxKind.CallExpression) {
+        const callee = initializer.expression;
+        if (callee?.kind !== ts.SyntaxKind.PropertyAccessExpression || callee.expression?.kind !== ts.SyntaxKind.ThisKeyword) {
+            return undefined;
+        }
+        if (callee.name?.escapedText !== 'safeValue' || initializer.arguments?.length !== 2) {
+            return undefined;
+        }
+        if (clientsProperty (initializer.arguments[0])) {
+            return 'WebSocketClient';
+        }
+    }
+    return undefined;
+}
+
 // `this.safeValue(this.orderbooks, symbol)` and `this.orderbooks[symbol]` (printed
 // `getValue(this.orderbooks, symbol)`) are the ws reads of the cached orderbook for a
 // symbol. The ws transpile rewrites both calls to getOrderBook / safeOrderBook in
@@ -2769,6 +2809,352 @@ function orderbookMapReadType (initializer) {
         return undefined;
     }
     return 'ccxt.pro.IOrderBook';
+}
+
+// ===== U45: pro-tree residuals — ws cache FIELD reads and awaited ws flights =====
+//
+// `object cache = this.positions;` — the whole-field read of a hand-written ws cache member.
+// The field is declared `object` (Exchange.Options.cs), so the local can only name its box
+// behind an exact cast, and the box is what EVERY write of that field in the SAME file stores:
+// the venue's own cache-setup methods are the whole writer set for its class, the hand-written
+// base writes only null, and the five dict-writing venues (binance / gate / htx / bitget /
+// toobit for positions) have no whole-field read. A write accepts an ArrayCache-family
+// constructor, undefined / null and a read-back of the same field; an element write (the field
+// is then a map) or any other value rejects the member. Census: tools/U45/member-writer-census.py
+// + the tree-wide `this.<member> =` writer grep in REPORT.md.
+const WS_CACHE_FIELD_READ_TYPES = [ 'positions', 'liquidations', 'myLiquidations' ];
+const WS_CACHE_FIELD_CAST = 'ccxt.pro.ArrayCache';
+
+function thisMemberPropertyAccess (node, member) {
+    return node?.kind === ts.SyntaxKind.PropertyAccessExpression
+        && node.expression?.kind === ts.SyntaxKind.ThisKeyword
+        && node.name?.escapedText === member;
+}
+
+// an ArrayCache-family constructor: the hand-written cache classes (cs/ccxt/ws/ArrayCache.cs)
+function arrayCacheConstructorName (node) {
+    if (node?.kind !== ts.SyntaxKind.NewExpression || node.expression?.kind !== ts.SyntaxKind.Identifier) {
+        return undefined;
+    }
+    const name = node.expression.escapedText;
+    return /^ArrayCache(By[A-Za-z]+)?$/.test (name) ? name : undefined;
+}
+
+// `this.<member> = cache` where `const cache = this.<member>` in the same function — the same box
+function wsCacheFieldReadBackWrite (identifier, member) {
+    const scope = enclosingFunction (identifier);
+    if (scope === undefined) {
+        return false;
+    }
+    let readBack = false;
+    const visit = (n) => {
+        if (n.kind === ts.SyntaxKind.VariableDeclaration && n.name?.kind === ts.SyntaxKind.Identifier
+                && n.name.escapedText === identifier.escapedText && thisMemberPropertyAccess (n.initializer, member)) {
+            readBack = true;
+        }
+        ts.forEachChild (n, visit);
+    };
+    ts.forEachChild (scope, visit);
+    return readBack;
+}
+
+// a write to the ws cache field that stores a cache box (or null): the only producers the census
+// admits beside a constructor are `undefined` / `null` and a read-back of the same field
+function wsCacheFieldWriteIsCacheBox (right, member) {
+    if (right === undefined) {
+        return false;
+    }
+    if (right.kind === ts.SyntaxKind.NullKeyword) {
+        return true;
+    }
+    if (right.kind === ts.SyntaxKind.Identifier && right.escapedText === 'undefined') {
+        return true;
+    }
+    if (arrayCacheConstructorName (right) !== undefined) {
+        return true;
+    }
+    if (thisMemberPropertyAccess (right, member)) {
+        return true;
+    }
+    return right.kind === ts.SyntaxKind.Identifier && wsCacheFieldReadBackWrite (right, member);
+}
+
+// the census over one source file: does every write of the field store a cache box, and is
+// there at least one ArrayCache constructor (the field's own producer in this file)?
+function wsCacheFieldFileCensus (source, member) {
+    let constructors = 0;
+    let ok = true;
+    const visit = (n) => {
+        if (n.kind === ts.SyntaxKind.BinaryExpression && ASSIGNMENT_OPERATORS.includes (n.operatorToken?.kind)) {
+            const left = n.left;
+            if (thisMemberPropertyAccess (left, member)) {
+                if (arrayCacheConstructorName (n.right) !== undefined) {
+                    constructors++;
+                } else if (!wsCacheFieldWriteIsCacheBox (n.right, member)) {
+                    ok = false;
+                }
+            } else if (left?.kind === ts.SyntaxKind.ElementAccessExpression && thisMemberPropertyAccess (left.expression, member)) {
+                ok = false; // an element write means the field is a map, not a cache
+            }
+        }
+        ts.forEachChild (n, visit);
+    };
+    ts.forEachChild (source, visit);
+    return ok && constructors > 0;
+}
+
+// `this.positions` -> the cache box the file's own writes prove, or undefined. The prediction
+// tier is U44's sweep (its roster owns every prediction-tree local), so this family stays out.
+function wsCacheFieldReadType (node) {
+    if (node?.kind !== ts.SyntaxKind.PropertyAccessExpression || node.expression?.kind !== ts.SyntaxKind.ThisKeyword) {
+        return undefined;
+    }
+    const member = node.name?.escapedText;
+    if (!WS_CACHE_FIELD_READ_TYPES.includes (member) || isPredictionSource (node)) {
+        return undefined;
+    }
+    const source = node.getSourceFile?.();
+    if (source === undefined || !wsCacheFieldFileCensus (source, member)) {
+        return undefined;
+    }
+    return WS_CACHE_FIELD_CAST;
+}
+
+// `this.positions[type]` — the per-key read of the same map. The field may hold a dictionary
+// (the account-type-keyed venues), so only the ELEMENT writers decide the box: every
+// `this.<member>[k] = rhs` in the file must store an ArrayCache-family constructor.
+function wsCacheElementReadType (node) {
+    if (node?.kind !== ts.SyntaxKind.ElementAccessExpression || !thisMemberPropertyAccess (node.expression, node.expression?.name?.escapedText)) {
+        return undefined;
+    }
+    const member = node.expression.name.escapedText;
+    if (!WS_CACHE_FIELD_READ_TYPES.includes (member)) {
+        return undefined;
+    }
+    const source = node.getSourceFile?.();
+    if (source === undefined) {
+        return undefined;
+    }
+    let writes = 0;
+    let ok = true;
+    const visit = (n) => {
+        if (n.kind === ts.SyntaxKind.BinaryExpression && ASSIGNMENT_OPERATORS.includes (n.operatorToken?.kind)
+                && n.left?.kind === ts.SyntaxKind.ElementAccessExpression && thisMemberPropertyAccess (n.left.expression, member)) {
+            if (arrayCacheConstructorName (n.right) !== undefined) {
+                writes++;
+            } else {
+                ok = false;
+            }
+        }
+        ts.forEachChild (n, visit);
+    };
+    ts.forEachChild (source, visit);
+    return (ok && writes > 0) ? WS_CACHE_FIELD_CAST : undefined;
+}
+
+// the box of an expression a `future.resolve (VALUE)` / `client.resolve (VALUE, hash)` hands back
+function resolveValueBox (csharp, value) {
+    if (value === undefined) {
+        return undefined;
+    }
+    const cacheBox = wsCacheFieldReadType (value) ?? wsCacheElementReadType (value);
+    if (cacheBox !== undefined) {
+        return cacheBox;
+    }
+    if (value.kind === ts.SyntaxKind.Identifier) {
+        const declaration = resolveLocalDeclaration (value);
+        if (declaration !== undefined) {
+            const declarationBox = wsCacheFieldReadType (declaration.initializer) ?? wsCacheElementReadType (declaration.initializer);
+            if (declarationBox !== undefined) {
+                return declarationBox;
+            }
+        }
+        return localIdentifierType (csharp, value);
+    }
+    const constructor = arrayCacheConstructorName (value);
+    return (constructor === undefined) ? undefined : WS_CACHE_FIELD_CAST;
+}
+
+// the sole `const <name> = <init>` / parameter binding of an identifier inside its function
+function resolveLocalDeclaration (identifier) {
+    const scope = enclosingFunction (identifier);
+    if (scope === undefined) {
+        return undefined;
+    }
+    let binding;
+    let bindings = 0;
+    const visit = (n) => {
+        if (n !== scope && isFunctionScope (n)) {
+            return;
+        }
+        if (n.kind === ts.SyntaxKind.VariableDeclaration || n.kind === ts.SyntaxKind.Parameter) {
+            if (bindingNamesOf (n.name).includes (identifier.escapedText)) {
+                bindings++;
+                binding = n;
+            }
+        }
+        ts.forEachChild (n, visit);
+    };
+    ts.forEachChild (scope, visit);
+    return (bindings === 1 && binding?.kind === ts.SyntaxKind.VariableDeclaration) ? binding : undefined;
+}
+
+// `client.future (HASH)` -> the hash argument, or undefined for any other callee
+function clientFutureHashArgument (call) {
+    if (call?.kind !== ts.SyntaxKind.CallExpression) {
+        return undefined;
+    }
+    const callee = call.expression;
+    if (callee?.kind !== ts.SyntaxKind.PropertyAccessExpression || callee.name?.escapedText !== 'future') {
+        return undefined;
+    }
+    const receiver = callee.expression;
+    if (receiver?.kind !== ts.SyntaxKind.Identifier || receiver.escapedText !== 'client') {
+        return undefined;
+    }
+    return call.arguments?.[0];
+}
+
+// the hash expression an identifier argument stands for: its `const <name> = <expr>` initialiser
+// in the enclosing function, text-compared with the awaited hash
+function boundHashText (argument, scope) {
+    if (argument?.kind !== ts.SyntaxKind.Identifier || scope === undefined) {
+        return undefined;
+    }
+    let text;
+    let bindings = 0;
+    const visit = (n) => {
+        if (n !== scope && isFunctionScope (n)) {
+            return;
+        }
+        if (n.kind === ts.SyntaxKind.VariableDeclaration && n.name?.kind === ts.SyntaxKind.Identifier
+                && n.name.escapedText === argument.escapedText && n.initializer !== undefined) {
+            bindings++;
+            text = n.initializer.getText ();
+        }
+        ts.forEachChild (n, visit);
+    };
+    ts.forEachChild (scope, visit);
+    return bindings === 1 ? text : undefined;
+}
+
+// `const future = client.futures[hash]; future.resolve (VALUE)` — the explicit settle of a flight
+function receiverReadsClientFutures (identifier, scope) {
+    if (identifier?.kind !== ts.SyntaxKind.Identifier) {
+        return false;
+    }
+    let reads = 0;
+    const visit = (n) => {
+        if (n !== scope && isFunctionScope (n)) {
+            return;
+        }
+        if (n.kind === ts.SyntaxKind.VariableDeclaration && n.name?.kind === ts.SyntaxKind.Identifier
+                && n.name.escapedText === identifier.escapedText && n.initializer?.kind === ts.SyntaxKind.ElementAccessExpression) {
+            const target = n.initializer.expression;
+            if (target?.kind === ts.SyntaxKind.PropertyAccessExpression && target.name?.escapedText === 'futures'
+                    && target.expression?.kind === ts.SyntaxKind.Identifier && target.expression.escapedText === 'client') {
+                reads++;
+            }
+        }
+        ts.forEachChild (n, visit);
+    };
+    ts.forEachChild (scope, visit);
+    return reads === 1;
+}
+
+// `const snapshot = await client.future (HASH)` — the awaited value of a ws flight. The awaiter
+// (cs/ccxt/ws/Future.cs) hands back `object`, so the declaration can only name the RESOLVE value
+// behind an exact cast. The resolve value is what settles that message-hash family in the SAME
+// file: a direct `client.resolve (VALUE, HASH)` whose hash text is the awaited hash, plus the
+// explicit `future.resolve (VALUE)` inside a method the file spawns with that hash. Every settle
+// must be boxed and all boxes must agree; anything else keeps `object`.
+function awaitedClientFutureBox (csharp, initializer) {
+    if (initializer?.kind !== ts.SyntaxKind.AwaitExpression) {
+        return undefined;
+    }
+    const hash = clientFutureHashArgument (initializer.expression);
+    if (hash === undefined) {
+        return undefined;
+    }
+    const source = hash.getSourceFile?.();
+    if (source === undefined) {
+        return undefined;
+    }
+    const hashText = hash.getText ();
+    const spawned = new Set ();
+    const boxes = [];
+    let settles = 0;
+    const visit = (n) => {
+        if (n.kind === ts.SyntaxKind.CallExpression) {
+            const callee = n.expression;
+            if (callee?.kind === ts.SyntaxKind.PropertyAccessExpression && callee.expression?.kind === ts.SyntaxKind.ThisKeyword) {
+                const args = n.arguments ?? [];
+                if (callee.name?.escapedText === 'spawn') {
+                    const target = args[0];
+                    if (target?.kind === ts.SyntaxKind.PropertyAccessExpression && target.expression?.kind === ts.SyntaxKind.ThisKeyword) {
+                        for (let i = 1; i < args.length; i++) {
+                            if (boundHashText (args[i], enclosingFunction (n)) === hashText) {
+                                spawned.add (target.name?.escapedText);
+                            }
+                        }
+                    }
+                }
+            }
+            if (callee?.kind === ts.SyntaxKind.PropertyAccessExpression && callee.name?.escapedText === 'resolve'
+                    && callee.expression?.kind === ts.SyntaxKind.Identifier && callee.expression.escapedText === 'client'
+                    && (n.arguments?.[1]?.getText () === hashText)) {
+                settles++;
+                const box = resolveValueBox (csharp, n.arguments?.[0]);
+                if (box !== undefined) {
+                    boxes.push (box);
+                }
+            }
+        }
+        ts.forEachChild (n, visit);
+    };
+    ts.forEachChild (source, visit);
+    for (const methodName of spawned) {
+        const method = spawnedMethod (source, methodName);
+        if (method === undefined) {
+            continue;
+        }
+        const visitMethod = (n) => {
+            if (n.kind === ts.SyntaxKind.CallExpression) {
+                const callee = n.expression;
+                if (callee?.kind === ts.SyntaxKind.PropertyAccessExpression && callee.name?.escapedText === 'resolve'
+                        && receiverReadsClientFutures (callee.expression, method)) {
+                    settles++;
+                    const box = resolveValueBox (csharp, n.arguments?.[0]);
+                    if (box !== undefined) {
+                        boxes.push (box);
+                    }
+                }
+            }
+            ts.forEachChild (n, visitMethod);
+        };
+        ts.forEachChild (method, visitMethod);
+    }
+    if (settles === 0 || boxes.length !== settles) {
+        return undefined; // an unproven settle keeps the local `object`
+    }
+    const unique = new Set (boxes);
+    return unique.size === 1 ? boxes[0] : undefined;
+}
+
+// the same-file method declaration a spawn names
+function spawnedMethod (source, name) {
+    if (name === undefined) {
+        return undefined;
+    }
+    let found;
+    const visit = (n) => {
+        if (n.kind === ts.SyntaxKind.MethodDeclaration && n.name?.kind === ts.SyntaxKind.Identifier && n.name.escapedText === name) {
+            found = n;
+        }
+        ts.forEachChild (n, visit);
+    };
+    ts.forEachChild (source, visit);
+    return found;
 }
 
 // is the checker's type of this expression the ccxt Exchange class (or a subclass /
@@ -4795,6 +5181,84 @@ function stringElementsProducer (initializer) {
     return false;
 }
 
+// `this.safeList (subscription, 'subMessageHashes', [])` — the subscription record's own string
+// list, which the venue builds from `'ticker:' + symbol`-style keys. Every writer of that key in
+// the SAME file stores a string array — a `string[]` / `Strings` local or parameter, or an array
+// literal of string expressions (the checker's element type decides) — so every element the read
+// hands back is a string (or null off the end, the box the `(string)` cast names).
+const SUB_MESSAGE_HASH_KEYS = [ 'subMessageHashes', 'unsubMessageHashes' ];
+
+function checkerElementIsString (checker, type) {
+    if (type === undefined) {
+        return false;
+    }
+    if (typeof type.isUnion === 'function' && type.isUnion ()) {
+        return type.types.some ((member) => checkerElementIsString (checker, member));
+    }
+    const args = (typeof checker.getTypeArguments === 'function') ? checker.getTypeArguments (type) : [];
+    return args.length === 1 && (args[0].flags & ts.TypeFlags.StringLike) !== 0;
+}
+
+function subMessageHashesWriteValueIsStringList (csharp, value) {
+    const checker = (typeof csharp.getChecker === 'function') ? csharp.getChecker () : undefined;
+    if (checker === undefined || value === undefined) {
+        return false;
+    }
+    let type;
+    try {
+        type = checker.getTypeAtLocation (value);
+    } catch (e) {
+        return false;
+    }
+    return checkerElementIsString (checker, type);
+}
+
+function subMessageHashesProducer (csharp, initializer) {
+    // `... as List` is a compile-time-only assertion with no runtime effect (the printer's
+    // own note on printAsExpression), so it unwraps like parentheses
+    let node = initializer;
+    while (node?.kind === ts.SyntaxKind.ParenthesizedExpression || node?.kind === ts.SyntaxKind.AsExpression
+            || node?.kind === ts.SyntaxKind.SatisfiesExpression || node?.kind === ts.SyntaxKind.TypeAssertionExpression) {
+        node = node.expression;
+    }
+    if (node?.kind !== ts.SyntaxKind.CallExpression) {
+        return false;
+    }
+    const callee = node.expression;
+    if (callee?.kind !== ts.SyntaxKind.PropertyAccessExpression || callee.expression?.kind !== ts.SyntaxKind.ThisKeyword
+            || callee.name?.escapedText !== 'safeList') {
+        return false;
+    }
+    const keyName = elementAccessLiteralKey (node.arguments?.[1]);
+    if (!SUB_MESSAGE_HASH_KEYS.includes (keyName)) {
+        return false;
+    }
+    const source = node.getSourceFile?.();
+    if (source === undefined) {
+        return false;
+    }
+    let writes = 0;
+    let ok = true;
+    const visit = (n) => {
+        if (n.kind === ts.SyntaxKind.PropertyAssignment && elementAccessLiteralKey (n.name) === keyName) {
+            writes++;
+            if (!subMessageHashesWriteValueIsStringList (csharp, n.initializer)) {
+                ok = false;
+            }
+        }
+        if (n.kind === ts.SyntaxKind.BinaryExpression && ASSIGNMENT_OPERATORS.includes (n.operatorToken?.kind)
+                && n.left?.kind === ts.SyntaxKind.ElementAccessExpression && elementAccessLiteralKey (n.left.argumentExpression) === keyName) {
+            writes++;
+            if (!subMessageHashesWriteValueIsStringList (csharp, n.right)) {
+                ok = false;
+            }
+        }
+        ts.forEachChild (n, visit);
+    };
+    ts.forEachChild (source, visit);
+    return ok && writes > 0;
+}
+
 // is this occurrence of the receiver able to change what the list holds, hand it to another
 // scope, or rebuild it? Any such use disqualifies the receiver.
 function receiverUseIsWrite (identifier) {
@@ -5023,7 +5487,9 @@ function elementAccessElementType (csharp, initializer, context) {
     }
     const built = stringElementsProducer (declaration.initializer)
         ? { elementType: 'string', pushes: new Set () }
-        : pushBuiltListElementType (csharp, scope, declaration, context);
+        : (subMessageHashesProducer (csharp, declaration.initializer)
+            ? { elementType: 'string', pushes: new Set () }
+            : pushBuiltListElementType (csharp, scope, declaration, context));
     const producer = (built !== undefined) ? built : promiseAllElementType (csharp, declaration.initializer, context, scope);
     if (producer === undefined) {
         return undefined;
@@ -5679,6 +6145,9 @@ function csharpLocalTypeOf (csharp, declaration, context) {
     // `this.safeValue (recv, 'key')` with a same-file dict / list twin: the box the file
     // itself proves (see the family comment); the use-shape veto runs after the retype scan
     let safeValueTwin = (csharpType === undefined) ? safeValueTwinCastType (declaration.initializer) : undefined;
+    // `const snapshot = await client.future (hash)` — the resolve-box census over the same file
+    // (one walk per site, shared by the arm below)
+    const awaitedFutureBox = (csharpType === undefined) ? awaitedClientFutureBox (csharp, declaration.initializer) : undefined;
     let safeValueTwinShape;
     if (csharpType === undefined) {
         // `this.sum (a, b)` over the operand family its hand-written helper boxes as Int64:
@@ -5718,6 +6187,25 @@ function csharpLocalTypeOf (csharp, declaration, context) {
             // string, so the getValue chain's box is a string or null — same cast as above
             csharpType = 'string?';
             cast = 'string';
+        } else if (clientsMapReadCastType (declaration.initializer) !== undefined) {
+            // `const client = this.safeValue (this.clients, url)`: the ws client map read
+            csharpType = 'WebSocketClient';
+            cast = 'WebSocketClient';
+        } else if (futuresReadCastType (declaration.initializer) !== undefined) {
+            // `const promise = client.futures['auth']`: the hand-written
+            // IDictionary<string, Future> map read — the cast names the Future box
+            csharpType = 'Future';
+            cast = 'Future';
+        } else if (wsCacheFieldReadType (declaration.initializer) !== undefined) {
+            // `const cache = this.positions`: the ws cache field read — the same file's own
+            // writers prove the ArrayCache box, so the cast names it (see the U45 section)
+            csharpType = WS_CACHE_FIELD_CAST;
+            cast = WS_CACHE_FIELD_CAST;
+        } else if (awaitedFutureBox !== undefined) {
+            // `const snapshot = await client.future (hash)`: the awaited value is the box the
+            // same file resolves that message hash with (see awaitedClientFutureBox)
+            csharpType = awaitedFutureBox;
+            cast = awaitedFutureBox;
         } else if (omitDictionaryProducer (csharp, declaration.initializer, ctx)) {
             // `const x = this.omit (<Dictionary box>, keys)`: the call binds a dict-receiver
             // overload (see the family comment above), so the call's own C# type IS the
@@ -5831,9 +6319,12 @@ function csharpLocalTypeOf (csharp, declaration, context) {
         // a read of a retyped ws cache member: the later cache-setup writes store an
         // ArrayCache subclass, which needs the subclass -> base edge to join
         const cacheMemberEdges = (csharpType === 'ccxt.pro.ArrayCache' && wsCacheMemberRead (declaration.initializer)) ? CACHE_MEMBER_WIDENING_EDGES : undefined;
+        // an orderbook map read (IOrderBook) later written by a concrete orderbook constructor
+        // (this.orderBook() / indexedOrderBook() / countedOrderBook()) joins along this edge
+        const orderbookEdges = (csharpType === 'ccxt.pro.IOrderBook') ? ORDERBOOK_WIDENING_EDGES : undefined;
         // join the initializer with every later write, widening only along box-identical edges
         const dictionaryLiteral = declaration.initializer?.kind === ts.SyntaxKind.ObjectLiteralExpression;
-        csharpType = typeFromValueOrWrites (csharp, scope, declaration, sourceName, csharpType, ctx, copyEdges ?? cacheMemberEdges ?? (dictionaryLiteral ? DICTIONARY_LITERAL_WIDENING_EDGES : undefined));
+        csharpType = typeFromValueOrWrites (csharp, scope, declaration, sourceName, csharpType, ctx, copyEdges ?? cacheMemberEdges ?? orderbookEdges ?? (dictionaryLiteral ? DICTIONARY_LITERAL_WIDENING_EDGES : undefined));
     }
     if (csharpType === undefined || csharpType === csharp.VAR_TOKEN) {
         return undefined;

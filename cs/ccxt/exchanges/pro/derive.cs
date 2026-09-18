@@ -881,7 +881,7 @@ public partial class derive : ccxt.derive
         if (ids.Count > 0)
         {
             // client.resolve (message, messageHash);
-            var future = this.safeValue(client.futures, "authenticated");
+            Future future = ((Future)this.safeValue(client.futures, "authenticated"));
             (future as Future).resolve(true);
         } else
         {

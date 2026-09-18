@@ -1236,7 +1236,7 @@ public partial class nado : ccxt.nado
         object authenticated = this.safeValue(client.subscriptions, messageHash);
         if ((authenticated != null))
         {
-            var future = this.safeValue(client.futures, messageHash);
+            Future future = ((Future)this.safeValue(client.futures, messageHash));
             if ((future != null))
             {
                 return await (future as Exchange.Future);
@@ -1749,7 +1749,7 @@ public partial class nado : ccxt.nado
         {
             this.positions = new ArrayCacheBySymbolBySide();
         }
-        object positions = this.positions;
+        ccxt.pro.ArrayCache positions = ((ccxt.pro.ArrayCache)this.positions);
         string? side = this.safeString(position, "side");
         if ((side == null))
         {

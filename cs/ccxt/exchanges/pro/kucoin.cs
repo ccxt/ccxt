@@ -2090,7 +2090,7 @@ public partial class kucoin : ccxt.kucoin
             for (int i = 0; isLessThan(i, messageHashes.Count); postFixIncrement(ref i))
             {
                 object messageHash = getValue(messageHashes, i);
-                object subHash = getValue(subMessageHashes, i);
+                string? subHash = ((string)getValue(subMessageHashes, i));
                 this.cleanUnsubscription(client, subHash, messageHash);
             }
             string? topic = this.safeString(subscription, "topic");
@@ -2968,7 +2968,7 @@ public partial class kucoin : ccxt.kucoin
         // don't remove the future from the .futures cache
         if (inOp(client.futures, messageHash))
         {
-            var future = getValue(client.futures, messageHash);
+            Future future = ((Future)getValue(client.futures, messageHash));
             (future as Future).resolve();
             callDynamically(client, "resolve", new object[] {getValue(this.balance, type), add(type, ":balance")});
         }
@@ -3163,7 +3163,7 @@ public partial class kucoin : ccxt.kucoin
         object currentPosition = this.getCurrentPosition(symbol);
         if ((isEqual(fetchPositionSnapshot, true)) && (isEqual(awaitPositionSnapshot, true)) && ((currentPosition == null)))
         {
-            object snapshot = await client.future(add("fetchPositionSnapshot:", symbol));
+            ccxt.pro.ArrayCache snapshot = ((ccxt.pro.ArrayCache)await client.future(add("fetchPositionSnapshot:", symbol)));
             return ccxt.BaseExchange.ToPosition(snapshot);
         }
         return ccxt.BaseExchange.ToPosition(await this.subscribe(url, messageHash, topic, this.extend(request, parameters)));
@@ -3212,10 +3212,10 @@ public partial class kucoin : ccxt.kucoin
         this.setPositionsCache(client, uta);
         object fetchPositionSnapshot = this.handleOption("watchPositions", "fetchPositionsSnapshot", true);
         object awaitPositionSnapshot = this.handleOption("watchPositions", "awaitPositionsSnapshot", true);
-        object cache = this.positions;
+        ccxt.pro.ArrayCache cache = ((ccxt.pro.ArrayCache)this.positions);
         if ((isEqual(fetchPositionSnapshot, true)) && (isEqual(awaitPositionSnapshot, true)) && ((cache == null)))
         {
-            object snapshot = await client.future("fetchPositionsSnapshot");
+            ccxt.pro.ArrayCache snapshot = ((ccxt.pro.ArrayCache)await client.future("fetchPositionsSnapshot"));
             return ccxt.BaseExchange.ToPositionList(this.filterBySymbolsSinceLimit(snapshot, symbols, since, limit, true));
         }
         string channel = "positionAll";
@@ -3267,7 +3267,7 @@ public partial class kucoin : ccxt.kucoin
     {
         object positions = ccxt.BaseExchange.FromPositionList(await this.FetchPositions(null, new Dictionary<string, object>() { { "uta", uta }, }));
         this.positions = new ArrayCacheBySymbolById();
-        object cache = this.positions;
+        ccxt.pro.ArrayCache cache = ((ccxt.pro.ArrayCache)this.positions);
         for (int i = 0; isLessThan(i, getArrayLength(positions)); postFixIncrement(ref i))
         {
             object position = getValue(positions, i);
@@ -3280,7 +3280,7 @@ public partial class kucoin : ccxt.kucoin
         // don't remove the future from the .futures cache
         if (inOp(client.futures, messageHash))
         {
-            var future = getValue(client.futures, messageHash);
+            Future future = ((Future)getValue(client.futures, messageHash));
             (future as Future).resolve(cache);
             callDynamically(client, "resolve", new object[] {cache, "positions"});
         }
@@ -3304,12 +3304,12 @@ public partial class kucoin : ccxt.kucoin
     {
         object position = ccxt.BaseExchange.FromPosition(await this.FetchPosition(((string)symbol)));
         this.positions = new ArrayCacheBySymbolById();
-        object cache = this.positions;
+        ccxt.pro.ArrayCache cache = ((ccxt.pro.ArrayCache)this.positions);
         callDynamically(cache, "append", new object[] {position});
         // don't remove the future from the .futures cache
         if (inOp(client.futures, messageHash))
         {
-            var future = getValue(client.futures, messageHash);
+            Future future = ((Future)getValue(client.futures, messageHash));
             (future as Future).resolve(cache);
             callDynamically(client, "resolve", new object[] {position, add("position:", symbol)});
         }
@@ -3413,7 +3413,7 @@ public partial class kucoin : ccxt.kucoin
         List<object> parts = topic.Split(new [] {":"}, StringSplitOptions.None).ToList<object>();
         string? marketId = this.safeString(parts, 1);
         string? symbol = this.safeSymbol(marketId, null, "");
-        object cache = this.positions;
+        ccxt.pro.ArrayCache cache = ((ccxt.pro.ArrayCache)this.positions);
         object currentPosition = this.getCurrentPosition(symbol);
         string messageHash = add("position:", symbol);
         IDictionary<string, object> data = this.safeDict(message, "data", new Dictionary<string, object>() {});
@@ -3466,7 +3466,7 @@ public partial class kucoin : ccxt.kucoin
         IDictionary<string, object> data = this.safeDict(message, "d", new Dictionary<string, object>() {});
         string? marketId = this.safeString(data, "s");
         string? symbol = this.safeSymbol(marketId);
-        object cache = this.positions;
+        ccxt.pro.ArrayCache cache = ((ccxt.pro.ArrayCache)this.positions);
         object currentPosition = this.getCurrentPosition(symbol);
         Dictionary<string, object> newPosition = this.parseWsUtaPosition(data);
         List<object> keys = new List<object>(((IDictionary<string,object>)newPosition).Keys);

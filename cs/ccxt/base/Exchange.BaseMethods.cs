@@ -5616,7 +5616,7 @@ public partial class BaseExchange
         {
             throw new ExchangeError (add(this.id, " markets not loaded")) ;
         }
-        object marketsById = this.markets_by_id;
+        IDictionary<string, object> marketsById = this.markets_by_id;
         if (inOp(markets, symbol))
         {
             return ccxt.BaseExchange.ToDict(getValue(markets, symbol));
@@ -6563,7 +6563,7 @@ public partial class BaseExchange
             return getValue(accountsByType, lowercaseAccount);
         }
         object markets = this.markets;
-        object marketsById = this.markets_by_id;
+        IDictionary<string, object> marketsById = this.markets_by_id;
         if ((((markets != null)) && (inOp(markets, account))) || (((marketsById != null)) && (inOp(marketsById, account))))
         {
             Dictionary<string, object> market = this.market(account);

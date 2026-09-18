@@ -475,7 +475,7 @@ public partial class bitmex : ccxt.bitmex
             Int64? limit = this.safeInteger(this.options, "liquidationsLimit", 1000);
             this.liquidations = new ArrayCache(limit);
         }
-        object cache = this.liquidations;
+        ccxt.pro.ArrayCache cache = ((ccxt.pro.ArrayCache)this.liquidations);
         for (int i = 0; isLessThan(i, rawLiquidations.Count); postFixIncrement(ref i))
         {
             object rawLiquidation = getValue(rawLiquidations, i);
@@ -760,7 +760,7 @@ public partial class bitmex : ccxt.bitmex
         if ((authenticated == true))
         {
             // we resolve the future here permanently so authentication only happens once
-            var future = this.safeValue(client.futures, messageHash);
+            Future future = ((Future)this.safeValue(client.futures, messageHash));
             (future as Future).resolve(true);
         } else
         {
@@ -966,7 +966,7 @@ public partial class bitmex : ccxt.bitmex
         {
             this.positions = new ArrayCacheBySymbolBySide();
         }
-        object cache = this.positions;
+        ccxt.pro.ArrayCache cache = ((ccxt.pro.ArrayCache)this.positions);
         List<object> rawPositions = this.safeList(message, "data", new List<object>() {});
         List<object> newPositions = new List<object>() {};
         for (int i = 0; isLessThan(i, rawPositions.Count); postFixIncrement(ref i))

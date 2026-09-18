@@ -2911,7 +2911,7 @@ public partial class bitget : ccxt.bitget
         //  { event: "login", code: 0 }
         //
         string messageHash = "authenticated";
-        var future = this.safeValue(client.futures, messageHash);
+        Future future = ((Future)this.safeValue(client.futures, messageHash));
         (future as Future).resolve(true);
     }
 

@@ -716,7 +716,7 @@ public partial class blofin : ccxt.blofin
         {
             this.positions = new ArrayCacheBySymbolBySide();
         }
-        object cache = this.positions;
+        ccxt.pro.ArrayCache cache = ((ccxt.pro.ArrayCache)this.positions);
         IDictionary<string, object> arg = this.safeDict(message, "arg");
         object channelName = this.safeString(arg, "channel");
         List<object> data = this.safeList(message, "data");
@@ -921,7 +921,7 @@ public partial class blofin : ccxt.blofin
                 return;
             } else if (eventVar == "login")
             {
-                var future = this.safeValue(client.futures, "authenticate_hash");
+                Future future = ((Future)this.safeValue(client.futures, "authenticate_hash"));
                 (future as Future).resolve(true);
                 return;
             } else if (eventVar == "error")

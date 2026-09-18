@@ -1345,7 +1345,7 @@ public partial class bingx : ccxt.bingx
         // don't remove the future from the .futures cache
         if (inOp(client.futures, messageHash))
         {
-            var future = getValue(client.futures, messageHash);
+            Future future = ((Future)getValue(client.futures, messageHash));
             (future as Future).resolve();
             callDynamically(client, "resolve", new object[] {getValue(this.balance, type), add(type, ":balance")});
         }
@@ -1415,7 +1415,7 @@ public partial class bingx : ccxt.bingx
         };
         if (isTrue(fetchPositionsSnapshot) && isTrue(awaitPositionsSnapshot) && isEqual(this.positions, null))
         {
-            object snapshot = await client.future(add(type, ":fetchPositionsSnapshot"));
+            ccxt.pro.ArrayCache snapshot = ((ccxt.pro.ArrayCache)await client.future(add(type, ":fetchPositionsSnapshot")));
             return ccxt.BaseExchange.ToPositionList(this.filterBySymbolsSinceLimit(snapshot, symbols, since, limit, true));
         }
         object newPositions = await this.watch(url, messageHash, null, subscriptionHash, subscription);
@@ -1451,7 +1451,7 @@ public partial class bingx : ccxt.bingx
     {
         object positions = ccxt.BaseExchange.FromPositionList(await this.FetchPositions(null, new Dictionary<string, object>() { { "type", type }, { "subType", "linear" }, }));
         this.positions = new ArrayCacheBySymbolBySide();
-        object cache = this.positions;
+        ccxt.pro.ArrayCache cache = ((ccxt.pro.ArrayCache)this.positions);
         for (int i = 0; isLessThan(i, getArrayLength(positions)); postFixIncrement(ref i))
         {
             object position = getValue(positions, i);
@@ -1464,7 +1464,7 @@ public partial class bingx : ccxt.bingx
         // don't remove the future from the .futures cache
         if (inOp(client.futures, messageHash))
         {
-            var future = getValue(client.futures, messageHash);
+            Future future = ((Future)getValue(client.futures, messageHash));
             (future as Future).resolve(cache);
             callDynamically(client, "resolve", new object[] {cache, "swap:positions"});
         }
@@ -1558,7 +1558,7 @@ public partial class bingx : ccxt.bingx
         {
             this.positions = new ArrayCacheBySymbolBySide();
         }
-        object cache = this.positions;
+        ccxt.pro.ArrayCache cache = ((ccxt.pro.ArrayCache)this.positions);
         IDictionary<string, object> data = this.safeDict(message, "a", new Dictionary<string, object>() {});
         if (!(data.ContainsKey("P")))
         {
@@ -2095,7 +2095,7 @@ public partial class bingx : ccxt.bingx
         for (int i = 0; isLessThan(i, messageHashes.Count); postFixIncrement(ref i))
         {
             object unsubHash = getValue(messageHashes, i);
-            object subHash = getValue(subMessageHashes, i);
+            string? subHash = ((string)getValue(subMessageHashes, i));
             this.cleanUnsubscription(client, subHash, unsubHash);
         }
         this.cleanCache(subscription);

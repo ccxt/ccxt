@@ -958,7 +958,7 @@ public partial class okx : ccxt.okx
                 Int64? limit = this.safeInteger(this.options, "liquidationsLimit", 1000);
                 this.liquidations = new ArrayCache(limit);
             }
-            object cache = this.liquidations;
+            ccxt.pro.ArrayCache cache = ((ccxt.pro.ArrayCache)this.liquidations);
             callDynamically(cache, "append", new object[] {liquidation});
             callDynamically(client, "resolve", new object[] {new List<object>() {liquidation}, "liquidations"});
             callDynamically(client, "resolve", new object[] {new List<object>() {liquidation}, add("liquidations::", symbol)});
@@ -1071,7 +1071,7 @@ public partial class okx : ccxt.okx
                 Int64? limit = this.safeInteger(this.options, "liquidationsLimit", 1000);
                 this.liquidations = new ArrayCache(limit);
             }
-            object cache = this.liquidations;
+            ccxt.pro.ArrayCache cache = ((ccxt.pro.ArrayCache)this.liquidations);
             callDynamically(cache, "append", new object[] {liquidation});
             callDynamically(client, "resolve", new object[] {new List<object>() {liquidation}, "myLiquidations"});
             callDynamically(client, "resolve", new object[] {new List<object>() {liquidation}, add("myLiquidations::", symbol)});
@@ -2182,7 +2182,7 @@ public partial class okx : ccxt.okx
         {
             this.positions = new ArrayCacheBySymbolBySide();
         }
-        object cache = this.positions;
+        ccxt.pro.ArrayCache cache = ((ccxt.pro.ArrayCache)this.positions);
         List<object> newPositions = new List<object>() {};
         for (int i = 0; isLessThan(i, data.Count); postFixIncrement(ref i))
         {
@@ -2786,7 +2786,7 @@ public partial class okx : ccxt.okx
         //
         //     { event: "login", success: true }
         //
-        var future = this.safeValue(client.futures, "authenticated");
+        Future future = ((Future)this.safeValue(client.futures, "authenticated"));
         (future as Future).resolve(true);
     }
 

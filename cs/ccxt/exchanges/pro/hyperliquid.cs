@@ -1379,7 +1379,7 @@ public partial class hyperliquid : ccxt.hyperliquid
         Dictionary<string, object> message = this.extend(request, parameters);
         var client = this.client(url);
         this.setPositionsCache(client, symbols);
-        object cache = this.positions;
+        ccxt.pro.ArrayCache cache = ((ccxt.pro.ArrayCache)this.positions);
         object newPositions = await this.watch(url, messageHash, message, topic);
         if (isTrue(this.newUpdates))
         {
@@ -1403,7 +1403,7 @@ public partial class hyperliquid : ccxt.hyperliquid
         {
             this.positions = new ArrayCacheBySymbolBySide();
         }
-        object cache = this.positions;
+        ccxt.pro.ArrayCache cache = ((ccxt.pro.ArrayCache)this.positions);
         IDictionary<string, object> data = this.safeDict(message, "data", new Dictionary<string, object>() {});
         IDictionary<string, object> clearinghouseState = this.safeDict(data, "clearinghouseState", new Dictionary<string, object>() {});
         List<object> newPositions = new List<object>() {};

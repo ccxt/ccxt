@@ -513,7 +513,7 @@ public partial class binance : ccxt.binance
             Int64? limit = this.safeInteger(this.options, "liquidationsLimit", 1000);
             this.liquidations = new ArrayCache(limit);
         }
-        object cache = this.liquidations;
+        ccxt.pro.ArrayCache cache = ((ccxt.pro.ArrayCache)this.liquidations);
         callDynamically(cache, "append", new object[] {liquidation});
         callDynamically(client, "resolve", new object[] {new List<object>() {liquidation}, "liquidations"});
         callDynamically(client, "resolve", new object[] {new List<object>() {liquidation}, add("liquidations::", symbol)});
@@ -1341,7 +1341,7 @@ public partial class binance : ccxt.binance
         for (int j = 0; isLessThan(j, messageHashes.Count); postFixIncrement(ref j))
         {
             object unsubHash = getValue(messageHashes, j);
-            object subHash = getValue(subMessageHashes, j);
+            string? subHash = ((string)getValue(subMessageHashes, j));
             this.cleanUnsubscription(client, subHash, unsubHash);
         }
         this.cleanCache(subscription);
@@ -3700,7 +3700,7 @@ public partial class binance : ccxt.binance
         // don't remove the future from the .futures cache
         if (inOp(client.futures, messageHash))
         {
-            var future = getValue(client.futures, messageHash);
+            Future future = ((Future)getValue(client.futures, messageHash));
             (future as Future).resolve();
             callDynamically(client, "resolve", new object[] {getValue(this.balance, type), add(type, ":balance")});
         }
@@ -5680,7 +5680,7 @@ public partial class binance : ccxt.binance
         object cache = this.safeValue(this.positions, type);
         if ((isEqual(fetchPositionsSnapshot, true)) && (isEqual(awaitPositionsSnapshot, true)) && ((cache == null)))
         {
-            object snapshot = await client.future(add(type, ":fetchPositionsSnapshot"));
+            ccxt.pro.ArrayCache snapshot = ((ccxt.pro.ArrayCache)await client.future(add(type, ":fetchPositionsSnapshot")));
             return ccxt.BaseExchange.ToPositionList(this.filterBySymbolsSinceLimit(snapshot, symbols, since, limit, true));
         }
         object newPositions = await this.watch(url, messageHash, null, type);
@@ -5745,7 +5745,7 @@ public partial class binance : ccxt.binance
         // don't remove the future from the .futures cache
         if (inOp(client.futures, messageHash))
         {
-            var future = getValue(client.futures, messageHash);
+            Future future = ((Future)getValue(client.futures, messageHash));
             (future as Future).resolve(cache);
             callDynamically(client, "resolve", new object[] {cache, add(type, ":position")});
         }

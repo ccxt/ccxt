@@ -827,7 +827,7 @@ public partial class alpaca : ccxt.alpaca
         string? status = this.safeString(data, "status");
         if (T == "success" || status == "authorized")
         {
-            object promise = getValue(client.futures, "authenticated");
+            Future promise = ((Future)getValue(client.futures, "authenticated"));
             callDynamically(promise, "resolve", new object[] {message});
             return;
         }

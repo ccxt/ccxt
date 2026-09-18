@@ -2435,7 +2435,7 @@ public partial class htx : ccxt.htx
         for (int i = 0; isLessThan(i, messageHashes.Count); postFixIncrement(ref i))
         {
             object unsubHash = getValue(messageHashes, i);
-            object subHash = getValue(subMessageHashes, i);
+            string? subHash = ((string)getValue(subMessageHashes, i));
             this.cleanUnsubscription(client, subHash, unsubHash);
         }
         this.cleanCache(subscription);
@@ -2668,7 +2668,7 @@ public partial class htx : ccxt.htx
         //        "data": { "user-id": "35930539" }
         //    }
         //
-        object promise = getValue(client.futures, "auth");
+        Future promise = ((Future)getValue(client.futures, "auth"));
         callDynamically(promise, "resolve", new object[] {message});
     }
 

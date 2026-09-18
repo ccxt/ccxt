@@ -1067,7 +1067,7 @@ public partial class cryptocom : ccxt.cryptocom
         object awaitPositionsSnapshot = this.handleOption("watchPositions", "awaitPositionsSnapshot", true);
         if ((isEqual(fetchPositionsSnapshot, true)) && (isEqual(awaitPositionsSnapshot, true)) && (isEqual(this.positions, null)))
         {
-            object snapshot = await client.future("fetchPositionsSnapshot");
+            ccxt.pro.ArrayCache snapshot = ((ccxt.pro.ArrayCache)await client.future("fetchPositionsSnapshot"));
             return ccxt.BaseExchange.ToPositionList(this.filterBySymbolsSinceLimit(snapshot, symbols, since, limit, true));
         }
         object newPositions = await this.watch(url, messageHash, this.extend(request, parameters));
@@ -1099,7 +1099,7 @@ public partial class cryptocom : ccxt.cryptocom
     {
         object positions = ccxt.BaseExchange.FromPositionList(await this.FetchPositions());
         this.positions = new ArrayCacheBySymbolBySide();
-        object cache = this.positions;
+        ccxt.pro.ArrayCache cache = ((ccxt.pro.ArrayCache)this.positions);
         for (int i = 0; isLessThan(i, getArrayLength(positions)); postFixIncrement(ref i))
         {
             object position = getValue(positions, i);
@@ -1112,7 +1112,7 @@ public partial class cryptocom : ccxt.cryptocom
         // don't remove the future from the .futures cache
         if (inOp(client.futures, messageHash))
         {
-            var future = getValue(client.futures, messageHash);
+            Future future = ((Future)getValue(client.futures, messageHash));
             (future as Future).resolve(cache);
             callDynamically(client, "resolve", new object[] {cache, "positions"});
         }
@@ -1153,7 +1153,7 @@ public partial class cryptocom : ccxt.cryptocom
         {
             this.positions = new ArrayCacheBySymbolBySide();
         }
-        object cache = this.positions;
+        ccxt.pro.ArrayCache cache = ((ccxt.pro.ArrayCache)this.positions);
         List<object> newPositions = new List<object>() {};
         for (int i = 0; isLessThan(i, rawPositions.Count); postFixIncrement(ref i))
         {
@@ -1676,7 +1676,7 @@ public partial class cryptocom : ccxt.cryptocom
         //
         //  { id: 1648132625434, method: "public/auth", code: 0 }
         //
-        var future = this.safeValue(client.futures, "authenticated");
+        Future future = ((Future)this.safeValue(client.futures, "authenticated"));
         (future as Future).resolve(true);
     }
 
@@ -1704,7 +1704,7 @@ public partial class cryptocom : ccxt.cryptocom
                 for (int j = 0; isLessThan(j, messageHashes.Count); postFixIncrement(ref j))
                 {
                     object unsubHash = getValue(messageHashes, j);
-                    object subHash = getValue(subMessageHashes, j);
+                    string? subHash = ((string)getValue(subMessageHashes, j));
                     this.cleanUnsubscription(client, subHash, unsubHash);
                 }
                 this.cleanCache(subscription);
