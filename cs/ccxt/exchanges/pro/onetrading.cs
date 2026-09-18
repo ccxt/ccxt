@@ -312,7 +312,7 @@ public partial class onetrading : ccxt.onetrading
         };
         Dictionary<string, object> request = this.deepExtend(subscribe, parameters);
         object trades = await this.watch(url, messageHash, request, subscribeHash, request);
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             limitVar = callDynamically(trades, "getLimit", new object[] {symbolVar, limitVar});
         }
@@ -499,7 +499,7 @@ public partial class onetrading : ccxt.onetrading
         };
         Dictionary<string, object> request = this.deepExtend(subscribe, parameters);
         object orders = await this.watch(url, messageHash, request, subscribeHash, request);
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             limitVar = callDynamically(orders, "getLimit", new object[] {symbolVar, limitVar});
         }
@@ -1202,7 +1202,7 @@ public partial class onetrading : ccxt.onetrading
 }} },
         };
         object ohlcv = await this.watch(url, messageHash, this.deepExtend(request, parameters), subscriptionHash, subscription);
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             limitVar = callDynamically(ohlcv, "getLimit", new object[] {symbolVar, limitVar});
         }

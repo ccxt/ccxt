@@ -4597,7 +4597,7 @@ public partial class binance : Exchange
      */
     public override void enableDemoTrading(object enable)
     {
-        if (isTrue(this.isSandboxModeEnabled))
+        if (this.isSandboxModeEnabled)
         {
             throw new NotSupported ((string)(this.id + " demo trading is not supported in the sandbox environment. Please check https://www.binance.com/en/support/faq/detail/9be58f73e5e14338809e3b705b9687dd to see the differences")) ;
         }
@@ -7566,7 +7566,7 @@ public partial class binance : Exchange
         string initialUppercaseType = ((string)type).ToUpper();
         string uppercaseType = initialUppercaseType;
         bool postOnly = this.isPostOnly((initialUppercaseType == "MARKET"), (initialUppercaseType == "LIMIT_MAKER"), parameters);
-        if (isTrue(postOnly))
+        if (postOnly)
         {
             uppercaseType = "LIMIT_MAKER";
         }
@@ -13435,7 +13435,7 @@ public partial class binance : Exchange
                 throw new ExchangeError ((string)(this.id + " method() missing leverage")) ;
             }
             bool rational = this.isRoundNumber(mod(1000, leverage));
-            if (!isTrue(rational))
+            if (!rational)
             {
                 initialMarginPercentageString = Precise.stringDiv(Precise.stringAdd(initialMarginPercentageString, "1e-8"), "1", 8);
             }
@@ -13814,7 +13814,7 @@ public partial class binance : Exchange
             object leverage = parseInt(leverageString);
             bool rational = this.isRoundNumber(mod(1000, leverage));
             initialMarginPercentageString = Precise.stringDiv("1", leverageString, 8);
-            if (!isTrue(rational))
+            if (!rational)
             {
                 initialMarginPercentageString = Precise.stringAdd(initialMarginPercentageString, "1e-8");
             }
@@ -14797,7 +14797,7 @@ public partial class binance : Exchange
             // https://github.com/ccxt/ccxt/pull/11624
             // POST https://fapi.binance.com/fapi/v1/marginType 400 Bad Request
             // binanceusdm
-            if (isTrue(e is MarginModeAlreadySet))
+            if (e is MarginModeAlreadySet)
             {
                 object throwMarginModeAlreadySet = this.handleOption("setMarginMode", "throwMarginModeAlreadySet", false);
                 if (isEqual(throwMarginModeAlreadySet, true))
@@ -15572,7 +15572,7 @@ public partial class binance : Exchange
         } else if ((isEqual(api, "private")) || (isEqual(api, "eapiPrivate")) || (isEqual(api, "sapi") && !isEqual(path, "system/status")) || (isEqual(api, "sapiV2")) || (isEqual(api, "sapiV3")) || (isEqual(api, "sapiV4")) || (isEqual(api, "dapiPrivate")) || (isEqual(api, "dapiPrivateV2")) || (isEqual(api, "fapiPrivate")) || (isEqual(api, "fapiPrivateV2")) || (isEqual(api, "fapiPrivateV3")) || (isEqual(api, "papiV2") || isEqual(api, "papi") && !isEqual(path, "ping")))
         {
             this.checkRequiredCredentials();
-            if ((isGreaterThan(getIndexOf(url, "testnet.binancefuture.com"), -1)) && isTrue(this.isSandboxModeEnabled) && ((this.safeBool(this.options, "disableFuturesSandboxWarning") != true)))
+            if ((isGreaterThan(getIndexOf(url, "testnet.binancefuture.com"), -1)) && this.isSandboxModeEnabled && ((this.safeBool(this.options, "disableFuturesSandboxWarning") != true)))
             {
                 throw new NotSupported ((string)(this.id + " testnet/sandbox mode is not supported for futures anymore, please check the deprecation announcement https://t.me/ccxt_announcements/92 and consider using the demo trading instead.")) ;
             }
