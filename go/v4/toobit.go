@@ -1460,7 +1460,7 @@ func (this *Toobit) ParseTrade(trade any, optionalArgs ...any) any {
 	var amountString *string = this.SafeString2(trade, "q", "qty")
 	var isBuyer *bool = this.SafeBool(trade, "isBuyer")
 	var side string
-	var isBuyerMaker any = DerefScalar(this.SafeBool(trade, "ibm"))
+	var isBuyerMaker any = this.SafeBool(trade, "ibm")
 	if IsEqual(isBuyerMaker, nil) {
 		var isBuyerTaker *bool = this.SafeBool(trade, "m")
 		if isBuyerTaker != nil {

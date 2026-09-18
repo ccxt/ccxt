@@ -3026,7 +3026,7 @@ func (this *Lighter) ParseOrder(order any, optionalArgs ...any) any {
 	var marketId *string = this.SafeString(order, "market_index")
 	market = this.SafeMarket(marketId, market)
 	var timestamp *int64 = this.SafeTimestamp(order, "timestamp")
-	var isAsk any = DerefScalar(this.SafeBool(order, "is_ask"))
+	var isAsk any = this.SafeBool(order, "is_ask")
 	if IsEqual(isAsk, nil) {
 		var isAskAsInteger *int64 = this.SafeInteger(order, "is_ask")
 		if isAskAsInteger != nil {

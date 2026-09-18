@@ -2416,9 +2416,9 @@ func (this *Kraken) ParseOrder(order any, optionalArgs ...any) any {
 	var orderDescriptionObj any = this.SafeDict(order, "descr") // can be null
 	var orderDescription any = nil
 	if !IsEqual(orderDescriptionObj, nil) {
-		orderDescription = DerefScalar(this.SafeString(orderDescriptionObj, "order"))
+		orderDescription = this.SafeString(orderDescriptionObj, "order")
 	} else {
-		orderDescription = DerefScalar(this.SafeString(order, "descr"))
+		orderDescription = this.SafeString(order, "descr")
 	}
 	var side any = nil
 	var rawType any = nil

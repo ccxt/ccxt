@@ -2283,7 +2283,7 @@ func (this *Paradex) CreateOrderRequest(symbol any, typeVar any, side any, amoun
 		panic(ArgumentsRequired(this.Id + " requires a side argument"))
 	}
 	var market any = this.Market(symbol)
-	var reduceOnly any = DerefScalar(this.SafeBool2(params, "reduceOnly", "reduce_only"))
+	var reduceOnly any = this.SafeBool2(params, "reduceOnly", "reduce_only")
 	var orderType string = ToUpper(typeVar)
 	var orderSide string = ToUpper(side)
 	var request map[string]any = map[string]any{

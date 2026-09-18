@@ -4541,7 +4541,7 @@ func (this *Okx) CreateOrderRequest(symbol any, typeVar any, side any, amount an
 		margin = true
 	} else {
 		marginMode = defaultMarginMode
-		margin = DerefScalar(this.SafeBool(params, "margin", false))
+		margin = this.SafeBool(params, "margin", false)
 	}
 	if spot == true {
 		if IsEqual(margin, true) {
@@ -4869,7 +4869,7 @@ func (this *Okx) createOrderBody(ch chan any, symbol any, typeVar any, side any,
 	}
 	var market any = this.Market(symbol)
 	var request any = this.CreateOrderRequest(symbol, typeVar, side, amount, price, params)
-	var method any = DerefScalar(this.SafeString(this.Options, "createOrder", "privatePostTradeBatchOrders"))
+	var method any = this.SafeString(this.Options, "createOrder", "privatePostTradeBatchOrders")
 	var requestOrdType *string = this.SafeString(request, "ordType")
 	if (requestOrdType != nil && *requestOrdType == "trigger") || (requestOrdType != nil && *requestOrdType == "conditional") || (requestOrdType != nil && *requestOrdType == "move_order_stop") || (IsEqual(typeVar, "move_order_stop")) || (IsEqual(typeVar, "oco")) || (IsEqual(typeVar, "iceberg")) || (IsEqual(typeVar, "twap")) {
 		method = "privatePostTradeOrderAlgo"
@@ -5321,7 +5321,7 @@ func (this *Okx) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any) any
 	var request any = []any{}
 	var options any = this.SafeDict(this.Options, "cancelOrders", map[string]any{})
 	var defaultMethod *string = this.SafeString(options, "method", "privatePostTradeCancelBatchOrders")
-	var method any = DerefScalar(this.SafeString(params, "method", defaultMethod))
+	var method any = this.SafeString(params, "method", defaultMethod)
 	var clientOrderIds any = this.ParseIds(this.SafeValue2(params, "clOrdId", "clientOrderId"))
 	var algoIds any = this.ParseIds(this.SafeValue(params, "algoId"))
 	var trigger any = this.SafeValue2(params, "stop", "trigger")
@@ -5446,7 +5446,7 @@ func (this *Okx) cancelOrdersForSymbolsBody(ch chan any, orders any, optionalArg
 	var request any = []any{}
 	var options any = this.SafeDict(this.Options, "cancelOrders", map[string]any{})
 	var defaultMethod *string = this.SafeString(options, "method", "privatePostTradeCancelBatchOrders")
-	var method any = DerefScalar(this.SafeString(params, "method", defaultMethod))
+	var method any = this.SafeString(params, "method", defaultMethod)
 	var trigger *bool = this.SafeBool2(params, "stop", "trigger")
 	var trailing *bool = this.SafeBool(params, "trailing", false)
 	var isStopOrTrailing bool = (trigger != nil && *trigger == true) || (trailing != nil && *trailing == true)
@@ -5918,7 +5918,7 @@ func (this *Okx) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any {
 	var clientOrderId *string = this.SafeString2(params, "clOrdId", "clientOrderId")
 	var options any = this.SafeDict(this.Options, "fetchOrder", map[string]any{})
 	var defaultMethod *string = this.SafeString(options, "method", "privateGetTradeOrder")
-	var method any = DerefScalar(this.SafeString(params, "method", defaultMethod))
+	var method any = this.SafeString(params, "method", defaultMethod)
 	var trigger any = this.SafeValue2(params, "stop", "trigger")
 	var isTrigger bool = (!IsEqual(trigger, nil)) && (trigger != false)
 	if isTrigger {
@@ -6111,7 +6111,7 @@ func (this *Okx) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	var options any = this.SafeDict(this.Options, "fetchOpenOrders", map[string]any{})
 	var algoOrderTypes map[string]any = SafeMapTyped(this.Options, "algoOrderTypes")
 	var defaultMethod *string = this.SafeString(options, "method", "privateGetTradeOrdersPending")
-	var method any = DerefScalar(this.SafeString(params, "method", defaultMethod))
+	var method any = this.SafeString(params, "method", defaultMethod)
 	var ordType *string = this.SafeString(params, "ordType")
 	var trigger any = this.SafeValue2(params, "stop", "trigger")
 	var trailing *bool = this.SafeBool(params, "trailing", false)
@@ -6293,7 +6293,7 @@ func (this *Okx) fetchCanceledOrdersBody(ch chan any, optionalArgs ...any) any {
 	var options any = this.SafeDict(this.Options, "fetchCanceledOrders", map[string]any{})
 	var algoOrderTypes map[string]any = SafeMapTyped(this.Options, "algoOrderTypes")
 	var defaultMethod *string = this.SafeString(options, "method", "privateGetTradeOrdersHistory")
-	var method any = DerefScalar(this.SafeString(params, "method", defaultMethod))
+	var method any = this.SafeString(params, "method", defaultMethod)
 	var ordType *string = this.SafeString(params, "ordType")
 	var trigger any = this.SafeValue2(params, "stop", "trigger")
 	var trailing *bool = this.SafeBool(params, "trailing", false)
@@ -6510,7 +6510,7 @@ func (this *Okx) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any {
 	var options any = this.SafeDict(this.Options, "fetchClosedOrders", map[string]any{})
 	var algoOrderTypes map[string]any = SafeMapTyped(this.Options, "algoOrderTypes")
 	var defaultMethod *string = this.SafeString(options, "method", "privateGetTradeOrdersHistory")
-	var method any = DerefScalar(this.SafeString(params, "method", defaultMethod))
+	var method any = this.SafeString(params, "method", defaultMethod)
 	var ordType *string = this.SafeString(params, "ordType")
 	var trigger *bool = this.SafeBool2(params, "stop", "trigger")
 	var trailing *bool = this.SafeBool(params, "trailing", false)

@@ -4040,7 +4040,7 @@ func (this *Bingx) CreateOrderRequest(symbol any, typeVar any, side any, amount 
 		if ((IsEqual(typeVar, "LIMIT")) || (IsEqual(typeVar, "TRIGGER_LIMIT")) || (IsEqual(typeVar, "STOP")) || (IsEqual(typeVar, "TAKE_PROFIT"))) && !isTrailing {
 			request["price"] = this.ParseToNumeric(this.PriceToPrecision(symbol, price))
 		}
-		var reduceOnly any = DerefScalar(this.SafeBool(params, "reduceOnly", false))
+		var reduceOnly any = this.SafeBool(params, "reduceOnly", false)
 		if isTriggerOrder {
 			request["stopPrice"] = this.ParseToNumeric(this.PriceToPrecision(symbol, triggerPrice))
 			if isMarketOrder || (IsEqual(typeVar, "TRIGGER_MARKET")) {

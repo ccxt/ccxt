@@ -752,7 +752,7 @@ func (this *Gate) unWatchOrderBookBody(ch chan any, symbol any, optionalArgs ...
 	interval = ccxt.GetValue(intervalparamsVariable, 0)
 	params = ccxt.GetValue(intervalparamsVariable, 1)
 	var messageType any = this.GetTypeByMarket(market)
-	var limit any = ccxt.DerefScalar(this.SafeInteger(params, "limit"))
+	var limit any = this.SafeInteger(params, "limit")
 	if ccxt.IsEqual(limit, nil) {
 		limit = func() any {
 			if ccxt.GetValue(market, "spot") == true {

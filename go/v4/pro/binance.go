@@ -1990,7 +1990,7 @@ func (this *Binance) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...any
 	}
 	var market any = this.Market(symbol)
 	symbol = ccxt.GetValue(market, "symbol")
-	var stock any = ccxt.DerefScalar(this.SafeBool(market, "stock", false))
+	var stock any = this.SafeBool(market, "stock", false)
 	var stockparamsVariable []any = this.HandleOptionAndParams(params, "watchOHLCV", "stock")
 	stock = ccxt.GetValue(stockparamsVariable, 0)
 	params = ccxt.GetValue(stockparamsVariable, 1)
@@ -3278,7 +3278,7 @@ func (this *Binance) ParseWsTicker(message any, marketType any) any {
 	//
 	var marketId *string = this.SafeString2(message, "s", "symbol")
 	var symbol *string = this.SafeSymbol(marketId, nil, nil, marketType)
-	var event any = ccxt.DerefScalar(this.SafeString(message, "e", "bookTicker"))
+	var event any = this.SafeString(message, "e", "bookTicker")
 	if ccxt.IsEqual(event, "24hrTicker") {
 		event = "ticker"
 	}
@@ -3451,7 +3451,7 @@ func (this *Binance) HandleTickersAndBidsAsks(client any, message any, methodTyp
 		if isBidAsk {
 			event = "bookTicker" // as noted in `handleMessage`, bookTicker doesn't have identifier, so manually set here
 		}
-		channelName = ccxt.DerefScalar(this.SafeString(ccxt.GetValue(this.Options, "tickerChannelsMap"), event, event))
+		channelName = this.SafeString(ccxt.GetValue(this.Options, "tickerChannelsMap"), event, event)
 		if ccxt.IsEqual(channelName, nil) {
 			continue
 		}

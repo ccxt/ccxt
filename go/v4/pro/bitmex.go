@@ -1539,7 +1539,7 @@ func (this *Bitmex) watchOrderBookForSymbolsBody(ch chan any, symbols any, optio
 	_ = params
 	var table any = nil
 	if ccxt.IsEqual(limit, nil) {
-		table = ccxt.DerefScalar(this.SafeString(this.Options, "watchOrderBookLevel", "orderBookL2"))
+		table = this.SafeString(this.Options, "watchOrderBookLevel", "orderBookL2")
 	} else if ccxt.IsEqual(limit, 25) {
 		table = "orderBookL2_25"
 	} else if ccxt.IsEqual(limit, 10) {
@@ -1884,7 +1884,7 @@ func (this *Bitmex) HandleOrderBook(client any, message any) {
 			var price *float64 = this.SafeFloat(ccxt.GetValue(data, i), "price")
 			var size any = this.ConvertFromRawQuantity(symbol, this.SafeString(ccxt.GetValue(data, i), "size"))
 			var id *string = this.SafeString(ccxt.GetValue(data, i), "id")
-			var side any = ccxt.DerefScalar(this.SafeString(ccxt.GetValue(data, i), "side"))
+			var side any = this.SafeString(ccxt.GetValue(data, i), "side")
 			side = func() any {
 				if ccxt.IsEqual(side, "Buy") {
 					return "bids"
@@ -1921,7 +1921,7 @@ func (this *Bitmex) HandleOrderBook(client any, message any) {
 				return this.ConvertFromRawQuantity(symbol, this.SafeString(ccxt.GetValue(data, i), "size", "0"))
 			}()
 			var id *string = this.SafeString(ccxt.GetValue(data, i), "id")
-			var side any = ccxt.DerefScalar(this.SafeString(ccxt.GetValue(data, i), "side"))
+			var side any = this.SafeString(ccxt.GetValue(data, i), "side")
 			side = func() any {
 				if ccxt.IsEqual(side, "Buy") {
 					return "bids"

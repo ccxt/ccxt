@@ -8200,7 +8200,7 @@ func (this *Gate) setLeverageBody(ch chan any, leverage any, optionalArgs ...any
 	query := GetValue(requestqueryVariable, 1)
 	var defaultMarginMode *string = this.SafeString2(this.Options, "marginMode", "defaultMarginMode")
 	var crossLeverageLimit *string = this.SafeString(query, "cross_leverage_limit")
-	var marginMode any = DerefScalar(this.SafeString(query, "marginMode", defaultMarginMode))
+	var marginMode any = this.SafeString(query, "marginMode", defaultMarginMode)
 	var stringifiedMargin *string = this.NumberToString(leverage)
 	if crossLeverageLimit != nil {
 		marginMode = "cross"

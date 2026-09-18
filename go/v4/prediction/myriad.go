@@ -1999,7 +1999,7 @@ func (this *Myriad) fetchAmmOrdersBody(ch chan any, optionalArgs ...any) any {
 		var info map[string]any = ccxt.SafeMapTyped(outcomeObj, "info")
 		request["market_id"] = this.SafeString(info, "marketId")
 		request["network_id"] = this.SafeString(info, "networkId")
-		rowOutcomeId = ccxt.DerefScalar(this.SafeString(info, "outcomeId"))
+		rowOutcomeId = this.SafeString(info, "outcomeId")
 	}
 	if !ccxt.IsEqual(since, nil) {
 		request["since"] = this.ParseToInt(ccxt.Divide(since, 1000))

@@ -165,6 +165,204 @@ function stripGoLiterals (line: string, state?: { 'inBlockComment': boolean }): 
     return stripped;
 }
 
+// Free helpers that normalize every argument with derefScalar at entry, so a *T boxed in
+// an `any` reads there exactly like the plain value it points at. A DerefScalar() wrap at
+// the assignment adds nothing when every read of that local goes through one of these.
+const GO_POINTER_TRANSPARENT_SHIMS = new Set ([
+    'IsEqual', 'EvalTruthy', 'Add', 'Subtract', 'Multiply', 'Divide', 'Mod', 'Negate', 'OpNeg', 'UnaryPlus',
+    'IsGreaterThan', 'IsLessThan', 'IsGreaterThanOrEqual', 'IsLessThanOrEqual',
+    'GetValue', 'GetArrayLength', 'GetLength', 'GetIndexOf', 'InOp', 'Contains', 'IsNil',
+    'ToString', 'ToLower', 'ToUpper', 'Trim', 'StartsWith', 'EndsWith', 'Replace', 'Split', 'Join', 'Slice',
+    'JsonParse', 'JsonStringify', 'ParseInt', 'ParseFloat', 'ToFloat64',
+    'MathFloor', 'MathCeil', 'MathRound', 'MathAbs', 'mathMin', 'mathMax', 'mathFloor', 'mathCeil', 'mathRound', 'mathAbs',
+    'IsArray', 'IsString', 'IsInt', 'IsBool', 'IsNumber', 'IsObject', 'IsDictionary',
+    'ObjectKeys', 'ObjectValues', 'derefScalar', 'DerefScalar',
+]);
+
+// the whole-argument names of a line that are passed to a pointer-transparent shim: the
+// argument must BE the name (a `[]any{x}` or `Add(x, 1)` chunk carries/consumes it deeper
+// and is not itself a shim boundary), and a `this.`/`x.` method of the same name is not
+// the free function.
+function goShimDirectArgumentNames (line: string): string[] {
+    const names: string[] = [];
+    const callPattern = /(?<![\w.])(?:ccxt\.)?([A-Za-z_]\w*)\s*\(/g;
+    let match;
+    while ((match = callPattern.exec (line)) !== null) {
+        if (!GO_POINTER_TRANSPARENT_SHIMS.has (match[1])) {
+            continue;
+        }
+        let depth = 1;
+        let i = match.index + match[0].length;
+        while (i < line.length && depth > 0) {
+            if (line[i] === '(') {
+                depth++;
+            } else if (line[i] === ')') {
+                depth--;
+            }
+            i++;
+        }
+        const args = line.substring (match.index + match[0].length, i - 1);
+        let level = 0;
+        let chunk = '';
+        const chunks: string[] = [];
+        for (const char of args) {
+            if (char === '(') {
+                level++;
+            } else if (char === ')') {
+                level--;
+            }
+            if (char === ',' && level === 0) {
+                chunks.push (chunk);
+                chunk = '';
+                continue;
+            }
+            chunk += char;
+        }
+        chunks.push (chunk);
+        for (const candidate of chunks) {
+            const trimmed = candidate.trim ();
+            if (/^[A-Za-z_]\w*$/.test (trimmed)) {
+                names.push (trimmed);
+            }
+        }
+    }
+    return names;
+}
+
+// the line with the DerefScalar() wrapper (the name and its closing paren only) and the
+// declaration/assignment target removed: the wrapped call's own arguments still read the
+// local (`x = DerefScalar(this.SafeString(m, "k", x))`), so they must be scanned, not
+// hidden behind the wrap.
+function goDerefWrapReadText (line: string): string {
+    let text = line;
+    let index = text.indexOf ('DerefScalar(');
+    while (index >= 0) {
+        const open = index + 'DerefScalar'.length;
+        let depth = 0;
+        let close = -1;
+        for (let i = open; i < text.length; i++) {
+            if (text[i] === '(') {
+                depth++;
+            } else if (text[i] === ')') {
+                depth--;
+                if (depth === 0) {
+                    close = i;
+                    break;
+                }
+            }
+        }
+        if (close < 0) {
+            break;
+        }
+        text = text.slice (0, index) + text.slice (open + 1, close) + text.slice (close + 1);
+        index = text.indexOf ('DerefScalar(');
+    }
+    return text.replace (/^\s*(?:var\s+\w+\s+(?:any|[\w.\[\]\*]+)\s*=|[\w.\[\]]+\s*(?::=|=)(?!=))/, '');
+}
+
+// the line's right-hand side once the write target (`var x … =`, `x =`, `x :=`, `_ = x`)
+// is removed; null when the line does not write the local. A write with a right side that
+// reads the local again (`x = this.SafeString2(p, "k", x)`) keeps that read.
+function goDerefWrapWriteRhs (line: string, name: string): string | null {
+    const text = line.trim ();
+    const escaped = name.replace (/[.*+?^${}()|[\]\\]/g, '\\$&');
+    if (new RegExp ('^var ' + escaped + ' [\\w.\\[\\]\\*]+\\s*=(?!=)').test (text)) {
+        return text.replace (new RegExp ('^var ' + escaped + ' [\\w.\\[\\]\\*]+\\s*='), '');
+    }
+    if (new RegExp ('^' + escaped + '\\s*:?=(?!=)').test (text)) {
+        return text.replace (new RegExp ('^' + escaped + '\\s*:?=(?!=)'), '');
+    }
+    if (new RegExp ('^_\\s*=\\s*' + escaped + '$').test (text)) {
+        return '';
+    }
+    return null;
+}
+
+// DerefScalar() exists so the `any` box carries the plain value: raw `x == nil`, `x != true`
+// and `switch x` on the pointer box would never match. When every READ of the local in this
+// body is a pointer-transparent shim call, nothing can observe the pointer and the wrap is
+// provably redundant (the shims deref it themselves, #30054). Any other mention — a raw
+// comparison, a dict/slice store, a return, an argument to a non-shim call, or a mention the
+// scan cannot classify — keeps the wrap.
+function goDerefWrapRedundantLocals (fn: string, wrapLines: Set<number>, names: Iterable<string>): Set<string> {
+    const commentState = { 'inBlockComment': false };
+    const lines = fn.split ('\n').map ((line) => stripGoLiterals (line, commentState));
+    const redundant = new Set<string> ();
+    for (const name of names) {
+        const escaped = name.replace (/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const mention = new RegExp ('(?<![\\w.])' + escaped + '(?![\\w])', 'g');
+        let safe = true;
+        for (let index = 0; index < lines.length; index++) {
+            const wrapped = wrapLines.has (index);
+            let text = wrapped ? goDerefWrapReadText (lines[index]) : lines[index];
+            if (!wrapped) {
+                const rhs = goDerefWrapWriteRhs (text, name);
+                if (rhs !== null) {
+                    text = rhs;
+                }
+            }
+            const occurrences = (text.match (mention) || []).length;
+            if (!occurrences) {
+                continue;
+            }
+            const shimArgs = goShimDirectArgumentNames (text).filter ((candidate) => candidate === name).length;
+            if (shimArgs === occurrences) {
+                continue;
+            }
+            safe = false;
+            break;
+        }
+        if (safe) {
+            redundant.add (name);
+        }
+    }
+    return redundant;
+}
+
+// the declaration form of the wrap the createGoExchange pass above adds is removed again for
+// the locals the proof above accepts; the reassignment form is never added in the first place.
+function goUnwrapDerefWraps (fn: string, names: Iterable<string>, safeCall: string): string {
+    for (const name of names) {
+        const escaped = name.replace (/[.*+?^${}()|[\]\\]/g, '\\$&');
+        fn = fn.replace (new RegExp ('(var ' + escaped + ' any = )(?:ccxt\\.)?DerefScalar\\(' + '(' + safeCall + ')' + '\\)', 'g'), '$1$2');
+    }
+    return fn;
+}
+
+// Self-test for the DerefScalar() redundancy proof: a shim-only local loses the wrap, and
+// every other read shape keeps it.
+function goDerefWrapSelfTest (): string[] {
+    const problems: string[] = [];
+    const ok = (condition: boolean, message: string) => { if (!condition) { problems.push (message); } };
+    const safeCall = 'this\\.(?:DerivedExchange\\.)?(?:Safe(?:(?:String|Integer|Number|Float|Bool)[N2-9]*|CurrencyCode|Symbol)|NumberToString|Parse8601|Iso8601)\\((?:[^()]|\\([^()]*\\))*\\)';
+    const redundant = (body: string, name: string): boolean => {
+        const text = '\nfunc (this *X) f() any {\n' + body + '}\n';
+        const wrapLines = new Set<number> ();
+        text.split ('\n').forEach ((line, index) => { if (line.indexOf ('DerefScalar(') >= 0) { wrapLines.add (index); } });
+        return goDerefWrapRedundantLocals (text, wrapLines, [ name ]).has (name);
+    };
+    ok (redundant ('\tvar flag any = DerefScalar(this.SafeBool(market, "flag", false))\n\tif IsEqual(flag, true) {\n\t\treturn nil\n\t}\n', 'flag'), 'shim-only declaration must drop the wrap');
+    ok (redundant ('\tvar amount any = nil\n\tamount = DerefScalar(this.SafeNumber(order, "amount"))\n\tif EvalTruthy(amount) {\n\t\treturn nil\n\t}\n\t_ = amount\n', 'amount'), 'shim-only reassignment must drop the wrap');
+    ok (redundant ('\tvar flag any = DerefScalar(this.SafeBool(market, "flag", false))\n\t// flag is read through the shim below\n\tif !EvalTruthy(flag) {\n\t\treturn nil\n\t}\n', 'flag'), 'a comment mention must not veto');
+    ok (redundant ('\tvar id any = DerefScalar(this.SafeString(o, "id"))\n\tquantity = Add(id, "x")\n', 'id'), 'a shim call inside a write must keep the local redundant');
+    ok (!redundant ('\tvar code any = DerefScalar(this.SafeString(entry, "code"))\n\tif code == nil {\n\t\treturn nil\n\t}\n', 'code'), 'a raw nil comparison must keep the wrap');
+    ok (!redundant ('\tvar side any = DerefScalar(this.SafeString(trade, "side"))\n\tswitch side {\n\tcase "buy":\n\t\treturn nil\n\t}\n', 'side'), 'a switch must keep the wrap');
+    ok (!redundant ('\tvar id any = DerefScalar(this.SafeString(o, "id"))\n\treturn id\n', 'id'), 'a return must keep the wrap');
+    ok (!redundant ('\tvar id any = DerefScalar(this.SafeString(o, "id"))\n\tresult["id"] = id\n', 'id'), 'a dict store must keep the wrap');
+    ok (!redundant ('\tvar id any = DerefScalar(this.SafeString(o, "id"))\n\tthis.ParseOrderId(id, market)\n', 'id'), 'an argument to a non-shim call must keep the wrap');
+    ok (!redundant ('\tvar qty any = DerefScalar(this.SafeNumber(o, "qty"))\n\tresult := map[string]any{"qty": qty}\n', 'qty'), 'a dict literal value must keep the wrap');
+    ok (!redundant ('\tvar x any = nil\n\tx = this.SafeString2(params, "x", "y", x)\n\tif IsEqual(x, nil) {\n\t\treturn nil\n\t}\n', 'x'), 'a read inside the wrapped call arguments must keep the wrap');
+    ok (!redundant ('\tvar x any = nil\n\tx = this.SafeString2(params, "x", "y", x)\n\tif IsEqual(x, nil) {\n\t\treturn nil\n\t}\n', 'x'), 'the same read keeps the wrap inside the wrapped form too');
+    const both = '\nfunc (this *X) f() any {\n\tvar flag any = DerefScalar(this.SafeBool(market, "flag", false))\n\t_ = flag\n}\n\nfunc (this *X) g() any {\n\tvar flag any = ccxt.DerefScalar(this.SafeBool(market, "flag", false))\n\tif flag != nil && *flag {\n\t\treturn nil\n\t}\n}\n';
+    const lines = new Set<number> ();
+    both.split ('\n').forEach ((line, index) => { if (line.indexOf ('DerefScalar(') >= 0) { lines.add (index); } });
+    ok (goDerefWrapRedundantLocals (both, lines, [ 'flag' ]).size === 0, 'a second function with a raw comparison must veto the name');
+    const unwrapped = goUnwrapDerefWraps ('func f() {\n\tvar flag any = DerefScalar(this.SafeBool(market, "flag", false))\n\tvar row any = ccxt.DerefScalar(this.SafeString(data, "row"))\n}\n', [ 'flag', 'row' ], safeCall);
+    ok (unwrapped.indexOf ('DerefScalar(') < 0, 'both wrap forms must be removed');
+    ok (unwrapped.indexOf ('var flag any = this.SafeBool(market, "flag", false)') >= 0 && unwrapped.indexOf ('var row any = this.SafeString(data, "row")') >= 0, 'the drop must keep the wrapped call');
+    return problems;
+}
+
 // One entry per line of a core body: how deeply it sits inside func literals, and
 // whether that line opens or closes one. Everything the rewriter needs to decide
 // what is "core level" comes from here, so the brace scan happens exactly once.
@@ -3836,7 +4034,19 @@ ${caseStatements.join('\n')}
             if (!anyLocals.size) {
                 return fn;
             }
-            fn = fn.replace (new RegExp ('(\\n\\s*)(\\w+) = (' + safeCall + ')', 'g'), ((m: string, pre: string, name: string, call: string) => (anyLocals.has (name) && !typedLocals.has (name)) ? pre + name + ' = ' + derefFn + call + ')' : m) as any);
+            // DerefScalar() is only load-bearing for the reads that can see the pointer (raw
+            // comparisons, stores, non-shim calls). Where every read of the local is a call to
+            // a shim that derefs its own arguments, drop the wrapper the pass above added and
+            // keep the pointer in the box — the shim reads the same value either way.
+            const wrapLines = new Set<number> ();
+            fn.split ('\n').forEach ((line, index) => {
+                if (line.indexOf ('DerefScalar(') >= 0) {
+                    wrapLines.add (index);
+                }
+            });
+            const redundantWraps = goDerefWrapRedundantLocals (fn, wrapLines, anyLocals);
+            fn = goUnwrapDerefWraps (fn, redundantWraps, safeCall);
+            fn = fn.replace (new RegExp ('(\\n\\s*)(\\w+) = (' + safeCall + ')', 'g'), ((m: string, pre: string, name: string, call: string) => (anyLocals.has (name) && !typedLocals.has (name) && !redundantWraps.has (name)) ? pre + name + ' = ' + derefFn + call + ')' : m) as any);
             // An `any` name can still receive a typed pointer from its caller (an `any` parameter
             // fed a *string by another exchange method), so `name == "literal"` compares an
             // interface against an untyped constant and is always false. Route those via IsEqual.
@@ -5140,6 +5350,15 @@ async function runMain () {
     }
     if (process.argv.includes ('--check-gofmt')) {
         runGofmtGate ();
+        return;
+    }
+    if (process.argv.includes ('--self-test')) {
+        const problems = goDerefWrapSelfTest ();
+        if (problems.length) {
+            console.error ('SELF-TEST FAILED:\n  - ' + problems.join ('\n  - '));
+            process.exit (3);
+        }
+        console.log ('SELF-TEST PASSED');
         return;
     }
     const ws = process.argv.includes ('--ws');

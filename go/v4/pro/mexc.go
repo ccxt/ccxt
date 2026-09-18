@@ -2583,10 +2583,10 @@ func (this *Mexc) HandleMessage(client any, message any) {
 	var c *string = this.SafeString(message, "c")
 	var channel any = nil
 	if c == nil {
-		channel = ccxt.DerefScalar(this.SafeString(message, "channel"))
+		channel = this.SafeString(message, "channel")
 	} else {
 		var parts []string = ccxt.Split(c, "@")
-		channel = ccxt.DerefScalar(this.SafeString(parts, 1, ""))
+		channel = this.SafeString(parts, 1, "")
 	}
 	var methods map[string]any = map[string]any{
 		"public.deals.v3.api":          this.HandleTrades,
