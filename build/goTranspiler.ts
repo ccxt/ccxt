@@ -16,7 +16,7 @@ import Piscina from 'piscina';
 import os from 'os';
 import { isMainEntry } from "./transpile.js";
 import { filterDirtyExchangeFiles, skipUpToDateStage, testStageInputs } from "./transpile.js";
-import { installCcxtGoLocalTypes, CCXT_GO_HELPER_RETURN_TYPES, CCXT_GO_BOOL_METHOD_NAMES } from './go-local-types.js';
+import { installCcxtGoLocalTypes, installCcxtGoIndexableTypes, CCXT_GO_HELPER_RETURN_TYPES, CCXT_GO_BOOL_METHOD_NAMES } from './go-local-types.js';
 
 type dict = { [key: string]: string };
 
