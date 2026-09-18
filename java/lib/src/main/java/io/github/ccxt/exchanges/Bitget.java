@@ -11609,7 +11609,7 @@ final Object finalMinNotional = minNotional;
         Object liquidationPrice = this.parseNumber(this.omitZero(this.safeString(position, "liquidationPrice")));
         String calcTakerFeeRate = "0.0006";
         String calcTakerFeeMult = "0.9994";
-        if ((java.util.Objects.equals(liquidationPrice, null)) && (java.util.Objects.equals(marginMode, "isolated")) && Helpers.isTrue(Precise.stringGt(baseAmount, "0")))
+        if ((java.util.Objects.equals(liquidationPrice, null)) && (java.util.Objects.equals(marginMode, "isolated")) && Precise.stringGt(baseAmount, "0"))
         {
             String signedMargin = Precise.stringDiv(rawCollateral, baseAmount);
             String signedMmp = maintenanceMarginPercentage;

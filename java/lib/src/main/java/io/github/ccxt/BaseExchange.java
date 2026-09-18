@@ -6061,11 +6061,11 @@ public Object describe()
         {
             if (java.util.Objects.equals(direction, null))
             {
-                if (Helpers.isTrue(Precise.stringGt(before, after)))
+                if (Precise.stringGt(before, after))
                 {
                     direction = "out";
                 }
-                if (Helpers.isTrue(Precise.stringGt(after, before)))
+                if (Precise.stringGt(after, before))
                 {
                     direction = "in";
                 }
@@ -6130,14 +6130,14 @@ public Object describe()
                 // find lowest fee (which is more desired)
                 String fee = this.safeString(network, "fee");
                 String feeMain = this.safeString(currency, "fee");
-                if (java.util.Objects.equals(feeMain, null) || Helpers.isTrue(Precise.stringLt(fee, feeMain)))
+                if (java.util.Objects.equals(feeMain, null) || Precise.stringLt(fee, feeMain))
                 {
                     ((Map<String, Object>)currency).put("fee", BaseExchange.this.parseNumber(fee));
                 }
                 // find lowest precision (which is more desired)
                 String precision = this.safeString(network, "precision");
                 String precisionMain = this.safeString(currency, "precision");
-                if (java.util.Objects.equals(precisionMain, null) || Helpers.isTrue(Precise.stringGt(precision, precisionMain)))
+                if (java.util.Objects.equals(precisionMain, null) || Precise.stringGt(precision, precisionMain))
                 {
                     ((Map<String, Object>)currency).put("precision", BaseExchange.this.parseNumber(precision));
                 }
@@ -6160,12 +6160,12 @@ public Object describe()
                 String limitsDepositMinMain = this.safeString(limitsDepositMain, "min");
                 String limitsDepositMaxMain = this.safeString(limitsDepositMain, "max");
                 // find min
-                if (java.util.Objects.equals(limitsDepositMinMain, null) || Helpers.isTrue(Precise.stringLt(limitsDepositMin, limitsDepositMinMain)))
+                if (java.util.Objects.equals(limitsDepositMinMain, null) || Precise.stringLt(limitsDepositMin, limitsDepositMinMain))
                 {
                     Helpers.addElementToObject(Helpers.GetValue(Helpers.GetValue(currency, "limits"), "deposit"), "min", this.parseNumber(limitsDepositMin));
                 }
                 // find max
-                if (java.util.Objects.equals(limitsDepositMaxMain, null) || Helpers.isTrue(Precise.stringGt(limitsDepositMax, limitsDepositMaxMain)))
+                if (java.util.Objects.equals(limitsDepositMaxMain, null) || Precise.stringGt(limitsDepositMax, limitsDepositMaxMain))
                 {
                     Helpers.addElementToObject(Helpers.GetValue(Helpers.GetValue(currency, "limits"), "deposit"), "max", this.parseNumber(limitsDepositMax));
                 }
@@ -6181,12 +6181,12 @@ public Object describe()
                 String limitsWithdrawMinMain = this.safeString(limitsWithdrawMain, "min");
                 String limitsWithdrawMaxMain = this.safeString(limitsWithdrawMain, "max");
                 // find min
-                if (java.util.Objects.equals(limitsWithdrawMinMain, null) || Helpers.isTrue(Precise.stringLt(limitsWithdrawMin, limitsWithdrawMinMain)))
+                if (java.util.Objects.equals(limitsWithdrawMinMain, null) || Precise.stringLt(limitsWithdrawMin, limitsWithdrawMinMain))
                 {
                     Helpers.addElementToObject(Helpers.GetValue(Helpers.GetValue(currency, "limits"), "withdraw"), "min", this.parseNumber(limitsWithdrawMin));
                 }
                 // find max
-                if (java.util.Objects.equals(limitsWithdrawMaxMain, null) || Helpers.isTrue(Precise.stringGt(limitsWithdrawMax, limitsWithdrawMaxMain)))
+                if (java.util.Objects.equals(limitsWithdrawMaxMain, null) || Precise.stringGt(limitsWithdrawMax, limitsWithdrawMaxMain))
                 {
                     Helpers.addElementToObject(Helpers.GetValue(Helpers.GetValue(currency, "limits"), "withdraw"), "max", this.parseNumber(limitsWithdrawMax));
                 }
@@ -6752,7 +6752,7 @@ public Object describe()
         // price = cost / (filled * contract size)
         if (java.util.Objects.equals(average, null))
         {
-            if ((!java.util.Objects.equals(filled, null)) && (!java.util.Objects.equals(cost, null)) && Helpers.isTrue(Precise.stringGt(filled, "0")))
+            if ((!java.util.Objects.equals(filled, null)) && (!java.util.Objects.equals(cost, null)) && Precise.stringGt(filled, "0"))
             {
                 Object filledTimesContractSize = Precise.stringMul(filled, contractSize);
                 if (java.util.Objects.equals(inverse, true))
@@ -6793,7 +6793,7 @@ public Object describe()
         }
         // support for market orders
         Object orderType = this.safeValue(order, "type");
-        Boolean emptyPrice = (java.util.Objects.equals(price, null)) || Helpers.isTrue(Precise.stringEquals(price, "0"));
+        Boolean emptyPrice = (java.util.Objects.equals(price, null)) || Precise.stringEquals(price, "0");
         if (Helpers.isTrue(emptyPrice) && (java.util.Objects.equals(orderType, "market")))
         {
             price = average;
@@ -10586,7 +10586,7 @@ public Object describe()
         {
             return null;
         }
-        if (Helpers.isTrue(Precise.stringGe(precision, "0")))
+        if (Precise.stringGe(precision, "0"))
         {
             return this.parsePrecision(precision);
         } else
