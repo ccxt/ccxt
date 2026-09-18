@@ -1046,7 +1046,7 @@ ccxt::any ExchangeBase::precisionFromString (ccxt::any value) {
 // json
 // ---------------------------------------------------------------------------
 
-ccxt::any ExchangeBase::parseJson (ccxt::any value) {
+ccxt::any ExchangeBase::parseJson (const ccxt::any& value) {
     try {
         // exchange ids routinely exceed int64 (e.g. alpaca trade ids like
         // 2880534893454904000): nlohmann stores those as double, rounding the
@@ -1054,7 +1054,17 @@ ccxt::any ExchangeBase::parseJson (ccxt::any value) {
         // that sit in JSON value positions first so they ride through as exact
         // strings. (std::regex is ECMAScript-flavoured: no lookbehind, hence the
         // manual prev-char check instead of (?<!...).)
-        std::string text = str (value);
+        // Buffer-chaining: the caller's string is read IN PLACE (no str() copy —
+        // the 22MB exchangeInfo payload used to be copied at every hop).
+        std::string owned;   // non-string inputs only
+        const std::string* textPtr = nullptr;
+        if (isStr (value)) {
+            textPtr = &ccxt::any_cast<const std::string&> (value);
+        } else {
+            owned = str (value);
+            textPtr = &owned;
+        }
+        const std::string& text = *textPtr;
 #ifdef CCXT_HAS_SIMDJSON
         // big payloads take the SIMD path (see simdToAny). Fall back to the
         // proven nlohmann pipeline on any simdjson error — guaranteed no
@@ -1129,11 +1139,9 @@ ccxt::any ExchangeBase::parseJson (ccxt::any value) {
             last = s + len;
             changed = true;
         }
-        if (changed) {
-            out += text.substr (last);
-            text = out;
-        }
-        return jsonToAny (nlohmann::ordered_json::parse (text));
+        const std::string quoted = changed ? (out + text.substr (last)) : std::string ("");
+        const std::string& toParse = changed ? quoted : text;
+        return jsonToAny (nlohmann::ordered_json::parse (toParse));
     } catch (const std::exception&) {
         return ccxt::any {};   // ccxt returns undefined for unparseable payloads
     }
@@ -1968,7 +1976,7 @@ std::shared_future<ccxt::any> ExchangeBase::fetch (ccxt::any url, ccxt::any meth
         const ccxt::any emptyHeaders = dict {};
 
         const ccxt::any bodyText = this->onRestResponse (status, statusText, url, method,
-                                                        emptyHeaders, out, headers, body);
+                                                        emptyHeaders, std::move (out), headers, body);
         ccxt::any parsed = ccxt::any {};
         try {
             parsed = this->parseJson (bodyText);
@@ -2249,14 +2257,20 @@ ccxt::any ExchangeBase::onRestResponse (ccxt::any, ccxt::any, ccxt::any, ccxt::a
                                        ccxt::any, ccxt::any) {
     // default: return the trimmed body text
     if (!responseBody.has_value () || !isStr (responseBody)) {
-        return responseBody;
+        return std::move (responseBody);
     }
-    std::string text = str (responseBody);
+    // read in place: the fetch hands this any over by move, so the payload
+    // buffer is chained, not copied (a 22MB exchangeInfo response used to be
+    // re-copied at every hop: box, str(), substr, any copies)
+    const std::string& text = ccxt::any_cast<const std::string&> (responseBody);
     const auto first = text.find_first_not_of (" \t\r\n");
     if (first == std::string::npos) {
         return std::string ("");
     }
     const auto last = text.find_last_not_of (" \t\r\n");
+    if (first == 0 && last + 1 == text.size ()) {
+        return std::move (responseBody);   // no trim needed: hand the buffer on
+    }
     return text.substr (first, last - first + 1);
 }
 
