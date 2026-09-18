@@ -1176,7 +1176,7 @@ public partial class binance : ccxt.binance
         // symbol and stalls the orderbook future (delivery/option ids are
         // unique, so the swap hint resolves those correctly too)
         bool isSpot = this.isSpotUrl(client);
-        string marketType = ((bool) isTrue(isSpot)) ? "spot" : "swap";
+        string marketType = ((bool) isSpot) ? "spot" : "swap";
         Dictionary<string, object> market = this.safeMarket(marketId, null, null, marketType);
         string? symbol = ((string)getValue(market, "symbol"));
         string messageHash = ("orderbook::" + symbol);
@@ -1772,7 +1772,7 @@ public partial class binance : ccxt.binance
         // resolve the market from the transport url — an ambiguous id like
         // BTCUSDT maps to both the spot and the linear swap market
         bool isSpot = this.isSpotUrl(client);
-        string marketType = ((bool) isTrue(isSpot)) ? "spot" : "contract";
+        string marketType = ((bool) isSpot) ? "spot" : "contract";
         Dictionary<string, object> market = this.safeMarket(marketId, null, null, marketType);
         string? symbol = ((string)getValue(market, "symbol"));
         string messageHash = ("trade::" + symbol);
@@ -2132,7 +2132,7 @@ public partial class binance : ccxt.binance
         // resolve the market from the transport url — an ambiguous id like
         // BTCUSDT maps to both the spot and the linear swap market
         bool isSpot = this.isSpotUrl(client);
-        string marketType = ((bool) isTrue(isSpot)) ? "spot" : "contract";
+        string marketType = ((bool) isSpot) ? "spot" : "contract";
         string? symbol = this.safeSymbol(marketId, null, null, marketType);
         string messageHash = ((("ohlcv::" + symbol) + "::") + unifiedTimeframe);
         ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = this.safeValue(this.ohlcvs, symbol, new Dictionary<string, object>() {});
@@ -3103,7 +3103,7 @@ public partial class binance : ccxt.binance
             // option id, may override it, see https://github.com/ccxt/ccxt/issues/29728
             object tickerMarketById = ((bool) (isEqual(numTickerMarkets, 1))) ? this.safeValue(tickerMarketsByIdList, 0) : null;
             bool isSpot = this.isSpotUrl(client);
-            string tickerFallbackType = ((bool) isTrue(isSpot)) ? "spot" : "contract";
+            string tickerFallbackType = ((bool) isSpot) ? "spot" : "contract";
             object tickerMarketType = ((bool) ((tickerMarketById != null))) ? getValue(tickerMarketById, "type") : tickerFallbackType;
             Dictionary<string, object> parsedTicker = ((Dictionary<string, object>)this.parseWsTicker(ticker, tickerMarketType));
             string? symbol = ((string)getValue(parsedTicker, "symbol"));
