@@ -1662,7 +1662,7 @@ public class Derive extends DeriveApi
         Object r = Helpers.GetValue(signature, "r");
         Object s = Helpers.GetValue(signature, "s");
         String v = this.intToBase16(this.sum(27, Helpers.GetValue(signature, "v")));
-        return ((("0x" + Helpers.padStart(((String)r), ((Number)64).intValue(), "0".charAt(0))) + Helpers.padStart(((String)s), ((Number)64).intValue(), "0".charAt(0))) + v);
+        return ((("0x" + (((String)r).length() >= 64 ? ((String)r).substring(((String)r).length() - 64) : String.format("%" + (64 - ((String)r).length()) + "s", "").replace(' ', '0') + ((String)r))) + (((String)s).length() >= 64 ? ((String)s).substring(((String)s).length() - 64) : String.format("%" + (64 - ((String)s).length()) + "s", "").replace(' ', '0') + ((String)s))) + v);
     }
 
     public Object signMessage(Object message, Object privateKey)

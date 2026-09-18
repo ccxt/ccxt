@@ -318,7 +318,7 @@ public class TestCreateOrder extends BaseTest {
             // todo: remove after TICK_SIZE unification
             if (!Helpers.isTrue(isTickSizePrecision))
             {
-                amountPrecision = Helpers.divide(1, Helpers.mathPow(Double.parseDouble(Helpers.toString(10)), Double.parseDouble(Helpers.toString(amountPrecision)))); // this converts DECIMAL_PRECISION into TICK_SIZE
+                amountPrecision = Helpers.divide(1, Helpers.mathPow(Double.parseDouble(String.valueOf(10)), Double.parseDouble(Helpers.toString(amountPrecision)))); // this converts DECIMAL_PRECISION into TICK_SIZE
             }
         }
         finalAmount = Helpers.add(finalAmount, amountPrecision);
