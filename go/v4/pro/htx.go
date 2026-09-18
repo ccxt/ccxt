@@ -1166,7 +1166,7 @@ func (this *Htx) GetOrderChannelAndMessageHash(typeVar any, subType any, optiona
 		var marginMode *string = this.SafeString(params, "margin", "cross")
 		var marginPrefix any = func() any {
 			if marginMode != nil && *marginMode == "cross" {
-				return ccxt.Add(prefix, "_cross")
+				return *prefix + "_cross"
 			}
 			return prefix
 		}()
@@ -1180,18 +1180,18 @@ func (this *Htx) GetOrderChannelAndMessageHash(typeVar any, subType any, optiona
 	} else if ccxt.IsEqual(typeVar, "future") {
 		// inverse futures Example: BCH/USD:BCH-220408
 		if baseId != nil {
-			channel = ccxt.Add(ccxt.Add(prefix, "."), ccxt.ToLower(baseId))
+			channel = *prefix + "." + ccxt.ToLower(baseId)
 			messageHash = channel
 		} else {
-			channel = ccxt.Add(ccxt.Add(prefix, "."), "*")
+			channel = *prefix + "." + "*"
 		}
 	} else {
 		// inverse swaps: Example: BTC/USD:BTC
 		if marketCode != nil {
-			channel = ccxt.Add(ccxt.Add(prefix, "."), marketCode)
+			channel = ccxt.Add(*prefix+".", marketCode)
 			messageHash = channel
 		} else {
-			channel = ccxt.Add(ccxt.Add(prefix, "."), "*")
+			channel = *prefix + "." + "*"
 		}
 	}
 	return []any{channel, messageHash}
@@ -1544,7 +1544,7 @@ func (this *Htx) HandleOrder(client any, message any) {
 	cachedOrders.(ccxt.Appender).Append(parsedOrder)
 	client.(ccxt.ClientInterface).Resolve(this.Orders, messageHash)
 	if (messageHash != nil && *messageHash == "orders") && (marketId != nil) {
-		var specificMessageHash any = ccxt.Add(ccxt.Add(messageHash, "."), ccxt.ToLower(marketId))
+		var specificMessageHash any = *messageHash + "." + ccxt.ToLower(marketId)
 		client.(ccxt.ClientInterface).Resolve(this.Orders, specificMessageHash)
 	}
 	// when we make a global subscription (for contracts only) our message hash can't have a symbol/currency attached
@@ -2146,7 +2146,7 @@ func (this *Htx) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 	if ccxt.IsEqual(typeVar, "spot") {
 		var mode *string = this.SafeString2(this.Options, "watchBalance", "mode", "2")
 		mode = this.SafeString(params, "mode", mode)
-		messageHash = ccxt.Add("accounts.update"+"#", mode)
+		messageHash = "accounts.update" + "#" + *mode
 		channel = messageHash
 	} else if isV5Linear {
 		marginMode = ccxt.DerefScalar(this.SafeString(params, "margin", "cross"))
@@ -3111,7 +3111,7 @@ func (this *Htx) HandleMyTrade(client any, message any, optionalArgs ...any) {
 			}
 			client.(ccxt.ClientInterface).Resolve(this.MyTrades, messageHash)
 			if (messageHash != nil && *messageHash == "trade") && (contractCode != nil) {
-				var specificMessageHash any = ccxt.Add(ccxt.Add(messageHash, "."), ccxt.ToLower(contractCode))
+				var specificMessageHash any = *messageHash + "." + ccxt.ToLower(contractCode)
 				client.(ccxt.ClientInterface).Resolve(this.MyTrades, specificMessageHash)
 			}
 		} else {
@@ -3129,7 +3129,7 @@ func (this *Htx) HandleMyTrade(client any, message any, optionalArgs ...any) {
 			}
 			// messageHash here is the orders one, so
 			// we have to recreate the trades messageHash = orderMessageHash + ':' + 'trade'
-			var tradesHash any = ccxt.Add(ccxt.Add(messageHash, ":"), "trade")
+			var tradesHash any = *messageHash + ":" + "trade"
 			client.(ccxt.ClientInterface).Resolve(this.MyTrades, tradesHash)
 			// when we make an global order sub we have to send the channel like this
 			// ch = orders_cross.* and we store messageHash = 'orders_cross'
@@ -3433,7 +3433,7 @@ func (this *Htx) authenticateBody(ch chan any, optionalArgs ...any) any {
 	}
 	this.CheckRequiredCredentials()
 	var messageHash string = "auth"
-	var relativePath string = ccxt.Replace(url, ccxt.Add("wss://", hostname), "")
+	var relativePath string = ccxt.Replace(url, "wss://" + *hostname, "")
 	var client ccxt.ClientInterface = this.Client(url)
 	var future any = client.(ccxt.ClientInterface).ReusableFuture(messageHash)
 	var authenticated any = this.SafeValue(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)

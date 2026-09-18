@@ -3640,7 +3640,7 @@ func (this *Bitrue) transferBody(ch chan any, code any, amount any, fromAccount 
 	var request map[string]any = map[string]any{
 		"coinSymbol":   GetValue(currency, "id"),
 		"amount":       this.CurrencyToPrecision(code, amount),
-		"transferType": Add(Add(fromId, "_to_"), toId),
+		"transferType": *fromId + "_to_" + *toId,
 	}
 
 	response := (<-this.FapiV2PrivatePostFuturesTransfer(this.Extend(request, params)))
@@ -3943,8 +3943,8 @@ func (this *Bitrue) HandleErrors(code any, reason any, url any, method any, head
 	}
 	var message *string = this.SafeString(response, "msg")
 	if message != nil {
-		this.ThrowExactlyMatchedException(this.Exceptions["exact"], message, Add(this.Id+" ", message))
-		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], message, Add(this.Id+" ", message))
+		this.ThrowExactlyMatchedException(this.Exceptions["exact"], message, this.Id+" "+*message)
+		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], message, this.Id+" "+*message)
 	}
 	// checks against error codes
 	var error *string = this.SafeString(response, "code")

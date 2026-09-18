@@ -248,7 +248,7 @@ func (this *Mudrex) Sign(path any, optionalArgs ...any) any {
 	if base == nil {
 		panic(ExchangeError(Add(this.Id+" unknown API namespace: ", api)))
 	}
-	var url any = Add(Add(base, "/"), this.ImplodeParams(path, params))
+	var url any = Add(*base+"/", this.ImplodeParams(path, params))
 	var query any = this.Omit(params, this.ExtractParams(path))
 	var requestHeaders map[string]any = map[string]any{}
 	if !IsEqual(headers, nil) {
@@ -309,10 +309,10 @@ func (this *Mudrex) HandleErrors(code any, reason any, url any, method any, head
 		var first any = this.SafeDict(errors, 0, map[string]any{})
 		var text *string = this.SafeString(first, "text", this.Json(response))
 		var errCode *string = this.SafeString(first, "code")
-		this.ThrowExactlyMatchedException(this.Exceptions["exact"], text, Add(this.Id+" ", text))
-		this.ThrowExactlyMatchedException(this.Exceptions["exact"], errCode, Add(this.Id+" ", text))
-		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], text, Add(this.Id+" ", text))
-		var msg any = Add(this.Id+" ", text)
+		this.ThrowExactlyMatchedException(this.Exceptions["exact"], text, this.Id+" "+*text)
+		this.ThrowExactlyMatchedException(this.Exceptions["exact"], errCode, this.Id+" "+*text)
+		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], text, this.Id+" "+*text)
+		var msg any = this.Id + " " + *text
 		var low string = ToLower(text)
 		if (IsEqual(code, 401)) || (GetIndexOf(low, "auth") >= 0) {
 			panic(AuthenticationError(msg))

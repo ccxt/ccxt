@@ -1867,7 +1867,7 @@ func (this *Bingx) keepAliveListenKeyBody(ch chan any, optionalArgs ...any) any 
 							if baseUrl == nil {
 								continue
 							}
-							var url any = ccxt.Add(ccxt.Add(baseUrl, "?listenKey="), listenKey)
+							var url any = *baseUrl + "?listenKey=" + *listenKey
 							var client ccxt.ClientInterface = this.Client(url)
 							var messageHashes []string = ccxt.ObjectKeys(client.(ccxt.ClientInterface).GetFutures())
 							for j := 0; j < len(messageHashes); j++ {

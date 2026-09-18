@@ -252,7 +252,7 @@ func (this *Alpaca) HandleOHLCV(client any, message any) {
 	}
 	var parsed any = this.ParseOHLCV(message)
 	stored.(ccxt.Appender).Append(parsed)
-	var messageHash any = ccxt.Add("ohlcv:", symbol)
+	var messageHash any = "ohlcv:" + *symbol
 	client.(ccxt.ClientInterface).Resolve(stored, messageHash)
 }
 
@@ -343,7 +343,7 @@ func (this *Alpaca) HandleOrderBook(client any, message any) {
 		ccxt.AddElementToObject(orderbook, "timestamp", timestamp)
 		ccxt.AddElementToObject(orderbook, "datetime", datetime)
 	}
-	var messageHash any = ccxt.Add("orderbook"+":", symbol)
+	var messageHash any = "orderbook" + ":" + *symbol
 	ccxt.AddElementToObject(this.Orderbooks, symbol, orderbook)
 	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 }
@@ -430,7 +430,7 @@ func (this *Alpaca) HandleTrades(client any, message any) {
 	}
 	var parsed any = this.ParseTrade(message)
 	stored.(ccxt.Appender).Append(parsed)
-	var messageHash any = ccxt.Add("trade"+":", symbol)
+	var messageHash any = "trade" + ":" + *symbol
 	client.(ccxt.ClientInterface).Resolve(stored, messageHash)
 }
 

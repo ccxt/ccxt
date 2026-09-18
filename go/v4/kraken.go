@@ -803,7 +803,7 @@ func (this *Kraken) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		var isActive bool = (status != nil && *status == "online")
 		var symbol any = func() any {
 			if !isSynthetic {
-				return (Add(Add(base, "/"), quote))
+				return (Add(*base+"/", quote))
 			}
 			return id
 		}()
@@ -2615,7 +2615,7 @@ func (this *Kraken) OrderRequest(method any, symbol any, typeVar any, request an
 		}
 		var extendedOflags any = func() any {
 			if flags != nil {
-				return Add(flags, ",viqc")
+				return *flags + ",viqc"
 			}
 			return "viqc"
 		}()
@@ -2648,14 +2648,14 @@ func (this *Kraken) OrderRequest(method any, symbol any, typeVar any, request an
 		if trailingPercent != nil {
 			trailingPercentString = func() any {
 				if EndsWith(trailingPercent, "%") {
-					return (Add("+", trailingPercent))
+					return ("+" + *trailingPercent)
 				}
-				return (Add(Add("+", trailingPercent), "%"))
+				return ("+" + *trailingPercent + "%")
 			}()
 		}
 		var trailingAmountString any = func() any {
 			if trailingAmount != nil {
-				return Add("+", trailingAmount)
+				return "+" + *trailingAmount
 			}
 			return nil
 		}() // must use + for this
@@ -2673,9 +2673,9 @@ func (this *Kraken) OrderRequest(method any, symbol any, typeVar any, request an
 			if trailingLimitPercent != nil {
 				var trailingLimitPercentString any = func() any {
 					if EndsWith(trailingLimitPercent, "%") {
-						return (Add(offset, trailingLimitPercent))
+						return (*offset + *trailingLimitPercent)
 					}
-					return (Add(Add(offset, trailingLimitPercent), "%"))
+					return (*offset + *trailingLimitPercent + "%")
 				}()
 				AddElementToObject(request, "price", trailingPercentString)
 				AddElementToObject(request, "price2", trailingLimitPercentString)
@@ -2730,7 +2730,7 @@ func (this *Kraken) OrderRequest(method any, symbol any, typeVar any, request an
 	if postOnly == true {
 		var extendedPostFlags any = func() any {
 			if flags != nil {
-				return Add(flags, ",post")
+				return *flags + ",post"
 			}
 			return "post"
 		}()
@@ -4461,7 +4461,7 @@ func (this *Kraken) transferBody(ch chan any, code any, amount any, fromAccount 
 		"asset":  GetValue(currency, "id"),
 	}
 	if fromAccountParsed == nil || *fromAccountParsed != "Spot Wallet" {
-		panic(BadRequest(Add(Add(Add(Add(this.Id+" transfer cannot transfer from ", fromAccountParsed), " to "), toAccountParsed), ". Use krakenfutures instead to transfer from the futures account.")))
+		panic(BadRequest(this.Id + " transfer cannot transfer from " + *fromAccountParsed + " to " + *toAccountParsed + ". Use krakenfutures instead to transfer from the futures account."))
 	}
 
 	response := (<-this.PrivatePostWalletTransfer(this.Extend(request, params)))

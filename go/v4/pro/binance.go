@@ -803,7 +803,7 @@ func (this *Binance) HandleMyLiquidation(client any, message any) {
 	cache.(ccxt.Appender).Append(liquidation)
 	this.MyLiquidations = cache
 	client.(ccxt.ClientInterface).Resolve([]any{liquidation}, "myLiquidations")
-	client.(ccxt.ClientInterface).Resolve([]any{liquidation}, ccxt.Add("myLiquidations::", symbol))
+	client.(ccxt.ClientInterface).Resolve([]any{liquidation}, "myLiquidations::"+*symbol)
 }
 
 /**
@@ -2365,7 +2365,7 @@ func (this *Binance) HandleOHLCV(client any, message any) {
 		return "contract"
 	}()
 	var symbol *string = this.SafeSymbol(marketId, nil, nil, marketType)
-	var messageHash any = ccxt.Add(ccxt.Add(ccxt.Add("ohlcv::", symbol), "::"), unifiedTimeframe)
+	var messageHash any = ccxt.Add("ohlcv::"+*symbol+"::", unifiedTimeframe)
 	ccxt.AddElementToObject(this.Ohlcvs, symbol, this.SafeValue(this.Ohlcvs, symbol, map[string]any{}))
 	var stored any = this.SafeValue(this.SafeValue(this.Ohlcvs, symbol), unifiedTimeframe)
 	if ccxt.IsEqual(stored, nil) {
@@ -3123,10 +3123,10 @@ func (this *Binance) watchMultiTickerHelperBody(ch chan any, methodName any, cha
 				if expirationDate == nil {
 					panic(ccxt.ArgumentsRequired(ccxt.Add(ccxt.Add(this.Id+" ", methodName), "() requires params[\"expirationDate\"] (e.g. \"260227\") for eOptions tickers when no symbols are provided")))
 				}
-				ccxt.AppendToArray(&subscriptionArgs, ccxt.Add(ccxt.Add(underlying, "@optionTicker@"), expirationDate))
+				ccxt.AppendToArray(&subscriptionArgs, *underlying+"@optionTicker@"+*expirationDate)
 			} else {
 				// isOptionMarkPrice: one stream covers all contracts for the underlying
-				ccxt.AppendToArray(&subscriptionArgs, ccxt.Add(underlying, "@optionMarkPrice"))
+				ccxt.AppendToArray(&subscriptionArgs, *underlying+"@optionMarkPrice")
 			}
 			ccxt.AppendToArray(&messageHashes, ccxt.Add(ccxt.Add(unifiedPrefix, "s:"), channelName))
 			ccxt.AppendToArray(&unsubscribeMessageHashes, ccxt.Add("unsubscribe::", channelName))
@@ -5536,7 +5536,7 @@ func (this *Binance) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 			panic(ccxt.BadRequest(this.Id + " watchOrders() failed to initialize stock listenKey"))
 		}
 		var stockUrl any = this.GetStockWsUrl("user")
-		var stockStreamName any = ccxt.Add(stockListenKey, "@orderReport")
+		var stockStreamName any = *stockListenKey + "@orderReport"
 		var stockRequestId any = this.RequestId(stockUrl)
 		var stockMessageHash any = "orders"
 		if symbol != nil {
@@ -6915,7 +6915,7 @@ func (this *Binance) HandleOrder(client any, message any) {
 		}
 		cachedOrders.(ccxt.Appender).Append(parsed)
 		var messageHash string = "orders"
-		var symbolSpecificMessageHash any = ccxt.Add("orders:", symbol)
+		var symbolSpecificMessageHash any = "orders:" + *symbol
 		client.(ccxt.ClientInterface).Resolve(cachedOrders, messageHash)
 		client.(ccxt.ClientInterface).Resolve(cachedOrders, symbolSpecificMessageHash)
 	}

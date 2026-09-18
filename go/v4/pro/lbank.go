@@ -266,7 +266,7 @@ func (this *Lbank) HandleOHLCV(client any, message any) {
 			ccxt.AddElementToObject(ccxt.GetValue(this.Ohlcvs, symbol), timeframe, stored)
 		}
 		stored.(ccxt.Appender).Append(parsed)
-		var messageHash any = ccxt.Add(ccxt.Add(ccxt.Add("fetchOHLCV:", symbol), ":"), timeframeId)
+		var messageHash any = ccxt.Add("fetchOHLCV:"+*symbol+":", timeframeId)
 		client.(ccxt.ClientInterface).Resolve(stored, messageHash)
 	} else {
 		var rawOHLCV any = this.SafeValue(message, "kbar", map[string]any{})
@@ -282,7 +282,7 @@ func (this *Lbank) HandleOHLCV(client any, message any) {
 			ccxt.AddElementToObject(ccxt.GetValue(this.Ohlcvs, symbol), timeframe, stored)
 		}
 		stored.(ccxt.Appender).Append(parsed)
-		var messageHash any = ccxt.Add(ccxt.Add(ccxt.Add("ohlcv:", symbol), ":"), timeframeId)
+		var messageHash any = ccxt.Add("ohlcv:"+*symbol+":", timeframeId)
 		client.(ccxt.ClientInterface).Resolve(stored, messageHash)
 	}
 }
@@ -396,9 +396,9 @@ func (this *Lbank) HandleTicker(client any, message any) {
 	var market any = this.SafeMarket(marketId)
 	var parsedTicker any = this.ParseWsTicker(message, market)
 	ccxt.AddElementToObject(this.Tickers, symbol, parsedTicker)
-	var messageHash any = ccxt.Add("ticker:", symbol)
+	var messageHash any = "ticker:" + *symbol
 	client.(ccxt.ClientInterface).Resolve(parsedTicker, messageHash)
-	messageHash = ccxt.Add("fetchTicker:", symbol)
+	messageHash = "fetchTicker:" + *symbol
 	client.(ccxt.ClientInterface).Resolve(parsedTicker, messageHash)
 }
 func (this *Lbank) ParseWsTicker(ticker any, optionalArgs ...any) any {
@@ -597,9 +597,9 @@ func (this *Lbank) HandleTrades(client any, message any) {
 		stored.(ccxt.Appender).Append(trade)
 	}
 	ccxt.AddElementToObject(this.Trades, symbol, stored)
-	var messageHash any = ccxt.Add("trades:", symbol)
+	var messageHash any = "trades:" + *symbol
 	client.(ccxt.ClientInterface).Resolve(ccxt.GetValue(this.Trades, symbol), messageHash)
-	messageHash = ccxt.Add("fetchTrades:", symbol)
+	messageHash = "fetchTrades:" + *symbol
 	client.(ccxt.ClientInterface).Resolve(ccxt.GetValue(this.Trades, symbol), messageHash)
 }
 func (this *Lbank) ParseWsTrade(trade any, optionalArgs ...any) any {
@@ -751,7 +751,7 @@ func (this *Lbank) HandleOrders(client any, message any) {
 	myOrders.(ccxt.Appender).Append(order)
 	this.Orders = myOrders
 	client.(ccxt.ClientInterface).Resolve(myOrders, "orders")
-	var messageHash any = ccxt.Add("orders:", symbol)
+	var messageHash any = "orders:" + *symbol
 	client.(ccxt.ClientInterface).Resolve(myOrders, messageHash)
 }
 func (this *Lbank) ParseWsOrder(order any, optionalArgs ...any) any {
@@ -1097,9 +1097,9 @@ func (this *Lbank) HandleOrderBook(client any, message any) {
 	var orderbook any = ccxt.GetValue(this.Orderbooks, symbol)
 	var snapshot any = this.ParseOrderBook(orderBook, symbol, timestamp, "bids", "asks")
 	orderbook.(ccxt.OrderBookInterface).Reset(snapshot)
-	var messageHash any = ccxt.Add("orderbook:", symbol)
+	var messageHash any = "orderbook:" + *symbol
 	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
-	messageHash = ccxt.Add("fetchOrderbook:", symbol)
+	messageHash = "fetchOrderbook:" + *symbol
 	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 }
 func (this *Lbank) HandleErrorMessage(client any, message any) {
@@ -1112,7 +1112,7 @@ func (this *Lbank) HandleErrorMessage(client any, message any) {
 	//    }
 	//
 	var errMsg *string = this.SafeString(message, "message", "")
-	error := ccxt.ExchangeError(ccxt.Add(this.Id+" ", errMsg))
+	error := ccxt.ExchangeError(this.Id + " " + *errMsg)
 	client.(ccxt.ClientInterface).Reject(error)
 }
 func (this *Lbank) HandlePingAsync(client any, message any) <-chan any {

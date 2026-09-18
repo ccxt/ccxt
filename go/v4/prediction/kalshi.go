@@ -1923,7 +1923,7 @@ func (this *Kalshi) ParseMyTrade(fill any, optionalArgs ...any) any {
 	var sideLeg *string = this.SafeStringLower(fill, "side")
 	var outcomeKey any = ticker
 	if (sideLeg != nil && *sideLeg == "no") && (ticker != nil) {
-		outcomeKey = ccxt.Add(ticker, "-NO")
+		outcomeKey = *ticker + "-NO"
 	}
 	var mkt any = this.SafeOutcome(outcomeKey, market)
 	var ts *int64 = this.Parse8601(this.SafeString(fill, "created_time"))
@@ -2206,7 +2206,7 @@ func (this *Kalshi) ParseSettlement(settlement any, optionalArgs ...any) any {
 		if useHeldYesTicker {
 			return ticker
 		}
-		return (ccxt.Add(ticker, "-NO"))
+		return (*ticker + "-NO")
 	}()
 	var mkt any = this.SafeOutcome(heldTicker, market)
 	// which leg won; market_result is yes or no
@@ -2537,7 +2537,7 @@ func (this *Kalshi) ParsePredictionOrder(order any, optionalArgs ...any) any {
 	var sideLeg *string = this.SafeStringLower(order, "side")
 	var outcomeKey any = ticker
 	if (sideLeg != nil && *sideLeg == "no") && (ticker != nil) {
-		outcomeKey = ccxt.Add(ticker, "-NO")
+		outcomeKey = *ticker + "-NO"
 	}
 	var mkt any = this.SafeOutcome(outcomeKey, market)
 	var status *string = this.ParseOrderStatus(this.SafeString(order, "status"))
@@ -3535,7 +3535,7 @@ func (this *Kalshi) Sign(path any, optionalArgs ...any) any {
 	var baseUrls any = ccxt.GetValue(this.Urls, "api")
 	var baseUrl *string = this.SafeString(baseUrls, apiGroup, ccxt.GetValue(baseUrls, "kalshi"))
 	var implodedPath any = this.ImplodeParams(path, params)
-	var url any = ccxt.Add(ccxt.Add(baseUrl, "/"), implodedPath)
+	var url any = ccxt.Add(*baseUrl+"/", implodedPath)
 	var query any = this.Omit(params, this.ExtractParams(path))
 	var querystring string = this.Urlencode(query)
 	if (ccxt.IsEqual(method, "GET")) && (querystring != "") {

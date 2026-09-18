@@ -1063,7 +1063,7 @@ func (this *Coinmate) withdrawBody(ch chan any, code any, amount any, address an
 		response = (<-this.PrivatePostSolWithdrawal(requestParams))
 		PanicOnError(response)
 	} else {
-		panic(ExchangeError(Add(Add(this.Id+" withdraw() does not support the ", method), " method")))
+		panic(ExchangeError(this.Id + " withdraw() does not support the " + *method + " method"))
 	}
 	//
 	//     {

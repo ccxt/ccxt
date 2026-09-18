@@ -3841,7 +3841,7 @@ func (this *Coinbase) createOrderBody(ch chan any, symbol any, typeVar any, side
 	var market any = this.Market(symbol)
 	var id *string = this.SafeString(this.Options, "brokerId", "ccxt")
 	var request any = map[string]any{
-		"client_order_id": Add(Add(id, "-"), this.Uuid()),
+		"client_order_id": *id + "-" + this.Uuid(),
 		"product_id":      GetValue(market, "id"),
 		"side":            ToUpper(side),
 	}

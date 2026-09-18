@@ -1368,7 +1368,7 @@ func (this *Pacifica) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...an
 			"interval": parsedTf,
 		},
 	}
-	var messageHash any = ccxt.Add(ccxt.Add(ccxt.Add("candles:", parsedTf), ":"), symbol)
+	var messageHash any = ccxt.Add("candles:"+*parsedTf+":", symbol)
 	var message map[string]any = this.Extend(request, params)
 
 	ohlcv := (<-this.Watch(url, messageHash, message, messageHash))
@@ -1473,7 +1473,7 @@ func (this *Pacifica) HandleOHLCV(client any, message any) {
 	}
 	var parsed any = this.ParseOHLCV(data)
 	ohlcv.(ccxt.Appender).Append(parsed)
-	var messageHash any = ccxt.Add(ccxt.Add(ccxt.Add("candles:", timeframe), ":"), symbol)
+	var messageHash any = ccxt.Add("candles:"+*timeframe+":", symbol)
 	client.(ccxt.ClientInterface).Resolve(ohlcv, messageHash)
 }
 

@@ -574,7 +574,7 @@ func (this *Ndax) HandleOrderBook(client any, message any) {
 	ccxt.AddElementToObject(orderbook, "timestamp", timestamp)
 	ccxt.AddElementToObject(orderbook, "datetime", this.Iso8601(timestamp))
 	var name string = "SubscribeLevel2"
-	var messageHash any = ccxt.Add(name+":", marketId)
+	var messageHash any = name + ":" + *marketId
 	ccxt.AddElementToObject(this.Orderbooks, symbol, orderbook)
 	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 }

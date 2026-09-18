@@ -620,7 +620,7 @@ func (this *Independentreserve) ParseTicker(ticker any, optionalArgs ...any) any
 	var quoteId *string = this.SafeString(ticker, "SecondaryCurrencyCode")
 	var defaultMarketId any = nil
 	if (baseId != nil) && (quoteId != nil) {
-		defaultMarketId = Add(Add(baseId, "/"), quoteId)
+		defaultMarketId = *baseId + "/" + *quoteId
 	}
 	market = this.SafeMarket(defaultMarketId, market, "/")
 	var symbol any = GetValue(market, "symbol")
@@ -1045,7 +1045,7 @@ func (this *Independentreserve) ParseTrade(trade any, optionalArgs ...any) any {
 	var quoteId *string = this.SafeString(trade, "SecondaryCurrencyCode")
 	var marketId any = nil
 	if (baseId != nil) && (quoteId != nil) {
-		marketId = Add(Add(baseId, "/"), quoteId)
+		marketId = *baseId + "/" + *quoteId
 	}
 	var symbol *string = this.SafeSymbol(marketId, market, "/")
 	var side any = DerefScalar(this.SafeString(trade, "OrderType"))

@@ -408,7 +408,7 @@ func (this *Bullish) HandleOrderBook(client any, message any) {
 	var data any = this.SafeDict(message, "data", map[string]any{})
 	var marketId *string = this.SafeString(data, "symbol")
 	var symbol *string = this.SafeSymbol(marketId)
-	var messageHash any = ccxt.Add("orderbook::", symbol)
+	var messageHash any = "orderbook::" + *symbol
 	var timestamp *int64 = this.SafeInteger(data, "timestamp")
 	if !(ccxt.InOp(this.Orderbooks, symbol)) {
 		ccxt.AddElementToObject(this.Orderbooks, symbol, this.OrderBook())
@@ -747,7 +747,7 @@ func (this *Bullish) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 	if tradingAccountId != nil {
 		params = this.Omit(params, "tradingAccountId")
 		request["tradingAccountId"] = tradingAccountId
-		messageHash = ccxt.Add(messageHash, ccxt.Add("::", tradingAccountId))
+		messageHash = ccxt.Add(messageHash, "::"+*tradingAccountId)
 	}
 
 	retRes61715 := (<-this.WatchPrivateAsync(messageHash, messageHash, request, params))
@@ -822,7 +822,7 @@ func (this *Bullish) HandleBalance(client any, message any) {
 		ccxt.AddElementToObject(this.Balance, tradingAccountId, this.SafeBalance(ccxt.GetValue(this.Balance, tradingAccountId)))
 	}
 	var messageHash string = "balance"
-	var tradingAccountIdHash any = ccxt.Add("::", tradingAccountId)
+	var tradingAccountIdHash any = "::" + *tradingAccountId
 	client.(ccxt.ClientInterface).Resolve(ccxt.GetValue(this.Balance, tradingAccountId), messageHash)
 	client.(ccxt.ClientInterface).Resolve(ccxt.GetValue(this.Balance, tradingAccountId), ccxt.Add(messageHash, tradingAccountIdHash))
 }

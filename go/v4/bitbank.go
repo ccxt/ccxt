@@ -1411,7 +1411,7 @@ func (this *Bitbank) Sign(path any, optionalArgs ...any) any {
 		var nonce string = ToString(this.Nonce())
 		var auth any = nil
 		if isTimeWindow {
-			auth = Add(requestTime, timeWindow)
+			auth = requestTime + *timeWindow
 		} else {
 			auth = nonce
 		}

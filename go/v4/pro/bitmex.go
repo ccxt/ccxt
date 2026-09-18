@@ -398,7 +398,7 @@ func (this *Bitmex) HandleTicker(client any, message any) any {
 		var fullParsedTicker map[string]any = this.DeepExtend(ccxt.GetValue(this.Tickers, symbol), updatedTicker)
 		ccxt.AddElementToObject(tickers, symbol, fullParsedTicker)
 		ccxt.AddElementToObject(this.Tickers, symbol, fullParsedTicker)
-		var messageHash any = ccxt.Add("ticker:", symbol)
+		var messageHash any = "ticker:" + *symbol
 		client.(ccxt.ClientInterface).Resolve(fullParsedTicker, messageHash)
 		client.(ccxt.ClientInterface).Resolve(fullParsedTicker, "alltickers")
 	}
@@ -1897,7 +1897,7 @@ func (this *Bitmex) HandleOrderBook(client any, message any) {
 			ccxt.AddElementToObject(orderbook, "timestamp", this.Parse8601(datetime))
 			ccxt.AddElementToObject(orderbook, "datetime", datetime)
 		}
-		var messageHash any = ccxt.Add(ccxt.Add(table, ":"), symbol)
+		var messageHash any = ccxt.Add(*table+":", symbol)
 		client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 	} else {
 		var numUpdatesByMarketId map[string]any = map[string]any{}
@@ -1939,7 +1939,7 @@ func (this *Bitmex) HandleOrderBook(client any, message any) {
 			var marketId string = ccxt.GetValue(marketIds, i).(string)
 			var market any = this.SafeMarket(marketId)
 			var symbol any = ccxt.GetValue(market, "symbol")
-			var messageHash any = ccxt.Add(ccxt.Add(table, ":"), symbol)
+			var messageHash any = ccxt.Add(*table+":", symbol)
 			var orderbook any = ccxt.GetValue(this.Orderbooks, symbol)
 			client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 		}

@@ -1400,7 +1400,7 @@ func (this *Okx) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) an
 	}
 	symbol = this.Symbol(symbol)
 	var interval *string = this.SafeString(this.Timeframes, timeframe, timeframe)
-	var name any = ccxt.Add("candle", interval)
+	var name any = "candle" + *interval
 
 	ohlcv := (<-this.SubscribeAsync("public", name, name, symbol, params))
 	ccxt.PanicOnError(ohlcv)
@@ -1483,7 +1483,7 @@ func (this *Okx) watchOHLCVForSymbolsBody(ch chan any, symbolsAndTimeframes any,
 		var tf any = ccxt.GetValue(symbolAndTimeframe, 1)
 		var marketId any = this.MarketId(sym)
 		var interval *string = this.SafeString(this.Timeframes, tf, tf)
-		var channel any = ccxt.Add("candle", interval)
+		var channel any = "candle" + *interval
 		var topic map[string]any = map[string]any{
 			"channel": channel,
 			"instId":  marketId,
@@ -1545,7 +1545,7 @@ func (this *Okx) unWatchOHLCVForSymbolsBody(ch chan any, symbolsAndTimeframes an
 		var tf any = ccxt.GetValue(symbolAndTimeframe, 1)
 		var marketId any = this.MarketId(sym)
 		var interval *string = this.SafeString(this.Timeframes, tf, tf)
-		var channel any = ccxt.Add("candle", interval)
+		var channel any = "candle" + *interval
 		var topic map[string]any = map[string]any{
 			"channel": channel,
 			"instId":  marketId,
@@ -1605,12 +1605,12 @@ func (this *Okx) HandleOHLCV(client any, message any) {
 			}
 		}
 		stored.(ccxt.Appender).Append(parsed)
-		var messageHash any = ccxt.Add(ccxt.Add(channel, ":"), ccxt.GetValue(market, "id"))
+		var messageHash any = ccxt.Add(*channel+":", ccxt.GetValue(market, "id"))
 		client.(ccxt.ClientInterface).Resolve(stored, messageHash)
 		// for multiOHLCV we need special object, as opposed to other "multi"
 		// methods, because ccxt.OHLCV response item does not contain symbol
 		// or timeframe, thus otherwise it would be unrecognizable
-		var messageHashForMulti any = ccxt.Add(ccxt.Add(ccxt.Add("multi:", channel), ":"), symbol)
+		var messageHashForMulti any = ccxt.Add("multi:"+*channel+":", symbol)
 		client.(ccxt.ClientInterface).Resolve([]any{symbol, timeframe, stored}, messageHashForMulti)
 	}
 }
@@ -2520,7 +2520,7 @@ func (this *Okx) HandlePositions(client any, message any) {
 	}
 	var messageHash any = channel
 	if symbol != nil {
-		messageHash = ccxt.Add(ccxt.Add(channel, "::"), symbol)
+		messageHash = ccxt.Add(*channel+"::", symbol)
 	}
 	client.(ccxt.ClientInterface).Resolve(newPositions, messageHash)
 }

@@ -5428,7 +5428,7 @@ func (this *Mexc) ParseFundingRate(contract any, optionalArgs ...any) any {
 	var interval *string = this.SafeString(contract, "collectCycle")
 	var intervalString any = nil
 	if interval != nil {
-		intervalString = Add(interval, "h")
+		intervalString = *interval + "h"
 	}
 	return map[string]any{
 		"info":                     contract,

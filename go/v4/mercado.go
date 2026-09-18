@@ -378,10 +378,10 @@ func (this *Mercado) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		if (base == nil) || (quote == nil) {
 			continue
 		}
-		var id any = Add(quote, base)
+		var id any = *quote + *base
 		AppendToArray(&result, map[string]any{
 			"id":             id,
-			"symbol":         Add(Add(base, "/"), quote),
+			"symbol":         *base + "/" + *quote,
 			"base":           base,
 			"quote":          quote,
 			"settle":         nil,

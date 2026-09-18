@@ -2135,7 +2135,7 @@ func (this *Tokocrypto) createOrderBody(ch chan any, symbol any, typeVar any, si
 		if !IsEqual(broker, nil) {
 			var brokerId *string = this.SafeString(broker, "marketType")
 			if brokerId != nil {
-				request["clientId"] = Add(brokerId, this.Uuid22())
+				request["clientId"] = *brokerId + this.Uuid22()
 			}
 		}
 	} else {
@@ -3204,8 +3204,8 @@ func (this *Tokocrypto) HandleErrors(code any, reason any, url any, method any, 
 	}
 	var message *string = this.SafeString(response, "msg")
 	if message != nil {
-		this.ThrowExactlyMatchedException(this.Exceptions["exact"], message, Add(this.Id+" ", message))
-		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], message, Add(this.Id+" ", message))
+		this.ThrowExactlyMatchedException(this.Exceptions["exact"], message, this.Id+" "+*message)
+		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], message, this.Id+" "+*message)
 	}
 	// checks against error codes
 	var error *string = this.SafeString(response, "code")

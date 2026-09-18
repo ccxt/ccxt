@@ -2361,7 +2361,7 @@ func (this *Coinbaseinternational) createOrderBody(ch chan any, symbol any, type
 	var typeId string = ToUpper(typeVar)
 	var triggerPrice *float64 = this.SafeNumberN(params, []any{"triggerPrice", "stopPrice", "stop_price"})
 	var clientOrderIdprefix *string = this.SafeString(this.Options, "brokerId", "nfqkvdjp")
-	var clientOrderId any = Add(Add(clientOrderIdprefix, "-"), this.Uuid())
+	var clientOrderId any = *clientOrderIdprefix + "-" + this.Uuid()
 	clientOrderId = Slice(clientOrderId, 0, 17)
 	if side == nil {
 		panic(ArgumentsRequired(this.Id + " createOrder() requires a side argument"))

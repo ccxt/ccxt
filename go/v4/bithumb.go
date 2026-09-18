@@ -2556,7 +2556,7 @@ func (this *Bithumb) ParseOrder(order any, optionalArgs ...any) any {
 	var base *string = this.SafeCurrencyCode(baseId)
 	var quote *string = this.SafeCurrencyCode(quoteId)
 	if (base != nil) && (quote != nil) {
-		symbol = Add(Add(base, "/"), quote)
+		symbol = *base + "/" + *quote
 	}
 	if symbol == nil {
 		var marketId *string = this.SafeString(order, "market")

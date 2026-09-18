@@ -409,7 +409,7 @@ func (this *P2b) ParseMarket(market any) any {
 	var maxPrice *string = this.SafeString(limits, "max_price")
 	return map[string]any{
 		"id":             marketId,
-		"symbol":         Add(Add(base, "/"), quote),
+		"symbol":         *base + "/" + *quote,
 		"base":           base,
 		"quote":          quote,
 		"settle":         nil,

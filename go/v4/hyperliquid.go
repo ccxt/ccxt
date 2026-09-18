@@ -6332,7 +6332,7 @@ func (this *Hyperliquid) CoinToMarketId(coin any) any {
 		var hip3Dict any = this.SafeDict(hi3TokensByname, coin)
 		var quote *string = this.SafeString(hip3Dict, "quote", "USDC")
 		var code *string = this.SafeString(hip3Dict, "code", coin)
-		return Add(Add(Add(Add(code, "/"), quote), ":"), quote)
+		return *code + "/" + *quote + ":" + *quote
 	}
 	if IsGreaterThan(GetIndexOf(coin, "/"), -1) || IsGreaterThan(GetIndexOf(coin, "@"), -1) {
 		return coin // spot

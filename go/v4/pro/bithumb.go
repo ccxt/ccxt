@@ -569,7 +569,7 @@ func (this *Bithumb) HandleOrderBook(client any, message any) {
 		this.HandleDeltas(legacyOrderbook, list)
 		ccxt.AddElementToObject(legacyOrderbook, "timestamp", legacyTimestamp)
 		ccxt.AddElementToObject(legacyOrderbook, "datetime", this.Iso8601(legacyTimestamp))
-		var legacyMessageHash any = ccxt.Add("orderbook"+":", legacySymbol)
+		var legacyMessageHash any = "orderbook" + ":" + *legacySymbol
 		client.(ccxt.ClientInterface).Resolve(legacyOrderbook, legacyMessageHash)
 		return
 	}
@@ -613,7 +613,7 @@ func (this *Bithumb) HandleOrderBook(client any, message any) {
 	}
 	ccxt.AddElementToObject(orderbook, "timestamp", timestamp)
 	ccxt.AddElementToObject(orderbook, "datetime", this.Iso8601(timestamp))
-	var messageHash any = ccxt.Add("orderbook"+":", symbol)
+	var messageHash any = "orderbook" + ":" + *symbol
 	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 }
 func (this *Bithumb) HandleDelta(orderbook any, delta any) {
@@ -782,7 +782,7 @@ func (this *Bithumb) HandleTrades(client any, message any) {
 		}
 		var trades any = ccxt.GetValue(this.Trades, symbol)
 		trades.(ccxt.Appender).Append(parsed)
-		var messageHash any = ccxt.Add("trade"+":", symbol)
+		var messageHash any = "trade" + ":" + *symbol
 		client.(ccxt.ClientInterface).Resolve(trades, messageHash)
 	}
 }
@@ -869,11 +869,11 @@ func (this *Bithumb) HandleErrorMessage(client any, message any) any {
 		var errorMessage *string = this.SafeString(error, "message", "")
 		var addedMessage any = nil
 		if ccxt.GetLength(errorMessage) > 0 {
-			addedMessage = (ccxt.Add(" ", errorMessage))
+			addedMessage = (" " + *errorMessage)
 		} else {
 			addedMessage = ""
 		}
-		client.(ccxt.ClientInterface).Reject(ccxt.ExchangeError(ccxt.Add(ccxt.Add(this.Id+" websocket error ", errorName), addedMessage)))
+		client.(ccxt.ClientInterface).Reject(ccxt.ExchangeError(ccxt.Add(this.Id+" websocket error "+*errorName, addedMessage)))
 		return false
 	}
 	if !(ccxt.InOp(message, "status")) {

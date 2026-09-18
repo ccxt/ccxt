@@ -614,7 +614,7 @@ func (this *Hyperliquid) watchTickersBody(ch chan any, optionalArgs ...any) any 
 	}
 	if defaultDex != nil {
 		params = this.Omit(params, "dex")
-		messageHash = ccxt.Add("tickers:", defaultDex)
+		messageHash = "tickers:" + *defaultDex
 		ccxt.AddElementToObject(ccxt.GetValue(request, "subscription"), "type", "allMids")
 		ccxt.AddElementToObject(ccxt.GetValue(request, "subscription"), "dex", defaultDex)
 	}
@@ -823,7 +823,7 @@ func (this *Hyperliquid) HandleWsTickers(client any, message any) any {
 		var messageHash any = "tickers"
 		var dexMessage *string = this.SafeString(data, "dex")
 		if dexMessage != nil {
-			messageHash = ccxt.Add(messageHash, ccxt.Add(":", dexMessage))
+			messageHash = ccxt.Add(messageHash, ":"+*dexMessage)
 		}
 		client.(ccxt.ClientInterface).Resolve(this.Tickers, messageHash)
 	}
@@ -1973,7 +1973,7 @@ func (this *Hyperliquid) HandleErrorMessage(client any, message any) any {
 			// whole connection, see https://github.com/ccxt/ccxt/issues/28369
 			return true
 		}
-		error := ccxt.ExchangeError(ccxt.Add(this.Id+" ", ret_msg))
+		error := ccxt.ExchangeError(this.Id + " " + *ret_msg)
 		client.(ccxt.ClientInterface).Reject(error)
 		return true
 	}
@@ -2032,7 +2032,7 @@ func (this *Hyperliquid) HandleOrderBookUnsubscription(client any, subscription 
 	var coin *string = this.SafeString(subscription, "coin")
 	var marketId any = this.CoinToMarketId(coin)
 	var symbol *string = this.SafeSymbol(marketId)
-	var subMessageHash any = ccxt.Add("orderbook:", symbol)
+	var subMessageHash any = "orderbook:" + *symbol
 	var messageHash any = ccxt.Add("unsubscribe:", subMessageHash)
 	this.CleanUnsubscription(ccxt.AsClient(client), subMessageHash, messageHash)
 	if ccxt.InOp(this.Orderbooks, symbol) {
@@ -2044,7 +2044,7 @@ func (this *Hyperliquid) HandleTradesUnsubscription(client any, subscription any
 	var coin *string = this.SafeString(subscription, "coin")
 	var marketId any = this.CoinToMarketId(coin)
 	var symbol *string = this.SafeSymbol(marketId)
-	var subMessageHash any = ccxt.Add("trade:", symbol)
+	var subMessageHash any = "trade:" + *symbol
 	var messageHash any = ccxt.Add("unsubscribe:", subMessageHash)
 	this.CleanUnsubscription(ccxt.AsClient(client), subMessageHash, messageHash)
 	if ccxt.InOp(this.Trades, symbol) {
@@ -2066,7 +2066,7 @@ func (this *Hyperliquid) HandleTickerUnsubscription(client any, subscription any
 	var coin *string = this.SafeString(subscription, "coin")
 	var marketId any = this.CoinToMarketId(coin)
 	var symbol *string = this.SafeSymbol(marketId)
-	var subMessageHash any = ccxt.Add("ticker:", symbol)
+	var subMessageHash any = "ticker:" + *symbol
 	var messageHash any = ccxt.Add("unsubscribe:", subMessageHash)
 	this.CleanUnsubscription(ccxt.AsClient(client), subMessageHash, messageHash)
 	if ccxt.InOp(this.Tickers, symbol) {
@@ -2096,7 +2096,7 @@ func (this *Hyperliquid) HandleOrderUnsubscription(client any, subscription any)
 	// clear it for the user echoed in the ack so a later watch re-subscribes
 	var user *string = this.SafeStringLower(subscription, "user")
 	if user != nil {
-		var subscribeHash any = ccxt.Add("subscribe:orderUpdates::", user)
+		var subscribeHash any = "subscribe:orderUpdates::" + *user
 		if ccxt.InOp(client.(ccxt.ClientInterface).GetSubscriptions(), subscribeHash) {
 			ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), subscribeHash)
 		}
@@ -2114,7 +2114,7 @@ func (this *Hyperliquid) HandleMyTradesUnsubscription(client any, subscription a
 	// clear it for the user echoed in the ack so a later watch re-subscribes
 	var user *string = this.SafeStringLower(subscription, "user")
 	if user != nil {
-		var subscribeHash any = ccxt.Add("subscribe:userFills::", user)
+		var subscribeHash any = "subscribe:userFills::" + *user
 		if ccxt.InOp(client.(ccxt.ClientInterface).GetSubscriptions(), subscribeHash) {
 			ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), subscribeHash)
 		}

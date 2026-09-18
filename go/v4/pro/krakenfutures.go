@@ -1040,7 +1040,7 @@ func (this *Krakenfutures) HandleOrder(client any, message any) any {
 			var parsed any = this.ParseWsOrder(order)
 			orders.(ccxt.Appender).Append(parsed)
 			client.(ccxt.ClientInterface).Resolve(orders, messageHash)
-			client.(ccxt.ClientInterface).Resolve(orders, ccxt.Add(messageHash+":", symbol))
+			client.(ccxt.ClientInterface).Resolve(orders, messageHash+":"+*symbol)
 		} else {
 			var trade any = this.ParseWsTrade(order)
 			if ccxt.IsEqual(ccxt.GetValue(previousOrder, "trades"), nil) {
@@ -1082,7 +1082,7 @@ func (this *Krakenfutures) HandleOrder(client any, message any) any {
 			}
 			// update the newUpdates count
 			orders.(ccxt.Appender).Append(this.SafeOrder(previousOrder))
-			client.(ccxt.ClientInterface).Resolve(orders, ccxt.Add(messageHash+":", symbol))
+			client.(ccxt.ClientInterface).Resolve(orders, messageHash+":"+*symbol)
 			client.(ccxt.ClientInterface).Resolve(orders, messageHash)
 		}
 	} else {

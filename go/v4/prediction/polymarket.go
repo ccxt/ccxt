@@ -3722,7 +3722,7 @@ func (this *Polymarket) Sign(path any, optionalArgs ...any) any {
 	}()
 	var baseUrls any = ccxt.GetValue(this.Urls, "api")
 	var baseUrl *string = this.SafeString(baseUrls, apiGroup, ccxt.GetValue(baseUrls, "gamma"))
-	var url any = ccxt.Add(ccxt.Add(baseUrl, "/"), this.ImplodeParams(path, params))
+	var url any = ccxt.Add(*baseUrl+"/", this.ImplodeParams(path, params))
 	// an empty params container must not become a body: in PHP an empty array is
 	// indistinguishable from an empty dict, so a bare Array.isArray check would json it to "[]"
 	var isArrayBody bool = false
@@ -4587,7 +4587,7 @@ func (this *Polymarket) HandleOrder(client any, event any) {
 	client.(ccxt.ClientInterface).Resolve(stored, "orders")
 	var outcome *string = this.SafeString(parsed, "outcome")
 	if outcome != nil {
-		client.(ccxt.ClientInterface).Resolve(stored, ccxt.Add("orders::", outcome))
+		client.(ccxt.ClientInterface).Resolve(stored, "orders::"+*outcome)
 	}
 }
 func (this *Polymarket) HandleMyTrade(client any, event any) {
@@ -4601,7 +4601,7 @@ func (this *Polymarket) HandleMyTrade(client any, event any) {
 	client.(ccxt.ClientInterface).Resolve(stored, "myTrades")
 	var outcome *string = this.SafeString(parsed, "outcome")
 	if outcome != nil {
-		client.(ccxt.ClientInterface).Resolve(stored, ccxt.Add("myTrades::", outcome))
+		client.(ccxt.ClientInterface).Resolve(stored, "myTrades::"+*outcome)
 	}
 }
 func (this *Polymarket) TokenIdToSymbol(tokenId any) any {

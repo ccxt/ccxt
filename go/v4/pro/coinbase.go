@@ -1036,7 +1036,7 @@ func (this *Coinbase) HandleTrade(client any, message any) {
 	var trade any = this.SafeDict(trades, 0)
 	var marketId *string = this.SafeString(trade, "product_id")
 	var symbol *string = this.SafeSymbol(marketId)
-	var messageHash any = ccxt.Add("market_trades::", symbol)
+	var messageHash any = "market_trades::" + *symbol
 	var tradesArray any = this.SafeValue(this.Trades, symbol)
 	if ccxt.IsEqual(tradesArray, nil) {
 		var tradesLimit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
@@ -1119,7 +1119,7 @@ func (this *Coinbase) HandleOrder(client any, message any) {
 	for i := 0; i < ccxt.GetArrayLength(marketIds); i++ {
 		var marketId any = ccxt.GetValue(marketIds, i)
 		var symbol *string = this.SafeSymbol(marketId)
-		var messageHash any = ccxt.Add("user::", symbol)
+		var messageHash any = "user::" + *symbol
 		client.(ccxt.ClientInterface).Resolve(this.Orders, messageHash)
 		this.TryResolveUsdc(client, messageHash, this.Orders)
 	}

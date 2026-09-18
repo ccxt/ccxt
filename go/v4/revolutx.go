@@ -300,7 +300,7 @@ func (this *Revolutx) ParseMarket(market any) any {
 	var minOrderSizeQuote *string = this.SafeString(market, "min_order_size_quote")
 	var status *string = this.SafeString(market, "status")
 	var active bool = (status != nil && *status == "active")
-	var symbol any = Add(Add(base, "/"), quote)
+	var symbol any = *base + "/" + *quote
 	return map[string]any{
 		"id":             id,
 		"symbol":         symbol,

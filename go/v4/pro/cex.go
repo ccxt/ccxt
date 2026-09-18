@@ -1005,7 +1005,7 @@ func (this *Cex) ParseWsOrderUpdate(order any, optionalArgs ...any) any {
 	var quote *string = this.SafeCurrencyCode(quoteId)
 	var symbol any = nil
 	if (base != nil) && (quote != nil) {
-		symbol = ccxt.Add(ccxt.Add(base, "/"), quote)
+		symbol = *base + "/" + *quote
 	}
 	market = this.SafeMarket(symbol, market)
 	var time *int64 = this.SafeInteger(order, "time", this.Milliseconds())
@@ -1814,7 +1814,7 @@ func (this *Cex) HandleErrorMessage(client any, message any) any {
 			var data any = this.SafeValue(message, "data", map[string]any{})
 			var error *string = this.SafeString(data, "error")
 			var event *string = this.SafeString(message, "e", "")
-			var feedback any = ccxt.Add(ccxt.Add(ccxt.Add(this.Id+" ", event), " "), error)
+			var feedback any = ccxt.Add(this.Id+" "+*event+" ", error)
 			this.ThrowExactlyMatchedException(this.Exceptions["exact"], error, feedback)
 			this.ThrowBroadlyMatchedException(this.Exceptions["broad"], error, feedback)
 			panic(ccxt.ExchangeError(feedback))

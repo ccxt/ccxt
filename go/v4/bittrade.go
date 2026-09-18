@@ -849,7 +849,7 @@ func (this *Bittrade) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 			panic(ExchangeError(this.Id + " fetchMarkets() missing quoteId"))
 		}
 		AppendToArray(&result, map[string]any{
-			"id":             Add(baseId, quoteId),
+			"id":             *baseId + *quoteId,
 			"symbol":         Add(Add(base, "/"), quote),
 			"base":           base,
 			"quote":          quote,

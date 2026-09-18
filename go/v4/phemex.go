@@ -3139,7 +3139,7 @@ func (this *Phemex) createOrderBody(ch chan any, symbol any, typeVar any, side a
 	if clientOrderId == nil {
 		var brokerId *string = this.SafeString(this.Options, "brokerId", "CCXT123456")
 		if brokerId != nil {
-			request["clOrdID"] = Add(brokerId, this.Uuid16())
+			request["clOrdID"] = *brokerId + this.Uuid16()
 		}
 	} else {
 		request["clOrdID"] = clientOrderId
@@ -5655,7 +5655,7 @@ func (this *Phemex) Sign(path any, optionalArgs ...any) any {
 			if isOrderPlacement {
 				if this.SafeString(params, "clOrdID") == nil {
 					var id *string = this.SafeString(this.Options, "brokerId", "CCXT123456")
-					AddElementToObject(params, "clOrdID", Add(id, this.Uuid16()))
+					AddElementToObject(params, "clOrdID", *id+this.Uuid16())
 				}
 			}
 			payload = this.Json(params)

@@ -2396,7 +2396,7 @@ func (this *Aster) ParseFundingRate(contract any, optionalArgs ...any) any {
 	var interval *string = this.SafeString(contract, "fundingIntervalHours")
 	var intervalString any = nil
 	if interval != nil {
-		intervalString = Add(interval, "h")
+		intervalString = *interval + "h"
 	}
 	return map[string]any{
 		"info":                     contract,

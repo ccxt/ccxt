@@ -831,7 +831,7 @@ func (this *Gate) HandleNewSpotOrderBook(client any, message any) {
 	var marketIdParts []string = ccxt.Split(marketIdWithPrefix, ".")
 	var marketId *string = this.SafeString(marketIdParts, 1)
 	var symbol *string = this.SafeSymbol(marketId, nil, "_", "spot")
-	var messageHash any = ccxt.Add("orderbook:", symbol)
+	var messageHash any = "orderbook:" + *symbol
 	if ccxt.IsEqual(this.SafeValue(this.Orderbooks, symbol), nil) {
 		ccxt.AddElementToObject(this.Orderbooks, symbol, this.OrderBook(map[string]any{}, 1000))
 	}
@@ -924,7 +924,7 @@ func (this *Gate) HandleOrderBook(client any, message any) {
 	var deltaEnd *int64 = this.SafeInteger(delta, "u")
 	var marketId *string = this.SafeString(delta, "s")
 	var symbol *string = this.SafeSymbol(marketId, nil, "_", marketType)
-	var messageHash any = ccxt.Add("orderbook:", symbol)
+	var messageHash any = "orderbook:" + *symbol
 	var storedOrderBook any = this.SafeValue(this.Orderbooks, symbol, this.OrderBook(map[string]any{}))
 	var nonce *int64 = this.SafeInteger(storedOrderBook, "nonce")
 	if nonce == nil {
@@ -1491,7 +1491,7 @@ func (this *Gate) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) a
 	var interval *string = this.SafeString(this.Timeframes, timeframe, timeframe)
 	var messageType any = this.GetTypeByMarket(market)
 	var channel any = ccxt.Add(messageType, ".candlesticks")
-	var messageHash any = ccxt.Add(ccxt.Add(ccxt.Add("candles:", interval), ":"), ccxt.GetValue(market, "symbol"))
+	var messageHash any = ccxt.Add("candles:"+*interval+":", ccxt.GetValue(market, "symbol"))
 	var url any = this.GetUrlByMarket(market)
 	var payload []any = []any{interval, marketId}
 

@@ -2998,7 +2998,7 @@ func (this *Bitmex) cancelOrderBody(ch chan any, id any, optionalArgs ...any) an
 	var error *string = this.SafeString(order, "error")
 	if error != nil {
 		if GetIndexOf(error, "Unable to cancel order due to existing state") >= 0 {
-			panic(OrderNotFound(Add(this.Id+" cancelOrder() failed: ", error)))
+			panic(OrderNotFound(this.Id + " cancelOrder() failed: " + *error))
 		}
 	}
 

@@ -9601,7 +9601,7 @@ func (this *Htx) Sign(path any, optionalArgs ...any) any {
 						// spot order placement
 						var clientOrderId *string = this.SafeString(params, "client-order-id")
 						if clientOrderId == nil {
-							AddElementToObject(params, "client-order-id", Add(id, this.Uuid()))
+							AddElementToObject(params, "client-order-id", *id+this.Uuid())
 						}
 					}
 				}

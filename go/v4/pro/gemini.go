@@ -347,7 +347,7 @@ func (this *Gemini) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 	var request map[string]any = map[string]any{
 		"type": "subscribe",
 		"subscriptions": []any{map[string]any{
-			"name":    ccxt.Add("candles_", timeframeId),
+			"name":    "candles_" + *timeframeId,
 			"symbols": []any{this.SafeStringUpper(market, "id")},
 		}},
 	}
@@ -417,7 +417,7 @@ func (this *Gemini) HandleOHLCV(client any, message any) any {
 		var parsed any = this.ParseOHLCV(ccxt.GetValue(changes, index), market)
 		stored.(ccxt.Appender).Append(parsed)
 	}
-	var messageHash any = ccxt.Add(ccxt.Add(ccxt.Add("ohlcv:", symbol), ":"), timeframeId)
+	var messageHash any = "ohlcv:" + *symbol + ":" + timeframeId
 	client.(ccxt.ClientInterface).Resolve(stored, messageHash)
 	return message
 }

@@ -841,7 +841,7 @@ func (this *Weex) watchOHLCVForSymbolsBody(ch chan any, symbolsAndTimeframes any
 		var symbolString any = ccxt.DerefScalar(this.SafeString(data, 0))
 		var market any = this.Market(symbolString)
 		if ccxt.GetValue(market, "type") != ccxt.GetValue(firstMarket, "type") {
-			panic(ccxt.BadRequest(ccxt.Add(ccxt.Add(this.Id+" ", callerMethodName), " market symbols must be of the same type")))
+			panic(ccxt.BadRequest(this.Id + " " + *callerMethodName + " market symbols must be of the same type"))
 		}
 		symbolString = ccxt.GetValue(market, "symbol")
 		var unifiedTimeframe *string = this.SafeString(data, 1, "1")
@@ -940,7 +940,7 @@ func (this *Weex) unWatchOHLCVForSymbolsBody(ch chan any, symbolsAndTimeframes a
 		var symbolString any = ccxt.DerefScalar(this.SafeString(data, 0))
 		var market any = this.Market(symbolString)
 		if ccxt.GetValue(market, "type") != ccxt.GetValue(firstMarket, "type") {
-			panic(ccxt.BadRequest(ccxt.Add(ccxt.Add(this.Id+" ", callerMethodName), " market symbols must be of the same type")))
+			panic(ccxt.BadRequest(this.Id + " " + *callerMethodName + " market symbols must be of the same type"))
 		}
 		symbolString = ccxt.GetValue(market, "symbol")
 		var unifiedTimeframe *string = this.SafeString(data, 1, "1")

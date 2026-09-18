@@ -304,9 +304,9 @@ func (this *Hitbtc) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...
 	var depth *string = this.SafeString(params, "depth", "20")
 	var speed *string = this.SafeString(params, "depth", "100")
 	if ccxt.IsEqual(name, "orderbook/{depth}/{speed}") {
-		name = ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add("orderbook/D", depth), "/"), speed), "ms")
+		name = "orderbook/D" + *depth + "/" + *speed + "ms"
 	} else if ccxt.IsEqual(name, "orderbook/{depth}/{speed}/batch") {
-		name = ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add("orderbook/D", depth), "/"), speed), "ms/batch")
+		name = "orderbook/D" + *depth + "/" + *speed + "ms/batch"
 	}
 	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{
@@ -910,7 +910,7 @@ func (this *Hitbtc) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 	params := ccxt.GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
 	var period *string = this.SafeString(this.Timeframes, timeframe, timeframe)
-	var name any = ccxt.Add("candles/", period)
+	var name any = "candles/" + *period
 	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"params": map[string]any{

@@ -787,7 +787,7 @@ func (this *Bydfi) HandleOrderBook(client any, message any) {
 	var orderbook any = ccxt.GetValue(this.Orderbooks, symbol)
 	var parsed any = this.ParseOrderBook(message, symbol, timestamp, "b", "a")
 	orderbook.(ccxt.OrderBookInterface).Reset(parsed)
-	var messageHash any = ccxt.Add("orderbook::", symbol)
+	var messageHash any = "orderbook::" + *symbol
 	ccxt.AddElementToObject(this.Orderbooks, symbol, orderbook)
 	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 }

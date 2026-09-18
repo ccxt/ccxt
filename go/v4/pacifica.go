@@ -2230,7 +2230,7 @@ func (this *Pacifica) CreateOrdersRequest(orders any, optionalArgs ...any) any {
 		var amountNumber any = this.ParseNumber(amount)
 		var priceNumber any = this.ParseNumber(price)
 		if typeVar == nil || *typeVar != "limit" {
-			panic(NotSupported(Add(this.Id+" createOrders() supports only type = \"limit\"! Your value type=", typeVar)))
+			panic(NotSupported(this.Id + " createOrders() supports only type = \"limit\"! Your value type=" + *typeVar))
 		}
 		var requestList any = this.CreateOrderRequest(symbol, typeVar, side, amountNumber, priceNumber, orderParams)
 		var action map[string]any = map[string]any{
