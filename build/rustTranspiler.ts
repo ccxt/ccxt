@@ -74,7 +74,14 @@ const RUST_BOOL_RUNTIME_FNS = new Set([
     'is_instance', 'in_op', 'starts_with', 'ends_with', 'is_true',
 ]);
 
-class RustTranspilerBuilder {
+// The ast printer's numeric-comparison emission (`printNativeNumericComparison`
+// in ast-transpiler/src/rustTranspiler.ts) unwraps both operands with this
+// accessor chain. It disappears for an operand that is already a native `f64`:
+// a `Value::Int`/`Value::Float` box (payload type fixed by the constructor) or
+// a local narrowed to `f64` by `narrowFloatLocals` below.
+const RUST_FLOAT_NAN_UNWRAP = '.as_f64().unwrap_or(f64::NAN)';
+
+export class RustTranspilerBuilder {
 
     transpiler!: Transpiler;
 
@@ -3931,6 +3938,182 @@ class RustTranspilerBuilder {
         return out;
     }
 
+    // ── numeric (f64) accessor-chain removal ─────────────────────────────────
+    // The ast printer wraps every operand of a checker-proven numeric compare in
+    // `.as_f64().unwrap_or(f64::NAN)` (`printNativeNumericComparison`). The two
+    // passes below drop that accessor where the printed text already proves an
+    // `f64`: a numeric `Value` box, or a local they retype to `f64`.
+
+    /** Index just past the `)` closing the paren at `open`; -1 if unbalanced. */
+    private closeOfParen(src: string, open: number): number {
+        let depth = 0; let inStr = false; let esc = false;
+        for (let k = open; k < src.length; k++) {
+            const c = src[k];
+            if (inStr) {
+                if (esc) esc = false;
+                else if (c === '\\') esc = true;
+                else if (c === '"') inStr = false;
+                continue;
+            }
+            if (c === '"') { inStr = true; continue; }
+            if (c === '(') depth++;
+            else if (c === ')') { depth--; if (depth === 0) return k + 1; }
+        }
+        return -1;
+    }
+
+    /** `src` with string literals and line comments blanked out (same length). */
+    private maskStrings(src: string): string {
+        let out = ''; let inStr = false; let esc = false; let inLineComment = false;
+        for (let k = 0; k < src.length; k++) {
+            const c = src[k];
+            if (inLineComment) { out += c === '\n' ? '\n' : ' '; if (c === '\n') inLineComment = false; continue; }
+            if (inStr) {
+                out += ' ';
+                if (esc) esc = false;
+                else if (c === '\\') esc = true;
+                else if (c === '"') inStr = false;
+                continue;
+            }
+            if (c === '"') { inStr = true; out += ' '; continue; }
+            if (c === '/' && src[k + 1] === '/') { inLineComment = true; out += ' '; continue; }
+            out += c;
+        }
+        return out;
+    }
+
+    /** Index of the `}` that closes the enclosing block, from `from` onwards. */
+    private scopeEndOf(src: string, from: number): number {
+        let depth = 0; let inStr = false; let esc = false; let inLineComment = false;
+        for (let k = from; k < src.length; k++) {
+            const c = src[k];
+            if (inLineComment) { if (c === '\n') inLineComment = false; continue; }
+            if (inStr) {
+                if (esc) esc = false;
+                else if (c === '\\') esc = true;
+                else if (c === '"') inStr = false;
+                continue;
+            }
+            if (c === '"') { inStr = true; continue; }
+            if (c === '/' && src[k + 1] === '/') { inLineComment = true; continue; }
+            if (c === '{') depth++;
+            else if (c === '}') { depth--; if (depth < 0) return k; }
+        }
+        return src.length;
+    }
+
+    /** Applies non-overlapping `{start, end, text}` rewrites, left to right. */
+    private applyRewrites(content: string, rewrites: Array<{ start: number, end: number, text: string }>): string {
+        if (rewrites.length === 0) return content;
+        rewrites.sort((a, b) => a.start - b.start);
+        let out = ''; let last = 0;
+        for (const r of rewrites) {
+            if (r.start < last) continue;
+            out += content.slice(last, r.start) + r.text;
+            last = r.end;
+        }
+        return out + content.slice(last);
+    }
+
+    /**
+     * `Value::Int(<expr>).as_f64().unwrap_or(f64::NAN)` -> `((<expr>) as f64)`,
+     * and the `Value::Float` twin -> `(<expr>)`.
+     *
+     * `Value::Int` holds an `i64` and `Value::Float` an `f64` (`value.rs`), so
+     * `as_f64()` is always `Some(payload)`: the `unwrap_or(f64::NAN)` fallback
+     * is unreachable and the box only wraps a number the compare can use as is.
+     * The box must span the whole receiver (bracket-balanced) — a
+     * `Value::Int(a) + b` receiver keeps the accessor. The receiver is never
+     * re-evaluated: both forms evaluate `<expr>` exactly once. The cast is
+     * parenthesised as a whole: an `as f64` followed by `<` would parse as the
+     * start of a generic argument list.
+     */
+    collapseNumericBoxAccessors(content: string): string {
+        const boxRe = /(?<![A-Za-z0-9_:])(Value::(?:Int|Float))\(/g;
+        const rewrites: Array<{ start: number, end: number, text: string }> = [];
+        let m: RegExpExecArray | null;
+        while ((m = boxRe.exec(content)) !== null) {
+            const open = m.index + m[0].length - 1;
+            const close = this.closeOfParen(content, open);
+            if (close < 0 || !content.startsWith(RUST_FLOAT_NAN_UNWRAP, close)) {
+                continue;
+            }
+            const inner = content.slice(open + 1, close - 1);
+            const text = m[1] === 'Value::Int' ? `((${inner}) as f64)` : `(${inner})`;
+            rewrites.push({ start: m.index, end: close + RUST_FLOAT_NAN_UNWRAP.length, text });
+        }
+        return this.applyRewrites(content, rewrites);
+    }
+
+    /**
+     * Narrows `let mut X: Value = Value::Int(<expr>);` (and the `Value::Float`
+     * twin) to `let mut X: f64 = <expr>;` when every later use of `X` in the
+     * enclosing `fn` reads it as a number. Same shape of proof as
+     * `narrowBoolLocals`: the initializer already holds the exact f64 payload
+     * (`Value::Int` ≤ 2^53), so no `as_f64()`/`NaN` path can be reached.
+     *
+     * Allowed uses (all rewritten, so the accessor chain disappears):
+     *   `X.as_f64().unwrap_or(f64::NAN)` -> `X`
+     *   `X.as_f64() == / != Some(<lit>)`  -> `X == / != <lit>`
+     * Anything else — an argument, `&X`, `X = …`, `X.clone()`, a field-like
+     * `y.X`, a redeclaration of the name, a use we cannot classify — keeps the
+     * `Value` local (D2 scan). Uses are scanned to the end of the fn body, so a
+     * nested-block use still counts as a use.
+     */
+    narrowFloatLocals(content: string): string {
+        const declRe = /^([ \t]*)let mut ([A-Za-z_][A-Za-z0-9_]*): Value = \(?(Value::(?:Int|Float))\(/gm;
+        const rewrites: Array<{ start: number, end: number, text: string }> = [];
+        let m: RegExpExecArray | null;
+        while ((m = declRe.exec(content)) !== null) {
+            const name = m[2];
+            const open = m.index + m[0].length - 1;
+            const close = this.closeOfParen(content, open);
+            if (close < 0) continue;
+            const tail = /^\)?;/.exec(content.slice(close, close + 2));
+            if (tail === null) continue;
+            const inner = content.slice(open + 1, close - 1);
+            const init = m[3] === 'Value::Int' ? `((${inner}) as f64)` : `(${inner})`;
+            const stmtEnd = close + tail[0].length;
+            const end = this.scopeEndOf(content, stmtEnd);
+            const masked = this.maskStrings(content.slice(stmtEnd, end));
+            // Any other binding of the same name — a `let`, an `if let`, a loop
+            // pattern or a closure parameter — would make later uses a different
+            // local, so the whole declaration keeps `Value`.
+            const rebindRe = new RegExp(
+                `\\blet\\s+(?:mut\\s+)?${name}\\b|\\bfor\\s+(?:mut\\s+)?${name}\\b|\\|\\s*(?:mut\\s+)?${name}\\s*[:|,]`);
+            if (rebindRe.test(masked)) continue;
+            const useRe = new RegExp(`(?<![A-Za-z0-9_.])${name}(?![A-Za-z0-9_])`, 'g');
+            const uses: Array<{ start: number, end: number, text: string }> = [];
+            let ok = true; let u: RegExpExecArray | null;
+            while ((u = useRe.exec(masked)) !== null) {
+                const after = masked.slice(u.index + name.length);
+                if (after.startsWith(RUST_FLOAT_NAN_UNWRAP)) {
+                    uses.push({
+                        start: stmtEnd + u.index,
+                        end: stmtEnd + u.index + name.length + RUST_FLOAT_NAN_UNWRAP.length,
+                        text: name,
+                    });
+                    continue;
+                }
+                const numEq = /^\.as_f64\(\)\s*(==|!=)\s*Some\(([0-9][0-9_]*(?:\.[0-9_]+)?(?:[eE][+-]?[0-9]+)?)\)/.exec(after);
+                if (numEq !== null) {
+                    uses.push({
+                        start: stmtEnd + u.index,
+                        end: stmtEnd + u.index + name.length + numEq[0].length,
+                        text: `${name} ${numEq[1]} ${numEq[2]}`,
+                    });
+                    continue;
+                }
+                ok = false;
+                break;
+            }
+            if (!ok || uses.length === 0) continue;
+            rewrites.push({ start: m.index, end: stmtEnd, text: `${m[1]}let mut ${name}: f64 = ${init};` });
+            for (const use of uses) rewrites.push(use);
+        }
+        return this.applyRewrites(content, rewrites);
+    }
+
     /**
      * Drops `is_true(&X)` where `X` is already a native Rust `bool`:
      * a local narrowed to `let mut X: bool` by `narrowBoolLocals`, a
@@ -6895,6 +7078,10 @@ impl std::ops::DerefMut for ${coreName} {
                 // Last: narrow `Value::Bool` locals whose every sink takes
                 // a `bool`. Must see the final shape of the file.
                 rustContent = this.narrowBoolLocals(rustContent);
+                // Then retype `Value::Int/Float` locals read only as numbers and
+                // collapse the `as_f64()` boxes the compares wrap them in.
+                rustContent = this.narrowFloatLocals(rustContent);
+                rustContent = this.collapseNumericBoxAccessors(rustContent);
                 // Then drop the `is_true(&x)` those locals no longer need.
                 rustContent = this.dropRedundantIsTrue(rustContent);
             } catch (e: any) {
@@ -7588,6 +7775,8 @@ impl std::ops::DerefMut for ${coreName} {
         let finalFile = this.rewriteLiteralKeySafeCalls(file);
         finalFile = this.rewriteJavaReqAliases(finalFile);
         finalFile = this.narrowBoolLocals(finalFile);
+        finalFile = this.narrowFloatLocals(finalFile);
+        finalFile = this.collapseNumericBoxAccessors(finalFile);
         finalFile = this.dropRedundantIsTrue(finalFile);
 
         // Since the prediction merge, `Exchange.ts` declares TWO classes:
