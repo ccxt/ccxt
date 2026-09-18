@@ -4774,7 +4774,7 @@ func (this *BaseExchange) fetch2Body(ch chan any, path any, optionalArgs ...any)
 							if IsInstance(e, OperationFailed) {
 								if IsLessThan(i, retries) {
 									if this.Verbose {
-										var index any = Add(i, 1)
+										var index any = i + 1
 										this.Log("Request failed with the error: " + ToString(e) + ", retrying " + ToString(index) + " of " + ToString(retries) + "...")
 									}
 									if (!IsEqual(retryDelay, nil)) && (retryDelay != 0) {
@@ -10140,7 +10140,7 @@ func (this *Exchange) fetchRestOrderBookSafeBody(ch chan any, symbol any, option
 						}
 						ret_ = func(this *Exchange) any {
 							// catch block:
-							if IsEqual((Add(i, 1)), fetchSnapshotMaxRetries) {
+							if IsEqual((i + 1), fetchSnapshotMaxRetries) {
 								panic(e)
 							}
 							return nil
