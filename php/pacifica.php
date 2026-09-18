@@ -2985,11 +2985,12 @@ class pacifica extends Exchange {
             $this->load_markets();
         }
         $symbols = $this->market_symbols($symbols);
-        $swapMarkets = $this->fetch_swap_markets();
-        return $this->parse_open_interests($swapMarkets, $symbols);
+        $response = $this->publicGetInfoPrices($params);
+        $data = $this->safe_list($response, 'data', array());
+        return $this->parse_open_interests($data, $symbols);
     }
 
-    public function fetch_open_interest(string $symbol, $params = array()) {
+    public function fetch_open_interest(string $symbol, $params = array()): array {
         /**
          * retrieves the open interest of a contract trading pair
          *
@@ -2999,12 +3000,16 @@ class pacifica extends Exchange {
          * @param {array} [$params] exchange specific parameters
          * @return {array} an ~@link https://docs.ccxt.com/?id=open-interest-structure open interest structure~
          */
-        $symbol = $this->symbol($symbol);
         if ($this->markets === null) {
             $this->load_markets();
         }
+        $symbol = $this->symbol($symbol);
         $ois = $this->fetch_open_interests(array( $symbol ), $params);
-        return $ois[$symbol];
+        $oi = $this->safe_dict($ois, $symbol);
+        if ($oi === null) {
+            throw new BadSymbol($this->id . ' fetchOpenInterest() could not find open interest for ' . $symbol);
+        }
+        return $oi;
     }
 
     public function parse_open_interest(mixed $interest, ?array $market = null) {
