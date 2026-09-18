@@ -975,9 +975,9 @@ impl CoinspotCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut method: Value = self.safe_string_k(self.options.clone(), "fetchBalance", &[Value::Str("private_post_my_balances".to_string())]);
+        let mut method: Option<String> = self.safe_string_k(self.options.clone(), "fetchBalance", &[Value::Str("private_post_my_balances".to_string())]).as_str().map(str::to_owned);
         let mut response: Value = Value::Null;
-        if is_true(&(Value::Bool(method.as_str() == Some("private_post_ro_my_balances")))) || is_true(&(Value::Bool(method.as_str() == Some("privatePostRoMyBalances")))) {
+        if is_true(&(Value::Bool(method.as_deref() == Some("private_post_ro_my_balances")))) || is_true(&(Value::Bool(method.as_deref() == Some("privatePostRoMyBalances")))) {
             response = self.private_post_ro_my_balances(&[params.clone()]).await;
         }  else {
             response = self.private_post_my_balances(&[params.clone()]).await;
@@ -1447,8 +1447,8 @@ impl CoinspotCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut side: Value = self.safe_string_k(params.clone(), "side", &[]);
-        if (side.as_str() != Some("buy")) && (side.as_str() != Some("sell")) {
+        let mut side: Option<String> = self.safe_string_k(params.clone(), "side", &[]).as_str().map(str::to_owned);
+        if (side.as_deref() != Some("buy")) && (side.as_deref() != Some("sell")) {
             panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" cancelOrder() requires a side parameter, \"buy\" or \"sell\"".to_string())))));
         }
         params = self.omit(params.clone(), Value::Str("side".to_string()), &[]);
@@ -1458,7 +1458,7 @@ impl CoinspotCore {
             m
         });
         let mut response: Value = Value::Null;
-        if (side.as_str() == Some("buy")) {
+        if (side.as_deref() == Some("buy")) {
             let __ws_arg_5 = self.extend(request.clone(), &[params.clone()]);
             response = self.private_post_my_buy_cancel(&[__ws_arg_5]).await;
         }  else {
@@ -1478,8 +1478,8 @@ impl CoinspotCore {
         if (response == Value::Null) {
             return Value::Null;
         }
-        let mut status: Value = self.safe_string_k(response.clone(), "status", &[]);
-        if (status.as_str() == Some("error")) {
+        let mut status: Option<String> = self.safe_string_k(response.clone(), "status", &[]).as_str().map(str::to_owned);
+        if (status.as_deref() == Some("error")) {
             let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), self.json(response.clone())));
             panic!("{}", crate::exchange_errors::exchange_error(feedback));
         }

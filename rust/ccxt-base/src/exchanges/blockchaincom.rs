@@ -585,8 +585,8 @@ impl BlockchaincomCore {
             let mut quote: Value = self.safe_currency_code(quoteId.clone(), &[]);
             let mut numericId: Value = self.safe_number_k(market.clone(), "id", &[]);
             let mut active: Value = Value::Null;
-            let mut marketState: Value = self.safe_string_k(market.clone(), "status", &[]);
-            if (marketState.as_str() == Some("open")) {
+            let mut marketState: Option<String> = self.safe_string_k(market.clone(), "status", &[]).as_str().map(str::to_owned);
+            if (marketState.as_deref() == Some("open")) {
                 active = Value::Bool(true);
             }  else {
                 active = Value::Bool(false);
@@ -1816,9 +1816,9 @@ impl BlockchaincomCore {
         if (response == Value::Null) {
             return Value::Null;
         }
-        let mut text: Value = self.safe_string_k(response.clone(), "text", &[]);
-        if (text != Value::Null) {
-            if (text.as_str() == Some("Insufficient Balance")) {
+        let mut text: Option<String> = self.safe_string_k(response.clone(), "text", &[]).as_str().map(str::to_owned);
+        if (text.is_some()) {
+            if (text.as_deref() == Some("Insufficient Balance")) {
                 panic!("{}", crate::exchange_errors::insufficient_funds(Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), body))));
             }
         }

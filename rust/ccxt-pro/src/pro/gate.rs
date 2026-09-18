@@ -1098,8 +1098,8 @@ impl GateCore {
             return;
         }
         let mut channelParts: Value = split(&channel, &Value::Str(".".to_string()));
-        let mut rawMarketType: Value = self.safe_string(channelParts.clone(), Value::Int(0), &[]);
-        let mut isSpot: bool = rawMarketType.as_str() == Some("spot");
+        let mut rawMarketType: Option<String> = self.safe_string(channelParts.clone(), Value::Int(0), &[]).as_str().map(str::to_owned);
+        let mut isSpot: bool = rawMarketType.as_deref() == Some("spot");
         let mut marketType: Value = (if isSpot { Value::Str("spot".to_string()) } else { Value::Str("contract".to_string()) });
         let mut delta: Value = self.safe_value_k(message.clone(), "result", &[]);
         let mut deltaStart: Value = self.safe_integer_k(delta.clone(), "U", &[]);
@@ -1379,8 +1379,8 @@ impl GateCore {
     pub fn handle_ticker_and_bid_ask(&mut self, mut objectName: Value, mut client: Value, mut message: Value) {
         let mut channel: Value = self.safe_string_k(message.clone(), "channel", &[]);
         let mut parts: Value = split(&channel, &Value::Str(".".to_string()));
-        let mut rawMarketType: Value = self.safe_string(parts.clone(), Value::Int(0), &[]);
-        let mut marketType: Value = (if is_true(&(Value::Bool(rawMarketType.as_str() == Some("futures")))) { Value::Str("contract".to_string()) } else { Value::Str("spot".to_string()) });
+        let mut rawMarketType: Option<String> = self.safe_string(parts.clone(), Value::Int(0), &[]).as_str().map(str::to_owned);
+        let mut marketType: Value = (if is_true(&(Value::Bool(rawMarketType.as_deref() == Some("futures")))) { Value::Str("contract".to_string()) } else { Value::Str("spot".to_string()) });
         let mut result: Value = self.safe_value_k(message.clone(), "result", &[]);
         let mut results: Value = Value::List(vec![]);
         if is_true(&Value::Bool(is_array(&result))) {
@@ -1659,8 +1659,8 @@ impl GateCore {
         //
         let mut channel: Value = self.safe_string_k(message.clone(), "channel", &[]);
         let mut channelParts: Value = split(&channel, &Value::Str(".".to_string()));
-        let mut rawMarketType: Value = self.safe_string(channelParts.clone(), Value::Int(0), &[]);
-        let mut marketType: Value = (if is_true(&(Value::Bool(rawMarketType.as_str() == Some("spot")))) { Value::Str("spot".to_string()) } else { Value::Str("contract".to_string()) });
+        let mut rawMarketType: Option<String> = self.safe_string(channelParts.clone(), Value::Int(0), &[]).as_str().map(str::to_owned);
+        let mut marketType: Value = (if is_true(&(Value::Bool(rawMarketType.as_deref() == Some("spot")))) { Value::Str("spot".to_string()) } else { Value::Str("contract".to_string()) });
         let mut result: Value = self.safe_value_k(message.clone(), "result", &[]);
         if !is_true(&Value::Bool(is_array(&result))) {
             result = Value::List(vec![result.clone()]);
@@ -2156,9 +2156,9 @@ impl GateCore {
             let mut rawPosition: Value = get_value(&data, &i);
             let mut position: Value = self.parse_position(rawPosition.clone(), &[]);
             let mut symbol: Value = self.safe_string_k(position.clone(), "symbol", &[]);
-            let mut side: Value = self.safe_string_k(position.clone(), "side", &[]);
+            let mut side: Option<String> = self.safe_string_k(position.clone(), "side", &[]).as_str().map(str::to_owned);
             // Control when position is closed no side is returned
-            if (side == Value::Null) {
+            if (side.is_none()) {
                 let mut prevLongPosition: Value = self.safe_dict(cache.clone(), add(&symbol, &Value::Str("long".to_string())), &[]);
                 if (prevLongPosition != Value::Null) {
                     add_element_to_object(&mut position, &Value::Str("side".to_string()), prevLongPosition.as_map().and_then(|__m| __m.get("side")).cloned().unwrap_or(Value::Null));
@@ -2351,12 +2351,12 @@ impl GateCore {
             let mut parsed: Value = get_value(&parsedOrders, &i);
             // inject order status
             let mut info: Value = self.safe_value_k(parsed.clone(), "info", &[]);
-            let mut event: Value = self.safe_string_k(info.clone(), "event", &[]);
-            if (event.as_str() == Some("put")) || (event.as_str() == Some("update")) {
+            let mut event: Option<String> = self.safe_string_k(info.clone(), "event", &[]).as_str().map(str::to_owned);
+            if (event.as_deref() == Some("put")) || (event.as_deref() == Some("update")) {
                 add_element_to_object(&mut parsed, &Value::Str("status".to_string()), Value::Str("open".to_string()));
-            }  else if (event.as_str() == Some("finish")) {
-                let mut status: Value = self.safe_string_k(parsed.clone(), "status", &[]);
-                if (status == Value::Null) {
+            }  else if (event.as_deref() == Some("finish")) {
+                let mut status: Option<String> = self.safe_string_k(parsed.clone(), "status", &[]).as_str().map(str::to_owned);
+                if (status.is_none()) {
                     let mut left: Value = self.safe_integer_k(info.clone(), "left", &[]);
                     add_element_to_object(&mut parsed, &Value::Str("status".to_string()), (if is_true(&(Value::Bool(left.as_f64() == Some(0.0)))) { Value::Str("closed".to_string()) } else { Value::Str("canceled".to_string()) }));
                 }
@@ -2875,12 +2875,12 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (self.handle_error_message(client.clone(), message.clone()).as_bool() == Some(true)) {
             return;
         }
-        let mut event: Value = self.safe_string_k(message.clone(), "event", &[]);
-        if (event.as_str() == Some("subscribe")) {
+        let mut event: Option<String> = self.safe_string_k(message.clone(), "event", &[]).as_str().map(str::to_owned);
+        if (event.as_deref() == Some("subscribe")) {
             self.handle_subscription_status(client.clone(), message.clone());
             return;
         }
-        if (event.as_str() == Some("unsubscribe")) {
+        if (event.as_deref() == Some("unsubscribe")) {
             self.handle_un_subscribe(client.clone(), message.clone());
             return;
         }

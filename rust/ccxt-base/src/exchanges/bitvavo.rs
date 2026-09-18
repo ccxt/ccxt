@@ -861,7 +861,7 @@ impl BitvavoCore {
             let mut quoteId: Value = self.safe_string_k(market.clone(), "quote", &[]);
             let mut base: Value = self.safe_currency_code(baseId.clone(), &[]);
             let mut quote: Value = self.safe_currency_code(quoteId.clone(), &[]);
-            let mut status: Value = self.safe_string_k(market.clone(), "status", &[]);
+            let mut status: Option<String> = self.safe_string_k(market.clone(), "status", &[]).as_str().map(str::to_owned);
             append_to_array(&mut result, self.safe_market_structure(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id.clone());
@@ -878,7 +878,7 @@ impl BitvavoCore {
         m.insert("swap".to_string(), Value::Bool(false));
         m.insert("future".to_string(), Value::Bool(false));
         m.insert("option".to_string(), Value::Bool(false));
-        m.insert("active".to_string(), (Value::Bool(status.as_str() == Some("trading"))));
+        m.insert("active".to_string(), (Value::Bool(status.as_deref() == Some("trading"))));
         m.insert("contract".to_string(), Value::Bool(false));
         m.insert("linear".to_string(), Value::Null);
         m.insert("inverse".to_string(), Value::Null);
@@ -1773,8 +1773,8 @@ impl BitvavoCore {
             currency = self.currency(code.clone());
             add_element_to_object(&mut request, &Value::Str("symbol".to_string()), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
         }
-        let mut subaccountId: Value = self.safe_string_k(params.clone(), "subaccountId", &[]);
-        if (subaccountId == Value::Null) {
+        let mut subaccountId: Option<String> = self.safe_string_k(params.clone(), "subaccountId", &[]).as_str().map(str::to_owned);
+        if (subaccountId.is_none()) {
             panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchTransfers() requires a subaccountId parameter".to_string())))));
         }
         if (since != Value::Null) {
@@ -1864,13 +1864,13 @@ impl BitvavoCore {
         let mut currencyId: Value = self.safe_string_k(transfer.clone(), "symbol", &[]);
         let mut code: Value = self.safe_currency_code(currencyId.clone(), &[currency.clone()]);
         let mut subaccountId: Value = self.safe_string_k(transfer.clone(), "subaccountId", &[]);
-        let mut direction: Value = self.safe_string_k(transfer.clone(), "direction", &[]);
+        let mut direction: Option<String> = self.safe_string_k(transfer.clone(), "direction", &[]).as_str().map(str::to_owned);
         let mut fromAccount: Value = Value::Null;
         let mut toAccount: Value = Value::Null;
-        if (direction.as_str() == Some("masterToSub")) {
+        if (direction.as_deref() == Some("masterToSub")) {
             fromAccount = Value::Str("master".to_string());
             toAccount = subaccountId.clone();
-        }  else if (direction.as_str() == Some("subToMaster")) {
+        }  else if (direction.as_deref() == Some("subToMaster")) {
             fromAccount = subaccountId.clone();
             toAccount = Value::Str("master".to_string());
         }
@@ -2108,8 +2108,8 @@ impl BitvavoCore {
         if is_true(&self.is_empty(request.clone())) {
             panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" editOrder() requires an amount argument, or a price argument, or non-empty params".to_string())))));
         }
-        let mut clientOrderId: Value = self.safe_string_k(params.clone(), "clientOrderId", &[]);
-        if (clientOrderId == Value::Null) {
+        let mut clientOrderId: Option<String> = self.safe_string_k(params.clone(), "clientOrderId", &[]).as_str().map(str::to_owned);
+        if (clientOrderId.is_none()) {
             add_element_to_object(&mut request, &Value::Str("orderId".to_string()), id.clone());
         }
         let mut operatorId: Value = Value::Null;
@@ -2172,8 +2172,8 @@ impl BitvavoCore {
                 m.insert("market".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
-        let mut clientOrderId: Value = self.safe_string_k(params.clone(), "clientOrderId", &[]);
-        if (clientOrderId == Value::Null) {
+        let mut clientOrderId: Option<String> = self.safe_string_k(params.clone(), "clientOrderId", &[]).as_str().map(str::to_owned);
+        if (clientOrderId.is_none()) {
             add_element_to_object(&mut request, &Value::Str("orderId".to_string()), id.clone());
         }
         let mut operatorId: Value = Value::Null;
@@ -2323,8 +2323,8 @@ impl BitvavoCore {
                 m.insert("market".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
-        let mut clientOrderId: Value = self.safe_string_k(params.clone(), "clientOrderId", &[]);
-        if (clientOrderId == Value::Null) {
+        let mut clientOrderId: Option<String> = self.safe_string_k(params.clone(), "clientOrderId", &[]).as_str().map(str::to_owned);
+        if (clientOrderId.is_none()) {
             add_element_to_object(&mut request, &Value::Str("orderId".to_string()), id.clone());
         }
         let __ws_arg_10 = self.extend(request.clone(), &[params.clone()]);

@@ -1421,10 +1421,10 @@ impl HitbtcCore {
                 continue;
             }
             let mut market: Value = self.safe_value(response.clone(), id.clone(), &[]);
-            let mut marketType: Value = self.safe_string_k(market.clone(), "type", &[]);
+            let mut marketType: Option<String> = self.safe_string_k(market.clone(), "type", &[]).as_str().map(str::to_owned);
             let mut expiry: Value = self.safe_integer_k(market.clone(), "expiry", &[]);
-            let mut contract: Value = (Value::Bool(marketType.as_str() == Some("futures")));
-            let mut spot: Value = (Value::Bool(marketType.as_str() == Some("spot")));
+            let mut contract: Value = (Value::Bool(marketType.as_deref() == Some("futures")));
+            let mut spot: Value = (Value::Bool(marketType.as_deref() == Some("spot")));
             let mut marginTrading: Value = self.safe_bool_k(market.clone(), "margin_trading", &[Value::Bool(false)]);
             let mut margin: Value = Value::Bool(is_true(&spot) && is_true(&marginTrading));
             let mut future: Value = (Value::Bool(expiry != Value::Null));
@@ -2342,8 +2342,8 @@ impl HitbtcCore {
         let mut sender: Value = self.safe_value_k(native.clone(), "senders", &[]);
         let mut addressFrom: Value = self.safe_string(sender.clone(), Value::Int(0), &[]);
         let mut amount: Value = self.safe_number_k(native.clone(), "amount", &[]);
-        let mut subType: Value = self.safe_string_k(transaction.clone(), "subtype", &[]);
-        let mut internal: Value = Value::Bool(subType.as_str() == Some("OFFCHAIN"));
+        let mut subType: Option<String> = self.safe_string_k(transaction.clone(), "subtype", &[]).as_str().map(str::to_owned);
+        let mut internal: Value = Value::Bool(subType.as_deref() == Some("OFFCHAIN"));
         // https://api.hitbtc.com/#check-if-offchain-is-available
         let mut fee: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -2721,16 +2721,16 @@ impl HitbtcCore {
         if (limit != Value::Null) {
             add_element_to_object(&mut request, &Value::Str("limit".to_string()), crate::runtime::Math::min(&limit, &Value::Int(1000)));
         }
-        let mut price: Value = self.safe_string_k(params.clone(), "price", &[]);
+        let mut price: Option<String> = self.safe_string_k(params.clone(), "price", &[]).as_str().map(str::to_owned);
         params = self.omit(params.clone(), Value::Str("price".to_string()), &[]);
         let mut response: Value = Value::List(vec![]);
-        if (price.as_str() == Some("mark")) {
+        if (price.as_deref() == Some("mark")) {
             let __ws_arg_15 = self.extend(request.clone(), &[params.clone()]);
             response = self.public_get_public_futures_candles_mark_price_symbol(&[__ws_arg_15]).await;
-        }  else if (price.as_str() == Some("index")) {
+        }  else if (price.as_deref() == Some("index")) {
             let __ws_arg_16 = self.extend(request.clone(), &[params.clone()]);
             response = self.public_get_public_futures_candles_index_price_symbol(&[__ws_arg_16]).await;
-        }  else if (price.as_str() == Some("premiumIndex")) {
+        }  else if (price.as_deref() == Some("premiumIndex")) {
             let __ws_arg_17 = self.extend(request.clone(), &[params.clone()]);
             response = self.public_get_public_futures_candles_premium_index_symbol(&[__ws_arg_17]).await;
         }  else {
@@ -3383,8 +3383,8 @@ impl HitbtcCore {
             add_element_to_object(&mut request, &Value::Str("price".to_string()), self.price_to_precision(market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null), price.clone()));
         }
         if is_true(&(Value::Bool(timeInForce.as_str() == Some("GTD")))) {
-            let mut expireTime: Value = self.safe_string_k(params.clone(), "expire_time", &[]);
-            if (expireTime == Value::Null) {
+            let mut expireTime: Option<String> = self.safe_string_k(params.clone(), "expire_time", &[]).as_str().map(str::to_owned);
+            if (expireTime.is_none()) {
                 panic!("{}", crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires an expire_time parameter for a GTD order".to_string())))));
             }
         }
@@ -4838,12 +4838,12 @@ impl HitbtcCore {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {Array} the marginMode in lowercase
          */
-        let mut defaultType: Value = self.safe_string_k(self.options.clone(), "defaultType", &[]);
+        let mut defaultType: Option<String> = self.safe_string_k(self.options.clone(), "defaultType", &[]).as_str().map(str::to_owned);
         let mut isMargin: Value = self.safe_bool_k(params.clone(), "margin", &[Value::Bool(false)]);
         let mut marginMode: Value = Value::Null;
         { let __destr_tmp = self.super_handle_margin_mode_and_params(methodName.clone(), params.clone(), defaultValue.clone()); marginMode = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         if (marginMode == Value::Null) {
-            if is_true(&(Value::Bool(defaultType.as_str() == Some("margin")))) || is_true(&(Value::Bool(isMargin.as_bool() == Some(true)))) {
+            if is_true(&(Value::Bool(defaultType.as_deref() == Some("margin")))) || is_true(&(Value::Bool(isMargin.as_bool() == Some(true)))) {
                 marginMode = Value::Str("isolated".to_string());
             }
         }

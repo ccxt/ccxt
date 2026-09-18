@@ -363,8 +363,8 @@ impl GrvtCore {
                 m.insert("v1.order".to_string(), Value::Str("handle_order".to_string()).clone());
             m
         });
-        let mut methodName: Value = self.safe_string_k(message.clone(), "method", &[]);
-        if (methodName.as_str() == Some("subscribe")) {
+        let mut methodName: Option<String> = self.safe_string_k(message.clone(), "method", &[]).as_str().map(str::to_owned);
+        if (methodName.as_deref() == Some("subscribe")) {
             return;
         }
         let mut channel: Value = self.safe_string_k(message.clone(), "stream", &[]);
@@ -991,8 +991,8 @@ impl GrvtCore {
         }
         let mut orderbook: Value = get_value(&self.orderbooks, &symbol);
         let mut sequenceNumber: Value = self.safe_integer_k(message.clone(), "sequence_number", &[Value::Int(0)]);
-        let mut stream: Value = self.safe_string_k(message.clone(), "stream", &[]);
-        let mut isSnapshotChannel: bool = stream.as_str() == Some("v1.book.s");
+        let mut stream: Option<String> = self.safe_string_k(message.clone(), "stream", &[]).as_str().map(str::to_owned);
+        let mut isSnapshotChannel: bool = stream.as_deref() == Some("v1.book.s");
         let mut isSnapshotMessage: bool = sequenceNumber.as_f64().unwrap_or(f64::NAN) <= Value::Int(0).as_f64().unwrap_or(f64::NAN);
         if isSnapshotChannel || isSnapshotMessage {
             let mut snapshot: Value = self.parse_order_book(data.clone(), symbol.clone(), &[timestamp.clone(), Value::Str("bids".to_string()), Value::Str("asks".to_string()), Value::Str("price".to_string()), Value::Str("size".to_string())]);
@@ -1030,8 +1030,8 @@ impl GrvtCore {
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut authenticated: Value = self.safe_string_k(wsOptions.clone(), "token", &[]);
-        if (authenticated == Value::Null) {
+        let mut authenticated: Option<String> = self.safe_string_k(wsOptions.clone(), "token", &[]).as_str().map(str::to_owned);
+        if (authenticated.is_none()) {
             let mut accountId: Value = self.safe_string_k(self.options.clone(), "AuthAccountId", &[]);
             let mut cookieValue: Value = self.safe_string_k(self.options.clone(), "AuthCookieValue", &[]);
             if (cookieValue == Value::Null) || (accountId == Value::Null) {

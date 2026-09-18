@@ -1655,13 +1655,13 @@ impl LbankCore {
         if (side != Value::Null) {
             let mut parts: Value = split(&side, &Value::Str("_".to_string()));
             side = self.safe_string(parts.clone(), Value::Int(0), &[]);
-            let mut typePart: Value = self.safe_string(parts.clone(), Value::Int(1), &[]);
+            let mut typePart: Option<String> = self.safe_string(parts.clone(), Value::Int(1), &[]).as_str().map(str::to_owned);
             type_var = Value::Str("limit".to_string());
             takerOrMaker = Value::Str("taker".to_string());
-            if (typePart != Value::Null) {
-                if (typePart.as_str() == Some("market")) {
+            if (typePart.is_some()) {
+                if (typePart.as_deref() == Some("market")) {
                     type_var = Value::Str("market".to_string());
-                }  else if (typePart.as_str() == Some("maker")) {
+                }  else if (typePart.as_deref() == Some("maker")) {
                     takerOrMaker = Value::Str("maker".to_string());
                 }
             }
@@ -1746,10 +1746,10 @@ impl LbankCore {
             m
         })]);
         let mut defaultMethod: Value = self.safe_string_k(options.clone(), "method", &[Value::Str("spotPublicGetTrades".to_string())]);
-        let mut method: Value = self.safe_string_k(params.clone(), "method", &[defaultMethod.clone()]);
+        let mut method: Option<String> = self.safe_string_k(params.clone(), "method", &[defaultMethod.clone()]).as_str().map(str::to_owned);
         params = self.omit(params.clone(), Value::Str("method".to_string()), &[]);
         let mut response: Value = Value::Null;
-        if (method.as_str() == Some("spotPublicGetSupplementTrades")) {
+        if (method.as_deref() == Some("spotPublicGetSupplementTrades")) {
             let __ws_arg_6 = self.extend(request.clone(), &[params.clone()]);
             response = self.spot_public_get_supplement_trades(&[__ws_arg_6]).await;
         }  else {
@@ -2155,11 +2155,11 @@ impl LbankCore {
             m
         })]);
         let mut defaultMethod: Value = self.safe_string_k(options.clone(), "method", &[Value::Str("spotPrivatePostSupplementUserInfo".to_string())]);
-        let mut method: Value = self.safe_string_k(params.clone(), "method", &[defaultMethod.clone()]);
+        let mut method: Option<String> = self.safe_string_k(params.clone(), "method", &[defaultMethod.clone()]).as_str().map(str::to_owned);
         let mut response: Value = Value::Null;
-        if (method.as_str() == Some("spotPrivatePostSupplementUserInfoAccount")) {
+        if (method.as_deref() == Some("spotPrivatePostSupplementUserInfoAccount")) {
             response = self.spot_private_post_supplement_user_info_account(&[]).await;
-        }  else if (method.as_str() == Some("spotPrivatePostUserInfo")) {
+        }  else if (method.as_deref() == Some("spotPrivatePostUserInfo")) {
             response = self.spot_private_post_user_info(&[]).await;
         }  else {
             response = self.spot_private_post_supplement_user_info(&[]).await;
@@ -2354,16 +2354,16 @@ impl LbankCore {
         let mut market: Value = self.market(symbol.clone());
         let mut clientOrderId: Value = self.safe_string2(params.clone(), Value::Str("custom_id".to_string()), Value::Str("clientOrderId".to_string()), &[]);
         let mut postOnly: Value = self.safe_bool_k(params.clone(), "postOnly", &[Value::Bool(false)]);
-        let mut timeInForce: Value = self.safe_string_upper(params.clone(), Value::Str("timeInForce".to_string()), &[]);
+        let mut timeInForce: Option<String> = self.safe_string_upper(params.clone(), Value::Str("timeInForce".to_string()), &[]).as_str().map(str::to_owned);
         params = self.omit(params.clone(), Value::List(vec![Value::Str("custom_id".to_string()), Value::Str("clientOrderId".to_string()), Value::Str("timeInForce".to_string()), Value::Str("postOnly".to_string())]), &[]);
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
-        let mut ioc: bool = timeInForce.as_str() == Some("IOC");
-        let mut fok: bool = timeInForce.as_str() == Some("FOK");
-        let mut maker: bool = is_true(&(Value::Bool(postOnly.as_bool() == Some(true)))) || is_true(&(Value::Bool(timeInForce.as_str() == Some("PO"))));
+        let mut ioc: bool = timeInForce.as_deref() == Some("IOC");
+        let mut fok: bool = timeInForce.as_deref() == Some("FOK");
+        let mut maker: bool = is_true(&(Value::Bool(postOnly.as_bool() == Some(true)))) || is_true(&(Value::Bool(timeInForce.as_deref() == Some("PO"))));
         if is_true(&(Value::Bool(type_var.as_str() == Some("market")))) && (ioc || fok || maker) {
             panic!("{}", crate::exchange_errors::invalid_order(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder () does not allow market FOK, IOC, or postOnly orders. Only limit IOC, FOK, and postOnly orders are allowed".to_string())))));
         }
@@ -2415,10 +2415,10 @@ impl LbankCore {
             m
         })]);
         let mut defaultMethod: Value = self.safe_string_k(options.clone(), "method", &[Value::Str("spotPrivatePostSupplementCreateOrder".to_string())]);
-        let mut method: Value = self.safe_string_k(params.clone(), "method", &[defaultMethod.clone()]);
+        let mut method: Option<String> = self.safe_string_k(params.clone(), "method", &[defaultMethod.clone()]).as_str().map(str::to_owned);
         params = self.omit(params.clone(), Value::Str("method".to_string()), &[]);
         let mut response: Value = Value::Null;
-        if (method.as_str() == Some("spotPrivatePostCreateOrder")) {
+        if (method.as_deref() == Some("spotPrivatePostCreateOrder")) {
             let __ws_arg_12 = self.extend(request.clone(), &[params.clone()]);
             response = self.spot_private_post_create_order(&[__ws_arg_12]).await;
         }  else {
@@ -2567,18 +2567,18 @@ impl LbankCore {
         let mut rawType: Value = self.safe_string2(order.clone(), Value::Str("type".to_string()), Value::Str("tradeType".to_string()), &[]); // buy, sell, buy_market, sell_market, buy_maker,sell_maker,buy_ioc,sell_ioc, buy_fok, sell_fok
         let mut parts: Value = split(&rawType, &Value::Str("_".to_string()));
         let mut side: Value = self.safe_string(parts.clone(), Value::Int(0), &[]);
-        let mut typePart: Value = self.safe_string(parts.clone(), Value::Int(1), &[]); // market, maker, ioc, fok or undefined (limit)
-        if (typePart.as_str() == Some("market")) {
+        let mut typePart: Option<String> = self.safe_string(parts.clone(), Value::Int(1), &[]).as_str().map(str::to_owned); // market, maker, ioc, fok or undefined (limit)
+        if (typePart.as_deref() == Some("market")) {
             type_var = Value::Str("market".to_string());
         }
-        if (typePart.as_str() == Some("maker")) {
+        if (typePart.as_deref() == Some("maker")) {
             postOnly = Value::Bool(true);
             timeInForce = Value::Str("PO".to_string());
         }
-        if (typePart.as_str() == Some("ioc")) {
+        if (typePart.as_deref() == Some("ioc")) {
             timeInForce = Value::Str("IOC".to_string());
         }
-        if (typePart.as_str() == Some("fok")) {
+        if (typePart.as_deref() == Some("fok")) {
             timeInForce = Value::Str("FOK".to_string());
         }
         let mut price: Value = self.safe_string_k(order.clone(), "price", &[]);
@@ -3124,10 +3124,10 @@ impl LbankCore {
             m
         })]);
         let mut defaultMethod: Value = self.safe_string_k(options.clone(), "method", &[Value::Str("fetchDepositAddressDefault".to_string())]);
-        let mut method: Value = self.safe_string_k(params.clone(), "method", &[defaultMethod.clone()]);
+        let mut method: Option<String> = self.safe_string_k(params.clone(), "method", &[defaultMethod.clone()]).as_str().map(str::to_owned);
         params = self.omit(params.clone(), Value::Str("method".to_string()), &[]);
         let mut response: Value = Value::Null;
-        if (method.as_str() == Some("fetchDepositAddressSupplement")) {
+        if (method.as_deref() == Some("fetchDepositAddressSupplement")) {
             response = self.fetch_deposit_address_supplement(code.clone(), &[params.clone()]).await;
         }  else {
             response = self.fetch_deposit_address_default(code.clone(), &[params.clone()]).await;
@@ -3600,9 +3600,9 @@ impl LbankCore {
                 m
             })]);
             let mut defaultMethod: Value = self.safe_string_k(options.clone(), "method", &[Value::Str("fetchPrivateTransactionFees".to_string())]);
-            let mut method: Value = self.safe_string_k(params.clone(), "method", &[defaultMethod.clone()]);
+            let mut method: Option<String> = self.safe_string_k(params.clone(), "method", &[defaultMethod.clone()]).as_str().map(str::to_owned);
             params = self.omit(params.clone(), Value::Str("method".to_string()), &[]);
-            if (method.as_str() == Some("fetchPublicTransactionFees")) {
+            if (method.as_deref() == Some("fetchPublicTransactionFees")) {
                 result = self.fetch_public_transaction_fees(&[params.clone()]).await;
             }  else {
                 result = self.fetch_private_transaction_fees(&[params.clone()]).await;
@@ -3827,9 +3827,9 @@ impl LbankCore {
                 m
             })]);
             let mut defaultMethod: Value = self.safe_string_k(options.clone(), "method", &[Value::Str("fetchPrivateDepositWithdrawFees".to_string())]);
-            let mut method: Value = self.safe_string_k(params.clone(), "method", &[defaultMethod.clone()]);
+            let mut method: Option<String> = self.safe_string_k(params.clone(), "method", &[defaultMethod.clone()]).as_str().map(str::to_owned);
             params = self.omit(params.clone(), Value::Str("method".to_string()), &[]);
-            if (method.as_str() == Some("fetchPublicDepositWithdrawFees")) {
+            if (method.as_deref() == Some("fetchPublicDepositWithdrawFees")) {
                 response = self.fetch_public_deposit_withdraw_fees(&[codes.clone(), params.clone()]).await;
             }  else {
                 response = self.fetch_private_deposit_withdraw_fees(&[codes.clone(), params.clone()]).await;

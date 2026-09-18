@@ -394,14 +394,14 @@ impl MudrexCore {
         }
         let mut market: Value = self.market(symbol.clone());
         symbol = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
-        let mut priceType: Value = self.safe_string_k(params.clone(), "price", &[]);
+        let mut priceType: Option<String> = self.safe_string_k(params.clone(), "price", &[]).as_str().map(str::to_owned);
         params = self.omit(params.clone(), Value::Str("price".to_string()), &[]);
         let mut interval: Value = self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]);
         if (interval.as_str() != Some("1s")) && (interval.as_str() != Some("1m")) {
             panic!("{}", crate::exchange_errors::not_supported(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" watchOHLCV() supports 1s and 1m timeframes only".to_string())))));
         }
         let mut prefix: Value = Value::Str("kline".to_string());
-        if (priceType.as_str() == Some("mark")) {
+        if (priceType.as_deref() == Some("mark")) {
             prefix = Value::Str("markKline".to_string());
         }
         let mut streamBaseId: Value = (if is_true(&(Value::Bool(market.as_map().and_then(|__m| __m.get("baseId")).cloned().unwrap_or(Value::Null) != Value::Null))) { market.as_map().and_then(|__m| __m.get("baseId")).cloned().unwrap_or(Value::Null) } else { Value::Str("".to_string()) });
@@ -451,10 +451,10 @@ impl MudrexCore {
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut code: Value = self.safe_string_k(error.clone(), "code", &[]);
+        let mut code: Option<String> = self.safe_string_k(error.clone(), "code", &[]).as_str().map(str::to_owned);
         let mut msg: Value = self.safe_string_k(error.clone(), "msg", &[]);
         let mut feedback: Value = add(&Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), &msg);
-        if (code.as_str() == Some("429")) {
+        if (code.as_deref() == Some("429")) {
             panic!("{}", crate::exchange_errors::rate_limit_exceeded(feedback));
         }
         panic!("{}", crate::exchange_errors::exchange_error(feedback));

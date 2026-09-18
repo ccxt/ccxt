@@ -1220,10 +1220,10 @@ impl ToobitCore {
         //     }
         // ]
         //
-        let mut channel: Value = self.safe_string_k(message.clone(), "e", &[]);
+        let mut channel: Option<String> = self.safe_string_k(message.clone(), "e", &[]).as_str().map(str::to_owned);
         let mut data: Value = self.safe_list_k(message.clone(), "B", &[Value::List(vec![])]);
         let mut timestamp: Value = self.safe_integer_k(message.clone(), "E", &[]);
-        let mut type_var: Value = (if is_true(&(Value::Bool(channel.as_str() == Some("outboundContractAccountInfo")))) { Value::Str("contract".to_string()) } else { Value::Str("spot".to_string()) });
+        let mut type_var: Value = (if is_true(&(Value::Bool(channel.as_deref() == Some("outboundContractAccountInfo")))) { Value::Str("contract".to_string()) } else { Value::Str("spot".to_string()) });
         if !is_true(&(Value::Bool(in_op(&self.balance, &type_var)))) {
             add_element_to_object(&mut self.balance, &type_var, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1367,10 +1367,10 @@ impl ToobitCore {
         let mut timestamp: Value = self.safe_integer_k(order.clone(), "O", &[]);
         let mut marketId: Value = self.safe_string_k(order.clone(), "s", &[]);
         let mut symbol: Value = self.safe_symbol(marketId.clone(), &[market.clone()]);
-        let mut priceType: Value = self.safe_string_lower(order.clone(), Value::Str("pt".to_string()), &[]);
+        let mut priceType: Option<String> = self.safe_string_lower(order.clone(), Value::Str("pt".to_string()), &[]).as_str().map(str::to_owned);
         let mut rawOrderType: Value = self.safe_string_lower(order.clone(), Value::Str("o".to_string()), &[]);
         let mut orderType: Value = Value::Null;
-        if (priceType.as_str() == Some("market")) {
+        if (priceType.as_deref() == Some("market")) {
             orderType = Value::Str("market".to_string());
         }  else {
             orderType = rawOrderType.clone();
@@ -1792,8 +1792,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut listenKey: Value = self.safe_string_k(options.clone(), "listenKey", &[]);
-        if (listenKey == Value::Null) {
+        let mut listenKey: Option<String> = self.safe_string_k(options.clone(), "listenKey", &[]).as_str().map(str::to_owned);
+        if (listenKey.is_none()) {
             return Value::Null;
         }
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {

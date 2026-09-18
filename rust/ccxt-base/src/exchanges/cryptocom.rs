@@ -1647,11 +1647,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             while { if !__for_first_594 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_594 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(data.len() as i64).as_f64().unwrap_or(f64::NAN) } {
             let mut market: Value = get_value(&data, &i);
             let mut market: Value = get_value(&data, &i);
-            let mut inst_type: Value = self.safe_string_k(market.clone(), "inst_type", &[]);
-            let mut spot: Value = Value::Bool(inst_type.as_str() == Some("CCY_PAIR"));
-            let mut swap: Value = Value::Bool(inst_type.as_str() == Some("PERPETUAL_SWAP"));
-            let mut future: Value = Value::Bool(inst_type.as_str() == Some("FUTURE"));
-            let mut option: Value = Value::Bool(inst_type.as_str() == Some("WARRANT"));
+            let mut inst_type: Option<String> = self.safe_string_k(market.clone(), "inst_type", &[]).as_str().map(str::to_owned);
+            let mut spot: Value = Value::Bool(inst_type.as_deref() == Some("CCY_PAIR"));
+            let mut swap: Value = Value::Bool(inst_type.as_deref() == Some("PERPETUAL_SWAP"));
+            let mut future: Value = Value::Bool(inst_type.as_deref() == Some("FUTURE"));
+            let mut option: Value = Value::Bool(inst_type.as_deref() == Some("WARRANT"));
             let mut baseId: Value = self.safe_string_k(market.clone(), "base_ccy", &[]);
             let mut quoteId: Value = self.safe_string_k(market.clone(), "quote_ccy", &[]);
             let mut settleId: Value = (if is_true(&spot) { Value::Null } else { quoteId.clone() });
@@ -1667,18 +1667,18 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut symbol: Value = add(&add(&base, &Value::Str("/".to_string())), &quote);
             let mut type_var: Value = Value::Null;
             let mut contract: Value = Value::Null;
-            if (inst_type.as_str() == Some("CCY_PAIR")) {
+            if (inst_type.as_deref() == Some("CCY_PAIR")) {
                 type_var = Value::Str("spot".to_string());
                 contract = Value::Bool(false);
-            }  else if (inst_type.as_str() == Some("PERPETUAL_SWAP")) {
+            }  else if (inst_type.as_deref() == Some("PERPETUAL_SWAP")) {
                 type_var = Value::Str("swap".to_string());
                 symbol = add(&Value::Str(format!("{}{}", symbol, Value::Str(":".to_string()))), &quote);
                 contract = Value::Bool(true);
-            }  else if (inst_type.as_str() == Some("FUTURE")) {
+            }  else if (inst_type.as_deref() == Some("FUTURE")) {
                 type_var = Value::Str("future".to_string());
                 symbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", add(&Value::Str(format!("{}{}", symbol, Value::Str(":".to_string()))), &quote), Value::Str("-".to_string()))), self.yymmdd(expiry.clone(), &[])));
                 contract = Value::Bool(true);
-            }  else if (inst_type.as_str() == Some("WARRANT")) {
+            }  else if (inst_type.as_deref() == Some("WARRANT")) {
                 type_var = Value::Str("option".to_string());
                 let mut symbolOptionType: Value = (if is_true(&(Value::Bool(optionType.as_str() == Some("call")))) { Value::Str("C".to_string()) } else { Value::Str("P".to_string()) });
                 symbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", add(&Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", add(&Value::Str(format!("{}{}", symbol, Value::Str(":".to_string()))), &quote), Value::Str("-".to_string()))), self.yymmdd(expiry.clone(), &[]))), Value::Str("-".to_string()))), &strike), Value::Str("-".to_string()))), symbolOptionType));
@@ -3909,7 +3909,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {Array} the marginMode in lowercase
          */
-        let mut defaultType: Value = self.safe_string_k(self.options.clone(), "defaultType", &[]);
+        let mut defaultType: Option<String> = self.safe_string_k(self.options.clone(), "defaultType", &[]).as_str().map(str::to_owned);
         let mut isMargin: Value = self.safe_bool_k(params.clone(), "margin", &[Value::Bool(false)]);
         params = self.omit(params.clone(), Value::Str("margin".to_string()), &[]);
         let mut marginMode: Value = Value::Null;
@@ -3919,7 +3919,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 panic!("{}", crate::exchange_errors::not_supported(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" only cross margin is supported".to_string())))));
             }
         }  else {
-            if is_true(&(Value::Bool(defaultType.as_str() == Some("margin")))) || is_true(&(Value::Bool(isMargin.as_bool() == Some(true)))) {
+            if is_true(&(Value::Bool(defaultType.as_deref() == Some("margin")))) || is_true(&(Value::Bool(isMargin.as_bool() == Some(true)))) {
                 marginMode = Value::Str("cross".to_string());
             }
         }
@@ -5075,10 +5075,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut headers = get_arg(optional_args, 3, Value::Null);
         let mut body = get_arg(optional_args, 4, Value::Null);
         let mut type_var: Value = self.safe_string(api.clone(), Value::Int(0), &[]);
-        let mut access: Value = self.safe_string(api.clone(), Value::Int(1), &[]);
+        let mut access: Option<String> = self.safe_string(api.clone(), Value::Int(1), &[]).as_str().map(str::to_owned);
         let mut url: Value = add(&add(&get_value(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), &type_var), &Value::Str("/".to_string())), &path);
         let mut query: Value = self.omit(params.clone(), self.extract_params(path.clone()), &[]);
-        if (access.as_str() == Some("public")) {
+        if (access.as_deref() == Some("public")) {
             if Value::Int(object_keys(&query).len() as i64).as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN) {
                 url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".to_string()), self.urlencode(query.clone(), &[])))));
             }

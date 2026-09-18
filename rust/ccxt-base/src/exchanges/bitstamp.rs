@@ -1989,20 +1989,20 @@ impl BitstampCore {
             let mut base: Value = self.safe_currency_code(baseId.clone(), &[]);
             let mut quote: Value = self.safe_currency_code(quoteId.clone(), &[]);
             let mut settleId: Value = Value::Null;
-            let mut marketTypeRaw: Value = self.safe_string_k(market.clone(), "market_type", &[]);
+            let mut marketTypeRaw: Option<String> = self.safe_string_k(market.clone(), "market_type", &[]).as_str().map(str::to_owned);
             let mut symbol: Value = add(&add(&base, &Value::Str("/".to_string())), &quote);
             let mut type_var: Value = Value::Null;
             let mut subType: Value = Value::Null;
-            if (marketTypeRaw.as_str() == Some("SPOT")) {
+            if (marketTypeRaw.as_deref() == Some("SPOT")) {
                 type_var = Value::Str("spot".to_string());
-            }  else if (marketTypeRaw.as_str() == Some("PERPETUAL")) {
+            }  else if (marketTypeRaw.as_deref() == Some("PERPETUAL")) {
                 type_var = Value::Str("swap".to_string());
                 settleId = quoteId.clone();
                 symbol = add(&Value::Str(format!("{}{}", add(&add(&base, &Value::Str("/".to_string())), &quote), Value::Str(":".to_string()))), &settleId);
-                let mut payoffType: Value = self.safe_string_k(market.clone(), "payoff_type", &[]);
-                if (payoffType.as_str() == Some("Linear")) {
+                let mut payoffType: Option<String> = self.safe_string_k(market.clone(), "payoff_type", &[]).as_str().map(str::to_owned);
+                if (payoffType.as_deref() == Some("Linear")) {
                     subType = Value::Str("linear".to_string());
-                }  else if (payoffType.as_str() == Some("Inverse")) {
+                }  else if (payoffType.as_deref() == Some("Inverse")) {
                     subType = Value::Str("inverse".to_string());
                 }
             }
@@ -3666,10 +3666,10 @@ impl BitstampCore {
         let mut type_var: Value = Value::Null;
         if is_true(&Value::Bool(in_op(&transaction, &Value::Str("type".to_string())))) {
             // from fetchDepositsWithdrawals
-            let mut rawType: Value = self.safe_string_k(transaction.clone(), "type", &[]);
-            if (rawType.as_str() == Some("0")) {
+            let mut rawType: Option<String> = self.safe_string_k(transaction.clone(), "type", &[]).as_str().map(str::to_owned);
+            if (rawType.as_deref() == Some("0")) {
                 type_var = Value::Str("deposit".to_string());
-            }  else if (rawType.as_str() == Some("1")) {
+            }  else if (rawType.as_deref() == Some("1")) {
                 type_var = Value::Str("withdrawal".to_string());
             }
         }  else {
@@ -4409,9 +4409,9 @@ impl BitstampCore {
         //     {"status": "error", "reason": {"__all__": ["Minimum order size is 5.0 EUR."]}}
         //     reuse of a nonce gives: { status: 'error', reason: 'Invalid nonce', code: 'API0004' }
         //
-        let mut status: Value = self.safe_string_k(response.clone(), "status", &[]);
+        let mut status: Option<String> = self.safe_string_k(response.clone(), "status", &[]).as_str().map(str::to_owned);
         let mut error: Value = self.safe_value_k(response.clone(), "error", &[]);
-        if is_true(&(Value::Bool(status.as_str() == Some("error")))) || is_true(&(Value::Bool(error != Value::Null))) {
+        if is_true(&(Value::Bool(status.as_deref() == Some("error")))) || is_true(&(Value::Bool(error != Value::Null))) {
             let mut errors: Value = Value::List(vec![]);
             if is_string(&error) {
                 append_to_array(&mut errors, error.clone());
@@ -4448,8 +4448,8 @@ impl BitstampCore {
                 }
                 }
             }
-            let mut code: Value = self.safe_string_k(response.clone(), "code", &[]);
-            if (code.as_str() == Some("API0005")) {
+            let mut code: Option<String> = self.safe_string_k(response.clone(), "code", &[]).as_str().map(str::to_owned);
+            if (code.as_deref() == Some("API0005")) {
                 panic!("{}", crate::exchange_errors::authentication_error(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" invalid signature, use the uid for the main account if you have subaccounts".to_string())))));
             }
             let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), body));

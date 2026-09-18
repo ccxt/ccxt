@@ -827,12 +827,12 @@ impl AsterCore {
 }
 
     pub fn parse_ws_ticker(&self, mut message: Value, mut marketType: Value) -> Value {
-        let mut event: Value = self.safe_string_k(message.clone(), "e", &[]);
+        let mut event: Option<String> = self.safe_string_k(message.clone(), "e", &[]).as_str().map(str::to_owned);
         let mut marketId: Value = self.safe_string_k(message.clone(), "s", &[]);
         let mut timestamp: Value = self.safe_integer_k(message.clone(), "E", &[]);
         let mut market: Value = self.safe_market(&[marketId.clone(), Value::Null, Value::Null, marketType.clone()]);
         let mut last: Value = self.safe_string_k(message.clone(), "c", &[]);
-        if (event.as_str() == Some("markPriceUpdate")) {
+        if (event.as_deref() == Some("markPriceUpdate")) {
             return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null));
@@ -1340,8 +1340,8 @@ impl AsterCore {
         //         "ss": 0
         //     }
         //
-        let mut e: Value = self.safe_string_k(trade.clone(), "e", &[]);
-        let mut isPublicTrade: bool = is_true(&(Value::Bool(e.as_str() == Some("trade")))) || is_true(&(Value::Bool(e.as_str() == Some("aggTrade"))));
+        let mut e: Option<String> = self.safe_string_k(trade.clone(), "e", &[]).as_str().map(str::to_owned);
+        let mut isPublicTrade: bool = is_true(&(Value::Bool(e.as_deref() == Some("trade")))) || is_true(&(Value::Bool(e.as_deref() == Some("aggTrade"))));
         let mut id: Value = self.safe_string2(trade.clone(), Value::Str("t".to_string()), Value::Str("a".to_string()), &[]);
         let mut timestamp: Value = self.safe_integer_k(trade.clone(), "T", &[]);
         let mut price: Value = self.safe_string2(trade.clone(), Value::Str("L".to_string()), Value::Str("p".to_string()), &[]);
@@ -2518,8 +2518,8 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
 
     pub fn handle_order_update(&mut self, mut client: Value, mut message: Value) {
         let mut rawOrder: Value = self.safe_dict_k(message.clone(), "o", &[message.clone()]);
-        let mut e: Value = self.safe_string_k(message.clone(), "e", &[]);
-        if is_true(&(Value::Bool(e.as_str() == Some("ORDER_TRADE_UPDATE")))) || is_true(&(Value::Bool(e.as_str() == Some("ALGO_UPDATE")))) {
+        let mut e: Option<String> = self.safe_string_k(message.clone(), "e", &[]).as_str().map(str::to_owned);
+        if is_true(&(Value::Bool(e.as_deref() == Some("ORDER_TRADE_UPDATE")))) || is_true(&(Value::Bool(e.as_deref() == Some("ALGO_UPDATE")))) {
             message = self.safe_dict_k(message.clone(), "o", &[message.clone()]);
         }
         self.handle_order(client.clone(), rawOrder.clone());
@@ -2528,8 +2528,8 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
 
     pub fn handle_my_trade(&mut self, mut client: Value, mut message: Value) {
         let mut messageHash: Value = Value::Str("myTrades".to_string());
-        let mut executionType: Value = self.safe_string_k(message.clone(), "x", &[]);
-        if (executionType.as_str() == Some("TRADE")) {
+        let mut executionType: Option<String> = self.safe_string_k(message.clone(), "x", &[]).as_str().map(str::to_owned);
+        if (executionType.as_deref() == Some("TRADE")) {
             let mut isSwap: bool = get_index_of(&get_value(&client, &Value::Str("url".to_string())), &Value::Str("fstream".to_string())).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN);
             let mut type_var: Value = (if isSwap { Value::Str("swap".to_string()) } else { Value::Str("spot".to_string()) });
             let mut fakeMarket: Value = self.safe_market_structure(&[Value::Map({
@@ -2708,17 +2708,17 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
 
     pub fn parse_ws_order(&self, mut order: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
-        let mut executionType: Value = self.safe_string_k(order.clone(), "x", &[]);
+        let mut executionType: Option<String> = self.safe_string_k(order.clone(), "x", &[]).as_str().map(str::to_owned);
         let mut marketId: Value = self.safe_string_k(order.clone(), "s", &[]);
         market = self.safe_market(&[marketId.clone(), market.clone()]);
         let mut timestamp: Value = self.safe_integer_k(order.clone(), "O", &[]);
         let mut T: Value = self.safe_integer_k(order.clone(), "T", &[]);
         let mut lastTradeTimestamp: Value = Value::Null;
-        if (executionType.as_str() == Some("NEW")) || (executionType.as_str() == Some("AMENDMENT")) || (executionType.as_str() == Some("CANCELED")) {
+        if (executionType.as_deref() == Some("NEW")) || (executionType.as_deref() == Some("AMENDMENT")) || (executionType.as_deref() == Some("CANCELED")) {
             if (timestamp == Value::Null) {
                 timestamp = T.clone();
             }
-        }  else if (executionType.as_str() == Some("TRADE")) {
+        }  else if (executionType.as_deref() == Some("TRADE")) {
             lastTradeTimestamp = T.clone();
         }
         let mut lastUpdateTimestamp: Value = T.clone();

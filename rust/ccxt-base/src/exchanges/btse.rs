@@ -1186,10 +1186,10 @@ impl BtseCore {
         //         "becomeInactiveTime": 1790323200000
         //     }
         //
-        let mut marketType: Value = self.safe_string_k(market.clone(), "type", &[]);
-        let mut isSpot: Value = Value::Bool(marketType.as_str() == Some("Spot"));
-        let mut isFuture: Value = Value::Bool(marketType.as_str() == Some("FuturesTimeBased"));
-        let mut isSwap: Value = Value::Bool(marketType.as_str() == Some("FuturesPerpetual"));
+        let mut marketType: Option<String> = self.safe_string_k(market.clone(), "type", &[]).as_str().map(str::to_owned);
+        let mut isSpot: Value = Value::Bool(marketType.as_deref() == Some("Spot"));
+        let mut isFuture: Value = Value::Bool(marketType.as_deref() == Some("FuturesTimeBased"));
+        let mut isSwap: Value = Value::Bool(marketType.as_deref() == Some("FuturesPerpetual"));
         let mut id: Value = self.safe_string_k(market.clone(), "symbol", &[]);
         let mut baseId: Value = self.safe_string_k(market.clone(), "baseCurrency", &[]);
         let mut quoteId: Value = self.safe_string_k(market.clone(), "quoteCurrency", &[]);
@@ -2920,9 +2920,9 @@ impl BtseCore {
             params = self.omit(params.clone(), Value::Str("clientOrderId".to_string()), &[]);
         }
         // handle positionMode
-        let mut positionMode: Value = self.safe_string_k(params.clone(), "positionMode", &[]);
+        let mut positionMode: Option<String> = self.safe_string_k(params.clone(), "positionMode", &[]).as_str().map(str::to_owned);
         // if positionMode is provided, we will get it from params and send it as is
-        if (positionMode == Value::Null) {
+        if (positionMode.is_none()) {
             let mut hedged: Value = Value::Bool(false);
             { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("createOrder".to_string()), Value::Str("hedged".to_string()), &[hedged.clone()]); hedged = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
             let mut marginMode: Value = Value::Str("cross".to_string());
@@ -4349,8 +4349,8 @@ impl BtseCore {
         let mut timestamp: Value = self.safe_integer_k(position.clone(), "timestamp", &[]);
         let mut marginType: Value = self.safe_string_k(position.clone(), "marginType", &[]);
         let mut side: Value = self.safe_string_lower2(position.clone(), Value::Str("positionDirection".to_string()), Value::Str("side".to_string()), &[]);
-        let mut positionMode: Value = self.safe_string_k(position.clone(), "positionMode", &[]);
-        let mut hedged: Value = Value::Bool(is_true(&(Value::Bool(positionMode.as_str() == Some("HEDGE")))) || is_true(&(Value::Bool(positionMode.as_str() == Some("ISOLATED")))));
+        let mut positionMode: Option<String> = self.safe_string_k(position.clone(), "positionMode", &[]).as_str().map(str::to_owned);
+        let mut hedged: Value = Value::Bool(is_true(&(Value::Bool(positionMode.as_deref() == Some("HEDGE")))) || is_true(&(Value::Bool(positionMode.as_deref() == Some("ISOLATED")))));
         let mut takeProfitOrder: Value = self.safe_dict_k(position.clone(), "takeProfitOrder", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -4462,8 +4462,8 @@ impl BtseCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut positionMode: Value = self.safe_string_k(data.clone(), "positionMode", &[]);
-        let mut hedged: Value = Value::Bool(is_true(&(Value::Bool(positionMode.as_str() == Some("HEDGE")))) || is_true(&(Value::Bool(positionMode.as_str() == Some("ISOLATED")))));
+        let mut positionMode: Option<String> = self.safe_string_k(data.clone(), "positionMode", &[]).as_str().map(str::to_owned);
+        let mut hedged: Value = Value::Bool(is_true(&(Value::Bool(positionMode.as_deref() == Some("HEDGE")))) || is_true(&(Value::Bool(positionMode.as_deref() == Some("ISOLATED")))));
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), data.clone());
@@ -4557,9 +4557,9 @@ impl BtseCore {
         //
         let mut marketId: Value = self.safe_string_k(marginMode.clone(), "symbol", &[]);
         market = self.safe_market(&[marketId.clone(), market.clone()]);
-        let mut positionMode: Value = self.safe_string_lower(marginMode.clone(), Value::Str("marginMode".to_string()), &[]);
+        let mut positionMode: Option<String> = self.safe_string_lower(marginMode.clone(), Value::Str("marginMode".to_string()), &[]).as_str().map(str::to_owned);
         let mut marginModeValue: Value = Value::Str("cross".to_string());
-        if (positionMode.as_str() == Some("isolated")) {
+        if (positionMode.as_deref() == Some("isolated")) {
             marginModeValue = Value::Str("isolated".to_string());
         }
         return Value::Map({
@@ -4653,8 +4653,8 @@ impl BtseCore {
 }));
         self.load_markets(&[]).await;
         let mut market: Value = self.market(symbol.clone());
-        let mut positionId: Value = self.safe_string_k(params.clone(), "positionId", &[]);
-        if (positionId == Value::Null) {
+        let mut positionId: Option<String> = self.safe_string_k(params.clone(), "positionId", &[]).as_str().map(str::to_owned);
+        if (positionId.is_none()) {
             panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" closePosition() requires a positionId parameter".to_string())))));
         }
         let mut request: Value = Value::Map({
@@ -4744,13 +4744,13 @@ impl BtseCore {
             let mut entrty: Value = get_value(&safeResponse, &i);
             let mut entrty: Value = get_value(&safeResponse, &i);
             let mut leverageValue: Value = self.safe_integer_k(entrty.clone(), "leverage", &[]);
-            let mut positionDirection: Value = self.safe_string_k(entrty.clone(), "positionDirection", &[]);
+            let mut positionDirection: Option<String> = self.safe_string_k(entrty.clone(), "positionDirection", &[]).as_str().map(str::to_owned);
             marginMode = self.safe_string_lower(entrty.clone(), Value::Str("marginMode".to_string()), &[]);
-            if (positionDirection.as_str() == Some("LONG")) {
+            if (positionDirection.as_deref() == Some("LONG")) {
                 longLeverage = leverageValue.clone();
-            }  else if (positionDirection.as_str() == Some("SHORT")) {
+            }  else if (positionDirection.as_deref() == Some("SHORT")) {
                 shortLeverage = leverageValue.clone();
-            }  else if (positionDirection == Value::Null) {
+            }  else if (positionDirection.is_none()) {
                 longLeverage = leverageValue.clone();
                 shortLeverage = leverageValue.clone();
             }
@@ -4853,9 +4853,9 @@ impl BtseCore {
         //
         //     {"status":400,"error":"Bad Request","code":301,"message":"Invalid order size"}
         //
-        let mut legacyErrorText: Value = self.safe_string_k(response.clone(), "error", &[]);
+        let mut legacyErrorText: Option<String> = self.safe_string_k(response.clone(), "error", &[]).as_str().map(str::to_owned);
         let mut legacyEnumCode: Value = self.safe_string_k(response.clone(), "code", &[]);
-        if is_true(&(Value::Bool(legacyErrorText != Value::Null))) && is_true(&(Value::Bool(legacyEnumCode != Value::Null))) {
+        if is_true(&(Value::Bool(legacyErrorText.is_some()))) && is_true(&(Value::Bool(legacyEnumCode != Value::Null))) {
             let mut legacyMessage: Value = self.safe_string_k(response.clone(), "message", &[]);
             let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), body));
             self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), legacyEnumCode.clone(), feedback.clone());

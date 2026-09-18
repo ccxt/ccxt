@@ -1099,8 +1099,8 @@ impl ExtendedCore {
         if (quoteId.as_str() == Some("USD")) {
             quote = Value::Str("USDC".to_string());
         }
-        let mut status: Value = self.safe_string_k(market.clone(), "status", &[]);
-        let mut active: Value = (Value::Bool(status.as_str() == Some("ACTIVE")));
+        let mut status: Option<String> = self.safe_string_k(market.clone(), "status", &[]).as_str().map(str::to_owned);
+        let mut active: Value = (Value::Bool(status.as_deref() == Some("ACTIVE")));
         let mut amountPrecision: Value = self.safe_number_k(tradingConfig.clone(), "minOrderSizeChange", &[]);
         let mut pricePrecision: Value = self.safe_number_k(tradingConfig.clone(), "minPriceChange", &[]);
         let mut maxLeverage: Value = self.safe_number_k(tradingConfig.clone(), "maxLeverage", &[]);
@@ -1966,12 +1966,12 @@ impl ExtendedCore {
 }));
         self.load_markets(&[]).await;
         let mut market: Value = self.market(symbol.clone());
-        let mut price: Value = self.safe_string_k(params.clone(), "price", &[]);
+        let mut price: Option<String> = self.safe_string_k(params.clone(), "price", &[]).as_str().map(str::to_owned);
         let mut candleType: Value = self.safe_string_k(params.clone(), "candleType", &[]);
         if (candleType == Value::Null) {
-            if (price.as_str() == Some("mark")) {
+            if (price.as_deref() == Some("mark")) {
                 candleType = Value::Str("mark-prices".to_string());
-            }  else if (price.as_str() == Some("index")) {
+            }  else if (price.as_deref() == Some("index")) {
                 candleType = Value::Str("index-prices".to_string());
             }  else {
                 candleType = Value::Str("trades".to_string());
@@ -4858,8 +4858,8 @@ impl ExtendedCore {
         //
         //     {"status":"ERROR","error":{"code":1140,"message":"New order cost exceeds available balance","debugInfo":"Order cost 2.000000 exceeds available for trade 0\nOrder price = 200, mark price = 95.2147597125 estimated market price = 94.81"}}
         //
-        let mut status: Value = self.safe_string_lower(response.clone(), Value::Str("status".to_string()), &[]);
-        if (status.as_str() == Some("error")) {
+        let mut status: Option<String> = self.safe_string_lower(response.clone(), Value::Str("status".to_string()), &[]).as_str().map(str::to_owned);
+        if (status.as_deref() == Some("error")) {
             let mut error: Value = self.safe_dict_k(response.clone(), "error", &[]);
             let mut errorCode: Value = self.safe_string_k(error.clone(), "code", &[]);
             let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), self.json(response.clone())));
@@ -4882,12 +4882,12 @@ impl ExtendedCore {
         let mut headers = get_arg(optional_args, 3, Value::Null);
         let mut body = get_arg(optional_args, 4, Value::Null);
         let mut version: Value = self.safe_string(api.clone(), Value::Int(0), &[]);
-        let mut accessibility: Value = self.safe_string(api.clone(), Value::Int(1), &[]);
+        let mut accessibility: Option<String> = self.safe_string(api.clone(), Value::Int(1), &[]).as_str().map(str::to_owned);
         let mut endpoint: Value = Value::Str(format!("{}{}", Value::Str("/".to_string()), self.implode_params(path.clone(), params.clone())));
         let mut query: Value = self.omit(params.clone(), self.extract_params(path.clone()), &[]);
         let mut queryPost: bool = path.as_str() == Some("user/deadmanswitch");
         let mut url: Value = self.implode_hostname(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("rest")).cloned().unwrap_or(Value::Null));
-        if (accessibility.as_str() == Some("private")) {
+        if (accessibility.as_deref() == Some("private")) {
             // this.checkRequiredCredentials ();
             if (self.apiKey.clone() == Value::Null) {
                 panic!("{}", crate::exchange_errors::authentication_error(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" sign() requires an apiKey for private endpoints".to_string())))));

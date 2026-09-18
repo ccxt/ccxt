@@ -1183,10 +1183,10 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         })]);
         let mut seqNum: Value = self.safe_integer_k(tick.clone(), "seqNum", &[]);
         let mut prevSeqNum: Value = self.safe_integer_k(tick.clone(), "prevSeqNum", &[]);
-        let mut event: Value = self.safe_string_k(tick.clone(), "event", &[]);
+        let mut event: Option<String> = self.safe_string_k(tick.clone(), "event", &[]).as_str().map(str::to_owned);
         let mut version: Value = self.safe_integer_k(tick.clone(), "version", &[]);
         let mut timestamp: Value = self.safe_integer_k(message.clone(), "ts", &[]);
-        if (event.as_str() == Some("snapshot")) {
+        if (event.as_deref() == Some("snapshot")) {
             let mut snapshot: Value = self.parse_order_book(tick.clone(), symbol.clone(), &[timestamp.clone()]);
             orderbook.reset(snapshot.clone());
             add_element_to_object(&mut orderbook, &Value::Str("nonce".to_string()), version.clone());
@@ -1258,7 +1258,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         //
         let mut messageHash: Value = self.safe_string_k(message.clone(), "ch", &[]);
         let mut tick: Value = self.safe_dict_k(message.clone(), "tick", &[]);
-        let mut event: Value = self.safe_string_k(tick.clone(), "event", &[]);
+        let mut event: Option<String> = self.safe_string_k(tick.clone(), "event", &[]).as_str().map(str::to_owned);
         let mut ch: Value = self.safe_string_k(message.clone(), "ch", &[]);
         if (ch == Value::Null) {
             return;
@@ -1279,7 +1279,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
 }), limit.clone()]); add_element_to_object(&mut self.orderbooks, &symbol, __be_tmp); };
         }
         let mut orderbook: Value = get_value(&self.orderbooks, &symbol);
-        if is_true(&(Value::Bool(event == Value::Null))) && is_true(&(Value::Bool(get_value(&orderbook, &Value::Str("nonce".to_string())) == Value::Null))) {
+        if is_true(&(Value::Bool(event.is_none()))) && is_true(&(Value::Bool(get_value(&orderbook, &Value::Str("nonce".to_string())) == Value::Null))) {
             crate::runtime::append_to_object_array(&mut orderbook, &Value::Str("cache".to_string()), message.clone());
         }  else {
             self.handle_order_book_message(client.clone(), message.clone());
@@ -1412,8 +1412,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         messageHash = prefix.clone();
         if (subType.as_str() == Some("linear")) {
             // USDT Margined Contracts Example: LTC/USDT:USDT
-            let mut marginMode: Value = self.safe_string_k(params.clone(), "margin", &[Value::Str("cross".to_string())]);
-            let mut marginPrefix: Value = (if is_true(&(Value::Bool(marginMode.as_str() == Some("cross")))) { Value::Str(format!("{}{}", prefix, Value::Str("_cross".to_string()))) } else { prefix.clone() });
+            let mut marginMode: Option<String> = self.safe_string_k(params.clone(), "margin", &[Value::Str("cross".to_string())]).as_str().map(str::to_owned);
+            let mut marginPrefix: Value = (if is_true(&(Value::Bool(marginMode.as_deref() == Some("cross")))) { Value::Str(format!("{}{}", prefix, Value::Str("_cross".to_string()))) } else { prefix.clone() });
             messageHash = marginPrefix.clone();
             if (marketCode != Value::Null) {
                 messageHash = Value::Str(format!("{}{}", messageHash, Value::Str(format!("{}{}", Value::Str(".".to_string()), marketCode))));
@@ -1722,8 +1722,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut parsedOrder: Value = Value::Null;
         if (data != Value::Null) {
             // spot updates
-            let mut eventType: Value = self.safe_string_k(data.clone(), "eventType", &[]);
-            if (eventType.as_str() == Some("trade")) {
+            let mut eventType: Option<String> = self.safe_string_k(data.clone(), "eventType", &[]).as_str().map(str::to_owned);
+            if (eventType.as_deref() == Some("trade")) {
                 // when a spot order is filled we get an update message
                 // with the trade info
                 let mut parsedTrade: Value = self.parse_order_trade(data.clone(), &[market.clone()]);
@@ -2257,8 +2257,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         //     }
         //
         let mut url: Value = get_value(&client, &Value::Str("url".to_string()));
-        let mut topic: Value = self.safe_string_k(message.clone(), "topic", &[Value::Str("".to_string())]);
-        let mut defaultMarginMode: Value = (if is_true(&(Value::Bool(topic.as_str() == Some("positions_cross")))) { Value::Str("cross".to_string()) } else { Value::Str("isolated".to_string()) });
+        let mut topic: Option<String> = self.safe_string_k(message.clone(), "topic", &[Value::Str("".to_string())]).as_str().map(str::to_owned);
+        let mut defaultMarginMode: Value = (if is_true(&(Value::Bool(topic.as_deref() == Some("positions_cross")))) { Value::Str("cross".to_string()) } else { Value::Str("isolated".to_string()) });
         if (self.positions.clone() == Value::Null) {
             self.positions = Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -2654,7 +2654,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 messageHash = add(&messageHash, &Value::Str(format!("{}{}", Value::Str(".".to_string()), to_lower(&currencyId))));
                 subscription = self.safe_value(get_value(&client, &Value::Str("subscriptions".to_string())), messageHash.clone(), &[]);
             }
-            let mut subType: Value = self.safe_string_k(subscription.clone(), "subType", &[]);
+            let mut subType: Option<String> = self.safe_string_k(subscription.clone(), "subType", &[]).as_str().map(str::to_owned);
             if (topic.as_str() == Some("accounts_unify")) {
                 // {
                 //     "margin_asset": "USDT",
@@ -2680,9 +2680,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 }
                 { let __t = self.safe_balance(self.balance.clone()); self.balance = __t; }
                 client.resolve(&[self.balance.clone(), Value::Str("accounts_unify".to_string())]);
-            }  else if (subType.as_str() == Some("linear")) {
-                let mut margin: Value = self.safe_string_k(subscription.clone(), "margin", &[]);
-                if (margin.as_str() == Some("cross")) {
+            }  else if (subType.as_deref() == Some("linear")) {
+                let mut margin: Option<String> = self.safe_string_k(subscription.clone(), "margin", &[]).as_str().map(str::to_owned);
+                if (margin.as_deref() == Some("cross")) {
                     // the cross account is one shared margin balance, keyed by the settle currency
                     let mut currencyId: Value = self.safe_string2(first.clone(), Value::Str("margin_asset".to_string()), Value::Str("margin_account".to_string()), &[]);
                     let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
@@ -2880,8 +2880,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         //
         let mut ch: Value = self.safe_value_k(message.clone(), "ch", &[Value::Str("".to_string())]);
         let mut parts: Value = split(&ch, &Value::Str(".".to_string()));
-        let mut type_var: Value = self.safe_string(parts.clone(), Value::Int(0), &[]);
-        if (type_var.as_str() == Some("market")) {
+        let mut type_var: Option<String> = self.safe_string(parts.clone(), Value::Int(0), &[]).as_str().map(str::to_owned);
+        if (type_var.as_deref() == Some("market")) {
             let mut methodName: Value = self.safe_string(parts.clone(), Value::Int(2), &[]);
             let mut methods: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -2916,8 +2916,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             return;
         }
         // private contract subjects
-        let mut op: Value = self.safe_string_k(message.clone(), "op", &[]);
-        if (op.as_str() == Some("notify")) {
+        let mut op: Option<String> = self.safe_string_k(message.clone(), "op", &[]).as_str().map(str::to_owned);
+        if (op.as_deref() == Some("notify")) {
             let mut topic: Value = self.safe_string_k(message.clone(), "topic", &[Value::Str("".to_string())]);
             if get_index_of(&topic, &Value::Str("orders".to_string())).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN) {
                 self.handle_order(client.clone(), message.clone());
@@ -2945,8 +2945,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 })]);
                 return Value::Null;
             }
-            let mut action: Value = self.safe_string_k(message.clone(), "action", &[]);
-            if (action.as_str() == Some("ping")) {
+            let mut action: Option<String> = self.safe_string_k(message.clone(), "action", &[]).as_str().map(str::to_owned);
+            if (action.as_deref() == Some("ping")) {
                 let mut data: Value = self.safe_value_k(message.clone(), "data", &[]);
                 let mut pingTs: Value = self.safe_integer_k(data.clone(), "ts", &[]);
                 client.send(&[Value::Map({
@@ -2961,8 +2961,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 })]);
                 return Value::Null;
             }
-            let mut op: Value = self.safe_string_k(message.clone(), "op", &[]);
-            if (op.as_str() == Some("ping")) {
+            let mut op: Option<String> = self.safe_string_k(message.clone(), "op", &[]).as_str().map(str::to_owned);
+            if (op.as_deref() == Some("ping")) {
                 let mut pingTs: Value = self.safe_integer_k(message.clone(), "ts", &[]);
                 client.send(&[Value::Map({
                     let mut m = indexmap::IndexMap::new();
@@ -3041,8 +3041,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         //         "message":"auth.fail"
         //     }
         //
-        let mut status: Value = self.safe_string_k(message.clone(), "status", &[]);
-        if (status.as_str() == Some("error")) {
+        let mut status: Option<String> = self.safe_string_k(message.clone(), "status", &[]).as_str().map(str::to_owned);
+        if (status.as_deref() == Some("error")) {
             let mut id: Value = self.safe_string_k(message.clone(), "id", &[]);
             if (id == Value::Null) {
                 return Value::Bool(false);
@@ -3151,12 +3151,12 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 return;
             }
             if is_true(&Value::Bool(in_op(&message, &Value::Str("action".to_string())))) {
-                let mut action: Value = self.safe_string_k(message.clone(), "action", &[]);
-                if (action.as_str() == Some("ping")) {
+                let mut action: Option<String> = self.safe_string_k(message.clone(), "action", &[]).as_str().map(str::to_owned);
+                if (action.as_deref() == Some("ping")) {
                     self.handle_ping(client.clone(), message.clone());
                     return;
                 }
-                if (action.as_str() == Some("sub")) {
+                if (action.as_deref() == Some("sub")) {
                     self.handle_subscription_status(client.clone(), message.clone());
                     return;
                 }
@@ -3172,20 +3172,20 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 }
             }
             if is_true(&Value::Bool(in_op(&message, &Value::Str("op".to_string())))) {
-                let mut op: Value = self.safe_string_k(message.clone(), "op", &[]);
-                if (op.as_str() == Some("ping")) {
+                let mut op: Option<String> = self.safe_string_k(message.clone(), "op", &[]).as_str().map(str::to_owned);
+                if (op.as_deref() == Some("ping")) {
                     self.handle_ping(client.clone(), message.clone());
                     return;
                 }
-                if (op.as_str() == Some("auth")) {
+                if (op.as_deref() == Some("auth")) {
                     self.handle_authenticate(client.clone(), message.clone());
                     return;
                 }
-                if (op.as_str() == Some("sub")) {
+                if (op.as_deref() == Some("sub")) {
                     self.handle_subscription_status(client.clone(), message.clone());
                     return;
                 }
-                if (op.as_str() == Some("notify")) {
+                if (op.as_deref() == Some("notify")) {
                     self.handle_subject(client.clone(), message.clone());
                     return;
                 }
@@ -3621,8 +3621,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 }));
         let mut url: Value = self.safe_string_k(params.clone(), "url", &[]);
         let mut hostname: Value = self.safe_string_k(params.clone(), "hostname", &[]);
-        let mut type_var: Value = self.safe_string_k(params.clone(), "type", &[]);
-        if (url == Value::Null) || (hostname == Value::Null) || (type_var == Value::Null) {
+        let mut type_var: Option<String> = self.safe_string_k(params.clone(), "type", &[]).as_str().map(str::to_owned);
+        if (url == Value::Null) || (hostname == Value::Null) || (type_var.is_none()) {
             panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" authenticate requires a url, hostname and type argument".to_string())))));
         }
         self.check_required_credentials(&[]);
@@ -3634,7 +3634,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (authenticated == Value::Null) {
             let mut timestamp: Value = self.ymdhms(self.milliseconds(), &[Value::Str("T".to_string())]);
             let mut signatureParams: Value = Value::Null;
-            if (type_var.as_str() == Some("spot")) {
+            if (type_var.as_deref() == Some("spot")) {
                 signatureParams = Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("accessKey".to_string(), self.apiKey.clone());
@@ -3658,7 +3658,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut payload: Value = join(&Value::List(vec![Value::Str("GET".to_string()), hostname.clone(), relativePath.clone(), auth.clone()]), &Value::Str("\n".to_string())); // eslint-disable-line quotes
             let mut signature: Value = self.hmac(self.encode(payload.clone()), self.encode(self.secret.clone()), Value::Str("sha256".to_string()), &[Value::Str("base64".to_string())]);
             let mut request: Value = Value::Null;
-            if (type_var.as_str() == Some("spot")) {
+            if (type_var.as_deref() == Some("spot")) {
                 let mut newParams: Value = Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("authType".to_string(), Value::Str("api".to_string()));

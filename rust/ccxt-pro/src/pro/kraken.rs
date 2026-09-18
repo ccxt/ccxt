@@ -1423,7 +1423,7 @@ impl KrakenCore {
         //         ]
         //     }
         //
-        let mut type_var: Value = self.safe_string_k(message.clone(), "type", &[]);
+        let mut type_var: Option<String> = self.safe_string_k(message.clone(), "type", &[]).as_str().map(str::to_owned);
         let mut data: Value = self.safe_list_k(message.clone(), "data", &[Value::List(vec![])]);
         let mut first: Value = self.safe_dict(data.clone(), Value::Int(0), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1435,7 +1435,7 @@ impl KrakenCore {
         let mut c: Value = self.safe_integer_k(first.clone(), "checksum", &[]);
         let mut messageHash: Value = self.get_message_hash(Value::Str("orderbook".to_string()), &[Value::Null, symbol.clone()]);
         let mut orderbook: Value = Value::Null;
-        if (type_var.as_str() == Some("update")) {
+        if (type_var.as_deref() == Some("update")) {
             orderbook = get_value(&self.orderbooks, &symbol);
             let mut storedAsks: Value = get_value(&orderbook, &Value::Str("asks".to_string()));
             let mut storedBids: Value = get_value(&orderbook, &Value::Str("bids".to_string()));
@@ -1813,8 +1813,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             });
         }
         let mut datetime: Value = self.safe_string_k(trade.clone(), "timestamp", &[]);
-        let mut liquidityIndicator: Value = self.safe_string_k(trade.clone(), "liquidity_ind", &[]);
-        let mut takerOrMaker: Value = (if is_true(&(Value::Bool(liquidityIndicator.as_str() == Some("t")))) { Value::Str("taker".to_string()) } else { Value::Str("maker".to_string()) });
+        let mut liquidityIndicator: Option<String> = self.safe_string_k(trade.clone(), "liquidity_ind", &[]).as_str().map(str::to_owned);
+        let mut takerOrMaker: Value = (if is_true(&(Value::Bool(liquidityIndicator.as_deref() == Some("t")))) { Value::Str("taker".to_string()) } else { Value::Str("maker".to_string()) });
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), trade.clone());
@@ -2052,8 +2052,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                         let mut i: Value = Value::Int(0);
             let mut __for_first_437: bool = true;
             while { if !__for_first_437 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_437 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(symbols.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-            let mut eventTrigger: Value = self.safe_string_k(params.clone(), "event_trigger", &[]);
-            if (eventTrigger != Value::Null) {
+            let mut eventTrigger: Option<String> = self.safe_string_k(params.clone(), "event_trigger", &[]).as_str().map(str::to_owned);
+            if (eventTrigger.is_some()) {
                 append_to_array(&mut messageHashes, self.get_message_hash(channelName.clone(), &[Value::Null, self.symbol(get_value(&symbols, &i))]));
             }  else {
                 append_to_array(&mut messageHashes, self.get_message_hash(unifiedName.clone(), &[Value::Null, self.symbol(get_value(&symbols, &i))]));
@@ -2267,8 +2267,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     let mut m = indexmap::IndexMap::new();
                     m
                 })]);
-                let mut execType: Value = self.safe_string_k(first.clone(), "exec_type", &[]);
-                channel = (if is_true(&(Value::Bool(execType.as_str() == Some("trade")))) { Value::Str("myTrades".to_string()) } else { Value::Str("orders".to_string()) });
+                let mut execType: Option<String> = self.safe_string_k(first.clone(), "exec_type", &[]).as_str().map(str::to_owned);
+                channel = (if is_true(&(Value::Bool(execType.as_deref() == Some("trade")))) { Value::Str("myTrades".to_string()) } else { Value::Str("orders".to_string()) });
             }
             let mut methods: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();

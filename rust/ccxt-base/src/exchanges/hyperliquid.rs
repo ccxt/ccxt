@@ -742,10 +742,10 @@ impl HyperliquidCore {
         //         "status": "ok"
         //     }
         //
-        let mut status: Value = self.safe_string_k(response.clone(), "specialStatuses", &[]);
+        let mut status: Option<String> = self.safe_string_k(response.clone(), "specialStatuses", &[]).as_str().map(str::to_owned);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("status".to_string(), (if is_true(&(Value::Bool(status == Value::Null))) { Value::Str("ok".to_string()) } else { Value::Str("maintenance".to_string()) }));
+        m.insert("status".to_string(), (if is_true(&(Value::Bool(status.is_none()))) { Value::Str("ok".to_string()) } else { Value::Str("maintenance".to_string()) }));
         m.insert("updated".to_string(), self.safe_integer_k(response.clone(), "time", &[]));
         m.insert("eta".to_string(), Value::Null);
         m.insert("url".to_string(), Value::Null);
@@ -1640,8 +1640,8 @@ impl HyperliquidCore {
         { let __destr_tmp = self.handle_margin_mode_and_params(Value::Str("fetchBalance".to_string()), &[params.clone()]); marginMode = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         let mut isUnifiedEnabled: Value = Value::Null;
         { let __destr_tmp = self.is_unified_enabled(Value::Str("fetchBalance".to_string()), &[userAddress.clone(), shouldRefresh.clone(), params.clone()]).await; isUnifiedEnabled = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
-        let mut dex: Value = self.safe_string_k(params.clone(), "dex", &[]);
-        let mut isSpot: Value = Value::Bool(is_true(&(Value::Bool(is_true(&(Value::Bool(type_var.as_str() == Some("spot")))) || is_true(&(Value::Bool(isUnifiedEnabled.as_bool() == Some(true))))))) && is_true(&(Value::Bool(dex == Value::Null))));
+        let mut dex: Option<String> = self.safe_string_k(params.clone(), "dex", &[]).as_str().map(str::to_owned);
+        let mut isSpot: Value = Value::Bool(is_true(&(Value::Bool(is_true(&(Value::Bool(type_var.as_str() == Some("spot")))) || is_true(&(Value::Bool(isUnifiedEnabled.as_bool() == Some(true))))))) && is_true(&(Value::Bool(dex.is_none()))));
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), (if is_true(&(Value::Bool(isSpot.as_bool() == Some(true)))) { Value::Str("spotClearinghouseState".to_string()) } else { Value::Str("clearinghouseState".to_string()) }));
@@ -1827,7 +1827,7 @@ impl HyperliquidCore {
         symbols = self.market_symbols(&[symbols.clone()]);
         // at this stage, to get tickers data, we use fetchMarkets endpoints
         let mut response: Value = Value::List(vec![]);
-        let mut type_var: Value = self.safe_string_k(params.clone(), "type", &[]);
+        let mut type_var: Option<String> = self.safe_string_k(params.clone(), "type", &[]).as_str().map(str::to_owned);
         params = self.omit(params.clone(), Value::Str("type".to_string()), &[]);
         let mut hip3: Value = Value::Bool(false);
         { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("fetchTickers".to_string()), Value::Str("hip3".to_string()), &[Value::Bool(false)]); hip3 = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
@@ -1844,9 +1844,9 @@ impl HyperliquidCore {
         if is_true(&hip3) {
             params = self.omit(params.clone(), Value::Str("hip3".to_string()), &[]);
             response = self.fetch_hip3_markets(&[params.clone()]).await;
-        }  else if (type_var.as_str() == Some("spot")) {
+        }  else if (type_var.as_deref() == Some("spot")) {
             response = self.fetch_spot_markets(&[params.clone()]).await;
-        }  else if (type_var.as_str() == Some("swap")) {
+        }  else if (type_var.as_deref() == Some("swap")) {
             response = self.fetch_swap_markets(&[params.clone()]).await;
         }  else {
             response = self.fetch_markets(&[params.clone()]).await;
@@ -3831,10 +3831,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut marketId: Value = self.safe_string_k(rawOrder.clone(), "symbol", &[]);
             let mut market: Value = self.market(marketId.clone());
             let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
-            let mut type_var: Value = self.safe_string_upper(rawOrder.clone(), Value::Str("type".to_string()), &[]);
-            let mut isMarket: Value = (Value::Bool(type_var.as_str() == Some("MARKET")));
-            let mut side: Value = self.safe_string_upper(rawOrder.clone(), Value::Str("side".to_string()), &[]);
-            let mut isBuy: Value = (Value::Bool(side.as_str() == Some("BUY")));
+            let mut type_var: Option<String> = self.safe_string_upper(rawOrder.clone(), Value::Str("type".to_string()), &[]).as_str().map(str::to_owned);
+            let mut isMarket: Value = (Value::Bool(type_var.as_deref() == Some("MARKET")));
+            let mut side: Option<String> = self.safe_string_upper(rawOrder.clone(), Value::Str("side".to_string()), &[]).as_str().map(str::to_owned);
+            let mut isBuy: Value = (Value::Bool(side.as_deref() == Some("BUY")));
             let mut amount: Value = self.safe_string_k(rawOrder.clone(), "amount", &[]);
             let mut price: Value = self.safe_string_k(rawOrder.clone(), "price", &[]);
             let mut orderParams: Value = self.safe_dict_k(rawOrder.clone(), "params", &[Value::Map({
@@ -4645,8 +4645,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //     "triggerPx": "0.6"
         // }
         //
-        let mut error: Value = self.safe_string_k(order.clone(), "error", &[]);
-        if (error != Value::Null) {
+        let mut error: Option<String> = self.safe_string_k(order.clone(), "error", &[]).as_str().map(str::to_owned);
+        if (error.is_some()) {
             let mut finalOrder: Value = order.clone(); // java req
             return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -5248,8 +5248,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol.clone());
-        let mut marginMode: Value = self.safe_string_k(params.clone(), "marginMode", &[Value::Str("cross".to_string())]);
-        let mut isCross: Value = (Value::Bool(marginMode.as_str() == Some("cross")));
+        let mut marginMode: Option<String> = self.safe_string_k(params.clone(), "marginMode", &[Value::Str("cross".to_string())]).as_str().map(str::to_owned);
+        let mut isCross: Value = (Value::Bool(marginMode.as_deref() == Some("cross")));
         let mut asset: Value = self.parse_to_int(market.as_map().and_then(|__m| __m.get("baseId")).cloned().unwrap_or(Value::Null));
         let mut nonce: Value = self.milliseconds();
         params = self.omit(params.clone(), Value::Str("marginMode".to_string()), &[]);
@@ -5481,10 +5481,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         // hyperliquid keeps separate perp and spot ledgers for sub-account transfers: subAccountTransfer
         // moves perp USD, while subAccountSpotTransfer moves spot tokens (USDC included) - pass
         // params['type'] = 'spot' to move spot USDC, see https://github.com/ccxt/ccxt/issues/27029
-        let mut transferType: Value = self.safe_string_k(params.clone(), "type", &[]);
+        let mut transferType: Option<String> = self.safe_string_k(params.clone(), "type", &[]).as_str().map(str::to_owned);
         params = self.omit(params.clone(), Value::Str("type".to_string()), &[]);
         let mut isUsdc: bool = is_true(&(Value::Bool(code == Value::Null))) || is_true(&(Value::Bool(to_upper(&code).as_str() == Some("USDC"))));
-        if isUsdc && is_true(&(Value::Bool(transferType.as_str() != Some("spot")))) {
+        if isUsdc && is_true(&(Value::Bool(transferType.as_deref() != Some("spot")))) {
             // Transfer USDC with subAccountTransfer
             let mut usd: Value = self.parse_to_int(crate::precise::Precise::stringMul(&self.number_to_string(amount.clone()), &Value::Str("1000000".to_string())));
             let mut action: Value = Value::Map({
@@ -5680,9 +5680,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             });
         }
         let mut internal: Value = Value::Null;
-        let mut type_var: Value = self.safe_string_k(delta.clone(), "type", &[]);
-        if (type_var != Value::Null) {
-            internal = (Value::Bool(type_var.as_str() == Some("internalTransfer")));
+        let mut type_var: Option<String> = self.safe_string_k(delta.clone(), "type", &[]).as_str().map(str::to_owned);
+        if (type_var.is_some()) {
+            internal = (Value::Bool(type_var.as_deref() == Some("internalTransfer")));
         }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -6479,12 +6479,12 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //
         // {"status":"unknownOid"}
         //
-        let mut status: Value = self.safe_string_k(response.clone(), "status", &[Value::Str("".to_string())]);
+        let mut status: Option<String> = self.safe_string_k(response.clone(), "status", &[Value::Str("".to_string())]).as_str().map(str::to_owned);
         let mut error: Value = self.safe_string_k(response.clone(), "error", &[]);
         let mut message: Value = Value::Null;
-        if (status.as_str() == Some("err")) {
+        if (status.as_deref() == Some("err")) {
             message = self.safe_string_k(response.clone(), "response", &[]);
-        }  else if (status.as_str() == Some("unknownOid")) {
+        }  else if (status.as_deref() == Some("unknownOid")) {
             panic!("{}", crate::exchange_errors::order_not_found(Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), body))));
         }  else if (error != Value::Null) {
             message = error.clone();

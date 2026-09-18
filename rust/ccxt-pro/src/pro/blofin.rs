@@ -545,8 +545,8 @@ impl BlofinCore {
         }
         let mut orderbook: Value = get_value(&self.orderbooks, &symbol);
         let mut timestamp: Value = self.safe_integer_k(data.clone(), "ts", &[]);
-        let mut action: Value = self.safe_string_k(message.clone(), "action", &[]);
-        if (action.as_str() == Some("snapshot")) {
+        let mut action: Option<String> = self.safe_string_k(message.clone(), "action", &[]).as_str().map(str::to_owned);
+        if (action.as_deref() == Some("snapshot")) {
             let mut orderBookSnapshot: Value = self.parse_order_book(data.clone(), symbol.clone(), &[timestamp.clone()]);
             add_element_to_object(&mut orderBookSnapshot, &Value::Str("nonce".to_string()), self.safe_integer_k(data.clone(), "seqId", &[]));
             orderbook.reset(orderBookSnapshot.clone());
@@ -1288,14 +1288,14 @@ impl BlofinCore {
         if (message.as_str() == Some("pong")) {
             method = self.safe_value_k(methods.clone(), "pong", &[]);
         }  else {
-            let mut event: Value = self.safe_string_k(message.clone(), "event", &[]);
-            if (event.as_str() == Some("subscribe")) {
+            let mut event: Option<String> = self.safe_string_k(message.clone(), "event", &[]).as_str().map(str::to_owned);
+            if (event.as_deref() == Some("subscribe")) {
                 return;
-            }  else if (event.as_str() == Some("login")) {
+            }  else if (event.as_deref() == Some("login")) {
                 let mut future: Value = self.safe_value(get_value(&client, &Value::Str("futures".to_string())), Value::Str("authenticate_hash".to_string()), &[]);
                 future.resolve(&[Value::Bool(true)]);
                 return;
-            }  else if (event.as_str() == Some("error")) {
+            }  else if (event.as_deref() == Some("error")) {
                 panic!("{}", crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" error: ".to_string()))), self.json(message.clone())))));
             }
             let mut arg: Value = self.safe_dict_k(message.clone(), "arg", &[]);

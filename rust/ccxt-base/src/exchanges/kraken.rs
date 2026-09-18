@@ -1185,8 +1185,8 @@ impl KrakenCore {
                     precisionAmount = currencyPrecision.clone();
                 }
             }
-            let mut status: Value = self.safe_string_k(market.clone(), "status", &[]);
-            let mut isActive: Value = Value::Bool(status.as_str() == Some("online"));
+            let mut status: Option<String> = self.safe_string_k(market.clone(), "status", &[]).as_str().map(str::to_owned);
+            let mut isActive: Value = Value::Bool(status.as_deref() == Some("online"));
             let mut symbol: Value = (if (!isSynthetic) { (add(&Value::Str(format!("{}{}", base, Value::Str("/".to_string()))), &quote)) } else { id.clone() });
             append_to_array(&mut result, Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -1284,10 +1284,10 @@ impl KrakenCore {
         // }
         //
         let mut result: Value = self.safe_dict_k(response.clone(), "result", &[]);
-        let mut statusRaw: Value = self.safe_string_k(result.clone(), "status", &[]);
+        let mut statusRaw: Option<String> = self.safe_string_k(result.clone(), "status", &[]).as_str().map(str::to_owned);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("status".to_string(), (if is_true(&(Value::Bool(statusRaw.as_str() == Some("online")))) { Value::Str("ok".to_string()) } else { Value::Str("maintenance".to_string()) }));
+        m.insert("status".to_string(), (if is_true(&(Value::Bool(statusRaw.as_deref() == Some("online")))) { Value::Str("ok".to_string()) } else { Value::Str("maintenance".to_string()) }));
         m.insert("updated".to_string(), Value::Null);
         m.insert("eta".to_string(), Value::Null);
         m.insert("url".to_string(), Value::Null);
@@ -2945,8 +2945,8 @@ impl KrakenCore {
         if is_true(&self.in_array(typeParsed.clone(), Value::List(vec![Value::Str("stop loss".to_string()), Value::Str("take profit".to_string())]))) {
             typeParsed = (if is_true(&(Value::Bool(price == Value::Null))) { Value::Str("market".to_string()) } else { Value::Str("limit".to_string()) });
         }
-        let mut amendId: Value = self.safe_string_k(order.clone(), "amend_id", &[]);
-        if (amendId != Value::Null) {
+        let mut amendId: Option<String> = self.safe_string_k(order.clone(), "amend_id", &[]).as_str().map(str::to_owned);
+        if (amendId.is_some()) {
             isPostOnly = Value::Null;
         }
         return self.safe_order(Value::Map({
@@ -4036,10 +4036,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut address: Value = self.safe_string_k(transaction.clone(), "info", &[]);
         let mut amount: Value = self.safe_number_k(transaction.clone(), "amount", &[]);
         let mut status: Value = self.parse_transaction_status(self.safe_string_k(transaction.clone(), "status", &[]));
-        let mut statusProp: Value = self.safe_string_k(transaction.clone(), "status-prop", &[]);
-        let mut isOnHoldDeposit: bool = statusProp.as_str() == Some("on-hold");
-        let mut isCancellationRequest: bool = statusProp.as_str() == Some("cancel-pending");
-        let mut isOnHoldWithdrawal: bool = statusProp.as_str() == Some("onhold");
+        let mut statusProp: Option<String> = self.safe_string_k(transaction.clone(), "status-prop", &[]).as_str().map(str::to_owned);
+        let mut isOnHoldDeposit: bool = statusProp.as_deref() == Some("on-hold");
+        let mut isCancellationRequest: bool = statusProp.as_deref() == Some("cancel-pending");
+        let mut isOnHoldWithdrawal: bool = statusProp.as_deref() == Some("onhold");
         if isOnHoldDeposit || isCancellationRequest || isOnHoldWithdrawal {
             status = Value::Str("pending".to_string());
         }
@@ -4639,8 +4639,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //             }
         //
         let mut marketId: Value = self.safe_string_k(position.clone(), "pair", &[]);
-        let mut rawSide: Value = self.safe_string_k(position.clone(), "type", &[]);
-        let mut side: Value = (if is_true(&(Value::Bool(rawSide.as_str() == Some("buy")))) { Value::Str("long".to_string()) } else { Value::Str("short".to_string()) });
+        let mut rawSide: Option<String> = self.safe_string_k(position.clone(), "type", &[]).as_str().map(str::to_owned);
+        let mut side: Value = (if is_true(&(Value::Bool(rawSide.as_deref() == Some("buy")))) { Value::Str("long".to_string()) } else { Value::Str("short".to_string()) });
         return self.safe_position(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), position.clone());

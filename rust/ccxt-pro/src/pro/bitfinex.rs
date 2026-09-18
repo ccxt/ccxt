@@ -810,8 +810,8 @@ impl BitfinexCore {
             }
         }  else {
             // update
-            let mut type_var: Value = self.safe_string(message.clone(), Value::Int(1), &[]);
-            if (type_var.as_str() == Some("tu")) {
+            let mut type_var: Option<String> = self.safe_string(message.clone(), Value::Int(1), &[]).as_str().map(str::to_owned);
+            if (type_var.as_deref() == Some("tu")) {
                 return;
             }
             let mut trade: Value = self.safe_value(message.clone(), Value::Int(2), &[Value::List(vec![])]);
@@ -1079,8 +1079,8 @@ impl BitfinexCore {
         let mut symbol: Value = self.safe_symbol(marketId.clone(), &[]);
         let mut channel: Value = Value::Str("book".to_string());
         let mut messageHash: Value = add(&Value::Str(format!("{}{}", channel, Value::Str(":".to_string()))), &marketId);
-        let mut prec: Value = self.safe_string_k(subscription.clone(), "prec", &[Value::Str("P0".to_string())]);
-        let mut isRaw: bool = prec.as_str() == Some("R0");
+        let mut prec: Option<String> = self.safe_string_k(subscription.clone(), "prec", &[Value::Str("P0".to_string())]).as_str().map(str::to_owned);
+        let mut isRaw: bool = prec.as_deref() == Some("R0");
         // if it is an initial snapshot
         if !is_true(&(Value::Bool(in_op(&self.orderbooks, &symbol)))) {
             let mut limit: Value = self.safe_integer_k(subscription.clone(), "len", &[]);
@@ -1185,8 +1185,8 @@ impl BitfinexCore {
         let mut stringArray: Value = Value::List(vec![]);
         let mut bids: Value = crate::value::get_value_k(&book, "bids");
         let mut asks: Value = crate::value::get_value_k(&book, "asks");
-        let mut prec: Value = self.safe_string_k(subscription.clone(), "prec", &[Value::Str("P0".to_string())]);
-        let mut isRaw: bool = prec.as_str() == Some("R0");
+        let mut prec: Option<String> = self.safe_string_k(subscription.clone(), "prec", &[Value::Str("P0".to_string())]).as_str().map(str::to_owned);
+        let mut isRaw: bool = prec.as_deref() == Some("R0");
         let mut idToCheck: Value = (if isRaw { Value::Int(2) } else { Value::Int(0) });
         {
                         let mut i: Value = Value::Int(0);
@@ -1498,8 +1498,8 @@ impl BitfinexCore {
 
     pub fn handle_authentication_message(&self, mut client: Value, mut message: Value) {
         let mut messageHash: Value = Value::Str("authenticated".to_string());
-        let mut status: Value = self.safe_string_k(message.clone(), "status", &[]);
-        if (status.as_str() == Some("OK")) {
+        let mut status: Option<String> = self.safe_string_k(message.clone(), "status", &[]).as_str().map(str::to_owned);
+        if (status.as_deref() == Some("OK")) {
             // we resolve the future here permanently so authentication only happens once
             let mut future: Value = self.safe_value(get_value(&client, &Value::Str("futures".to_string())), messageHash.clone(), &[]);
             future.resolve(&[Value::Bool(true)]);
@@ -1590,7 +1590,7 @@ impl BitfinexCore {
         //    ]
         //
         let mut data: Value = self.safe_list(message.clone(), Value::Int(2), &[Value::List(vec![])]);
-        let mut messageType: Value = self.safe_string(message.clone(), Value::Int(1), &[]);
+        let mut messageType: Option<String> = self.safe_string(message.clone(), Value::Int(1), &[]).as_str().map(str::to_owned);
         if is_equal(&self.orders, &Value::Null) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "ordersLimit", &[Value::Int(1000)]);
             self.orders = ArrayCacheBySymbolById::new(limit.clone());
@@ -1600,7 +1600,7 @@ impl BitfinexCore {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        if (messageType.as_str() == Some("os")) {
+        if (messageType.as_deref() == Some("os")) {
             let mut snapshotLength: Value = Value::Int(data.len() as i64);
             if (snapshotLength.as_f64() == Some(0.0)) {
                 return;

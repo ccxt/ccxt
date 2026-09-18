@@ -854,7 +854,7 @@ impl LatokenCore {
                 }
                 let mut lowercaseQuote: Value = to_lower(&quote);
                 let mut capitalizedQuote: Value = self.capitalize(lowercaseQuote.clone());
-                let mut status: Value = self.safe_string_k(market.clone(), "status", &[]);
+                let mut status: Option<String> = self.safe_string_k(market.clone(), "status", &[]).as_str().map(str::to_owned);
                 append_to_array(&mut result, Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("id".to_string(), id.clone());
@@ -871,7 +871,7 @@ impl LatokenCore {
                         m.insert("swap".to_string(), Value::Bool(false));
                         m.insert("future".to_string(), Value::Bool(false));
                         m.insert("option".to_string(), Value::Bool(false));
-                        m.insert("active".to_string(), (Value::Bool(status.as_str() == Some("PAIR_STATUS_ACTIVE"))));
+                        m.insert("active".to_string(), (Value::Bool(status.as_deref() == Some("PAIR_STATUS_ACTIVE"))));
                         m.insert("contract".to_string(), Value::Bool(false));
                         m.insert("linear".to_string(), Value::Null);
                         m.insert("inverse".to_string(), Value::Null);
@@ -948,8 +948,8 @@ impl LatokenCore {
         let mut id: Value = self.safe_string_k(currency.clone(), "id", &[]);
         let mut tag: Value = self.safe_string_k(currency.clone(), "tag", &[]);
         let mut code: Value = self.safe_currency_code(tag.clone(), &[]);
-        let mut currencyType: Value = self.safe_string_k(currency.clone(), "type", &[]);
-        let mut isCrypto: bool = (currencyType.as_str() == Some("CURRENCY_TYPE_CRYPTO")) || (currencyType.as_str() == Some("CURRENCY_TYPE_IEO"));
+        let mut currencyType: Option<String> = self.safe_string_k(currency.clone(), "type", &[]).as_str().map(str::to_owned);
+        let mut isCrypto: bool = (currencyType.as_deref() == Some("CURRENCY_TYPE_CRYPTO")) || (currencyType.as_deref() == Some("CURRENCY_TYPE_IEO"));
         return self.safe_currency_structure(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id.clone());
@@ -1429,11 +1429,11 @@ impl LatokenCore {
             m
         })]);
         let mut defaultMethod: Value = self.safe_string_k(options.clone(), "method", &[Value::Str("fetchPrivateTradingFee".to_string())]);
-        let mut method: Value = self.safe_string_k(params.clone(), "method", &[defaultMethod.clone()]);
+        let mut method: Option<String> = self.safe_string_k(params.clone(), "method", &[defaultMethod.clone()]).as_str().map(str::to_owned);
         params = self.omit(params.clone(), Value::Str("method".to_string()), &[]);
-        if (method.as_str() == Some("fetchPrivateTradingFee")) {
+        if (method.as_deref() == Some("fetchPrivateTradingFee")) {
             return self.fetch_private_trading_fee(symbol.clone(), &[params.clone()]).await;
-        }  else if (method.as_str() == Some("fetchPublicTradingFee")) {
+        }  else if (method.as_deref() == Some("fetchPublicTradingFee")) {
             return self.fetch_public_trading_fee(symbol.clone(), &[params.clone()]).await;
         }  else {
             panic!("{}", crate::exchange_errors::not_supported(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" not support this method".to_string())))));
@@ -2408,8 +2408,8 @@ impl LatokenCore {
             self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), message.clone(), feedback.clone());
         }
         let mut error: Value = self.safe_value_k(response.clone(), "error", &[]);
-        let mut errorMessage: Value = self.safe_string_k(error.clone(), "message", &[]);
-        if is_true(&(Value::Bool(error != Value::Null))) || is_true(&(Value::Bool(errorMessage != Value::Null))) {
+        let mut errorMessage: Option<String> = self.safe_string_k(error.clone(), "message", &[]).as_str().map(str::to_owned);
+        if is_true(&(Value::Bool(error != Value::Null))) || is_true(&(Value::Bool(errorMessage.is_some()))) {
             self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), error.clone(), feedback.clone());
             self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), body.clone(), feedback.clone());
             panic!("{}", crate::exchange_errors::exchange_error(feedback));

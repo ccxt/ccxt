@@ -816,13 +816,13 @@ impl UpbitCore {
             m
         })]);
         let mut canWithdraw: Value = self.safe_value_k(withdrawLimits.clone(), "can_withdraw", &[]);
-        let mut walletState: Value = self.safe_string_k(currencyInfo.clone(), "wallet_state", &[]);
+        let mut walletState: Option<String> = self.safe_string_k(currencyInfo.clone(), "wallet_state", &[]).as_str().map(str::to_owned);
         let mut walletLocked: Value = self.safe_value_k(memberInfo.clone(), "wallet_locked", &[]);
         let mut locked: Value = self.safe_value_k(memberInfo.clone(), "locked", &[]);
         let mut active: Value = Value::Bool(true);
         if is_true(&(Value::Bool(canWithdraw != Value::Null))) && (!is_equal(&canWithdraw, &Value::Bool(true))) {
             active = Value::Bool(false);
-        }  else if (walletState.as_str() != Some("working")) {
+        }  else if (walletState.as_deref() != Some("working")) {
             active = Value::Bool(false);
         }  else if is_true(&(Value::Bool(walletLocked != Value::Null))) && (is_equal(&walletLocked, &Value::Bool(true))) {
             active = Value::Bool(false);
@@ -935,7 +935,7 @@ impl UpbitCore {
         let mut quoteId: Value = self.safe_string_k(bid.clone(), "currency", &[]);
         let mut base: Value = self.safe_currency_code(baseId.clone(), &[]);
         let mut quote: Value = self.safe_currency_code(quoteId.clone(), &[]);
-        let mut state: Value = self.safe_string_k(marketInfo.clone(), "state", &[]);
+        let mut state: Option<String> = self.safe_string_k(marketInfo.clone(), "state", &[]).as_str().map(str::to_owned);
         let mut bidFee: Value = self.safe_string_k(response.clone(), "bid_fee", &[]);
         let mut askFee: Value = self.safe_string_k(response.clone(), "ask_fee", &[]);
         let mut fee: Value = self.parse_number(crate::precise::Precise::stringMax(&bidFee, &askFee), &[]);
@@ -955,7 +955,7 @@ impl UpbitCore {
         m.insert("swap".to_string(), Value::Bool(false));
         m.insert("future".to_string(), Value::Bool(false));
         m.insert("option".to_string(), Value::Bool(false));
-        m.insert("active".to_string(), (Value::Bool(state.as_str() == Some("active"))));
+        m.insert("active".to_string(), (Value::Bool(state.as_deref() == Some("active"))));
         m.insert("contract".to_string(), Value::Bool(false));
         m.insert("linear".to_string(), Value::Null);
         m.insert("inverse".to_string(), Value::Null);
@@ -1880,12 +1880,12 @@ impl UpbitCore {
         }
         let mut market: Value = self.market(symbol.clone());
         let mut clientOrderId: Value = self.safe_string_k(params.clone(), "clientOrderId", &[]);
-        let mut customType: Value = self.safe_string2(params.clone(), Value::Str("ordType".to_string()), Value::Str("ord_type".to_string()), &[]);
+        let mut customType: Option<String> = self.safe_string2(params.clone(), Value::Str("ordType".to_string()), Value::Str("ord_type".to_string()), &[]).as_str().map(str::to_owned);
         let mut postOnly: Value = self.is_post_only(Value::Bool(type_var.as_str() == Some("market")), Value::Bool(false), &[params.clone()]);
         let mut timeInForce: Value = self.safe_string_lower2(params.clone(), Value::Str("timeInForce".to_string()), Value::Str("time_in_force".to_string()), &[]);
-        let mut selfTradePrevention: Value = self.safe_string2(params.clone(), Value::Str("selfTradePrevention".to_string()), Value::Str("smp_type".to_string()), &[]);
+        let mut selfTradePrevention: Option<String> = self.safe_string2(params.clone(), Value::Str("selfTradePrevention".to_string()), Value::Str("smp_type".to_string()), &[]).as_str().map(str::to_owned);
         let mut test: Value = self.safe_bool_k(params.clone(), "test", &[Value::Bool(false)]);
-        if is_true(&postOnly) && is_true(&(Value::Bool(selfTradePrevention != Value::Null))) {
+        if is_true(&postOnly) && is_true(&(Value::Bool(selfTradePrevention.is_some()))) {
             panic!("{}", crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder() does not support post_only and selfTradePrevention simultaneously.".to_string())))));
         }
         let mut orderSide: Value = Value::Null;
@@ -1924,7 +1924,7 @@ impl UpbitCore {
         }  else {
             panic!("{}", crate::exchange_errors::invalid_order(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder() supports only limit or market types in the type argument.".to_string())))));
         }
-        if (customType.as_str() == Some("best")) {
+        if (customType.as_deref() == Some("best")) {
             params = self.omit(params.clone(), Value::List(vec![Value::Str("ordType".to_string()), Value::Str("ord_type".to_string())]), &[]);
             add_element_to_object(&mut request, &Value::Str("ord_type".to_string()), Value::Str("best".to_string()));
             if (side.as_str() == Some("buy")) {
@@ -2036,7 +2036,7 @@ impl UpbitCore {
             m
         });
         let mut prevClientOrderId: Value = self.safe_string_k(params.clone(), "clientOrderId", &[]);
-        let mut customType: Value = self.safe_string2(params.clone(), Value::Str("newOrdType".to_string()), Value::Str("new_ord_type".to_string()), &[]);
+        let mut customType: Option<String> = self.safe_string2(params.clone(), Value::Str("newOrdType".to_string()), Value::Str("new_ord_type".to_string()), &[]).as_str().map(str::to_owned);
         let mut clientOrderId: Value = self.safe_string_k(params.clone(), "newClientOrderId", &[]);
         let mut postOnly: Value = self.is_post_only(Value::Bool(type_var.as_str() == Some("market")), Value::Bool(false), &[params.clone()]);
         let mut timeInForce: Value = self.safe_string_lower2(params.clone(), Value::Str("newTimeInForce".to_string()), Value::Str("new_time_in_force".to_string()), &[]);
@@ -2074,7 +2074,7 @@ impl UpbitCore {
         }  else {
             panic!("{}", crate::exchange_errors::invalid_order(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" editOrder() supports only limit or market types in the type argument.".to_string())))));
         }
-        if (customType.as_str() == Some("best")) {
+        if (customType.as_deref() == Some("best")) {
             params = self.omit(params.clone(), Value::List(vec![Value::Str("newOrdType".to_string()), Value::Str("new_ord_type".to_string())]), &[]);
             add_element_to_object(&mut request, &Value::Str("new_ord_type".to_string()), Value::Str("best".to_string()));
             if (side.as_str() == Some("buy")) {
@@ -2891,8 +2891,8 @@ impl UpbitCore {
         //         "secondary_address": null
         //     }
         //
-        let mut message: Value = self.safe_string_k(response.clone(), "message", &[]);
-        if (message != Value::Null) {
+        let mut message: Option<String> = self.safe_string_k(response.clone(), "message", &[]).as_str().map(str::to_owned);
+        if (message.is_some()) {
             panic!("{}", crate::exchange_errors::address_pending(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" is generating ".to_string()))), code)), Value::Str(" deposit address, call fetchDepositAddress or createDepositAddress one more time later to retrieve the generated address".to_string())))));
         }
         return self.parse_deposit_address(response.clone(), &[]);

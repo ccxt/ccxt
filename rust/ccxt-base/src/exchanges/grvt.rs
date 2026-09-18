@@ -1517,8 +1517,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut settle: Value = self.safe_currency_code(settleId.clone(), &[]);
         let mut symbol: Value = add(&Value::Str(format!("{}{}", add(&add(&base, &Value::Str("/".to_string())), &quote), Value::Str(":".to_string()))), &settle);
         let mut type_var: Value = Value::Null;
-        let mut typeRaw: Value = self.safe_string_k(market.clone(), "kind", &[]);
-        if (typeRaw.as_str() == Some("PERPETUAL")) {
+        let mut typeRaw: Option<String> = self.safe_string_k(market.clone(), "kind", &[]).as_str().map(str::to_owned);
+        if (typeRaw.as_deref() == Some("PERPETUAL")) {
             type_var = Value::Str("swap".to_string());
         }
         let mut isSpot: Value = (Value::Bool(type_var.as_str() == Some("spot")));
@@ -3128,14 +3128,14 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
             }  else if (takeProfitPrice != Value::Null) {
                 selectedType = (if isBuy { Value::Str("TAKE_PROFIT".to_string()) } else { Value::Str("STOP_LOSS".to_string()) });
             }  else {
-                let mut triggerDirection: Value = self.safe_string_k(params.clone(), "triggerDirection", &[]);
-                if (triggerDirection == Value::Null) {
+                let mut triggerDirection: Option<String> = self.safe_string_k(params.clone(), "triggerDirection", &[]).as_str().map(str::to_owned);
+                if (triggerDirection.is_none()) {
                     panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires a triggerDirection parameter when triggerPrice is specified, must be \"ascending\" or \"descending\"".to_string())))));
                 }
-                if (triggerDirection != Value::Null) {
-                    if (triggerDirection.as_str() == Some("ascending")) {
+                if (triggerDirection.is_some()) {
+                    if (triggerDirection.as_deref() == Some("ascending")) {
                         selectedType = (if isBuy { Value::Str("STOP_LOSS".to_string()) } else { Value::Str("TAKE_PROFIT".to_string()) });
-                    }  else if (triggerDirection.as_str() == Some("descending")) {
+                    }  else if (triggerDirection.as_deref() == Some("descending")) {
                         selectedType = (if isBuy { Value::Str("TAKE_PROFIT".to_string()) } else { Value::Str("STOP_LOSS".to_string()) });
                     }
                 }
@@ -4638,8 +4638,8 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
                     self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), message.clone(), feedback.clone());
                     panic!("{}", crate::exchange_errors::exchange_error(feedback));
                 }  else {
-                    let mut status: Value = self.safe_string_k(response.clone(), "status", &[]);
-                    if (status != Value::Null) && (status.as_str() != Some("success")) {
+                    let mut status: Option<String> = self.safe_string_k(response.clone(), "status", &[]).as_str().map(str::to_owned);
+                    if (status.is_some()) && (status.as_deref() != Some("success")) {
                         let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), body));
                         panic!("{}", crate::exchange_errors::exchange_error(feedback));
                     }

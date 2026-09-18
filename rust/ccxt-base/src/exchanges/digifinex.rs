@@ -1271,8 +1271,8 @@ impl DigifinexCore {
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut method: Value = self.safe_string_k(options.clone(), "method", &[Value::Str("fetch_markets_v2".to_string())]);
-        if (method.as_str() == Some("fetch_markets_v2")) {
+        let mut method: Option<String> = self.safe_string_k(options.clone(), "method", &[Value::Str("fetch_markets_v2".to_string())]).as_str().map(str::to_owned);
+        if (method.as_deref() == Some("fetch_markets_v2")) {
             return self.fetch_markets_v2(&[params.clone()]).await;
         }
         return self.fetch_markets_v1(&[params.clone()]).await;
@@ -1285,7 +1285,7 @@ impl DigifinexCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut defaultType: Value = self.safe_string_k(self.options.clone(), "defaultType", &[]);
+        let mut defaultType: Option<String> = self.safe_string_k(self.options.clone(), "defaultType", &[]).as_str().map(str::to_owned);
         let mut marginModequeryVariable = self.handle_margin_mode_and_params(Value::Str("fetchMarketsV2".to_string()), &[params.clone()]);
         let mut marginMode: Value = marginModequeryVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut query: Value = marginModequeryVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
@@ -1379,7 +1379,7 @@ impl DigifinexCore {
             // const active = (status === 'TRADING');
             //
             let mut isAllowed: Value = self.safe_integer_k(market.clone(), "is_allow", &[Value::Int(1)]);
-            let mut type_var: Value = (if is_true(&(Value::Bool(defaultType.as_str() == Some("margin")))) { Value::Str("margin".to_string()) } else { Value::Str("spot".to_string()) });
+            let mut type_var: Value = (if is_true(&(Value::Bool(defaultType.as_deref() == Some("margin")))) { Value::Str("margin".to_string()) } else { Value::Str("spot".to_string()) });
             let mut spot: Value = Value::Bool(settle == Value::Null);
             let mut swap: Value = Value::Bool(!is_true(&spot));
             let mut margin: Value = (if is_true(&(Value::Bool(marginMode != Value::Null))) { Value::Bool(true) } else { Value::Null });
@@ -2179,29 +2179,29 @@ impl DigifinexCore {
         let mut takerOrMaker: Value = Value::Null;
         if (market.as_map().and_then(|__m| __m.get("type")).cloned().unwrap_or(Value::Null).as_str() == Some("swap")) {
             timestamp = self.safe_integer_k(trade.clone(), "trade_time", &[]);
-            let mut orderType: Value = self.safe_string_k(trade.clone(), "order_type", &[]);
-            let mut tradeRole: Value = self.safe_string_k(trade.clone(), "match_role", &[]);
-            let mut direction: Value = self.safe_string_k(trade.clone(), "direction", &[]);
-            if (orderType != Value::Null) {
-                type_var = (if is_true(&(Value::Bool(orderType.as_str() == Some("0")))) { Value::Str("limit".to_string()) } else { Value::Null });
+            let mut orderType: Option<String> = self.safe_string_k(trade.clone(), "order_type", &[]).as_str().map(str::to_owned);
+            let mut tradeRole: Option<String> = self.safe_string_k(trade.clone(), "match_role", &[]).as_str().map(str::to_owned);
+            let mut direction: Option<String> = self.safe_string_k(trade.clone(), "direction", &[]).as_str().map(str::to_owned);
+            if (orderType.is_some()) {
+                type_var = (if is_true(&(Value::Bool(orderType.as_deref() == Some("0")))) { Value::Str("limit".to_string()) } else { Value::Null });
             }
-            if (tradeRole.as_str() == Some("1")) {
+            if (tradeRole.as_deref() == Some("1")) {
                 takerOrMaker = Value::Str("taker".to_string());
-            }  else if (tradeRole.as_str() == Some("2")) {
+            }  else if (tradeRole.as_deref() == Some("2")) {
                 takerOrMaker = Value::Str("maker".to_string());
             }  else {
                 takerOrMaker = Value::Null;
             }
-            if is_true(&(Value::Bool(side.as_str() == Some("1")))) || is_true(&(Value::Bool(direction.as_str() == Some("1")))) {
+            if is_true(&(Value::Bool(side.as_str() == Some("1")))) || is_true(&(Value::Bool(direction.as_deref() == Some("1")))) {
                 // side = 'open long';
                 side = Value::Str("buy".to_string());
-            }  else if is_true(&(Value::Bool(side.as_str() == Some("2")))) || is_true(&(Value::Bool(direction.as_str() == Some("2")))) {
+            }  else if is_true(&(Value::Bool(side.as_str() == Some("2")))) || is_true(&(Value::Bool(direction.as_deref() == Some("2")))) {
                 // side = 'open short';
                 side = Value::Str("sell".to_string());
-            }  else if is_true(&(Value::Bool(side.as_str() == Some("3")))) || is_true(&(Value::Bool(direction.as_str() == Some("3")))) {
+            }  else if is_true(&(Value::Bool(side.as_str() == Some("3")))) || is_true(&(Value::Bool(direction.as_deref() == Some("3")))) {
                 // side = 'close long';
                 side = Value::Str("sell".to_string());
-            }  else if is_true(&(Value::Bool(side.as_str() == Some("4")))) || is_true(&(Value::Bool(direction.as_str() == Some("4")))) {
+            }  else if is_true(&(Value::Bool(side.as_str() == Some("4")))) || is_true(&(Value::Bool(direction.as_deref() == Some("4")))) {
                 // side = 'close short';
                 side = Value::Str("buy".to_string());
             }
@@ -2773,7 +2773,7 @@ impl DigifinexCore {
         let mut postOnlyParsed: Value = Value::Null;
         if swap {
             let mut reduceOnly: Value = self.safe_bool_k(params.clone(), "reduceOnly", &[Value::Bool(false)]);
-            let mut timeInForce: Value = self.safe_string_k(params.clone(), "timeInForce", &[]);
+            let mut timeInForce: Option<String> = self.safe_string_k(params.clone(), "timeInForce", &[]).as_str().map(str::to_owned);
             let mut orderType: Value = Value::Null;
             if (side.as_str() == Some("buy")) {
                 let mut requestType: Value = (if is_true(&(Value::Bool(reduceOnly.as_bool() == Some(true)))) { Value::Int(4) } else { Value::Int(1) });
@@ -2785,13 +2785,13 @@ impl DigifinexCore {
             if isLimitOrder {
                 orderType = Value::Int(0);
             }
-            if (timeInForce.as_str() == Some("FOK")) {
+            if (timeInForce.as_deref() == Some("FOK")) {
                 orderType = (if is_true(&isMarketOrder) { Value::Int(15) } else { Value::Int(9) });
-            }  else if (timeInForce.as_str() == Some("IOC")) {
+            }  else if (timeInForce.as_deref() == Some("IOC")) {
                 orderType = (if is_true(&isMarketOrder) { Value::Int(13) } else { Value::Int(4) });
-            }  else if is_true(&(Value::Bool(timeInForce.as_str() == Some("GTC")))) || is_true(&(isMarketOrder)) {
+            }  else if is_true(&(Value::Bool(timeInForce.as_deref() == Some("GTC")))) || is_true(&(isMarketOrder)) {
                 orderType = Value::Int(14);
-            }  else if (timeInForce.as_str() == Some("PO")) {
+            }  else if (timeInForce.as_deref() == Some("PO")) {
                 postOnly = Value::Bool(true);
             }
             if (price != Value::Null) {
@@ -5502,7 +5502,7 @@ impl DigifinexCore {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {Array} the marginMode in lowercase
          */
-        let mut defaultType: Value = self.safe_string_k(self.options.clone(), "defaultType", &[]);
+        let mut defaultType: Option<String> = self.safe_string_k(self.options.clone(), "defaultType", &[]).as_str().map(str::to_owned);
         let mut isMargin: Value = self.safe_bool_k(params.clone(), "margin", &[Value::Bool(false)]);
         let mut marginMode: Value = Value::Null;
         { let __destr_tmp = self.super_handle_margin_mode_and_params(methodName.clone(), params.clone(), defaultValue.clone()); marginMode = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
@@ -5511,7 +5511,7 @@ impl DigifinexCore {
                 panic!("{}", crate::exchange_errors::not_supported(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" only cross margin is supported".to_string())))));
             }
         }  else {
-            if is_true(&(Value::Bool(defaultType.as_str() == Some("margin")))) || is_true(&(Value::Bool(isMargin.as_bool() == Some(true)))) {
+            if is_true(&(Value::Bool(defaultType.as_deref() == Some("margin")))) || is_true(&(Value::Bool(isMargin.as_bool() == Some(true)))) {
                 marginMode = Value::Str("cross".to_string());
             }
         }

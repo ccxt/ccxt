@@ -619,7 +619,7 @@ impl CexCore {
         symbol = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         let mut url: Value = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null);
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("ticker:".to_string()), symbol));
-        let mut method: Value = self.safe_string_k(params.clone(), "method", &[Value::Str("private".to_string())]); // default to private because the specified ticker is received quicker
+        let mut method: Option<String> = self.safe_string_k(params.clone(), "method", &[Value::Str("private".to_string())]).as_str().map(str::to_owned); // default to private because the specified ticker is received quicker
         let mut message: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("e".to_string(), Value::Str("subscribe".to_string()));
@@ -627,7 +627,7 @@ impl CexCore {
             m
         });
         let mut subscriptionHash: Value = Value::Str("tickers".to_string());
-        if (method.as_str() == Some("private")) {
+        if (method.as_deref() == Some("private")) {
             self.authenticate(&[]).await;
             message = Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -954,8 +954,8 @@ impl CexCore {
 
     pub fn handle_transaction(&mut self, mut client: Value, mut message: Value) {
         let mut data: Value = self.safe_value_k(message.clone(), "data", &[]);
-        let mut symbol2: Value = self.safe_string_k(data.clone(), "symbol2", &[]);
-        if (symbol2 == Value::Null) {
+        let mut symbol2: Option<String> = self.safe_string_k(data.clone(), "symbol2", &[]).as_str().map(str::to_owned);
+        if (symbol2.is_none()) {
             return;
         }
         self.handle_order_update(client.clone(), message.clone());
@@ -2074,8 +2074,8 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
 }
 
     pub fn handle_message(&mut self, mut client: Value, mut message: Value) {
-        let mut ok: Value = self.safe_string_k(message.clone(), "ok", &[]);
-        if (ok.as_str() == Some("error")) {
+        let mut ok: Option<String> = self.safe_string_k(message.clone(), "ok", &[]).as_str().map(str::to_owned);
+        if (ok.as_deref() == Some("error")) {
             self.handle_error_message(client.clone(), message.clone());
             return;
         }

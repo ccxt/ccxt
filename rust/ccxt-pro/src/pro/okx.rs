@@ -1531,8 +1531,8 @@ impl OkxCore {
             while { if !__for_first_542 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_542 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(rawLiquidations.len() as i64).as_f64().unwrap_or(f64::NAN) } {
             let mut rawLiquidation: Value = get_value(&rawLiquidations, &i);
             let mut rawLiquidation: Value = get_value(&rawLiquidations, &i);
-            let mut eventType: Value = self.safe_string_k(rawLiquidation.clone(), "eventType", &[]);
-            if (eventType.as_str() != Some("liquidation")) {
+            let mut eventType: Option<String> = self.safe_string_k(rawLiquidation.clone(), "eventType", &[]).as_str().map(str::to_owned);
+            if (eventType.as_deref() != Some("liquidation")) {
                 return;
             }
             let mut liquidation: Value = self.parse_ws_my_liquidation(rawLiquidation.clone(), &[]);
@@ -2247,7 +2247,7 @@ impl OkxCore {
             m
         })]);
         let mut channel: Value = self.safe_string_k(arg.clone(), "channel", &[]);
-        let mut action: Value = self.safe_string_k(message.clone(), "action", &[]);
+        let mut action: Option<String> = self.safe_string_k(message.clone(), "action", &[]).as_str().map(str::to_owned);
         let mut data: Value = self.safe_list_k(message.clone(), "data", &[Value::List(vec![])]);
         let mut marketId: Value = self.safe_string_k(arg.clone(), "instId", &[]);
         let mut market: Value = self.safe_market(&[marketId.clone()]);
@@ -2264,7 +2264,7 @@ impl OkxCore {
         });
         let mut limit: Value = self.safe_integer(depths.clone(), channel.clone(), &[]);
         let mut messageHash: Value = Value::Str(format!("{}{}", add(&channel, &Value::Str(":".to_string())), symbol));
-        if (action.as_str() == Some("snapshot")) {
+        if (action.as_deref() == Some("snapshot")) {
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_549: bool = true;
@@ -2284,7 +2284,7 @@ impl OkxCore {
                 client.resolve(&[orderbook.clone(), messageHash.clone()]);
             }
             }
-        }  else if (action.as_str() == Some("update")) {
+        }  else if (action.as_deref() == Some("update")) {
             if is_true(&Value::Bool(in_op(&self.orderbooks, &symbol))) {
                 let mut orderbook: Value = get_value(&self.orderbooks, &symbol);
                 {
@@ -3107,8 +3107,8 @@ impl OkxCore {
             remove(&mut args, &Value::Str("instId".to_string()));
             add_element_to_object(&mut args, &Value::Str("instIdCode".to_string()), instIdCode.clone());
         }
-        let mut ordType: Value = self.safe_string_k(args.clone(), "ordType", &[]);
-        if is_true(&(Value::Bool(ordType.as_str() == Some("trigger")))) || is_true(&(Value::Bool(ordType.as_str() == Some("conditional")))) || is_true(&(Value::Bool(type_var.as_str() == Some("oco")))) || is_true(&(Value::Bool(type_var.as_str() == Some("move_order_stop")))) || is_true(&(Value::Bool(type_var.as_str() == Some("iceberg")))) || is_true(&(Value::Bool(type_var.as_str() == Some("twap")))) {
+        let mut ordType: Option<String> = self.safe_string_k(args.clone(), "ordType", &[]).as_str().map(str::to_owned);
+        if is_true(&(Value::Bool(ordType.as_deref() == Some("trigger")))) || is_true(&(Value::Bool(ordType.as_deref() == Some("conditional")))) || is_true(&(Value::Bool(type_var.as_str() == Some("oco")))) || is_true(&(Value::Bool(type_var.as_str() == Some("move_order_stop")))) || is_true(&(Value::Bool(type_var.as_str() == Some("iceberg")))) || is_true(&(Value::Bool(type_var.as_str() == Some("twap")))) {
             panic!("{}", crate::exchange_errors::bad_request(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrderWs() does not support algo trading. this.options[\"createOrderWs\"][\"op\"] must be either order or batch-order".to_string())))));
         }
         if is_true(&(Value::Bool(op.as_str() != Some("order")))) && is_true(&(Value::Bool(op.as_str() != Some("batch-orders")))) {

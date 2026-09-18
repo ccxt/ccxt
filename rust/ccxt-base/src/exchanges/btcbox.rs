@@ -992,9 +992,9 @@ impl BtcboxCore {
         //     }
         //
         let mut id: Value = self.safe_string_k(order.clone(), "id", &[]);
-        let mut datetimeString: Value = self.safe_string_k(order.clone(), "datetime", &[]);
+        let mut datetimeString: Option<String> = self.safe_string_k(order.clone(), "datetime", &[]).as_str().map(str::to_owned);
         let mut timestamp: Value = Value::Null;
-        if (datetimeString != Value::Null) {
+        if (datetimeString.is_some()) {
             timestamp = self.parse8601(add(&order.as_map().and_then(|__m| __m.get("datetime")).cloned().unwrap_or(Value::Null), &Value::Str("+09:00".to_string()))); // Tokyo time
         }
         let mut amount: Value = self.safe_string_k(order.clone(), "amount_original", &[]);

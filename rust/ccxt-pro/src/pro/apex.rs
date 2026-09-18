@@ -669,8 +669,8 @@ impl ApexCore {
         //         }
         //     }
         //
-        let mut type_var: Value = self.safe_string_k(message.clone(), "type", &[]);
-        let mut isSnapshot: bool = type_var.as_str() == Some("snapshot");
+        let mut type_var: Option<String> = self.safe_string_k(message.clone(), "type", &[]).as_str().map(str::to_owned);
+        let mut isSnapshot: bool = type_var.as_deref() == Some("snapshot");
         let mut data: Value = self.safe_dict_k(message.clone(), "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -814,17 +814,17 @@ impl ApexCore {
         //     "ts":1661500091955487
         // }
         let mut topic: Value = self.safe_string_k(message.clone(), "topic", &[Value::Str("".to_string())]);
-        let mut updateType: Value = self.safe_string_k(message.clone(), "type", &[Value::Str("".to_string())]);
+        let mut updateType: Option<String> = self.safe_string_k(message.clone(), "type", &[Value::Str("".to_string())]).as_str().map(str::to_owned);
         let mut data: Value = self.safe_dict_k(message.clone(), "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
         let mut symbol: Value = Value::Null;
         let mut parsed: Value = self.parse_ticker(data.clone(), &[]);
-        if is_true(&(Value::Bool(updateType.as_str() == Some("snapshot")))) {
+        if is_true(&(Value::Bool(updateType.as_deref() == Some("snapshot")))) {
             parsed = self.parse_ticker(data.clone(), &[]);
             symbol = parsed.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
-        }  else if (updateType.as_str() == Some("delta")) {
+        }  else if (updateType.as_deref() == Some("delta")) {
             let mut topicParts: Value = split(&topic, &Value::Str(".".to_string()));
             let mut topicLength: Value = Value::Int(topicParts.len() as i64);
             let mut marketId: Value = self.safe_string(topicParts.clone(), (match (&(topicLength), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }), &[]);
@@ -1316,11 +1316,11 @@ impl ApexCore {
             let mut rawPosition: Value = get_value(&lists, &i);
             let mut rawPosition: Value = get_value(&lists, &i);
             let mut position: Value = self.parse_position(rawPosition.clone(), &[]);
-            let mut side: Value = self.safe_string_k(position.clone(), "side", &[]);
+            let mut side: Option<String> = self.safe_string_k(position.clone(), "side", &[]).as_str().map(str::to_owned);
             // hacky solution to handle closing positions
             // without crashing, we should handle this properly later
             append_to_array(&mut newPositions, position.clone());
-            if (side == Value::Null) || (side.as_str() == Some("")) {
+            if (side.is_none()) || (side.as_deref() == Some("")) {
                 // closing update, adding both sides to "reset" both sides
                 // since we don't know which side is being closed
                 add_element_to_object(&mut position, &Value::Str("side".to_string()), Value::Str("long".to_string()));
@@ -1455,7 +1455,7 @@ impl ApexCore {
                     let mut m = indexmap::IndexMap::new();
                     m
                 })]);
-                let mut op: Value = self.safe_string_k(request.clone(), "op", &[]);
+                let mut op: Option<String> = self.safe_string_k(request.clone(), "op", &[]).as_str().map(str::to_owned);
                 // Benign re-subscribe notice (same shape as bitmart 90008 /
                 // krakenfutures "Already subscribed"): the original subscription
                 // is still active and delivering data on this socket. Without
@@ -1464,7 +1464,7 @@ impl ApexCore {
                 if (ret_msg != Value::Null) && get_index_of(&ret_msg, &Value::Str("already subscribed".to_string())).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN) {
                     return Value::Bool(false);
                 }
-                if (op.as_str() == Some("auth")) {
+                if (op.as_deref() == Some("auth")) {
                     panic!("{}", crate::exchange_errors::authentication_error(add(&Value::Str("Authentication failed: ".to_string()), &ret_msg)));
                 }  else {
                     panic!("{}", crate::exchange_errors::exchange_error(add(&Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), &ret_msg)));
@@ -1493,9 +1493,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         if (self.handle_error_message(client.clone(), message.clone()).as_bool() == Some(true)) {
             return;
         }
-        let mut ret_msg: Value = self.safe_string_k(message.clone(), "ret_msg", &[]);
+        let mut ret_msg: Option<String> = self.safe_string_k(message.clone(), "ret_msg", &[]).as_str().map(str::to_owned);
         let mut pong: Value = self.safe_integer_k(message.clone(), "pong", &[]);
-        if (ret_msg.as_str() == Some("pong")) || (pong != Value::Null) {
+        if (ret_msg.as_deref() == Some("pong")) || (pong != Value::Null) {
             self.handle_pong(client.clone(), message.clone());
             return;
         }
@@ -1537,8 +1537,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         }
         }
         // unified auth acknowledgement
-        let mut type_var: Value = self.safe_string_k(message.clone(), "type", &[]);
-        if (type_var.as_str() == Some("AUTH_RESP")) {
+        let mut type_var: Option<String> = self.safe_string_k(message.clone(), "type", &[]).as_str().map(str::to_owned);
+        if (type_var.as_deref() == Some("AUTH_RESP")) {
             self.handle_authenticate(client.clone(), message.clone());
         }
 }

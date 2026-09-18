@@ -1050,10 +1050,10 @@ impl NdaxCore {
         //         "msg":"PONG"
         //     }
         //
-        let mut message: Value = self.safe_string_k(response.clone(), "msg", &[]);
+        let mut message: Option<String> = self.safe_string_k(response.clone(), "msg", &[]).as_str().map(str::to_owned);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("status".to_string(), (if is_true(&(Value::Bool(message.as_str() == Some("PONG")))) { Value::Str("ok".to_string()) } else { Value::Str("error".to_string()) }));
+        m.insert("status".to_string(), (if is_true(&(Value::Bool(message.as_deref() == Some("PONG")))) { Value::Str("ok".to_string()) } else { Value::Str("error".to_string()) }));
         m.insert("updated".to_string(), Value::Null);
         m.insert("eta".to_string(), Value::Null);
         m.insert("url".to_string(), Value::Null);
@@ -1160,9 +1160,9 @@ impl NdaxCore {
     pub fn parse_currency(&self, mut rawCurrency: Value) -> Value {
         let mut id: Value = self.safe_string_k(rawCurrency.clone(), "ProductId", &[]);
         let mut code: Value = self.safe_currency_code(self.safe_string_k(rawCurrency.clone(), "Product", &[]), &[]);
-        let mut ProductType: Value = self.safe_string_k(rawCurrency.clone(), "ProductType", &[]);
-        let mut type_var: Value = (if is_true(&(Value::Bool(ProductType.as_str() == Some("NationalCurrency")))) { Value::Str("fiat".to_string()) } else { Value::Str("crypto".to_string()) });
-        if (ProductType.as_str() == Some("Unknown")) {
+        let mut ProductType: Option<String> = self.safe_string_k(rawCurrency.clone(), "ProductType", &[]).as_str().map(str::to_owned);
+        let mut type_var: Value = (if is_true(&(Value::Bool(ProductType.as_deref() == Some("NationalCurrency")))) { Value::Str("fiat".to_string()) } else { Value::Str("crypto".to_string()) });
+        if (ProductType.as_deref() == Some("Unknown")) {
             // such currency is just a blanket entry
             type_var = Value::Str("other".to_string());
         }
@@ -1238,9 +1238,9 @@ impl NdaxCore {
         let mut quoteId: Value = self.safe_string_k(market.clone(), "Product2", &[]);
         let mut base: Value = self.safe_currency_code(self.safe_string_k(market.clone(), "Product1Symbol", &[]), &[]);
         let mut quote: Value = self.safe_currency_code(self.safe_string_k(market.clone(), "Product2Symbol", &[]), &[]);
-        let mut sessionStatus: Value = self.safe_string_k(market.clone(), "SessionStatus", &[]);
+        let mut sessionStatus: Option<String> = self.safe_string_k(market.clone(), "SessionStatus", &[]).as_str().map(str::to_owned);
         let mut isDisable: Value = self.safe_value_k(market.clone(), "IsDisable", &[]);
-        let mut sessionRunning: bool = sessionStatus.as_str() == Some("Running");
+        let mut sessionRunning: bool = sessionStatus.as_deref() == Some("Running");
         return self.safe_market_structure(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id.clone());
@@ -3182,8 +3182,8 @@ impl NdaxCore {
 }));
         { let __destr_tmp = self.handle_withdraw_tag_and_params(tag.clone(), params.clone()); tag = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         // this method required login, password and twofa key
-        let mut sessionToken: Value = self.safe_string_k(self.options.clone(), "sessionToken", &[]);
-        if (sessionToken == Value::Null) {
+        let mut sessionToken: Option<String> = self.safe_string_k(self.options.clone(), "sessionToken", &[]).as_str().map(str::to_owned);
+        if (sessionToken.is_none()) {
             panic!("{}", crate::exchange_errors::authentication_error(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" call signIn() method to obtain a session token".to_string())))));
         }
         if (self.twofa.clone() == Value::Null) {

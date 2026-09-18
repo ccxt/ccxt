@@ -527,12 +527,12 @@ impl LighterCore {
             { let __be_tmp = self.order_book(&[]); add_element_to_object(&mut self.orderbooks, &symbol, __be_tmp); };
         }
         let mut orderbook: Value = get_value(&self.orderbooks, &symbol);
-        let mut type_var: Value = self.safe_string_k(message.clone(), "type", &[Value::Str("".to_string())]);
-        if (type_var.as_str() == Some("subscribed/order_book")) {
+        let mut type_var: Option<String> = self.safe_string_k(message.clone(), "type", &[Value::Str("".to_string())]).as_str().map(str::to_owned);
+        if (type_var.as_deref() == Some("subscribed/order_book")) {
             let mut parsed: Value = self.parse_order_book(data.clone(), symbol.clone(), &[timestamp.clone(), Value::Str("bids".to_string()), Value::Str("asks".to_string()), Value::Str("price".to_string()), Value::Str("size".to_string())]);
             add_element_to_object(&mut parsed, &Value::Str("nonce".to_string()), self.safe_integer_k(data.clone(), "offset", &[]));
             orderbook.reset(parsed.clone());
-        }  else if (type_var.as_str() == Some("update/order_book")) {
+        }  else if (type_var.as_deref() == Some("update/order_book")) {
             self.handle_order_book_message(client.clone(), message.clone(), orderbook.clone());
         }
         let mut messageHash: Value = self.get_message_hash(Value::Str("orderbook".to_string()), &[symbol.clone()]);
@@ -661,8 +661,8 @@ impl LighterCore {
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut channel: Value = self.safe_string_k(message.clone(), "channel", &[]);
-        if (channel.as_str() == Some("market_stats:all")) {
+        let mut channel: Option<String> = self.safe_string_k(message.clone(), "channel", &[]).as_str().map(str::to_owned);
+        if (channel.as_deref() == Some("market_stats:all")) {
             let mut marketIds: Value = object_keys(&data);
             {
                                 let mut i: Value = Value::Int(0);
@@ -2052,16 +2052,16 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if !is_true(&self.handle_error_message(client.clone(), message.clone())) {
             return;
         }
-        let mut type_var: Value = self.safe_string_k(message.clone(), "type", &[Value::Str("".to_string())]);
-        if (type_var.as_str() == Some("ping")) {
+        let mut type_var: Option<String> = self.safe_string_k(message.clone(), "type", &[Value::Str("".to_string())]).as_str().map(str::to_owned);
+        if (type_var.as_deref() == Some("ping")) {
             self.handle_ping(client.clone(), message.clone());
             return;
         }
-        if (type_var.as_str() == Some("jsonapi/sendtx")) {
+        if (type_var.as_deref() == Some("jsonapi/sendtx")) {
             self.handle_ws_sendtx_api(client.clone(), message.clone());
             return;
         }
-        if (type_var.as_str() == Some("unsubscribed")) {
+        if (type_var.as_deref() == Some("unsubscribed")) {
             self.handle_un_subscription(client.clone(), message.clone());
             return;
         }
@@ -2122,19 +2122,19 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //
         let mut channel: Value = self.safe_string_k(message.clone(), "channel", &[Value::Str("".to_string())]);
         let mut parts: Value = split(&channel, &Value::Str(":".to_string()));
-        let mut name: Value = self.safe_string(parts.clone(), Value::Int(0), &[Value::Str("".to_string())]);
+        let mut name: Option<String> = self.safe_string(parts.clone(), Value::Int(0), &[Value::Str("".to_string())]).as_str().map(str::to_owned);
         let mut channelId: Value = self.safe_string(parts.clone(), Value::Int(1), &[]);
-        if (name.as_str() == Some("order_book")) {
+        if (name.as_deref() == Some("order_book")) {
             self.handle_order_book_un_subscription(client.clone(), channelId.clone());
-        }  else if (name.as_str() == Some("market_stats")) {
+        }  else if (name.as_deref() == Some("market_stats")) {
             self.handle_ticker_un_subscription(client.clone(), channelId.clone());
-        }  else if (name.as_str() == Some("trade")) {
+        }  else if (name.as_deref() == Some("trade")) {
             self.handle_trades_un_subscription(client.clone(), channelId.clone());
-        }  else if (name.as_str() == Some("account_all_trades")) {
+        }  else if (name.as_deref() == Some("account_all_trades")) {
             self.handle_my_trades_un_subscription(client.clone());
-        }  else if (name.as_str() == Some("account_orders")) {
+        }  else if (name.as_deref() == Some("account_orders")) {
             self.handle_orders_un_subscription(client.clone(), channelId.clone());
-        }  else if (name.as_str() == Some("account_all_orders")) {
+        }  else if (name.as_deref() == Some("account_all_orders")) {
             self.handle_all_orders_un_subscription(client.clone());
         }
 }
@@ -2167,8 +2167,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 if is_true(&Value::Bool(starts_with(&subscriptionHash, &Value::Str("ticker".to_string())))) {
                     let mut subscription: Value = self.safe_dict(get_value(&client, &Value::Str("subscriptions".to_string())), subscriptionHash.clone(), &[]);
                     let mut subscriptionParams: Value = self.safe_dict_k(subscription.clone(), "params", &[]);
-                    let mut subscribedChannel: Value = self.safe_string_k(subscriptionParams.clone(), "channel", &[]);
-                    if (subscribedChannel.as_str() == Some("market_stats/all")) {
+                    let mut subscribedChannel: Option<String> = self.safe_string_k(subscriptionParams.clone(), "channel", &[]).as_str().map(str::to_owned);
+                    if (subscribedChannel.as_deref() == Some("market_stats/all")) {
                         remove(&mut get_value(&client, &Value::Str("subscriptions".to_string())), &subscriptionHash);
                         if is_true(&Value::Bool(in_op(&get_value(&client, &Value::Str("futures".to_string())), &subscriptionHash))) {
                             let mut error = Value::from(crate::exchange_errors::unsubscribe_error(Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), subscriptionHash))));

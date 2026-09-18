@@ -1836,8 +1836,8 @@ impl ApexCore {
     pub fn add_hyphen_before_usdt(&self, mut symbol: Value) -> Value {
         let mut uppercaseSymbol: Value = to_upper(&symbol);
         let mut index: Value = get_index_of(&uppercaseSymbol, &Value::Str("USDT".to_string()));
-        let mut symbolChar: Value = self.safe_string(symbol.clone(), (match (&(index), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }), &[]);
-        if index.as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN) && (symbolChar.as_str() != Some("-")) {
+        let mut symbolChar: Option<String> = self.safe_string(symbol.clone(), (match (&(index), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }), &[]).as_str().map(str::to_owned);
+        if index.as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN) && (symbolChar.as_deref() != Some("-")) {
             return Value::Str(format!("{}{}", Value::Str(format!("{}{}", slice(&symbol, &Value::Int(0), &index), Value::Str("-".to_string()))), slice(&symbol, &index, &Value::Null)));
         }
         return symbol;
@@ -1856,8 +1856,8 @@ impl ApexCore {
 }
 
     pub async fn get_account_id(&mut self) -> Value {
-        let mut accountId: Value = self.safe_string_k(self.options.clone(), "accountId", &[Value::Str("0".to_string())]);
-        if (accountId.as_str() == Some("0")) {
+        let mut accountId: Option<String> = self.safe_string_k(self.options.clone(), "accountId", &[Value::Str("0".to_string())]).as_str().map(str::to_owned);
+        if (accountId.as_deref() == Some("0")) {
             let mut accountData: Value = self.fetch_account(&[]).await;
             { let __be_tmp = self.safe_string_k(accountData.clone(), "id", &[Value::Str("0".to_string())]); add_element_to_object(&mut self.options, &Value::Str("accountId".to_string()), __be_tmp); };
         }

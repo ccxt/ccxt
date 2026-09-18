@@ -1362,7 +1362,7 @@ impl BydfiCore {
         let mut marketId: Value = self.safe_string_k(position.clone(), "s", &[]);
         market = self.safe_market(&[marketId.clone(), market.clone()]);
         let mut rawPositionSide: Value = self.safe_string_k(position.clone(), "S", &[]);
-        let mut positionMode: Value = self.safe_string_k(position.clone(), "pt", &[]);
+        let mut positionMode: Option<String> = self.safe_string_k(position.clone(), "pt", &[]).as_str().map(str::to_owned);
         return self.safe_position(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), position.clone());
@@ -1381,7 +1381,7 @@ impl BydfiCore {
         m.insert("timestamp".to_string(), Value::Null);
         m.insert("datetime".to_string(), Value::Null);
         m.insert("lastUpdateTimestamp".to_string(), Value::Null);
-        m.insert("hedged".to_string(), (Value::Bool(positionMode.as_str() != Some("ONEWAY"))));
+        m.insert("hedged".to_string(), (Value::Bool(positionMode.as_deref() != Some("ONEWAY"))));
         m.insert("maintenanceMargin".to_string(), Value::Null);
         m.insert("maintenanceMarginPercentage".to_string(), Value::Null);
         m.insert("initialMargin".to_string(), self.parse_number(self.safe_string_k(position.clone(), "pm", &[]), &[]));
@@ -1614,26 +1614,26 @@ impl BydfiCore {
 }
 
     pub fn handle_message(&mut self, mut client: Value, mut message: Value) {
-        let mut code: Value = self.safe_string_k(message.clone(), "code", &[]);
-        if (code != Value::Null) && is_true(&(Value::Bool(code.as_str() != Some("0")))) {
+        let mut code: Option<String> = self.safe_string_k(message.clone(), "code", &[]).as_str().map(str::to_owned);
+        if (code.is_some()) && is_true(&(Value::Bool(code.as_deref() != Some("0")))) {
             self.handle_error_message(client.clone(), message.clone());
         }
-        let mut result: Value = self.safe_string_k(message.clone(), "result", &[]);
-        if (result.as_str() == Some("pong")) {
+        let mut result: Option<String> = self.safe_string_k(message.clone(), "result", &[]).as_str().map(str::to_owned);
+        if (result.as_deref() == Some("pong")) {
             self.handle_pong(client.clone(), message.clone());
-        }  else if (result != Value::Null) {
+        }  else if (result.is_some()) {
             self.handle_subscription_status(client.clone(), message.clone());
         }  else {
-            let mut event: Value = self.safe_string_k(message.clone(), "e", &[]);
-            if (event.as_str() == Some("24hrTicker")) {
+            let mut event: Option<String> = self.safe_string_k(message.clone(), "e", &[]).as_str().map(str::to_owned);
+            if (event.as_deref() == Some("24hrTicker")) {
                 self.handle_ticker(client.clone(), message.clone());
-            }  else if (event.as_str() == Some("kline")) {
+            }  else if (event.as_deref() == Some("kline")) {
                 self.handle_ohlcv(client.clone(), message.clone());
-            }  else if (event.as_str() == Some("depthUpdate")) {
+            }  else if (event.as_deref() == Some("depthUpdate")) {
                 self.handle_order_book(client.clone(), message.clone());
-            }  else if (event.as_str() == Some("ORDER_TRADE_UPDATE")) {
+            }  else if (event.as_deref() == Some("ORDER_TRADE_UPDATE")) {
                 self.handle_order(client.clone(), message.clone());
-            }  else if (event.as_str() == Some("ACCOUNT_UPDATE")) {
+            }  else if (event.as_deref() == Some("ACCOUNT_UPDATE")) {
                 let mut account: Value = self.safe_dict_k(message.clone(), "a", &[Value::Map({
                     let mut m = indexmap::IndexMap::new();
                     m

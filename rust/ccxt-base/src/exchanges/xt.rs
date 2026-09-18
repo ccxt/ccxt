@@ -2146,9 +2146,9 @@ impl XtCore {
                 }
             }
             }
-            let mut typeRaw: Value = self.safe_string_k(entry.clone(), "type", &[]);
+            let mut typeRaw: Option<String> = self.safe_string_k(entry.clone(), "type", &[]).as_str().map(str::to_owned);
             let mut type_var: Value = Value::Null;
-            if (typeRaw.as_str() == Some("FT")) {
+            if (typeRaw.as_deref() == Some("FT")) {
                 type_var = Value::Str("crypto".to_string());
             }  else {
                 type_var = Value::Str("other".to_string());
@@ -2503,7 +2503,7 @@ impl XtCore {
         let mut quoteId: Value = self.safe_string2(market.clone(), Value::Str("quoteCurrency".to_string()), Value::Str("quoteCoin".to_string()), &[]);
         let mut base: Value = self.safe_currency_code(baseId.clone(), &[]);
         let mut quote: Value = self.safe_currency_code(quoteId.clone(), &[]);
-        let mut state: Value = self.safe_string_k(market.clone(), "state", &[]);
+        let mut state: Option<String> = self.safe_string_k(market.clone(), "state", &[]).as_str().map(str::to_owned);
         let mut symbol: Value = add(&add(&base, &Value::Str("/".to_string())), &quote);
         let mut filters: Value = self.safe_list_k(market.clone(), "filters", &[Value::List(vec![])]);
         let mut minAmount: Value = Value::Null;
@@ -2519,16 +2519,16 @@ impl XtCore {
             while { if !__for_first_1147 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1147 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(filters.len() as i64).as_f64().unwrap_or(f64::NAN) } {
             let mut entry: Value = get_value(&filters, &i);
             let mut entry: Value = get_value(&filters, &i);
-            let mut filter: Value = self.safe_string_k(entry.clone(), "filter", &[]);
-            if (filter.as_str() == Some("QUANTITY")) {
+            let mut filter: Option<String> = self.safe_string_k(entry.clone(), "filter", &[]).as_str().map(str::to_owned);
+            if (filter.as_deref() == Some("QUANTITY")) {
                 minAmount = self.safe_number_k(entry.clone(), "min", &[]);
                 maxAmount = self.safe_number_k(entry.clone(), "max", &[]);
                 amountPrecision = self.safe_number_k(entry.clone(), "tickSize", &[]);
             }
-            if (filter.as_str() == Some("QUOTE_QTY")) {
+            if (filter.as_deref() == Some("QUOTE_QTY")) {
                 minCost = self.safe_number_k(entry.clone(), "min", &[]);
             }
-            if (filter.as_str() == Some("PRICE")) {
+            if (filter.as_deref() == Some("PRICE")) {
                 minPrice = self.safe_number_k(entry.clone(), "min", &[]);
                 maxPrice = self.safe_number_k(entry.clone(), "max", &[]);
             }
@@ -2537,7 +2537,7 @@ impl XtCore {
         if (amountPrecision == Value::Null) {
             amountPrecision = self.parse_number(self.parse_precision(&[self.safe_string_k(market.clone(), "quantityPrecision", &[])]), &[]);
         }
-        let mut underlyingType: Value = self.safe_string_k(market.clone(), "underlyingType", &[]);
+        let mut underlyingType: Option<String> = self.safe_string_k(market.clone(), "underlyingType", &[]).as_str().map(str::to_owned);
         let mut linear: Value = Value::Null;
         let mut inverse: Value = Value::Null;
         let mut settleId: Value = Value::Null;
@@ -2548,23 +2548,23 @@ impl XtCore {
         let mut contract: Value = Value::Bool(false);
         let mut spot: Value = Value::Bool(true);
         let mut type_var: Value = Value::Str("spot".to_string());
-        if (underlyingType.as_str() == Some("U_BASED")) {
+        if (underlyingType.as_deref() == Some("U_BASED")) {
             symbol = add(&Value::Str(format!("{}{}", symbol, Value::Str(":".to_string()))), &quote);
             settleId = baseId.clone();
             settle = quote.clone();
             linear = Value::Bool(true);
             inverse = Value::Bool(false);
-        }  else if (underlyingType.as_str() == Some("COIN_BASED")) {
+        }  else if (underlyingType.as_deref() == Some("COIN_BASED")) {
             symbol = add(&Value::Str(format!("{}{}", symbol, Value::Str(":".to_string()))), &base);
             settleId = baseId.clone();
             settle = base.clone();
             linear = Value::Bool(false);
             inverse = Value::Bool(true);
         }
-        if (underlyingType != Value::Null) {
+        if (underlyingType.is_some()) {
             expiry = self.safe_integer_k(market.clone(), "deliveryDate", &[]);
-            let mut productType: Value = self.safe_string_k(market.clone(), "productType", &[]);
-            if (productType.as_str() != Some("perpetual")) {
+            let mut productType: Option<String> = self.safe_string_k(market.clone(), "productType", &[]).as_str().map(str::to_owned);
+            if (productType.as_deref() != Some("perpetual")) {
                 symbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", symbol, Value::Str("-".to_string()))), self.yymmdd(expiry.clone(), &[])));
                 type_var = Value::Str("future".to_string());
                 future = Value::Bool(true);
@@ -2584,7 +2584,7 @@ impl XtCore {
         if is_true(&contract) {
             isActive = self.safe_bool_k(market.clone(), "isOpenApi", &[Value::Bool(false)]);
         }  else {
-            if is_true(&(Value::Bool(state.as_str() == Some("ONLINE")))) && is_true(&(Value::Bool(self.safe_bool_k(market.clone(), "tradingEnabled", &[]).as_bool() == Some(true)))) && is_true(&(Value::Bool(self.safe_bool_k(market.clone(), "openapiEnabled", &[]).as_bool() == Some(true)))) {
+            if is_true(&(Value::Bool(state.as_deref() == Some("ONLINE")))) && is_true(&(Value::Bool(self.safe_bool_k(market.clone(), "tradingEnabled", &[]).as_bool() == Some(true)))) && is_true(&(Value::Bool(self.safe_bool_k(market.clone(), "openapiEnabled", &[]).as_bool() == Some(true)))) {
                 isActive = Value::Bool(true);
             }
         }
@@ -3678,9 +3678,9 @@ impl XtCore {
             if (orderSide != Value::Null) {
                 side = orderSide.clone();
             }  else {
-                let mut bidOrAsk: Value = self.safe_string_k(trade.clone(), "m", &[]);
-                if (bidOrAsk != Value::Null) {
-                    side = (if is_true(&(Value::Bool(bidOrAsk.as_str() == Some("BID")))) { Value::Str("buy".to_string()) } else { Value::Str("sell".to_string()) });
+                let mut bidOrAsk: Option<String> = self.safe_string_k(trade.clone(), "m", &[]).as_str().map(str::to_owned);
+                if (bidOrAsk.is_some()) {
+                    side = (if is_true(&(Value::Bool(bidOrAsk.as_deref() == Some("BID")))) { Value::Str("buy".to_string()) } else { Value::Str("sell".to_string()) });
                 }
             }
         }
@@ -5429,9 +5429,9 @@ impl XtCore {
             // side, they close the position, so a long position closes with a
             // sell and a short position closes with a buy
             // see https://github.com/ccxt/ccxt/issues/25288
-            let mut positionSide: Value = self.safe_string_k(order.clone(), "positionSide", &[]);
-            if (positionSide != Value::Null) {
-                if (positionSide.as_str() == Some("LONG")) {
+            let mut positionSide: Option<String> = self.safe_string_k(order.clone(), "positionSide", &[]).as_str().map(str::to_owned);
+            if (positionSide.is_some()) {
+                if (positionSide.as_deref() == Some("LONG")) {
                     side = Value::Str("sell".to_string());
                 }  else {
                     side = Value::Str("buy".to_string());
@@ -5597,8 +5597,8 @@ impl XtCore {
         //         "createdTime": 1679116769914
         //     }
         //
-        let mut side: Value = self.safe_string_k(item.clone(), "side", &[]);
-        let mut direction: Value = (if is_true(&(Value::Bool(side.as_str() == Some("ADD")))) { Value::Str("in".to_string()) } else { Value::Str("out".to_string()) });
+        let mut side: Option<String> = self.safe_string_k(item.clone(), "side", &[]).as_str().map(str::to_owned);
+        let mut direction: Value = (if is_true(&(Value::Bool(side.as_deref() == Some("ADD")))) { Value::Str("in".to_string()) } else { Value::Str("out".to_string()) });
         let mut currencyId: Value = self.safe_string_k(item.clone(), "coin", &[]);
         currency = self.safe_currency(currencyId.clone(), &[currency.clone()]);
         let mut timestamp: Value = self.safe_integer_k(item.clone(), "createdTime", &[]);
@@ -7110,8 +7110,8 @@ impl XtCore {
             let mut entry: Value = get_value(&positions, &i);
             let mut marketId: Value = self.safe_string_k(entry.clone(), "symbol", &[]);
             let mut marketInner: Value = self.safe_market(&[marketId.clone(), Value::Null, Value::Null, Value::Str("contract".to_string())]);
-            let mut positionSize: Value = self.safe_string_k(entry.clone(), "positionSize", &[]);
-            if (positionSize.as_str() != Some("0")) {
+            let mut positionSize: Option<String> = self.safe_string_k(entry.clone(), "positionSize", &[]).as_str().map(str::to_owned);
+            if (positionSize.as_deref() != Some("0")) {
                 let mut merged: Value = self.merge_position_break_info(entry.clone(), breakBySymbolSide.clone());
                 return self.parse_position(merged.clone(), &[marketInner.clone()]);
             }
@@ -7372,8 +7372,8 @@ impl XtCore {
         market = self.safe_market(&[marketId.clone(), market.clone(), Value::Null, Value::Str("contract".to_string())]);
         let mut symbol: Value = self.safe_symbol(marketId.clone(), &[market.clone(), Value::Null, Value::Str("contract".to_string())]);
         // "ISOLATED"/"CROSSED" on position/list, 1 = cross / 2 = isolated on position/list-history
-        let mut positionType: Value = self.safe_string_k(position.clone(), "positionType", &[]);
-        let mut isCross: bool = is_true(&(Value::Bool(positionType.as_str() == Some("CROSSED")))) || is_true(&(Value::Bool(positionType.as_str() == Some("1"))));
+        let mut positionType: Option<String> = self.safe_string_k(position.clone(), "positionType", &[]).as_str().map(str::to_owned);
+        let mut isCross: bool = is_true(&(Value::Bool(positionType.as_deref() == Some("CROSSED")))) || is_true(&(Value::Bool(positionType.as_deref() == Some("1"))));
         let mut marginMode: Value = (if (isCross) { Value::Str("cross".to_string()) } else { Value::Str("isolated".to_string()) });
         let mut collateral: Value = self.safe_number_k(position.clone(), "isolatedMargin", &[]);
         // history entries carry the liquidation price in forceMarkPrice when force is true
@@ -7675,8 +7675,8 @@ impl XtCore {
         // {"returnCode":1,"msgInfo":"failure","error":{"code":"insufficient_balance","msg":"insufficient balance","args":[]},"result":null}
         //
         //
-        let mut status: Value = self.safe_string_upper2(response.clone(), Value::Str("msgInfo".to_string()), Value::Str("mc".to_string()), &[]);
-        if (status != Value::Null) && (status.as_str() != Some("SUCCESS")) {
+        let mut status: Option<String> = self.safe_string_upper2(response.clone(), Value::Str("msgInfo".to_string()), Value::Str("mc".to_string()), &[]).as_str().map(str::to_owned);
+        if (status.is_some()) && (status.as_deref() != Some("SUCCESS")) {
             let mut feedback: Value = add(&Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), &body);
             let mut error: Value = self.safe_dict_k(response.clone(), "error", &[Value::Map({
     let mut m = indexmap::IndexMap::new();

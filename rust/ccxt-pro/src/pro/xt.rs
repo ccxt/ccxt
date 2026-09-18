@@ -367,8 +367,8 @@ impl XtCore {
             url = add(&url, &Value::Str("/private".to_string()));
         }
         let mut client: Value = self.client(&[url.clone()]);
-        let mut token: Value = self.safe_string(get_value(&client, &Value::Str("subscriptions".to_string())), Value::Str("token".to_string()), &[]);
-        if (token == Value::Null) {
+        let mut token: Option<String> = self.safe_string(get_value(&client, &Value::Str("subscriptions".to_string())), Value::Str("token".to_string()), &[]).as_str().map(str::to_owned);
+        if (token.is_none()) {
             // single-flight leader election, see https://github.com/ccxt/ccxt/issues/29393:
             // concurrent callers each minted their own token, last write won, and the losers
             // carried an orphaned token into name + '@' + listenKey so their streams went dead
@@ -1351,10 +1351,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //    }
         //
         let mut data: Value = self.safe_dict_k(message.clone(), "data", &[]);
-        let mut marketId: Value = self.safe_string_k(data.clone(), "s", &[]);
-        if (marketId != Value::Null) {
-            let mut cv: Value = self.safe_string_k(data.clone(), "cv", &[]);
-            let mut isSpot: bool = cv != Value::Null;
+        let mut marketId: Option<String> = self.safe_string_k(data.clone(), "s", &[]).as_str().map(str::to_owned);
+        if (marketId.is_some()) {
+            let mut cv: Option<String> = self.safe_string_k(data.clone(), "cv", &[]).as_str().map(str::to_owned);
+            let mut isSpot: bool = cv.is_some();
             let mut ticker: Value = self.parse_ticker(data.clone(), &[]);
             let mut symbol: Value = ticker.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
             if (symbol != Value::Null) {
@@ -1440,8 +1440,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //
         let mut data: Value = self.safe_list_k(message.clone(), "data", &[Value::List(vec![])]);
         let mut firstTicker: Value = self.safe_dict(data.clone(), Value::Int(0), &[]);
-        let mut spotTest: Value = self.safe_string2(firstTicker.clone(), Value::Str("cv".to_string()), Value::Str("aq".to_string()), &[]);
-        let mut tradeType: Value = (if is_true(&(Value::Bool(spotTest != Value::Null))) { Value::Str("spot".to_string()) } else { Value::Str("contract".to_string()) });
+        let mut spotTest: Option<String> = self.safe_string2(firstTicker.clone(), Value::Str("cv".to_string()), Value::Str("aq".to_string()), &[]).as_str().map(str::to_owned);
+        let mut tradeType: Value = (if is_true(&(Value::Bool(spotTest.is_some()))) { Value::Str("spot".to_string()) } else { Value::Str("contract".to_string()) });
         let mut newTickers: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
@@ -1586,8 +1586,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut marketId: Value = self.safe_string_lower(data.clone(), Value::Str("s".to_string()), &[]);
         if (marketId != Value::Null) {
             let mut trade: Value = self.parse_trade(data.clone(), &[]);
-            let mut i: Value = self.safe_string_k(data.clone(), "i", &[]);
-            let mut tradeType: Value = (if is_true(&(Value::Bool(i != Value::Null))) { Value::Str("spot".to_string()) } else { Value::Str("contract".to_string()) });
+            let mut i: Option<String> = self.safe_string_k(data.clone(), "i", &[]).as_str().map(str::to_owned);
+            let mut tradeType: Value = (if is_true(&(Value::Bool(i.is_some()))) { Value::Str("spot".to_string()) } else { Value::Str("contract".to_string()) });
             let mut market: Value = self.safe_market(&[marketId.clone(), Value::Null, Value::Null, tradeType.clone()]);
             let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
             let mut event: Value = self.safe_string_k(message.clone(), "event", &[]);
@@ -2065,10 +2065,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 }
 
     pub fn handle_message(&mut self, mut client: Value, mut message: Value) {
-        let mut event: Value = self.safe_string_k(message.clone(), "event", &[]);
-        if (event.as_str() == Some("pong")) {
+        let mut event: Option<String> = self.safe_string_k(message.clone(), "event", &[]).as_str().map(str::to_owned);
+        if (event.as_deref() == Some("pong")) {
             client.on_pong(&[]);
-        }  else if (event != Value::Null) {
+        }  else if (event.is_some()) {
             let mut topic: Value = self.safe_string_k(message.clone(), "topic", &[]);
             let mut methods: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -2168,8 +2168,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //        "msg": "token expire"
         //    }
         //
-        let mut msg: Value = self.safe_string_k(message.clone(), "msg", &[]);
-        if is_true(&(Value::Bool(msg.as_str() == Some("invalid_listen_key")))) || is_true(&(Value::Bool(msg.as_str() == Some("token expire")))) {
+        let mut msg: Option<String> = self.safe_string_k(message.clone(), "msg", &[]).as_str().map(str::to_owned);
+        if is_true(&(Value::Bool(msg.as_deref() == Some("invalid_listen_key")))) || is_true(&(Value::Bool(msg.as_deref() == Some("token expire")))) {
             add_element_to_object(&mut get_value(&client, &Value::Str("subscriptions".to_string())), &Value::Str("token".to_string()), Value::Null);
             self.get_listen_key(Value::Bool(true)).await;
             return;

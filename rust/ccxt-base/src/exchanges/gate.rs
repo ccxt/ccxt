@@ -3568,13 +3568,13 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut takerPercent: Value = self.safe_string_k(market.clone(), "fee", &[]);
             let mut makerPercent: Value = self.safe_string_k(market.clone(), "maker_fee_rate", &[takerPercent.clone()]);
             let mut amountPrecision: Value = self.parse_number(self.parse_precision(&[self.safe_string_k(market.clone(), "amount_precision", &[])]), &[]);
-            let mut tradeStatus: Value = self.safe_string_k(market.clone(), "trade_status", &[]);
+            let mut tradeStatus: Option<String> = self.safe_string_k(market.clone(), "trade_status", &[]).as_str().map(str::to_owned);
             let mut marginStatus: Value = self.safe_integer_k(market.clone(), "status", &[Value::Int(1)]); // 0 disabled, 1 enabled
             let mut leverage: Value = self.safe_number_k(market.clone(), "leverage", &[]);
             let mut margin: Value = Value::Bool(leverage != Value::Null);
             let mut buyStart: Value = self.safe_integer_product(spotMarket.clone(), Value::Str("buy_start".to_string()), Value::Int(1000), &[]); // buy_start is the trading start time, while sell_start is offline orders start time
             let mut createdTs: Value = (if is_true(&(Value::Bool(buyStart.as_f64() != Some(0.0)))) { buyStart.clone() } else { Value::Null });
-            let mut active: Value = Value::Bool(is_true(&(Value::Bool(tradeStatus.as_str() == Some("tradable")))) || is_true(&(Value::Bool(is_true(&margin) && is_true(&(Value::Bool(marginStatus.as_f64() == Some(1.0))))))));
+            let mut active: Value = Value::Bool(is_true(&(Value::Bool(tradeStatus.as_deref() == Some("tradable")))) || is_true(&(Value::Bool(is_true(&margin) && is_true(&(Value::Bool(marginStatus.as_f64() == Some(1.0))))))));
             append_to_array(&mut result, Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("id".to_string(), id.clone());
@@ -3839,14 +3839,14 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut parts: Value = split(&id, &Value::Str("_".to_string()));
         let mut baseId: Value = self.safe_string(parts.clone(), Value::Int(0), &[]);
         let mut quoteId: Value = self.safe_string(parts.clone(), Value::Int(1), &[]);
-        let mut date: Value = self.safe_string(parts.clone(), Value::Int(2), &[]);
+        let mut date: Option<String> = self.safe_string(parts.clone(), Value::Int(2), &[]).as_str().map(str::to_owned);
         let mut base: Value = self.safe_currency_code(baseId.clone(), &[]);
         let mut quote: Value = self.safe_currency_code(quoteId.clone(), &[]);
         let mut settle: Value = self.safe_currency_code(settleId.clone(), &[]);
         let mut expiry: Value = self.safe_timestamp(market.clone(), Value::Str("expire_time".to_string()), &[]);
         let mut symbol: Value = Value::Str("".to_string());
         let mut marketType: Value = Value::Str("swap".to_string());
-        if (date != Value::Null) {
+        if (date.is_some()) {
             symbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", add(&Value::Str(format!("{}{}", add(&add(&base, &Value::Str("/".to_string())), &quote), Value::Str(":".to_string()))), &settle), Value::Str("-".to_string()))), self.yymmdd(expiry.clone(), &[Value::Str("".to_string())])));
             marketType = Value::Str("future".to_string());
         }  else {
@@ -3864,7 +3864,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (contractSize.as_str() == Some("0")) {
             contractSize = Value::Str("1".to_string()); // 1 USD in WEB: https://i.imgur.com/MBBUI04.png
         }
-        let mut status: Value = self.safe_string_k(market.clone(), "status", &[Value::Str("trading".to_string())]); // or "suspend"
+        let mut status: Option<String> = self.safe_string_k(market.clone(), "status", &[Value::Str("trading".to_string())]).as_str().map(str::to_owned); // or "suspend"
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id.clone());
@@ -3881,7 +3881,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         m.insert("swap".to_string(), Value::Bool(marketType.as_str() == Some("swap")));
         m.insert("future".to_string(), Value::Bool(marketType.as_str() == Some("future")));
         m.insert("option".to_string(), Value::Bool(marketType.as_str() == Some("option")));
-        m.insert("active".to_string(), Value::Bool(status.as_str() == Some("trading")));
+        m.insert("active".to_string(), Value::Bool(status.as_deref() == Some("trading")));
         m.insert("contract".to_string(), Value::Bool(true));
         m.insert("linear".to_string(), isLinear.clone());
         m.insert("inverse".to_string(), Value::Bool(!is_true(&isLinear)));
@@ -6968,9 +6968,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             panic!("{}", crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder() stopLossPrice and takeProfitPrice cannot both be defined".to_string())))));
         }
         let mut reduceOnly: Value = self.safe_value_k(params.clone(), "reduceOnly", &[]);
-        let mut exchangeSpecificTimeInForce: Value = self.safe_string_lower_n(params.clone(), Value::List(vec![Value::Str("timeInForce".to_string()), Value::Str("tif".to_string()), Value::Str("time_in_force".to_string())]), &[]);
+        let mut exchangeSpecificTimeInForce: Option<String> = self.safe_string_lower_n(params.clone(), Value::List(vec![Value::Str("timeInForce".to_string()), Value::Str("tif".to_string()), Value::Str("time_in_force".to_string())]), &[]).as_str().map(str::to_owned);
         let mut postOnly: Value = Value::Null;
-        { let __destr_tmp = self.handle_post_only(Value::Bool(type_var.as_str() == Some("market")), Value::Bool(exchangeSpecificTimeInForce.as_str() == Some("poc")), &[params.clone()]); postOnly = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
+        { let __destr_tmp = self.handle_post_only(Value::Bool(type_var.as_str() == Some("market")), Value::Bool(exchangeSpecificTimeInForce.as_deref() == Some("poc")), &[params.clone()]); postOnly = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         let mut timeInForce: Value = self.handle_time_in_force(&[params.clone()]);
         if (postOnly.as_bool() == Some(true)) {
             timeInForce = Value::Str("poc".to_string());
@@ -7669,8 +7669,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut status: Value = self.parse_order_status(rawStatus.clone());
         let mut remaining: Value = crate::precise::Precise::stringAbs(&remainingString);
         // handle spot market buy
-        let mut account: Value = self.safe_string_k(order.clone(), "account", &[]); // using this instead of market type because of the conflicting ids
-        if is_true(&(Value::Bool(account.as_str() == Some("spot")))) || is_true(&(Value::Bool(account.as_str() == Some("unified")))) {
+        let mut account: Option<String> = self.safe_string_k(order.clone(), "account", &[]).as_str().map(str::to_owned); // using this instead of market type because of the conflicting ids
+        if is_true(&(Value::Bool(account.as_deref() == Some("spot")))) || is_true(&(Value::Bool(account.as_deref() == Some("unified")))) {
             let mut averageString: Value = self.safe_string_k(order.clone(), "avg_deal_price", &[]);
             average = self.parse_number(averageString.clone(), &[]);
             if is_true(&(Value::Bool(type_var.as_str() == Some("market")))) && is_true(&(Value::Bool(side.as_str() == Some("buy")))) {
@@ -7797,13 +7797,13 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         self.load_unified_status(&[]).await;
         let mut market: Value = (if is_true(&(Value::Bool(symbol == Value::Null))) { Value::Null } else { self.market(symbol.clone()) });
         let mut result: Value = self.handle_market_type_and_params(Value::Str("fetchOrder".to_string()), &[market.clone(), params.clone()]);
-        let mut type_var: Value = self.safe_string(result.clone(), Value::Int(0), &[]);
+        let mut type_var: Option<String> = self.safe_string(result.clone(), Value::Int(0), &[]).as_str().map(str::to_owned);
         let mut trigger: Value = self.safe_bool_n(params.clone(), Value::List(vec![Value::Str("trigger".to_string()), Value::Str("is_stop_order".to_string()), Value::Str("stop".to_string())]), &[Value::Bool(false)]);
         let mut requestrequestParamsVariable = self.fetch_order_request(id.clone(), &[symbol.clone(), params.clone()]);
         let mut request: Value = requestrequestParamsVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut requestParams: Value = requestrequestParamsVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         let mut response: Value = Value::Null;
-        if (type_var.as_str() == Some("spot")) || (type_var.as_str() == Some("margin")) {
+        if (type_var.as_deref() == Some("spot")) || (type_var.as_deref() == Some("margin")) {
             if (trigger.as_bool() == Some(true)) {
                 let __ws_arg_45 = self.extend(request.clone(), &[requestParams.clone()]);
                 response = self.private_spot_get_price_orders_order_id(&[__ws_arg_45]).await;
@@ -7811,7 +7811,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 let __ws_arg_46 = self.extend(request.clone(), &[requestParams.clone()]);
                 response = self.private_spot_get_orders_order_id(&[__ws_arg_46]).await;
             }
-        }  else if (type_var.as_str() == Some("swap")) {
+        }  else if (type_var.as_deref() == Some("swap")) {
             if (trigger.as_bool() == Some(true)) {
                 let __ws_arg_47 = self.extend(request.clone(), &[requestParams.clone()]);
                 response = self.private_futures_get_settle_price_orders_order_id(&[__ws_arg_47]).await;
@@ -7819,7 +7819,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 let __ws_arg_48 = self.extend(request.clone(), &[requestParams.clone()]);
                 response = self.private_futures_get_settle_orders_order_id(&[__ws_arg_48]).await;
             }
-        }  else if (type_var.as_str() == Some("future")) {
+        }  else if (type_var.as_deref() == Some("future")) {
             if (trigger.as_bool() == Some(true)) {
                 let __ws_arg_49 = self.extend(request.clone(), &[requestParams.clone()]);
                 response = self.private_delivery_get_settle_price_orders_order_id(&[__ws_arg_49]).await;
@@ -7827,7 +7827,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 let __ws_arg_50 = self.extend(request.clone(), &[requestParams.clone()]);
                 response = self.private_delivery_get_settle_orders_order_id(&[__ws_arg_50]).await;
             }
-        }  else if (type_var.as_str() == Some("option")) {
+        }  else if (type_var.as_deref() == Some("option")) {
             let __ws_arg_51 = self.extend(request.clone(), &[requestParams.clone()]);
             response = self.private_options_get_orders_order_id(&[__ws_arg_51]).await;
         }  else {
@@ -8017,11 +8017,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         // don't omit here, omits done in prepareOrdersByStatusRequest
         let mut trigger: Value = self.safe_bool2(params.clone(), Value::Str("trigger".to_string()), Value::Str("stop".to_string()), &[]);
         let mut res: Value = self.handle_market_type_and_params(Value::Str("fetchOrdersByStatus".to_string()), &[market.clone(), params.clone()]);
-        let mut type_var: Value = self.safe_string(res.clone(), Value::Int(0), &[]);
+        let mut type_var: Option<String> = self.safe_string(res.clone(), Value::Int(0), &[]).as_str().map(str::to_owned);
         let mut requestrequestParamsVariable = self.prepare_orders_by_status_request(status.clone(), &[symbol.clone(), since.clone(), limit.clone(), params.clone()]);
         let mut request: Value = requestrequestParamsVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut requestParams: Value = requestrequestParamsVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
-        let mut spot: bool = is_true(&(Value::Bool(type_var.as_str() == Some("spot")))) || is_true(&(Value::Bool(type_var.as_str() == Some("margin"))));
+        let mut spot: bool = is_true(&(Value::Bool(type_var.as_deref() == Some("spot")))) || is_true(&(Value::Bool(type_var.as_deref() == Some("margin"))));
         let mut openStatus: bool = status.as_str() == Some("open");
         let mut openSpotOrders: bool = spot && openStatus && is_true(&(Value::Bool(trigger.as_bool() != Some(true))));
         let mut response: Value = Value::Null;
@@ -8038,7 +8038,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 let __ws_arg_55 = self.extend(request.clone(), &[requestParams.clone()]);
                 response = self.private_spot_get_price_orders(&[__ws_arg_55]).await;
             }
-        }  else if (type_var.as_str() == Some("swap")) {
+        }  else if (type_var.as_deref() == Some("swap")) {
             if (trigger.as_bool() == Some(true)) {
                 let __ws_arg_56 = self.extend(request.clone(), &[requestParams.clone()]);
                 response = self.private_futures_get_settle_price_orders(&[__ws_arg_56]).await;
@@ -8046,7 +8046,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 let __ws_arg_57 = self.extend(request.clone(), &[requestParams.clone()]);
                 response = self.private_futures_get_settle_orders(&[__ws_arg_57]).await;
             }
-        }  else if (type_var.as_str() == Some("future")) {
+        }  else if (type_var.as_deref() == Some("future")) {
             if (trigger.as_bool() == Some(true)) {
                 let __ws_arg_58 = self.extend(request.clone(), &[requestParams.clone()]);
                 response = self.private_delivery_get_settle_price_orders(&[__ws_arg_58]).await;
@@ -8054,7 +8054,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 let __ws_arg_59 = self.extend(request.clone(), &[requestParams.clone()]);
                 response = self.private_delivery_get_settle_orders(&[__ws_arg_59]).await;
             }
-        }  else if (type_var.as_str() == Some("option")) {
+        }  else if (type_var.as_deref() == Some("option")) {
             let __ws_arg_60 = self.extend(request.clone(), &[requestParams.clone()]);
             response = self.private_options_get_orders(&[__ws_arg_60]).await;
         }  else {
@@ -8724,10 +8724,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             }
         }
         let mut notional: Value = self.safe_string_k(position.clone(), "value", &[]);
-        let mut leverage: Value = self.safe_string_k(position.clone(), "leverage", &[]);
+        let mut leverage: Option<String> = self.safe_string_k(position.clone(), "leverage", &[]).as_str().map(str::to_owned);
         let mut marginMode: Value = Value::Null;
-        if (leverage != Value::Null) {
-            if (leverage.as_str() == Some("0")) {
+        if (leverage.is_some()) {
+            if (leverage.as_deref() == Some("0")) {
                 marginMode = Value::Str("cross".to_string());
             }  else {
                 marginMode = Value::Str("isolated".to_string());
@@ -9396,9 +9396,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //         "unpaid_interest": "0.003333333333"
         //     }
         //
-        let mut marginMode: Value = self.safe_string2(self.options.clone(), Value::Str("defaultMarginMode".to_string()), Value::Str("marginMode".to_string()), &[Value::Str("cross".to_string())]);
+        let mut marginMode: Option<String> = self.safe_string2(self.options.clone(), Value::Str("defaultMarginMode".to_string()), Value::Str("marginMode".to_string()), &[Value::Str("cross".to_string())]).as_str().map(str::to_owned);
         let mut timestamp: Value = self.safe_integer_k(info.clone(), "create_time", &[]);
-        if (marginMode.as_str() == Some("isolated")) {
+        if (marginMode.as_deref() == Some("isolated")) {
             timestamp = self.safe_timestamp(info.clone(), Value::Str("create_time".to_string()), &[]);
         }
         let mut currencyId: Value = self.safe_string_k(info.clone(), "currency", &[]);
@@ -9980,8 +9980,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 add_element_to_object(&mut request, &Value::Str("from".to_string()), since.clone());
             }
             if (market == Value::Null) {
-                let mut underlying: Value = self.safe_string_k(params.clone(), "underlying", &[]);
-                if (underlying == Value::Null) {
+                let mut underlying: Option<String> = self.safe_string_k(params.clone(), "underlying", &[]).as_str().map(str::to_owned);
+                if (underlying.is_none()) {
                     panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchMySettlementHistory() requires a symbol argument or an underlying parameter in params".to_string())))));
                 }
             }  else {
@@ -10583,11 +10583,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         // --- derive side ---
         // 1) options payload has explicit 'side': 'long' | 'short'
-        let mut optPos: Value = self.safe_string_lower(liquidation.clone(), Value::Str("side".to_string()), &[]);
+        let mut optPos: Option<String> = self.safe_string_lower(liquidation.clone(), Value::Str("side".to_string()), &[]).as_str().map(str::to_owned);
         let mut side: Value = Value::Null;
-        if (optPos.as_str() == Some("long")) {
+        if (optPos.as_deref() == Some("long")) {
             side = Value::Str("buy".to_string());
-        }  else if (optPos.as_str() == Some("short")) {
+        }  else if (optPos.as_deref() == Some("short")) {
             side = Value::Str("sell".to_string());
         }  else {
             if (size != Value::Null) {

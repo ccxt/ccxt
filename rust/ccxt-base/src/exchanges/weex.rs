@@ -2520,8 +2520,8 @@ impl WeexCore {
         let mut isSpot: Value = Value::Bool(true);
         if (market == Value::Null) {
             let mut marketId: Value = self.safe_string_k(trade.clone(), "symbol", &[]);
-            let mut realizedPnl: Value = self.safe_string_k(trade.clone(), "realizedPnl", &[]);
-            let mut marketType: Value = (if is_true(&(Value::Bool(realizedPnl != Value::Null))) { Value::Str("swap".to_string()) } else { Value::Str("spot".to_string()) });
+            let mut realizedPnl: Option<String> = self.safe_string_k(trade.clone(), "realizedPnl", &[]).as_str().map(str::to_owned);
+            let mut marketType: Value = (if is_true(&(Value::Bool(realizedPnl.is_some()))) { Value::Str("swap".to_string()) } else { Value::Str("spot".to_string()) });
             market = self.safe_market(&[marketId.clone(), Value::Null, Value::Null, marketType.clone()]);
             isSpot = Value::Bool(marketType.as_str() == Some("spot"));
         }  else {
@@ -2795,11 +2795,11 @@ impl WeexCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut requestedType: Value = self.safe_string_k(params.clone(), "type", &[]);
+        let mut requestedType: Option<String> = self.safe_string_k(params.clone(), "type", &[]).as_str().map(str::to_owned);
         let mut type_var: Value = Value::Null;
         { let __destr_tmp = self.handle_market_type_and_params(Value::Str("fetchBalance".to_string()), &[Value::Null, params.clone()]); type_var = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         let mut sandboxMode: Value = self.safe_bool_k(self.options.clone(), "sandboxMode", &[Value::Bool(false)]);
-        if is_true(&(Value::Bool(sandboxMode.as_bool() == Some(true)))) && is_true(&(Value::Bool(requestedType == Value::Null))) {
+        if is_true(&(Value::Bool(sandboxMode.as_bool() == Some(true)))) && is_true(&(Value::Bool(requestedType.is_none()))) {
             type_var = Value::Str("swap".to_string()); // the demo trading API only provides the swap account, don't let the default spot type break a bare fetchBalance() call
         }
         let mut response: Value = Value::Null;
@@ -3139,10 +3139,10 @@ impl WeexCore {
         }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = self.create_contract_order_request(symbol.clone(), type_var.clone(), side.clone(), amount.clone(), &[price.clone(), params.clone()]);
-        let mut triggerPrice: Value = self.safe_string_k(request.clone(), "triggerPrice", &[]);
+        let mut triggerPrice: Option<String> = self.safe_string_k(request.clone(), "triggerPrice", &[]).as_str().map(str::to_owned);
         let mut sandboxMode: Value = self.safe_bool_k(self.options.clone(), "sandboxMode", &[Value::Bool(false)]);
         let mut response: Value = Value::Null;
-        if (triggerPrice != Value::Null) {
+        if (triggerPrice.is_some()) {
             if (sandboxMode.as_bool() == Some(true)) {
                 panic!("{}", crate::exchange_errors::not_supported(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder() does not support stopLossPrice or takeProfitPrice orders in sandbox mode".to_string())))));
             }
@@ -3224,19 +3224,19 @@ impl WeexCore {
         if hasStopLoss && is_true(&(Value::Bool(self.safe_number_k(stopLoss.clone(), "price", &[]) != Value::Null))) {
             panic!("{}", crate::exchange_errors::not_supported(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder() does not support the price field inside the stopLoss params, the attached stop loss executes at market price".to_string())))));
         }
-        let mut timeInForce: Value = self.safe_string_k(params.clone(), "timeInForce", &[]);
+        let mut timeInForce: Option<String> = self.safe_string_k(params.clone(), "timeInForce", &[]).as_str().map(str::to_owned);
         let mut clientOrderId: Value = self.safe_string_k(params.clone(), "clientOrderId", &[]);
         if (clientOrderId == Value::Null) {
             let mut partner: Value = self.safe_string_k(params.clone(), "partner", &[Value::Str("b-WEEX111125".to_string())]);
             clientOrderId = Value::Str(format!("{}{}", Value::Str(format!("{}{}", partner, Value::Str("-".to_string()))), self.uuid22(&[])));
         }
-        let mut callerMethodName: Value = self.safe_string_k(params.clone(), "callerMethodName", &[]);
+        let mut callerMethodName: Option<String> = self.safe_string_k(params.clone(), "callerMethodName", &[]).as_str().map(str::to_owned);
         if isTrigger {
             // entry conditional order, triggers a regular order when the trigger price is reached
-            if (callerMethodName.as_str() == Some("createOrders")) {
+            if (callerMethodName.as_deref() == Some("createOrders")) {
                 panic!("{}", crate::exchange_errors::not_supported(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrders() does not support trigger orders".to_string())))));
             }
-            if (timeInForce != Value::Null) {
+            if (timeInForce.is_some()) {
                 panic!("{}", crate::exchange_errors::bad_request(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder() cannot use the timeInForce parameter with trigger orders".to_string())))));
             }
             add_element_to_object(&mut request, &Value::Str("clientAlgoId".to_string()), clientOrderId.clone());
@@ -3264,10 +3264,10 @@ impl WeexCore {
                 }
             }
         }  else if isStopLoss || isTakeProfit {
-            if (callerMethodName.as_str() == Some("createOrders")) {
+            if (callerMethodName.as_deref() == Some("createOrders")) {
                 panic!("{}", crate::exchange_errors::not_supported(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrders() does not support stop loss and take profit orders".to_string())))));
             }
-            if (timeInForce != Value::Null) {
+            if (timeInForce.is_some()) {
                 panic!("{}", crate::exchange_errors::bad_request(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder() cannot use timeInForce parameter with stopLoss and takeProfit orders".to_string())))));
             }
             if hasStopLoss || hasTakeProfit {
@@ -3303,7 +3303,7 @@ impl WeexCore {
             }
             add_element_to_object(&mut params, &Value::Str("type".to_string()), orderType.clone());
         }  else {
-            if !isMarketOrder && (timeInForce == Value::Null) {
+            if !isMarketOrder && (timeInForce.is_none()) {
                 add_element_to_object(&mut request, &Value::Str("timeInForce".to_string()), Value::Str("GTC".to_string()));
             }
             add_element_to_object(&mut request, &Value::Str("newClientOrderId".to_string()), clientOrderId.clone());
@@ -4110,8 +4110,8 @@ impl WeexCore {
         }
         if (market == Value::Null) {
             let mut marketId: Value = self.from_sandbox_market_id(self.safe_string_k(order.clone(), "symbol", &[]));
-            let mut positionSide: Value = self.safe_string_k(order.clone(), "positionSide", &[]);
-            let mut marketType: Value = (if is_true(&(Value::Bool(positionSide == Value::Null))) { Value::Str("spot".to_string()) } else { Value::Str("swap".to_string()) });
+            let mut positionSide: Option<String> = self.safe_string_k(order.clone(), "positionSide", &[]).as_str().map(str::to_owned);
+            let mut marketType: Value = (if is_true(&(Value::Bool(positionSide.is_none()))) { Value::Str("spot".to_string()) } else { Value::Str("swap".to_string()) });
             market = self.safe_market(&[marketId.clone(), Value::Null, Value::Null, marketType.clone()]);
         }
         let mut timestamp: Value = self.safe_integer_n(order.clone(), Value::List(vec![Value::Str("transactTime".to_string()), Value::Str("time".to_string()), Value::Str("createTime".to_string())]), &[]);
@@ -4516,8 +4516,8 @@ impl WeexCore {
             direction = Value::Str("out".to_string());
         }
         let mut rawType: Value = self.safe_string2(item.clone(), Value::Str("bizType".to_string()), Value::Str("incomeType".to_string()), &[]);
-        let mut transferReason: Value = self.safe_string_k(item.clone(), "transferReason", &[]);
-        let mut isContractEntry: bool = transferReason != Value::Null;
+        let mut transferReason: Option<String> = self.safe_string_k(item.clone(), "transferReason", &[]).as_str().map(str::to_owned);
+        let mut isContractEntry: bool = transferReason.is_some();
         if isContractEntry {
             if is_true(&(Value::Bool(rawType.as_str() == Some("withdraw")))) || is_true(&(Value::Bool(rawType.as_str() == Some("deposit")))) {
                 rawType = Value::Str("transfer".to_string());
@@ -4848,16 +4848,16 @@ impl WeexCore {
         let mut marketId: Value = self.from_sandbox_market_id(self.safe_string2(position.clone(), Value::Str("symbol".to_string()), Value::Str("coinId".to_string()), &[])); // coinId might be used in testnet: https://github.com/ccxt/ccxt/issues/28576#issuecomment-4439400273
         market = self.safe_market(&[marketId.clone(), market.clone(), Value::Null, Value::Str("contract".to_string())]);
         let mut timestamp: Value = self.safe_integer_k(position.clone(), "createdTime", &[]);
-        let mut marginType: Value = self.safe_string2(position.clone(), Value::Str("marginType".to_string()), Value::Str("marginMode".to_string()), &[]);
+        let mut marginType: Option<String> = self.safe_string2(position.clone(), Value::Str("marginType".to_string()), Value::Str("marginMode".to_string()), &[]).as_str().map(str::to_owned);
         let mut marginMode: Value = Value::Str("cross".to_string());
-        if (marginType.as_str() == Some("ISOLATED")) {
+        if (marginType.as_deref() == Some("ISOLATED")) {
             marginMode = Value::Str("isolated".to_string());
         }
-        let mut separatedMode: Value = self.safe_string_k(position.clone(), "separatedMode", &[]);
+        let mut separatedMode: Option<String> = self.safe_string_k(position.clone(), "separatedMode", &[]).as_str().map(str::to_owned);
         let mut hedged: Value = Value::Null;
-        if (separatedMode.as_str() == Some("COMBINED")) {
+        if (separatedMode.as_deref() == Some("COMBINED")) {
             hedged = Value::Bool(false);
-        }  else if (separatedMode.as_str() == Some("SEPARATED")) {
+        }  else if (separatedMode.as_deref() == Some("SEPARATED")) {
             hedged = Value::Bool(true);
         }
         let mut notional: Value = self.safe_string_k(position.clone(), "openValue", &[]);
@@ -5334,11 +5334,11 @@ impl WeexCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut separatedType: Value = self.safe_string_k(entry.clone(), "separatedType", &[]);
+        let mut separatedType: Option<String> = self.safe_string_k(entry.clone(), "separatedType", &[]).as_str().map(str::to_owned);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), response.clone());
-        m.insert("hedged".to_string(), (Value::Bool(separatedType.as_str() == Some("SEPARATED"))));
+        m.insert("hedged".to_string(), (Value::Bool(separatedType.as_deref() == Some("SEPARATED"))));
     m
 });
 
@@ -5433,8 +5433,8 @@ impl WeexCore {
         //         "requestTime": 1764505776347
         //     }
         //
-        let mut msg: Value = self.safe_string_k(data.clone(), "msg", &[]);
-        let mut status: Value = (if is_true(&(Value::Bool(msg.as_str() == Some("success")))) { Value::Str("ok".to_string()) } else { Value::Str("failed".to_string()) });
+        let mut msg: Option<String> = self.safe_string_k(data.clone(), "msg", &[]).as_str().map(str::to_owned);
+        let mut status: Value = (if is_true(&(Value::Bool(msg.as_deref() == Some("success")))) { Value::Str("ok".to_string()) } else { Value::Str("failed".to_string()) });
         let mut timestamp: Value = self.safe_integer_k(data.clone(), "requestTime", &[]);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();

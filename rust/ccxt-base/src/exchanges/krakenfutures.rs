@@ -964,8 +964,8 @@ impl KrakenfuturesCore {
             let mut contract: Value = Value::Bool(is_true(&swap) || is_true(&future) || is_true(&index));
             let mut swapOrFutures: bool = is_true(&swap) || is_true(&future);
             if swapOrFutures {
-                let mut exchangeType: Value = self.safe_string_k(market.clone(), "type", &[]);
-                if (exchangeType.as_str() == Some("futures_inverse")) {
+                let mut exchangeType: Option<String> = self.safe_string_k(market.clone(), "type", &[]).as_str().map(str::to_owned);
+                if (exchangeType.as_deref() == Some("futures_inverse")) {
                     settle = base.clone();
                     settleId = baseId.clone();
                     inverse = Value::Bool(true);
@@ -1899,12 +1899,12 @@ impl KrakenfuturesCore {
         let mut market: Value = self.market(symbol.clone());
         symbol = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         type_var = self.safe_string_k(params.clone(), "orderType", &[type_var.clone()]);
-        let mut timeInForce: Value = self.safe_string_k(params.clone(), "timeInForce", &[]);
+        let mut timeInForce: Option<String> = self.safe_string_k(params.clone(), "timeInForce", &[]).as_str().map(str::to_owned);
         let mut postOnly: Value = Value::Bool(false);
         { let __destr_tmp = self.handle_post_only(Value::Bool(type_var.as_str() == Some("market")), Value::Bool(type_var.as_str() == Some("post")), &[params.clone()]); postOnly = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         if is_true(&postOnly) {
             type_var = Value::Str("post".to_string());
-        }  else if (timeInForce.as_str() == Some("ioc")) {
+        }  else if (timeInForce.as_deref() == Some("ioc")) {
             type_var = Value::Str("ioc".to_string());
         }  else if (type_var.as_str() == Some("limit")) {
             type_var = Value::Str("lmt".to_string());
@@ -1953,8 +1953,8 @@ impl KrakenfuturesCore {
         add_element_to_object(&mut request, &Value::Str("orderType".to_string()), type_var.clone());
         price = self.parse_number(price.clone(), &[]); // some callers pass null instead of undefined, normalize it
         let mut isLimitOrder: bool = is_true(&(Value::Bool(type_var.as_str() == Some("lmt")))) || is_true(&(Value::Bool(type_var.as_str() == Some("post")))) || is_true(&(Value::Bool(type_var.as_str() == Some("ioc"))));
-        let mut limitPriceParam: Value = self.safe_string_k(params.clone(), "limitPrice", &[]); // the venue's own field name, forwarded as-is by this.extend below
-        if isLimitOrder && is_true(&(Value::Bool(price == Value::Null))) && is_true(&(Value::Bool(limitPriceParam == Value::Null))) {
+        let mut limitPriceParam: Option<String> = self.safe_string_k(params.clone(), "limitPrice", &[]).as_str().map(str::to_owned); // the venue's own field name, forwarded as-is by this.extend below
+        if isLimitOrder && is_true(&(Value::Bool(price == Value::Null))) && is_true(&(Value::Bool(limitPriceParam.is_none()))) {
             panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder () requires a price argument for ".to_string()))), type_var)), Value::Str(" orders".to_string())))));
         }
         let mut isMarketOrder: bool = type_var.as_str() == Some("mkt");
@@ -2606,14 +2606,14 @@ impl KrakenfuturesCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-                let mut filled: Value = self.safe_string_k(innerOrder.clone(), "filled", &[]);
-                if (filled.as_str() != Some("0")) {
+                let mut filled: Option<String> = self.safe_string_k(innerOrder.clone(), "filled", &[]).as_str().map(str::to_owned);
+                if (filled.as_deref() != Some("0")) {
                     add_element_to_object(&mut innerOrder, &Value::Str("status".to_string()), Value::Str("closed".to_string())); // status not available in the response
                     append_to_array(&mut closedOrders, innerOrder.clone());
                 }
             }  else if (orderUpdated != Value::Null) {
-                let mut reason: Value = self.safe_string_k(orderUpdated.clone(), "reason", &[]);
-                if (reason.as_str() == Some("full_fill")) {
+                let mut reason: Option<String> = self.safe_string_k(orderUpdated.clone(), "reason", &[]).as_str().map(str::to_owned);
+                if (reason.as_deref() == Some("full_fill")) {
                     let mut newOrder: Value = self.safe_dict_k(orderUpdated.clone(), "newOrder", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -2695,8 +2695,8 @@ impl KrakenfuturesCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-                let mut filled: Value = self.safe_string_k(innerOrder.clone(), "filled", &[]);
-                if (filled.as_str() == Some("0")) || isCancelledTriggerOrder {
+                let mut filled: Option<String> = self.safe_string_k(innerOrder.clone(), "filled", &[]).as_str().map(str::to_owned);
+                if (filled.as_deref() == Some("0")) || isCancelledTriggerOrder {
                     add_element_to_object(&mut innerOrder, &Value::Str("status".to_string()), Value::Str("canceled".to_string())); // status not available in the response
                     append_to_array(&mut canceledAndRejected, innerOrder.clone());
                 }
@@ -3155,9 +3155,9 @@ impl KrakenfuturesCore {
 }), &[]);
         }
         let mut orderEvents: Value = self.safe_list_k(order.clone(), "orderEvents", &[Value::List(vec![])]);
-        let mut errorStatus: Value = self.safe_string_k(order.clone(), "status", &[]);
+        let mut errorStatus: Option<String> = self.safe_string_k(order.clone(), "status", &[]).as_str().map(str::to_owned);
         let mut orderEventsLength: Value = Value::Int(orderEvents.len() as i64);
-        if is_true(&(Value::Bool(in_op(&order, &Value::Str("orderEvents".to_string()))))) && is_true(&(Value::Bool(errorStatus != Value::Null))) && is_true(&(Value::Bool(orderEventsLength.as_f64() == Some(0.0)))) {
+        if is_true(&(Value::Bool(in_op(&order, &Value::Str("orderEvents".to_string()))))) && is_true(&(Value::Bool(errorStatus.is_some()))) && is_true(&(Value::Bool(orderEventsLength.as_f64() == Some(0.0)))) {
             return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), order.clone());
@@ -3903,9 +3903,9 @@ impl KrakenfuturesCore {
         //       "type": "multiCollateralMarginAccount"
         //    }
         //
-        let mut accountType: Value = self.safe_string2(response.clone(), Value::Str("accountType".to_string()), Value::Str("type".to_string()), &[]);
-        let mut isFlex: bool = accountType.as_str() == Some("multiCollateralMarginAccount");
-        let mut isCash: bool = accountType.as_str() == Some("cashAccount");
+        let mut accountType: Option<String> = self.safe_string2(response.clone(), Value::Str("accountType".to_string()), Value::Str("type".to_string()), &[]).as_str().map(str::to_owned);
+        let mut isFlex: bool = accountType.as_deref() == Some("multiCollateralMarginAccount");
+        let mut isCash: bool = accountType.as_deref() == Some("cashAccount");
         let mut balances: Value = self.safe_dict2(response.clone(), Value::Str("balances".to_string()), Value::Str("currencies".to_string()), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -4766,7 +4766,7 @@ impl KrakenfuturesCore {
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut access: Value = self.safe_string(methodAccess.clone(), path.clone(), &[Value::Str("public".to_string())]);
+        let mut access: Option<String> = self.safe_string(methodAccess.clone(), path.clone(), &[Value::Str("public".to_string())]).as_str().map(str::to_owned);
         let mut endpoint: Value = Value::Str(format!("{}{}", add(&version, &Value::Str("/".to_string())), self.implode_params(path.clone(), params.clone())));
         params = self.omit(params.clone(), self.extract_params(path.clone()), &[]);
         let mut query: Value = endpoint.clone();
@@ -4783,7 +4783,7 @@ impl KrakenfuturesCore {
             query = Value::Str(format!("{}{}", query, Value::Str(format!("{}{}", Value::Str("?".to_string()), postData))));
         }
         let mut url: Value = add(&get_value(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), &api), &query);
-        if (api.as_str() == Some("private")) || (access.as_str() == Some("private")) {
+        if (api.as_str() == Some("private")) || (access.as_deref() == Some("private")) {
             self.check_required_credentials(&[]);
             let mut auth: Value = Value::Str(format!("{}{}", postData, Value::Str("/api/".to_string())));
             if (api.as_str() != Some("private")) {

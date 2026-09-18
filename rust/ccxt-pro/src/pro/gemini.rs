@@ -393,10 +393,10 @@ impl GeminiCore {
         let mut amountString: Value = self.safe_string2(trade.clone(), Value::Str("quantity".to_string()), Value::Str("amount".to_string()), &[]);
         let mut side: Value = self.safe_string_lower(trade.clone(), Value::Str("side".to_string()), &[]);
         if (side == Value::Null) {
-            let mut marketSide: Value = self.safe_string_lower(trade.clone(), Value::Str("makerSide".to_string()), &[]);
-            if (marketSide.as_str() == Some("bid")) {
+            let mut marketSide: Option<String> = self.safe_string_lower(trade.clone(), Value::Str("makerSide".to_string()), &[]).as_str().map(str::to_owned);
+            if (marketSide.as_deref() == Some("bid")) {
                 side = Value::Str("sell".to_string());
-            }  else if (marketSide.as_str() == Some("ask")) {
+            }  else if (marketSide.as_deref() == Some("ask")) {
                 side = Value::Str("buy".to_string());
             }
         }
@@ -838,14 +838,14 @@ impl GeminiCore {
             while { if !__for_first_365 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_365 = false; is_less_than(&i, &get_array_length(&rawBidAskChanges)) } {
             let mut entry: Value = get_value(&rawBidAskChanges, &i);
             let mut entry: Value = get_value(&rawBidAskChanges, &i);
-            let mut rawSide: Value = self.safe_string_k(entry.clone(), "side", &[]);
+            let mut rawSide: Option<String> = self.safe_string_k(entry.clone(), "side", &[]).as_str().map(str::to_owned);
             let mut price: Value = self.safe_number_k(entry.clone(), "price", &[]);
             let mut sizeString: Value = self.safe_string_k(entry.clone(), "remaining", &[]);
             if is_true(&crate::precise::Precise::stringEq(&sizeString, &Value::Str("0".to_string()))) {
                 continue;
             }
             let mut size: Value = self.parse_number(sizeString.clone(), &[]);
-            if (rawSide.as_str() == Some("bid")) {
+            if (rawSide.as_deref() == Some("bid")) {
                 add_element_to_object(&mut currentBidAsk, &Value::Str("bid".to_string()), price.clone());
                 add_element_to_object(&mut currentBidAsk, &Value::Str("bidVolume".to_string()), size.clone());
             }  else {
@@ -946,8 +946,8 @@ impl GeminiCore {
             let mut entry: Value = get_value(&rawOrderBookChanges, &i);
             let mut price: Value = self.safe_number_k(entry.clone(), "price", &[]);
             let mut size: Value = self.safe_number_k(entry.clone(), "remaining", &[]);
-            let mut rawSide: Value = self.safe_string_k(entry.clone(), "side", &[]);
-            if (rawSide.as_str() == Some("bid")) {
+            let mut rawSide: Option<String> = self.safe_string_k(entry.clone(), "side", &[]).as_str().map(str::to_owned);
+            if (rawSide.as_deref() == Some("bid")) {
                 bids.store(price.clone(), size.clone());
             }  else {
                 asks.store(price.clone(), size.clone());
@@ -1139,14 +1139,14 @@ impl GeminiCore {
         let mut status: Value = self.safe_string_k(order.clone(), "type", &[]);
         let mut marketId: Value = self.safe_string_k(order.clone(), "symbol", &[]);
         let mut typeId: Value = self.safe_string_k(order.clone(), "order_type", &[]);
-        let mut behavior: Value = self.safe_string_k(order.clone(), "behavior", &[]);
+        let mut behavior: Option<String> = self.safe_string_k(order.clone(), "behavior", &[]).as_str().map(str::to_owned);
         let mut timeInForce: Value = Value::Str("GTC".to_string());
         let mut postOnly: Value = Value::Bool(false);
-        if (behavior.as_str() == Some("immediate-or-cancel")) {
+        if (behavior.as_deref() == Some("immediate-or-cancel")) {
             timeInForce = Value::Str("IOC".to_string());
-        }  else if (behavior.as_str() == Some("fill-or-kill")) {
+        }  else if (behavior.as_deref() == Some("fill-or-kill")) {
             timeInForce = Value::Str("FOK".to_string());
-        }  else if (behavior.as_str() == Some("maker-or-cancel")) {
+        }  else if (behavior.as_deref() == Some("maker-or-cancel")) {
             timeInForce = Value::Str("PO".to_string());
             postOnly = Value::Bool(true);
         }
@@ -1253,8 +1253,8 @@ impl GeminiCore {
             self.handle_order(client.clone(), message.clone());
             return;
         }
-        let mut reason: Value = self.safe_string_k(message.clone(), "reason", &[]);
-        if (reason.as_str() == Some("error")) {
+        let mut reason: Option<String> = self.safe_string_k(message.clone(), "reason", &[]).as_str().map(str::to_owned);
+        if (reason.as_deref() == Some("error")) {
             self.handle_error(client.clone(), message.clone());
         }
         let mut methods: Value = Value::Map({
@@ -1292,15 +1292,15 @@ impl GeminiCore {
                 while { if !__for_first_369 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_369 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(events.len() as i64).as_f64().unwrap_or(f64::NAN) } {
                 let mut event: Value = get_value(&events, &i);
                 let mut event: Value = get_value(&events, &i);
-                let mut eventType: Value = self.safe_string_k(event.clone(), "type", &[]);
-                let mut isOrderBook: bool = is_true(&(Value::Bool(eventType.as_str() == Some("change")))) && is_true(&(Value::Bool(in_op(&event, &Value::Str("side".to_string()))))) && is_true(&self.in_array(crate::value::get_value_k(&event, "side"), Value::List(vec![Value::Str("ask".to_string()), Value::Str("bid".to_string())])));
-                let mut eventReason: Value = self.safe_string_k(event.clone(), "reason", &[]);
-                let mut isBidAsk: bool = is_true(&(Value::Bool(eventReason.as_str() == Some("top-of-book")))) || is_true(&(Value::Bool(isOrderBook && is_true(&(Value::Bool(eventReason.as_str() == Some("initial")))) && (eventsLength.as_f64() == Some(2.0)))));
+                let mut eventType: Option<String> = self.safe_string_k(event.clone(), "type", &[]).as_str().map(str::to_owned);
+                let mut isOrderBook: bool = is_true(&(Value::Bool(eventType.as_deref() == Some("change")))) && is_true(&(Value::Bool(in_op(&event, &Value::Str("side".to_string()))))) && is_true(&self.in_array(crate::value::get_value_k(&event, "side"), Value::List(vec![Value::Str("ask".to_string()), Value::Str("bid".to_string())])));
+                let mut eventReason: Option<String> = self.safe_string_k(event.clone(), "reason", &[]).as_str().map(str::to_owned);
+                let mut isBidAsk: bool = is_true(&(Value::Bool(eventReason.as_deref() == Some("top-of-book")))) || is_true(&(Value::Bool(isOrderBook && is_true(&(Value::Bool(eventReason.as_deref() == Some("initial")))) && (eventsLength.as_f64() == Some(2.0)))));
                 if isBidAsk {
                     append_to_array(&mut bidaskItems, event.clone());
                 }  else if isOrderBook {
                     append_to_array(&mut orderBookItems, event.clone());
-                }  else if (eventType.as_str() == Some("trade")) {
+                }  else if (eventType.as_deref() == Some("trade")) {
                     append_to_array(&mut collectedEventsOfTrades, get_value(&events, &i));
                 }
             }

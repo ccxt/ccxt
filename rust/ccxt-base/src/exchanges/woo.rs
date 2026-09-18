@@ -1653,14 +1653,14 @@ impl WooCore {
     pub fn parse_market(&self, mut market: Value) -> Value {
         let mut marketId: Value = self.safe_string_k(market.clone(), "symbol", &[Value::Str("".to_string())]);
         let mut parts: Value = split(&marketId, &Value::Str("_".to_string()));
-        let mut first: Value = self.safe_string(parts.clone(), Value::Int(0), &[]);
+        let mut first: Option<String> = self.safe_string(parts.clone(), Value::Int(0), &[]).as_str().map(str::to_owned);
         let mut marketType: Value = Value::Null;
         let mut spot: Value = Value::Bool(false);
         let mut swap: Value = Value::Bool(false);
-        if (first.as_str() == Some("SPOT")) {
+        if (first.as_deref() == Some("SPOT")) {
             spot = Value::Bool(true);
             marketType = Value::Str("spot".to_string());
-        }  else if (first.as_str() == Some("PERP")) {
+        }  else if (first.as_deref() == Some("PERP")) {
             swap = Value::Bool(true);
             marketType = Value::Str("swap".to_string());
         }
@@ -2468,7 +2468,7 @@ impl WooCore {
         let mut takeProfit: Value = self.safe_value_k(params.clone(), "takeProfit", &[]);
         let mut hasStopLoss: bool = stopLoss != Value::Null;
         let mut hasTakeProfit: bool = takeProfit != Value::Null;
-        let mut algoType: Value = self.safe_string_k(params.clone(), "algoType", &[]);
+        let mut algoType: Option<String> = self.safe_string_k(params.clone(), "algoType", &[]).as_str().map(str::to_owned);
         let mut trailingTriggerPrice: Value = self.safe_string2(params.clone(), Value::Str("trailingTriggerPrice".to_string()), Value::Str("activatedPrice".to_string()), &[self.number_to_string(price.clone())]);
         let mut trailingAmount: Value = self.safe_string2(params.clone(), Value::Str("trailingAmount".to_string()), Value::Str("callbackValue".to_string()), &[]);
         let mut trailingPercent: Value = self.safe_string2(params.clone(), Value::Str("trailingPercent".to_string()), Value::Str("callbackRate".to_string()), &[]);
@@ -2477,16 +2477,16 @@ impl WooCore {
         let mut isTrailing: bool = isTrailingAmountOrder || isTrailingPercentOrder;
         let mut isConditional: bool = isTrailing || (triggerPrice != Value::Null) || hasStopLoss || hasTakeProfit || is_true(&(Value::Bool(self.safe_value_k(params.clone(), "childOrders", &[]) != Value::Null)));
         let mut isMarket: Value = Value::Bool(orderType.as_str() == Some("MARKET"));
-        let mut timeInForce: Value = self.safe_string_lower(params.clone(), Value::Str("timeInForce".to_string()), &[]);
+        let mut timeInForce: Option<String> = self.safe_string_lower(params.clone(), Value::Str("timeInForce".to_string()), &[]).as_str().map(str::to_owned);
         let mut postOnly: Value = self.is_post_only(isMarket.clone(), Value::Null, &[params.clone()]);
         let mut clientOrderIdKey: Value = (if isConditional { Value::Str("clientAlgoOrderId".to_string()) } else { Value::Str("clientOrderId".to_string()) });
         add_element_to_object(&mut request, &Value::Str("type".to_string()), orderType.clone()); // LIMIT/MARKET/IOC/FOK/POST_ONLY/ASK/BID
         if !isConditional {
             if is_true(&postOnly) {
                 add_element_to_object(&mut request, &Value::Str("type".to_string()), Value::Str("POST_ONLY".to_string()));
-            }  else if (timeInForce.as_str() == Some("fok")) {
+            }  else if (timeInForce.as_deref() == Some("fok")) {
                 add_element_to_object(&mut request, &Value::Str("type".to_string()), Value::Str("FOK".to_string()));
-            }  else if (timeInForce.as_str() == Some("ioc")) {
+            }  else if (timeInForce.as_deref() == Some("ioc")) {
                 add_element_to_object(&mut request, &Value::Str("type".to_string()), Value::Str("IOC".to_string()));
             }
         }
@@ -2515,7 +2515,7 @@ impl WooCore {
             }  else {
                 add_element_to_object(&mut request, &Value::Str("quantity".to_string()), self.amount_to_precision(symbol.clone(), amount.clone()));
             }
-        }  else if (algoType.as_str() != Some("POSITIONAL_TP_SL")) {
+        }  else if (algoType.as_deref() != Some("POSITIONAL_TP_SL")) {
             add_element_to_object(&mut request, &Value::Str("quantity".to_string()), self.amount_to_precision(symbol.clone(), amount.clone()));
         }
         let mut clientOrderId: Value = self.safe_string_n(params.clone(), Value::List(vec![Value::Str("clOrdID".to_string()), Value::Str("clientOrderId".to_string()), Value::Str("client_order_id".to_string())]), &[]);
@@ -2535,7 +2535,7 @@ impl WooCore {
                 add_element_to_object(&mut request, &Value::Str("callbackRate".to_string()), convertedTrailingPercent.clone());
             }
         }  else if (triggerPrice != Value::Null) {
-            if (algoType.as_str() != Some("TRAILING_STOP")) {
+            if (algoType.as_deref() != Some("TRAILING_STOP")) {
                 add_element_to_object(&mut request, &Value::Str("triggerPrice".to_string()), self.price_to_precision(symbol.clone(), triggerPrice.clone()));
                 add_element_to_object(&mut request, &Value::Str("algoType".to_string()), Value::Str("STOP".to_string()));
             }
@@ -4182,8 +4182,8 @@ impl WooCore {
         let mut code: Value = self.safe_currency_code(networkizedCode.clone(), &[currency.clone()]);
         currency = self.safe_currency(code.clone(), &[currency.clone()]);
         let mut amount: Value = self.safe_number_k(item.clone(), "amount", &[]);
-        let mut side: Value = self.safe_string_k(item.clone(), "tokenSide", &[]);
-        let mut direction: Value = (if is_true(&(Value::Bool(side.as_str() == Some("DEPOSIT")))) { Value::Str("in".to_string()) } else { Value::Str("out".to_string()) });
+        let mut side: Option<String> = self.safe_string_k(item.clone(), "tokenSide", &[]).as_str().map(str::to_owned);
+        let mut direction: Value = (if is_true(&(Value::Bool(side.as_deref() == Some("DEPOSIT")))) { Value::Str("in".to_string()) } else { Value::Str("out".to_string()) });
         let mut timestamp: Value = self.safe_timestamp(item.clone(), Value::Str("createdTime".to_string()), &[]);
         let mut fee: Value = self.parse_token_and_fee_temp(item.clone(), Value::List(vec![Value::Str("feeToken".to_string())]), Value::List(vec![Value::Str("feeAmount".to_string())]));
         return self.safe_ledger_entry(Value::Map({
@@ -4909,8 +4909,8 @@ impl WooCore {
         let mut id: Value = self.safe_string_k(income.clone(), "id", &[]);
         let mut timestamp: Value = self.safe_integer_k(income.clone(), "updatedTime", &[]);
         let mut rate: Value = self.safe_number_k(income.clone(), "fundingRate", &[]);
-        let mut paymentType: Value = self.safe_string_k(income.clone(), "paymentType", &[]);
-        amount = (if is_true(&(Value::Bool(paymentType.as_str() == Some("Pay")))) { crate::precise::Precise::stringNeg(&amount) } else { amount.clone() });
+        let mut paymentType: Option<String> = self.safe_string_k(income.clone(), "paymentType", &[]).as_str().map(str::to_owned);
+        amount = (if is_true(&(Value::Bool(paymentType.as_deref() == Some("Pay")))) { crate::precise::Precise::stringNeg(&amount) } else { amount.clone() });
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), income.clone());
@@ -5400,13 +5400,13 @@ impl WooCore {
     m
 })]);
             let mut positionLeverage: Value = self.safe_integer_k(position.clone(), "leverage", &[]);
-            let mut side: Value = self.safe_string_k(position.clone(), "positionSide", &[]);
-            if (side.as_str() == Some("BOTH")) {
+            let mut side: Option<String> = self.safe_string_k(position.clone(), "positionSide", &[]).as_str().map(str::to_owned);
+            if (side.as_deref() == Some("BOTH")) {
                 longLeverage = positionLeverage.clone();
                 shortLeverage = positionLeverage.clone();
-            }  else if (side.as_str() == Some("LONG")) {
+            }  else if (side.as_deref() == Some("LONG")) {
                 longLeverage = positionLeverage.clone();
-            }  else if (side.as_str() == Some("SHORT")) {
+            }  else if (side.as_deref() == Some("SHORT")) {
                 shortLeverage = positionLeverage.clone();
             }
         }
@@ -5755,7 +5755,7 @@ impl WooCore {
         let mut unrealisedPnl: Value = crate::precise::Precise::stringMul(&priceDifference, &size);
         size = crate::precise::Precise::stringAbs(&size);
         let mut notional: Value = crate::precise::Precise::stringMul(&size, &markPrice);
-        let mut positionSide: Value = self.safe_string_k(position.clone(), "positionSide", &[]); // 'SHORT' or 'LONG' for hedged, 'BOTH' for non-hedged
+        let mut positionSide: Option<String> = self.safe_string_k(position.clone(), "positionSide", &[]).as_str().map(str::to_owned); // 'SHORT' or 'LONG' for hedged, 'BOTH' for non-hedged
         return self.safe_position(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), position.clone());
@@ -5782,7 +5782,7 @@ impl WooCore {
         m.insert("marginMode".to_string(), self.safe_string_lower2(position.clone(), Value::Str("marginMode".to_string()), Value::Str("margin_mode".to_string()), &[]));
         m.insert("side".to_string(), side.clone());
         m.insert("percentage".to_string(), Value::Null);
-        m.insert("hedged".to_string(), Value::Bool(positionSide.as_str() != Some("BOTH")));
+        m.insert("hedged".to_string(), Value::Bool(positionSide.as_deref() != Some("BOTH")));
         m.insert("stopLossPrice".to_string(), Value::Null);
         m.insert("takeProfitPrice".to_string(), Value::Null);
     m

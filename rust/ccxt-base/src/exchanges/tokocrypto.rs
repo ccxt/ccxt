@@ -1151,8 +1151,8 @@ impl TokocryptoCore {
             let mut symbol: Value = add(&add(&base, &Value::Str("/".to_string())), &quote);
             let mut filters: Value = self.safe_value_k(market.clone(), "filters", &[Value::List(vec![])]);
             let mut filtersByType: Value = self.index_by(filters.clone(), Value::Str("filterType".to_string()));
-            let mut status: Value = self.safe_string_k(market.clone(), "spotTradingEnable", &[]);
-            let mut active: Value = (Value::Bool(status.as_str() == Some("1")));
+            let mut status: Option<String> = self.safe_string_k(market.clone(), "spotTradingEnable", &[]).as_str().map(str::to_owned);
+            let mut active: Value = (Value::Bool(status.as_deref() == Some("1")));
             let mut permissions: Value = self.safe_list_k(market.clone(), "permissions", &[Value::List(vec![])]);
             {
                                 let mut j: Value = Value::Int(0);
@@ -1164,7 +1164,7 @@ impl TokocryptoCore {
                 }
             }
             }
-            let mut marginTradingEnable: Value = self.safe_string_k(market.clone(), "marginTradingEnable", &[]);
+            let mut marginTradingEnable: Option<String> = self.safe_string_k(market.clone(), "marginTradingEnable", &[]).as_str().map(str::to_owned);
             let mut entry: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("id".to_string(), id.clone());
@@ -1178,7 +1178,7 @@ impl TokocryptoCore {
                     m.insert("settleId".to_string(), settleId.clone());
                     m.insert("type".to_string(), Value::Str("spot".to_string()));
                     m.insert("spot".to_string(), Value::Bool(true));
-                    m.insert("margin".to_string(), (Value::Bool(marginTradingEnable.as_str() == Some("1"))));
+                    m.insert("margin".to_string(), (Value::Bool(marginTradingEnable.as_deref() == Some("1"))));
                     m.insert("swap".to_string(), Value::Bool(false));
                     m.insert("future".to_string(), Value::Bool(false));
                     m.insert("option".to_string(), Value::Bool(false));
@@ -1586,9 +1586,9 @@ impl TokocryptoCore {
             add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone()); // default = 500, maximum = 1000
         }
         let mut defaultMethod: Value = Value::Str("binanceGetTrades".to_string());
-        let mut method: Value = self.safe_string_k(self.options.clone(), "fetchTradesMethod", &[defaultMethod.clone()]);
+        let mut method: Option<String> = self.safe_string_k(self.options.clone(), "fetchTradesMethod", &[defaultMethod.clone()]).as_str().map(str::to_owned);
         let mut response: Value = Value::Null;
-        if is_true(&(Value::Bool(method.as_str() == Some("binanceGetAggTrades")))) && is_true(&(Value::Bool(since != Value::Null))) {
+        if is_true(&(Value::Bool(method.as_deref() == Some("binanceGetAggTrades")))) && is_true(&(Value::Bool(since != Value::Null))) {
             add_element_to_object(&mut request, &Value::Str("startTime".to_string()), since.clone());
             // https://github.com/ccxt/ccxt/issues/6400
             // https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#compressedaggregate-trades-list
@@ -1776,8 +1776,8 @@ impl TokocryptoCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut symbolType: Value = self.safe_string_k(marketInfo.clone(), "type", &[]);
-        return Value::Bool(is_true(&(Value::Bool(symbolType != Value::Null))) && is_true(&(Value::Bool(symbolType.as_str() != Some("1")))));
+        let mut symbolType: Option<String> = self.safe_string_k(marketInfo.clone(), "type", &[]).as_str().map(str::to_owned);
+        return Value::Bool(is_true(&(Value::Bool(symbolType.is_some()))) && is_true(&(Value::Bool(symbolType.as_deref() != Some("1")))));
 
     Value::Null
 }
@@ -1900,7 +1900,7 @@ impl TokocryptoCore {
         // the reality is that the time range wider than 500 candles won't work right
         let mut defaultLimit: Value = Value::Int(500);
         let mut maxLimit: Value = Value::Int(1500);
-        let mut price: Value = self.safe_string_k(params.clone(), "price", &[]);
+        let mut price: Option<String> = self.safe_string_k(params.clone(), "price", &[]).as_str().map(str::to_owned);
         let mut until: Value = self.safe_integer_k(params.clone(), "until", &[]);
         params = self.omit(params.clone(), Value::List(vec![Value::Str("price".to_string()), Value::Str("until".to_string())]), &[]);
         limit = (if is_true(&(Value::Bool(limit == Value::Null))) { defaultLimit.clone() } else { crate::runtime::Math::min(&limit, &maxLimit) });
@@ -1910,7 +1910,7 @@ impl TokocryptoCore {
                 m.insert("limit".to_string(), limit.clone());
             m
         });
-        if (price.as_str() == Some("index")) {
+        if (price.as_deref() == Some("index")) {
             add_element_to_object(&mut request, &Value::Str("pair".to_string()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); // Index price takes this argument instead of symbol
         }  else {
             add_element_to_object(&mut request, &Value::Str("symbol".to_string()), self.get_market_id_by_type(market.clone()));

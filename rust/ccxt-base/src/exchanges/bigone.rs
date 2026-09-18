@@ -1981,10 +1981,10 @@ impl BigoneCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut type_var: Value = self.safe_string_k(params.clone(), "type", &[Value::Str("".to_string())]);
+        let mut type_var: Option<String> = self.safe_string_k(params.clone(), "type", &[Value::Str("".to_string())]).as_str().map(str::to_owned);
         params = self.omit(params.clone(), Value::Str("type".to_string()), &[]);
         let mut response: Value = Value::Null;
-        if (type_var.as_str() == Some("funding")) || (type_var.as_str() == Some("fund")) {
+        if (type_var.as_deref() == Some("funding")) || (type_var.as_deref() == Some("fund")) {
             response = self.private_get_fund_accounts(&[params.clone()]).await;
         }  else {
             response = self.private_get_accounts(&[params.clone()]).await;
@@ -2165,8 +2165,8 @@ impl BigoneCore {
         if isLimit || is_true(&(Value::Bool(uppercaseType.as_str() == Some("STOP_LIMIT")))) {
             add_element_to_object(&mut request, &Value::Str("price".to_string()), self.price_to_precision(symbol.clone(), price.clone()));
             if isLimit {
-                let mut timeInForce: Value = self.safe_string_k(params.clone(), "timeInForce", &[]);
-                if (timeInForce.as_str() == Some("IOC")) {
+                let mut timeInForce: Option<String> = self.safe_string_k(params.clone(), "timeInForce", &[]).as_str().map(str::to_owned);
+                if (timeInForce.as_deref() == Some("IOC")) {
                     add_element_to_object(&mut request, &Value::Str("immediate_or_cancel".to_string()), Value::Bool(true));
                 }
                 if (postOnly.as_bool() == Some(true)) {

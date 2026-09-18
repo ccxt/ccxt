@@ -633,10 +633,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 }), limit.clone()]); add_element_to_object(&mut self.orderbooks, &symbol, __be_tmp); };
         }
         let mut orderbook: Value = get_value(&self.orderbooks, &symbol);
-        let mut channel: Value = self.safe_string_k(message.clone(), "channel", &[]);
+        let mut channel: Option<String> = self.safe_string_k(message.clone(), "channel", &[]).as_str().map(str::to_owned);
         let mut nonce: Value = self.safe_integer2(data.clone(), Value::Str("u".to_string()), Value::Str("s".to_string()), &[]);
         let mut books: Value = data.clone();
-        if (channel.as_str() == Some("book")) {
+        if (channel.as_deref() == Some("book")) {
             orderbook.reset(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
@@ -1098,7 +1098,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut timestamp: Value = self.safe_integer_k(ticker.clone(), "t", &[]);
         let mut marketId: Value = self.safe_string_k(ticker.clone(), "i", &[]);
         market = self.safe_market(&[marketId.clone(), market.clone(), Value::Str("_".to_string())]);
-        let mut quote: Value = self.safe_string_k(market.clone(), "quote", &[]);
+        let mut quote: Option<String> = self.safe_string_k(market.clone(), "quote", &[]).as_str().map(str::to_owned);
         let mut last: Value = self.safe_string_k(ticker.clone(), "a", &[]);
         return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1120,7 +1120,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         m.insert("percentage".to_string(), self.safe_string_k(ticker.clone(), "c", &[]));
         m.insert("average".to_string(), Value::Null);
         m.insert("baseVolume".to_string(), self.safe_string_k(ticker.clone(), "v", &[]));
-        m.insert("quoteVolume".to_string(), (if is_true(&(Value::Bool(quote.as_str() == Some("USD")))) { self.safe_string_k(ticker.clone(), "vv", &[]) } else { Value::Null }));
+        m.insert("quoteVolume".to_string(), (if is_true(&(Value::Bool(quote.as_deref() == Some("USD")))) { self.safe_string_k(ticker.clone(), "vv", &[]) } else { Value::Null }));
         m.insert("info".to_string(), ticker.clone());
     m
 }), &[market.clone()]);

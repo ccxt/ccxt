@@ -627,9 +627,9 @@ impl BitflyerCore {
             let mut market: Value = get_value(&markets, &i);
             let mut id: Value = self.safe_string_k(market.clone(), "product_code", &[]);
             let mut currencies: Value = split(&id, &Value::Str("_".to_string()));
-            let mut marketType: Value = self.safe_string_k(market.clone(), "market_type", &[]);
-            let mut swap: Value = (Value::Bool(marketType.as_str() == Some("FX")));
-            let mut future: Value = (Value::Bool(marketType.as_str() == Some("Futures")));
+            let mut marketType: Option<String> = self.safe_string_k(market.clone(), "market_type", &[]).as_str().map(str::to_owned);
+            let mut swap: Value = (Value::Bool(marketType.as_deref() == Some("FX")));
+            let mut future: Value = (Value::Bool(marketType.as_deref() == Some("Futures")));
             let mut spot: Value = Value::Bool(!is_true(&swap) && !is_true(&future));
             let mut type_var: Value = Value::Str("spot".to_string());
             let mut settle: Value = Value::Null;
@@ -1765,9 +1765,9 @@ impl BitflyerCore {
         }
         let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), body));
         // i.e. {"status":-2,"error_message":"Under maintenance","data":null}
-        let mut errorMessage: Value = self.safe_string_k(response.clone(), "error_message", &[]);
+        let mut errorMessage: Option<String> = self.safe_string_k(response.clone(), "error_message", &[]).as_str().map(str::to_owned);
         let mut statusCode: Value = self.safe_integer_k(response.clone(), "status", &[]);
-        if (errorMessage != Value::Null) {
+        if (errorMessage.is_some()) {
             self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), statusCode.clone(), feedback.clone());
             panic!("{}", crate::exchange_errors::exchange_error(feedback));
         }

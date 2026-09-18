@@ -722,12 +722,12 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 }
 
     pub fn handle_message(&mut self, mut client: Value, mut message: Value) {
-        let mut type_var: Value = self.safe_string_k(message.clone(), "type", &[]);
-        if (type_var.as_str() == Some("error")) {
+        let mut type_var: Option<String> = self.safe_string_k(message.clone(), "type", &[]).as_str().map(str::to_owned);
+        if (type_var.as_deref() == Some("error")) {
             self.handle_error_message(client.clone(), message.clone());
             return;
         }
-        if (type_var != Value::Null) {
+        if (type_var.is_some()) {
             let mut topic: Value = self.safe_string_k(message.clone(), "channel", &[]);
             let mut methods: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();

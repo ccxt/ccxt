@@ -1648,8 +1648,8 @@ impl HyperliquidCore {
         let mut unifiedResult: Value = self.parent.is_unified_enabled(Value::Str("unWatchBalance".to_string()), &[userAddress.clone(), Value::Bool(false), params.clone()]).await;
         isUnifiedEnabled = self.safe_bool(unifiedResult.clone(), Value::Int(0), &[]);
         params = self.safe_dict(unifiedResult.clone(), Value::Int(1), &[params.clone()]);
-        let mut dex: Value = self.safe_string_k(params.clone(), "dex", &[]);
-        let mut isSpot: Value = Value::Bool(is_true(&(Value::Bool(is_true(&(Value::Bool(type_var.as_str() == Some("spot")))) || is_true(&(Value::Bool(isUnifiedEnabled.as_bool() == Some(true))))))) && is_true(&(Value::Bool(dex == Value::Null))));
+        let mut dex: Option<String> = self.safe_string_k(params.clone(), "dex", &[]).as_str().map(str::to_owned);
+        let mut isSpot: Value = Value::Bool(is_true(&(Value::Bool(is_true(&(Value::Bool(type_var.as_str() == Some("spot")))) || is_true(&(Value::Bool(isUnifiedEnabled.as_bool() == Some(true))))))) && is_true(&(Value::Bool(dex.is_none()))));
         let mut topic: Value = (if is_true(&(Value::Bool(isSpot.as_bool() == Some(true)))) { Value::Str("spotState".to_string()) } else { Value::Str("clearinghouseState".to_string()) });
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("unsubscribe".to_string()), Value::Str(":".to_string()))), topic));
         let mut request: Value = Value::Map({
@@ -2201,8 +2201,8 @@ impl HyperliquidCore {
         //         "data": "Error parsing JSON into valid websocket request: { \"type\": \"allMids\" }"
         //     }
         //
-        let mut channel: Value = self.safe_string_k(message.clone(), "channel", &[Value::Str("".to_string())]);
-        if (channel.as_str() == Some("error")) {
+        let mut channel: Option<String> = self.safe_string_k(message.clone(), "channel", &[Value::Str("".to_string())]).as_str().map(str::to_owned);
+        if (channel.as_deref() == Some("error")) {
             let mut ret_msg: Value = self.safe_string_k(message.clone(), "data", &[Value::Str("".to_string())]);
             if get_index_of(&ret_msg, &Value::Str("Already subscribed".to_string())).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN) {
                 return Value::Bool(true);
@@ -2227,14 +2227,14 @@ impl HyperliquidCore {
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut status: Value = self.safe_string_k(payload.clone(), "status", &[]);
-        if (status != Value::Null) && (status.as_str() != Some("ok")) {
+        let mut status: Option<String> = self.safe_string_k(payload.clone(), "status", &[]).as_str().map(str::to_owned);
+        if (status.is_some()) && (status.as_deref() != Some("ok")) {
             let mut error = Value::from(crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), self.json(payload.clone())))));
             client.reject(&[Value::from(error.clone()), id.clone()]);
             return Value::Bool(true);
         }
-        let mut type_var: Value = self.safe_string_k(payload.clone(), "type", &[]);
-        if (type_var.as_str() == Some("error")) {
+        let mut type_var: Option<String> = self.safe_string_k(payload.clone(), "type", &[]).as_str().map(str::to_owned);
+        if (type_var.as_deref() == Some("error")) {
             let mut error = Value::from(crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), self.json(payload.clone())))));
             client.reject(&[Value::from(error.clone()), id.clone()]);
             return Value::Bool(true);
@@ -2433,30 +2433,30 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut method: Value = self.safe_string_k(data.clone(), "method", &[]);
-        if (method.as_str() == Some("unsubscribe")) {
+        let mut method: Option<String> = self.safe_string_k(data.clone(), "method", &[]).as_str().map(str::to_owned);
+        if (method.as_deref() == Some("unsubscribe")) {
             let mut subscription: Value = self.safe_dict_k(data.clone(), "subscription", &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
             })]);
-            let mut type_var: Value = self.safe_string_k(subscription.clone(), "type", &[]);
-            if (type_var.as_str() == Some("l2Book")) {
+            let mut type_var: Option<String> = self.safe_string_k(subscription.clone(), "type", &[]).as_str().map(str::to_owned);
+            if (type_var.as_deref() == Some("l2Book")) {
                 self.handle_order_book_unsubscription(client.clone(), subscription.clone());
-            }  else if (type_var.as_str() == Some("trades")) {
+            }  else if (type_var.as_deref() == Some("trades")) {
                 self.handle_trades_unsubscription(client.clone(), subscription.clone());
-            }  else if (type_var.as_str() == Some("candle")) {
+            }  else if (type_var.as_deref() == Some("candle")) {
                 self.handle_ohlcv_unsubscription(client.clone(), subscription.clone());
-            }  else if (type_var.as_str() == Some("orderUpdates")) {
+            }  else if (type_var.as_deref() == Some("orderUpdates")) {
                 self.handle_order_unsubscription(client.clone(), subscription.clone());
-            }  else if (type_var.as_str() == Some("userFills")) {
+            }  else if (type_var.as_deref() == Some("userFills")) {
                 self.handle_my_trades_unsubscription(client.clone(), subscription.clone());
-            }  else if (type_var.as_str() == Some("clearinghoustState")) {
+            }  else if (type_var.as_deref() == Some("clearinghoustState")) {
                 self.handle_positions_unsubscription(client.clone(), subscription.clone());
-            }  else if (type_var.as_str() == Some("spotState")) {
+            }  else if (type_var.as_deref() == Some("spotState")) {
                 self.handle_spot_balance_unsubscription(client.clone(), subscription.clone());
-            }  else if is_true(&(Value::Bool(type_var.as_str() == Some("activeAssetCtx")))) || is_true(&(Value::Bool(type_var.as_str() == Some("activeSpotAssetCtx")))) {
+            }  else if is_true(&(Value::Bool(type_var.as_deref() == Some("activeAssetCtx")))) || is_true(&(Value::Bool(type_var.as_deref() == Some("activeSpotAssetCtx")))) {
                 self.handle_ticker_unsubscription(client.clone(), subscription.clone());
-            }  else if (type_var.as_str() == Some("allMids")) {
+            }  else if (type_var.as_deref() == Some("allMids")) {
                 self.handle_tickers_unsubscription(client.clone(), subscription.clone());
             }
         }

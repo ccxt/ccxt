@@ -713,8 +713,8 @@ impl BitrueCore {
         //
         let mut channel: Value = self.safe_string_k(message.clone(), "channel", &[]);
         let mut parts: Value = split(&channel, &Value::Str("_".to_string()));
-        let mut channelKind: Value = self.safe_string(parts.clone(), Value::Int(1), &[]);
-        let mut isFutures: bool = channelKind.as_str() == Some("e");
+        let mut channelKind: Option<String> = self.safe_string(parts.clone(), Value::Int(1), &[]).as_str().map(str::to_owned);
+        let mut isFutures: bool = channelKind.as_deref() == Some("e");
         let mut market: Value = Value::Null;
         if isFutures {
             let mut wsBaseQuote: Value = self.safe_string_lower(parts.clone(), Value::Int(2), &[]);

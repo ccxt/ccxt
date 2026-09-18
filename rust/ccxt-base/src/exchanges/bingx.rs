@@ -2680,9 +2680,9 @@ impl BingxCore {
                 let __ws_arg_1 = self.extend(request.clone(), &[params.clone()]);
                 response = self.cswap_v1_public_get_market_klines(&[__ws_arg_1]).await;
             }  else {
-                let mut price: Value = self.safe_string_k(params.clone(), "price", &[]);
+                let mut price: Option<String> = self.safe_string_k(params.clone(), "price", &[]).as_str().map(str::to_owned);
                 params = self.omit(params.clone(), Value::Str("price".to_string()), &[]);
-                if (price.as_str() == Some("mark")) {
+                if (price.as_deref() == Some("mark")) {
                     let __ws_arg_2 = self.extend(request.clone(), &[params.clone()]);
                     response = self.swap_v1_public_get_market_mark_price_klines(&[__ws_arg_2]).await;
                 }  else {
@@ -3990,10 +3990,10 @@ impl BingxCore {
         //    }
         //
         let mut marketId: Value = self.safe_string_k(ticker.clone(), "symbol", &[]);
-        let mut lastQty: Value = self.safe_string_k(ticker.clone(), "lastQty", &[]);
+        let mut lastQty: Option<String> = self.safe_string_k(ticker.clone(), "lastQty", &[]).as_str().map(str::to_owned);
         // in spot markets, lastQty is not present
         // it's (bad, but) the only way we can check the tickers origin
-        let mut type_var: Value = (if is_true(&(Value::Bool(lastQty == Value::Null))) { Value::Str("spot".to_string()) } else { Value::Str("swap".to_string()) });
+        let mut type_var: Value = (if is_true(&(Value::Bool(lastQty.is_none()))) { Value::Str("spot".to_string()) } else { Value::Str("swap".to_string()) });
         market = self.safe_market(&[marketId.clone(), market.clone(), Value::Null, type_var.clone()]);
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         let mut open: Value = self.safe_string_k(ticker.clone(), "openPrice", &[]);
@@ -4652,13 +4652,13 @@ impl BingxCore {
         if (clientOrderId != Value::Null) {
             add_element_to_object(&mut request, &exchangeClientOrderId, clientOrderId.clone());
         }
-        let mut timeInForce: Value = self.safe_string_upper(params.clone(), Value::Str("timeInForce".to_string()), &[]);
-        { let __destr_tmp = self.handle_post_only(isMarketOrder.clone(), Value::Bool(timeInForce.as_str() == Some("PostOnly")), &[params.clone()]); postOnly = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
-        if is_true(&(Value::Bool(postOnly.as_bool() == Some(true)))) || is_true(&(Value::Bool(timeInForce.as_str() == Some("PostOnly")))) {
+        let mut timeInForce: Option<String> = self.safe_string_upper(params.clone(), Value::Str("timeInForce".to_string()), &[]).as_str().map(str::to_owned);
+        { let __destr_tmp = self.handle_post_only(isMarketOrder.clone(), Value::Bool(timeInForce.as_deref() == Some("PostOnly")), &[params.clone()]); postOnly = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
+        if is_true(&(Value::Bool(postOnly.as_bool() == Some(true)))) || is_true(&(Value::Bool(timeInForce.as_deref() == Some("PostOnly")))) {
             add_element_to_object(&mut request, &Value::Str("timeInForce".to_string()), Value::Str("PostOnly".to_string()));
-        }  else if (timeInForce.as_str() == Some("IOC")) {
+        }  else if (timeInForce.as_deref() == Some("IOC")) {
             add_element_to_object(&mut request, &Value::Str("timeInForce".to_string()), Value::Str("IOC".to_string()));
-        }  else if (timeInForce.as_str() == Some("GTC")) {
+        }  else if (timeInForce.as_deref() == Some("GTC")) {
             add_element_to_object(&mut request, &Value::Str("timeInForce".to_string()), Value::Str("GTC".to_string()));
         }
         if isSpot {
@@ -4709,7 +4709,7 @@ impl BingxCore {
                 });
                 return self.extend(twapRequest.clone(), &[params.clone()]);
             }
-            if (timeInForce.as_str() == Some("FOK")) {
+            if (timeInForce.as_deref() == Some("FOK")) {
                 add_element_to_object(&mut request, &Value::Str("timeInForce".to_string()), Value::Str("FOK".to_string()));
             }
             let mut trailingAmount: Value = self.safe_string_k(params.clone(), "trailingAmount", &[]);
@@ -5465,8 +5465,8 @@ impl BingxCore {
         if (newOrder != Value::Null) {
             order = newOrder.clone();
         }
-        let mut positionSide: Value = self.safe_string2(order.clone(), Value::Str("positionSide".to_string()), Value::Str("ps".to_string()), &[]);
-        let mut marketType: Value = (if is_true(&(Value::Bool(positionSide == Value::Null))) { Value::Str("spot".to_string()) } else { Value::Str("swap".to_string()) });
+        let mut positionSide: Option<String> = self.safe_string2(order.clone(), Value::Str("positionSide".to_string()), Value::Str("ps".to_string()), &[]).as_str().map(str::to_owned);
+        let mut marketType: Value = (if is_true(&(Value::Bool(positionSide.is_none()))) { Value::Str("spot".to_string()) } else { Value::Str("swap".to_string()) });
         let mut marketId: Value = self.safe_string2(order.clone(), Value::Str("symbol".to_string()), Value::Str("s".to_string()), &[]);
         if (market == Value::Null) {
             market = self.safe_market(&[marketId.clone(), Value::Null, Value::Null, marketType.clone()]);
@@ -6598,10 +6598,10 @@ impl BingxCore {
 })]);
         let mut fromAccount: Value = self.safe_string_k(params.clone(), "fromAccount", &[]);
         let mut toAccount: Value = self.safe_string_k(params.clone(), "toAccount", &[]);
-        let mut transferId: Value = self.safe_string_k(params.clone(), "transferId", &[]);
+        let mut transferId: Option<String> = self.safe_string_k(params.clone(), "transferId", &[]).as_str().map(str::to_owned);
         let mut fromId: Value = self.safe_string(accountsByType.clone(), fromAccount.clone(), &[fromAccount.clone()]);
         let mut toId: Value = self.safe_string(accountsByType.clone(), toAccount.clone(), &[toAccount.clone()]);
-        if is_true(&(Value::Bool(transferId == Value::Null))) && is_true(&(Value::Bool(is_true(&(Value::Bool(fromId == Value::Null))) || is_true(&(Value::Bool(toId == Value::Null)))))) {
+        if is_true(&(Value::Bool(transferId.is_none()))) && is_true(&(Value::Bool(is_true(&(Value::Bool(fromId == Value::Null))) || is_true(&(Value::Bool(toId == Value::Null)))))) {
             panic!("{}", crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchTransfers() requires params[\"transferId\"] or both params[\"fromAccount\"] and params[\"toAccount\"]".to_string())))));
         }
         if (fromAccount != Value::Null) {
@@ -6982,8 +6982,8 @@ impl BingxCore {
                 code = replace_str(&code, &network, &Value::Str("".to_string()));
             }
         }
-        let mut rawType: Value = self.safe_string_k(transaction.clone(), "transferType", &[]);
-        let mut type_var: Value = (if is_true(&(Value::Bool(rawType.as_str() == Some("0")))) { Value::Str("deposit".to_string()) } else { Value::Str("withdrawal".to_string()) });
+        let mut rawType: Option<String> = self.safe_string_k(transaction.clone(), "transferType", &[]).as_str().map(str::to_owned);
+        let mut type_var: Value = (if is_true(&(Value::Bool(rawType.as_deref() == Some("0")))) { Value::Str("deposit".to_string()) } else { Value::Str("withdrawal".to_string()) });
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), transaction.clone());
@@ -7177,12 +7177,12 @@ impl BingxCore {
         //        "type": 1
         //    }
         //
-        let mut type_var: Value = self.safe_string_k(data.clone(), "type", &[]);
+        let mut type_var: Option<String> = self.safe_string_k(data.clone(), "type", &[]).as_str().map(str::to_owned);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), data.clone());
         m.insert("symbol".to_string(), self.safe_string_k(market.clone(), "symbol", &[]));
-        m.insert("type".to_string(), (if is_true(&(Value::Bool(type_var.as_str() == Some("1")))) { Value::Str("add".to_string()) } else { Value::Str("reduce".to_string()) }));
+        m.insert("type".to_string(), (if is_true(&(Value::Bool(type_var.as_deref() == Some("1")))) { Value::Str("add".to_string()) } else { Value::Str("reduce".to_string()) }));
         m.insert("marginMode".to_string(), Value::Str("isolated".to_string()));
         m.insert("amount".to_string(), self.safe_number_k(data.clone(), "amount", &[]));
         m.insert("total".to_string(), self.safe_number_k(data.clone(), "margin", &[]));
@@ -7367,8 +7367,8 @@ impl BingxCore {
         let mut subType: Value = Value::Null;
         { let __destr_tmp = self.handle_sub_type_and_params(Value::Str("fetchMyTrades".to_string()), &[market.clone(), params.clone()]); subType = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         if (subType.as_str() == Some("inverse")) {
-            let mut orderId: Value = self.safe_string_k(params.clone(), "orderId", &[]);
-            if (orderId == Value::Null) {
+            let mut orderId: Option<String> = self.safe_string_k(params.clone(), "orderId", &[]).as_str().map(str::to_owned);
+            if (orderId.is_none()) {
                 panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchMyTrades() requires an orderId argument for inverse swap trades".to_string())))));
             }
             let __ws_arg_62 = self.extend(request.clone(), &[params.clone()]);
@@ -7819,13 +7819,13 @@ impl BingxCore {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol.clone());
-        let mut positionId: Value = self.safe_string_k(params.clone(), "positionId", &[]);
+        let mut positionId: Option<String> = self.safe_string_k(params.clone(), "positionId", &[]).as_str().map(str::to_owned);
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         });
         let mut response: Value = Value::Null;
-        if (positionId != Value::Null) {
+        if (positionId.is_some()) {
             if is_true(&(Value::Bool(market.as_map().and_then(|__m| __m.get("swap")).cloned().unwrap_or(Value::Null).as_bool() != Some(true)))) || is_true(&(Value::Bool(market.as_map().and_then(|__m| __m.get("inverse")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)))) {
                 panic!("{}", crate::exchange_errors::not_supported(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" closePosition() with a positionId is only supported for linear swap markets".to_string())))));
             }
@@ -7953,11 +7953,11 @@ impl BingxCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut dualSidePosition: Value = self.safe_string_k(data.clone(), "dualSidePosition", &[]);
+        let mut dualSidePosition: Option<String> = self.safe_string_k(data.clone(), "dualSidePosition", &[]).as_str().map(str::to_owned);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), response.clone());
-        m.insert("hedged".to_string(), (Value::Bool(dualSidePosition.as_str() == Some("true"))));
+        m.insert("hedged".to_string(), (Value::Bool(dualSidePosition.as_deref() == Some("true"))));
     m
 });
 

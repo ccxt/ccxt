@@ -1077,22 +1077,22 @@ impl BitstampCore {
         //    }
         //
         let mut id: Value = self.safe_string_k(order.clone(), "id_str", &[]);
-        let mut orderTypeRaw: Value = self.safe_string_lower(order.clone(), Value::Str("order_type".to_string()), &[]);
-        let mut side: Value = (if is_true(&(Value::Bool(orderTypeRaw.as_str() == Some("1")))) { Value::Str("sell".to_string()) } else { Value::Str("buy".to_string()) });
-        let mut orderSubTypeRaw: Value = self.safe_string_lower(order.clone(), Value::Str("order_subtype".to_string()), &[]); // https://www.bitstamp.net/websocket/v2/#:~:text=order_subtype
+        let mut orderTypeRaw: Option<String> = self.safe_string_lower(order.clone(), Value::Str("order_type".to_string()), &[]).as_str().map(str::to_owned);
+        let mut side: Value = (if is_true(&(Value::Bool(orderTypeRaw.as_deref() == Some("1")))) { Value::Str("sell".to_string()) } else { Value::Str("buy".to_string()) });
+        let mut orderSubTypeRaw: Option<String> = self.safe_string_lower(order.clone(), Value::Str("order_subtype".to_string()), &[]).as_str().map(str::to_owned); // https://www.bitstamp.net/websocket/v2/#:~:text=order_subtype
         let mut orderType: Value = Value::Null;
         let mut timeInForce: Value = Value::Null;
-        if (orderSubTypeRaw.as_str() == Some("0")) {
+        if (orderSubTypeRaw.as_deref() == Some("0")) {
             orderType = Value::Str("limit".to_string());
-        }  else if (orderSubTypeRaw.as_str() == Some("2")) {
+        }  else if (orderSubTypeRaw.as_deref() == Some("2")) {
             orderType = Value::Str("market".to_string());
-        }  else if (orderSubTypeRaw.as_str() == Some("4")) {
+        }  else if (orderSubTypeRaw.as_deref() == Some("4")) {
             orderType = Value::Str("limit".to_string());
             timeInForce = Value::Str("IOC".to_string());
-        }  else if (orderSubTypeRaw.as_str() == Some("6")) {
+        }  else if (orderSubTypeRaw.as_deref() == Some("6")) {
             orderType = Value::Str("limit".to_string());
             timeInForce = Value::Str("FOK".to_string());
-        }  else if (orderSubTypeRaw.as_str() == Some("8")) {
+        }  else if (orderSubTypeRaw.as_deref() == Some("8")) {
             orderType = Value::Str("limit".to_string());
             timeInForce = Value::Str("GTD".to_string());
         }
@@ -1109,11 +1109,11 @@ impl BitstampCore {
             remaining = amountLeft.clone();
         }
         let mut filled: Value = self.safe_string_k(order.clone(), "amount_traded", &[]);
-        let mut event: Value = self.safe_string_k(order.clone(), "event", &[]);
+        let mut event: Option<String> = self.safe_string_k(order.clone(), "event", &[]).as_str().map(str::to_owned);
         let mut status: Value = Value::Null;
         if is_true(&crate::precise::Precise::stringEq(&filled, &amount)) {
             status = Value::Str("closed".to_string());
-        }  else if (event.as_str() == Some("order_deleted")) {
+        }  else if (event.as_deref() == Some("order_deleted")) {
             status = Value::Str("canceled".to_string());
         }
         let mut triggerPrice: Value = self.safe_string_k(order.clone(), "stop_price", &[]);
@@ -1201,17 +1201,17 @@ impl BitstampCore {
             return;
         }
         let mut subHash: Value = self.safe_string_k(subscription.clone(), "subHash", &[]);
-        let mut topic: Value = self.safe_string_k(subscription.clone(), "topic", &[]);
+        let mut topic: Option<String> = self.safe_string_k(subscription.clone(), "topic", &[]).as_str().map(str::to_owned);
         let mut symbols: Value = self.safe_list_k(subscription.clone(), "symbols", &[Value::List(vec![])]);
         // the base cleanCache only prunes trades/orderbooks per symbol and
         // would wipe the whole orders/myTrades cache - rebuild those without
         // the unsubscribed symbols instead, so the markets that are still
         // subscribed keep their cached history
-        if is_true(&(Value::Bool(topic.as_str() == Some("orders")))) && (!is_equal(&self.orders, &Value::Null)) {
+        if is_true(&(Value::Bool(topic.as_deref() == Some("orders")))) && (!is_equal(&self.orders, &Value::Null)) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "ordersLimit", &[Value::Int(1000)]);
             let mut freshOrdersCache = ArrayCacheBySymbolById::new(limit.clone());
             { let __t = self.prune_cached_by_symbols(freshOrdersCache.clone(), self.orders.clone(), symbols.clone()); self.orders = __t; }
-        }  else if is_true(&(Value::Bool(topic.as_str() == Some("myTrades")))) && (!is_equal(&self.myTrades, &Value::Null)) {
+        }  else if is_true(&(Value::Bool(topic.as_deref() == Some("myTrades")))) && (!is_equal(&self.myTrades, &Value::Null)) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
             let mut freshTradesCache = ArrayCacheBySymbolById::new(limit.clone());
             { let __t = self.prune_cached_by_symbols(freshTradesCache.clone(), self.myTrades.clone(), symbols.clone()); self.myTrades = __t; }
@@ -1322,8 +1322,8 @@ impl BitstampCore {
         //     "channel": '',
         //     "data": { code: 4009, message: "Connection is unauthorized." }
         // }
-        let mut event: Value = self.safe_string_k(message.clone(), "event", &[]);
-        if (event.as_str() == Some("bts:error")) {
+        let mut event: Option<String> = self.safe_string_k(message.clone(), "event", &[]).as_str().map(str::to_owned);
+        if (event.as_deref() == Some("bts:error")) {
             let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), self.json(message.clone())));
             let mut data: Value = self.safe_value_k(message.clone(), "data", &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -1373,10 +1373,10 @@ impl BitstampCore {
         //         "data": {}
         //     }
         //
-        let mut event: Value = self.safe_string_k(message.clone(), "event", &[]);
-        if (event.as_str() == Some("bts:subscription_succeeded")) {
+        let mut event: Option<String> = self.safe_string_k(message.clone(), "event", &[]).as_str().map(str::to_owned);
+        if (event.as_deref() == Some("bts:subscription_succeeded")) {
             self.handle_subscription_status(client.clone(), message.clone());
-        }  else if (event.as_str() == Some("bts:unsubscription_succeeded")) {
+        }  else if (event.as_deref() == Some("bts:unsubscription_succeeded")) {
             self.handle_unsubscription_status(client.clone(), message.clone());
         }  else {
             self.handle_subject(client.clone(), message.clone());

@@ -2399,7 +2399,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //         }
         //     }
         //
-        let mut type_var: Value = self.safe_string_k(message.clone(), "t", &[]);
+        let mut type_var: Option<String> = self.safe_string_k(message.clone(), "t", &[]).as_str().map(str::to_owned);
         let mut data: Value = self.safe_dict_k(message.clone(), "d", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -2414,7 +2414,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut orderbook: Value = get_value(&self.orderbooks, &symbol);
         let mut depth: Value = self.safe_string_k(message.clone(), "dp", &[]);
         let mut messageHash: Value = add(&Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("uta:orderbook:".to_string()), symbol)), Value::Str(":depth:".to_string()))), &depth);
-        if (type_var.as_str() == Some("snapshot")) {
+        if (type_var.as_deref() == Some("snapshot")) {
             let mut parsed: Value = self.parse_order_book(data.clone(), symbol.clone(), &[timestamp.clone(), Value::Str("b".to_string()), Value::Str("a".to_string()), Value::Int(0), Value::Int(1)]);
             add_element_to_object(&mut parsed, &Value::Str("nonce".to_string()), self.safe_integer_k(data.clone(), "O", &[]));
             orderbook.reset(parsed.clone());
@@ -2495,9 +2495,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             // handling futures orderbook update
             let mut splitChange: Value = split(&change, &Value::Str(",".to_string()));
             let mut price: Value = self.safe_number(splitChange.clone(), Value::Int(0), &[]);
-            let mut side: Value = self.safe_string(splitChange.clone(), Value::Int(1), &[]);
+            let mut side: Option<String> = self.safe_string(splitChange.clone(), Value::Int(1), &[]).as_str().map(str::to_owned);
             let mut quantity: Value = self.safe_number(splitChange.clone(), Value::Int(2), &[]);
-            let mut type_var: Value = (if is_true(&(Value::Bool(side.as_str() == Some("buy")))) { Value::Str("bids".to_string()) } else { Value::Str("asks".to_string()) });
+            let mut type_var: Value = (if is_true(&(Value::Bool(side.as_deref() == Some("buy")))) { Value::Str("bids".to_string()) } else { Value::Str("asks".to_string()) });
             let mut value: Value = Value::List(vec![price.clone(), quantity.clone()]);
             if (type_var.as_str() == Some("bids")) {
                 storedBids.store_array(value.clone());
@@ -2593,8 +2593,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 self.clean_unsubscription(client.clone(), subHash.clone(), messageHash.clone(), &[]);
             }
             }
-            let mut topic: Value = self.safe_string_k(subscription.clone(), "topic", &[]);
-            if (topic.as_str() == Some("fundingRate")) {
+            let mut topic: Option<String> = self.safe_string_k(subscription.clone(), "topic", &[]).as_str().map(str::to_owned);
+            if (topic.as_deref() == Some("fundingRate")) {
                 // todo: add fundingRate topic to cleanCache
                 let mut symbols: Value = self.safe_list_k(subscription.clone(), "symbols", &[Value::List(vec![])]);
                 {
@@ -2976,15 +2976,15 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //    }
         //
         let mut data: Value = self.safe_dict_k(message.clone(), "data", &[]);
-        let mut tradeId: Value = self.safe_string_k(data.clone(), "tradeId", &[]);
-        if (tradeId != Value::Null) {
+        let mut tradeId: Option<String> = self.safe_string_k(data.clone(), "tradeId", &[]).as_str().map(str::to_owned);
+        if (tradeId.is_some()) {
             self.handle_my_trade(client.clone(), message.clone());
         }
         let mut parsed: Value = self.parse_ws_order(data.clone(), &[]);
         let mut symbol: Value = self.safe_string_k(parsed.clone(), "symbol", &[]);
         let mut orderId: Value = self.safe_string_k(parsed.clone(), "id", &[]);
-        let mut triggerPrice: Value = self.safe_string_k(parsed.clone(), "triggerPrice", &[]);
-        let mut isTriggerOrder: bool = triggerPrice != Value::Null;
+        let mut triggerPrice: Option<String> = self.safe_string_k(parsed.clone(), "triggerPrice", &[]).as_str().map(str::to_owned);
+        let mut isTriggerOrder: bool = triggerPrice.is_some();
         if is_equal(&self.orders, &Value::Null) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "ordersLimit", &[Value::Int(1000)]);
             self.orders = ArrayCacheBySymbolById::new(limit.clone());
@@ -3016,10 +3016,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         // accumulate the average fill price and cost from the match messages,
         // which carry matchPrice and matchSize, the terminal filled message
         // does not repeat them, see https://github.com/ccxt/ccxt/issues/19083
-        let mut rawType: Value = self.safe_string_k(data.clone(), "type", &[]);
+        let mut rawType: Option<String> = self.safe_string_k(data.clone(), "type", &[]).as_str().map(str::to_owned);
         let mut matchPrice: Value = self.safe_string_k(data.clone(), "matchPrice", &[]);
         let mut matchSize: Value = self.safe_string_k(data.clone(), "matchSize", &[]);
-        if is_true(&(Value::Bool(rawType.as_str() == Some("match")))) && is_true(&(Value::Bool(matchPrice != Value::Null))) && is_true(&(Value::Bool(matchSize != Value::Null))) {
+        if is_true(&(Value::Bool(rawType.as_deref() == Some("match")))) && is_true(&(Value::Bool(matchPrice != Value::Null))) && is_true(&(Value::Bool(matchSize != Value::Null))) {
             let mut matchCost: Value = crate::precise::Precise::stringMul(&matchPrice, &matchSize);
             let mut previousCost: Value = (if is_true(&(Value::Bool(order == Value::Null))) { Value::Str("0".to_string()) } else { self.number_to_string(self.safe_number_k(order.clone(), "cost", &[Value::Int(0)])) });
             let mut costString: Value = crate::precise::Precise::stringAdd(&previousCost, &matchCost);
@@ -3563,8 +3563,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut relationEventParts: Value = split(&relationEvent, &Value::Str(".".to_string()));
             requestAccountType = self.safe_string(relationEventParts.clone(), Value::Int(0), &[]);
         }
-        let mut topic: Value = self.safe_string_k(message.clone(), "topic", &[]);
-        if (topic.as_str() == Some("/contractAccount/wallet")) {
+        let mut topic: Option<String> = self.safe_string_k(message.clone(), "topic", &[]).as_str().map(str::to_owned);
+        if (topic.as_deref() == Some("/contractAccount/wallet")) {
             requestAccountType = Value::Str("contract".to_string());
         }
         let mut accountsByType: Value = self.safe_dict_k(self.options.clone(), "accountsByType", &[]);
@@ -4295,8 +4295,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //         }
         //     }
         //
-        let mut topic: Value = self.safe_string_k(message.clone(), "topic", &[]);
-        if (topic.as_str() == Some("/market/ticker:all")) {
+        let mut topic: Option<String> = self.safe_string_k(message.clone(), "topic", &[]).as_str().map(str::to_owned);
+        if (topic.as_deref() == Some("/market/ticker:all")) {
             self.handle_ticker(client.clone(), message.clone());
             return;
         }

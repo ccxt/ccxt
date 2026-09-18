@@ -1572,8 +1572,8 @@ impl PoloniexCore {
         let mut quoteId: Value = self.safe_string_k(market.clone(), "quoteCurrencyName", &[]);
         let mut base: Value = self.safe_currency_code(baseId.clone(), &[]);
         let mut quote: Value = self.safe_currency_code(quoteId.clone(), &[]);
-        let mut state: Value = self.safe_string_k(market.clone(), "state", &[]);
-        let mut active: Value = Value::Bool(state.as_str() == Some("NORMAL"));
+        let mut state: Option<String> = self.safe_string_k(market.clone(), "state", &[]).as_str().map(str::to_owned);
+        let mut active: Value = Value::Bool(state.as_deref() == Some("NORMAL"));
         let mut symbolTradeLimit: Value = self.safe_value_k(market.clone(), "symbolTradeLimit", &[]);
         return self.safe_market_structure(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1678,8 +1678,8 @@ impl PoloniexCore {
         let mut base: Value = self.safe_currency_code(baseId.clone(), &[]);
         let mut quote: Value = self.safe_currency_code(quoteId.clone(), &[]);
         let mut settle: Value = self.safe_currency_code(settleId.clone(), &[]);
-        let mut status: Value = self.safe_string_k(market.clone(), "status", &[]);
-        let mut active: Value = Value::Bool(status.as_str() == Some("OPEN"));
+        let mut status: Option<String> = self.safe_string_k(market.clone(), "status", &[]).as_str().map(str::to_owned);
+        let mut active: Value = Value::Bool(status.as_deref() == Some("OPEN"));
         let mut linear: Value = Value::Bool(market.as_map().and_then(|__m| __m.get("ctType")).cloned().unwrap_or(Value::Null).as_str() == Some("LINEAR"));
         let mut symbol: Value = add(&add(&base, &Value::Str("/".to_string())), &quote);
         if is_true(&linear) {
@@ -1688,9 +1688,9 @@ impl PoloniexCore {
             // actually, exchange does not have any inverse future now
             symbol = Value::Str(format!("{}{}", symbol, add(&Value::Str(":".to_string()), &base)));
         }
-        let mut alias: Value = self.safe_string_k(market.clone(), "alias", &[]);
+        let mut alias: Option<String> = self.safe_string_k(market.clone(), "alias", &[]).as_str().map(str::to_owned);
         let mut type_var: Value = Value::Str("swap".to_string());
-        if (alias != Value::Null) {
+        if (alias.is_some()) {
             type_var = Value::Str("future".to_string());
         }
         let mut marketType: Value = (if is_true(&(Value::Bool(type_var.as_str() == Some("future")))) { Value::Str("future".to_string()) } else { Value::Str("swap".to_string()) });
@@ -4334,10 +4334,10 @@ impl PoloniexCore {
             // same field with safeStringLower
             marginMode = self.safe_string_lower(entry.clone(), Value::Str("mgnMode".to_string()), &[]);
             let mut lever: Value = self.safe_integer_k(entry.clone(), "lever", &[]);
-            let mut posSide: Value = self.safe_string_k(entry.clone(), "posSide", &[]);
-            if (posSide.as_str() == Some("LONG")) {
+            let mut posSide: Option<String> = self.safe_string_k(entry.clone(), "posSide", &[]).as_str().map(str::to_owned);
+            if (posSide.as_deref() == Some("LONG")) {
                 longLeverage = lever.clone();
-            }  else if (posSide.as_str() == Some("SHORT")) {
+            }  else if (posSide.as_deref() == Some("SHORT")) {
                 shortLeverage = lever.clone();
             }  else {
                 longLeverage = lever.clone();
@@ -4387,8 +4387,8 @@ impl PoloniexCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut posMode: Value = self.safe_string_k(data.clone(), "posMode", &[]);
-        let mut hedged: Value = Value::Bool(posMode.as_str() == Some("HEDGE"));
+        let mut posMode: Option<String> = self.safe_string_k(data.clone(), "posMode", &[]).as_str().map(str::to_owned);
+        let mut hedged: Value = Value::Bool(posMode.as_deref() == Some("HEDGE"));
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), response.clone());
@@ -4611,8 +4611,8 @@ impl PoloniexCore {
         let mut market = get_arg(optional_args, 0, Value::Null);
         let mut marketId: Value = self.safe_string_k(data.clone(), "symbol", &[]);
         market = self.safe_market(&[marketId.clone(), market.clone()]);
-        let mut rawType: Value = self.safe_string_k(data.clone(), "type", &[]);
-        let mut type_var: Value = (if is_true(&(Value::Bool(rawType.as_str() == Some("ADD")))) { Value::Str("add".to_string()) } else { Value::Str("reduce".to_string()) });
+        let mut rawType: Option<String> = self.safe_string_k(data.clone(), "type", &[]).as_str().map(str::to_owned);
+        let mut type_var: Value = (if is_true(&(Value::Bool(rawType.as_deref() == Some("ADD")))) { Value::Str("add".to_string()) } else { Value::Str("reduce".to_string()) });
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), data.clone());

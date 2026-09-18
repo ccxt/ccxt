@@ -1120,11 +1120,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut eventTicker: Value = self.safe_string_k(raw.clone(), "event_ticker", &[]);
         let mut subtitle: Value = self.safe_string_k(raw.clone(), "subtitle", &[self.safe_string(raw.clone(), Value::Str("title".to_string()), &[])]);
         // markets use status 'active' while events use 'open'
-        let mut status: Value = self.safe_string_k(raw.clone(), "status", &[]);
-        let mut active: Value = Value::Bool(is_true(&(Value::Bool(status.as_str() == Some("active")))) || is_true(&(Value::Bool(status.as_str() == Some("open")))));
+        let mut status: Option<String> = self.safe_string_k(raw.clone(), "status", &[]).as_str().map(str::to_owned);
+        let mut active: Value = Value::Bool(is_true(&(Value::Bool(status.as_deref() == Some("active")))) || is_true(&(Value::Bool(status.as_deref() == Some("open")))));
         // resolution: kalshi sets `result` to 'yes'/'no' once the market settles (empty while trading)
         let mut result: Value = self.safe_string_lower(raw.clone(), Value::Str("result".to_string()), &[]);
-        let mut resolved: Value = Value::Bool(is_true(&(Value::Bool(status.as_str() == Some("settled")))) || is_true(&(Value::Bool(is_true(&(Value::Bool(result != Value::Null))) && is_true(&(Value::Bool(result.as_str() != Some(""))))))));
+        let mut resolved: Value = Value::Bool(is_true(&(Value::Bool(status.as_deref() == Some("settled")))) || is_true(&(Value::Bool(is_true(&(Value::Bool(result != Value::Null))) && is_true(&(Value::Bool(result.as_str() != Some(""))))))));
         let mut endDate: Value = self.safe_string_k(raw.clone(), "expiration_time", &[]);
         let mut volume: Value = self.safe_number2(raw.clone(), Value::Str("volume_fp".to_string()), Value::Str("volume".to_string()), &[]);
         let mut liquidity: Value = self.safe_number2(raw.clone(), Value::Str("liquidity_dollars".to_string()), Value::Str("liquidity".to_string()), &[]);
@@ -2226,19 +2226,19 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut orderId: Value = self.safe_string_k(fill.clone(), "order_id", &[]);
         let mut ticker: Value = self.safe_string2(fill.clone(), Value::Str("ticker".to_string()), Value::Str("market_ticker".to_string()), &[]);
         // the leg the fill executed on ('yes' | 'no'); NO is addressed as <ticker>-NO
-        let mut sideLeg: Value = self.safe_string_lower(fill.clone(), Value::Str("side".to_string()), &[]);
+        let mut sideLeg: Option<String> = self.safe_string_lower(fill.clone(), Value::Str("side".to_string()), &[]).as_str().map(str::to_owned);
         let mut outcomeKey: Value = ticker.clone();
-        if is_true(&(Value::Bool(sideLeg.as_str() == Some("no")))) && is_true(&(Value::Bool(ticker != Value::Null))) {
+        if is_true(&(Value::Bool(sideLeg.as_deref() == Some("no")))) && is_true(&(Value::Bool(ticker != Value::Null))) {
             outcomeKey = Value::Str(format!("{}{}", ticker, Value::Str("-NO".to_string())));
         }
         let mut mkt: Value = self.safe_outcome(outcomeKey.clone(), &[market.clone()]);
         let mut ts: Value = self.parse8601(self.safe_string_k(fill.clone(), "created_time", &[]));
         // action is the order side (buy/sell) of the held leg
-        let mut action: Value = self.safe_string_lower(fill.clone(), Value::Str("action".to_string()), &[]);
-        let mut side: Value = (if is_true(&(Value::Bool(action.as_str() == Some("sell")))) { Value::Str("sell".to_string()) } else { Value::Str("buy".to_string()) });
+        let mut action: Option<String> = self.safe_string_lower(fill.clone(), Value::Str("action".to_string()), &[]).as_str().map(str::to_owned);
+        let mut side: Value = (if is_true(&(Value::Bool(action.as_deref() == Some("sell")))) { Value::Str("sell".to_string()) } else { Value::Str("buy".to_string()) });
         // price is the price of the leg held; kalshi reports dollars in V2, cents otherwise
         let mut price: Value = Value::Null;
-        if (sideLeg.as_str() == Some("no")) {
+        if (sideLeg.as_deref() == Some("no")) {
             price = self.safe_number_k(fill.clone(), "no_price_dollars", &[]);
             if (price == Value::Null) {
                 let mut noCents: Value = self.safe_number_k(fill.clone(), "no_price", &[]);
@@ -2725,8 +2725,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             while { if !__for_first_1243 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1243 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(orders.len() as i64).as_f64().unwrap_or(f64::NAN) } {
             let mut order: Value = get_value(&orders, &i);
             let mut order: Value = get_value(&orders, &i);
-            let mut status: Value = self.safe_string_k(order.clone(), "status", &[]);
-            if is_true(&(Value::Bool(status.as_str() == Some("closed")))) || is_true(&(Value::Bool(status.as_str() == Some("canceled")))) {
+            let mut status: Option<String> = self.safe_string_k(order.clone(), "status", &[]).as_str().map(str::to_owned);
+            if is_true(&(Value::Bool(status.as_deref() == Some("closed")))) || is_true(&(Value::Bool(status.as_deref() == Some("canceled")))) {
                 append_to_array(&mut result, order.clone());
             }
         }
@@ -2783,20 +2783,20 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut ticker: Value = self.safe_string_k(order.clone(), "ticker", &[]);
         // a kalshi order is leg-specific: the raw `side` field says which leg ('yes'|'no');
         // the bare ticker is the YES outcome's id, the NO leg is addressed as `<ticker>-NO`
-        let mut sideLeg: Value = self.safe_string_lower(order.clone(), Value::Str("side".to_string()), &[]);
+        let mut sideLeg: Option<String> = self.safe_string_lower(order.clone(), Value::Str("side".to_string()), &[]).as_str().map(str::to_owned);
         let mut outcomeKey: Value = ticker.clone();
-        if is_true(&(Value::Bool(sideLeg.as_str() == Some("no")))) && is_true(&(Value::Bool(ticker != Value::Null))) {
+        if is_true(&(Value::Bool(sideLeg.as_deref() == Some("no")))) && is_true(&(Value::Bool(ticker != Value::Null))) {
             outcomeKey = Value::Str(format!("{}{}", ticker, Value::Str("-NO".to_string())));
         }
         let mut mkt: Value = self.safe_outcome(outcomeKey.clone(), &[market.clone()]);
         let mut status: Value = self.parse_order_status(self.safe_string_k(order.clone(), "status", &[]));
         // never invent a side: a minimal response (e.g. a DELETE/cancel body) omits `action`,
         // and defaulting to 'sell' misreports a canceled buy. leave it undefined when absent.
-        let mut action: Value = self.safe_string_lower(order.clone(), Value::Str("action".to_string()), &[]);
+        let mut action: Option<String> = self.safe_string_lower(order.clone(), Value::Str("action".to_string()), &[]).as_str().map(str::to_owned);
         let mut side: Value = Value::Null;
-        if (action.as_str() == Some("buy")) {
+        if (action.as_deref() == Some("buy")) {
             side = Value::Str("buy".to_string());
-        }  else if (action.as_str() == Some("sell")) {
+        }  else if (action.as_deref() == Some("sell")) {
             side = Value::Str("sell".to_string());
         }
         // price in the outcome's own leg: V2 returns *_price_dollars (already dollars),
@@ -2916,16 +2916,16 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut isMarket: bool = type_var.as_str() == Some("market");
         // accept the unified `timeInForce` and map it onto kalshi's vocabulary; the native
         // `time_in_force` param (handled below) still overrides
-        let mut unifiedTif: Value = self.safe_string_upper(params.clone(), Value::Str("timeInForce".to_string()), &[]);
+        let mut unifiedTif: Option<String> = self.safe_string_upper(params.clone(), Value::Str("timeInForce".to_string()), &[]).as_str().map(str::to_owned);
         params = self.omit(params.clone(), Value::Str("timeInForce".to_string()), &[]);
         let mut defaultTif: Value = (if (isMarket) { Value::Str("immediate_or_cancel".to_string()) } else { Value::Str("good_till_canceled".to_string()) });
         // kalshi has BOTH immediate_or_cancel (partial ok) and fill_or_kill (all-or-nothing);
         // map the unified tokens to the matching primitive rather than collapsing FOK into IOC
-        if (unifiedTif.as_str() == Some("IOC")) {
+        if (unifiedTif.as_deref() == Some("IOC")) {
             defaultTif = Value::Str("immediate_or_cancel".to_string());
-        }  else if (unifiedTif.as_str() == Some("FOK")) {
+        }  else if (unifiedTif.as_deref() == Some("FOK")) {
             defaultTif = Value::Str("fill_or_kill".to_string());
-        }  else if (unifiedTif.as_str() == Some("GTC")) {
+        }  else if (unifiedTif.as_deref() == Some("GTC")) {
             defaultTif = Value::Str("good_till_canceled".to_string());
         }
         let mut timeInForce: Value = Value::Null;
@@ -3154,13 +3154,13 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         // map the unified status onto the kalshi event status pushed server-side. 'settled'/'resolved'
         // map to kalshi's 'settled' (so resolved events ARE discoverable — previously they were
         // silently rewritten to 'open'); 'all' sends no filter
-        let mut requestedStatus: Value = self.safe_string_k(params.clone(), "status", &[self.safe_string(self.options.clone(), Value::Str("defaultEventStatus".to_string()), &[Value::Str("open".to_string())])]);
+        let mut requestedStatus: Option<String> = self.safe_string_k(params.clone(), "status", &[self.safe_string(self.options.clone(), Value::Str("defaultEventStatus".to_string()), &[Value::Str("open".to_string())])]).as_str().map(str::to_owned);
         let mut status: Value = Value::Null;
-        if is_true(&(Value::Bool(requestedStatus.as_str() == Some("active")))) || is_true(&(Value::Bool(requestedStatus.as_str() == Some("open")))) {
+        if is_true(&(Value::Bool(requestedStatus.as_deref() == Some("active")))) || is_true(&(Value::Bool(requestedStatus.as_deref() == Some("open")))) {
             status = Value::Str("open".to_string());
-        }  else if is_true(&(Value::Bool(requestedStatus.as_str() == Some("closed")))) || is_true(&(Value::Bool(requestedStatus.as_str() == Some("inactive")))) {
+        }  else if is_true(&(Value::Bool(requestedStatus.as_deref() == Some("closed")))) || is_true(&(Value::Bool(requestedStatus.as_deref() == Some("inactive")))) {
             status = Value::Str("closed".to_string());
-        }  else if is_true(&(Value::Bool(requestedStatus.as_str() == Some("settled")))) || is_true(&(Value::Bool(requestedStatus.as_str() == Some("resolved")))) {
+        }  else if is_true(&(Value::Bool(requestedStatus.as_deref() == Some("settled")))) || is_true(&(Value::Bool(requestedStatus.as_deref() == Some("resolved")))) {
             status = Value::Str("settled".to_string());
         }
         // anything beyond the unified keys is forwarded verbatim to the events endpoint (kalshi filters)
@@ -3261,8 +3261,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 while { if !__for_first_1247 { pi = (match (&(pi), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1247 = false; pi.as_f64().unwrap_or(f64::NAN) < pageLength.as_f64().unwrap_or(f64::NAN) } {
                 let mut et: Value = self.safe_string_k(get_value(&page, &pi), "event_ticker", &[]);
                 if (et != Value::Null) {
-                    let mut already: Value = self.safe_string(seen.clone(), et.clone(), &[]);
-                    if (already == Value::Null) {
+                    let mut already: Option<String> = self.safe_string(seen.clone(), et.clone(), &[]).as_str().map(str::to_owned);
+                    if (already.is_none()) {
                         add_element_to_object(&mut seen, &et, et.clone());
                         append_to_array(&mut eventTickers, et.clone());
                     }
@@ -3415,8 +3415,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             while { if !__for_first_1254 { ci = (match (&(ci), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1254 = false; ci.as_f64().unwrap_or(f64::NAN) < collectedLength.as_f64().unwrap_or(f64::NAN) } {
             let mut st: Value = get_value(&collected, &ci);
             let mut st: Value = get_value(&collected, &ci);
-            let mut already: Value = self.safe_string(seen.clone(), st.clone(), &[]);
-            if is_true(&(Value::Bool(st != Value::Null))) && is_true(&(Value::Bool(st.as_str() != Some("")))) && is_true(&(Value::Bool(already == Value::Null))) {
+            let mut already: Option<String> = self.safe_string(seen.clone(), st.clone(), &[]).as_str().map(str::to_owned);
+            if is_true(&(Value::Bool(st != Value::Null))) && is_true(&(Value::Bool(st.as_str() != Some("")))) && is_true(&(Value::Bool(already.is_none()))) {
                 add_element_to_object(&mut seen, &st, st.clone());
                 append_to_array(&mut ordered, st.clone());
             }
@@ -3629,12 +3629,12 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             if is_true(&(Value::Bool(marketCreated != Value::Null))) && is_true(&(Value::Bool(is_true(&(Value::Bool(earliestCreated == Value::Null))) || is_true(&(marketCreated.as_f64().unwrap_or(f64::NAN) < earliestCreated.as_f64().unwrap_or(f64::NAN)))))) {
                 earliestCreated = marketCreated.clone();
             }
-            let mut marketStatus: Value = self.safe_string_k(rawMarket.clone(), "status", &[]);
-            if (marketStatus.as_str() == Some("active")) {
+            let mut marketStatus: Option<String> = self.safe_string_k(rawMarket.clone(), "status", &[]).as_str().map(str::to_owned);
+            if (marketStatus.as_deref() == Some("active")) {
                 anyActive = Value::Bool(true);
             }
-            let mut marketResult: Value = self.safe_string_k(rawMarket.clone(), "result", &[]);
-            let mut marketResolved: bool = is_true(&(Value::Bool(marketStatus.as_str() == Some("settled")))) || is_true(&(Value::Bool(is_true(&(Value::Bool(marketResult != Value::Null))) && is_true(&(Value::Bool(marketResult.as_str() != Some("")))))));
+            let mut marketResult: Option<String> = self.safe_string_k(rawMarket.clone(), "result", &[]).as_str().map(str::to_owned);
+            let mut marketResolved: bool = is_true(&(Value::Bool(marketStatus.as_deref() == Some("settled")))) || is_true(&(Value::Bool(is_true(&(Value::Bool(marketResult.is_some()))) && is_true(&(Value::Bool(marketResult.as_deref() != Some("")))))));
             if !marketResolved {
                 allResolved = Value::Bool(false);
             }

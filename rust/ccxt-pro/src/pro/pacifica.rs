@@ -631,14 +631,14 @@ impl PacificaCore {
             while { if !__for_first_575 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_575 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(results.len() as i64).as_f64().unwrap_or(f64::NAN) } {
             let mut order: Value = get_value(&results, &i);
             let mut order: Value = get_value(&results, &i);
-            let mut error: Value = self.safe_string_k(order.clone(), "error", &[]);
+            let mut error: Option<String> = self.safe_string_k(order.clone(), "error", &[]).as_str().map(str::to_owned);
             let mut success: Value = self.safe_bool_k(order.clone(), "success", &[Value::Bool(false)]);
             let mut marketId: Value = self.safe_string_k(order.clone(), "symbol", &[]);
             let mut market: Value = self.safe_market(&[marketId.clone()]);
             let mut orderId: Value = self.safe_string_k(order.clone(), "i", &[]);
             let mut clientOrderId: Value = self.safe_string_k(order.clone(), "I", &[]);
             let mut status: Value = Value::Null;
-            if is_true(&(Value::Bool(error != Value::Null))) || is_true(&(Value::Bool(success.as_bool() != Some(true)))) {
+            if is_true(&(Value::Bool(error.is_some()))) || is_true(&(Value::Bool(success.as_bool() != Some(true)))) {
                 status = Value::Str("closed".to_string());
             }  else {
                 status = Value::Str("canceled".to_string());
@@ -1445,14 +1445,14 @@ impl PacificaCore {
         }  else if (side.as_str() == Some("close_short")) {
             side = Value::Str("buy".to_string());
         }
-        let mut eventType: Value = self.safe_string_k(trade.clone(), "te", &[]);
+        let mut eventType: Option<String> = self.safe_string_k(trade.clone(), "te", &[]).as_str().map(str::to_owned);
         let mut takerOrMaker: Value = Value::Null;
-        if (eventType != Value::Null) {
-            takerOrMaker = (if is_true(&(Value::Bool(eventType.as_str() == Some("fulfill_maker")))) { Value::Str("maker".to_string()) } else { Value::Str("taker".to_string()) });
+        if (eventType.is_some()) {
+            takerOrMaker = (if is_true(&(Value::Bool(eventType.as_deref() == Some("fulfill_maker")))) { Value::Str("maker".to_string()) } else { Value::Str("taker".to_string()) });
         }
-        let mut orderId: Value = self.safe_string_k(trade.clone(), "i", &[]);
+        let mut orderId: Option<String> = self.safe_string_k(trade.clone(), "i", &[]).as_str().map(str::to_owned);
         // public trades have no orderId
-        if (orderId == Value::Null) {
+        if (orderId.is_none()) {
             takerOrMaker = Value::Null;
         }
         return self.safe_trade(Value::Map({
@@ -1937,24 +1937,24 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut method: Value = self.safe_string_k(message.clone(), "channel", &[]);
-        if (method.as_str() == Some("unsubscribe")) {
+        let mut method: Option<String> = self.safe_string_k(message.clone(), "channel", &[]).as_str().map(str::to_owned);
+        if (method.as_deref() == Some("unsubscribe")) {
             let mut subscription: Value = self.safe_dict_k(data.clone(), "data", &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
             })]);
-            let mut type_var: Value = self.safe_string_k(subscription.clone(), "source", &[]);
-            if (type_var.as_str() == Some("book")) {
+            let mut type_var: Option<String> = self.safe_string_k(subscription.clone(), "source", &[]).as_str().map(str::to_owned);
+            if (type_var.as_deref() == Some("book")) {
                 self.handle_order_book_unsubscription(client.clone(), subscription.clone());
-            }  else if (type_var.as_str() == Some("trades")) {
+            }  else if (type_var.as_deref() == Some("trades")) {
                 self.handle_trades_unsubscription(client.clone(), subscription.clone());
-            }  else if (type_var.as_str() == Some("prices")) {
+            }  else if (type_var.as_deref() == Some("prices")) {
                 self.handle_tickers_unsubscription(client.clone(), subscription.clone());
-            }  else if (type_var.as_str() == Some("candle")) {
+            }  else if (type_var.as_deref() == Some("candle")) {
                 self.handle_ohlcv_unsubscription(client.clone(), subscription.clone());
-            }  else if (type_var.as_str() == Some("account_order_updates")) {
+            }  else if (type_var.as_deref() == Some("account_order_updates")) {
                 self.handle_order_unsubscription(client.clone(), subscription.clone());
-            }  else if (type_var.as_str() == Some("account_trades")) {
+            }  else if (type_var.as_deref() == Some("account_trades")) {
                 self.handle_my_trades_unsubscription(client.clone(), subscription.clone());
             }
         }
@@ -1978,7 +1978,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (self.handle_error_message(client.clone(), message.clone()).as_bool() == Some(true)) {
             return;
         }
-        let mut postType: Value = self.safe_string_k(message.clone(), "type", &[]);
+        let mut postType: Option<String> = self.safe_string_k(message.clone(), "type", &[]).as_str().map(str::to_owned);
         let mut topic: Value = self.safe_string_k(message.clone(), "channel", &[Value::Str("".to_string())]);
         let mut methods: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1998,7 +1998,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             self.dispatch_ws_handler(&exacMethod, &[client.clone(), message.clone()]);
             return;
         }
-        if (postType != Value::Null) {
+        if (postType.is_some()) {
             self.handle_ws_post(client.clone(), message.clone());
             return;
         }

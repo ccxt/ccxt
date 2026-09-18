@@ -1724,8 +1724,8 @@ impl BithumbCore {
                 }
                 }
                 let mut requiredQuoteIds: Value = object_keys(&requiredQuotes);
-                let mut populatedQuotes: Value = self.safe_string(requiredQuoteIds.clone(), Value::Int(0), &[]);
-                if (populatedQuotes != Value::Null) {
+                let mut populatedQuotes: Option<String> = self.safe_string(requiredQuoteIds.clone(), Value::Int(0), &[]).as_str().map(str::to_owned);
+                if (populatedQuotes.is_some()) {
                     quotes = requiredQuoteIds.clone();
                 }
             }
@@ -2932,18 +2932,18 @@ impl BithumbCore {
             timestamp = self.safe_integer_product(order.clone(), Value::Str("order_date".to_string()), Value::Float(0.001), &[]);
             datetime = self.iso8601(timestamp.clone());
         }
-        let mut sideProperty: Value = self.safe_string2(order.clone(), Value::Str("type".to_string()), Value::Str("side".to_string()), &[]);
+        let mut sideProperty: Option<String> = self.safe_string2(order.clone(), Value::Str("type".to_string()), Value::Str("side".to_string()), &[]).as_str().map(str::to_owned);
         let mut side: Value = Value::Null;
-        if (sideProperty.as_str() == Some("bid")) {
+        if (sideProperty.as_deref() == Some("bid")) {
             side = Value::Str("buy".to_string());
-        }  else if (sideProperty.as_str() == Some("ask")) {
+        }  else if (sideProperty.as_deref() == Some("ask")) {
             side = Value::Str("sell".to_string());
         }
         let mut status: Value = self.parse_order_status(self.safe_string2(order.clone(), Value::Str("order_status".to_string()), Value::Str("state".to_string()), &[]));
         let mut price: Value = self.safe_string2(order.clone(), Value::Str("order_price".to_string()), Value::Str("price".to_string()), &[]);
         let mut type_var: Value = self.safe_string2(order.clone(), Value::Str("order_type".to_string()), Value::Str("ord_type".to_string()), &[]);
-        let mut progressCount: Value = self.safe_string_k(order.clone(), "progress_count", &[]);
-        if is_true(&(Value::Bool(type_var == Value::Null))) && is_true(&(Value::Bool(price != Value::Null))) && is_true(&(Value::Bool(progressCount == Value::Null))) {
+        let mut progressCount: Option<String> = self.safe_string_k(order.clone(), "progress_count", &[]).as_str().map(str::to_owned);
+        if is_true(&(Value::Bool(type_var == Value::Null))) && is_true(&(Value::Bool(price != Value::Null))) && is_true(&(Value::Bool(progressCount.is_none()))) {
             if is_true(&crate::precise::Precise::stringEquals(&price, &Value::Str("0".to_string()))) {
                 type_var = Value::Str("market".to_string());
             }  else {
@@ -3500,8 +3500,8 @@ impl BithumbCore {
         params = self.omit(params.clone(), Value::List(vec![Value::Str("receiver_type".to_string()), Value::Str("cust_type_cd".to_string())]), &[]);
         if (generation.as_f64() == Some(2.0)) {
             if (code.as_str() == Some("KRW")) {
-                let mut twoFactorType: Value = self.safe_string_k(params.clone(), "two_factor_type", &[]);
-                if (twoFactorType == Value::Null) {
+                let mut twoFactorType: Option<String> = self.safe_string_k(params.clone(), "two_factor_type", &[]).as_str().map(str::to_owned);
+                if (twoFactorType.is_none()) {
                     panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), code)), Value::Str(" withdraw() requires a two_factor_type parameter for withdrawing KRW".to_string())))));
                 }
                 let mut krwRequest: Value = Value::Map({

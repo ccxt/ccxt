@@ -569,13 +569,13 @@ impl UpbitCore {
         //   "stream_type": "SNAPSHOT" }
         let mut marketId: Value = self.safe_string_k(message.clone(), "code", &[]);
         let mut symbol: Value = self.safe_symbol(marketId.clone(), &[Value::Null, Value::Str("-".to_string())]);
-        let mut type_var: Value = self.safe_string_k(message.clone(), "stream_type", &[]);
+        let mut type_var: Option<String> = self.safe_string_k(message.clone(), "stream_type", &[]).as_str().map(str::to_owned);
         let mut options: Value = self.safe_value_k(self.options.clone(), "watchOrderBook", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
         let mut limit: Value = self.safe_integer_k(options.clone(), "limit", &[Value::Int(15)]);
-        if (type_var.as_str() == Some("SNAPSHOT")) {
+        if (type_var.as_deref() == Some("SNAPSHOT")) {
             { let __be_tmp = self.order_book(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -679,8 +679,8 @@ impl UpbitCore {
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut authenticated: Value = self.safe_string_k(wsOptions.clone(), "token", &[]);
-        if (authenticated == Value::Null) {
+        let mut authenticated: Option<String> = self.safe_string_k(wsOptions.clone(), "token", &[]).as_str().map(str::to_owned);
+        if (authenticated.is_none()) {
             let mut auth: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("access_key".to_string(), self.apiKey.clone());
@@ -985,8 +985,8 @@ impl UpbitCore {
 
     pub fn handle_my_order(&mut self, mut client: Value, mut message: Value) {
         // see: parseWsOrder
-        let mut tradeId: Value = self.safe_string_k(message.clone(), "trade_uuid", &[]);
-        if (tradeId != Value::Null) {
+        let mut tradeId: Option<String> = self.safe_string_k(message.clone(), "trade_uuid", &[]).as_str().map(str::to_owned);
+        if (tradeId.is_some()) {
             self.handle_my_trade(client.clone(), message.clone());
         }
         self.handle_order(client.clone(), message.clone());

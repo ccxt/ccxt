@@ -2347,15 +2347,15 @@ impl CoinexCore {
             let mut entry: Value = get_value(&markets, &i);
             let mut fees: Value = self.fees.clone();
             let mut leverages: Value = self.safe_list_k(entry.clone(), "leverage", &[Value::List(vec![])]);
-            let mut subType: Value = self.safe_string_k(entry.clone(), "contract_type", &[]);
-            let mut linear: Value = (Value::Bool(subType.as_str() == Some("linear")));
-            let mut inverse: Value = (Value::Bool(subType.as_str() == Some("inverse")));
+            let mut subType: Option<String> = self.safe_string_k(entry.clone(), "contract_type", &[]).as_str().map(str::to_owned);
+            let mut linear: Value = (Value::Bool(subType.as_deref() == Some("linear")));
+            let mut inverse: Value = (Value::Bool(subType.as_deref() == Some("inverse")));
             let mut id: Value = self.safe_string_k(entry.clone(), "market", &[]);
             let mut baseId: Value = self.safe_string_k(entry.clone(), "base_ccy", &[]);
             let mut quoteId: Value = self.safe_string_k(entry.clone(), "quote_ccy", &[]);
             let mut base: Value = self.safe_currency_code(baseId.clone(), &[]);
             let mut quote: Value = self.safe_currency_code(quoteId.clone(), &[]);
-            let mut settleId: Value = (if is_true(&(Value::Bool(subType.as_str() == Some("linear")))) { Value::Str("USDT".to_string()) } else { baseId.clone() });
+            let mut settleId: Value = (if is_true(&(Value::Bool(subType.as_deref() == Some("linear")))) { Value::Str("USDT".to_string()) } else { baseId.clone() });
             let mut settle: Value = self.safe_currency_code(settleId.clone(), &[]);
             let mut symbol: Value = add(&Value::Str(format!("{}{}", add(&add(&base, &Value::Str("/".to_string())), &quote), Value::Str(":".to_string()))), &settle);
             let mut leveragesLength: Value = Value::Int(leverages.len() as i64);
@@ -3682,10 +3682,10 @@ impl CoinexCore {
         let mut triggerPrice: Value = self.safe_string2(params.clone(), Value::Str("stopPrice".to_string()), Value::Str("triggerPrice".to_string()), &[]);
         let mut stopLossPrice: Value = self.safe_string_k(params.clone(), "stopLossPrice", &[]);
         let mut takeProfitPrice: Value = self.safe_string_k(params.clone(), "takeProfitPrice", &[]);
-        let mut option: Value = self.safe_string_k(params.clone(), "option", &[]);
+        let mut option: Option<String> = self.safe_string_k(params.clone(), "option", &[]).as_str().map(str::to_owned);
         let mut isMarketOrder: Value = Value::Bool(type_var.as_str() == Some("market"));
-        let mut postOnly: Value = self.is_post_only(isMarketOrder.clone(), Value::Bool(option.as_str() == Some("maker_only")), &[params.clone()]);
-        let mut timeInForceRaw: Value = self.safe_string_upper(params.clone(), Value::Str("timeInForce".to_string()), &[]);
+        let mut postOnly: Value = self.is_post_only(isMarketOrder.clone(), Value::Bool(option.as_deref() == Some("maker_only")), &[params.clone()]);
+        let mut timeInForceRaw: Option<String> = self.safe_string_upper(params.clone(), Value::Str("timeInForce".to_string()), &[]).as_str().map(str::to_owned);
         let mut reduceOnly: Value = self.safe_bool_k(params.clone(), "reduceOnly", &[]);
         if (reduceOnly.as_bool() == Some(true)) {
             if (market.as_map().and_then(|__m| __m.get("swap")).cloned().unwrap_or(Value::Null).as_bool() != Some(true)) {
@@ -3711,10 +3711,10 @@ impl CoinexCore {
             let mut requestType: Value = type_var.clone();
             if is_true(&postOnly) {
                 requestType = Value::Str("maker_only".to_string());
-            }  else if (timeInForceRaw != Value::Null) {
-                if (timeInForceRaw.as_str() == Some("IOC")) {
+            }  else if (timeInForceRaw.is_some()) {
+                if (timeInForceRaw.as_deref() == Some("IOC")) {
                     requestType = Value::Str("ioc".to_string());
-                }  else if (timeInForceRaw.as_str() == Some("FOK")) {
+                }  else if (timeInForceRaw.as_deref() == Some("FOK")) {
                     requestType = Value::Str("fok".to_string());
                 }
             }
@@ -3815,12 +3815,12 @@ impl CoinexCore {
         }
         let mut market: Value = self.market(symbol.clone());
         let mut reduceOnly: Value = self.safe_bool_k(params.clone(), "reduceOnly", &[]);
-        let mut triggerPrice: Value = self.safe_string2(params.clone(), Value::Str("stopPrice".to_string()), Value::Str("triggerPrice".to_string()), &[]);
-        let mut stopLossTriggerPrice: Value = self.safe_string_k(params.clone(), "stopLossPrice", &[]);
-        let mut takeProfitTriggerPrice: Value = self.safe_string_k(params.clone(), "takeProfitPrice", &[]);
-        let mut isTriggerOrder: bool = triggerPrice != Value::Null;
-        let mut isStopLossTriggerOrder: bool = stopLossTriggerPrice != Value::Null;
-        let mut isTakeProfitTriggerOrder: bool = takeProfitTriggerPrice != Value::Null;
+        let mut triggerPrice: Option<String> = self.safe_string2(params.clone(), Value::Str("stopPrice".to_string()), Value::Str("triggerPrice".to_string()), &[]).as_str().map(str::to_owned);
+        let mut stopLossTriggerPrice: Option<String> = self.safe_string_k(params.clone(), "stopLossPrice", &[]).as_str().map(str::to_owned);
+        let mut takeProfitTriggerPrice: Option<String> = self.safe_string_k(params.clone(), "takeProfitPrice", &[]).as_str().map(str::to_owned);
+        let mut isTriggerOrder: bool = triggerPrice.is_some();
+        let mut isStopLossTriggerOrder: bool = stopLossTriggerPrice.is_some();
+        let mut isTakeProfitTriggerOrder: bool = takeProfitTriggerPrice.is_some();
         let mut isStopLossOrTakeProfitTrigger: bool = isStopLossTriggerOrder || isTakeProfitTriggerOrder;
         let mut request: Value = self.create_order_request(symbol.clone(), type_var.clone(), side.clone(), amount.clone(), &[price.clone(), params.clone()]);
         let mut response: Value = Value::Null;
@@ -6034,8 +6034,8 @@ impl CoinexCore {
         let mut type_var: Value = (if is_true(&(Value::Bool(in_op(&transaction, &Value::Str("withdraw_id".to_string()))))) { Value::Str("withdrawal".to_string()) } else { Value::Str("deposit".to_string()) });
         let mut networkId: Value = self.safe_string_k(transaction.clone(), "chain", &[]);
         let mut feeCost: Value = self.safe_string_k(transaction.clone(), "tx_fee", &[]);
-        let mut transferMethod: Value = self.safe_string_lower2(transaction.clone(), Value::Str("withdraw_method".to_string()), Value::Str("deposit_method".to_string()), &[]);
-        let mut internal: Value = Value::Bool(transferMethod.as_str() == Some("local"));
+        let mut transferMethod: Option<String> = self.safe_string_lower2(transaction.clone(), Value::Str("withdraw_method".to_string()), Value::Str("deposit_method".to_string()), &[]).as_str().map(str::to_owned);
+        let mut internal: Value = Value::Bool(transferMethod.as_deref() == Some("local"));
         let mut amount: Value = self.safe_number_k(transaction.clone(), "actual_amount", &[]);
         if (amount == Value::Null) {
             amount = self.safe_number_k(transaction.clone(), "amount", &[]);
@@ -7264,12 +7264,12 @@ impl CoinexCore {
          * @param {object} params extra parameters specific to the exchange API endpoint
          * @returns {Array} the marginMode in lowercase
          */
-        let mut defaultType: Value = self.safe_string_k(self.options.clone(), "defaultType", &[]);
+        let mut defaultType: Option<String> = self.safe_string_k(self.options.clone(), "defaultType", &[]).as_str().map(str::to_owned);
         let mut isMargin: Value = self.safe_bool_k(params.clone(), "margin", &[Value::Bool(false)]);
         let mut marginMode: Value = Value::Null;
         { let __destr_tmp = self.super_handle_margin_mode_and_params(methodName.clone(), params.clone(), defaultValue.clone()); marginMode = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         if (marginMode == Value::Null) {
-            if is_true(&(Value::Bool(defaultType.as_str() == Some("margin")))) || is_true(&(Value::Bool(isMargin.as_bool() == Some(true)))) {
+            if is_true(&(Value::Bool(defaultType.as_deref() == Some("margin")))) || is_true(&(Value::Bool(isMargin.as_bool() == Some(true)))) {
                 marginMode = Value::Str("isolated".to_string());
             }
         }
@@ -7301,13 +7301,13 @@ impl CoinexCore {
         let mut nonce: Value = to_string_val(&self.nonce());
         if (method.as_str() == Some("POST")) {
             let mut parts: Value = split(&path, &Value::Str("/".to_string()));
-            let mut firstPart: Value = self.safe_string(parts.clone(), Value::Int(0), &[Value::Str("".to_string())]);
+            let mut firstPart: Option<String> = self.safe_string(parts.clone(), Value::Int(0), &[Value::Str("".to_string())]).as_str().map(str::to_owned);
             let mut numParts: Value = get_array_length(&parts);
             let mut lastPart: Value = self.safe_string(parts.clone(), subtract(&numParts, &Value::Int(1)), &[Value::Str("".to_string())]);
             let mut lastWords: Value = split(&lastPart, &Value::Str("_".to_string()));
             let mut numWords: Value = Value::Int(lastWords.len() as i64);
-            let mut lastWord: Value = self.safe_string(lastWords.clone(), (match (&(numWords), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }), &[Value::Str("".to_string())]);
-            if is_true(&(Value::Bool(firstPart.as_str() == Some("order")))) && is_true(&(Value::Bool((lastWord.as_str() == Some("limit")) || (lastWord.as_str() == Some("market"))))) {
+            let mut lastWord: Option<String> = self.safe_string(lastWords.clone(), (match (&(numWords), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }), &[Value::Str("".to_string())]).as_str().map(str::to_owned);
+            if is_true(&(Value::Bool(firstPart.as_deref() == Some("order")))) && is_true(&(Value::Bool((lastWord.as_deref() == Some("limit")) || (lastWord.as_deref() == Some("market"))))) {
                 // inject in implicit API calls
                 // POST /order/limit - Place limit orders
                 // POST /order/market - Place market orders
@@ -7317,8 +7317,8 @@ impl CoinexCore {
                 // POST /perpetual/v1/order/put_market - Place market orders
                 // POST /perpetual/v1/order/put_stop_limit - Place stop limit orders
                 // POST /perpetual/v1/order/put_stop_market - Place stop market orders
-                let mut clientOrderId: Value = self.safe_string_k(params.clone(), "client_id", &[]);
-                if (clientOrderId == Value::Null) {
+                let mut clientOrderId: Option<String> = self.safe_string_k(params.clone(), "client_id", &[]).as_str().map(str::to_owned);
+                if (clientOrderId.is_none()) {
                     let mut defaultId: Value = Value::Str("x-167673045".to_string());
                     let mut brokerId: Value = self.safe_value_k(self.options.clone(), "brokerId", &[defaultId.clone()]);
                     add_element_to_object(&mut query, &Value::Str("client_id".to_string()), Value::Str(format!("{}{}", add(&brokerId, &Value::Str("_".to_string())), self.uuid16(&[]))));

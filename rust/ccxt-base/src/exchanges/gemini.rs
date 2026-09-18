@@ -1169,8 +1169,8 @@ impl GeminiCore {
     pub fn parse_currency(&self, mut rawCurrency: Value) -> Value {
         let mut id: Value = self.safe_string(rawCurrency.clone(), Value::Int(0), &[]);
         let mut code: Value = self.safe_currency_code(id.clone(), &[]);
-        let mut fiatFlag: Value = self.safe_string(rawCurrency.clone(), Value::Int(7), &[]);
-        let mut isFiat: bool = is_true(&(Value::Bool(fiatFlag != Value::Null))) && is_true(&(Value::Bool(fiatFlag.as_str() != Some(""))));
+        let mut fiatFlag: Option<String> = self.safe_string(rawCurrency.clone(), Value::Int(7), &[]).as_str().map(str::to_owned);
+        let mut isFiat: bool = is_true(&(Value::Bool(fiatFlag.is_some()))) && is_true(&(Value::Bool(fiatFlag.as_deref() != Some(""))));
         let mut type_var: Value = (if isFiat { Value::Str("fiat".to_string()) } else { Value::Str("crypto".to_string()) });
         let mut precision: Value = self.parse_number(self.parse_precision(&[self.safe_string(rawCurrency.clone(), Value::Int(5), &[])]), &[]);
         let mut networks: Value = Value::Map({
@@ -2362,15 +2362,15 @@ impl GeminiCore {
         let mut side: Value = self.safe_string_lower(order.clone(), Value::Str("side".to_string()), &[]);
         let mut clientOrderId: Value = self.safe_string_k(order.clone(), "client_order_id", &[]);
         let mut optionsArray: Value = self.safe_value_k(order.clone(), "options", &[Value::List(vec![])]);
-        let mut option: Value = self.safe_string(optionsArray.clone(), Value::Int(0), &[]);
+        let mut option: Option<String> = self.safe_string(optionsArray.clone(), Value::Int(0), &[]).as_str().map(str::to_owned);
         let mut timeInForce: Value = Value::Str("GTC".to_string());
         let mut postOnly: Value = Value::Bool(false);
-        if (option != Value::Null) {
-            if (option.as_str() == Some("immediate-or-cancel")) {
+        if (option.is_some()) {
+            if (option.as_deref() == Some("immediate-or-cancel")) {
                 timeInForce = Value::Str("IOC".to_string());
-            }  else if (option.as_str() == Some("fill-or-kill")) {
+            }  else if (option.as_deref() == Some("fill-or-kill")) {
                 timeInForce = Value::Str("FOK".to_string());
-            }  else if (option.as_str() == Some("maker-or-cancel")) {
+            }  else if (option.as_deref() == Some("maker-or-cancel")) {
                 timeInForce = Value::Str("PO".to_string());
                 postOnly = Value::Bool(true);
             }
@@ -2547,14 +2547,14 @@ impl GeminiCore {
             add_element_to_object(&mut request, &Value::Str("type".to_string()), Value::Str("exchange stop limit".to_string()));
         }  else {
             // No options can be applied to stop-limit orders at this time.
-            let mut timeInForce: Value = self.safe_string_k(params.clone(), "timeInForce", &[]);
+            let mut timeInForce: Option<String> = self.safe_string_k(params.clone(), "timeInForce", &[]).as_str().map(str::to_owned);
             params = self.omit(params.clone(), Value::Str("timeInForce".to_string()), &[]);
-            if (timeInForce != Value::Null) {
-                if is_true(&(Value::Bool(timeInForce.as_str() == Some("IOC")))) || is_true(&(Value::Bool(timeInForce.as_str() == Some("immediate-or-cancel")))) {
+            if (timeInForce.is_some()) {
+                if is_true(&(Value::Bool(timeInForce.as_deref() == Some("IOC")))) || is_true(&(Value::Bool(timeInForce.as_deref() == Some("immediate-or-cancel")))) {
                     add_element_to_object(&mut request, &Value::Str("options".to_string()), Value::List(vec![Value::Str("immediate-or-cancel".to_string())]));
-                }  else if is_true(&(Value::Bool(timeInForce.as_str() == Some("FOK")))) || is_true(&(Value::Bool(timeInForce.as_str() == Some("fill-or-kill")))) {
+                }  else if is_true(&(Value::Bool(timeInForce.as_deref() == Some("FOK")))) || is_true(&(Value::Bool(timeInForce.as_deref() == Some("fill-or-kill")))) {
                     add_element_to_object(&mut request, &Value::Str("options".to_string()), Value::List(vec![Value::Str("fill-or-kill".to_string())]));
-                }  else if (timeInForce.as_str() == Some("PO")) {
+                }  else if (timeInForce.as_deref() == Some("PO")) {
                     add_element_to_object(&mut request, &Value::Str("options".to_string()), Value::List(vec![Value::Str("maker-or-cancel".to_string())]));
                 }
             }
@@ -2707,8 +2707,8 @@ impl GeminiCore {
         //         "message":"Cryptocurrency withdrawal address whitelists are not enabled for account 24. Please contact support@gemini.com for information on setting up a withdrawal address whitelist."
         //     }
         //
-        let mut result: Value = self.safe_string_k(response.clone(), "result", &[]);
-        if (result.as_str() == Some("error")) {
+        let mut result: Option<String> = self.safe_string_k(response.clone(), "result", &[]).as_str().map(str::to_owned);
+        if (result.as_deref() == Some("error")) {
             panic!("{}", crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" withdraw() failed: ".to_string()))), self.json(response.clone())))));
         }
         return self.parse_transaction(response.clone(), &[currency.clone()]);
@@ -2717,8 +2717,8 @@ impl GeminiCore {
 }
 
     pub fn nonce(&self) -> Value {
-        let mut nonceMethod: Value = self.safe_string_k(self.options.clone(), "nonce", &[Value::Str("milliseconds".to_string())]);
-        if (nonceMethod.as_str() == Some("milliseconds")) {
+        let mut nonceMethod: Option<String> = self.safe_string_k(self.options.clone(), "nonce", &[Value::Str("milliseconds".to_string())]).as_str().map(str::to_owned);
+        if (nonceMethod.as_deref() == Some("milliseconds")) {
             return self.milliseconds();
         }
         return self.seconds();
@@ -3008,8 +3008,8 @@ impl GeminiCore {
         //         "message": "Out-of-sequence nonce <1234> precedes previously used nonce <2345>"
         //     }
         //
-        let mut result: Value = self.safe_string_k(response.clone(), "result", &[]);
-        if (result.as_str() == Some("error")) {
+        let mut result: Option<String> = self.safe_string_k(response.clone(), "result", &[]).as_str().map(str::to_owned);
+        if (result.as_deref() == Some("error")) {
             let mut reasonInner: Value = self.safe_string_k(response.clone(), "reason", &[]);
             let mut message: Value = self.safe_string_k(response.clone(), "message", &[]);
             let mut feedback: Value = add(&Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), &message);

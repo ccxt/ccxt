@@ -1078,7 +1078,7 @@ impl CoinbaseinternationalCore {
         //       "type": "UPDATE"
         //    }
         //
-        let mut type_var: Value = self.safe_string_k(message.clone(), "type", &[]);
+        let mut type_var: Option<String> = self.safe_string_k(message.clone(), "type", &[]).as_str().map(str::to_owned);
         let mut marketId: Value = self.safe_string_k(message.clone(), "product_id", &[]);
         let mut symbol: Value = self.safe_symbol(marketId.clone(), &[]);
         let mut datetime: Value = self.safe_string_k(message.clone(), "time", &[]);
@@ -1091,7 +1091,7 @@ impl CoinbaseinternationalCore {
 }), limit.clone()]); add_element_to_object(&mut self.orderbooks, &symbol, __be_tmp); };
         }
         let mut orderbook: Value = get_value(&self.orderbooks, &symbol);
-        if (type_var.as_str() == Some("SNAPSHOT")) {
+        if (type_var.as_deref() == Some("SNAPSHOT")) {
             let mut parsedSnapshot: Value = self.parse_order_book(message.clone(), symbol.clone(), &[Value::Null, Value::Str("bids".to_string()), Value::Str("asks".to_string())]);
             orderbook.reset(parsedSnapshot.clone());
             add_element_to_object(&mut orderbook, &Value::Str("symbol".to_string()), symbol.clone());
@@ -1107,8 +1107,8 @@ impl CoinbaseinternationalCore {
 }
 
     pub fn handle_delta(&self, mut orderbook: Value, mut delta: Value) {
-        let mut rawSide: Value = self.safe_string_lower(delta.clone(), Value::Int(0), &[]);
-        let mut side: Value = (if is_true(&(Value::Bool(rawSide.as_str() == Some("buy")))) { Value::Str("bids".to_string()) } else { Value::Str("asks".to_string()) });
+        let mut rawSide: Option<String> = self.safe_string_lower(delta.clone(), Value::Int(0), &[]).as_str().map(str::to_owned);
+        let mut side: Value = (if is_true(&(Value::Bool(rawSide.as_deref() == Some("buy")))) { Value::Str("bids".to_string()) } else { Value::Str("asks".to_string()) });
         let mut price: Value = self.safe_float(delta.clone(), Value::Int(1), &[]);
         let mut amount: Value = self.safe_float(delta.clone(), Value::Int(2), &[]);
         let mut bookside: Value = get_value(&orderbook, &side);
@@ -1170,8 +1170,8 @@ impl CoinbaseinternationalCore {
         //        type: 'REJECT'
         //    }
         //
-        let mut type_var: Value = self.safe_string_k(message.clone(), "type", &[]);
-        if (type_var.as_str() != Some("REJECT")) {
+        let mut type_var: Option<String> = self.safe_string_k(message.clone(), "type", &[]).as_str().map(str::to_owned);
+        if (type_var.as_deref() != Some("REJECT")) {
             return Value::Bool(false);
         }
         let mut reason: Value = self.safe_string_k(message.clone(), "reason", &[]);
@@ -1206,8 +1206,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("RISK".to_string(), Value::Str("handle_ticker".to_string()).clone());
             m
         });
-        let mut type_var: Value = self.safe_string_k(message.clone(), "type", &[]);
-        if (type_var.as_str() == Some("error")) {
+        let mut type_var: Option<String> = self.safe_string_k(message.clone(), "type", &[]).as_str().map(str::to_owned);
+        if (type_var.as_deref() == Some("error")) {
             let mut errorMessage: Value = self.safe_string_k(message.clone(), "message", &[]);
             panic!("{}", crate::exchange_errors::exchange_error(errorMessage));
         }

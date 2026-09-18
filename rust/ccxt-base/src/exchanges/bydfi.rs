@@ -995,7 +995,7 @@ impl BydfiCore {
         let mut taker: Value = self.safe_number_k(market.clone(), "feeRateTaker", &[]);
         let mut maker: Value = self.safe_number_k(market.clone(), "feeRateMaker", &[]);
         let mut maxLeverage: Value = self.safe_number_k(market.clone(), "maxLeverageLevel", &[]);
-        let mut status: Value = self.safe_string_k(market.clone(), "status", &[]);
+        let mut status: Option<String> = self.safe_string_k(market.clone(), "status", &[]).as_str().map(str::to_owned);
         return self.safe_market_structure(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id.clone());
@@ -1012,7 +1012,7 @@ impl BydfiCore {
         m.insert("swap".to_string(), Value::Bool(true));
         m.insert("future".to_string(), Value::Bool(false));
         m.insert("option".to_string(), Value::Bool(false));
-        m.insert("active".to_string(), Value::Bool(status.as_str() == Some("NORMAL")));
+        m.insert("active".to_string(), Value::Bool(status.as_deref() == Some("NORMAL")));
         m.insert("contract".to_string(), Value::Bool(true));
         m.insert("linear".to_string(), Value::Bool(inverse.as_bool() != Some(true)));
         m.insert("inverse".to_string(), inverse.clone());
@@ -2151,12 +2151,12 @@ impl BydfiCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut clientOrderId: Value = self.safe_string_k(params.clone(), "clientOrderId", &[]);
+        let mut clientOrderId: Option<String> = self.safe_string_k(params.clone(), "clientOrderId", &[]).as_str().map(str::to_owned);
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         });
-        if is_true(&(Value::Bool(id == Value::Null))) && is_true(&(Value::Bool(clientOrderId == Value::Null))) {
+        if is_true(&(Value::Bool(id == Value::Null))) && is_true(&(Value::Bool(clientOrderId.is_none()))) {
             panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" editOrder() requires an id argument or a clientOrderId parameter".to_string())))));
         }  else if (id != Value::Null) {
             add_element_to_object(&mut request, &Value::Str("orderId".to_string()), id.clone());
@@ -2365,8 +2365,8 @@ impl BydfiCore {
                 m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
-        let mut clientOrderId: Value = self.safe_string_k(params.clone(), "clientOrderId", &[]);
-        if is_true(&(Value::Bool(id == Value::Null))) && is_true(&(Value::Bool(clientOrderId == Value::Null))) {
+        let mut clientOrderId: Option<String> = self.safe_string_k(params.clone(), "clientOrderId", &[]).as_str().map(str::to_owned);
+        if is_true(&(Value::Bool(id == Value::Null))) && is_true(&(Value::Bool(clientOrderId.is_none()))) {
             panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchOpenOrder() requires an id argument or a clientOrderId parameter".to_string())))));
         }  else if (id != Value::Null) {
             add_element_to_object(&mut request, &Value::Str("orderId".to_string()), id.clone());

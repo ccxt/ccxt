@@ -1259,7 +1259,7 @@ impl BittradeCore {
             let mut quoteId: Value = self.safe_string_k(market.clone(), "quote-currency", &[]);
             let mut base: Value = self.safe_currency_code(baseId.clone(), &[]);
             let mut quote: Value = self.safe_currency_code(quoteId.clone(), &[]);
-            let mut state: Value = self.safe_string_k(market.clone(), "state", &[]);
+            let mut state: Option<String> = self.safe_string_k(market.clone(), "state", &[]).as_str().map(str::to_owned);
             let mut leverageRatio: Value = self.safe_string_k(market.clone(), "leverage-ratio", &[Value::Str("1".to_string())]);
             let mut superLeverageRatio: Value = self.safe_string_k(market.clone(), "super-margin-leverage-ratio", &[Value::Str("1".to_string())]);
             let mut margin: Value = Value::Bool(is_true(&crate::precise::Precise::stringGt(&leverageRatio, &Value::Str("1".to_string()))) || is_true(&crate::precise::Precise::stringGt(&superLeverageRatio, &Value::Str("1".to_string()))));
@@ -1286,7 +1286,7 @@ impl BittradeCore {
                     m.insert("swap".to_string(), Value::Bool(false));
                     m.insert("future".to_string(), Value::Bool(false));
                     m.insert("option".to_string(), Value::Bool(false));
-                    m.insert("active".to_string(), (Value::Bool(state.as_str() == Some("online"))));
+                    m.insert("active".to_string(), (Value::Bool(state.as_deref() == Some("online"))));
                     m.insert("contract".to_string(), Value::Bool(false));
                     m.insert("linear".to_string(), Value::Null);
                     m.insert("inverse".to_string(), Value::Null);
@@ -1997,8 +1997,8 @@ impl BittradeCore {
         let mut withdrawEnabled: Value = self.safe_value_k(currency.clone(), "withdraw-enabled", &[]);
         let mut countryDisabled: Value = self.safe_value_k(currency.clone(), "country-disabled", &[]);
         let mut visible: Value = self.safe_bool_k(currency.clone(), "visible", &[Value::Bool(false)]);
-        let mut state: Value = self.safe_string_k(currency.clone(), "state", &[]);
-        let mut active: Value = Value::Bool(is_true(&(Value::Bool(visible.as_bool() == Some(true)))) && (is_equal(&depositEnabled, &Value::Bool(true))) && (is_equal(&withdrawEnabled, &Value::Bool(true))) && is_true(&(Value::Bool(state.as_str() == Some("online")))) && (!is_equal(&countryDisabled, &Value::Bool(true))));
+        let mut state: Option<String> = self.safe_string_k(currency.clone(), "state", &[]).as_str().map(str::to_owned);
+        let mut active: Value = Value::Bool(is_true(&(Value::Bool(visible.as_bool() == Some(true)))) && (is_equal(&depositEnabled, &Value::Bool(true))) && (is_equal(&withdrawEnabled, &Value::Bool(true))) && is_true(&(Value::Bool(state.as_deref() == Some("online")))) && (!is_equal(&countryDisabled, &Value::Bool(true))));
         let mut name: Value = self.safe_string_k(currency.clone(), "display-name", &[]);
         let mut precision: Value = self.parse_number(self.parse_precision(&[self.safe_string_k(currency.clone(), "withdraw-precision", &[])]), &[]);
         return self.safe_currency_structure(Value::Map({
@@ -3176,8 +3176,8 @@ impl BittradeCore {
             //
             //     {"status":"error","err-code":"order-limitorder-amount-min-error","err-msg":"limit order amount error, min: `0.001`","data":null}
             //
-            let mut status: Value = self.safe_string_k(response.clone(), "status", &[]);
-            if (status.as_str() == Some("error")) {
+            let mut status: Option<String> = self.safe_string_k(response.clone(), "status", &[]).as_str().map(str::to_owned);
+            if (status.as_deref() == Some("error")) {
                 let mut code: Value = self.safe_string_k(response.clone(), "err-code", &[]);
                 let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), body));
                 self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), body.clone(), feedback.clone());

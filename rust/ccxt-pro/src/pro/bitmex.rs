@@ -2093,14 +2093,14 @@ impl BitmexCore {
         //         ]
         //     }
         //
-        let mut action: Value = self.safe_string_k(message.clone(), "action", &[]);
+        let mut action: Option<String> = self.safe_string_k(message.clone(), "action", &[]).as_str().map(str::to_owned);
         let mut table: Value = self.safe_string_k(message.clone(), "table", &[]);
         if (table == Value::Null) {
             return;
         }
         let mut data: Value = self.safe_list_k(message.clone(), "data", &[Value::List(vec![])]);
         // if it's an initial snapshot
-        if (action.as_str() == Some("partial")) {
+        if (action.as_deref() == Some("partial")) {
             let mut filter: Value = self.safe_dict_k(message.clone(), "filter", &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
@@ -2166,7 +2166,7 @@ impl BitmexCore {
                 let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
                 let mut orderbook: Value = get_value(&self.orderbooks, &symbol);
                 let mut price: Value = self.safe_number_k(get_value(&data, &i), "price", &[]);
-                let mut size: Value = (if is_true(&(Value::Bool(action.as_str() == Some("delete")))) { Value::Int(0) } else { self.parent.convert_from_raw_quantity(symbol.clone(), self.safe_string_k(get_value(&data, &i), "size", &[Value::Str("0".to_string())]), &[]) });
+                let mut size: Value = (if is_true(&(Value::Bool(action.as_deref() == Some("delete")))) { Value::Int(0) } else { self.parent.convert_from_raw_quantity(symbol.clone(), self.safe_string_k(get_value(&data, &i), "size", &[Value::Str("0".to_string())]), &[]) });
                 let mut id: Value = self.safe_string_k(get_value(&data, &i), "id", &[]);
                 let mut side: Value = self.safe_string_k(get_value(&data, &i), "side", &[]);
                 side = (if is_true(&(Value::Bool(side.as_str() == Some("Buy")))) { Value::Str("bids".to_string()) } else { Value::Str("asks".to_string()) });

@@ -1595,8 +1595,8 @@ impl HashkeyCore {
         let mut isSwap: Value = Value::Bool(false);
         let mut suffix: Value = Value::Str("".to_string());
         let mut parts: Value = split(&marketId, &Value::Str("-".to_string()));
-        let mut secondPart: Value = self.safe_string(parts.clone(), Value::Int(1), &[]);
-        if (secondPart.as_str() == Some("PERPETUAL")) {
+        let mut secondPart: Option<String> = self.safe_string(parts.clone(), Value::Int(1), &[]).as_str().map(str::to_owned);
+        if (secondPart.as_deref() == Some("PERPETUAL")) {
             marketType = Value::Str("swap".to_string());
             isSpot = Value::Bool(false);
             isSwap = Value::Bool(true);
@@ -1605,8 +1605,8 @@ impl HashkeyCore {
         }
         let mut base: Value = self.safe_currency_code(baseId.clone(), &[]);
         let mut symbol: Value = Value::Str(format!("{}{}", add(&add(&base, &Value::Str("/".to_string())), &quote), suffix));
-        let mut status: Value = self.safe_string_k(market.clone(), "status", &[]);
-        let mut active: Value = Value::Bool(status.as_str() == Some("TRADING"));
+        let mut status: Option<String> = self.safe_string_k(market.clone(), "status", &[]).as_str().map(str::to_owned);
+        let mut active: Value = Value::Bool(status.as_deref() == Some("TRADING"));
         let mut isLinear: Value = Value::Null;
         let mut subType: Value = Value::Null;
         let mut isInverse: Value = self.safe_bool_k(market.clone(), "inverse", &[]);
@@ -1801,8 +1801,8 @@ impl HashkeyCore {
             }
         }
         }
-        let mut rawType: Value = self.safe_string_k(rawCurrency.clone(), "tokenType", &[]);
-        let mut type_var: Value = (if is_true(&(Value::Bool(rawType.as_str() == Some("REAL_MONEY")))) { Value::Str("fiat".to_string()) } else { Value::Str("crypto".to_string()) });
+        let mut rawType: Option<String> = self.safe_string_k(rawCurrency.clone(), "tokenType", &[]).as_str().map(str::to_owned);
+        let mut type_var: Value = (if is_true(&(Value::Bool(rawType.as_deref() == Some("REAL_MONEY")))) { Value::Str("fiat".to_string()) } else { Value::Str("crypto".to_string()) });
         return self.safe_currency_structure(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), currencyId.clone());
@@ -2808,8 +2808,8 @@ impl HashkeyCore {
             if (success.as_bool() == Some(true)) {
                 status = Value::Str("ok".to_string());
             }  else {
-                let mut addressUrl: Value = self.safe_string_k(transaction.clone(), "addressUrl", &[]); // for fetchWithdrawals
-                if (addressUrl != Value::Null) {
+                let mut addressUrl: Option<String> = self.safe_string_k(transaction.clone(), "addressUrl", &[]).as_str().map(str::to_owned); // for fetchWithdrawals
+                if (addressUrl.is_some()) {
                     status = Value::Str("ok".to_string());
                 }
             }
@@ -2966,11 +2966,11 @@ impl HashkeyCore {
 }
 
     pub fn parse_account(&self, mut account: Value) -> Value {
-        let mut accountLabel: Value = self.safe_string_k(account.clone(), "accountLabel", &[]);
+        let mut accountLabel: Option<String> = self.safe_string_k(account.clone(), "accountLabel", &[]).as_str().map(str::to_owned);
         let mut label: Value = Value::Str("".to_string());
-        if (accountLabel.as_str() == Some("Main Trading Account")) || (accountLabel.as_str() == Some("Main Future Account")) {
+        if (accountLabel.as_deref() == Some("Main Trading Account")) || (accountLabel.as_deref() == Some("Main Future Account")) {
             label = Value::Str("main".to_string());
-        }  else if (accountLabel.as_str() == Some("Sub Main Trading Account")) || (accountLabel.as_str() == Some("Sub Main Future Account")) {
+        }  else if (accountLabel.as_deref() == Some("Sub Main Trading Account")) || (accountLabel.as_deref() == Some("Sub Main Future Account")) {
             label = Value::Str("sub".to_string());
         }
         let mut accountType: Value = self.parse_account_type(self.safe_string_k(account.clone(), "accountType", &[]));
@@ -3261,8 +3261,8 @@ impl HashkeyCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut triggerPrice: Value = self.safe_string2(params.clone(), Value::Str("stopPrice".to_string()), Value::Str("triggerPrice".to_string()), &[]);
-        if (triggerPrice != Value::Null) {
+        let mut triggerPrice: Option<String> = self.safe_string2(params.clone(), Value::Str("stopPrice".to_string()), Value::Str("triggerPrice".to_string()), &[]).as_str().map(str::to_owned);
+        if (triggerPrice.is_some()) {
             panic!("{}", crate::exchange_errors::not_supported(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" trigger orders are not supported for spot markets".to_string())))));
         }
         if (self.markets.clone() == Value::Null) {
@@ -3270,8 +3270,8 @@ impl HashkeyCore {
         }
         let mut market: Value = self.market(symbol.clone());
         let mut isMarketBuy: bool = is_true(&(Value::Bool(type_var.as_str() == Some("market")))) && is_true(&(Value::Bool(side.as_str() == Some("buy"))));
-        let mut cost: Value = self.safe_string_k(params.clone(), "cost", &[]);
-        if (!isMarketBuy) && is_true(&(Value::Bool(cost != Value::Null))) {
+        let mut cost: Option<String> = self.safe_string_k(params.clone(), "cost", &[]).as_str().map(str::to_owned);
+        if (!isMarketBuy) && is_true(&(Value::Bool(cost.is_some()))) {
             panic!("{}", crate::exchange_errors::not_supported(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder() supports cost parameter for spot market buy orders only".to_string())))));
         }
         let mut request: Value = self.create_spot_order_request(symbol.clone(), type_var.clone(), side.clone(), amount.clone(), &[price.clone(), params.clone()]);
@@ -3283,7 +3283,7 @@ impl HashkeyCore {
         if (test.as_bool() == Some(true)) {
             params = self.omit(params.clone(), Value::Str("test".to_string()), &[]);
             response = self.private_post_api_v1_spot_order_test(&[request.clone()]).await;
-        }  else if isMarketBuy && is_true(&(Value::Bool(cost == Value::Null))) {
+        }  else if isMarketBuy && is_true(&(Value::Bool(cost.is_none()))) {
             response = self.private_post_api_v11_spot_order(&[request.clone()]).await; // the endpoint for market buy orders by amount
         }  else {
             response = self.private_post_api_v1_spot_order(&[request.clone()]).await; // the endpoint for market buy orders by cost and other orders
@@ -3439,8 +3439,8 @@ impl HashkeyCore {
         if (timeInForce != Value::Null) {
             add_element_to_object(&mut request, &Value::Str("timeInForce".to_string()), timeInForce.clone());
         }
-        let mut clientOrderId: Value = self.safe_string_k(params.clone(), "clientOrderId", &[]);
-        if (clientOrderId == Value::Null) {
+        let mut clientOrderId: Option<String> = self.safe_string_k(params.clone(), "clientOrderId", &[]).as_str().map(str::to_owned);
+        if (clientOrderId.is_none()) {
             add_element_to_object(&mut request, &Value::Str("clientOrderId".to_string()), self.uuid(&[]));
         }
         let mut triggerPrice: Value = self.safe_string_k(params.clone(), "triggerPrice", &[]);
@@ -3525,8 +3525,8 @@ impl HashkeyCore {
     m
 })]);
             let mut orderRequest: Value = self.create_order_request(symbol.clone(), type_var.clone(), side.clone(), amount.clone(), &[price.clone(), orderParams.clone()]);
-            let mut clientOrderId: Value = self.safe_string_k(orderRequest.clone(), "clientOrderId", &[]);
-            if (clientOrderId == Value::Null) {
+            let mut clientOrderId: Option<String> = self.safe_string_k(orderRequest.clone(), "clientOrderId", &[]).as_str().map(str::to_owned);
+            if (clientOrderId.is_none()) {
                 add_element_to_object(&mut orderRequest, &Value::Str("clientOrderId".to_string()), self.uuid(&[])); // both spot and swap endpoints require clientOrderId
             }
             append_to_array(&mut ordersRequests, orderRequest.clone());
@@ -3602,8 +3602,8 @@ impl HashkeyCore {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut clientOrderId: Value = self.safe_string_k(params.clone(), "clientOrderId", &[]);
-        if (clientOrderId == Value::Null) {
+        let mut clientOrderId: Option<String> = self.safe_string_k(params.clone(), "clientOrderId", &[]).as_str().map(str::to_owned);
+        if (clientOrderId.is_none()) {
             add_element_to_object(&mut request, &Value::Str("orderId".to_string()), id.clone());
         }
         let mut market: Value = Value::Null;
@@ -4208,8 +4208,8 @@ impl HashkeyCore {
         let mut timestamp: Value = self.safe_integer2(order.clone(), Value::Str("transactTime".to_string()), Value::Str("time".to_string()), &[]);
         let mut status: Value = self.safe_string_k(order.clone(), "status", &[]);
         let mut type_var: Value = self.safe_string_k(order.clone(), "type", &[]);
-        let mut priceType: Value = self.safe_string_k(order.clone(), "priceType", &[]);
-        if (priceType.as_str() == Some("MARKET")) {
+        let mut priceType: Option<String> = self.safe_string_k(order.clone(), "priceType", &[]).as_str().map(str::to_owned);
+        if (priceType.as_deref() == Some("MARKET")) {
             type_var = Value::Str("market".to_string());
         }
         let mut price: Value = self.omit_zero(self.safe_string_k(order.clone(), "price", &[]));
@@ -4276,11 +4276,11 @@ impl HashkeyCore {
         let mut parts: Value = split(&unparsed, &Value::Str("_".to_string()));
         let mut side: Value = get_value(&parts, &Value::Int(0));
         let mut reduceOnly: Value = Value::Null;
-        let mut secondPart: Value = self.safe_string(parts.clone(), Value::Int(1), &[]);
-        if (secondPart != Value::Null) {
-            if (secondPart.as_str() == Some("open")) {
+        let mut secondPart: Option<String> = self.safe_string(parts.clone(), Value::Int(1), &[]).as_str().map(str::to_owned);
+        if (secondPart.is_some()) {
+            if (secondPart.as_deref() == Some("open")) {
                 reduceOnly = Value::Bool(false);
-            }  else if is_true(&(Value::Bool(secondPart.as_str() == Some("close")))) {
+            }  else if is_true(&(Value::Bool(secondPart.as_deref() == Some("close")))) {
                 reduceOnly = Value::Bool(true);
             }
         }
@@ -4871,8 +4871,8 @@ impl HashkeyCore {
         let mut marketId: Value = self.safe_string_k(data.clone(), "symbol", &[]);
         market = self.safe_market(&[marketId.clone(), market.clone(), Value::Null, Value::Str("swap".to_string())]);
         let mut timestamp: Value = self.safe_integer_k(data.clone(), "timestamp", &[]);
-        let mut errorCode: Value = self.safe_string_k(data.clone(), "code", &[]);
-        let mut success: bool = errorCode.as_str() == Some("0000");
+        let mut errorCode: Option<String> = self.safe_string_k(data.clone(), "code", &[]).as_str().map(str::to_owned);
+        let mut success: bool = errorCode.as_deref() == Some("0000");
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), data.clone());

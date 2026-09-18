@@ -1101,10 +1101,10 @@ impl MercadoCore {
         //     }
         //
         let mut id: Value = self.safe_string_k(order.clone(), "order_id", &[]);
-        let mut order_type: Value = self.safe_string_k(order.clone(), "order_type", &[]);
+        let mut order_type: Option<String> = self.safe_string_k(order.clone(), "order_type", &[]).as_str().map(str::to_owned);
         let mut side: Value = Value::Null;
         if is_true(&Value::Bool(in_op(&order, &Value::Str("order_type".to_string())))) {
-            side = (if is_true(&(Value::Bool(order_type.as_str() == Some("1")))) { Value::Str("buy".to_string()) } else { Value::Str("sell".to_string()) });
+            side = (if is_true(&(Value::Bool(order_type.as_deref() == Some("1")))) { Value::Str("buy".to_string()) } else { Value::Str("sell".to_string()) });
         }
         let mut status: Value = self.parse_order_status(self.safe_string_k(order.clone(), "status", &[]));
         let mut marketId: Value = self.safe_string_k(order.clone(), "coin_pair", &[]);

@@ -994,9 +994,9 @@ impl DydxCore {
         let mut swap: Value = Value::Bool(true);
         let mut amountPrecisionStr: Value = self.safe_string_k(market.clone(), "stepSize", &[]);
         let mut pricePrecisionStr: Value = self.safe_string_k(market.clone(), "tickSize", &[]);
-        let mut status: Value = self.safe_string_k(market.clone(), "status", &[]);
+        let mut status: Option<String> = self.safe_string_k(market.clone(), "status", &[]).as_str().map(str::to_owned);
         let mut active: Value = Value::Bool(true);
-        if (status.as_str() != Some("ACTIVE")) {
+        if (status.as_deref() != Some("ACTIVE")) {
             active = Value::Bool(false);
         }
         return self.safe_market_structure(&[Value::Map({
@@ -1968,7 +1968,7 @@ impl DydxCore {
         let mut takeProfitPrice: Value = self.safe_value_k(params.clone(), "takeProfitPrice", &[]);
         let mut isConditional: bool = (triggerPrice != Value::Null) || (stopLossPrice != Value::Null) || (takeProfitPrice != Value::Null);
         let mut isMarket: Value = Value::Bool(orderType.as_str() == Some("MARKET"));
-        let mut timeInForce: Value = self.safe_string_upper(params.clone(), Value::Str("timeInForce".to_string()), &[Value::Str("GTT".to_string())]);
+        let mut timeInForce: Option<String> = self.safe_string_upper(params.clone(), Value::Str("timeInForce".to_string()), &[Value::Str("GTT".to_string())]).as_str().map(str::to_owned);
         let mut postOnly: Value = self.is_post_only(isMarket.clone(), Value::Null, &[params.clone()]);
         let mut amountStr: Value = self.amount_to_precision(symbol.clone(), amount.clone());
         let mut priceStr: Value = self.price_to_precision(symbol.clone(), price.clone());
@@ -1987,19 +1987,19 @@ impl DydxCore {
         let mut conditionalOrderTriggerSubticks: Value = Value::Str("0".to_string());
         let mut orderFlag: Value = Value::Null;
         let mut timeInForceNumber: Value = Value::Null;
-        if (timeInForce.as_str() == Some("FOK")) {
+        if (timeInForce.as_deref() == Some("FOK")) {
             panic!("{}", crate::exchange_errors::invalid_order(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" timeInForce fok has been deprecated".to_string())))));
         }
         if (orderType.as_str() == Some("MARKET")) {
             // short-term
             orderFlag = Value::Int(0);
             clientMetadata = Value::Int(1); // STOP_MARKET / TAKE_PROFIT_MARKET
-            if (timeInForce != Value::Null) {
+            if (timeInForce.is_some()) {
                 // default is ioc
                 timeInForceNumber = Value::Int(1);
             }
         }  else if (orderType.as_str() == Some("LIMIT")) {
-            if (timeInForce.as_str() == Some("GTT")) {
+            if (timeInForce.as_deref() == Some("GTT")) {
                 // long-term
                 orderFlag = Value::Int(64);
                 if is_true(&postOnly) {
@@ -2009,7 +2009,7 @@ impl DydxCore {
                 }
             }  else {
                 orderFlag = Value::Int(0);
-                if (timeInForce.as_str() == Some("IOC")) {
+                if (timeInForce.as_deref() == Some("IOC")) {
                     timeInForceNumber = Value::Int(1);
                 }  else {
                     panic!("{}", crate::exchange_errors::invalid_order(Value::Str("unexpected code path: timeInForce".to_string())));
@@ -2603,7 +2603,7 @@ impl DydxCore {
         if (gasUsed == Value::Null) {
             panic!("{}", crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" failed to simulate transaction.".to_string())))));
         }
-        let mut defaultFeeDenom: Value = self.safe_string_k(self.options.clone(), "defaultFeeDenom", &[]);
+        let mut defaultFeeDenom: Option<String> = self.safe_string_k(self.options.clone(), "defaultFeeDenom", &[]).as_str().map(str::to_owned);
         let mut defaultFeeMultiplier: Value = self.safe_string_k(self.options.clone(), "defaultFeeMultiplier", &[]);
         let mut feeDenom: Value = self.safe_dict_k(self.options.clone(), "feeDenom", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2611,7 +2611,7 @@ impl DydxCore {
 })]);
         let mut gasPrice: Value = Value::Null;
         let mut denom: Value = Value::Null;
-        if (defaultFeeDenom.as_str() == Some("uusdc")) {
+        if (defaultFeeDenom.as_deref() == Some("uusdc")) {
             gasPrice = feeDenom.as_map().and_then(|__m| __m.get("USDC_GAS_PRICE")).cloned().unwrap_or(Value::Null);
             denom = feeDenom.as_map().and_then(|__m| __m.get("USDC_DENOM")).cloned().unwrap_or(Value::Null);
         }  else {

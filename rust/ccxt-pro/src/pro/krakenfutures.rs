@@ -966,7 +966,7 @@ impl KrakenfuturesCore {
         //        "price": 34969.5
         //    }
         //
-        let mut channel: Value = self.safe_string_k(message.clone(), "feed", &[]);
+        let mut channel: Option<String> = self.safe_string_k(message.clone(), "feed", &[]).as_str().map(str::to_owned);
         let mut marketId: Value = self.safe_string_k(message.clone(), "product_id", &[]);
         if (marketId != Value::Null) {
             let mut market: Value = self.market(marketId.clone());
@@ -977,7 +977,7 @@ impl KrakenfuturesCore {
                 add_element_to_object(&mut self.trades, &symbol, ArrayCache::new(tradesLimit.clone()));
             }
             let mut tradesArray: Value = get_value(&self.trades, &symbol);
-            if (channel.as_str() == Some("trade_snapshot")) {
+            if (channel.as_deref() == Some("trade_snapshot")) {
                 let mut trades: Value = self.safe_list_k(message.clone(), "trades", &[Value::List(vec![])]);
                 let mut length: Value = Value::Int(trades.len() as i64);
                 {
@@ -1367,9 +1367,9 @@ impl KrakenfuturesCore {
         let mut orders: Value = self.safe_list_k(message.clone(), "orders", &[Value::List(vec![])]);
         let mut limit: Value = self.safe_integer_k(self.options.clone(), "ordersLimit", &[]);
         self.orders = ArrayCacheBySymbolById::new(limit.clone());
-        let mut feed: Value = self.safe_string_k(message.clone(), "feed", &[]);
+        let mut feed: Option<String> = self.safe_string_k(message.clone(), "feed", &[]).as_str().map(str::to_owned);
         let mut messageHash: Value = Value::Str("orders".to_string());
-        if (feed.as_str() == Some("open_orders_verbose_snapshot")) {
+        if (feed.as_deref() == Some("open_orders_verbose_snapshot")) {
             messageHash = Value::Str("orders:verbose".to_string());
         }
         let mut symbols: Value = Value::Map({
@@ -1528,8 +1528,8 @@ impl KrakenfuturesCore {
         //        "volumeQuote": 19628180
         //    }
         //
-        let mut marketId: Value = self.safe_string_k(message.clone(), "product_id", &[]);
-        if (marketId != Value::Null) {
+        let mut marketId: Option<String> = self.safe_string_k(message.clone(), "product_id", &[]).as_str().map(str::to_owned);
+        if (marketId.is_some()) {
             let mut ticker: Value = self.parse_ws_ticker(message.clone(), &[]);
             let mut symbol: Value = ticker.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
             if (symbol != Value::Null) {
@@ -1557,8 +1557,8 @@ impl KrakenfuturesCore {
         //        "volumeQuote": 6899673.0
         //    }
         //
-        let mut marketId: Value = self.safe_string_k(message.clone(), "product_id", &[]);
-        if (marketId != Value::Null) {
+        let mut marketId: Option<String> = self.safe_string_k(message.clone(), "product_id", &[]).as_str().map(str::to_owned);
+        if (marketId.is_some()) {
             let mut ticker: Value = self.parse_ws_ticker(message.clone(), &[]);
             let mut symbol: Value = ticker.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
             if (symbol != Value::Null) {
@@ -1755,11 +1755,11 @@ impl KrakenfuturesCore {
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         let mut messageHash: Value = self.get_message_hash(Value::Str("orderbook".to_string()), &[Value::Null, symbol.clone()]);
         let mut orderbook: Value = get_value(&self.orderbooks, &symbol);
-        let mut side: Value = self.safe_string_k(message.clone(), "side", &[]);
+        let mut side: Option<String> = self.safe_string_k(message.clone(), "side", &[]).as_str().map(str::to_owned);
         let mut price: Value = self.safe_number_k(message.clone(), "price", &[]);
         let mut qty: Value = self.safe_number_k(message.clone(), "qty", &[]);
         let mut timestamp: Value = self.safe_integer_k(message.clone(), "timestamp", &[]);
-        if (side.as_str() == Some("sell")) {
+        if (side.as_deref() == Some("sell")) {
             let mut asks: Value = get_value(&orderbook, &Value::Str("asks".to_string()));
             asks.store(price.clone(), qty.clone());
         }  else {
@@ -2244,14 +2244,14 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
 }
 
     pub fn handle_message(&mut self, mut client: Value, mut message: Value) {
-        let mut event: Value = self.safe_string_k(message.clone(), "event", &[]);
-        if (event.as_str() == Some("challenge")) {
+        let mut event: Option<String> = self.safe_string_k(message.clone(), "event", &[]).as_str().map(str::to_owned);
+        if (event.as_deref() == Some("challenge")) {
             self.handle_authenticate(client.clone(), message.clone());
-        }  else if (event.as_str() == Some("alert")) {
+        }  else if (event.as_deref() == Some("alert")) {
             self.handle_error_message(client.clone(), message.clone());
-        }  else if (event.as_str() == Some("pong")) {
+        }  else if (event.as_deref() == Some("pong")) {
             crate::set_value(&mut client, &Value::Str("lastPong".to_string()), self.milliseconds());
-        }  else if (event == Value::Null) {
+        }  else if (event.is_none()) {
             let mut feed: Value = self.safe_string_k(message.clone(), "feed", &[]);
             let mut methods: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();

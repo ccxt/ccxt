@@ -1664,8 +1664,8 @@ impl ToobitCore {
         let mut quote: Value = self.safe_currency_code(quoteId.clone(), &[]);
         let mut settleId: Value = self.safe_string_k(market.clone(), "marginToken", &[]);
         let mut settle: Value = self.safe_currency_code(settleId.clone(), &[]);
-        let mut status: Value = self.safe_string_k(market.clone(), "status", &[]);
-        let mut active: Value = (Value::Bool(status.as_str() == Some("TRADING")));
+        let mut status: Option<String> = self.safe_string_k(market.clone(), "status", &[]).as_str().map(str::to_owned);
+        let mut active: Value = (Value::Bool(status.as_deref() == Some("TRADING")));
         let mut filters: Value = self.safe_list_k(market.clone(), "filters", &[Value::List(vec![])]);
         let mut filtersByType: Value = self.index_by(filters.clone(), Value::Str("filterType".to_string()));
         let mut priceFilter: Value = self.safe_dict_k(filtersByType.clone(), "PRICE_FILTER", &[Value::Map({
@@ -2711,9 +2711,9 @@ impl ToobitCore {
             // the suffix is the only signal that carries reduceOnly, so read
             // it before discarding it (spot sides have no suffix: undefined)
             let mut sideParts: Value = split(&rawSideLower, &Value::Str("_".to_string()));
-            let mut sideSuffix: Value = self.safe_string(sideParts.clone(), Value::Int(1), &[]);
-            if (sideSuffix != Value::Null) {
-                reduceOnly = (Value::Bool(sideSuffix.as_str() == Some("close")));
+            let mut sideSuffix: Option<String> = self.safe_string(sideParts.clone(), Value::Int(1), &[]).as_str().map(str::to_owned);
+            if (sideSuffix.is_some()) {
+                reduceOnly = (Value::Bool(sideSuffix.as_deref() == Some("close")));
             }
             rawSideLower = self.safe_string(sideParts.clone(), Value::Int(0), &[]);
         }
@@ -3867,8 +3867,8 @@ impl ToobitCore {
         let mut market = get_arg(optional_args, 0, Value::Null);
         let mut marketId: Value = self.safe_string2(leverage.clone(), Value::Str("symbolId".to_string()), Value::Str("symbol".to_string()), &[]);
         let mut leverageValue: Value = self.safe_integer_k(leverage.clone(), "leverage", &[]);
-        let mut marginType: Value = self.safe_string_lower(leverage.clone(), Value::Str("marginType".to_string()), &[]);
-        let mut marginMode: Value = (if is_true(&(Value::Bool(marginType.as_str() == Some("cross")))) { Value::Str("cross".to_string()) } else { Value::Str("isolated".to_string()) });
+        let mut marginType: Option<String> = self.safe_string_lower(leverage.clone(), Value::Str("marginType".to_string()), &[]).as_str().map(str::to_owned);
+        let mut marginMode: Value = (if is_true(&(Value::Bool(marginType.as_deref() == Some("cross")))) { Value::Str("cross".to_string()) } else { Value::Str("isolated".to_string()) });
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), leverage.clone());

@@ -645,9 +645,9 @@ impl CoinexCore {
         let mut balances: Value = self.safe_list_k(data.clone(), "balance_list", &[Value::List(vec![])]);
         let mut firstEntry: Value = balances.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut updated: Value = self.safe_integer_k(firstEntry.clone(), "updated_at", &[]);
-        let mut unrealizedPnl: Value = self.safe_string_k(firstEntry.clone(), "unrealized_pnl", &[]);
+        let mut unrealizedPnl: Option<String> = self.safe_string_k(firstEntry.clone(), "unrealized_pnl", &[]).as_str().map(str::to_owned);
         let mut isSpot: bool = updated != Value::Null;
-        let mut isSwap: bool = unrealizedPnl != Value::Null;
+        let mut isSwap: bool = unrealizedPnl.is_some();
         let mut info: Value = Value::Null;
         let mut account: Value = Value::Null;
         let mut rawBalances: Value = Value::List(vec![]);
@@ -1951,10 +1951,10 @@ impl CoinexCore {
         //         "message": ""
         //     }
         //
-        let mut status: Value = self.safe_string_lower(message.clone(), Value::Str("message".to_string()), &[]);
-        let mut errorCode: Value = self.safe_string_k(message.clone(), "code", &[]);
+        let mut status: Option<String> = self.safe_string_lower(message.clone(), Value::Str("message".to_string()), &[]).as_str().map(str::to_owned);
+        let mut errorCode: Option<String> = self.safe_string_k(message.clone(), "code", &[]).as_str().map(str::to_owned);
         let mut messageHash: Value = Value::Str("authenticated".to_string());
-        if is_true(&(Value::Bool(status.as_str() == Some("ok")))) || is_true(&(Value::Bool(errorCode.as_str() == Some("0")))) {
+        if is_true(&(Value::Bool(status.as_deref() == Some("ok")))) || is_true(&(Value::Bool(errorCode.as_deref() == Some("0")))) {
             let mut future: Value = self.safe_value(get_value(&client, &Value::Str("futures".to_string())), messageHash.clone(), &[]);
             future.resolve(&[Value::Bool(true)]);
         }  else {

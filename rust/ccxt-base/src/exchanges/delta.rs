@@ -1001,8 +1001,8 @@ impl DeltaCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut underMaintenance: Value = self.safe_string_k(result.clone(), "under_maintenance", &[]);
-        let mut status: Value = (if is_true(&(Value::Bool(underMaintenance.as_str() == Some("true")))) { Value::Str("maintenance".to_string()) } else { Value::Str("ok".to_string()) });
+        let mut underMaintenance: Option<String> = self.safe_string_k(result.clone(), "under_maintenance", &[]).as_str().map(str::to_owned);
+        let mut status: Value = (if is_true(&(Value::Bool(underMaintenance.as_deref() == Some("true")))) { Value::Str("maintenance".to_string()) } else { Value::Str("ok".to_string()) });
         let mut updated: Value = self.safe_integer_product(result.clone(), Value::Str("server_time".to_string()), Value::Float(0.001), &[self.milliseconds()]);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1489,7 +1489,7 @@ impl DeltaCore {
                     type_var = Value::Str("swap".to_string());
                 }
             }
-            let mut state: Value = self.safe_string_k(market.clone(), "state", &[]);
+            let mut state: Option<String> = self.safe_string_k(market.clone(), "state", &[]).as_str().map(str::to_owned);
             append_to_array(&mut result, self.safe_market_structure(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id.clone());
@@ -1507,7 +1507,7 @@ impl DeltaCore {
         m.insert("swap".to_string(), swap.clone());
         m.insert("future".to_string(), future.clone());
         m.insert("option".to_string(), option.clone());
-        m.insert("active".to_string(), (Value::Bool(state.as_str() == Some("live"))));
+        m.insert("active".to_string(), (Value::Bool(state.as_deref() == Some("live"))));
         m.insert("contract".to_string(), Value::Bool(!is_true(&spot)));
         m.insert("linear".to_string(), (if is_true(&spot) { Value::Null } else { linear.clone() }));
         m.insert("inverse".to_string(), (if is_true(&spot) { Value::Null } else { Value::Bool(!is_true(&linear)) }));
@@ -2040,8 +2040,8 @@ impl DeltaCore {
             while { if !__for_first_622 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_622 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(tickers.len() as i64).as_f64().unwrap_or(f64::NAN) } {
             let mut rawTicker: Value = get_value(&tickers, &i);
             let mut rawTicker: Value = get_value(&tickers, &i);
-            let mut contractType: Value = self.safe_string_k(rawTicker.clone(), "contract_type", &[]);
-            if is_true(&(Value::Bool(contractType.as_str() == Some("options_combos")))) || is_true(&(Value::Bool(contractType.as_str() == Some("binary_call_options")))) || is_true(&(Value::Bool(contractType.as_str() == Some("binary_put_options")))) {
+            let mut contractType: Option<String> = self.safe_string_k(rawTicker.clone(), "contract_type", &[]).as_str().map(str::to_owned);
+            if is_true(&(Value::Bool(contractType.as_deref() == Some("options_combos")))) || is_true(&(Value::Bool(contractType.as_deref() == Some("binary_call_options")))) || is_true(&(Value::Bool(contractType.as_deref() == Some("binary_put_options")))) {
                 continue;
             }
             let mut ticker: Value = self.parse_ticker(rawTicker.clone(), &[]);
@@ -2172,12 +2172,12 @@ impl DeltaCore {
 })]);
         let mut marketId: Value = self.safe_string_k(product.clone(), "symbol", &[]);
         let mut symbol: Value = self.safe_symbol(marketId.clone(), &[market.clone()]);
-        let mut sellerRole: Value = self.safe_string_k(trade.clone(), "seller_role", &[]);
+        let mut sellerRole: Option<String> = self.safe_string_k(trade.clone(), "seller_role", &[]).as_str().map(str::to_owned);
         let mut side: Value = self.safe_string_k(trade.clone(), "side", &[]);
         if (side == Value::Null) {
-            if (sellerRole.as_str() == Some("taker")) {
+            if (sellerRole.as_deref() == Some("taker")) {
                 side = Value::Str("sell".to_string());
-            }  else if (sellerRole.as_str() == Some("maker")) {
+            }  else if (sellerRole.as_deref() == Some("maker")) {
                 side = Value::Str("buy".to_string());
             }
         }
@@ -2329,10 +2329,10 @@ impl DeltaCore {
             add_element_to_object(&mut request, &Value::Str("start".to_string()), start.clone());
             add_element_to_object(&mut request, &Value::Str("end".to_string()), (if untilIsDefined { until.clone() } else { self.sum(&[start.clone(), (match (&(limit), &(duration)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })]) }));
         }
-        let mut price: Value = self.safe_string_k(params.clone(), "price", &[]);
-        if (price.as_str() == Some("mark")) {
+        let mut price: Option<String> = self.safe_string_k(params.clone(), "price", &[]).as_str().map(str::to_owned);
+        if (price.as_deref() == Some("mark")) {
             add_element_to_object(&mut request, &Value::Str("symbol".to_string()), add(&Value::Str("MARK:".to_string()), &market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)));
-        }  else if (price.as_str() == Some("index")) {
+        }  else if (price.as_deref() == Some("index")) {
             add_element_to_object(&mut request, &Value::Str("symbol".to_string()), crate::value::get_value_k(&crate::value::get_value_k(&market.as_map().and_then(|__m| __m.get("info")).cloned().unwrap_or(Value::Null), "spot_index"), "symbol"));
         }  else {
             add_element_to_object(&mut request, &Value::Str("symbol".to_string()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));

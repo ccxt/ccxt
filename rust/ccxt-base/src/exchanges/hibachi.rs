@@ -1129,11 +1129,11 @@ impl HibachiCore {
         let mut status: Value = self.safe_string_k(order.clone(), "status", &[]);
         let mut type_var: Value = self.safe_string_lower(order.clone(), Value::Str("orderType".to_string()), &[]);
         let mut price: Value = self.safe_string2(order.clone(), Value::Str("price".to_string()), Value::Str("avgFillPrice".to_string()), &[]);
-        let mut rawSide: Value = self.safe_string_k(order.clone(), "side", &[]);
+        let mut rawSide: Option<String> = self.safe_string_k(order.clone(), "side", &[]).as_str().map(str::to_owned);
         let mut side: Value = Value::Null;
-        if (rawSide.as_str() == Some("BID")) {
+        if (rawSide.as_deref() == Some("BID")) {
             side = Value::Str("buy".to_string());
-        }  else if (rawSide.as_str() == Some("ASK")) {
+        }  else if (rawSide.as_deref() == Some("ASK")) {
             side = Value::Str("sell".to_string());
         }
         let mut amount: Value = self.safe_string_k(order.clone(), "totalQuantity", &[]);
@@ -1391,11 +1391,11 @@ impl HibachiCore {
         });
         let mut postOnly: Value = self.is_post_only(Value::Bool(to_upper(&type_var).as_str() == Some("MARKET")), Value::Null, &[params.clone()]);
         let mut reduceOnly: Value = self.safe_bool2(params.clone(), Value::Str("reduceOnly".to_string()), Value::Str("reduce_only".to_string()), &[]);
-        let mut timeInForce: Value = self.safe_string_lower(params.clone(), Value::Str("timeInForce".to_string()), &[]);
+        let mut timeInForce: Option<String> = self.safe_string_lower(params.clone(), Value::Str("timeInForce".to_string()), &[]).as_str().map(str::to_owned);
         let mut triggerPrice: Value = self.safe_string2(params.clone(), Value::Str("triggerPrice".to_string()), Value::Str("stopPrice".to_string()), &[]);
         if is_true(&postOnly) {
             add_element_to_object(&mut request, &Value::Str("orderFlags".to_string()), Value::Str("POST_ONLY".to_string()));
-        }  else if (timeInForce.as_str() == Some("ioc")) {
+        }  else if (timeInForce.as_deref() == Some("ioc")) {
             add_element_to_object(&mut request, &Value::Str("orderFlags".to_string()), Value::Str("IOC".to_string()));
         }  else if (reduceOnly.as_bool() == Some(true)) {
             add_element_to_object(&mut request, &Value::Str("orderFlags".to_string()), Value::Str("REDUCE_ONLY".to_string()));
@@ -2470,8 +2470,8 @@ impl HibachiCore {
             //
             //     {"errorCode":4,"message":"Invalid input: Invalid quantity: 0","status":"failed"}
             //
-            let mut status: Value = self.safe_string_k(response.clone(), "status", &[]);
-            if (status.as_str() == Some("failed")) {
+            let mut status: Option<String> = self.safe_string_k(response.clone(), "status", &[]).as_str().map(str::to_owned);
+            if (status.as_deref() == Some("failed")) {
                 let mut code: Value = self.safe_string_k(response.clone(), "errorCode", &[]);
                 let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), body));
                 self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), body.clone(), feedback.clone());

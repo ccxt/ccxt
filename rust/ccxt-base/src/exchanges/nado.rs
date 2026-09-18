@@ -906,8 +906,8 @@ impl NadoCore {
         if (type_var.as_str() != Some("limit")) {
             panic!("{}", crate::exchange_errors::invalid_order(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" editOrder() supports limit orders only".to_string())))));
         }
-        let mut triggerPrice: Value = self.safe_string_n(params.clone(), Value::List(vec![Value::Str("triggerPrice".to_string()), Value::Str("stopPrice".to_string()), Value::Str("stopLossPrice".to_string()), Value::Str("takeProfitPrice".to_string())]), &[]);
-        if (triggerPrice != Value::Null) {
+        let mut triggerPrice: Option<String> = self.safe_string_n(params.clone(), Value::List(vec![Value::Str("triggerPrice".to_string()), Value::Str("stopPrice".to_string()), Value::Str("stopLossPrice".to_string()), Value::Str("takeProfitPrice".to_string())]), &[]).as_str().map(str::to_owned);
+        if (triggerPrice.is_some()) {
             panic!("{}", crate::exchange_errors::not_supported(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" editOrder() and editOrderWs() do not support trigger orders, cancel the trigger order and create a new one instead".to_string())))));
         }
         if (amount == Value::Null) {
@@ -2171,10 +2171,10 @@ impl NadoCore {
         //         "request_type": "query_status"
         //     }
         //
-        let mut status: Value = self.safe_string_k(response.clone(), "data", &[]);
+        let mut status: Option<String> = self.safe_string_k(response.clone(), "data", &[]).as_str().map(str::to_owned);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("status".to_string(), (if is_true(&(Value::Bool(status.as_str() == Some("active")))) { Value::Str("ok".to_string()) } else { Value::Str("error".to_string()) }));
+        m.insert("status".to_string(), (if is_true(&(Value::Bool(status.as_deref() == Some("active")))) { Value::Str("ok".to_string()) } else { Value::Str("error".to_string()) }));
         m.insert("updated".to_string(), Value::Null);
         m.insert("eta".to_string(), Value::Null);
         m.insert("url".to_string(), Value::Null);
@@ -2307,8 +2307,8 @@ impl NadoCore {
             if is_true(&contract) {
                 symbol = Value::Str(format!("{}{}", symbol, add(&Value::Str(":".to_string()), &settle)));
             }
-            let mut tradingStatus: Value = self.safe_string_k(market.clone(), "trading_status", &[]);
-            let mut active: Value = (Value::Bool(tradingStatus.as_str() != Some("not_tradable")));
+            let mut tradingStatus: Option<String> = self.safe_string_k(market.clone(), "trading_status", &[]).as_str().map(str::to_owned);
+            let mut active: Value = (Value::Bool(tradingStatus.as_deref() != Some("not_tradable")));
             let mut priceIncrement: Value = self.parse_x18(self.safe_string_k(market.clone(), "price_increment_x18", &[]));
             let mut amountIncrement: Value = self.parse_x18(self.safe_string_k(market.clone(), "size_increment", &[]));
             let mut minCost: Value = self.parse_x18(self.safe_string_k(market.clone(), "min_size", &[]));
@@ -3800,15 +3800,15 @@ impl NadoCore {
         // | 127..64 | 63..48  | 47..38           | 37..14   | 13..12  | 11          | 10..9      | 8        | 7..0    |
         let mut reduceOnly: Value = self.safe_bool_k(params.clone(), "reduceOnly", &[Value::Bool(false)]);
         let mut postOnly: Value = self.is_post_only(Value::Bool(false), Value::Null, &[params.clone()]);
-        let mut timeInForce: Value = self.safe_string_upper(params.clone(), Value::Str("timeInForce".to_string()), &[]);
+        let mut timeInForce: Option<String> = self.safe_string_upper(params.clone(), Value::Str("timeInForce".to_string()), &[]).as_str().map(str::to_owned);
         let mut orderType: Value = Value::Int(0);
-        if (timeInForce.as_str() == Some("IOC")) {
+        if (timeInForce.as_deref() == Some("IOC")) {
             orderType = Value::Int(1);
-        }  else if (timeInForce.as_str() == Some("FOK")) {
+        }  else if (timeInForce.as_deref() == Some("FOK")) {
             orderType = Value::Int(2);
-        }  else if is_true(&postOnly) || is_true(&(Value::Bool(timeInForce.as_str() == Some("PO")))) {
+        }  else if is_true(&postOnly) || is_true(&(Value::Bool(timeInForce.as_deref() == Some("PO")))) {
             orderType = Value::Int(3);
-        }  else if is_true(&(Value::Bool(timeInForce != Value::Null))) && is_true(&(Value::Bool(timeInForce.as_str() != Some("GTC")))) {
+        }  else if is_true(&(Value::Bool(timeInForce.is_some()))) && is_true(&(Value::Bool(timeInForce.as_deref() != Some("GTC")))) {
             panic!("{}", crate::exchange_errors::bad_request(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder() only supports timeInForce values GTC, IOC, FOK, or PO".to_string())))));
         }
         let mut appendix: Value = Value::Str("1".to_string()); // version
@@ -4144,10 +4144,10 @@ impl NadoCore {
         //         "request_type": "execute_place_order"
         //     }
         //
-        let mut status: Value = self.safe_string_k(response.clone(), "status", &[]);
+        let mut status: Option<String> = self.safe_string_k(response.clone(), "status", &[]).as_str().map(str::to_owned);
         let mut errorCode: Value = self.safe_string_k(response.clone(), "error_code", &[]);
         let mut error: Value = self.safe_string_k(response.clone(), "error", &[]);
-        if is_true(&(Value::Bool(status.as_str() == Some("failure")))) || is_true(&(Value::Bool(errorCode != Value::Null))) || is_true(&(Value::Bool(error != Value::Null))) {
+        if is_true(&(Value::Bool(status.as_deref() == Some("failure")))) || is_true(&(Value::Bool(errorCode != Value::Null))) || is_true(&(Value::Bool(error != Value::Null))) {
             let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), body));
             self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), errorCode.clone(), feedback.clone());
             self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), error.clone(), feedback.clone());

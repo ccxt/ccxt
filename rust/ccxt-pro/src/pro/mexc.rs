@@ -1676,8 +1676,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         let mut priceString: Value = self.safe_string2(trade.clone(), Value::Str("p".to_string()), Value::Str("price".to_string()), &[]);
         let mut amountString: Value = self.safe_string2(trade.clone(), Value::Str("v".to_string()), Value::Str("quantity".to_string()), &[]);
-        let mut rawSide: Value = self.safe_string2(trade.clone(), Value::Str("S".to_string()), Value::Str("tradeType".to_string()), &[]);
-        let mut side: Value = (if is_true(&(Value::Bool(rawSide.as_str() == Some("1")))) { Value::Str("buy".to_string()) } else { Value::Str("sell".to_string()) });
+        let mut rawSide: Option<String> = self.safe_string2(trade.clone(), Value::Str("S".to_string()), Value::Str("tradeType".to_string()), &[]).as_str().map(str::to_owned);
+        let mut side: Value = (if is_true(&(Value::Bool(rawSide.as_deref() == Some("1")))) { Value::Str("buy".to_string()) } else { Value::Str("sell".to_string()) });
         let mut isMaker: Value = self.safe_integer_k(trade.clone(), "m", &[]);
         let mut feeAmount: Value = self.safe_string2(trade.clone(), Value::Str("n".to_string()), Value::Str("feeAmount".to_string()), &[]);
         let mut feeCurrencyId: Value = self.safe_string2(trade.clone(), Value::Str("N".to_string()), Value::Str("feeCurrency".to_string()), &[]);
@@ -1929,7 +1929,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         // }
         //
         let mut timestamp: Value = self.safe_integer_k(order.clone(), "createTime", &[]);
-        let mut side: Value = self.safe_string_k(order.clone(), "tradeType", &[]);
+        let mut side: Option<String> = self.safe_string_k(order.clone(), "tradeType", &[]).as_str().map(str::to_owned);
         let mut status: Value = self.safe_string2(order.clone(), Value::Str("status".to_string()), Value::Str("state".to_string()), &[]);
         let mut type_var: Value = self.safe_string_k(order.clone(), "orderType", &[]);
         let mut fee: Value = Value::Null;
@@ -1953,7 +1953,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         m.insert("symbol".to_string(), self.safe_symbol(Value::Null, &[market.clone()]));
         m.insert("type".to_string(), self.parse_ws_order_type(type_var.clone()));
         m.insert("timeInForce".to_string(), self.parse_ws_time_in_force(type_var.clone()));
-        m.insert("side".to_string(), (if is_true(&(Value::Bool(side.as_str() == Some("1")))) { Value::Str("buy".to_string()) } else { Value::Str("sell".to_string()) }));
+        m.insert("side".to_string(), (if is_true(&(Value::Bool(side.as_deref() == Some("1")))) { Value::Str("buy".to_string()) } else { Value::Str("sell".to_string()) }));
         m.insert("price".to_string(), self.safe_string_k(order.clone(), "price", &[]));
         m.insert("stopPrice".to_string(), self.safe_string2(order.clone(), Value::Str("triggerPrice".to_string()), Value::Str("P".to_string()), &[]));
         m.insert("triggerPrice".to_string(), self.safe_string2(order.clone(), Value::Str("triggerPrice".to_string()), Value::Str("P".to_string()), &[]));
@@ -2093,8 +2093,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //         "ts": 1680059188191
         //     }
         //
-        let mut channel: Value = self.safe_string_k(message.clone(), "channel", &[]);
-        let mut type_var: Value = (if is_true(&(Value::Bool(channel.as_str() == Some("spot@private.account.v3.api.pb")))) { Value::Str("spot".to_string()) } else { Value::Str("swap".to_string()) });
+        let mut channel: Option<String> = self.safe_string_k(message.clone(), "channel", &[]).as_str().map(str::to_owned);
+        let mut type_var: Value = (if is_true(&(Value::Bool(channel.as_deref() == Some("spot@private.account.v3.api.pb")))) { Value::Str("spot".to_string()) } else { Value::Str("swap".to_string()) });
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("balance:".to_string()), type_var));
         let mut data: Value = self.safe_dict_n(message.clone(), Value::List(vec![Value::Str("data".to_string()), Value::Str("privateAccount".to_string())]), &[]);
         let mut futuresTimestamp: Value = self.safe_integer2(message.clone(), Value::Str("ts".to_string()), Value::Str("createTime".to_string()), &[]);
@@ -2693,20 +2693,20 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         // }
         let mut channel: Value = self.safe_string_k(message.clone(), "channel", &[Value::Str("".to_string())]);
         let mut channelParts: Value = split(&channel, &Value::Str("@".to_string()));
-        let mut channelId: Value = self.safe_string(channelParts.clone(), Value::Int(1), &[]);
-        if (channelId.as_str() == Some("public.kline.v3.api.pb")) {
+        let mut channelId: Option<String> = self.safe_string(channelParts.clone(), Value::Int(1), &[]).as_str().map(str::to_owned);
+        if (channelId.as_deref() == Some("public.kline.v3.api.pb")) {
             self.handle_ohlcv(client.clone(), message.clone());
-        }  else if (channelId.as_str() == Some("public.aggre.deals.v3.api.pb")) {
+        }  else if (channelId.as_deref() == Some("public.aggre.deals.v3.api.pb")) {
             self.handle_trades(client.clone(), message.clone());
-        }  else if (channelId.as_str() == Some("public.aggre.bookTicker.v3.api.pb")) {
+        }  else if (channelId.as_deref() == Some("public.aggre.bookTicker.v3.api.pb")) {
             self.handle_ticker(client.clone(), message.clone());
-        }  else if (channelId.as_str() == Some("public.aggre.depth.v3.api.pb")) {
+        }  else if (channelId.as_deref() == Some("public.aggre.depth.v3.api.pb")) {
             self.handle_order_book(client.clone(), message.clone());
-        }  else if (channelId.as_str() == Some("private.account.v3.api.pb")) {
+        }  else if (channelId.as_deref() == Some("private.account.v3.api.pb")) {
             self.handle_balance(client.clone(), message.clone());
-        }  else if (channelId.as_str() == Some("private.deals.v3.api.pb")) {
+        }  else if (channelId.as_deref() == Some("private.deals.v3.api.pb")) {
             self.handle_my_trade(client.clone(), message.clone(), &[]);
-        }  else if (channelId.as_str() == Some("private.orders.v3.api.pb")) {
+        }  else if (channelId.as_deref() == Some("private.orders.v3.api.pb")) {
             self.handle_order(client.clone(), message.clone());
         }
         return Value::Bool(true);

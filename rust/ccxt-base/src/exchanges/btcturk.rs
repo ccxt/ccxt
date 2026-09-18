@@ -596,8 +596,8 @@ impl BtcturkCore {
             while { if !__for_first_455 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_455 = false; j.as_f64().unwrap_or(f64::NAN) < Value::Int(filters.len() as i64).as_f64().unwrap_or(f64::NAN) } {
             let mut filter: Value = get_value(&filters, &j);
             let mut filter: Value = get_value(&filters, &j);
-            let mut filterType: Value = self.safe_string_k(filter.clone(), "filterType", &[]);
-            if (filterType.as_str() == Some("PRICE_FILTER")) {
+            let mut filterType: Option<String> = self.safe_string_k(filter.clone(), "filterType", &[]).as_str().map(str::to_owned);
+            if (filterType.as_deref() == Some("PRICE_FILTER")) {
                 minPrice = self.safe_number_k(filter.clone(), "minPrice", &[]);
                 maxPrice = self.safe_number_k(filter.clone(), "maxPrice", &[]);
                 minAmount = self.safe_number_k(filter.clone(), "minAmount", &[]);
@@ -606,7 +606,7 @@ impl BtcturkCore {
             }
         }
         }
-        let mut status: Value = self.safe_string_k(entry.clone(), "status", &[]);
+        let mut status: Option<String> = self.safe_string_k(entry.clone(), "status", &[]).as_str().map(str::to_owned);
         return self.safe_market_structure(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id.clone());
@@ -623,7 +623,7 @@ impl BtcturkCore {
         m.insert("swap".to_string(), Value::Bool(false));
         m.insert("future".to_string(), Value::Bool(false));
         m.insert("option".to_string(), Value::Bool(false));
-        m.insert("active".to_string(), (Value::Bool(status.as_str() == Some("TRADING"))));
+        m.insert("active".to_string(), (Value::Bool(status.as_deref() == Some("TRADING"))));
         m.insert("contract".to_string(), Value::Bool(false));
         m.insert("linear".to_string(), Value::Null);
         m.insert("inverse".to_string(), Value::Null);
@@ -1496,11 +1496,11 @@ impl BtcturkCore {
 }
 
     pub fn handle_errors(&self, mut code: Value, mut reason: Value, mut url: Value, mut method: Value, mut headers: Value, mut body: Value, mut response: Value, mut requestHeaders: Value, mut requestBody: Value) -> Value {
-        let mut errorCode: Value = self.safe_string_k(response.clone(), "code", &[Value::Str("0".to_string())]);
+        let mut errorCode: Option<String> = self.safe_string_k(response.clone(), "code", &[Value::Str("0".to_string())]).as_str().map(str::to_owned);
         let mut message: Value = self.safe_string_k(response.clone(), "message", &[]);
         let mut output: Value = (if is_true(&(Value::Bool(message == Value::Null))) { body.clone() } else { message.clone() });
         self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), message.clone(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), output)));
-        if is_true(&(Value::Bool(errorCode.as_str() != Some("0")))) && is_true(&(Value::Bool(errorCode.as_str() != Some("SUCCESS")))) {
+        if is_true(&(Value::Bool(errorCode.as_deref() != Some("0")))) && is_true(&(Value::Bool(errorCode.as_deref() != Some("SUCCESS")))) {
             panic!("{}", crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), output))));
         }
         return Value::Null;

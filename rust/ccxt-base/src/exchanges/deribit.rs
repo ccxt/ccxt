@@ -1610,11 +1610,11 @@ impl DeribitCore {
         //     }
         //
         let mut result: Value = self.safe_value_k(response.clone(), "result", &[]);
-        let mut locked: Value = self.safe_string_k(result.clone(), "locked", &[]);
+        let mut locked: Option<String> = self.safe_string_k(result.clone(), "locked", &[]).as_str().map(str::to_owned);
         let mut updateTime: Value = self.safe_integer_product(response.clone(), Value::Str("usIn".to_string()), Value::Float(0.001), &[self.milliseconds()]);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("status".to_string(), (if is_true(&(Value::Bool(locked.as_str() == Some("false")))) { Value::Str("ok".to_string()) } else { Value::Str("maintenance".to_string()) }));
+        m.insert("status".to_string(), (if is_true(&(Value::Bool(locked.as_deref() == Some("false")))) { Value::Str("ok".to_string()) } else { Value::Str("maintenance".to_string()) }));
         m.insert("updated".to_string(), updateTime.clone());
         m.insert("eta".to_string(), Value::Null);
         m.insert("url".to_string(), Value::Null);
@@ -2626,11 +2626,11 @@ impl DeribitCore {
         if (market.as_map().and_then(|__m| __m.get("inverse")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
             cost = crate::precise::Precise::stringDiv(&amount, &priceString);
         }
-        let mut liquidity: Value = self.safe_string_k(trade.clone(), "liquidity", &[]);
+        let mut liquidity: Option<String> = self.safe_string_k(trade.clone(), "liquidity", &[]).as_str().map(str::to_owned);
         let mut takerOrMaker: Value = Value::Null;
-        if (liquidity != Value::Null) {
+        if (liquidity.is_some()) {
             // M = maker, T = taker, MT = both
-            takerOrMaker = (if is_true(&(Value::Bool(liquidity.as_str() == Some("M")))) { Value::Str("maker".to_string()) } else { Value::Str("taker".to_string()) });
+            takerOrMaker = (if is_true(&(Value::Bool(liquidity.as_deref() == Some("M")))) { Value::Str("maker".to_string()) } else { Value::Str("taker".to_string()) });
         }
         let mut feeCostString: Value = self.safe_string_k(trade.clone(), "fee", &[]);
         let mut fee: Value = Value::Null;
@@ -2847,8 +2847,8 @@ impl DeribitCore {
             while { if !__for_first_631 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_631 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(fees.len() as i64).as_f64().unwrap_or(f64::NAN) } {
             let mut fee: Value = get_value(&fees, &i);
             let mut fee: Value = get_value(&fees, &i);
-            let mut instrumentType: Value = self.safe_string_k(fee.clone(), "instrument_type", &[]);
-            if (instrumentType.as_str() == Some("future")) {
+            let mut instrumentType: Option<String> = self.safe_string_k(fee.clone(), "instrument_type", &[]).as_str().map(str::to_owned);
+            if (instrumentType.as_deref() == Some("future")) {
                 futureFee = Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("info".to_string(), fee.clone());
@@ -2856,7 +2856,7 @@ impl DeribitCore {
                         m.insert("taker".to_string(), self.safe_number_k(fee.clone(), "taker_fee", &[]));
                     m
                 });
-            }  else if (instrumentType.as_str() == Some("perpetual")) {
+            }  else if (instrumentType.as_deref() == Some("perpetual")) {
                 perpetualFee = Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("info".to_string(), fee.clone());
@@ -2864,7 +2864,7 @@ impl DeribitCore {
                         m.insert("taker".to_string(), self.safe_number_k(fee.clone(), "taker_fee", &[]));
                     m
                 });
-            }  else if (instrumentType.as_str() == Some("option")) {
+            }  else if (instrumentType.as_deref() == Some("option")) {
                 optionFee = Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("info".to_string(), fee.clone());
@@ -3241,7 +3241,7 @@ impl DeribitCore {
             m
         });
         let mut trigger: Value = self.safe_string_k(params.clone(), "trigger", &[Value::Str("last_price".to_string())]);
-        let mut timeInForce: Value = self.safe_string_upper(params.clone(), Value::Str("timeInForce".to_string()), &[]);
+        let mut timeInForce: Option<String> = self.safe_string_upper(params.clone(), Value::Str("timeInForce".to_string()), &[]).as_str().map(str::to_owned);
         let mut reduceOnly: Value = self.safe_value2(params.clone(), Value::Str("reduceOnly".to_string()), Value::Str("reduce_only".to_string()), &[]);
         // only stop loss sell orders are allowed when price crossed from above
         let mut stopLossPrice: Value = self.safe_value_k(params.clone(), "stopLossPrice", &[]);
@@ -3302,14 +3302,14 @@ impl DeribitCore {
             add_element_to_object(&mut request, &Value::Str("post_only".to_string()), Value::Bool(true));
             add_element_to_object(&mut request, &Value::Str("reject_post_only".to_string()), Value::Bool(true));
         }
-        if (timeInForce != Value::Null) {
-            if (timeInForce.as_str() == Some("GTC")) {
+        if (timeInForce.is_some()) {
+            if (timeInForce.as_deref() == Some("GTC")) {
                 add_element_to_object(&mut request, &Value::Str("time_in_force".to_string()), Value::Str("good_til_cancelled".to_string()));
             }
-            if (timeInForce.as_str() == Some("IOC")) {
+            if (timeInForce.as_deref() == Some("IOC")) {
                 add_element_to_object(&mut request, &Value::Str("time_in_force".to_string()), Value::Str("immediate_or_cancel".to_string()));
             }
-            if (timeInForce.as_str() == Some("FOK")) {
+            if (timeInForce.as_deref() == Some("FOK")) {
                 add_element_to_object(&mut request, &Value::Str("time_in_force".to_string()), Value::Str("fill_or_kill".to_string()));
             }
         }
@@ -4453,7 +4453,7 @@ impl DeribitCore {
         let mut timestamp: Value = self.safe_integer_k(transfer.clone(), "created_timestamp", &[]);
         let mut status: Value = self.safe_string_k(transfer.clone(), "state", &[]);
         let mut account: Value = self.safe_string_k(transfer.clone(), "other_side", &[]);
-        let mut direction: Value = self.safe_string_k(transfer.clone(), "direction", &[]);
+        let mut direction: Option<String> = self.safe_string_k(transfer.clone(), "direction", &[]).as_str().map(str::to_owned);
         let mut currencyId: Value = self.safe_string_k(transfer.clone(), "currency", &[]);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -4462,8 +4462,8 @@ impl DeribitCore {
         m.insert("status".to_string(), self.parse_transfer_status(status.clone()));
         m.insert("amount".to_string(), self.safe_number_k(transfer.clone(), "amount", &[]));
         m.insert("currency".to_string(), self.safe_currency_code(currencyId.clone(), &[currency.clone()]));
-        m.insert("fromAccount".to_string(), (if (direction.as_str() != Some("payment")) { account.clone() } else { Value::Null }));
-        m.insert("toAccount".to_string(), (if (direction.as_str() == Some("payment")) { account.clone() } else { Value::Null }));
+        m.insert("fromAccount".to_string(), (if (direction.as_deref() != Some("payment")) { account.clone() } else { Value::Null }));
+        m.insert("toAccount".to_string(), (if (direction.as_deref() == Some("payment")) { account.clone() } else { Value::Null }));
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
     m

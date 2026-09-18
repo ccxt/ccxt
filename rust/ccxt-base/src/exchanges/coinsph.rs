@@ -1463,12 +1463,12 @@ impl CoinsphCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut method: Value = self.safe_string_k(options.clone(), "method", &[defaultMethod.clone()]);
+        let mut method: Option<String> = self.safe_string_k(options.clone(), "method", &[defaultMethod.clone()]).as_str().map(str::to_owned);
         let mut tickers: Value = Value::List(vec![]);
-        if (method.as_str() == Some("publicGetOpenapiQuoteV1TickerPrice")) {
+        if (method.as_deref() == Some("publicGetOpenapiQuoteV1TickerPrice")) {
             let __ws_arg_0 = self.extend(request.clone(), &[params.clone()]);
             tickers = self.public_get_openapi_quote_v1_ticker_price(&[__ws_arg_0]).await;
-        }  else if (method.as_str() == Some("publicGetOpenapiQuoteV1TickerBookTicker")) {
+        }  else if (method.as_deref() == Some("publicGetOpenapiQuoteV1TickerBookTicker")) {
             let __ws_arg_1 = self.extend(request.clone(), &[params.clone()]);
             tickers = self.public_get_openapi_quote_v1_ticker_book_ticker(&[__ws_arg_1]).await;
         }  else {
@@ -1510,15 +1510,15 @@ impl CoinsphCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut method: Value = self.safe_string_k(options.clone(), "method", &[defaultMethod.clone()]);
+        let mut method: Option<String> = self.safe_string_k(options.clone(), "method", &[defaultMethod.clone()]).as_str().map(str::to_owned);
         let mut ticker: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         });
-        if (method.as_str() == Some("publicGetOpenapiQuoteV1TickerPrice")) {
+        if (method.as_deref() == Some("publicGetOpenapiQuoteV1TickerPrice")) {
             let __ws_arg_3 = self.extend(request.clone(), &[params.clone()]);
             ticker = self.public_get_openapi_quote_v1_ticker_price(&[__ws_arg_3]).await;
-        }  else if (method.as_str() == Some("publicGetOpenapiQuoteV1TickerBookTicker")) {
+        }  else if (method.as_deref() == Some("publicGetOpenapiQuoteV1TickerBookTicker")) {
             let __ws_arg_4 = self.extend(request.clone(), &[params.clone()]);
             ticker = self.public_get_openapi_quote_v1_ticker_book_ticker(&[__ws_arg_4]).await;
         }  else {
@@ -1939,10 +1939,10 @@ impl CoinsphCore {
         if (isBuyer != Value::Null) {
             side = (if is_true(&(Value::Bool(isBuyer.as_bool() == Some(true)))) { Value::Str("buy".to_string()) } else { Value::Str("sell".to_string()) });
         }
-        let mut isMaker: Value = self.safe_string_k(trade.clone(), "isMaker", &[]);
+        let mut isMaker: Option<String> = self.safe_string_k(trade.clone(), "isMaker", &[]).as_str().map(str::to_owned);
         let mut takerOrMaker: Value = Value::Null;
-        if (isMaker != Value::Null) {
-            takerOrMaker = (if is_true(&(Value::Bool(isMaker.as_str() == Some("true")))) { Value::Str("maker".to_string()) } else { Value::Str("taker".to_string()) });
+        if (isMaker.is_some()) {
+            takerOrMaker = (if is_true(&(Value::Bool(isMaker.as_deref() == Some("true")))) { Value::Str("maker".to_string()) } else { Value::Str("taker".to_string()) });
         }
         let mut costString: Value = Value::Null;
         if (orderId != Value::Null) {
@@ -2853,11 +2853,11 @@ impl CoinsphCore {
         timestamp = self.safe_integer2(transaction.clone(), Value::Str("insertTime".to_string()), Value::Str("applyTime".to_string()), &[]);
         let mut updated: Value = Value::Null;
         let mut type_var: Value = Value::Null;
-        let mut withdrawOrderId: Value = self.safe_string_k(transaction.clone(), "withdrawOrderId", &[]);
-        let mut depositOrderId: Value = self.safe_string_k(transaction.clone(), "depositOrderId", &[]);
-        if (withdrawOrderId != Value::Null) {
+        let mut withdrawOrderId: Option<String> = self.safe_string_k(transaction.clone(), "withdrawOrderId", &[]).as_str().map(str::to_owned);
+        let mut depositOrderId: Option<String> = self.safe_string_k(transaction.clone(), "depositOrderId", &[]).as_str().map(str::to_owned);
+        if (withdrawOrderId.is_some()) {
             type_var = Value::Str("withdrawal".to_string());
-        }  else if (depositOrderId != Value::Null) {
+        }  else if (depositOrderId.is_some()) {
             type_var = Value::Str("deposit".to_string());
         }
         let mut status: Value = self.parse_transaction_status(self.safe_string_k(transaction.clone(), "status", &[]));

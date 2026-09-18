@@ -1045,7 +1045,7 @@ impl BybitCore {
         //     }
         //
         let mut topic: Value = self.safe_string_k(message.clone(), "topic", &[Value::Str("".to_string())]);
-        let mut updateType: Value = self.safe_string_k(message.clone(), "type", &[Value::Str("".to_string())]);
+        let mut updateType: Option<String> = self.safe_string_k(message.clone(), "type", &[Value::Str("".to_string())]).as_str().map(str::to_owned);
         let mut data: Value = self.safe_dict_k(message.clone(), "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -1054,10 +1054,10 @@ impl BybitCore {
         let mut type_var: Value = (if isSpot { Value::Str("spot".to_string()) } else { Value::Str("contract".to_string()) });
         let mut symbol: Value = Value::Null;
         let mut parsed: Value = Value::Null;
-        if is_true(&(Value::Bool(updateType.as_str() == Some("snapshot")))) {
+        if is_true(&(Value::Bool(updateType.as_deref() == Some("snapshot")))) {
             parsed = self.parse_ticker(data.clone(), &[]);
             symbol = parsed.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
-        }  else if (updateType.as_str() == Some("delta")) {
+        }  else if (updateType.as_deref() == Some("delta")) {
             let mut topicParts: Value = split(&topic, &Value::Str(".".to_string()));
             let mut topicLength: Value = Value::Int(topicParts.len() as i64);
             let mut marketId: Value = self.safe_string(topicParts.clone(), (match (&(topicLength), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }), &[]);
@@ -1593,8 +1593,8 @@ impl BybitCore {
         let mut topic: Value = self.safe_string_k(message.clone(), "topic", &[Value::Str("".to_string())]);
         let mut limit: Value = split(&topic, &Value::Str(".".to_string())).as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         let mut isSpot: bool = get_index_of(&get_value(&client, &Value::Str("url".to_string())), &Value::Str("spot".to_string())).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN);
-        let mut type_var: Value = self.safe_string_k(message.clone(), "type", &[]);
-        let mut isSnapshot: bool = type_var.as_str() == Some("snapshot");
+        let mut type_var: Option<String> = self.safe_string_k(message.clone(), "type", &[]).as_str().map(str::to_owned);
+        let mut isSnapshot: bool = type_var.as_deref() == Some("snapshot");
         let mut data: Value = self.safe_dict_k(message.clone(), "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -2112,9 +2112,9 @@ impl BybitCore {
         //         ]
         //     }
         //
-        let mut topic: Value = self.safe_string_k(message.clone(), "topic", &[Value::Str("".to_string())]);
-        let mut spot: bool = topic.as_str() == Some("ticketInfo");
-        let mut executionFast: bool = topic.as_str() == Some("execution.fast");
+        let mut topic: Option<String> = self.safe_string_k(message.clone(), "topic", &[Value::Str("".to_string())]).as_str().map(str::to_owned);
+        let mut spot: bool = topic.as_deref() == Some("ticketInfo");
+        let mut executionFast: bool = topic.as_deref() == Some("execution.fast");
         let mut data: Value = self.safe_value_k(message.clone(), "data", &[Value::List(vec![])]);
         if !is_true(&Value::Bool(is_array(&data))) {
             data = self.safe_list_k(data.clone(), "result", &[Value::List(vec![])]);
@@ -2350,11 +2350,11 @@ impl BybitCore {
             let mut rawPosition: Value = get_value(&rawPositions, &i);
             let mut rawPosition: Value = get_value(&rawPositions, &i);
             let mut position: Value = self.parse_position(rawPosition.clone(), &[]);
-            let mut side: Value = self.safe_string_k(position.clone(), "side", &[]);
+            let mut side: Option<String> = self.safe_string_k(position.clone(), "side", &[]).as_str().map(str::to_owned);
             // hacky solution to handle closing positions
             // without crashing, we should handle this properly later
             append_to_array(&mut newPositions, position.clone());
-            if (side == Value::Null) || (side.as_str() == Some("")) {
+            if (side.is_none()) || (side.as_deref() == Some("")) {
                 // closing update, adding both sides to "reset" both sides
                 // since we don't know which side is being closed
                 add_element_to_object(&mut position, &Value::Str("side".to_string()), Value::Str("long".to_string()));
@@ -2781,8 +2781,8 @@ impl BybitCore {
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut category: Value = self.safe_string_k(first.clone(), "category", &[]);
-        let mut isSpot: bool = category.as_str() == Some("spot");
+        let mut category: Option<String> = self.safe_string_k(first.clone(), "category", &[]).as_str().map(str::to_owned);
+        let mut isSpot: bool = category.as_deref() == Some("spot");
         if !isSpot {
             rawOrders = self.safe_value_k(rawOrders.clone(), "result", &[rawOrders.clone()]);
         }
@@ -3447,8 +3447,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             return;
         }
         // contract pong
-        let mut ret_msg: Value = self.safe_string_k(message.clone(), "ret_msg", &[]);
-        if is_true(&(Value::Bool(ret_msg.as_str() == Some("pong")))) || is_true(&(Value::Bool(topic.as_str() == Some("pong")))) {
+        let mut ret_msg: Option<String> = self.safe_string_k(message.clone(), "ret_msg", &[]).as_str().map(str::to_owned);
+        if is_true(&(Value::Bool(ret_msg.as_deref() == Some("pong")))) || is_true(&(Value::Bool(topic.as_str() == Some("pong")))) {
             self.handle_pong(client.clone(), message.clone());
             return;
         }
@@ -3459,8 +3459,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             return;
         }
         // pong
-        let mut event: Value = self.safe_string_k(message.clone(), "event", &[]);
-        if (event.as_str() == Some("sub")) || is_true(&(Value::Bool(topic.as_str() == Some("subscribe")))) {
+        let mut event: Option<String> = self.safe_string_k(message.clone(), "event", &[]).as_str().map(str::to_owned);
+        if (event.as_deref() == Some("sub")) || is_true(&(Value::Bool(topic.as_str() == Some("subscribe")))) {
             self.handle_subscription_status(client.clone(), message.clone());
             return;
         }
@@ -3520,8 +3520,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         }
         }
         // unified auth acknowledgement
-        let mut type_var: Value = self.safe_string_k(message.clone(), "type", &[]);
-        if (type_var.as_str() == Some("AUTH_RESP")) {
+        let mut type_var: Option<String> = self.safe_string_k(message.clone(), "type", &[]).as_str().map(str::to_owned);
+        if (type_var.as_deref() == Some("AUTH_RESP")) {
             self.handle_authenticate(client.clone(), message.clone());
         }
 }

@@ -570,7 +570,7 @@ impl BullishCore {
         //         }
         //     }
         //
-        let mut updateType: Value = self.safe_string_k(message.clone(), "type", &[Value::Str("".to_string())]);
+        let mut updateType: Option<String> = self.safe_string_k(message.clone(), "type", &[Value::Str("".to_string())]).as_str().map(str::to_owned);
         let mut data: Value = self.safe_dict_k(message.clone(), "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -579,7 +579,7 @@ impl BullishCore {
         let mut market: Value = self.safe_market(&[marketId.clone()]);
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         let mut parsed: Value = self.parse_ticker(data.clone(), &[market.clone()]);
-        if (updateType.as_str() == Some("update")) {
+        if (updateType.as_deref() == Some("update")) {
             let mut ticker: Value = self.safe_dict(self.tickers.clone(), symbol.clone(), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
@@ -796,9 +796,9 @@ impl BullishCore {
         //         }
         //     }
         //
-        let mut type_var: Value = self.safe_string_k(message.clone(), "type", &[]);
+        let mut type_var: Option<String> = self.safe_string_k(message.clone(), "type", &[]).as_str().map(str::to_owned);
         let mut rawOrders: Value = Value::List(vec![]);
-        if (type_var.as_str() == Some("update")) {
+        if (type_var.as_deref() == Some("update")) {
             let mut data: Value = self.safe_dict_k(message.clone(), "data", &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
@@ -934,9 +934,9 @@ impl BullishCore {
         //         }
         //     }
         //
-        let mut type_var: Value = self.safe_string_k(message.clone(), "type", &[]);
+        let mut type_var: Option<String> = self.safe_string_k(message.clone(), "type", &[]).as_str().map(str::to_owned);
         let mut rawTrades: Value = Value::List(vec![]);
-        if (type_var.as_str() == Some("update")) {
+        if (type_var.as_deref() == Some("update")) {
             let mut data: Value = self.safe_dict_k(message.clone(), "data", &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
@@ -1072,8 +1072,8 @@ impl BullishCore {
     m
 }));
         }
-        let mut messageType: Value = self.safe_string_k(message.clone(), "type", &[]);
-        if (messageType.as_str() == Some("snapshot")) {
+        let mut messageType: Option<String> = self.safe_string_k(message.clone(), "type", &[]).as_str().map(str::to_owned);
+        if (messageType.as_deref() == Some("snapshot")) {
             let mut data: Value = self.safe_list_k(message.clone(), "data", &[Value::List(vec![])]);
             { let __be_tmp = self.parse_balance(data.clone()); add_element_to_object(&mut self.balance, &tradingAccountId, __be_tmp); };
         }  else {
@@ -1144,9 +1144,9 @@ impl BullishCore {
         // exchange does not return messages for sandbox mode
         // current method is implemented blindly
         // todo: check if this works with not-sandbox mode
-        let mut messageType: Value = self.safe_string_k(message.clone(), "type", &[]);
+        let mut messageType: Option<String> = self.safe_string_k(message.clone(), "type", &[]).as_str().map(str::to_owned);
         let mut rawPositions: Value = Value::List(vec![]);
-        if (messageType.as_str() == Some("update")) {
+        if (messageType.as_deref() == Some("update")) {
             let mut data: Value = self.safe_dict_k(message.clone(), "data", &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
@@ -1220,33 +1220,33 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 }
 
     pub fn handle_message(&mut self, mut client: Value, mut message: Value) {
-        let mut dataType: Value = self.safe_string_k(message.clone(), "dataType", &[]);
+        let mut dataType: Option<String> = self.safe_string_k(message.clone(), "dataType", &[]).as_str().map(str::to_owned);
         let mut result: Value = self.safe_dict_k(message.clone(), "result", &[]);
         if (result != Value::Null) {
-            let mut response: Value = self.safe_string_k(result.clone(), "message", &[]);
-            if (response.as_str() == Some("Keep alive pong")) {
+            let mut response: Option<String> = self.safe_string_k(result.clone(), "message", &[]).as_str().map(str::to_owned);
+            if (response.as_deref() == Some("Keep alive pong")) {
                 self.handle_pong(client.clone(), message.clone());
             }
-        }  else if (dataType != Value::Null) {
-            if (dataType.as_str() == Some("V1TAAnonymousTradeUpdate")) {
+        }  else if (dataType.is_some()) {
+            if (dataType.as_deref() == Some("V1TAAnonymousTradeUpdate")) {
                 self.handle_trades(client.clone(), message.clone());
             }
-            if (dataType.as_str() == Some("V1TATickerResponse")) {
+            if (dataType.as_deref() == Some("V1TATickerResponse")) {
                 self.handle_ticker(client.clone(), message.clone());
             }
-            if (dataType.as_str() == Some("V1TALevel2")) {
+            if (dataType.as_deref() == Some("V1TALevel2")) {
                 self.handle_order_book(client.clone(), message.clone());
             }
-            if (dataType.as_str() == Some("V1TAOrder")) {
+            if (dataType.as_deref() == Some("V1TAOrder")) {
                 self.handle_orders(client.clone(), message.clone());
             }
-            if (dataType.as_str() == Some("V1TATrade")) {
+            if (dataType.as_deref() == Some("V1TATrade")) {
                 self.handle_my_trades(client.clone(), message.clone());
             }
-            if (dataType.as_str() == Some("V1TAAssetAccount")) {
+            if (dataType.as_deref() == Some("V1TAAssetAccount")) {
                 self.handle_balance(client.clone(), message.clone());
             }
-            if (dataType.as_str() == Some("V1TAErrorResponse")) {
+            if (dataType.as_deref() == Some("V1TAErrorResponse")) {
                 self.handle_error_message(client.clone(), message.clone());
             }
         }

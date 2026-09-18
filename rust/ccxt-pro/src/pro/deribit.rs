@@ -1553,8 +1553,8 @@ impl DeribitCore {
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut accessToken: Value = self.safe_string_k(result.clone(), "access_token", &[]);
-        if (accessToken != Value::Null) {
+        let mut accessToken: Option<String> = self.safe_string_k(result.clone(), "access_token", &[]).as_str().map(str::to_owned);
+        if (accessToken.is_some()) {
             self.handle_authentication_message(client.clone(), message.clone());
         }
 }

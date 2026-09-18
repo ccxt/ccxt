@@ -652,11 +652,11 @@ impl CoincheckCore {
             while { if !__for_first_549 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_549 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(exchangeStatuses.len() as i64).as_f64().unwrap_or(f64::NAN) } {
             let mut exchangeStatus: Value = get_value(&exchangeStatuses, &i);
             let mut exchangeStatus: Value = get_value(&exchangeStatuses, &i);
-            let mut rawStatus: Value = self.safe_string_k(exchangeStatus.clone(), "status", &[]);
+            let mut rawStatus: Option<String> = self.safe_string_k(exchangeStatus.clone(), "status", &[]).as_str().map(str::to_owned);
             if (updated == Value::Null) {
                 updated = self.safe_timestamp(exchangeStatus.clone(), Value::Str("timestamp".to_string()), &[]);
             }
-            if (rawStatus.as_str() != Some("available")) {
+            if (rawStatus.as_deref() != Some("available")) {
                 status = Value::Str("maintenance".to_string());
             }
         }

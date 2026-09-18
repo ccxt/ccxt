@@ -1030,7 +1030,7 @@ impl CoinbaseexchangeCore {
             currentOrders = ArrayCacheBySymbolById::new(limit.clone());
             self.orders = currentOrders.clone();
         }
-        let mut type_var: Value = self.safe_string_k(message.clone(), "type", &[]);
+        let mut type_var: Option<String> = self.safe_string_k(message.clone(), "type", &[]).as_str().map(str::to_owned);
         let mut marketId: Value = self.safe_string_k(message.clone(), "product_id", &[]);
         if (marketId != Value::Null) {
             let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("orders:".to_string()), marketId));
@@ -1065,7 +1065,7 @@ impl CoinbaseexchangeCore {
                 })]);
                 let mut previousSequence: Value = self.safe_integer_k(previousInfo.clone(), "sequence", &[]);
                 if is_true(&(Value::Bool(previousSequence == Value::Null))) || is_true(&(sequence.as_f64().unwrap_or(f64::NAN) > previousSequence.as_f64().unwrap_or(f64::NAN))) {
-                    if (type_var.as_str() == Some("match")) {
+                    if (type_var.as_deref() == Some("match")) {
                         let mut trade: Value = self.parse_ws_trade(message.clone(), &[]);
                         if (crate::value::get_value_k(&previousOrder, "trades") == Value::Null) {
                             add_element_to_object(&mut previousOrder, &Value::Str("trades".to_string()), Value::List(vec![]));
@@ -1113,7 +1113,7 @@ impl CoinbaseexchangeCore {
                         // update the newUpdates count
                         orders.append(previousOrder.clone());
                         client.resolve(&[orders.clone(), messageHash.clone()]);
-                    }  else if is_true(&(Value::Bool(type_var.as_str() == Some("received")))) || is_true(&(Value::Bool(type_var.as_str() == Some("done")))) {
+                    }  else if is_true(&(Value::Bool(type_var.as_deref() == Some("received")))) || is_true(&(Value::Bool(type_var.as_deref() == Some("done")))) {
                         let mut info: Value = self.extend(crate::value::get_value_k(&previousOrder, "info"), &[message.clone()]);
                         let mut order: Value = self.parse_ws_order(info.clone(), &[]);
                         let mut keys: Value = object_keys(&order);
@@ -1155,11 +1155,11 @@ impl CoinbaseexchangeCore {
         let mut status: Value = self.parse_ws_order_status(reason.clone());
         let mut orderType: Value = self.safe_string_k(order.clone(), "order_type", &[]);
         let mut remaining: Value = self.safe_string_k(order.clone(), "remaining_size", &[]);
-        let mut type_var: Value = self.safe_string_k(order.clone(), "type", &[]);
+        let mut type_var: Option<String> = self.safe_string_k(order.clone(), "type", &[]).as_str().map(str::to_owned);
         let mut filled: Value = Value::Null;
         if is_true(&(Value::Bool(amount != Value::Null))) && is_true(&(Value::Bool(remaining != Value::Null))) {
             filled = crate::precise::Precise::stringSub(&amount, &remaining);
-        }  else if (type_var.as_str() == Some("received")) {
+        }  else if (type_var.as_deref() == Some("received")) {
             filled = Value::Str("0".to_string());
             if (amount != Value::Null) {
                 remaining = crate::precise::Precise::stringSub(&amount, &filled);
@@ -1255,8 +1255,8 @@ impl CoinbaseexchangeCore {
         //         "last_size": "0.00352175"
         //     }
         //
-        let mut type_var: Value = self.safe_string_k(ticker.clone(), "type", &[]);
-        if (type_var == Value::Null) {
+        let mut type_var: Option<String> = self.safe_string_k(ticker.clone(), "type", &[]).as_str().map(str::to_owned);
+        if (type_var.is_none()) {
             return self.parent.parse_ticker(ticker.clone(), &[market.clone()]);
         }
         let mut marketId: Value = self.safe_string_k(ticker.clone(), "product_id", &[]);
@@ -1333,7 +1333,7 @@ impl CoinbaseexchangeCore {
         //         ]
         //     }
         //
-        let mut type_var: Value = self.safe_string_k(message.clone(), "type", &[]);
+        let mut type_var: Option<String> = self.safe_string_k(message.clone(), "type", &[]).as_str().map(str::to_owned);
         let mut marketId: Value = self.safe_string_k(message.clone(), "product_id", &[]);
         let mut market: Value = self.safe_market(&[marketId.clone(), Value::Null, Value::Str("-".to_string())]);
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
@@ -1344,7 +1344,7 @@ impl CoinbaseexchangeCore {
             m
         })]);
         let mut limit: Value = self.safe_integer_k(subscription.clone(), "limit", &[]);
-        if (type_var.as_str() == Some("snapshot")) {
+        if (type_var.as_deref() == Some("snapshot")) {
             { let __be_tmp = self.order_book(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1356,7 +1356,7 @@ impl CoinbaseexchangeCore {
             add_element_to_object(&mut orderbook, &Value::Str("datetime".to_string()), Value::Null);
             add_element_to_object(&mut orderbook, &Value::Str("symbol".to_string()), symbol.clone());
             client.resolve(&[orderbook.clone(), messageHash.clone()]);
-        }  else if (type_var.as_str() == Some("l2update")) {
+        }  else if (type_var.as_deref() == Some("l2update")) {
             let mut orderbook: Value = get_value(&self.orderbooks, &symbol);
             let mut timestamp: Value = self.parse8601(self.safe_string_k(message.clone(), "time", &[]));
             let mut changes: Value = self.safe_list_k(message.clone(), "changes", &[Value::List(vec![])]);
@@ -1408,10 +1408,10 @@ impl CoinbaseexchangeCore {
         //         "reason": "{"message":"Invalid API Key"}"
         //     }
         //
-        let mut errMsg: Value = self.safe_string_k(message.clone(), "message", &[]);
+        let mut errMsg: Option<String> = self.safe_string_k(message.clone(), "message", &[]).as_str().map(str::to_owned);
         let mut reason: Value = self.safe_string_k(message.clone(), "reason", &[]);
         let _try_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-            if (errMsg.as_str() == Some("Authentication Failed")) {
+            if (errMsg.as_deref() == Some("Authentication Failed")) {
                 panic!("{}", crate::exchange_errors::authentication_error(add(&Value::Str("Authentication failed: ".to_string()), &reason)));
             }  else {
                 panic!("{}", crate::exchange_errors::exchange_error(add(&Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), &reason)));

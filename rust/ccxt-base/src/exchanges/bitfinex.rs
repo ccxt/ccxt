@@ -1767,8 +1767,8 @@ impl BitfinexCore {
         let mut label: Value = self.safe_list(crate::value::get_value_k(&indexed, "label"), id.clone(), &[Value::List(vec![])]);
         let mut name: Value = self.safe_string(label.clone(), Value::Int(1), &[]);
         let mut pool: Value = self.safe_list(crate::value::get_value_k(&indexed, "pool"), id.clone(), &[Value::List(vec![])]);
-        let mut rawType: Value = self.safe_string(pool.clone(), Value::Int(1), &[]);
-        let mut isCryptoCoin: bool = is_true(&(Value::Bool(rawType != Value::Null))) || is_true(&(Value::Bool(in_op(&crate::value::get_value_k(&indexed, "explorer"), &id)))); // "hacky" solution
+        let mut rawType: Option<String> = self.safe_string(pool.clone(), Value::Int(1), &[]).as_str().map(str::to_owned);
+        let mut isCryptoCoin: bool = is_true(&(Value::Bool(rawType.is_some()))) || is_true(&(Value::Bool(in_op(&crate::value::get_value_k(&indexed, "explorer"), &id)))); // "hacky" solution
         let mut type_var: Value = (if isCryptoCoin { Value::Str("crypto".to_string()) } else { Value::Null });
         let mut feeValues: Value = self.safe_list(crate::value::get_value_k(&indexed, "fees"), id.clone(), &[Value::List(vec![])]);
         let mut fees: Value = self.safe_list(feeValues.clone(), Value::Int(1), &[Value::List(vec![])]);
@@ -2001,8 +2001,8 @@ impl BitfinexCore {
         //         "1.0 Tether USDt transfered from Exchange to Margin"
         //     ]
         //
-        let mut error: Value = self.safe_string(response.clone(), Value::Int(0), &[]);
-        if (error.as_str() == Some("error")) {
+        let mut error: Option<String> = self.safe_string(response.clone(), Value::Int(0), &[]).as_str().map(str::to_owned);
+        if (error.as_deref() == Some("error")) {
             let mut message: Value = self.safe_string(response.clone(), Value::Int(2), &[Value::Str("".to_string())]);
             // same message as in v1
             self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), message.clone(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), message)));
@@ -2759,7 +2759,7 @@ impl BitfinexCore {
         });
         let mut triggerPrice: Value = self.safe_string2(params.clone(), Value::Str("stopPrice".to_string()), Value::Str("triggerPrice".to_string()), &[]);
         let mut trailingAmount: Value = self.safe_string_k(params.clone(), "trailingAmount", &[]);
-        let mut timeInForce: Value = self.safe_string_k(params.clone(), "timeInForce", &[]);
+        let mut timeInForce: Option<String> = self.safe_string_k(params.clone(), "timeInForce", &[]).as_str().map(str::to_owned);
         let mut postOnlyParam: Value = self.safe_bool_k(params.clone(), "postOnly", &[Value::Bool(false)]);
         let mut reduceOnly: Value = self.safe_bool_k(params.clone(), "reduceOnly", &[Value::Bool(false)]);
         let mut clientOrderId: Value = self.safe_value2(params.clone(), Value::Str("cid".to_string()), Value::Str("clientOrderId".to_string()), &[]);
@@ -2777,9 +2777,9 @@ impl BitfinexCore {
                 orderType = Value::Str("STOP".to_string());
             }
         }
-        let mut ioc: bool = timeInForce.as_str() == Some("IOC");
-        let mut fok: bool = timeInForce.as_str() == Some("FOK");
-        let mut postOnly: bool = is_true(&(Value::Bool(postOnlyParam.as_bool() == Some(true)))) || is_true(&(Value::Bool(timeInForce.as_str() == Some("PO"))));
+        let mut ioc: bool = timeInForce.as_deref() == Some("IOC");
+        let mut fok: bool = timeInForce.as_deref() == Some("FOK");
+        let mut postOnly: bool = is_true(&(Value::Bool(postOnlyParam.as_bool() == Some(true)))) || is_true(&(Value::Bool(timeInForce.as_deref() == Some("PO"))));
         if (ioc || fok) && is_true(&(Value::Bool(price == Value::Null))) {
             panic!("{}", crate::exchange_errors::invalid_order(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires a price argument with IOC and FOK orders".to_string())))));
         }
@@ -4146,8 +4146,8 @@ impl BitfinexCore {
         //         "Momentary balance check. Please wait few seconds and try the transfer again."
         //     ]
         //
-        let mut statusMessage: Value = self.safe_string(response.clone(), Value::Int(0), &[]);
-        if (statusMessage.as_str() == Some("error")) {
+        let mut statusMessage: Option<String> = self.safe_string(response.clone(), Value::Int(0), &[]).as_str().map(str::to_owned);
+        if (statusMessage.as_deref() == Some("error")) {
             let mut feedback: Value = add(&Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), &response);
             let mut message: Value = self.safe_string(response.clone(), Value::Int(2), &[Value::Str("".to_string())]);
             // same message as in v1
@@ -5334,7 +5334,7 @@ impl BitfinexCore {
         }
         let mut triggerPrice: Value = self.safe_string2(params.clone(), Value::Str("stopPrice".to_string()), Value::Str("triggerPrice".to_string()), &[]);
         let mut trailingAmount: Value = self.safe_string_k(params.clone(), "trailingAmount", &[]);
-        let mut timeInForce: Value = self.safe_string_k(params.clone(), "timeInForce", &[]);
+        let mut timeInForce: Option<String> = self.safe_string_k(params.clone(), "timeInForce", &[]).as_str().map(str::to_owned);
         let mut postOnlyParam: Value = self.safe_bool_k(params.clone(), "postOnly", &[Value::Bool(false)]);
         let mut reduceOnly: Value = self.safe_bool_k(params.clone(), "reduceOnly", &[Value::Bool(false)]);
         let mut clientOrderId: Value = self.safe_integer2(params.clone(), Value::Str("cid".to_string()), Value::Str("clientOrderId".to_string()), &[]);
@@ -5347,7 +5347,7 @@ impl BitfinexCore {
                 add_element_to_object(&mut request, &Value::Str("price_aux_limit".to_string()), self.price_to_precision(symbol.clone(), price.clone()));
             }
         }
-        let mut postOnly: bool = is_true(&(Value::Bool(postOnlyParam.as_bool() == Some(true)))) || is_true(&(Value::Bool(timeInForce.as_str() == Some("PO"))));
+        let mut postOnly: bool = is_true(&(Value::Bool(postOnlyParam.as_bool() == Some(true)))) || is_true(&(Value::Bool(timeInForce.as_deref() == Some("PO"))));
         if is_true(&(Value::Bool(type_var.as_str() != Some("market")))) && is_true(&(Value::Bool(triggerPrice == Value::Null))) {
             add_element_to_object(&mut request, &Value::Str("price".to_string()), self.price_to_precision(symbol.clone(), price.clone()));
         }

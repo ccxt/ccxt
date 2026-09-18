@@ -1141,24 +1141,24 @@ impl AlpacaCore {
             panic!("{}", crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" parseMarket() missing marketId".to_string())))));
         }
         let mut parts: Value = split(&marketId, &Value::Str("/".to_string()));
-        let mut assetClass: Value = self.safe_string_k(asset.clone(), "class", &[]);
+        let mut assetClass: Option<String> = self.safe_string_k(asset.clone(), "class", &[]).as_str().map(str::to_owned);
         let mut baseId: Value = self.safe_string(parts.clone(), Value::Int(0), &[]);
         let mut quoteId: Value = self.safe_string(parts.clone(), Value::Int(1), &[]);
         let mut base: Value = self.safe_currency_code(baseId.clone(), &[]);
         let mut quote: Value = self.safe_currency_code(quoteId.clone(), &[]);
         // Us equity markets do not include quote in symbol.
         // We can safely coerce us_equity quote to USD
-        if (quote == Value::Null) && (assetClass.as_str() == Some("us_equity")) {
+        if (quote == Value::Null) && (assetClass.as_deref() == Some("us_equity")) {
             quote = Value::Str("USD".to_string());
         }
         let mut symbol: Value = add(&add(&base, &Value::Str("/".to_string())), &quote);
-        let mut status: Value = self.safe_string_k(asset.clone(), "status", &[]);
-        let mut active: Value = (Value::Bool(status.as_str() == Some("active")));
+        let mut status: Option<String> = self.safe_string_k(asset.clone(), "status", &[]).as_str().map(str::to_owned);
+        let mut active: Value = (Value::Bool(status.as_deref() == Some("active")));
         let mut minAmount: Value = self.safe_number_k(asset.clone(), "min_order_size", &[]);
         let mut amount: Value = self.safe_number_k(asset.clone(), "min_trade_increment", &[]);
         let mut price: Value = self.safe_number_k(asset.clone(), "price_increment", &[]);
         let mut minCost: Value = Value::Null;
-        if is_true(&(Value::Bool(assetClass.as_str() == Some("crypto")))) && is_true(&(Value::Bool(quote.as_str() == Some("USD")))) {
+        if is_true(&(Value::Bool(assetClass.as_deref() == Some("crypto")))) && is_true(&(Value::Bool(quote.as_str() == Some("USD")))) {
             // alpaca rejects USD-quoted crypto buy orders below 10 USD notional: {"code":40310000,"message":"cost basis must be >= minimal amount of order 10"}
             // USDT-, USDC- and BTC-quoted pairs accept smaller orders, and sell orders are not floored — verified live 2026-08-25
             minCost = self.safe_number_k(self.options.clone(), "minCostUSD", &[self.parse_number(Value::Str("10".to_string()), &[])]);
@@ -2080,8 +2080,8 @@ impl AlpacaCore {
         }
         if (since != Value::Null) {
             add_element_to_object(&mut request, &Value::Str("after".to_string()), self.iso8601(since.clone()));
-            let mut direction: Value = self.safe_string_k(params.clone(), "direction", &[]);
-            if (direction == Value::Null) {
+            let mut direction: Option<String> = self.safe_string_k(params.clone(), "direction", &[]).as_str().map(str::to_owned);
+            if (direction.is_none()) {
                 // the server default is desc, so a limit would truncate the newest window instead of the range starting at since — request oldest-first like krakenfutures does
                 add_element_to_object(&mut request, &Value::Str("direction".to_string()), Value::Str("asc".to_string()));
             }
@@ -2445,11 +2445,11 @@ impl AlpacaCore {
         let mut symbol: Value = self.safe_symbol(marketId.clone(), &[market.clone()]);
         let mut datetime: Value = self.safe_string2(trade.clone(), Value::Str("t".to_string()), Value::Str("transaction_time".to_string()), &[]);
         let mut timestamp: Value = self.parse8601(datetime.clone());
-        let mut alpacaSide: Value = self.safe_string_k(trade.clone(), "tks", &[]);
+        let mut alpacaSide: Option<String> = self.safe_string_k(trade.clone(), "tks", &[]).as_str().map(str::to_owned);
         let mut side: Value = self.safe_string_k(trade.clone(), "side", &[]);
-        if (alpacaSide.as_str() == Some("B")) {
+        if (alpacaSide.as_deref() == Some("B")) {
             side = Value::Str("buy".to_string());
-        }  else if (alpacaSide.as_str() == Some("S")) {
+        }  else if (alpacaSide.as_deref() == Some("S")) {
             side = Value::Str("sell".to_string());
         }
         let mut priceString: Value = self.safe_string2(trade.clone(), Value::Str("p".to_string()), Value::Str("price".to_string()), &[]);
@@ -2619,9 +2619,9 @@ impl AlpacaCore {
                 while { if !__for_first_214 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_214 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(ledger.len() as i64).as_f64().unwrap_or(f64::NAN) } {
                 let mut entry: Value = get_value(&ledger, &i);
                 let mut entry: Value = get_value(&ledger, &i);
-                let mut activityType: Value = self.safe_string_k(entry.clone(), "activity_type", &[]);
+                let mut activityType: Option<String> = self.safe_string_k(entry.clone(), "activity_type", &[]).as_str().map(str::to_owned);
                 let mut amount: Value = self.safe_string_k(entry.clone(), "net_amount", &[]);
-                let mut isIncoming: bool = is_true(&(Value::Bool(activityType.as_str() == Some("CSD")))) || is_true(&(Value::Bool(is_true(&(Value::Bool(activityType.as_str() == Some("TRANS")))) && !is_true(&crate::precise::Precise::stringLt(&amount, &Value::Str("0".to_string()))))));
+                let mut isIncoming: bool = is_true(&(Value::Bool(activityType.as_deref() == Some("CSD")))) || is_true(&(Value::Bool(is_true(&(Value::Bool(activityType.as_deref() == Some("TRANS")))) && !is_true(&crate::precise::Precise::stringLt(&amount, &Value::Str("0".to_string()))))));
                 let mut entryDirection: Value = (if isIncoming { Value::Str("INCOMING".to_string()) } else { Value::Str("OUTGOING".to_string()) });
                 if is_true(&(Value::Bool(type_var.as_str() == Some("BOTH")))) || (is_equal(&entryDirection, &type_var)) {
                     append_to_array(&mut filtered, entry.clone());

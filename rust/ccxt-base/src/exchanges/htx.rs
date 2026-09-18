@@ -4017,11 +4017,11 @@ impl HtxCore {
                     panic!("{}", crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" method() missing id".to_string())))));
                 }
                 lowercaseId = to_lower(&id);
-                let mut delivery_date: Value = self.safe_string_k(market.clone(), "delivery_date", &[]);
-                let mut business_type: Value = self.safe_string_k(market.clone(), "business_type", &[]);
-                future = Value::Bool(delivery_date != Value::Null);
+                let mut delivery_date: Option<String> = self.safe_string_k(market.clone(), "delivery_date", &[]).as_str().map(str::to_owned);
+                let mut business_type: Option<String> = self.safe_string_k(market.clone(), "business_type", &[]).as_str().map(str::to_owned);
+                future = Value::Bool(delivery_date.is_some());
                 swap = Value::Bool(!is_true(&future));
-                linear = Value::Bool(business_type != Value::Null);
+                linear = Value::Bool(business_type.is_some());
                 inverse = Value::Bool(!is_true(&linear));
                 if is_true(&swap) {
                     type_var = Value::Str("swap".to_string());
@@ -4100,8 +4100,8 @@ impl HtxCore {
                 costPrecision = self.parse_number(self.parse_precision(&[self.safe_string_k(market.clone(), "value-precision", &[])]), &[]);
                 maker = self.parse_number(Value::Str("0.002".to_string()), &[]);
                 taker = self.parse_number(Value::Str("0.002".to_string()), &[]);
-                let mut state: Value = self.safe_string_k(market.clone(), "state", &[]);
-                active = (Value::Bool(state.as_str() == Some("online")));
+                let mut state: Option<String> = self.safe_string_k(market.clone(), "state", &[]).as_str().map(str::to_owned);
+                active = (Value::Bool(state.as_deref() == Some("online")));
             }  else {
                 pricePrecision = self.safe_number_k(market.clone(), "price_tick", &[]);
                 amountPrecision = self.parse_number(Value::Str("1".to_string()), &[]); // other markets have step size of 1 contract
@@ -5692,8 +5692,8 @@ impl HtxCore {
         }
         let mut currencyId: Value = self.safe_string_k(rawCurrency.clone(), "currency", &[]);
         let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
-        let mut assetType: Value = self.safe_string_k(rawCurrency.clone(), "assetType", &[]);
-        let mut type_var: Value = (if is_true(&(Value::Bool(assetType.as_str() == Some("1")))) { Value::Str("crypto".to_string()) } else { Value::Str("fiat".to_string()) });
+        let mut assetType: Option<String> = self.safe_string_k(rawCurrency.clone(), "assetType", &[]).as_str().map(str::to_owned);
+        let mut type_var: Value = (if is_true(&(Value::Bool(assetType.as_deref() == Some("1")))) { Value::Str("crypto".to_string()) } else { Value::Str("fiat".to_string()) });
         if (code != Value::Null) {
             add_element_to_object(get_value_mut(unsafe { crate::runtime::coerce_value_to_mut(&self.options) }, &Value::Str("networkChainIdsByNames".to_string())), &code, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -6418,8 +6418,8 @@ impl HtxCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut method: Value = self.safe_string_k(self.options.clone(), "fetchOrdersByStatesMethod", &[Value::Str("spot_private_get_v1_order_orders".to_string())]); // spot_private_get_v1_order_history
-        if (method.as_str() == Some("spot_private_get_v1_order_orders")) {
+        let mut method: Option<String> = self.safe_string_k(self.options.clone(), "fetchOrdersByStatesMethod", &[Value::Str("spot_private_get_v1_order_orders".to_string())]).as_str().map(str::to_owned); // spot_private_get_v1_order_history
+        if (method.as_deref() == Some("spot_private_get_v1_order_orders")) {
             if (symbol == Value::Null) {
                 panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchOrders() requires a symbol argument".to_string())))));
             }
@@ -6446,7 +6446,7 @@ impl HtxCore {
             add_element_to_object(&mut request, &Value::Str("size".to_string()), limit.clone());
         }
         let mut response: Value = Value::Null;
-        if (method.as_str() == Some("spot_private_get_v1_order_orders")) {
+        if (method.as_deref() == Some("spot_private_get_v1_order_orders")) {
             let __ws_arg_54 = self.extend(request.clone(), &[params.clone()]);
             response = self.spot_private_get_v1_order_orders(&[__ws_arg_54]).await;
         }  else {
@@ -7474,15 +7474,15 @@ impl HtxCore {
         //
         let mut marketId: Value = self.safe_string2(order.clone(), Value::Str("contract_code".to_string()), Value::Str("symbol".to_string()), &[]);
         market = self.safe_market(&[marketId.clone(), market.clone()]);
-        let mut rejectedCreateOrders: Value = self.safe_string2(order.clone(), Value::Str("err_code".to_string()), Value::Str("err-code".to_string()), &[]);
+        let mut rejectedCreateOrders: Option<String> = self.safe_string2(order.clone(), Value::Str("err_code".to_string()), Value::Str("err-code".to_string()), &[]).as_str().map(str::to_owned);
         let mut status: Value = self.parse_order_status(self.safe_string2(order.clone(), Value::Str("state".to_string()), Value::Str("status".to_string()), &[]));
-        if (rejectedCreateOrders != Value::Null) {
+        if (rejectedCreateOrders.is_some()) {
             status = Value::Str("rejected".to_string());
         }
         let mut id: Value = self.safe_string_n(order.clone(), Value::List(vec![Value::Str("algo_id".to_string()), Value::Str("id".to_string()), Value::Str("order_id_str".to_string()), Value::Str("order-id".to_string()), Value::Str("order_id".to_string())]), &[]);
         let mut side: Value = self.safe_string2(order.clone(), Value::Str("direction".to_string()), Value::Str("side".to_string()), &[]);
-        let mut contractCode: Value = self.safe_string_k(order.clone(), "contract_code", &[]);
-        let mut isLinearOrder: Value = Value::Bool(is_true(&(Value::Bool(contractCode != Value::Null))) && is_true(&(Value::Bool(market != Value::Null))) && is_true(&(Value::Bool(market.as_map().and_then(|__m| __m.get("linear")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)))) && is_true(&(Value::Bool(market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() != Some(true)))));
+        let mut contractCode: Option<String> = self.safe_string_k(order.clone(), "contract_code", &[]).as_str().map(str::to_owned);
+        let mut isLinearOrder: Value = Value::Bool(is_true(&(Value::Bool(contractCode.is_some()))) && is_true(&(Value::Bool(market != Value::Null))) && is_true(&(Value::Bool(market.as_map().and_then(|__m| __m.get("linear")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)))) && is_true(&(Value::Bool(market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() != Some(true)))));
         let mut type_var: Value = Value::Null;
         if (isLinearOrder.as_bool() == Some(true)) {
             type_var = self.safe_string_k(order.clone(), "type", &[]);
@@ -7713,10 +7713,10 @@ impl HtxCore {
         if (postOnly.as_bool() == Some(true)) {
             orderType = Value::Str("limit-maker".to_string());
         }
-        let mut timeInForce: Value = self.safe_string_k(params.clone(), "timeInForce", &[Value::Str("GTC".to_string())]);
-        if (timeInForce.as_str() == Some("FOK")) {
+        let mut timeInForce: Option<String> = self.safe_string_k(params.clone(), "timeInForce", &[Value::Str("GTC".to_string())]).as_str().map(str::to_owned);
+        if (timeInForce.as_deref() == Some("FOK")) {
             orderType = Value::Str(format!("{}{}", orderType, Value::Str("-fok".to_string())));
-        }  else if (timeInForce.as_str() == Some("IOC")) {
+        }  else if (timeInForce.as_deref() == Some("IOC")) {
             orderType = Value::Str("ioc".to_string());
         }
         add_element_to_object(&mut request, &Value::Str("type".to_string()), Value::Str(format!("{}{}", Value::Str(format!("{}{}", side, Value::Str("-".to_string()))), orderType)));
@@ -8066,8 +8066,8 @@ impl HtxCore {
                     response = self.contract_private_post_v5_trade_order(&[contractRequest.clone()]).await;
                 }
             }  else if (market.as_map().and_then(|__m| __m.get("inverse")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
-                let mut offset: Value = self.safe_string_k(params.clone(), "offset", &[]);
-                if (offset == Value::Null) {
+                let mut offset: Option<String> = self.safe_string_k(params.clone(), "offset", &[]).as_str().map(str::to_owned);
+                if (offset.is_none()) {
                     panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder () requires an extra parameter params[\"offset\"] to be set to \"open\" or \"close\" when placing orders in inverse markets".to_string())))));
                 }
                 if (market.as_map().and_then(|__m| __m.get("swap")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
@@ -9449,8 +9449,8 @@ impl HtxCore {
         if (networkId.as_str() == Some("ETH")) && get_index_of(&txHash, &Value::Str("0x".to_string())).as_f64().unwrap_or(f64::NAN) < Value::Int(0).as_f64().unwrap_or(f64::NAN) {
             txHash = Value::Str(format!("{}{}", Value::Str("0x".to_string()), txHash));
         }
-        let mut subType: Value = self.safe_string_k(transaction.clone(), "sub-type", &[]);
-        let mut internal: Value = Value::Bool(subType.as_str() == Some("FAST"));
+        let mut subType: Option<String> = self.safe_string_k(transaction.clone(), "sub-type", &[]).as_str().map(str::to_owned);
+        let mut internal: Value = Value::Bool(subType.as_deref() == Some("FAST"));
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), transaction.clone());
@@ -9639,13 +9639,13 @@ impl HtxCore {
         let mut toAccountRaw: Value = self.safe_string_k(transfer.clone(), "to_account_type", &[]);
         let mut fromAccount: Value = self.safe_string(accountsById.clone(), fromAccountRaw.clone(), &[fromAccountRaw.clone()]);
         let mut toAccount: Value = self.safe_string(accountsById.clone(), toAccountRaw.clone(), &[toAccountRaw.clone()]);
-        let mut statusRaw: Value = self.safe_string_k(transfer.clone(), "status", &[]);
+        let mut statusRaw: Option<String> = self.safe_string_k(transfer.clone(), "status", &[]).as_str().map(str::to_owned);
         let mut status: Value = Value::Null;
-        if (statusRaw.as_str() == Some("success")) {
+        if (statusRaw.as_deref() == Some("success")) {
             status = Value::Str("ok".to_string());
-        }  else if (statusRaw.as_str() == Some("pending")) {
+        }  else if (statusRaw.as_deref() == Some("pending")) {
             status = Value::Str("pending".to_string());
-        }  else if (statusRaw.as_str() == Some("failed")) {
+        }  else if (statusRaw.as_deref() == Some("failed")) {
             status = Value::Str("failed".to_string());
         }
         return Value::Map({
@@ -10506,7 +10506,7 @@ impl HtxCore {
             // signing implementation for the new endpoints
             // const [ type, access ] = api;
             let mut type_var: Value = self.safe_string(api.clone(), Value::Int(0), &[]);
-            let mut access: Value = self.safe_string(api.clone(), Value::Int(1), &[]);
+            let mut access: Option<String> = self.safe_string(api.clone(), Value::Int(1), &[]).as_str().map(str::to_owned);
             let mut levelOneNestedPath: Value = self.safe_string(api.clone(), Value::Int(2), &[]);
             let mut levelTwoNestedPath: Value = self.safe_string(api.clone(), Value::Int(3), &[]);
             let mut hostname: Value = Value::Null;
@@ -10519,11 +10519,11 @@ impl HtxCore {
             }
             hostname = hostnames.clone();
             url = Value::Str(format!("{}{}", url, self.implode_params(path.clone(), params.clone())));
-            if (access.as_str() == Some("public")) {
+            if (access.as_deref() == Some("public")) {
                 if is_true(&(Value::Bool(query != Value::Null))) && is_true(&(Value::Int(object_keys(&query).len() as i64).as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN))) {
                     url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".to_string()), self.urlencode(query.clone(), &[])))));
                 }
-            }  else if (access.as_str() == Some("private")) {
+            }  else if (access.as_deref() == Some("private")) {
                 self.check_required_credentials(&[]);
                 if (method.as_str() == Some("POST")) {
                     let mut options: Value = self.safe_value_k(self.options.clone(), "broker", &[Value::Map({
@@ -10534,14 +10534,14 @@ impl HtxCore {
                     if !isArrayParams {
                         if is_true(&(Value::Bool(get_index_of(&pathString, &Value::Str("cancel".to_string())).as_f64() == Value::Int(-1).as_f64()))) && is_true(&Value::Bool(ends_with(&pathString, &Value::Str("order".to_string())))) {
                             // swap order placement
-                            let mut channelCode: Value = self.safe_string_k(params.clone(), "channel_code", &[]);
-                            if (channelCode == Value::Null) {
+                            let mut channelCode: Option<String> = self.safe_string_k(params.clone(), "channel_code", &[]).as_str().map(str::to_owned);
+                            if (channelCode.is_none()) {
                                 add_element_to_object(&mut params, &Value::Str("channel_code".to_string()), id.clone());
                             }
                         }  else if is_true(&Value::Bool(ends_with(&pathString, &Value::Str("orders/place".to_string())))) {
                             // spot order placement
-                            let mut clientOrderId: Value = self.safe_string_k(params.clone(), "client-order-id", &[]);
-                            if (clientOrderId == Value::Null) {
+                            let mut clientOrderId: Option<String> = self.safe_string_k(params.clone(), "client-order-id", &[]).as_str().map(str::to_owned);
+                            if (clientOrderId.is_none()) {
                                 add_element_to_object(&mut params, &Value::Str("client-order-id".to_string()), Value::Str(format!("{}{}", id, self.uuid(&[]))));
                             }
                         }
@@ -10625,8 +10625,8 @@ impl HtxCore {
             //     {"status":"error","err-code":"o-amount-min-error","err-msg":"limit order amount error, min: `0.001`","data":null}
             //     {"status":"ok","data":{"errors":[{"order_id":"1349442392365359104","err_code":1061,"err_msg":"The order does not exist."}],"successes":""},"ts":1741773744526}
             //
-            let mut status: Value = self.safe_string_k(response.clone(), "status", &[]);
-            if (status.as_str() == Some("error")) {
+            let mut status: Option<String> = self.safe_string_k(response.clone(), "status", &[]).as_str().map(str::to_owned);
+            if (status.as_deref() == Some("error")) {
                 let mut code: Value = self.safe_string2(response.clone(), Value::Str("err-code".to_string()), Value::Str("err_code".to_string()), &[]);
                 let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), body));
                 self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), body.clone(), feedback.clone());
@@ -10926,8 +10926,8 @@ impl HtxCore {
         let mut contractSizeString: Value = self.number_to_string(contractSize.clone());
         let mut entryPrice: Value = self.safe_number2(position.clone(), Value::Str("cost_open".to_string()), Value::Str("open_avg_price".to_string()), &[]);
         let mut initialMargin: Value = self.safe_string2(position.clone(), Value::Str("position_margin".to_string()), Value::Str("initial_margin".to_string()), &[]);
-        let mut rawSide: Value = self.safe_string_k(position.clone(), "direction", &[]);
-        let mut directionSide: Value = (if is_true(&(Value::Bool(rawSide.as_str() == Some("buy")))) { Value::Str("long".to_string()) } else { Value::Str("short".to_string()) });
+        let mut rawSide: Option<String> = self.safe_string_k(position.clone(), "direction", &[]).as_str().map(str::to_owned);
+        let mut directionSide: Value = (if is_true(&(Value::Bool(rawSide.as_deref() == Some("buy")))) { Value::Str("long".to_string()) } else { Value::Str("short".to_string()) });
         let mut rawPositionSide: Value = self.safe_string_k(position.clone(), "position_side", &[]);
         // in one-way mode, "position_side" is "both" and the actual long/short signal is only present in "direction"
         let mut side: Value = directionSide.clone();
@@ -12297,11 +12297,11 @@ impl HtxCore {
             let mut chainEntry: Value = get_value(&chains, &j);
             let mut chainEntry: Value = get_value(&chains, &j);
             let mut networkId: Value = self.safe_string_k(chainEntry.clone(), "chain", &[]);
-            let mut withdrawFeeType: Value = self.safe_string_k(chainEntry.clone(), "withdrawFeeType", &[]);
+            let mut withdrawFeeType: Option<String> = self.safe_string_k(chainEntry.clone(), "withdrawFeeType", &[]).as_str().map(str::to_owned);
             let mut networkCode: Value = self.network_id_to_code(&[networkId.clone(), code.clone()]);
             let mut withdrawFee: Value = Value::Null;
             let mut withdrawResult: Value = Value::Null;
-            if (withdrawFeeType.as_str() == Some("fixed")) {
+            if (withdrawFeeType.as_deref() == Some("fixed")) {
                 withdrawFee = self.safe_number_k(chainEntry.clone(), "transactFeeWithdraw", &[]);
                 withdrawResult = Value::Map({
                     let mut m = indexmap::IndexMap::new();

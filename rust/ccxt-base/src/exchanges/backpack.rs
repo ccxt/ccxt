@@ -1357,7 +1357,7 @@ impl BackpackCore {
             symbol = Value::Str(format!("{}{}", symbol, add(&Value::Str(":".to_string()), &settle)));
             contractSize = Value::Int(1);
         }
-        let mut orderBookState: Value = self.safe_string_k(market.clone(), "orderBookState", &[]);
+        let mut orderBookState: Option<String> = self.safe_string_k(market.clone(), "orderBookState", &[]).as_str().map(str::to_owned);
         return self.safe_market_structure(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id.clone());
@@ -1374,7 +1374,7 @@ impl BackpackCore {
         m.insert("swap".to_string(), Value::Bool(type_var.as_str() == Some("swap")));
         m.insert("future".to_string(), Value::Bool(false));
         m.insert("option".to_string(), Value::Bool(false));
-        m.insert("active".to_string(), Value::Bool(orderBookState.as_str() == Some("Open")));
+        m.insert("active".to_string(), Value::Bool(orderBookState.as_deref() == Some("Open")));
         m.insert("contract".to_string(), Value::Bool(type_var.as_str() != Some("spot")));
         m.insert("linear".to_string(), linear.clone());
         m.insert("inverse".to_string(), inverse.clone());
@@ -1990,8 +1990,8 @@ impl BackpackCore {
             params = self.omit(params.clone(), Value::List(vec![Value::Str("until".to_string())]), &[]);
             add_element_to_object(&mut request, &Value::Str("to".to_string()), until.clone());
         }
-        let mut fillType: Value = self.safe_string_k(params.clone(), "fillType", &[]);
-        if (fillType == Value::Null) {
+        let mut fillType: Option<String> = self.safe_string_k(params.clone(), "fillType", &[]).as_str().map(str::to_owned);
+        if (fillType.is_none()) {
             add_element_to_object(&mut request, &Value::Str("fillType".to_string()), Value::Str("User".to_string())); // default
         }
         let __ws_arg_9 = self.extend(request.clone(), &[params.clone()]);

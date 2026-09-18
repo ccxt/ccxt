@@ -1491,7 +1491,7 @@ impl DeriveCore {
 }
 
     pub fn parse_market(&self, mut market: Value) -> Value {
-        let mut type_var: Value = self.safe_string_k(market.clone(), "instrument_type", &[]);
+        let mut type_var: Option<String> = self.safe_string_k(market.clone(), "instrument_type", &[]).as_str().map(str::to_owned);
         let mut marketType: Value = Value::Null;
         let mut spot: Value = Value::Bool(false);
         let mut margin: Value = Value::Bool(true);
@@ -1511,10 +1511,10 @@ impl DeriveCore {
         let mut strike: Value = Value::Null;
         let mut optionType: Value = Value::Null;
         let mut optionLetter: Value = Value::Null;
-        if (type_var.as_str() == Some("erc20")) {
+        if (type_var.as_deref() == Some("erc20")) {
             spot = Value::Bool(true);
             marketType = Value::Str("spot".to_string());
-        }  else if (type_var.as_str() == Some("perp")) {
+        }  else if (type_var.as_deref() == Some("perp")) {
             margin = Value::Bool(false);
             settleId = Value::Str("USDC".to_string());
             settle = self.safe_currency_code(settleId.clone(), &[]);
@@ -1523,7 +1523,7 @@ impl DeriveCore {
             linear = Value::Bool(true);
             inverse = Value::Bool(false);
             marketType = Value::Str("swap".to_string());
-        }  else if (type_var.as_str() == Some("option")) {
+        }  else if (type_var.as_deref() == Some("option")) {
             settleId = Value::Str("USDC".to_string());
             settle = self.safe_currency_code(settleId.clone(), &[]);
             margin = Value::Bool(false);
@@ -1905,8 +1905,8 @@ impl DeriveCore {
             let mut rawTrade: Value = get_value(&tradesArray, &i);
             let mut rawTrade: Value = get_value(&tradesArray, &i);
             let mut isFetchTrades: bool = !is_true(&(Value::Bool(in_op(&rawTrade, &Value::Str("order_id".to_string())))));
-            let mut liquidityRole: Value = self.safe_string_k(rawTrade.clone(), "liquidity_role", &[]);
-            if isFetchTrades && is_true(&(Value::Bool(liquidityRole.as_str() == Some("maker")))) {
+            let mut liquidityRole: Option<String> = self.safe_string_k(rawTrade.clone(), "liquidity_role", &[]).as_str().map(str::to_owned);
+            if isFetchTrades && is_true(&(Value::Bool(liquidityRole.as_deref() == Some("maker")))) {
                 continue;
             }
             let mut parsed: Value = self.parse_trade(rawTrade.clone(), &[market.clone()]);
@@ -3032,13 +3032,13 @@ impl DeriveCore {
                 side = Value::Str("sell".to_string());
             }
         }
-        let mut triggerType: Value = self.safe_string_k(order.clone(), "trigger_type", &[]);
+        let mut triggerType: Option<String> = self.safe_string_k(order.clone(), "trigger_type", &[]).as_str().map(str::to_owned);
         let mut stopLossPrice: Value = Value::Null;
         let mut takeProfitPrice: Value = Value::Null;
         let mut triggerPrice: Value = Value::Null;
-        if (triggerType != Value::Null) {
+        if (triggerType.is_some()) {
             triggerPrice = self.safe_string_k(order.clone(), "trigger_price", &[]);
-            if (triggerType.as_str() == Some("stoploss")) {
+            if (triggerType.as_deref() == Some("stoploss")) {
                 stopLossPrice = triggerPrice.clone();
             }  else {
                 takeProfitPrice = triggerPrice.clone();

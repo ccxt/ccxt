@@ -765,8 +765,8 @@ impl HollaexCore {
             if is_true(&(Value::Bool(code != Value::Null))) && is_true(&(Value::Bool(in_op(&self.balance, &code)))) {
                 account = get_value(&self.balance, &code);
             }
-            let mut second: Value = self.safe_string(parts.clone(), Value::Int(1), &[]);
-            let mut freeOrTotal: Value = (if is_true(&(Value::Bool(second.as_str() == Some("available")))) { Value::Str("free".to_string()) } else { Value::Str("total".to_string()) });
+            let mut second: Option<String> = self.safe_string(parts.clone(), Value::Int(1), &[]).as_str().map(str::to_owned);
+            let mut freeOrTotal: Value = (if is_true(&(Value::Bool(second.as_deref() == Some("available")))) { Value::Str("free".to_string()) } else { Value::Str("total".to_string()) });
             add_element_to_object(&mut account, &freeOrTotal, self.safe_string(data.clone(), key.clone(), &[]));
             if (code != Value::Null) {
                 add_element_to_object(&mut self.balance, &code, account.clone());
@@ -947,8 +947,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (self.handle_error_message(client.clone(), message.clone()).as_bool() != Some(true)) {
             return;
         }
-        let mut content: Value = self.safe_string_k(message.clone(), "message", &[]);
-        if (content.as_str() == Some("pong")) {
+        let mut content: Option<String> = self.safe_string_k(message.clone(), "message", &[]).as_str().map(str::to_owned);
+        if (content.as_deref() == Some("pong")) {
             self.handle_pong(client.clone(), message.clone());
             return;
         }

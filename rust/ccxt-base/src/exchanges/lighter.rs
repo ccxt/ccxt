@@ -1355,7 +1355,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut hasTakeProfit: bool = takeProfit != Value::Null;
         let mut isConditional: bool = is_true(&(Value::Bool(stopLossPrice != Value::Null))) || is_true(&(Value::Bool(takeProfitPrice != Value::Null)));
         let mut isMarketOrder: Value = (Value::Bool(orderType.as_str() == Some("MARKET")));
-        let mut timeInForce: Value = self.safe_string_lower(params.clone(), Value::Str("timeInForce".to_string()), &[Value::Str("gtt".to_string())]);
+        let mut timeInForce: Option<String> = self.safe_string_lower(params.clone(), Value::Str("timeInForce".to_string()), &[Value::Str("gtt".to_string())]).as_str().map(str::to_owned);
         let mut postOnly: Value = self.is_post_only(isMarketOrder.clone(), Value::Null, &[params.clone()]);
         params = self.omit(params.clone(), Value::List(vec![Value::Str("stopLoss".to_string()), Value::Str("takeProfit".to_string()), Value::Str("timeInForce".to_string())]), &[]);
         let mut orderTypeNum: Value = Value::Null;
@@ -1376,10 +1376,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             orderExpiry = Value::Int(-1);
         }  else {
             if !is_true(&isMarketOrder) {
-                if (timeInForce.as_str() == Some("ioc")) {
+                if (timeInForce.as_deref() == Some("ioc")) {
                     timeInForceNum = Value::Int(0);
                     orderExpiry = Value::Int(0);
-                }  else if (timeInForce.as_str() == Some("gtt")) {
+                }  else if (timeInForce.as_deref() == Some("gtt")) {
                     timeInForceNum = Value::Int(1);
                     orderExpiry = Value::Int(-1);
                 }
@@ -1712,10 +1712,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //         "timestamp": "1717777777"
         //     }
         //
-        let mut status: Value = self.safe_string_k(response.clone(), "status", &[]);
+        let mut status: Option<String> = self.safe_string_k(response.clone(), "status", &[]).as_str().map(str::to_owned);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("status".to_string(), (if is_true(&(Value::Bool(status.as_str() == Some("200")))) { Value::Str("ok".to_string()) } else { Value::Str("error".to_string()) }));
+        m.insert("status".to_string(), (if is_true(&(Value::Bool(status.as_deref() == Some("200")))) { Value::Str("ok".to_string()) } else { Value::Str("error".to_string()) }));
         m.insert("updated".to_string(), Value::Null);
         m.insert("eta".to_string(), Value::Null);
         m.insert("url".to_string(), Value::Null);
@@ -2490,8 +2490,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                         let mut i: Value = Value::Int(0);
             let mut __for_first_923: bool = true;
             while { if !__for_first_923 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_923 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(data.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-            let mut exchange: Value = self.safe_string_k(get_value(&data, &i), "exchange", &[]);
-            if (exchange.as_str() == Some("lighter")) {
+            let mut exchange: Option<String> = self.safe_string_k(get_value(&data, &i), "exchange", &[]).as_str().map(str::to_owned);
+            if (exchange.as_deref() == Some("lighter")) {
                 append_to_array(&mut result, get_value(&data, &i));
             }
         }
@@ -2523,7 +2523,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut accountIndex: Value = Value::Null;
         { let __destr_tmp = self.handle_account_index(params.clone(), Value::Str("fetchBalance".to_string()), Value::Str("accountIndex".to_string()), Value::Str("account_index".to_string()), &[]).await; accountIndex = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         let mut defaultType: Value = self.safe_string2(self.options.clone(), Value::Str("fetchBalance".to_string()), Value::Str("defaultType".to_string()), &[Value::Str("spot".to_string())]);
-        let mut type_var: Value = self.safe_string_k(params.clone(), "type", &[defaultType.clone()]);
+        let mut type_var: Option<String> = self.safe_string_k(params.clone(), "type", &[defaultType.clone()]).as_str().map(str::to_owned);
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("by".to_string(), self.safe_string_k(params.clone(), "by", &[Value::Str("index".to_string())]));
@@ -2588,7 +2588,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             while { if !__for_first_925 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_925 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(accounts.len() as i64).as_f64().unwrap_or(f64::NAN) } {
             let mut account: Value = get_value(&accounts, &i);
             let mut account: Value = get_value(&accounts, &i);
-            if (type_var.as_str() == Some("spot")) {
+            if (type_var.as_deref() == Some("spot")) {
                 let mut assets: Value = self.safe_list_k(account.clone(), "assets", &[Value::List(vec![])]);
                 {
                                         let mut j: Value = Value::Int(0);
@@ -2913,11 +2913,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //         "shares": []
         //     }
         //
-        let mut accountType: Value = self.safe_string_k(account.clone(), "account_type", &[]);
+        let mut accountType: Option<String> = self.safe_string_k(account.clone(), "account_type", &[]).as_str().map(str::to_owned);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), self.safe_string_k(account.clone(), "account_index", &[]));
-        m.insert("type".to_string(), (if is_true(&(Value::Bool(accountType.as_str() == Some("0")))) { Value::Str("main".to_string()) } else { Value::Str("subaccount".to_string()) }));
+        m.insert("type".to_string(), (if is_true(&(Value::Bool(accountType.as_deref() == Some("0")))) { Value::Str("main".to_string()) } else { Value::Str("subaccount".to_string()) }));
         m.insert("code".to_string(), Value::Null);
         m.insert("info".to_string(), account.clone());
     m

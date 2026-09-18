@@ -526,8 +526,8 @@ impl DeepcoinCore {
             if (listenKey == Value::Null) {
                 response = self.parent.private_get_deepcoin_listenkey_acquire(&[params.clone()]).await;
             }  else if expired {
-                let mut method: Value = self.safe_string_k(self.options.clone(), "method", &[Value::Str("privateGetDeepcoinListenkeyExtend".to_string())]);
-                let mut getNewKey: bool = method.as_str() == Some("privateGetDeepcoinListenkeyAcquire");
+                let mut method: Option<String> = self.safe_string_k(self.options.clone(), "method", &[Value::Str("privateGetDeepcoinListenkeyExtend".to_string())]).as_str().map(str::to_owned);
+                let mut getNewKey: bool = method.as_deref() == Some("privateGetDeepcoinListenkeyAcquire");
                 if getNewKey {
                     response = self.parent.private_get_deepcoin_listenkey_acquire(&[params.clone()]).await;
                 }  else {
@@ -1213,9 +1213,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             { let __be_tmp = self.order_book(&[]); add_element_to_object(&mut self.orderbooks, &symbol, __be_tmp); };
         }
         let mut orderbook: Value = get_value(&self.orderbooks, &symbol);
-        let mut type_var: Value = self.safe_string_k(message.clone(), "t", &[]);
+        let mut type_var: Option<String> = self.safe_string_k(message.clone(), "t", &[]).as_str().map(str::to_owned);
         if (get_value(&orderbook, &Value::Str("timestamp".to_string())) == Value::Null) {
-            if (type_var.as_str() == Some("f")) {
+            if (type_var.as_deref() == Some("f")) {
                 // snapshot
                 self.handle_order_book_snapshot(client.clone(), message.clone());
             }  else {
@@ -1259,13 +1259,13 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 let mut m = indexmap::IndexMap::new();
                 m
             })]);
-            let mut side: Value = self.safe_string_k(entryData.clone(), "D", &[]);
+            let mut side: Option<String> = self.safe_string_k(entryData.clone(), "D", &[]).as_str().map(str::to_owned);
             let mut price: Value = self.safe_number_k(entryData.clone(), "P", &[]);
             let mut volume: Value = self.safe_number_k(entryData.clone(), "V", &[]);
-            if (side.as_str() == Some("0")) {
+            if (side.as_deref() == Some("0")) {
                 // bid
                 crate::runtime::append_to_object_array(&mut orderedEntries, &Value::Str("bids".to_string()), Value::List(vec![price.clone(), volume.clone()]));
-            }  else if (side.as_str() == Some("1")) {
+            }  else if (side.as_deref() == Some("1")) {
                 // ask
                 crate::runtime::append_to_object_array(&mut orderedEntries, &Value::Str("asks".to_string()), Value::List(vec![price.clone(), volume.clone()]));
             }
@@ -1321,13 +1321,13 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         })]);
         let mut bids: Value = crate::value::get_value_k(&orderbook, "bids");
         let mut asks: Value = crate::value::get_value_k(&orderbook, "asks");
-        let mut side: Value = self.safe_string_k(data.clone(), "D", &[]);
+        let mut side: Option<String> = self.safe_string_k(data.clone(), "D", &[]).as_str().map(str::to_owned);
         let mut price: Value = self.safe_number_k(data.clone(), "P", &[]);
         let mut volume: Value = self.safe_number_k(data.clone(), "V", &[]);
-        if (side.as_str() == Some("0")) {
+        if (side.as_deref() == Some("0")) {
             // bid
             bids.store(price.clone(), volume.clone());
-        }  else if (side.as_str() == Some("1")) {
+        }  else if (side.as_deref() == Some("1")) {
             // ask
             asks.store(price.clone(), volume.clone());
         }
@@ -1782,26 +1782,26 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (message.as_str() == Some("pong")) {
             self.handle_pong(client.clone(), message.clone());
         }  else {
-            let mut m: Value = self.safe_string_k(message.clone(), "m", &[]);
-            if is_true(&(Value::Bool(m != Value::Null))) && is_true(&(Value::Bool(m.as_str() != Some("Success")))) {
+            let mut m: Option<String> = self.safe_string_k(message.clone(), "m", &[]).as_str().map(str::to_owned);
+            if is_true(&(Value::Bool(m.is_some()))) && is_true(&(Value::Bool(m.as_deref() != Some("Success")))) {
                 self.handle_error_message(client.clone(), message.clone());
             }
-            let mut action: Value = self.safe_string2(message.clone(), Value::Str("a".to_string()), Value::Str("action".to_string()), &[]);
-            if (action.as_str() == Some("RecvTopicAction")) {
+            let mut action: Option<String> = self.safe_string2(message.clone(), Value::Str("a".to_string()), Value::Str("action".to_string()), &[]).as_str().map(str::to_owned);
+            if (action.as_deref() == Some("RecvTopicAction")) {
                 self.handle_subscription_status(client.clone(), message.clone());
-            }  else if (action.as_str() == Some("PO")) {
+            }  else if (action.as_deref() == Some("PO")) {
                 self.handle_ticker(client.clone(), message.clone());
-            }  else if (action.as_str() == Some("PMT")) {
+            }  else if (action.as_deref() == Some("PMT")) {
                 self.handle_trades(client.clone(), message.clone());
-            }  else if (action.as_str() == Some("PK")) {
+            }  else if (action.as_deref() == Some("PK")) {
                 self.handle_ohlcv(client.clone(), message.clone());
-            }  else if (action.as_str() == Some("PMO")) {
+            }  else if (action.as_deref() == Some("PMO")) {
                 self.handle_order_book(client.clone(), message.clone());
-            }  else if (action.as_str() == Some("PushTrade")) {
+            }  else if (action.as_deref() == Some("PushTrade")) {
                 self.handle_my_trade(client.clone(), message.clone());
-            }  else if (action.as_str() == Some("PushOrder")) {
+            }  else if (action.as_deref() == Some("PushOrder")) {
                 self.handle_order(client.clone(), message.clone());
-            }  else if (action.as_str() == Some("PushPosition")) {
+            }  else if (action.as_deref() == Some("PushPosition")) {
                 self.handle_position(client.clone(), message.clone());
             }
         }
@@ -1834,8 +1834,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut action: Value = self.safe_string_k(data.clone(), "A", &[]); // 1 = subscribe, 0 = unsubscribe
-        if (action.as_str() == Some("0")) {
+        let mut action: Option<String> = self.safe_string_k(data.clone(), "A", &[]).as_str().map(str::to_owned); // 1 = subscribe, 0 = unsubscribe
+        if (action.as_deref() == Some("0")) {
             let mut subscriptionsById: Value = self.index_by(get_value(&client, &Value::Str("subscriptions".to_string())), Value::Str("id".to_string()));
             let mut subId: Value = self.safe_integer_k(data.clone(), "L", &[]);
             let mut subscription: Value = self.safe_dict(subscriptionsById.clone(), subId.clone(), &[Value::Map({

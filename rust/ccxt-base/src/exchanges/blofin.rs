@@ -1327,7 +1327,7 @@ impl BlofinCore {
         maxLeverage = crate::precise::Precise::stringMax(&maxLeverage, &Value::Str("1".to_string()));
         let mut isActive: Value = (Value::Bool(self.safe_string_k(market.clone(), "state", &[]).as_str() == Some("live")));
         let mut isMargin: Value = Value::Bool(is_true(&spot) && is_true(&(crate::precise::Precise::stringGt(&maxLeverage, &Value::Str("1".to_string())))));
-        let mut contractType: Value = self.safe_string_k(market.clone(), "contractType", &[]);
+        let mut contractType: Option<String> = self.safe_string_k(market.clone(), "contractType", &[]).as_str().map(str::to_owned);
         let mut maxLimitAmount: Value = self.safe_number_k(market.clone(), "maxLimitSize", &[]);
         let mut maxSpotCost: Value = self.safe_number_k(market.clone(), "maxMarketSize", &[]); // for spot, market-buy size is denominated in the quote currency, i.e. cost
         return self.safe_market_structure(&[Value::Map({
@@ -1350,8 +1350,8 @@ impl BlofinCore {
         m.insert("taker".to_string(), taker.clone());
         m.insert("maker".to_string(), maker.clone());
         m.insert("contract".to_string(), contract.clone());
-        m.insert("linear".to_string(), (if is_true(&contract) { (Value::Bool(contractType.as_str() == Some("linear"))) } else { Value::Null }));
-        m.insert("inverse".to_string(), (if is_true(&contract) { (Value::Bool(contractType.as_str() == Some("inverse"))) } else { Value::Null }));
+        m.insert("linear".to_string(), (if is_true(&contract) { (Value::Bool(contractType.as_deref() == Some("linear"))) } else { Value::Null }));
+        m.insert("inverse".to_string(), (if is_true(&contract) { (Value::Bool(contractType.as_deref() == Some("inverse"))) } else { Value::Null }));
         m.insert("contractSize".to_string(), (if is_true(&contract) { self.safe_number_k(market.clone(), "contractValue", &[]) } else { Value::Null }));
         m.insert("expiry".to_string(), expiry.clone());
         m.insert("expiryDatetime".to_string(), expiry.clone());
@@ -2228,15 +2228,15 @@ impl BlofinCore {
         { let __destr_tmp = self.handle_margin_mode_and_params(Value::Str("createOrder".to_string()), &[params.clone(), Value::Str("cross".to_string())]); marginMode = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         add_element_to_object(&mut request, &Value::Str("marginMode".to_string()), marginMode.clone());
         let mut triggerPriceAny: Value = self.safe_string_n(params.clone(), Value::List(vec![Value::Str("triggerPrice".to_string()), Value::Str("stopLossPrice".to_string()), Value::Str("takeProfitPrice".to_string())]), &[]);
-        let mut triggerPriceSlTp: Value = self.safe_string2(params.clone(), Value::Str("stopLossPrice".to_string()), Value::Str("takeProfitPrice".to_string()), &[]);
-        let mut timeInForce: Value = self.safe_string_k(params.clone(), "timeInForce", &[Value::Str("GTC".to_string())]);
+        let mut triggerPriceSlTp: Option<String> = self.safe_string2(params.clone(), Value::Str("stopLossPrice".to_string()), Value::Str("takeProfitPrice".to_string()), &[]).as_str().map(str::to_owned);
+        let mut timeInForce: Option<String> = self.safe_string_k(params.clone(), "timeInForce", &[Value::Str("GTC".to_string())]).as_str().map(str::to_owned);
         let mut isHedged: Value = self.safe_bool_k(params.clone(), "hedged", &[Value::Bool(false)]);
         if (isHedged.as_bool() == Some(true)) {
             add_element_to_object(&mut request, &Value::Str("positionSide".to_string()), (if is_true(&(Value::Bool(side.as_str() == Some("buy")))) { Value::Str("long".to_string()) } else { Value::Str("short".to_string()) }));
         }
         let mut isMarketOrder: Value = Value::Bool(type_var.as_str() == Some("market"));
         params = self.omit(params.clone(), Value::List(vec![Value::Str("timeInForce".to_string())]), &[]);
-        let mut ioc: bool = is_true(&(Value::Bool(timeInForce.as_str() == Some("IOC")))) || is_true(&(Value::Bool(type_var.as_str() == Some("ioc"))));
+        let mut ioc: bool = is_true(&(Value::Bool(timeInForce.as_deref() == Some("IOC")))) || is_true(&(Value::Bool(type_var.as_str() == Some("ioc"))));
         let mut marketIOC: bool = is_true(&isMarketOrder) && ioc;
         if is_true(&isMarketOrder) || marketIOC {
             add_element_to_object(&mut request, &Value::Str("orderType".to_string()), Value::Str("market".to_string()));
@@ -2273,7 +2273,7 @@ impl BlofinCore {
             if is_true(&isMarketOrder) {
                 add_element_to_object(&mut request, &Value::Str("orderPrice".to_string()), Value::Str("-1".to_string()));
             }
-            if (triggerPriceSlTp != Value::Null) {
+            if (triggerPriceSlTp.is_some()) {
                 add_element_to_object(&mut request, &Value::Str("reduceOnly".to_string()), Value::Bool(true));
             }
             params = self.omit(params.clone(), Value::List(vec![Value::Str("stopLossPrice".to_string()), Value::Str("takeProfitPrice".to_string()), Value::Str("triggerPrice".to_string())]), &[]);
@@ -2392,8 +2392,8 @@ impl BlofinCore {
         let mut stopLossPrice: Value = self.safe_number_k(order.clone(), "slOrderPrice", &[]);
         let mut takeProfitTriggerPrice: Value = self.safe_number_k(order.clone(), "tpTriggerPrice", &[]);
         let mut takeProfitPrice: Value = self.safe_number_k(order.clone(), "tpOrderPrice", &[]);
-        let mut reduceOnlyRaw: Value = self.safe_string_k(order.clone(), "reduceOnly", &[]);
-        let mut reduceOnly: Value = (Value::Bool(reduceOnlyRaw.as_str() == Some("true")));
+        let mut reduceOnlyRaw: Option<String> = self.safe_string_k(order.clone(), "reduceOnly", &[]).as_str().map(str::to_owned);
+        let mut reduceOnly: Value = (Value::Bool(reduceOnlyRaw.as_deref() == Some("true")));
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), order.clone());
@@ -3054,8 +3054,8 @@ impl BlofinCore {
         // onto the wire; an explicit raw params['chain'] takes precedence
         let mut networkCode: Value = Value::Null;
         { let __destr_tmp = self.handle_network_code_and_params(params.clone()); networkCode = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
-        let mut chain: Value = self.safe_string_k(params.clone(), "chain", &[]);
-        if (chain == Value::Null) {
+        let mut chain: Option<String> = self.safe_string_k(params.clone(), "chain", &[]).as_str().map(str::to_owned);
+        if (chain.is_none()) {
             if (networkCode != Value::Null) {
                 add_element_to_object(&mut request, &Value::Str("chain".to_string()), self.network_code_to_chain_id(networkCode.clone()));
             }  else if (dest.as_str() == Some("onchain")) {
@@ -4211,11 +4211,11 @@ impl BlofinCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut positionMode: Value = self.safe_string_k(data.clone(), "positionMode", &[]);
+        let mut positionMode: Option<String> = self.safe_string_k(data.clone(), "positionMode", &[]).as_str().map(str::to_owned);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), data.clone());
-        m.insert("hedged".to_string(), Value::Bool(positionMode.as_str() == Some("long_short_mode")));
+        m.insert("hedged".to_string(), Value::Bool(positionMode.as_deref() == Some("long_short_mode")));
     m
 });
 

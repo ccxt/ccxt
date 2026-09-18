@@ -1529,7 +1529,7 @@ impl BitrueCore {
         }
         let mut filters: Value = self.safe_list_k(market.clone(), "filters", &[Value::List(vec![])]);
         let mut filtersByType: Value = self.index_by(filters.clone(), Value::Str("filterType".to_string()));
-        let mut status: Value = self.safe_string_k(market.clone(), "status", &[]);
+        let mut status: Option<String> = self.safe_string_k(market.clone(), "status", &[]).as_str().map(str::to_owned);
         let mut priceFilter: Value = self.safe_dict_k(filtersByType.clone(), "PRICE_FILTER", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1569,7 +1569,7 @@ impl BitrueCore {
         m.insert("swap".to_string(), isContract.clone());
         m.insert("future".to_string(), Value::Bool(false));
         m.insert("option".to_string(), Value::Bool(false));
-        m.insert("active".to_string(), (Value::Bool(status.as_str() == Some("TRADING"))));
+        m.insert("active".to_string(), (Value::Bool(status.as_deref() == Some("TRADING"))));
         m.insert("contract".to_string(), isContract.clone());
         m.insert("linear".to_string(), isLinear.clone());
         m.insert("inverse".to_string(), isInverse.clone());
@@ -2659,13 +2659,13 @@ impl BitrueCore {
         }
         if (market.as_map().and_then(|__m| __m.get("swap")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
             let mut isMarket: Value = Value::Bool(uppercaseType.as_str() == Some("MARKET"));
-            let mut timeInForce: Value = self.safe_string_lower(params.clone(), Value::Str("timeInForce".to_string()), &[]);
+            let mut timeInForce: Option<String> = self.safe_string_lower(params.clone(), Value::Str("timeInForce".to_string()), &[]).as_str().map(str::to_owned);
             let mut postOnly: Value = self.is_post_only(isMarket.clone(), Value::Null, &[params.clone()]);
             if is_true(&postOnly) {
                 add_element_to_object(&mut request, &Value::Str("type".to_string()), Value::Str("POST_ONLY".to_string()));
-            }  else if (timeInForce.as_str() == Some("fok")) {
+            }  else if (timeInForce.as_deref() == Some("fok")) {
                 add_element_to_object(&mut request, &Value::Str("type".to_string()), Value::Str("FOK".to_string()));
-            }  else if (timeInForce.as_str() == Some("ioc")) {
+            }  else if (timeInForce.as_deref() == Some("ioc")) {
                 add_element_to_object(&mut request, &Value::Str("type".to_string()), Value::Str("IOC".to_string()));
             }
             add_element_to_object(&mut request, &Value::Str("contractName".to_string()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
@@ -3330,12 +3330,12 @@ impl BitrueCore {
         //     }
         //
         let mut id: Value = self.safe_string2(transaction.clone(), Value::Str("id".to_string()), Value::Str("withdrawId".to_string()), &[]);
-        let mut tagType: Value = self.safe_string_k(transaction.clone(), "tagType", &[]);
+        let mut tagType: Option<String> = self.safe_string_k(transaction.clone(), "tagType", &[]).as_str().map(str::to_owned);
         let mut addressTo: Value = self.safe_string_k(transaction.clone(), "addressTo", &[]);
         let mut addressFrom: Value = self.safe_string_k(transaction.clone(), "addressFrom", &[]);
         let mut tagTo: Value = Value::Null;
         let mut tagFrom: Value = Value::Null;
-        if (tagType != Value::Null) {
+        if (tagType.is_some()) {
             if (addressTo != Value::Null) {
                 let mut parts: Value = split(&addressTo, &Value::Str("_".to_string()));
                 addressTo = self.safe_string(parts.clone(), Value::Int(0), &[]);
@@ -3859,7 +3859,7 @@ impl BitrueCore {
         let mut body = get_arg(optional_args, 4, Value::Null);
         let mut type_var: Value = self.safe_string(api.clone(), Value::Int(0), &[]);
         let mut version: Value = self.safe_string(api.clone(), Value::Int(1), &[]);
-        let mut access: Value = self.safe_string(api.clone(), Value::Int(2), &[]);
+        let mut access: Option<String> = self.safe_string(api.clone(), Value::Int(2), &[]).as_str().map(str::to_owned);
         let mut url: Value = Value::Null;
         if is_true(&(Value::Bool((type_var.as_str() == Some("api")) && (version.as_str() == Some("kline"))))) || is_true(&(Value::Bool((type_var.as_str() == Some("open")) && is_greater_than_or_equal(&get_index_of(&path, &Value::Str("listenKey".to_string())), &Value::Int(0))))) {
             url = get_value(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), &type_var);
@@ -3868,7 +3868,7 @@ impl BitrueCore {
         }
         url = Value::Str(format!("{}{}", add(&url, &Value::Str("/".to_string())), self.implode_params(path.clone(), params.clone())));
         params = self.omit(params.clone(), self.extract_params(path.clone()), &[]);
-        if (access.as_str() == Some("private")) {
+        if (access.as_deref() == Some("private")) {
             self.check_required_credentials(&[]);
             let mut recvWindow: Value = self.safe_integer_k(self.options.clone(), "recvWindow", &[Value::Int(5000)]);
             if (type_var.as_str() == Some("spot")) || (type_var.as_str() == Some("open")) {

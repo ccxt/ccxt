@@ -2465,7 +2465,7 @@ impl ZebpayCore {
             let mut base: Value = self.safe_currency_code(baseId.clone(), &[]);
             let mut quote: Value = self.safe_currency_code(quoteId.clone(), &[]);
             let mut settle: Value = self.safe_currency_code(quoteId.clone(), &[]);
-            let mut status: Value = self.safe_string_k(market.clone(), "status", &[]);
+            let mut status: Option<String> = self.safe_string_k(market.clone(), "status", &[]).as_str().map(str::to_owned);
             let mut symbol: Value = add(&add(&base, &Value::Str("/".to_string())), &quote);
             append_to_array(&mut result, self.safe_market_structure(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2481,7 +2481,7 @@ impl ZebpayCore {
         m.insert("future".to_string(), Value::Bool(false));
         m.insert("type".to_string(), Value::Str("swap".to_string()));
         m.insert("option".to_string(), Value::Bool(false));
-        m.insert("active".to_string(), (Value::Bool(status.as_str() == Some("Open"))));
+        m.insert("active".to_string(), (Value::Bool(status.as_deref() == Some("Open"))));
         m.insert("contract".to_string(), Value::Bool(true));
         m.insert("taker".to_string(), self.safe_number_k(market.clone(), "takerFee", &[]));
         m.insert("maker".to_string(), self.safe_number_k(market.clone(), "makerFee", &[]));
@@ -2735,8 +2735,8 @@ impl ZebpayCore {
         let mut signature: Value = Value::Str("".to_string());
         let mut query: Value = self.omit(params.clone(), self.extract_params(path.clone()), &[]);
         let mut queryLength: Value = Value::Int(object_keys(&query).len() as i64);
-        let mut access: Value = self.safe_string(api.clone(), Value::Int(0), &[Value::Str("public".to_string())]);
-        if (access.as_str() == Some("public")) {
+        let mut access: Option<String> = self.safe_string(api.clone(), Value::Int(0), &[Value::Str("public".to_string())]).as_str().map(str::to_owned);
+        if (access.as_deref() == Some("public")) {
             if (method.as_str() == Some("GET")) || (method.as_str() == Some("DELETE")) {
                 if is_true(&(Value::Bool(queryLength != Value::Null))) && is_true(&(Value::Bool(queryLength.as_f64() != Some(0.0)))) {
                     url = add(&url, &Value::Str(format!("{}{}", Value::Str("?".to_string()), self.urlencode(query.clone(), &[]))));

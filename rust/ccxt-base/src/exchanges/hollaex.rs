@@ -866,8 +866,8 @@ impl HollaexCore {
         let mut id: Value = self.safe_string_k(rawCurrency.clone(), "symbol", &[]);
         let mut code: Value = self.safe_currency_code(id.clone(), &[]);
         let mut withdrawalLimits: Value = self.safe_list_k(rawCurrency.clone(), "withdrawal_limits", &[Value::List(vec![])]);
-        let mut rawType: Value = self.safe_string_k(rawCurrency.clone(), "type", &[]);
-        let mut type_var: Value = (if is_true(&(Value::Bool(rawType.as_str() == Some("blockchain")))) { Value::Str("crypto".to_string()) } else { Value::Str("other".to_string()) });
+        let mut rawType: Option<String> = self.safe_string_k(rawCurrency.clone(), "type", &[]).as_str().map(str::to_owned);
+        let mut type_var: Value = (if is_true(&(Value::Bool(rawType.as_deref() == Some("blockchain")))) { Value::Str("crypto".to_string()) } else { Value::Str("other".to_string()) });
         let mut rawNetworks: Value = self.safe_dict_k(rawCurrency.clone(), "withdrawal_fees", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m

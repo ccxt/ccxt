@@ -1141,13 +1141,13 @@ impl PhemexCore {
         let mut marketId: Value = self.safe_string_k(message.clone(), "symbol", &[]);
         let mut market: Value = self.safe_market(&[marketId.clone()]);
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
-        let mut type_var: Value = self.safe_string_k(message.clone(), "type", &[]);
+        let mut type_var: Option<String> = self.safe_string_k(message.clone(), "type", &[]).as_str().map(str::to_owned);
         let mut depth: Value = self.safe_integer_k(message.clone(), "depth", &[]);
         let mut name: Value = Value::Str("orderbook".to_string());
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", name, Value::Str(":".to_string()))), symbol));
         let mut nonce: Value = self.safe_integer_k(message.clone(), "sequence", &[]);
         let mut timestamp: Value = self.safe_integer_product(message.clone(), Value::Str("timestamp".to_string()), Value::Float(0.000001), &[]);
-        if (type_var.as_str() == Some("snapshot")) {
+        if (type_var.as_deref() == Some("snapshot")) {
             let mut book: Value = self.safe_value2(message.clone(), Value::Str("book".to_string()), Value::Str("orderbook_p".to_string()), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
@@ -1212,8 +1212,8 @@ impl PhemexCore {
         }
         { let __destr_tmp = self.handle_market_type_and_params(Value::Str("watchMyTrades".to_string()), &[market.clone(), params.clone()]); type_var = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         if (symbol == Value::Null) {
-            let mut settle: Value = self.safe_string_k(params.clone(), "settle", &[]);
-            messageHash = (if is_true(&(Value::Bool(settle.as_str() == Some("USDT")))) { (Value::Str(format!("{}{}", messageHash, Value::Str("perpetual".to_string())))) } else { (Value::Str(format!("{}{}", messageHash, type_var))) });
+            let mut settle: Option<String> = self.safe_string_k(params.clone(), "settle", &[]).as_str().map(str::to_owned);
+            messageHash = (if is_true(&(Value::Bool(settle.as_deref() == Some("USDT")))) { (Value::Str(format!("{}{}", messageHash, Value::Str("perpetual".to_string())))) } else { (Value::Str(format!("{}{}", messageHash, type_var))) });
         }
         let mut trades: Value = self.subscribe_private(type_var.clone(), messageHash.clone(), &[params.clone()]).await;
         if is_true(&self.newUpdates) {
@@ -1606,8 +1606,8 @@ impl PhemexCore {
                 while { if !__for_first_597 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_597 = false; is_less_than(&i, &get_array_length(&message)) } {
                 let mut update: Value = get_value(&message, &i);
                 let mut update: Value = get_value(&message, &i);
-                let mut action: Value = self.safe_string_k(update.clone(), "action", &[]);
-                if is_true(&(Value::Bool(action != Value::Null))) && is_true(&(Value::Bool(action.as_str() != Some("Cancel")))) {
+                let mut action: Option<String> = self.safe_string_k(update.clone(), "action", &[]).as_str().map(str::to_owned);
+                if is_true(&(Value::Bool(action.is_some()))) && is_true(&(Value::Bool(action.as_deref() != Some("Cancel")))) {
                     // order + trade info together
                     append_to_array(&mut trades, update.clone());
                 }
@@ -1983,9 +1983,9 @@ impl PhemexCore {
         // }
         //
         let mut result: Value = self.safe_value_k(message.clone(), "result", &[]);
-        let mut status: Value = self.safe_string_k(result.clone(), "status", &[]);
+        let mut status: Option<String> = self.safe_string_k(result.clone(), "status", &[]).as_str().map(str::to_owned);
         let mut messageHash: Value = Value::Str("authenticated".to_string());
-        if (status.as_str() == Some("success")) {
+        if (status.as_deref() == Some("success")) {
             client.resolve(&[message.clone(), messageHash.clone()]);
         }  else {
             let mut error = Value::from(crate::exchange_errors::authentication_error(Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), self.json(message.clone())))));

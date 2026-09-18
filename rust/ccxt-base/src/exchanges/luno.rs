@@ -935,7 +935,7 @@ impl LunoCore {
             let mut quoteId: Value = self.safe_string_k(market.clone(), "counter_currency", &[]);
             let mut base: Value = self.safe_currency_code(baseId.clone(), &[]);
             let mut quote: Value = self.safe_currency_code(quoteId.clone(), &[]);
-            let mut status: Value = self.safe_string_k(market.clone(), "trading_status", &[]);
+            let mut status: Option<String> = self.safe_string_k(market.clone(), "trading_status", &[]).as_str().map(str::to_owned);
             // Luno's published schedule is categorical, not a single pair. Entry-tier
             // rates below are read from Luno's own Help Centre fee article for the ZAR
             // market; markets quoted in other fiat currencies are left on the
@@ -980,7 +980,7 @@ impl LunoCore {
                     m.insert("swap".to_string(), Value::Bool(false));
                     m.insert("future".to_string(), Value::Bool(false));
                     m.insert("option".to_string(), Value::Bool(false));
-                    m.insert("active".to_string(), (Value::Bool(status.as_str() == Some("ACTIVE"))));
+                    m.insert("active".to_string(), (Value::Bool(status.as_deref() == Some("ACTIVE"))));
                     m.insert("contract".to_string(), Value::Bool(false));
                     m.insert("linear".to_string(), Value::Null);
                     m.insert("inverse".to_string(), Value::Null);
@@ -1208,10 +1208,10 @@ impl LunoCore {
         let mut status: Value = self.parse_order_status(self.safe_string_k(order.clone(), "state", &[]));
         status = (if is_true(&(Value::Bool(status.as_str() == Some("open")))) { status.clone() } else { status.clone() });
         let mut side: Value = Value::Null;
-        let mut orderType: Value = self.safe_string_k(order.clone(), "type", &[]);
-        if is_true(&(Value::Bool(orderType.as_str() == Some("ASK")))) || is_true(&(Value::Bool(orderType.as_str() == Some("SELL")))) {
+        let mut orderType: Option<String> = self.safe_string_k(order.clone(), "type", &[]).as_str().map(str::to_owned);
+        if is_true(&(Value::Bool(orderType.as_deref() == Some("ASK")))) || is_true(&(Value::Bool(orderType.as_deref() == Some("SELL")))) {
             side = Value::Str("sell".to_string());
-        }  else if is_true(&(Value::Bool(orderType.as_str() == Some("BID")))) || is_true(&(Value::Bool(orderType.as_str() == Some("BUY")))) {
+        }  else if is_true(&(Value::Bool(orderType.as_deref() == Some("BID")))) || is_true(&(Value::Bool(orderType.as_deref() == Some("BUY")))) {
             side = Value::Str("buy".to_string());
         }
         let mut marketId: Value = self.safe_string_k(order.clone(), "pair", &[]);
@@ -1559,10 +1559,10 @@ impl LunoCore {
         let mut takerOrMaker: Value = Value::Null;
         let mut side: Value = Value::Null;
         if (orderId != Value::Null) {
-            let mut type_var: Value = self.safe_string_k(trade.clone(), "type", &[]);
-            if is_true(&(Value::Bool(type_var.as_str() == Some("ASK")))) || is_true(&(Value::Bool(type_var.as_str() == Some("SELL")))) {
+            let mut type_var: Option<String> = self.safe_string_k(trade.clone(), "type", &[]).as_str().map(str::to_owned);
+            if is_true(&(Value::Bool(type_var.as_deref() == Some("ASK")))) || is_true(&(Value::Bool(type_var.as_deref() == Some("SELL")))) {
                 side = Value::Str("sell".to_string());
-            }  else if is_true(&(Value::Bool(type_var.as_str() == Some("BID")))) || is_true(&(Value::Bool(type_var.as_str() == Some("BUY")))) {
+            }  else if is_true(&(Value::Bool(type_var.as_deref() == Some("BID")))) || is_true(&(Value::Bool(type_var.as_deref() == Some("BUY")))) {
                 side = Value::Str("buy".to_string());
             }
             if is_true(&(Value::Bool(side.as_str() == Some("sell")))) && (is_equal(&trade.as_map().and_then(|__m| __m.get("is_buy")).cloned().unwrap_or(Value::Null), &Value::Bool(true))) {
@@ -2055,13 +2055,13 @@ impl LunoCore {
         });
         let mut referenceId: Value = Value::Null;
         let mut firstWord: Value = self.safe_string(words.clone(), Value::Int(0), &[]);
-        let mut thirdWord: Value = self.safe_string(words.clone(), Value::Int(2), &[]);
-        let mut fourthWord: Value = self.safe_string(words.clone(), Value::Int(3), &[]);
+        let mut thirdWord: Option<String> = self.safe_string(words.clone(), Value::Int(2), &[]).as_str().map(str::to_owned);
+        let mut fourthWord: Option<String> = self.safe_string(words.clone(), Value::Int(3), &[]).as_str().map(str::to_owned);
         let mut type_var: Value = self.safe_string(types.clone(), firstWord.clone(), &[]);
-        if is_true(&(Value::Bool(type_var == Value::Null))) && is_true(&(Value::Bool(thirdWord.as_str() == Some("fee")))) {
+        if is_true(&(Value::Bool(type_var == Value::Null))) && is_true(&(Value::Bool(thirdWord.as_deref() == Some("fee")))) {
             type_var = Value::Str("fee".to_string());
         }
-        if is_true(&(Value::Bool(type_var.as_str() == Some("reserved")))) && is_true(&(Value::Bool(fourthWord.as_str() == Some("order")))) {
+        if is_true(&(Value::Bool(type_var.as_str() == Some("reserved")))) && is_true(&(Value::Bool(fourthWord.as_deref() == Some("order")))) {
             referenceId = self.safe_string(words.clone(), Value::Int(4), &[]);
         }
         return Value::Map({
@@ -2250,8 +2250,8 @@ impl LunoCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut address: Value = self.safe_string_k(params.clone(), "address", &[]);
-        if (address == Value::Null) {
+        let mut address: Option<String> = self.safe_string_k(params.clone(), "address", &[]).as_str().map(str::to_owned);
+        if (address.is_none()) {
             panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchDepositWithdrawFee() requires an \"address\" parameter - luno quotes the send fee per destination address".to_string())))));
         }
         self.load_markets(&[]).await;

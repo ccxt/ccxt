@@ -916,7 +916,7 @@ impl BtcmarketsCore {
         let mut pricePrecision: Value = self.parse_number(self.parse_precision(&[self.safe_string_k(market.clone(), "priceDecimals", &[])]), &[]);
         let mut minAmount: Value = self.safe_number_k(market.clone(), "minOrderAmount", &[]);
         let mut maxAmount: Value = self.safe_number_k(market.clone(), "maxOrderAmount", &[]);
-        let mut status: Value = self.safe_string_k(market.clone(), "status", &[]);
+        let mut status: Option<String> = self.safe_string_k(market.clone(), "status", &[]).as_str().map(str::to_owned);
         let mut minPrice: Value = Value::Null;
         if (quote.as_str() == Some("AUD")) {
             minPrice = pricePrecision.clone();
@@ -937,7 +937,7 @@ impl BtcmarketsCore {
         m.insert("swap".to_string(), Value::Bool(false));
         m.insert("future".to_string(), Value::Bool(false));
         m.insert("option".to_string(), Value::Bool(false));
-        m.insert("active".to_string(), (Value::Bool(status.as_str() == Some("Online"))));
+        m.insert("active".to_string(), (Value::Bool(status.as_deref() == Some("Online"))));
         m.insert("contract".to_string(), Value::Bool(false));
         m.insert("linear".to_string(), Value::Null);
         m.insert("inverse".to_string(), Value::Null);

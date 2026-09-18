@@ -485,8 +485,8 @@ impl RevolutxCore {
         let mut minOrderSize: Value = self.safe_string_k(market.clone(), "min_order_size", &[]);
         let mut maxOrderSize: Value = self.safe_string_k(market.clone(), "max_order_size", &[]);
         let mut minOrderSizeQuote: Value = self.safe_string_k(market.clone(), "min_order_size_quote", &[]);
-        let mut status: Value = self.safe_string_k(market.clone(), "status", &[]);
-        let mut active: Value = (Value::Bool(status.as_str() == Some("active")));
+        let mut status: Option<String> = self.safe_string_k(market.clone(), "status", &[]).as_str().map(str::to_owned);
+        let mut active: Value = (Value::Bool(status.as_deref() == Some("active")));
         let mut symbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".to_string()))), quote));
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -637,10 +637,10 @@ impl RevolutxCore {
         let mut code: Value = self.safe_currency_code(id.clone(), &[]);
         let mut name: Value = self.safe_string_k(currency.clone(), "name", &[]);
         let mut scale: Value = self.safe_integer_k(currency.clone(), "scale", &[]);
-        let mut status: Value = self.safe_string_k(currency.clone(), "status", &[]);
-        let mut active: Value = (Value::Bool(status.as_str() == Some("active")));
-        let mut assetType: Value = self.safe_string_k(currency.clone(), "asset_type", &[]);
-        let mut type_var: Value = (if is_true(&(Value::Bool(assetType.as_str() == Some("crypto")))) { Value::Str("crypto".to_string()) } else { Value::Str("fiat".to_string()) });
+        let mut status: Option<String> = self.safe_string_k(currency.clone(), "status", &[]).as_str().map(str::to_owned);
+        let mut active: Value = (Value::Bool(status.as_deref() == Some("active")));
+        let mut assetType: Option<String> = self.safe_string_k(currency.clone(), "asset_type", &[]).as_str().map(str::to_owned);
+        let mut type_var: Value = (if is_true(&(Value::Bool(assetType.as_deref() == Some("crypto")))) { Value::Str("crypto".to_string()) } else { Value::Str("fiat".to_string()) });
         let mut precision: Value = (if is_true(&(Value::Bool(scale != Value::Null))) { crate::runtime::Math::pow(&Value::Int(10), &negate(&scale)) } else { Value::Null });
         return Value::Map({
     let mut m = indexmap::IndexMap::new();

@@ -2215,16 +2215,16 @@ impl NadoCore {
         }
         let mut filled: Value = self.parent.parse_x18(self.safe_string_k(order.clone(), "filled_qty", &[]));
         let mut average: Value = self.parent.parse_x18(self.safe_string_k(order.clone(), "filled_price", &[]));
-        let mut reason: Value = self.safe_string_k(order.clone(), "reason", &[]);
+        let mut reason: Option<String> = self.safe_string_k(order.clone(), "reason", &[]).as_str().map(str::to_owned);
         let mut status: Value = Value::Null;
-        if (reason.as_str() == Some("placed")) {
+        if (reason.as_deref() == Some("placed")) {
             status = Value::Str("open".to_string());
-        }  else if (reason.as_str() == Some("filled")) {
+        }  else if (reason.as_deref() == Some("filled")) {
             status = Value::Str("open".to_string());
             if is_true(&(Value::Bool(amountString != Value::Null))) && is_true(&crate::precise::Precise::stringEq(&amountString, &Value::Str("0".to_string()))) {
                 status = Value::Str("closed".to_string());
             }
-        }  else if (reason.as_str() == Some("cancelled")) {
+        }  else if (reason.as_deref() == Some("cancelled")) {
             status = Value::Str("canceled".to_string());
         }
         return self.safe_order(Value::Map({
@@ -2348,8 +2348,8 @@ impl NadoCore {
             self.positions = ArrayCacheBySymbolBySide::new(Value::Null);
         }
         let mut positions: Value = self.positions.clone();
-        let mut side: Value = self.safe_string_k(position.clone(), "side", &[]);
-        if (side == Value::Null) {
+        let mut side: Option<String> = self.safe_string_k(position.clone(), "side", &[]).as_str().map(str::to_owned);
+        if (side.is_none()) {
             let mut longPosition: Value = self.extend(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
@@ -2533,9 +2533,9 @@ impl NadoCore {
                 let mut subscriptionHash: Value = get_value(&subscriptions, &i);
                 let mut subscriptionHash: Value = get_value(&subscriptions, &i);
                 let mut subscription: Value = self.safe_dict(get_value(&client, &Value::Str("subscriptions".to_string())), subscriptionHash.clone(), &[]);
-                let mut streamType: Value = self.safe_string_k(subscription.clone(), "streamType", &[]);
+                let mut streamType: Option<String> = self.safe_string_k(subscription.clone(), "streamType", &[]).as_str().map(str::to_owned);
                 let mut subscriptionSymbol: Value = self.safe_string_k(subscription.clone(), "symbol", &[]);
-                if is_true(&(Value::Bool(streamType.as_str() == Some("book_depth")))) && is_true(&(Value::Bool(subscriptionSymbol.as_str() == symbol.as_str()))) {
+                if is_true(&(Value::Bool(streamType.as_deref() == Some("book_depth")))) && is_true(&(Value::Bool(subscriptionSymbol.as_str() == symbol.as_str()))) {
                     remove(&mut get_value(&client, &Value::Str("subscriptions".to_string())), &subscriptionHash);
                 }
             }
@@ -2740,8 +2740,8 @@ impl NadoCore {
 
     pub fn handle_error_message(&self, mut client: Value, mut message: Value) -> Value {
         let mut error: Value = self.safe_value_k(message.clone(), "error", &[]);
-        let mut status: Value = self.safe_string_k(message.clone(), "status", &[]);
-        if is_true(&(Value::Bool(error == Value::Null))) && is_true(&(Value::Bool(status.as_str() != Some("failure")))) {
+        let mut status: Option<String> = self.safe_string_k(message.clone(), "status", &[]).as_str().map(str::to_owned);
+        if is_true(&(Value::Bool(error == Value::Null))) && is_true(&(Value::Bool(status.as_deref() != Some("failure")))) {
             return Value::Bool(false);
         }
         let mut feedback = Value::from(crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), self.json(message.clone())))));
@@ -2775,15 +2775,15 @@ impl NadoCore {
         let mut id: Value = self.safe_string_k(message.clone(), "id", &[]);
         let mut hasResult: bool = in_op(&message, &Value::Str("result".to_string()));
         let mut result: Value = self.safe_value_k(message.clone(), "result", &[]);
-        let mut method: Value = self.safe_string_k(result.clone(), "method", &[]);
-        if (method.as_str() == Some("pong")) {
+        let mut method: Option<String> = self.safe_string_k(result.clone(), "method", &[]).as_str().map(str::to_owned);
+        if (method.as_deref() == Some("pong")) {
             // pong replies carry both 'id' and 'result' so they must be routed
             // before the subscription-ack branch below swallows them
             self.handle_pong(client.clone(), message.clone());
             return;
         }
-        let mut requestType: Value = self.safe_string_k(message.clone(), "request_type", &[]);
-        if (requestType != Value::Null) {
+        let mut requestType: Option<String> = self.safe_string_k(message.clone(), "request_type", &[]).as_str().map(str::to_owned);
+        if (requestType.is_some()) {
             // v2 gateway execute responses carry 'request_type' and the echoed request id
             self.handle_execute_response(client.clone(), message.clone());
             return;
