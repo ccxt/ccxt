@@ -5966,7 +5966,7 @@ public Object describe()
         {
             return (((!java.util.Objects.equals(defaultValue, null)))) ? defaultValue : methodDict;
         }
-        Object splited = Helpers.split(paramName, "."); // can be only parent key (`stopLoss`) or with child (`stopLoss.triggerPrice`)
+        Object splited = new ArrayList<Object>(Arrays.asList(((String)paramName).split(java.util.regex.Pattern.quote(".")))); // can be only parent key (`stopLoss`) or with child (`stopLoss.triggerPrice`)
         Object parentKey = Helpers.GetValue(splited, 0);
         String subKey = this.safeString(splited, 1);
         if (!(Helpers.inOp(methodDict, parentKey)))
