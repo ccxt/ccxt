@@ -480,10 +480,10 @@ public class Derive extends io.github.ccxt.exchanges.Derive
             for (var i = 0; i < ((List<?>)topics).size(); i++)
             {
                 Object topic = Helpers.GetValue(topics, i);
-                if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(topic, "orderbook"), 0))
+                if (Helpers.getIndexOf(topic, "orderbook") >= 0)
                 {
                     this.handleOrderBookUnSubscription(client, topic);
-                } else if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(topic, "trades"), 0))
+                } else if (Helpers.getIndexOf(topic, "trades") >= 0)
                 {
                     this.handleTradesUnSubscription(client, topic);
                 }
@@ -914,7 +914,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
             if (!java.util.Objects.equals(channel, null))
             {
                 Object parsedChannel = Helpers.split(channel, ".");
-                if ((Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(channel, "orders"), 0)) || Helpers.isGreaterThan(Helpers.getIndexOf(channel, "trades"), 0))
+                if ((Helpers.getIndexOf(channel, "orders") >= 0) || Helpers.getIndexOf(channel, "trades") > 0)
                 {
                     eventVar = this.safeString(parsedChannel, 1);
                     // {subaccounr_id}.trades

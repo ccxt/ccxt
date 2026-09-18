@@ -328,7 +328,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
             Client client = this.client(url);
             List<Object> newTopics = new ArrayList<Object>(Arrays.asList());
             Object newTopicsCount = 0;
-            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(topics)); i++)
+            for (var i = 0; i < Helpers.getArrayLength(topics); i++)
             {
                 if (!(Helpers.inOp(client.subscriptions, Helpers.GetValue(messageHashes, i))))
                 {
@@ -451,7 +451,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
 
     public void handleDeltas(Object bookside, Object deltas)
     {
-        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(deltas)); i++)
+        for (var i = 0; i < Helpers.getArrayLength(deltas); i++)
         {
             this.handleDelta(bookside, Helpers.GetValue(deltas, i));
         }
@@ -708,7 +708,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
             Helpers.addElementToObject(Helpers.GetValue(this.ohlcvs, symbol), ((String)timeframe), new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue()));
         }
         Object stored = Helpers.GetValue(Helpers.GetValue(this.ohlcvs, symbol), ((String)timeframe));
-        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(data)); i++)
+        for (var i = 0; i < Helpers.getArrayLength(data); i++)
         {
             Object parsed = this.parseWsOHLCV(Helpers.GetValue(data, i));
             Helpers.callDynamically(stored, "append", new Object[]{parsed});
@@ -903,7 +903,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
         }
         Object trades = this.myTrades;
         Map<String, Object> symbols = new HashMap<String, Object>() {{}};
-        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(lists)); i++)
+        for (var i = 0; i < Helpers.getArrayLength(lists); i++)
         {
             Object rawTrade = Helpers.GetValue(lists, i);
             Object parsed = this.parseWsTrade(rawTrade);
@@ -960,7 +960,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
         }
         Object orders = this.orders;
         Map<String, Object> symbols = new HashMap<String, Object>() {{}};
-        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(lists)); i++)
+        for (var i = 0; i < Helpers.getArrayLength(lists); i++)
         {
             Object parsed = this.parseOrder(Helpers.GetValue(lists, i));
             Object symbol = ((Map<String, Object>)parsed).get("symbol");
@@ -1053,7 +1053,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
         }
         Object cache = this.positions;
         List<Object> newPositions = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(lists)); i++)
+        for (var i = 0; i < Helpers.getArrayLength(lists); i++)
         {
             Object rawPosition = Helpers.GetValue(lists, i);
             Object position = this.parsePosition(rawPosition);
@@ -1201,7 +1201,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
                 // this short-circuit the catch-clause's `client.reject(error,
                 // messageHash)` rejects every in-flight future on the connection
                 // because apex doesn't echo a `reqId` on these warnings.
-                if (!java.util.Objects.equals(ret_msg, null) && Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(ret_msg, "already subscribed"), 0))
+                if (!java.util.Objects.equals(ret_msg, null) && Helpers.getIndexOf(ret_msg, "already subscribed") >= 0)
                 {
                     return false;
                 }
@@ -1271,7 +1271,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
             Object key = Helpers.GetValue(keys, i);
-            if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(topic, Helpers.GetValue(keys, i)), 0))
+            if (Helpers.getIndexOf(topic, Helpers.GetValue(keys, i)) >= 0)
             {
                 Object method = Helpers.GetValue(methods, key);
                 Helpers.callDynamically(this, method, new Object[] {client, message});

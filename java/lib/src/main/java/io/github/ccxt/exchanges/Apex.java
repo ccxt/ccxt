@@ -635,7 +635,7 @@ public class Apex extends ApexApi
         String name = this.safeString(currency, "displayName");
         Map<String, Object> networks = new HashMap<String, Object>() {{}};
         Object chains = ((Map<String, Object>)this.options).get("_temp_currencies_chains");
-        for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(chains)); j++)
+        for (var j = 0; j < Helpers.getArrayLength(chains); j++)
         {
             Object chain = Helpers.GetValue(chains, j);
             Object tokens = this.safeList(chain, "tokens", new ArrayList<Object>(Arrays.asList()));

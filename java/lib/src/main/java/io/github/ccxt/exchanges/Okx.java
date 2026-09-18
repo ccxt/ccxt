@@ -5279,7 +5279,7 @@ public class Okx extends OkxApi
                 ids = this.parseIds(ids);
                 if (!java.util.Objects.equals(algoIds, null))
                 {
-                    for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(algoIds)); i++)
+                    for (var i = 0; i < Helpers.getArrayLength(algoIds); i++)
                     {
     final Object finalAlgoIds = algoIds;
                         final Object finalI = i;
@@ -5311,7 +5311,7 @@ public class Okx extends OkxApi
                 }
             } else
             {
-                for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(clientOrderIds)); i++)
+                for (var i = 0; i < Helpers.getArrayLength(clientOrderIds); i++)
                 {
                     if ((java.util.Objects.equals(trailing, true)) || (!java.util.Objects.equals(trigger, null)))
                     {
@@ -9300,7 +9300,7 @@ public class Okx extends OkxApi
         //    ]
         //
         Map<String, Object> borrowRateHistories = new HashMap<String, Object>() {{}};
-        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(response)); i++)
+        for (var i = 0; i < Helpers.getArrayLength(response); i++)
         {
             Object item = Helpers.GetValue(response, i);
             String code = this.safeCurrencyCode(this.safeString(item, "ccy"));
@@ -9710,7 +9710,7 @@ public class Okx extends OkxApi
         //
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         List<Object> tiers = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(info)); i++)
+        for (var i = 0; i < Helpers.getArrayLength(info); i++)
         {
             Object tier = Helpers.GetValue(info, i);
             String marketId = this.safeString(tier, "instId");
@@ -10379,7 +10379,7 @@ public class Okx extends OkxApi
         Object currencyIdKey = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
         Map<String, Object> depositWithdrawFees = new HashMap<String, Object>() {{}};
         codes = this.marketCodes(codes);
-        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(response)); i++)
+        for (var i = 0; i < Helpers.getArrayLength(response); i++)
         {
             Object feeInfo = Helpers.GetValue(response, i);
             String currencyId = this.safeString(feeInfo, "ccy");
@@ -10543,7 +10543,7 @@ public class Okx extends OkxApi
         //     }
         //
         List<Object> result = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(settlements)); i++)
+        for (var i = 0; i < Helpers.getArrayLength(settlements); i++)
         {
             Object entry = Helpers.GetValue(settlements, i);
             Long timestamp = this.safeInteger(entry, "ts");

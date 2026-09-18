@@ -858,7 +858,7 @@ public class Cryptocom extends CryptocomApi
             } catch(Exception e)
             {
                 Object erString = this.exceptionMessage(e);
-                if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(erString, "SYS_ERROR"), 0))
+                if (Helpers.getIndexOf(erString, "SYS_ERROR") >= 0)
                 {
                     // sub-accounts can't access this endpoint
                     // {"code":"10001","msg":"SYS_ERROR"}
@@ -2637,7 +2637,7 @@ public class Cryptocom extends CryptocomApi
         Object address = null;
         Object tag = null;
         Object rawTag = null;
-        if (Helpers.isGreaterThan(Helpers.getIndexOf(addressString, "?"), 0))
+        if (Helpers.getIndexOf(addressString, "?") > 0)
         {
             var addressrawTagVariable = Helpers.split(addressString, "?");
             address = ((List<Object>) addressrawTagVariable).get(0);
@@ -3216,7 +3216,7 @@ public class Cryptocom extends CryptocomApi
         if (!java.util.Objects.equals(execInst, null))
         {
             postOnly = false;
-            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(execInst)); i++)
+            for (var i = 0; i < Helpers.getArrayLength(execInst); i++)
             {
                 Object inst = Helpers.GetValue(execInst, i);
                 if (java.util.Objects.equals(inst, "POST_ONLY"))
@@ -3876,7 +3876,7 @@ public class Cryptocom extends CryptocomApi
         //     ]
         //
         List<Object> result = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(settlements)); i++)
+        for (var i = 0; i < Helpers.getArrayLength(settlements); i++)
         {
             ((List<Object>)result).add(this.parseSettlement(Helpers.GetValue(settlements, i), market));
         }

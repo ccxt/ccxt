@@ -2211,7 +2211,7 @@ public class Poloniex extends PoloniexApi
 
     public Object parseOpenOrders(Object orders, Object market, Object result)
     {
-        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(orders)); i++)
+        for (var i = 0; i < Helpers.getArrayLength(orders); i++)
         {
             Object order = Helpers.GetValue(orders, i);
             Map<String, Object> extended = this.extend(order, new HashMap<String, Object>() {{
@@ -3008,7 +3008,7 @@ public class Poloniex extends PoloniexApi
         {
             Object account = this.safeValue(response, i, new HashMap<String, Object>() {{}});
             Object balances = this.safeValue(account, "balances");
-            for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(balances)); j++)
+            for (var j = 0; j < Helpers.getArrayLength(balances); j++)
             {
                 Object balance = this.safeValue(balances, j);
                 String currencyId = this.safeString(balance, "currency");
@@ -3221,7 +3221,7 @@ public class Poloniex extends PoloniexApi
             Object bids = this.safeValue(response, "bids");
             List<Object> asksResult = new ArrayList<Object>(Arrays.asList());
             List<Object> bidsResult = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(asks)); i++)
+            for (var i = 0; i < Helpers.getArrayLength(asks); i++)
             {
                 if (Helpers.isLessThan((Helpers.mod(i, 2)), 1))
                 {
@@ -3230,7 +3230,7 @@ public class Poloniex extends PoloniexApi
                     ((List<Object>)asksResult).add(new ArrayList<Object>(Arrays.asList(price, amount)));
                 }
             }
-            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(bids)); i++)
+            for (var i = 0; i < Helpers.getArrayLength(bids); i++)
             {
                 if (Helpers.isLessThan((Helpers.mod(i, 2)), 1))
                 {
@@ -3769,7 +3769,7 @@ public class Poloniex extends PoloniexApi
                 Object chainsLength = Helpers.getArrayLength(childChains);
                 if (Helpers.isGreaterThan(chainsLength, 0))
                 {
-                    for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(childChains)); j++)
+                    for (var j = 0; j < Helpers.getArrayLength(childChains); j++)
                     {
                         Object networkId = Helpers.GetValue(childChains, j);
                         networkId = Helpers.replace(((String)networkId), code, "");

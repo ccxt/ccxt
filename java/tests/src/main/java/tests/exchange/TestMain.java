@@ -152,12 +152,12 @@ public class TestMain extends BaseTest
         {
             Object testFileNames = Helpers.objectKeys(this.testFiles);
             Object possibleMethodNames = Helpers.split(methodArgv, ","); // i.e. `test.ts binance fetchBalance,fetchDeposits`
-            if (Helpers.isGreaterThanOrEqual(Helpers.getArrayLength(possibleMethodNames), 1))
+            if (Helpers.getArrayLength(possibleMethodNames) >= 1)
             {
                 for (var i = 0; i < ((List<?>)testFileNames).size(); i++)
                 {
                     Object testFileName = Helpers.GetValue(testFileNames, i);
-                    for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(possibleMethodNames)); j++)
+                    for (var j = 0; j < Helpers.getArrayLength(possibleMethodNames); j++)
                     {
                         Object methodName = Helpers.GetValue(possibleMethodNames, j);
                         methodName = Helpers.replace(((String)methodName), "()", "");
@@ -305,12 +305,12 @@ public class TestMain extends BaseTest
         return BaseExchange.supplyAsync(() -> {
             Object methodName = methodName3;
             // todo: temporary skip for c#
-            if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(methodName, "OrderBook"), 0) && java.util.Objects.equals(this.ext, "cs"))
+            if (Helpers.getIndexOf(methodName, "OrderBook") >= 0 && java.util.Objects.equals(this.ext, "cs"))
             {
                 Helpers.addElementToObject(exchange.options, "checksum", false);
             }
             // todo: temporary skip for php
-            if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(methodName, "OrderBook"), 0) && java.util.Objects.equals(this.ext, "php"))
+            if (Helpers.getIndexOf(methodName, "OrderBook") >= 0 && java.util.Objects.equals(this.ext, "php"))
             {
                 return true;
             }
@@ -564,7 +564,7 @@ public class TestMain extends BaseTest
     {
         Object fetchCache = exchange.getFetchCache();
         Object url = "";
-        if (Helpers.isGreaterThan(Helpers.getArrayLength(fetchCache), 0))
+        if (Helpers.getArrayLength(fetchCache) > 0)
         {
             Object lastEntry = Helpers.GetValue(fetchCache, Helpers.subtract(Helpers.getArrayLength(fetchCache), 1));
             Object lastRequest = Helpers.GetValue(lastEntry, "request");
@@ -706,7 +706,7 @@ public class TestMain extends BaseTest
         {
             return preferredSwapSymbol;
         }
-        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
+        for (var i = 0; i < Helpers.getArrayLength(symbols); i++)
         {
             Object s = Helpers.GetValue(symbols, i);
             Object market = exchange.safeValue(exchange.markets, s);
@@ -731,7 +731,7 @@ public class TestMain extends BaseTest
             codes = new ArrayList<Object>(Arrays.asList("BTC", "ETH", "XRP", "LTC", "BCH", "EOS", "BNB", "BSV", "USDT"));
         }
         Object code = Helpers.GetValue(codes, 0);
-        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(codes)); i++)
+        for (var i = 0; i < Helpers.getArrayLength(codes); i++)
         {
             if (Helpers.inOp(exchange.currencies, Helpers.GetValue(codes, i)))
             {
@@ -793,7 +793,7 @@ public class TestMain extends BaseTest
         {
             Object activeMarkets = exchange.filterBy(currentTypeMarkets, "active", true);
             List<Object> activeSymbols = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(activeMarkets)); i++)
+            for (var i = 0; i < Helpers.getArrayLength(activeMarkets); i++)
             {
                 ((List<Object>)activeSymbols).add(Helpers.GetValue(Helpers.GetValue(activeMarkets, i), "symbol"));
             }
@@ -1071,7 +1071,7 @@ public class TestMain extends BaseTest
                 {
                     Object pinnedMarket = Helpers.GetValue(exchange.markets, Helpers.GetValue(pinnedKeys, i));
                     Object pinnedOutcomes = exchange.safeList(pinnedMarket, "outcomes", new ArrayList<Object>(Arrays.asList()));
-                    for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(pinnedOutcomes)); j++)
+                    for (var j = 0; j < Helpers.getArrayLength(pinnedOutcomes); j++)
                     {
                         if (Helpers.isEqual(exchange.safeString(Helpers.GetValue(pinnedOutcomes, j), "outcome"), outcomeSymbol))
                         {
@@ -1136,7 +1136,7 @@ public class TestMain extends BaseTest
                         {
                             unscopedError = exceptionMessage(e);
                         }
-                        Assert(Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(unscopedError, "requires at least one of"), 0), Helpers.add(Helpers.add(exchange.id, " fetchEvents () without a scope must throw ArgumentsRequired, got: "), unscopedError));
+                        Assert(Helpers.getIndexOf(unscopedError, "requires at least one of") >= 0, Helpers.add(Helpers.add(exchange.id, " fetchEvents () without a scope must throw ArgumentsRequired, got: "), unscopedError));
                     }
                     // every venue requires fetchEvents to be scoped; a skip-tests.json
                     // preferredEventQuery supplies a query known to match the venue's markets
@@ -1243,7 +1243,7 @@ public class TestMain extends BaseTest
                     {
                         tickersError = exceptionMessage(e);
                     }
-                    Assert(Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(tickersError, "requires an outcomes argument"), 0), Helpers.add(Helpers.add(exchange.id, " fetchTickers () without outcomes must throw ArgumentsRequired, got: "), tickersError));
+                    Assert(Helpers.getIndexOf(tickersError, "requires an outcomes argument") >= 0, Helpers.add(Helpers.add(exchange.id, " fetchTickers () without outcomes must throw ArgumentsRequired, got: "), tickersError));
                 }
             }
             dump("[INFO:MAIN] Selected prediction OUTCOME:", outcomeSymbol, "| EVENT:", exchange.json(eventId));
@@ -1768,7 +1768,7 @@ public class TestMain extends BaseTest
             return result;
         }
         Object files = ioDirRead(folder);
-        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(files)); i++)
+        for (var i = 0; i < Helpers.getArrayLength(files); i++)
         {
             Object file = Helpers.GetValue(files, i);
             // the only non-json entry in the static dirs is the prediction/ subfolder (prediction
@@ -2228,7 +2228,7 @@ public class TestMain extends BaseTest
             return null;
         }
         List<Object> newInput = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(input)); i++)
+        for (var i = 0; i < Helpers.getArrayLength(input); i++)
         {
             Object current = Helpers.GetValue(input, i);
             if (Helpers.isTrue(isNullValue(current)))
@@ -2362,7 +2362,7 @@ public class TestMain extends BaseTest
             // that resolve nothing (e.g. subscribe acks) fall through on the
             // timeout
             Object sequential = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : false;
-            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(messages)); i++)
+            for (var i = 0; i < Helpers.getArrayLength(messages); i++)
             {
                 Object waited = 0;
                 while (!Helpers.isTrue(wsClientHasPendingFutures(exchange, url)) && (Helpers.isLessThan(waited, 5000)))
@@ -2411,7 +2411,7 @@ public class TestMain extends BaseTest
 
             try
             {
-                for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(expectedResults)); i++)
+                for (var i = 0; i < Helpers.getArrayLength(expectedResults); i++)
                 {
                     Object result = (callExchangeMethodDynamically(exchange, method, input)).join();
                     // ws structures can be live typed objects (e.g. orderbooks) in some
@@ -2527,7 +2527,7 @@ public class TestMain extends BaseTest
             {
                 Object method = Helpers.GetValue(methodsNames, i);
                 Object results = Helpers.GetValue(methods, method);
-                for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(results)); j++)
+                for (var j = 0; j < Helpers.getArrayLength(results); j++)
                 {
                     Object result = Helpers.GetValue(results, j);
                     Object description = Helpers.GetValue(result, "description");
@@ -2705,7 +2705,7 @@ public class TestMain extends BaseTest
             for (var i = 0; i < ((List<?>)predictionEvents).size(); i++)
             {
                 Object evMarkets = exchange.safeList(Helpers.GetValue(predictionEvents, i), "markets", new ArrayList<Object>(Arrays.asList()));
-                for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(evMarkets)); j++)
+                for (var j = 0; j < Helpers.getArrayLength(evMarkets); j++)
                 {
                     Object evMarket = Helpers.GetValue(evMarkets, j);
                     // every market row must carry the unified market handle (PredictionMarket
@@ -2773,7 +2773,7 @@ public class TestMain extends BaseTest
             {
                 Object method = Helpers.GetValue(methodsNames, i);
                 Object results = Helpers.GetValue(methods, method);
-                for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(results)); j++)
+                for (var j = 0; j < Helpers.getArrayLength(results); j++)
                 {
                     Object result = Helpers.GetValue(results, j);
                     Object oldExchangeOptions = exchange.options; // snapshot options;
@@ -2872,7 +2872,7 @@ public class TestMain extends BaseTest
             {
                 Object method = Helpers.GetValue(methodsNames, i);
                 Object results = Helpers.GetValue(methods, method);
-                for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(results)); j++)
+                for (var j = 0; j < Helpers.getArrayLength(results); j++)
                 {
                     Object result = Helpers.GetValue(results, j);
                     Object description = exchange.safeValue(result, "description");
@@ -3235,7 +3235,7 @@ public class TestMain extends BaseTest
                 createOrdersRequest = this.urlencodedToDict(exchange.last_request_body);
             }
             Object batchOrders = Helpers.GetValue(createOrdersRequest, "batchOrders");
-            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(batchOrders)); i++)
+            for (var i = 0; i < Helpers.getArrayLength(batchOrders); i++)
             {
                 Object current = Helpers.GetValue(batchOrders, i);
                 Object currentClientOrderId = Helpers.GetValue(current, "newClientOrderId");

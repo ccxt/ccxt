@@ -857,7 +857,7 @@ public class Coinbaseexchange extends io.github.ccxt.exchanges.Coinbaseexchange
                         String totalCost = "0";
                         String totalAmount = "0";
                         Object trades = Helpers.GetValue(previousOrder, "trades");
-                        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(trades)); i++)
+                        for (var i = 0; i < Helpers.getArrayLength(trades); i++)
                         {
                             Object tradeEntry = Helpers.GetValue(trades, i);
                             totalCost = this.safeString(tradeEntry, "cost", "0");
@@ -1083,7 +1083,7 @@ public class Coinbaseexchange extends io.github.ccxt.exchanges.Coinbaseexchange
 
     public void handleDeltas(Object bookside, Object deltas)
     {
-        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(deltas)); i++)
+        for (var i = 0; i < Helpers.getArrayLength(deltas); i++)
         {
             this.handleDelta(bookside, Helpers.GetValue(deltas, i));
         }

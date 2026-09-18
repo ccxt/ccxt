@@ -351,7 +351,7 @@ public class Alpaca extends io.github.ccxt.exchanges.Alpaca
 
     public void handleDeltas(Object bookside, Object deltas)
     {
-        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(deltas)); i++)
+        for (var i = 0; i < Helpers.getArrayLength(deltas); i++)
         {
             this.handleDelta(bookside, Helpers.GetValue(deltas, i));
         }
@@ -712,7 +712,7 @@ public class Alpaca extends io.github.ccxt.exchanges.Alpaca
         {
             return null;
         }
-        if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(type, "limit"), 0))
+        if (Helpers.getIndexOf(type, "limit") >= 0)
         {
             // might be limit or stop-limit
             type = "limit";
@@ -798,7 +798,7 @@ public class Alpaca extends io.github.ccxt.exchanges.Alpaca
 
     public void handleCryptoMessage(Client client, Object message)
     {
-        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(message)); i++)
+        for (var i = 0; i < Helpers.getArrayLength(message); i++)
         {
             Object data = Helpers.GetValue(message, i);
             String T = this.safeString(data, "T");

@@ -849,7 +849,7 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
 
     public void handleDeltas(Object bookside, Object deltas)
     {
-        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(deltas)); i++)
+        for (var i = 0; i < Helpers.getArrayLength(deltas); i++)
         {
             this.handleDelta(bookside, Helpers.GetValue(deltas, i));
         }
@@ -1127,7 +1127,7 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
             {
                 throw new ArgumentsRequired((this.id + " watchMultipleWrapper() symbolsArray is required")) ;
             }
-            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbolsArray)); i++)
+            for (var i = 0; i < Helpers.getArrayLength(symbolsArray); i++)
             {
                 if (java.util.Objects.equals(symbolsArray, null))
                 {

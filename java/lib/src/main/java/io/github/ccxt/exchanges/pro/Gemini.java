@@ -285,7 +285,7 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
                 stored = new ArrayCache(((Number)tradesLimit).intValue());
                 Helpers.addElementToObject(this.trades, symbol, stored);
             }
-            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(trades)); i++)
+            for (var i = 0; i < Helpers.getArrayLength(trades); i++)
             {
                 Object trade = this.parseWsTrade(Helpers.GetValue(trades, i), market);
                 Helpers.callDynamically(stored, "append", new Object[]{trade});
@@ -301,7 +301,7 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
         {
             Long tradesLimit = this.safeInteger(this.options, "tradesLimit", 1000);
             Map<String, Object> storesForSymbols = new HashMap<String, Object>() {{}};
-            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(trades)); i++)
+            for (var i = 0; i < Helpers.getArrayLength(trades); i++)
             {
                 Object marketId = Helpers.GetValue(Helpers.GetValue(trades, i), "symbol");
                 Map<String, Object> market = (Map<String, Object>) this.safeMarket(((String)marketId).toLowerCase());
@@ -604,7 +604,7 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
         Object currentBidAsk = Helpers.GetValue(this.bidsasks, symbol);
         String messageHash = ("bidsasks:" + symbol);
         // last update always overwrites the previous state and is the latest state
-        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rawBidAskChanges)); i++)
+        for (var i = 0; i < Helpers.getArrayLength(rawBidAskChanges); i++)
         {
             Object entry = Helpers.GetValue(rawBidAskChanges, i);
             String rawSide = this.safeString(entry, "side");
@@ -711,7 +711,7 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
         io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) Helpers.GetValue(this.orderbooks, symbol);
         Object bids = Helpers.GetValue(orderbook, "bids");
         Object asks = Helpers.GetValue(orderbook, "asks");
-        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rawOrderBookChanges)); i++)
+        for (var i = 0; i < Helpers.getArrayLength(rawOrderBookChanges); i++)
         {
             Object entry = Helpers.GetValue(rawOrderBookChanges, i);
             Double price = this.safeNumber(entry, "price");
@@ -885,7 +885,7 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
             this.orders = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
         Object orders = this.orders;
-        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(message)); i++)
+        for (var i = 0; i < Helpers.getArrayLength(message); i++)
         {
             Object order = this.parseWsOrder(Helpers.GetValue(message, i));
             Helpers.callDynamically(orders, "append", new Object[]{order});
@@ -1045,7 +1045,7 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
             put( "heartbeat", "handleHeartbeat");
         }};
         String type = this.safeString(message, "type", "");
-        if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(type, "candles"), 0))
+        if (Helpers.getIndexOf(type, "candles") >= 0)
         {
             this.handleOHLCV(client, message);
             return;

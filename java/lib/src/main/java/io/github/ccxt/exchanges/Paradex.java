@@ -2324,7 +2324,7 @@ public class Paradex extends ParadexApi
             {
                 throw new ExchangeError((this.id + " signOrderRequest() missing orderType")) ;
             }
-            Boolean isMarket = (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(orderType, "MARKET"), 0));
+            Boolean isMarket = (Helpers.getIndexOf(orderType, "MARKET") >= 0);
             final Object finalNow = now;
             Map<String, Object> orderReq = new HashMap<String, Object>() {{
                 put( "timestamp", Helpers.multiply(finalNow, 1000) );
@@ -3073,7 +3073,7 @@ public class Paradex extends ParadexApi
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", response );
         }};
-        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(response)); i++)
+        for (var i = 0; i < Helpers.getArrayLength(response); i++)
         {
             Object balance = this.safeDict(response, i, new HashMap<String, Object>() {{}});
             String currencyId = this.safeString(balance, "token");

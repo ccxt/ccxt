@@ -2627,7 +2627,7 @@ public class Aster extends AsterApi
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", response );
         }};
-        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(response)); i++)
+        for (var i = 0; i < Helpers.getArrayLength(response); i++)
         {
             Object balance = Helpers.GetValue(response, i);
             String currencyId = this.safeString(balance, "asset");
@@ -5371,7 +5371,7 @@ public class Aster extends AsterApi
             }}, parameters);
             String paramString = null;
             Object paramsToEncode = null;
-            Boolean isApproveBuilder = (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(path, "/approveBuilder"), 0));
+            Boolean isApproveBuilder = (Helpers.getIndexOf(path, "/approveBuilder") >= 0);
             if (Helpers.isTrue(isApproveBuilder))
             {
                 // domain['name'] = 'Aster';

@@ -191,7 +191,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
         {
             return Helpers.opNeg(1);
         }
-        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(cache)); i++)
+        for (var i = 0; i < Helpers.getArrayLength(cache); i++)
         {
             Object delta = Helpers.GetValue(cache, i);
             Long deltaNonce = (Long) this.safeInteger2(delta, "i", "u");

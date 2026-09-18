@@ -59,7 +59,7 @@ public class TestWatchOHLCV extends BaseTest {
             if ((java.util.Objects.equals(success, true)) && (!java.util.Objects.equals(response, null)))
             {
                 TestSharedMethods.AssertNonEmtpyArray(exchange, skippedProperties, method, response, symbol);
-                for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(response)); i++)
+                for (var i = 0; i < Helpers.getArrayLength(response); i++)
                 {
                     TestOHLCV.testOHLCV(exchange, skippedProperties, method, Helpers.GetValue(response, i), symbol, now);
                 }

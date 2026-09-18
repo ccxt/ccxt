@@ -1133,7 +1133,7 @@ public class Gemini extends GeminiApi
                 minSize = this.safeNumber(response, 3); // quantityMinimum
             }
             Object marketIdUpper = ((String)((String)marketId)).toUpperCase();
-            Boolean isPerp = (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(marketIdUpper, "PERP"), 0));
+            Boolean isPerp = (Helpers.getIndexOf(marketIdUpper, "PERP") >= 0);
             Object marketIdWithoutPerp = Helpers.replace(((String)marketIdUpper), "PERP", "");
             Object conflictingMarkets = this.safeDict(this.options, "conflictingMarkets", new HashMap<String, Object>() {{}});
             Object lowerCaseId = ((String)marketIdWithoutPerp).toLowerCase();
@@ -1149,7 +1149,7 @@ public class Gemini extends GeminiApi
             } else
             {
                 Object quoteCurrencies = this.handleOption("fetchMarketsFromAPI", "quoteCurrencies", new ArrayList<Object>(Arrays.asList()));
-                for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(quoteCurrencies)); i++)
+                for (var i = 0; i < Helpers.getArrayLength(quoteCurrencies); i++)
                 {
                     Object quoteCurrency = Helpers.GetValue(quoteCurrencies, i);
                     if (Helpers.isTrue(((String)marketIdWithoutPerp).endsWith(((String)quoteCurrency))))
@@ -1669,7 +1669,7 @@ public class Gemini extends GeminiApi
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", response );
         }};
-        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(response)); i++)
+        for (var i = 0; i < Helpers.getArrayLength(response); i++)
         {
             Object balance = Helpers.GetValue(response, i);
             String currencyId = this.safeString(balance, "currency");
@@ -2592,7 +2592,7 @@ public class Gemini extends GeminiApi
         {
             this.checkRequiredCredentials();
             String apiKey = this.apiKey;
-            if (Helpers.isLessThan(Helpers.getIndexOf(apiKey, "account"), 0))
+            if (Helpers.getIndexOf(apiKey, "account") < 0)
             {
                 throw new AuthenticationError((this.id + " sign() requires an account-key, master-keys are not-supported")) ;
             }

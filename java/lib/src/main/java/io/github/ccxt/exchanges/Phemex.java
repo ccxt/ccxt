@@ -1539,7 +1539,7 @@ public class Phemex extends PhemexApi
             Object side = Helpers.GetValue(sides, i);
             List<Object> orders = new ArrayList<Object>(Arrays.asList());
             Object bidasks = this.safeValue(orderbook, side);
-            for (var k = 0; Helpers.isLessThan(k, Helpers.getArrayLength(bidasks)); k++)
+            for (var k = 0; k < Helpers.getArrayLength(bidasks); k++)
             {
                 ((List<Object>)orders).add(this.customParseBidAsk(Helpers.GetValue(bidasks, k), priceKey, amountKey, market));
             }
@@ -5581,7 +5581,7 @@ public class Phemex extends PhemexApi
         Object riskLimits = (Helpers.GetValue(((Map<String, Object>)market).get("info"), "riskLimits"));
         List<Object> tiers = new ArrayList<Object>(Arrays.asList());
         Object minNotional = 0;
-        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(riskLimits)); i++)
+        for (var i = 0; i < Helpers.getArrayLength(riskLimits); i++)
         {
             Object tier = Helpers.GetValue(riskLimits, i);
             Long maxNotional = this.safeInteger(tier, "limit");
@@ -6075,7 +6075,7 @@ final Object finalI = i;
             Object data = this.safeValue(response, "data", new HashMap<String, Object>() {{}});
             Object rates = this.safeValue(data, "rows");
             List<Object> result = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rates)); i++)
+            for (var i = 0; i < Helpers.getArrayLength(rates); i++)
             {
                 Object item = Helpers.GetValue(rates, i);
                 Long timestamp = this.safeInteger(item, "fundingTime");

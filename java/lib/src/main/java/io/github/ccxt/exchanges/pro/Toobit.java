@@ -175,7 +175,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
         } else
         {
             // check private streams
-            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(message)); i++)
+            for (var i = 0; i < Helpers.getArrayLength(message); i++)
             {
                 Object item = Helpers.GetValue(message, i);
                 String eventVar = this.safeString(item, "e");
@@ -1390,7 +1390,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
             rawPositions = new ArrayList<Object>(Arrays.asList(message));
         }
         List<Object> newPositions = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rawPositions)); i++)
+        for (var i = 0; i < Helpers.getArrayLength(rawPositions); i++)
         {
             Object rawPosition = Helpers.GetValue(rawPositions, i);
             Object position = this.parseWsPosition(rawPosition);

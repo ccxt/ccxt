@@ -343,7 +343,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
         Map<String, Object> subscribe = new HashMap<String, Object>() {{}};
         Object timestamp = this.numberToString(this.seconds());
         this.checkRequiredCredentials();
-        Boolean isCloudAPiKey = (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(this.apiKey, "organizations/"), 0)) || Helpers.isTrue((this.secret.startsWith("-----BEGIN")));
+        Boolean isCloudAPiKey = (Helpers.getIndexOf(this.apiKey, "organizations/") >= 0) || Helpers.isTrue((this.secret.startsWith("-----BEGIN")));
         Object auth = Helpers.add(Helpers.add(timestamp, name), String.join(",", (List<String>)productIds));
         if (!Helpers.isTrue(isCloudAPiKey))
         {
@@ -1121,7 +1121,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
 
     public void handleOrderBookHelper(Object orderbook, Object updates)
     {
-        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(updates)); i++)
+        for (var i = 0; i < Helpers.getArrayLength(updates); i++)
         {
             Object trade = Helpers.GetValue(updates, i);
             String sideId = this.safeString(trade, "side");

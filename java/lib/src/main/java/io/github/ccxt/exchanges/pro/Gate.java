@@ -560,7 +560,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             symbol = ((Map<String, Object>)market).get("symbol");
             Object marketId = ((Map<String, Object>)market).get("id");
             Object url = this.getUrlByMarket(market);
-            Boolean isEuUrl = Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(url, "gateeu"), 0);
+            Boolean isEuUrl = Helpers.getIndexOf(url, "gateeu") >= 0;
             Boolean isNonEuSpot = (java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true)) && !Helpers.isTrue(isEuUrl);
             String intervalDefault = ((Helpers.isTrue(isNonEuSpot))) ? "50" : "100ms";
             List<Object> intervalqueryVariable = (List<Object>) this.handleOptionAndParams(parameters, "watchOrderBook", "interval", intervalDefault);
@@ -632,7 +632,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             Object url = this.getUrlByMarket(market);
             symbol = ((Map<String, Object>)market).get("symbol");
             Object marketId = ((Map<String, Object>)market).get("id");
-            Boolean isEuUrl = Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(url, "gateeu"), 0);
+            Boolean isEuUrl = Helpers.getIndexOf(url, "gateeu") >= 0;
             Boolean isNonEuSpot = (java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true)) && !Helpers.isTrue(isEuUrl);
             String intervalDefault = ((Helpers.isTrue(isNonEuSpot))) ? "50" : "100ms";
             Object interval = intervalDefault;
@@ -869,7 +869,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
         {
             return Helpers.opNeg(1);
         }
-        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(cache)); i++)
+        for (var i = 0; i < Helpers.getArrayLength(cache); i++)
         {
             Object delta = Helpers.GetValue(cache, i);
             Long deltaStart = this.safeInteger(delta, "U");
@@ -884,7 +884,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
 
     public void handleBidAsks(Object bookSide, Object bidAsks)
     {
-        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(bidAsks)); i++)
+        for (var i = 0; i < Helpers.getArrayLength(bidAsks); i++)
         {
             Object bidAsk = Helpers.GetValue(bidAsks, i);
             if (Helpers.isTrue(Helpers.isArray(bidAsk)))
@@ -1067,7 +1067,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             {
                 throw new ArgumentsRequired((this.id + " requires a callerMethodName argument")) ;
             }
-            Boolean isWatchTickers = Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(callerMethodName, "watchTicker"), 0);
+            Boolean isWatchTickers = Helpers.getIndexOf(callerMethodName, "watchTicker") >= 0;
             String prefix = ((Helpers.isTrue(isWatchTickers))) ? "ticker" : "bidask";
             Object messageHashes = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)symbols).size(); i++)
@@ -1382,7 +1382,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             result = new ArrayList<Object>(Arrays.asList(result));
         }
         Map<String, Object> marketIds = new HashMap<String, Object>() {{}};
-        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(result)); i++)
+        for (var i = 0; i < Helpers.getArrayLength(result); i++)
         {
             Object ohlcv = Helpers.GetValue(result, i);
             String subscription = this.safeString(ohlcv, "n", "");
@@ -2062,7 +2062,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
         //
         Object orders = this.safeValue(message, "result", new ArrayList<Object>(Arrays.asList()));
         String channel = this.safeString(message, "channel", "");
-        Boolean isTrigger = (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(channel, "autoorders"), 0)) || (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(channel, "priceorders"), 0));
+        Boolean isTrigger = (Helpers.getIndexOf(channel, "autoorders") >= 0) || (Helpers.getIndexOf(channel, "priceorders") >= 0);
         String hashPrefix = ((Helpers.isTrue(isTrigger))) ? "triggerOrders" : "orders";
         Long limit = this.safeInteger(this.options, "ordersLimit", 1000);
         if (java.util.Objects.equals(this.orders, null))
@@ -2401,7 +2401,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
                 }
                 // remove subscriptions for watchSymbols
                 Object channel = this.safeString(message, "channel");
-                if ((!java.util.Objects.equals(channel, null)) && (Helpers.isGreaterThan(Helpers.getIndexOf(channel, "."), 0)))
+                if ((!java.util.Objects.equals(channel, null)) && (Helpers.getIndexOf(channel, ".") > 0))
                 {
                     Object parsedChannel = Helpers.split(channel, ".");
                     Object payload = this.safeList(message, "payload", new ArrayList<Object>(Arrays.asList()));
@@ -2721,7 +2721,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
         {
             Object key = Helpers.GetValue(keys, i);
             Object value = Helpers.GetValue(findBy, key);
-            if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(url, key), 0))
+            if (Helpers.getIndexOf(url, key) >= 0)
             {
                 return value;
             }

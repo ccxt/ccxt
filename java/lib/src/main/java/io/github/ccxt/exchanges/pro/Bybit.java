@@ -1013,7 +1013,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
             Helpers.addElementToObject(Helpers.GetValue(this.ohlcvs, symbol), timeframe, new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue()));
         }
         Object stored = Helpers.GetValue(Helpers.GetValue(this.ohlcvs, symbol), timeframe);
-        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(data)); i++)
+        for (var i = 0; i < Helpers.getArrayLength(data); i++)
         {
             Object parsed = this.parseWsOHLCV(Helpers.GetValue(data, i), market);
             Helpers.callDynamically(stored, "append", new Object[]{parsed});
@@ -1244,7 +1244,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
         //
         String topic = this.safeString(message, "topic", "");
         Object limit = Helpers.GetValue(Helpers.split(topic, "."), 1);
-        Boolean isSpot = Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(client.url, "spot"), 0);
+        Boolean isSpot = Helpers.getIndexOf(client.url, "spot") >= 0;
         String type = this.safeString(message, "type");
         Boolean isSnapshot = (java.util.Objects.equals(type, "snapshot"));
         Object data = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
@@ -1293,7 +1293,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
 
     public void handleDeltas(Object bookside, Object deltas)
     {
-        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(deltas)); i++)
+        for (var i = 0; i < Helpers.getArrayLength(deltas); i++)
         {
             this.handleDelta(bookside, Helpers.GetValue(deltas, i));
         }
@@ -1461,7 +1461,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
         String topic = this.safeString(message, "topic", "");
         Object trades = data;
         Object parts = Helpers.split(topic, ".");
-        Boolean isSpot = Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(client.url, "spot"), 0);
+        Boolean isSpot = Helpers.getIndexOf(client.url, "spot") >= 0;
         String marketType = ((Helpers.isTrue((isSpot)))) ? "spot" : "contract";
         String marketId = this.safeString(parts, 1);
         Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, null, null, marketType);
@@ -1473,7 +1473,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
             stored = new ArrayCache(((Number)limit).intValue());
             Helpers.addElementToObject(this.trades, symbol, stored);
         }
-        for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(trades)); j++)
+        for (var j = 0; j < Helpers.getArrayLength(trades); j++)
         {
             Object parsed = this.parseWsTrade(Helpers.GetValue(trades, j), market);
             Helpers.callDynamically(stored, "append", new Object[]{parsed});
@@ -1562,10 +1562,10 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
 
     public String getPrivateType(Object url)
     {
-        if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(url, "spot"), 0))
+        if (Helpers.getIndexOf(url, "spot") >= 0)
         {
             return "spot";
-        } else if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(url, "v5/private"), 0))
+        } else if (Helpers.getIndexOf(url, "v5/private") >= 0)
         {
             return "unified";
         } else
@@ -1805,7 +1805,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
         {
             execTypes = execTypeOption;
         }
-        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(data)); i++)
+        for (var i = 0; i < Helpers.getArrayLength(data); i++)
         {
             Object rawTrade = Helpers.GetValue(data, i);
             Object parsed = null;
@@ -2727,7 +2727,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
         if (java.util.Objects.equals(topic, "wallet"))
         {
             Object data = this.safeValue(message, "data", new HashMap<String, Object>() {{}});
-            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(data)); i++)
+            for (var i = 0; i < Helpers.getArrayLength(data); i++)
             {
                 Object result = this.safeValue(data, 0, new HashMap<String, Object>() {{}});
                 account = this.safeStringLower(result, "accountType");
@@ -3148,7 +3148,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
         // 'orderbook.50.BTCUSDT' could be wrongly captured by the 'order' key in a
         // first-match loop (in Go map iteration order is randomized). Check the
         // orderbook prefix explicitly, then fall back to a simple first-match.
-        if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(topic, "orderbook"), 0))
+        if (Helpers.getIndexOf(topic, "orderbook") >= 0)
         {
             this.handleOrderBook(client, message);
             return;
@@ -3157,7 +3157,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
             Object key = Helpers.GetValue(keys, i);
-            if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(topic, key), 0))
+            if (Helpers.getIndexOf(topic, key) >= 0)
             {
                 Object method = Helpers.GetValue(methods, key);
                 Helpers.callDynamically(this, method, new Object[] {client, message});

@@ -10597,7 +10597,7 @@ public class Bybit extends BybitApi
         //     ]
         //
         List<Object> result = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(settlements)); i++)
+        for (var i = 0; i < Helpers.getArrayLength(settlements); i++)
         {
             ((List<Object>)result).add(this.parseSettlement(Helpers.GetValue(settlements, i), market));
         }
@@ -10660,7 +10660,7 @@ public class Bybit extends BybitApi
         //     }
         //
         List<Object> result = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(volatility)); i++)
+        for (var i = 0; i < Helpers.getArrayLength(volatility); i++)
         {
             Object entry = Helpers.GetValue(volatility, i);
             Long timestamp = this.safeInteger(entry, "time");
@@ -11169,7 +11169,7 @@ public class Bybit extends BybitApi
         {
             Object marketId = Helpers.GetValue(keys, i);
             Object entry = Helpers.GetValue(grouped, marketId);
-            for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(entry)); j++)
+            for (var j = 0; j < Helpers.getArrayLength(entry); j++)
             {
                 Long id = this.safeInteger(Helpers.GetValue(entry, j), "id");
                 Helpers.addElementToObject(Helpers.GetValue(entry, j), "id", id);
@@ -11198,7 +11198,7 @@ public class Bybit extends BybitApi
         //
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         List<Object> tiers = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(info)); i++)
+        for (var i = 0; i < Helpers.getArrayLength(info); i++)
         {
             Object tier = Helpers.GetValue(info, i);
             String marketId = this.safeString(info, "symbol");
@@ -12441,10 +12441,10 @@ final Object finalMarket = market;
         } else if (java.util.Objects.equals(api, "private"))
         {
             this.checkRequiredCredentials();
-            Boolean isOpenapi = Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(url, "openapi"), 0);
-            Boolean isV3UnifiedMargin = Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(url, "unified/v3"), 0);
-            Boolean isV3Contract = Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(url, "contract/v3"), 0);
-            Boolean isV5UnifiedAccount = Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(url, "v5"), 0);
+            Boolean isOpenapi = Helpers.getIndexOf(url, "openapi") >= 0;
+            Boolean isV3UnifiedMargin = Helpers.getIndexOf(url, "unified/v3") >= 0;
+            Boolean isV3Contract = Helpers.getIndexOf(url, "contract/v3") >= 0;
+            Boolean isV5UnifiedAccount = Helpers.getIndexOf(url, "v5") >= 0;
             Object timestamp = String.valueOf(this.nonce());
             if (Helpers.isTrue(isOpenapi))
             {
@@ -12521,7 +12521,7 @@ final Object finalMarket = market;
                 }
                 if (java.util.Objects.equals(method, "POST"))
                 {
-                    Boolean isSpot = Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(url, "spot"), 0);
+                    Boolean isSpot = Helpers.getIndexOf(url, "spot") >= 0;
                     final Object finalSignature = signature;
                     Map<String, Object> extendedQuery = this.extend(query, new HashMap<String, Object>() {{
                         put( "sign", finalSignature );
@@ -12601,7 +12601,7 @@ final Object finalMarket = market;
                 return null;
             }
             Object feedback = null;
-            if (java.util.Objects.equals(errorCode, "10005") && Helpers.isLessThan(Helpers.getIndexOf(url, "order"), 0))
+            if (java.util.Objects.equals(errorCode, "10005") && Helpers.getIndexOf(url, "order") < 0)
             {
                 feedback = ((this.id + " private api uses /user/v3/private/query-api to check if you have a unified account. The API key of user id must own one of permissions: \"Account Transfer\", \"Subaccount Transfer\", \"Withdrawal\" ") + body);
             } else

@@ -2347,7 +2347,7 @@ public class Gate extends GateApi
             {
                 swapSettlementCurrencies = new ArrayList<Object>(Arrays.asList("usdt")); // gate sandbox only has usdt-margined swaps
             }
-            for (var c = 0; Helpers.isLessThan(c, Helpers.getArrayLength(swapSettlementCurrencies)); c++)
+            for (var c = 0; c < Helpers.getArrayLength(swapSettlementCurrencies); c++)
             {
                 Object settleId = Helpers.GetValue(swapSettlementCurrencies, c);
                 Map<String, Object> request = new HashMap<String, Object>() {{
@@ -2378,7 +2378,7 @@ public class Gate extends GateApi
             }
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             Object futureSettlementCurrencies = this.getSettlementCurrencies("future", "fetchMarkets");
-            for (var c = 0; Helpers.isLessThan(c, Helpers.getArrayLength(futureSettlementCurrencies)); c++)
+            for (var c = 0; c < Helpers.getArrayLength(futureSettlementCurrencies); c++)
             {
                 Object settleId = Helpers.GetValue(futureSettlementCurrencies, c);
                 Map<String, Object> request = new HashMap<String, Object>() {{
@@ -3311,7 +3311,7 @@ public class Gate extends GateApi
             String currencyId = this.safeString(response, "currency");
             code = ((String)this.safeCurrencyCode(currencyId));
             Map<String, Object> result = new HashMap<String, Object>() {{}};
-            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(addresses)); i++)
+            for (var i = 0; i < Helpers.getArrayLength(addresses); i++)
             {
                 Object entry = Helpers.GetValue(addresses, i);
                 //
@@ -3828,7 +3828,7 @@ public class Gate extends GateApi
     public Object parseFundingHistories(Object response, Object symbol, Object since, Object limit)
     {
         List<Object> result = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(response)); i++)
+        for (var i = 0; i < Helpers.getArrayLength(response); i++)
         {
             Object entry = Helpers.GetValue(response, i);
             Object funding = this.parseFundingHistory(entry);
@@ -6748,7 +6748,7 @@ final Object finalPointFee = pointFee;
             timestampStr = this.safeString2(order, "create_time", "ctime");
             if (!java.util.Objects.equals(timestampStr, null))
             {
-                if (Helpers.isEqual(timestampStr.length(), 10) || Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(timestampStr, "."), 0))
+                if (Helpers.isEqual(timestampStr.length(), 10) || Helpers.getIndexOf(timestampStr, ".") >= 0)
                 {
                     // ts in seconds, multiply to ms
                     timestampStr = Precise.stringMul(timestampStr, "1000");
@@ -6765,7 +6765,7 @@ final Object finalPointFee = pointFee;
             lastTradeTimestampStr = this.safeString2(order, "update_time", "finish_time");
             if (!java.util.Objects.equals(lastTradeTimestampStr, null))
             {
-                if (Helpers.isEqual(lastTradeTimestampStr.length(), 10) || Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(lastTradeTimestampStr, "."), 0))
+                if (Helpers.isEqual(lastTradeTimestampStr.length(), 10) || Helpers.getIndexOf(lastTradeTimestampStr, ".") >= 0)
                 {
                     // ts in seconds, multiply to ms
                     lastTradeTimestampStr = Precise.stringMul(lastTradeTimestampStr, "1000");
@@ -7400,7 +7400,7 @@ final Object finalRebate = rebate;
             if (Helpers.isTrue(openSpotOrders))
             {
                 Object spotResult = new ArrayList<Object>(Arrays.asList());
-                for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(response)); i++)
+                for (var i = 0; i < Helpers.getArrayLength(response); i++)
                 {
                     Object responseEntry = this.safeDict(response, i, new HashMap<String, Object>() {{}});
                     Object ordersInner = this.safeValue(responseEntry, "orders");
@@ -9103,7 +9103,7 @@ final Object finalI = i;
             {
                 Object pathParts = Helpers.split(path, "/");
                 Object secondPart = this.safeString(pathParts, 1, "");
-                requiresURLEncoding = (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(secondPart, "dual"), 0)) || (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(secondPart, "positions"), 0));
+                requiresURLEncoding = (Helpers.getIndexOf(secondPart, "dual") >= 0) || (Helpers.getIndexOf(secondPart, "positions") >= 0);
             }
             if ((java.util.Objects.equals(method, "GET")) || (java.util.Objects.equals(method, "DELETE")) || Helpers.isTrue(requiresURLEncoding) || (java.util.Objects.equals(method, "PATCH")))
             {
@@ -9113,7 +9113,7 @@ final Object finalI = i;
                     rawQueryString = this.rawencode(query);
                     queryString = this.urlencode(query);
                     // https://github.com/ccxt/ccxt/issues/25570
-                    if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(queryString, "currencies="), 0) && Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(queryString, "%2C"), 0))
+                    if (Helpers.getIndexOf(queryString, "currencies=") >= 0 && Helpers.getIndexOf(queryString, "%2C") >= 0)
                     {
                         queryString = (queryString == null ? null : ((String)queryString).replace("%2C", ","));
                     }
@@ -9664,7 +9664,7 @@ final Object finalI = i;
         //     ]
         //
         List<Object> result = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(settlements)); i++)
+        for (var i = 0; i < Helpers.getArrayLength(settlements); i++)
         {
             ((List<Object>)result).add(this.parseSettlement(Helpers.GetValue(settlements, i), market));
         }

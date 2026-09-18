@@ -2251,7 +2251,7 @@ public class Delta extends DeltaApi
         Object timestamp = null;
         if (!java.util.Objects.equals(createdAt, null))
         {
-            if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(createdAt, "-"), 0))
+            if (Helpers.getIndexOf(createdAt, "-") >= 0)
             {
                 timestamp = this.parse8601(createdAt);
             } else
@@ -3835,7 +3835,7 @@ public class Delta extends DeltaApi
     public Object parseSettlements(Object settlements, Object market)
     {
         List<Object> result = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(settlements)); i++)
+        for (var i = 0; i < Helpers.getArrayLength(settlements); i++)
         {
             ((List<Object>)result).add(this.parseSettlement(Helpers.GetValue(settlements, i), market));
         }

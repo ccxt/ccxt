@@ -1134,10 +1134,10 @@ public class Bitbns extends BitbnsApi
         String side = this.safeStringLower(trade, "type");
         if (!java.util.Objects.equals(side, null))
         {
-            if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(side, "buy"), 0))
+            if (Helpers.getIndexOf(side, "buy") >= 0)
             {
                 side = "buy";
-            } else if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(side, "sell"), 0))
+            } else if (Helpers.getIndexOf(side, "sell") >= 0)
             {
                 side = "sell";
             }
@@ -1473,11 +1473,11 @@ public class Bitbns extends BitbnsApi
         String status = null;
         if (!java.util.Objects.equals(type, null))
         {
-            if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(type, "deposit"), 0))
+            if (Helpers.getIndexOf(type, "deposit") >= 0)
             {
                 type = "deposit";
                 status = "ok";
-            } else if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(type, "withdraw"), 0) || Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(expTime, "withdraw"), 0))
+            } else if (Helpers.getIndexOf(type, "withdraw") >= 0 || Helpers.getIndexOf(expTime, "withdraw") >= 0)
             {
                 type = "withdrawal";
             }

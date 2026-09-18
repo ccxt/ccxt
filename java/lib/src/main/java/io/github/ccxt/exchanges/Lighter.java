@@ -2947,11 +2947,11 @@ public class Lighter extends LighterApi
         Object takeProfitPrice = null;
         if (!java.util.Objects.equals(type, null))
         {
-            if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(type, "stop-loss"), 0))
+            if (Helpers.getIndexOf(type, "stop-loss") >= 0)
             {
                 stopLossPrice = triggerPrice;
             }
-            if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(type, "take-profit"), 0))
+            if (Helpers.getIndexOf(type, "take-profit") >= 0)
             {
                 takeProfitPrice = triggerPrice;
             }

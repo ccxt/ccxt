@@ -363,7 +363,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         }
         Object safeQuote = (((java.util.Objects.equals(quote, null)))) ? "USDC" : quote;
         String parsed = this.safeSymbol(stockSymbol, null, "/", "spot");
-        if ((!java.util.Objects.equals(parsed, null)) && (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(parsed, "/"), 0)))
+        if ((!java.util.Objects.equals(parsed, null)) && (Helpers.getIndexOf(parsed, "/") >= 0))
         {
             return parsed;
         }
@@ -1177,7 +1177,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 // unroll the accumulated deltas
                 Object messages = ((List<Object>)Helpers.GetValue(orderbook, "cache"));
                 Helpers.addElementToObject(orderbook, "cache", new ArrayList<Object>(Arrays.asList()));
-                for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(messages)); i++)
+                for (var i = 0; i < Helpers.getArrayLength(messages); i++)
                 {
                     Object messageItem = Helpers.GetValue(messages, i);
                     Long U = this.safeInteger(messageItem, "U");
@@ -1237,7 +1237,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
 
     public void handleDeltas(Object bookside, Object deltas)
     {
-        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(deltas)); i++)
+        for (var i = 0; i < Helpers.getArrayLength(deltas); i++)
         {
             this.handleDelta(bookside, Helpers.GetValue(deltas, i));
         }
@@ -1400,7 +1400,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         Object symbols = this.safeValue(subscription, "symbols", new ArrayList<Object>(Arrays.asList(symbolOfSubscription))); // watchOrderBookForSymbols
         Long limit = this.safeInteger(subscription, "limit", defaultLimit);
         // handle list of symbols
-        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
+        for (var i = 0; i < Helpers.getArrayLength(symbols); i++)
         {
             Object symbol = Helpers.GetValue(symbols, i);
             if (Helpers.inOp(this.orderbooks, symbol))
@@ -6696,7 +6696,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                         if (!Helpers.isTrue(this.isEmpty(fees)))
                         {
                             Boolean insertNewFeeCurrency = true;
-                            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(fees)); i++)
+                            for (var i = 0; i < Helpers.getArrayLength(fees); i++)
                             {
                                 Object orderFee = Helpers.GetValue(fees, i);
                                 if (Helpers.isEqual(Helpers.GetValue(orderFee, "currency"), ((Map<String, Object>)tradeFee).get("currency")))

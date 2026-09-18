@@ -441,7 +441,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
         //    ]
         //
         Helpers.addElementToObject(this.balance, "info", message);
-        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(message)); i++)
+        for (var i = 0; i < Helpers.getArrayLength(message); i++)
         {
             Object balance = Helpers.GetValue(message, i);
             String currencyId = this.safeString(balance, "currency");
@@ -853,7 +853,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
     public void customHandleDeltas(Object bookside, Object deltas, Object... optionalArgs)
     {
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(deltas)); i++)
+        for (var i = 0; i < Helpers.getArrayLength(deltas); i++)
         {
             this.customHandleDelta(bookside, Helpers.GetValue(deltas, i), market);
         }
@@ -1104,7 +1104,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
         }
         Map<String, Object> marketIds = new HashMap<String, Object>() {{}};
         Object type = null;
-        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(message)); i++)
+        for (var i = 0; i < Helpers.getArrayLength(message); i++)
         {
             Object rawTrade = Helpers.GetValue(message, i);
             String marketId = this.safeString(rawTrade, "symbol");
@@ -1374,7 +1374,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
             {
                 return;
             }
-            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(message)); i++)
+            for (var i = 0; i < Helpers.getArrayLength(message); i++)
             {
                 Object update = Helpers.GetValue(message, i);
                 String action = this.safeString(update, "action");
@@ -1710,7 +1710,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
             }
         }
         String methodName = this.safeString(message, "method", "");
-        if ((Helpers.inOp(message, "market24h")) || (Helpers.inOp(message, "spot_market24h")) || (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(methodName, "perp_market24h_pack_p"), 0)))
+        if ((Helpers.inOp(message, "market24h")) || (Helpers.inOp(message, "spot_market24h")) || (Helpers.getIndexOf(methodName, "perp_market24h_pack_p") >= 0))
         {
             this.handleTicker(client, message);
             return;

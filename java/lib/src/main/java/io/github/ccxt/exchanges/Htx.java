@@ -3622,7 +3622,7 @@ public class Htx extends HtxApi
         String order = this.safeString2(trade, "order-id", "order_id");
         String side = this.safeString2(trade, "direction", "side");
         String type = this.safeString(trade, "type");
-        if ((!java.util.Objects.equals(type, null)) && (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(type, "-"), 0)))
+        if ((!java.util.Objects.equals(type, null)) && (Helpers.getIndexOf(type, "-") >= 0))
         {
             Object typeParts = Helpers.split(type, "-");
             side = (String) Helpers.GetValue(typeParts, 0);
@@ -3668,7 +3668,7 @@ public class Htx extends HtxApi
         // - otherwise the least priority is given to the `id` key
         String id = null;
         String safeId = this.safeString(trade, "id");
-        if (!java.util.Objects.equals(safeId, null) && Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(safeId, "-"), 0))
+        if (!java.util.Objects.equals(safeId, null) && Helpers.getIndexOf(safeId, "-") >= 0)
         {
             id = safeId;
         } else
@@ -4873,12 +4873,12 @@ public class Htx extends HtxApi
             {
                 if (Helpers.isTrue(isolated))
                 {
-                    for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(data)); i++)
+                    for (var i = 0; i < Helpers.getArrayLength(data); i++)
                     {
                         Object entry = Helpers.GetValue(data, i);
                         Object balances = this.safeValue(entry, "list");
                         Map<String, Object> subResult = new HashMap<String, Object>() {{}};
-                        for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(balances)); j++)
+                        for (var j = 0; j < Helpers.getArrayLength(balances); j++)
                         {
                             Object balance = Helpers.GetValue(balances, j);
                             String currencyId = this.safeString(balance, "currency");
@@ -4913,7 +4913,7 @@ public class Htx extends HtxApi
                 }
             } else if (Helpers.isTrue(inverse))
             {
-                for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(data)); i++)
+                for (var i = 0; i < Helpers.getArrayLength(data); i++)
                 {
                     Object balance = Helpers.GetValue(data, i);
                     String currencyId = this.safeString(balance, "symbol");
@@ -6376,7 +6376,7 @@ public class Htx extends HtxApi
             String rawType = this.safeString(order, "type");
             if (!java.util.Objects.equals(rawType, null))
             {
-                if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(rawType, "-"), 0))
+                if (Helpers.getIndexOf(rawType, "-") >= 0)
                 {
                     Object orderType = Helpers.split(rawType, "-");
                     side = (String) Helpers.GetValue(orderType, 0);
@@ -6391,7 +6391,7 @@ public class Htx extends HtxApi
         String clientOrderId = this.safeStringN(order, new ArrayList<Object>(Arrays.asList("client_order_id", ("client-or" + "der-id"), "algo_client_order_id"))); // transpiler regex trick for php issue
         String cost = null;
         String amount = null;
-        if ((!java.util.Objects.equals(type, null)) && (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(type, "market"), 0)) && (!java.util.Objects.equals(isLinearOrder, true)))
+        if ((!java.util.Objects.equals(type, null)) && (Helpers.getIndexOf(type, "market") >= 0) && (!java.util.Objects.equals(isLinearOrder, true)))
         {
             cost = this.safeString(order, "field-cash-amount");
         } else
@@ -8467,7 +8467,7 @@ public class Htx extends HtxApi
         {
             throw new ExchangeError((this.id + " parseTransaction() missing txHash")) ;
         }
-        if (java.util.Objects.equals(networkId, "ETH") && Helpers.isLessThan(Helpers.getIndexOf(txHash, "0x"), 0))
+        if (java.util.Objects.equals(networkId, "ETH") && Helpers.getIndexOf(txHash, "0x") < 0)
         {
             txHash = ("0x" + txHash);
         }
@@ -9070,7 +9070,7 @@ public class Htx extends HtxApi
             List<Object> rates = new ArrayList<Object>(Arrays.asList());
             if (java.util.Objects.equals(((Map<String, Object>)market).get("linear"), true))
             {
-                for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(data)); i++)
+                for (var i = 0; i < Helpers.getArrayLength(data); i++)
                 {
                     Object entry = Helpers.GetValue(data, i);
                     String marketId = this.safeString(entry, "contract_code");
@@ -10234,7 +10234,7 @@ public class Htx extends HtxApi
             Object position = null;
             if ((java.util.Objects.equals(((Map<String, Object>)market).get("future"), true)) && (java.util.Objects.equals(((Map<String, Object>)market).get("inverse"), true)))
             {
-                for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(positions)); i++)
+                for (var i = 0; i < Helpers.getArrayLength(positions); i++)
                 {
                     Object entry = Helpers.GetValue(positions, i);
                     if (java.util.Objects.equals(Helpers.GetValue(entry, "contract_code"), ((Map<String, Object>)market).get("id")))
@@ -11451,7 +11451,7 @@ public class Htx extends HtxApi
         //     ]
         //
         List<Object> result = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(settlements)); i++)
+        for (var i = 0; i < Helpers.getArrayLength(settlements); i++)
         {
             Object settlement = Helpers.GetValue(settlements, i);
             Object list = this.safeValue(settlement, "list");
@@ -11466,7 +11466,7 @@ public class Htx extends HtxApi
                     put( "timestamp", timestamp );
                     put( "datetime", Htx.this.iso8601(timestamp) );
                 }};
-                for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(list)); j++)
+                for (var j = 0; j < Helpers.getArrayLength(list); j++)
                 {
                     Object item = Helpers.GetValue(list, j);
                     Object parsedSettlement = this.parseSettlement(item, market);

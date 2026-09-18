@@ -2246,7 +2246,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
         String executionType = this.safeString(message, "x");
         if (java.util.Objects.equals(executionType, "TRADE"))
         {
-            Boolean isSwap = Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(client.url, "fstream"), 0);
+            Boolean isSwap = Helpers.getIndexOf(client.url, "fstream") >= 0;
             String type = ((Helpers.isTrue(isSwap))) ? "swap" : "spot";
             Map<String, Object> fakeMarket = (Map<String, Object>) this.safeMarketStructure(new HashMap<String, Object>() {{
                 put( "type", type );
@@ -2271,7 +2271,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
                         if (!Helpers.isTrue(this.isEmpty(fees)))
                         {
                             Boolean insertNewFeeCurrency = true;
-                            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(fees)); i++)
+                            for (var i = 0; i < Helpers.getArrayLength(fees); i++)
                             {
                                 Object orderFee = Helpers.GetValue(fees, i);
                                 if (Helpers.isEqual(Helpers.GetValue(orderFee, "currency"), ((Map<String, Object>)tradeFee).get("currency")))

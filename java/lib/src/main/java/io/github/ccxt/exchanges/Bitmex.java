@@ -1353,7 +1353,7 @@ public class Bitmex extends BitmexApi
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", response );
         }};
-        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(response)); i++)
+        for (var i = 0; i < Helpers.getArrayLength(response); i++)
         {
             Object balance = Helpers.GetValue(response, i);
             String currencyId = this.safeString(balance, "currency");
@@ -2585,8 +2585,8 @@ public class Bitmex extends BitmexApi
         Object reduceOnly = null;
         if (execInst.length() > 0)
         {
-            postOnly = (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(execInst, "ParticipateDoNotInitiate"), 0));
-            reduceOnly = ((Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(execInst, "ReduceOnly"), 0)) || (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(execInst, "Close"), 0)));
+            postOnly = (Helpers.getIndexOf(execInst, "ParticipateDoNotInitiate") >= 0);
+            reduceOnly = ((Helpers.getIndexOf(execInst, "ReduceOnly") >= 0) || (Helpers.getIndexOf(execInst, "Close") >= 0));
         }
         Long timestamp = this.parse8601(this.safeString(order, "timestamp"));
         Double triggerPrice = this.safeNumber(order, "stopPx");
@@ -2967,7 +2967,7 @@ public class Bitmex extends BitmexApi
             String error = this.safeString(order, "error");
             if (!java.util.Objects.equals(error, null))
             {
-                if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(error, "Unable to cancel order due to existing state"), 0))
+                if (Helpers.getIndexOf(error, "Unable to cancel order due to existing state") >= 0)
                 {
                     throw new OrderNotFound(((this.id + " cancelOrder() failed: ") + error)) ;
                 }
@@ -4507,7 +4507,7 @@ public class Bitmex extends BitmexApi
         Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
         Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
         List<Object> result = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(settlements)); i++)
+        for (var i = 0; i < Helpers.getArrayLength(settlements); i++)
         {
             ((List<Object>)result).add(this.parseSettlement(Helpers.GetValue(settlements, i), market));
         }

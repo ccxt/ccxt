@@ -1107,7 +1107,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
                     String totalCost = "0";
                     String totalAmount = "0";
                     Object previousOrderTrades = Helpers.GetValue(previousOrder, "trades");
-                    for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(previousOrderTrades)); j++)
+                    for (var j = 0; j < Helpers.getArrayLength(previousOrderTrades); j++)
                     {
                         Object previousOrderTrade = Helpers.GetValue(previousOrderTrades, j);
                         Object cost = this.numberToString(Helpers.GetValue(previousOrderTrade, "cost"));
@@ -1378,7 +1378,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
                 io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) Helpers.GetValue(this.orderbooks, symbol);
                 if (!java.util.Objects.equals(bids, null))
                 {
-                    for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(bids)); j++)
+                    for (var j = 0; j < Helpers.getArrayLength(bids); j++)
                     {
                         Object bid = this.safeValue(bids, j);
                         Double price = this.safeNumber(bid, 0);
@@ -1389,7 +1389,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
                 }
                 if (!java.util.Objects.equals(asks, null))
                 {
-                    for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(asks)); j++)
+                    for (var j = 0; j < Helpers.getArrayLength(asks); j++)
                     {
                         Object ask = this.safeValue(asks, j);
                         Double price = this.safeNumber(ask, 0);
@@ -1458,7 +1458,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
             put( "timestamp", timestamp );
             put( "datetime", Poloniex.this.iso8601(timestamp) );
         }};
-        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(response)); i++)
+        for (var i = 0; i < Helpers.getArrayLength(response); i++)
         {
             Object balance = this.safeValue(response, i);
             String currencyId = this.safeString(balance, "currency");

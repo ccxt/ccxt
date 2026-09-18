@@ -727,7 +727,7 @@ public class Extended extends ExtendedApi
         Object tradingConfig = this.safeDict(market, "tradingConfig", new HashMap<String, Object>() {{}});
         String marketId = this.safeString(market, "name");
         String baseId = this.safeString(market, "assetName", "");
-        if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(baseId, "SPOT"), 0))
+        if (Helpers.getIndexOf(baseId, "SPOT") >= 0)
         {
             baseId = Helpers.replace(baseId, (String)"SPOT", (String)"");
         }
@@ -906,7 +906,7 @@ public class Extended extends ExtendedApi
         //     }
         //
         String currencyId = this.safeString(currency, "symbol");
-        if ((!java.util.Objects.equals(currencyId, null)) && (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(currencyId, "SPOT"), 0)))
+        if ((!java.util.Objects.equals(currencyId, null)) && (Helpers.getIndexOf(currencyId, "SPOT") >= 0))
         {
             currencyId = Helpers.replace(currencyId, (String)"SPOT", (String)"");
         }
@@ -1457,7 +1457,7 @@ public class Extended extends ExtendedApi
         Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
         Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
         List<Object> result = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(histories)); i++)
+        for (var i = 0; i < Helpers.getArrayLength(histories); i++)
         {
             ((List<Object>)result).add(this.parseFundingHistory(Helpers.GetValue(histories, i), market));
         }
@@ -1900,7 +1900,7 @@ public class Extended extends ExtendedApi
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", response );
         }};
-        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(response)); i++)
+        for (var i = 0; i < Helpers.getArrayLength(response); i++)
         {
             Object balance = this.safeDict(response, i, new HashMap<String, Object>() {{}});
             String currencyId = this.safeString(balance, "asset");
@@ -4331,7 +4331,7 @@ public class Extended extends ExtendedApi
     public Object getExtendedDomainHash()
     {
         Object domainTypeHash = this.convertToBigInt(this.extendedStarknetGetSelectorFromName("\"StarknetDomain\"(\"name\":\"shortstring\",\"version\":\"shortstring\",\"chainId\":\"shortstring\",\"revision\":\"shortstring\")"));
-        Boolean isTestnet = Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("rest"), "sepolia"), 0);
+        Boolean isTestnet = Helpers.getIndexOf(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("rest"), "sepolia") >= 0;
         String defaultChainId = ((Helpers.isTrue(isTestnet))) ? "SN_SEPOLIA" : "SN_MAIN";
         String chainId = this.safeString(this.options, "chainId", defaultChainId);
         return this.convertToBigInt(this.extendedStarknetComputePoseidonHashOnElements(new ArrayList<Object>(Arrays.asList(domainTypeHash, this.getExtendedStringToFelt("Perpetuals"), this.getExtendedStringToFelt("v0"), this.getExtendedStringToFelt(chainId), this.convertToBigInt("1")))));

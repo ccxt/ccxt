@@ -3396,7 +3396,7 @@ public class Nado extends NadoApi
             } else
             {
                 status = this.safeString(order, "status", "rejected");
-                if ((java.util.Objects.equals(status, "success")) || (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(status, "waiting"), 0)))
+                if ((java.util.Objects.equals(status, "success")) || (Helpers.getIndexOf(status, "waiting") >= 0))
                 {
                     status = "open";
                 }
@@ -3550,7 +3550,7 @@ public class Nado extends NadoApi
             throw new BadRequest((this.id + " createOrder() requires a 20-byte walletAddress")) ;
         }
         Object encoded = this.remove0xPrefix(this.stringToBase16(subaccount));
-        if (Helpers.isGreaterThan(Helpers.getArrayLength(encoded), 24))
+        if (Helpers.getArrayLength(encoded) > 24)
         {
             throw new BadRequest((this.id + " createOrder() subaccount must fit in 12 bytes")) ;
         }

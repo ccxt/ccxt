@@ -1906,7 +1906,7 @@ public class Bitso extends BitsoApi
             Object payload = this.safeDict(response, "payload", new HashMap<String, Object>() {{}});
             String address = this.safeString(payload, "account_identifier");
             String tag = null;
-            if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(address, "?dt="), 0))
+            if (Helpers.getIndexOf(address, "?dt=") >= 0)
             {
                 Object parts = Helpers.split(address, "?dt=");
                 address = this.safeString(parts, 0);

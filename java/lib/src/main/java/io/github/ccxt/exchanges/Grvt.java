@@ -2256,7 +2256,7 @@ public class Grvt extends GrvtApi
         Object onlyMainAccount = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : true;
         List<Object> matchedResults = new ArrayList<Object>(Arrays.asList());
         List<Object> nonMatchedResults = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(transfers)); i++)
+        for (var i = 0; i < Helpers.getArrayLength(transfers); i++)
         {
             Object transfer = Helpers.GetValue(transfers, i);
             if ((Helpers.isTrue(onlyMainAccount) && java.util.Objects.equals(Helpers.GetValue(transfer, "fromAccount"), "0") && java.util.Objects.equals(Helpers.GetValue(transfer, "toAccount"), "0")) || (!Helpers.isTrue(onlyMainAccount) && (!java.util.Objects.equals(Helpers.GetValue(transfer, "fromAccount"), "0") || !java.util.Objects.equals(Helpers.GetValue(transfer, "toAccount"), "0"))))
@@ -2339,7 +2339,7 @@ public class Grvt extends GrvtApi
             {
                 Object msg = this.exceptionMessage(error);
                 Boolean isFromFundingAccount = java.util.Objects.equals(fromAccount, "funding");
-                if (Helpers.isTrue(isFromFundingAccount) && (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(msg, "You are not authorized"), 0)))
+                if (Helpers.isTrue(isFromFundingAccount) && (Helpers.getIndexOf(msg, "You are not authorized") >= 0))
                 {
                     throw new PermissionDenied(((this.id + " transfer() failed. Ensure you use funding api-keys when trying to transfer from Funding accounts: ") + msg)) ;
                 }

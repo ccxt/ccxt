@@ -929,7 +929,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
         {
             return Helpers.opNeg(1);
         }
-        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(cache)); i++)
+        for (var i = 0; i < Helpers.getArrayLength(cache); i++)
         {
             Object delta = Helpers.GetValue(cache, i);
             Long deltaNonce = this.safeIntegerN(delta, new ArrayList<Object>(Arrays.asList("r", "version", "fromVersion")));
@@ -1065,7 +1065,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
         //        "v": "0.000000"
         //    }]
         //
-        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(bidasks)); i++)
+        for (var i = 0; i < Helpers.getArrayLength(bidasks); i++)
         {
             Object bidask = Helpers.GetValue(bidasks, i);
             if (Helpers.isTrue(Helpers.isArray(bidask)))
@@ -2266,10 +2266,10 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
             Object messageHash = Helpers.GetValue(messageHashes, i);
             Object subMessageHash = Helpers.replace(((String)messageHash), "unsubscribe:", "");
             this.cleanUnsubscription(client, subMessageHash, messageHash);
-            if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(messageHash, "ticker"), 0))
+            if (Helpers.getIndexOf(messageHash, "ticker") >= 0)
             {
                 Object symbol = Helpers.replace(((String)messageHash), "unsubscribe:ticker:", "");
-                if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(symbol, "unsubscribe"), 0))
+                if (Helpers.getIndexOf(symbol, "unsubscribe") >= 0)
                 {
                     // unWatchTickers
                     Object symbols = Helpers.objectKeys(this.tickers);
@@ -2281,14 +2281,14 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
                 {
                     ((Map<String,Object>)this.tickers).remove((String)symbol);
                 }
-            } else if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(messageHash, "bidask"), 0))
+            } else if (Helpers.getIndexOf(messageHash, "bidask") >= 0)
             {
                 Object symbol = Helpers.replace(((String)messageHash), "unsubscribe:bidask:", "");
                 if (((Map<?, ?>)this.bidsasks).containsKey(symbol))
                 {
                     ((Map<String,Object>)this.bidsasks).remove((String)symbol);
                 }
-            } else if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(messageHash, "candles"), 0))
+            } else if (Helpers.getIndexOf(messageHash, "candles") >= 0)
             {
                 Object splitHashes = Helpers.split(messageHash, ":");
                 String symbol = this.safeString(splitHashes, 2);
@@ -2301,21 +2301,21 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
                 {
                     ((Map<String,Object>)this.ohlcvs).remove((String)symbol);
                 }
-            } else if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(messageHash, "orderbook"), 0))
+            } else if (Helpers.getIndexOf(messageHash, "orderbook") >= 0)
             {
                 Object symbol = Helpers.replace(((String)messageHash), "unsubscribe:orderbook:", "");
                 if (((Map<?, ?>)this.orderbooks).containsKey(symbol))
                 {
                     ((Map<String,Object>)this.orderbooks).remove((String)symbol);
                 }
-            } else if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(messageHash, "trades"), 0))
+            } else if (Helpers.getIndexOf(messageHash, "trades") >= 0)
             {
                 Object symbol = Helpers.replace(((String)messageHash), "unsubscribe:trades:", "");
                 if (((Map<?, ?>)this.trades).containsKey(symbol))
                 {
                     ((Map<String,Object>)this.trades).remove((String)symbol);
                 }
-            } else if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(messageHash, "fundingRate"), 0))
+            } else if (Helpers.getIndexOf(messageHash, "fundingRate") >= 0)
             {
                 Object symbol = Helpers.replace(((String)messageHash), "unsubscribe:fundingRate:", "");
                 if (((Map<?, ?>)this.fundingRates).containsKey(symbol))

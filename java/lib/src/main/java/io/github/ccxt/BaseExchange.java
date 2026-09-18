@@ -4446,7 +4446,7 @@ public Object describe()
 
     public void handleDeltas(Object orderbook, Object deltas)
     {
-        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(deltas)); i++)
+        for (var i = 0; i < Helpers.getArrayLength(deltas); i++)
         {
             this.handleDelta(orderbook, Helpers.GetValue(deltas, i));
         }
@@ -4462,7 +4462,7 @@ public Object describe()
         Object priceKey = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : 0;
         Object amountKey = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : 1;
         Object countOrIdKey = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : 2;
-        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(deltas)); i++)
+        for (var i = 0; i < Helpers.getArrayLength(deltas); i++)
         {
             Object bidAsk = this.parseOrderBookBidAsk(Helpers.GetValue(deltas, i), priceKey, amountKey, countOrIdKey);
             ((IOrderBookSide)bookSide).storeArray(bidAsk);
@@ -4556,7 +4556,7 @@ public Object describe()
     public Object urlEncoderForProxyUrl(Object targetUrl)
     {
         // to be overriden
-        Boolean includesQuery = Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(targetUrl, "?"), 0);
+        Boolean includesQuery = Helpers.getIndexOf(targetUrl, "?") >= 0;
         Object finalUrl = ((Helpers.isTrue(includesQuery))) ? this.encodeURIComponent(targetUrl) : targetUrl;
         return finalUrl;
     }
@@ -4700,7 +4700,7 @@ public Object describe()
         for (var i = 0; i < ((List<?>)messageHashes).size(); i++)
         {
             Object messageHash = Helpers.GetValue(messageHashes, i);
-            if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(messageHash, element), 0))
+            if (Helpers.getIndexOf(messageHash, element) >= 0)
             {
                 ((List<Object>)result).add(messageHash);
             }
@@ -4774,7 +4774,7 @@ public Object describe()
         if (Helpers.isTrue(sinceIsDefined))
         {
             result = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(parsedArray)); i++)
+            for (var i = 0; i < Helpers.getArrayLength(parsedArray); i++)
             {
                 Object entry = Helpers.GetValue(parsedArray, i);
                 Object value = this.safeValue(entry, key);
@@ -4809,7 +4809,7 @@ public Object describe()
         if (Helpers.isTrue(valueIsDefined) || Helpers.isTrue(sinceIsDefined))
         {
             result = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(parsedArray)); i++)
+            for (var i = 0; i < Helpers.getArrayLength(parsedArray); i++)
             {
                 Object entry = Helpers.GetValue(parsedArray, i);
                 // safeValue (not entry[field]) so a missing field is a non-match, not a
@@ -5207,7 +5207,7 @@ public Object describe()
     public Object parseMarkets(Object markets)
     {
         List<Object> result = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(markets)); i++)
+        for (var i = 0; i < Helpers.getArrayLength(markets); i++)
         {
             ((List<Object>)result).add(this.parseMarket(Helpers.GetValue(markets, i)));
         }
@@ -5676,7 +5676,7 @@ public Object describe()
         // in JS:     1 === 1.0 is true
         // in Python: 1 == 1.0 is true
         // in PHP:    1 == 1.0 is true, but 1 === 1.0 is false.
-        if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(stringVersion, "."), 0))
+        if (Helpers.getIndexOf(stringVersion, ".") >= 0)
         {
             return Helpers.parseFloat(stringVersion);
         }
@@ -6422,7 +6422,7 @@ public Object describe()
                 Object code = Helpers.GetValue(codes, i);
                 Object groupedCurrenciesCode = this.safeList(groupedCurrencies, code, new ArrayList<Object>(Arrays.asList()));
                 Object highestPrecisionCurrency = this.safeValue(groupedCurrenciesCode, 0);
-                for (var j = 1; Helpers.isLessThan(j, Helpers.getArrayLength(groupedCurrenciesCode)); j++)
+                for (var j = 1; j < Helpers.getArrayLength(groupedCurrenciesCode); j++)
                 {
                     Object currentCurrency = Helpers.GetValue(groupedCurrenciesCode, j);
                     if (Helpers.isEqual(this.precisionMode, TICK_SIZE))
@@ -6472,7 +6472,7 @@ public Object describe()
         this.codes = sourceExchange.codes;
         // check marketHelperProps
         Object sourceExchangeHelpers = this.safeList(sourceExchange.options, "marketHelperProps", new ArrayList<Object>(Arrays.asList()));
-        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(sourceExchangeHelpers)); i++)
+        for (var i = 0; i < Helpers.getArrayLength(sourceExchangeHelpers); i++)
         {
             Object helper = Helpers.GetValue(sourceExchangeHelpers, i);
             if (!java.util.Objects.equals(Helpers.GetValue(sourceExchange.options, helper), null))
@@ -6657,7 +6657,7 @@ public Object describe()
                         Object tradeFees = this.safeValue(trade, "fees");
                         if (!java.util.Objects.equals(tradeFees, null))
                         {
-                            for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(tradeFees)); j++)
+                            for (var j = 0; j < Helpers.getArrayLength(tradeFees); j++)
                             {
                                 Object tradeFee = Helpers.GetValue(tradeFees, j);
                                 ((List<Object>)fees).add(this.extend(new HashMap<String, Object>() {{}}, tradeFee));
@@ -6812,7 +6812,7 @@ public Object describe()
                 ((Map<String, Object>)tradeFee).put("rate", BaseExchange.this.safeNumber(tradeFee, "rate"));
             }
             Object entryFees = this.safeList(entry, "fees", new ArrayList<Object>(Arrays.asList()));
-            for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(entryFees)); j++)
+            for (var j = 0; j < Helpers.getArrayLength(entryFees); j++)
             {
                 Helpers.addElementToObject(Helpers.GetValue(entryFees, j), "cost", this.safeNumber(Helpers.GetValue(entryFees, j), "cost"));
             }
@@ -6926,7 +6926,7 @@ public Object describe()
         Object results = new ArrayList<Object>(Arrays.asList());
         if (Helpers.isTrue(Helpers.isArray(orders)))
         {
-            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(orders)); i++)
+            for (var i = 0; i < Helpers.getArrayLength(orders); i++)
             {
                 Object parsed = this.parseOrder(Helpers.GetValue(orders, i), market); // don't inline this call
                 Map<String, Object> order = this.extend(parsed, parameters);
@@ -7294,7 +7294,7 @@ public Object describe()
         //     ]
         //
         Map<String, Object> reduced = new HashMap<String, Object>() {{}};
-        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(fees)); i++)
+        for (var i = 0; i < Helpers.getArrayLength(fees); i++)
         {
             Object fee = Helpers.GetValue(fees, i);
             String code = this.safeString(fee, "currency");
@@ -7635,7 +7635,7 @@ public Object describe()
         Object lows = this.safeList(ohlcvs, low, new ArrayList<Object>(Arrays.asList()));
         Object closes = this.safeList(ohlcvs, close, new ArrayList<Object>(Arrays.asList()));
         Object volumes = this.safeList(ohlcvs, volume, new ArrayList<Object>(Arrays.asList()));
-        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(timestamps)); i++)
+        for (var i = 0; i < Helpers.getArrayLength(timestamps); i++)
         {
             ((List<Object>)result).add(new ArrayList<Object>(Arrays.asList(((Helpers.isTrue(ms))) ? this.safeInteger(timestamps, i) : this.safeTimestamp(timestamps, i), this.safeValue(opens, i), this.safeValue(highs, i), this.safeValue(lows, i), this.safeValue(closes, i), this.safeValue(volumes, i))));
         }
@@ -7915,7 +7915,7 @@ public Object describe()
         Object countOrIdKey = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : 2;
         bidasks = this.toArray(bidasks);
         List<Object> result = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(bidasks)); i++)
+        for (var i = 0; i < Helpers.getArrayLength(bidasks); i++)
         {
             ((List<Object>)result).add(this.parseOrderBookBidAsk(Helpers.GetValue(bidasks, i), priceKey, amountKey, countOrIdKey));
         }
@@ -7930,7 +7930,7 @@ public Object describe()
             return objects;
         }
         List<Object> result = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(objects)); i++)
+        for (var i = 0; i < Helpers.getArrayLength(objects); i++)
         {
             String objectValue = this.safeString(Helpers.GetValue(objects, i), key);
             if (java.util.Objects.equals(objectValue, value))
@@ -8350,7 +8350,7 @@ public Object describe()
                     {
                         throw new ExchangeError((this.id + " markets not loaded")) ;
                     }
-                    for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbolsArray)); i++)
+                    for (var i = 0; i < Helpers.getArrayLength(symbolsArray); i++)
                     {
                         Object symbol = Helpers.GetValue(symbolsArray, i);
                         Helpers.addElementToObject(markets, symbol, this.deepExtend(Helpers.GetValue(markets, symbol), Helpers.GetValue(response, symbol)));
@@ -8540,7 +8540,7 @@ public Object describe()
             Object itemOrItems = this.parseLedgerEntry(Helpers.GetValue(arrayData, i), currency);
             if (Helpers.isTrue(Helpers.isArray(itemOrItems)))
             {
-                for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(itemOrItems)); j++)
+                for (var j = 0; j < Helpers.getArrayLength(itemOrItems); j++)
                 {
                     ((List<Object>)result).add(this.extend(Helpers.GetValue(itemOrItems, j), parameters));
                 }
@@ -8711,7 +8711,7 @@ public Object describe()
             newArray = this.toArray(objects);
         }
         List<Object> results = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(newArray)); i++)
+        for (var i = 0; i < Helpers.getArrayLength(newArray); i++)
         {
             ((List<Object>)results).add(Helpers.GetValue(Helpers.GetValue(newArray, i), key));
         }
@@ -8765,7 +8765,7 @@ public Object describe()
             }
         }
         List<Object> results = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(objects)); i++)
+        for (var i = 0; i < Helpers.getArrayLength(objects); i++)
         {
             if (Helpers.isTrue(this.inArray(Helpers.GetValue(Helpers.GetValue(objects, i), key), values)))
             {
@@ -8798,7 +8798,7 @@ public Object describe()
             }
         }
         List<Object> results = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(objects)); i++)
+        for (var i = 0; i < Helpers.getArrayLength(objects); i++)
         {
             if (!Helpers.isTrue(this.inArray(Helpers.GetValue(Helpers.GetValue(objects, i), key), values)))
             {
@@ -9137,7 +9137,7 @@ public Object describe()
                             marketType = ((Map<String, Object>)market).get("type");
                         }
                     }
-                    for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(markets)); i++)
+                    for (var i = 0; i < Helpers.getArrayLength(markets); i++)
                     {
                         Object currentMarket = Helpers.GetValue(markets, i);
                         if (java.util.Objects.equals(Helpers.GetValue(currentMarket, marketType), true))
@@ -9668,7 +9668,7 @@ public Object describe()
             Object key = Helpers.GetValue(keys, i);
             if (!java.util.Objects.equals(str, null))
             {
-                if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(str, key), 0))
+                if (Helpers.getIndexOf(str, key) >= 0)
                 {
                     return key;
                 }
@@ -10357,7 +10357,7 @@ public Object describe()
         {
             Object marketsList = Helpers.GetValue(marketsById, symbol);
             String defaultType = this.safeString2(this.options, "defaultType", "defaultSubType", "spot");
-            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(marketsList)); i++)
+            for (var i = 0; i < Helpers.getArrayLength(marketsList); i++)
             {
                 Object market = Helpers.GetValue(marketsList, i);
                 if (java.util.Objects.equals(Helpers.GetValue(market, defaultType), true))
@@ -10803,7 +10803,7 @@ public Object describe()
         Object indexed = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : true;
         Object parameters = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}};
         Object result = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(addresses)); i++)
+        for (var i = 0; i < Helpers.getArrayLength(addresses); i++)
         {
             Map<String, Object> address = this.extend(this.parseDepositAddress(Helpers.GetValue(addresses, i)), parameters);
             ((List<Object>)result).add(address);
@@ -10823,7 +10823,7 @@ public Object describe()
     {
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         List<Object> interests = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(response)); i++)
+        for (var i = 0; i < Helpers.getArrayLength(response); i++)
         {
             Object row = Helpers.GetValue(response, i);
             ((List<Object>)interests).add(this.parseBorrowInterest(row, market));
@@ -10840,7 +10840,7 @@ public Object describe()
     public Object parseBorrowRateHistory(Object response, String code, Object since, Object limit)
     {
         List<Object> result = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(response)); i++)
+        for (var i = 0; i < Helpers.getArrayLength(response); i++)
         {
             Object item = Helpers.GetValue(response, i);
             Object borrowRate = this.parseBorrowRate(item);
@@ -10853,7 +10853,7 @@ public Object describe()
     public Object parseIsolatedBorrowRates(Object info)
     {
         Object result = new HashMap<String, Object>() {{}};
-        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(info)); i++)
+        for (var i = 0; i < Helpers.getArrayLength(info); i++)
         {
             Object item = Helpers.GetValue(info, i);
             Object borrowRate = this.parseIsolatedBorrowRate(item);
@@ -10869,7 +10869,7 @@ public Object describe()
         Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
         Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
         List<Object> rates = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(response)); i++)
+        for (var i = 0; i < Helpers.getArrayLength(response); i++)
         {
             Object entry = Helpers.GetValue(response, i);
             ((List<Object>)rates).add(this.parseFundingRateHistory(entry, market));
@@ -10898,7 +10898,7 @@ public Object describe()
     {
         Object symbols = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Map<String, Object> fundingRates = new HashMap<String, Object>() {{}};
-        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(response)); i++)
+        for (var i = 0; i < Helpers.getArrayLength(response); i++)
         {
             Object entry = Helpers.GetValue(response, i);
             Object parsed = this.parseFundingRate(entry);
@@ -10922,7 +10922,7 @@ public Object describe()
         Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
         Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
         List<Object> rates = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(response)); i++)
+        for (var i = 0; i < Helpers.getArrayLength(response); i++)
         {
             Object entry = Helpers.GetValue(response, i);
             ((List<Object>)rates).add(this.parseLongShortRatio(entry, market));
@@ -11162,7 +11162,7 @@ public Object describe()
     {
         Object symbols = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Map<String, Object> result = new HashMap<String, Object>() {{}};
-        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(response)); i++)
+        for (var i = 0; i < Helpers.getArrayLength(response); i++)
         {
             Object entry = Helpers.GetValue(response, i);
             Object parsed = this.parseOpenInterest(entry);
@@ -11180,7 +11180,7 @@ public Object describe()
         Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
         Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
         List<Object> interests = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(response)); i++)
+        for (var i = 0; i < Helpers.getArrayLength(response); i++)
         {
             Object entry = Helpers.GetValue(response, i);
             Object interest = this.parseOpenInterest(entry, market);
@@ -11468,7 +11468,7 @@ public Object describe()
         {
             responseKeys = Helpers.objectKeys(response);
         }
-        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(responseKeys)); i++)
+        for (var i = 0; i < Helpers.getArrayLength(responseKeys); i++)
         {
             Object entry = Helpers.GetValue(responseKeys, i);
             Object dictionary = ((Helpers.isTrue(isArray))) ? entry : Helpers.GetValue(response, entry);
@@ -11563,7 +11563,7 @@ public Object describe()
         Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
         Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
         List<Object> result = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(incomes)); i++)
+        for (var i = 0; i < Helpers.getArrayLength(incomes); i++)
         {
             Object entry = Helpers.GetValue(incomes, i);
             Object parsed = this.parseIncome(entry, market);
@@ -12185,7 +12185,7 @@ public Object describe()
         Object fallbackToTimestamp = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : true;
         Map<String, Object> uniqueDic = new HashMap<String, Object>() {{}};
         List<Object> uniqueResult = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(input)); i++)
+        for (var i = 0; i < Helpers.getArrayLength(input); i++)
         {
             Object entry = Helpers.GetValue(input, i);
             String uniqValue = ((Helpers.isTrue(fallbackToTimestamp))) ? this.safeStringN(entry, new ArrayList<Object>(Arrays.asList("id", "timestamp", 0))) : this.safeString(entry, "id");
@@ -12206,7 +12206,7 @@ public Object describe()
     public Object removeRepeatedTradesFromArray(Object input)
     {
         Map<String, Object> uniqueResult = new HashMap<String, Object>() {{}};
-        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(input)); i++)
+        for (var i = 0; i < Helpers.getArrayLength(input); i++)
         {
             Object entry = Helpers.GetValue(input, i);
             String id = this.safeString(entry, "id");
@@ -12778,7 +12778,7 @@ public Object describe()
         if (java.util.Objects.equals(topic, "ohlcv"))
         {
             Object symbolsAndTimeframes = this.safeList(subscription, "symbolsAndTimeframes", new ArrayList<Object>(Arrays.asList()));
-            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbolsAndTimeframes)); i++)
+            for (var i = 0; i < Helpers.getArrayLength(symbolsAndTimeframes); i++)
             {
                 Object symbolAndTimeFrame = Helpers.GetValue(symbolsAndTimeframes, i);
                 String symbol = this.safeString(symbolAndTimeFrame, 0);
@@ -12801,7 +12801,7 @@ public Object describe()
             }
         } else if (Helpers.isGreaterThan(symbolsLength, 0))
         {
-            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
+            for (var i = 0; i < Helpers.getArrayLength(symbols); i++)
             {
                 Object symbol = Helpers.GetValue(symbols, i);
                 if (java.util.Objects.equals(topic, "trades"))

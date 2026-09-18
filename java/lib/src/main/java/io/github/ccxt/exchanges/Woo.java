@@ -2631,7 +2631,7 @@ public class Woo extends WooApi
         String timestrampString = this.safeString(order, "createdTime");
         if (!java.util.Objects.equals(timestrampString, null))
         {
-            if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(timestrampString, "."), 0))
+            if (Helpers.getIndexOf(timestrampString, ".") >= 0)
             {
                 timestamp = this.safeTimestamp(order, "createdTime"); // algo orders
             } else
@@ -2664,7 +2664,7 @@ public class Woo extends WooApi
         Object lastUpdateTimestamp = null;
         if (!java.util.Objects.equals(lastUpdateTimestampString, null))
         {
-            if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(lastUpdateTimestampString, "."), 0))
+            if (Helpers.getIndexOf(lastUpdateTimestampString, ".") >= 0)
             {
                 lastUpdateTimestamp = this.safeTimestamp(order, "updatedTime"); // algo orders
             } else

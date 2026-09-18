@@ -2339,7 +2339,7 @@ public class Dydx extends DydxApi
             {
                 throw new ExchangeError((this.id + " estimateTxFee() missing feeAmount")) ;
             }
-            if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(feeAmount, "."), 0))
+            if (Helpers.getIndexOf(feeAmount, ".") >= 0)
             {
                 feeAmount = this.numberToString(Math.ceil(Double.parseDouble(Helpers.toString(this.parseToNumeric(feeAmount)))));
             }

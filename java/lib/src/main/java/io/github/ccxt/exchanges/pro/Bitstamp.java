@@ -254,7 +254,7 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
 
     public void handleBidAsks(Object bookSide, Object bidAsks)
     {
-        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(bidAsks)); i++)
+        for (var i = 0; i < Helpers.getArrayLength(bidAsks); i++)
         {
             Object bidAsk = this.parseOrderBookBidAsk(Helpers.GetValue(bidAsks, i));
             Helpers.callDynamically(bookSide, "storeArray", new Object[]{bidAsk});
@@ -275,7 +275,7 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
         {
             return Helpers.opNeg(1);
         }
-        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(deltas)); i++)
+        for (var i = 0; i < Helpers.getArrayLength(deltas); i++)
         {
             Object delta = Helpers.GetValue(deltas, i);
             Long deltaNonce = this.safeInteger(delta, "microtimestamp");

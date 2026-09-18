@@ -1489,7 +1489,7 @@ public class Alpaca extends AlpacaApi
             if (!java.util.Objects.equals(triggerPrice, null))
             {
                 Object newType = null;
-                if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(type, "limit"), 0))
+                if (Helpers.getIndexOf(type, "limit") >= 0)
                 {
                     newType = "stop_limit";
                 } else
@@ -1499,7 +1499,7 @@ public class Alpaca extends AlpacaApi
                 ((Map<String, Object>)request).put("stop_price", this.priceToPrecision(symbol, triggerPrice));
                 ((Map<String, Object>)request).put("type", newType);
             }
-            if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(type, "limit"), 0))
+            if (Helpers.getIndexOf(type, "limit") >= 0)
             {
                 ((Map<String, Object>)request).put("limit_price", this.priceToPrecision(symbol, price));
             }
@@ -1953,7 +1953,7 @@ public class Alpaca extends AlpacaApi
         String orderType = this.safeString(order, "order_type");
         if (!java.util.Objects.equals(orderType, null))
         {
-            if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(orderType, "limit"), 0))
+            if (Helpers.getIndexOf(orderType, "limit") >= 0)
             {
                 // might be limit or stop-limit
                 orderType = "limit";
@@ -2753,7 +2753,7 @@ public class Alpaca extends AlpacaApi
                 continue;
             }
             Object baseId = null;
-            if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(positionSymbol, "/"), 0))
+            if (Helpers.getIndexOf(positionSymbol, "/") >= 0)
             {
                 Object parts = Helpers.split(positionSymbol, "/");
                 baseId = this.safeString(parts, 0);

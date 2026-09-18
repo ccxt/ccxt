@@ -311,7 +311,7 @@ public class Hollaex extends io.github.ccxt.exchanges.Hollaex
         }
         Object stored = this.myTrades;
         Map<String, Object> marketIds = new HashMap<String, Object>() {{}};
-        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rawTrades)); i++)
+        for (var i = 0; i < Helpers.getArrayLength(rawTrades); i++)
         {
             Object trade = Helpers.GetValue(rawTrades, i);
             Object parsed = this.parseTrade(trade);

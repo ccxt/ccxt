@@ -538,7 +538,7 @@ public class Independentreserve extends IndependentreserveApi
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", response );
         }};
-        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(response)); i++)
+        for (var i = 0; i < Helpers.getArrayLength(response); i++)
         {
             Object balance = Helpers.GetValue(response, i);
             String currencyId = this.safeString(balance, "CurrencyCode");
@@ -774,17 +774,17 @@ public class Independentreserve extends IndependentreserveApi
         String side = null;
         if (!java.util.Objects.equals(orderType, null))
         {
-            if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(orderType, "Bid"), 0))
+            if (Helpers.getIndexOf(orderType, "Bid") >= 0)
             {
                 side = "buy";
-            } else if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(orderType, "Offer"), 0))
+            } else if (Helpers.getIndexOf(orderType, "Offer") >= 0)
             {
                 side = "sell";
             }
-            if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(orderType, "Market"), 0))
+            if (Helpers.getIndexOf(orderType, "Market") >= 0)
             {
                 orderType = "market";
-            } else if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(orderType, "Limit"), 0))
+            } else if (Helpers.getIndexOf(orderType, "Limit") >= 0)
             {
                 orderType = "limit";
             }
@@ -1047,10 +1047,10 @@ public class Independentreserve extends IndependentreserveApi
         String side = this.safeString(trade, "OrderType");
         if (!java.util.Objects.equals(side, null))
         {
-            if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(side, "Bid"), 0))
+            if (Helpers.getIndexOf(side, "Bid") >= 0)
             {
                 side = "buy";
-            } else if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(side, "Offer"), 0))
+            } else if (Helpers.getIndexOf(side, "Offer") >= 0)
             {
                 side = "sell";
             }

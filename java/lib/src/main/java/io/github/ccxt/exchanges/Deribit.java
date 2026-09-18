@@ -1339,17 +1339,17 @@ public class Deribit extends DeribitApi
                     {
                         throw new ExchangeError((this.id + " method() missing kind")) ;
                     }
-                    Boolean future = !Helpers.isTrue(swap) && (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(kind, "future"), 0));
+                    Boolean future = !Helpers.isTrue(swap) && (Helpers.getIndexOf(kind, "future") >= 0);
                     if (java.util.Objects.equals(kind, null))
                     {
                         throw new ExchangeError((this.id + " method() missing kind")) ;
                     }
-                    Boolean option = (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(kind, "option"), 0));
+                    Boolean option = (Helpers.getIndexOf(kind, "option") >= 0);
                     if (java.util.Objects.equals(kind, null))
                     {
                         throw new ExchangeError((this.id + " method() missing kind")) ;
                     }
-                    Boolean isComboMarket = Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(kind, "combo"), 0);
+                    Boolean isComboMarket = Helpers.getIndexOf(kind, "combo") >= 0;
                     Long expiry = this.safeInteger(market, "expiration_timestamp");
                     Object strike = null;
                     String optionType = null;

@@ -75,7 +75,7 @@ public class TestOrder extends BaseTest {
             }});
             if (!java.util.Objects.equals(((Map<String, Object>)entry).get("trades"), null))
             {
-                for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(((Map<String, Object>)entry).get("trades"))); i++)
+                for (var i = 0; i < Helpers.getArrayLength(((Map<String, Object>)entry).get("trades")); i++)
                 {
                     TestTrade.testTrade(exchange, skippedNew, method, Helpers.GetValue(((Map<String, Object>)entry).get("trades"), i), symbol, now, false);
                 }

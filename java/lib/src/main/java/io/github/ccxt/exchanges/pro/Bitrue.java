@@ -199,7 +199,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
         //     }]
         //
         Helpers.addElementToObject(this.balance, "info", balances);
-        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(balances)); i++)
+        for (var i = 0; i < Helpers.getArrayLength(balances); i++)
         {
             Object balance = Helpers.GetValue(balances, i);
             String currencyId = this.safeString(balance, "a");
@@ -525,7 +525,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
     public Object parseContractBidsAsks(Object bidsAsks, Object symbol)
     {
         List<Object> result = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(bidsAsks)); i++)
+        for (var i = 0; i < Helpers.getArrayLength(bidsAsks); i++)
         {
             Object level = Helpers.GetValue(bidsAsks, i);
             Double price = this.safeNumber(level, 0);

@@ -324,7 +324,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
         Object data = this.safeValue(message, "data", new HashMap<String, Object>() {{}});
         String marketId = this.safeString(data, "s");
         // const marketId = messageHash.split('@')[0];
-        Boolean isSwap = Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(client.url, "swap"), 0);
+        Boolean isSwap = Helpers.getIndexOf(client.url, "swap") >= 0;
         String marketType = ((Helpers.isTrue(isSwap))) ? "swap" : "spot";
         Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, null, null, marketType);
         Object symbol = ((Map<String, Object>)market).get("symbol");
@@ -633,7 +633,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
         Object data = this.safeValue(message, "data", new ArrayList<Object>(Arrays.asList()));
         String rawHash = this.safeString(message, "dataType", "");
         Object marketId = Helpers.GetValue(Helpers.split(rawHash, "@"), 0);
-        Boolean isSwap = Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(client.url, "swap"), 0);
+        Boolean isSwap = Helpers.getIndexOf(client.url, "swap") >= 0;
         String marketType = ((Helpers.isTrue(isSwap))) ? "swap" : "spot";
         Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, null, null, marketType);
         Object symbol = ((Map<String, Object>)market).get("symbol");
@@ -854,7 +854,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
         String firstPart = (String) Helpers.GetValue(parts, 0);
         Boolean isAllEndpoint = (java.util.Objects.equals(firstPart, "all"));
         String marketId = this.safeString(data, "symbol", firstPart);
-        Boolean isSwap = Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(client.url, "swap"), 0);
+        Boolean isSwap = Helpers.getIndexOf(client.url, "swap") >= 0;
         String marketType = ((Helpers.isTrue(isSwap))) ? "swap" : "spot";
         Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, null, null, marketType);
         Object symbol = ((Map<String, Object>)market).get("symbol");
@@ -985,7 +985,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
         //         }
         //     }
         //
-        Boolean isSwap = Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(client.url, "swap"), 0);
+        Boolean isSwap = Helpers.getIndexOf(client.url, "swap") >= 0;
         String dataType = this.safeString(message, "dataType", "");
         Object parts = Helpers.split(dataType, "@");
         String firstPart = (String) Helpers.GetValue(parts, 0);
@@ -2157,27 +2157,27 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
             return;
         }
         String dataType = this.safeString(message, "dataType", "");
-        if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(dataType, "@depth"), 0))
+        if (Helpers.getIndexOf(dataType, "@depth") >= 0)
         {
             this.handleOrderBook(client, message);
             return;
         }
-        if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(dataType, "@ticker"), 0))
+        if (Helpers.getIndexOf(dataType, "@ticker") >= 0)
         {
             this.handleTicker(client, message);
             return;
         }
-        if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(dataType, "@trade"), 0))
+        if (Helpers.getIndexOf(dataType, "@trade") >= 0)
         {
             this.handleTrades(client, message);
             return;
         }
-        if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(dataType, "@kline"), 0))
+        if (Helpers.getIndexOf(dataType, "@kline") >= 0)
         {
             this.handleOHLCV(client, message);
             return;
         }
-        if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(dataType, "executionReport"), 0))
+        if (Helpers.getIndexOf(dataType, "executionReport") >= 0)
         {
             Object data = this.safeValue(message, "data", new HashMap<String, Object>() {{}});
             String type = this.safeString(data, "x");
