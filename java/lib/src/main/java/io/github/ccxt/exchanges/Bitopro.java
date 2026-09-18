@@ -1291,7 +1291,7 @@ public class Bitopro extends BitoproApi
         Object fee = null;
         String feeAmount = this.safeString(order, "fee");
         String feeSymbol = this.safeCurrencyCode(this.safeString(order, "feeSymbol"));
-        if (Helpers.isTrue(Precise.stringGt(feeAmount, "0")))
+        if (Precise.stringGt(feeAmount, "0"))
         {
             fee = new HashMap<String, Object>() {{
                 put( "currency", feeSymbol );

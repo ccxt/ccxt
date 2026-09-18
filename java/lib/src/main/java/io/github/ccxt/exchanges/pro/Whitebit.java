@@ -827,7 +827,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
             unifiedStatus = "open";
         } else
         {
-            if (Helpers.isTrue(Precise.stringEquals(remaining, "0")))
+            if (Precise.stringEquals(remaining, "0"))
             {
                 unifiedStatus = "closed";
             } else

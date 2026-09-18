@@ -522,7 +522,7 @@ public class Upbit extends UpbitApi
             String maxDailyWithdrawal = this.safeString(withdrawLimits, "daily", maxOnetimeWithdrawal);
             String remainingDailyWithdrawal = this.safeString(withdrawLimits, "remaining_daily", maxDailyWithdrawal);
             String maxWithdrawLimit = null;
-            if (Helpers.isTrue(Precise.stringGt(remainingDailyWithdrawal, "0")))
+            if (Precise.stringGt(remainingDailyWithdrawal, "0"))
             {
                 maxWithdrawLimit = remainingDailyWithdrawal;
             } else

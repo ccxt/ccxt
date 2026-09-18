@@ -2122,7 +2122,7 @@ public class Coinsph extends CoinsphApi
         Long timestamp = (Long) this.safeInteger2(order, "time", "transactTime");
         Object trades = this.safeValue(order, "fills");
         String triggerPrice = this.safeString(order, "stopPrice");
-        if (Helpers.isTrue(Precise.stringEq(triggerPrice, "0")))
+        if (Precise.stringEq(triggerPrice, "0"))
         {
             triggerPrice = null;
         }

@@ -2175,7 +2175,7 @@ public class Bitrue extends BitrueApi
         {
             if (java.util.Objects.equals(status, "open"))
             {
-                if (Helpers.isTrue(Precise.stringGt(filled, "0")))
+                if (Precise.stringGt(filled, "0"))
                 {
                     lastTradeTimestamp = this.safeInteger(order, "updateTime");
                 } else
@@ -3911,7 +3911,7 @@ public class Bitrue extends BitrueApi
         {
             // https://github.com/ccxt/ccxt/issues/6501
             // https://github.com/ccxt/ccxt/issues/7742
-            if ((java.util.Objects.equals(error, "200")) || Helpers.isTrue(Precise.stringEquals(error, "0")))
+            if ((java.util.Objects.equals(error, "200")) || Precise.stringEquals(error, "0"))
             {
                 return null;
             }

@@ -1528,7 +1528,7 @@ public class Kraken extends KrakenApi
         String code = this.safeCurrencyCode(currencyId, currency);
         currency = this.safeCurrency(currencyId, currency);
         String amount = this.safeString(item, "amount");
-        if (Helpers.isTrue(Precise.stringLt(amount, "0")))
+        if (Precise.stringLt(amount, "0"))
         {
             direction = "out";
             amount = Precise.stringAbs(amount);
@@ -2458,7 +2458,7 @@ public class Kraken extends KrakenApi
         // const cost = this.safeString (order, 'cost');
         price = this.safeString(description, "price", price);
         // when type = trailing stop returns price = '+50.0000%'
-        if ((!java.util.Objects.equals(price, null)) && (Helpers.isTrue(((String)price).endsWith("%")) || Helpers.isTrue(Precise.stringEquals(price, "0.00000")) || Helpers.isTrue(Precise.stringEquals(price, "0"))))
+        if ((!java.util.Objects.equals(price, null)) && (Helpers.isTrue(((String)price).endsWith("%")) || Precise.stringEquals(price, "0.00000") || Precise.stringEquals(price, "0")))
         {
             price = null; // this is not the price we want
         }

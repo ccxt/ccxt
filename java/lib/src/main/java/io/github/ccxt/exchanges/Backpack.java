@@ -2784,7 +2784,7 @@ public class Backpack extends BackpackApi
         String netCost = this.safeString(position, "netCost");
         Boolean hedged = false;
         String side = "long";
-        if (Helpers.isTrue(Precise.stringLt(netCost, "0")))
+        if (Precise.stringLt(netCost, "0"))
         {
             side = "short";
         }

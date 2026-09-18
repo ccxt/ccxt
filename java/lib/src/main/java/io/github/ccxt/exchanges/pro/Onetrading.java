@@ -1098,7 +1098,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
             symbol = ((Map<String, Object>)previousOrder).get("symbol");
             String filled = this.safeString(update, "filled_amount");
             String status = this.parseWsOrderStatus(updateType);
-            if (java.util.Objects.equals(updateType, "ORDER_CLOSED") && Helpers.isTrue(Precise.stringEq(filled, "0")))
+            if (java.util.Objects.equals(updateType, "ORDER_CLOSED") && Precise.stringEq(filled, "0"))
             {
                 status = "canceled";
             }

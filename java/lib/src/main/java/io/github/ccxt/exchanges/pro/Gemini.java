@@ -610,7 +610,7 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
             String rawSide = this.safeString(entry, "side");
             Double price = this.safeNumber(entry, "price");
             String sizeString = this.safeString(entry, "remaining");
-            if (Helpers.isTrue(Precise.stringEq(sizeString, "0")))
+            if (Precise.stringEq(sizeString, "0"))
             {
                 continue;
             }

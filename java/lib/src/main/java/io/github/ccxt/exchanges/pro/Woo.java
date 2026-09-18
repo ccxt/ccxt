@@ -1392,7 +1392,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
         String priceString = this.safeString(order, "price");
         Object price = this.safeNumber(order, "price");
         Double avgPrice = this.safeNumber(order, "avgPrice");
-        if (Helpers.isTrue(Precise.stringEq(priceString, "0")) && (!java.util.Objects.equals(avgPrice, null)))
+        if (Precise.stringEq(priceString, "0") && (!java.util.Objects.equals(avgPrice, null)))
         {
             price = avgPrice;
         }

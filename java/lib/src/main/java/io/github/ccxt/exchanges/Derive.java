@@ -2948,7 +2948,7 @@ public class Derive extends DeriveApi
         market = this.safeMarket(contract, market);
         String size = this.safeString(position, "amount");
         String side = null;
-        if (Helpers.isTrue(Precise.stringGt(size, "0")))
+        if (Precise.stringGt(size, "0"))
         {
             side = "long";
         } else

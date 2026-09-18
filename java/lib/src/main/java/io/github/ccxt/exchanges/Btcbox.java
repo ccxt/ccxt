@@ -813,7 +813,7 @@ public class Btcbox extends BtcboxApi
         // fetchOrders do not return status, use heuristic
         if (java.util.Objects.equals(status, null))
         {
-            if (Helpers.isTrue(Precise.stringEquals(remaining, "0")))
+            if (Precise.stringEquals(remaining, "0"))
             {
                 status = "closed";
             }

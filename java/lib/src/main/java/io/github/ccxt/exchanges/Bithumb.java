@@ -1107,7 +1107,7 @@ public class Bithumb extends BithumbApi
         {
             String computedChange = Precise.stringSub(close, open);
             // Some v2 payloads return signed_change_price as 0 while open/last imply a non-zero move.
-            if ((!java.util.Objects.equals(change, null)) && Helpers.isTrue(Precise.stringEq(change, "0")) && !Helpers.isTrue(Precise.stringEq(computedChange, "0")))
+            if ((!java.util.Objects.equals(change, null)) && Precise.stringEq(change, "0") && !Precise.stringEq(computedChange, "0"))
             {
                 change = computedChange;
                 percentage = null;
@@ -1116,11 +1116,11 @@ public class Bithumb extends BithumbApi
         String high = this.safeString2(ticker, "max_price", "high_price");
         String low = this.safeString2(ticker, "min_price", "low_price");
         // Some generation 2 ticker payloads can contain inconsistent high/low versus last.
-        if ((!java.util.Objects.equals(close, null)) && (!java.util.Objects.equals(high, null)) && Helpers.isTrue(Precise.stringGt(close, high)))
+        if ((!java.util.Objects.equals(close, null)) && (!java.util.Objects.equals(high, null)) && Precise.stringGt(close, high))
         {
             high = close;
         }
-        if ((!java.util.Objects.equals(close, null)) && (!java.util.Objects.equals(low, null)) && Helpers.isTrue(Precise.stringLt(close, low)))
+        if ((!java.util.Objects.equals(close, null)) && (!java.util.Objects.equals(low, null)) && Precise.stringLt(close, low))
         {
             low = close;
         }
@@ -2596,7 +2596,7 @@ public class Bithumb extends BithumbApi
         String progressCount = this.safeString(order, "progress_count");
         if ((java.util.Objects.equals(type, null)) && (!java.util.Objects.equals(price, null)) && (java.util.Objects.equals(progressCount, null)))
         {
-            if (Helpers.isTrue(Precise.stringEquals(price, "0")))
+            if (Precise.stringEquals(price, "0"))
             {
                 type = "market";
             } else

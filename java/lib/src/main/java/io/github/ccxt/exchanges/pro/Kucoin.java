@@ -2735,7 +2735,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             String costString = Precise.stringAdd(previousCost, matchCost);
             Helpers.addElementToObject(parsed, "cost", this.parseNumber(costString));
             Object filledString = this.numberToString(((Map<String, Object>)parsed).get("filled"));
-            if ((!java.util.Objects.equals(filledString, null)) && Helpers.isTrue((Precise.stringGt(filledString, "0"))))
+            if ((!java.util.Objects.equals(filledString, null)) && (Precise.stringGt(filledString, "0")))
             {
                 Helpers.addElementToObject(parsed, "average", this.parseNumber(Precise.stringDiv(costString, filledString)));
             }
@@ -3781,7 +3781,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
         Long timestamp = this.safeIntegerProduct(position, "O", 0.000001);
         String amountString = this.safeString(position, "q");
         String size = Precise.stringAbs(amountString);
-        String side = ((Helpers.isTrue(Precise.stringGt(amountString, "0")))) ? "long" : "short";
+        String side = ((Precise.stringGt(amountString, "0"))) ? "long" : "short";
         final Object finalMarket = market;
         return this.safePosition(new HashMap<String, Object>() {{
             put( "info", position );

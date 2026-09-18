@@ -1879,7 +1879,7 @@ public class Bitmex extends BitmexApi
         }
         Object before = this.parseNumber(Precise.stringSub(this.numberToString(after), this.numberToString(amount)));
         String direction = null;
-        if (Helpers.isTrue(Precise.stringLt(amountString, "0")))
+        if (Precise.stringLt(amountString, "0"))
         {
             direction = "out";
             amount = this.convertToRealAmount(code, Precise.stringAbs(amountString));
@@ -2456,7 +2456,7 @@ public class Bitmex extends BitmexApi
         String takerOrMaker = null;
         if (!java.util.Objects.equals(feeCostString, null) && java.util.Objects.equals(execType, "Trade"))
         {
-            takerOrMaker = ((Helpers.isTrue(Precise.stringLt(feeCostString, "0")))) ? "maker" : "taker";
+            takerOrMaker = ((Precise.stringLt(feeCostString, "0"))) ? "maker" : "taker";
         }
         String type = this.safeStringLower(trade, "ordType");
         final Object finalTakerOrMaker = takerOrMaker;

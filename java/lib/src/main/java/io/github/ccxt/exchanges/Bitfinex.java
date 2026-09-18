@@ -1571,7 +1571,7 @@ public class Bitfinex extends BitfinexApi
                 Double price = this.safeNumber(order, priceIndex);
                 String signedAmount = this.safeString(order, 2);
                 String amount = Precise.stringAbs(signedAmount);
-                String side = ((Helpers.isTrue(Precise.stringGt(signedAmount, "0")))) ? "bids" : "asks";
+                String side = ((Precise.stringGt(signedAmount, "0"))) ? "bids" : "asks";
                 ((List<Object>)Helpers.GetValue(result, side)).add(new ArrayList<Object>(Arrays.asList(price, this.parseNumber(amount))));
             }
             ((Map<String, Object>)result).put("bids", this.sortBy(((Map<String, Object>)result).get("bids"), 0, true));
@@ -2133,7 +2133,7 @@ public class Bitfinex extends BitfinexApi
         String remaining = Precise.stringAbs(this.safeString(orderList, 6));
         String signedAmount = this.safeString(orderList, 7);
         String amount = Precise.stringAbs(signedAmount);
-        String side = ((Helpers.isTrue(Precise.stringLt(signedAmount, "0")))) ? "sell" : "buy";
+        String side = ((Precise.stringLt(signedAmount, "0"))) ? "sell" : "buy";
         String orderType = this.safeString(orderList, 8);
         String type = this.safeString(this.safeValue(this.options, "exchangeTypes"), orderType);
         String timeInForce = this.parseTimeInForce(orderType);
@@ -3292,7 +3292,7 @@ public class Bitfinex extends BitfinexApi
             amount = Precise.stringAbs(signedAmount);
             if (!java.util.Objects.equals(signedAmount, null))
             {
-                if (Helpers.isTrue(Precise.stringLt(signedAmount, "0")))
+                if (Precise.stringLt(signedAmount, "0"))
                 {
                     type = "withdrawal";
                 } else
@@ -3788,7 +3788,7 @@ public class Bitfinex extends BitfinexApi
             put( "contractSize", null );
             put( "markPrice", null );
             put( "lastPrice", null );
-            put( "side", ((Helpers.isTrue(Precise.stringGt(amount, "0")))) ? "long" : "short" );
+            put( "side", ((Precise.stringGt(amount, "0"))) ? "long" : "short" );
             put( "hedged", null );
             put( "timestamp", timestamp );
             put( "datetime", Bitfinex.this.iso8601(timestamp) );

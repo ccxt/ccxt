@@ -2280,7 +2280,7 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
         String direction = null;
         String afterString = this.safeString(item, "balance");
         String beforeString = Precise.stringSub(afterString, amountString);
-        if (Helpers.isTrue(Precise.stringLt(amountString, "0")))
+        if (Precise.stringLt(amountString, "0"))
         {
             direction = "out";
             amountString = Precise.stringAbs(amountString);

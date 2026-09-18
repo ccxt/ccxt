@@ -1823,7 +1823,7 @@ public class Nado extends NadoApi
                 Object position = Helpers.GetValue(positions, i);
                 Map<String, Object> balance = (Map<String, Object>) this.safeDict(position, "balance", new HashMap<String, Object>() {{}});
                 String amount = this.safeString(balance, "amount");
-                if ((java.util.Objects.equals(amount, null)) || Helpers.isTrue(Precise.stringEquals(amount, "0")))
+                if ((java.util.Objects.equals(amount, null)) || Precise.stringEquals(amount, "0"))
                 {
                     continue;
                 }
@@ -2724,7 +2724,7 @@ public class Nado extends NadoApi
         String side = this.safeString(trade, "trade_type");
         if ((java.util.Objects.equals(side, null)) && (!java.util.Objects.equals(rawOrderAmount, null)))
         {
-            if (Helpers.isTrue(Precise.stringLt(rawOrderAmount, "0")))
+            if (Precise.stringLt(rawOrderAmount, "0"))
             {
                 side = "sell";
             } else
@@ -3146,16 +3146,16 @@ public class Nado extends NadoApi
         Object notional = null;
         if (!java.util.Objects.equals(amountString, null))
         {
-            if (Helpers.isTrue(Precise.stringGt(amountString, "0")))
+            if (Precise.stringGt(amountString, "0"))
             {
                 side = "long";
-            } else if (Helpers.isTrue(Precise.stringLt(amountString, "0")))
+            } else if (Precise.stringLt(amountString, "0"))
             {
                 side = "short";
             }
             String absoluteAmount = Precise.stringAbs(amountString);
             contracts = this.parseX18(absoluteAmount);
-            if ((!java.util.Objects.equals(vQuoteBalance, null)) && !Helpers.isTrue(Precise.stringEquals(absoluteAmount, "0")))
+            if ((!java.util.Objects.equals(vQuoteBalance, null)) && !Precise.stringEquals(absoluteAmount, "0"))
             {
                 entryPrice = this.parseNumber(Precise.stringDiv(Precise.stringAbs(vQuoteBalance), absoluteAmount));
             }
@@ -3305,7 +3305,7 @@ public class Nado extends NadoApi
             String amountString = this.safeString(order, "amount");
             if (!java.util.Objects.equals(amountString, null))
             {
-                side = ((Helpers.isTrue(Precise.stringLt(amountString, "0")))) ? "sell" : "buy";
+                side = ((Precise.stringLt(amountString, "0"))) ? "sell" : "buy";
                 amount = this.parseX18(Precise.stringAbs(amountString));
             }
             filled = this.parseX18(Precise.stringAbs(archiveFilled));
@@ -3348,7 +3348,7 @@ public class Nado extends NadoApi
             String amountString = this.safeString(order, "amount");
             if (!java.util.Objects.equals(amountString, null))
             {
-                side = ((Helpers.isTrue(Precise.stringLt(amountString, "0")))) ? "sell" : "buy";
+                side = ((Precise.stringLt(amountString, "0"))) ? "sell" : "buy";
                 amount = this.parseX18(Precise.stringAbs(amountString));
             }
             String unfilledAmount = this.safeString(order, "unfilled_amount");
@@ -3379,7 +3379,7 @@ public class Nado extends NadoApi
             String amountString = this.safeString(rawOrder, "amount");
             if (!java.util.Objects.equals(amountString, null))
             {
-                side = ((Helpers.isTrue(Precise.stringLt(amountString, "0")))) ? "sell" : "buy";
+                side = ((Precise.stringLt(amountString, "0"))) ? "sell" : "buy";
                 amount = this.parseX18(Precise.stringAbs(amountString));
             }
             Map<String, Object> triggerStatus = (Map<String, Object>) this.safeDict(order, "status");

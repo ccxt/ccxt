@@ -495,7 +495,7 @@ public class Bit2c extends Bit2cApi
             {
                 Object bidRow = Helpers.GetValue(rawBids, i);
                 String bidAmount = this.safeString(bidRow, 1);
-                if (Helpers.isTrue(Precise.stringGt(bidAmount, "0")))
+                if (Precise.stringGt(bidAmount, "0"))
                 {
                     ((List<Object>)bids).add(bidRow);
                 }
@@ -504,7 +504,7 @@ public class Bit2c extends Bit2cApi
             {
                 Object askRow = Helpers.GetValue(rawAsks, i);
                 String askAmount = this.safeString(askRow, 1);
-                if (Helpers.isTrue(Precise.stringGt(askAmount, "0")))
+                if (Precise.stringGt(askAmount, "0"))
                 {
                     ((List<Object>)asks).add(askRow);
                 }

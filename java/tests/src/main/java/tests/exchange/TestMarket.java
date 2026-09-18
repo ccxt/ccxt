@@ -213,7 +213,7 @@ public class TestMarket extends BaseTest {
             // contract size should be defined
             Assert(((Helpers.inOp(skippedProperties, "contractSize")) || !java.util.Objects.equals(contractSize, null)), ("\"contractSize\" must be defined when \"contract\" is true" + logText));
             // contract size should be above zero
-            Assert((Helpers.inOp(skippedProperties, "contractSize")) || Helpers.isTrue(Precise.stringGt(contractSize, "0")), ("\"contractSize\" must be > 0 when \"contract\" is true" + logText));
+            Assert((Helpers.inOp(skippedProperties, "contractSize")) || Precise.stringGt(contractSize, "0"), ("\"contractSize\" must be > 0 when \"contract\" is true" + logText));
             // settle should be defined
             Assert((Helpers.inOp(skippedProperties, "settle")) || (!java.util.Objects.equals(((Map<String, Object>)market).get("settle"), null) && !java.util.Objects.equals(((Map<String, Object>)market).get("settleId"), null)), ("\"settle\" & \"settleId\" must be defined when \"contract\" is true" + logText));
         } else if (!java.util.Objects.equals(contract, true))
