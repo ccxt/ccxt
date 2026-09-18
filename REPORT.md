@@ -176,6 +176,26 @@ hand-written base files; this unit touches only `build/csharp-local-types.js`.
 ## Farm
 
 ```
-(codesha)  ccxt-farm build --targets cs --wait   ->  job=<J1> exit=0   [code tree]
-(final tip) ccxt-farm build --targets cs --wait  ->  job=<J2> exit=0   [REPORT.md-only delta]
+(code sha)  ccxt-farm build --targets cs --wait
+  HEAD f08236b666e855c161274be644c75cca5cfb258c job=703 exit=0 branch_update=unchanged generator=404e9daa7f0ab58d085ed04aaa61a19546dfeda2
+  ccxt-farm status 703 -> state=succeeded exit_code=0 failing_files=[] slot=9
+  branch_update=unchanged is the whole-tree fixed point: the farm's forced regeneration of cs/ is
+  byte-identical to this commit (my scoped regen covered the same tree).
+
+(final tip, REPORT.md-only delta)  ccxt-farm build --targets cs --wait
+  HEAD <TIPSHA> job=<J2> exit=0
 ```
+
+This unit carries two commits — the code+REPORT commit above and one REPORT.md-only tip that records
+its own gate (`git diff <code sha> <tip> --stat` = `REPORT.md` only, so both jobs compile the identical
+cs/ tree); the tip is gated with a second farm job because the sha in the summary must be farm-green.
+
+## Audit tooling
+
+`tools/U20/add-chain-audit.py` (per-site leaf audit; `audit-out.txt` is its output on this diff),
+`tools/U20/cand-rest.txt` / `cand-ws.txt` (the id lists whose forced regen covers every file the rule
+can touch), `tools/U20/ids-{rest,ws,pred}.txt` (full-tree lists), `symbol-add-sites-before.txt` (the 74
+baseline `object symbol = add(` sites). The audit reports `sites=66 flags=38`; every flag is the
+`market` receiver of a `GetValue(market, "id")` read or the `depth` argument of
+`this.numberToString(depth)` — both are call internals, not `+` leaves; no leaf was anything but
+`object` + a `string?` producer, `string` or `string?`.
