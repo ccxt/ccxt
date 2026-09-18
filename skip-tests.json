@@ -2736,5 +2736,13 @@
                 "sideSequence": "todo check, eg https://api.btse.com/public-api/market/v1/trades?symbol=BTC-USDT&limit=500"
             }
         }
+    },
+    "gleec": {
+        "skipMethods": {
+            "loadMarkets": {
+                "markets": ["ICPUSDT_PERP"],
+                "currencyIdAndCode": "ICP currency code is not available in currencies"
+            }
+        }
     }
 }
