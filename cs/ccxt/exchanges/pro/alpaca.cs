@@ -828,7 +828,7 @@ public partial class alpaca : ccxt.alpaca
         if ((T == "success") || (status == "authorized"))
         {
             object promise = getValue(client.futures, "authenticated");
-            callDynamically(promise, "resolve", new object[] {message});
+            (promise as Future).resolve(message);
             return;
         }
         throw new AuthenticationError ((string)(this.id + " failed to authenticate.")) ;

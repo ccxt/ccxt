@@ -2669,7 +2669,7 @@ public partial class htx : ccxt.htx
         //    }
         //
         object promise = getValue(client.futures, "auth");
-        callDynamically(promise, "resolve", new object[] {message});
+        (promise as Future).resolve(message);
     }
 
     public virtual bool? handleErrorMessage(WebSocketClient client, object message)
