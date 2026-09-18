@@ -51,7 +51,7 @@ public partial class bullish : ccxt.bullish
     public virtual Int64 requestId()
     {
         Int64 requestId = this.sum(this.safeInteger(this.options, "requestId", 0), 1);
-        ((IDictionary<string,object>)this.options)["requestId"] = requestId;
+        this.options["requestId"] = requestId;
         return ((Int64)((object)(requestId))!);
     }
 

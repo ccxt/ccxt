@@ -733,7 +733,7 @@ public partial class derive : Exchange
     public override void setSandboxMode(object enable)
     {
         base.setSandboxMode(enable);
-        ((IDictionary<string,object>)this.options)["sandboxMode"] = enable;
+        this.options["sandboxMode"] = enable;
     }
 
     /**
@@ -3189,7 +3189,7 @@ public partial class derive : Exchange
         parameters = derivesubAccountIdparametersVariable[1];
         if (((derivesubAccountId != null)) && (!isEqual(derivesubAccountId, "")))
         {
-            ((IDictionary<string,object>)this.options)["subaccount_id"] = derivesubAccountId; // saving in options
+            this.options["subaccount_id"] = derivesubAccountId; // saving in options
             return new List<object>() {derivesubAccountId, parameters};
         }
         string? optionsWallet = this.safeString(this.options, "subaccount_id");
@@ -3208,7 +3208,7 @@ public partial class derive : Exchange
         parameters = deriveWalletAddressparametersVariable[1];
         if (((deriveWalletAddress != null)) && (!isEqual(deriveWalletAddress, "")))
         {
-            ((IDictionary<string,object>)this.options)["deriveWalletAddress"] = deriveWalletAddress; // saving in options
+            this.options["deriveWalletAddress"] = deriveWalletAddress; // saving in options
             return new List<object>() {deriveWalletAddress, parameters};
         }
         string? optionsWallet = this.safeString(this.options, "deriveWalletAddress");

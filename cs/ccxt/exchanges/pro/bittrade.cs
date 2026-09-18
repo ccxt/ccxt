@@ -45,7 +45,7 @@ public partial class bittrade : ccxt.bittrade
     {
         this.lockId();
         Int64 requestId = this.sum(this.safeInteger(this.options, "requestId", 0), 1);
-        ((IDictionary<string,object>)this.options)["requestId"] = requestId;
+        this.options["requestId"] = requestId;
         this.unlockId();
         return requestId.ToString();
     }

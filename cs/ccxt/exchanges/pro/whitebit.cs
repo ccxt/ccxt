@@ -236,8 +236,8 @@ public partial class whitebit : ccxt.whitebit
             ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = ob;
         }
         ccxt.pro.IOrderBook orderbook = this.getOrderBook(this.orderbooks, symbol);
-        ((IDictionary<string,object>)orderbook)["timestamp"] = timestamp;
-        ((IDictionary<string,object>)orderbook)["datetime"] = this.iso8601(timestamp);
+        orderbook["timestamp"] = timestamp;
+        orderbook["datetime"] = this.iso8601(timestamp);
         if (isEqual(isSnapshot, true))
         {
             Dictionary<string, object> snapshot = this.parseOrderBook(data, symbol);

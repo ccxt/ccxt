@@ -237,12 +237,12 @@ public partial class luno : ccxt.luno
         {
             ccxt.pro.IOrderBook ob = this.getOrderBook(this.orderbooks, symbol);
             this.handleDelta(ob, message);
-            ((IDictionary<string,object>)ob)["timestamp"] = timestamp;
-            ((IDictionary<string,object>)ob)["datetime"] = this.iso8601(timestamp);
+            ob["timestamp"] = timestamp;
+            ob["datetime"] = this.iso8601(timestamp);
         }
         ccxt.pro.IOrderBook orderbook = this.getOrderBook(this.orderbooks, symbol);
         Int64? nonce = this.safeInteger(message, "sequence");
-        ((IDictionary<string,object>)orderbook)["nonce"] = nonce;
+        orderbook["nonce"] = nonce;
         callDynamically(client, "resolve", new object[] {orderbook, messageHash});
     }
 

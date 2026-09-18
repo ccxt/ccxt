@@ -2598,7 +2598,7 @@ public partial class bullish : Exchange
         {
             throw new ArgumentsRequired (add(this.id, " loadAccount() requires a tradingAccountId parameter in options[\"tradingAccountId\"] or params[\"tradingAccountId\"], fetchAccounts() was not able to find the Primary account")) ;
         }
-        ((IDictionary<string,object>)this.options)["tradingAccountId"] = tradingAccountId;
+        this.options["tradingAccountId"] = tradingAccountId;
         return tradingAccountId;
     }
 
@@ -3444,9 +3444,9 @@ public partial class bullish : Exchange
         //
         string? token = this.safeString(response, "token");
         string? authorizer = this.safeString(response, "authorizer");
-        ((IDictionary<string,object>)this.options)["authorizer"] = authorizer;
+        this.options["authorizer"] = authorizer;
         this.token = ((string)token);
-        ((IDictionary<string,object>)this.options)["tokenExpires"] = this.sum(this.milliseconds(), multiply(multiply(multiply(1000, 60), 60), 24)); // token expires in 24 hours
+        this.options["tokenExpires"] = this.sum(this.milliseconds(), multiply(multiply(multiply(1000, 60), 60), 24)); // token expires in 24 hours
         return ((string)token);
     }
 

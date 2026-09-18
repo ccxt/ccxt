@@ -305,7 +305,7 @@ public partial class apex : ccxt.apex
         {
             string timeStamp = this.milliseconds().ToString();
             url = add(add(getValue(getValue(getValue(this.urls, "api"), "ws"), "public"), "&timestamp="), timeStamp);
-            ((IDictionary<string,object>)this.options)["wsPublicUrl"] = url;
+            this.options["wsPublicUrl"] = url;
         }
         return ((string?)((object)(url)));
     }
@@ -317,7 +317,7 @@ public partial class apex : ccxt.apex
         {
             string timeStamp = this.milliseconds().ToString();
             url = add(add(getValue(getValue(getValue(this.urls, "api"), "ws"), "private"), "&timestamp="), timeStamp);
-            ((IDictionary<string,object>)this.options)["wsPrivateUrl"] = url;
+            this.options["wsPrivateUrl"] = url;
         }
         return ((string?)((object)(url)));
     }
@@ -379,8 +379,8 @@ public partial class apex : ccxt.apex
             List<object> bids = this.safeList(data, "b", new List<object>() {});
             this.handleDeltas(getValue(orderbook, "asks"), asks);
             this.handleDeltas(getValue(orderbook, "bids"), bids);
-            ((IDictionary<string,object>)orderbook)["timestamp"] = timestamp;
-            ((IDictionary<string,object>)orderbook)["datetime"] = this.iso8601(timestamp);
+            orderbook["timestamp"] = timestamp;
+            orderbook["datetime"] = this.iso8601(timestamp);
         }
         string messageHash = add(add("orderbook", ":"), symbol);
         ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = orderbook;

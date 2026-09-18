@@ -1473,7 +1473,7 @@ public partial class kalshi : PredictionExchange
         }
         // kalshi candles carry only the period-END timestamp; thread the candle duration through so
         // parseOHLCV can stamp each candle at its OPEN (the CCXT convention)
-        ((IDictionary<string,object>)this.options)["ohlcvCandleDurationSeconds"] = tf;
+        this.options["ohlcvCandleDurationSeconds"] = tf;
         return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(usableCandles, ((object)outcomeObj),((string)timeframeVar), since, limit));
     }
 

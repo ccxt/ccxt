@@ -766,15 +766,15 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         {
             Dictionary<string, object> parsedSnapshot = this.parseOrderBook(message, symbol, null, "bids", "asks");
             (orderbook as IOrderBook).reset(parsedSnapshot);
-            ((IDictionary<string,object>)orderbook)["symbol"] = symbol;
+            orderbook["symbol"] = symbol;
         } else
         {
             List<object> changes = this.safeList(message, "changes", new List<object>() {});
             this.handleDeltas(orderbook, changes);
         }
-        ((IDictionary<string,object>)orderbook)["nonce"] = this.safeInteger(message, "sequence");
-        ((IDictionary<string,object>)orderbook)["datetime"] = datetime;
-        ((IDictionary<string,object>)orderbook)["timestamp"] = this.parse8601(datetime);
+        orderbook["nonce"] = this.safeInteger(message, "sequence");
+        orderbook["datetime"] = datetime;
+        orderbook["timestamp"] = this.parse8601(datetime);
         ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = orderbook;
         callDynamically(client, "resolve", new object[] {orderbook, add(add(channel, "::"), symbol)});
     }

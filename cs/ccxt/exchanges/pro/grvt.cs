@@ -130,7 +130,7 @@ public partial class grvt : ccxt.grvt
     {
         this.lockId();
         Int64 newValue = this.sum(this.safeInteger(this.options, "requestId", 0), 1);
-        ((IDictionary<string,object>)this.options)["requestId"] = newValue;
+        this.options["requestId"] = newValue;
         this.unlockId();
         return ((Int64)((object)(newValue))!);
     }
@@ -677,8 +677,8 @@ public partial class grvt : ccxt.grvt
             List<object> bids = this.safeList(data, "bids", new List<object>() {});
             this.handleDeltasWithKeys(getValue(orderbook, "asks"), asks, "price", "size");
             this.handleDeltasWithKeys(getValue(orderbook, "bids"), bids, "price", "size");
-            ((IDictionary<string,object>)orderbook)["timestamp"] = timestamp;
-            ((IDictionary<string,object>)orderbook)["datetime"] = this.iso8601(timestamp);
+            orderbook["timestamp"] = timestamp;
+            orderbook["datetime"] = this.iso8601(timestamp);
         }
         // grvt defaults to the delta channel (v1.book.d); if the very first
         // message is a delta, the freshly-created orderbook has symbol=null
@@ -687,8 +687,8 @@ public partial class grvt : ccxt.grvt
         // typed WsOrderBook surfaces this as `"symbol":null` in the output;
         // Python/JS dict-backed orderbooks happen to mask it but the
         // unconditional assignment is correct for every language.
-        ((IDictionary<string,object>)orderbook)["symbol"] = symbol;
-        ((IDictionary<string,object>)orderbook)["nonce"] = sequenceNumber;
+        orderbook["symbol"] = symbol;
+        orderbook["nonce"] = sequenceNumber;
         string messageHash = add("orderbook::", symbol);
         ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = orderbook;
         callDynamically(client, "resolve", new object[] {orderbook, messageHash});

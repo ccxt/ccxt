@@ -68,7 +68,7 @@ public partial class deribit : ccxt.deribit
     public virtual Int64 requestId()
     {
         Int64 requestId = this.sum(this.safeInteger(this.options, "requestId", 0), 1);
-        ((IDictionary<string,object>)this.options)["requestId"] = requestId;
+        this.options["requestId"] = requestId;
         return ((Int64)((object)(requestId))!);
     }
 
@@ -724,10 +724,10 @@ public partial class deribit : ccxt.deribit
         List<object> bids = this.safeList(data, "bids", new List<object>() {});
         this.handleDeltas(getValue(storedOrderBook, "asks"), asks);
         this.handleDeltas(getValue(storedOrderBook, "bids"), bids);
-        ((IDictionary<string,object>)storedOrderBook)["nonce"] = timestamp;
-        ((IDictionary<string,object>)storedOrderBook)["timestamp"] = timestamp;
-        ((IDictionary<string,object>)storedOrderBook)["datetime"] = this.iso8601(timestamp);
-        ((IDictionary<string,object>)storedOrderBook)["symbol"] = symbol;
+        storedOrderBook["nonce"] = timestamp;
+        storedOrderBook["timestamp"] = timestamp;
+        storedOrderBook["datetime"] = this.iso8601(timestamp);
+        storedOrderBook["symbol"] = symbol;
         ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = storedOrderBook;
         string messageHash = add(add(add("book|", symbol), "|"), descriptor);
         callDynamically(client, "resolve", new object[] {storedOrderBook, messageHash});

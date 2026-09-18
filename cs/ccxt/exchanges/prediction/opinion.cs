@@ -976,7 +976,7 @@ public partial class opinion : PredictionExchange
                 quoteTokens[(string)address] = entry;
             }
         }
-        ((IDictionary<string,object>)this.options)["quoteTokens"] = quoteTokens;
+        this.options["quoteTokens"] = quoteTokens;
         IDictionary<string, object> quoteToken = this.safeDict(quoteTokens, cacheKey);
         if ((quoteToken == null))
         {
@@ -1003,7 +1003,7 @@ public partial class opinion : PredictionExchange
         IDictionary<string, object> result = this.safeDict(response, "result", new Dictionary<string, object>() {});
         IDictionary<string, object> walletUsers = this.safeDict(result, "walletUsers", new Dictionary<string, object>() {});
         string? multiSignAddress = this.safeString(walletUsers, "56", this.walletAddress);
-        ((IDictionary<string,object>)this.options)["multiSignAddress"] = multiSignAddress;
+        this.options["multiSignAddress"] = multiSignAddress;
         return multiSignAddress;
     }
 
@@ -1511,7 +1511,7 @@ public partial class opinion : PredictionExchange
         ((IDictionary<string,object>)this.markets)[(string)marketHandle] = market;
         this.indexMarketOutcomes(market);
         cached[(string)idStr] = market;
-        ((IDictionary<string,object>)this.options)[cacheKey] = cached;
+        this.options[cacheKey] = cached;
         return market;
     }
 
@@ -1794,7 +1794,7 @@ public partial class opinion : PredictionExchange
     {
         parameters ??= new Dictionary<string, object>();
         object response = await this.opinionPrivateDeleteAuthApiKey(parameters);
-        ((IDictionary<string,object>)this.options)["apiKey"] = null;
+        this.options["apiKey"] = null;
         // sign() prefers this.apiKey over options['apiKey'] - clear it too, or a directly-set
         // exchange.apiKey would keep being used for private calls after the key is revoked.
         // an empty string, not undefined: the strict base types the credential as string, and
@@ -1850,7 +1850,7 @@ public partial class opinion : PredictionExchange
             { "apiKey", this.safeString(response, "apiKey") },
             { "walletAddress", this.safeString(response, "walletAddress") },
         };
-        ((IDictionary<string,object>)this.options)["apiKey"] = ((IDictionary<string,object>)creds)["apiKey"];
+        this.options["apiKey"] = ((IDictionary<string,object>)creds)["apiKey"];
         // checkRequiredCredentials() (called by createOrder()) checks this.apiKey, not
         // options['apiKey'] - keep both in sync, same as deleteApiKey() clearing both
         this.apiKey = ((string)((IDictionary<string,object>)creds)["apiKey"]);
@@ -2049,8 +2049,8 @@ public partial class opinion : PredictionExchange
         double? size = this.safeNumber(message, "size");
         (bookSide as IOrderBookSide).storeArray(new List<object>() {price, size});
         Int64 now = this.milliseconds();
-        ((IDictionary<string,object>)orderbook)["timestamp"] = now;
-        ((IDictionary<string,object>)orderbook)["datetime"] = this.iso8601(now);
+        orderbook["timestamp"] = now;
+        orderbook["datetime"] = this.iso8601(now);
         callDynamically(client, "resolve", new object[] {orderbook, add("orderbook::", sym)});
     }
 

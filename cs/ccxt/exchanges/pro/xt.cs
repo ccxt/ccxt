@@ -1366,10 +1366,10 @@ public partial class xt : ccxt.xt
                 }
             }
             Int64? timestamp = this.safeInteger(data, "t");
-            ((IDictionary<string,object>)orderbook)["nonce"] = this.safeInteger2(data, "i", "u");
-            ((IDictionary<string,object>)orderbook)["timestamp"] = timestamp;
-            ((IDictionary<string,object>)orderbook)["datetime"] = this.iso8601(timestamp);
-            ((IDictionary<string,object>)orderbook)["symbol"] = symbol;
+            orderbook["nonce"] = this.safeInteger2(data, "i", "u");
+            orderbook["timestamp"] = timestamp;
+            orderbook["datetime"] = this.iso8601(timestamp);
+            orderbook["symbol"] = symbol;
             callDynamically(client, "resolve", new object[] {orderbook, messageHash});
         }
     }

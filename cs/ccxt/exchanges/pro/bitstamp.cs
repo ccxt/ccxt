@@ -1127,9 +1127,9 @@ public partial class bitstamp : ccxt.bitstamp
                 }
                 string? userId = this.safeString(response, "user_id");
                 Int64? validity = this.safeIntegerProduct(response, "valid_sec", 1000);
-                ((IDictionary<string,object>)this.options)["expiresIn"] = this.sum(time, validity);
-                ((IDictionary<string,object>)this.options)["userId"] = userId;
-                ((IDictionary<string,object>)this.options)["wsSessionToken"] = sessionToken;
+                this.options["expiresIn"] = this.sum(time, validity);
+                this.options["userId"] = userId;
+                this.options["wsSessionToken"] = sessionToken;
                 // settle the flight: client.resolve deletes the future from
                 // client.futures and wakes every waiter parked on it
                 callDynamically(client, "resolve", new object[] {sessionToken, messageHash});

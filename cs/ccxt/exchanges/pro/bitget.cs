@@ -556,7 +556,7 @@ public partial class bitget : ccxt.bitget
     {
         object symbolVar = symbol;
         object timeframeVar = timeframe;
-        Int64? limitVar = limit;
+        object limitVar = limit;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
@@ -597,7 +597,7 @@ public partial class bitget : ccxt.bitget
         object ohlcv = await this.watchPublic(uta, messageHash, args, parameters);
         if (isTrue(this.newUpdates))
         {
-            limitVar = ((Int64?)callDynamically(ohlcv, "getLimit", new object[] {symbolVar, limitVar}));
+            limitVar = callDynamically(ohlcv, "getLimit", new object[] {symbolVar, limitVar});
         }
         return ccxt.BaseExchange.ToOHLCVList(this.filterBySinceLimit(ohlcv, since, limitVar, 0, true));
     }
@@ -1019,7 +1019,7 @@ public partial class bitget : ccxt.bitget
             {
                 // const ob = this.orderBook ({});
                 ccxt.pro.CountedOrderBook ob = this.countedOrderBook(new Dictionary<string, object>() {});
-                ((IDictionary<string,object>)ob)["symbol"] = symbol;
+                ob["symbol"] = symbol;
                 ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = ob;
             }
             ccxt.pro.IOrderBook storedOrderBook = this.getOrderBook(this.orderbooks, symbol);
@@ -1027,9 +1027,9 @@ public partial class bitget : ccxt.bitget
             List<object> bids = this.safeList2(rawOrderBook, "bids", "b", new List<object>() {});
             this.handleDeltas(getValue(storedOrderBook, "asks"), asks);
             this.handleDeltas(getValue(storedOrderBook, "bids"), bids);
-            ((IDictionary<string,object>)storedOrderBook)["timestamp"] = timestamp;
-            ((IDictionary<string,object>)storedOrderBook)["datetime"] = this.iso8601(timestamp);
-            bool checksum = ((bool)this.handleOption("watchOrderBook", "checksum", true));
+            storedOrderBook["timestamp"] = timestamp;
+            storedOrderBook["datetime"] = this.iso8601(timestamp);
+            object checksum = this.handleOption("watchOrderBook", "checksum", true);
             bool isSnapshot = (this.safeString(message, "action") == "snapshot"); // snapshot does not have a checksum
             // UTA order books do not provide a crc32 checksum (they rely on seq/pseq for integrity),
             // so only validate the checksum when the exchange actually sends one
@@ -1149,7 +1149,7 @@ public partial class bitget : ccxt.bitget
      */
     public async override Task<List<ccxt.Trade>> WatchTradesForSymbols(object symbols, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        Int64? limitVar = limit;
+        object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         int symbolsLength = getArrayLength(symbols);
         if ((symbolsLength == 0))
@@ -1196,7 +1196,7 @@ public partial class bitget : ccxt.bitget
         {
             object first = this.safeValue(trades, 0);
             string? tradeSymbol = this.safeString(first, "symbol");
-            limitVar = ((Int64?)callDynamically(trades, "getLimit", new object[] {tradeSymbol, limitVar}));
+            limitVar = callDynamically(trades, "getLimit", new object[] {tradeSymbol, limitVar});
         }
         IList<object> result = this.filterBySinceLimit(trades, since, limitVar, "timestamp", true);
         if (isEqual(this.handleOption("watchTrades", "ignoreDuplicates", true), true))
@@ -1673,7 +1673,7 @@ public partial class bitget : ccxt.bitget
         //
         string? marketId = this.safeString2(position, "instId", "symbol");
         string? marginModeId = this.safeString(position, "marginMode");
-        string marginMode = this.getSupportedMapping(marginModeId, new Dictionary<string, object>() {
+        object marginMode = this.getSupportedMapping(marginModeId, new Dictionary<string, object>() {
             { "crossed", "cross" },
             { "isolated", "isolated" },
         });
@@ -1739,7 +1739,7 @@ public partial class bitget : ccxt.bitget
     public async override Task<List<ccxt.Order>> WatchOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         object symbolVar = symbol;
-        Int64? limitVar = limit;
+        object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
         {
@@ -1849,7 +1849,7 @@ public partial class bitget : ccxt.bitget
         object orders = await this.watchPrivate(uta, messageHash, subscriptionHash, args, parameters);
         if (isTrue(this.newUpdates))
         {
-            limitVar = ((Int64?)callDynamically(orders, "getLimit", new object[] {symbolVar, limitVar}));
+            limitVar = callDynamically(orders, "getLimit", new object[] {symbolVar, limitVar});
         }
         return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(orders, symbolVar, since, limitVar, true));
     }
@@ -2326,7 +2326,7 @@ public partial class bitget : ccxt.bitget
     public async override Task<List<ccxt.Trade>> WatchMyTrades(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         object symbolVar = symbol;
-        Int64? limitVar = limit;
+        object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
         {
@@ -2380,7 +2380,7 @@ public partial class bitget : ccxt.bitget
         object trades = await this.watchPrivate(uta, messageHash, subscriptionHash, args, parameters);
         if (isTrue(this.newUpdates))
         {
-            limitVar = ((Int64?)callDynamically(trades, "getLimit", new object[] {symbolVar, limitVar}));
+            limitVar = callDynamically(trades, "getLimit", new object[] {symbolVar, limitVar});
         }
         return ccxt.BaseExchange.ToTradeList(this.filterBySymbolSinceLimit(trades, symbolVar, since, limitVar, true));
     }
@@ -2911,7 +2911,7 @@ public partial class bitget : ccxt.bitget
         //  { event: "login", code: 0 }
         //
         string messageHash = "authenticated";
-        Future future = ((Future)this.safeValue(client.futures, messageHash));
+        var future = this.safeValue(client.futures, messageHash);
         (future as Future).resolve(true);
     }
 

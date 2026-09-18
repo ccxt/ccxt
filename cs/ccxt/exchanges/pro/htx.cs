@@ -135,7 +135,7 @@ public partial class htx : ccxt.htx
     {
         this.lockId();
         Int64 requestId = this.sum(this.safeInteger(this.options, "requestId", 0), 1);
-        ((IDictionary<string,object>)this.options)["requestId"] = requestId;
+        this.options["requestId"] = requestId;
         this.unlockId();
         return requestId.ToString();
     }
@@ -825,7 +825,7 @@ public partial class htx : ccxt.htx
         {
             Dictionary<string, object> snapshot = this.parseOrderBook(tick, symbol, timestamp);
             (orderbook as IOrderBook).reset(snapshot);
-            ((IDictionary<string,object>)orderbook)["nonce"] = version;
+            orderbook["nonce"] = version;
         }
         if ((!isEqual(prevSeqNum, null)) && isGreaterThan(prevSeqNum, this.safeInteger(orderbook, "nonce", 0)))
         {
@@ -843,9 +843,9 @@ public partial class htx : ccxt.htx
             object bids = this.safeValue(tick, "bids", new List<object>() {});
             this.handleDeltas(getValue(orderbook, "asks"), asks);
             this.handleDeltas(getValue(orderbook, "bids"), bids);
-            ((IDictionary<string,object>)orderbook)["nonce"] = ((spotConditon == true)) ? seqNum : version;
-            ((IDictionary<string,object>)orderbook)["timestamp"] = timestamp;
-            ((IDictionary<string,object>)orderbook)["datetime"] = this.iso8601(timestamp);
+            orderbook["nonce"] = ((spotConditon == true)) ? seqNum : version;
+            orderbook["timestamp"] = timestamp;
+            orderbook["datetime"] = this.iso8601(timestamp);
         }
     }
 

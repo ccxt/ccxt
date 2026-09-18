@@ -2819,7 +2819,7 @@ public partial class htx : Exchange
         // - market-id from fetchTciker[s]: `BTC-USDT-CW`     (linear future) or `BTC_CW`    (inverse future)
         if (!(this.options.ContainsKey("futureMarketIdsForSymbols")))
         {
-            ((IDictionary<string,object>)this.options)["futureMarketIdsForSymbols"] = new Dictionary<string, object>() {};
+            this.options["futureMarketIdsForSymbols"] = new Dictionary<string, object>() {};
         }
         IDictionary<string, object> futureMarketIdsForSymbols = this.safeDict(this.options, "futureMarketIdsForSymbols", new Dictionary<string, object>() {});
         if (inOp(futureMarketIdsForSymbols, symbolOrMarketId))
@@ -4262,8 +4262,8 @@ public partial class htx : Exchange
         //    }
         //
         List<object> data = this.safeList(response, "data", new List<object>() {});
-        ((IDictionary<string,object>)this.options)["networkNamesByChainIds"] = new Dictionary<string, object>() {};
-        ((IDictionary<string,object>)this.options)["networkChainIdsByNames"] = new Dictionary<string, object>() {};
+        this.options["networkNamesByChainIds"] = new Dictionary<string, object>() {};
+        this.options["networkChainIdsByNames"] = new Dictionary<string, object>() {};
         return this.parseCurrencies(data);
     }
 
@@ -4271,11 +4271,11 @@ public partial class htx : Exchange
     {
         if (!(this.options.ContainsKey("networkNamesByChainIds")))
         {
-            ((IDictionary<string,object>)this.options)["networkNamesByChainIds"] = new Dictionary<string, object>() {};
+            this.options["networkNamesByChainIds"] = new Dictionary<string, object>() {};
         }
         if (!(this.options.ContainsKey("networkChainIdsByNames")))
         {
-            ((IDictionary<string,object>)this.options)["networkChainIdsByNames"] = new Dictionary<string, object>() {};
+            this.options["networkChainIdsByNames"] = new Dictionary<string, object>() {};
         }
         string? currencyId = this.safeString(rawCurrency, "currency");
         string? code = this.safeCurrencyCode(currencyId);

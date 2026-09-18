@@ -2707,7 +2707,7 @@ public partial class kucoin : Exchange
         if (!(this.options.ContainsKey("hf")) || (isEqual(getValue(this.options, "hf"), null)) || isTrue(force))
         {
             Dictionary<string, object> result = await this.privateGetHfAccountsOpened();
-            ((IDictionary<string,object>)this.options)["hf"] = this.safeBool(result, "data");
+            this.options["hf"] = this.safeBool(result, "data");
         }
         return true;
     }
@@ -13188,7 +13188,7 @@ public partial class kucoin : Exchange
             IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
             string? accountMode = this.safeString(data, "selfAccountMode");
             uta = (accountMode == "UNIFIED");
-            ((IDictionary<string,object>)this.options)["uta"] = uta;
+            this.options["uta"] = uta;
         }
         return ((bool)((object)(uta))!);
     }

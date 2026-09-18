@@ -103,9 +103,9 @@ public partial class krakenfutures : ccxt.krakenfutures
     public async override Task<ccxt.pro.IOrderBook> WatchOrderBookForSymbols(object symbols, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        ccxt.pro.IOrderBook orderbook = ((ccxt.pro.IOrderBook)await this.watchMultiHelper("orderbook", "book", symbols, new Dictionary<string, object>() {
+        object orderbook = await this.watchMultiHelper("orderbook", "book", symbols, new Dictionary<string, object>() {
             { "limit", limit },
-        }, parameters));
+        }, parameters);
         return ccxt.BaseExchange.ToOrderBookSnapshot((orderbook as IOrderBook).limit());
     }
 
@@ -199,7 +199,7 @@ public partial class krakenfutures : ccxt.krakenfutures
             await this.loadMarkets();
         }
         symbolVar = this.symbol(symbolVar);
-        Dictionary<string, object> tickers = ccxt.BaseExchange.FromTickers(await this.WatchTickers(new List<object>() {symbolVar}, parameters));
+        object tickers = ccxt.BaseExchange.FromTickers(await this.WatchTickers(new List<object>() {symbolVar}, parameters));
         return ccxt.BaseExchange.ToTicker(getValue(tickers, symbolVar));
     }
 
@@ -282,14 +282,14 @@ public partial class krakenfutures : ccxt.krakenfutures
      */
     public async override Task<List<ccxt.Trade>> WatchTradesForSymbols(object symbols, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        Int64? limitVar = limit;
+        object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         object trades = await this.watchMultiHelper("trade", "trade", symbols, null, parameters);
         if (isTrue(this.newUpdates))
         {
             List<object> first = this.safeList(trades, 0);
             string? tradeSymbol = this.safeString(first, "symbol");
-            limitVar = ((Int64?)callDynamically(trades, "getLimit", new object[] {tradeSymbol, limitVar}));
+            limitVar = callDynamically(trades, "getLimit", new object[] {tradeSymbol, limitVar});
         }
         return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitVar, "timestamp", true));
     }
@@ -378,7 +378,7 @@ public partial class krakenfutures : ccxt.krakenfutures
             // https://github.com/ccxt/ccxt/issues/29709
             this.positions = new ArrayCacheBySymbolBySide();
         }
-        ccxt.pro.ArrayCache cache = ((ccxt.pro.ArrayCache)this.positions);
+        object cache = this.positions;
         List<object> rawPositions = this.safeList(message, "positions");
         if ((rawPositions == null))
         {
@@ -405,7 +405,7 @@ public partial class krakenfutures : ccxt.krakenfutures
             List<object> parts = messageHash.Split(new [] {"::"}, StringSplitOptions.None).ToList<object>();
             string? symbolsString = ((string)getValue(parts, 1));
             List<object> symbols = symbolsString.Split(new [] {","}, StringSplitOptions.None).ToList<object>();
-            IList<object> positions = ((IList<object>)this.filterByArray(newPositions, "symbol", symbols, false));
+            object positions = this.filterByArray(newPositions, "symbol", symbols, false);
             if (!isTrue(this.isEmpty(positions)))
             {
                 callDynamically(client, "resolve", new object[] {positions, messageHash});
@@ -487,7 +487,7 @@ public partial class krakenfutures : ccxt.krakenfutures
      */
     public async override Task<List<ccxt.Order>> WatchOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        Int64? limitVar = limit;
+        object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
         {
@@ -522,7 +522,7 @@ public partial class krakenfutures : ccxt.krakenfutures
         object orders = await this.subscribePrivate(name, messageHash, parameters);
         if (isTrue(this.newUpdates))
         {
-            limitVar = ((Int64?)callDynamically(orders, "getLimit", new object[] {symbol, limitVar}));
+            limitVar = callDynamically(orders, "getLimit", new object[] {symbol, limitVar});
         }
         return ccxt.BaseExchange.ToOrderList(this.filterBySinceLimit(orders, since, limitVar, "timestamp", true));
     }
@@ -540,7 +540,7 @@ public partial class krakenfutures : ccxt.krakenfutures
      */
     public async override Task<List<ccxt.Trade>> WatchMyTrades(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        Int64? limitVar = limit;
+        object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
         {
@@ -556,7 +556,7 @@ public partial class krakenfutures : ccxt.krakenfutures
         object trades = await this.subscribePrivate(name, messageHash, parameters);
         if (isTrue(this.newUpdates))
         {
-            limitVar = ((Int64?)callDynamically(trades, "getLimit", new object[] {symbol, limitVar}));
+            limitVar = callDynamically(trades, "getLimit", new object[] {symbol, limitVar});
         }
         return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitVar, "timestamp", true));
     }
@@ -644,7 +644,7 @@ public partial class krakenfutures : ccxt.krakenfutures
                 Int64? tradesLimit = this.safeInteger(this.options, "tradesLimit", 1000);
                 ((IDictionary<string,object>)this.trades)[(string)symbol] = new ArrayCache(tradesLimit);
             }
-            ccxt.pro.ArrayCache tradesArray = ((ccxt.pro.ArrayCache)getValue(this.trades, symbol));
+            object tradesArray = getValue(this.trades, symbol);
             if (channel == "trade_snapshot")
             {
                 List<object> trades = this.safeList(message, "trades", new List<object>() {});
@@ -1027,7 +1027,7 @@ public partial class krakenfutures : ccxt.krakenfutures
         {
             object order = getValue(orders, i);
             Dictionary<string, object> parsed = this.parseWsOrder(order);
-            string? symbol = ((string)GetValue(parsed, "symbol"));
+            object symbol = GetValue(parsed, "symbol");
             if ((symbol != null))
             {
                 symbols[(string)symbol] = true;
@@ -1169,7 +1169,7 @@ public partial class krakenfutures : ccxt.krakenfutures
         if ((marketId != null))
         {
             Dictionary<string, object> ticker = this.parseWsTicker(message);
-            string? symbol = ((string)GetValue(ticker, "symbol"));
+            object symbol = GetValue(ticker, "symbol");
             if ((symbol != null))
             {
                 ((IDictionary<string,object>)this.tickers)[(string)symbol] = ticker;
@@ -1201,7 +1201,7 @@ public partial class krakenfutures : ccxt.krakenfutures
         if ((marketId != null))
         {
             Dictionary<string, object> ticker = this.parseWsTicker(message);
-            string? symbol = ((string)GetValue(ticker, "symbol"));
+            object symbol = GetValue(ticker, "symbol");
             if ((symbol != null))
             {
                 ((IDictionary<string,object>)this.bidsasks)[(string)symbol] = ticker;
@@ -1264,7 +1264,7 @@ public partial class krakenfutures : ccxt.krakenfutures
         string? marketId = this.safeString(ticker, "product_id");
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
         market = marketResolved;
-        string? symbol = ((string)GetValue(marketResolved, "symbol"));
+        object symbol = GetValue(marketResolved, "symbol");
         Int64? timestamp = this.parse8601(this.safeString(ticker, "lastTime"));
         string? last = this.safeString(ticker, "last");
         return this.safeTicker(new Dictionary<string, object>() {
@@ -1359,9 +1359,9 @@ public partial class krakenfutures : ccxt.krakenfutures
             object asksSide = getValue(orderbook, "asks");
             (asksSide as IOrderBookSide).store(price, qty);
         }
-        ((IDictionary<string,object>)orderbook)["timestamp"] = timestamp;
-        ((IDictionary<string,object>)orderbook)["datetime"] = this.iso8601(timestamp);
-        ((IDictionary<string,object>)orderbook)["symbol"] = symbol;
+        orderbook["timestamp"] = timestamp;
+        orderbook["datetime"] = this.iso8601(timestamp);
+        orderbook["symbol"] = symbol;
         callDynamically(client, "resolve", new object[] {orderbook, messageHash});
     }
 
@@ -1396,8 +1396,8 @@ public partial class krakenfutures : ccxt.krakenfutures
             object bids = getValue(orderbook, "bids");
             (bids as IOrderBookSide).store(price, qty);
         }
-        ((IDictionary<string,object>)orderbook)["timestamp"] = timestamp;
-        ((IDictionary<string,object>)orderbook)["datetime"] = this.iso8601(timestamp);
+        orderbook["timestamp"] = timestamp;
+        orderbook["datetime"] = this.iso8601(timestamp);
         callDynamically(client, "resolve", new object[] {orderbook, messageHash});
     }
 
@@ -1862,7 +1862,7 @@ public partial class krakenfutures : ccxt.krakenfutures
                 { "balances_snapshot", this.handleBalance },
                 { "open_positions", this.handlePositions },
             };
-            Delegate method = ((Delegate)this.safeValue(methods, feed));
+            object method = this.safeValue(methods, feed);
             if ((method != null))
             {
                 DynamicInvoker.InvokeMethod(method, new object[] { client, message});
@@ -1888,12 +1888,12 @@ public partial class krakenfutures : ccxt.krakenfutures
         if (!isEqual(eventVar, "error"))
         {
             object challenge = this.safeValue(message, "message");
-            byte[] hashedChallenge = ((byte[])this.hash(this.encode(challenge), sha256, "binary"));
-            byte[] base64Secret = this.base64ToBinary(this.secret);
+            object hashedChallenge = this.hash(this.encode(challenge), sha256, "binary");
+            object base64Secret = this.base64ToBinary(this.secret);
             string signature = this.hmac(hashedChallenge, base64Secret, sha512, "base64");
-            ((IDictionary<string,object>)this.options)["challenge"] = challenge;
-            ((IDictionary<string,object>)this.options)["signedChallenge"] = signature;
-            Future future = ((Future)this.safeValue(client.futures, messageHash));
+            this.options["challenge"] = challenge;
+            this.options["signedChallenge"] = signature;
+            var future = this.safeValue(client.futures, messageHash);
             (future as Future).resolve(true);
         } else
         {

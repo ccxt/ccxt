@@ -3226,7 +3226,7 @@ public partial class nado : Exchange
         };
         Dictionary<string, object> response = await this.gatewayPublicGetQuery(this.extend(request, parameters));
         IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
-        ((IDictionary<string,object>)this.options)["gatewayContracts"] = data;
+        this.options["gatewayContracts"] = data;
         return data;
     }
 

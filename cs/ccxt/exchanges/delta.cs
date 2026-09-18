@@ -726,12 +726,12 @@ public partial class delta : Exchange
         IDictionary<string, object> currenciesByNumericId = this.safeDict(this.options, "currenciesByNumericId");
         if (((currenciesByNumericId == null)) || isTrue(reload))
         {
-            ((IDictionary<string,object>)this.options)["currenciesByNumericId"] = this.indexByStringifiedNumericId(this.currencies);
+            this.options["currenciesByNumericId"] = this.indexByStringifiedNumericId(this.currencies);
         }
         IDictionary<string, object> marketsByNumericId = this.safeDict(this.options, "marketsByNumericId");
         if (((marketsByNumericId == null)) || isTrue(reload))
         {
-            ((IDictionary<string,object>)this.options)["marketsByNumericId"] = this.indexByStringifiedNumericId(this.markets);
+            this.options["marketsByNumericId"] = this.indexByStringifiedNumericId(this.markets);
         }
         return ((IDictionary<string, object>)((object)(markets)));
     }

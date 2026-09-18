@@ -744,7 +744,7 @@ public partial class deepcoin : Exchange
                 string additionalId = add(this.safeString(market, "baseId", ""), this.safeString(market, "quoteId", ""));
                 if (!isEqual(this.markets_by_id, null))
                 {
-                    ((IDictionary<string,object>)this.markets_by_id)[additionalId] = new List<object>() {market}; // some endpoints return swap market id as base+quote
+                    this.markets_by_id[additionalId] = new List<object>() {market}; // some endpoints return swap market id as base+quote
                 }
             }
         }

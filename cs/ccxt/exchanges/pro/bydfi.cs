@@ -89,7 +89,7 @@ public partial class bydfi : ccxt.bydfi
     {
         this.lockId();
         Int64 reqid = this.sum(this.safeInteger(this.options, "reqid", 0), 1);
-        ((IDictionary<string,object>)this.options)["reqid"] = reqid;
+        this.options["reqid"] = reqid;
         this.unlockId();
         return ((Int64)((object)(reqid))!);
     }

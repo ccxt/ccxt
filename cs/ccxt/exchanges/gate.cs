@@ -1928,7 +1928,7 @@ public partial class gate : Exchange
     public override void setSandboxMode(object enable)
     {
         base.setSandboxMode(enable);
-        ((IDictionary<string,object>)this.options)["sandboxMode"] = enable;
+        this.options["sandboxMode"] = enable;
     }
 
     /**
@@ -1962,11 +1962,11 @@ public partial class gate : Exchange
                 //
                 Dictionary<string, object> response = await this.privateAccountGetDetail(parameters);
                 IDictionary<string, object> result = this.safeDict(response, "key", new Dictionary<string, object>() {});
-                ((IDictionary<string,object>)this.options)["unifiedAccount"] = (this.safeInteger(result, "mode") == 2);
+                this.options["unifiedAccount"] = (this.safeInteger(result, "mode") == 2);
             } catch(Exception e)
             {
                 // if the request fails, the unifiedAccount is disabled
-                ((IDictionary<string,object>)this.options)["unifiedAccount"] = false;
+                this.options["unifiedAccount"] = false;
             }
         }
         return getValue(this.options, "unifiedAccount");

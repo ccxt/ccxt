@@ -780,7 +780,7 @@ public partial class toobit : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> response = await this.commonGetApiV1ExchangeInfo(parameters);
-        ((IDictionary<string,object>)this.options)["exchangeInfo"] = response; // we store it in options for later use in fetchMarkets
+        this.options["exchangeInfo"] = response; // we store it in options for later use in fetchMarkets
         //
         //    {
         //        "timezone": "UTC",
@@ -1000,7 +1000,7 @@ public partial class toobit : Exchange
         IDictionary<string, object> response = this.safeDict(this.options, "exchangeInfo");
         if ((response != null))
         {
-            ((IDictionary<string,object>)this.options)["exchangeInfo"] = null; // reset it to avoid using old cached data
+            this.options["exchangeInfo"] = null; // reset it to avoid using old cached data
         } else
         {
             response = await this.commonGetApiV1ExchangeInfo(parameters);

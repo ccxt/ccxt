@@ -689,7 +689,7 @@ public partial class toobit : ccxt.toobit
             List<object> asks = this.safeList(entry, "a", new List<object>() {});
             this.handleDeltas(getValue(orderBook, "asks"), asks);
             this.handleDeltas(getValue(orderBook, "bids"), bids);
-            ((IDictionary<string,object>)orderBook)["timestamp"] = timestamp;
+            orderBook["timestamp"] = timestamp;
             ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = orderBook;
             callDynamically(client, "resolve", new object[] {orderBook, messageHash});
         }

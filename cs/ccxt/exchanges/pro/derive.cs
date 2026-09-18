@@ -678,7 +678,7 @@ public partial class derive : ccxt.derive
                     object fees = this.safeValue(order, "fees");
                     if ((fees != null))
                     {
-                        ((IDictionary<string,object>)parsed)["fees"] = fees;
+                        parsed["fees"] = fees;
                     }
                     parsed["trades"] = this.safeValue(order, "trades");
                     parsed["timestamp"] = this.safeInteger(order, "timestamp");

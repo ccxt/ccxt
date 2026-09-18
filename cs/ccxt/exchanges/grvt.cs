@@ -777,7 +777,7 @@ public partial class grvt : Exchange
         //        "status": "success"
         //    }
         //
-        ((IDictionary<string,object>)this.options)["signInExpiration"] = add(now, 86400000); // 24 hours
+        this.options["signInExpiration"] = add(now, 86400000); // 24 hours
         return ((Dictionary<string, object>)((object)(response)));
     }
 
@@ -806,7 +806,7 @@ public partial class grvt : Exchange
         //        "status": "success"
         //    }
         //
-        ((IDictionary<string,object>)this.options)["signInExpiration"] = add(now, 86400000); // 24 hours
+        this.options["signInExpiration"] = add(now, 86400000); // 24 hours
         return ((Dictionary<string, object>)((object)(response)));
     }
 
@@ -849,7 +849,7 @@ public partial class grvt : Exchange
         }
         if (found)
         {
-            ((IDictionary<string,object>)this.options)["approvedBuilderFee"] = true;
+            this.options["approvedBuilderFee"] = true;
         } else
         {
             try
@@ -878,10 +878,10 @@ public partial class grvt : Exchange
                 {
                     throw new ExchangeError (add("Builder authorization failed, ", this.json(authResponse))) ;
                 }
-                ((IDictionary<string,object>)this.options)["approvedBuilderFee"] = true;
+                this.options["approvedBuilderFee"] = true;
             } catch(Exception e)
             {
-                ((IDictionary<string,object>)this.options)["builderFee"] = false; // disable builder fee if an error occurs
+                this.options["builderFee"] = false; // disable builder fee if an error occurs
             }
         }
         return null;  // just c#
@@ -2296,7 +2296,7 @@ public partial class grvt : Exchange
         List<object> responses = await promiseAll(promises);
         IDictionary<string, object> result1 = this.safeDict(getValue(responses, 0), "result", new Dictionary<string, object>() {});
         string? mainAccountId = this.safeString(result1, "main_account_id");
-        ((IDictionary<string,object>)this.options)["userMainAccountId"] = mainAccountId;
+        this.options["userMainAccountId"] = mainAccountId;
         if (accountIsUndefined)
         {
             List<object> subAccountIds = this.safeList(getValue(responses, 1), "sub_account_ids", new List<object>() {});
@@ -2310,7 +2310,7 @@ public partial class grvt : Exchange
                 throw new ArgumentsRequired (add(add(this.id, " loadAccountInfos(): multiple sub accounts found, please set the exchange.options[\"accountId\"] to your preferred sub_account_id from this list: "), this.json(subAccountIds))) ;
             }
             string? subAccountId = this.safeString(subAccountIds, 0);
-            ((IDictionary<string,object>)this.options)["accountId"] = subAccountId;
+            this.options["accountId"] = subAccountId;
         }
         return true;
     }
@@ -3775,7 +3775,7 @@ public partial class grvt : Exchange
     public virtual Int64 requestId()
     {
         Int64 requestId = this.sum(this.safeInteger(this.options, "requestId", 0), 1);
-        ((IDictionary<string,object>)this.options)["requestId"] = requestId;
+        this.options["requestId"] = requestId;
         return ((Int64)((object)(requestId))!);
     }
 
@@ -3852,12 +3852,12 @@ public partial class grvt : Exchange
         if (((string)url).EndsWith("auth/api_key/login") || ((string)url).EndsWith("auth/wallet/login"))
         {
             string? accountId = this.safeString2(headers, "X-Grvt-Account-Id", "x-grvt-account-id");
-            ((IDictionary<string,object>)this.options)["AuthAccountId"] = accountId;
+            this.options["AuthAccountId"] = accountId;
             string? cookie = this.safeString2(headers, "Set-Cookie", "set-cookie");
             if ((cookie != null))
             {
                 object cookieValue = getValue(cookie.Split(new [] {";"}, StringSplitOptions.None).ToList<object>(), 0);
-                ((IDictionary<string,object>)this.options)["AuthCookieValue"] = cookieValue;
+                this.options["AuthCookieValue"] = cookieValue;
             }
             if (isEqual(getValue(this.options, "AuthCookieValue"), null) || isEqual(getValue(this.options, "AuthAccountId"), null))
             {

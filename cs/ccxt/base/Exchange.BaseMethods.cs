@@ -1023,7 +1023,7 @@ public partial class BaseExchange
             object newUrls = this.omit(this.urls, "apiBackupDemoTrading");
             this.urls = newUrls;
         }
-        ((IDictionary<string,object>)this.options)["enableDemoTrading"] = enable;
+        this.options["enableDemoTrading"] = enable;
     }
 
     public virtual Dictionary<string, object> sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)
@@ -1618,15 +1618,15 @@ public partial class BaseExchange
             // if marketType is not filled for this exchange, don't add that in `features`
             if (!(inOp(initialFeatures, marketType)))
             {
-                ((IDictionary<string,object>)this.features)[(string)marketType] = null;
+                this.features[(string)marketType] = null;
             } else
             {
                 if (marketType == "spot")
                 {
-                    ((IDictionary<string,object>)this.features)[(string)marketType] = this.featuresMapper(initialFeatures, marketType);
+                    this.features[(string)marketType] = this.featuresMapper(initialFeatures, marketType);
                 } else
                 {
-                    ((IDictionary<string,object>)this.features)[(string)marketType] = new Dictionary<string, object>() {};
+                    this.features[(string)marketType] = new Dictionary<string, object>() {};
                     for (int j = 0; isLessThan(j, subTypes.Count); postFixIncrement(ref j))
                     {
                         string? subType = ((string)getValue(subTypes, j));
@@ -1819,7 +1819,7 @@ public partial class BaseExchange
     {
         // automatically generate network-id-to-code mappings
         Dictionary<string, object> networkIdsToCodesGenerated = this.invertFlatStringDictionary(this.safeValue(this.options, "networks", new Dictionary<string, object>() {})); // invert defined networks dictionary
-        ((IDictionary<string,object>)this.options)["networksById"] = this.extend(networkIdsToCodesGenerated, this.safeValue(this.options, "networksById", new Dictionary<string, object>() {})); // support manually overriden "networksById" dictionary too
+        this.options["networksById"] = this.extend(networkIdsToCodesGenerated, this.safeValue(this.options, "networksById", new Dictionary<string, object>() {})); // support manually overriden "networksById" dictionary too
     }
 
     public virtual Dictionary<string, object> getDefaultOptions()
@@ -2137,10 +2137,10 @@ public partial class BaseExchange
             {
                 object marketsByIdArray = ((object)getValue(this.markets_by_id, getValue(value, "id")));
                 ((IList<object>)marketsByIdArray).Add(value);
-                ((IDictionary<string,object>)this.markets_by_id)[(string)getValue(value, "id")] = marketsByIdArray;
+                this.markets_by_id[(string)getValue(value, "id")] = marketsByIdArray;
             } else
             {
-                ((IDictionary<string,object>)this.markets_by_id)[(string)getValue(value, "id")] = new List<object>() {value};
+                this.markets_by_id[(string)getValue(value, "id")] = new List<object>() {value};
             }
             // strip undefined-valued keys from the parsed market before deepExtend,
             // otherwise an explicit `taker: undefined` (from safeMarketStructure)
@@ -2284,7 +2284,7 @@ public partial class BaseExchange
             object helper = getValue(sourceExchangeHelpers, i);
             if (!isEqual(getValue(sourceExchange.options, helper), null))
             {
-                ((IDictionary<string,object>)this.options)[(string)helper] = getValue(sourceExchange.options, helper);
+                this.options[(string)helper] = getValue(sourceExchange.options, helper);
             }
         }
         return this;
@@ -4024,7 +4024,7 @@ public partial class BaseExchange
                     object symbol = getValue(symbolsArray, i);
                     ((IDictionary<string,object>)markets)[(string)symbol] = this.deepExtend(getValue(markets, symbol), getValue(response, symbol));
                 }
-                ((IDictionary<string,object>)this.options)["limitsLoaded"] = this.milliseconds();
+                this.options["limitsLoaded"] = this.milliseconds();
             }
         }
         return this.markets;
@@ -5878,7 +5878,7 @@ public partial class BaseExchange
         {
             throw new ExchangeError (add(this.id, " loadTimeDifference() missing serverTime")) ;
         }
-        ((IDictionary<string,object>)this.options)["timeDifference"] = subtract(after, serverTime);
+        this.options["timeDifference"] = subtract(after, serverTime);
         return getValue(this.options, "timeDifference");
     }
 

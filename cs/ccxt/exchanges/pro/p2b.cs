@@ -511,7 +511,7 @@ public partial class p2b : ccxt.p2b
                 (bookside as IOrderBookSide).store(price, amount);
             }
         }
-        ((IDictionary<string,object>)orderbook)["symbol"] = symbol;
+        orderbook["symbol"] = symbol;
         callDynamically(client, "resolve", new object[] {orderbook, messageHash});
     }
 
@@ -580,13 +580,13 @@ public partial class p2b : ccxt.p2b
 
     public override void onError(WebSocketClient client, object error)
     {
-        ((IDictionary<string,object>)this.options)["tickerSubs"] = this.createSafeDictionary();
+        this.options["tickerSubs"] = this.createSafeDictionary();
         base.onError(client, error);
     }
 
     public override void onClose(WebSocketClient client, object error)
     {
-        ((IDictionary<string,object>)this.options)["tickerSubs"] = this.createSafeDictionary();
+        this.options["tickerSubs"] = this.createSafeDictionary();
         base.onClose(client, error);
     }
 }

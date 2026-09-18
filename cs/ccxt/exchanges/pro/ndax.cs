@@ -32,7 +32,7 @@ public partial class ndax : ccxt.ndax
     public virtual Int64 requestId()
     {
         Int64 requestId = this.sum(this.safeInteger(this.options, "requestId", 0), 1);
-        ((IDictionary<string,object>)this.options)["requestId"] = requestId;
+        this.options["requestId"] = requestId;
         return ((Int64)((object)(requestId))!);
     }
 
@@ -517,9 +517,9 @@ public partial class ndax : ccxt.ndax
                 (orderbookSide as IOrderBookSide).store(price, 0);
             }
         }
-        ((IDictionary<string,object>)orderbook)["nonce"] = nonce;
-        ((IDictionary<string,object>)orderbook)["timestamp"] = timestamp;
-        ((IDictionary<string,object>)orderbook)["datetime"] = this.iso8601(timestamp);
+        orderbook["nonce"] = nonce;
+        orderbook["timestamp"] = timestamp;
+        orderbook["datetime"] = this.iso8601(timestamp);
         string name = "SubscribeLevel2";
         string messageHash = add(add(name, ":"), marketId);
         ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = orderbook;

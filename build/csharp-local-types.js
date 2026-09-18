@@ -11048,8 +11048,14 @@ function declaredLocalOfUse (csharp, node, name) {
 // the local a dictionary-write receiver names: the identifier itself, or the identifier under
 // a TS assertion whose C# print is that very identifier (`(x as Dict)['k'] = v` — the C#
 // printAsExpression falls through to the bare expression for every type that is not `any`,
-// `string` or `T[]`, and those three are the only shapes that print a cast of their own)
+// `string` or `T[]`, and those three are the only shapes that print a cast of their own).
+// The TS source may parenthesize the assertion (`(x as Dict)['k'] = v` is one node deeper:
+// ParenthesizedExpression(AsExpression)), and the C# printer prints that paren away — unwrap it
+// so the same proof applies to both spellings.
 function dictionaryWriteReceiverIdentifier (expression) {
+    while (expression?.kind === ts.SyntaxKind.ParenthesizedExpression) {
+        expression = expression.expression;
+    }
     if (expression?.kind === ts.SyntaxKind.Identifier) {
         return expression;
     }
@@ -11323,9 +11329,17 @@ export function installCsharpStringReceivers (transpiler) {
 // declaration `Dictionary<string, object> request = ...` is this classifier's rewrite. Answer
 // the printer hook with the type that declaration carries — the same answer installCsharpLocalTypes
 // rewrites the line with (csharpLocalType), falling back to the printer's own getCSharpLocalType
-// for a declaration this classifier does not type. `request` only this round: S22 owns every
-// other receiver, so drop the name test there. The printer-side gate is generic (any
-// Dictionary/IDictionary receiver), so an object receiver keeps the cast.
+// for a declaration this classifier does not type. `request` is S21's family and answers with
+// whatever the declaration carries. Every OTHER receiver shape the printer cannot see is
+// answered here too, and only when the cast is an identity conversion:
+//   - `this.<member>` whose hand-written base declaration already IS a dictionary
+//     (cs/ccxt/base/Exchange.Options.cs): the cast is an implicit upcast to the interface the
+//     member's type implements, both indexers are the same setter;
+//   - a local declared with a ws orderbook type — ccxt.pro.IOrderBook / OrderBook /
+//     IndexedOrderBook / CountedOrderBook all implement IDictionary<string, object>
+//     (cs/ccxt/ws/OrderBook.cs), so the same holds.
+// An `object` receiver (an object local, an `object` parameter, a this.<member> the base
+// declares `object`) keeps the cast: dropping it would not compile, i.e. it is no identity.
 //
 // localIdentifierType resolves a bare read only while the enclosing function holds exactly one
 // binding of the name; two `request`s in sibling blocks (gate/bigone/aster build one per branch)
@@ -11333,10 +11347,53 @@ export function installCsharpStringReceivers (transpiler) {
 // binds. From there the same conditions the declaration rewrite itself requires apply: a single
 // declarator whose printed shape is the rewritten one, which an awaited initializer is not
 // (installCsharpLocalTypes refuses those) — the cast stays wherever any of them fails.
-function receiverDeclaredType (csharp, node) {
-    if ((node?.kind !== ts.SyntaxKind.Identifier) || (node.escapedText !== 'request')) {
+const CSHARP_DICT_WRITE_MEMBER_TYPES = {
+    'options': 'ConcurrentDictionary<string, object>',   // cs/ccxt/base/Exchange.Options.cs
+    'timeframes': 'Dictionary<string, object>',          // cs/ccxt/base/Exchange.Options.cs
+    'markets_by_id': 'IDictionary<string, object>',      // cs/ccxt/base/Exchange.Options.cs
+    'commonCurrencies': 'Dictionary<string, object>',    // cs/ccxt/base/Exchange.Options.cs
+    'api': 'Dictionary<string, object>',                 // cs/ccxt/base/Exchange.Options.cs
+    'has': 'Dictionary<string, object>',                 // cs/ccxt/base/Exchange.Options.cs
+    'features': 'Dictionary<string, object>',            // cs/ccxt/base/Exchange.Options.cs
+};
+const CSHARP_DICT_WRITE_LOCAL_TYPES = [
+    'ccxt.pro.IOrderBook', 'ccxt.pro.OrderBook', 'ccxt.pro.IndexedOrderBook', 'ccxt.pro.CountedOrderBook',
+];
+
+// `this.<dict member>` as an element-write receiver: the member's hand-written base declaration
+// is a concrete dictionary, so `((IDictionary<string,object>)this.options)["k"] = v` is the same
+// write as `this.options["k"] = v`
+function dictWriteMemberReceiverType (node) {
+    if ((node?.kind !== ts.SyntaxKind.PropertyAccessExpression) || (node.expression?.kind !== ts.SyntaxKind.ThisKeyword)) {
         return undefined;
     }
+    const name = node.name?.escapedText;
+    if ((name === undefined) || !Object.prototype.hasOwnProperty.call (CSHARP_DICT_WRITE_MEMBER_TYPES, name)) {
+        return undefined;
+    }
+    return 'IDictionary<string, object>';
+}
+
+function receiverDeclaredType (csharp, node) {
+    const member = dictWriteMemberReceiverType (node);
+    if (member !== undefined) {
+        return member;
+    }
+    if (node?.kind !== ts.SyntaxKind.Identifier) {
+        return undefined;
+    }
+    const declared = identifierDeclaredType (csharp, node);
+    if (declared === undefined) {
+        return undefined;
+    }
+    if (node.escapedText === 'request') {
+        return declared; // S21's family: the printer's gate keeps the cast on every non-dictionary answer
+    }
+    return CSHARP_DICT_WRITE_LOCAL_TYPES.includes (declared) ? 'IDictionary<string, object>' : undefined;
+}
+
+// the type the emitted declaration of this identifier carries (see the block comment above)
+function identifierDeclaredType (csharp, node) {
     const own = localIdentifierType (csharp, node);
     if (own !== undefined) {
         return own;

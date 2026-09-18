@@ -1024,9 +1024,9 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
             ccxt.pro.IOrderBook orderbook = this.getOrderBook(this.orderbooks, symbol);
             this.handleDeltas(getValue(orderbook, "asks"), this.safeValue(message, "asks", new List<object>() {}));
             this.handleDeltas(getValue(orderbook, "bids"), this.safeValue(message, "bids", new List<object>() {}));
-            ((IDictionary<string,object>)orderbook)["timestamp"] = null;
-            ((IDictionary<string,object>)orderbook)["datetime"] = null;
-            ((IDictionary<string,object>)orderbook)["symbol"] = symbol;
+            orderbook["timestamp"] = null;
+            orderbook["datetime"] = null;
+            orderbook["symbol"] = symbol;
             callDynamically(client, "resolve", new object[] {orderbook, messageHash});
         } else if (type == "l2update")
         {
@@ -1047,8 +1047,8 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
                 object bookside = this.safeValue(orderbook, side);
                 (bookside as IOrderBookSide).store(price, amount);
             }
-            ((IDictionary<string,object>)orderbook)["timestamp"] = timestamp;
-            ((IDictionary<string,object>)orderbook)["datetime"] = this.iso8601(timestamp);
+            orderbook["timestamp"] = timestamp;
+            orderbook["datetime"] = this.iso8601(timestamp);
             callDynamically(client, "resolve", new object[] {orderbook, messageHash});
         }
     }

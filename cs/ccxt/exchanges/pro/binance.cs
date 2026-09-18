@@ -233,7 +233,7 @@ public partial class binance : ccxt.binance
             Int64? streamLimit = this.safeInteger(streamLimits, type);
             streamIndex = add(streamIndex, 1);
             object normalizedIndex = mod(streamIndex, streamLimit);
-            ((IDictionary<string,object>)this.options)["streamIndex"] = streamIndex;
+            this.options["streamIndex"] = streamIndex;
             stream = this.numberToString(normalizedIndex);
             if (!isEqual(subscriptionHash, null))
             {
@@ -242,7 +242,7 @@ public partial class binance : ccxt.binance
             object subscriptionsByStreams = this.safeValue(this.options, "numSubscriptionsByStream");
             if ((subscriptionsByStreams == null))
             {
-                ((IDictionary<string,object>)this.options)["numSubscriptionsByStream"] = this.createSafeDictionary();
+                this.options["numSubscriptionsByStream"] = this.createSafeDictionary();
             }
             Int64? subscriptionsByStream = this.safeInteger(getValue(this.options, "numSubscriptionsByStream"), stream, 0);
             object newNumSubscriptions = add(subscriptionsByStream, numSubscriptions);
@@ -3336,7 +3336,7 @@ public partial class binance : ccxt.binance
                     { "subscription", marketType },
                 };
                 await this.watch(url, requestHash, message, requestHash, subscription);
-                ((IDictionary<string,object>)this.options)[(string)marketType] = this.extend(options, new Dictionary<string, object>() {
+                this.options[(string)marketType] = this.extend(options, new Dictionary<string, object>() {
                     { "listenToken", listenToken },
                     { "expirationTime", expirationTime },
                     { "lastAuthenticatedTime", time },
@@ -3359,7 +3359,7 @@ public partial class binance : ccxt.binance
                 callDynamically(client, "resolve", new object[] {listenToken, messageHash});
             } catch(Exception e)
             {
-                ((IDictionary<string,object>)this.options)[(string)marketType] = this.extend(options, new Dictionary<string, object>() {
+                this.options[(string)marketType] = this.extend(options, new Dictionary<string, object>() {
                     { "lastAuthenticatedTime", 0 },
                 });
                 client.reject(e, messageHash);
@@ -3490,7 +3490,7 @@ public partial class binance : ccxt.binance
                 {
                     throw new AuthenticationError (add(this.id, " authenticate() received an empty listenKey")) ;
                 }
-                ((IDictionary<string,object>)this.options)[(string)type] = this.extend(options, new Dictionary<string, object>() {
+                this.options[(string)type] = this.extend(options, new Dictionary<string, object>() {
                     { "listenKey", listenKey },
                     { "lastAuthenticatedTime", time },
                 });
@@ -3624,13 +3624,13 @@ public partial class binance : ccxt.binance
                 string? messageHash = ((string)getValue(messageHashes, i));
                 client.reject(error, messageHash);
             }
-            ((IDictionary<string,object>)this.options)[(string)type] = this.extend(options, new Dictionary<string, object>() {
+            this.options[(string)type] = this.extend(options, new Dictionary<string, object>() {
                 { "listenKey", null },
                 { "lastAuthenticatedTime", 0 },
             });
             return;
         }
-        ((IDictionary<string,object>)this.options)[(string)type] = this.extend(options, new Dictionary<string, object>() {
+        this.options[(string)type] = this.extend(options, new Dictionary<string, object>() {
             { "listenKey", listenKey },
             { "lastAuthenticatedTime", time },
         });
@@ -6317,7 +6317,7 @@ public partial class binance : ccxt.binance
                 object fees = this.safeValue(order, "fees");
                 if ((fees != null))
                 {
-                    ((IDictionary<string,object>)parsed)["fees"] = fees;
+                    parsed["fees"] = fees;
                 }
                 parsed["trades"] = this.safeValue(order, "trades");
                 Int64? timestamp = this.safeInteger(parsed, "timestamp");

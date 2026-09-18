@@ -399,7 +399,7 @@ public partial class hashkey : ccxt.hashkey
         Int64? timestamp = this.safeInteger(dataEntry, "t");
         Dictionary<string, object> snapshot = this.parseOrderBook(dataEntry, symbol, timestamp, "b", "a");
         (orderbook as IOrderBook).reset(snapshot);
-        ((IDictionary<string,object>)orderbook)["nonce"] = this.safeInteger(message, "id");
+        orderbook["nonce"] = this.safeInteger(message, "id");
         ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = orderbook;
         callDynamically(client, "resolve", new object[] {orderbook, messageHash});
     }
@@ -951,7 +951,7 @@ public partial class hashkey : ccxt.hashkey
             {
                 throw new AuthenticationError (add(this.id, " authenticate() received an empty listenKey")) ;
             }
-            ((IDictionary<string,object>)this.options)["listenKey"] = listenKey;
+            this.options["listenKey"] = listenKey;
             Int64? listenKeyRefreshRate = this.safeInteger(this.options, "listenKeyRefreshRate", 3600000);
             this.delay(listenKeyRefreshRate,  this.keepAliveListenKey, new object[] { listenKey, parameters});
             // settle the flight: client.resolve () wakes every waiter and
@@ -988,7 +988,7 @@ public partial class hashkey : ccxt.hashkey
         {
             string? url = this.getPrivateUrl(listenKey);
             var client = this.client(url);
-            ((IDictionary<string,object>)this.options)["listenKey"] = null;
+            this.options["listenKey"] = null;
             client.reject(error);
             ((IDictionary<string, ccxt.Exchange.WebSocketClient>)this.clients).Remove((string)url);
         }

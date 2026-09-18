@@ -1657,8 +1657,8 @@ public partial class bingx : ccxt.bingx
                     client.reject(error, messageHash);
                 }
             }
-            ((IDictionary<string,object>)this.options)["listenKey"] = null;
-            ((IDictionary<string,object>)this.options)["lastAuthenticatedTime"] = 0;
+            this.options["listenKey"] = null;
+            this.options["lastAuthenticatedTime"] = 0;
             return;
         }
         // whether or not to schedule another listenKey keepAlive request
@@ -1702,8 +1702,8 @@ public partial class bingx : ccxt.bingx
                 {
                     throw new AuthenticationError (add(this.id, " authenticate() received an empty listenKey")) ;
                 }
-                ((IDictionary<string,object>)this.options)["listenKey"] = listenKey;
-                ((IDictionary<string,object>)this.options)["lastAuthenticatedTime"] = time;
+                this.options["listenKey"] = listenKey;
+                this.options["lastAuthenticatedTime"] = time;
                 this.delay(listenKeyRefreshRate,  this.keepAliveListenKey, new object[] { parameters});
                 // settle the flight: client.resolve () removes the future from
                 // client.futures and wakes every waiter

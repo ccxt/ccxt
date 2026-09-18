@@ -127,7 +127,7 @@ public partial class coinbase : ccxt.coinbase
         {
             throw new ExchangeError (add(this.id, " another unSubscription is pending, coinbase does not support concurrent unSubscriptions")) ;
         }
-        ((IDictionary<string,object>)this.options)["unSubscriptionPending"] = true;
+        this.options["unSubscriptionPending"] = true;
         IDictionary<string, object> market = null;
         object watchMessageHash = name;
         object unWatchMessageHash = add("unsubscribe:", name);
@@ -170,10 +170,10 @@ public partial class coinbase : ccxt.coinbase
         {
             message = this.extend(message, this.createWSAuth(name, productIds));
         }
-        ((IDictionary<string,object>)this.options)["unSubscription"] = subscription;
+        this.options["unSubscription"] = subscription;
         object res = await this.watch(url, unWatchMessageHash, message, unWatchMessageHash, subscription);
-        ((IDictionary<string,object>)this.options)["unSubscriptionPending"] = false;
-        ((IDictionary<string,object>)this.options)["unSubscription"] = null;
+        this.options["unSubscriptionPending"] = false;
+        this.options["unSubscription"] = null;
         return res;
     }
 
@@ -238,7 +238,7 @@ public partial class coinbase : ccxt.coinbase
         {
             throw new ExchangeError (add(this.id, " another unSubscription is pending, coinbase does not support concurrent unSubscriptions")) ;
         }
-        ((IDictionary<string,object>)this.options)["unSubscriptionPending"] = true;
+        this.options["unSubscriptionPending"] = true;
         if (isEqual(this.markets, null))
         {
             await this.loadMarkets();
@@ -273,10 +273,10 @@ public partial class coinbase : ccxt.coinbase
             { "unsubscribe", true },
             { "symbols", symbols },
         };
-        ((IDictionary<string,object>)this.options)["unSubscription"] = subscription;
+        this.options["unSubscription"] = subscription;
         object res = await this.watchMultiple(url, unWatchMessageHashes, message, unWatchMessageHashes, subscription);
-        ((IDictionary<string,object>)this.options)["unSubscriptionPending"] = false;
-        ((IDictionary<string,object>)this.options)["unSubscription"] = null;
+        this.options["unSubscriptionPending"] = false;
+        this.options["unSubscription"] = null;
         return res;
     }
 
@@ -305,8 +305,8 @@ public partial class coinbase : ccxt.coinbase
             {
                 // we should generate new token
                 string token = this.createAuthToken(seconds);
-                ((IDictionary<string,object>)this.options)["wsToken"] = token;
-                ((IDictionary<string,object>)this.options)["wsTokenTimestamp"] = seconds;
+                this.options["wsToken"] = token;
+                this.options["wsTokenTimestamp"] = seconds;
             }
             subscribe["jwt"] = this.safeString(this.options, "wsToken");
         }
@@ -1059,9 +1059,9 @@ public partial class coinbase : ccxt.coinbase
             }
             ccxt.pro.IOrderBook orderbook = this.getOrderBook(this.orderbooks, symbol);
             this.handleOrderBookHelper(orderbook, updates);
-            ((IDictionary<string,object>)orderbook)["timestamp"] = this.parse8601(datetime);
-            ((IDictionary<string,object>)orderbook)["datetime"] = datetime;
-            ((IDictionary<string,object>)orderbook)["symbol"] = symbol;
+            orderbook["timestamp"] = this.parse8601(datetime);
+            orderbook["datetime"] = datetime;
+            orderbook["symbol"] = symbol;
             callDynamically(client, "resolve", new object[] {orderbook, messageHash});
             this.tryResolveUsdc(client, messageHash, orderbook);
         }

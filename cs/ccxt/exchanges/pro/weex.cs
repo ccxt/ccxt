@@ -82,7 +82,7 @@ public partial class weex : ccxt.weex
     {
         this.lockId();
         Int64 requestId = this.sum(this.safeInteger(this.options, "requestId", 0), 1);
-        ((IDictionary<string,object>)this.options)["requestId"] = requestId;
+        this.options["requestId"] = requestId;
         this.unlockId();
         return this.numberToString(requestId);
     }
@@ -1046,9 +1046,9 @@ public partial class weex : ccxt.weex
             List<object> bids = this.safeList(message, "b", new List<object>() {});
             this.handleDeltas(getValue(orderbook, "asks"), asks);
             this.handleDeltas(getValue(orderbook, "bids"), bids);
-            ((IDictionary<string,object>)orderbook)["timestamp"] = timestamp;
-            ((IDictionary<string,object>)orderbook)["datetime"] = this.iso8601(timestamp);
-            ((IDictionary<string,object>)orderbook)["nonce"] = nonce;
+            orderbook["timestamp"] = timestamp;
+            orderbook["datetime"] = this.iso8601(timestamp);
+            orderbook["nonce"] = nonce;
         }
         callDynamically(client, "resolve", new object[] {orderbook, messageHash});
     }

@@ -706,7 +706,7 @@ public partial class kraken : ccxt.kraken
         // their support said that reqid must be an int32, not documented
         this.lockId();
         Int64 reqid = this.sum(this.safeInteger(this.options, "reqid", 0), 1);
-        ((IDictionary<string,object>)this.options)["reqid"] = reqid;
+        this.options["reqid"] = reqid;
         this.unlockId();
         return ((Int64)((object)(reqid))!);
     }
@@ -932,7 +932,7 @@ public partial class kraken : ccxt.kraken
                     ((IDictionary<string,object>)marketsByWsName)[wsName] = market;
                 }
             }
-            ((IDictionary<string,object>)this.options)["marketsByWsName"] = marketsByWsName;
+            this.options["marketsByWsName"] = marketsByWsName;
         }
         return ((IDictionary<string, object>)((object)(markets)));
     }

@@ -324,10 +324,10 @@ public partial class cryptocom : ccxt.cryptocom
         if (channel == "book")
         {
             (orderbook as IOrderBook).reset(new Dictionary<string, object>() {});
-            ((IDictionary<string,object>)orderbook)["symbol"] = symbol;
-            ((IDictionary<string,object>)orderbook)["timestamp"] = timestamp;
-            ((IDictionary<string,object>)orderbook)["datetime"] = this.iso8601(timestamp);
-            ((IDictionary<string,object>)orderbook)["nonce"] = nonce;
+            orderbook["symbol"] = symbol;
+            orderbook["timestamp"] = timestamp;
+            orderbook["datetime"] = this.iso8601(timestamp);
+            orderbook["nonce"] = nonce;
         } else
         {
             books = this.safeValue(data, "update", new Dictionary<string, object>() {});
@@ -344,7 +344,7 @@ public partial class cryptocom : ccxt.cryptocom
         }
         this.handleDeltas(getValue(orderbook, "asks"), this.safeValue(books, "asks", new List<object>() {}));
         this.handleDeltas(getValue(orderbook, "bids"), this.safeValue(books, "bids", new List<object>() {}));
-        ((IDictionary<string,object>)orderbook)["nonce"] = nonce;
+        orderbook["nonce"] = nonce;
         ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = orderbook;
         string messageHash = add("orderbook:", symbol);
         callDynamically(client, "resolve", new object[] {orderbook, messageHash});

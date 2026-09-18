@@ -230,8 +230,8 @@ public partial class independentreserve : ccxt.independentreserve
             List<object> bids = this.safeList(orderBook, "Bids", new List<object>() {});
             this.handleDeltas(getValue(orderbook, "asks"), asks);
             this.handleDeltas(getValue(orderbook, "bids"), bids);
-            ((IDictionary<string,object>)orderbook)["timestamp"] = timestamp;
-            ((IDictionary<string,object>)orderbook)["datetime"] = this.iso8601(timestamp);
+            orderbook["timestamp"] = timestamp;
+            orderbook["datetime"] = this.iso8601(timestamp);
         }
         bool checksum = ((bool)this.handleOption("watchOrderBook", "checksum", true));
         if ((isEqual(checksum, true)) && ((receivedSnapshot == true)))

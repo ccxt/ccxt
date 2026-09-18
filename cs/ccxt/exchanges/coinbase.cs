@@ -2182,7 +2182,7 @@ public partial class coinbase : Exchange
             List<object> fiatData = this.safeList(fiatResponse, "data", new List<object>() {});
             List<object> cryptoData = this.safeList(cryptoResponse, "data", new List<object>() {});
             Dictionary<string, object> exchangeRates = await this.v2PublicGetExchangeRates(parameters);
-            ((IDictionary<string,object>)this.options)["fetchCurrencies"] = this.extend(options, new Dictionary<string, object>() {
+            this.options["fetchCurrencies"] = this.extend(options, new Dictionary<string, object>() {
                 { "currencies", this.arrayConcat(fiatData, cryptoData) },
                 { "exchangeRates", exchangeRates },
                 { "timestamp", now },
@@ -2313,8 +2313,8 @@ public partial class coinbase : Exchange
                 }
             }
         }
-        ((IDictionary<string,object>)this.options)["networks"] = this.extend(networks, getValue(this.options, "networks"));
-        ((IDictionary<string,object>)this.options)["networksById"] = this.extend(networksById, getValue(this.options, "networksById"));
+        this.options["networks"] = this.extend(networks, getValue(this.options, "networks"));
+        this.options["networksById"] = this.extend(networksById, getValue(this.options, "networksById"));
         return ((IDictionary<string, object>)((object)(result)));
     }
 

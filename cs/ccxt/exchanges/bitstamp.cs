@@ -1341,7 +1341,7 @@ public partial class bitstamp : Exchange
             //            "market_type": "SPOT"
             //        },
             //
-            ((IDictionary<string,object>)this.options)["fetchMarkets"] = this.extend(options, new Dictionary<string, object>() {
+            this.options["fetchMarkets"] = this.extend(options, new Dictionary<string, object>() {
                 { "response", response },
                 { "timestamp", now },
             });

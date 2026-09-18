@@ -651,7 +651,7 @@ public partial class ndax : Exchange
         string? sessionToken = this.safeString(response, "SessionToken");
         if ((sessionToken != null))
         {
-            ((IDictionary<string,object>)this.options)["sessionToken"] = sessionToken;
+            this.options["sessionToken"] = sessionToken;
             return response;
         }
         string? pending2faToken = this.safeString(response, "Pending2FaToken");
@@ -661,7 +661,7 @@ public partial class ndax : Exchange
             {
                 throw new AuthenticationError (add(this.id, " signIn() requires exchange.twofa credentials")) ;
             }
-            ((IDictionary<string,object>)this.options)["pending2faToken"] = pending2faToken;
+            this.options["pending2faToken"] = pending2faToken;
             request = new Dictionary<string, object>() {
                 { "Code", totp(this.twofa) },
             };
@@ -674,7 +674,7 @@ public partial class ndax : Exchange
             //     }
             //
             sessionToken = this.safeString(responseInner, "SessionToken");
-            ((IDictionary<string,object>)this.options)["sessionToken"] = sessionToken;
+            this.options["sessionToken"] = sessionToken;
             return responseInner;
         }
         return response;

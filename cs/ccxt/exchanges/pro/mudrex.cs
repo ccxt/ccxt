@@ -42,7 +42,7 @@ public partial class mudrex : ccxt.mudrex
     public virtual Int64 requestId()
     {
         Int64 reqid = this.sum(this.safeInteger(this.options, "correlationId", 0), 1);
-        ((IDictionary<string,object>)this.options)["correlationId"] = reqid;
+        this.options["correlationId"] = reqid;
         return ((Int64)((object)(reqid))!);
     }
 
@@ -64,7 +64,7 @@ public partial class mudrex : ccxt.mudrex
         headers["Partner-Id"] = brokerId;
         innerOptions["headers"] = headers;
         wsOptions["options"] = innerOptions;
-        ((IDictionary<string,object>)this.options)["ws"] = wsOptions;
+        this.options["ws"] = wsOptions;
     }
 
     public async override Task<ccxt.Ticker> WatchTicker(string symbol, object parameters = null)

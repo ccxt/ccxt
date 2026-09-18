@@ -86,7 +86,7 @@ public partial class phemex : ccxt.phemex
     {
         this.lockId();
         Int64 requestId = this.sum(this.safeInteger(this.options, "requestId", 0), 1);
-        ((IDictionary<string,object>)this.options)["requestId"] = requestId;
+        this.options["requestId"] = requestId;
         this.unlockId();
         return ((Int64)((object)(requestId))!);
     }
@@ -860,9 +860,9 @@ public partial class phemex : ccxt.phemex
                 List<object> bids = this.safeList(changes, "bids", new List<object>() {});
                 this.customHandleDeltas(getValue(orderbook, "asks"), asks, market);
                 this.customHandleDeltas(getValue(orderbook, "bids"), bids, market);
-                ((IDictionary<string,object>)orderbook)["nonce"] = nonce;
-                ((IDictionary<string,object>)orderbook)["timestamp"] = timestamp;
-                ((IDictionary<string,object>)orderbook)["datetime"] = this.iso8601(timestamp);
+                orderbook["nonce"] = nonce;
+                orderbook["timestamp"] = timestamp;
+                orderbook["datetime"] = this.iso8601(timestamp);
                 ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = orderbook;
                 callDynamically(client, "resolve", new object[] {orderbook, messageHash});
             }

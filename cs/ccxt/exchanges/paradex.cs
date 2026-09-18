@@ -1070,7 +1070,7 @@ public partial class paradex : Exchange
         for (int i = 0; isLessThan(i, fees.Count); postFixIncrement(ref i))
         {
             Dictionary<string, object> fee = this.parseTradingFee(getValue(fees, i));
-            string? symbol = ((string)GetValue(fee, "symbol"));
+            object symbol = GetValue(fee, "symbol");
             result[(string)((string)symbol)] = fee;
         }
         return ccxt.BaseExchange.ToTradingFees(result);
@@ -1288,7 +1288,7 @@ public partial class paradex : Exchange
         string? last = this.safeString(ticker, "last_traded_price");
         string? marketId = this.safeString(ticker, "symbol");
         market = this.safeMarket(marketId, market);
-        string? symbol = ((string)getValue(market, "symbol"));
+        object symbol = getValue(market, "symbol");
         Int64? timestamp = this.safeInteger(ticker, "created_at");
         return this.safeTicker(new Dictionary<string, object>() {
             { "symbol", symbol },
@@ -1369,7 +1369,7 @@ public partial class paradex : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        Dictionary<string, object> rates = ccxt.BaseExchange.FromFundingRates(await this.FetchFundingRates(new List<object>() {GetValue(market, "symbol")}, parameters));
+        object rates = ccxt.BaseExchange.FromFundingRates(await this.FetchFundingRates(new List<object>() {GetValue(market, "symbol")}, parameters));
         IDictionary<string, object> rate = this.safeDict(rates, GetValue(market, "symbol"));
         if ((rate == null))
         {
@@ -1508,11 +1508,11 @@ public partial class paradex : Exchange
         {
             await this.loadMarkets();
         }
-        bool? paginate = false;
+        object paginate = false;
         IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchTrades", "paginate");
-        paginate = (bool?)paginateparametersVariable[0];
+        paginate = paginateparametersVariable[0];
         parameters = paginateparametersVariable[1];
-        if (paginate == true)
+        if (isTrue(paginate))
         {
             return ccxt.BaseExchange.ToTradeList(await this.fetchPaginatedCallCursor("fetchTrades", symbol, since, limit, parameters, "next", "cursor", null, 100));
         }
@@ -1696,7 +1696,7 @@ public partial class paradex : Exchange
         Int64? timestamp = this.safeInteger(interest, "created_at");
         string? marketId = this.safeString(interest, "symbol");
         market = this.safeMarket(marketId, market);
-        string? symbol = ((string)getValue(market, "symbol"));
+        object symbol = getValue(market, "symbol");
         return this.safeOpenInterest(new Dictionary<string, object>() {
             { "symbol", symbol },
             { "openInterestAmount", this.safeString(interest, "open_interest") },
@@ -1712,16 +1712,16 @@ public partial class paradex : Exchange
         return add("0x", this.hash(message, keccak, "hex"));
     }
 
-    public virtual string signHash(object hash, object privateKey)
+    public virtual object signHash(object hash, object privateKey)
     {
         Dictionary<string, object> signature = ecdsa(slice(hash, -64, null), slice(privateKey, -64, null), secp256k1, null);
-        string? r = ((string)GetValue(signature, "r"));
-        string? s = ((string)GetValue(signature, "s"));
+        object r = GetValue(signature, "r");
+        object s = GetValue(signature, "s");
         string v = this.intToBase16(this.sum(27, GetValue(signature, "v")));
         return add(add(add("0x", (r as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0"))), (s as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0"))), v);
     }
 
-    public virtual string signMessage(object message, object privateKey)
+    public virtual object signMessage(object message, object privateKey)
     {
         return this.signHash(this.hashMessage(message), slice(privateKey, -64, null));
     }
@@ -1762,7 +1762,7 @@ public partial class paradex : Exchange
         //     "liquidation_fee": "0.2"
         // }
         //
-        ((IDictionary<string,object>)this.options)["systemConfig"] = response;
+        this.options["systemConfig"] = response;
         return this.safeDict(this.options, "systemConfig", new Dictionary<string, object>() {});
     }
 
@@ -1807,9 +1807,9 @@ public partial class paradex : Exchange
             { "action", "STARK Key" },
         };
         byte[] msg = this.ethEncodeStructuredData(domain, messageTypes, message);
-        string signature = this.signMessage(msg, this.privateKey);
+        object signature = this.signMessage(msg, this.privateKey);
         object account = this.retrieveStarkAccount(signature, GetValue(systemConfig, "paraclear_account_hash"), GetValue(systemConfig, "paraclear_account_proxy_hash"));
-        ((IDictionary<string,object>)this.options)["paradexAccount"] = account;
+        this.options["paradexAccount"] = account;
         return account;
     }
 
@@ -1836,7 +1836,7 @@ public partial class paradex : Exchange
         return ((Dictionary<string, object>)((object)(response)));
     }
 
-    public async virtual Task<string?> authenticateRest(object parameters = null)
+    public async virtual Task<object> authenticateRest(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         string? cachedToken = this.safeString(this.options, "authToken");
@@ -1850,7 +1850,7 @@ public partial class paradex : Exchange
             }
             if (isLessThan(now, cachedExpires))
             {
-                return ((string?)((object)(cachedToken)));
+                return cachedToken;
             }
         }
         object account = await this.retrieveAccount();
@@ -1895,9 +1895,9 @@ public partial class paradex : Exchange
         // }
         //
         string? token = this.safeString(response, "jwt_token");
-        ((IDictionary<string,object>)this.options)["authToken"] = token;
-        ((IDictionary<string,object>)this.options)["expires"] = expires;
-        return ((string?)((object)(token)));
+        this.options["authToken"] = token;
+        this.options["expires"] = expires;
+        return token;
     }
 
     public override Dictionary<string, object> parseOrder(object order, object market = null)
@@ -1935,7 +1935,7 @@ public partial class paradex : Exchange
         string? clientOrderId = this.omitZero(this.safeString(order, "client_id"));
         string? marketId = this.safeString(order, "market");
         market = this.safeMarket(marketId, market);
-        string? symbol = ((string)getValue(market, "symbol"));
+        object symbol = getValue(market, "symbol");
         string? price = this.safeString(order, "price");
         string? amount = this.safeString(order, "size");
         string? orderType = this.safeString(order, "type");
@@ -2367,7 +2367,7 @@ public partial class paradex : Exchange
         List<object> ordersRequests = new List<object>() {};
         for (int i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
         {
-            IDictionary<string, object> rawOrder = ((IDictionary<string, object>)getValue(orders, i));
+            object rawOrder = getValue(orders, i);
             string? symbol = this.safeString(rawOrder, "symbol");
             string? type = this.safeString(rawOrder, "type");
             string? side = this.safeString(rawOrder, "side");
@@ -2660,11 +2660,11 @@ public partial class paradex : Exchange
         {
             await this.loadMarkets();
         }
-        bool? paginate = false;
+        object paginate = false;
         IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchOrders", "paginate");
-        paginate = (bool?)paginateparametersVariable[0];
+        paginate = paginateparametersVariable[0];
         parameters = paginateparametersVariable[1];
-        if (paginate == true)
+        if (isTrue(paginate))
         {
             return ccxt.BaseExchange.ToOrderList(await this.fetchPaginatedCallCursor("fetchOrders", symbol, since, limit, parameters, "next", "cursor", null, 50));
         }
@@ -2869,11 +2869,11 @@ public partial class paradex : Exchange
         {
             await this.loadMarkets();
         }
-        bool? paginate = false;
+        object paginate = false;
         IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchMyTrades", "paginate");
-        paginate = (bool?)paginateparametersVariable[0];
+        paginate = paginateparametersVariable[0];
         parameters = paginateparametersVariable[1];
-        if (paginate == true)
+        if (isTrue(paginate))
         {
             return ccxt.BaseExchange.ToTradeList(await this.fetchPaginatedCallCursor("fetchMyTrades", symbol, since, limit, parameters, "next", "cursor", null, 100));
         }
@@ -2945,7 +2945,7 @@ public partial class paradex : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        List<object> positions = ccxt.BaseExchange.FromPositionList(await this.FetchPositions(new List<object>() {GetValue(market, "symbol")}, parameters));
+        object positions = ccxt.BaseExchange.FromPositionList(await this.FetchPositions(new List<object>() {GetValue(market, "symbol")}, parameters));
         return ccxt.BaseExchange.ToPosition(this.safeDict(positions, 0, new Dictionary<string, object>() {}));
     }
 
@@ -3022,7 +3022,7 @@ public partial class paradex : Exchange
         //
         string? marketId = this.safeString(position, "market");
         market = this.safeMarket(marketId, market);
-        string? symbol = ((string)getValue(market, "symbol"));
+        object symbol = getValue(market, "symbol");
         string? side = this.safeStringLower(position, "side");
         string? quantity = this.safeString(position, "size");
         if (side != "long")
@@ -3153,11 +3153,11 @@ public partial class paradex : Exchange
         {
             await this.loadMarkets();
         }
-        bool? paginate = false;
+        object paginate = false;
         IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchDeposits", "paginate");
-        paginate = (bool?)paginateparametersVariable[0];
+        paginate = paginateparametersVariable[0];
         parameters = paginateparametersVariable[1];
-        if (paginate == true)
+        if (isTrue(paginate))
         {
             return ccxt.BaseExchange.ToTransactionList(await this.fetchPaginatedCallCursor("fetchDeposits", code, since, limit, parameters, "next", "cursor", null, 100));
         }
@@ -3229,11 +3229,11 @@ public partial class paradex : Exchange
         {
             await this.loadMarkets();
         }
-        bool? paginate = false;
+        object paginate = false;
         IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchWithdrawals", "paginate");
-        paginate = (bool?)paginateparametersVariable[0];
+        paginate = paginateparametersVariable[0];
         parameters = paginateparametersVariable[1];
-        if (paginate == true)
+        if (isTrue(paginate))
         {
             return ccxt.BaseExchange.ToTransactionList(await this.fetchPaginatedCallCursor("fetchWithdrawals", code, since, limit, parameters, "next", "cursor", null, 100));
         }
@@ -3305,11 +3305,11 @@ public partial class paradex : Exchange
         {
             await this.loadMarkets();
         }
-        bool? paginate = false;
+        object paginate = false;
         IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchTransfers", "paginate");
-        paginate = (bool?)paginateparametersVariable[0];
+        paginate = paginateparametersVariable[0];
         parameters = paginateparametersVariable[1];
-        if (paginate == true)
+        if (isTrue(paginate))
         {
             return ccxt.BaseExchange.ToTransferEntryList(await this.fetchPaginatedCallCursor("fetchTransfers", code, since, limit, parameters, "next", "cursor", null, 100));
         }
@@ -3796,7 +3796,7 @@ public partial class paradex : Exchange
         //
         string? marketId = this.safeString(greeks, "symbol");
         market = this.safeMarket(marketId, market, null, "option");
-        string? symbol = ((string)getValue(market, "symbol"));
+        object symbol = getValue(market, "symbol");
         Int64? timestamp = this.safeInteger(greeks, "created_at");
         IDictionary<string, object> greeksData = this.safeDict(greeks, "greeks", new Dictionary<string, object>() {});
         return new Dictionary<string, object>() {
@@ -3850,11 +3850,11 @@ public partial class paradex : Exchange
         {
             await this.loadMarkets();
         }
-        bool? paginate = false;
+        object paginate = false;
         IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchFundingHistory", "paginate");
-        paginate = (bool?)paginateparametersVariable[0];
+        paginate = paginateparametersVariable[0];
         parameters = paginateparametersVariable[1];
-        if (paginate == true)
+        if (isTrue(paginate))
         {
             return ccxt.BaseExchange.ToFundingHistoryList(await this.fetchPaginatedCallCursor("fetchFundingHistory", symbol, since, limit, parameters, "next", "cursor", null, 100));
         }

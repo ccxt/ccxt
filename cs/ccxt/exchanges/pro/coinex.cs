@@ -89,7 +89,7 @@ public partial class coinex : ccxt.coinex
     {
         this.lockId();
         Int64 requestId = this.sum(this.safeInteger(this.options, "requestId", 0), 1);
-        ((IDictionary<string,object>)this.options)["requestId"] = requestId;
+        this.options["requestId"] = requestId;
         this.unlockId();
         return ((Int64)((object)(requestId))!);
     }
@@ -1010,9 +1010,9 @@ public partial class coinex : ccxt.coinex
             List<object> bids = this.safeList(depth, "bids", new List<object>() {});
             this.handleDeltas(getValue(currentOrderBook, "asks"), asks);
             this.handleDeltas(getValue(currentOrderBook, "bids"), bids);
-            ((IDictionary<string,object>)currentOrderBook)["nonce"] = timestamp;
-            ((IDictionary<string,object>)currentOrderBook)["timestamp"] = timestamp;
-            ((IDictionary<string,object>)currentOrderBook)["datetime"] = this.iso8601(timestamp);
+            currentOrderBook["nonce"] = timestamp;
+            currentOrderBook["timestamp"] = timestamp;
+            currentOrderBook["datetime"] = this.iso8601(timestamp);
             ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = currentOrderBook;
         }
         // this.checkOrderBookChecksum (this.orderbooks[symbol]);
