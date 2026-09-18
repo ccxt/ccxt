@@ -8529,7 +8529,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                     while { if !__for_first_160 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_160 = false; j.as_f64().unwrap_or(f64::NAN) < responseLength.as_f64().unwrap_or(f64::NAN) } {
                     let mut index: Value = (match (&((match (&(responseLength), &(j)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null })), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
                     let mut entry: Value = self.safe_dict(response.clone(), index.clone(), &[]);
-                    let mut info: Value = self.safe_dict_k(entry.clone(), "info", &[]);
+                    let mut info: Value = self.safe_dict_k(entry, "info", &[]);
                     let mut cursor: Value = (if is_true(&(Value::Bool(cursorReceived == Value::Null))) { Value::Null } else { self.safe_value(info.clone(), cursorReceived.clone(), &[]) });
                     if (cursor != Value::Null) {
                         cursorValue = cursor.clone();

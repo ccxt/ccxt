@@ -77,6 +77,26 @@ check ('binding declared inside the loop drops the clone',
     'self.safe_dict_k(entry, "data", &[])',
     'entry.clone()');
 
+// the local is also read by a LATER ARGUMENT of the same call: the move would
+// happen first (arguments are evaluated left to right), so the clone stays
+check ('same call reads the local in a later argument',
+    '        let mut orders: Value = self.safe_dict_k(response.clone(), "data", &[response.clone()]);\n' +
+    '        return orders;',
+    'self.safe_dict_k(response.clone(), "data", &[response.clone()])',
+    undefined);
+
+// generated `while { ..cond..;.. } {` bodies carry a `;` inside the condition —
+// the loop must still be recognised (a binding declared outside it keeps the clone)
+check ('while-condition semicolon does not hide the loop',
+    '        let mut item: Value = get_value(&items, &Value::Int(0));\n' +
+    '        while { __flag = false; is_less_than(&i, &Value::Int(3)) } {\n' +
+    '            let mut data: Value = self.safe_list_k(item.clone(), "data", &[]);\n' +
+    '            i = Value::Int(1);\n' +
+    '        }\n' +
+    '        return Value::Null;',
+    'self.safe_list_k(item.clone(), "data", &[])',
+    'self.safe_list_k(item, "data"');
+
 // a `self.<field>` argument can never be moved out of `&self`
 check ('self.field argument keeps the clone',
     '        let mut data: Value = self.safe_dict_k(self.options.clone(), "fetchMarkets", &[]);\n' +

@@ -3474,7 +3474,7 @@ export class RustTranspilerBuilder {
             const rawFirst = content.slice(callStart, argEnd);
             const firstMatch = rawFirst.match(/^\s*([a-zA-Z_][a-zA-Z0-9_]*)\.clone\(\)\s*$/);
             const movable = firstMatch !== null && firstMatch[1] !== 'self' &&
-                this.rustArgIsDeadAfter(content, blocks, absStart, j + 1, firstMatch[1]);
+                this.rustArgIsDeadAfter(content, blocks, absStart, argEnd, firstMatch[1]);
             if (movable) {
                 out += content.slice(absStart, callStart) +
                     rawFirst.replace(/\.clone\(\)(\s*)$/, '$1') +
@@ -4860,6 +4860,7 @@ export class RustTranspilerBuilder {
         const blocks: Array<any> = [];
         const stack: number[] = [];
         let headerStart = 0;
+        let lineStart = 0;
         let i = 0;
         const n = content.length;
         while (i < n) {
@@ -4886,14 +4887,17 @@ export class RustTranspilerBuilder {
             }
             if (c === '\n') {
                 headerStart = i + 1;
+                lineStart = i + 1;
                 i += 1;
                 continue;
             }
             if (c === '{') {
                 // The header is the text since the previous statement start
-                // (`;`, comment, or newline) — generated `while { ..cond.. } {`
-                // headers keep their `while` on the same line.
-                const header = content.slice(headerStart, i);
+                // (`;`, comment, or newline), widened to the line start: a
+                // generated `while { ..cond..;.. } {` body line carries a `;`
+                // inside its condition, so the statement-start header alone
+                // would lose the `while` and the loop body would look plain.
+                const header = content.slice(Math.min(headerStart, lineStart), i);
                 const kind = /\b(?:while|for|loop)\b/.test(header) ? 'loop'
                     : header.includes('|') ? 'closure'
                         : /\bfn\b/.test(header) ? 'fn' : 'plain';
@@ -4955,10 +4959,12 @@ export class RustTranspilerBuilder {
     }
 
     /**
-     * rust-05: true when the local `ident` can be MOVED into the call spanning
-     * `[callStart, callEnd)` instead of cloned — it is never read again and it
-     * is re-created before every execution of the call:
-     *   (1) no `ident` occurrence after the call in the enclosing fn body;
+     * rust-05: true when the local `ident` can be MOVED into the call at
+     * `callStart` instead of cloned — it is never read again and it is
+     * re-created before every execution of the call:
+     *   (1) no `ident` occurrence after `callEnd` (the end of the first
+     *       argument, so a later argument of the SAME call counts as a read)
+     *       in the enclosing fn body;
      *   (2) its declaration sits inside every enclosing loop/closure body
      *       (a binding declared outside a loop would be moved on the first
      *       iteration and read again on the second);
