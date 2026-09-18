@@ -7160,6 +7160,12 @@ function destructuredStringElementProof (csharp, declaration, idNode, assignment
 // Slot 1 is NOT provable for the same helpers: on every path it holds the CALLER's own
 // `parameters` argument, and omit(object,object) / SafeValueN hand an `IList<object>` back
 // unchanged, so an `object query = null` target keeps `object` (cs90/U15 census).
+// U16 (lighter only, the two names below): slot 0 is `this.parseToInt (x)` on the single
+// return path of each definition (`return new List<object> {this.parseToInt (x), parameters}`),
+// and Exchange.BaseMethods.cs#parseToInt is declared `Int64?` — the slot holds a boxed Int64
+// or null, nothing else. The `(Int64?)` read cast names that box; `let x: Int = undefined`
+// targets keep the null-init join's rule (the write join is not consulted for a scalar
+// annotation), so an extra unprovable write of the name still rejects the declaration.
 export const DESTRUCTURED_ELEMENT0_TYPES = {
     'handleParamString': 'string?',
     'handleParamString2': 'string?',
@@ -7177,6 +7183,8 @@ export const DESTRUCTURED_ELEMENT0_TYPES = {
     // bool? local / that same list, so `(bool?)` names the box on every path.
     'handleTriggerAndParams': 'bool?',
     'isTriggerOrder': 'bool?',
+    'handleAccountIndex': 'Int64?',
+    'handleApiKeyIndex': 'Int64?',
 };
 
 // ===== U14: bool option locals (`object paginate = false`, `object uta = null`, ...) =====
@@ -7313,12 +7321,14 @@ export function recordDestructuredWriteType (scope, printedName, csharpType) {
 
 // is `[ ..., x, ... ] = this.helper (...)` a write the cast makes type-correct?
 function destructuredWriteIsCastable (csharp, index, declaration, idNode, assignment, csharpType, context) {
-    let right = assignment.right;
-    if (csharpType === 'bool?' && right?.kind === ts.SyntaxKind.AwaitExpression) {
-        // U14 bool shard: the awaited venue helper (`[ uta, params ] = await this.handleUTAAndParams
-        // (...)`) is the same destructuring write — every other family keeps the printer's shape
-        right = unwrapOptionCall (right);
-    }
+    // U16: `[ x, params ] = await this.helper (...)` prints the same element reads (`var tmp =
+    // await ...; x = tmp[0];`), so the awaited pair is the same tuple the proof below names.
+    // Every audited helper but handleAccountIndex / handleApiKeyIndex is sync, so no
+    // sync-helper site can newly fire through this unwrap.
+    // U14 bool shard: the awaited venue helper (`[ uta, params ] = await this.handleUTAAndParams
+    // (...)`) is the same destructuring write — every other family keeps the printer's shape.
+    // (0 parenthesized awaited destructuring helpers in the corpus: the two unwraps coincide.)
+    let right = unwrapOptionCall (assignment.right);
     if (right?.kind !== ts.SyntaxKind.CallExpression) {
         return false;
     }
