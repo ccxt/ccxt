@@ -312,7 +312,8 @@ pub struct Exchange {
     /// Canned HTTP response for static *response* tests — when set,
     /// `fetch_typed` returns it without hitting the network so the
     /// exchange's parser runs against fixture data. Mirrors Go's
-    /// `MockResponse` field. Cleared back to `Null` after dispatch.
+    /// `MockResponse` field. Reused for all requests in a fixture; the test
+    /// dispatcher replaces or clears it before the next REST dispatch.
     pub mock_response:           Value,
     pub last_json_response:      Value,
     pub lastRestRequestTimestamp: Value,
@@ -1496,10 +1497,10 @@ pub trait ExchangeRuntime: crate::exchange_generated::ExchangeBase {
     } }
 
     fn request_typed(&mut self, path: &str, scope_segments: &[String], verb: &str, params: Value, cost: Value) -> impl ::std::future::Future<Output = Result<Value>> + Send { async move {
-        if !matches!(self.mock_response, Value::Null) {
-            return self.fetch_typed("", verb, HashMap::new(), None).await;
+        // Mock transport responses only; preserve the signed request metadata.
+        if matches!(self.mock_response, Value::Null) {
+            self.throttle(&[cost]).await;
         }
-        self.throttle(&[cost]).await;
         let api_arg = if scope_segments.len() == 1 {
             Value::Str(scope_segments[0].clone())
         } else {
@@ -2361,6 +2362,82 @@ pub(crate) fn url_pct(s: &str) -> String {
 /// (`build/rustTranspiler.ts`, which names the arms) and `Exchange::to_snake_case`
 /// (which names the implicit-API entries the `_` arm falls through to).
 /// Requested in review on #30385.
+#[cfg(all(test, feature = "transpiled-base"))]
+mod response_mock_tests {
+    use super::ExchangeRuntime;
+    use crate::{get_value, Value};
+
+    #[tokio::test]
+    async fn response_mock_serves_multiple_requests_until_reset() {
+        // Conflicting proxies reject any unmocked request before network I/O.
+        let config = Value::from_json(&serde_json::json!({
+            "httpProxy": "http://fake:8080", "httpsProxy": "http://fake:8080",
+            "enableRateLimit": false,
+        }));
+        let mut exchange = crate::exchanges::binance::BinanceCore::new(Some(config));
+        let response = Value::from_json(&serde_json::json!({ "price": "100" }));
+        exchange.exchange.mock_response = response.clone();
+        for symbol in ["BTCUSDT", "ETHUSDT"] {
+            let params = Value::from_json(&serde_json::json!({ "symbol": symbol }));
+            let result = exchange.request_typed(
+                "ticker/price", &["public".to_string()], "GET", params, Value::Int(1),
+            ).await.expect("each request must use the same mock without network access");
+            assert_eq!(result, response);
+            assert_eq!(exchange.exchange.last_request_url, Value::Str(format!(
+                "https://api.binance.com/api/v3/ticker/price?symbol={symbol}",
+            )));
+        }
+        exchange.exchange.mock_response = Value::Null;
+        let error = exchange.request_typed(
+            "ticker/price", &["public".to_string()], "GET", Value::Null, Value::Int(1),
+        ).await.expect_err("reset must restore the normal transport path");
+        assert!(error.to_string().contains("InvalidProxySettings"));
+    }
+
+    #[tokio::test]
+    async fn response_mock_preserves_public_request_url() {
+        let mut exchange = crate::exchanges::binance::BinanceCore::new(None);
+        let response = Value::from_json(&serde_json::json!({ "price": "100" }));
+        exchange.exchange.mock_response = response.clone();
+        let params = Value::from_json(&serde_json::json!({ "symbol": "BTCUSDT" }));
+        let result = exchange.request_typed(
+            "ticker/price", &["public".to_string()], "GET", params, Value::Int(1),
+        ).await.expect("mock response must not require network access");
+        assert_eq!(result, response);
+        assert_eq!(exchange.exchange.last_request_url, Value::Str(
+            "https://api.binance.com/api/v3/ticker/price?symbol=BTCUSDT".to_string(),
+        ));
+        assert_eq!(exchange.exchange.last_request_body, Value::Null);
+    }
+
+    #[tokio::test]
+    async fn response_mock_preserves_private_request_headers_and_body() {
+        let config = Value::from_json(&serde_json::json!({
+            "apiKey": "fixture-key", "secret": "fixture-secret",
+        }));
+        let mut exchange = crate::exchanges::binance::BinanceCore::new(Some(config));
+        let response = Value::from_json(&serde_json::json!({ "orderId": 123 }));
+        exchange.exchange.mock_response = response.clone();
+        let params = Value::from_json(&serde_json::json!({
+            "symbol": "BTCUSDT", "side": "BUY", "type": "MARKET", "quantity": "1",
+        }));
+        let result = exchange.request_typed(
+            "order", &["private".to_string()], "POST", params, Value::Int(1),
+        ).await.expect("signed mock response must not require network access");
+        assert_eq!(result, response);
+        assert_eq!(exchange.exchange.last_request_url, Value::Str(
+            "https://api.binance.com/api/v3/order".to_string(),
+        ));
+        assert_eq!(get_value(&exchange.exchange.last_request_headers,
+            &Value::Str("X-MBX-APIKEY".to_string())), Value::Str("fixture-key".to_string()));
+        let Value::Str(body) = &exchange.exchange.last_request_body else {
+            panic!("signed POST must retain its encoded body");
+        };
+        assert!(body.contains("symbol=BTCUSDT"));
+        assert!(body.contains("signature="));
+    }
+}
+
 #[cfg(test)]
 mod method_name_snake_case_tests {
     use super::{method_name_to_snake_case, Exchange};
