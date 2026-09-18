@@ -178,22 +178,22 @@ type ICoreExchange interface {
 	GetOptions() *sync.Map
 	GetCurrencies() *sync.Map
 	GetMarkets() *sync.Map
-	CheckRequiredCredentials(optionalArgs ...any) any
+	CheckRequiredCredentials(optionalArgs ...any) bool
 	Sleep(milliseconds any) <-chan bool
 	Json(object any) any
 	FilterBy(aa any, key any, value any) []any
 	IndexBy(array any, key any) map[string]any
 	CreateOrderAsync(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <-chan any
 	Sum(args ...any) any
-	NumberToString(num any) any
+	NumberToString(num any) *string
 	ParseToNumeric(value any) any
 	LoadMarketsAsync(params ...any) <-chan any
 	SetMarkets(markets any, optionalArgs ...any) any
 	SafeDict(dictionary any, key any, defaultValue ...any) any
-	IsDictionary(dictionary any) any
+	IsDictionary(dictionary any) bool
 	InArray(needle any, haystack any) bool
 	DeepExtend(objs ...any) map[string]any
-	ParseToInt(value any) any
+	ParseToInt(value any) int64
 	SafeValue(value any, key any, defaultValue ...any) any
 	SafeBool(value any, key any, defaultValue ...any) *bool
 	SafeString(obj any, key any, defaultValue ...any) *string
@@ -241,8 +241,8 @@ type ICoreExchange interface {
 	FetchMarketLeverageTiersAsync(symbol any, optionalArgs ...any) <-chan any
 	FetchOrdersAsync(optionalArgs ...any) <-chan any
 	SafeCurrency(currencyId any, optionalArgs ...any) any
-	Parse8601(datetime2 any) any
-	Iso8601(ts2 any) any
+	Parse8601(datetime2 any) *int64
+	Iso8601(ts2 any) *string
 	FetchPositionAsync(symbol any, optionalArgs ...any) <-chan any
 	FetchClosedOrdersAsync(optionalArgs ...any) <-chan any
 	FetchTransactionsAsync(optionalArgs ...any) <-chan any
@@ -251,7 +251,7 @@ type ICoreExchange interface {
 	FetchTradingFeeAsync(symbol any, optionalArgs ...any) <-chan any
 	FetchTradingFeesAsync(optionalArgs ...any) <-chan any
 	FetchLedgerAsync(optionalArgs ...any) <-chan any
-	ArrayConcat(aa, bb any) any
+	ArrayConcat(aa, bb any) []any
 	FetchAccountsAsync(optionalArgs ...any) <-chan any
 	FetchBorrowInterestAsync(optionalArgs ...any) <-chan any
 	FetchLiquidationsAsync(symbol any, optionalArgs ...any) <-chan any
@@ -271,7 +271,7 @@ type ICoreExchange interface {
 	Extend(aa any, bb ...any) map[string]any
 	SafeValue2(obj any, key any, key2 any, defaultValue ...any) any
 	GroupBy(trades any, key2 any) map[string]any
-	DecimalToPrecision(value any, roundingMode any, numPrecisionDigits any, args ...any) any
+	DecimalToPrecision(value any, roundingMode any, numPrecisionDigits any, args ...any) string
 	NetworkCodeToId(networkCode any, optionalArgs ...any) any
 	NetworkIdToCode(optionalArgs ...any) any
 	SafeValueN(obj any, keys any, defaultValue ...any) any
@@ -296,15 +296,15 @@ type ICoreExchange interface {
 	SafeIntegerProduct2(obj any, key1, key2 any, multiplier any, defaultValue ...any) *int64
 	SafeBoolN(dictionaryOrList any, keys any, optionalArgs ...any) *bool
 	SafeBool2(dictionary any, key1 any, key2 any, optionalArgs ...any) *bool
-	SafeNumber(obj any, key any, optionalArgs ...any) any
-	SafeNumber2(dictionary any, key1 any, key2 any, optionalArgs ...any) any
-	SafeNumberOmitZero(obj any, key any, optionalArgs ...any) any
+	SafeNumber(obj any, key any, optionalArgs ...any) *float64
+	SafeNumber2(dictionary any, key1 any, key2 any, optionalArgs ...any) *float64
+	SafeNumberOmitZero(obj any, key any, optionalArgs ...any) *float64
 	IsEmptyString(obj any) any
 	SafeDictN(dictionaryOrList any, keys any, optionalArgs ...any) any
 	SafeListN(dictionaryOrList any, keys any, optionalArgs ...any) any
 	SafeList(dictionaryOrList any, key any, optionalArgs ...any) any
 	SafeTimestamp(obj any, key any, defaultValue ...any) *int64
-	SafeNumberN(obj any, arr any, optionalArgs ...any) any
+	SafeNumberN(obj any, arr any, optionalArgs ...any) *float64
 	SafeTimestamp2(obj any, key1, key2 any, defaultValue ...any) *int64
 	SafeTimestampN(obj any, keys []any, defaultValue ...any) *int64
 	SafeList2(dictionaryOrList any, key1 any, key2 any, optionalArgs ...any) any
@@ -315,7 +315,7 @@ type ICoreExchange interface {
 	SetProperty(obj any, property any, defaultValue any)
 	Capitalize(value any) string
 	GetProperty(obj any, property any, defaultValue ...any) any
-	ExceptionMessage(exc any, includeStack ...any) any
+	ExceptionMessage(exc any, includeStack ...any) string
 	SetProxyUrl(proxyUrl any)
 	SetSocksProxy(proxyUrl any)
 	SignInAsync(optionalArgs ...any) <-chan any
@@ -438,7 +438,7 @@ type IDerivedExchange interface {
 	SetSandboxMode(enabled any)
 	Market(symbol any) any
 	ParseConversion(conversion any, optionalArgs ...any) any
-	SafeCurrencyCode(currencyId any, optionalArgs ...any) any
+	SafeCurrencyCode(currencyId any, optionalArgs ...any) *string
 	HandleErrors(statusCode any, statusText any, url any, method any, responseHeaders any, responseBody any, response any, requestHeaders any, requestBody any) any
 	HandleMessage(client any, message any)
 	OnError(client any, err any)
