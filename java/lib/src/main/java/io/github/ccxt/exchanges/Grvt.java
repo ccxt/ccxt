@@ -2800,13 +2800,13 @@ public class Grvt extends GrvtApi
             Object bigInt10 = this.convertToBigIntCustom("10");
             Object precisionValue = this.precisionFromString(this.safeString(((Map<String, Object>)market).get("precision"), "base"));
             Object precisionValueStr = String.valueOf(precisionValue);
-            Object sizeMultiplier = Helpers.mathPow(Double.parseDouble(Helpers.toString(bigInt10)), Double.parseDouble(Helpers.toString(this.convertToBigIntCustom(precisionValueStr))));
+            Object sizeMultiplier = Math.pow(Double.parseDouble(Helpers.toString(bigInt10)), Double.parseDouble(Helpers.toString(this.convertToBigIntCustom(precisionValueStr))));
             Object size = Helpers.GetValue(leg, "size");
             Object sizeParts = Helpers.split(size, ".");
             String sizeDec = this.safeString(sizeParts, 1, "");
             Object sizeDecLength = Helpers.add(sizeDec.length(), 0); // php tr
             Object sizeDecLengthStr = String.valueOf(sizeDecLength);
-            Object sizeInteger = Helpers.divide(Helpers.multiply(this.convertToBigIntCustom(Helpers.replace(((String)size), ".", "")), sizeMultiplier), (Helpers.mathPow(Double.parseDouble(Helpers.toString(bigInt10)), Double.parseDouble(Helpers.toString(this.convertToBigIntCustom(sizeDecLengthStr))))));
+            Object sizeInteger = Helpers.divide(Helpers.multiply(this.convertToBigIntCustom(Helpers.replace(((String)size), ".", "")), sizeMultiplier), (Math.pow(Double.parseDouble(Helpers.toString(bigInt10)), Double.parseDouble(Helpers.toString(this.convertToBigIntCustom(sizeDecLengthStr))))));
             Map<String, Object> legOrder = new HashMap<String, Object>() {{
                 put( "assetID", Helpers.GetValue(((Map<String, Object>)market).get("info"), "instrument_hash") );
                 put( "contractSize", Grvt.this.parseToInt(sizeInteger) );
@@ -2821,7 +2821,7 @@ public class Grvt extends GrvtApi
                 Object limitDecLength = Helpers.add(limitDec.length(), 0); // php tr
                 Object limitDecLengthStr = String.valueOf(limitDecLength);
                 Object powerNum = (((java.util.Objects.equals(limitDecLengthStr, "0")))) ? 0 : this.convertToBigIntCustom(limitDecLengthStr);
-                Object priceInteger = (Helpers.divide(Helpers.multiply(this.convertToBigIntCustom(Helpers.replace(((String)price), ".", "")), this.convertToBigIntCustom(priceMultiplier)), (Helpers.mathPow(Double.parseDouble(Helpers.toString(bigInt10)), Double.parseDouble(Helpers.toString(powerNum))))));
+                Object priceInteger = (Helpers.divide(Helpers.multiply(this.convertToBigIntCustom(Helpers.replace(((String)price), ".", "")), this.convertToBigIntCustom(priceMultiplier)), (Math.pow(Double.parseDouble(Helpers.toString(bigInt10)), Double.parseDouble(Helpers.toString(powerNum))))));
                 ((Map<String, Object>)legOrder).put("limitPrice", this.parseToInt(priceInteger));
             } else
             {
