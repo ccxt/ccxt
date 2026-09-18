@@ -5844,7 +5844,7 @@ function nativeArithmeticOperandKind (csharp, node) {
         return nativeArithmeticOperandKind (csharp, node.expression);
     case ts.SyntaxKind.PropertyAccessExpression:
         // only the member reads the printer/module can name: `this.id` (string) and `.length` (int)
-        if (isProvablyStringOperand (node)) {
+        if (isProvablyStringOperand (csharp, node)) {
             return 'string';
         }
         return (node.name?.escapedText === 'length') ? 'int' : undefined;
@@ -5853,7 +5853,7 @@ function nativeArithmeticOperandKind (csharp, node) {
         // then the printer's own getCSharpLocalType); a local with no proven type has none
         return nativeArithmeticKindOfType (identifierType (csharp, node) ?? localIdentifierType (csharp, node));
     case ts.SyntaxKind.CallExpression:
-        if (isProvablyStringOperand (node)) {
+        if (isProvablyStringOperand (csharp, node)) {
             return 'string'; // `<recv>.toString ()` prints `((object)recv).ToString ()`
         }
         return nativeArithmeticKindOfType (csharpTypeOfValue (csharp, node));
@@ -5867,7 +5867,7 @@ function nativeArithmeticOperandKind (csharp, node) {
 // this module emits, else the typed overload the remaining helper call binds to
 function nativeArithmeticResultKind (csharp, node) {
     const op = node.operatorToken?.kind;
-    if (op === ts.SyntaxKind.PlusToken && isProvablyStringOperand (node)) {
+    if (op === ts.SyntaxKind.PlusToken && isProvablyStringOperand (csharp, node)) {
         return 'string'; // add(string, *) is declared string
     }
     if (op === ts.SyntaxKind.MinusToken || op === ts.SyntaxKind.AsteriskToken || op === ts.SyntaxKind.SlashToken) {
