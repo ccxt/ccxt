@@ -111,6 +111,10 @@ object locals −66, typed locals +66, `(bool)` casts 1 → 58 (+57), `(string)`
   exit=0 branch_update=unchanged generator=404e9daa7f0ab58d085ed04aaa61a19546dfeda2`
 - `ccxt-farm status 839` → `state=succeeded exit_code=0 targets=cs skipped_exchanges=75
   failing_files=[]`; `buildCS` log tail: `Build succeeded. 0 Warning(s) 0 Error(s)` (ccxt + cli + tests).
+- REPORT-only tip `05997ce2b00e14ab9818e2574eef90c055687796` re-gated from a throwaway branch
+  (`cs90-U41-gate`, deleted afterwards; the farm's note is keyed by SHA) → `job=855 exit=0
+  branch_update=unchanged generator=404e9daa…`. Any later REPORT-only commit changes no build input,
+  so `db897077a07` stays the farm-green code sha.
 
 ## Rejected sub-cases (each with the reason)
 
