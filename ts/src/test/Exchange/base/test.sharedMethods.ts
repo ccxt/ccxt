@@ -709,28 +709,28 @@ function assertAmountPriceCost (exchange: Exchange, skippedProperties: any, meth
         return;
     }
     const precision = market['precision'];
-    const contractSize = exchange.safeString (market, 'contractSize');
     const amountPrecision = exchange.safeString (precision, 'amount');
     const amount = exchange.safeString (entry, amountKey);
     // let consider contractSize too for non-spot markets
-    const amountWithContractSize = (contractSize !== undefined) ? Precise.stringMul (amount, contractSize) : amount;
+    let amountWithContractSize: Str = amount;
+    if (!market['spot']) {
+        const contractSize = exchange.safeString (market, 'contractSize');
+        amountWithContractSize = Precise.stringMul (amount, contractSize);
+    }
     const price = exchange.safeString (entry, priceKey);
     const cost = exchange.safeString (entry, costKey);
     const amountCalculated = Precise.stringDiv (cost, price);
     const compareResult = Precise.stringAbs (Precise.stringSub (amountWithContractSize, amountCalculated));
-    let isValid = false;
-    if (Precise.stringEq (compareResult, '0')) {
-        // if exact calculation is correct
-        isValid = true;
-    } else {
+    // if exact calculation is correct
+    if (!Precise.stringEq (compareResult, '0')) {
         // else we need to know the amountPrecision, so we would pass the test if the remainder is less than amountPrecision
         // todo: amountPrecision = (contractSize !== undefined) ? Precise.stringMul (amountPrecision, contractSize) : amountPrecision;
         assert (amountPrecision !== undefined, 'amount precision is not defined, you might add "amountPriceCost" in skips' + logText);
         // rounding loss more than then half of the market.precision.amount is not tolerable
         const amountPrecisionHalf = Precise.stringDiv (amountPrecision, '2');
-        isValid = Precise.stringLt (compareResult, amountPrecisionHalf);
+        const isValid = Precise.stringLt (compareResult, amountPrecisionHalf);
+        assert (isValid, 'cost & amount & price math is not correct' + logText);
     }
-    assert (isValid, 'cost & amount & price math is not correct' + logText);
 }
 
 export default {
