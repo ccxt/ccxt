@@ -264,7 +264,7 @@ public partial class toobit : ccxt.toobit
             Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);
             ((IDictionary<string,object>)this.trades)[(string)symbol] = new ArrayCache(limit);
         }
-        object stored = getValue(this.trades, symbol);
+        ccxt.pro.ArrayCache stored = ((ccxt.pro.ArrayCache)getValue(this.trades, symbol));
         List<object> data = this.safeList(message, "data", new List<object>() {});
         IList<object> parsed = this.parseWsTrades(data, market);
         for (int i = 0; isLessThan(i, parsed?.Count ?? 0); postFixIncrement(ref i))

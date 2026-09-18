@@ -644,7 +644,7 @@ public partial class krakenfutures : ccxt.krakenfutures
                 Int64? tradesLimit = this.safeInteger(this.options, "tradesLimit", 1000);
                 ((IDictionary<string,object>)this.trades)[(string)symbol] = new ArrayCache(tradesLimit);
             }
-            object tradesArray = getValue(this.trades, symbol);
+            ccxt.pro.ArrayCache tradesArray = ((ccxt.pro.ArrayCache)getValue(this.trades, symbol));
             if (channel == "trade_snapshot")
             {
                 List<object> trades = this.safeList(message, "trades", new List<object>() {});

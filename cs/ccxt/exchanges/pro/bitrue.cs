@@ -737,7 +737,7 @@ public partial class bitrue : ccxt.bitrue
             Int64? limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
             ((IDictionary<string,object>)getValue(this.ohlcvs, symbol))[timeframe] = new ArrayCacheByTimestamp(limit);
         }
-        object stored = getValue(getValue(this.ohlcvs, symbol), timeframe);
+        ccxt.pro.ArrayCache stored = ((ccxt.pro.ArrayCache)getValue(getValue(this.ohlcvs, symbol), timeframe));
         callDynamically(stored, "append", new object[] {parsed});
         string messageHash = add(add(add("ohlcv:", symbol), ":"), timeframe);
         callDynamically(client, "resolve", new object[] {stored, messageHash});

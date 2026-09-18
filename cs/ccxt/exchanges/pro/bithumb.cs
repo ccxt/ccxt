@@ -726,7 +726,7 @@ public partial class bithumb : ccxt.bithumb
                 var stored = new ArrayCache(limit);
                 ((IDictionary<string,object>)this.trades)[(string)symbol] = stored;
             }
-            object trades = getValue(this.trades, symbol);
+            ccxt.pro.ArrayCache trades = ((ccxt.pro.ArrayCache)getValue(this.trades, symbol));
             callDynamically(trades, "append", new object[] {parsed});
             string messageHash = add(add("trade", ":"), symbol);
             callDynamically(client, "resolve", new object[] {trades, messageHash});

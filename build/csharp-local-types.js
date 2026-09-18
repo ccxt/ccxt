@@ -2781,6 +2781,66 @@ function orderbookMapReadType (initializer) {
     return 'ccxt.pro.IOrderBook';
 }
 
+// The SAME element rule for the other ws member caches whose element box a tree-wide writer
+// census proves (campaigns/cs90/tools/U04/check_writers.py, base d847892a6):
+//   this.trades[key]       -> ccxt.pro.ArrayCache. 84 element writes across cs/**: ArrayCache /
+//     ArrayCacheBy* constructor, null, or a local whose only writes are those two shapes (the
+//     `stored` / `tradesArray` / `tradesCache` null-init idiom); the map itself is only ever
+//     replaced by an empty createSafeDictionary (4 whole-field writes).
+//   this.ohlcvs[sym][tf]   -> ccxt.pro.ArrayCache. The symbol's bucket dict is a
+//     Dictionary<string, object> (53 writers: dict literals and safeValue/safeDict with a dict
+//     default) and all 49 of its element writes store an ArrayCacheByTimestamp or the same
+//     null-init idiom.
+// this.positions[key] is NOT listed: ArrayCacheBySymbolBySide writers sit beside the
+// account-type-keyed `new Dictionary<string, object>()` ones (binance/gate/htx/bitget/toobit).
+// This rule names the box behind the exact cast back (csharpLocalTypeOf), like the string
+// element family; the read itself is unchanged.
+const CSHARP_LOCAL_WS_CACHE_ELEMENT_TYPES = {
+    'trades': 'ccxt.pro.ArrayCache',
+};
+
+// the same source gate the typed-dict read applies: only generated exchange trees (the
+// bridge-hosted test/example tiers have no Exchange.GetValue member to cast through)
+function wsCacheElementSourceOk (node) {
+    const fileName = (node.getSourceFile?.()?.fileName ?? '').replace (/\\/g, '/');
+    return fileName.includes ('ts/src/') && !fileName.includes ('ts/src/test/') && !fileName.includes ('examples/');
+}
+
+// `this.trades[key]` — the ws trade cache's element read
+function wsCacheElementReadType (node) {
+    if (node?.kind !== ts.SyntaxKind.ElementAccessExpression) {
+        return undefined;
+    }
+    const receiver = node.expression;
+    if (receiver?.kind !== ts.SyntaxKind.PropertyAccessExpression || receiver.expression?.kind !== ts.SyntaxKind.ThisKeyword) {
+        return undefined;
+    }
+    const type = CSHARP_LOCAL_WS_CACHE_ELEMENT_TYPES[receiver.name?.escapedText];
+    if (type === undefined) {
+        return undefined;
+    }
+    return wsCacheElementSourceOk (node) ? type : undefined;
+}
+
+// `this.ohlcvs[symbol][timeframe]` — printed `getValue(getValue(this.ohlcvs, symbol), timeframe)`
+function wsOhlcvsBucketReadType (node) {
+    if (node?.kind !== ts.SyntaxKind.ElementAccessExpression) {
+        return undefined;
+    }
+    const bucket = node.expression;
+    if (bucket?.kind !== ts.SyntaxKind.ElementAccessExpression) {
+        return undefined;
+    }
+    const receiver = bucket.expression;
+    if (receiver?.kind !== ts.SyntaxKind.PropertyAccessExpression || receiver.expression?.kind !== ts.SyntaxKind.ThisKeyword) {
+        return undefined;
+    }
+    if (receiver.name?.escapedText !== 'ohlcvs') {
+        return undefined;
+    }
+    return wsCacheElementSourceOk (node) ? 'ccxt.pro.ArrayCache' : undefined;
+}
+
 // is the checker's type of this expression the ccxt Exchange class (or a subclass /
 // union of those)? Used for `<exchangeVar>.<helper>(...)`: the generated TESTS hold the
 // exchange in a local or parameter instead of `this` (`exchange.safeString (...)`,
@@ -5968,6 +6028,10 @@ function csharpLocalTypeOf (csharp, declaration, context) {
         // is `object`, so the declaration needs the cast the printer does not emit by itself.
         // Nullable when the box is a string (it is null off the end of the list).
         const elementType = (integerBox === undefined) ? elementAccessElementType (csharp, declaration.initializer, ctx) : undefined;
+        // `this.trades[key]` / `this.ohlcvs[symmetric-read]` — the ws member cache element reads
+        // (see CSHARP_LOCAL_WS_CACHE_ELEMENT_TYPES): getValue's own C# type is `object`, so the
+        // proven element box is named behind the exact cast back
+        const wsCacheElement = (elementType === undefined) ? (wsCacheElementReadType (declaration.initializer) ?? wsOhlcvsBucketReadType (declaration.initializer)) : undefined;
         if (modTwin !== undefined) {
             csharpType = modTwin;
         } else if (integerBox !== undefined) {
@@ -5976,6 +6040,9 @@ function csharpLocalTypeOf (csharp, declaration, context) {
         } else if (elementType !== undefined) {
             csharpType = (elementType === 'string') ? 'string?' : elementType;
             cast = elementType;
+        } else if (wsCacheElement !== undefined) {
+            csharpType = wsCacheElement;
+            cast = wsCacheElement;
         } else if (marketRowStringReadType (csharp, declaration.initializer) === 'string') {
             // `const symbol = market['symbol']`: the market row's value at the string keys is
             // a string or null (census above), so the `(string)` cast names the box

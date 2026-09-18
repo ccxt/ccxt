@@ -259,7 +259,7 @@ public partial class cex : ccxt.cex
             Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);
             ((IDictionary<string,object>)this.trades)[(string)symbol] = new ArrayCache(limit);
         }
-        object stored = getValue(this.trades, symbol);
+        ccxt.pro.ArrayCache stored = ((ccxt.pro.ArrayCache)getValue(this.trades, symbol));
         Dictionary<string, object> market = this.market(symbol);
         int dataLength = data.Count;
         for (object i = 0; isLessThan(i, dataLength); postFixIncrement(ref i))
@@ -1324,7 +1324,7 @@ public partial class cex : ccxt.cex
         string? symbol = this.pairToSymbol(pair);
         string messageHash = add("ohlcv:", symbol);
         // const stored = this.safeValue (this.ohlcvs, symbol);
-        object stored = getValue(getValue(this.ohlcvs, symbol), "unknown");
+        ccxt.pro.ArrayCache stored = ((ccxt.pro.ArrayCache)getValue(getValue(this.ohlcvs, symbol), "unknown"));
         for (int i = 0; isLessThan(i, data.Count); postFixIncrement(ref i))
         {
             List<object> ohlcv = new List<object> {this.safeTimestamp(getValue(data, i), 0), this.safeNumber(getValue(data, i), 1), this.safeNumber(getValue(data, i), 2), this.safeNumber(getValue(data, i), 3), this.safeNumber(getValue(data, i), 4), this.safeNumber(getValue(data, i), 5)};

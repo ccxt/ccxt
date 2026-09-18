@@ -953,7 +953,7 @@ public partial class bingx : ccxt.bingx
             Int64? limit = this.safeInteger(subscription, "limit", this.safeInteger(this.options, "OHLCVLimit", 1000));
             ((IDictionary<string,object>)getValue(this.ohlcvs, symbol))[(string)((string)unifiedTimeframe)] = new ArrayCacheByTimestamp(limit);
         }
-        object stored = getValue(getValue(this.ohlcvs, symbol), ((string)unifiedTimeframe));
+        ccxt.pro.ArrayCache stored = ((ccxt.pro.ArrayCache)getValue(getValue(this.ohlcvs, symbol), ((string)unifiedTimeframe)));
         for (int i = 0; isLessThan(i, candles?.Count ?? 0); postFixIncrement(ref i))
         {
             object candle = getValue(candles, i);
