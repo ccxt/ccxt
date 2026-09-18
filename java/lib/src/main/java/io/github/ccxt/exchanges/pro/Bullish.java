@@ -438,7 +438,7 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
                 continue;
             }
             String price = this.safeString(entry, i);
-            String amount = this.safeString(entry, Helpers.add(i, 1));
+            String amount = this.safeString(entry, (((long) i) + 1L));
             ((List<Object>)result).add(new ArrayList<Object>(Arrays.asList(price, amount)));
         }
         return result;

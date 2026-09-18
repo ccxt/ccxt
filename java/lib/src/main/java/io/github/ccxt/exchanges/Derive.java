@@ -1725,7 +1725,7 @@ public class Derive extends DeriveApi
             Boolean orderSideIsBuy = (java.util.Objects.equals(orderSide, "buy")); // extracted to a named local: the Rust transpiler can't lower a bare `===` bool inside a list literal (ethAbiEncode args)
             Long nonce = this.milliseconds();
             // Order signature expiry must be between 2592000 and 7776000 sec from now
-            Long signatureExpiry = this.safeInteger(parameters, "signature_expiry_sec", Helpers.add(this.seconds(), 7776000));
+            Long signatureExpiry = this.safeInteger(parameters, "signature_expiry_sec", (this.seconds() + 7776000L));
             Object ACTION_TYPEHASH = this.base16ToBinary("4d7a9f27c403ff9c0f19bce61d76d82f9aa29f8d6d4b0c5474607d9770d1af17");
             Boolean sandboxMode = (Boolean) this.safeBool(this.options, "sandboxMode", false);
             String TRADE_MODULE_ADDRESS = (((java.util.Objects.equals(sandboxMode, true)))) ? "0x87F2863866D85E3192a35A73b388BD625D83f2be" : "0xB8D20c2B7a1Ad2EE33Bc50eF10876eD3035b5e7b";
@@ -1926,7 +1926,7 @@ public class Derive extends DeriveApi
             Object orderSide = ((String)((String)side)).toLowerCase();
             Boolean orderSideIsBuy = (java.util.Objects.equals(orderSide, "buy")); // extracted to a named local: the Rust transpiler can't lower a bare `===` bool inside a list literal (ethAbiEncode args)
             Long nonce = this.milliseconds();
-            Double signatureExpiry = this.safeNumber(parameters, "signature_expiry_sec", Helpers.add(this.seconds(), 7776000));
+            Double signatureExpiry = this.safeNumber(parameters, "signature_expiry_sec", (this.seconds() + 7776000L));
             // TODO: subaccount id / trade module address
             Object ACTION_TYPEHASH = this.base16ToBinary("4d7a9f27c403ff9c0f19bce61d76d82f9aa29f8d6d4b0c5474607d9770d1af17");
             Boolean sandboxMode = (Boolean) this.safeBool(this.options, "sandboxMode", false);

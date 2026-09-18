@@ -904,7 +904,7 @@ public class Lighter extends LighterApi
             Object nonce = (this.fetchNonce(accountIndex, apiKeyIndex, this.extend(parameters, new HashMap<String, Object>() {{
                 put( "skipNonce", false );
             }}))).join();
-            Object expiry = Helpers.add(this.milliseconds(), (365L * 864000L));
+            Object expiry = (this.milliseconds() + (365L * 864000L));
             Map<String, Object> signRaw = new HashMap<String, Object>() {{
                 put( "integrator_account_index", builder );
                 put( "integrator_taker_fee", takerFeeRate );

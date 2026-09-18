@@ -2939,7 +2939,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
             Object authenticated = this.safeValue(client.subscriptions, messageHash);
             if (java.util.Objects.equals(authenticated, null))
             {
-                Object expiresInt = Helpers.add(this.milliseconds(), 10000);
+                Object expiresInt = (this.milliseconds() + 10000L);
                 Object expires = this.numberToString(expiresInt);
                 Object path = "GET/realtime";
                 Object auth = Helpers.add(path, expires);
