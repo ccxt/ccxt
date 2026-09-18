@@ -2343,7 +2343,7 @@ public partial class woo : Exchange
             { "fok", "FOK" },
             { "post_only", "PO" },
         };
-        return this.safeString(timeInForces, ((string)timeInForce));
+        return this.safeString(timeInForces, timeInForce);
     }
 
     public override Dictionary<string, object> parseOrder(object order, object market = null)
@@ -3375,7 +3375,7 @@ public partial class woo : Exchange
             { "BALANCE", "transaction" },
             { "COLLATERAL", "transfer" },
         };
-        return this.safeString(types, ((string)type), type);
+        return this.safeString(types, type, type);
     }
 
     public virtual object getCurrencyFromChaincode(object networkizedCode, object currency)
@@ -3530,7 +3530,7 @@ public partial class woo : Exchange
             { "COMPLETED", "ok" },
             { "CANCELED", "canceled" },
         };
-        return this.safeString(statuses, ((string)status), status);
+        return this.safeString(statuses, status, status);
     }
 
     /**
@@ -4821,9 +4821,9 @@ public partial class woo : Exchange
         //
         IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         string? fromCurrencyId = this.safeString(data, "sellToken", fromCode);
-        Dictionary<string, object> fromCurrency = this.currency(((string)fromCurrencyId));
+        Dictionary<string, object> fromCurrency = this.currency(fromCurrencyId);
         string? toCurrencyId = this.safeString(data, "buyToken", toCode);
-        Dictionary<string, object> toCurrency = this.currency(((string)toCurrencyId));
+        Dictionary<string, object> toCurrency = this.currency(toCurrencyId);
         return ccxt.BaseExchange.ToConversion(this.parseConversion(data, fromCurrency, toCurrency));
     }
 
@@ -4906,11 +4906,11 @@ public partial class woo : Exchange
         IDictionary<string, object> toCurrency = null;
         if ((fromCurrencyId != null))
         {
-            fromCurrency = this.currency(((string)fromCurrencyId));
+            fromCurrency = this.currency(fromCurrencyId);
         }
         if ((toCurrencyId != null))
         {
-            toCurrency = this.currency(((string)toCurrencyId));
+            toCurrency = this.currency(toCurrencyId);
         }
         return ccxt.BaseExchange.ToConversion(this.parseConversion(data, fromCurrency, toCurrency));
     }
@@ -5205,7 +5205,7 @@ public partial class woo : Exchange
 
     public virtual object defaultNetworkCodeForCurrency(string? code)
     {
-        Dictionary<string, object> currencyItem = this.currency(((string)code));
+        Dictionary<string, object> currencyItem = this.currency(code);
         object networks = GetValue(currencyItem, "networks");
         List<object> networkKeys = new List<object>(((IDictionary<string,object>)networks).Keys);
         for (int i = 0; isLessThan(i, networkKeys.Count); postFixIncrement(ref i))

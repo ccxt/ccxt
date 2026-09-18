@@ -1257,13 +1257,13 @@ public partial class hyperliquid : ccxt.hyperliquid
         }
         if (isEqual(this.safeValue(this.balance, account), null))
         {
-            ((IDictionary<string,object>)this.balance)[(string)((string)account)] = new Dictionary<string, object>() {};
+            ((IDictionary<string,object>)this.balance)[(string)account] = new Dictionary<string, object>() {};
         }
-        ((IDictionary<string,object>)getValue(this.balance, ((string)account)))["info"] = info;
-        ((IDictionary<string,object>)getValue(this.balance, ((string)account)))["timestamp"] = timestamp;
-        ((IDictionary<string,object>)getValue(this.balance, ((string)account)))["datetime"] = this.iso8601(timestamp);
-        ((IDictionary<string,object>)this.balance)[(string)((string)account)] = this.safeBalance(getValue(this.balance, ((string)account)));
-        callDynamically(client, "resolve", new object[] {getValue(this.balance, ((string)account)), messageHash});
+        ((IDictionary<string,object>)getValue(this.balance, account))["info"] = info;
+        ((IDictionary<string,object>)getValue(this.balance, account))["timestamp"] = timestamp;
+        ((IDictionary<string,object>)getValue(this.balance, account))["datetime"] = this.iso8601(timestamp);
+        ((IDictionary<string,object>)this.balance)[(string)account] = this.safeBalance(getValue(this.balance, account));
+        callDynamically(client, "resolve", new object[] {getValue(this.balance, account), messageHash});
     }
 
     public virtual void parseWsBalance(object balance, object accountType = null)
@@ -1614,7 +1614,7 @@ public partial class hyperliquid : ccxt.hyperliquid
             Dictionary<string, object> order = this.parseOrder(rawOrder);
             callDynamically(stored, "append", new object[] {order});
             string? symbol = this.safeString(order, "symbol");
-            marketSymbols[(string)((string)symbol)] = true;
+            marketSymbols[(string)symbol] = true;
         }
         List<object> keys = new List<object>(marketSymbols.Keys);
         for (int i = 0; isLessThan(i, keys.Count); postFixIncrement(ref i))
@@ -1723,7 +1723,7 @@ public partial class hyperliquid : ccxt.hyperliquid
         this.cleanUnsubscription(client, subMessageHash, messageHash);
         if (inOp(this.orderbooks, symbol))
         {
-            ((IDictionary<string,object>)this.orderbooks).Remove((string)symbol);
+            ((IDictionary<string,object>)this.orderbooks).Remove(symbol);
         }
     }
 
@@ -1738,7 +1738,7 @@ public partial class hyperliquid : ccxt.hyperliquid
         this.cleanUnsubscription(client, subMessageHash, messageHash);
         if (inOp(this.trades, symbol))
         {
-            ((IDictionary<string,object>)this.trades).Remove((string)symbol);
+            ((IDictionary<string,object>)this.trades).Remove(symbol);
         }
     }
 
@@ -1766,7 +1766,7 @@ public partial class hyperliquid : ccxt.hyperliquid
         this.cleanUnsubscription(client, subMessageHash, messageHash);
         if (inOp(this.tickers, symbol))
         {
-            ((IDictionary<string,object>)this.tickers).Remove((string)symbol);
+            ((IDictionary<string,object>)this.tickers).Remove(symbol);
         }
     }
 
@@ -1845,7 +1845,7 @@ public partial class hyperliquid : ccxt.hyperliquid
         // clean swap balance if it existed
         if (inOp(this.balance, "swap"))
         {
-            ((IDictionary<string,object>)this.balance).Remove((string)"swap");
+            ((IDictionary<string,object>)this.balance).Remove("swap");
         }
     }
 
@@ -1856,7 +1856,7 @@ public partial class hyperliquid : ccxt.hyperliquid
         this.cleanUnsubscription(client, subHash, unSubHash, true);
         if (inOp(this.balance, "spot"))
         {
-            ((IDictionary<string,object>)this.balance).Remove((string)"spot");
+            ((IDictionary<string,object>)this.balance).Remove("spot");
         }
     }
 

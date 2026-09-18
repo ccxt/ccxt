@@ -1459,7 +1459,7 @@ public partial class dydx : Exchange
         {
             throw new ArgumentsRequired ((this.id + " fetchDydxAccount() requires the walletAddress to be set using the dydx chain address eg: dydx1cpb4tedmwq304c2kc9pwzjwq0sc6z2a4tasxrz")) ;
         }
-        if (!((string)this.walletAddress).StartsWith("dydx"))
+        if (!this.walletAddress.StartsWith("dydx"))
         {
             throw new ArgumentsRequired ((this.id + " fetchDydxAccount() requires a valid dydx chain address, starting with dydx, not the l1 address.")) ;
         }
@@ -1579,7 +1579,7 @@ public partial class dydx : Exchange
                     timeInForceNumber = 1;
                 } else
                 {
-                    throw new InvalidOrder ((string)"unexpected code path: timeInForce") ;
+                    throw new InvalidOrder ("unexpected code path: timeInForce") ;
                 }
             }
         }
@@ -1620,7 +1620,7 @@ public partial class dydx : Exchange
         {
             if (isEqual(goodTillBlockTimeInSeconds, null))
             {
-                throw new ArgumentsRequired ((string)"goodTillBlockTimeInSeconds is required.") ;
+                throw new ArgumentsRequired ("goodTillBlockTimeInSeconds is required.") ;
             }
             goodTillBlockTime = add(this.seconds(), goodTillBlockTimeInSeconds);
         }
@@ -2070,7 +2070,7 @@ public partial class dydx : Exchange
             { "DEPOSIT", "deposit" },
             { "WITHDRAWAL", "withdrawal" },
         };
-        return this.safeString(ledgerType, ((string)type), type);
+        return this.safeString(ledgerType, type, type);
     }
 
     /**

@@ -2144,7 +2144,7 @@ public partial class btse : Exchange
         await this.loadMarkets();
         Dictionary<string, object> market = this.market(symbol);
         type = ((string)type).ToUpper();
-        string upperSide = ((string)((string)side)).ToUpper();
+        string upperSide = ((string)side).ToUpper();
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", GetValue(market, "id") },
             { "orderSide", upperSide },
@@ -2382,7 +2382,7 @@ public partial class btse : Exchange
         type = ((string)type).ToUpper();
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", this.futuresRequestId(market) },
-            { "orderSide", ((string)((string)side)).ToUpper() },
+            { "orderSide", ((string)side).ToUpper() },
             { "orderSize", this.amountToPrecision(symbol, amount) },
         };
         string? clientOrderId = this.safeString(parameters, "clientOrderId");
@@ -4264,9 +4264,9 @@ public partial class btse : Exchange
 
     public virtual string cleanPath(object path)
     {
-        string result = ((string)path).Replace((string)"spot", (string)"");
-        result = result.Replace((string)"futures", (string)"");
-        result = result.Replace((string)"otc", (string)"");
+        string result = ((string)path).Replace("spot", (string)"");
+        result = result.Replace("futures", (string)"");
+        result = result.Replace("otc", (string)"");
         return result;
     }
 

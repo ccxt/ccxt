@@ -214,7 +214,7 @@ public partial class bitrue : ccxt.bitrue
     public async override Task<List<ccxt.Order>> WatchOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         object symbolVar = symbol;
-        Int64? limitVar = limit;
+        object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
         {
@@ -237,7 +237,7 @@ public partial class bitrue : ccxt.bitrue
         object orders = await this.watch(url, messageHash, request, messageHash);
         if (isTrue(this.newUpdates))
         {
-            limitVar = ((Int64?)callDynamically(orders, "getLimit", new object[] {symbolVar, limitVar}));
+            limitVar = callDynamically(orders, "getLimit", new object[] {symbolVar, limitVar});
         }
         return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(orders, symbolVar, since, limitVar, true));
     }
@@ -350,7 +350,7 @@ public partial class bitrue : ccxt.bitrue
         }
         Dictionary<string, object> market = this.market(symbolVar);
         symbolVar = GetValue(market, "symbol");
-        string messageHash = ("orderbook:" + symbolVar);
+        string messageHash = add("orderbook:", symbolVar);
         object url = null;
         string? channel = null;
         string? cbId = null;
@@ -358,14 +358,14 @@ public partial class bitrue : ccxt.bitrue
         {
             string? baseIdLower = this.safeStringLower(market, "baseId");
             string? quoteIdLower = this.safeStringLower(market, "quoteId");
-            string wsId = (("e_" + baseIdLower) + quoteIdLower);
-            channel = (("market_" + wsId) + "_depth_step0");
+            string wsId = add(add("e_", baseIdLower), quoteIdLower);
+            channel = add(add("market_", wsId), "_depth_step0");
             cbId = wsId;
             url = getValue(getValue(getValue(this.urls, "api"), "ws"), "futurePublic");
         } else
         {
             string? marketIdLowercase = this.safeStringLower(market, "id");
-            channel = (("market_" + marketIdLowercase) + "_simple_depth_step0");
+            channel = add(add("market_", marketIdLowercase), "_simple_depth_step0");
             cbId = marketIdLowercase;
             url = getValue(getValue(getValue(this.urls, "api"), "ws"), "public");
         }
@@ -415,14 +415,14 @@ public partial class bitrue : ccxt.bitrue
         //     }
         //
         string? channel = this.safeString(message, "channel");
-        List<object> parts = ((string)((string)channel)).Split(new [] {"_"}, StringSplitOptions.None).ToList<object>();
+        List<object> parts = channel.Split(new [] {"_"}, StringSplitOptions.None).ToList<object>();
         string? channelKind = this.safeString(parts, 1);
         bool isFutures = (channelKind == "e");
         object market = null;
         if (isFutures)
         {
             string? wsBaseQuote = this.safeStringLower(parts, 2);
-            market = this.findSwapMarketByWsBaseQuote(((string)wsBaseQuote));
+            market = this.findSwapMarketByWsBaseQuote(wsBaseQuote);
         } else
         {
             string? marketId = this.safeStringUpper(parts, 1);
@@ -448,13 +448,13 @@ public partial class bitrue : ccxt.bitrue
         ccxt.pro.IOrderBook orderbook = this.getOrderBook(this.orderbooks, symbol);
         Dictionary<string, object> snapshot = this.parseOrderBook(parseable, symbol, timestamp, "buys", "asks");
         (orderbook as IOrderBook).reset(snapshot);
-        string messageHash = ("orderbook:" + symbol);
+        string messageHash = add("orderbook:", symbol);
         callDynamically(client, "resolve", new object[] {orderbook, messageHash});
     }
 
     public virtual object findSwapMarketByWsBaseQuote(object wsBaseQuote)
     {
-        IDictionary<string, object> markets = ((IDictionary<string, object>)this.markets);
+        object markets = this.markets;
         if ((markets == null))
         {
             return null;
@@ -462,14 +462,14 @@ public partial class bitrue : ccxt.bitrue
         List<object> symbols = new List<object>(((IDictionary<string,object>)markets).Keys);
         for (int i = 0; isLessThan(i, symbols.Count); postFixIncrement(ref i))
         {
-            object candidate = getValue(markets, symbols[i]);
+            object candidate = getValue(markets, getValue(symbols, i));
             if (!isEqual(getValue(candidate, "swap"), true))
             {
                 continue;
             }
             string? baseId = this.safeStringLower(candidate, "baseId", "");
             string? quoteId = this.safeStringLower(candidate, "quoteId", "");
-            if (isEqual((((string)baseId) + quoteId), wsBaseQuote))
+            if (isEqual(add(baseId, quoteId), wsBaseQuote))
             {
                 return candidate;
             }
@@ -486,9 +486,9 @@ public partial class bitrue : ccxt.bitrue
             double? price = this.safeNumber(level, 0);
             double? rawAmount = this.safeNumber(level, 1);
             object amount = this.convertFromRawQuantity(symbol, rawAmount);
-            result.Add(new List<object>() {price, amount});
+            ((IList<object>)result).Add(new List<object>() {price, amount});
         }
-        return result;
+        return ((List<object>)((object)(result)));
     }
 
     public virtual object convertFromRawQuantity(object symbol, object rawQuantity)
@@ -520,7 +520,7 @@ public partial class bitrue : ccxt.bitrue
     public async override Task<List<ccxt.Trade>> WatchTrades(string symbol, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         object symbolVar = symbol;
-        Int64? limitVar = limit;
+        object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
         {
@@ -530,13 +530,13 @@ public partial class bitrue : ccxt.bitrue
         symbolVar = GetValue(market, "symbol");
         if (!isEqual(GetValue(market, "swap"), true))
         {
-            throw new NotSupported ((this.id + " watchTrades is only supported for swap markets")) ;
+            throw new NotSupported (add(this.id, " watchTrades is only supported for swap markets")) ;
         }
         string? baseIdLower = this.safeStringLower(market, "baseId");
         string? quoteIdLower = this.safeStringLower(market, "quoteId");
-        string wsId = (("e_" + baseIdLower) + quoteIdLower);
-        string channel = (("market_" + wsId) + "_trade_ticker");
-        string messageHash = ("trades:" + symbolVar);
+        string wsId = add(add("e_", baseIdLower), quoteIdLower);
+        string channel = add(add("market_", wsId), "_trade_ticker");
+        string messageHash = add("trades:", symbolVar);
         string? url = ((string)getValue(getValue(getValue(this.urls, "api"), "ws"), "futurePublic"));
         Dictionary<string, object> message = new Dictionary<string, object>() {
             { "event", "sub" },
@@ -549,7 +549,7 @@ public partial class bitrue : ccxt.bitrue
         object trades = await this.watch(url, messageHash, request, messageHash);
         if (isTrue(this.newUpdates))
         {
-            limitVar = ((Int64?)callDynamically(trades, "getLimit", new object[] {symbolVar, limitVar}));
+            limitVar = callDynamically(trades, "getLimit", new object[] {symbolVar, limitVar});
         }
         return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitVar, "timestamp", true));
     }
@@ -577,9 +577,9 @@ public partial class bitrue : ccxt.bitrue
         //     }
         //
         string? channel = this.safeString(message, "channel");
-        List<object> parts = ((string)((string)channel)).Split(new [] {"_"}, StringSplitOptions.None).ToList<object>();
+        List<object> parts = channel.Split(new [] {"_"}, StringSplitOptions.None).ToList<object>();
         string? wsBaseQuote = this.safeStringLower(parts, 2);
-        object market = this.findSwapMarketByWsBaseQuote(((string)wsBaseQuote));
+        object market = this.findSwapMarketByWsBaseQuote(wsBaseQuote);
         if ((market == null))
         {
             return;
@@ -597,13 +597,13 @@ public partial class bitrue : ccxt.bitrue
                 stored = new ArrayCache(limit);
                 ((IDictionary<string,object>)this.trades)[(string)symbol] = stored;
             }
-            Dictionary<string, object> trade = this.parseWsTrade(data[i], market);
+            Dictionary<string, object> trade = this.parseWsTrade(getValue(data, i), market);
             callDynamically(stored, "append", new object[] {trade});
             appended = true;
         }
         if (appended)
         {
-            string messageHash = ("trades:" + symbol);
+            string messageHash = add("trades:", symbol);
             callDynamically(client, "resolve", new object[] {stored, messageHash});
         }
     }
@@ -649,7 +649,7 @@ public partial class bitrue : ccxt.bitrue
     {
         object symbolVar = symbol;
         object timeframeVar = timeframe;
-        Int64? limitVar = limit;
+        object limitVar = limit;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
@@ -660,19 +660,19 @@ public partial class bitrue : ccxt.bitrue
         symbolVar = GetValue(market, "symbol");
         if (!isEqual(GetValue(market, "swap"), true))
         {
-            throw new NotSupported ((this.id + " watchOHLCV is only supported for swap markets")) ;
+            throw new NotSupported (add(this.id, " watchOHLCV is only supported for swap markets")) ;
         }
         IDictionary<string, object> futuresTimeframes = this.safeDict(this.options, "futuresTimeframes", new Dictionary<string, object>() {});
         string? interval = this.safeString(futuresTimeframes, timeframeVar);
         if ((interval == null))
         {
-            throw new NotSupported (((this.id + " watchOHLCV does not support timeframe ") + timeframeVar)) ;
+            throw new NotSupported (add(add(this.id, " watchOHLCV does not support timeframe "), timeframeVar)) ;
         }
         string? baseIdLower = this.safeStringLower(market, "baseId");
         string? quoteIdLower = this.safeStringLower(market, "quoteId");
-        string wsId = (("e_" + baseIdLower) + quoteIdLower);
-        string channel = ((("market_" + wsId) + "_kline_") + interval);
-        string messageHash = ((("ohlcv:" + symbolVar) + ":") + timeframeVar);
+        string wsId = add(add("e_", baseIdLower), quoteIdLower);
+        string channel = add(add(add("market_", wsId), "_kline_"), interval);
+        string messageHash = add(add(add("ohlcv:", symbolVar), ":"), timeframeVar);
         string? url = ((string)getValue(getValue(getValue(this.urls, "api"), "ws"), "futurePublic"));
         Dictionary<string, object> message = new Dictionary<string, object>() {
             { "event", "sub" },
@@ -685,7 +685,7 @@ public partial class bitrue : ccxt.bitrue
         object ohlcv = await this.watch(url, messageHash, request, messageHash);
         if (isTrue(this.newUpdates))
         {
-            limitVar = ((Int64?)callDynamically(ohlcv, "getLimit", new object[] {symbolVar, limitVar}));
+            limitVar = callDynamically(ohlcv, "getLimit", new object[] {symbolVar, limitVar});
         }
         return ccxt.BaseExchange.ToOHLCVList(this.filterBySinceLimit(ohlcv, since, limitVar, 0, true));
     }
@@ -711,9 +711,9 @@ public partial class bitrue : ccxt.bitrue
         //     }
         //
         string? channel = this.safeString(message, "channel");
-        List<object> parts = ((string)((string)channel)).Split(new [] {"_"}, StringSplitOptions.None).ToList<object>();
+        List<object> parts = channel.Split(new [] {"_"}, StringSplitOptions.None).ToList<object>();
         string? wsBaseQuote = this.safeStringLower(parts, 2);
-        object market = this.findSwapMarketByWsBaseQuote(((string)wsBaseQuote));
+        object market = this.findSwapMarketByWsBaseQuote(wsBaseQuote);
         if ((market == null))
         {
             return;
@@ -739,7 +739,7 @@ public partial class bitrue : ccxt.bitrue
         }
         object stored = getValue(getValue(this.ohlcvs, symbol), timeframe);
         callDynamically(stored, "append", new object[] {parsed});
-        string messageHash = ((("ohlcv:" + symbol) + ":") + timeframe);
+        string messageHash = add(add(add("ohlcv:", symbol), ":"), timeframe);
         callDynamically(client, "resolve", new object[] {stored, messageHash});
     }
 
@@ -747,7 +747,7 @@ public partial class bitrue : ccxt.bitrue
     {
         object symbol = getValue(market, "symbol");
         Int64? idSeconds = this.safeInteger(tick, "id");
-        Int64? timestamp = ((idSeconds == null)) ? null : multiply(idSeconds, 1000);
+        Int64? timestamp = (isEqual(idSeconds, null)) ? null : multiply(idSeconds, 1000);
         double? open = this.safeNumber(tick, "open");
         double? high = this.safeNumber(tick, "high");
         double? low = this.safeNumber(tick, "low");
@@ -778,13 +778,13 @@ public partial class bitrue : ccxt.bitrue
         symbolVar = GetValue(market, "symbol");
         if (!isEqual(GetValue(market, "swap"), true))
         {
-            throw new NotSupported ((this.id + " watchTicker is only supported for swap markets")) ;
+            throw new NotSupported (add(this.id, " watchTicker is only supported for swap markets")) ;
         }
         string? baseIdLower = this.safeStringLower(market, "baseId");
         string? quoteIdLower = this.safeStringLower(market, "quoteId");
-        string wsId = (("e_" + baseIdLower) + quoteIdLower);
-        string channel = (("market_" + wsId) + "_ticker");
-        string messageHash = ("ticker:" + symbolVar);
+        string wsId = add(add("e_", baseIdLower), quoteIdLower);
+        string channel = add(add("market_", wsId), "_ticker");
+        string messageHash = add("ticker:", symbolVar);
         string? url = ((string)getValue(getValue(getValue(this.urls, "api"), "ws"), "futurePublic"));
         Dictionary<string, object> message = new Dictionary<string, object>() {
             { "event", "sub" },
@@ -816,9 +816,9 @@ public partial class bitrue : ccxt.bitrue
         //     }
         //
         string? channel = this.safeString(message, "channel");
-        List<object> parts = ((string)((string)channel)).Split(new [] {"_"}, StringSplitOptions.None).ToList<object>();
+        List<object> parts = channel.Split(new [] {"_"}, StringSplitOptions.None).ToList<object>();
         string? wsBaseQuote = this.safeStringLower(parts, 2);
-        object market = this.findSwapMarketByWsBaseQuote(((string)wsBaseQuote));
+        object market = this.findSwapMarketByWsBaseQuote(wsBaseQuote);
         if ((market == null))
         {
             return;
@@ -832,7 +832,7 @@ public partial class bitrue : ccxt.bitrue
         Int64? timestamp = this.safeInteger(message, "ts");
         Dictionary<string, object> parsed = this.parseWsTicker(tick, market, timestamp);
         ((IDictionary<string,object>)this.tickers)[(string)symbol] = parsed;
-        string messageHash = ("ticker:" + symbol);
+        string messageHash = add("ticker:", symbol);
         callDynamically(client, "resolve", new object[] {parsed, messageHash});
     }
 
@@ -845,7 +845,7 @@ public partial class bitrue : ccxt.bitrue
         object quoteVolume = this.convertFromRawQuantity(symbol, rawAmount);
         double? close = this.safeNumber(tick, "close");
         double? rose = this.safeNumber(tick, "rose");
-        object percentage = ((rose == null)) ? null : multiply(rose, 100);
+        object percentage = (isEqual(rose, null)) ? null : multiply(rose, 100);
         return this.safeTicker(new Dictionary<string, object>() {
             { "info", tick },
             { "symbol", symbol },
@@ -917,16 +917,16 @@ public partial class bitrue : ccxt.bitrue
         if (inOp(message, "channel"))
         {
             string? channel = this.safeString(message, "channel");
-            if (getIndexOf(((string)channel), "_depth_step") > -1)
+            if (getIndexOf(channel, "_depth_step") > -1)
             {
                 this.handleOrderBook(client, (Dictionary<string, object>)message);
-            } else if (getIndexOf(((string)channel), "_trade_ticker") > -1)
+            } else if (getIndexOf(channel, "_trade_ticker") > -1)
             {
                 this.handleTrades(client, (Dictionary<string, object>)message);
-            } else if (getIndexOf(((string)channel), "_kline_") > -1)
+            } else if (getIndexOf(channel, "_kline_") > -1)
             {
                 this.handleOHLCV(client, (Dictionary<string, object>)message);
-            } else if (getIndexOf(((string)channel), "_ticker") > -1)
+            } else if (getIndexOf(channel, "_ticker") > -1)
             {
                 this.handleTicker(client, (Dictionary<string, object>)message);
             }
@@ -990,10 +990,10 @@ public partial class bitrue : ccxt.bitrue
                 string? key = this.safeString(data, "listenKey");
                 if ((key == null))
                 {
-                    throw new AuthenticationError ((this.id + " authenticate() received an empty listenKey")) ;
+                    throw new AuthenticationError (add(this.id, " authenticate() received an empty listenKey")) ;
                 }
-                this.options["listenKey"] = key;
-                this.options["listenKeyUrl"] = add(add(getValue(getValue(getValue(this.urls, "api"), "ws"), "private"), "/stream?listenKey="), key);
+                ((IDictionary<string,object>)this.options)["listenKey"] = key;
+                ((IDictionary<string,object>)this.options)["listenKeyUrl"] = add(add(getValue(getValue(getValue(this.urls, "api"), "ws"), "private"), "/stream?listenKey="), key);
                 callDynamically(client, "resolve", new object[] {key, messageHash});
             } catch(Exception e)
             {
@@ -1030,8 +1030,8 @@ public partial class bitrue : ccxt.bitrue
             await this.openV1PrivatePutPoseidonApiV1ListenKeyListenKey(this.extend(request, parameters));
         } catch(Exception error)
         {
-            this.options["listenKey"] = null;
-            this.options["listenKeyUrl"] = null;
+            ((IDictionary<string,object>)this.options)["listenKey"] = null;
+            ((IDictionary<string,object>)this.options)["listenKeyUrl"] = null;
             return;
         }
         Int64? refreshTimeout = this.safeInteger(this.options, "listenKeyRefreshRate", 1800000);

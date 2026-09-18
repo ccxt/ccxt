@@ -2841,7 +2841,7 @@ public partial class toobit : Exchange
         string? amountRaw = this.safeString(item, "change", "");
         double? amount = this.parseNumber(Precise.stringAbs(amountRaw));
         string direction = "in";
-        if (((string)amountRaw).StartsWith("-"))
+        if (amountRaw.StartsWith("-"))
         {
             direction = "out";
         }
@@ -2870,7 +2870,7 @@ public partial class toobit : Exchange
             { "USER_ACCOUNT_TRANSFER", "transfer" },
             { "AIRDROP", "rebate" },
         };
-        return this.safeString(types, ((string)type), type);
+        return this.safeString(types, type, type);
     }
 
     /**
@@ -2988,7 +2988,7 @@ public partial class toobit : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         if (!isEqual(code, null))
         {
-            currency = this.currency(((string)code));
+            currency = this.currency(code);
             request["coin"] = GetValue(currency, "id");
         }
         if (!isEqual(since, null))

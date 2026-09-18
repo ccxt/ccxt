@@ -724,7 +724,7 @@ public partial class paradex : ccxt.paradex
         if ((data != null))
         {
             string? channel = this.safeString(data, "channel");
-            List<object> parts = ((string)((string)channel)).Split(new [] {"."}, StringSplitOptions.None).ToList<object>();
+            List<object> parts = channel.Split(new [] {"."}, StringSplitOptions.None).ToList<object>();
             string? name = this.safeString(parts, 0);
             Dictionary<string, object> methods = new Dictionary<string, object>() {
                 { "trades", this.handleTrade },

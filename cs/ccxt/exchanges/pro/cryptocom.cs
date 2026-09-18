@@ -1567,7 +1567,7 @@ public partial class cryptocom : ccxt.cryptocom
             // channel might be user.trade.BTC_USDT
             this.handleTrades(client, result);
         }
-        if (((channel != null)) && ((string)channel).StartsWith("user.order"))
+        if (((channel != null)) && channel.StartsWith("user.order"))
         {
             // channel might be user.order.BTC_USDT
             this.handleOrders(client, result);
@@ -1691,7 +1691,7 @@ public partial class cryptocom : ccxt.cryptocom
             {
                 continue;
             }
-            if (((string)messageHash).StartsWith("unsubscribe"))
+            if (messageHash.StartsWith("unsubscribe"))
             {
                 object subscription = getValue(client.subscriptions, messageHash);
                 string? subId = this.safeString(subscription, "id");

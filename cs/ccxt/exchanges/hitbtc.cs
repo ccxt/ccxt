@@ -1605,7 +1605,7 @@ public partial class hitbtc : Exchange
         IDictionary<string, object> currency = null;
         if (!isEqual(code, null))
         {
-            currency = this.currency(((string)code));
+            currency = this.currency(code);
             request["currencies"] = GetValue(currency, "id");
         }
         if (!isEqual(since, null))
@@ -1666,7 +1666,7 @@ public partial class hitbtc : Exchange
             { "DEPOSIT", "deposit" },
             { "WITHDRAW", "withdrawal" },
         };
-        return this.safeString(types, ((string)type), type);
+        return this.safeString(types, type, type);
     }
 
     public override Dictionary<string, object> parseTransaction(object transaction, object currency = null)

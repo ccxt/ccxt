@@ -113,18 +113,18 @@ public partial class backpack : ccxt.backpack
         for (int i = 0; isLessThan(i, getArrayLength(messageHashes)); postFixIncrement(ref i))
         {
             object messageHash = getValue(messageHashes, i);
-            string subMessageHash = ((string)messageHash).Replace((string)"unsubscribe:", (string)"");
+            string subMessageHash = ((string)messageHash).Replace("unsubscribe:", (string)"");
             this.cleanUnsubscription(client, subMessageHash, messageHash);
             if (getIndexOf(messageHash, "ticker") >= 0)
             {
-                string symbol = ((string)messageHash).Replace((string)"unsubscribe:ticker:", (string)"");
+                string symbol = ((string)messageHash).Replace("unsubscribe:ticker:", (string)"");
                 if (((IDictionary<string, object>)this.tickers).ContainsKey(symbol))
                 {
                     ((IDictionary<string,object>)this.tickers).Remove(symbol);
                 }
             } else if (getIndexOf(messageHash, "bidask") >= 0)
             {
-                string symbol = ((string)messageHash).Replace((string)"unsubscribe:bidask:", (string)"");
+                string symbol = ((string)messageHash).Replace("unsubscribe:bidask:", (string)"");
                 if (((IDictionary<string, object>)this.bidsasks).ContainsKey(symbol))
                 {
                     ((IDictionary<string,object>)this.bidsasks).Remove(symbol);
@@ -143,14 +143,14 @@ public partial class backpack : ccxt.backpack
                 }
             } else if (getIndexOf(messageHash, "orderbook") >= 0)
             {
-                string symbol = ((string)messageHash).Replace((string)"unsubscribe:orderbook:", (string)"");
+                string symbol = ((string)messageHash).Replace("unsubscribe:orderbook:", (string)"");
                 if (((IDictionary<string, object>)this.orderbooks).ContainsKey(symbol))
                 {
                     ((IDictionary<string,object>)this.orderbooks).Remove(symbol);
                 }
             } else if (getIndexOf(messageHash, "trades") >= 0)
             {
-                string symbol = ((string)messageHash).Replace((string)"unsubscribe:trades:", (string)"");
+                string symbol = ((string)messageHash).Replace("unsubscribe:trades:", (string)"");
                 if (((IDictionary<string, object>)this.trades).ContainsKey(symbol))
                 {
                     ((IDictionary<string,object>)this.trades).Remove(symbol);
@@ -171,7 +171,7 @@ public partial class backpack : ccxt.backpack
                     }
                 } else
                 {
-                    string symbol = ((string)messageHash).Replace((string)"unsubscribe:orders:", (string)"");
+                    string symbol = ((string)messageHash).Replace("unsubscribe:orders:", (string)"");
                     ccxt.pro.ArrayCache cache = this.orders;
                     if (((cache != null)) && (inOp(cache, symbol)))
                     {
@@ -191,7 +191,7 @@ public partial class backpack : ccxt.backpack
                     }
                 } else
                 {
-                    string symbol = ((string)messageHash).Replace((string)"unsubscribe:positions:", (string)"");
+                    string symbol = ((string)messageHash).Replace("unsubscribe:positions:", (string)"");
                     if (inOp(this.positions, symbol))
                     {
                         ((IDictionary<string,object>)this.positions).Remove(symbol);

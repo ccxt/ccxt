@@ -1599,7 +1599,7 @@ public partial class bitmex : ccxt.bitmex
         //     }
         //
         object table = this.safeString(message, "table");
-        string interval = ((string)((string)table)).Replace((string)"tradeBin", (string)"");
+        string interval = ((string)table).Replace("tradeBin", (string)"");
         string? timeframe = this.findTimeframe(interval);
         int duration = this.parseTimeframe(timeframe);
         List<object> candles = this.safeList(message, "data", new List<object>() {});
@@ -1843,7 +1843,7 @@ public partial class bitmex : ccxt.bitmex
                 object exception = null;
                 if ((broadKey == null))
                 {
-                    exception = new ExchangeError(                    ((string)error)); // c# requirement for now
+                    exception = new ExchangeError(                    error); // c# requirement for now
                 } else
                 {
                     exception = this.newException(getValue(broad, broadKey), error);

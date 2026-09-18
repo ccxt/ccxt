@@ -270,18 +270,18 @@ public partial class btcbox : Exchange
         List<object> markets = new List<object>() {};
         for (int i = 0; isLessThan(i, marketIds.Count); postFixIncrement(ref i))
         {
-            string? marketId = ((string)marketIds[i]);
+            string? marketId = ((string)getValue(marketIds, i));
             List<object> symbolParts = marketId.Split(new [] {"_"}, StringSplitOptions.None).ToList<object>();
-            string baseCurr = ((string)this.safeString(symbolParts, 0, ""));
+            string baseCurr = this.safeString(symbolParts, 0, "");
             string? quote = this.safeString(symbolParts, 1, "");
             string quoteId = quote.ToLower();
             string id = baseCurr.ToLower();
             IDictionary<string, object> res = this.safeDict(response1, marketId, new Dictionary<string, object>() {});
-            string symbol = ((baseCurr + "/") + quote);
+            string symbol = add(add(baseCurr, "/"), quote);
             double? fee = (id == "BTC") ? this.parseNumber("0.0005") : this.parseNumber("0.0010");
             IDictionary<string, object> details = this.safeDict(result2Data, id, new Dictionary<string, object>() {});
             IDictionary<string, object> tradeDetails = this.safeDict(details, "trade", new Dictionary<string, object>() {});
-            markets.Add(this.safeMarketStructure(new Dictionary<string, object>() {
+            ((IList<object>)markets).Add(this.safeMarketStructure(new Dictionary<string, object>() {
                 { "id", id },
                 { "uppercaseId", null },
                 { "symbol", symbol },
@@ -343,7 +343,7 @@ public partial class btcbox : Exchange
         object bs = this.safeCurrencyCode(baseId);
         string? quoteId = this.safeString(market, "quote");
         string? quote = this.safeCurrencyCode(quoteId);
-        string? symbol = ((string)add(add(bs, "/"), quote));
+        object symbol = add(add(bs, "/"), quote);
         return this.safeMarketStructure(new Dictionary<string, object>() {
             { "id", this.safeString(market, "symbol") },
             { "uppercaseId", null },
@@ -404,8 +404,8 @@ public partial class btcbox : Exchange
         List<object> codes = new List<object>(((IDictionary<string,object>)this.currencies).Keys);
         for (int i = 0; isLessThan(i, codes.Count); postFixIncrement(ref i))
         {
-            string? code = ((string)codes[i]);
-            Dictionary<string, object> currency = this.currency(((string)code));
+            string? code = ((string)getValue(codes, i));
+            Dictionary<string, object> currency = this.currency(code);
             object currencyId = GetValue(currency, "id");
             object free = add(currencyId, "_balance");
             if (inOp(response, free))
@@ -417,7 +417,7 @@ public partial class btcbox : Exchange
                 result[(string)code] = account;
             }
         }
-        return this.safeBalance(result);
+        return ((Dictionary<string, object>)((object)(this.safeBalance(result))));
     }
 
     /**
@@ -849,7 +849,7 @@ public partial class btcbox : Exchange
         {
             for (int i = 0; isLessThan(i, orders?.Count ?? 0); postFixIncrement(ref i))
             {
-                ((IDictionary<string,object>)orders[i])["status"] = "open";
+                ((IDictionary<string,object>)getValue(orders, i))["status"] = "open";
             }
         }
         return ccxt.BaseExchange.ToOrderList(orders);
@@ -904,7 +904,7 @@ public partial class btcbox : Exchange
         {
             if ((new List<object>(((IDictionary<string,object>)parameters).Keys)).Count > 0)
             {
-                url = add(url, ("?" + this.urlencode(parameters)));
+                url = add(url, add("?", this.urlencode(parameters)));
             }
         } else if (isEqual(api, "webApi"))
         {
@@ -918,7 +918,7 @@ public partial class btcbox : Exchange
                 { "nonce", nonce },
             }, parameters);
             string request = this.urlencode(query);
-            string secret = ((string)this.hash(this.encode(this.secret), md5));
+            object secret = this.hash(this.encode(this.secret), md5);
             query["signature"] = this.hmac(this.encode(request), this.encode(secret), sha256);
             body = this.urlencode(query);
             headers = new Dictionary<string, object>() {
@@ -950,7 +950,7 @@ public partial class btcbox : Exchange
             return null;  // either public API (no error codes expected) or success
         }
         object code = this.safeValue(response, "code");
-        string feedback = ((this.id + " ") + body);
+        string feedback = add(add(this.id, " "), body);
         this.throwExactlyMatchedException(this.exceptions, code, feedback);
         throw new ExchangeError (feedback) ;
     }
@@ -968,7 +968,7 @@ public partial class btcbox : Exchange
             response = this.strip(response);
             if (!isTrue(this.isJsonEncodedObject(response)))
             {
-                throw new ExchangeError (((this.id + " ") + response)) ;
+                throw new ExchangeError (add(add(this.id, " "), response)) ;
             }
             response = parseJson(response);
         }

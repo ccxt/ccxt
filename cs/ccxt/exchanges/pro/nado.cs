@@ -1912,7 +1912,7 @@ public partial class nado : ccxt.nado
                 string? subscriptionSymbol = this.safeString(subscription, "symbol");
                 if ((streamType == "book_depth") && (isEqual(subscriptionSymbol, symbol)))
                 {
-                    ((IDictionary<string,object>)client.subscriptions).Remove((string)subscriptionHash);
+                    ((IDictionary<string,object>)client.subscriptions).Remove(subscriptionHash);
                 }
             }
             object subscriptionMsg = this.safeValue(client.subscriptions, messageHash);
@@ -1920,7 +1920,7 @@ public partial class nado : ccxt.nado
             {
                 ((IDictionary<string,object>)client.subscriptions).Remove(messageHash);
             }
-            ((IDictionary<string,object>)this.orderbooks).Remove((string)symbol);
+            ((IDictionary<string,object>)this.orderbooks).Remove(symbol);
             var error = new InvalidNonce(add(this.id, " watchOrderBook received invalid nonce"));
             client.reject(error, messageHash);
             return;
@@ -2034,14 +2034,14 @@ public partial class nado : ccxt.nado
         }
         if ((getIndexOf(messageHash, "trade:") == 0))
         {
-            string symbol = ((string)messageHash).Replace((string)"trade:", (string)"");
+            string symbol = ((string)messageHash).Replace("trade:", (string)"");
             if (((IDictionary<string, object>)this.trades).ContainsKey(symbol))
             {
                 ((IDictionary<string,object>)this.trades).Remove(symbol);
             }
         } else if ((getIndexOf(messageHash, "orderbook:") == 0))
         {
-            string symbol = ((string)messageHash).Replace((string)"orderbook:", (string)"");
+            string symbol = ((string)messageHash).Replace("orderbook:", (string)"");
             if (((IDictionary<string, object>)this.orderbooks).ContainsKey(symbol))
             {
                 ((IDictionary<string,object>)this.orderbooks).Remove(symbol);
@@ -2057,7 +2057,7 @@ public partial class nado : ccxt.nado
             }
         } else if ((getIndexOf(messageHash, "ticker:") == 0))
         {
-            string symbol = ((string)messageHash).Replace((string)"ticker:", (string)"");
+            string symbol = ((string)messageHash).Replace("ticker:", (string)"");
             if (((IDictionary<string, object>)this.tickers).ContainsKey(symbol))
             {
                 ((IDictionary<string,object>)this.tickers).Remove(symbol);
@@ -2071,7 +2071,7 @@ public partial class nado : ccxt.nado
             }
         } else if ((getIndexOf(messageHash, "bidask:") == 0))
         {
-            string symbol = ((string)messageHash).Replace((string)"bidask:", (string)"");
+            string symbol = ((string)messageHash).Replace("bidask:", (string)"");
             if (((IDictionary<string, object>)this.bidsasks).ContainsKey(symbol))
             {
                 ((IDictionary<string,object>)this.bidsasks).Remove(symbol);

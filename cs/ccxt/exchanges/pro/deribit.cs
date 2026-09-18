@@ -697,7 +697,7 @@ public partial class deribit : ccxt.deribit
         IDictionary<string, object> parameters = ((IDictionary<string, object>)this.safeValue(message, "params", new Dictionary<string, object>() {}));
         object data = this.safeValue(parameters, "data", new Dictionary<string, object>() {});
         string? channel = this.safeString(parameters, "channel");
-        List<object> parts = ((string)((string)channel)).Split(new [] {"."}, StringSplitOptions.None).ToList<object>();
+        List<object> parts = channel.Split(new [] {"."}, StringSplitOptions.None).ToList<object>();
         object descriptor = "";
         int partsLength = parts.Count;
         bool isDetailed = (partsLength == 5);
@@ -710,7 +710,7 @@ public partial class deribit : ccxt.deribit
         } else
         {
             string? interval = this.safeString(parts, 2);
-            descriptor = ((string)interval);
+            descriptor = interval;
         }
         string? marketId = this.safeString(data, "instrument_name");
         string? symbol = this.safeSymbol(marketId);
@@ -974,14 +974,14 @@ public partial class deribit : ccxt.deribit
         if (isEqual(this.safeValue(getValue(this.ohlcvs, symbol), unifiedTimeframe), null))
         {
             Int64? limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
-            ((IDictionary<string,object>)getValue(this.ohlcvs, symbol))[(string)((string)unifiedTimeframe)] = new ArrayCacheByTimestamp(limit);
+            ((IDictionary<string,object>)getValue(this.ohlcvs, symbol))[(string)unifiedTimeframe] = new ArrayCacheByTimestamp(limit);
         }
-        object stored = getValue(getValue(this.ohlcvs, symbol), ((string)unifiedTimeframe));
+        object stored = getValue(getValue(this.ohlcvs, symbol), unifiedTimeframe);
         IDictionary<string, object> ohlcv = this.safeDict(parameters, "data", new Dictionary<string, object>() {});
         // data contains a single OHLCV candle
         List<object> parsed = this.parseWsOHLCV(ohlcv, market);
         callDynamically(stored, "append", new object[] {parsed});
-        ((IDictionary<string,object>)getValue(this.ohlcvs, symbol))[(string)((string)unifiedTimeframe)] = stored;
+        ((IDictionary<string,object>)getValue(this.ohlcvs, symbol))[(string)unifiedTimeframe] = stored;
         List<object> resolveData = new List<object>() {symbol, unifiedTimeframe, stored};
         string messageHash = add(add(add("chart.trades|", symbol), "|"), rawTimeframe);
         callDynamically(client, "resolve", new object[] {resolveData, messageHash});

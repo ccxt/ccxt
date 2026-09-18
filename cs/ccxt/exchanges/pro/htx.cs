@@ -674,11 +674,11 @@ public partial class htx : ccxt.htx
         {
             if ((messageHash != null))
             {
-                ((IDictionary<string,object>)client.subscriptions).Remove((string)messageHash);
+                ((IDictionary<string,object>)client.subscriptions).Remove(messageHash);
             }
             if ((symbol != null))
             {
-                ((IDictionary<string,object>)this.orderbooks).Remove((string)symbol);
+                ((IDictionary<string,object>)this.orderbooks).Remove(symbol);
             }
             client.reject(e, messageHash);
         }
@@ -719,7 +719,7 @@ public partial class htx : ccxt.htx
         {
             if ((messageHash != null))
             {
-                ((IDictionary<string,object>)client.subscriptions).Remove((string)messageHash);
+                ((IDictionary<string,object>)client.subscriptions).Remove(messageHash);
             }
             client.reject(e, messageHash);
         }
@@ -2022,7 +2022,7 @@ public partial class htx : ccxt.htx
             string? symbol = this.safeString(parameters, "symbol");
             string? currency = this.safeString(parameters, "currency");
             Dictionary<string, object> market = ((symbol != null)) ? this.market(symbol) : null;
-            Dictionary<string, object> currencyCode = ((currency != null)) ? this.currency(((string)currency)) : null;
+            Dictionary<string, object> currencyCode = ((currency != null)) ? this.currency(currency) : null;
             marginMode = this.safeString(parameters, "margin", "cross");
             parameters = this.omit(parameters, new List<object>() {"currency", "symbol", "margin"});
             object prefix = "accounts";
@@ -2418,7 +2418,7 @@ public partial class htx : ccxt.htx
             {
                 if ((id != null))
                 {
-                    ((IDictionary<string,object>)client.subscriptions).Remove((string)id);
+                    ((IDictionary<string,object>)client.subscriptions).Remove(id);
                 }
             }
         }
@@ -2721,7 +2721,7 @@ public partial class htx : ccxt.htx
                 try
                 {
                     this.throwExactlyMatchedException(getValue(getValue(this.exceptions, "ws"), "exact"), errorCode, this.json(message));
-                    throw new ExchangeError ((string)this.json(message)) ;
+                    throw new ExchangeError (this.json(message)) ;
                 } catch(Exception e)
                 {
                     string? messageHash = this.safeString(subscription, "messageHash");
@@ -2731,7 +2731,7 @@ public partial class htx : ccxt.htx
                     {
                         if ((id != null))
                         {
-                            ((IDictionary<string,object>)client.subscriptions).Remove((string)id);
+                            ((IDictionary<string,object>)client.subscriptions).Remove(id);
                         }
                     }
                     // the subscription is keyed by the messageHash, not by the id -
@@ -2740,7 +2740,7 @@ public partial class htx : ccxt.htx
                     // https://github.com/ccxt/ccxt/issues/10280
                     if (((messageHash != null)) && (inOp(client.subscriptions, messageHash)))
                     {
-                        ((IDictionary<string,object>)client.subscriptions).Remove((string)messageHash);
+                        ((IDictionary<string,object>)client.subscriptions).Remove(messageHash);
                     }
                 }
             }

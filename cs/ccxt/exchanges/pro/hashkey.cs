@@ -525,18 +525,18 @@ public partial class hashkey : ccxt.hashkey
             { "side", side },
             { "price", this.safeString(order, "p") },
             { "average", this.safeString(order, "V") },
-            { "amount", this.omitZero(((string)this.safeString(order, "q"))) },
+            { "amount", this.omitZero(this.safeString(order, "q")) },
             { "filled", this.safeString(order, "z") },
             { "remaining", this.safeString(order, "r") },
             { "stopPrice", null },
             { "triggerPrice", null },
             { "takeProfitPrice", null },
             { "stopLossPrice", null },
-            { "cost", this.omitZero(((string)this.safeString(order, "Z"))) },
+            { "cost", this.omitZero(this.safeString(order, "Z")) },
             { "trades", null },
             { "fee", new Dictionary<string, object>() {
                 { "currency", this.safeCurrencyCode(this.safeString(order, "N")) },
-                { "amount", this.omitZero(((string)this.safeString(order, "n"))) },
+                { "amount", this.omitZero(this.safeString(order, "n")) },
             } },
             { "reduceOnly", reduceOnly },
             { "postOnly", postOnly },
@@ -990,7 +990,7 @@ public partial class hashkey : ccxt.hashkey
             var client = this.client(url);
             ((IDictionary<string,object>)this.options)["listenKey"] = null;
             client.reject(error);
-            ((IDictionary<string, ccxt.Exchange.WebSocketClient>)this.clients).Remove((string)url);
+            ((IDictionary<string, ccxt.Exchange.WebSocketClient>)this.clients).Remove(url);
         }
     }
 

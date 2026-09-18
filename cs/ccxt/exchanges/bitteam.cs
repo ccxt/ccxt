@@ -702,7 +702,7 @@ public partial class bitteam : Exchange
         statusesResponse = this.indexBy(statusesResponse, "unified_cryptoasset_id");
         this.options["_temp_currencies_statuses"] = statusesResponse;
         Dictionary<string, object> result = this.parseCurrencies(currencies);
-        ((IDictionary<string,object>)this.options).Remove((string)"_temp_currencies_statuses");
+        ((IDictionary<string,object>)this.options).Remove("_temp_currencies_statuses");
         return ((IDictionary<string, object>)((object)(result)));
     }
 
@@ -1485,7 +1485,7 @@ public partial class bitteam : Exchange
             { "executing", "open" },
             { "created", "open" },
         };
-        return this.safeString(statuses, ((string)status), status);
+        return this.safeString(statuses, status, status);
     }
 
     public virtual string? parseOrderType(string? status)
@@ -2553,7 +2553,7 @@ public partial class bitteam : Exchange
             { "deposit", "deposit" },
             { "withdraw", "withdrawal" },
         };
-        return this.safeString(types, ((string)type), type);
+        return this.safeString(types, type, type);
     }
 
     public virtual string? parseTransactionStatus(object status)

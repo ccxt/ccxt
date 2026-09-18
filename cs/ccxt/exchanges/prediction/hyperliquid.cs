@@ -1232,7 +1232,7 @@ public partial class hyperliquid : PredictionExchange
                 IDictionary<string, object> oc = this.safeDict(outcomesList, i, new Dictionary<string, object>() {});
                 string? ocSymbol = this.safeString2(oc, "outcome", "symbol", "");
                 string? ocLabel = this.safeStringUpper(oc, "label");
-                if (isEqual(ocLabel, normalizedHint) || ((string)ocSymbol).EndsWith(add(":", normalizedHint)))
+                if (isEqual(ocLabel, normalizedHint) || ocSymbol.EndsWith(add(":", normalizedHint)))
                 {
                     return ((IDictionary<string, object>)((object)(oc)));
                 }
@@ -1266,11 +1266,11 @@ public partial class hyperliquid : PredictionExchange
             }
         }
         string lower = ((string)outcomeInput).ToLower();
-        if (((string)lower).EndsWith("-yes"))
+        if (lower.EndsWith("-yes"))
         {
             return "YES";
         }
-        if (((string)lower).EndsWith("-no"))
+        if (lower.EndsWith("-no"))
         {
             return "NO";
         }
@@ -1501,7 +1501,7 @@ public partial class hyperliquid : PredictionExchange
     public async override Task<ccxt.PredictionOrder> CancelOrder(string id, string outcome = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object orders = ccxt.BaseExchange.FromPredictionOrderList(await this.CancelOrders(new List<object>() {id},((string)outcome), parameters));
+        object orders = ccxt.BaseExchange.FromPredictionOrderList(await this.CancelOrders(new List<object>() {id},outcome, parameters));
         return ccxt.BaseExchange.ToPredictionOrder(this.safeDict(orders, 0));
     }
 
@@ -1891,11 +1891,11 @@ public partial class hyperliquid : PredictionExchange
         {
             return null;
         }
-        if (((string)status).EndsWith("Rejected"))
+        if (status.EndsWith("Rejected"))
         {
             return "rejected";
         }
-        if (((string)status).EndsWith("Canceled"))
+        if (status.EndsWith("Canceled"))
         {
             return "canceled";
         }
@@ -1908,7 +1908,7 @@ public partial class hyperliquid : PredictionExchange
             { "stop limit", "limit" },
             { "stop market", "market" },
         };
-        string? statusLower = (!isEqual(status, null) && !isEqual(status, "")) ? ((string)status).ToLower() : null;
+        string? statusLower = (!isEqual(status, null) && !isEqual(status, "")) ? status.ToLower() : null;
         return this.safeString(statuses, statusLower, statusLower);
     }
 
@@ -1920,7 +1920,7 @@ public partial class hyperliquid : PredictionExchange
             { "fok", "FOK" },
             { "alo", "PO" },
         };
-        string? tifLower = (!isEqual(timeInForce, null) && !isEqual(timeInForce, "")) ? ((string)timeInForce).ToLower() : null;
+        string? tifLower = (!isEqual(timeInForce, null) && !isEqual(timeInForce, "")) ? timeInForce.ToLower() : null;
         return this.safeString(statuses, tifLower, timeInForce);
     }
 
@@ -2143,7 +2143,7 @@ public partial class hyperliquid : PredictionExchange
             // Apply query filter
             if (isGreaterThan(lowerQueriesLength, 0))
             {
-                string description = ((string)this.safeString(info, "description", "")).ToLower();
+                string description = this.safeString(info, "description", "").ToLower();
                 string? parentSymbolOrEmpty = ((parentSymbol != null)) ? parentSymbol : "";
                 string symLower = parentSymbolOrEmpty.ToLower();
                 // the parentSymbol joins words with underscores (BTC_ABOVE_...), so match the haystack word-by-word

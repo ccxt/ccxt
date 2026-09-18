@@ -663,7 +663,7 @@ public partial class woofipro : ccxt.woofipro
             // allows further authentication attempts
             if (inOp(client.subscriptions, messageHash))
             {
-                ((IDictionary<string,object>)client.subscriptions).Remove((string)"authenticated");
+                ((IDictionary<string,object>)client.subscriptions).Remove("authenticated");
             }
         }
     }

@@ -1388,7 +1388,7 @@ public partial class bitstamp : Exchange
         IList<object> arr = this.toArray(rawCurrencies);
         for (int i = 0; isLessThan(i, arr?.Count ?? 0); postFixIncrement(ref i))
         {
-            object market = arr[i];
+            object market = getValue(arr, i);
             var baseIdquoteIdVariable = new List<object> {this.safeString(market, "base_currency"), this.safeString(market, "counter_currency")};
             var baseId = ((IList<object>) baseIdquoteIdVariable)[0];
             var quoteId = ((IList<object>) baseIdquoteIdVariable)[1];
@@ -1409,12 +1409,12 @@ public partial class bitstamp : Exchange
             }
             List<object> parts = minimumOrder.Split(new [] {" "}, StringSplitOptions.None).ToList<object>();
             string? cost = ((string)getValue(parts, 0));
-            if (((bs != null)) && !(((bs != null) && (result?.ContainsKey(bs) == true))))
+            if (((bs != null)) && !(inOp(result, bs)))
             {
                 Int64? baseDecimals = this.safeInteger(market, "base_decimals");
                 result[(string)bs] = this.constructCurrencyObject(baseId, bs, baseDescription, baseDecimals, null, market);
             }
-            if (((quote != null)) && !(((quote != null) && (result?.ContainsKey(quote) == true))))
+            if (((quote != null)) && !(inOp(result, quote)))
             {
                 Int64? counterDecimals = this.safeInteger(market, "counter_decimals");
                 result[(string)quote] = this.constructCurrencyObject(quoteId, quote, quoteDescription, counterDecimals, this.parseNumber(cost), market);
@@ -1620,7 +1620,7 @@ public partial class bitstamp : Exchange
         List<object> ids = new List<object>(((IDictionary<string,object>)transaction).Keys);
         for (int i = 0; isLessThan(i, ids.Count); postFixIncrement(ref i))
         {
-            string? id = ((string)ids[i]);
+            string? id = ((string)getValue(ids, i));
             if (getIndexOf(id, "_") < 0)
             {
                 Int64? value = this.safeInteger(transaction, id);
@@ -1713,7 +1713,7 @@ public partial class bitstamp : Exchange
             List<object> keys = new List<object>(((IDictionary<string,object>)trade).Keys);
             for (int i = 0; isLessThan(i, keys.Count); postFixIncrement(ref i))
             {
-                string? currentKey = ((string)keys[i]);
+                string? currentKey = ((string)getValue(keys, i));
                 if (currentKey != "order_id" && getIndexOf(currentKey, "_") >= 0)
                 {
                     rawMarketId = currentKey;
@@ -2157,7 +2157,7 @@ public partial class bitstamp : Exchange
         List<object> ids = new List<object>(((IDictionary<string,object>)currencies).Keys);
         for (int i = 0; isLessThan(i, ids.Count); postFixIncrement(ref i))
         {
-            string? id = ((string)ids[i]);
+            string? id = ((string)getValue(ids, i));
             object fees = this.safeValue(response, i, new Dictionary<string, object>() {});
             string? code = this.safeCurrencyCode(id);
             if ((!isEqual(codes, null)) && !this.inArray(code, codes))
@@ -3024,7 +3024,7 @@ public partial class bitstamp : Exchange
             { "2", "trade" },
             { "14", "transfer" },
         };
-        return this.safeString(types, ((string)type), type);
+        return this.safeString(types, type, type);
     }
 
     public override Dictionary<string, object> parseLedgerEntry(object item, object currency = null)
@@ -3063,9 +3063,9 @@ public partial class bitstamp : Exchange
             List<object> keys = new List<object>(((IDictionary<string,object>)item).Keys);
             for (int i = 0; isLessThan(i, keys.Count); postFixIncrement(ref i))
             {
-                if (getIndexOf(keys[i], "_") >= 0)
+                if (getIndexOf(getValue(keys, i), "_") >= 0)
                 {
-                    string marketId = ((string)keys[i]).Replace((string)"_", (string)"");
+                    string marketId = ((string)getValue(keys, i)).Replace("_", (string)"");
                     market = this.safeMarket(marketId, market);
                 }
             }
@@ -3101,10 +3101,10 @@ public partial class bitstamp : Exchange
             {
                 string? amount = this.safeString(item, "amount");
                 direction = isTrue(Precise.stringGt(amount, "0")) ? "in" : "out";
-            } else if (((parsedTransaction?.ContainsKey("currency") == true)) && !isEqual(GetValue(parsedTransaction, "currency"), null))
+            } else if ((inOp(parsedTransaction, "currency")) && !isEqual(GetValue(parsedTransaction, "currency"), null))
             {
                 string? currencyCode = this.safeString(parsedTransaction, "currency");
-                currency = this.currency(((string)currencyCode));
+                currency = this.currency(currencyCode);
                 string? amount = this.safeString(item, getValue(currency, "id"));
                 direction = isTrue(Precise.stringGt(amount, "0")) ? "in" : "out";
             }
@@ -3278,7 +3278,7 @@ public partial class bitstamp : Exchange
          * @param {string} code Unified currency code
          * @returns {string} lowercase version of code
          */
-        return ((string)code).ToLower();
+        return code.ToLower();
     }
 
     public virtual bool isFiat(object code)
@@ -3510,7 +3510,7 @@ public partial class bitstamp : Exchange
                 }
             }
             object authBody = (!isEqual(body, null) && !isEqual(body, "")) ? body : "";
-            object auth = add(add(add(add(add(add(add(xAuth, method), ((string)url).Replace((string)"https://", (string)"")), contentType), xAuthNonce), xAuthTimestamp), xAuthVersion), authBody);
+            object auth = add(add(add(add(add(add(add(xAuth, method), ((string)url).Replace("https://", (string)"")), contentType), xAuthNonce), xAuthTimestamp), xAuthVersion), authBody);
             string signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
             ((IDictionary<string,object>)headers)["X-Auth-Signature"] = signature;
         }
@@ -3546,7 +3546,7 @@ public partial class bitstamp : Exchange
                 List<object> keys = new List<object>(((IDictionary<string,object>)error).Keys);
                 for (int i = 0; isLessThan(i, keys.Count); postFixIncrement(ref i))
                 {
-                    string? key = ((string)keys[i]);
+                    string? key = ((string)getValue(keys, i));
                     object value = this.safeValue(error, key);
                     if (((value is IList<object>) || (value.GetType().IsGenericType && value.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
                     {
@@ -3566,7 +3566,7 @@ public partial class bitstamp : Exchange
                 List<object> all = this.safeList(reasonInner, "__all__", new List<object>() {});
                 for (int i = 0; isLessThan(i, all.Count); postFixIncrement(ref i))
                 {
-                    ((IList<object>)errors).Add(all[i]);
+                    ((IList<object>)errors).Add(getValue(all, i));
                 }
             }
             string? code = this.safeString(response, "code");
@@ -3577,7 +3577,7 @@ public partial class bitstamp : Exchange
             string feedback = add(add(this.id, " "), body);
             for (int i = 0; isLessThan(i, errors?.Count ?? 0); postFixIncrement(ref i))
             {
-                object value = errors[i];
+                object value = getValue(errors, i);
                 this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), value, feedback);
                 this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), value, feedback);
             }

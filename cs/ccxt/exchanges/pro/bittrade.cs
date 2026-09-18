@@ -392,7 +392,7 @@ public partial class bittrade : ccxt.bittrade
         string? symbol = this.safeString(subscription, "symbol");
         string? messageHash = this.safeString(subscription, "messageHash");
         Int64? timestamp = this.safeInteger(message, "ts");
-        ccxt.pro.IOrderBook orderbook = this.getOrderBook(this.orderbooks, ((string)symbol));
+        ccxt.pro.IOrderBook orderbook = this.getOrderBook(this.orderbooks, symbol);
         object data = this.safeValue(message, "data");
         Dictionary<string, object> snapshot = this.parseOrderBook(data, symbol);
         snapshot["nonce"] = this.safeInteger(data, "seqNum");
@@ -405,7 +405,7 @@ public partial class bittrade : ccxt.bittrade
         {
             this.handleOrderBookMessage(client, getValue(messages, i), orderbook);
         }
-        ((IDictionary<string,object>)this.orderbooks)[(string)((string)symbol)] = orderbook;
+        ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = orderbook;
         callDynamically(client, "resolve", new object[] {orderbook, messageHash});
     }
 
@@ -441,7 +441,7 @@ public partial class bittrade : ccxt.bittrade
             return (orderbook as IOrderBook).limit();
         } catch(Exception e)
         {
-            ((IDictionary<string,object>)client.subscriptions).Remove((string)((string)messageHash));
+            ((IDictionary<string,object>)client.subscriptions).Remove(messageHash);
             client.reject(e, messageHash);
         }
         return null;
@@ -555,7 +555,7 @@ public partial class bittrade : ccxt.bittrade
         Int64? limit = this.safeInteger(subscription, "limit");
         if (((IDictionary<string, object>)this.orderbooks).ContainsKey(symbol))
         {
-            ((IDictionary<string,object>)this.orderbooks).Remove((string)symbol);
+            ((IDictionary<string,object>)this.orderbooks).Remove(symbol);
         }
         ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook(new Dictionary<string, object>() {}, limit);
         // watch the snapshot in a separate async call
@@ -589,7 +589,7 @@ public partial class bittrade : ccxt.bittrade
             // clean up
             if (inOp(client.subscriptions, id))
             {
-                ((IDictionary<string,object>)client.subscriptions).Remove((string)id);
+                ((IDictionary<string,object>)client.subscriptions).Remove(id);
             }
         }
         return message;
@@ -701,7 +701,7 @@ public partial class bittrade : ccxt.bittrade
                     client.reject(e, id);
                     if (inOp(client.subscriptions, id))
                     {
-                        ((IDictionary<string,object>)client.subscriptions).Remove((string)id);
+                        ((IDictionary<string,object>)client.subscriptions).Remove(id);
                     }
                 }
             }

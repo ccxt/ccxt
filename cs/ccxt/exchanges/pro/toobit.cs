@@ -1425,7 +1425,7 @@ public partial class toobit : ccxt.toobit
         {
             string? desc = this.safeString(message, "desc");
             string msg = add(add(add(add(this.id, " code: "), code), " message: "), desc);
-            var exception = new ExchangeError(((string)msg)); // c# fix
+            var exception = new ExchangeError(msg); // c# fix
             client.reject(exception);
             return ((bool?)((object)(true)));
         }

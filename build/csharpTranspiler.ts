@@ -1240,6 +1240,36 @@ const U42_COPY_WIDENING: Record<string, boolean> = {
 // for `withdrawRequest(... , tagVar, ...)` names the box those bindings already hold.
 const CORE_ARG_CAST_EXEMPT_NAMES = [ 'code', 'codeVar', 'tag', 'tagVar' ];
 
+// U47: hand-written / base-emitted C# producers whose DECLARED return type is `string`/`string?`,
+// read off the declaration named in each value. A `((string)this.<name>(...))` wrap on one of
+// them is an identity conversion (reference type: `string?` and `string` are one runtime type,
+// the annotation is not part of a signature, null stays null, nothing unboxes), so the cast can
+// go. A name the processed content itself declares wins over this table: an override that prints
+// another type (or a `new`-hidden twin) then decides the call site's static type, not the base.
+// Census of the surviving `((string)` casts on the base tree: campaigns/cs90/tools/U47.
+const STRING_PRODUCER_HELPERS: Record<string, string> = {
+    safeString: 'cs/ccxt/base/Exchange.SafeMethods.cs:129 string?',
+    safeString2: 'cs/ccxt/base/Exchange.SafeMethods.cs:131 string?',
+    safeStringUpper: 'cs/ccxt/base/Exchange.SafeMethods.cs:139 string?',
+    safeStringLower: 'cs/ccxt/base/Exchange.SafeMethods.cs:157 string?',
+    safeStringLower2: 'cs/ccxt/base/Exchange.SafeMethods.cs:163 string?',
+    safeCurrencyCode: 'cs/ccxt/base/Exchange.BaseMethods.cs:5916 string?',
+    amountToPrecision: 'cs/ccxt/base/Exchange.BaseMethods.cs:5718 string?',
+    findTimeframe: 'cs/ccxt/base/Exchange.BaseMethods.cs:630 string?',
+    json: 'cs/ccxt/base/Exchange.Functions.cs:325 string',
+    ethGetAddressFromPrivateKey: 'cs/ccxt/base/Exchange.ETH.cs:322 string',
+    numberToString: 'cs/ccxt/base/Exchange.Number.cs:427 string',
+    intToBase16: 'cs/ccxt/base/Exchange.Encode.cs:265 string',
+    urlencode: 'cs/ccxt/base/Exchange.Encode.cs:364 string',
+};
+
+// the `public string <name> { get; set; }` block of cs/ccxt/base/Exchange.Options.cs (partial
+// class BaseExchange, lines 89-96) -- every tier inherits them, no venue declares a twin.
+// `token` in the same block is `public object` and is deliberately absent.
+const STRING_PRODUCER_FIELDS = [
+    'secret', 'apiKey', 'password', 'uid', 'accountId', 'login', 'privateKey', 'walletAddress', 'twofa',
+];
+
 // parse* cores whose `market` parameter is only ever a market row: every call site passes null, a
 // Dictionary<string, object> / IDictionary<string, object> value, or an admitted name's own `market`
 // parameter, and every body use is a dict use (census: campaigns/cs-strict/tools/S37).
@@ -4961,6 +4991,261 @@ class NewTranspiler {
         return out;
     }
 
+    // U47 -- `((string)X)` where X's C# static type already IS the cast's target `string`: the
+    // wrap is an identity conversion (reference type: `string?` and `string` are one runtime
+    // type, nullability is not part of a signature, null stays null, nothing unboxes), so the
+    // cast can be dropped without moving the box. Four proven subject families:
+    //   * a STRING LITERAL -- its static type is `string` by definition (the printer's
+    //     `Remove((string)"k")` / `Replace((string)"%", (string)"")` argument wraps);
+    //   * a nested `(string)X` / `((string)X)` -- the inner cast's result type IS `string`;
+    //   * `this.<m>(...)` whose declared return type is `string`/`string?` -- read off the
+    //     processed content's own declaration of `<m>` (authoritative: a per-venue override
+    //     prints its own declaration; a name declared twice with two types is vetoed) or, for a
+    //     helper the content does not declare, STRING_PRODUCER_HELPERS above;
+    //   * a bare identifier the SAME METHOD declares `string`/`string?` (parameter, local or
+    //     `foreach` binding -- S09's region scan, extended from its five target names to every
+    //     name). A name the method also declares with any other type, a lambda parameter of that
+    //     name, or a `foreach|catch|for|using|fixed` variable of that name vetoes the site.
+    // Both printed shapes are handled: the printer's wrapper `((string)X)` (the pair is dropped)
+    // and a CALL's paren plus the printer's single cast `f((string)X)` (only the cast token is
+    // dropped -- deleting the pair there would eat the call's paren; the two are told apart by
+    // the character before the match, exactly as dropStringCasts does).
+    dropIdentityStringCasts (content: string): string {
+        if (!content.includes ('((string)')) {
+            return content;
+        }
+        const fields = new Set<string> (STRING_PRODUCER_FIELDS);
+        // every `public ... <name>(` in the content: the emitted declaration decides the type of
+        // a `this.<name>(...)` call. Two declarations that disagree (overloads cannot, but a
+        // `new`-hidden twin can) answer `*`, which vetoes the name.
+        const declared = new Map<string, string> ();
+        const methodRe = /^\s*public\s+(?:static\s+|virtual\s+|override\s+|async\s+|new\s+)*([A-Za-z_][\w<>.,?\[\]]*)\s+([A-Za-z_][A-Za-z0-9_]*)\s*\(/gm;
+        let m: RegExpExecArray | null;
+        while ((m = methodRe.exec (content)) !== null) {
+            const previous = declared.get (m[2]);
+            if (previous === undefined) {
+                declared.set (m[2], m[1]);
+            } else if (previous !== m[1]) {
+                declared.set (m[2], '*');
+            }
+        }
+        const stringProducer = (name: string): boolean => {
+            if (declared.has (name)) {
+                const ret = declared.get (name);
+                return (ret === 'string') || (ret === 'string?');
+            }
+            return STRING_PRODUCER_HELPERS[name] !== undefined;
+        };
+        const lines = content.split ('\n');
+        // a method's region runs from its signature line to the next signature line (the S09
+        // delimitation -- a brace count would drift on braces inside comments)
+        const sigLines: number[] = [];
+        for (let i = 0; i < lines.length; i++) {
+            if (this.isCsharpMethodSignature (lines[i])) {
+                sigLines.push (i);
+            }
+        }
+        for (let k = 0; k < sigLines.length; k++) {
+            const sig = sigLines[k];
+            const start = sig + 1;
+            const end = (k + 1 < sigLines.length) ? sigLines[k + 1] : lines.length;
+            const code: string[] = [];
+            for (let j = start; j < end; j++) {
+                if (this.isCsharpCommentLine (lines[j])) {
+                    continue;
+                }
+                code.push (lines[j]);
+            }
+            const text = [ lines[sig] ].concat (code).join ('\n');
+            const allowed = new Set<string> ();
+            const blocked = new Set<string> ();
+            const declRe = new RegExp ('(?:^|[\\s(,])(string\\?|string|object|var|bool\\?|bool|Int64\\?|Int64|double\\?|double|int\\?|int|Dictionary<string, object>|IDictionary<string, object>|List<object>|IList<object>|ccxt\\.[\\w.<>?]+|[A-Z][\\w.]*)\\s+([A-Za-z_][A-Za-z0-9_]*)(?![\\w])\\s*(?==|,|\\))', 'g');
+            while ((m = declRe.exec (text)) !== null) {
+                if ((m[1] === 'string') || (m[1] === 'string?')) {
+                    allowed.add (m[2]);
+                } else {
+                    blocked.add (m[2]);
+                }
+            }
+            const foreachRe = new RegExp ('foreach\\s*\\(\\s*([^\\s]+)\\s+([A-Za-z_][A-Za-z0-9_]*)\\s+in\\b', 'g');
+            while ((m = foreachRe.exec (text)) !== null) {
+                if ((m[1] === 'string') || (m[1] === 'string?')) {
+                    allowed.add (m[2]);
+                } else {
+                    blocked.add (m[2]);
+                }
+            }
+            const body = lines.slice (start, end).join ('\n');
+            const veto = (name: string): boolean => {
+                if (blocked.has (name)) {
+                    return true;
+                }
+                // a lambda parameter of that name would shadow the binding (`x => ...` and `(a, x) => ...`)
+                if (new RegExp ('\\b' + name + '\\b\\s*=>').test (body)) {
+                    return true;
+                }
+                if (new RegExp ('\\([^()]*\\b' + name + '\\b[^()]*\\)\\s*=>').test (body)) {
+                    return true;
+                }
+                if (new RegExp ('(?:\\bforeach|\\bcatch|\\bfor|\\busing|\\bfixed)\\s*\\([^)]*\\b' + name + '\\b').test (body)) {
+                    return true;
+                }
+                return false;
+            };
+            for (let j = start; j < end; j++) {
+                if (this.isCsharpCommentLine (lines[j])) {
+                    continue;
+                }
+                lines[j] = this.dropIdentityStringCastsOnLine (lines[j], allowed, veto, stringProducer, fields);
+            }
+        }
+        return lines.join ('\n');
+    }
+
+    // one line of the pass above: scan the code part (a `//` comment and the inside of string
+    // literals are never touched -- maskCsharpLiterals blanks the literals, so a `((string)` and
+    // a paren inside one can neither match nor shift the paren depth), drop every removable cast
+    // that does not overlap another one on the same line, and repeat: a removal can expose the
+    // next wrapper (`((string)((string)x))` -> `((string)x)` -> `x`).
+    dropIdentityStringCastsOnLine (line: string, allowed: Set<string>, veto: (name: string) => boolean,
+                                  stringProducer: (name: string) => boolean, fields: Set<string>): string {
+        let out = line;
+        for (let round = 0; round < 6; round++) {
+            const commentAt = this.csharpCommentIndex (out);
+            const masked = this.maskCsharpLiterals ((commentAt === -1) ? out : out.substring (0, commentAt));
+            const removals: number[][][] = [];
+            let from = 0;
+            let lastEnd = -1;
+            for (;;) {
+                const at = masked.indexOf ('((string)', from);
+                if (at === -1) {
+                    break;
+                }
+                from = at + 9;
+                if (at < lastEnd) {
+                    continue; // nested in a removal already accepted on this line -- next round
+                }
+                const removal = this.identityStringCastRemoval (out, masked, at, allowed, veto, stringProducer, fields);
+                if (removal !== null) {
+                    removals.push (removal);
+                    lastEnd = removal[removal.length - 1][1];
+                }
+            }
+            if (removals.length === 0) {
+                break;
+            }
+            for (let i = removals.length - 1; i >= 0; i--) {
+                const ranges = removals[i];
+                for (let r = ranges.length - 1; r >= 0; r--) {
+                    const [ a, b ] = ranges[r];
+                    out = out.substring (0, a) + out.substring (b);
+                }
+            }
+        }
+        return out;
+    }
+
+    // index of the `(` matching the `)` at `close` (the input is masked, so no literal can hide a
+    // paren), or -1 when the group is unbalanced
+    matchingParenBackwards (masked: string, close: number): number {
+        let depth = 0;
+        for (let i = close; i >= 0; i--) {
+            const ch = masked[i];
+            if (ch === ')') {
+                depth++;
+            } else if (ch === '(') {
+                depth--;
+                if (depth === 0) {
+                    return i;
+                }
+            }
+        }
+        return -1;
+    }
+
+
+    // the [from, to) range(s) to delete for the cast at `at` (index of the `((string)` in the
+    // masked line), or null when the operand's static type is not provably `string`. The first
+    // range is the cast token; a wrapper adds a second range for its closing `)`.
+    identityStringCastRemoval (line: string, masked: string, at: number, allowed: Set<string>,
+                               veto: (name: string) => boolean, stringProducer: (name: string) => boolean,
+                               fields: Set<string>): number[][] | null {
+        const open = at + 9;
+        // the operand ends at the first `,` `)` `;` `}` `]` at paren depth 0 -- for the wrapper
+        // that `)` is the cast's own, for `f((string)X, y)` the argument's separator
+        let depth = 0;
+        let term = -1;
+        for (let i = open; i < masked.length; i++) {
+            const ch = masked[i];
+            if (ch === '(') {
+                depth++;
+            } else if (ch === ')') {
+                if (depth === 0) { term = i; break; }
+                depth--;
+            } else if ((depth === 0) && ((ch === ',') || (ch === ';') || (ch === '}') || (ch === ']'))) {
+                term = i;
+                break;
+            }
+        }
+        if (term === -1) {
+            return null;
+        }
+        const operand = line.substring (open, term).trim ();
+        if (!this.identityStringOperand (operand, allowed, veto, stringProducer, fields)) {
+            return null;
+        }
+        // Is the `(` at `at` the cast's own paren (the wrapper `((string)X)`, delete the pair)
+        // or a CALL's paren followed by the printer's single cast (`f((string)X)`, delete only
+        // the cast token -- deleting the pair there would eat the call's paren)? A word character
+        // immediately before it is a callee (`Remove((string)k)`), and a non-keyword word before
+        // whitespace is a callee the printer spaced off (`new ExchangeError ((string)m)`); a `)`
+        // or `]` is resolved by the group it closes -- an expression group is the cast's own
+        // paren (`[(string)((string)code)]`), a call/indexer group is a call's.
+        const before = (at > 0) ? masked[at - 1] : '';
+        const prevWord = /([A-Za-z_][A-Za-z0-9_]*)\s*$/.exec (masked.substring (0, at));
+        let callParen = /[A-Za-z0-9_\]]/.test (before);
+        if (!callParen && (before === ')')) {
+            const group = this.matchingParenBackwards (masked, at - 1);
+            const beforeGroup = (group > 0) ? masked[group - 1] : '';
+            callParen = /[A-Za-z0-9_\]]/.test (beforeGroup);
+        }
+        if (!callParen && (prevWord !== null) && !CALL_PRECEDING_KEYWORDS.has (prevWord[1])) {
+            callParen = true;
+        }
+        if (callParen) {
+            return [ [ at + 1, at + 9 ] ];
+        }
+        // the wrapper `((string)X)`: the `(` at `at` must close exactly at `term`, which is the
+        // invariant that makes the removal a balanced-pair delete
+        if ((masked[term] !== ')') || (this.matchingParen (masked, at) !== term)) {
+            return null;
+        }
+        return [ [ at, at + 9 ], [ term, term + 1 ] ];
+    }
+
+    identityStringOperand (operand: string, allowed: Set<string>, veto: (name: string) => boolean,
+                           stringProducer: (name: string) => boolean, fields: Set<string>): boolean {
+        if (operand.startsWith ('"') || operand.startsWith ('@"') || operand.startsWith ('$"')) {
+            return true; // a string literal IS a string
+        }
+        if (operand.startsWith ('((string)') || operand.startsWith ('(string)')) {
+            return true; // a nested cast to `string` already yields a `string`
+        }
+        const call = /^this\.([A-Za-z_][A-Za-z0-9_]*)\s*\(/.exec (operand);
+        if (call !== null) {
+            return stringProducer (call[1]);
+        }
+        const field = /^this\.([A-Za-z_][A-Za-z0-9_]*)$/.exec (operand);
+        if (field !== null) {
+            return fields.has (field[1]);
+        }
+        const ident = /^([A-Za-z_][A-Za-z0-9_]*)$/.exec (operand);
+        if (ident !== null) {
+            return allowed.has (ident[1]) && !veto (ident[1]);
+        }
+        return false;
+    }
+
     isCsharpMethodSignature (line: string): boolean {
         return /^    (?:public|private|protected|internal)\b.*\)\s*$/.test (line);
     }
@@ -6679,7 +6964,7 @@ class NewTranspiler {
                 this.createGeneratedHeader().join('\n'),
                 "public partial class BaseExchange\n{\n\n"
             ]).join("\n");
-            const file = fileHeader + this.retypeIdentifierCopies (this.stripRedundantStringCasts (this.retypePrintedReceiverCasts (this.foldIdentityStringCasts (this.nativeListHelperCalls (this.retypeParseMarketParams (this.retypeParameterArgs (this.typeVenueStringArgs (this.retypeSafeCollectionHelpers (this.pascalizeTypedCores (this.dropStringTimeframeCasts (this.retypeSignatureArgs (this.finalizeCoreArgTypes (this.castCoreArgCallSites (this.typeCoreArgs (this.typeCollectionReturns (this.typeCores (this.typeSyncCores (baseMethods), false))))))), false)), 'BaseExchange')))))))) + "\n";
+            const file = fileHeader + this.dropIdentityStringCasts (this.retypeIdentifierCopies (this.stripRedundantStringCasts (this.retypePrintedReceiverCasts (this.foldIdentityStringCasts (this.nativeListHelperCalls (this.retypeParseMarketParams (this.retypeParameterArgs (this.typeVenueStringArgs (this.retypeSafeCollectionHelpers (this.pascalizeTypedCores (this.dropStringTimeframeCasts (this.retypeSignatureArgs (this.finalizeCoreArgTypes (this.castCoreArgCallSites (this.typeCoreArgs (this.typeCollectionReturns (this.typeCores (this.typeSyncCores (baseMethods), false))))))), false)), 'BaseExchange'))))))))) + "\n";
             fs.writeFileSync (csharpExchangeBase, file);
             log.green ('Transpiled base methods to', (csharpExchangeBase as any).yellow)
             if (exchangeClassMatch) {
@@ -6687,7 +6972,7 @@ class NewTranspiler {
                     this.createGeneratedHeader().join('\n'),
                     "public partial class Exchange\n{\n\n"
                 ]).join("\n");
-                const tradingFile = tradingHeader + this.retypeIdentifierCopies (this.stripRedundantStringCasts (this.retypePrintedReceiverCasts (this.foldIdentityStringCasts (this.nativeListHelperCalls (this.retypeParseMarketParams (this.retypeParameterArgs (this.typeVenueStringArgs (this.pascalizeTypedCores (this.dropStringTimeframeCasts (this.retypeSignatureArgs (this.finalizeCoreArgTypes (this.castCoreArgCallSites (this.typeCoreArgs (this.typeCollectionReturns (this.typeCores (this.typeSyncCores (exchangeBody), false))))))), false), 'Exchange')))))))) + "\n}\n";
+                const tradingFile = tradingHeader + this.dropIdentityStringCasts (this.retypeIdentifierCopies (this.stripRedundantStringCasts (this.retypePrintedReceiverCasts (this.foldIdentityStringCasts (this.nativeListHelperCalls (this.retypeParseMarketParams (this.retypeParameterArgs (this.typeVenueStringArgs (this.pascalizeTypedCores (this.dropStringTimeframeCasts (this.retypeSignatureArgs (this.finalizeCoreArgTypes (this.castCoreArgCallSites (this.typeCoreArgs (this.typeCollectionReturns (this.typeCores (this.typeSyncCores (exchangeBody), false))))))), false), 'Exchange'))))))))) + "\n}\n";
                 fs.writeFileSync (BASE_TRADING_METHODS_FILE, tradingFile);
                 log.green ('Transpiled trading methods to', (BASE_TRADING_METHODS_FILE as any).yellow)
             }
@@ -6735,7 +7020,7 @@ class NewTranspiler {
                 "public partial class PredictionExchange : BaseExchange\n{\n\n"
             ]).join("\n");
             // method wrappers retired: PascalCase cores on PredictionExchange are the public API
-            const file = fileHeader + fields + this.retypeIdentifierCopies (this.retypePrintedReceiverCasts (this.foldIdentityStringCasts (this.nativeListHelperCalls (this.retypeParseMarketParams (this.typeVenueStringArgs (this.pascalizeTypedCores (this.dropStringTimeframeCasts (this.retypeSignatureArgs (this.finalizeCoreArgTypes (this.castCoreArgCallSites (this.typeCoreArgs (this.typeCollectionReturns (this.typeCores (this.typeSyncCores (baseMethods), true))))))), true), 'PredictionExchange')))))) + "\n";
+            const file = fileHeader + fields + this.dropIdentityStringCasts (this.retypeIdentifierCopies (this.retypePrintedReceiverCasts (this.foldIdentityStringCasts (this.nativeListHelperCalls (this.retypeParseMarketParams (this.typeVenueStringArgs (this.pascalizeTypedCores (this.dropStringTimeframeCasts (this.retypeSignatureArgs (this.finalizeCoreArgTypes (this.castCoreArgCallSites (this.typeCoreArgs (this.typeCollectionReturns (this.typeCores (this.typeSyncCores (baseMethods), true))))))), true), 'PredictionExchange'))))))) + "\n";
             fs.writeFileSync (predictionBase, file);
             this._predictionBaseWritten = true;
             log.green ('Transpiled prediction base methods to', (predictionBase as any).yellow)
@@ -7085,6 +7370,7 @@ class NewTranspiler {
         content = this.dropRedundantObjectBoxCasts (content);
         content = this.retypeCacheElementWriteCasts (content);
         content = this.retypeIdentifierCopies (content);
+        content = this.dropIdentityStringCasts (content);
         this.currentVenue = '';
         content = this.createGeneratedHeader().join('\n') + '\n' + content;
         return csharpImports + content;

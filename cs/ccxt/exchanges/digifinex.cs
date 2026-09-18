@@ -835,7 +835,7 @@ public partial class digifinex : Exchange
         List<object> result = new List<object>() {};
         for (int i = 0; isLessThan(i, response?.Count ?? 0); postFixIncrement(ref i))
         {
-            object market = response[i];
+            object market = getValue(response, i);
             string? id = this.safeString2(market, "symbol", "instrument_id");
             string? baseId = this.safeString2(market, "base_asset", "base_currency");
             string? quoteId = this.safeString2(market, "quote_asset", "quote_currency");
@@ -950,7 +950,7 @@ public partial class digifinex : Exchange
         List<object> result = new List<object>() {};
         for (int i = 0; isLessThan(i, markets.Count); postFixIncrement(ref i))
         {
-            object market = markets[i];
+            object market = getValue(markets, i);
             string? id = this.safeString(market, "market");
             if ((id == null))
             {
@@ -1322,7 +1322,7 @@ public partial class digifinex : Exchange
         {
             Dictionary<string, object> rawTicker = this.extend(new Dictionary<string, object>() {
                 { "date", date },
-            }, tickers[i]);
+            }, getValue(tickers, i));
             Dictionary<string, object> ticker = this.parseTicker(rawTicker);
             object symbol = GetValue(ticker, "symbol");
             if ((symbol != null))
@@ -2394,7 +2394,7 @@ public partial class digifinex : Exchange
         List<object> result = new List<object>() {};
         for (int i = 0; isLessThan(i, success.Count); postFixIncrement(ref i))
         {
-            object order = success[i];
+            object order = getValue(success, i);
             ((IList<object>)result).Add(this.safeOrder(new Dictionary<string, object>() {
                 { "info", order },
                 { "id", order },
@@ -2403,7 +2403,7 @@ public partial class digifinex : Exchange
         }
         for (int i = 0; isLessThan(i, error.Count); postFixIncrement(ref i))
         {
-            object order = error[i];
+            object order = getValue(error, i);
             ((IList<object>)result).Add(this.safeOrder(new Dictionary<string, object>() {
                 { "info", order },
                 { "id", this.safeString2(order, "order-id", "order_id") },
@@ -3107,7 +3107,7 @@ public partial class digifinex : Exchange
     public virtual string? parseLedgerEntryType(string? type)
     {
         Dictionary<string, object> types = new Dictionary<string, object>() {};
-        return this.safeString(types, ((string)type), type);
+        return this.safeString(types, type, type);
     }
 
     public override Dictionary<string, object> parseLedgerEntry(object item, object currency = null)
@@ -3801,7 +3801,7 @@ public partial class digifinex : Exchange
         object result = null;
         for (int i = 0; isLessThan(i, data.Count); postFixIncrement(ref i))
         {
-            object entry = data[i];
+            object entry = getValue(data, i);
             if (isEqual(this.safeString(entry, "currency"), code))
             {
                 result = entry;
@@ -4061,7 +4061,7 @@ public partial class digifinex : Exchange
         List<object> rates = new List<object>() {};
         for (int i = 0; isLessThan(i, result.Count); postFixIncrement(ref i))
         {
-            object entry = result[i];
+            object entry = getValue(result, i);
             string? marketId = this.safeString(data, "instrument_id");
             string? symbolInner = this.safeSymbol(marketId);
             Int64? timestamp = this.safeInteger(entry, "time");
@@ -4259,7 +4259,7 @@ public partial class digifinex : Exchange
         List<object> result = new List<object>() {};
         for (int i = 0; isLessThan(i, positions.Count); postFixIncrement(ref i))
         {
-            ((IList<object>)result).Add(this.parsePosition(positions[i], market));
+            ((IList<object>)result).Add(this.parsePosition(getValue(positions, i), market));
         }
         return ccxt.BaseExchange.ToPositionList(this.filterByArrayPositions(result, "symbol", symbols, false));
     }
@@ -4888,8 +4888,8 @@ public partial class digifinex : Exchange
         List<object> depositWithdrawCodes = new List<object>(((IDictionary<string,object>)depositWithdrawFees).Keys);
         for (int i = 0; isLessThan(i, depositWithdrawCodes.Count); postFixIncrement(ref i))
         {
-            string? code = ((string)depositWithdrawCodes[i]);
-            Dictionary<string, object> currency = this.currency(((string)code));
+            string? code = ((string)getValue(depositWithdrawCodes, i));
+            Dictionary<string, object> currency = this.currency(code);
             depositWithdrawFees[(string)code] = this.assignDefaultDepositWithdrawFees(getValue(depositWithdrawFees, code), currency);
         }
         return ((Dictionary<string, object>)((object)(depositWithdrawFees)));

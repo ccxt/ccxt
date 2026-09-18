@@ -1191,7 +1191,7 @@ public partial class deepcoin : ccxt.deepcoin
             { "4", "open" },
             { "6", "canceled" },
         };
-        return this.safeString(statuses, ((string)status), status);
+        return this.safeString(statuses, status, status);
     }
 
     /**
@@ -1312,7 +1312,7 @@ public partial class deepcoin : ccxt.deepcoin
             { "contractSize", null },
             { "side", this.parsePositionSide(direction) },
             { "notional", null },
-            { "leverage", this.omitZero(((string)this.safeString(position, "l"))) },
+            { "leverage", this.omitZero(this.safeString(position, "l")) },
             { "unrealizedPnl", null },
             { "realizedPnl", null },
             { "collateral", null },

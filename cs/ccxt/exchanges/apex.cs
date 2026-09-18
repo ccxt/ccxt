@@ -572,7 +572,7 @@ public partial class apex : Exchange
         List<object> chains = this.safeList(multiChain, "chains", new List<object>() {});
         this.options["_temp_currencies_chains"] = chains;
         Dictionary<string, object> result = this.parseCurrencies(rows);
-        ((IDictionary<string,object>)this.options).Remove((string)"_temp_currencies_chains");
+        ((IDictionary<string,object>)this.options).Remove("_temp_currencies_chains");
         return ((IDictionary<string, object>)((object)(result)));
     }
 
@@ -1397,7 +1397,7 @@ public partial class apex : Exchange
             { "TAKE_PROFIT_LIMIT", "limit" },
             { "TAKE_PROFIT_MARKET", "market" },
         };
-        return this.safeString(types, ((string)type), type);
+        return this.safeString(types, type, type);
     }
 
     public override Dictionary<string, object> safeMarket(object marketId = null, object market = null, object delimiter = null, object marketType = null)

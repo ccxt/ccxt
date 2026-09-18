@@ -2001,7 +2001,7 @@ public partial class paradex : Exchange
             { "GTC", "GTC" },
             { "POST_ONLY", "PO" },
         };
-        return this.safeString(timeInForces, ((string)timeInForce));
+        return this.safeString(timeInForces, timeInForce);
     }
 
     public virtual string? parseOrderStatus(object status)
@@ -2049,7 +2049,7 @@ public partial class paradex : Exchange
         Dictionary<string, object> market = this.market(symbol);
         bool? reduceOnly = this.safeBool2(parameters, "reduceOnly", "reduce_only");
         string orderType = ((string)type).ToUpper();
-        string orderSide = ((string)((string)side)).ToUpper();
+        string orderSide = ((string)side).ToUpper();
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "market", GetValue(market, "id") },
             { "side", orderSide },
@@ -3463,7 +3463,7 @@ public partial class paradex : Exchange
             { "COMPLETED", "ok" },
             { "FAILED", "failed" },
         };
-        return this.safeString(statuses, ((string)status), status);
+        return this.safeString(statuses, status, status);
     }
 
     /**
@@ -4018,7 +4018,7 @@ public partial class paradex : Exchange
         if ((getIndexOf(path, "v2/") == 0))
         {
             version = "v2";
-            path = ((string)path).Replace((string)"v2/", (string)"");
+            path = ((string)path).Replace("v2/", (string)"");
         }
         string url = add(add(this.implodeHostname(getValue(getValue(this.urls, "api"), ((string)version))), "/"), this.implodeParams(path, parameters));
         object query = this.omit(parameters, this.extractParams(path));

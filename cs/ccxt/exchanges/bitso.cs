@@ -421,7 +421,7 @@ public partial class bitso : Exchange
             { "trade", "trade" },
             { "fee", "fee" },
         };
-        return this.safeString(types, ((string)type), type);
+        return this.safeString(types, type, type);
     }
 
     public override Dictionary<string, object> parseLedgerEntry(object item, object currency = null)
@@ -1446,7 +1446,7 @@ public partial class bitso : Exchange
             { "queued", "open" },
             { "completed", "closed" },
         };
-        return this.safeString(statuses, ((string)status), status);
+        return this.safeString(statuses, status, status);
     }
 
     public override Dictionary<string, object> parseOrder(object order, object market = null)
@@ -1731,9 +1731,9 @@ public partial class bitso : Exchange
         IDictionary<string, object> payload = this.safeDict(response, "payload", new Dictionary<string, object>() {});
         string? address = this.safeString(payload, "account_identifier");
         string? tag = null;
-        if (getIndexOf(((string)address), "?dt=") >= 0)
+        if (getIndexOf(address, "?dt=") >= 0)
         {
-            List<object> parts = ((string)((string)address)).Split(new [] {"?dt="}, StringSplitOptions.None).ToList<object>();
+            List<object> parts = address.Split(new [] {"?dt="}, StringSplitOptions.None).ToList<object>();
             address = this.safeString(parts, 0);
             tag = this.safeString(parts, 1);
         }
@@ -2152,7 +2152,7 @@ public partial class bitso : Exchange
             { "complete", "ok" },
             { "failed", "failed" },
         };
-        return this.safeString(statuses, ((string)status), status);
+        return this.safeString(statuses, status, status);
     }
 
     public override Int64 nonce()

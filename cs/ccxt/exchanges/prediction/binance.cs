@@ -1162,11 +1162,11 @@ public partial class binance : PredictionExchange
         {
             return null;
         }
-        if (((string)status).EndsWith("Rejected"))
+        if (status.EndsWith("Rejected"))
         {
             return "rejected";
         }
-        if (((string)status).EndsWith("Canceled"))
+        if (status.EndsWith("Canceled"))
         {
             return "canceled";
         }
@@ -1906,7 +1906,7 @@ public partial class binance : PredictionExchange
         IDictionary<string, object> outcomeObj = this.outcome(outcome);
         // markets are keyed by the parent market outcome; the outcome handle ("MARKET:LABEL")
         // is not a market id, so resolve the market and price/amount precision via outcomeObj['market']
-        string marketSymbol = ((string)this.safeString(outcomeObj, "market"));
+        string marketSymbol = this.safeString(outcomeObj, "market");
         Dictionary<string, object> market = this.market(marketSymbol);
         string typeUpper = type.ToUpper();
         string sideUpper = side.ToUpper();
@@ -2014,7 +2014,7 @@ public partial class binance : PredictionExchange
     public async override Task<ccxt.PredictionOrder> CancelOrder(string id, string outcome = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object orders = ccxt.BaseExchange.FromPredictionOrderList(await this.CancelOrders(new List<object>() {id},((string)outcome), parameters));
+        object orders = ccxt.BaseExchange.FromPredictionOrderList(await this.CancelOrders(new List<object>() {id},outcome, parameters));
         return ccxt.BaseExchange.ToPredictionOrder(this.safeDict(orders, 0, new Dictionary<string, object>() {}));
     }
 
@@ -2155,8 +2155,8 @@ public partial class binance : PredictionExchange
             extendedParams["recvWindow"] = defaultRecvWindow;
         }
         string querystring = this.urlencodeNested(extendedParams);
-        querystring = querystring.Replace((string)"%5B", (string)"[");
-        querystring = querystring.Replace((string)"%5D", (string)"]");
+        querystring = querystring.Replace("%5B", (string)"[");
+        querystring = querystring.Replace("%5D", (string)"]");
         string signature = this.hmac(this.encode(querystring), this.encode(this.secret), sha256);
         querystring = add(add(querystring, "&signature="), signature);
         headers = new Dictionary<string, object>() {

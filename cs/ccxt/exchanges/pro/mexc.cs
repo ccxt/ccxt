@@ -319,7 +319,7 @@ public partial class mexc : ccxt.mexc
         string? channel = this.safeString(message, "c", "");
         string? marketId = this.safeString(message, "s");
         Dictionary<string, object> market = this.safeMarket(marketId);
-        bool channelStartsWithSpot = ((string)channel).StartsWith("spot");
+        bool channelStartsWithSpot = channel.StartsWith("spot");
         bool marketIdIsUndefined = (marketId == null);
         object isSpot = marketIdIsUndefined ? channelStartsWithSpot : GetValue(market, "spot");
         string spotPrefix = "spot:";
@@ -2111,11 +2111,11 @@ public partial class mexc : ccxt.mexc
         for (int i = 0; isLessThan(i, getArrayLength(messageHashes)); postFixIncrement(ref i))
         {
             object messageHash = getValue(messageHashes, i);
-            string subMessageHash = ((string)messageHash).Replace((string)"unsubscribe:", (string)"");
+            string subMessageHash = ((string)messageHash).Replace("unsubscribe:", (string)"");
             this.cleanUnsubscription(client, subMessageHash, messageHash);
             if (getIndexOf(messageHash, "ticker") >= 0)
             {
-                string symbol = ((string)messageHash).Replace((string)"unsubscribe:ticker:", (string)"");
+                string symbol = ((string)messageHash).Replace("unsubscribe:ticker:", (string)"");
                 if (getIndexOf(symbol, "unsubscribe") >= 0)
                 {
                     // unWatchTickers
@@ -2130,7 +2130,7 @@ public partial class mexc : ccxt.mexc
                 }
             } else if (getIndexOf(messageHash, "bidask") >= 0)
             {
-                string symbol = ((string)messageHash).Replace((string)"unsubscribe:bidask:", (string)"");
+                string symbol = ((string)messageHash).Replace("unsubscribe:bidask:", (string)"");
                 if (inOp(this.bidsasks, symbol))
                 {
                     ((IDictionary<string,object>)this.bidsasks).Remove(symbol);
@@ -2150,21 +2150,21 @@ public partial class mexc : ccxt.mexc
                 }
             } else if (getIndexOf(messageHash, "orderbook") >= 0)
             {
-                string symbol = ((string)messageHash).Replace((string)"unsubscribe:orderbook:", (string)"");
+                string symbol = ((string)messageHash).Replace("unsubscribe:orderbook:", (string)"");
                 if (inOp(this.orderbooks, symbol))
                 {
                     ((IDictionary<string,object>)this.orderbooks).Remove(symbol);
                 }
             } else if (getIndexOf(messageHash, "trades") >= 0)
             {
-                string symbol = ((string)messageHash).Replace((string)"unsubscribe:trades:", (string)"");
+                string symbol = ((string)messageHash).Replace("unsubscribe:trades:", (string)"");
                 if (inOp(this.trades, symbol))
                 {
                     ((IDictionary<string,object>)this.trades).Remove(symbol);
                 }
             } else if (getIndexOf(messageHash, "fundingRate") >= 0)
             {
-                string symbol = ((string)messageHash).Replace((string)"unsubscribe:fundingRate:", (string)"");
+                string symbol = ((string)messageHash).Replace("unsubscribe:fundingRate:", (string)"");
                 if (inOp(this.fundingRates, symbol))
                 {
                     ((IDictionary<string,object>)this.fundingRates).Remove(symbol);

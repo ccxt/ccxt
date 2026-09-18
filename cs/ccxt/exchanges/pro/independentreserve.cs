@@ -278,7 +278,7 @@ public partial class independentreserve : ccxt.independentreserve
         // go/c#/java, dropping trailing zeros. decimalToPrecision with
         // PAD_WITH_ZERO is string-typed everywhere and emits the same digits.
         object result = this.decimalToPrecision(value, ROUND, 8, DECIMAL_PLACES, PAD_WITH_ZERO);
-        result = ((string)result).Replace((string)".", (string)"");
+        result = ((string)result).Replace(".", (string)"");
         // remove leading zeros
         result = this.parseNumber(result);
         result = this.numberToString(result);

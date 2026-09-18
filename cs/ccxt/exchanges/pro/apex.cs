@@ -141,7 +141,7 @@ public partial class apex : ccxt.apex
         object data = this.safeValue(message, "data", new Dictionary<string, object>() {});
         string? topic = this.safeString(message, "topic");
         object trades = data;
-        List<object> parts = ((string)((string)topic)).Split(new [] {"."}, StringSplitOptions.None).ToList<object>();
+        List<object> parts = topic.Split(new [] {"."}, StringSplitOptions.None).ToList<object>();
         string? marketId = this.safeString(parts, 2);
         Dictionary<string, object> market = this.safeMarket(marketId, null, null);
         string? symbol = ((string)GetValue(market, "symbol"));
@@ -610,7 +610,7 @@ public partial class apex : ccxt.apex
         //
         object data = this.safeValue(message, "data", new Dictionary<string, object>() {});
         string? topic = this.safeString(message, "topic");
-        List<object> topicParts = ((string)((string)topic)).Split(new [] {"."}, StringSplitOptions.None).ToList<object>();
+        List<object> topicParts = topic.Split(new [] {"."}, StringSplitOptions.None).ToList<object>();
         int topicLength = topicParts.Count;
         string? timeframeId = this.safeString(topicParts, 1);
         string? timeframe = this.findTimeframe(timeframeId);

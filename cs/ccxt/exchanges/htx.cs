@@ -2437,7 +2437,7 @@ public partial class htx : Exchange
         List<object> keys = new List<object>(((IDictionary<string,object>)types).Keys);
         for (int i = 0; isLessThan(i, keys.Count); postFixIncrement(ref i))
         {
-            string? key = ((string)keys[i]);
+            string? key = ((string)getValue(keys, i));
             if ((this.safeBool(types, key) == true))
             {
                 if (key == "spot")
@@ -2456,7 +2456,7 @@ public partial class htx : Exchange
         promises = await promiseAll(promises);
         for (int i = 0; isLessThan(i, promises?.Count ?? 0); postFixIncrement(ref i))
         {
-            allMarkets = this.arrayConcat(allMarkets, promises[i]);
+            allMarkets = this.arrayConcat(allMarkets, getValue(promises, i));
         }
         return ccxt.BaseExchange.ToMarketInterfaceList(allMarkets);
     }
@@ -2596,7 +2596,7 @@ public partial class htx : Exchange
         List<object> result = new List<object>() {};
         for (int i = 0; isLessThan(i, markets.Count); postFixIncrement(ref i))
         {
-            object market = markets[i];
+            object market = getValue(markets, i);
             object baseId = null;
             string? quoteId = null;
             object settleId = null;
@@ -2835,7 +2835,7 @@ public partial class htx : Exchange
         };
         for (int i = 0; isLessThan(i, futureMarkets?.Count ?? 0); postFixIncrement(ref i))
         {
-            object market = futureMarkets[i];
+            object market = getValue(futureMarkets, i);
             object info = this.safeValue(market, "info", new Dictionary<string, object>() {});
             string? contractType = this.safeString(info, "contract_type");
             object contractSuffix = this.safeValue(futuresCharsMaps, contractType);
@@ -3341,7 +3341,7 @@ public partial class htx : Exchange
         {
             throw new NullResponse (add(this.id, " fetchOrderBook() returned empty response")) ;
         }
-        if ((response?.ContainsKey("tick") == true))
+        if (inOp(response, "tick"))
         {
             if ((isEqual(GetValue(response, "tick"), null)) || (isEqual(GetValue(response, "tick"), null)))
             {
@@ -3888,10 +3888,10 @@ public partial class htx : Exchange
         List<object> result = new List<object>() {};
         for (int i = 0; isLessThan(i, data.Count); postFixIncrement(ref i))
         {
-            List<object> trades = this.safeList(data[i], "data", new List<object>() {});
+            List<object> trades = this.safeList(getValue(data, i), "data", new List<object>() {});
             for (int j = 0; isLessThan(j, trades.Count); postFixIncrement(ref j))
             {
-                Dictionary<string, object> trade = this.parseTrade(trades[j], market);
+                Dictionary<string, object> trade = this.parseTrade(getValue(trades, j), market);
                 ((IList<object>)result).Add(trade);
             }
         }
@@ -4289,7 +4289,7 @@ public partial class htx : Exchange
         Dictionary<string, object> networks = new Dictionary<string, object>() {};
         for (int j = 0; isLessThan(j, chains.Count); postFixIncrement(ref j))
         {
-            object chainEntry = chains[j];
+            object chainEntry = getValue(chains, j);
             string? uniqueChainId = this.safeString(chainEntry, "chain"); // i.e. usdterc20, trc20usdt ...
             string? title = this.safeString2(chainEntry, "baseChain", "displayName"); // baseChain and baseChainProtocol are together existent or inexistent in entries, but baseChain is preferred. when they are both inexistent, then we use generic displayName
             if ((code != null) && (title != null))
@@ -4636,7 +4636,7 @@ public partial class htx : Exchange
             List<object> details = this.safeList(data, "details", new List<object>() {});
             for (int i = 0; isLessThan(i, details.Count); postFixIncrement(ref i))
             {
-                object balance = details[i];
+                object balance = getValue(details, i);
                 string? currencyId = this.safeString(balance, "currency");
                 string? code = this.safeCurrencyCode(currencyId);
                 Dictionary<string, object> account = this.account();
@@ -4670,8 +4670,8 @@ public partial class htx : Exchange
                     List<object> subCodes = new List<object>(((IDictionary<string,object>)subResult).Keys);
                     for (int j = 0; isLessThan(j, subCodes.Count); postFixIncrement(ref j))
                     {
-                        string? subCode = ((string)subCodes[j]);
-                        result = this.mergeBalanceAccount(result,((string)subCode), getValue(subResult, subCode));
+                        string? subCode = ((string)getValue(subCodes, j));
+                        result = this.mergeBalanceAccount(result,subCode, getValue(subResult, subCode));
                     }
                 }
                 result = this.safeBalance(result);
@@ -4680,7 +4680,7 @@ public partial class htx : Exchange
                 List<object> balances = this.safeList(data, "list", new List<object>() {});
                 for (int i = 0; isLessThan(i, balances.Count); postFixIncrement(ref i))
                 {
-                    object balance = balances[i];
+                    object balance = getValue(balances, i);
                     string? currencyId = this.safeString(balance, "currency");
                     string? code = this.safeCurrencyCode(currencyId);
                     if ((code != null))
@@ -6257,14 +6257,14 @@ public partial class htx : Exchange
             { "account-id", accountId },
             { "symbol", GetValue(market, "id") },
         };
-        string orderType = ((string)type).Replace((string)"buy-", (string)"");
-        orderType = orderType.Replace((string)"sell-", (string)"");
+        string orderType = ((string)type).Replace("buy-", (string)"");
+        orderType = orderType.Replace("sell-", (string)"");
         object options = this.safeValue(this.options, GetValue(market, "type"), new Dictionary<string, object>() {});
         string? triggerPrice = this.safeStringN(parameters, new List<object>() {"triggerPrice", "stopPrice", "stop-price"});
         if ((triggerPrice == null))
         {
             IDictionary<string, object> stopOrderTypes = this.safeDict(options, "stopOrderTypes", new Dictionary<string, object>() {});
-            if (((orderType != null) && (stopOrderTypes?.ContainsKey(orderType) == true)))
+            if (inOp(stopOrderTypes, orderType))
             {
                 throw new ArgumentsRequired (add(this.id, " createOrder() requires a triggerPrice for a trigger order")) ;
             }
@@ -6358,7 +6358,7 @@ public partial class htx : Exchange
             request["amount"] = this.amountToPrecision(symbol, amount);
         }
         IDictionary<string, object> limitOrderTypes = this.safeDict(options, "limitOrderTypes", new Dictionary<string, object>() {});
-        if (((orderType != null) && (limitOrderTypes?.ContainsKey(orderType) == true)))
+        if (inOp(limitOrderTypes, orderType))
         {
             request["price"] = this.priceToPrecision(symbol, price);
         }
@@ -7498,7 +7498,7 @@ public partial class htx : Exchange
         List<object> result = new List<object>() {};
         for (int i = 0; isLessThan(i, data.Count); postFixIncrement(ref i))
         {
-            object order = data[i];
+            object order = getValue(data, i);
             ((IList<object>)result).Add(this.safeOrder(new Dictionary<string, object>() {
                 { "info", order },
                 { "id", this.safeString(order, "order_id") },
@@ -7508,7 +7508,7 @@ public partial class htx : Exchange
         }
         for (int i = 0; isLessThan(i, success?.Count ?? 0); postFixIncrement(ref i))
         {
-            object order = success[i];
+            object order = getValue(success, i);
             ((IList<object>)result).Add(this.safeOrder(new Dictionary<string, object>() {
                 { "info", order },
                 { "id", order },
@@ -7517,7 +7517,7 @@ public partial class htx : Exchange
         }
         for (int i = 0; isLessThan(i, failed.Count); postFixIncrement(ref i))
         {
-            object order = failed[i];
+            object order = getValue(failed, i);
             ((IList<object>)result).Add(this.safeOrder(new Dictionary<string, object>() {
                 { "info", order },
                 { "id", this.safeString2(order, "order-id", "order_id") },
@@ -8622,7 +8622,7 @@ public partial class htx : Exchange
             List<object> result = this.safeList(data, "data", new List<object>() {});
             for (int i = 0; isLessThan(i, result.Count); postFixIncrement(ref i))
             {
-                object entry = result[i];
+                object entry = getValue(result, i);
                 ((IDictionary<string,object>)entry)["current_page"] = cursor;
                 string? marketId = this.safeString(entry, "contract_code");
                 string? symbolInner = this.safeSymbol(marketId);
@@ -9074,7 +9074,7 @@ public partial class htx : Exchange
                 if (isEqual(method, "POST"))
                 {
                     object options = this.safeValue(this.options, "broker", new Dictionary<string, object>() {});
-                    string id = ((string)this.safeString(options, "id", "AA03022abc"));
+                    string id = this.safeString(options, "id", "AA03022abc");
                     if (!isArrayParams)
                     {
                         if ((isEqual(getIndexOf(pathString, "cancel"), -1)) && ((string)pathString).EndsWith("order"))
@@ -9110,7 +9110,7 @@ public partial class htx : Exchange
                     Dictionary<string, object> sortedQuery = this.keysort(query);
                     request = this.extend(request, sortedQuery);
                 }
-                string auth = this.urlencode(request, true).Replace((string)"%2c", (string)"%2C"); // in c# it manually needs to be uppercased
+                string auth = this.urlencode(request, true).Replace("%2c", (string)"%2C"); // in c# it manually needs to be uppercased
                 // unfortunately, PHP demands double quotes for the escaped newline symbol
                 List<object> content2 = new List<object>() {method, hostname, url, auth};
                 string payload = String.Join("\n", content2.ToArray()); // eslint-disable-line quotes
@@ -9620,7 +9620,7 @@ public partial class htx : Exchange
         List<object> result = new List<object>() {};
         for (int i = 0; isLessThan(i, data.Count); postFixIncrement(ref i))
         {
-            object position = data[i];
+            object position = getValue(data, i);
             Dictionary<string, object> parsed = this.parsePosition(position);
             ((IList<object>)result).Add(this.extend(parsed, new Dictionary<string, object>() {
                 { "timestamp", timestamp },
@@ -9743,7 +9743,7 @@ public partial class htx : Exchange
             { "other-types", "transfer" },
             { "rebate", "rebate" },
         };
-        return this.safeString(types, ((string)type), type);
+        return this.safeString(types, type, type);
     }
 
     public override Dictionary<string, object> parseLedgerEntry(object item, object currency = null)
@@ -9930,12 +9930,12 @@ public partial class htx : Exchange
         List<object> brackets = this.safeList(info, "list", new List<object>() {});
         for (int i = 0; isLessThan(i, brackets.Count); postFixIncrement(ref i))
         {
-            object item = brackets[i];
+            object item = getValue(brackets, i);
             string? leverage = this.safeString(item, "lever_rate");
             List<object> ladders = this.safeList(item, "ladders", new List<object>() {});
             for (int k = 0; isLessThan(k, ladders.Count); postFixIncrement(ref k))
             {
-                object bracket = ladders[k];
+                object bracket = getValue(ladders, k);
                 string? adjustFactor = this.safeString(bracket, "adjust_factor");
                 ((IList<object>)tiers).Add(new Dictionary<string, object>() {
                     { "tier", this.safeInteger(bracket, "ladder") },
@@ -10756,7 +10756,7 @@ public partial class htx : Exchange
         object result = this.depositWithdrawFee(fee);
         for (int j = 0; isLessThan(j, chains.Count); postFixIncrement(ref j))
         {
-            object chainEntry = chains[j];
+            object chainEntry = getValue(chains, j);
             string? networkId = this.safeString(chainEntry, "chain");
             string? withdrawFeeType = this.safeString(chainEntry, "withdrawFeeType");
             string? networkCode = this.networkIdToCode(networkId, code);

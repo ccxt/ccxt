@@ -814,20 +814,20 @@ public partial class gemini : Exchange
             //         '<td>0.01 USD', // quote currency price increment
             //         '</tr>'
             //     ]
-            string marketId = ((string)getValue(cells, 0)).Replace((string)"<td>", (string)"");
-            marketId = marketId.Replace((string)"*", (string)"");
+            string marketId = ((string)getValue(cells, 0)).Replace("<td>", (string)"");
+            marketId = marketId.Replace("*", (string)"");
             // const base = this.safeCurrencyCode (baseId);
-            string minAmountString = ((string)getValue(cells, 1)).Replace((string)"<td>", (string)"");
+            string minAmountString = ((string)getValue(cells, 1)).Replace("<td>", (string)"");
             List<object> minAmountParts = minAmountString.Split(new [] {" "}, StringSplitOptions.None).ToList<object>();
             double? minAmount = this.safeNumber(minAmountParts, 0);
-            string amountPrecisionString = ((string)getValue(cells, 2)).Replace((string)"<td>", (string)"");
+            string amountPrecisionString = ((string)getValue(cells, 2)).Replace("<td>", (string)"");
             List<object> amountPrecisionParts = amountPrecisionString.Split(new [] {" "}, StringSplitOptions.None).ToList<object>();
             object idLength = subtract(getArrayLength(marketId), 0);
             object startingIndex = subtract(idLength, 3);
-            string pricePrecisionString = ((string)getValue(cells, 3)).Replace((string)"<td>", (string)"");
+            string pricePrecisionString = ((string)getValue(cells, 3)).Replace("<td>", (string)"");
             List<object> pricePrecisionParts = pricePrecisionString.Split(new [] {" "}, StringSplitOptions.None).ToList<object>();
             string? quoteId = this.safeStringLower(pricePrecisionParts, 1, slice(marketId, startingIndex, idLength));
-            string? baseId = this.safeStringLower(amountPrecisionParts, 1, marketId.Replace((string)quoteId, (string)""));
+            string? baseId = this.safeStringLower(amountPrecisionParts, 1, marketId.Replace(quoteId, (string)""));
             object bs = this.safeCurrencyCode(baseId);
             string? quote = this.safeCurrencyCode(quoteId);
             ((IList<object>)result).Add(new Dictionary<string, object>() {
@@ -1067,9 +1067,9 @@ public partial class gemini : Exchange
                 amountPrecision = this.parseNumber(this.parsePrecision(this.safeString(response, 2))); // quantityTickDecimalPlaces
                 minSize = this.safeNumber(response, 3); // quantityMinimum
             }
-            string marketIdUpper = ((string)((string)marketId)).ToUpper();
+            string marketIdUpper = ((string)marketId).ToUpper();
             bool isPerp = (getIndexOf(marketIdUpper, "PERP") >= 0);
-            string marketIdWithoutPerp = marketIdUpper.Replace((string)"PERP", (string)"");
+            string marketIdWithoutPerp = marketIdUpper.Replace("PERP", (string)"");
             IDictionary<string, object> conflictingMarkets = this.safeDict(this.options, "conflictingMarkets", new Dictionary<string, object>() {});
             string lowerCaseId = marketIdWithoutPerp.ToLower();
             if (conflictingMarkets.ContainsKey(lowerCaseId))
@@ -1087,7 +1087,7 @@ public partial class gemini : Exchange
                 for (int i = 0; isLessThan(i, getArrayLength(quoteCurrencies)); postFixIncrement(ref i))
                 {
                     object quoteCurrency = getValue(quoteCurrencies, i);
-                    if (((string)marketIdWithoutPerp).EndsWith(((string)quoteCurrency)))
+                    if (marketIdWithoutPerp.EndsWith(((string)quoteCurrency)))
                     {
                         Int64? quoteLength = this.parseToInt(multiply(-1, getArrayLength(quoteCurrency)));
                         baseId = slice(marketIdWithoutPerp, 0, quoteLength);
@@ -2283,7 +2283,7 @@ public partial class gemini : Exchange
             { "Advanced", "ok" },
             { "Complete", "ok" },
         };
-        return this.safeString(statuses, ((string)status), status);
+        return this.safeString(statuses, status, status);
     }
 
     public override Dictionary<string, object> parseDepositAddress(object depositAddress, Dictionary<string, object> currency = null)

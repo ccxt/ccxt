@@ -141,7 +141,7 @@ public partial class bingx : ccxt.bingx
             subscription["symbolsAndTimeframes"] = symbolsAndTimeframes;
             parameters = this.omit(parameters, "symbolsAndTimeframes");
         }
-        return await this.watch(((string)url), messageHash, this.extend(request, parameters), subscribeHash, subscription);
+        return await this.watch(url, messageHash, this.extend(request, parameters), subscribeHash, subscription);
     }
 
     /**
@@ -194,7 +194,7 @@ public partial class bingx : ccxt.bingx
             { "unsubscribe", false },
             { "id", uuid },
         };
-        return ccxt.BaseExchange.ToTicker(await this.watch(((string)url), messageHash, this.extend(request, parameters), messageHash, subscription));
+        return ccxt.BaseExchange.ToTicker(await this.watch(url, messageHash, this.extend(request, parameters), messageHash, subscription));
     }
 
     /**
@@ -951,9 +951,9 @@ public partial class bingx : ccxt.bingx
             // when handleMessage routes a non-OHLCV-originated subscription here (or the
             // subscription dict was reset on reconnect), fall back to the OHLCVLimit option.
             Int64? limit = this.safeInteger(subscription, "limit", this.safeInteger(this.options, "OHLCVLimit", 1000));
-            ((IDictionary<string,object>)getValue(this.ohlcvs, symbol))[(string)((string)unifiedTimeframe)] = new ArrayCacheByTimestamp(limit);
+            ((IDictionary<string,object>)getValue(this.ohlcvs, symbol))[(string)unifiedTimeframe] = new ArrayCacheByTimestamp(limit);
         }
-        object stored = getValue(getValue(this.ohlcvs, symbol), ((string)unifiedTimeframe));
+        object stored = getValue(getValue(this.ohlcvs, symbol), unifiedTimeframe);
         for (int i = 0; isLessThan(i, candles?.Count ?? 0); postFixIncrement(ref i))
         {
             object candle = candles[i];

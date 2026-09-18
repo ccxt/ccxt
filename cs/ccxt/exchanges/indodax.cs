@@ -692,7 +692,7 @@ public partial class indodax : Exchange
         {
             string? key = ((string)keys[i]);
             object rawTicker = getValue(tickers, key);
-            string marketId = key.Replace((string)"_", (string)"");
+            string marketId = key.Replace("_", (string)"");
             Dictionary<string, object> market = this.safeMarket(marketId);
             Dictionary<string, object> parsed = this.parseTicker(rawTicker, market);
             parsedTickers[(string)marketId] = parsed;
@@ -828,7 +828,7 @@ public partial class indodax : Exchange
             { "filled", "closed" },
             { "cancelled", "canceled" },
         };
-        return this.safeString(statuses, ((string)status), status);
+        return this.safeString(statuses, status, status);
     }
 
     public override Dictionary<string, object> parseOrder(object order, object market = null)
@@ -1524,7 +1524,7 @@ public partial class indodax : Exchange
         Dictionary<string, object> statuses = new Dictionary<string, object>() {
             { "success", "ok" },
         };
-        return this.safeString(statuses, ((string)status), status);
+        return this.safeString(statuses, status, status);
     }
 
     /**

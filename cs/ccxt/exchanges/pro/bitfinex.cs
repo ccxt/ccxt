@@ -274,7 +274,7 @@ public partial class bitfinex : ccxt.bitfinex
         List<object> keyParts = key.Split(new [] {":"}, StringSplitOptions.None).ToList<object>();
         object interval = this.safeString(keyParts, 1);
         string? marketId = key;
-        marketId = marketId.Replace((string)"trade:", (string)"");
+        marketId = marketId.Replace("trade:", (string)"");
         marketId = marketId.Replace((string)add(interval, ":"), (string)"");
         Dictionary<string, object> market = this.safeMarket(marketId);
         string? timeframe = this.findTimeframe(interval);
@@ -886,7 +886,7 @@ public partial class bitfinex : ccxt.bitfinex
         if (!isEqual(responseChecksum, localChecksum))
         {
             ((IDictionary<string,object>)client.subscriptions).Remove(messageHash);
-            ((IDictionary<string,object>)this.orderbooks).Remove((string)symbol);
+            ((IDictionary<string,object>)this.orderbooks).Remove(symbol);
             object checksum = this.handleOption("watchOrderBook", "checksum", true);
             if (isEqual(checksum, true))
             {
@@ -1004,8 +1004,8 @@ public partial class bitfinex : ccxt.bitfinex
                 oldBalance[(string)code] = balance;
             }
             oldBalance["info"] = message;
-            ((IDictionary<string,object>)this.balance)[(string)((string)balanceType)] = this.safeBalance(oldBalance);
-            updatedTypes[(string)((string)balanceType)] = true;
+            ((IDictionary<string,object>)this.balance)[(string)balanceType] = this.safeBalance(oldBalance);
+            updatedTypes[(string)balanceType] = true;
         }
         List<object> updatesKeys = new List<object>(((IDictionary<string,object>)updatedTypes).Keys);
         for (int i = 0; isLessThan(i, updatesKeys.Count); postFixIncrement(ref i))
@@ -1101,7 +1101,7 @@ public partial class bitfinex : ccxt.bitfinex
         //  }
         //
         string? channelId = this.safeString(message, "chanId");
-        ((IDictionary<string,object>)client.subscriptions)[(string)((string)channelId)] = message;
+        ((IDictionary<string,object>)client.subscriptions)[(string)channelId] = message;
         // store the opposite direction too for unWatch
         Dictionary<string, object> mappings = new Dictionary<string, object>() {
             { "book", "orderbook" },

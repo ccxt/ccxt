@@ -1615,7 +1615,7 @@ public partial class phemex : ccxt.phemex
         if (inOp(client.subscriptions, id))
         {
             object method = this.safeValue(client.subscriptions, id);
-            ((IDictionary<string,object>)client.subscriptions).Remove((string)id);
+            ((IDictionary<string,object>)client.subscriptions).Remove(id);
             if (!isEqual(method, true))
             {
                 DynamicInvoker.InvokeMethod(method, new object[] { client, message});

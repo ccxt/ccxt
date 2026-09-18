@@ -352,8 +352,8 @@ public partial class coincheck : Exchange
         List<object> codes = new List<object>(((IDictionary<string,object>)this.currencies).Keys);
         for (int i = 0; isLessThan(i, codes.Count); postFixIncrement(ref i))
         {
-            string? code = ((string)codes[i]);
-            Dictionary<string, object> currency = this.currency(((string)code));
+            string? code = ((string)getValue(codes, i));
+            Dictionary<string, object> currency = this.currency(code);
             object currencyId = GetValue(currency, "id");
             if (inOp(response, currencyId))
             {
@@ -400,7 +400,7 @@ public partial class coincheck : Exchange
         Int64? updated = null;
         for (int i = 0; isLessThan(i, exchangeStatuses.Count); postFixIncrement(ref i))
         {
-            object exchangeStatus = exchangeStatuses[i];
+            object exchangeStatus = getValue(exchangeStatuses, i);
             string? rawStatus = this.safeString(exchangeStatus, "status");
             if (isEqual(updated, null))
             {
@@ -463,7 +463,7 @@ public partial class coincheck : Exchange
         List<object> result = new List<object>() {};
         for (int i = 0; isLessThan(i, parsedOrders?.Count ?? 0); postFixIncrement(ref i))
         {
-            ((IList<object>)result).Add(this.extend(parsedOrders[i], new Dictionary<string, object>() {
+            ((IList<object>)result).Add(this.extend(getValue(parsedOrders, i), new Dictionary<string, object>() {
                 { "status", "open" },
             }));
         }
@@ -846,7 +846,7 @@ public partial class coincheck : Exchange
         }
         for (int i = 0; isLessThan(i, symbols?.Count ?? 0); postFixIncrement(ref i))
         {
-            string? symbol = ((string)symbols[i]);
+            string? symbol = ((string)getValue(symbols, i));
             Dictionary<string, object> market = this.market(symbol);
             object fee = this.safeValue(fees, GetValue(market, "id"), new Dictionary<string, object>() {});
             result[(string)symbol] = new Dictionary<string, object>() {
@@ -1059,7 +1059,7 @@ public partial class coincheck : Exchange
             { "confirmed", "pending" },
             { "received", "ok" },
         };
-        return this.safeString(statuses, ((string)status), status);
+        return this.safeString(statuses, status, status);
     }
 
     public override Dictionary<string, object> parseTransaction(object transaction, object currency = null)

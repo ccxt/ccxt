@@ -622,7 +622,7 @@ public partial class mudrex : Exchange
     {
         string? ms = this.safeString(asset, "symbol");
         object bs = ms;
-        if ((ms != null) && ((string)ms).EndsWith("USDT"))
+        if ((ms != null) && ms.EndsWith("USDT"))
         {
             bs = slice(ms, 0, -4);
         }

@@ -1056,7 +1056,7 @@ public partial class weex : Exchange
                 };
             }
         }
-        List<object> networkKeys = new List<object>(networks.Keys);
+        List<object> networkKeys = new List<object>(((IDictionary<string,object>)networks).Keys);
         int networksLength = networkKeys.Count;
         bool emptyChains = (networksLength == 0); // non-functional coins
         bool? valueForEmpty = emptyChains ? false : null;
@@ -1187,7 +1187,7 @@ public partial class weex : Exchange
         bool? isInverse = null;
         if ((settle != null))
         {
-            symbol = add(symbol, (":" + settle));
+            symbol = add(symbol, add(":", settle));
             isSpot = false;
             if ((settle == quote))
             {
@@ -1214,7 +1214,7 @@ public partial class weex : Exchange
         IDictionary<string, object> fees = this.safeDict(this.fees, isSpot ? "spot" : "contract", new Dictionary<string, object>() {});
         if ((id == null))
         {
-            throw new ExchangeError ((this.id + " method() missing id")) ;
+            throw new ExchangeError (add(this.id, " method() missing id")) ;
         }
         return this.safeMarketStructure(new Dictionary<string, object>() {
             { "id", id },
@@ -1404,7 +1404,7 @@ public partial class weex : Exchange
         List<object> results = new List<object>() {};
         for (int i = 0; isLessThan(i, response?.Count ?? 0); postFixIncrement(ref i))
         {
-            object rawTicker = response[i];
+            object rawTicker = getValue(response, i);
             // book tickers have no markPrice, so resolve the market from the endpoint type to disambiguate the spot/swap market id in parseTicker
             string? marketId = this.safeString(rawTicker, "symbol");
             Dictionary<string, object> tickerMarket = this.safeMarket(marketId, null, null, marketType);
@@ -1535,7 +1535,7 @@ public partial class weex : Exchange
         parameters = typeparametersVariable[1];
         if (type != "spot")
         {
-            throw new NotSupported ((this.id + " fetchLastPrices() supports spot markets only, use fetchMarkPrices() or fetchTickers() for contract markets")) ;
+            throw new NotSupported (add(this.id, " fetchLastPrices() supports spot markets only, use fetchMarkPrices() or fetchTickers() for contract markets")) ;
         }
         List<object> response = await this.publicGetApiV3MarketTickerPrice(parameters);
         //
@@ -1589,7 +1589,7 @@ public partial class weex : Exchange
         Dictionary<string, object> market = this.market(symbol);
         if (!isEqual(GetValue(market, "contract"), true))
         {
-            throw new NotSupported ((this.id + " fetchMarkPrice() supports contract markets only")) ;
+            throw new NotSupported (add(this.id, " fetchMarkPrice() supports contract markets only")) ;
         }
         object priceType = null;
         IList<object> priceTypeparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchMarkPrice", "priceType", "MARK");
@@ -1860,7 +1860,7 @@ public partial class weex : Exchange
                 {
                     if (isEqual(until, null))
                     {
-                        throw new ArgumentsRequired ((this.id + " fetchOHLCV() requires a since or until argument")) ;
+                        throw new ArgumentsRequired (add(this.id, " fetchOHLCV() requires a since or until argument")) ;
                     }
                     startTime = subtract(until, timeDelta);
                 } else
@@ -2003,10 +2003,10 @@ public partial class weex : Exchange
         bool? isBuyerMaker = this.safeBool(trade, "isBuyerMaker");
         if (!isEqual(isBuyer, null))
         {
-            side = isBuyer == true ? "buy" : "sell";
+            side = isTrue(isBuyer) ? "buy" : "sell";
         } else if (!isEqual(isBuyerMaker, null))
         {
-            side = isBuyerMaker == true ? "sell" : "buy";
+            side = isTrue(isBuyerMaker) ? "sell" : "buy";
         }
         object isSpot = true;
         if (isEqual(market, null))
@@ -2045,7 +2045,7 @@ public partial class weex : Exchange
         string? takerOrMaker = null;
         if (!isEqual(isMaker, null))
         {
-            takerOrMaker = isMaker == true ? "maker" : "taker";
+            takerOrMaker = isTrue(isMaker) ? "maker" : "taker";
         } else if (!isEqual(isBuyerMaker, null))
         {
             takerOrMaker = "taker";
@@ -2213,7 +2213,7 @@ public partial class weex : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(symbol, null))
         {
-            throw new ArgumentsRequired ((this.id + " fetchFundingRateHistory() requires a symbol argument")) ;
+            throw new ArgumentsRequired (add(this.id, " fetchFundingRateHistory() requires a symbol argument")) ;
         }
         if (isEqual(this.markets, null))
         {
@@ -2289,7 +2289,7 @@ public partial class weex : Exchange
         {
             if ((sandboxMode == true))
             {
-                throw new NotSupported ((this.id + " fetchBalance() only supports the swap account in sandbox mode, use params[\"type\"] = \"swap\"")) ;
+                throw new NotSupported (add(this.id, " fetchBalance() only supports the swap account in sandbox mode, use params[\"type\"] = \"swap\"")) ;
             }
             //
             //     {
@@ -2494,7 +2494,7 @@ public partial class weex : Exchange
             bool? sandboxMode = this.safeBool(this.options, "sandboxMode", false);
             if ((sandboxMode == true))
             {
-                throw new NotSupported ((this.id + " createOrder() only supports swap markets in sandbox mode")) ;
+                throw new NotSupported (add(this.id, " createOrder() only supports swap markets in sandbox mode")) ;
             }
             return await this.CreateSpotOrder(symbol, type, side, amount, price, parameters);
         }
@@ -2535,7 +2535,7 @@ public partial class weex : Exchange
         //
         if ((response == null))
         {
-            throw new NullResponse ((this.id + " parseOrder() returned empty response")) ;
+            throw new NullResponse (add(this.id, " parseOrder() returned empty response")) ;
         }
         return ccxt.BaseExchange.ToOrder(this.parseOrder(response, market));
     }
@@ -2545,16 +2545,16 @@ public partial class weex : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(type, null))
         {
-            throw new ArgumentsRequired ((this.id + " requires a type argument")) ;
+            throw new ArgumentsRequired (add(this.id, " requires a type argument")) ;
         }
         if (isEqual(side, null))
         {
-            throw new ArgumentsRequired ((this.id + " requires a side argument")) ;
+            throw new ArgumentsRequired (add(this.id, " requires a side argument")) ;
         }
         Dictionary<string, object> market = this.market(symbol);
         if (isEqual(side, null))
         {
-            throw new ArgumentsRequired ((this.id + " createSpotOrderRequest() requires a side argument")) ;
+            throw new ArgumentsRequired (add(this.id, " createSpotOrderRequest() requires a side argument")) ;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", GetValue(market, "id") },
@@ -2570,8 +2570,8 @@ public partial class weex : Exchange
         parameters = this.omit(parameters, "clientOrderId");
         if ((clientOrderId == null))
         {
-            string partner = ((string)this.safeString(parameters, "partner", "b-WEEX111125"));
-            clientOrderId = ((partner + "-") + this.uuid22());
+            string partner = this.safeString(parameters, "partner", "b-WEEX111125");
+            clientOrderId = add(add(partner, "-"), this.uuid22());
         }
         request["newClientOrderId"] = clientOrderId;
         // timeInForce is passed directly from params
@@ -2625,7 +2625,7 @@ public partial class weex : Exchange
         {
             if ((sandboxMode == true))
             {
-                throw new NotSupported ((this.id + " createOrder() does not support stopLossPrice or takeProfitPrice orders in sandbox mode")) ;
+                throw new NotSupported (add(this.id, " createOrder() does not support stopLossPrice or takeProfitPrice orders in sandbox mode")) ;
             }
             response = await this.contractPrivatePostCapiV3AlgoOrder(request);
         } else if ((sandboxMode == true))
@@ -2637,7 +2637,7 @@ public partial class weex : Exchange
         }
         if ((response == null))
         {
-            throw new NullResponse ((this.id + " createOrder() returned empty response")) ;
+            throw new NullResponse (add(this.id, " createOrder() returned empty response")) ;
         }
         return ccxt.BaseExchange.ToOrder(this.parseOrder(response, market));
     }
@@ -2647,16 +2647,16 @@ public partial class weex : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(type, null))
         {
-            throw new ArgumentsRequired ((this.id + " requires a type argument")) ;
+            throw new ArgumentsRequired (add(this.id, " requires a type argument")) ;
         }
         if (isEqual(side, null))
         {
-            throw new ArgumentsRequired ((this.id + " requires a side argument")) ;
+            throw new ArgumentsRequired (add(this.id, " requires a side argument")) ;
         }
         Dictionary<string, object> market = this.market(symbol);
         if (isEqual(side, null))
         {
-            throw new ArgumentsRequired ((this.id + " createContractOrderRequest() requires a side argument")) ;
+            throw new ArgumentsRequired (add(this.id, " createContractOrderRequest() requires a side argument")) ;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", this.toSandboxMarketId(market) },
@@ -2679,7 +2679,7 @@ public partial class weex : Exchange
         bool isTakeProfit = ((takeProfitPrice != null));
         if (isTrigger && (isStopLoss || isTakeProfit))
         {
-            throw new BadRequest ((this.id + " createOrder() cannot use the triggerPrice parameter together with the stopLossPrice or takeProfitPrice parameters")) ;
+            throw new BadRequest (add(this.id, " createOrder() cannot use the triggerPrice parameter together with the stopLossPrice or takeProfitPrice parameters")) ;
         }
         bool? reduceOnly = this.safeBool(query, "reduceOnly");
         if (isStopLoss || isTakeProfit)
@@ -2706,18 +2706,18 @@ public partial class weex : Exchange
         // the exchange accepts but silently ignores execution prices for attached take profit / stop loss, they always execute at market price
         if (hasTakeProfit && (!isEqual(this.safeNumber(takeProfit, "price"), null)))
         {
-            throw new NotSupported ((this.id + " createOrder() does not support the price field inside the takeProfit params, the attached take profit executes at market price")) ;
+            throw new NotSupported (add(this.id, " createOrder() does not support the price field inside the takeProfit params, the attached take profit executes at market price")) ;
         }
         if (hasStopLoss && (!isEqual(this.safeNumber(stopLoss, "price"), null)))
         {
-            throw new NotSupported ((this.id + " createOrder() does not support the price field inside the stopLoss params, the attached stop loss executes at market price")) ;
+            throw new NotSupported (add(this.id, " createOrder() does not support the price field inside the stopLoss params, the attached stop loss executes at market price")) ;
         }
         string? timeInForce = this.safeString(parameters, "timeInForce");
         string? clientOrderId = this.safeString(parameters, "clientOrderId");
         if ((clientOrderId == null))
         {
-            string partner = ((string)this.safeString(parameters, "partner", "b-WEEX111125"));
-            clientOrderId = ((partner + "-") + this.uuid22());
+            string partner = this.safeString(parameters, "partner", "b-WEEX111125");
+            clientOrderId = add(add(partner, "-"), this.uuid22());
         }
         string? callerMethodName = this.safeString(parameters, "callerMethodName");
         if (isTrigger)
@@ -2725,11 +2725,11 @@ public partial class weex : Exchange
             // entry conditional order, triggers a regular order when the trigger price is reached
             if (callerMethodName == "createOrders")
             {
-                throw new NotSupported ((this.id + " createOrders() does not support trigger orders")) ;
+                throw new NotSupported (add(this.id, " createOrders() does not support trigger orders")) ;
             }
             if ((timeInForce != null))
             {
-                throw new BadRequest ((this.id + " createOrder() cannot use the timeInForce parameter with trigger orders")) ;
+                throw new BadRequest (add(this.id, " createOrder() cannot use the timeInForce parameter with trigger orders")) ;
             }
             request["clientAlgoId"] = clientOrderId;
             ((IDictionary<string,object>)parameters)["triggerPrice"] = this.priceToPrecision(symbol, triggerPrice);
@@ -2765,19 +2765,19 @@ public partial class weex : Exchange
         {
             if (callerMethodName == "createOrders")
             {
-                throw new NotSupported ((this.id + " createOrders() does not support stop loss and take profit orders")) ;
+                throw new NotSupported (add(this.id, " createOrders() does not support stop loss and take profit orders")) ;
             }
             if ((timeInForce != null))
             {
-                throw new BadRequest ((this.id + " createOrder() cannot use timeInForce parameter with stopLoss and takeProfit orders")) ;
+                throw new BadRequest (add(this.id, " createOrder() cannot use timeInForce parameter with stopLoss and takeProfit orders")) ;
             }
             if (hasStopLoss || hasTakeProfit)
             {
-                throw new BadRequest ((this.id + " createOrder() cannot use both stopLossPrice/takeProfitPrice parameters and stopLoss/takeProfit objects in params at the same time")) ;
+                throw new BadRequest (add(this.id, " createOrder() cannot use both stopLossPrice/takeProfitPrice parameters and stopLoss/takeProfit objects in params at the same time")) ;
             }
             if (isStopLoss && isTakeProfit)
             {
-                throw new BadRequest ((this.id + " createOrder() cannot use both stopLossPrice and takeProfitPrice parameters at the same time")) ;
+                throw new BadRequest (add(this.id, " createOrder() cannot use both stopLossPrice and takeProfitPrice parameters at the same time")) ;
             }
             request["clientAlgoId"] = clientOrderId;
             string? orderType = null;
@@ -2887,7 +2887,7 @@ public partial class weex : Exchange
         bool? trigger = this.safeBool(parameters, "trigger", false);
         if (((trigger == true)) && isEqual(id, null))
         {
-            throw new ArgumentsRequired ((this.id + " cancelOrder() requires an id argument for trigger orders")) ;
+            throw new ArgumentsRequired (add(this.id, " cancelOrder() requires an id argument for trigger orders")) ;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         string? clientOrderId = this.safeString(parameters, "clientOrderId");
@@ -2897,7 +2897,7 @@ public partial class weex : Exchange
             request["origClientOrderId"] = clientOrderId;
         } else if (isEqual(id, null))
         {
-            throw new ArgumentsRequired ((this.id + " cancelOrder() requires an id argument or clientOrderId parameter")) ;
+            throw new ArgumentsRequired (add(this.id, " cancelOrder() requires an id argument or clientOrderId parameter")) ;
         } else
         {
             request["orderId"] = id;
@@ -2927,7 +2927,7 @@ public partial class weex : Exchange
         }
         if ((response == null))
         {
-            throw new NullResponse ((this.id + " parseOrder() returned empty response")) ;
+            throw new NullResponse (add(this.id, " parseOrder() returned empty response")) ;
         }
         Dictionary<string, object> order = this.parseOrder(response, market);
         order["status"] = "canceled";
@@ -2972,7 +2972,7 @@ public partial class weex : Exchange
         {
             if (isEqual(symbol, null))
             {
-                throw new ArgumentsRequired ((this.id + " cancelAllOrders() requires a symbol argument for spot markets")) ;
+                throw new ArgumentsRequired (add(this.id, " cancelAllOrders() requires a symbol argument for spot markets")) ;
             }
             response = await this.privateDeleteApiV3OpenOrders(this.extend(request, parameters));
         } else if ((trigger == true))
@@ -3041,7 +3041,7 @@ public partial class weex : Exchange
             }
         } else
         {
-            throw new ArgumentsRequired ((this.id + " cancelOrders() requires an ids argument or clientOrderIds parameter")) ;
+            throw new ArgumentsRequired (add(this.id, " cancelOrders() requires an ids argument or clientOrderIds parameter")) ;
         }
         Dictionary<string, object> response = null;
         if (isSpot)
@@ -3091,7 +3091,7 @@ public partial class weex : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         if ((isEqual(id, null)) && !isSpot)
         {
-            throw new ArgumentsRequired ((this.id + " fetchOrder() requires an id argument for non-spot markets")) ;
+            throw new ArgumentsRequired (add(this.id, " fetchOrder() requires an id argument for non-spot markets")) ;
         }
         string? clientOrderId = this.safeString(parameters, "clientOrderId");
         parameters = this.omit(parameters, "clientOrderId");
@@ -3100,7 +3100,7 @@ public partial class weex : Exchange
             request["origClientOrderId"] = clientOrderId;
         } else if (isEqual(id, null))
         {
-            throw new ArgumentsRequired ((this.id + " fetchOrder() requires an id argument or clientOrderId parameter for spot markets")) ;
+            throw new ArgumentsRequired (add(this.id, " fetchOrder() requires an id argument or clientOrderId parameter for spot markets")) ;
         } else
         {
             request["orderId"] = id;
@@ -3133,7 +3133,7 @@ public partial class weex : Exchange
         }
         if ((response == null))
         {
-            throw new NullResponse ((this.id + " parseOrder() returned empty response")) ;
+            throw new NullResponse (add(this.id, " parseOrder() returned empty response")) ;
         }
         return ccxt.BaseExchange.ToOrder(this.parseOrder(response, market));
     }
@@ -3179,7 +3179,7 @@ public partial class weex : Exchange
         {
             if (isSpot)
             {
-                throw new NotSupported ((this.id + " fetchOpenOrders() pagination is not supported for spot markets")) ;
+                throw new NotSupported (add(this.id, " fetchOpenOrders() pagination is not supported for spot markets")) ;
             }
             return ccxt.BaseExchange.ToOrderList(await this.fetchPaginatedCallDynamic("fetchOpenOrders", symbol, since, limit, parameters, maxLimit));
         }
@@ -3332,7 +3332,7 @@ public partial class weex : Exchange
         {
             if (isEqual(symbol, null))
             {
-                throw new ArgumentsRequired ((this.id + " fetchClosedOrders() requires a symbol argument for spot markets")) ;
+                throw new ArgumentsRequired (add(this.id, " fetchClosedOrders() requires a symbol argument for spot markets")) ;
             }
             orders = ccxt.BaseExchange.FromOrderList(await this.FetchOrders(symbol,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(null), parameters));
         } else
@@ -3378,7 +3378,7 @@ public partial class weex : Exchange
         {
             if (isEqual(symbol, null))
             {
-                throw new ArgumentsRequired ((this.id + " fetchCanceledOrders() requires a symbol argument for spot markets")) ;
+                throw new ArgumentsRequired (add(this.id, " fetchCanceledOrders() requires a symbol argument for spot markets")) ;
             }
             orders = ccxt.BaseExchange.FromOrderList(await this.FetchOrders(symbol,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(null), parameters));
         } else
@@ -3406,7 +3406,7 @@ public partial class weex : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(symbol, null))
         {
-            throw new ArgumentsRequired ((this.id + " fetchOrders() requires a symbol argument")) ;
+            throw new ArgumentsRequired (add(this.id, " fetchOrders() requires a symbol argument")) ;
         }
         if (isEqual(this.markets, null))
         {
@@ -3415,7 +3415,7 @@ public partial class weex : Exchange
         Dictionary<string, object> market = this.market(symbol);
         if (!isEqual(GetValue(market, "spot"), true))
         {
-            throw new NotSupported ((this.id + " fetchOrders() supports spot markets only")) ;
+            throw new NotSupported (add(this.id, " fetchOrders() supports spot markets only")) ;
         }
         int maxLimit = 1000;
         object paginate = false;
@@ -3497,7 +3497,7 @@ public partial class weex : Exchange
         parameters = marketTypeparametersVariable[1];
         if (marketType == "spot")
         {
-            throw new NotSupported ((this.id + " fetchCanceledAndClosedOrders() does not support spot markets. Use fetchOrders() instead and filter by status \"canceled\" or \"closed\"")) ;
+            throw new NotSupported (add(this.id, " fetchCanceledAndClosedOrders() does not support spot markets. Use fetchOrders() instead and filter by status \"canceled\" or \"closed\"")) ;
         }
         object paginate = false;
         IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchCanceledAndClosedOrders", "paginate", false);
@@ -3758,7 +3758,7 @@ public partial class weex : Exchange
             { "TAKE_PROFIT_MARKET", "market" },
             { "STOP_MARKET", "market" },
         };
-        return this.safeString(types, ((string)type), type);
+        return this.safeString(types, type, type);
     }
 
     public virtual void handleOrderOrPositionError(object errorCode, object errorMessage, object order)
@@ -3776,7 +3776,7 @@ public partial class weex : Exchange
             // some endpoints could return an empty string if there is no error
             return;
         }
-        string feedback = ((this.id + " ") + this.json(order));
+        string feedback = add(add(this.id, " "), this.json(order));
         this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), errorMessage, feedback);
         this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), errorCode, feedback);
         this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), errorMessage, feedback);
@@ -3843,7 +3843,7 @@ public partial class weex : Exchange
         bool isSpot = (marketType == "spot");
         if (isSpot && (isEqual(symbol, null)))
         {
-            throw new ArgumentsRequired ((this.id + " fetchMyTrades() requires a symbol argument for spot markets")) ;
+            throw new ArgumentsRequired (add(this.id, " fetchMyTrades() requires a symbol argument for spot markets")) ;
         }
         object paginate = false;
         IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchMyTrades", "paginate", false);
@@ -4074,7 +4074,7 @@ public partial class weex : Exchange
         string direction = "in";
         if ((amountRaw == null))
         {
-            throw new ExchangeError ((this.id + " parseLedgerEntry() missing amountRaw")) ;
+            throw new ExchangeError (add(this.id, " parseLedgerEntry() missing amountRaw")) ;
         }
         if (getIndexOf(amountRaw, "-") >= 0)
         {
@@ -4166,7 +4166,7 @@ public partial class weex : Exchange
             market = this.market(symbol);
             if (!isEqual(GetValue(market, "swap"), true))
             {
-                throw new NotSupported ((this.id + " fetchFundingHistory() supports swap contracts only")) ;
+                throw new NotSupported (add(this.id, " fetchFundingHistory() supports swap contracts only")) ;
             }
             request["symbol"] = GetValue(market, "id");
         }
@@ -4182,14 +4182,14 @@ public partial class weex : Exchange
         request = (Dictionary<string, object>)requestparametersVariable[0];
         parameters = requestparametersVariable[1];
         // the exchange rejects startTime and endTime when either is sent alone, they only work as a pair
-        bool hasSince = ((request?.ContainsKey("startTime") == true));
-        bool hasUntil = ((request?.ContainsKey("endTime") == true));
+        bool hasSince = (inOp(request, "startTime"));
+        bool hasUntil = (inOp(request, "endTime"));
         if (hasSince && !hasUntil)
         {
             request["endTime"] = this.milliseconds();
         } else if (hasUntil && !hasSince)
         {
-            throw new ArgumentsRequired ((this.id + " fetchFundingHistory() requires since to be set when until is used")) ;
+            throw new ArgumentsRequired (add(this.id, " fetchFundingHistory() requires since to be set when until is used")) ;
         }
         Dictionary<string, object> response = await this.contractPrivatePostCapiV3AccountIncome(this.extend(request, parameters));
         //
@@ -4519,7 +4519,7 @@ public partial class weex : Exchange
         Dictionary<string, object> market = this.market(symbol);
         if (isEqual(GetValue(market, "spot"), true))
         {
-            throw new NotSupported ((this.id + " fetchTradingFee() is not supported for spot markets")) ;
+            throw new NotSupported (add(this.id, " fetchTradingFee() is not supported for spot markets")) ;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", GetValue(market, "id") },
@@ -4649,7 +4649,7 @@ public partial class weex : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(symbol, null))
         {
-            throw new ArgumentsRequired ((this.id + " setMarginMode() requires a symbol argument")) ;
+            throw new ArgumentsRequired (add(this.id, " setMarginMode() requires a symbol argument")) ;
         }
         if (isEqual(this.markets, null))
         {
@@ -4672,7 +4672,7 @@ public partial class weex : Exchange
         string? result = this.safeString(marginTypes, marginMode);
         if ((result == null))
         {
-            throw new ArgumentsRequired ((this.id + " marginMode must be either cross or isolated")) ;
+            throw new ArgumentsRequired (add(this.id, " marginMode must be either cross or isolated")) ;
         }
         return result;
     }
@@ -4769,7 +4769,7 @@ public partial class weex : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(symbol, null))
         {
-            throw new ArgumentsRequired ((this.id + " setLeverage() requires a symbol argument")) ;
+            throw new ArgumentsRequired (add(this.id, " setLeverage() requires a symbol argument")) ;
         }
         if (isEqual(this.markets, null))
         {
@@ -4846,7 +4846,7 @@ public partial class weex : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(symbol, null))
         {
-            throw new ArgumentsRequired ((this.id + " setPositionMode() requires a symbol argument")) ;
+            throw new ArgumentsRequired (add(this.id, " setPositionMode() requires a symbol argument")) ;
         }
         if (isEqual(this.markets, null))
         {
@@ -4859,7 +4859,7 @@ public partial class weex : Exchange
         parameters = marginModeparametersVariable[1];
         if ((marginMode == null))
         {
-            throw new ArgumentsRequired ((this.id + " setPositionMode() also sets marginMode, so a marginMode parameter is required")) ;
+            throw new ArgumentsRequired (add(this.id, " setPositionMode() also sets marginMode, so a marginMode parameter is required")) ;
         }
         string separatedType = isTrue(hedged) ? "SEPARATED" : "COMBINED";
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -4880,7 +4880,7 @@ public partial class weex : Exchange
         string? isolatedPositionId = this.safeStringN(parameters, new List<object>() {"positionId", "id", "isolatedPositionId"});
         if ((isolatedPositionId == null))
         {
-            throw new ArgumentsRequired ((this.id + " modifyMarginHelper() requires a positionId parameter")) ;
+            throw new ArgumentsRequired (add(this.id, " modifyMarginHelper() requires a positionId parameter")) ;
         }
         parameters = this.omit(parameters, new List<object>() {"positionId", "id"});
         Dictionary<string, object> market = this.market(symbol);
@@ -4999,7 +4999,7 @@ public partial class weex : Exchange
         if (((string)marketId).EndsWith("SUSDT"))
         {
             int baseLength = subtract(((string)marketId).Length, 5);
-            return (slice(marketId, 0, baseLength) + "USDT");
+            return add(slice(marketId, 0, baseLength), "USDT");
         }
         return ((string?)((object)(marketId)));
     }
@@ -5022,7 +5022,7 @@ public partial class weex : Exchange
         {
             if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
             {
-                endpoint = add(endpoint, ("?" + this.urlencode(query)));
+                endpoint = add(endpoint, add("?", this.urlencode(query)));
             }
         }
         if ((isEqual(api, "private")) || (isEqual(api, "contractPrivate")))
@@ -5030,7 +5030,7 @@ public partial class weex : Exchange
             bool? sandboxMode = this.safeBool(this.options, "sandboxMode", false);
             if (((sandboxMode == true)) && ((getIndexOf(path, "capi/v3/sim/") != 0)))
             {
-                throw new NotSupported ((((this.id + " ") + path) + " is not available in sandbox mode, demo trading only supports fetchBalance, createOrder, fetchPositions, fetchClosedOrders and fetchCanceledOrders for swap markets")) ;
+                throw new NotSupported (add(add(add(this.id, " "), path), " is not available in sandbox mode, demo trading only supports fetchBalance, createOrder, fetchPositions, fetchClosedOrders and fetchCanceledOrders for swap markets")) ;
             }
             this.checkRequiredCredentials();
             object timestamp = this.numberToString(this.nonce());
@@ -5078,11 +5078,11 @@ public partial class weex : Exchange
         if ((message != null))
         {
             string? errorCode = this.safeString(response, "code");
-            string feedback = ((this.id + " ") + body);
+            string feedback = add(add(this.id, " "), body);
             this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), message, feedback);
             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), errorCode, feedback);
             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), message, feedback);
-            throw new ExchangeError (((this.id + " ") + body)) ;
+            throw new ExchangeError (add(add(this.id, " "), body)) ;
         }
         return null;
     }

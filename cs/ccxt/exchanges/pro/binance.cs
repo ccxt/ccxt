@@ -314,7 +314,7 @@ public partial class binance : ccxt.binance
         object baseUrl = getValue(getValue(getValue(this.urls, "api"), "ws"), "stock");
         if (isEqual(streamType, "combined"))
         {
-            return ((string)baseUrl).Replace((string)"/ws", (string)"/stream");
+            return ((string)baseUrl).Replace("/ws", (string)"/stream");
         }
         return baseUrl;
     }
@@ -1275,7 +1275,7 @@ public partial class binance : ccxt.binance
             {
                 if (inOp(this.orderbooks, symbol))
                 {
-                    ((IDictionary<string,object>)this.orderbooks).Remove((string)symbol);
+                    ((IDictionary<string,object>)this.orderbooks).Remove(symbol);
                 }
                 if (inOp(client.subscriptions, messageHash))
                 {
@@ -1408,7 +1408,7 @@ public partial class binance : ccxt.binance
                 object symbol = getValue(symbols, i);
                 Dictionary<string, object> market = this.market(symbol);
                 ((IList<object>)messageHashes).Add(add("trade::", symbol));
-                string baseIdLower = ((string)this.safeStringLower(market, "baseId", ""));
+                string baseIdLower = this.safeStringLower(market, "baseId", "");
                 string? quoteIdLower = this.safeStringLower(market, "quoteId", "");
                 string underlying = add(add(baseIdLower, ""), quoteIdLower);
                 if (!(((underlying != null) && (seenUnderlyings?.ContainsKey(underlying) == true))))
@@ -1510,7 +1510,7 @@ public partial class binance : ccxt.binance
                 Dictionary<string, object> market = this.market(symbol);
                 ((IList<object>)subMessageHashes).Add(add("trade::", symbol));
                 ((IList<object>)messageHashes).Add(add("unsubscribe:trade:", symbol));
-                string baseIdLower = ((string)this.safeStringLower(market, "baseId", ""));
+                string baseIdLower = this.safeStringLower(market, "baseId", "");
                 string? quoteIdLower = this.safeStringLower(market, "quoteId", "");
                 string underlying = add(add(baseIdLower, ""), quoteIdLower);
                 if (!(((underlying != null) && (seenUnderlyings?.ContainsKey(underlying) == true))))
@@ -1934,7 +1934,7 @@ public partial class binance : ccxt.binance
             if (klineType == "indexPriceKline")
             {
                 // weird behavior for index price kline we can't use the perp suffix
-                marketId = ((string)marketId).Replace((string)"_perp", (string)"");
+                marketId = ((string)marketId).Replace("_perp", (string)"");
             }
             bool shouldUseUTC8 = (isUtc8 && isSpot);
             string suffix = "@+08:00";
@@ -2027,7 +2027,7 @@ public partial class binance : ccxt.binance
             if (klineType == "indexPriceKline")
             {
                 // weird behavior for index price kline we can't use the perp suffix
-                marketId = ((string)marketId).Replace((string)"_perp", (string)"");
+                marketId = ((string)marketId).Replace("_perp", (string)"");
             }
             bool shouldUseUTC8 = (isUtc8 && isSpot);
             string suffix = "@+08:00";
@@ -2691,7 +2691,7 @@ public partial class binance : ccxt.binance
                 if (isOptionMarkPrice)
                 {
                     // subscribe per underlying, not per contract
-                    string baseIdLower = ((string)this.safeStringLower(market, "baseId", ""));
+                    string baseIdLower = this.safeStringLower(market, "baseId", "");
                     string? quoteIdLower = this.safeStringLower(market, "quoteId", "");
                     object underlying = add(add(baseIdLower, ""), quoteIdLower);
                     if (!(inOp(seenUnderlyings, underlying)))
@@ -2706,7 +2706,7 @@ public partial class binance : ccxt.binance
                     string? marketId = this.safeString(market, "id", "");
                     List<object> parts = marketId.Split(new [] {"-"}, StringSplitOptions.None).ToList<object>();
                     string? expiryDate = this.safeString(parts, 1);
-                    string baseIdLower = ((string)this.safeStringLower(market, "baseId", ""));
+                    string baseIdLower = this.safeStringLower(market, "baseId", "");
                     string? quoteIdLower = this.safeStringLower(market, "quoteId", "");
                     object underlying = add(add(baseIdLower, ""), quoteIdLower);
                     object subscriptionArg = add(add(underlying, "@optionTicker@"), expiryDate);
@@ -3160,7 +3160,7 @@ public partial class binance : ccxt.binance
         string? signature = null;
         if (getIndexOf(this.secret, "PRIVATE KEY") > -1)
         {
-            if (((string)this.secret).Length > 120)
+            if (this.secret.Length > 120)
             {
                 signature = rsa(query, this.secret, sha256);
             } else
@@ -3249,7 +3249,7 @@ public partial class binance : ccxt.binance
         Int64? subscriptionId = this.safeInteger(result, "subscriptionId");
         if (isEqual(subscriptionId, null))
         {
-            ((IDictionary<string,object>)client.subscriptions).Remove((string)accountType);
+            ((IDictionary<string,object>)client.subscriptions).Remove(accountType);
             client.reject(message, accountType);
             client.reject(message, messageHash);
             return;
@@ -6449,7 +6449,7 @@ public partial class binance : ccxt.binance
         Int64? codeValue = (isEqual(code, null)) ? 0 : code;
         try
         {
-            this.handleErrors(codeValue, ((string)msg),((string)client.url), "", new Dictionary<string, object>() {}, this.json(error), error, new Dictionary<string, object>() {}, new Dictionary<string, object>() {});
+            this.handleErrors(codeValue, msg,((string)client.url), "", new Dictionary<string, object>() {}, this.json(error), error, new Dictionary<string, object>() {}, new Dictionary<string, object>() {});
         } catch(Exception e)
         {
             rejected = true;
@@ -6467,7 +6467,7 @@ public partial class binance : ccxt.binance
                     client.reject(e, subscriptionHash);
                     if ((subscription != null))
                     {
-                        ((IDictionary<string,object>)client.subscriptions).Remove((string)subscription);
+                        ((IDictionary<string,object>)client.subscriptions).Remove(subscription);
                     }
                 }
             }
@@ -6498,7 +6498,7 @@ public partial class binance : ccxt.binance
         string? accountType = this.getAccountTypeFromSubscriptions(subscriptionsKeys);
         if (eventVar == "eventStreamTerminated")
         {
-            ((IDictionary<string,object>)client.subscriptions).Remove((string)accountType);
+            ((IDictionary<string,object>)client.subscriptions).Remove(accountType);
             client.reject(message, accountType);
         }
     }

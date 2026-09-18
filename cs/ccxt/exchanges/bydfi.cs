@@ -965,7 +965,7 @@ public partial class bydfi : Exchange
             { "2", "market" },
             { "3", "liquidation" },
         };
-        return this.safeString(types, ((string)type), type);
+        return this.safeString(types, type, type);
     }
 
     /**
@@ -1709,7 +1709,7 @@ public partial class bydfi : Exchange
         request["symbol"] = GetValue(market, "id");
         if (!isEqual(side, null))
         {
-            request["side"] = ((string)side).ToUpper();
+            request["side"] = side.ToUpper();
         }
         if (!isEqual(amount, null))
         {
@@ -2200,7 +2200,7 @@ public partial class bydfi : Exchange
             { "TAKE_PROFIT_MARKET", "market" },
             { "TRAILING_STOP_MARKET", "market" },
         };
-        return this.safeString(types, ((string)type), type);
+        return this.safeString(types, type, type);
     }
 
     public virtual string? parseOrderTimeInForce(string? timeInForce)
@@ -3222,7 +3222,7 @@ public partial class bydfi : Exchange
         {
             await this.loadMarkets();
         }
-        Dictionary<string, object> currency = this.currency(((string)code));
+        Dictionary<string, object> currency = this.currency(code);
         bool? paginate = this.safeBool(parameters, "paginate", false);
         if ((paginate == true))
         {

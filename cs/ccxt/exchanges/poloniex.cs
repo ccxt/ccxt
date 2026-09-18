@@ -1896,7 +1896,7 @@ public partial class poloniex : Exchange
             { "CANCELED", "canceled" },
             { "FAILED", "canceled" },
         };
-        return this.safeString(statuses, ((string)status), status);
+        return this.safeString(statuses, status, status);
     }
 
     public override Dictionary<string, object> parseOrder(object order, object market = null)
@@ -3465,7 +3465,7 @@ public partial class poloniex : Exchange
             object entry = entries[i];
             List<object> currencies = new List<object>(((IDictionary<string,object>)entry).Keys);
             string? currencyId = this.safeString(currencies, 0);
-            data[(string)((string)currencyId)] = getValue(entry, ((string)currencyId));
+            data[(string)currencyId] = getValue(entry, currencyId);
         }
         return ccxt.BaseExchange.ToDepositWithdrawFees(this.parseDepositWithdrawFees(data, codes));
     }
@@ -3503,7 +3503,7 @@ public partial class poloniex : Exchange
             object feeInfo = getValue(response, currencyId);
             if (((code != null)) && ((isEqual(codes, null)) || (this.inArray(code, codes))))
             {
-                Dictionary<string, object> currency = this.currency(((string)code));
+                Dictionary<string, object> currency = this.currency(code);
                 depositWithdrawFees[(string)code] = this.parseDepositWithdrawFee(feeInfo, currency);
                 object childChains = this.safeValue(feeInfo, "childChains");
                 int chainsLength = getArrayLength(childChains);
@@ -3512,7 +3512,7 @@ public partial class poloniex : Exchange
                     for (int j = 0; isLessThan(j, getArrayLength(childChains)); postFixIncrement(ref j))
                     {
                         object networkId = getValue(childChains, j);
-                        networkId = ((string)networkId).Replace((string)code, (string)"");
+                        networkId = ((string)networkId).Replace(code, (string)"");
                         string? networkCode = this.networkIdToCode(networkId, GetValue(currency, "code"));
                         object networkInfo = this.safeValue(response, networkId);
                         Dictionary<string, object> networkObject = new Dictionary<string, object>() {};
@@ -3542,7 +3542,7 @@ public partial class poloniex : Exchange
     {
         Dictionary<string, object> depositWithdrawFee = this.depositWithdrawFee(new Dictionary<string, object>() {});
         string? currencyCode = this.safeString(currency, "code");
-        ((IDictionary<string,object>)GetValue(depositWithdrawFee, "info"))[(string)((string)currencyCode)] = fee;
+        ((IDictionary<string,object>)GetValue(depositWithdrawFee, "info"))[(string)currencyCode] = fee;
         string? networkId = this.safeString(fee, "blockchain");
         double? withdrawFee = this.safeNumber(fee, "withdrawalFee");
         Dictionary<string, object> withdrawResult = new Dictionary<string, object>() {
@@ -3652,7 +3652,7 @@ public partial class poloniex : Exchange
         string? currencyId = this.safeString(transaction, "currency");
         string? code = this.safeCurrencyCode(currencyId);
         string? status = this.safeString(transaction, "status", "pending");
-        status = ((string)this.parseTransactionStatus(status));
+        status = this.parseTransactionStatus(status);
         string? txid = this.safeString(transaction, "txid");
         string type = (inOp(transaction, "withdrawalRequestsId")) ? "withdrawal" : "deposit";
         string? id = this.safeString2(transaction, "withdrawalRequestsId", "depositNumber");
@@ -4021,7 +4021,7 @@ public partial class poloniex : Exchange
             { "collateral", collateral },
             { "initialMargin", initialMargin },
             { "initialMarginPercentage", null },
-            { "leverage", parseInt(((string)leverage)) },
+            { "leverage", parseInt(leverage) },
             { "marginRatio", this.safeNumber(position, "mgnRatio") },
             { "stopLossPrice", this.safeNumber(position, "slTrgPx") },
             { "takeProfitPrice", this.safeNumber(position, "tpTrgPx") },
@@ -4037,7 +4037,7 @@ public partial class poloniex : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", GetValue(market, "id") },
             { "amt", Precise.stringAbs(amount) },
-            { "type", ((string)type).ToUpper() },
+            { "type", type.ToUpper() },
         };
         // todo: hedged handling, tricky
         if (!(inOp(parameters, "posMode")))

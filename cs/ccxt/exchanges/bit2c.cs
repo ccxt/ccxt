@@ -349,7 +349,7 @@ public partial class bit2c : Exchange
         {
             string? code = ((string)codes[i]);
             Dictionary<string, object> account = this.account();
-            Dictionary<string, object> currency = this.currency(((string)code));
+            Dictionary<string, object> currency = this.currency(code);
             string uppercase = ((string)GetValue(currency, "id")).ToUpper();
             if (inOp(response, uppercase))
             {

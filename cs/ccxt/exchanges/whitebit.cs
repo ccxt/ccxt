@@ -965,7 +965,7 @@ public partial class whitebit : Exchange
         List<object> allNetworks = this.arrayConcat(depositsNetworks, withdrawsNetworks);
         for (int j = 0; isLessThan(j, allNetworks?.Count ?? 0); postFixIncrement(ref j))
         {
-            object networkId = allNetworks[j];
+            object networkId = getValue(allNetworks, j);
             string? networkCode = this.networkIdToCode(networkId, code);
             IDictionary<string, object> networkDepositLimits = this.safeDict(depositLimits, networkId, new Dictionary<string, object>() {});
             IDictionary<string, object> networkWithdrawLimits = this.safeDict(withdrawLimits, networkId, new Dictionary<string, object>() {});
@@ -1069,7 +1069,7 @@ public partial class whitebit : Exchange
         Dictionary<string, object> depositFees = new Dictionary<string, object>() {};
         for (int i = 0; isLessThan(i, currenciesIds.Count); postFixIncrement(ref i))
         {
-            string? currency = ((string)currenciesIds[i]);
+            string? currency = ((string)getValue(currenciesIds, i));
             IDictionary<string, object> data = this.safeDict(response, currency, new Dictionary<string, object>() {});
             string? code = this.safeCurrencyCode(currency);
             object withdraw = this.safeValue(data, "withdraw", new Dictionary<string, object>() {});
@@ -1197,7 +1197,7 @@ public partial class whitebit : Exchange
         List<object> currencyIds = new List<object>(((IDictionary<string,object>)response).Keys);
         for (int i = 0; isLessThan(i, currencyIds.Count); postFixIncrement(ref i))
         {
-            string? entry = ((string)currencyIds[i]);
+            string? entry = ((string)getValue(currencyIds, i));
             List<object> splitEntry = entry.Split(new [] {" "}, StringSplitOptions.None).ToList<object>();
             object currencyId = getValue(splitEntry, 0);
             object feeInfo = getValue(response, entry);
@@ -1245,8 +1245,8 @@ public partial class whitebit : Exchange
         List<object> depositWithdrawCodes = new List<object>(((IDictionary<string,object>)depositWithdrawFees).Keys);
         for (int i = 0; isLessThan(i, depositWithdrawCodes.Count); postFixIncrement(ref i))
         {
-            string? code = ((string)depositWithdrawCodes[i]);
-            Dictionary<string, object> currency = this.currency(((string)code));
+            string? code = ((string)getValue(depositWithdrawCodes, i));
+            Dictionary<string, object> currency = this.currency(code);
             depositWithdrawFees[(string)code] = this.assignDefaultDepositWithdrawFees(getValue(depositWithdrawFees, code), currency);
         }
         return ((Dictionary<string, object>)((object)(depositWithdrawFees)));
@@ -1289,7 +1289,7 @@ public partial class whitebit : Exchange
         List<object> symbols = this.symbols;
         for (int i = 0; isLessThan(i, symbols?.Count ?? 0); postFixIncrement(ref i))
         {
-            string? symbol = ((string)symbols[i]);
+            string? symbol = ((string)getValue(symbols, i));
             Dictionary<string, object> market = this.market(symbol);
             object fee = this.safeValue(response, GetValue(market, "baseId"), new Dictionary<string, object>() {});
             string? makerFee = this.safeString(fee, "maker_fee");
@@ -1378,7 +1378,7 @@ public partial class whitebit : Exchange
         List<object> marketIds = new List<object>(((IDictionary<string,object>)markets).Keys);
         for (int i = 0; isLessThan(i, marketIds.Count); postFixIncrement(ref i))
         {
-            string? marketId = ((string)marketIds[i]);
+            string? marketId = ((string)getValue(marketIds, i));
             object market = getValue(markets, marketId);
             string? marketSymbol = this.safeString(market, "symbol");
             if (((market == null)) || ((market == null)) || ((marketSymbol == null)) || (marketSymbol == ""))
@@ -1517,7 +1517,7 @@ public partial class whitebit : Exchange
         List<object> currencyKeys = new List<object>(((IDictionary<string,object>)currenciesData).Keys);
         for (int i = 0; isLessThan(i, currencyKeys.Count); postFixIncrement(ref i))
         {
-            string? code = ((string)currencyKeys[i]);
+            string? code = ((string)getValue(currencyKeys, i));
             object currency = getValue(currenciesData, code);
             if ((currency == null))
             {
@@ -1532,7 +1532,7 @@ public partial class whitebit : Exchange
             List<object> feeKeys = new List<object>(((IDictionary<string,object>)feesData).Keys);
             for (int j = 0; isLessThan(j, feeKeys.Count); postFixIncrement(ref j))
             {
-                string? feeKey = ((string)feeKeys[j]);
+                string? feeKey = ((string)getValue(feeKeys, j));
                 IDictionary<string, object> fee = this.safeDict(feesData, feeKey);
                 if (((fee != null) && (fee != null)) && isEqual(GetValue(fee, "ticker"), code))
                 {
@@ -1803,7 +1803,7 @@ public partial class whitebit : Exchange
                 IList<object> orders = this.toArray(response);
                 for (int i = 0; isLessThan(i, orders?.Count ?? 0); postFixIncrement(ref i))
                 {
-                    object order = orders[i];
+                    object order = getValue(orders, i);
                     string? orderId = this.safeString(order, "orderId");
                     if (isEqual(orderId, id))
                     {
@@ -1830,12 +1830,12 @@ public partial class whitebit : Exchange
                 List<object> marketIds = new List<object>(((IDictionary<string,object>)response).Keys);
                 for (int i = 0; isLessThan(i, marketIds.Count); postFixIncrement(ref i))
                 {
-                    string? marketId = ((string)marketIds[i]);
+                    string? marketId = ((string)getValue(marketIds, i));
                     Dictionary<string, object> marketNew = this.safeMarket(marketId, null, "_");
                     List<object> marketOrders = this.safeList(response, marketId, new List<object>() {});
                     for (int j = 0; isLessThan(j, marketOrders.Count); postFixIncrement(ref j))
                     {
-                        object order = marketOrders[j];
+                        object order = getValue(marketOrders, j);
                         string? orderId = this.safeString(order, "id");
                         if (isEqual(orderId, id))
                         {
@@ -1979,7 +1979,7 @@ public partial class whitebit : Exchange
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         for (int i = 0; isLessThan(i, marketIds.Count); postFixIncrement(ref i))
         {
-            string? marketId = ((string)marketIds[i]);
+            string? marketId = ((string)getValue(marketIds, i));
             Dictionary<string, object> market = this.safeMarket(marketId);
             Dictionary<string, object> ticker = this.parseTicker(getValue(response, marketId), market);
             object symbol = GetValue(ticker, "symbol");
@@ -2147,7 +2147,7 @@ public partial class whitebit : Exchange
             List<object> keys = new List<object>(((IDictionary<string,object>)response).Keys);
             for (int i = 0; isLessThan(i, keys.Count); postFixIncrement(ref i))
             {
-                string? marketId = ((string)keys[i]);
+                string? marketId = ((string)getValue(keys, i));
                 Dictionary<string, object> marketNew = this.safeMarket(marketId, null, "_");
                 object rawTrades = this.safeValue(response, marketId, new List<object>() {});
                 IList<object> parsed = this.parseTrades(rawTrades, marketNew, since, limit);
@@ -2826,7 +2826,7 @@ public partial class whitebit : Exchange
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         for (int i = 0; isLessThan(i, balanceKeys.Count); postFixIncrement(ref i))
         {
-            string? id = ((string)balanceKeys[i]);
+            string? id = ((string)getValue(balanceKeys, i));
             string? code = this.safeCurrencyCode(id);
             object balance = getValue(response, id);
             if ((balance != null) && isTrue(this.isDictionary(balance)))
@@ -3021,12 +3021,12 @@ public partial class whitebit : Exchange
         IList<object> results = new List<object>() {};
         for (int i = 0; isLessThan(i, marketIds.Count); postFixIncrement(ref i))
         {
-            string? marketId = ((string)marketIds[i]);
+            string? marketId = ((string)getValue(marketIds, i));
             Dictionary<string, object> marketNew = this.safeMarket(marketId, null, "_");
             List<object> orders = this.safeList(response, marketId, new List<object>() {});
             for (int j = 0; isLessThan(j, orders.Count); postFixIncrement(ref j))
             {
-                Dictionary<string, object> order = this.parseOrder(orders[j], marketNew);
+                Dictionary<string, object> order = this.parseOrder(getValue(orders, j), marketNew);
                 ((IList<object>)results).Add(this.extend(order, new Dictionary<string, object>() {
                     { "status", "closed" },
                 }));
@@ -3048,7 +3048,7 @@ public partial class whitebit : Exchange
             { "margin limit", "limit" },
             { "margin market", "market" },
         };
-        return this.safeString(types, ((string)type), type);
+        return this.safeString(types, type, type);
     }
 
     public override Dictionary<string, object> parseOrder(object order, object market = null)
@@ -3172,7 +3172,7 @@ public partial class whitebit : Exchange
             { "PARTIALLY_FILLED", "open" },
             { "FILLED", "closed" },
         };
-        return this.safeStringLower(statuses, ((string)status), status);
+        return this.safeStringLower(statuses, status, status);
     }
 
     /**
@@ -3786,7 +3786,7 @@ public partial class whitebit : Exchange
             { "16", "pending" },
             { "17", "pending" },
         };
-        return this.safeString(statuses, ((string)status), status);
+        return this.safeString(statuses, status, status);
     }
 
     /**

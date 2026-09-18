@@ -1573,7 +1573,7 @@ public partial class coinbaseexchange : Exchange
             { "canceled", "canceled" },
             { "canceling", "open" },
         };
-        return this.safeString(statuses, ((string)status), status);
+        return this.safeString(statuses, status, status);
     }
 
     public override Dictionary<string, object> parseOrder(object order, object market = null)
@@ -2046,7 +2046,7 @@ public partial class coinbaseexchange : Exchange
             { "rebate", "rebate" },
             { "conversion", "trade" },
         };
-        return this.safeString(types, ((string)type), type);
+        return this.safeString(types, type, type);
     }
 
     public override Dictionary<string, object> parseLedgerEntry(object item, object currency = null)

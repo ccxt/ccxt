@@ -314,7 +314,7 @@ public partial class p2b : ccxt.p2b
         List<object> data = this.safeList(message, "params");
         data = this.safeList(data, 0);
         string? method = this.safeString(message, "method");
-        List<object> splitMethod = ((string)((string)method)).Split(new [] {"."}, StringSplitOptions.None).ToList<object>();
+        List<object> splitMethod = method.Split(new [] {"."}, StringSplitOptions.None).ToList<object>();
         object channel = this.safeString(splitMethod, 0);
         string? marketId = this.safeString(data, 7);
         Dictionary<string, object> market = this.safeMarket(marketId);
@@ -323,8 +323,8 @@ public partial class p2b : ccxt.p2b
         string? symbol = this.safeString(market, "symbol");
         object messageHash = add(add(channel, "::"), symbol);
         IList<object> parsed = this.parseOHLCV(data, market);
-        ((IDictionary<string,object>)this.ohlcvs)[(string)((string)symbol)] = this.safeValue(this.ohlcvs, symbol, new Dictionary<string, object>() {});
-        object stored = this.safeValue(getValue(this.ohlcvs, ((string)symbol)), timeframe);
+        ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = this.safeValue(this.ohlcvs, symbol, new Dictionary<string, object>() {});
+        object stored = this.safeValue(getValue(this.ohlcvs, symbol), timeframe);
         if ((symbol != null))
         {
             if ((stored == null))
@@ -370,7 +370,7 @@ public partial class p2b : ccxt.p2b
         {
             Int64? tradesLimit = this.safeInteger(this.options, "tradesLimit", 1000);
             tradesArray = new ArrayCache(tradesLimit);
-            ((IDictionary<string,object>)this.trades)[(string)((string)symbol)] = tradesArray;
+            ((IDictionary<string,object>)this.trades)[(string)symbol] = tradesArray;
         }
         for (int i = 0; isLessThan(i, getArrayLength((IList<object>)(trades))); postFixIncrement(ref i))
         {
@@ -421,7 +421,7 @@ public partial class p2b : ccxt.p2b
         string? marketId = this.safeString(data, 0);
         Dictionary<string, object> market = this.safeMarket(marketId);
         string? method = this.safeString(message, "method");
-        List<object> splitMethod = ((string)((string)method)).Split(new [] {"."}, StringSplitOptions.None).ToList<object>();
+        List<object> splitMethod = method.Split(new [] {"."}, StringSplitOptions.None).ToList<object>();
         object messageHashStart = this.safeString(splitMethod, 0);
         IDictionary<string, object> tickerData = this.safeDict(data, 1);
         Dictionary<string, object> ticker = null;

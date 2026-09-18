@@ -1680,7 +1680,7 @@ public partial class hashkey : Exchange
             return ccxt.BaseExchange.ToOHLCVList(await this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit,timeframeVar, parameters, 1000));
         }
         Dictionary<string, object> market = this.market(symbol);
-        timeframeVar = ((string)this.safeString(this.timeframes, timeframeVar, timeframeVar));
+        timeframeVar = this.safeString(this.timeframes, timeframeVar, timeframeVar);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", GetValue(market, "id") },
             { "interval", timeframeVar },
@@ -2536,7 +2536,7 @@ public partial class hashkey : Exchange
             { "5", "custody account" },
             { "6", "fiat account" },
         };
-        return this.safeString(types, ((string)type), type);
+        return this.safeString(types, type, type);
     }
 
     public virtual Int64? encodeAccountType(object type)
@@ -2650,7 +2650,7 @@ public partial class hashkey : Exchange
             { "900", "deposit" },
             { "904", "withdraw" },
         };
-        return this.safeString(types, ((string)type), type);
+        return this.safeString(types, type, type);
     }
 
     public override Dictionary<string, object> parseLedgerEntry(object item, object currency = null)
@@ -2680,7 +2680,7 @@ public partial class hashkey : Exchange
         string? amountString = this.safeString(item, "change");
         double? amount = this.parseNumber(amountString);
         string direction = "in";
-        if (getIndexOf(((string)amountString), "-") >= 0)
+        if (getIndexOf(amountString, "-") >= 0)
         {
             direction = "out";
         }
@@ -2886,7 +2886,7 @@ public partial class hashkey : Exchange
         type = ((string)type).ToUpper();
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", GetValue(market, "id") },
-            { "side", ((string)((string)side)).ToUpper() },
+            { "side", ((string)side).ToUpper() },
             { "type", type },
         };
         if (!isEqual(amount, null))
@@ -2971,7 +2971,7 @@ public partial class hashkey : Exchange
         {
             suffix = "_CLOSE";
         }
-        request["side"] = add(((string)((string)side)).ToUpper(), suffix);
+        request["side"] = add(((string)side).ToUpper(), suffix);
         string? timeInForce = null;
         IList<object> timeInForceparametersVariable = (IList<object>)this.handleParamString(parameters, "timeInForce");
         timeInForce = (string)timeInForceparametersVariable[0];
@@ -3816,17 +3816,17 @@ public partial class hashkey : Exchange
             { "side", side },
             { "price", price },
             { "average", average },
-            { "amount", this.omitZero(((string)this.safeString(order, "origQty"))) },
+            { "amount", this.omitZero(this.safeString(order, "origQty")) },
             { "filled", this.safeString(order, "executedQty") },
             { "remaining", null },
-            { "triggerPrice", this.omitZero(((string)this.safeString(order, "stopPrice"))) },
+            { "triggerPrice", this.omitZero(this.safeString(order, "stopPrice")) },
             { "takeProfitPrice", null },
             { "stopLossPrice", null },
-            { "cost", this.omitZero(((string)this.safeString2(order, "cumulativeQuoteQty", "cummulativeQuoteQty"))) },
+            { "cost", this.omitZero(this.safeString2(order, "cumulativeQuoteQty", "cummulativeQuoteQty")) },
             { "trades", null },
             { "fee", new Dictionary<string, object>() {
                 { "currency", this.safeCurrencyCode(feeCurrncyId) },
-                { "amount", this.omitZero(((string)this.safeString(order, "feeAmount"))) },
+                { "amount", this.omitZero(this.safeString(order, "feeAmount")) },
             } },
             { "reduceOnly", reduceOnly },
             { "postOnly", postOnly },
@@ -4684,7 +4684,7 @@ public partial class hashkey : Exchange
             {
                 ((IDictionary<string,object>)headers)["Content-Type"] = "application/json";
                 body = this.json(this.safeList(parameters, "orders"));
-                signature = this.hmac(this.encode(((string)this.customUrlencode(additionalParams))), this.encode(this.secret), sha256);
+                signature = this.hmac(this.encode(this.customUrlencode(additionalParams)), this.encode(this.secret), sha256);
                 query = this.customUrlencode(this.extend(additionalParams, new Dictionary<string, object>() {
                     { "signature", signature },
                 }));
@@ -4692,7 +4692,7 @@ public partial class hashkey : Exchange
             } else
             {
                 Dictionary<string, object> totalParams = this.extend(additionalParams, parameters);
-                signature = this.hmac(this.encode(((string)this.customUrlencode(totalParams))), this.encode(this.secret), sha256);
+                signature = this.hmac(this.encode(this.customUrlencode(totalParams)), this.encode(this.secret), sha256);
                 totalParams["signature"] = signature;
                 query = this.customUrlencode(totalParams);
                 if (isEqual(method, "GET"))
@@ -4725,7 +4725,7 @@ public partial class hashkey : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         string result = this.urlencode(parameters);
-        result = result.Replace((string)"%2C", (string)",");
+        result = result.Replace("%2C", (string)",");
         return result;
     }
 

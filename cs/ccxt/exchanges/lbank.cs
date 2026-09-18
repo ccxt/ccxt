@@ -1967,7 +1967,7 @@ public partial class lbank : Exchange
             { "3", "canceled" },
             { "4", "closed" },
         };
-        return this.safeString(statuses, ((string)status), status);
+        return this.safeString(statuses, status, status);
     }
 
     public override Dictionary<string, object> parseOrder(object order, object market = null)
@@ -2069,7 +2069,7 @@ public partial class lbank : Exchange
         bool postOnly = false;
         string type = "limit";
         string? rawType = this.safeString2(order, "type", "tradeType"); // buy, sell, buy_market, sell_market, buy_maker,sell_maker,buy_ioc,sell_ioc, buy_fok, sell_fok
-        List<object> parts = ((string)((string)rawType)).Split(new [] {"_"}, StringSplitOptions.None).ToList<object>();
+        List<object> parts = rawType.Split(new [] {"_"}, StringSplitOptions.None).ToList<object>();
         string? side = this.safeString(parts, 0);
         string? typePart = this.safeString(parts, 1); // market, maker, ioc, fok or undefined (limit)
         if (typePart == "market")
@@ -3071,7 +3071,7 @@ public partial class lbank : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         if ((code != null))
         {
-            Dictionary<string, object> currency = this.currency(((string)code));
+            Dictionary<string, object> currency = this.currency(code);
             request["assetCode"] = GetValue(currency, "id");
         }
         Dictionary<string, object> response = await this.spotPublicGetWithdrawConfigs(this.extend(request, parameters));
@@ -3409,7 +3409,7 @@ public partial class lbank : Exchange
                 { "api_key", this.apiKey },
             }, query);
             string? signatureMethod = null;
-            if (((string)this.secret).Length > 32)
+            if (this.secret.Length > 32)
             {
                 signatureMethod = "RSA";
             } else

@@ -1701,7 +1701,7 @@ public partial class cex : Exchange
             { "withdraw", "withdrawal" },
             { "commission", "fee" },
         };
-        return this.safeString(ledgerType, ((string)type), type);
+        return this.safeString(ledgerType, type, type);
     }
 
     /**
@@ -1830,10 +1830,10 @@ public partial class cex : Exchange
         object transfer = null;
         if (!isEqual(toAccount, "") && !isEqual(fromAccount, ""))
         {
-            transfer = ccxt.BaseExchange.FromTransferEntry(await this.TransferBetweenSubAccounts(code, amount,((string)fromAccount),((string)toAccount), parameters));
+            transfer = ccxt.BaseExchange.FromTransferEntry(await this.TransferBetweenSubAccounts(code, amount,fromAccount,toAccount, parameters));
         } else
         {
-            transfer = ccxt.BaseExchange.FromTransferEntry(await this.TransferBetweenMainAndSubAccount(code, amount,((string)fromAccount),((string)toAccount), parameters));
+            transfer = ccxt.BaseExchange.FromTransferEntry(await this.TransferBetweenMainAndSubAccount(code, amount,fromAccount,toAccount, parameters));
         }
         object fillResponseFromRequest = this.handleOption("transfer", "fillResponseFromRequest", true);
         if (isEqual(fillResponseFromRequest, true))

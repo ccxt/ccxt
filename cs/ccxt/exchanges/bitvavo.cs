@@ -1563,7 +1563,7 @@ public partial class bitvavo : Exchange
             { "pending", "pending" },
             { "failed", "failed" },
         };
-        return this.safeString(statuses, ((string)status), status);
+        return this.safeString(statuses, status, status);
     }
 
     public override Dictionary<string, object> parseTransfer(object transfer, IDictionary<string, object> currency = null)
@@ -2289,7 +2289,7 @@ public partial class bitvavo : Exchange
             { "rejected", "canceled" },
             { "awaitingTrigger", "open" },
         };
-        return this.safeString(statuses, ((string)status), status);
+        return this.safeString(statuses, status, status);
     }
 
     public override Dictionary<string, object> parseOrder(object order, object market = null)
@@ -2550,7 +2550,7 @@ public partial class bitvavo : Exchange
             { "internal_transfer", "transaction" },
             { "external_transferred_funds", "transaction" },
         };
-        return this.safeString(types, ((string)type), type);
+        return this.safeString(types, type, type);
     }
 
     public override Dictionary<string, object> parseLedgerEntry(object item, object currency = null)
@@ -2789,7 +2789,7 @@ public partial class bitvavo : Exchange
             { "completed", "ok" },
             { "canceled", "canceled" },
         };
-        return this.safeString(statuses, ((string)status), status);
+        return this.safeString(statuses, status, status);
     }
 
     public override Dictionary<string, object> parseTransaction(object transaction, object currency = null)

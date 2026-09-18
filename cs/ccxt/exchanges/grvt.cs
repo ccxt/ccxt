@@ -724,7 +724,7 @@ public partial class grvt : Exchange
         bool apiKeyDefined = !isEqual(this.apiKey, null) && !isEqual(this.apiKey, "");
         if (privateKeyDefined && apiKeyDefined)
         {
-            throw new ExchangeError ((string)"You should provide either \"privateKey\" or \"apikey & secret\"") ;
+            throw new ExchangeError ("You should provide either \"privateKey\" or \"apikey & secret\"") ;
         }
         return privateKeyDefined;
     }
@@ -748,7 +748,7 @@ public partial class grvt : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.privateKey, null) || isEqual(this.privateKey, ""))
         {
-            throw new PermissionDenied ((string)"Private key is required for this operation. If you used joined GRVT through email registration instead of Web3 wallet, then read: https://github.com/ccxt/ccxt/wiki/FAQ#how-to-use-the-grvt-exchange-in-ccxt") ;
+            throw new PermissionDenied ("Private key is required for this operation. If you used joined GRVT through email registration instead of Web3 wallet, then read: https://github.com/ccxt/ccxt/wiki/FAQ#how-to-use-the-grvt-exchange-in-ccxt") ;
         }
         await this.signInWithPrivateKey(parameters);
         await this.initializeClient(parameters);
@@ -2624,7 +2624,7 @@ public partial class grvt : Exchange
             string? sizeDec = this.safeString(sizeParts, 1, "");
             Int64 sizeDecLength = add(sizeDec.Length, 0); // php tr
             string sizeDecLengthStr = sizeDecLength.ToString();
-            object sizeInteger = divide(multiply(this.convertToBigIntCustom(((string)size).Replace((string)".", (string)"")), sizeMultiplier), (Math.Pow(Convert.ToDouble(bigInt10), Convert.ToDouble(this.convertToBigIntCustom(sizeDecLengthStr)))));
+            object sizeInteger = divide(multiply(this.convertToBigIntCustom(((string)size).Replace(".", (string)"")), sizeMultiplier), (Math.Pow(Convert.ToDouble(bigInt10), Convert.ToDouble(this.convertToBigIntCustom(sizeDecLengthStr)))));
             Dictionary<string, object> legOrder = new Dictionary<string, object>() {
                 { "assetID", getValue(GetValue(market, "info"), "instrument_hash") },
                 { "contractSize", this.parseToInt(sizeInteger) },
@@ -2639,7 +2639,7 @@ public partial class grvt : Exchange
                 Int64 limitDecLength = add(limitDec.Length, 0); // php tr
                 string limitDecLengthStr = limitDecLength.ToString();
                 object powerNum = (limitDecLengthStr == "0") ? 0 : this.convertToBigIntCustom(limitDecLengthStr);
-                object priceInteger = (divide(multiply(this.convertToBigIntCustom(((string)price).Replace((string)".", (string)"")), this.convertToBigIntCustom(priceMultiplier)), (Math.Pow(Convert.ToDouble(bigInt10), Convert.ToDouble(powerNum)))));
+                object priceInteger = (divide(multiply(this.convertToBigIntCustom(((string)price).Replace(".", (string)"")), this.convertToBigIntCustom(priceMultiplier)), (Math.Pow(Convert.ToDouble(bigInt10), Convert.ToDouble(powerNum)))));
                 legOrder["limitPrice"] = this.parseToInt(priceInteger);
             } else
             {
@@ -3849,7 +3849,7 @@ public partial class grvt : Exchange
 
     public override object handleErrors(object code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
     {
-        if (((string)url).EndsWith("auth/api_key/login") || ((string)url).EndsWith("auth/wallet/login"))
+        if (url.EndsWith("auth/api_key/login") || url.EndsWith("auth/wallet/login"))
         {
             string? accountId = this.safeString2(headers, "X-Grvt-Account-Id", "x-grvt-account-id");
             ((IDictionary<string,object>)this.options)["AuthAccountId"] = accountId;

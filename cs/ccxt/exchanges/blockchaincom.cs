@@ -1314,7 +1314,7 @@ public partial class blockchaincom : Exchange
             Dictionary<string, object> account = this.account();
             account["free"] = this.safeString(entry, "available");
             account["total"] = this.safeString(entry, "balance");
-            result[(string)((string)code)] = account;
+            result[(string)code] = account;
         }
         return ccxt.BaseExchange.ToBalances(this.safeBalance(result));
     }
