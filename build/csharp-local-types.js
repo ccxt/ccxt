@@ -115,11 +115,12 @@
 //     computes for those boxes, so the local is `Int64` / `double` with the initializer unchanged
 //     (see csharpAddExpressionKind). An int / Int64 left with a double right stays `object` there:
 //     the object path's `(Int64)b` unboxing throws where the twin would compute a sum.
-//   - this.omit (<Dictionary<string, object> box>, keys) -> Dictionary<string, object> — the
-//     dict-receiver overloads in Exchange.Functions.cs can never take the IList<object>
-//     pass-through branch (a Dictionary is not a list), so the call's own C# type is the fresh
-//     outDict; object / IDictionary receivers keep the printer's `object` (see
-//     omitDictionaryProducer and the selfOmitWriteType accumulator)
+//   - this.omit (<Dictionary<string, object> | IDictionary<string, object> box>, keys) ->
+//     Dictionary<string, object> — the dict-receiver overloads in Exchange.Functions.cs can
+//     never take the IList<object> pass-through branch (neither a Dictionary nor an
+//     IDictionary<string, object> box is a list: no type in the tree implements both
+//     interfaces), so the call's own C# type is the fresh outDict; object receivers keep the
+//     printer's `object` (see omitDictionaryProducer and the selfOmitWriteType accumulator)
 //   - this.currencyToPrecision (...) -> string? and this.parsePrecision (...) -> string? —
 //     generated signatures retyped by installCsharpMethodReturnTypes (every return path
 //     hands back a string or null; the returns unbox through `object` like safeSymbol's)
@@ -8015,12 +8016,12 @@ function omitCallReceiver (node) {
     return args[0];
 }
 
-// is the receiver the concrete `Dictionary<string, object>` the dict-receiver overloads need?
-// A local this module (or the printer) declares with that type, an object literal, or a
-// hand-written base call whose signature already returns it (extend/deepExtend, plus the
-// Dictionary entries of CSHARP_LOCAL_THIS_RETURN_TYPES). An `object` receiver stays out: the
-// IList<object> pass-through is reachable for it (see the table note), and so does an
-// `IDictionary<string, object>` one — an interface-typed box is not provably this class.
+// does the receiver bind one of the dict-receiver overloads of Exchange.Functions.cs?
+// A local this module (or the printer) declares `Dictionary<string, object>` or
+// `IDictionary<string, object>` — both overload families hand back the fresh outDict — an
+// object literal, or a hand-written base call whose signature already returns one of the two
+// (extend/deepExtend, plus the Dictionary / IDictionary entries of the return tables). An
+// `object` receiver stays out: the IList<object> pass-through is reachable for it (table note).
 function omitReceiverIsDictionary (csharp, receiver) {
     let node = receiver;
     while (node?.kind === ts.SyntaxKind.ParenthesizedExpression) {
@@ -8030,7 +8031,8 @@ function omitReceiverIsDictionary (csharp, receiver) {
         return false;
     }
     if (node.kind === ts.SyntaxKind.Identifier) {
-        return identifierType (csharp, node) === 'Dictionary<string, object>';
+        const type = identifierType (csharp, node);
+        return (type === 'Dictionary<string, object>') || (type === 'IDictionary<string, object>');
     }
     if (node.kind === ts.SyntaxKind.ObjectLiteralExpression) {
         return true;
@@ -8043,14 +8045,16 @@ function omitReceiverIsDictionary (csharp, receiver) {
                 return true; // Exchange.Generic.cs: `public Dictionary<string, object> extend/deepExtend`
             }
         }
-        return callReturnType (csharp, node) === 'Dictionary<string, object>';
+        const type = callReturnType (csharp, node);
+        return (type === 'Dictionary<string, object>') || (type === 'IDictionary<string, object>');
     }
     return false;
 }
 
-// `const x = this.omit (<Dictionary box>, keys)`: the call binds a dict-receiver overload, whose
-// every path hands back the fresh outDict (a Dictionary<string, object> receiver is never the
-// pass-through branch). The call's own C# type is therefore the declaration — no cast.
+// `const x = this.omit (<Dictionary / IDictionary box>, keys)`: the call binds a dict-receiver
+// overload, whose every path hands back the fresh outDict (neither a Dictionary nor an
+// IDictionary<string, object> receiver is ever the pass-through branch). The call's own C#
+// type is therefore the declaration — no cast.
 function omitDictionaryProducer (csharp, node, context) {
     let initializer = node;
     while (initializer?.kind === ts.SyntaxKind.ParenthesizedExpression) {

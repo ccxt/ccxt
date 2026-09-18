@@ -1284,7 +1284,7 @@ public partial class bithumb : Exchange
                 object response = getValue(responses, i);
                 IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
                 Int64? timestamp = this.safeInteger(data, "date");
-                object tickers = this.omit(data, "date");
+                Dictionary<string, object> tickers = this.omit(data, "date");
                 List<object> currencyIds = new List<object>(((IDictionary<string,object>)tickers).Keys);
                 for (int j = 0; isLessThan(j, currencyIds.Count); postFixIncrement(ref j))
                 {
