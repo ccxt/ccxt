@@ -563,7 +563,7 @@ public partial class bydfi : ccxt.bydfi
             ((IList<object>)channels).Add(add(add(add(GetValue(market, "id"), "@depth"), depth), channelSuffix));
             ((IList<object>)messageHashes).Add(add("orderbook::", symbol));
         }
-        object orderbook = await this.watchPublic(messageHashes, channels, parameters);
+        ccxt.pro.IOrderBook orderbook = ((ccxt.pro.IOrderBook)await this.watchPublic(messageHashes, channels, parameters));
         return ccxt.BaseExchange.ToOrderBookSnapshot((orderbook as IOrderBook).limit());
     }
 

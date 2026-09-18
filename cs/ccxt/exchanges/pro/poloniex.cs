@@ -550,7 +550,7 @@ public partial class poloniex : ccxt.poloniex
         IList<object> nameparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "watchOrderBook", "name", name);
         name = nameparametersVariable[0];
         parameters = nameparametersVariable[1];
-        object orderbook = await this.subscribe(name, name, false, new List<object>() {symbol}, parameters);
+        ccxt.pro.IOrderBook orderbook = ((ccxt.pro.IOrderBook)await this.subscribe(name, name, false, new List<object>() {symbol}, parameters));
         return ccxt.BaseExchange.ToOrderBookSnapshot((orderbook as IOrderBook).limit());
     }
 

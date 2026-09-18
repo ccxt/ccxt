@@ -287,7 +287,7 @@ public partial class p2b : ccxt.p2b
             limitVar = 100;
         }
         List<object> request = new List<object>() {GetValue(market, "id"), limitVar, interval};
-        object orderbook = await this.subscribe(name, messageHash, request, parameters);
+        ccxt.pro.IOrderBook orderbook = ((ccxt.pro.IOrderBook)await this.subscribe(name, messageHash, request, parameters));
         return ccxt.BaseExchange.ToOrderBookSnapshot((orderbook as IOrderBook).limit());
     }
 

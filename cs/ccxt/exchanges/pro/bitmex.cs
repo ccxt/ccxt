@@ -1440,7 +1440,7 @@ public partial class bitmex : ccxt.bitmex
             { "op", "subscribe" },
             { "args", topics },
         };
-        object orderbook = await this.watchMultiple(url, messageHashes, this.deepExtend(request, parameters), topics);
+        ccxt.pro.IOrderBook orderbook = ((ccxt.pro.IOrderBook)await this.watchMultiple(url, messageHashes, this.deepExtend(request, parameters), topics));
         return ccxt.BaseExchange.ToOrderBookSnapshot((orderbook as IOrderBook).limit());
     }
 

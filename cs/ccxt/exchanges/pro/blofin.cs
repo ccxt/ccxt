@@ -215,7 +215,7 @@ public partial class blofin : ccxt.blofin
         {
             throw new NotSupported (add(add(add(add(add(this.id, " "), callerMethodName), "() at this moment "), channelName), " is not supported, coming soon")) ;
         }
-        object orderbook = await this.watchMultipleWrapper(true, channelName, callerMethodName, symbols, parameters);
+        ccxt.pro.IOrderBook orderbook = ((ccxt.pro.IOrderBook)await this.watchMultipleWrapper(true, channelName, callerMethodName, symbols, parameters));
         return ccxt.BaseExchange.ToOrderBookSnapshot((orderbook as IOrderBook).limit());
     }
 

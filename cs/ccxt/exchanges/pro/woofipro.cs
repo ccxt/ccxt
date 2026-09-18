@@ -117,7 +117,7 @@ public partial class woofipro : ccxt.woofipro
             { "topic", topic },
         };
         Dictionary<string, object> message = this.extend(request, parameters);
-        object orderbook = await this.watchPublic(topic, message);
+        ccxt.pro.IOrderBook orderbook = ((ccxt.pro.IOrderBook)await this.watchPublic(topic, message));
         return ccxt.BaseExchange.ToOrderBookSnapshot((orderbook as IOrderBook).limit());
     }
 

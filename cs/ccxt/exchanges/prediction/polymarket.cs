@@ -3792,7 +3792,7 @@ public partial class polymarket : PredictionExchange
             { "type", "market" },
         };
         object url = getValue(getValue(this.urls, "api"), "ws");
-        object orderbook = await this.watch(url, messageHash, subscribeMsg, subscribeHash);
+        ccxt.pro.IOrderBook orderbook = ((ccxt.pro.IOrderBook)await this.watch(url, messageHash, subscribeMsg, subscribeHash));
         return ccxt.BaseExchange.ToPredictionOrderBookSnapshot((orderbook as IOrderBook).limit());
     }
 

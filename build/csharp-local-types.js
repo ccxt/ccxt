@@ -1931,6 +1931,86 @@ function bareAwaitedCallType (node) {
     return Object.prototype.hasOwnProperty.call (CSHARP_LOCAL_AWAIT_BARE_CALL_TYPES, name) ? CSHARP_LOCAL_AWAIT_BARE_CALL_TYPES[name] : undefined;
 }
 
+// `const orderbook = await this.watch (url, messageHash, …); return orderbook.limit ();`
+// (the ws order book subscribers). `watch` awaits client.future (messageHash) and hands back
+// whatever the handler resolved for that hash; for these cores the resolved value IS the
+// ccxt.pro.IOrderBook cache, and `.limit ()` is an IOrderBook-only member. That immediate
+// deref is the only site the rule fires on — every other resolve family (caches, lists,
+// dicts, tickers) keeps `object`, see campaigns/cs90 U27 REPORT.md.
+// Venue helpers that reach the same bridge (gemini's helperForWatchMultipleConstruct) and
+// hashkey's misspelled `wathPublic` are listed by their literal name: the proof is the
+// caller's `.limit ()` deref, the name only keeps the family scoped.
+const CSHARP_WS_WATCH_METHOD_NAMES = ['watch', 'watchMultiple', 'watchPublic', 'watchPublicMultiple', 'watchPrivate', 'watchPrivateMultiple', 'watchTopics', 'watchMany', 'watchMultiHelper', 'watchMultipleWrapper', 'watchMultipleSubscription', 'watchMultiTickerHelper', 'watchRequest', 'watchPrivateSubscribe', 'watchExecuteRequest', 'watchStockMarketStream', 'helperForWatchMultipleConstruct', 'wathPublic', 'subscribe', 'subscribeMultiple', 'subscribePublic', 'subscribePrivate', 'subscribePublicMultiple', 'subscribeUserChannel', 'subscribeMyriadChannel', 'subscribeOpinionChannel', 'subscribePublicUta', 'subscribePublicMultipleUta', 'subscribePrivateUta', 'negotiate'];
+
+// the awaited method name of `await this.<name> (...)`, or undefined
+function wsWatchAwaitMethodName (declaration) {
+    const initializer = declaration?.initializer;
+    if (initializer?.kind !== ts.SyntaxKind.AwaitExpression) {
+        return undefined;
+    }
+    const call = initializer.expression;
+    if (call?.kind !== ts.SyntaxKind.CallExpression) {
+        return undefined;
+    }
+    const callee = call.expression;
+    if (callee?.kind !== ts.SyntaxKind.PropertyAccessExpression || callee.expression?.kind !== ts.SyntaxKind.ThisKeyword) {
+        return undefined;
+    }
+    const name = callee.name?.escapedText;
+    return (typeof name === 'string' && CSHARP_WS_WATCH_METHOD_NAMES.includes (name)) ? name : undefined;
+}
+
+// `<name>.limit ()` (also `(<name> as OrderBook).limit ()`) anywhere in the statement
+function statementCallsLimitOn (statement, name) {
+    let found = false;
+    const visit = (n) => {
+        if (found) {
+            return;
+        }
+        if (n?.kind === ts.SyntaxKind.CallExpression) {
+            let receiver = n.expression?.kind === ts.SyntaxKind.PropertyAccessExpression ? n.expression.expression : undefined;
+            while (receiver?.kind === ts.SyntaxKind.ParenthesizedExpression || receiver?.kind === ts.SyntaxKind.AsExpression) {
+                receiver = receiver.expression;
+            }
+            if (n.expression?.name?.escapedText === 'limit' && receiver?.kind === ts.SyntaxKind.Identifier && receiver.escapedText === name) {
+                found = true;
+                return;
+            }
+        }
+        ts.forEachChild (n, visit);
+    };
+    visit (statement);
+    return found;
+}
+
+// the statement that immediately follows the declaration in its own block, or undefined
+function statementAfter (declaration) {
+    const statement = declaration?.parent?.parent;
+    if (statement?.kind !== ts.SyntaxKind.VariableStatement) {
+        return undefined;
+    }
+    const statements = statement.parent?.statements;
+    if (statements === undefined) {
+        return undefined;
+    }
+    const index = statements.indexOf (statement);
+    return (index >= 0 && index + 1 < statements.length) ? statements[index + 1] : undefined;
+}
+
+// the C# type of the ws order book subscriber local, or undefined when the immediate next
+// statement does not dereference it through `limit ()`
+function wsOrderBookWatchType (declaration) {
+    if (wsWatchAwaitMethodName (declaration) === undefined) {
+        return undefined;
+    }
+    const name = declaration.name?.escapedText;
+    const next = statementAfter (declaration);
+    if (next?.kind !== ts.SyntaxKind.ReturnStatement || typeof name !== 'string' || !statementCallsLimitOn (next.expression, name)) {
+        return undefined;
+    }
+    return 'ccxt.pro.IOrderBook';
+}
+
 // the printed initializer still IS the awaited call the type was proven from: an
 // implicit-`this` call prints `await this.<name>(`, a table call prints `await <name>(`.
 // Anything else (a typed core's `ccxt.BaseExchange.FromX(...)` funnel) is a different
@@ -7516,7 +7596,13 @@ function csharpLocalTypeOf (csharp, declaration, context) {
         // (see CSHARP_LOCAL_WS_CACHE_ELEMENT_TYPES): getValue's own C# type is `object`, so the
         // proven element box is named behind the exact cast back
         const wsCacheElement = (elementType === undefined) ? (wsCacheElementAccessReadType (declaration.initializer) ?? wsOhlcvsBucketReadType (declaration.initializer)) : undefined;
-        if (modTwin !== undefined) {
+        // the ws order book subscriber core (`const orderbook = await this.watch (...)` +
+        // `return orderbook.limit ()`): the resolve proof is wsOrderBookWatchType above
+        const wsOrderBookType = wsOrderBookWatchType (declaration);
+        if (wsOrderBookType !== undefined) {
+            csharpType = wsOrderBookType;
+            cast = wsOrderBookType;
+        } else if (modTwin !== undefined) {
             csharpType = modTwin;
         } else if (integerBox !== undefined) {
             csharpType = integerBox;

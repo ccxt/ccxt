@@ -747,7 +747,7 @@ public partial class deepcoin : ccxt.deepcoin
         var suffixparametersVariable = this.orderBookSuffix(market, "watchOrderBook", parameters);
         suffix = ((IList<object>)suffixparametersVariable)[0];
         parameters = ((IList<object>)suffixparametersVariable)[1];
-        object orderbook = await this.watchPublic(market, messageHash, "25", parameters, suffix);
+        ccxt.pro.IOrderBook orderbook = ((ccxt.pro.IOrderBook)await this.watchPublic(market, messageHash, "25", parameters, suffix));
         return ccxt.BaseExchange.ToOrderBookSnapshot((orderbook as IOrderBook).limit());
     }
 

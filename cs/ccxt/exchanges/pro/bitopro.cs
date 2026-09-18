@@ -87,7 +87,7 @@ public partial class bitopro : ccxt.bitopro
         {
             endPart = add(add(GetValue(market, "id"), ":"), this.numberToString(limit));
         }
-        object orderbook = await this.watchPublic("order-books", messageHash, endPart);
+        ccxt.pro.IOrderBook orderbook = ((ccxt.pro.IOrderBook)await this.watchPublic("order-books", messageHash, endPart));
         return ccxt.BaseExchange.ToOrderBookSnapshot((orderbook as IOrderBook).limit());
     }
 
