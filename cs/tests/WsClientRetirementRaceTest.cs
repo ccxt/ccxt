@@ -91,11 +91,15 @@ public partial class BaseTest
     public async Task testWsClientRetireIsIdempotent()
     {
         // onError, a late onClose and Close() may all race into retire - the
-        // consumer sees exactly one settlement and repeat calls are no-ops
+        // consumer sees exactly one settlement, and every caller receives the
+        // same memoized retirement task (a repeat caller awaiting it awaits
+        // the actual teardown, not a bare "someone else started it")
         var client = makeSeededClient("twice");
         var future = client.futures["twice-pending"];
-        await client.retire(new NetworkError("first"));
-        await client.retire(new NetworkError("second"));
+        var firstRetirement = client.retire(new NetworkError("first"));
+        var secondRetirement = client.retire(new NetworkError("second"));
+        Assert(ReferenceEquals(firstRetirement, secondRetirement), "twice: repeat retire must return the same in-flight retirement task");
+        await firstRetirement;
         await client.Close(); // third path into retire
         assertRetired(client, "twice");
         await AssertRejectedWith<NetworkError>(future, "twice: the first retirement must win the settlement");

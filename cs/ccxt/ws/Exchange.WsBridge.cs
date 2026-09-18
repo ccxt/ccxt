@@ -97,18 +97,20 @@ public partial class BaseExchange
 
     public void CleanupClients(WebSocketClient client, object error = null)
     {
-        // retire the client that actually errored or closed - by reference, not
-        // by registry key: a concurrent reconnect may have installed a
-        // replacement client under the same url between the transport event and
-        // this callback, and that replacement must keep serving its consumers,
-        // see https://github.com/ccxt/ccxt/issues/30463 (retire rejects every
-        // pending future, per https://github.com/ccxt/ccxt/issues/23490 and
-        // https://github.com/ccxt/ccxt/issues/21565, and closes the transport)
-        _ = client.retire(error ?? new NetworkError("connection closed by remote server"));
-        // atomic compare-and-remove: drop the registry entry only while it
-        // still points at this same client, a healthy replacement stays
+        // detach the registry entry first, same order as closeClient: a watch()
+        // arriving after this line dials a fresh client instead of reading the
+        // about-to-be-retired one out of the registry and parking a future on
+        // it that nobody would ever settle. The atomic compare-and-remove drops
+        // the entry only while it still points at this same client, so a
+        // replacement installed by a concurrent reconnect keeps its slot and
+        // its consumers, see https://github.com/ccxt/ccxt/issues/30463
         ((ICollection<KeyValuePair<string, WebSocketClient>>) this.clients)
             .Remove(new KeyValuePair<string, WebSocketClient>(client.url, client));
+        // then retire the client that actually errored or closed - by
+        // reference, not by registry key (retire rejects every pending future,
+        // per https://github.com/ccxt/ccxt/issues/23490 and
+        // https://github.com/ccxt/ccxt/issues/21565, and closes the transport)
+        _ = client.retire(error ?? new NetworkError("connection closed by remote server"));
     }
 
     public virtual void handleMessage(WebSocketClient client, object messageContent)

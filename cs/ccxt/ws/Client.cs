@@ -64,7 +64,7 @@ public partial class BaseExchange
 
         public List<object> mockSentMessages = new List<object>(); // frames recorded in mock mode
 
-        private bool retired = false; // set once under retiredSync: onError, a late onClose and Close() may all race into retire
+        private Task retirement = null; // set once under retiredSync (non-null == retirement initiated); completes when the transport teardown has finished
         private readonly object retiredSync = new object();
 
         public WebSocketClient(string url, string proxy, handleMessageDelegate handleMessage, pingDelegate ping = null, onCloseDelegate onClose = null, onErrorDelegate onError = null, bool isVerbose = false, Int64 keepA = 30000, bool decompressBinary = true)
@@ -592,20 +592,29 @@ public partial class BaseExchange
         // site. The only awaitable step is quarantined in closeTransport();
         // its task is handed back so each caller picks its own policy -
         // Close() awaits the full teardown, CleanupClients (running inside
-        // the dying socket's own callback) discards it.
+        // the dying socket's own callback) discards it. Every caller, first
+        // or repeat, receives the same memoized retirement task, which
+        // completes only when the transport teardown has finished.
         public Task retire(object error)
         {
+            TaskCompletionSource<bool> settled;
             lock (retiredSync)
             {
-                if (this.retired)
+                if (this.retirement != null)
                 {
-                    return Task.CompletedTask;
+                    // repeat callers get the same in-flight task, so awaiting a
+                    // second retirement path (e.g. Close() after onError) still
+                    // means "the transport teardown has finished", not "someone
+                    // else merely started it"
+                    return this.retirement;
                 }
-                this.retired = true;
+                // RunContinuationsAsynchronously: awaiters of the retirement
+                // task must not run inline on the transport-close thread
+                settled = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+                this.retirement = settled.Task;
             }
             this.error = true;
             this.isConnected = false; // PingLoop's while() condition
-            Task transportClosed = Task.CompletedTask;
             try
             {
                 this.reject(error); // no messageHash: rejects and removes every pending future
@@ -618,9 +627,9 @@ public partial class BaseExchange
                 this.futures.Clear();
                 this.rejections.Clear();
                 this.subscriptions.Clear();
-                transportClosed = this.closeTransport();
+                this.closeTransport().ContinueWith(t => settled.TrySetResult(true), TaskScheduler.Default);
             }
-            return transportClosed;
+            return this.retirement;
         }
 
         // The async half of retirement: closing a WebSocket is a network
