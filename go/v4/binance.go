@@ -2967,7 +2967,7 @@ func (this *Binance) Describe() any {
 			"fetchPositions": map[string]any{
 				"method": "positionRisk",
 			},
-			"recvWindow":              Multiply(10, 1000),
+			"recvWindow":              10 * 1000,
 			"timeDifference":          0,
 			"adjustForTimeDifference": false,
 			"newOrderRespType": map[string]any{

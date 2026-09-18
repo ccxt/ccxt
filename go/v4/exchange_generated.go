@@ -796,7 +796,7 @@ func (this *BaseExchange) FilterByLimit(array any, optionalArgs ...any) any {
 			var ascending bool = true
 			if InOp(GetValue(array, 0), key) {
 				var first any = GetValue(GetValue(array, 0), key)
-				var last any = GetValue(GetValue(array, Subtract(arrayLength, 1)), key)
+				var last any = GetValue(GetValue(array, arrayLength-1), key)
 				if !IsEqual(first, nil) && !IsEqual(last, nil) {
 					ascending = IsLessThanOrEqual(first, last) // true if array is sorted in ascending order based on 'timestamp'
 				}
@@ -3125,7 +3125,7 @@ func (this *BaseExchange) FindNearestCeiling(arr any, providedValue any) any {
 			return current
 		}
 	}
-	return GetValue(arr, Subtract(length, 1))
+	return GetValue(arr, length-1)
 }
 func (this *BaseExchange) AddKeyInArrayItems(obj any, keyName any) any {
 	var result any = []any{}
@@ -7753,7 +7753,7 @@ func (this *BaseExchange) fetchPaginatedCallDynamicBody(ch chan any, method any,
 					}
 					errors = 0
 					result = this.ArrayConcat(result, response)
-					var last any = this.SafeValue(response, Subtract(responseLength, 1))
+					var last any = this.SafeValue(response, responseLength-1)
 					var lastTimestamp *int64 = this.SafeInteger(last, "timestamp", 0)
 					if lastTimestamp == nil {
 						panic("break")
@@ -8063,7 +8063,7 @@ func (this *BaseExchange) fetchPaginatedCallCursorBody(ch chan any, method any, 
 				if !IsEqual(response, nil) {
 					result = this.ArrayConcat(result, response)
 				}
-				var last any = this.SafeDict(response, Subtract(responseLength, 1))
+				var last any = this.SafeDict(response, responseLength-1)
 				// cursorValue = this.safeValue (last['info'], cursorReceived);
 				cursorValue = nil // search for the cursor
 				for j := 0; j < responseLength; j++ {
