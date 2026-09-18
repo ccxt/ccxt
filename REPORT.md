@@ -213,9 +213,9 @@ and **65** have a concrete source type (the candidates here). 12 typed, the othe
 
 ## Re-gate of the REPORT tip
 
-`REPORT.md` is a docs-only commit on top of `2f798ef0c0b`; the final tip is re-gated with a
+`REPORT.md` is a docs-only commit on top of `2f798ef0c0b`; a docs revision is re-gated with a
 throwaway branch push (the farm's `cs90-U42` ref is at the code sha, so a plain `ccxt-farm build`
-from the tip would be refused as non-fast-forward):
+from the tip is refused as non-fast-forward):
 
 ```
 git branch -f cs90-U42-gate HEAD && git checkout cs90-U42-gate
@@ -223,3 +223,7 @@ ccxt-farm build --targets cs --wait     # HEAD <tip> job=<id> exit=0
 git checkout cs90-U42 && git branch -D cs90-U42-gate
 ccxt-farm status <tip>                  # resolves the same job
 ```
+
+Observed: code sha `2f798ef0c0b` → **job 887 exit=0**; docs revision `03a8bd43437` → **job 896
+exit=0** (both `branch_update=unchanged`). Every further docs-only revision is re-gated the same
+way — the branch tip and its job id are what the integrator reads from the farm.
