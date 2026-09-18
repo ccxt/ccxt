@@ -6959,8 +6959,8 @@ public partial class bingx : Exchange
     public override object parseMarginMode(object marginMode, IDictionary<string, object> market = null)
     {
         string? marketId = this.safeString(marginMode, "symbol");
-        object marginType = this.safeStringLower(marginMode, "marginType");
-        marginType = (isEqual(marginType, "crossed")) ? "cross" : marginType;
+        string? marginType = this.safeStringLower(marginMode, "marginType");
+        marginType = (marginType == "crossed") ? "cross" : marginType;
         return new Dictionary<string, object>() {
             { "info", marginMode },
             { "symbol", this.safeSymbol(marketId, market, "-", "swap") },

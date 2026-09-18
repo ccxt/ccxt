@@ -5312,7 +5312,7 @@ public partial class binance : Exchange
         string? contractType = this.safeString(market, "contractType");
         bool contract = (inOp(market, "contractType"));
         Int64? expiry = this.safeInteger2(market, "deliveryDate", "expiryDate");
-        object settleId = this.safeString(market, "marginAsset");
+        string? settleId = this.safeString(market, "marginAsset");
         if ((contractType == "PERPETUAL") || (isEqual(expiry, 4133404800000)))
         {
             expiry = null;

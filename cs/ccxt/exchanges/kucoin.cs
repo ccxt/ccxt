@@ -8370,7 +8370,7 @@ public partial class kucoin : Exchange
         string? id = this.safeString2(trade, "tradeId", "id");
         string? orderId = this.safeString(trade, "orderId");
         string? takerOrMaker = this.safeString(trade, "liquidity");
-        object timestamp = this.safeInteger2(trade, "time", "ts");
+        Int64? timestamp = this.safeInteger2(trade, "time", "ts");
         if (!isEqual(timestamp, null))
         {
             timestamp = this.parseToInt(divide(timestamp, 1000000));
@@ -8507,7 +8507,7 @@ public partial class kucoin : Exchange
         string? id = this.safeString2(trade, "tradeId", "id");
         string? orderId = this.safeString(trade, "orderId");
         string? takerOrMaker = this.safeString(trade, "liquidity");
-        object timestamp = this.safeInteger(trade, "ts");
+        Int64? timestamp = this.safeInteger(trade, "ts");
         if (!isEqual(timestamp, null))
         {
             timestamp = this.parseToInt(divide(timestamp, 1000000));
@@ -8878,8 +8878,8 @@ public partial class kucoin : Exchange
                 { "currency", code },
             };
         }
-        object timestamp = this.safeInteger2(transaction, "createdAt", "createAt");
-        object updated = this.safeInteger(transaction, "updatedAt");
+        Int64? timestamp = this.safeInteger2(transaction, "createdAt", "createAt");
+        Int64? updated = this.safeInteger(transaction, "updatedAt");
         bool isV1 = !(inOp(transaction, "createdAt"));
         // if it's a v1 structure
         if (isV1)

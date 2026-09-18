@@ -1650,7 +1650,7 @@ public partial class limitless : PredictionExchange
         {
             object point = getValue(history, i);
             double? pointPrice = this.safeNumber(point, "price");
-            object pointTs = this.safeInteger(point, "timestamp");
+            Int64? pointTs = this.safeInteger(point, "timestamp");
             if (isEqual(pointTs, null))
             {
                 string? tsString = this.safeString(point, "timestamp");
