@@ -1742,7 +1742,7 @@ public partial class dydx : Exchange
         object orderRequestRes = this.createOrderRequest(symbol, type, side, amount, price, newParams);
         object orderId = getValue(orderRequestRes, 0);
         object orderRequest = getValue(orderRequestRes, 1);
-        object chainName = getValue(this.options, "chainName");
+        string? chainName = ((string)getValue(this.options, "chainName"));
         string? signedTx = this.signDydxTx(getValue(credentials, "privateKey"), orderRequest, "", chainName, account, null);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "tx", signedTx },
@@ -1861,7 +1861,7 @@ public partial class dydx : Exchange
             { "typeUrl", "/dydxprotocol.clob.MsgCancelOrder" },
             { "value", cancelPayload },
         };
-        object chainName = getValue(this.options, "chainName");
+        string? chainName = ((string)getValue(this.options, "chainName"));
         string? signedTx = this.signDydxTx(getValue(credentials, "privateKey"), signingPayload, "", chainName, account, null);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "tx", signedTx },
@@ -1938,7 +1938,7 @@ public partial class dydx : Exchange
             { "typeUrl", "/dydxprotocol.clob.MsgBatchCancel" },
             { "value", cancelPayload },
         };
-        object chainName = getValue(this.options, "chainName");
+        string? chainName = ((string)getValue(this.options, "chainName"));
         string? signedTx = this.signDydxTx(getValue(credentials, "privateKey"), signingPayload, "", chainName, account, null);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "tx", signedTx },
@@ -2246,7 +2246,7 @@ public partial class dydx : Exchange
             };
         }
         Dictionary<string, object> txFee = await this.estimateTxFee(signingPayload, "", account);
-        object chainName = getValue(this.options, "chainName");
+        string? chainName = ((string)getValue(this.options, "chainName"));
         string? signedTx = this.signDydxTx(getValue(credentials, "privateKey"), signingPayload, "", chainName, account, null, txFee);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "tx", signedTx },
@@ -2446,7 +2446,7 @@ public partial class dydx : Exchange
             { "value", payload },
         };
         Dictionary<string, object> txFee = await this.estimateTxFee(signingPayload, tag, account);
-        object chainName = getValue(this.options, "chainName");
+        string? chainName = ((string)getValue(this.options, "chainName"));
         string? signedTx = this.signDydxTx(getValue(credentials, "privateKey"), signingPayload, tag, chainName, account, null, txFee);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "tx", signedTx },

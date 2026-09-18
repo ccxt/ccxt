@@ -311,10 +311,10 @@ public partial class binance : ccxt.binance
     public virtual object getStockWsUrl(object streamType = null)
     {
         streamType ??= "market";
-        object baseUrl = getValue(getValue(getValue(this.urls, "api"), "ws"), "stock");
+        string? baseUrl = ((string)getValue(getValue(getValue(this.urls, "api"), "ws"), "stock"));
         if (isEqual(streamType, "combined"))
         {
-            return ((string)baseUrl).Replace((string)"/ws", (string)"/stream");
+            return baseUrl.Replace((string)"/ws", (string)"/stream");
         }
         return baseUrl;
     }
@@ -3272,7 +3272,7 @@ public partial class binance : ccxt.binance
     {
         marketType ??= "margin";
         parameters ??= new Dictionary<string, object>();
-        object url = getValue(getValue(getValue(getValue(this.urls, "api"), "ws"), "ws-api"), "spot");
+        string? url = ((string)getValue(getValue(getValue(getValue(this.urls, "api"), "ws"), "ws-api"), "spot"));
         IDictionary<string, object> options = this.safeDict(this.options, marketType, new Dictionary<string, object>() {});
         Int64? lastAuthenticatedTime = this.safeInteger(options, "lastAuthenticatedTime", 0);
         Int64? listenTokenRefreshRate = this.safeInteger(this.options, "listenTokenRefreshRate", 82800000); // 23 hours default
