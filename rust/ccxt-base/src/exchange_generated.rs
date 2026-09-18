@@ -500,7 +500,7 @@ pub trait ExchangeBase:
          * @returns {bool | undefined}
          */
         let mut value: Value = self.safe_value_n(dictionaryOrList.clone(), keys.clone(), &[defaultValue.clone()]);
-        if is_bool(&value) {
+        if matches!(&value, Value::Bool(_)) {
             return value;
         }
         return defaultValue;
@@ -517,11 +517,11 @@ pub trait ExchangeBase:
          * @returns {bool | undefined}
          */
         let mut value: Value = self.safe_value(dictionaryOrList.clone(), key1.clone(), &[]);
-        if is_bool(&value) {
+        if matches!(&value, Value::Bool(_)) {
             return value;
         }
         let mut value2: Value = self.safe_value(dictionaryOrList.clone(), key2.clone(), &[]);
-        if is_bool(&value2) {
+        if matches!(&value2, Value::Bool(_)) {
             return value2;
         }
         return defaultValue;
@@ -538,7 +538,7 @@ pub trait ExchangeBase:
          * @returns {bool | undefined}
          */
         let mut value: Value = self.safe_value(dictionaryOrList.clone(), key.clone(), &[defaultValue.clone()]);
-        if is_bool(&value) {
+        if matches!(&value, Value::Bool(_)) {
             return value;
         }
         return defaultValue;
@@ -619,7 +619,7 @@ pub trait ExchangeBase:
         if (value == Value::Null) {
             return defaultValue;
         }
-        if is_true(&Value::Bool(is_array(&value))) {
+        if is_true(&Value::Bool(matches!(&value, Value::Arr(_)))) {
             return value;
         }
         return defaultValue;
@@ -636,11 +636,11 @@ pub trait ExchangeBase:
          * @returns {Array | undefined}
          */
         let mut value: Value = self.safe_value(dictionaryOrList.clone(), key1.clone(), &[]);
-        if is_true(&(Value::Bool(value != Value::Null))) && is_true(&Value::Bool(is_array(&value))) {
+        if is_true(&(Value::Bool(value != Value::Null))) && is_true(&Value::Bool(matches!(&value, Value::Arr(_)))) {
             return value;
         }
         let mut value2: Value = self.safe_value(dictionaryOrList.clone(), key2.clone(), &[]);
-        if is_true(&(Value::Bool(value2 != Value::Null))) && is_true(&Value::Bool(is_array(&value2))) {
+        if is_true(&(Value::Bool(value2 != Value::Null))) && is_true(&Value::Bool(matches!(&value2, Value::Arr(_)))) {
             return value2;
         }
         return defaultValue;
@@ -660,7 +660,7 @@ pub trait ExchangeBase:
         if (value == Value::Null) {
             return defaultValue;
         }
-        if is_true(&Value::Bool(is_array(&value))) {
+        if is_true(&Value::Bool(matches!(&value, Value::Arr(_)))) {
             return value;
         }
         return defaultValue;
@@ -1066,7 +1066,7 @@ pub trait ExchangeBase:
     fn set_sandbox_mode(&mut self, mut enabled: Value) {
         if is_true(&enabled) {
             if is_true(&Value::Bool(matches!(&self.urls, Value::Dict(__d) if __d.contains_key("test")))) {
-                if is_string(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null)) {
+                if matches!(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str(_)) {
                     { let __be_tmp = crate::value::get_value_k(&self.urls, "api"); add_element_to_object(&mut self.urls, &Value::Str("apiBackup".to_string()), __be_tmp); };
                     { let __be_tmp = crate::value::get_value_k(&self.urls, "test"); add_element_to_object(&mut self.urls, &Value::Str("api".to_string()), __be_tmp); };
                 }  else {
@@ -1079,7 +1079,7 @@ pub trait ExchangeBase:
             // set flag
             self.isSandboxModeEnabled = Value::Bool(true);
         }  else if is_true(&Value::Bool(matches!(&self.urls, Value::Dict(__d) if __d.contains_key("apiBackup")))) {
-            if is_string(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null)) {
+            if matches!(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str(_)) {
                 { let __be_tmp = crate::value::get_value_k(&self.urls, "apiBackup"); add_element_to_object(&mut self.urls, &Value::Str("api".to_string()), __be_tmp); };
             }  else {
                 { let __be_tmp = self.clone_value(crate::value::get_value_k(&self.urls, "apiBackup")); add_element_to_object(&mut self.urls, &Value::Str("api".to_string()), __be_tmp); };
@@ -2985,7 +2985,7 @@ pub trait ExchangeBase:
             }
             // this.number = oldNumber; why parse trades as strings if you read the value using `safeString` ?
             let mut tradesLength: Value = Value::Int(0);
-            let mut isArray: bool = is_array(&trades);
+            let mut isArray: bool = matches!(&trades, Value::Arr(_));
             if isArray {
                 tradesLength = Value::Int(trades.len() as i64);
             }
@@ -3286,7 +3286,7 @@ pub trait ExchangeBase:
             return Value::List(vec![]);
         }
         let mut results: Value = Value::List(vec![]);
-        if is_true(&Value::Bool(is_array(&orders))) {
+        if is_true(&Value::Bool(matches!(&orders, Value::Arr(_)))) {
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_96: bool = true;
@@ -3599,7 +3599,7 @@ pub trait ExchangeBase:
             let mut key: Value = get_value(&keys, &i);
             let mut value: Value = get_value(&dict, &key);
             let mut value: Value = get_value(&dict, &key);
-            if is_string(&value) {
+            if matches!(&value, Value::Str(_)) {
                 add_element_to_object(&mut reversed, &value, key.clone());
             }
         }
@@ -4108,7 +4108,7 @@ pub trait ExchangeBase:
                 let mut splitted_by_end: Value = split(&content, &endRegex);
                 content = get_value(&splitted_by_end, &Value::Int(0)); // we need first part after start
             }
-            if (is_equal(&returnAsJson, &Value::Bool(true))) && (is_string(&content)) {
+            if (is_equal(&returnAsJson, &Value::Bool(true))) && is_true(&(matches!(&content, Value::Str(_)))) {
                 let mut jsoned: Value = self.parse_json_value(trim(&content)); // content should be trimmed before json parsing
                 if is_true(&(Value::Bool(jsoned != Value::Null))) && is_true(&(Value::Bool(jsoned != Value::Null))) {
                     return jsoned.clone();
@@ -4323,7 +4323,7 @@ pub trait ExchangeBase:
         { let __v = crate::exchange::DerivedExchange::parse_ohlcv(self, ohlcv.clone(), crate::runtime::get_arg(optional_args, 0, crate::Value::Null)); if !matches!(__v, crate::Value::Null) { return __v; } }
 
         let mut market = get_arg(optional_args, 0, Value::Null);
-        if is_true(&Value::Bool(is_array(&ohlcv))) {
+        if is_true(&Value::Bool(matches!(&ohlcv, Value::Arr(_)))) {
             return Value::List(vec![self.safe_integer(ohlcv.clone(), Value::Int(0), &[]), self.safe_number(ohlcv.clone(), Value::Int(1), &[]), self.safe_number(ohlcv.clone(), Value::Int(2), &[]), self.safe_number(ohlcv.clone(), Value::Int(3), &[]), self.safe_number(ohlcv.clone(), Value::Int(4), &[]), self.safe_number(ohlcv.clone(), Value::Int(5), &[])]);
         }
         return ohlcv;
@@ -4697,7 +4697,7 @@ pub trait ExchangeBase:
             symbolsLength = Value::Int(symbols.len() as i64);
         }
         let mut noSymbols: bool = is_true(&(Value::Bool(symbols == Value::Null))) || is_true(&(Value::Bool(symbolsLength.as_f64() == Some(0.0))));
-        if is_true(&Value::Bool(is_array(&response))) {
+        if is_true(&Value::Bool(matches!(&response, Value::Arr(_)))) {
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_116: bool = true;
@@ -4997,7 +4997,7 @@ pub trait ExchangeBase:
             let mut __for_first_126: bool = true;
             while { if !__for_first_126 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_126 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(arrayData.len() as i64).as_f64().unwrap_or(f64::NAN) } {
             let mut itemOrItems: Value = <Self as crate::exchange_generated::ExchangeBase>::parse_ledger_entry(self, get_value(&arrayData, &i), &[currency.clone()]);
-            if is_true(&Value::Bool(is_array(&itemOrItems))) {
+            if is_true(&Value::Bool(matches!(&itemOrItems, Value::Arr(_)))) {
                 {
                                         let mut j: Value = Value::Int(0);
                     let mut __for_first_125: bool = true;
@@ -5169,7 +5169,7 @@ pub trait ExchangeBase:
 
     fn get_list_from_object_values(&self, mut objects: Value, mut key: Value) -> Value {
         let mut newArray: Value = objects.clone();
-        if !is_true(&Value::Bool(is_array(&objects))) {
+        if !is_true(&Value::Bool(matches!(&objects, Value::Arr(_)))) {
             newArray = self.to_array(objects.clone());
         }
         let mut results: Value = Value::List(vec![]);
@@ -6014,7 +6014,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         }
         let mut methodOptions: Value = self.safe_dict(self.options.clone(), methodName.clone(), &[]);
         if (methodOptions != Value::Null) {
-            if is_string(&methodOptions) {
+            if matches!(&methodOptions, Value::Str(_)) {
                 return Value::List(vec![methodOptions.clone(), params.clone()]);
             }  else {
                 let mut typeFromMethod: Value = self.safe_string2(methodOptions.clone(), Value::Str("defaultType".to_string()), Value::Str("type".to_string()), &[]);
@@ -6761,7 +6761,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         if (numCurrencies.as_f64() == Some(0.0)) {
             panic!("{}", crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" currencies not loaded".to_string())))));
         }
-        if is_string(&code) {
+        if matches!(&code, Value::Str(_)) {
             let mut currencies: Value = self.currencies.clone();
             let mut currenciesById: Value = self.currencies_by_id.clone();
             if is_true(&Value::Bool(in_op(&currencies, &code))) {
@@ -6941,7 +6941,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
 }
 
     fn force_string(&self, mut value: Value) -> Value {
-        if !is_string(&value) {
+        if !matches!(&value, Value::Str(_)) {
             return self.number_to_string(value.clone());
         }
         return value;
@@ -7179,7 +7179,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         //     ]
         //
         let mut results: Value = Value::List(vec![]);
-        if is_true(&Value::Bool(is_array(&pricesData))) {
+        if is_true(&Value::Bool(matches!(&pricesData, Value::Arr(_)))) {
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_141: bool = true;
@@ -7237,7 +7237,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         //     ]
         //
         let mut results: Value = Value::List(vec![]);
-        if is_true(&Value::Bool(is_array(&tickers))) {
+        if is_true(&Value::Bool(matches!(&tickers, Value::Arr(_)))) {
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_143: bool = true;
@@ -7979,7 +7979,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut isArray: bool = is_array(&response);
+        let mut isArray: bool = matches!(&response, Value::Arr(_));
         let mut responseKeys: Value = response.clone();
         if !isArray {
             responseKeys = object_keys(&response);
@@ -8364,7 +8364,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 }
              #[allow(unreachable_code)] { Value::Null }})).await;
 match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { return __try_ok; } return Value::Null; } Err(_try_err) => { let e: Value = panic_to_value(_try_err); 
-                if is_instance(&e, &Value::Str("RateLimitExceeded".to_string())) {
+                if matches!(&e, Value::Str(__s) if __s.contains("[RateLimitExceeded]")) {
                     panic!("{}", e);
                 }
                 errors = (match (&(errors), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
@@ -8493,7 +8493,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 }  else if (method.as_str() == Some("getLeverageTiersPaginated")) || (method.as_str() == Some("fetchPositions")) {
                     response = self.call_dynamic_checked(method.clone(), vec![(symbol).clone(), (params).clone()]).await;
                 }  else if (method.as_str() == Some("fetchOpenInterestHistory")) {
-                    if !is_string(&symbol) {
+                    if !matches!(&symbol, Value::Str(_)) {
                         panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchPaginatedCallCursor() requires a symbol argument".to_string())))));
                     }
                     if (timeframe == Value::Null) {
@@ -8796,7 +8796,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         // the value of greeks is either a dict or a list
         //
         let mut results: Value = Value::List(vec![]);
-        if is_true(&Value::Bool(is_array(&greeks))) {
+        if is_true(&Value::Bool(matches!(&greeks, Value::Arr(_)))) {
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_165: bool = true;

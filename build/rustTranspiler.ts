@@ -3766,6 +3766,49 @@ class RustTranspilerBuilder {
     }
 
     /**
+     * `is_instance(&e, &Value::Str("BadSymbol".to_string()))` -> native
+     * `matches!(&e, Value::Str(__s) if __s.contains("[BadSymbol]"))` when the
+     * tested class has no subclass in `errorHierarchy` — the table
+     * `runtime::error_parent` mirrors. The helper tests
+     * `msg.contains("[cls]")` first and then walks the hierarchy of the
+     * message's leading `[Kind]`; with no subclass that walk can never add a
+     * match, so the containment test alone is the whole helper. Classes that
+     * do have subclasses (AuthenticationError, OperationFailed, NetworkError)
+     * keep the helper — the walk is its added semantics.
+     * Runs last, so the bool-position boxing has already seen the call.
+     */
+    rewriteNativeErrorClassChecks(content: string): string {
+        return content.replace(
+            /\bis_instance\(&([A-Za-z_][A-Za-z0-9_]*), &Value::Str\("([A-Za-z0-9_]+)"\.to_string\(\)\)\)/g,
+            (whole: string, value: string, className: string) => {
+                if (this.errorClassHasSubclass(className)) {
+                    return whole;
+                }
+                return `matches!(&${value}, Value::Str(__s) if __s.contains("[${className}]"))`;
+            });
+    }
+
+    /** Classes that `errorHierarchy` gives at least one subclass. */
+    private errorClassesWithSubclasses: Set<string> | undefined;
+
+    errorClassHasSubclass(className: string): boolean {
+        if (this.errorClassesWithSubclasses === undefined) {
+            const withSubclasses = new Set<string>();
+            const walk = (node: any): void => {
+                for (const name of Object.keys(node)) {
+                    if (Object.keys(node[name]).length > 0) {
+                        withSubclasses.add(name);
+                    }
+                    walk(node[name]);
+                }
+            };
+            walk(errorHierarchy);
+            this.errorClassesWithSubclasses = withSubclasses;
+        }
+        return this.errorClassesWithSubclasses.has(className);
+    }
+
+    /**
      * Narrow `let mut X: Value = Value::Bool(<expr>);` locals to a native
      * `let mut X: bool = <expr>;` when every use of `X` in the enclosing
      * `fn` body accepts a `bool`.
@@ -6897,6 +6940,8 @@ impl std::ops::DerefMut for ${coreName} {
                 rustContent = this.narrowBoolLocals(rustContent);
                 // Then drop the `is_true(&x)` those locals no longer need.
                 rustContent = this.dropRedundantIsTrue(rustContent);
+                // And `instanceof <errorClass>` whose class has no subclass.
+                rustContent = this.rewriteNativeErrorClassChecks(rustContent);
             } catch (e: any) {
                 const detail = (e && (e.stack || e.message)) ? (e.stack || e.message) : String(e);
                 throw new Error(
@@ -7589,6 +7634,7 @@ impl std::ops::DerefMut for ${coreName} {
         finalFile = this.rewriteJavaReqAliases(finalFile);
         finalFile = this.narrowBoolLocals(finalFile);
         finalFile = this.dropRedundantIsTrue(finalFile);
+        finalFile = this.rewriteNativeErrorClassChecks(finalFile);
 
         // Since the prediction merge, `Exchange.ts` declares TWO classes:
         //   `export class BaseExchange { ... }`  (holds the transpile marker)
@@ -8883,6 +8929,7 @@ impl std::ops::DerefMut for ${coreName} {
         content = this.stripAssertSecondArg(content);
         content = this.wrapAssertInIsTrue(content);
         content = this.dropRedundantIsTrue(content);
+        content = this.rewriteNativeErrorClassChecks(content);
         return content;
     }
 
@@ -9434,6 +9481,7 @@ impl std::ops::DerefMut for ${coreName} {
                 'get_value_mut(&mut $1,');
 
             content = this.dropRedundantIsTrue(content);
+            content = this.rewriteNativeErrorClassChecks(content);
 
             const file = [
                 ...this.createGeneratedHeader(),
