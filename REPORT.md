@@ -82,8 +82,11 @@ Determinism: the full local regen (REST + prediction + base, then `--ws`) run tw
   `<idx>` by the receiver's `Count`, clean body). `residual_qualifying=0` means no read that satisfies
   the re-derived shape was left unconverted.
 * ast gates: `npx tsc -p tsconfig.json --noEmit` clean, `npx jest tests/csharpTranspiler.test.ts`
-  137/137 (19 of them the new U59 block), `npm run lint` 0 errors. The 6 positive U59 tests fail on
-  the base printer (`git show 404e9daa:src/csharpTranspiler.ts`) and pass on this one.
+  137/137 (21 of them the new U59 block), `npm run lint` 0 errors. With the base printer restored
+  (`git checkout 404e9daa -- src/csharpTranspiler.ts`) the U59 block is **7 failed / 14 passed** —
+  the 7 positive tests need the new rule, the 14 negatives (untyped receiver, non-`<` condition,
+  header read, mutated receiver, callee argument, index write, closure, unbounded loop, …) pass on
+  both printers.
 * Farm: **job 870, `HEAD 37ec38ea40ee job=870 exit=0 branch_update=fast_forward
   generator=040b8173b3a2d2ba21e730ae2f93dd7d1fa24069`** for sha `14e82a05d55` (the code commit,
   branch `cs90-U59`). The farm's own forced regen also produced the `cs/tests/Generated/**` tier
