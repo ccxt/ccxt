@@ -1498,7 +1498,7 @@ func (this *Zebpay) OrderRequest(symbol any, typeVar any, amount any, request an
 	AddElementToObject(request, "type", upperCaseType)
 	AddElementToObject(request, "clientOrderId", clientOrderId)
 	AddElementToObject(request, "timeInForce", timeInForce)
-	if IsEqual(upperCaseType, "MARKET") {
+	if upperCaseType == "MARKET" {
 		if quoteOrderQty == nil {
 			panic(ExchangeError(this.Id + " spot market orders require cost in params"))
 		}

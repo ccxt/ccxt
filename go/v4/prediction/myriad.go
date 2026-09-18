@@ -2730,7 +2730,7 @@ func (this *Myriad) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 func (this *Myriad) HexToDecimalString(hexValue any) any {
 	// portable hex -> decimal string (avoids convertToBigInt, which is not uniform across languages)
 	var stripped string = this.Remove0xPrefix(hexValue)
-	if (ccxt.IsEqual(stripped, nil)) || (ccxt.IsEqual(stripped, "")) {
+	if (ccxt.IsEqual(stripped, nil)) || (stripped == "") {
 		return nil
 	}
 	var chars []string = this.StringToCharsArray(ccxt.ToLower(stripped))
