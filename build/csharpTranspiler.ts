@@ -1077,6 +1077,9 @@ const VENUE_STRING_ARGS: Record<string, Record<string, number[]>> = {
 // of them for `Int64?`: `Int64? x = 1000` converts the literal, so the box becomes an Int64 where
 // the `object` spelling boxes an Int32. Everything else keeps `object` -- notably `add (...)`,
 // whose add(string, string) overload would win and differs from add(object, object).
+// cs90 U23 census: the `limit` core-arg copies (`object limitVar = limit;`, 305 sites) keep
+// `object` -- each is reassigned an `object` producer (204 callDynamically(getLimit): CS0266 and an
+// Int32 box on the ArrayCache min path; 76 int literals; 9 mathMin; 10 ternaries; 6 others).
 const CORE_ARG_SHADOW_TYPES = [ 'string', 'Int64?', 'double?', 'bool?' ];
 
 // `castCoreArgCallSites` wraps an argument whenever its printed form does not already look like a
