@@ -685,7 +685,7 @@ func (this *Zebpay) fetchTradingFeeBody(ch chan any, symbol any, optionalArgs ..
 	var request map[string]any = map[string]any{
 		"symbol": GetValue(market, "id"),
 	}
-	if IsEqual(GetValue(market, "spot"), true) {
+	if GetValue(market, "spot") == true {
 
 		response = (<-this.PrivateSpotGetV2ExTradefee(this.Extend(request, params)))
 		PanicOnError(response)
@@ -822,7 +822,7 @@ func (this *Zebpay) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...
 		"symbol": GetValue(market, "id"),
 	}
 	var response any = nil
-	if IsEqual(GetValue(market, "spot"), true) {
+	if GetValue(market, "spot") == true {
 		if !IsEqual(limit, nil) {
 			request["limit"] = limit
 		}
@@ -884,7 +884,7 @@ func (this *Zebpay) fetchTickerBody(ch chan any, symbol any, optionalArgs ...any
 		"symbol": GetValue(market, "id"),
 	}
 	var response any = nil
-	if IsEqual(GetValue(market, "spot"), true) {
+	if GetValue(market, "spot") == true {
 
 		response = (<-this.PublicSpotGetV2MarketTicker(this.Extend(request, params)))
 		PanicOnError(response)
@@ -1002,16 +1002,16 @@ func (this *Zebpay) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 	var request map[string]any = map[string]any{
 		"symbol": GetValue(market, "id"),
 	}
-	if IsEqual(GetValue(market, "spot"), true) {
+	if GetValue(market, "spot") == true {
 		request["interval"] = this.SafeString(this.Timeframes, timeframe, timeframe)
 	} else {
 		request["interval"] = timeframe
 	}
-	if (IsEqual(GetValue(market, "contract"), true)) && (!IsEqual(limit, nil)) {
+	if (GetValue(market, "contract") == true) && (!IsEqual(limit, nil)) {
 		request["limit"] = limit
 	}
 	if !IsEqual(since, nil) {
-		if IsEqual(GetValue(market, "spot"), true) {
+		if GetValue(market, "spot") == true {
 			request["startTime"] = since
 		} else {
 			request["since"] = since
@@ -1023,7 +1023,7 @@ func (this *Zebpay) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 		params = this.Omit(params, []any{"endtime", "until"})
 	}
 	var response any = nil
-	if IsEqual(GetValue(market, "spot"), true) {
+	if GetValue(market, "spot") == true {
 		if (until == nil) || IsEqual(since, nil) {
 			panic(ArgumentsRequired(this.Id + " fetchOHLCV() requires a both a since and until/endtime parameter for spot markets"))
 		}
@@ -1107,11 +1107,11 @@ func (this *Zebpay) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any
 	var request map[string]any = map[string]any{
 		"symbol": GetValue(market, "id"),
 	}
-	if (IsEqual(GetValue(market, "spot"), true)) && !IsEqual(limit, nil) {
+	if (GetValue(market, "spot") == true) && !IsEqual(limit, nil) {
 		request["limit"] = limit
 	}
 	var response any = nil
-	if IsEqual(GetValue(market, "spot"), true) {
+	if GetValue(market, "spot") == true {
 
 		response = (<-this.PublicSpotGetV2MarketTrades(this.Extend(request, params)))
 		PanicOnError(response)
@@ -1434,7 +1434,7 @@ func (this *Zebpay) createOrderBody(ch chan any, symbol any, typeVar any, side a
 		"side":   ToUpper(side),
 	}
 	var response any = nil
-	if IsEqual(GetValue(market, "spot"), true) {
+	if GetValue(market, "spot") == true {
 		requestparamsVariable := this.OrderRequest(symbol, typeVar, amount, request, price, params)
 		request = GetValue(requestparamsVariable, 0)
 		params = GetValue(requestparamsVariable, 1)
@@ -1545,7 +1545,7 @@ func (this *Zebpay) cancelOrderBody(ch chan any, id any, optionalArgs ...any) an
 	var market any = this.Market(symbol)
 	var response any = nil
 	var request map[string]any = map[string]any{}
-	if IsEqual(GetValue(market, "spot"), true) {
+	if GetValue(market, "spot") == true {
 		request["orderId"] = id
 
 		response = (<-this.PrivateSpotDeleteV2ExOrder(this.Extend(request, params)))
@@ -1665,7 +1665,7 @@ func (this *Zebpay) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	}
 	var response any = nil
 	var orders any = []any{}
-	if IsEqual(GetValue(market, "spot"), true) {
+	if GetValue(market, "spot") == true {
 		request["currentPage"] = 1
 		if !IsEqual(limit, nil) {
 			request["pageSize"] = limit
@@ -1751,7 +1751,7 @@ func (this *Zebpay) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any
 	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{}
 	var response any = nil
-	if IsEqual(GetValue(market, "spot"), true) {
+	if GetValue(market, "spot") == true {
 		request["orderId"] = id
 
 		response = (<-this.PrivateSpotGetV2ExOrder(this.Extend(request, params)))

@@ -3781,7 +3781,7 @@ func (this *Coinbase) createMarketBuyOrderWithCostBody(ch chan any, symbol any, 
 		PanicOnError(retRes305012)
 	}
 	var market any = this.Market(symbol)
-	if !IsEqual(GetValue(market, "spot"), true) {
+	if GetValue(market, "spot") != true {
 		panic(NotSupported(this.Id + " createMarketBuyOrderWithCost() supports spot orders only"))
 	}
 	AddElementToObject(params, "createMarketBuyOrderRequiresPrice", false)
@@ -3975,7 +3975,7 @@ func (this *Coinbase) createOrderBody(ch chan any, symbol any, typeVar any, side
 		if isStop || isStopLoss || isTakeProfit {
 			panic(NotSupported(this.Id + " createOrder() only stop limit orders are supported"))
 		}
-		if (IsEqual(GetValue(market, "spot"), true)) && (IsEqual(side, "buy")) {
+		if (GetValue(market, "spot") == true) && (IsEqual(side, "buy")) {
 			var total any = nil
 			var createMarketBuyOrderRequiresPrice any = true
 			var createMarketBuyOrderRequiresPriceparamsVariable []any = this.HandleOptionAndParams(params, "createOrder", "createMarketBuyOrderRequiresPrice", true)
@@ -6303,7 +6303,7 @@ func (this *Coinbase) fetchPositionBody(ch chan any, symbol any, optionalArgs ..
 	}
 	var market any = this.Market(symbol)
 	var response any = nil
-	if IsEqual(GetValue(market, "future"), true) {
+	if GetValue(market, "future") == true {
 		var productId *string = this.SafeString(market, "product_id")
 		if productId == nil {
 			panic(ArgumentsRequired(this.Id + " fetchPosition() requires a \"product_id\" in params"))
@@ -6555,7 +6555,7 @@ func (this *Coinbase) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any
 	for i := 0; i < GetArrayLength(this.Symbols); i++ {
 		var symbol any = GetValue(this.Symbols, i)
 		var market any = this.Market(symbol)
-		if (isSpot && (IsEqual(GetValue(market, "spot"), true))) || (!isSpot && (!IsEqual(GetValue(market, "spot"), true))) {
+		if (isSpot && (GetValue(market, "spot") == true)) || (!isSpot && (GetValue(market, "spot") != true)) {
 			AddElementToObject(result, symbol, map[string]any{
 				"info":       response,
 				"symbol":     symbol,

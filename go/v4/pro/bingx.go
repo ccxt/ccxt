@@ -375,7 +375,7 @@ func (this *Bingx) ParseWsTicker(message any, optionalArgs ...any) any {
 	// the Coin-M endpoint does not silently fall back to the contract count
 	var inverse any = func() any {
 		if isInverse == nil {
-			return (ccxt.IsEqual(ccxt.GetValue(market, "inverse"), true))
+			return (ccxt.GetValue(market, "inverse") == true)
 		}
 		return isInverse
 	}()
@@ -729,7 +729,7 @@ func (this *Bingx) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...a
 		request["reqType"] = "sub"
 	}
 	var subscriptionArgs map[string]any = map[string]any{}
-	if ccxt.IsEqual(ccxt.GetValue(market, "inverse"), true) {
+	if ccxt.GetValue(market, "inverse") == true {
 		subscriptionArgs = map[string]any{
 			"id":          uuid,
 			"unsubscribe": false,
@@ -893,7 +893,7 @@ func (this *Bingx) HandleOrderBook(client any, message any) {
 	var snapshot any = nil
 	var timestamp *int64 = this.SafeInteger2(message, "timestamp", "ts")
 	timestamp = this.SafeInteger2(data, "timestamp", "ts", timestamp)
-	if ccxt.IsEqual(ccxt.GetValue(market, "inverse"), true) {
+	if ccxt.GetValue(market, "inverse") == true {
 		snapshot = this.ParseOrderBook(data, symbol, timestamp, "bids", "asks", "p", "a")
 	} else {
 		snapshot = this.ParseOrderBook(data, symbol, timestamp, "bids", "asks", 0, 1)
@@ -1023,7 +1023,7 @@ func (this *Bingx) HandleOHLCV(client any, message any) {
 	var market any = this.SafeMarket(marketId, nil, nil, marketType)
 	var candles any = nil
 	if isSwap {
-		if ccxt.IsEqual(ccxt.GetValue(market, "inverse"), true) {
+		if ccxt.GetValue(market, "inverse") == true {
 			candles = []any{this.SafeDict(message, "data", map[string]any{})}
 		} else {
 			candles = this.SafeList(message, "data", []any{})

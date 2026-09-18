@@ -1589,7 +1589,7 @@ func (this *Aster) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) 
 		PanicOnError(response)
 	} else {
 		AddElementToObject(request, "symbol", GetValue(market, "id"))
-		if IsEqual(GetValue(market, "linear"), true) {
+		if GetValue(market, "linear") == true {
 
 			response = (<-this.FapiPublicGetV3Klines(this.Extend(request, params)))
 			PanicOnError(response)
@@ -1772,7 +1772,7 @@ func (this *Aster) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any)
 	}
 	// use historical endpoint for targeted requests
 	if InOp(request, "startTime") {
-		if IsEqual(GetValue(market, "swap"), true) {
+		if GetValue(market, "swap") == true {
 
 			response = (<-this.FapiPublicGetV3AggTrades(this.Extend(request, params)))
 			PanicOnError(response)
@@ -1782,7 +1782,7 @@ func (this *Aster) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any)
 			PanicOnError(response)
 		}
 	} else {
-		if IsEqual(GetValue(market, "swap"), true) {
+		if GetValue(market, "swap") == true {
 
 			response = (<-this.FapiPublicGetV3Trades(this.Extend(request, params)))
 			PanicOnError(response)
@@ -1922,7 +1922,7 @@ func (this *Aster) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...a
 	if !IsEqual(limit, nil) {
 		request["limit"] = this.FindNearestCeiling([]any{5, 10, 20, 50, 100, 500, 1000}, limit)
 	}
-	if IsEqual(GetValue(market, "swap"), true) {
+	if GetValue(market, "swap") == true {
 
 		response = (<-this.FapiPublicGetV3Depth(this.Extend(request, params)))
 		PanicOnError(response)
@@ -2085,7 +2085,7 @@ func (this *Aster) fetchTickerBody(ch chan any, symbol any, optionalArgs ...any)
 		"symbol": GetValue(market, "id"),
 	}
 	var response any = nil
-	if IsEqual(GetValue(market, "swap"), true) {
+	if GetValue(market, "swap") == true {
 
 		response = (<-this.FapiPublicGetV3Ticker24hr(this.Extend(request, params)))
 		PanicOnError(response)
@@ -2891,7 +2891,7 @@ func (this *Aster) fetchTradingFeeBody(ch chan any, symbol any, optionalArgs ...
 		"symbol": GetValue(market, "id"),
 	}
 	var response any = nil
-	if IsEqual(GetValue(market, "swap"), true) {
+	if GetValue(market, "swap") == true {
 
 		response = (<-this.FapiPrivateGetV3CommissionRate(this.Extend(request, params)))
 		PanicOnError(response)
@@ -3076,7 +3076,7 @@ func (this *Aster) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any 
 		request["orderId"] = id
 	}
 	var response any = nil
-	if IsEqual(GetValue(market, "swap"), true) {
+	if GetValue(market, "swap") == true {
 
 		response = (<-this.FapiPrivateGetV3Order(this.Extend(request, params)))
 		PanicOnError(response)
@@ -3160,7 +3160,7 @@ func (this *Aster) fetchOpenOrderBody(ch chan any, id any, optionalArgs ...any) 
 		request["orderId"] = id
 	}
 	var response any = nil
-	if IsEqual(GetValue(market, "spot"), true) {
+	if GetValue(market, "spot") == true {
 
 		response = (<-this.SapiPrivateGetV3OpenOrder(this.Extend(request, params)))
 		PanicOnError(response)
@@ -3252,7 +3252,7 @@ func (this *Aster) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	request = GetValue(requestparamsVariable, 0)
 	params = GetValue(requestparamsVariable, 1)
 	var response any = nil
-	if IsEqual(GetValue(market, "swap"), true) {
+	if GetValue(market, "swap") == true {
 
 		response = (<-this.FapiPrivateGetV3AllOrders(this.Extend(request, params)))
 		PanicOnError(response)
@@ -3437,7 +3437,7 @@ func (this *Aster) createOrderBody(ch chan any, symbol any, typeVar any, side an
 	var market any = this.Market(symbol)
 	var request any = this.CreateOrderRequest(symbol, typeVar, side, amount, price, params)
 	var response any = nil
-	if IsEqual(GetValue(market, "swap"), true) {
+	if GetValue(market, "swap") == true {
 
 		response = (<-this.FapiPrivatePostV3Order(request))
 		PanicOnError(response)
@@ -3523,7 +3523,7 @@ func (this *Aster) createOrdersBody(ch chan any, orders any, optionalArgs ...any
 	}
 	orderSymbols = this.MarketSymbols(orderSymbols, nil, false, true, true)
 	var market any = this.Market(GetValue(orderSymbols, 0))
-	if IsEqual(GetValue(market, "spot"), true) {
+	if GetValue(market, "spot") == true {
 		panic(NotSupported(Add(Add(this.Id+" createOrders() does not support ", GetValue(market, "type")), " orders")))
 	}
 	var request map[string]any = map[string]any{
@@ -3614,7 +3614,7 @@ func (this *Aster) CreateOrderRequest(symbol any, typeVar any, side any, amount 
 	var uppercaseType string = initialUppercaseType
 	var stopPrice any = nil
 	if isTrailingPercentOrder {
-		if IsEqual(GetValue(market, "swap"), true) {
+		if GetValue(market, "swap") == true {
 			uppercaseType = "TRAILING_STOP_MARKET"
 			request["callbackRate"] = trailingPercent
 			if trailingTriggerPrice != nil {
@@ -3652,7 +3652,7 @@ func (this *Aster) CreateOrderRequest(symbol any, typeVar any, side any, amount 
 	var quantityIsRequired bool = false
 	request["type"] = uppercaseType
 	if uppercaseType == "MARKET" {
-		if IsEqual(GetValue(market, "spot"), true) {
+		if GetValue(market, "spot") == true {
 			var quoteOrderQty any = this.HandleOption("createOrder", "quoteOrderQty", true)
 			if quoteOrderQty == true {
 				var quoteOrderQtyNew *string = this.SafeString2(params, "quoteOrderQty", "cost")
@@ -3729,7 +3729,7 @@ func (this *Aster) CreateOrderRequest(symbol any, typeVar any, side any, amount 
 		request["timeInForce"] = tif
 	}
 	var requestParams any = this.Omit(params, []any{"newClientOrderId", "clientOrderId", "stopPrice", "triggerPrice", "trailingTriggerPrice", "trailingPercent", "trailingDelta", "stopPrice", "stopLossPrice", "takeProfitPrice"})
-	if (IsEqual(this.SafeBool(this.Options, "builderFee"), true)) && (IsEqual(GetValue(market, "swap"), true)) {
+	if (IsEqual(this.SafeBool(this.Options, "builderFee"), true)) && (GetValue(market, "swap") == true) {
 		request["builder"] = this.SafeString(this.Options, "builder")
 		request["feeRate"] = this.SafeString(this.Options, "builderRate")
 	}
@@ -3769,7 +3769,7 @@ func (this *Aster) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 		"symbol": GetValue(market, "id"),
 	}
 	var response any = nil
-	if IsEqual(GetValue(market, "swap"), true) {
+	if GetValue(market, "swap") == true {
 
 		response = (<-this.FapiPrivateDeleteV3AllOpenOrders(this.Extend(request, params)))
 		PanicOnError(response)
@@ -3834,7 +3834,7 @@ func (this *Aster) cancelOrderBody(ch chan any, id any, optionalArgs ...any) any
 	}
 	params = this.Omit(params, []any{"origClientOrderId", "clientOrderId"})
 	var response any = nil
-	if IsEqual(GetValue(market, "swap"), true) {
+	if GetValue(market, "swap") == true {
 
 		response = (<-this.FapiPrivateDeleteV3Order(this.Extend(request, params)))
 		PanicOnError(response)
@@ -3892,7 +3892,7 @@ func (this *Aster) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any) a
 		request["orderIdList"] = ids
 	}
 	var response any = nil
-	if IsEqual(GetValue(market, "swap"), true) {
+	if GetValue(market, "swap") == true {
 
 		response = (<-this.FapiPrivateDeleteV3BatchOrders(this.Extend(request, params)))
 		PanicOnError(response)
@@ -4901,7 +4901,7 @@ func (this *Aster) ParseAccountPositions(account any, optionalArgs ...any) any {
 		var marketId *string = this.SafeString(position, "symbol")
 		var market any = this.SafeMarket(marketId, nil, nil, "contract")
 		var code any = func() any {
-			if IsEqual(GetValue(market, "linear"), true) {
+			if GetValue(market, "linear") == true {
 				return GetValue(market, "quote")
 			}
 			return GetValue(market, "base")

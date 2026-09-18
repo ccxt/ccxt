@@ -3762,7 +3762,7 @@ func (this *Okx) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any) a
 		"instId": GetValue(market, "id"),
 	}
 	var response any = nil
-	if IsEqual(GetValue(market, "option"), true) {
+	if GetValue(market, "option") == true {
 
 		response = (<-this.PublicGetPublicOptionTrades(this.Extend(request, params)))
 		PanicOnError(response)
@@ -4227,9 +4227,9 @@ func (this *Okx) fetchTradingFeeBody(ch chan any, symbol any, optionalArgs ...an
 	var request map[string]any = map[string]any{
 		"instType": this.ConvertToInstrumentType(GetValue(market, "type")),
 	}
-	if IsEqual(GetValue(market, "spot"), true) {
+	if GetValue(market, "spot") == true {
 		request["instId"] = GetValue(market, "id")
-	} else if (IsEqual(GetValue(market, "swap"), true)) || (IsEqual(GetValue(market, "future"), true)) || (IsEqual(GetValue(market, "option"), true)) {
+	} else if (GetValue(market, "swap") == true) || (GetValue(market, "future") == true) || (GetValue(market, "option") == true) {
 		request["uly"] = Add(Add(GetValue(market, "baseId"), "-"), GetValue(market, "quoteId"))
 	} else {
 		panic(NotSupported(this.Id + " fetchTradingFee() supports spot, swap, future or option markets only"))
@@ -4434,7 +4434,7 @@ func (this *Okx) createMarketBuyOrderWithCostBody(ch chan any, symbol any, cost 
 		PanicOnError(retRes315612)
 	}
 	var market any = this.Market(symbol)
-	if !IsEqual(GetValue(market, "spot"), true) {
+	if GetValue(market, "spot") != true {
 		panic(NotSupported(this.Id + " createMarketBuyOrderWithCost() supports spot markets only"))
 	}
 	var req map[string]any = map[string]any{
@@ -4474,7 +4474,7 @@ func (this *Okx) createMarketSellOrderWithCostBody(ch chan any, symbol any, cost
 		PanicOnError(retRes318112)
 	}
 	var market any = this.Market(symbol)
-	if !IsEqual(GetValue(market, "spot"), true) {
+	if GetValue(market, "spot") != true {
 		panic(NotSupported(this.Id + " createMarketSellOrderWithCost() supports spot markets only"))
 	}
 	var req map[string]any = map[string]any{
@@ -4562,7 +4562,7 @@ func (this *Okx) CreateOrderRequest(symbol any, typeVar any, side any, amount an
 		}()
 		AddElementToObject(request, "tdMode", tradeMode)
 	} else if contract == true {
-		if (IsEqual(GetValue(market, "swap"), true)) || (IsEqual(GetValue(market, "future"), true)) {
+		if (GetValue(market, "swap") == true) || (GetValue(market, "future") == true) {
 			var positionSide any = nil
 			var positionSideparamsVariable []any = this.HandleOptionAndParams(params, "createOrder", "positionSide")
 			positionSide = GetValue(positionSideparamsVariable, 0)
@@ -8212,7 +8212,7 @@ func (this *Okx) ParsePosition(position any, optionalArgs ...any) any {
 	var side any = DerefScalar(this.SafeString2(position, "posSide", "direction"))
 	var hedged bool = !IsEqual(side, "net")
 	var contracts any = this.ParseNumber(contractsAbs)
-	if IsEqual(GetValue(market, "margin"), true) {
+	if GetValue(market, "margin") == true {
 		// margin position
 		if IsEqual(side, "net") {
 			var posCcy *string = this.SafeString(position, "posCcy")
@@ -8246,7 +8246,7 @@ func (this *Okx) ParsePosition(position any, optionalArgs ...any) any {
 	var contractSizeString *string = this.NumberToString(contractSize)
 	var markPriceString *string = this.SafeString(position, "markPx")
 	var notionalString *string = this.SafeString(position, "notionalUsd")
-	if IsEqual(GetValue(market, "inverse"), true) {
+	if GetValue(market, "inverse") == true {
 		notionalString = Precise.StringDiv(Precise.StringMul(contractsAbs, contractSizeString), markPriceString)
 	}
 	var notional any = this.ParseNumber(notionalString)
@@ -8270,7 +8270,7 @@ func (this *Okx) ParsePosition(position any, optionalArgs ...any) any {
 	if initialMarginPercentage == nil {
 		initialMarginPercentage = this.ParseNumber(Precise.StringDiv(initialMarginString, notionalString, 4))
 	} else if IsEqual(initialMarginString, nil) {
-		if IsEqual(GetValue(market, "linear"), true) {
+		if GetValue(market, "linear") == true {
 			var initialMarginPercentageString *string = this.NumberToString(initialMarginPercentage)
 			initialMarginString = Precise.StringMul(initialMarginPercentageString, notionalString)
 		} else {
@@ -8835,7 +8835,7 @@ func (this *Okx) fetchFundingRateBody(ch chan any, symbol any, optionalArgs ...a
 	var marketInfo any = this.SafeDict(market, "info", map[string]any{})
 	var ruleType *string = this.SafeString(marketInfo, "ruleType")
 	var isExtendedPerpetual bool = (ruleType != nil && *ruleType == "xperp") // long-dated futures that still pay funding, e.g. ETH-USD_UM_XPERP-310404
-	if (!IsEqual(GetValue(market, "swap"), true)) && !isExtendedPerpetual {
+	if (GetValue(market, "swap") != true) && !isExtendedPerpetual {
 		panic(ExchangeError(this.Id + " fetchFundingRate() is only valid for swap markets or XPERP futures"))
 	}
 	var request map[string]any = map[string]any{
@@ -8900,7 +8900,7 @@ func (this *Okx) fetchFundingRatesBody(ch chan any, optionalArgs ...any) any {
 			var marketInfo any = this.SafeDict(market, "info", map[string]any{})
 			var ruleType *string = this.SafeString(marketInfo, "ruleType")
 			var isExtendedPerpetual bool = (ruleType != nil && *ruleType == "xperp") // long-dated futures that still pay funding, e.g. ETH-USD_UM_XPERP-310404
-			if (!IsEqual(GetValue(market, "swap"), true)) && !isExtendedPerpetual {
+			if (GetValue(market, "swap") != true) && !isExtendedPerpetual {
 				panic(BadRequest(Add(Add(this.Id+" fetchFundingRates() symbols must be swap markets or XPERP futures, ", GetValue(symbols, i)), " is not")))
 			}
 		}
@@ -8975,8 +8975,8 @@ func (this *Okx) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) any {
 	if symbol != nil {
 		market = this.Market(symbol)
 		symbol = GetValue(market, "symbol")
-		if IsEqual(GetValue(market, "contract"), true) {
-			if IsEqual(GetValue(market, "linear"), true) {
+		if GetValue(market, "contract") == true {
+			if GetValue(market, "linear") == true {
 				request["ctType"] = "linear"
 				request["ccy"] = GetValue(market, "quoteId")
 			} else {
@@ -9711,7 +9711,7 @@ func (this *Okx) ParseMarginModification(data any, optionalArgs ...any) any {
 	var marketId *string = this.SafeString(data, "instId")
 	var responseMarket any = this.SafeMarket(marketId, market)
 	var code any = func() any {
-		if IsEqual(GetValue(responseMarket, "inverse"), true) {
+		if GetValue(responseMarket, "inverse") == true {
 			return GetValue(responseMarket, "base")
 		}
 		return GetValue(responseMarket, "quote")
@@ -9812,7 +9812,7 @@ func (this *Okx) fetchMarketLeverageTiersBody(ch chan any, symbol any, optionalA
 	}
 	var market any = this.Market(symbol)
 	var typeVar any = func() any {
-		if IsEqual(GetValue(market, "spot"), true) {
+		if GetValue(market, "spot") == true {
 			return "MARGIN"
 		}
 		return this.ConvertToInstrumentType(GetValue(market, "type"))
@@ -10192,7 +10192,7 @@ func (this *Okx) fetchOpenInterestBody(ch chan any, symbol any, optionalArgs ...
 		PanicOnError(retRes800912)
 	}
 	var market any = this.Market(symbol)
-	if !IsEqual(GetValue(market, "contract"), true) {
+	if GetValue(market, "contract") != true {
 		panic(BadRequest(this.Id + " fetchOpenInterest() supports contract markets only"))
 	}
 	var typeVar any = this.ConvertToInstrumentType(GetValue(market, "type"))

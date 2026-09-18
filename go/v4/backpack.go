@@ -1298,7 +1298,7 @@ func (this *Backpack) fetchFundingRateBody(ch chan any, symbol any, optionalArgs
 		PanicOnError(retRes105412)
 	}
 	var market any = this.Market(symbol)
-	if IsEqual(GetValue(market, "spot"), true) {
+	if GetValue(market, "spot") == true {
 		panic(BadRequest(Add(this.Id+" fetchFundingRate() symbol does not support market ", symbol)))
 	}
 	var request map[string]any = map[string]any{
@@ -1375,7 +1375,7 @@ func (this *Backpack) fetchOpenInterestBody(ch chan any, symbol any, optionalArg
 		PanicOnError(retRes111512)
 	}
 	var market any = this.Market(symbol)
-	if IsEqual(GetValue(market, "spot"), true) {
+	if GetValue(market, "spot") == true {
 		panic(BadRequest(Add(this.Id+" fetchOpenInterest() symbol does not support market ", symbol)))
 	}
 	var request map[string]any = map[string]any{

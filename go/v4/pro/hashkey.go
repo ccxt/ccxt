@@ -583,7 +583,7 @@ func (this *Hashkey) ParseWsOrder(order any, optionalArgs ...any) any {
 	typeVar = ccxt.GetValue(typeVartimeInForcepostOnlyVariable, 0)
 	timeInForce = ccxt.GetValue(typeVartimeInForcepostOnlyVariable, 1)
 	postOnly = ccxt.GetValue(typeVartimeInForcepostOnlyVariable, 2)
-	if ccxt.IsEqual(ccxt.GetValue(market, "contract"), true) {
+	if ccxt.GetValue(market, "contract") == true {
 		typeVar = nil
 	}
 	return this.SafeOrder(map[string]any{

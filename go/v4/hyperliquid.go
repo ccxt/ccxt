@@ -1367,7 +1367,7 @@ func (this *Hyperliquid) fetchOrderBookBody(ch chan any, symbol any, optionalArg
 	var request map[string]any = map[string]any{
 		"type": "l2Book",
 		"coin": func() any {
-			if IsEqual(GetValue(market, "swap"), true) {
+			if GetValue(market, "swap") == true {
 				return this.SafeString(market, "baseName")
 			}
 			return GetValue(market, "id")
@@ -1737,7 +1737,7 @@ func (this *Hyperliquid) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ..
 		"type": "candleSnapshot",
 		"req": map[string]any{
 			"coin": func() any {
-				if IsEqual(GetValue(market, "swap"), true) {
+				if GetValue(market, "swap") == true {
 					return this.SafeString(market, "baseName")
 				}
 				return GetValue(market, "id")
@@ -1900,7 +1900,7 @@ func (this *Hyperliquid) PriceToPrecision(symbol any, price any) any {
 	var significantDigits any = mathMax(5, GetLength(integerPart))
 	var result string = this.DecimalToPrecision(price, ROUND, significantDigits, SIGNIFICANT_DIGITS, this.PaddingMode)
 	var maxDecimals any = func() any {
-		if IsEqual(GetValue(market, "spot"), true) {
+		if GetValue(market, "spot") == true {
 			return 8
 		}
 		return 6

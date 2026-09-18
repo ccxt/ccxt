@@ -831,7 +831,7 @@ func (this *Onetrading) fetchPublicTradingFeesBody(ch chan any, optionalArgs ...
 		var symbol any = GetValue(symbols, i)
 		var market any = this.Market(symbol)
 		var tierObject any = func() any {
-			if IsEqual(GetValue(market, "spot"), true) {
+			if GetValue(market, "spot") == true {
 				return firstSpotTier
 			}
 			return firstFuturesTier
@@ -918,13 +918,13 @@ func (this *Onetrading) fetchPrivateTradingFeesBody(ch chan any, optionalArgs ..
 		var symbol any = GetValue(symbols, i)
 		var market any = this.Market(symbol)
 		var makerFee any = func() any {
-			if IsEqual(GetValue(market, "spot"), true) {
+			if GetValue(market, "spot") == true {
 				return spotMakerFee
 			}
 			return futuresMakerFee
 		}()
 		var takerFee any = func() any {
-			if IsEqual(GetValue(market, "spot"), true) {
+			if GetValue(market, "spot") == true {
 				return spotTakerFee
 			}
 			return futuresTakerFee

@@ -595,14 +595,14 @@ func (this *Htx) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...any
 		panic(ccxt.ExchangeError(this.Id + " watchOrderBook market accepts limits of 5, 20, 150 or 400 only"))
 	}
 	var messageHash any = nil
-	if ccxt.IsEqual(ccxt.GetValue(market, "spot"), true) {
+	if ccxt.GetValue(market, "spot") == true {
 		messageHash = ccxt.Add(ccxt.Add(ccxt.Add("market.", ccxt.GetValue(market, "id")), ".mbp."), this.NumberToString(limit))
 	} else {
 		messageHash = ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add("market.", ccxt.GetValue(market, "id")), ".depth.size_"), this.NumberToString(limit)), ".high_freq")
 	}
 	var url any = this.GetUrlByMarketType(ccxt.GetValue(market, "type"), ccxt.GetValue(market, "linear"), false, true)
 	var method any = this.HandleOrderBookSubscription
-	if !ccxt.IsEqual(ccxt.GetValue(market, "spot"), true) {
+	if ccxt.GetValue(market, "spot") != true {
 		params = this.Extend(params)
 		ccxt.AddElementToObject(params, "data_type", "incremental")
 		method = nil
@@ -647,12 +647,12 @@ func (this *Htx) unWatchOrderBookBody(ch chan any, symbol any, optionalArgs ...a
 	var options any = this.SafeDict(this.Options, "watchOrderBook", map[string]any{})
 	var depth *int64 = this.SafeInteger(options, "depth", 150)
 	var subMessageHash any = nil
-	if ccxt.IsEqual(ccxt.GetValue(market, "spot"), true) {
+	if ccxt.GetValue(market, "spot") == true {
 		subMessageHash = ccxt.Add(ccxt.Add(ccxt.Add("market.", ccxt.GetValue(market, "id")), ".mbp."), this.NumberToString(depth))
 	} else {
 		subMessageHash = ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add("market.", ccxt.GetValue(market, "id")), ".depth.size_"), this.NumberToString(depth)), ".high_freq")
 	}
-	if !ccxt.IsEqual(ccxt.GetValue(market, "spot"), true) {
+	if ccxt.GetValue(market, "spot") != true {
 		ccxt.AddElementToObject(params, "data_type", "incremental")
 	}
 
@@ -936,8 +936,8 @@ func (this *Htx) HandleOrderBookMessage(client any, message any) {
 			panic(ccxt.ChecksumError(ccxt.Add(this.Id+" ", this.OrderbookChecksumMessage(symbol))))
 		}
 	}
-	var spotConditon bool = (ccxt.IsEqual(ccxt.GetValue(market, "spot"), true)) && (ccxt.IsEqual(prevSeqNum, ccxt.GetValue(orderbook, "nonce")))
-	var nonSpotCondition bool = (ccxt.IsEqual(ccxt.GetValue(market, "contract"), true)) && (version != nil) && (ccxt.IsEqual(ccxt.Subtract(version, 1), ccxt.GetValue(orderbook, "nonce")))
+	var spotConditon bool = (ccxt.GetValue(market, "spot") == true) && (ccxt.IsEqual(prevSeqNum, ccxt.GetValue(orderbook, "nonce")))
+	var nonSpotCondition bool = (ccxt.GetValue(market, "contract") == true) && (version != nil) && (ccxt.IsEqual(ccxt.Subtract(version, 1), ccxt.GetValue(orderbook, "nonce")))
 	if (spotConditon == true) || (nonSpotCondition == true) {
 		var asks any = this.SafeValue(tick, "asks", []any{})
 		var bids any = this.SafeValue(tick, "bids", []any{})
@@ -1033,7 +1033,7 @@ func (this *Htx) HandleOrderBookSubscription(client any, message any, subscripti
 	if symbol != nil {
 		ccxt.AddElementToObject(this.Orderbooks, symbol, this.OrderBook(map[string]any{}, limit))
 	}
-	if ccxt.IsEqual(ccxt.GetValue(market, "spot"), true) {
+	if ccxt.GetValue(market, "spot") == true {
 		this.Spawn(this.WatchOrderBookSnapshotAsync, client, message, subscription)
 	}
 }
@@ -1084,7 +1084,7 @@ func (this *Htx) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		symbol = ccxt.GetValue(market, "symbol")
 		typeVar = ccxt.GetValue(market, "type")
 		subType = func() any {
-			if ccxt.IsEqual(ccxt.GetValue(market, "linear"), true) {
+			if ccxt.GetValue(market, "linear") == true {
 				return "linear"
 			}
 			return "inverse"
@@ -1262,7 +1262,7 @@ func (this *Htx) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 		typeVar = ccxt.GetValue(market, "type")
 		suffix = ccxt.GetValue(market, "lowercaseId")
 		subType = func() any {
-			if ccxt.IsEqual(ccxt.GetValue(market, "linear"), true) {
+			if ccxt.GetValue(market, "linear") == true {
 				return "linear"
 			}
 			return "inverse"
@@ -1894,7 +1894,7 @@ func (this *Htx) watchPositionsBody(ch chan any, optionalArgs ...any) any {
 	if !ccxt.IsEqual(market, nil) {
 		typeVar = ccxt.GetValue(market, "type")
 		subType = func() any {
-			if ccxt.IsEqual(ccxt.GetValue(market, "linear"), true) {
+			if ccxt.GetValue(market, "linear") == true {
 				return "linear"
 			}
 			return "inverse"

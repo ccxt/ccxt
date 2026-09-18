@@ -883,11 +883,11 @@ func (this *Binance) watchOrderBookForSymbolsBody(ch chan any, symbols any, opti
 	symbols = this.MarketSymbols(symbols, nil, false, true, true)
 	var firstMarket any = this.Market(ccxt.GetValue(symbols, 0))
 	var typeVar any = ccxt.GetValue(firstMarket, "type")
-	if ccxt.IsEqual(ccxt.GetValue(firstMarket, "option"), true) {
+	if ccxt.GetValue(firstMarket, "option") == true {
 		typeVar = "option"
-	} else if ccxt.IsEqual(ccxt.GetValue(firstMarket, "contract"), true) {
+	} else if ccxt.GetValue(firstMarket, "contract") == true {
 		typeVar = func() any {
-			if ccxt.IsEqual(ccxt.GetValue(firstMarket, "linear"), true) {
+			if ccxt.GetValue(firstMarket, "linear") == true {
 				return "future"
 			}
 			return "delivery"
@@ -984,11 +984,11 @@ func (this *Binance) unWatchOrderBookForSymbolsBody(ch chan any, symbols any, op
 	symbols = this.MarketSymbols(symbols, nil, false, true, true)
 	var firstMarket any = this.Market(ccxt.GetValue(symbols, 0))
 	var typeVar any = ccxt.GetValue(firstMarket, "type")
-	if ccxt.IsEqual(ccxt.GetValue(firstMarket, "option"), true) {
+	if ccxt.GetValue(firstMarket, "option") == true {
 		typeVar = "option"
-	} else if ccxt.IsEqual(ccxt.GetValue(firstMarket, "contract"), true) {
+	} else if ccxt.GetValue(firstMarket, "contract") == true {
 		typeVar = func() any {
-			if ccxt.IsEqual(ccxt.GetValue(firstMarket, "linear"), true) {
+			if ccxt.GetValue(firstMarket, "linear") == true {
 				return "future"
 			}
 			return "delivery"
@@ -1503,9 +1503,9 @@ func (this *Binance) watchTradesForSymbolsBody(ch chan any, symbols any, optiona
 	var isOption any = ccxt.GetValue(firstMarket, "option")
 	if isOption == true {
 		typeVar = "option"
-	} else if ccxt.IsEqual(ccxt.GetValue(firstMarket, "contract"), true) {
+	} else if ccxt.GetValue(firstMarket, "contract") == true {
 		typeVar = func() any {
-			if ccxt.IsEqual(ccxt.GetValue(firstMarket, "linear"), true) {
+			if ccxt.GetValue(firstMarket, "linear") == true {
 				return "future"
 			}
 			return "delivery"
@@ -1610,9 +1610,9 @@ func (this *Binance) unWatchTradesForSymbolsBody(ch chan any, symbols any, optio
 	var isOption any = ccxt.GetValue(firstMarket, "option")
 	if isOption == true {
 		typeVar = "option"
-	} else if ccxt.IsEqual(ccxt.GetValue(firstMarket, "contract"), true) {
+	} else if ccxt.GetValue(firstMarket, "contract") == true {
 		typeVar = func() any {
-			if ccxt.IsEqual(ccxt.GetValue(firstMarket, "linear"), true) {
+			if ccxt.GetValue(firstMarket, "linear") == true {
 				return "future"
 			}
 			return "delivery"
@@ -2094,12 +2094,12 @@ func (this *Binance) watchOHLCVForSymbolsBody(ch chan any, symbolsAndTimeframes 
 	var firstMarket any = this.Market(ccxt.GetValue(marketSymbols, 0))
 	var typeVar any = ccxt.GetValue(firstMarket, "type")
 	var wsUrlType any = typeVar
-	if ccxt.IsEqual(ccxt.GetValue(firstMarket, "option"), true) {
+	if ccxt.GetValue(firstMarket, "option") == true {
 		typeVar = "option"
 		wsUrlType = "optionMarket" // eOptions klines are served from /market/ws
-	} else if ccxt.IsEqual(ccxt.GetValue(firstMarket, "contract"), true) {
+	} else if ccxt.GetValue(firstMarket, "contract") == true {
 		typeVar = func() any {
-			if ccxt.IsEqual(ccxt.GetValue(firstMarket, "linear"), true) {
+			if ccxt.GetValue(firstMarket, "linear") == true {
 				return "future"
 			}
 			return "delivery"
@@ -2202,12 +2202,12 @@ func (this *Binance) unWatchOHLCVForSymbolsBody(ch chan any, symbolsAndTimeframe
 	var firstMarket any = this.Market(ccxt.GetValue(marketSymbols, 0))
 	var typeVar any = ccxt.GetValue(firstMarket, "type")
 	var wsUrlType any = typeVar
-	if ccxt.IsEqual(ccxt.GetValue(firstMarket, "option"), true) {
+	if ccxt.GetValue(firstMarket, "option") == true {
 		typeVar = "option"
 		wsUrlType = "optionMarket" // eOptions klines are served from /market/ws
-	} else if ccxt.IsEqual(ccxt.GetValue(firstMarket, "contract"), true) {
+	} else if ccxt.GetValue(firstMarket, "contract") == true {
 		typeVar = func() any {
-			if ccxt.IsEqual(ccxt.GetValue(firstMarket, "linear"), true) {
+			if ccxt.GetValue(firstMarket, "linear") == true {
 				return "future"
 			}
 			return "delivery"
@@ -3310,7 +3310,7 @@ func (this *Binance) ParseWsTicker(message any, marketType any) any {
 	// carries `w`, so a miniTicker uses the contract size.
 	var baseVolume *string = this.SafeString(message, "v")
 	var quoteVolume *string = this.SafeString(message, "q")
-	if ccxt.IsEqual(ccxt.GetValue(market, "inverse"), true) {
+	if ccxt.GetValue(market, "inverse") == true {
 		var contracts *string = baseVolume
 		baseVolume = quoteVolume
 		var weightedAverage *string = this.SafeString(message, "w")
@@ -4779,7 +4779,7 @@ func (this *Binance) createOrderWsBody(ch chan any, symbol any, typeVar any, sid
 	ccxt.AddElementToObject(payload, "returnRateLimits", returnRateLimits)
 	var test *bool = this.SafeBool(params, "test", false)
 	params = this.Omit(params, "test")
-	if (ccxt.IsEqual(ccxt.GetValue(market, "linear"), true)) && (ccxt.IsEqual(ccxt.GetValue(market, "swap"), true)) && isConditional {
+	if (ccxt.GetValue(market, "linear") == true) && (ccxt.GetValue(market, "swap") == true) && isConditional {
 		ccxt.AddElementToObject(payload, "algoType", "CONDITIONAL")
 	}
 	var message map[string]any = map[string]any{
@@ -4794,7 +4794,7 @@ func (this *Binance) createOrderWsBody(ch chan any, symbol any, typeVar any, sid
 			message["method"] = "order.test"
 		}
 	}
-	if (ccxt.IsEqual(ccxt.GetValue(market, "linear"), true)) && (ccxt.IsEqual(ccxt.GetValue(market, "swap"), true)) && isConditional {
+	if (ccxt.GetValue(market, "linear") == true) && (ccxt.GetValue(market, "swap") == true) && isConditional {
 		message["method"] = "algoOrder.place"
 	}
 	var subscription map[string]any = map[string]any{
@@ -5138,7 +5138,7 @@ func (this *Binance) cancelOrderWsBody(ch chan any, id any, optionalArgs ...any)
 	}
 	var isConditional *bool = this.SafeBoolN(params, []any{"stop", "trigger", "conditional"})
 	var clientOrderId *string = this.SafeStringN(params, []any{"clientAlgoId", "origClientOrderId", "clientOrderId"})
-	var shouldUseAlgoOrder bool = (ccxt.IsEqual(ccxt.GetValue(market, "linear"), true)) && (ccxt.IsEqual(ccxt.GetValue(market, "swap"), true)) && (isConditional != nil && *isConditional == true)
+	var shouldUseAlgoOrder bool = (ccxt.GetValue(market, "linear") == true) && (ccxt.GetValue(market, "swap") == true) && (isConditional != nil && *isConditional == true)
 	if clientOrderId != nil {
 		if shouldUseAlgoOrder == true {
 			payload["clientAlgoId"] = clientOrderId

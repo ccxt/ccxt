@@ -2080,7 +2080,7 @@ func (this *Deribit) ParseTrade(trade any, optionalArgs ...any) any {
 	// For options amount and linear is in corresponding cryptocurrency contracts, e.g., BTC or ETH
 	var amount *string = this.SafeString(trade, "amount")
 	var cost *string = Precise.StringMul(amount, priceString)
-	if IsEqual(GetValue(market, "inverse"), true) {
+	if GetValue(market, "inverse") == true {
 		cost = Precise.StringDiv(amount, priceString)
 	}
 	var liquidity *string = this.SafeString(trade, "liquidity")
@@ -2333,11 +2333,11 @@ func (this *Deribit) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any 
 			"maker":      GetValue(market, "maker"),
 			"taker":      GetValue(market, "taker"),
 		}
-		if IsEqual(GetValue(market, "swap"), true) {
+		if GetValue(market, "swap") == true {
 			fee = this.Extend(fee, perpetualFee)
-		} else if IsEqual(GetValue(market, "future"), true) {
+		} else if GetValue(market, "future") == true {
 			fee = this.Extend(fee, futureFee)
-		} else if IsEqual(GetValue(market, "option"), true) {
+		} else if GetValue(market, "option") == true {
 			fee = this.Extend(fee, optionFee)
 		}
 		AddElementToObject(parsedFees, symbol, fee)
@@ -4391,7 +4391,7 @@ func (this *Deribit) fetchLiquidationsBody(ch chan any, symbol any, optionalArgs
 		return nil
 	}
 	var market any = this.Market(symbol)
-	if IsEqual(GetValue(market, "spot"), true) {
+	if GetValue(market, "spot") == true {
 		panic(NotSupported(Add(Add(this.Id+" fetchLiquidations() does not support ", GetValue(market, "type")), " markets")))
 	}
 	var request map[string]any = map[string]any{
@@ -4490,7 +4490,7 @@ func (this *Deribit) fetchMyLiquidationsBody(ch chan any, optionalArgs ...any) a
 		PanicOnError(retRes352512)
 	}
 	var market any = this.Market(symbol)
-	if IsEqual(GetValue(market, "spot"), true) {
+	if GetValue(market, "spot") == true {
 		panic(NotSupported(Add(Add(this.Id+" fetchMyLiquidations() does not support ", GetValue(market, "type")), " markets")))
 	}
 	var request map[string]any = map[string]any{
@@ -4934,7 +4934,7 @@ func (this *Deribit) fetchOpenInterestBody(ch chan any, symbol any, optionalArgs
 		PanicOnError(retRes390412)
 	}
 	var market any = this.Market(symbol)
-	if !IsEqual(GetValue(market, "contract"), true) {
+	if GetValue(market, "contract") != true {
 		panic(BadRequest(this.Id + " fetchOpenInterest() supports contract markets only"))
 	}
 	var request map[string]any = map[string]any{
@@ -5013,7 +5013,7 @@ func (this *Deribit) ParseOpenInterest(interest any, optionalArgs ...any) any {
 	var openInterest *float64 = this.SafeNumber(interest, "open_interest")
 	var openInterestAmount *float64 = nil
 	var openInterestValue *float64 = nil
-	if (IsEqual(GetValue(market, "option"), true)) || ((IsEqual(GetValue(market, "future"), true)) && (IsEqual(GetValue(market, "linear"), true))) {
+	if (GetValue(market, "option") == true) || ((GetValue(market, "future") == true) && (GetValue(market, "linear") == true)) {
 		openInterestAmount = openInterest
 	} else {
 		openInterestValue = openInterest

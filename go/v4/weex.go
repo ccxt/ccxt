@@ -1558,7 +1558,7 @@ func (this *Weex) ParseTicker(ticker any, optionalArgs ...any) any {
 	var marketId *string = this.SafeString(ticker, "symbol")
 	var markPrice *string = this.SafeString(ticker, "markPrice")
 	var marketType string = "spot"
-	if (markPrice != nil) || ((!IsEqual(market, nil)) && (IsEqual(GetValue(market, "contract"), true))) {
+	if (markPrice != nil) || ((!IsEqual(market, nil)) && (GetValue(market, "contract") == true)) {
 		// 24hr swap tickers carry markPrice, but book tickers do not, so also honor the market resolved by the caller
 		marketType = "swap"
 	}
@@ -1688,7 +1688,7 @@ func (this *Weex) fetchMarkPriceBody(ch chan any, symbol any, optionalArgs ...an
 		PanicOnError(retRes141212)
 	}
 	var market any = this.Market(symbol)
-	if !IsEqual(GetValue(market, "contract"), true) {
+	if GetValue(market, "contract") != true {
 		panic(NotSupported(this.Id + " fetchMarkPrice() supports contract markets only"))
 	}
 	var priceType any = nil
@@ -1807,7 +1807,7 @@ func (this *Weex) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...an
 		request["limit"] = 200 // default is 15, max is 200
 	}
 	var response any = nil
-	if IsEqual(GetValue(market, "spot"), true) {
+	if GetValue(market, "spot") == true {
 
 		response = (<-this.PublicGetApiV3MarketDepth(this.Extend(request, params)))
 		PanicOnError(response)
@@ -1879,7 +1879,7 @@ func (this *Weex) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) a
 		PanicOnError(retRes154412)
 	}
 	var market any = this.Market(symbol)
-	if IsEqual(GetValue(market, "spot"), true) {
+	if GetValue(market, "spot") == true {
 
 		retRes154819 := (<-this.FetchSpotOHLCVAsync(symbol, timeframe, since, limit, params))
 		PanicOnError(retRes154819)
@@ -2114,7 +2114,7 @@ func (this *Weex) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any) 
 		request["limit"] = mathMin(limit, 1000)
 	}
 	var response any = nil
-	if IsEqual(GetValue(market, "spot"), true) {
+	if GetValue(market, "spot") == true {
 
 		response = (<-this.PublicGetApiV3MarketTrades(this.Extend(request, params)))
 		PanicOnError(response)
@@ -2757,7 +2757,7 @@ func (this *Weex) createOrderBody(ch chan any, symbol any, typeVar any, side any
 		PanicOnError(retRes219712)
 	}
 	var market any = this.Market(symbol)
-	if IsEqual(GetValue(market, "contract"), true) {
+	if GetValue(market, "contract") == true {
 
 		retRes220119 := (<-this.CreateContractOrderAsync(symbol, typeVar, side, amount, price, params))
 		PanicOnError(retRes220119)
@@ -3767,7 +3767,7 @@ func (this *Weex) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError(retRes296212)
 	}
 	var market any = this.Market(symbol)
-	if !IsEqual(GetValue(market, "spot"), true) {
+	if GetValue(market, "spot") != true {
 		panic(NotSupported(this.Id + " fetchOrders() supports spot markets only"))
 	}
 	var maxLimit int = 1000
@@ -4584,7 +4584,7 @@ func (this *Weex) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) any 
 	}
 	if symbol != nil {
 		market = this.Market(symbol)
-		if !IsEqual(GetValue(market, "swap"), true) {
+		if GetValue(market, "swap") != true {
 			panic(NotSupported(this.Id + " fetchFundingHistory() supports swap contracts only"))
 		}
 		AddElementToObject(request, "symbol", GetValue(market, "id"))
@@ -5006,7 +5006,7 @@ func (this *Weex) fetchTradingFeeBody(ch chan any, symbol any, optionalArgs ...a
 		PanicOnError(retRes393512)
 	}
 	var market any = this.Market(symbol)
-	if IsEqual(GetValue(market, "spot"), true) {
+	if GetValue(market, "spot") == true {
 		panic(NotSupported(this.Id + " fetchTradingFee() is not supported for spot markets"))
 	}
 	var request map[string]any = map[string]any{

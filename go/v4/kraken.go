@@ -1327,7 +1327,7 @@ func (this *Kraken) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 		for i := 0; i < GetArrayLength(symbols); i++ {
 			var symbol any = GetValue(symbols, i)
 			var market any = this.Market(symbol)
-			if IsEqual(GetValue(market, "active"), true) {
+			if GetValue(market, "active") == true {
 				AppendToArray(&marketIds, GetValue(market, "id"))
 			}
 		}
@@ -2786,7 +2786,7 @@ func (this *Kraken) editOrderBody(ch chan any, id any, symbol any, typeVar any, 
 		PanicOnError(retRes232612)
 	}
 	var market any = this.Market(symbol)
-	if !IsEqual(GetValue(market, "spot"), true) {
+	if GetValue(market, "spot") != true {
 		panic(NotSupported(Add(Add(this.Id+" editOrder() does not support ", GetValue(market, "type")), " orders, only spot orders are accepted")))
 	}
 	var request any = map[string]any{
