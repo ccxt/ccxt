@@ -225,6 +225,21 @@ pub fn panic_to_value(payload: Box<dyn std::any::Any + Send>) -> Value {
     Value::Str(msg)
 }
 
+/// Parse a transpiled error payload (`"[Kind] message"`) into a typed
+/// `ExchangeError`. Falls back to the generic `ExchangeError` kind when
+/// the payload doesn't carry a leading `[Kind]` marker.
+pub fn panic_msg_to_error(msg: &str) -> crate::ExchangeError {
+    if let Some(start) = msg.find('[') {
+        let after = &msg[start + 1..];
+        if let Some(end) = after.find(']') {
+            let kind = &after[..end];
+            let rest = after[end + 1..].trim_start_matches(|c: char| c == ' ' || c == ':');
+            return crate::ExchangeError::new(kind, rest);
+        }
+    }
+    crate::ExchangeError::new("ExchangeError", msg)
+}
+
 /// Bridge an async exchange call's panic-based error convention onto Rust's
 /// `Result`. The transpiled bodies use `panic!("[Kind] message")` (mirroring
 /// the TS `throw new <Kind>(message)` pattern); the typed-wrapper layer
@@ -846,6 +861,14 @@ pub const SIGNIFICANT_DIGITS:   i64 = 3;
 pub const TICK_SIZE: i64 = 4;
 pub const NO_PADDING:           i64 = 5;
 pub const PAD_WITH_ZERO:        i64 = 6;
+
+/// `string_replace(s, old, new)` — string replacement.
+pub fn string_replace(s: &Value, old: &Value, new_val: &Value) -> Value {
+    match (s, old, new_val) {
+        (Value::Str(s), Value::Str(o), Value::Str(n)) => Value::Str(s.replace(o.as_str(), n)),
+        _ => s.clone(),
+    }
+}
 
 /// `split(s, delim)` — string split returning Value::Array of Value::Str.
 pub fn split(s: &Value, delim: &Value) -> Value {

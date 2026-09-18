@@ -1,10 +1,8 @@
 package ccxt
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
-	"io"
 	"math"
 	"reflect"
 	"runtime"
