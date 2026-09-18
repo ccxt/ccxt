@@ -664,7 +664,7 @@ public partial class hyperliquid : PredictionExchange
         string? midStr = this.numberToString(midPx);
         List<object> parts = ((string)midStr).Split(new [] {((string)".")}, StringSplitOptions.None).ToList<object>();
         string? intPart = ((string)getValue(parts, 0));
-        object significantDigits = mathMax(5, ((string)intPart).Length);
+        object significantDigits = Math.Max(5, ((string)intPart).Length);
         object maxDecimals = subtract(8, szDecimals);
         object pricePrecisionDecimals = mathMax(1, mathMin(maxDecimals, subtract(significantDigits, ((string)intPart).Length)));
         string zeros = "";
