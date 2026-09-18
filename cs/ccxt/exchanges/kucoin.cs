@@ -10915,7 +10915,7 @@ public partial class kucoin : Exchange
             string? code = this.safeCurrencyCode(this.safeString(item, "currency"));
             if (((code != null)) && (isEqual(codes, null) || this.inArray(code, codes)))
             {
-                if (!(inOp(borrowRateHistories, code)))
+                if (!(((code != null) && (borrowRateHistories?.ContainsKey(code) == true))))
                 {
                     borrowRateHistories[(string)code] = new List<object>() {};
                 }
@@ -13020,7 +13020,7 @@ public partial class kucoin : Exchange
             string? symbol = this.safeString(tier, "symbol");
             if ((symbol != null))
             {
-                if (!(inOp(result, symbol)))
+                if (!(((symbol != null) && (result?.ContainsKey(symbol) == true))))
                 {
                     result[(string)symbol] = new List<object>() {};
                 }

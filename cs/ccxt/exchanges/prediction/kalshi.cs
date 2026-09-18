@@ -422,7 +422,7 @@ public partial class kalshi : PredictionExchange
                     ((IList<object>)flatMarkets).Add(m);
                     if (((eventKey != null)) && (eventKey != ""))
                     {
-                        if (!(inOp(eventsDict, eventKey)))
+                        if (!(((eventKey != null) && (eventsDict?.ContainsKey(eventKey) == true))))
                         {
                             eventsDict[(string)eventKey] = new Dictionary<string, object>() {
                                 { "id", eventTicker },
@@ -1211,7 +1211,7 @@ public partial class kalshi : PredictionExchange
             {
                 continue;
             }
-            if (!(inOp(outcomesByTicker, ticker)))
+            if (!(((ticker != null) && (outcomesByTicker?.ContainsKey(ticker) == true))))
             {
                 outcomesByTicker[(string)ticker] = new List<object>() {};
                 ((IList<object>)tickers).Add(ticker);
@@ -1247,7 +1247,7 @@ public partial class kalshi : PredictionExchange
             {
                 object raw = getValue(rawMarkets, i);
                 string? marketTicker = this.safeString(raw, "ticker");
-                if (((marketTicker == null)) || !(inOp(outcomesByTicker, marketTicker)))
+                if (((marketTicker == null)) || !(((marketTicker != null) && (outcomesByTicker?.ContainsKey(marketTicker) == true))))
                 {
                     continue;
                 }
@@ -1883,7 +1883,7 @@ public partial class kalshi : PredictionExchange
             object position = getValue(parsed, i);
             IDictionary<string, object> positionInfo = this.safeDict(position, "info", new Dictionary<string, object>() {});
             string? positionTicker = this.safeString(positionInfo, "ticker");
-            if (((positionTicker != null)) && (inOp(wantedTickers, positionTicker)))
+            if (((positionTicker != null)) && (((positionTicker != null) && (wantedTickers?.ContainsKey(positionTicker) == true))))
             {
                 ((IList<object>)result).Add(position);
             }

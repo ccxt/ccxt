@@ -3341,7 +3341,7 @@ public partial class htx : Exchange
         {
             throw new NullResponse (add(this.id, " fetchOrderBook() returned empty response")) ;
         }
-        if (inOp(response, "tick"))
+        if ((response?.ContainsKey("tick") == true))
         {
             if ((isEqual(GetValue(response, "tick"), null)) || (isEqual(GetValue(response, "tick"), null)))
             {
@@ -6264,7 +6264,7 @@ public partial class htx : Exchange
         if ((triggerPrice == null))
         {
             IDictionary<string, object> stopOrderTypes = this.safeDict(options, "stopOrderTypes", new Dictionary<string, object>() {});
-            if (inOp(stopOrderTypes, orderType))
+            if (((orderType != null) && (stopOrderTypes?.ContainsKey(orderType) == true)))
             {
                 throw new ArgumentsRequired (add(this.id, " createOrder() requires a triggerPrice for a trigger order")) ;
             }
@@ -6358,7 +6358,7 @@ public partial class htx : Exchange
             request["amount"] = this.amountToPrecision(symbol, amount);
         }
         IDictionary<string, object> limitOrderTypes = this.safeDict(options, "limitOrderTypes", new Dictionary<string, object>() {});
-        if (inOp(limitOrderTypes, orderType))
+        if (((orderType != null) && (limitOrderTypes?.ContainsKey(orderType) == true)))
         {
             request["price"] = this.priceToPrecision(symbol, price);
         }

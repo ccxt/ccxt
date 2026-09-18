@@ -1409,12 +1409,12 @@ public partial class bitstamp : Exchange
             }
             List<object> parts = minimumOrder.Split(new [] {" "}, StringSplitOptions.None).ToList<object>();
             string? cost = ((string)getValue(parts, 0));
-            if (((bs != null)) && !(inOp(result, bs)))
+            if (((bs != null)) && !(((bs != null) && (result?.ContainsKey(bs) == true))))
             {
                 Int64? baseDecimals = this.safeInteger(market, "base_decimals");
                 result[(string)bs] = this.constructCurrencyObject(baseId, bs, baseDescription, baseDecimals, null, market);
             }
-            if (((quote != null)) && !(inOp(result, quote)))
+            if (((quote != null)) && !(((quote != null) && (result?.ContainsKey(quote) == true))))
             {
                 Int64? counterDecimals = this.safeInteger(market, "counter_decimals");
                 result[(string)quote] = this.constructCurrencyObject(quoteId, quote, quoteDescription, counterDecimals, this.parseNumber(cost), market);
@@ -3101,7 +3101,7 @@ public partial class bitstamp : Exchange
             {
                 string? amount = this.safeString(item, "amount");
                 direction = isTrue(Precise.stringGt(amount, "0")) ? "in" : "out";
-            } else if ((inOp(parsedTransaction, "currency")) && !isEqual(GetValue(parsedTransaction, "currency"), null))
+            } else if (((parsedTransaction?.ContainsKey("currency") == true)) && !isEqual(GetValue(parsedTransaction, "currency"), null))
             {
                 string? currencyCode = this.safeString(parsedTransaction, "currency");
                 currency = this.currency(((string)currencyCode));

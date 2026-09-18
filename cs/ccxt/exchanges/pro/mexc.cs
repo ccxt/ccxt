@@ -2381,7 +2381,7 @@ public partial class mexc : ccxt.mexc
             { "pong", this.handlePong },
             { "push.funding.rate", this.handleFundingRate },
         };
-        if (((channel != null)) && (inOp(methods, channel)))
+        if (((channel != null)) && (((channel != null) && (methods?.ContainsKey(channel) == true))))
         {
             object method = getValue(methods, channel);
             DynamicInvoker.InvokeMethod(method, new object[] { client, message});

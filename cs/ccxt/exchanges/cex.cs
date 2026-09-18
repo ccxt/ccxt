@@ -982,7 +982,7 @@ public partial class cex : Exchange
         for (int i = 0; isLessThan(i, symbols?.Count ?? 0); postFixIncrement(ref i))
         {
             string? symbol = ((string)getValue(symbols, i));
-            if (!(inOp(result, symbol)))
+            if (!(((symbol != null) && (result?.ContainsKey(symbol) == true))))
             {
                 Dictionary<string, object> market = this.market(symbol);
                 result[(string)symbol] = this.parseTradingFee(response, market);

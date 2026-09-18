@@ -2299,7 +2299,7 @@ public partial class coinbase : Exchange
         {
             string? currencyId = ((string)getValue(ratesIds, i));
             string? code = this.safeCurrencyCode(currencyId);
-            if (((code == null)) || !(inOp(result, code)))
+            if (((code == null)) || !(((code != null) && (result?.ContainsKey(code) == true))))
             {
                 if ((code != null))
                 {

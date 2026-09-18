@@ -5308,7 +5308,7 @@ public partial class mexc : Exchange
             // createDepositAddress and fetchDepositAddress use a different network-id compared to withdraw
             string? networkUnified = this.networkIdToCode(networkCode, code);
             IDictionary<string, object> networks = this.safeDict(currency, "networks", new Dictionary<string, object>() {});
-            if (((networkUnified != null)) && (inOp(networks, networkUnified)))
+            if (((networkUnified != null)) && (((networkUnified != null) && (networks?.ContainsKey(networkUnified) == true))))
             {
                 IDictionary<string, object> network = ((networkUnified == null)) ? new Dictionary<string, object>() {} : this.safeDict(networks, networkUnified, new Dictionary<string, object>() {});
                 object networkInfo = this.safeValue(network, "info", new Dictionary<string, object>() {});
@@ -5369,7 +5369,7 @@ public partial class mexc : Exchange
         object networkId = null;
         string? networkUnified = this.networkIdToCode(networkCode, code);
         IDictionary<string, object> networks = this.safeDict(currency, "networks", new Dictionary<string, object>() {});
-        if (((networkUnified != null)) && (inOp(networks, networkUnified)))
+        if (((networkUnified != null)) && (((networkUnified != null) && (networks?.ContainsKey(networkUnified) == true))))
         {
             IDictionary<string, object> network = ((networkUnified == null)) ? new Dictionary<string, object>() {} : this.safeDict(networks, networkUnified, new Dictionary<string, object>() {});
             object networkInfo = this.safeValue(network, "info", new Dictionary<string, object>() {});

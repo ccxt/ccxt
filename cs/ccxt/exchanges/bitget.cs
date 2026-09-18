@@ -7865,7 +7865,7 @@ public partial class bitget : Exchange
                 if (!isEqual(price, null))
                 {
                     request["executePrice"] = this.priceToPrecision(symbol, price);
-                    if (inOp(request, "price"))
+                    if ((request?.ContainsKey("price") == true))
                     {
                         ((IDictionary<string,object>)request).Remove((string)"price");
                     }
@@ -9220,7 +9220,7 @@ public partial class bitget : Exchange
             market = this.market(symbol);
             request["symbol"] = GetValue(market, "id");
             string? defaultType = this.safeString2(this.options, "fetchOpenOrders", "defaultType", "spot");
-            object marketType = (inOp(market, "type")) ? GetValue(market, "type") : defaultType;
+            object marketType = ((market?.ContainsKey("type") == true)) ? GetValue(market, "type") : defaultType;
             type = this.safeString(parameters, "type", marketType);
         } else
         {

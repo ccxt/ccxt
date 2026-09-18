@@ -12099,8 +12099,8 @@ public partial class binance : Exchange
                 }
             }
             IDictionary<string, object> accountsById = this.safeDict(this.options, "accountsById", new Dictionary<string, object>() {});
-            bool fromIsolated = !(inOp(accountsById, fromId));
-            bool toIsolated = !(inOp(accountsById, toId));
+            bool fromIsolated = !(((fromId != null) && (accountsById?.ContainsKey(fromId) == true)));
+            bool toIsolated = !(((toId != null) && (accountsById?.ContainsKey(toId) == true)));
             if (fromIsolated && ((market == null)))
             {
                 isolatedSymbol = fromId; // allow user provide symbol as the from/to account
@@ -15641,7 +15641,7 @@ public partial class binance : Exchange
                     List<object> orderidlist = this.safeList(extendedParams, "orderidlist", new List<object>() {});
                     List<object> origclientorderidlist = this.safeList2(extendedParams, "origclientorderidlist", "origClientOrderIdList", new List<object>() {});
                     extendedParams = this.omit(extendedParams, new List<object>() {"orderidlist", "origclientorderidlist", "origClientOrderIdList"});
-                    if (inOp(extendedParams, "symbol"))
+                    if ((extendedParams?.ContainsKey("symbol") == true))
                     {
                         extendedParams["symbol"] = this.encodeURIComponent(GetValue(extendedParams, "symbol"));
                     }

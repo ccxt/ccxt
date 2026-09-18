@@ -33,8 +33,8 @@ public partial class testMainClass : BaseTest
             //
             Dictionary<string, object> grouped = exchange.groupBy(trades, "side");
             string msg = add("Both sides of trades are not being returned, instead only one side is being returned. If this error happens consistently, then it might be an implementation issue", testSharedMethods.logTemplate(exchange, method, trades));
-            assert((inOp(grouped, "buy")), msg);
-            assert((inOp(grouped, "sell")), msg);
+            assert(((grouped?.ContainsKey("buy") == true)), msg);
+            assert(((grouped?.ContainsKey("sell") == true)), msg);
         }
         if (!(inOp(skippedProperties, "timestampSort")))
         {

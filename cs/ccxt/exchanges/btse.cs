@@ -3253,7 +3253,7 @@ public partial class btse : Exchange
         {
             object entry = getValue(rawRows, i);
             string? type = this.safeString(entry, "type", "");
-            if (inOp(allowed, type))
+            if (((type != null) && (allowed?.ContainsKey(type) == true)))
             {
                 ((IList<object>)rows).Add(entry);
             }

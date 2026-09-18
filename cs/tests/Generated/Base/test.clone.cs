@@ -154,7 +154,7 @@ public partial class BaseTest
             ((IDictionary<string,object>)clone1)["d"] = 999; // add extra key
             // original still pristine
             Assert(isEqual(((IDictionary<string,object>)masterOrig)["a"], 1), "clone E: original a untouched after clone1 mutation");
-            Assert(!(inOp(masterOrig, "d")), "clone E: extra key must not appear in original");
+            Assert(!((masterOrig?.ContainsKey("d") == true)), "clone E: extra key must not appear in original");
             // second independent clone from the still-pristine original
             object clone2 = exchange.clone(masterOrig);
             Assert(isEqual(getValue(clone2, "a"), 1), "clone E: clone2 starts from pristine original");

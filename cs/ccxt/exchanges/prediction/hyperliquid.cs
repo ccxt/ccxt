@@ -364,7 +364,7 @@ public partial class hyperliquid : PredictionExchange
                     { "RECURRING_FALLBACK", true },
                     { "RECURRING_NAMED_OUTCOME", true },
                 };
-                if (inOp(genericOutcomeNames, outcomeSlug))
+                if (((outcomeSlug != null) && (genericOutcomeNames?.ContainsKey(outcomeSlug) == true)))
                 {
                     if (getIndexOf(outcomeSlug, "FALLBACK") >= 0)
                     {
@@ -762,7 +762,7 @@ public partial class hyperliquid : PredictionExchange
         for (int i = 0; isLessThan(i, outcomeHandles.Count); postFixIncrement(ref i))
         {
             string? outcomeHandle = ((string)getValue(outcomeHandles, i));
-            if (!isEqual(outcomes, null) && !(inOp(requestedOutcomeSymbols, outcomeHandle)))
+            if (!isEqual(outcomes, null) && !(((outcomeHandle != null) && (requestedOutcomeSymbols?.ContainsKey(outcomeHandle) == true))))
             {
                 continue;
             }
@@ -1142,7 +1142,7 @@ public partial class hyperliquid : PredictionExchange
             if (!isEqual(outcomes, null))
             {
                 string? outcomeHandle = this.safeString(outcomeObj, "outcome");
-                if ((outcomeHandle == null) || !(inOp(requestedOutcomeSymbols, outcomeHandle)))
+                if ((outcomeHandle == null) || !(((outcomeHandle != null) && (requestedOutcomeSymbols?.ContainsKey(outcomeHandle) == true))))
                 {
                     continue;
                 }
@@ -1717,7 +1717,7 @@ public partial class hyperliquid : PredictionExchange
             string? oid = this.safeString(entry, "oid");
             if ((oid != null))
             {
-                if (!(inOp(deduped, oid)))
+                if (!(((oid != null) && (deduped?.ContainsKey(oid) == true))))
                 {
                     deduped[(string)oid] = raw;
                 } else
@@ -2180,7 +2180,7 @@ public partial class hyperliquid : PredictionExchange
             {
                 throw new ExchangeError (add(this.id, " fetchEvents() missing parentSymbol")) ;
             }
-            if (!(inOp(groupMap, parentSymbol)))
+            if (!(((parentSymbol != null) && (groupMap?.ContainsKey(parentSymbol) == true))))
             {
                 if ((parentSymbol != null))
                 {

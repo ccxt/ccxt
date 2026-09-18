@@ -31,7 +31,7 @@ public partial class BaseTest
             var marketType1params1Variable = exchange.handleMarketTypeAndParams("fetchX", market, initialParams, "valueDefault");
             var marketType1 = ((IList<object>) marketType1params1Variable)[0];
             var params1 = ((IList<object>) marketType1params1Variable)[1];
-            Assert(inOp(initialParams, "defaultType"));
+            Assert((initialParams?.ContainsKey("defaultType") == true));
             Assert(!(inOp(params1, "defaultType")));
             Assert(isEqual(marketType1, "valueFromParam"));
             //

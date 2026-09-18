@@ -1643,7 +1643,7 @@ public partial class krakenfutures : Exchange
             object price = this.safeValue(rawOrder, "price");
             object orderParams = this.safeValue(rawOrder, "params", new Dictionary<string, object>() {});
             Dictionary<string, object> extendedParams = this.extend(orderParams, parameters); // the request does not accept extra params since it's a list, so we're extending each order with the common params
-            if (!(inOp(extendedParams, "order_tag")))
+            if (!((extendedParams?.ContainsKey("order_tag") == true)))
             {
                 // order tag is mandatory so we will generate one if not provided
                 extendedParams["order_tag"] = this.sum(i, 1).ToString(); // sequential counter
@@ -1740,7 +1740,7 @@ public partial class krakenfutures : Exchange
         string? status = this.safeString(this.safeValue(response, "cancelStatus", new Dictionary<string, object>() {}), "status");
         this.verifyOrderActionSuccess(status, "cancelOrder");
         Dictionary<string, object> order = new Dictionary<string, object>() {};
-        if (inOp(response, "cancelStatus"))
+        if ((response?.ContainsKey("cancelStatus") == true))
         {
             order = this.parseOrder(((IDictionary<string,object>)response)["cancelStatus"]);
         }

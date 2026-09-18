@@ -1595,7 +1595,7 @@ public partial class indodax : Exchange
             {
                 this.checkAddress(address);
                 object network = null;
-                if (inOp(networks, marketId))
+                if (((marketId != null) && (networks?.ContainsKey(marketId) == true)))
                 {
                     string? networkId = this.safeString(networks, marketId);
                     if ((networkId == null))

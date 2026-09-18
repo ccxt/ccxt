@@ -316,8 +316,8 @@ public partial class testMainClass : BaseTest
         if (!(inOp(skippedProperties, "marginModes")))
         {
             IDictionary<string, object> marginModes = exchange.safeDict(market, "marginModes", new Dictionary<string, object>() {}); // in future, remove safeDict
-            assert(inOp(marginModes, "cross"), add("marginModes should have \"cross\" key", logText));
-            assert(inOp(marginModes, "isolated"), add("marginModes should have \"isolated\" key", logText));
+            assert((marginModes?.ContainsKey("cross") == true), add("marginModes should have \"cross\" key", logText));
+            assert((marginModes?.ContainsKey("isolated") == true), add("marginModes should have \"isolated\" key", logText));
             testSharedMethods.assertInArray(exchange, skippedProperties, method, marginModes, "cross", new List<object>() {true, false, null});
             testSharedMethods.assertInArray(exchange, skippedProperties, method, marginModes, "isolated", new List<object>() {true, false, null});
         }

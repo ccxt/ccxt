@@ -102,7 +102,7 @@ public partial class BaseTest
             // --- mutation check: first result must NOT be mutated by second extend ---
             Assert(isEqual(getValue(extended, "a"), 2), "extended['a'] was mutated by second extend");
             Assert(isEqual(getValue(getValue(extended, "b"), 0), 3), "extended['b'][0] was mutated by second extend");
-            Assert(!(inOp(extended, "other3")), "extended['other3'] should not exist after second extend");
+            Assert(!((extended?.ContainsKey("other3") == true)), "extended['other3'] should not exist after second extend");
             // --- test 3: four-step chained extend on same base object ---
             Dictionary<string, object> bs = new Dictionary<string, object>() {
                 { "x", 0 },
@@ -132,8 +132,8 @@ public partial class BaseTest
             Assert(isEqual(((IDictionary<string,object>)bs)["x"], 0), "base['x'] was mutated during chain");
             Assert(isEqual(getValue(r1, "x"), 1), "r1['x'] was mutated during chain");
             Assert(isEqual(getValue(r2, "x"), 2), "r2['x'] was mutated during chain");
-            Assert(!(inOp(r1, "p3")), "r1['p3'] leaked into r1");
-            Assert(!(inOp(bs, "p2")), "base['p2'] leaked into base");
+            Assert(!((r1?.ContainsKey("p3") == true)), "r1['p3'] leaked into r1");
+            Assert(!((bs?.ContainsKey("p2") == true)), "base['p2'] leaked into base");
             // --- test 4: extend with undefined values does NOT overwrite existing keys ---
             Dictionary<string, object> withValues = new Dictionary<string, object>() {
                 { "keep1", "A" },

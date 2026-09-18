@@ -1411,7 +1411,7 @@ public partial class binance : ccxt.binance
                 string baseIdLower = ((string)this.safeStringLower(market, "baseId", ""));
                 string? quoteIdLower = this.safeStringLower(market, "quoteId", "");
                 string underlying = add(add(baseIdLower, ""), quoteIdLower);
-                if (!(inOp(seenUnderlyings, underlying)))
+                if (!(((underlying != null) && (seenUnderlyings?.ContainsKey(underlying) == true))))
                 {
                     seenUnderlyings[(string)underlying] = true;
                     ((IList<object>)subParams).Add(add(underlying, "@optionTrade"));
@@ -1513,7 +1513,7 @@ public partial class binance : ccxt.binance
                 string baseIdLower = ((string)this.safeStringLower(market, "baseId", ""));
                 string? quoteIdLower = this.safeStringLower(market, "quoteId", "");
                 string underlying = add(add(baseIdLower, ""), quoteIdLower);
-                if (!(inOp(seenUnderlyings, underlying)))
+                if (!(((underlying != null) && (seenUnderlyings?.ContainsKey(underlying) == true))))
                 {
                     seenUnderlyings[(string)underlying] = true;
                     ((IList<object>)subParams).Add(add(underlying, "@optionTrade"));
