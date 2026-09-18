@@ -2796,7 +2796,7 @@ public partial class myriad : PredictionExchange
         // percentage from it — setting percentage = the absolute change (as before) was wrong
         object previousClose = null;
         object percentage = null;
-        if ((!isEqual(price, null)) && (!isEqual(change, null)))
+        if (((price != null)) && ((change != null)))
         {
             previousClose = subtract(price, change);
             if (isEqual(previousClose, null))
@@ -2962,7 +2962,7 @@ public partial class myriad : PredictionExchange
         // AMM: synthesize a single bid/ask pair around the current implied price, clamped into the valid (0, 1) range
         double? bid = null;
         double? ask = null;
-        if (!isEqual(price, null))
+        if ((price != null))
         {
             if (isGreaterThan(price, 0.001))
             {
@@ -2976,12 +2976,12 @@ public partial class myriad : PredictionExchange
         // the synthetic size must be a parsed float, an int literal breaks the typed go wrapper conversion
         double? synthSize = this.parseNumber("9999");
         List<object> bids = new List<object>() {};
-        if (!isEqual(bid, null))
+        if ((bid != null))
         {
             ((IList<object>)bids).Add(new List<object>() {bid, synthSize});
         }
         List<object> asks = new List<object>() {};
-        if (!isEqual(ask, null))
+        if ((ask != null))
         {
             ((IList<object>)asks).Add(new List<object>() {ask, synthSize});
         }
@@ -3153,7 +3153,7 @@ public partial class myriad : PredictionExchange
             double? pointOpen = this.safeNumber(point, "open");
             double? pointPrice = this.safeNumber(point, "price", this.safeNumber(point, "value"));
             Int64? pointTs = this.safeInteger(point, "timestamp");
-            if (((!isEqual(pointOpen, null)) || (!isEqual(pointPrice, null))) && (!isEqual(pointTs, null)))
+            if ((((pointOpen != null)) || ((pointPrice != null))) && ((pointTs != null)))
             {
                 ((IList<object>)usablePoints).Add(point);
             }
@@ -3188,7 +3188,7 @@ public partial class myriad : PredictionExchange
         double? low = this.safeNumber(ohlcv, "low");
         double? close = this.safeNumber(ohlcv, "close");
         double? price = this.safeNumber(ohlcv, "price", this.safeNumber(ohlcv, "value")); // fallback single-value tick
-        return new List<object> {this.safeTimestamp(ohlcv, "timestamp"), (!isEqual(open, null)) ? open : price, (!isEqual(high, null)) ? high : price, (!isEqual(low, null)) ? low : price, (!isEqual(close, null)) ? close : price, 0};
+        return new List<object> {this.safeTimestamp(ohlcv, "timestamp"), ((open != null)) ? open : price, ((high != null)) ? high : price, ((low != null)) ? low : price, ((close != null)) ? close : price, 0};
     }
 
     /**

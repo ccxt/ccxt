@@ -731,7 +731,7 @@ public partial class cex : Exchange
         IList<object> untilparametersVariable = (IList<object>)this.handleParamInteger2(parameters, "until", "till");
         until = (Int64?)untilparametersVariable[0];
         parameters = untilparametersVariable[1];
-        if (!isEqual(until, null))
+        if ((until != null))
         {
             request["toDateISO"] = this.iso8601(until);
         }
@@ -882,7 +882,7 @@ public partial class cex : Exchange
         IList<object> untilparametersVariable = (IList<object>)this.handleParamInteger2(parameters, "until", "till");
         until = (Int64?)untilparametersVariable[0];
         parameters = untilparametersVariable[1];
-        if (!isEqual(until, null))
+        if ((until != null))
         {
             request["toISO"] = this.iso8601(until);
         } else if (isEqual(since, null))
@@ -890,10 +890,10 @@ public partial class cex : Exchange
             // exchange still requires that we provide one of them
             request["toISO"] = this.iso8601(this.milliseconds());
         }
-        if (!isEqual(since, null) && !isEqual(until, null) && !isEqual(limit, null))
+        if (!isEqual(since, null) && (until != null) && !isEqual(limit, null))
         {
             throw new ArgumentsRequired (add(this.id, " fetchOHLCV does not support fetching candles with both a limit and since/until")) ;
-        } else if ((!isEqual(since, null) || !isEqual(until, null)) && isEqual(limit, null))
+        } else if ((!isEqual(since, null) || (until != null)) && isEqual(limit, null))
         {
             throw new ArgumentsRequired (add(this.id, " fetchOHLCV requires a limit parameter when fetching candles with since or until")) ;
         }
@@ -1179,7 +1179,7 @@ public partial class cex : Exchange
         IList<object> untilparametersVariable = (IList<object>)this.handleParamInteger2(parameters, "until", "till");
         until = (Int64?)untilparametersVariable[0];
         parameters = untilparametersVariable[1];
-        if (!isEqual(until, null))
+        if ((until != null))
         {
             request["serverCreateTimestampTo"] = until;
         }
@@ -1371,7 +1371,7 @@ public partial class cex : Exchange
         string? status = this.parseOrderStatus(this.safeString(order, "status"));
         Dictionary<string, object> fee = new Dictionary<string, object>() {};
         double? feeAmount = this.safeNumber(order, "feeAmount");
-        if (!isEqual(feeAmount, null))
+        if ((feeAmount != null))
         {
             string? currencyId = this.safeString(order, "feeCurrency");
             string? feeCode = this.safeCurrencyCode(currencyId);
@@ -1633,7 +1633,7 @@ public partial class cex : Exchange
         IList<object> untilparametersVariable = (IList<object>)this.handleParamInteger2(parameters, "until", "till");
         until = (Int64?)untilparametersVariable[0];
         parameters = untilparametersVariable[1];
-        if (!isEqual(until, null))
+        if ((until != null))
         {
             request["dateTo"] = until;
         }
@@ -1740,7 +1740,7 @@ public partial class cex : Exchange
         IList<object> untilparametersVariable = (IList<object>)this.handleParamInteger2(parameters, "until", "till");
         until = (Int64?)untilparametersVariable[0];
         parameters = untilparametersVariable[1];
-        if (!isEqual(until, null))
+        if ((until != null))
         {
             request["dateTo"] = until;
         }

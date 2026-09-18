@@ -2849,7 +2849,7 @@ public partial class krakenfutures : Exchange
             request["count"] = multiply(limit, 2);
         }
         Int64? until = this.safeInteger(parameters, "until");
-        if (!isEqual(until, null))
+        if ((until != null))
         {
             parameters = this.omit(parameters, "until");
             request["before"] = until;
@@ -2935,7 +2935,7 @@ public partial class krakenfutures : Exchange
             request["count"] = limit;
         }
         Int64? until = this.safeInteger(parameters, "until");
-        if (!isEqual(until, null))
+        if ((until != null))
         {
             parameters = this.omit(parameters, "until");
             request["before"] = until;
@@ -3613,7 +3613,7 @@ public partial class krakenfutures : Exchange
         //
         double? leverage = this.safeNumber(position, "maxFixedLeverage");
         string marginType = "cross";
-        if (!isEqual(leverage, null))
+        if ((leverage != null))
         {
             marginType = "isolated";
         }

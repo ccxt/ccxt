@@ -1217,11 +1217,11 @@ public partial class whitebit : Exchange
                 double? depositFee = this.safeNumber(deposit, "fixed");
                 Dictionary<string, object> withdrawResult = new Dictionary<string, object>() {
                     { "fee", withdrawFee },
-                    { "percentage", (!isEqual(withdrawFee, null)) ? false : null },
+                    { "percentage", ((withdrawFee != null)) ? false : null },
                 };
                 Dictionary<string, object> depositResult = new Dictionary<string, object>() {
                     { "fee", depositFee },
-                    { "percentage", (!isEqual(depositFee, null)) ? false : null },
+                    { "percentage", ((depositFee != null)) ? false : null },
                 };
                 if ((networkId != null))
                 {
@@ -2214,7 +2214,7 @@ public partial class whitebit : Exchange
         object symbol = getValue(market, "symbol");
         Int64? role = this.safeInteger(trade, "role");
         string? takerOrMaker = null;
-        if (!isEqual(role, null))
+        if ((role != null))
         {
             takerOrMaker = ((role == 1)) ? "maker" : "taker";
         }
@@ -2461,7 +2461,7 @@ public partial class whitebit : Exchange
         bool isLimitOrder = isEqual(type, "limit");
         bool isMarketOrder = isEqual(type, "market");
         double? triggerPrice = this.safeNumberN(parameters, new List<object>() {"triggerPrice", "stopPrice", "activation_price"});
-        bool isStopOrder = (!isEqual(triggerPrice, null));
+        bool isStopOrder = ((triggerPrice != null));
         string? timeInForce = this.safeStringUpper(parameters, "timeInForce");
         if (((timeInForce != null)) && (timeInForce != "GTC") && (timeInForce != "IOC") && (timeInForce != "PO"))
         {
@@ -2584,7 +2584,7 @@ public partial class whitebit : Exchange
         }
         // Handle amount vs total parameter based on order type and side
         double? triggerPrice = this.safeNumberN(parameters, new List<object>() {"triggerPrice", "stopPrice", "activationPrice"});
-        bool isStopOrder = (!isEqual(triggerPrice, null));
+        bool isStopOrder = ((triggerPrice != null));
         // Handle activation price for stop orders
         if (isStopOrder)
         {
@@ -2592,7 +2592,7 @@ public partial class whitebit : Exchange
         }
         bool isLimitOrder = isEqual(type, "limit");
         double? total = this.safeNumber(parameters, "total");
-        if (!isEqual(total, null))
+        if ((total != null))
         {
             request["total"] = this.amountToPrecision(symbol, total);
         } else if (!isEqual(amount, null))
@@ -2617,7 +2617,7 @@ public partial class whitebit : Exchange
             request["price"] = this.priceToPrecision(symbol, price);
         }
         // Ensure at least one modifiable parameter is provided
-        bool hasModifiableParam = (!isEqual(amount, null)) || (!isEqual(price, null)) || (!isEqual(triggerPrice, null)) || (!isEqual(total, null));
+        bool hasModifiableParam = (!isEqual(amount, null)) || (!isEqual(price, null)) || ((triggerPrice != null)) || ((total != null));
         if (!hasModifiableParam)
         {
             throw new ArgumentsRequired (add(this.id, " editOrder() requires at least one of: amount, price, activationPrice, or total parameters")) ;
@@ -3397,7 +3397,7 @@ public partial class whitebit : Exchange
             }
             request["provider"] = provider;
             double? amount = this.safeNumber(parameters, "amount");
-            if (isEqual(amount, null))
+            if ((amount == null))
             {
                 throw new ArgumentsRequired (add(this.id, " fetchDepositAddress() requires an amount when the ticker is fiat")) ;
             }
@@ -4960,7 +4960,7 @@ public partial class whitebit : Exchange
             // {"code":0,"message":"Validation failed","errors":{"amount":["Amount must be greater than 0"]}}
             Int64? codeNew = this.safeInteger(response, "code");
             bool hasErrorStatus = (status != null) && status != "200" && (errors != null);
-            if (hasErrorStatus || !isEqual(codeNew, null))
+            if (hasErrorStatus || (codeNew != null))
             {
                 string feedback = add(add(this.id, " "), body);
                 object errorInfo = message;

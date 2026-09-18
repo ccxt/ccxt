@@ -1943,7 +1943,7 @@ public partial class gate : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         bool? unifiedAccount = this.safeBool(this.options, "unifiedAccount");
-        if (isEqual(unifiedAccount, null))
+        if ((unifiedAccount == null))
         {
             try
             {
@@ -2191,7 +2191,7 @@ public partial class gate : Exchange
             string? tradeStatus = this.safeString(market, "trade_status");
             Int64? marginStatus = this.safeInteger(market, "status", 1); // 0 disabled, 1 enabled
             double? leverage = this.safeNumber(market, "leverage");
-            bool margin = !isEqual(leverage, null);
+            bool margin = (leverage != null);
             Int64? buyStart = this.safeIntegerProduct(spotMarket, "buy_start", 1000); // buy_start is the trading start time, while sell_start is offline orders start time
             Int64? createdTs = ((buyStart != 0)) ? buyStart : null;
             bool active = (tradeStatus == "tradable") || (margin && ((marginStatus == 1)));
@@ -3186,7 +3186,7 @@ public partial class gate : Exchange
             //    }
             //
             Int64? obtainFailed = this.safeInteger(entry, "obtain_failed");
-            if ((!isEqual(obtainFailed, null)) && ((obtainFailed != 0)))
+            if (((obtainFailed != null)) && ((obtainFailed != 0)))
             {
                 continue;
             }
@@ -4441,7 +4441,7 @@ public partial class gate : Exchange
         int maxLimit = (isEqual(GetValue(market, "contract"), true)) ? 1999 : 1000;
         limitVar = (isEqual(limitVar, null)) ? maxLimit : mathMin(limitVar, maxLimit);
         Int64? until = this.safeInteger(parameters, "until");
-        if (!isEqual(until, null))
+        if ((until != null))
         {
             until = this.parseToInt(divide(until, 1000));
             parameters = this.omit(parameters, "until");
@@ -4454,7 +4454,7 @@ public partial class gate : Exchange
             object toTimestamp = this.sum(GetValue(request, "from"), distance);
             Int64 currentTimestamp = this.seconds();
             object to = mathMin(toTimestamp, currentTimestamp);
-            if (!isEqual(until, null))
+            if ((until != null))
             {
                 request["to"] = mathMin(to, until);
             } else
@@ -4463,7 +4463,7 @@ public partial class gate : Exchange
             }
         } else
         {
-            if (!isEqual(until, null))
+            if ((until != null))
             {
                 request["to"] = until;
             }
@@ -4563,7 +4563,7 @@ public partial class gate : Exchange
             request["from"] = this.parseToInt(divide(since, 1000));
         }
         Int64? until = this.safeInteger(parameters, "until");
-        if (!isEqual(until, null))
+        if ((until != null))
         {
             parameters = this.omit(parameters, "until");
             request["to"] = this.parseToInt(divide(until, 1000));
@@ -4685,7 +4685,7 @@ public partial class gate : Exchange
         var request = ((IList<object>) requestqueryVariable)[0];
         var query = ((IList<object>) requestqueryVariable)[1];
         Int64? until = this.safeInteger2(parameters, "to", "until");
-        if (!isEqual(until, null))
+        if ((until != null))
         {
             parameters = this.omit(parameters, new List<object>() {"until"});
             ((IDictionary<string,object>)request)["to"] = this.parseToInt(divide(until, 1000));
@@ -4886,7 +4886,7 @@ public partial class gate : Exchange
         {
             request["from"] = this.parseToInt(divide(since, 1000));
         }
-        if (!isEqual(until, null))
+        if ((until != null))
         {
             request["to"] = this.parseToInt(divide(until, 1000));
         }
@@ -5811,7 +5811,7 @@ public partial class gate : Exchange
                     parameters = createMarketBuyOrderRequiresPriceparametersVariable[1];
                     double? cost = this.safeNumber(parameters, "cost");
                     parameters = this.omit(parameters, "cost");
-                    if (!isEqual(cost, null))
+                    if ((cost != null))
                     {
                         quoteAmount = this.costToPrecision(symbol, cost);
                     } else if (isTrue(createMarketBuyOrderRequiresPrice))
@@ -6392,7 +6392,7 @@ public partial class gate : Exchange
         string? cost = this.safeString(order, "filled_total");
         double? triggerPrice = this.safeNumber(trigger, "price");
         double? average = this.safeNumber2(order, "avg_deal_price", "fill_price");
-        if ((!isEqual(triggerPrice, null)) && (!isEqual(triggerPrice, 0)))
+        if (((triggerPrice != null)) && (!isEqual(triggerPrice, 0)))
         {
             remainingString = amount;
             cost = "0";
@@ -6717,7 +6717,7 @@ public partial class gate : Exchange
         IList<object> useHistoricalparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchClosedOrders", "historical", false);
         useHistorical = useHistoricalparametersVariable[0];
         parameters = useHistoricalparametersVariable[1];
-        if (!isTrue(useHistorical) && ((isEqual(since, null) && isEqual(until, null)) || (type != "swap")))
+        if (!isTrue(useHistorical) && ((isEqual(since, null) && (until == null)) || (type != "swap")))
         {
             return await this.FetchOrdersByStatus("finished", symbolVar,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), parameters);
         }
@@ -6730,7 +6730,7 @@ public partial class gate : Exchange
         {
             request["from"] = this.parseToInt(divide(since, 1000));
         }
-        if (!isEqual(until, null))
+        if ((until != null))
         {
             parameters = this.omit(parameters, "until");
             request["to"] = this.parseToInt(divide(until, 1000));
@@ -6785,7 +6785,7 @@ public partial class gate : Exchange
                 ((IDictionary<string,object>)request)["from"] = this.parseToInt(divide(since, 1000));
             }
             Int64? until = this.safeInteger(parameters, "until");
-            if (!isEqual(until, null))
+            if ((until != null))
             {
                 parameters = this.omit(parameters, "until");
                 ((IDictionary<string,object>)request)["to"] = this.parseToInt(divide(until, 1000));
@@ -10195,7 +10195,7 @@ public partial class gate : Exchange
         {
             request["from"] = this.parseToInt(divide(since, 1000));
         }
-        if (!isEqual(until, null))
+        if ((until != null))
         {
             request["to"] = this.parseToInt(divide(until, 1000));
         }

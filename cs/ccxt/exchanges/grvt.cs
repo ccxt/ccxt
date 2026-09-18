@@ -763,7 +763,7 @@ public partial class grvt : Exchange
         // expires in 24 hours as CS suggested
         Int64? expires = this.safeInteger(this.options, "signInExpiration", 0);
         // if previous sign-in not expired (give 10 seconds margin)
-        if (!isEqual(expires, null) && isGreaterThan(expires, add(now, 10000)))
+        if ((expires != null) && isGreaterThan(expires, add(now, 10000)))
         {
             return new Dictionary<string, object>() {};
         }
@@ -789,7 +789,7 @@ public partial class grvt : Exchange
         // expires in 24 hours as CS suggested
         Int64? expires = this.safeInteger(this.options, "signInExpiration", 0);
         // if previous sign-in not expired (give 10 seconds margin)
-        if (!isEqual(expires, null) && isGreaterThan(expires, add(now, 10000)))
+        if ((expires != null) && isGreaterThan(expires, add(now, 10000)))
         {
             return new Dictionary<string, object>() {};
         }
@@ -1385,7 +1385,7 @@ public partial class grvt : Exchange
         string? takerOrMaker = null;
         bool? isTakerBuyer = this.safeBool(trade, "is_taker_buyer");
         string? side = null;
-        if (!isEqual(isTakerBuyer, null))
+        if ((isTakerBuyer != null))
         {
             side = isTrue(isTakerBuyer) ? "buy" : "sell";
             takerOrMaker = "taker";
@@ -3764,7 +3764,7 @@ public partial class grvt : Exchange
     {
         multiplier ??= 1;
         Int64? until = this.safeInteger2(parameters, "until", "till");
-        if (!isEqual(until, null))
+        if ((until != null))
         {
             ((IDictionary<string,object>)request)[(string)key] = this.numberToString(this.parseToInt(multiply(until, multiplier)));
             parameters = this.omit(parameters, new List<object>() {"until", "till"});

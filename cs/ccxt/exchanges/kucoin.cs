@@ -2426,17 +2426,17 @@ public partial class kucoin : Exchange
             double? tickSize = this.safeNumber(market, "tickSize");
             double? lotSize = this.safeNumber(market, "lotSize");
             double? limitAmountMin = lotSize;
-            if (isEqual(limitAmountMin, null))
+            if ((limitAmountMin == null))
             {
                 limitAmountMin = this.safeNumber(market, "baseMinSize");
             }
             double? limitAmountMax = this.safeNumber(market, "maxOrderQty");
-            if (isEqual(limitAmountMax, null))
+            if ((limitAmountMax == null))
             {
                 limitAmountMax = this.safeNumber(market, "baseMaxSize");
             }
             double? limitPriceMax = this.safeNumber(market, "maxPrice");
-            if (isEqual(limitPriceMax, null))
+            if ((limitPriceMax == null))
             {
                 string? baseMinSizeString = this.safeString(market, "baseMinSize");
                 string? quoteMaxSizeString = this.safeString(market, "quoteMaxSize");
@@ -2717,7 +2717,7 @@ public partial class kucoin : Exchange
         parameters ??= new Dictionary<string, object>();
         bool? migrated = this.safeBool(this.options, "hf", false);
         bool? loadedHf = null;
-        if (!isEqual(migrated, null))
+        if ((migrated != null))
         {
             if (migrated == true)
             {
@@ -4067,7 +4067,7 @@ public partial class kucoin : Exchange
         IDictionary<string, object> timeframeOptions = this.safeDict(this.options, "timeframes", new Dictionary<string, object>() {});
         IDictionary<string, object> swapTimeframes = this.safeDict(timeframeOptions, "swap", new Dictionary<string, object>() {});
         Int64? parsedTimeframe = this.safeInteger(swapTimeframes, timeframeVar);
-        if (!isEqual(parsedTimeframe, null))
+        if ((parsedTimeframe != null))
         {
             request["granularity"] = parsedTimeframe;
         } else
@@ -4439,7 +4439,7 @@ public partial class kucoin : Exchange
             response = await this.utaPrivateGetMarketOrderbook(this.extend(request, parameters));
         } else if ((type != "spot") && (type != "margin"))
         {
-            if ((level != 2) && !isEqual(level, null))
+            if ((level != 2) && (level != null))
             {
                 throw new BadRequest (add(this.id, " fetchOrderBook() can only return level 2")) ;
             }
@@ -4532,10 +4532,10 @@ public partial class kucoin : Exchange
         //
         IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         Int64? timestamp = this.safeInteger(data, "time");
-        if (isEqual(timestamp, null))
+        if ((timestamp == null))
         {
             Int64? nanoseconds = this.safeInteger(data, "ts");
-            if (!isEqual(nanoseconds, null))
+            if ((nanoseconds != null))
             {
                 timestamp = this.parseToInt(divide(nanoseconds, 1000000));
             }
@@ -4773,7 +4773,7 @@ public partial class kucoin : Exchange
         parameters = marginModeparametersVariable[1];
         if (isEqual(type, "market"))
         {
-            if (!isEqual(quoteAmount, null))
+            if ((quoteAmount != null))
             {
                 parameters = this.omit(parameters, new List<object>() {"cost", "funds"});
                 // kucoin uses base precision even for quote values
@@ -5245,7 +5245,7 @@ public partial class kucoin : Exchange
                     if (isEqual(marginMode, "isolated"))
                     {
                         Int64? leverage = this.safeInteger(parameters, "leverage");
-                        if (isEqual(leverage, null))
+                        if ((leverage == null))
                         {
                             request["leverage"] = 1;
                         }
@@ -6410,7 +6410,7 @@ public partial class kucoin : Exchange
             {
                 request["pageSize"] = limit;
             }
-            if ((!isEqual(until, null)) && ((until != 0)))
+            if (((until != null)) && ((until != 0)))
             {
                 request["endAt"] = until;
             }
@@ -6511,7 +6511,7 @@ public partial class kucoin : Exchange
         {
             request["startAt"] = since;
         }
-        if (!isEqual(until, null))
+        if ((until != null))
         {
             request["endAt"] = until;
         }
@@ -7334,7 +7334,7 @@ public partial class kucoin : Exchange
         }
         status = ((cancelExist == true)) ? "canceled" : status;
         Dictionary<string, object> fee = null;
-        if (!isEqual(feeCost, null))
+        if ((feeCost != null))
         {
             fee = new Dictionary<string, object>() {
                 { "currency", feeCurrency },
@@ -7506,7 +7506,7 @@ public partial class kucoin : Exchange
         bool? isActive = this.safeBool2(order, "isActive", "active");
         string? responseStatus = this.safeString(order, "status");
         string? status = null;
-        if (!isEqual(isActive, null))
+        if ((isActive != null))
         {
             if ((isActive == true))
             {
@@ -10216,10 +10216,10 @@ public partial class kucoin : Exchange
         string? direction = this.safeString2(item, "direction", "type");
         string? account = this.safeString(item, "accountType"); // MAIN, TRADE, MARGIN, or CONTRACT
         Int64? timestamp = this.safeInteger(item, "createdAt");
-        if (isEqual(timestamp, null))
+        if ((timestamp == null))
         {
             timestamp = this.safeInteger(item, "time");
-            if (!isEqual(timestamp, null))
+            if ((timestamp != null))
             {
                 account = "CONTRACT"; // contract ledger entries do not have an accountType field, so we set it to CONTRACT if the time field is present
             } else
@@ -11646,7 +11646,7 @@ public partial class kucoin : Exchange
         {
             start = 0;
         }
-        if (isEqual(until, null))
+        if ((until == null))
         {
             end = this.milliseconds();
         }
@@ -12091,7 +12091,7 @@ public partial class kucoin : Exchange
                 request["from"] = since;
             }
             Int64? until = this.safeInteger(parameters, "until");
-            if (!isEqual(until, null))
+            if ((until != null))
             {
                 parameters = this.omit(parameters, "until");
                 request["to"] = until;
@@ -12253,7 +12253,7 @@ public partial class kucoin : Exchange
         string? symbol = this.safeString(position, "symbol");
         market = this.safeMarket(symbol, market);
         Int64? timestamp = this.safeInteger(position, "currentTimestamp");
-        if (isEqual(timestamp, null))
+        if ((timestamp == null))
         {
             timestamp = this.safeIntegerProduct(position, "creationTime", 0.000001);
         }
@@ -12295,7 +12295,7 @@ public partial class kucoin : Exchange
             marginMode = (isEqual(crossMode, true)) ? "cross" : "isolated";
         }
         Int64? lastUpdateTimestamp = this.safeInteger(position, "closeTime");
-        if (isEqual(lastUpdateTimestamp, null))
+        if ((lastUpdateTimestamp == null))
         {
             if (inOp(position, "closingTime"))
             {
@@ -13182,7 +13182,7 @@ public partial class kucoin : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         bool? uta = this.safeBool(this.options, "uta");
-        if (isEqual(uta, null))
+        if ((uta == null))
         {
             Dictionary<string, object> response = await this.utaPrivateGetAccountMode(parameters);
             IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
@@ -13368,7 +13368,7 @@ public partial class kucoin : Exchange
             { "bizType", "TRANSFER" },
         };
         Int64? until = this.safeInteger(parameters, "until");
-        if (!isEqual(until, null))
+        if ((until != null))
         {
             parameters = this.omit(parameters, "until");
             request["endAt"] = until;

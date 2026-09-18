@@ -1079,7 +1079,7 @@ public partial class bigone : Exchange
         //
         IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         Int64? timestamp = this.safeInteger(data, "Timestamp");
-        if (isEqual(timestamp, null))
+        if ((timestamp == null))
         {
             throw new ExchangeError (add(this.id, " fetchTime() missing timestamp")) ;
         }
@@ -1463,7 +1463,7 @@ public partial class bigone : Exchange
             throw new NotSupported (add(this.id, " fetchOHLCV () can only fetch ohlcvs for spot markets")) ;
         }
         Int64? until = this.safeInteger(parameters, "until");
-        bool untilIsDefined = (!isEqual(until, null));
+        bool untilIsDefined = ((until != null));
         bool sinceIsDefined = (!isEqual(since, null));
         if (isEqual(limitVar, null))
         {
@@ -1773,7 +1773,7 @@ public partial class bigone : Exchange
                 parameters = this.omit(parameters, "cost");
                 if (isTrue(createMarketBuyOrderRequiresPrice))
                 {
-                    if ((isEqual(price, null)) && (isEqual(cost, null)))
+                    if ((isEqual(price, null)) && ((cost == null)))
                     {
                         throw new InvalidOrder (add(this.id, " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument")) ;
                     } else
@@ -1781,7 +1781,7 @@ public partial class bigone : Exchange
                         string? amountString = this.numberToString(amount);
                         string? priceString = this.numberToString(price);
                         object quoteAmount = this.parseToNumeric(Precise.stringMul(amountString, priceString));
-                        object costRequest = (!isEqual(cost, null)) ? cost : quoteAmount;
+                        object costRequest = ((cost != null)) ? cost : quoteAmount;
                         request["amount"] = this.costToPrecision(symbol, costRequest);
                     }
                 } else

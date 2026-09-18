@@ -568,7 +568,7 @@ public partial class pacifica : ccxt.pacifica
         Int64? timestamp = this.safeInteger(entry, "t");
         Dictionary<string, object> snapshot = this.parseOrderBook(result, symbol, timestamp, "bids", "asks", "p", "a");
         Int64? nonce = this.safeInteger(entry, "li");
-        if ((!isEqual(nonce, null)) && ((nonce != 0)))
+        if (((nonce != null)) && ((nonce != 0)))
         {
             snapshot["nonce"] = nonce;
         }

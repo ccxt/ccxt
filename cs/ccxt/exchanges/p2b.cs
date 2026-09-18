@@ -675,7 +675,7 @@ public partial class p2b : Exchange
             await this.loadMarkets();
         }
         Int64? lastId = this.safeInteger(parameters, "lastId");
-        if (isEqual(lastId, null))
+        if ((lastId == null))
         {
             throw new ArgumentsRequired (add(this.id, " fetchTrades () requires an extra parameter params[\"lastId\"]")) ;
         }

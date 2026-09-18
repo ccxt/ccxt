@@ -621,7 +621,7 @@ public partial class htx : ccxt.htx
             object tick = this.safeValue(firstMessage, "tick");
             Int64? sequence = this.safeInteger(tick, "prevSeqNum");
             Int64? nonce = this.safeInteger(data, "seqNum");
-            if (isEqual(nonce, null))
+            if ((nonce == null))
             {
                 return;
             }
@@ -631,7 +631,7 @@ public partial class htx : ccxt.htx
             Int64? snapshotLimit = this.safeInteger(subscription, "limit");
             ccxt.pro.OrderBook snapshotOrderBook = this.orderBook(snapshot, snapshotLimit);
             callDynamically(client, "resolve", new object[] {snapshotOrderBook, id});
-            if ((isEqual(sequence, null)) || (isLessThan(nonce, sequence)))
+            if (((sequence == null)) || (isLessThan(nonce, sequence)))
             {
                 object maxAttempts = this.handleOption("watchOrderBook", "maxRetries", 3);
                 object numAttempts = this.safeInteger(subscription, "numAttempts", 0);
@@ -643,7 +643,7 @@ public partial class htx : ccxt.htx
                     {
                         numAttempts = this.sum(numAttempts, 1);
                         object delayTime = 1000;
-                        if ((!isEqual(lastTimestamp, null)) && (!isEqual(snapshotTimestamp, null)))
+                        if (((lastTimestamp != null)) && ((snapshotTimestamp != null)))
                         {
                             delayTime = this.sum(1000, subtract(lastTimestamp, snapshotTimestamp));
                         }
@@ -827,7 +827,7 @@ public partial class htx : ccxt.htx
             (orderbook as IOrderBook).reset(snapshot);
             ((IDictionary<string,object>)orderbook)["nonce"] = version;
         }
-        if ((!isEqual(prevSeqNum, null)) && isGreaterThan(prevSeqNum, this.safeInteger(orderbook, "nonce", 0)))
+        if (((prevSeqNum != null)) && isGreaterThan(prevSeqNum, this.safeInteger(orderbook, "nonce", 0)))
         {
             object checksum = this.handleOption("watchOrderBook", "checksum", true);
             if (isEqual(checksum, true))
@@ -836,7 +836,7 @@ public partial class htx : ccxt.htx
             }
         }
         bool spotConditon = (isEqual(GetValue(market, "spot"), true)) && (isEqual(prevSeqNum, getValue(orderbook, "nonce")));
-        bool nonSpotCondition = (isEqual(GetValue(market, "contract"), true)) && (!isEqual(version, null)) && (isEqual(subtract(version, 1), getValue(orderbook, "nonce")));
+        bool nonSpotCondition = (isEqual(GetValue(market, "contract"), true)) && ((version != null)) && (isEqual(subtract(version, 1), getValue(orderbook, "nonce")));
         if (((spotConditon == true)) || ((nonSpotCondition == true)))
         {
             object asks = this.safeValue(tick, "asks", new List<object>() {});
@@ -2605,7 +2605,7 @@ public partial class htx : ccxt.htx
         try
         {
             Int64? ping = this.safeInteger(message, "ping");
-            if (!isEqual(ping, null))
+            if ((ping != null))
             {
                 await client.send(new Dictionary<string, object>() {
                     { "pong", ping },

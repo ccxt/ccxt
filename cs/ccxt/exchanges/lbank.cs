@@ -865,7 +865,7 @@ public partial class lbank : Exchange
         //     }
         //
         Int64? timestamp = this.safeInteger(ticker, "timestamp");
-        if (isEqual(timestamp, null))
+        if ((timestamp == null))
         {
             timestamp = this.safeTimestamp(ticker, "lastTime");
         }
@@ -1179,7 +1179,7 @@ public partial class lbank : Exchange
         //      }
         //
         Int64? timestamp = this.safeInteger2(trade, "date_ms", "time");
-        if (isEqual(timestamp, null))
+        if ((timestamp == null))
         {
             timestamp = this.safeInteger(trade, "dealTime");
         }
@@ -1579,7 +1579,7 @@ public partial class lbank : Exchange
         Int64? fundingTime = this.safeInteger(ticker, "nextFeeTime");
         Int64? positionFeeTime = this.safeInteger(ticker, "positionFeeTime");
         string? intervalString = null;
-        if (!isEqual(positionFeeTime, null))
+        if ((positionFeeTime != null))
         {
             Int64? interval = this.parseToInt(divide(divide(positionFeeTime, 60), 60));
             intervalString = add(((object)interval).ToString(), "h");
@@ -1903,7 +1903,7 @@ public partial class lbank : Exchange
                 parameters = createMarketBuyOrderRequiresPriceparametersVariable[1];
                 double? cost = this.safeNumber(parameters, "cost");
                 parameters = this.omit(parameters, "cost");
-                if (!isEqual(cost, null))
+                if ((cost != null))
                 {
                     quoteAmount = this.costToPrecision(symbol, cost);
                 } else if (isTrue(createMarketBuyOrderRequiresPrice))
@@ -2796,7 +2796,7 @@ public partial class lbank : Exchange
         string? status = this.parseTransactionStatus(this.safeString(transaction, "status"), type);
         Dictionary<string, object> fee = null;
         double? feeCost = this.safeNumber(transaction, "fee");
-        if (!isEqual(feeCost, null))
+        if ((feeCost != null))
         {
             fee = new Dictionary<string, object>() {
                 { "cost", feeCost },
@@ -3041,7 +3041,7 @@ public partial class lbank : Exchange
             {
                 object networkEntry = getValue(networkList, j);
                 double? fee = this.safeNumber(networkEntry, "withdrawFee");
-                if (!isEqual(fee, null))
+                if ((fee != null))
                 {
                     string? networkCode = this.networkIdToCode(this.safeString(networkEntry, "name"), code);
                     if ((networkCode != null))
@@ -3277,7 +3277,7 @@ public partial class lbank : Exchange
                 if (((code != null)) && (isEqual(codes, null) || this.inArray(code, codes)))
                 {
                     double? withdrawFee = this.safeNumber(fee, "fee");
-                    if (!isEqual(withdrawFee, null))
+                    if ((withdrawFee != null))
                     {
                         object resultValue = this.safeValue(result, code);
                         if ((resultValue == null))
@@ -3352,7 +3352,7 @@ public partial class lbank : Exchange
             string? networkCode = this.networkIdToCode(this.safeString(networkEntry, "name"), code);
             double? withdrawFee = this.safeNumber(networkEntry, "withdrawFee");
             object isDefault = this.safeValue(networkEntry, "isDefault");
-            if (!isEqual(withdrawFee, null))
+            if ((withdrawFee != null))
             {
                 if (isEqual(isDefault, true))
                 {

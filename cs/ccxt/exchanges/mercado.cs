@@ -582,7 +582,7 @@ public partial class mercado : Exchange
         }
         Int64? to = this.safeInteger(parameters, "to");
         List<object> response = null;
-        if ((!isEqual(since, null)) && (!isEqual(to, null)))
+        if ((!isEqual(since, null)) && ((to != null)))
         {
             response = await this.publicGetCoinTradesFromTo(this.extend(request, parameters));
         } else if (!isEqual(since, null))

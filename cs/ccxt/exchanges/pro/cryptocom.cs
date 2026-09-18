@@ -1104,7 +1104,7 @@ public partial class cryptocom : ccxt.cryptocom
         {
             object position = getValue(positions, i);
             double? contracts = this.safeNumber(position, "contracts", 0);
-            if ((!isEqual(contracts, null)) && (isGreaterThan(contracts, 0)))
+            if (((contracts != null)) && (isGreaterThan(contracts, 0)))
             {
                 callDynamically(cache, "append", new object[] {position});
             }

@@ -1283,7 +1283,7 @@ public partial class derive : Exchange
         }
         Int64? until = this.safeInteger(parameters, "until");
         parameters = this.omit(parameters, new List<object>() {"until"});
-        if (!isEqual(until, null))
+        if ((until != null))
         {
             request["to_timestamp"] = until;
         }
@@ -1432,7 +1432,7 @@ public partial class derive : Exchange
         }
         Int64? until = this.safeInteger(parameters, "until");
         parameters = this.omit(parameters, new List<object>() {"until"});
-        if (!isEqual(until, null))
+        if ((until != null))
         {
             request["to_timestamp"] = until;
         }
@@ -1652,7 +1652,7 @@ public partial class derive : Exchange
             { "referral_code", this.safeString(this.options, "id", "0x0ad42b8e602c2d3d475ae52d678cf63d84ab2749") },
             { "signer", this.walletAddress },
         };
-        if (!isEqual(reduceOnly, null))
+        if ((reduceOnly != null))
         {
             request["reduce_only"] = reduceOnly;
             if (reduceOnly == true && ((postOnly == true)))
@@ -1660,7 +1660,7 @@ public partial class derive : Exchange
                 throw new InvalidOrder (add(this.id, " cannot use reduce only with post only time in force")) ;
             }
         }
-        if (!isEqual(postOnly, null))
+        if ((postOnly != null))
         {
             request["time_in_force"] = "post_only";
         } else if ((timeInForce != null))
@@ -1837,7 +1837,7 @@ public partial class derive : Exchange
             { "signature_expiry_sec", signatureExpiry },
             { "signer", this.walletAddress },
         };
-        if (!isEqual(reduceOnly, null))
+        if ((reduceOnly != null))
         {
             request["reduce_only"] = reduceOnly;
             if (reduceOnly == true && ((postOnly == true)))
@@ -1845,7 +1845,7 @@ public partial class derive : Exchange
                 throw new InvalidOrder (add(this.id, " cannot use reduce only with post only time in force")) ;
             }
         }
-        if (!isEqual(postOnly, null))
+        if ((postOnly != null))
         {
             request["time_in_force"] = "post_only";
         } else if ((timeInForce != null))
@@ -2206,7 +2206,7 @@ public partial class derive : Exchange
         //
         object data = this.safeValue(response, "result");
         Int64? page = this.safeInteger(parameters, "page");
-        if (!isEqual(page, null))
+        if ((page != null))
         {
             IDictionary<string, object> pagination = this.safeDict(data, "pagination");
             Int64? currentPage = this.safeInteger(pagination, "num_pages", 0);
@@ -2627,7 +2627,7 @@ public partial class derive : Exchange
         //
         IDictionary<string, object> result = this.safeDict(response, "result", new Dictionary<string, object>() {});
         Int64? page = this.safeInteger(parameters, "page");
-        if (!isEqual(page, null))
+        if ((page != null))
         {
             IDictionary<string, object> pagination = this.safeDict(result, "pagination");
             Int64? currentPage = this.safeInteger(pagination, "num_pages", 0);
@@ -2871,7 +2871,7 @@ public partial class derive : Exchange
         //
         IDictionary<string, object> result = this.safeDict(response, "result", new Dictionary<string, object>() {});
         Int64? page = this.safeInteger(parameters, "page");
-        if (!isEqual(page, null))
+        if ((page != null))
         {
             IDictionary<string, object> pagination = this.safeDict(result, "pagination");
             Int64? currentPage = this.safeInteger(pagination, "num_pages", 0);

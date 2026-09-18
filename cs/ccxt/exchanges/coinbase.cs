@@ -952,7 +952,7 @@ public partial class coinbase : Exchange
         List<object> parts = ((string)((string)typeV3)).Split(new [] {" "}, StringSplitOptions.None).ToList<object>();
         return new Dictionary<string, object>() {
             { "id", this.safeString2(account, "id", "uuid") },
-            { "type", (!isEqual(active, null)) ? this.safeStringLower(parts, 1) : typeV2 },
+            { "type", ((active != null)) ? this.safeStringLower(parts, 1) : typeV2 },
             { "code", this.safeCurrencyCode(currencyId) },
             { "info", account },
         };
@@ -1542,7 +1542,7 @@ public partial class coinbase : Exchange
         }
         object feeCurrencyId = this.safeString(feeObject, "currency");
         double? feeCost = this.safeNumber(feeObject, "amount", this.parseNumber(v3FeeCost));
-        if (((feeCurrencyId == null)) && (!isEqual(market, null)) && (!isEqual(feeCost, null)))
+        if (((feeCurrencyId == null)) && (!isEqual(market, null)) && ((feeCost != null)))
         {
             feeCurrencyId = getValue(market, "quote");
         }
@@ -2089,8 +2089,8 @@ public partial class coinbase : Exchange
         }
         double? takerFeeRate = this.safeNumber(feeTier, "taker_fee_rate");
         double? makerFeeRate = this.safeNumber(feeTier, "maker_fee_rate");
-        double? taker = (!isEqual(takerFeeRate, null) && !isEqual(takerFeeRate, null) && !isEqual(takerFeeRate, 0)) ? takerFeeRate : this.parseNumber("0.06");
-        double? maker = (!isEqual(makerFeeRate, null) && !isEqual(makerFeeRate, null) && !isEqual(makerFeeRate, 0)) ? makerFeeRate : this.parseNumber("0.04");
+        double? taker = ((takerFeeRate != null) && (takerFeeRate != null) && !isEqual(takerFeeRate, 0)) ? takerFeeRate : this.parseNumber("0.06");
+        double? maker = ((makerFeeRate != null) && (makerFeeRate != null) && !isEqual(makerFeeRate, 0)) ? makerFeeRate : this.parseNumber("0.04");
         return ((Dictionary<string, object>)((object)(this.safeMarketStructure(new Dictionary<string, object>() {
             { "id", id },
             { "symbol", symbol },
@@ -2151,7 +2151,7 @@ public partial class coinbase : Exchange
         Int64? timestamp = this.safeInteger(options, "timestamp");
         Int64? expires = this.safeInteger(options, "expires", 1000);
         Int64 now = this.milliseconds();
-        if ((isEqual(timestamp, null)) || (isGreaterThan((subtract(now, timestamp)), expires)))
+        if (((timestamp == null)) || (isGreaterThan((subtract(now, timestamp)), expires)))
         {
             List<object> promises = new List<object> {this.v2PublicGetCurrencies(parameters), this.v2PublicGetCurrenciesCrypto(parameters)};
             List<object> promisesResult = await promiseAll(promises);
@@ -3435,9 +3435,9 @@ public partial class coinbase : Exchange
         double? triggerPrice = this.safeNumberN(parameters, new List<object>() {"stopPrice", "stop_price", "triggerPrice"});
         double? stopLossPrice = this.safeNumber(parameters, "stopLossPrice");
         double? takeProfitPrice = this.safeNumber(parameters, "takeProfitPrice");
-        bool isStop = !isEqual(triggerPrice, null);
-        bool isStopLoss = !isEqual(stopLossPrice, null);
-        bool isTakeProfit = !isEqual(takeProfitPrice, null);
+        bool isStop = (triggerPrice != null);
+        bool isStopLoss = (stopLossPrice != null);
+        bool isTakeProfit = (takeProfitPrice != null);
         string? timeInForce = this.safeString(parameters, "timeInForce");
         bool? postOnly = (timeInForce == "PO") ? true : this.safeBool2(parameters, "postOnly", "post_only", false);
         string? endTime = this.safeString(parameters, "end_time");
@@ -3560,7 +3560,7 @@ public partial class coinbase : Exchange
                 parameters = createMarketBuyOrderRequiresPriceparametersVariable[1];
                 double? cost = this.safeNumber(parameters, "cost");
                 parameters = this.omit(parameters, "cost");
-                if (!isEqual(cost, null))
+                if ((cost != null))
                 {
                     total = this.costToPrecision(symbol, cost);
                 } else if (isTrue(createMarketBuyOrderRequiresPrice))
@@ -4099,7 +4099,7 @@ public partial class coinbase : Exchange
             request["start_date"] = this.iso8601(since);
         }
         Int64? until = this.safeInteger(parameters, "until");
-        if (!isEqual(until, null))
+        if ((until != null))
         {
             parameters = this.omit(parameters, new List<object>() {"until"});
             request["end_date"] = this.iso8601(until);
@@ -4188,7 +4188,7 @@ public partial class coinbase : Exchange
             request["start_date"] = this.iso8601(since);
         }
         Int64? until = this.safeInteger(parameters, "until");
-        if (!isEqual(until, null))
+        if ((until != null))
         {
             parameters = this.omit(parameters, new List<object>() {"until"});
             request["end_date"] = this.iso8601(until);
@@ -4381,7 +4381,7 @@ public partial class coinbase : Exchange
             sinceString = Precise.stringSub(now, requestedDuration.ToString());
         }
         request["start"] = sinceString;
-        if (!isEqual(until, null))
+        if ((until != null))
         {
             request["end"] = this.numberToString(this.parseToInt(divide(until, 1000)));
         } else
@@ -4558,7 +4558,7 @@ public partial class coinbase : Exchange
             request["start_sequence_timestamp"] = this.iso8601(since);
         }
         Int64? until = this.safeInteger(parameters, "until");
-        if (!isEqual(until, null))
+        if ((until != null))
         {
             parameters = this.omit(parameters, new List<object>() {"until"});
             request["end_sequence_timestamp"] = this.iso8601(until);

@@ -1834,7 +1834,7 @@ public partial class woofipro : Exchange
         }
         Int64? until = this.safeInteger(parameters, "until"); // unified in milliseconds
         parameters = this.omit(parameters, new List<object>() {"until"});
-        if (!isEqual(until, null))
+        if ((until != null))
         {
             request["end_t"] = until;
         }
@@ -2104,7 +2104,7 @@ public partial class woofipro : Exchange
         string? orderType = this.safeStringLower2(order, "order_type", "type");
         object status = this.safeValue2(order, "status", "algoStatus");
         bool? success = this.safeBool(order, "success");
-        if (!isEqual(success, null))
+        if ((success != null))
         {
             status = isTrue((success)) ? "NEW" : "REJECTED";
         }
@@ -3498,7 +3498,7 @@ public partial class woofipro : Exchange
         IDictionary<string, object> currencyNetworks = this.safeDict(currency, "networks", new Dictionary<string, object>() {});
         IDictionary<string, object> coinNetwork = this.safeDict(currencyNetworks, chainId, new Dictionary<string, object>() {});
         double? coinNetworkId = this.safeNumber(coinNetwork, "id");
-        if (isEqual(coinNetworkId, null))
+        if ((coinNetworkId == null))
         {
             throw new BadRequest (add(this.id, " withdraw() require chainId parameter")) ;
         }

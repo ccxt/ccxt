@@ -190,7 +190,7 @@ public partial class PredictionExchange : BaseExchange
             }
         }
         Int64? limit = this.safeInteger(parameters, "limit");
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             // clamp to the result length: arraySlice(x, 0, limit) with limit > length panics in Go
             // via reflect Slice, and throws in C#, unlike JS/Python which return the whole array
@@ -219,7 +219,7 @@ public partial class PredictionExchange : BaseExchange
             object eventVar = getValue(events, i);
             bool? isActive = this.safeBool(eventVar, "active");
             // keep events whose status is unknown (already filtered server-side, no `active` field)
-            if ((isEqual(isActive, null)) || ((isActive == wantActive)))
+            if (((isActive == null)) || ((isActive == wantActive)))
             {
                 ((IList<object>)result).Add(eventVar);
             }
@@ -1525,9 +1525,9 @@ public partial class PredictionExchange : BaseExchange
                     side = this.safeString(trade, "side");
                 }
                 Int64? tradeTimestamp = this.safeInteger(trade, "timestamp");
-                if (!isEqual(tradeTimestamp, null))
+                if ((tradeTimestamp != null))
                 {
-                    if (isEqual(lastTradeTimestamp, null))
+                    if ((lastTradeTimestamp == null))
                     {
                         lastTradeTimestamp = tradeTimestamp;
                     } else if (isGreaterThan(tradeTimestamp, lastTradeTimestamp))
@@ -1594,7 +1594,7 @@ public partial class PredictionExchange : BaseExchange
             {
                 timeInForce = "PO";
             }
-        } else if (isEqual(postOnly, null))
+        } else if ((postOnly == null))
         {
             postOnly = (timeInForce == "PO");
         }

@@ -878,7 +878,7 @@ public partial class hitbtc : Exchange
             bool spot = (marketType == "spot");
             bool? marginTrading = this.safeBool(market, "margin_trading", false);
             bool margin = spot && marginTrading == true;
-            bool future = (!isEqual(expiry, null));
+            bool future = ((expiry != null));
             bool swap = (contract && !future);
             bool option = false;
             string? baseId = this.safeString2(market, "base_currency", "underlying");
@@ -1728,7 +1728,7 @@ public partial class hitbtc : Exchange
             { "rate", null },
         };
         double? feeCost = this.safeNumber(native, "fee");
-        if (!isEqual(feeCost, null))
+        if ((feeCost != null))
         {
             fee["currency"] = code;
             fee["cost"] = feeCost;
@@ -2792,7 +2792,7 @@ public partial class hitbtc : Exchange
                 throw new ExchangeError (add(this.id, " createOrder() requires an expire_time parameter for a GTD order")) ;
             }
         }
-        if (!isEqual(triggerPrice, null))
+        if ((triggerPrice != null))
         {
             request["stop_price"] = this.priceToPrecision(getValue(market, "symbol"), triggerPrice);
             if (isLimit)
@@ -4186,7 +4186,7 @@ public partial class hitbtc : Exchange
             object isDefault = this.safeValue(networkEntry, "default");
             Dictionary<string, object> withdrawResult = new Dictionary<string, object>() {
                 { "fee", withdrawFee },
-                { "percentage", (!isEqual(withdrawFee, null)) ? false : null },
+                { "percentage", ((withdrawFee != null)) ? false : null },
             };
             if (isEqual(isDefault, true))
             {

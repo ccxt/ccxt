@@ -1047,7 +1047,7 @@ public partial class upbit : Exchange
         string? id = this.safeString2(trade, "sequential_id", "uuid");
         object orderId = null;
         Int64? timestamp = this.safeInteger(trade, "timestamp");
-        if (isEqual(timestamp, null))
+        if ((timestamp == null))
         {
             timestamp = this.parse8601(this.safeString(trade, "created_at"));
         }

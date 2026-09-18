@@ -1154,7 +1154,7 @@ public partial class bitmex : Exchange
             }
             expiryDatetime = this.safeString2(market, "expiry", "closingTimestamp");
             expiry = this.parse8601(expiryDatetime);
-            if (!isEqual(expiry, null) && future)
+            if ((expiry != null) && future)
             {
                 symbol = add(add(symbol, "-"), this.yymmdd(expiry));
             }
@@ -1417,7 +1417,7 @@ public partial class bitmex : Exchange
             // https://github.com/ccxt/ccxt/issues/4926
             // https://github.com/ccxt/ccxt/issues/4927
             // the exchange sometimes returns null price in the orderbook
-            if (!isEqual(price, null))
+            if ((price != null))
             {
                 ((IList<object>)getValue(result, side)).Add(new List<object>() {price, amount});
             }
@@ -1498,7 +1498,7 @@ public partial class bitmex : Exchange
             request["count"] = limit;
         }
         Int64? until = this.safeInteger2(parameters, "until", "endTime");
-        if (!isEqual(until, null))
+        if ((until != null))
         {
             parameters = this.omit(parameters, new List<object>() {"until"});
             request["endTime"] = this.iso8601(until);
@@ -1599,7 +1599,7 @@ public partial class bitmex : Exchange
             request["count"] = mathMin(500, limit);
         }
         Int64? until = this.safeInteger2(parameters, "until", "endTime");
-        if (!isEqual(until, null))
+        if ((until != null))
         {
             parameters = this.omit(parameters, new List<object>() {"until"});
             request["endTime"] = this.iso8601(until);
@@ -2147,7 +2147,7 @@ public partial class bitmex : Exchange
             request["count"] = limit; // default 100, max 500
         }
         Int64? until = this.safeInteger(parameters, "until");
-        if (!isEqual(until, null))
+        if ((until != null))
         {
             parameters = this.omit(parameters, new List<object>() {"until"});
             request["endTime"] = this.iso8601(until);
@@ -2491,7 +2491,7 @@ public partial class bitmex : Exchange
             request["count"] = mathMin(limit, 1000); // api maximum 1000
         }
         Int64? until = this.safeInteger2(parameters, "until", "endTime");
-        if (!isEqual(until, null))
+        if ((until != null))
         {
             parameters = this.omit(parameters, new List<object>() {"until"});
             request["endTime"] = this.iso8601(until);
@@ -2590,7 +2590,7 @@ public partial class bitmex : Exchange
         // support for unified trigger format
         double? triggerPrice = this.safeNumberN(parameters, new List<object>() {"triggerPrice", "stopPx", "stopPrice"});
         string? trailingAmount = this.safeString2(parameters, "trailingAmount", "pegOffsetValue");
-        bool isTriggerOrder = !isEqual(triggerPrice, null);
+        bool isTriggerOrder = (triggerPrice != null);
         bool isTrailingAmountOrder = (trailingAmount != null);
         if (isTriggerOrder || isTrailingAmountOrder)
         {
@@ -2631,7 +2631,7 @@ public partial class bitmex : Exchange
                 request["pegPriceType"] = "TrailingStopPeg";
             } else
             {
-                if (isEqual(triggerPrice, null))
+                if ((triggerPrice == null))
                 {
                     throw new ArgumentsRequired (add(add(add(this.id, " createOrder() requires a triggerPrice parameter for the "), orderType), " order type")) ;
                 }
@@ -3389,11 +3389,11 @@ public partial class bitmex : Exchange
         }
         Int64? until = this.safeInteger(parameters, "until");
         parameters = this.omit(parameters, new List<object>() {"until"});
-        if (!isEqual(until, null))
+        if ((until != null))
         {
             request["endTime"] = this.iso8601(until);
         }
-        if ((isEqual(since, null)) && (isEqual(until, null)))
+        if ((isEqual(since, null)) && ((until == null)))
         {
             request["reverse"] = true;
         }

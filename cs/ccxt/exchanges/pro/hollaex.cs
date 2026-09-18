@@ -555,7 +555,7 @@ public partial class hollaex : ccxt.hollaex
         Int64? error = this.safeInteger(message, "error");
         try
         {
-            if (!isEqual(error, null))
+            if ((error != null))
             {
                 string feedback = add(add(this.id, " "), this.json(message));
                 this.throwExactlyMatchedException(getValue(getValue(this.exceptions, "ws"), "exact"), error, feedback);

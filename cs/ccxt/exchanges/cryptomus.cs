@@ -1138,7 +1138,7 @@ public partial class cryptomus : Exchange
                 { "cost", this.safeNumber(firstTx, "fee") },
             };
         }
-        if (isEqual(price, null))
+        if ((price == null))
         {
             price = this.safeNumber(firstTx, "filledPrice");
         }

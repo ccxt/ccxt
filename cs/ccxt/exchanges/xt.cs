@@ -1715,7 +1715,7 @@ public partial class xt : Exchange
                 maxPrice = this.safeNumber(entry, "max");
             }
         }
-        if (isEqual(amountPrecision, null))
+        if ((amountPrecision == null))
         {
             amountPrecision = this.parseNumber(this.parsePrecision(this.safeString(market, "quantityPrecision")));
         }
@@ -1894,7 +1894,7 @@ public partial class xt : Exchange
         }
         Int64? until = this.safeInteger(parameters, "until");
         parameters = this.omit(parameters, new List<object>() {"until"});
-        if (!isEqual(until, null))
+        if ((until != null))
         {
             request["endTime"] = until;
         }
@@ -2808,7 +2808,7 @@ public partial class xt : Exchange
         string? side = null;
         string? takerOrMaker = null;
         bool? isBuyerMaker = this.safeBool(trade, "b");
-        if (!isEqual(isBuyerMaker, null))
+        if ((isBuyerMaker != null))
         {
             side = isTrue(isBuyerMaker) ? "sell" : "buy";
             takerOrMaker = "taker"; // public trades always taker
@@ -2821,7 +2821,7 @@ public partial class xt : Exchange
             } else
             {
                 bool? isMaker = this.safeBool(trade, "isMaker");
-                if (!isEqual(isMaker, null))
+                if ((isMaker != null))
                 {
                     takerOrMaker = isTrue(isMaker) ? "maker" : "taker";
                 }
@@ -3231,15 +3231,15 @@ public partial class xt : Exchange
         string? trailingPercent = this.safeString(parameters, "trailingPercent");
         string? trailingAmount = this.safeString(parameters, "trailingAmount");
         double? trailingTriggerPrice = this.safeNumber(parameters, "trailingTriggerPrice");
-        bool isTrigger = (!isEqual(triggerPrice, null));
-        bool isStopLoss = (!isEqual(stopLoss, null));
-        bool isTakeProfit = (!isEqual(takeProfit, null));
+        bool isTrigger = ((triggerPrice != null));
+        bool isStopLoss = ((stopLoss != null));
+        bool isTakeProfit = ((takeProfit != null));
         bool isTrailing = ((trailingPercent != null)) || ((trailingAmount != null));
         if (isTrailing && (!isEqual(GetValue(market, "swap"), true)))
         {
             throw new NotSupported (add(this.id, " createOrder() trailing orders are only supported on swap markets")) ;
         }
-        if ((!isEqual(trailingTriggerPrice, null)) && !isTrailing)
+        if (((trailingTriggerPrice != null)) && !isTrailing)
         {
             throw new ArgumentsRequired (add(this.id, " createOrder() trailingTriggerPrice requires trailingPercent or trailingAmount")) ;
         }
@@ -3268,7 +3268,7 @@ public partial class xt : Exchange
                 request["callback"] = "FIXED";
                 request["callbackVal"] = this.parseToNumeric(trailingAmount);
             }
-            if (!isEqual(trailingTriggerPrice, null))
+            if ((trailingTriggerPrice != null))
             {
                 request["activationPrice"] = this.priceToPrecision(symbol, trailingTriggerPrice);
             }
@@ -5148,7 +5148,7 @@ public partial class xt : Exchange
         string? memo = this.safeString(transaction, "memo");
         string? currencyCode = this.safeCurrencyCode(this.safeString(transaction, "currency"), currency);
         double? fee = this.safeNumber(transaction, "fee");
-        string? feeCurrency = (!isEqual(fee, null)) ? currencyCode : null;
+        string? feeCurrency = ((fee != null)) ? currencyCode : null;
         string? networkId = this.safeString(transaction, "chain");
         return new Dictionary<string, object>() {
             { "info", transaction },
@@ -6627,8 +6627,8 @@ public partial class xt : Exchange
         double? stopLoss = this.safeNumber2(parameters, "stopLoss", "triggerStopPrice");
         double? takeProfit = this.safeNumber2(parameters, "takeProfit", "triggerProfitPrice");
         parameters = this.omit(parameters, new List<object>() {"stopLoss", "takeProfit"});
-        bool isStopLoss = (!isEqual(stopLoss, null));
-        bool isTakeProfit = (!isEqual(takeProfit, null));
+        bool isStopLoss = ((stopLoss != null));
+        bool isTakeProfit = ((takeProfit != null));
         if (isStopLoss || isTakeProfit)
         {
             request["profitId"] = id;
@@ -6643,7 +6643,7 @@ public partial class xt : Exchange
             if (isStopLoss)
             {
                 request["triggerStopPrice"] = this.priceToPrecision(symbol, stopLoss);
-            } else if (!isEqual(takeProfit, null))
+            } else if ((takeProfit != null))
             {
                 request["triggerProfitPrice"] = this.priceToPrecision(symbol, takeProfit);
             } else

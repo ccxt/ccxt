@@ -311,7 +311,7 @@ public partial class ndax : ccxt.ndax
                 string? interval = this.safeString(this.timeframes, timeframe, timeframe);
                 object duration = multiply(parseInt(interval), 1000);
                 Int64? timestamp = this.safeInteger(ohlcv, 0);
-                if (isEqual(timestamp, null))
+                if ((timestamp == null))
                 {
                     continue;
                 }
@@ -485,7 +485,7 @@ public partial class ndax : ccxt.ndax
             {
                 Int64? newTimestamp = this.safeInteger(bidask, 2);
                 object currentTimestampValue = (isEqual(timestamp, null)) ? 0 : timestamp;
-                Int64? newTimestampValue = (isEqual(newTimestamp, null)) ? 0 : newTimestamp;
+                Int64? newTimestampValue = ((newTimestamp == null)) ? 0 : newTimestamp;
                 timestamp = mathMax(currentTimestampValue, newTimestampValue);
             }
             if (isEqual(nonce, null))
@@ -495,7 +495,7 @@ public partial class ndax : ccxt.ndax
             {
                 Int64? newNonce = this.safeInteger(bidask, 0);
                 object currentNonceValue = (isEqual(nonce, null)) ? 0 : nonce;
-                Int64? newNonceValue = (isEqual(newNonce, null)) ? 0 : newNonce;
+                Int64? newNonceValue = ((newNonce == null)) ? 0 : newNonce;
                 nonce = mathMax(currentNonceValue, newNonceValue);
             }
             // 0 new, 1 update, 2 remove
@@ -577,7 +577,7 @@ public partial class ndax : ccxt.ndax
         //
         Dictionary<string, object> subscriptionsById = this.indexBy(client.subscriptions, "id");
         Int64? id = this.safeInteger(message, "i");
-        object subscription = (isEqual(id, null)) ? null : this.safeValue(subscriptionsById, id);
+        object subscription = ((id == null)) ? null : this.safeValue(subscriptionsById, id);
         if ((subscription != null))
         {
             object method = this.safeValue(subscription, "method");

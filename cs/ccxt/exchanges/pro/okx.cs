@@ -1494,7 +1494,7 @@ public partial class okx : ccxt.okx
         depth = depthparametersVariable[0];
         parameters = depthparametersVariable[1];
         Int64? limit = this.safeInteger(parameters, "limit");
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             if ((limit == 1))
             {
@@ -1606,7 +1606,7 @@ public partial class okx : ccxt.okx
         Int64? prevSeqId = this.safeInteger(message, "prevSeqId");
         object nonce = getValue(orderbook, "nonce");
         InvalidNonce? error = null;
-        if (!isEqual(prevSeqId, null) && !isEqual(prevSeqId, -1) && !isEqual(nonce, prevSeqId))
+        if ((prevSeqId != null) && !isEqual(prevSeqId, -1) && !isEqual(nonce, prevSeqId))
         {
             error = new InvalidNonce(add(this.id, " watchOrderBook received invalid nonce"));
         }
@@ -2512,7 +2512,7 @@ public partial class okx : ccxt.okx
         Dictionary<string, object> args = this.createOrderRequest(symbol, type, side, amount, price, parameters);
         Dictionary<string, object> market = this.market(symbol);
         Int64? instIdCode = this.safeInteger(market, "instIdCode");
-        if (!isEqual(instIdCode, null))
+        if ((instIdCode != null))
         {
             ((IDictionary<string,object>)args).Remove((string)"instId");
             args["instIdCode"] = instIdCode;
@@ -2602,7 +2602,7 @@ public partial class okx : ccxt.okx
         Dictionary<string, object> args = this.editOrderRequest(id, symbol, type, side, amount, price, parameters);
         Dictionary<string, object> market = this.market(symbol);
         Int64? instIdCode = this.safeInteger(market, "instIdCode");
-        if (!isEqual(instIdCode, null))
+        if ((instIdCode != null))
         {
             ((IDictionary<string,object>)args).Remove((string)"instId");
             args["instIdCode"] = instIdCode;

@@ -907,7 +907,7 @@ public partial class ndax : Exchange
             } else
             {
                 Int64? newTimestamp = this.safeInteger(level, 2);
-                if (!isEqual(newTimestamp, null))
+                if ((newTimestamp != null))
                 {
                     timestamp = mathMax(timestamp, newTimestamp);
                 }
@@ -918,14 +918,14 @@ public partial class ndax : Exchange
             } else
             {
                 Int64? newNonce = this.safeInteger(level, 0);
-                if (!isEqual(newNonce, null))
+                if ((newNonce != null))
                 {
                     nonce = mathMax(nonce, newNonce);
                 }
             }
             List<object> bidask = this.parseOrderBookBidAsk(level, priceKey, amountKey);
             Int64? levelSide = this.safeInteger(level, 9);
-            object side = (!isEqual(levelSide, null) && (levelSide != 0)) ? asksKey : bidsKey;
+            object side = ((levelSide != null) && (levelSide != 0)) ? asksKey : bidsKey;
             ((IList<object>)getValue(result, side)).Add(bidask);
         }
         result["bids"] = this.sortBy(((IDictionary<string,object>)result)["bids"], 0, true);
@@ -1550,7 +1550,7 @@ public partial class ndax : Exchange
         await this.loadAccounts();
         Int64? defaultAccountId = this.safeInteger2(this.options, "accountId", "AccountId");
         Int64? accountId = this.safeInteger2(parameters, "accountId", "AccountId", defaultAccountId);
-        if (isEqual(accountId, null))
+        if ((accountId == null))
         {
             accountId = this.parseToInt(getValue(getValue(this.accounts, 0), "id"));
         }
@@ -1909,7 +1909,7 @@ public partial class ndax : Exchange
             }
             request["LimitPrice"] = parseFloat(limitPriceString);
         }
-        if (!isEqual(clientOrderId, null))
+        if ((clientOrderId != null))
         {
             request["ClientOrderId"] = clientOrderId;
         }
@@ -1978,7 +1978,7 @@ public partial class ndax : Exchange
             }
             request["LimitPrice"] = parseFloat(limitPriceString);
         }
-        if (!isEqual(clientOrderId, null))
+        if ((clientOrderId != null))
         {
             request["ClientOrderId"] = clientOrderId;
         }
@@ -2156,7 +2156,7 @@ public partial class ndax : Exchange
             { "omsId", omsId },
         };
         Int64? clientOrderId = this.safeInteger2(parameters, "clientOrderId", "ClOrderId");
-        if (!isEqual(clientOrderId, null))
+        if ((clientOrderId != null))
         {
             request["ClOrderId"] = clientOrderId;
         } else
@@ -2879,7 +2879,7 @@ public partial class ndax : Exchange
         double? feeCost = this.safeNumber(transaction, "FeeAmount");
         string? transactionStatus = this.safeString(transaction, "TicketStatus");
         Dictionary<string, object> fee = new Dictionary<string, object>() {};
-        if (!isEqual(feeCost, null))
+        if ((feeCost != null))
         {
             fee = new Dictionary<string, object>() {
                 { "currency", code },

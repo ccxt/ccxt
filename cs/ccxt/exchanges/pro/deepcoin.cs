@@ -803,7 +803,7 @@ public partial class deepcoin : ccxt.deepcoin
         {
             IDictionary<string, object> precision = this.safeDict(market, "precision", new Dictionary<string, object>() {});
             double? tickSize = this.safeNumber(precision, "price");
-            if (isEqual(tickSize, null))
+            if ((tickSize == null))
             {
                 throw new BadRequest (add(add(add(add(add(this.id, " "), methodName), "() requires a params[\"aggregation\"] price level for "), symbol), " because the market has no price precision")) ;
             }

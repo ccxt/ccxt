@@ -738,7 +738,7 @@ public partial class lighter : ccxt.lighter
         string? side = null;
         string? order = null;
         string? takerOrMaker = null;
-        if (!isEqual(accountIndex, null))
+        if ((accountIndex != null))
         {
             if ((bidAccountId == accountIndex))
             {

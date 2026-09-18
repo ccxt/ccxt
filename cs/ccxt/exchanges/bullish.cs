@@ -1339,7 +1339,7 @@ public partial class bullish : Exchange
         string? code = this.safeCurrencyCode(currency);
         double? feeCost = this.safeNumber(trade, "quoteFee");
         Dictionary<string, object> fee = null;
-        if (!isEqual(feeCost, null))
+        if ((feeCost != null))
         {
             fee = new Dictionary<string, object>() {
                 { "currency", code },
@@ -1811,7 +1811,7 @@ public partial class bullish : Exchange
             { "paginationDirection", "backward" },
         });
         Int64? until = this.safeInteger(parameters, "until");
-        if (isEqual(until, null))
+        if ((until == null))
         {
             parameters = this.extend(parameters, new Dictionary<string, object>() {
                 { "until", now },
@@ -2296,7 +2296,7 @@ public partial class bullish : Exchange
         string? cost = this.safeString(order, "quoteAmount");
         Dictionary<string, object> fee = new Dictionary<string, object>() {};
         double? quoteFee = this.safeNumber(order, "quoteFee");
-        if (!isEqual(quoteFee, null))
+        if ((quoteFee != null))
         {
             fee["cost"] = quoteFee;
             fee["currency"] = getValue(market, "quote");
@@ -2369,7 +2369,7 @@ public partial class bullish : Exchange
         request = (Dictionary<string, object>)requestparametersVariable[0];
         parameters = requestparametersVariable[1];
         Int64? until = this.safeInteger(request, "createdAtDatetime[lte]");
-        if (!isEqual(until, null))
+        if ((until != null))
         {
             request["createdAtDatetime[lte]"] = this.iso8601(until);
         }
@@ -2523,7 +2523,7 @@ public partial class bullish : Exchange
             { "rate", null },
         };
         double? feeCost = this.safeNumber(transaction, "fee");
-        if (!isEqual(feeCost, null))
+        if ((feeCost != null))
         {
             fee["cost"] = feeCost;
             fee["currency"] = code;
@@ -3019,7 +3019,7 @@ public partial class bullish : Exchange
             request["assetSymbol"] = GetValue(currency, "id");
         }
         Int64? until = this.safeInteger(parameters, "until");
-        if ((isEqual(since, null)) && (isEqual(until, null)))
+        if ((isEqual(since, null)) && ((until == null)))
         {
             // since and until are mandatory for this endpoint, set until to now if both are undefined
             Int64 now = this.milliseconds();
@@ -3185,7 +3185,7 @@ public partial class bullish : Exchange
         {
             startTimestamp = subtract(now, multiply(multiply(multiply(multiply(1000, 60), 60), 24), 90)); // Only the last 90 days of data is available for querying
         }
-        if (isEqual(until, null))
+        if ((until == null))
         {
             until = now;
         }
@@ -3456,7 +3456,7 @@ public partial class bullish : Exchange
         Int64 now = this.milliseconds();
         object token = this.token;
         Int64? tokenExpires = this.safeInteger(this.options, "tokenExpires");
-        if (((token == null)) || (isEqual(tokenExpires, null)) || (isGreaterThan(now, tokenExpires)))
+        if (((token == null)) || ((tokenExpires == null)) || (isGreaterThan(now, tokenExpires)))
         {
             return await this.signIn();
         } else

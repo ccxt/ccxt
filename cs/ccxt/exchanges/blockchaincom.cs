@@ -1075,7 +1075,7 @@ public partial class blockchaincom : Exchange
         }
         double? feeCost = (type == "withdrawal") ? this.safeNumber(transaction, "fee") : null;
         Dictionary<string, object> fee = null;
-        if (!isEqual(feeCost, null))
+        if ((feeCost != null))
         {
             fee = new Dictionary<string, object>() {
                 { "currency", code },

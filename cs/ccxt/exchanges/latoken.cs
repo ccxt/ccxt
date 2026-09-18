@@ -731,7 +731,7 @@ public partial class latoken : Exchange
             object balance = getValue(balances, i);
             string? currencyId = this.safeString(balance, "currency");
             Int64? timestamp = this.safeInteger(balance, "timestamp");
-            if (!isEqual(timestamp, null))
+            if ((timestamp != null))
             {
                 if (isEqual(maxTimestamp, null))
                 {
@@ -1838,7 +1838,7 @@ public partial class latoken : Exchange
             { "rate", null },
         };
         double? feeCost = this.safeNumber(transaction, "transactionFee");
-        if (!isEqual(feeCost, null))
+        if ((feeCost != null))
         {
             fee["cost"] = feeCost;
             fee["currency"] = code;

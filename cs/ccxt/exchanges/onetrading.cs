@@ -1121,7 +1121,7 @@ public partial class onetrading : Exchange
         int durationInSeconds = this.parseTimeframe(timeframe);
         Int64 duration = multiply(durationInSeconds, 1000);
         Int64? timestamp = this.parse8601(this.safeString(ohlcv, "time"));
-        if (isEqual(timestamp, null))
+        if ((timestamp == null))
         {
             throw new ExchangeError (add(this.id, " parseOHLCV() missing timestamp")) ;
         }
@@ -1238,7 +1238,7 @@ public partial class onetrading : Exchange
         object feeInfo = this.safeValue(trade, "fee", new Dictionary<string, object>() {});
         trade = this.safeValue(trade, "trade", trade);
         Int64? timestamp = this.safeInteger(trade, "trade_timestamp");
-        if (isEqual(timestamp, null))
+        if ((timestamp == null))
         {
             timestamp = this.parse8601(this.safeString(trade, "time"));
         }
@@ -1513,7 +1513,7 @@ public partial class onetrading : Exchange
             priceIsRequired = true;
         }
         double? triggerPrice = this.safeNumberN(parameters, new List<object>() {"triggerPrice", "trigger_price", "stopPrice"});
-        if (!isEqual(triggerPrice, null))
+        if ((triggerPrice != null))
         {
             if (uppercaseType == "MARKET")
             {
@@ -1761,7 +1761,7 @@ public partial class onetrading : Exchange
             request["from"] = this.iso8601(since);
         }
         Int64? until = this.safeInteger(parameters, "until");
-        if (!isEqual(until, null))
+        if ((until != null))
         {
             parameters = this.omit(parameters, "until");
             request["to"] = this.iso8601(until);
@@ -1972,7 +1972,7 @@ public partial class onetrading : Exchange
             request["from"] = this.iso8601(since);
         }
         Int64? until = this.safeInteger(parameters, "until");
-        if (!isEqual(until, null))
+        if ((until != null))
         {
             parameters = this.omit(parameters, "until");
             request["to"] = this.iso8601(until);

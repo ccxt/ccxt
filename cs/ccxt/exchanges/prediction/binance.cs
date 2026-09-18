@@ -415,7 +415,7 @@ public partial class binance : PredictionExchange
         parameters = this.omit(parameters, new List<object>() {"query", "queries"});
         Int64? userLimit = this.safeInteger(parameters, "limit");
         Int64? fetchCap = this.safeInteger(this.options, "maxFetchEventsResults", 100);
-        if (!isEqual(userLimit, null))
+        if ((userLimit != null))
         {
             fetchCap = userLimit;
         }
@@ -1319,7 +1319,7 @@ public partial class binance : PredictionExchange
         }
         Int64? until = this.safeInteger(parameters, "until");
         parameters = this.omit(parameters, "until");
-        if (!isEqual(until, null))
+        if ((until != null))
         {
             request["endDate"] = this.yyyymmdd(until);
         }
@@ -1611,7 +1611,7 @@ public partial class binance : PredictionExchange
         }
         Int64? until = this.safeInteger(parameters, "until");
         parameters = this.omit(parameters, "until");
-        if (!isEqual(until, null))
+        if ((until != null))
         {
             request["endDate"] = this.yyyymmdd(until);
         }
@@ -1859,7 +1859,7 @@ public partial class binance : PredictionExchange
         Dictionary<string, object> market = this.market(outcome);
         double? prec = this.safeNumber(this.safeDict(((object)market), "precision", new Dictionary<string, object>() {}), "price", 0.0001);
         int decimals = 4;
-        if ((!isEqual(prec, null)) && (isGreaterThan(prec, 0)))
+        if (((prec != null)) && (isGreaterThan(prec, 0)))
         {
             decimals = this.precisionFromString(this.numberToString(prec));
         }
@@ -1871,7 +1871,7 @@ public partial class binance : PredictionExchange
         Dictionary<string, object> market = this.market(outcome);
         double? prec = this.safeNumber(this.safeDict(((object)market), "precision", new Dictionary<string, object>() {}), "amount", 0.01);
         int decimals = 2;
-        if ((!isEqual(prec, null)) && (isGreaterThan(prec, 0)))
+        if (((prec != null)) && (isGreaterThan(prec, 0)))
         {
             decimals = this.precisionFromString(this.numberToString(prec));
         }
@@ -2150,7 +2150,7 @@ public partial class binance : PredictionExchange
             { "timestamp", this.nonce() },
         }, query);
         Int64? defaultRecvWindow = this.safeInteger(this.options, "recvWindow");
-        if (!isEqual(defaultRecvWindow, null))
+        if ((defaultRecvWindow != null))
         {
             extendedParams["recvWindow"] = defaultRecvWindow;
         }

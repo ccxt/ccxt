@@ -1363,7 +1363,7 @@ public partial class aster : Exchange
         IDictionary<string, object> filterLotSize = this.safeDict(filtersByType, "LOT_SIZE");
         IDictionary<string, object> filterMarketLotSize = this.safeDict(filtersByType, "MARKET_LOT_SIZE", new Dictionary<string, object>() {});
         double? pricePrecision = this.safeNumber(filterPrice, "tickSize");
-        if (isEqual(pricePrecision, null))
+        if ((pricePrecision == null))
         {
             pricePrecision = this.parseNumber(this.parsePrecision(this.safeString(market, "pricePrecision")));
         }
@@ -1615,20 +1615,20 @@ public partial class aster : Exchange
         string? side = this.safeStringLower(trade, "side");
         bool? isMaker = this.safeBool(trade, "maker");
         string? takerOrMaker = null;
-        if (!isEqual(isMaker, null))
+        if ((isMaker != null))
         {
             takerOrMaker = isTrue(isMaker) ? "maker" : "taker";
             if ((side == null))
             {
                 bool? isBuyer = this.safeBool(trade, "buyer");
-                if (!isEqual(isBuyer, null))
+                if ((isBuyer != null))
                 {
                     side = isTrue(isBuyer) ? "buy" : "sell";
                 }
             }
         }
         bool? isBuyerMaker = this.safeBool2(trade, "isBuyerMaker", "m");
-        if (!isEqual(isBuyerMaker, null))
+        if ((isBuyerMaker != null))
         {
             side = isTrue(isBuyerMaker) ? "sell" : "buy";
         }
@@ -3765,7 +3765,7 @@ public partial class aster : Exchange
         {
             request["startTime"] = since;
         }
-        if (!isEqual(until, null))
+        if ((until != null))
         {
             request["endTime"] = until;
         }
@@ -4047,7 +4047,7 @@ public partial class aster : Exchange
             request["limit"] = mathMin(limit, 1000); // max 1000
         }
         Int64? until = this.safeInteger(parameters, "until");
-        if (!isEqual(until, null))
+        if ((until != null))
         {
             parameters = this.omit(parameters, "until");
             request["endTime"] = until;
@@ -4470,7 +4470,7 @@ public partial class aster : Exchange
             timestamp = null;
         }
         bool? isolated = this.safeBool(position, "isolated");
-        if (isEqual(isolated, null))
+        if ((isolated == null))
         {
             string? isolatedMarginRaw = this.safeString(position, "isolatedMargin");
             isolated = !isTrue(Precise.stringEq(isolatedMarginRaw, "0"));
@@ -4781,12 +4781,12 @@ public partial class aster : Exchange
         IDictionary<string, object> networks = this.safeDict(this.options, "networks", new Dictionary<string, object>() {});
         string? network = this.safeStringUpper(parameters, "network");
         network = this.safeString(networks, network, network);
-        if ((isEqual(chainId, null)) && ((network != null)))
+        if (((chainId == null)) && ((network != null)))
         {
             IDictionary<string, object> chainIds = this.safeDict(this.options, "networksToChainId", new Dictionary<string, object>() {});
             chainId = this.safeInteger(chainIds, network);
         }
-        if (isEqual(chainId, null))
+        if ((chainId == null))
         {
             throw new ArgumentsRequired (add(this.id, " withdraw require chainId or network parameter")) ;
         }

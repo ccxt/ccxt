@@ -353,7 +353,7 @@ public partial class limitless : PredictionExchange
             allRaw = this.arrayConcat(allRaw, firstData);
             List<object> promises = new List<object>() {};
             double cappedPages = Math.Ceiling(Convert.ToDouble(divide(maxMarkets, pageSize)));
-            Int64? knownTotal = (!isEqual(totalMarketsCount, null)) ? totalMarketsCount : 0;
+            Int64? knownTotal = ((totalMarketsCount != null)) ? totalMarketsCount : 0;
             double allPages = Math.Ceiling(Convert.ToDouble(divide(knownTotal, pageSize)));
             object totalPages = mathMin(allPages, cappedPages);
             for (int i = 2; isLessThanOrEqual(i, totalPages); postFixIncrement(ref i))
@@ -552,7 +552,7 @@ public partial class limitless : PredictionExchange
         double? volume24h = this.safeNumber(raw, "volumeFormatted");
         // resolution: winningOutcomeIndex is null until the market resolves, then the winning outcome index
         Int64? winningOutcomeIndex = this.safeInteger(raw, "winningOutcomeIndex");
-        bool marketResolved = (!isEqual(winningOutcomeIndex, null));
+        bool marketResolved = ((winningOutcomeIndex != null));
         string? resolvedOutcome = null;
         string? marketSymbol = this.slugToMarketSymbol(groupId, slug);
         // amount precision comes from the collateral token decimals (USDC, 6); limitless does not
@@ -1660,7 +1660,7 @@ public partial class limitless : PredictionExchange
                 // old responses may return unix seconds
                 pointTs = multiply(pointTs, 1000);
             }
-            if ((!isEqual(pointPrice, null)) && (!isEqual(pointTs, null)))
+            if (((pointPrice != null)) && (!isEqual(pointTs, null)))
             {
                 ((IList<object>)pseudoTrades).Add(new Dictionary<string, object>() {
                     { "timestamp", pointTs },
@@ -1682,7 +1682,7 @@ public partial class limitless : PredictionExchange
             object point = getValue(sorted, i);
             Int64? pTs = this.safeInteger(point, "timestamp");
             double? pPrice = this.safeNumber(point, "price");
-            if (isEqual(pTs, null))
+            if ((pTs == null))
             {
                 throw new ExchangeError (add(this.id, " method() missing pTs")) ;
             }
@@ -1695,10 +1695,10 @@ public partial class limitless : PredictionExchange
             } else
             {
                 object candle = getValue(candles, key);
-                double? pPriceOrZero = (isEqual(pPrice, null)) ? 0 : pPrice;
+                double? pPriceOrZero = ((pPrice == null)) ? 0 : pPrice;
                 ((List<object>)candle)[Convert.ToInt32(2)] = mathMax(getValue(candle, 2), pPriceOrZero);
                 object candleLow = (isEqual(getValue(candle, 3), null)) ? pPrice : getValue(candle, 3);
-                object pPriceOrCandleLow = (isEqual(pPrice, null)) ? getValue(candle, 3) : pPrice;
+                object pPriceOrCandleLow = ((pPrice == null)) ? getValue(candle, 3) : pPrice;
                 ((List<object>)candle)[Convert.ToInt32(3)] = mathMin(candleLow, pPriceOrCandleLow);
                 ((List<object>)candle)[Convert.ToInt32(4)] = pPrice;
                 candles[(string)key] = candle; // php arrays are value types - write the mutation back
@@ -2384,7 +2384,7 @@ public partial class limitless : PredictionExchange
         };
         // the contract expects expiration as a uint256; non-zero values are rejected by the API (GTC orders use 0)
         Int64? expirationInt = this.safeInteger(parameters, "expiration");
-        if (!isEqual(expirationInt, null))
+        if ((expirationInt != null))
         {
             parameters = this.omit(parameters, "expiration");
             signRequest["expiration"] = this.numberToString(expirationInt);
@@ -2418,13 +2418,13 @@ public partial class limitless : PredictionExchange
             parameters = this.omit(parameters, "cost");
             if (isTrue(createMarketBuyOrderRequiresPrice))
             {
-                if ((isEqual(price, null)) && (isEqual(cost, null)))
+                if ((isEqual(price, null)) && ((cost == null)))
                 {
                     throw new InvalidOrder (add(this.id, " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument")) ;
                 } else
                 {
                     object quoteAmount = this.parseToNumeric(Precise.stringMul(amountString, priceString));
-                    object costRequest = (!isEqual(cost, null)) ? cost : quoteAmount;
+                    object costRequest = ((cost != null)) ? cost : quoteAmount;
                     makerAmount = this.costToPredictionPrecision(outcome, costRequest);
                 }
             } else

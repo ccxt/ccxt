@@ -790,7 +790,7 @@ public partial class kucoin : ccxt.kucoin
         string? symbol = this.safeString(market, "symbol");
         market = this.safeMarket(symbol, market);
         Int64? timestamp = this.safeInteger(ticker, "ts");
-        if (isEqual(timestamp, null))
+        if ((timestamp == null))
         {
             timestamp = this.safeIntegerProduct(ticker, "M", 0.000001);
         }
@@ -1855,7 +1855,7 @@ public partial class kucoin : ccxt.kucoin
             ccxt.pro.IOrderBook orderbook = this.getOrderBook(this.orderbooks, symbol);
             Int64? nonce = this.safeInteger(orderbook, "nonce");
             Int64? deltaEnd = this.safeInteger2(data, "sequenceEnd", "timestamp");
-            if (isEqual(nonce, null))
+            if ((nonce == null))
             {
                 int cacheLength = getArrayLength((orderbook as ccxt.pro.OrderBook).cache);
                 List<object> subscriptions = new List<object>(((IDictionary<string,object>)client.subscriptions).Keys);
@@ -1928,7 +1928,7 @@ public partial class kucoin : ccxt.kucoin
         {
             Int64? nonce = this.safeInteger(orderbook, "nonce");
             Int64? deltaEnd = this.safeInteger(data, "C");
-            if (isEqual(nonce, null))
+            if ((nonce == null))
             {
                 int cacheLength = getArrayLength((orderbook as ccxt.pro.OrderBook).cache);
                 object subscription = this.safeValue(client.subscriptions, messageHash, new Dictionary<string, object>() {});
@@ -1957,7 +1957,7 @@ public partial class kucoin : ccxt.kucoin
         object firstDelta = this.safeValue(cache, 0);
         Int64? nonce = this.safeInteger(orderbook, "nonce");
         Int64? firstDeltaStart = this.safeIntegerN(firstDelta, new List<object>() {"sequenceStart", "sequence", "O"});
-        if ((isEqual(nonce, null)) || (isEqual(firstDeltaStart, null)))
+        if (((nonce == null)) || ((firstDeltaStart == null)))
         {
             return -1;
         }
@@ -1970,7 +1970,7 @@ public partial class kucoin : ccxt.kucoin
             object delta = getValue(cache, i);
             Int64? deltaStart = this.safeIntegerN(delta, new List<object>() {"sequenceStart", "sequence", "O"});
             Int64? deltaEnd = this.safeIntegerN(delta, new List<object>() {"sequenceEnd", "sequence", "C"}); // todo check
-            if ((isEqual(deltaStart, null)) || (isEqual(deltaEnd, null)))
+            if (((deltaStart == null)) || ((deltaEnd == null)))
             {
                 continue;
             }
@@ -1985,7 +1985,7 @@ public partial class kucoin : ccxt.kucoin
     public override void handleDelta(object orderbook, object delta)
     {
         Int64? timestamp = this.safeIntegerProduct(delta, "M", 0.000001);
-        if (isEqual(timestamp, null))
+        if ((timestamp == null))
         {
             timestamp = this.safeInteger2(delta, "time", "timestamp");
         }
@@ -2133,7 +2133,7 @@ public partial class kucoin : ccxt.kucoin
         //     }
         //
         Int64? pingInterval = this.safeInteger(message, "pingInterval");
-        if (!isEqual(pingInterval, null))
+        if ((pingInterval != null))
         {
             client.keepAlive = pingInterval;
         }
@@ -2330,7 +2330,7 @@ public partial class kucoin : ccxt.kucoin
         }
         string? triggerPrice = this.safeString(order, "stopPrice");
         bool? triggerSuccess = this.safeBool(order, "triggerSuccess");
-        bool triggerFail = ((triggerSuccess != true)) && (!isEqual(triggerSuccess, null)); // TODO: updated to triggerSuccess === False once transpiler transpiles it correctly
+        bool triggerFail = ((triggerSuccess != true)) && ((triggerSuccess != null)); // TODO: updated to triggerSuccess === False once transpiler transpiles it correctly
         if ((status == "triggered") && triggerFail)
         {
             status = "canceled";

@@ -1345,7 +1345,7 @@ public partial class bitbns : Exchange
         double? amount = this.safeNumber(transaction, "amount");
         double? feeCost = this.safeNumber(transaction, "fee");
         Dictionary<string, object> fee = null;
-        if (!isEqual(feeCost, null))
+        if ((feeCost != null))
         {
             fee = new Dictionary<string, object>() {
                 { "currency", code },

@@ -2155,7 +2155,7 @@ public partial class bydfi : Exchange
         string? rawStatus = this.safeString(order, "status");
         Dictionary<string, object> fee = new Dictionary<string, object>() {};
         double? quoteFee = this.safeNumber(order, "quoteFee");
-        if (!isEqual(quoteFee, null))
+        if ((quoteFee != null))
         {
             fee["cost"] = quoteFee;
             fee["currency"] = getValue(market, "quote");
@@ -3337,7 +3337,7 @@ public partial class bydfi : Exchange
         Int64? timestamp = this.safeInteger(transaction, "createTime");
         Dictionary<string, object> fee = null;
         double? feeCost = this.safeNumber(transaction, "fee");
-        if (!isEqual(feeCost, null))
+        if ((feeCost != null))
         {
             fee = new Dictionary<string, object>() {
                 { "cost", feeCost },

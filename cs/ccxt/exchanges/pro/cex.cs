@@ -837,7 +837,7 @@ public partial class cex : ccxt.cex
             ((IDictionary<string,object>)order)["status"] = "closed";
         }
         double? fee = this.safeNumber(data, "fee");
-        if (!isEqual(fee, null))
+        if ((fee != null))
         {
             ((IDictionary<string,object>)order)["fee"] = new Dictionary<string, object>() {
                 { "cost", fee },

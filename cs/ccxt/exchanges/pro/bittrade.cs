@@ -487,7 +487,7 @@ public partial class bittrade : ccxt.bittrade
         object tick = this.safeValue(message, "tick", new Dictionary<string, object>() {});
         Int64? seqNum = this.safeInteger(tick, "seqNum");
         Int64? prevSeqNum = this.safeInteger(tick, "prevSeqNum");
-        if ((isEqual(prevSeqNum, null)) || (isEqual(seqNum, null)))
+        if (((prevSeqNum == null)) || ((seqNum == null)))
         {
             return orderbook;
         }

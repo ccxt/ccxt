@@ -1778,7 +1778,7 @@ public partial class aster : ccxt.aster
         {
             object position = getValue(positions, i);
             double? contracts = this.safeNumber(position, "contracts", 0);
-            if ((!isEqual(contracts, null)) && (isGreaterThan(contracts, 0)))
+            if (((contracts != null)) && (isGreaterThan(contracts, 0)))
             {
                 callDynamically(cache, "append", new object[] {position});
             }
@@ -2220,7 +2220,7 @@ public partial class aster : ccxt.aster
         Int64? lastTradeTimestamp = null;
         if (executionType == "NEW" || executionType == "AMENDMENT" || executionType == "CANCELED")
         {
-            if (isEqual(timestamp, null))
+            if ((timestamp == null))
             {
                 timestamp = T;
             }

@@ -1123,7 +1123,7 @@ public partial class kalshi : PredictionExchange
         {
             bid = noBid;
             ask = noAsk;
-            close = (!isEqual(last, null)) ? this.parseNumber(Precise.stringSub("1", this.numberToString(last))) : null;
+            close = ((last != null)) ? this.parseNumber(Precise.stringSub("1", this.numberToString(last))) : null;
         } else
         {
             bid = yesBid;
@@ -1319,7 +1319,7 @@ public partial class kalshi : PredictionExchange
             for (int ai = 0; isLessThan(ai, rawYes.Count); postFixIncrement(ref ai))
             {
                 double? yesPrice = this.safeNumber(getValue(rawYes, ai), 0);
-                double? price = (!isEqual(yesPrice, null)) ? this.parseNumber(Precise.stringSub("1", this.numberToString(yesPrice))) : null;
+                double? price = ((yesPrice != null)) ? this.parseNumber(Precise.stringSub("1", this.numberToString(yesPrice))) : null;
                 ((IList<object>)asks).Add(new List<object>() {price, this.safeNumber(getValue(rawYes, ai), 1)});
             }
         } else
@@ -1333,7 +1333,7 @@ public partial class kalshi : PredictionExchange
             for (int ai = 0; isLessThan(ai, rawNo.Count); postFixIncrement(ref ai))
             {
                 double? noPrice = this.safeNumber(getValue(rawNo, ai), 0);
-                double? price = (!isEqual(noPrice, null)) ? this.parseNumber(Precise.stringSub("1", this.numberToString(noPrice))) : null;
+                double? price = ((noPrice != null)) ? this.parseNumber(Precise.stringSub("1", this.numberToString(noPrice))) : null;
                 ((IList<object>)asks).Add(new List<object>() {price, this.safeNumber(getValue(rawNo, ai), 1)});
             }
         }
@@ -1388,7 +1388,7 @@ public partial class kalshi : PredictionExchange
         string? ticker = this.safeString(GetValue(outcomeObj, "info"), "ticker");
         string? seriesTicker = this.safeString(GetValue(outcomeObj, "info"), "seriesTicker", ticker);
         Int64? periodMin = this.safeInteger(this.timeframes, timeframeVar);
-        if (isEqual(periodMin, null))
+        if ((periodMin == null))
         {
             // reject an unsupported timeframeVar locally instead of silently returning 1-minute candles.
             // hoist Object.keys(...).join(...) to a local — inline in a throw mangles in PHP
@@ -1466,7 +1466,7 @@ public partial class kalshi : PredictionExchange
             IDictionary<string, object> priceObj = this.safeDict(candle, "price", new Dictionary<string, object>() {});
             double? openPrice = this.safeNumber(priceObj, "open_dollars");
             double? previousPrice = this.safeNumber(priceObj, "previous_dollars");
-            if ((!isEqual(openPrice, null)) || (!isEqual(previousPrice, null)))
+            if (((openPrice != null)) || ((previousPrice != null)))
             {
                 ((IList<object>)usableCandles).Add(candle);
             }
@@ -1587,10 +1587,10 @@ public partial class kalshi : PredictionExchange
         double? priceDollars = this.safeNumber2(trade, "yes_price_dollars", "price_dollars");
         double? priceCents = this.safeNumber2(trade, "yes_price", "price");
         object price = null;
-        if (!isEqual(priceDollars, null))
+        if ((priceDollars != null))
         {
             price = priceDollars;
-        } else if (!isEqual(priceCents, null))
+        } else if ((priceCents != null))
         {
             price = divide(priceCents, 100);
         }
@@ -1615,7 +1615,7 @@ public partial class kalshi : PredictionExchange
             }
         }
         object cost = null;
-        if ((!isEqual(price, null)) && (!isEqual(amount, null)))
+        if ((!isEqual(price, null)) && ((amount != null)))
         {
             cost = multiply(price, amount);
         }
@@ -1733,7 +1733,7 @@ public partial class kalshi : PredictionExchange
             if (isEqual(price, null))
             {
                 double? noCents = this.safeNumber(fill, "no_price");
-                if (!isEqual(noCents, null))
+                if ((noCents != null))
                 {
                     price = divide(noCents, 100);
                 }
@@ -1744,7 +1744,7 @@ public partial class kalshi : PredictionExchange
             if (isEqual(price, null))
             {
                 double? yesCents = this.safeNumber(fill, "yes_price");
-                if (!isEqual(yesCents, null))
+                if ((yesCents != null))
                 {
                     price = divide(yesCents, 100);
                 }
@@ -1752,7 +1752,7 @@ public partial class kalshi : PredictionExchange
         }
         double? amount = this.safeNumber2(fill, "count_fp", "count");
         object cost = null;
-        if ((!isEqual(price, null)) && (!isEqual(amount, null)))
+        if ((!isEqual(price, null)) && ((amount != null)))
         {
             cost = multiply(price, amount);
         }
@@ -1760,7 +1760,7 @@ public partial class kalshi : PredictionExchange
         string takerOrMaker = ((isTaker == true)) ? "taker" : "maker";
         double? feeCost = this.safeNumber(fill, "fee_cost");
         Dictionary<string, object> fee = null;
-        if (!isEqual(feeCost, null))
+        if ((feeCost != null))
         {
             fee = new Dictionary<string, object>() {
                 { "cost", feeCost },
@@ -1818,7 +1818,7 @@ public partial class kalshi : PredictionExchange
         };
         double? balanceCents = this.safeNumber(response, "balance");
         object total = null;
-        if (!isEqual(balanceCents, null))
+        if ((balanceCents != null))
         {
             total = divide(balanceCents, 100);
         }
@@ -1968,7 +1968,7 @@ public partial class kalshi : PredictionExchange
         if (isEqual(payout, null))
         {
             double? revenueCents = this.safeNumber(settlement, "revenue");
-            if (!isEqual(revenueCents, null))
+            if ((revenueCents != null))
             {
                 payout = divide(revenueCents, 100);
             }
@@ -1979,7 +1979,7 @@ public partial class kalshi : PredictionExchange
         if (isEqual(cost, null))
         {
             double? costCents = this.safeNumber(settlement, costKey);
-            if (!isEqual(costCents, null))
+            if ((costCents != null))
             {
                 cost = divide(costCents, 100);
             }
@@ -2025,7 +2025,7 @@ public partial class kalshi : PredictionExchange
         double? yesContracts = this.safeNumber(position, "position"); // positive = long YES
         string? positionSide = null;
         double? contractsValue = null;
-        if (!isEqual(yesContracts, null))
+        if ((yesContracts != null))
         {
             positionSide = (isGreaterThanOrEqual(yesContracts, 0)) ? "long" : "short";
             contractsValue = this.parseNumber(Precise.stringAbs(this.numberToString(yesContracts)));
@@ -2231,7 +2231,7 @@ public partial class kalshi : PredictionExchange
         if (isEqual(price, null))
         {
             double? priceCents = this.safeNumber(order, centsKey);
-            if (!isEqual(priceCents, null))
+            if ((priceCents != null))
             {
                 price = divide(priceCents, 100);
             }
@@ -2240,7 +2240,7 @@ public partial class kalshi : PredictionExchange
         double? amount = this.safeNumber2(order, "initial_count_fp", "count");
         double? filled = this.safeNumber2(order, "fill_count_fp", "filled_count", 0);
         object remaining = this.safeNumber(order, "remaining_count_fp");
-        if ((isEqual(remaining, null)) && (!isEqual(amount, null)) && (!isEqual(filled, null)))
+        if ((isEqual(remaining, null)) && ((amount != null)) && ((filled != null)))
         {
             remaining = subtract(amount, filled);
         }
@@ -2381,21 +2381,21 @@ public partial class kalshi : PredictionExchange
         // otherwise a fully-filled order would return status 'closed' with filled 0
         double? remainingCount = this.safeNumber(response, "remaining_count");
         double? filledCount = this.safeNumber(response, "fill_count");
-        if (!isEqual(filledCount, null))
+        if ((filledCount != null))
         {
             order["filled"] = filledCount;
-        } else if ((!isEqual(remainingCount, null)) && (!isEqual(amount, null)))
+        } else if (((remainingCount != null)) && (!isEqual(amount, null)))
         {
             order["filled"] = subtract(amount, remainingCount);
         }
-        if (!isEqual(remainingCount, null))
+        if ((remainingCount != null))
         {
             order["remaining"] = remainingCount;
         }
         if (isEqual(GetValue(order, "status"), null))
         {
             string resolvedStatus = "open";
-            if ((!isEqual(remainingCount, null)) && (isEqual(remainingCount, 0)))
+            if (((remainingCount != null)) && (isEqual(remainingCount, 0)))
             {
                 resolvedStatus = "closed";
             }
@@ -2554,7 +2554,7 @@ public partial class kalshi : PredictionExchange
         // bound how many events are actually FETCHED (not just returned) so a broad scope like
         // category='Crypto' (hundreds of series) doesn't page every one of them
         Int64? fetchCap = this.safeInteger(this.options, "maxFetchEventsResults", 100);
-        if (!isEqual(userLimit, null))
+        if ((userLimit != null))
         {
             fetchCap = userLimit;
         }
@@ -2976,7 +2976,7 @@ public partial class kalshi : PredictionExchange
             totalVolume = this.sum(totalVolume, this.safeNumber2(rawMarket, "volume_fp", "volume", 0));
             totalLiquidity = this.sum(totalLiquidity, this.safeNumber2(rawMarket, "liquidity_dollars", "liquidity", 0));
             Int64? marketCreated = this.parse8601(this.safeString(rawMarket, "open_time"));
-            if ((!isEqual(marketCreated, null)) && ((isEqual(earliestCreated, null)) || (isLessThan(marketCreated, earliestCreated))))
+            if (((marketCreated != null)) && (((earliestCreated == null)) || (isLessThan(marketCreated, earliestCreated))))
             {
                 earliestCreated = marketCreated;
             }
@@ -2992,7 +2992,7 @@ public partial class kalshi : PredictionExchange
                 allResolved = false;
             }
             Int64? marketClose = this.parse8601(this.safeString(rawMarket, "close_time"));
-            if ((!isEqual(marketClose, null)) && ((isEqual(latestClose, null)) || (isGreaterThan(marketClose, latestClose))))
+            if (((marketClose != null)) && (((latestClose == null)) || (isGreaterThan(marketClose, latestClose))))
             {
                 latestClose = marketClose;
             }
@@ -3005,12 +3005,12 @@ public partial class kalshi : PredictionExchange
             active = anyActive;
         }
         bool? resolved = this.safeBool(rawEvent, "resolved");
-        if ((isEqual(resolved, null)) && (isGreaterThan(marketsCount, 0)))
+        if (((resolved == null)) && (isGreaterThan(marketsCount, 0)))
         {
             resolved = allResolved;
         }
         Int64? end = this.parse8601(this.safeString(rawEvent, "end_date_iso"));
-        if (isEqual(end, null))
+        if ((end == null))
         {
             end = latestClose;
         }
@@ -3019,7 +3019,7 @@ public partial class kalshi : PredictionExchange
         bool hasTitle = ((title != null)) && (title != "");
         string? eventSlug = hasTitle ? this.shortenSlug(title) : null;
         Int64? created = this.parse8601(this.safeString(rawEvent, "created_date_iso"));
-        if (isEqual(created, null))
+        if ((created == null))
         {
             created = earliestCreated;
         }

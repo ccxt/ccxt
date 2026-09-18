@@ -940,7 +940,7 @@ public partial class hyperliquid : Exchange
             object amountPrecision = parseInt(((string)amountPrecisionStr));
             double? price = this.safeNumber(extraData, "midPx");
             object pricePrecision = 0;
-            if (!isEqual(price, null))
+            if ((price != null))
             {
                 pricePrecision = this.calculatePricePrecision(price, amountPrecision, 8);
             }
@@ -1058,14 +1058,14 @@ public partial class hyperliquid : Exchange
         object amountPrecision = parseInt(((string)amountPrecisionStr));
         double? price = this.safeNumber(market, "markPx", 0);
         object pricePrecision = 0;
-        if (!isEqual(price, null))
+        if ((price != null))
         {
             pricePrecision = this.calculatePricePrecision(price, amountPrecision, 6);
         }
         string? pricePrecisionStr = this.numberToString(pricePrecision);
         bool? isDelisted = this.safeBool(market, "isDelisted");
         bool active = true;
-        if (!isEqual(isDelisted, null))
+        if ((isDelisted != null))
         {
             active = !(isDelisted == true);
         }
@@ -1688,7 +1688,7 @@ public partial class hyperliquid : Exchange
         }
         Int64? until = this.safeInteger(parameters, "until");
         parameters = this.omit(parameters, "until");
-        if (!isEqual(until, null))
+        if ((until != null))
         {
             request["endTime"] = until;
         }
@@ -2378,7 +2378,7 @@ public partial class hyperliquid : Exchange
             request["vaultAddress"] = vaultAddress;
         }
         Int64? expiresAfter = this.safeInteger(parameters, "expiresAfter");
-        if (!isEqual(expiresAfter, null))
+        if ((expiresAfter != null))
         {
             request["expiresAfter"] = expiresAfter;
             parameters = this.omit(parameters, "expiresAfter");
@@ -2828,7 +2828,7 @@ public partial class hyperliquid : Exchange
             request["vaultAddress"] = vaultAddress;
         }
         Int64? expiresAfter = this.safeInteger(parameters, "expiresAfter");
-        if (!isEqual(expiresAfter, null))
+        if ((expiresAfter != null))
         {
             request["expiresAfter"] = expiresAfter;
             parameters = this.omit(parameters, "expiresAfter");
@@ -3384,7 +3384,7 @@ public partial class hyperliquid : Exchange
         }
         Int64? until = this.safeInteger(parameters, "until");
         parameters = this.omit(parameters, "until");
-        if (!isEqual(until, null))
+        if ((until != null))
         {
             request["endTime"] = until;
         }
@@ -3664,7 +3664,7 @@ public partial class hyperliquid : Exchange
                 {
                     Int64? existingTimestamp = this.safeInteger(getValue(deduplicatedByOid, oid), "statusTimestamp");
                     Int64? currentTimestamp = this.safeInteger(rawOrder, "statusTimestamp");
-                    if (!isEqual(currentTimestamp, null) && (isEqual(existingTimestamp, null) || isGreaterThan(currentTimestamp, existingTimestamp)))
+                    if ((currentTimestamp != null) && ((existingTimestamp == null) || isGreaterThan(currentTimestamp, existingTimestamp)))
                     {
                         deduplicatedByOid[(string)oid] = rawOrder;
                     }
@@ -3899,7 +3899,7 @@ public partial class hyperliquid : Exchange
         string orderTypeRaw = ((string)this.safeStringLower(entry, "orderType", ""));
         double? stopLossPrice = null;
         double? takeProfitPrice = null;
-        if (!isEqual(triggerPx, null))
+        if ((triggerPx != null))
         {
             if (getIndexOf(orderTypeRaw, "stop") >= 0)
             {
@@ -4015,7 +4015,7 @@ public partial class hyperliquid : Exchange
         }
         Int64? until = this.safeInteger(parameters, "until");
         parameters = this.omit(parameters, "until");
-        if (!isEqual(until, null))
+        if ((until != null))
         {
             request["endTime"] = until;
         }
@@ -4085,7 +4085,7 @@ public partial class hyperliquid : Exchange
         string? fee = this.safeString(trade, "fee");
         string? takerOrMaker = null;
         bool? crossed = this.safeBool(trade, "crossed");
-        if (!isEqual(crossed, null))
+        if ((crossed != null))
         {
             takerOrMaker = isTrue(crossed) ? "taker" : "maker";
         }
@@ -4359,7 +4359,7 @@ public partial class hyperliquid : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Int64? leverage = this.safeInteger(parameters, "leverage");
-        if (isEqual(leverage, null))
+        if ((leverage == null))
         {
             throw new ArgumentsRequired (add(this.id, " setMarginMode() requires a leverage parameter")) ;
         }
@@ -4830,7 +4830,7 @@ public partial class hyperliquid : Exchange
         IDictionary<string, object> delta = this.safeDict(transaction, "delta", new Dictionary<string, object>() {});
         Dictionary<string, object> fee = null;
         Int64? feeCost = this.safeInteger(delta, "fee");
-        if (!isEqual(feeCost, null))
+        if ((feeCost != null))
         {
             fee = new Dictionary<string, object>() {
                 { "currency", "USDC" },
@@ -5016,7 +5016,7 @@ public partial class hyperliquid : Exchange
             request["startTime"] = since;
         }
         Int64? until = this.safeInteger(parameters, "until");
-        if (!isEqual(until, null))
+        if ((until != null))
         {
             request["endTime"] = until;
             parameters = this.omit(parameters, new List<object>() {"until"});
@@ -5055,7 +5055,7 @@ public partial class hyperliquid : Exchange
         IDictionary<string, object> delta = this.safeDict(item, "delta", new Dictionary<string, object>() {});
         Dictionary<string, object> fee = null;
         Int64? feeCost = this.safeInteger(delta, "fee");
-        if (!isEqual(feeCost, null))
+        if ((feeCost != null))
         {
             fee = new Dictionary<string, object>() {
                 { "currency", "USDC" },
@@ -5125,7 +5125,7 @@ public partial class hyperliquid : Exchange
             request["startTime"] = since;
         }
         Int64? until = this.safeInteger(parameters, "until");
-        if (!isEqual(until, null))
+        if ((until != null))
         {
             if (isEqual(since, null))
             {
@@ -5214,7 +5214,7 @@ public partial class hyperliquid : Exchange
             request["startTime"] = since;
         }
         Int64? until = this.safeInteger(parameters, "until");
-        if (!isEqual(until, null))
+        if ((until != null))
         {
             request["endTime"] = until;
             parameters = this.omit(parameters, new List<object>() {"until"});
@@ -5381,7 +5381,7 @@ public partial class hyperliquid : Exchange
         }
         Int64? until = this.safeInteger(parameters, "until");
         parameters = this.omit(parameters, "until");
-        if (!isEqual(until, null))
+        if ((until != null))
         {
             request["endTime"] = until;
         }
@@ -5493,7 +5493,7 @@ public partial class hyperliquid : Exchange
             { "name", name },
         };
         Int64? expiresAfter = this.safeInteger(parameters, "expiresAfter");
-        if (!isEqual(expiresAfter, null))
+        if ((expiresAfter != null))
         {
             parameters = this.omit(parameters, "expiresAfter");
             request["expiresAfter"] = expiresAfter;

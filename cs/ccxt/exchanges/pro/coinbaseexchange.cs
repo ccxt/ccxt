@@ -736,13 +736,13 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
             } else
             {
                 Int64? sequence = this.safeInteger(message, "sequence");
-                if (isEqual(sequence, null))
+                if ((sequence == null))
                 {
                     return;
                 }
                 object previousInfo = this.safeValue(previousOrder, "info", new Dictionary<string, object>() {});
                 Int64? previousSequence = this.safeInteger(previousInfo, "sequence");
-                if ((isEqual(previousSequence, null)) || (isGreaterThan(sequence, previousSequence)))
+                if (((previousSequence == null)) || (isGreaterThan(sequence, previousSequence)))
                 {
                     if (type == "match")
                     {

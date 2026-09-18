@@ -883,7 +883,7 @@ public partial class zebpay : Exchange
             }
         }
         Int64? until = this.safeInteger2(parameters, "until", "endtime");
-        if (!isEqual(until, null))
+        if ((until != null))
         {
             request["endTime"] = until;
             parameters = this.omit(parameters, new List<object>() {"endtime", "until"});
@@ -891,7 +891,7 @@ public partial class zebpay : Exchange
         Dictionary<string, object> response = null;
         if (isEqual(GetValue(market, "spot"), true))
         {
-            if (isEqual(until, null) || isEqual(since, null))
+            if ((until == null) || isEqual(since, null))
             {
                 throw new ArgumentsRequired (add(this.id, " fetchOHLCV() requires a both a since and until/endtime parameter for spot markets")) ;
             }

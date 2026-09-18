@@ -882,7 +882,7 @@ public partial class dydx : Exchange
         }
         Int64? until = this.safeInteger(parameters, "until");
         parameters = this.omit(parameters, "until");
-        if (!isEqual(until, null))
+        if ((until != null))
         {
             request["toIso"] = this.iso8601(until);
         }
@@ -944,7 +944,7 @@ public partial class dydx : Exchange
             request["limit"] = limit;
         }
         Int64? until = this.safeInteger(parameters, "until");
-        if (!isEqual(until, null))
+        if ((until != null))
         {
             request["effectiveBeforeOrAt"] = this.iso8601(until);
         }
@@ -1610,7 +1610,7 @@ public partial class dydx : Exchange
             if (isEqual(goodTillBlock, null))
             {
                 // short term order
-                if (isEqual(latestBlockHeight, null))
+                if ((latestBlockHeight == null))
                 {
                     throw new ExchangeError (add(this.id, " method() missing latestBlockHeight")) ;
                 }
@@ -1659,9 +1659,9 @@ public partial class dydx : Exchange
         string? walletAddress = this.getWalletAddress();
         Int64? clobPairId = this.safeInteger(marketInfo, "clobPairId", 0);
         object subaccountIdValue = (isEqual(subaccountId, null)) ? 0 : subaccountId;
-        Int64? clientOrderIdValue = (isEqual(clientOrderId, null)) ? 0 : clientOrderId;
-        int? orderFlagValue = (isEqual(orderFlag, null)) ? 0 : orderFlag;
-        Int64? clobPairIdValue = (isEqual(clobPairId, null)) ? 0 : clobPairId;
+        Int64? clientOrderIdValue = ((clientOrderId == null)) ? 0 : clientOrderId;
+        int? orderFlagValue = ((orderFlag == null)) ? 0 : orderFlag;
+        Int64? clobPairIdValue = ((clobPairId == null)) ? 0 : clobPairId;
         string? orderId = this.createOrderIdFromParts(walletAddress, subaccountIdValue, clientOrderIdValue, orderFlagValue, clobPairIdValue);
         return new List<object>() {orderId, this.extend(signingPayload, parameters)};
     }
@@ -1696,7 +1696,7 @@ public partial class dydx : Exchange
         IDictionary<string, object> result = this.safeDict(response, "result");
         IDictionary<string, object> info = this.safeDict(result, "response");
         Int64? height = this.safeInteger(info, "last_block_height");
-        if (isEqual(height, null))
+        if ((height == null))
         {
             throw new ExchangeError (add(this.id, " fetchLatestBlockHeight() could not parse last_block_height")) ;
         }
@@ -2193,7 +2193,7 @@ public partial class dydx : Exchange
             {
                 throw new NotSupported (add(this.id, " transfer only support main > subaccount and subaccount <> subaccount.")) ;
             }
-            if (isEqual(fromSubaccountId, null) || isEqual(toSubaccountId, null))
+            if ((fromSubaccountId == null) || (toSubaccountId == null))
             {
                 throw new ArgumentsRequired (add(this.id, " transfer requires fromSubaccountId and toSubaccountId.")) ;
             }
@@ -2207,7 +2207,7 @@ public partial class dydx : Exchange
         if (isEqual(fromAccount, "main"))
         {
             // deposit to subaccount
-            if (isEqual(toSubaccountId, null))
+            if ((toSubaccountId == null))
             {
                 throw new ArgumentsRequired (add(this.id, " transfer() requeire toSubaccoutnId.")) ;
             }
@@ -2423,7 +2423,7 @@ public partial class dydx : Exchange
         }
         this.checkAddress(address);
         Int64? subaccountId = this.safeInteger(parameters, "subaccountId");
-        if (isEqual(subaccountId, null))
+        if ((subaccountId == null))
         {
             throw new ArgumentsRequired (add(this.id, " withdraw requires subaccountId.")) ;
         }

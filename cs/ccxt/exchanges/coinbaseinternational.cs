@@ -613,7 +613,7 @@ public partial class coinbaseinternational : Exchange
             throw new ArgumentsRequired (add(this.id, " fetchOHLCV() requires a since argument")) ;
         }
         Int64? unitl = this.safeInteger(parameters, "until");
-        if (!isEqual(unitl, null))
+        if ((unitl != null))
         {
             parameters = this.omit(parameters, "until");
             request["end"] = this.iso8601(unitl);
@@ -2065,7 +2065,7 @@ public partial class coinbaseinternational : Exchange
             { "instrument", GetValue(market, "id") },
             { "size", this.amountToPrecision(GetValue(market, "symbol"), amount) },
         };
-        if (!isEqual(triggerPrice, null))
+        if ((triggerPrice != null))
         {
             if (isEqual(type, "limit"))
             {
@@ -2107,7 +2107,7 @@ public partial class coinbaseinternational : Exchange
         {
             tif = ((tif == null)) ? "GTC" : tif;
         }
-        if (!isEqual(postOnly, null))
+        if ((postOnly != null))
         {
             request["post_only"] = postOnly;
         }
@@ -2168,7 +2168,7 @@ public partial class coinbaseinternational : Exchange
         string? marketId = this.safeString(order, "symbol");
         double? feeCost = this.safeNumber(order, "fee");
         Dictionary<string, object> fee = null;
-        if (!isEqual(feeCost, null))
+        if ((feeCost != null))
         {
             fee = new Dictionary<string, object>() {
                 { "cost", feeCost },
@@ -2365,7 +2365,7 @@ public partial class coinbaseinternational : Exchange
             request["price"] = this.priceToPrecision(symbol, price);
         }
         double? triggerPrice = this.safeNumberN(parameters, new List<object>() {"stopPrice", "stop_price", "triggerPrice"});
-        if (!isEqual(triggerPrice, null))
+        if ((triggerPrice != null))
         {
             request["stop_price"] = triggerPrice;
         }

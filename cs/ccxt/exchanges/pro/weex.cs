@@ -587,7 +587,7 @@ public partial class weex : ccxt.weex
         bool? isBuyerMaker = this.safeBool(trade, "m"); // m is the isBuyerMaker flag of the REST trades, true means the taker sold
         string? side = null;
         string? takerOrMaker = null;
-        if (!isEqual(isBuyerMaker, null))
+        if ((isBuyerMaker != null))
         {
             side = isTrue(isBuyerMaker) ? "sell" : "buy";
             takerOrMaker = "taker"; // a public trade is reported from the aggressor's side, same as parseTrade
@@ -1023,7 +1023,7 @@ public partial class weex : ccxt.weex
         {
             IDictionary<string, object> subscription = this.safeDict(client.subscriptions, messageHash, new Dictionary<string, object>() {});
             Int64? limit = this.safeInteger(subscription, "limit");
-            if (!isEqual(limit, null))
+            if ((limit != null))
             {
                 ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook(new Dictionary<string, object>() {}, limit);
             } else

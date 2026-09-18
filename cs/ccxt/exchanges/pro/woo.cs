@@ -248,7 +248,7 @@ public partial class woo : ccxt.woo
                 try
                 {
                     Int64? ts = this.safeInteger(message, "ts");
-                    if (isEqual(ts, null))
+                    if ((ts == null))
                     {
                         return;
                     }
@@ -323,7 +323,7 @@ public partial class woo : ccxt.woo
             {
                 object messageItem = getValue(messages, i);
                 Int64? ts = this.safeInteger(messageItem, "ts");
-                if (isEqual(ts, null))
+                if ((ts == null))
                 {
                     continue;
                 }
@@ -976,14 +976,14 @@ public partial class woo : ccxt.woo
         Int64? timestamp = this.safeInteger(trade, "timestamp");
         bool? maker = this.safeBool(trade, "maker");
         string? takerOrMaker = null;
-        if (!isEqual(maker, null))
+        if ((maker != null))
         {
             takerOrMaker = isTrue(maker) ? "maker" : "taker";
         }
         string? type = this.safeStringLower(trade, "type");
         Dictionary<string, object> fee = null;
         double? feeCost = this.safeNumber(trade, "fee");
-        if (!isEqual(feeCost, null))
+        if ((feeCost != null))
         {
             fee = new Dictionary<string, object>() {
                 { "cost", feeCost },
@@ -1249,7 +1249,7 @@ public partial class woo : ccxt.woo
         string? priceString = this.safeString(order, "price");
         double? price = this.safeNumber(order, "price");
         double? avgPrice = this.safeNumber(order, "avgPrice");
-        if (isTrue(Precise.stringEq(priceString, "0")) && (!isEqual(avgPrice, null)))
+        if (isTrue(Precise.stringEq(priceString, "0")) && ((avgPrice != null)))
         {
             price = avgPrice;
         }
@@ -1518,7 +1518,7 @@ public partial class woo : ccxt.woo
         {
             object position = getValue(positions, i);
             double? contracts = this.safeNumber(position, "contracts", 0);
-            if ((!isEqual(contracts, null)) && (isGreaterThan(contracts, 0)))
+            if (((contracts != null)) && (isGreaterThan(contracts, 0)))
             {
                 callDynamically(cache, "append", new object[] {position});
             }

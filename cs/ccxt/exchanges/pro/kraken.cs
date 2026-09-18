@@ -1086,7 +1086,7 @@ public partial class kraken : ccxt.kraken
         if (isEqual(checksum, true))
         {
             List<object> payloadArray = new List<object>() {};
-            if (!isEqual(c, null))
+            if ((c != null))
             {
                 object checkAsks = getValue(orderbook, "asks");
                 object checkBids = getValue(orderbook, "bids");

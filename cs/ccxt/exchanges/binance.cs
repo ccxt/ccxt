@@ -4858,7 +4858,7 @@ public partial class binance : Exchange
                 fees[(string)networkCode] = withdrawFee;
             }
             bool? isDefault = this.safeBool(networkItem, "isDefault");
-            if (((isDefault == true)) || (isEqual(fee, null)))
+            if (((isDefault == true)) || ((fee == null)))
             {
                 fee = withdrawFee;
             }
@@ -5322,7 +5322,7 @@ public partial class binance : Exchange
             contract = true;
             option = true;
             settleId = ((settleId == null)) ? "USDT" : settleId;
-        } else if (!isEqual(expiry, null))
+        } else if ((expiry != null))
         {
             future = true;
         }
@@ -5471,7 +5471,7 @@ public partial class binance : Exchange
             { "created", this.safeInteger2(market, "onboardDate", "listingTime") },
         };
         double? stepSize = this.safeNumber(market, "stepSize");
-        if (!isEqual(stepSize, null))
+        if ((stepSize != null))
         {
             ((IDictionary<string,object>)((IDictionary<string,object>)entry)["precision"])["amount"] = stepSize;
         }
@@ -6530,7 +6530,7 @@ public partial class binance : Exchange
         //     }
         //
         Int64? timestamp = this.safeInteger(entry, "time");
-        string type = (isEqual(timestamp, null)) ? "spot" : "swap";
+        string type = ((timestamp == null)) ? "spot" : "swap";
         string? marketId = this.safeString(entry, "symbol");
         market = this.safeMarket(marketId, market, null, type);
         return new Dictionary<string, object>() {
@@ -6838,7 +6838,7 @@ public partial class binance : Exchange
         string? price = this.safeString(parameters, "price");
         Int64? until = this.safeInteger(parameters, "until");
         parameters = this.omit(parameters, new List<object>() {"price", "until"});
-        if (!isEqual(since, null) && !isEqual(until, null) && isEqual(limitVar, null))
+        if (!isEqual(since, null) && (until != null) && isEqual(limitVar, null))
         {
             limitVar = maxLimit;
         }
@@ -6880,7 +6880,7 @@ public partial class binance : Exchange
                 }
             }
         }
-        if (!isEqual(until, null))
+        if ((until != null))
         {
             request["endTime"] = until;
         }
@@ -7184,7 +7184,7 @@ public partial class binance : Exchange
         string? side = null;
         bool? buyerMaker = this.safeBool2(trade, "m", "isBuyerMaker");
         string? takerOrMaker = null;
-        if (!isEqual(buyerMaker, null))
+        if ((buyerMaker != null))
         {
             side = isTrue(buyerMaker) ? "sell" : "buy"; // this is reversed intentionally
         } else if (inOp(trade, "side"))
@@ -7311,7 +7311,7 @@ public partial class binance : Exchange
                 request["endTime"] = this.sum(since, 3600000);
             }
             Int64? until = this.safeInteger(parameters, "until");
-            if (!isEqual(until, null))
+            if ((until != null))
             {
                 request["endTime"] = until;
             }
@@ -7571,7 +7571,7 @@ public partial class binance : Exchange
             uppercaseType = "LIMIT_MAKER";
         }
         double? triggerPrice = this.safeNumber2(parameters, "stopPrice", "triggerPrice");
-        if (!isEqual(triggerPrice, null))
+        if ((triggerPrice != null))
         {
             if (uppercaseType == "MARKET")
             {
@@ -7675,7 +7675,7 @@ public partial class binance : Exchange
         }
         if (triggerPriceIsRequired)
         {
-            if (isEqual(triggerPrice, null))
+            if ((triggerPrice == null))
             {
                 throw new InvalidOrder (add(add(add(this.id, " editOrder() requires a triggerPrice extra param for a "), type), " order")) ;
             } else
@@ -8660,7 +8660,7 @@ public partial class binance : Exchange
         double? triggerPrice = this.parseNumber(this.omitZero(stopPriceString));
         double? feeCost = this.safeNumber(order, "fee");
         Dictionary<string, object> fee = null;
-        if (!isEqual(feeCost, null))
+        if ((feeCost != null))
         {
             fee = new Dictionary<string, object>() {
                 { "currency", this.safeString2(order, "quoteAsset", "quote") },
@@ -9422,7 +9422,7 @@ public partial class binance : Exchange
         }
         // unified iceberg
         double? icebergAmount = this.safeNumber(parameters, "icebergAmount");
-        if (!isEqual(icebergAmount, null))
+        if ((icebergAmount != null))
         {
             if (isEqual(GetValue(market, "spot"), true))
             {
@@ -9755,13 +9755,13 @@ public partial class binance : Exchange
                 request["limit"] = limitVar;
             }
         }
-        if (!isEqual(until, null))
+        if ((until != null))
         {
             request["endTime"] = until;
         }
         if (isEqual(stock, true))
         {
-            if (isEqual(until, null))
+            if ((until == null))
             {
                 until = this.milliseconds();
                 request["endTime"] = until;
@@ -10107,7 +10107,7 @@ public partial class binance : Exchange
         {
             bool? warnWithoutSymbol = this.safeBool(getValue(this.options, "fetchOpenOrders"), "warnWithoutSymbol");
             bool? optValue = this.safeBool(this.options, "warnOnFetchOpenOrdersWithoutSymbol"); // for backward compatibility
-            if (((optValue == true)) || (isEqual(optValue, null) && ((warnWithoutSymbol == true))))
+            if (((optValue == true)) || ((optValue == null) && ((warnWithoutSymbol == true))))
             {
                 throw new ExchangeError (add(add(add(this.id, " fetchOpenOrders() WARNING: fetching open orders without specifying a symbol has stricter rate limits (10 times more for spot, 40 times more for other markets) compared to requesting with symbol argument. To acknowledge this warning, set "), this.id), ".options[\"fetchOpenOrders\"][\"warnWithoutSymbol\"] = false to suppress this warning message.")) ;
             }
@@ -11575,7 +11575,7 @@ public partial class binance : Exchange
             {
                 request["beginTime"] = since;
             }
-            if (!isEqual(until, null))
+            if ((until != null))
             {
                 request["endTime"] = until;
             }
@@ -11593,7 +11593,7 @@ public partial class binance : Exchange
                 request["startTime"] = since;
                 // max 3 months range https://github.com/ccxt/ccxt/issues/6495
                 object endTime = this.sum(since, 7776000000);
-                if (!isEqual(until, null))
+                if ((until != null))
                 {
                     endTime = mathMin(endTime, until);
                 }
@@ -11656,7 +11656,7 @@ public partial class binance : Exchange
         parameters = this.omit(parameters, "fiatOnly");
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         Int64? until = this.safeInteger(parameters, "until");
-        if (!isEqual(until, null))
+        if ((until != null))
         {
             parameters = this.omit(parameters, "until");
             request["endTime"] = until;
@@ -11838,7 +11838,7 @@ public partial class binance : Exchange
         string? code = this.safeCurrencyCode(currencyId, currency);
         Int64? timestamp = null;
         timestamp = this.safeInteger2(transaction, "insertTime", "createTime");
-        if (isEqual(timestamp, null))
+        if ((timestamp == null))
         {
             timestamp = this.parse8601(this.safeString(transaction, "applyTime"));
         }
@@ -11858,7 +11858,7 @@ public partial class binance : Exchange
         double? amount = this.safeNumber(transaction, "amount");
         double? feeCost = this.safeNumber2(transaction, "transactionFee", "totalFee");
         Dictionary<string, object> fee = null;
-        if (!isEqual(feeCost, null))
+        if ((feeCost != null))
         {
             fee = new Dictionary<string, object>() {
                 { "currency", code },
@@ -11867,7 +11867,7 @@ public partial class binance : Exchange
         }
         Int64? internalInteger = this.safeInteger(transaction, "transferType");
         bool? intern = null;
-        if (!isEqual(internalInteger, null))
+        if ((internalInteger != null))
         {
             intern = ((internalInteger != 0)) ? true : false;
         }
@@ -11990,7 +11990,7 @@ public partial class binance : Exchange
             toAccount = this.safeString(accountsById, toAccount, toAccount);
         }
         Int64? walletType = this.safeInteger(transfer, "walletType");
-        if (!isEqual(walletType, null))
+        if ((walletType != null))
         {
             IDictionary<string, object> payer = this.safeDict(transfer, "payerInfo", new Dictionary<string, object>() {});
             IDictionary<string, object> receiver = this.safeDict(transfer, "receiverInfo", new Dictionary<string, object>() {});
@@ -12240,7 +12240,7 @@ public partial class binance : Exchange
             request["startTime"] = since;
         }
         Int64? until = this.safeInteger(parameters, "until");
-        if (!isEqual(until, null))
+        if ((until != null))
         {
             parameters = this.omit(parameters, "until");
             request["endTime"] = until;
@@ -13131,7 +13131,7 @@ public partial class binance : Exchange
         Int64? until = this.safeInteger(parameters, "until"); // unified in milliseconds
         Int64? endTime = this.safeInteger(parameters, "endTime", until); // exchange-specific in milliseconds
         parameters = this.omit(parameters, new List<object>() {"endTime", "until"});
-        if (!isEqual(endTime, null))
+        if ((endTime != null))
         {
             request["endTime"] = endTime;
         }
@@ -13480,7 +13480,7 @@ public partial class binance : Exchange
             timestamp = null;
         }
         bool? isolated = this.safeBool(position, "isolated");
-        if (isEqual(isolated, null))
+        if ((isolated == null))
         {
             string? isolatedMarginRaw = this.safeString(position, "isolatedMargin");
             isolated = !isTrue(Precise.stringEq(isolatedMarginRaw, "0"));
@@ -14974,7 +14974,7 @@ public partial class binance : Exchange
         string? marketId = this.safeString(leverage, "symbol");
         bool? marginModeRaw = this.safeBool(leverage, "isolated");
         string? marginMode = null;
-        if (!isEqual(marginModeRaw, null))
+        if ((marginModeRaw != null))
         {
             marginMode = isTrue(marginModeRaw) ? "isolated" : "cross";
         }
@@ -15323,7 +15323,7 @@ public partial class binance : Exchange
             request["limit"] = limit;
         }
         Int64? until = this.safeInteger(parameters, "until");
-        if (!isEqual(until, null))
+        if ((until != null))
         {
             parameters = this.omit(parameters, "until");
             request["endTime"] = until;
@@ -15622,12 +15622,12 @@ public partial class binance : Exchange
             Dictionary<string, object> extendedParams = this.extend(new Dictionary<string, object>() {
                 { "timestamp", this.nonce() },
             }, parameters);
-            if (!isEqual(defaultRecvWindow, null))
+            if ((defaultRecvWindow != null))
             {
                 extendedParams["recvWindow"] = defaultRecvWindow;
             }
             Int64? recvWindow = this.safeInteger(parameters, "recvWindow");
-            if (!isEqual(recvWindow, null))
+            if ((recvWindow != null))
             {
                 extendedParams["recvWindow"] = recvWindow;
             }
@@ -16722,7 +16722,7 @@ public partial class binance : Exchange
         Int64? until = this.safeInteger(parameters, "until"); // unified in milliseconds
         Int64? endTime = this.safeInteger(parameters, "endTime", until); // exchange-specific in milliseconds
         parameters = this.omit(parameters, new List<object>() {"endTime", "until"});
-        if ((!isEqual(endTime, null)) && ((endTime != 0)))
+        if (((endTime != null)) && ((endTime != 0)))
         {
             request["endTime"] = endTime;
         } else if ((!isEqual(since, null)) && (!isEqual(since, 0)))
@@ -17459,7 +17459,7 @@ public partial class binance : Exchange
         market = this.safeMarket(marketId, market);
         bool? marginModeRaw = this.safeBool(marginMode, "isolated");
         string? reMarginMode = null;
-        if (!isEqual(marginModeRaw, null))
+        if ((marginModeRaw != null))
         {
             reMarginMode = isTrue(marginModeRaw) ? "isolated" : "cross";
         }
@@ -17614,7 +17614,7 @@ public partial class binance : Exchange
         {
             request["limit"] = limit;
         }
-        if (!isEqual(until, null))
+        if ((until != null))
         {
             request["endTime"] = until;
         }
@@ -17904,7 +17904,7 @@ public partial class binance : Exchange
             request["startTime"] = subtract(now, msInThirtyDays);
         }
         Int64? endTime = this.safeInteger2(parameters, "endTime", "until");
-        if (!isEqual(endTime, null))
+        if ((endTime != null))
         {
             request["endTime"] = endTime;
         } else
@@ -18327,12 +18327,12 @@ public partial class binance : Exchange
         double? shortNum = this.safeNumber(adlQuantile, "SHORT");
         double? both = this.safeNumber(adlQuantile, "BOTH");
         double? rank = null;
-        if (!isEqual(both, null))
+        if ((both != null))
         {
             rank = both;
         } else
         {
-            if (!isEqual(longNum, null) && !isEqual(shortNum, null))
+            if ((longNum != null) && (shortNum != null))
             {
                 if (isGreaterThan(longNum, shortNum))
                 {

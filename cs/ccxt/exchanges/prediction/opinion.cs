@@ -212,7 +212,7 @@ public partial class opinion : PredictionExchange
                 }
             }
             int collectedLength = flatMarkets.Count;
-            if ((isLessThan(rawMarketsLength, pageLimit)) || (isGreaterThanOrEqual(page, maxPages)) || ((!isEqual(total, null)) && (isGreaterThanOrEqual(fetchedRawCount, total))) || ((!isEqual(userLimit, null)) && (isGreaterThanOrEqual(collectedLength, userLimit))))
+            if ((isLessThan(rawMarketsLength, pageLimit)) || (isGreaterThanOrEqual(page, maxPages)) || (((total != null)) && (isGreaterThanOrEqual(fetchedRawCount, total))) || (((userLimit != null)) && (isGreaterThanOrEqual(collectedLength, userLimit))))
             {
                 break;
             }
@@ -220,7 +220,7 @@ public partial class opinion : PredictionExchange
         }
         this.setEvents(eventsList);
         int flatMarketsLength = flatMarkets.Count;
-        if ((!isEqual(userLimit, null)) && (isGreaterThan(flatMarketsLength, userLimit)))
+        if (((userLimit != null)) && (isGreaterThan(flatMarketsLength, userLimit)))
         {
             return ccxt.BaseExchange.ToMarketInterfaceList(this.arraySlice(flatMarkets, 0, userLimit));
         }
@@ -447,7 +447,7 @@ public partial class opinion : PredictionExchange
         // options.maxFetchEventsResults - the scope filters keep the listing narrow, but a broad
         // label can still hold more than one page
         Int64? fetchCap = this.safeInteger(this.options, "maxFetchEventsResults", 100);
-        if (!isEqual(userLimit, null))
+        if ((userLimit != null))
         {
             fetchCap = userLimit;
         }
@@ -482,7 +482,7 @@ public partial class opinion : PredictionExchange
                 ((IList<object>)rawEvents).Add(getValue(pageEvents, i));
             }
             Int64? total = this.safeInteger(result, "total");
-            if ((isLessThan(pageEventsLength, reqLimit)) || (isGreaterThanOrEqual(page, maxPages)) || ((!isEqual(total, null)) && (isGreaterThanOrEqual(fetchedRawCount, total))) || (isGreaterThanOrEqual(fetchedRawCount, fetchCap)))
+            if ((isLessThan(pageEventsLength, reqLimit)) || (isGreaterThanOrEqual(page, maxPages)) || (((total != null)) && (isGreaterThanOrEqual(fetchedRawCount, total))) || (isGreaterThanOrEqual(fetchedRawCount, fetchCap)))
             {
                 break;
             }
@@ -914,7 +914,7 @@ public partial class opinion : PredictionExchange
             object point = getValue(history, i);
             double? price = this.safeNumber(point, "p");
             object timestamp = this.safeTimestamp(point, "t");
-            if ((!isEqual(price, null)) && (!isEqual(timestamp, null)))
+            if (((price != null)) && (!isEqual(timestamp, null)))
             {
                 ((IList<object>)candles).Add(new List<object>() {timestamp, price, price, price, price, null});
             }
@@ -1460,7 +1460,7 @@ public partial class opinion : PredictionExchange
             object trade = getValue(trades, i);
             string? tokenId = this.safeString(trade, "tokenId");
             Int64? marketId = this.safeInteger(trade, "marketId");
-            if (((tokenId == null)) && (!isEqual(marketId, null)))
+            if (((tokenId == null)) && ((marketId != null)))
             {
                 object tradeMarket = await this.loadTradeMarket(marketId);
                 IDictionary<string, object> info = this.safeDict(tradeMarket, "info", new Dictionary<string, object>() {});
@@ -2405,7 +2405,7 @@ public partial class opinion : PredictionExchange
             return null;
         }
         Int64? errno = this.safeInteger(response, "errno");
-        if ((!isEqual(errno, null)) && ((errno != 0)))
+        if (((errno != null)) && ((errno != 0)))
         {
             string? errmsg = this.safeString(response, "errmsg", "");
             string feedback = add(add(this.id, " "), body);

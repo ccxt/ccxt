@@ -76,11 +76,11 @@ public partial class testMainClass : BaseTest
         object future = getValue(market, "future");
         object option = getValue(market, "option");
         bool? index = exchange.safeBool(market, "index"); // todo: unify
-        bool isIndex = (!isEqual(index, null)) && index == true;
+        bool isIndex = ((index != null)) && index == true;
         object linear = getValue(market, "linear");
         object inverse = getValue(market, "inverse");
         bool? quanto = exchange.safeBool(market, "quanto"); // todo: unify
-        bool isQuanto = (!isEqual(quanto, null)) && quanto == true;
+        bool isQuanto = ((quanto != null)) && quanto == true;
         bool isInactiveMarket = isEqual(getValue(market, "active"), false);
         //
         List<object> emptyAllowedFor = new List<object>() {"margin"};
@@ -209,7 +209,7 @@ public partial class testMainClass : BaseTest
         } else if (!isEqual(contract, true))
         {
             // linear & inverse needs to be undefined
-            assert(isEqual(linear, null) && isEqual(inverse, null) && isEqual(quanto, null), add("market linear and inverse (and quanto) must be undefined when \"contract\" is false", logText));
+            assert(isEqual(linear, null) && isEqual(inverse, null) && (quanto == null), add("market linear and inverse (and quanto) must be undefined when \"contract\" is false", logText));
             // contract size should be undefined
             assert((contractSize == null), add("\"contractSize\" must be undefined when \"contract\" is false", logText));
             // settle should be undefined

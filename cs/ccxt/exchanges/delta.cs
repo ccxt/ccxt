@@ -1779,7 +1779,7 @@ public partial class delta : Exchange
         int duration = this.parseTimeframe(timeframeVar);
         limitVar = (!isEqual(limitVar, null) && !isEqual(limitVar, null) && !isEqual(limitVar, 0)) ? limitVar : 2000; // max 2000
         Int64? until = this.safeIntegerProduct(parameters, "until", 0.001);
-        bool untilIsDefined = (!isEqual(until, null));
+        bool untilIsDefined = ((until != null));
         if (untilIsDefined)
         {
             until = this.parseToInt(until);
@@ -1788,7 +1788,7 @@ public partial class delta : Exchange
         {
             Int64? end = untilIsDefined ? until : this.seconds();
             request["end"] = end;
-            if (isEqual(end, null))
+            if ((end == null))
             {
                 throw new ExchangeError (add(this.id, " fetchOHLCV() missing end")) ;
             }

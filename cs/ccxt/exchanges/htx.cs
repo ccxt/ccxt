@@ -3961,7 +3961,7 @@ public partial class htx : Exchange
         IList<object> untilparametersVariable = (IList<object>)this.handleParamInteger(parameters, "until");
         until = (Int64?)untilparametersVariable[0];
         parameters = untilparametersVariable[1];
-        Int64? untilSeconds = (!isEqual(until, null)) ? this.parseToInt(divide(until, 1000)) : null;
+        Int64? untilSeconds = ((until != null)) ? this.parseToInt(divide(until, 1000)) : null;
         if (isEqual(GetValue(market, "contract"), true))
         {
             if (!isEqual(limitVar, null))
@@ -3986,7 +3986,7 @@ public partial class htx : Exchange
                     request["from"] = start;
                     calcualtedEnd = this.sum(start, multiply(duration, (subtract(limitVar, 1))));
                 }
-                request["to"] = (!isEqual(untilSeconds, null)) ? untilSeconds : calcualtedEnd;
+                request["to"] = ((untilSeconds != null)) ? untilSeconds : calcualtedEnd;
             }
         }
         Dictionary<string, object> response = null;
@@ -4080,7 +4080,7 @@ public partial class htx : Exchange
                 {
                     request["from"] = this.parseToInt(divide(since, 1000));
                 }
-                if (!isEqual(untilSeconds, null))
+                if ((untilSeconds != null))
                 {
                     request["to"] = untilSeconds;
                 }
@@ -6127,7 +6127,7 @@ public partial class htx : Exchange
         } else
         {
             Int64? reduceOnlyInteger = this.safeInteger(order, "reduce_only");
-            if (!isEqual(reduceOnlyInteger, null))
+            if ((reduceOnlyInteger != null))
             {
                 reduceOnly = ((reduceOnlyInteger == 0)) ? false : true;
             }
@@ -6328,7 +6328,7 @@ public partial class htx : Exchange
             parameters = createMarketBuyOrderRequiresPriceparametersVariable[1];
             double? cost = this.safeNumber(parameters, "cost");
             parameters = this.omit(parameters, "cost");
-            if (!isEqual(cost, null))
+            if ((cost != null))
             {
                 quoteAmount = this.amountToPrecision(symbol, cost);
             } else if (isTrue(createMarketBuyOrderRequiresPrice))
@@ -6445,11 +6445,11 @@ public partial class htx : Exchange
             // on htx for attached tpsl orders sl_order_price or tp_order_price need to be filled and the sl_trigger_price or tp_trigger_price are optional
             if ((stopLoss != null))
             {
-                if (!isEqual(stopLossTriggerPriceAttached, null))
+                if ((stopLossTriggerPriceAttached != null))
                 {
                     request["sl_trigger_price"] = this.priceToPrecision(symbol, stopLossTriggerPriceAttached);
                 }
-                if (!isEqual(stopLossOrderPrice, null))
+                if ((stopLossOrderPrice != null))
                 {
                     request["sl_order_price"] = this.priceToPrecision(symbol, stopLossOrderPrice);
                 }
@@ -6461,11 +6461,11 @@ public partial class htx : Exchange
             }
             if ((takeProfit != null))
             {
-                if (!isEqual(takeProfitTriggerPriceAttached, null))
+                if ((takeProfitTriggerPriceAttached != null))
                 {
                     request["tp_trigger_price"] = this.priceToPrecision(symbol, takeProfitTriggerPriceAttached);
                 }
-                if (!isEqual(takeProfitOrderPrice, null))
+                if ((takeProfitOrderPrice != null))
                 {
                     request["tp_order_price"] = this.priceToPrecision(symbol, takeProfitOrderPrice);
                 }
@@ -6502,13 +6502,13 @@ public partial class htx : Exchange
         string? trailingPercent = this.safeString2(parameters, "trailingPercent", "callback_rate");
         double? trailingTriggerPrice = this.safeNumber(parameters, "trailingTriggerPrice", price);
         bool isTrailingPercentOrder = (trailingPercent != null);
-        bool isTrigger = !isEqual(triggerPrice, null);
-        bool isStopLossTriggerOrder = !isEqual(stopLossTriggerPrice, null);
-        bool isTakeProfitTriggerOrder = !isEqual(takeProfitTriggerPrice, null);
+        bool isTrigger = (triggerPrice != null);
+        bool isStopLossTriggerOrder = (stopLossTriggerPrice != null);
+        bool isTakeProfitTriggerOrder = (takeProfitTriggerPrice != null);
         Int64? clientOrderId = this.safeIntegerN(parameters, new List<object>() {"client_order_id", "clientOrderId", "algo_client_order_id"});
         if (isLinear && (isTrailingPercentOrder || isTrigger || isStopLossTriggerOrder || isTakeProfitTriggerOrder))
         {
-            if (!isEqual(clientOrderId, null))
+            if ((clientOrderId != null))
             {
                 request["algo_client_order_id"] = clientOrderId;
                 parameters = this.omit(parameters, new List<object>() {"clientOrderId", "client_order_id"});
@@ -6576,7 +6576,7 @@ public partial class htx : Exchange
             }
         } else
         {
-            if (!isEqual(clientOrderId, null))
+            if ((clientOrderId != null))
             {
                 request["client_order_id"] = clientOrderId;
                 parameters = this.omit(parameters, new List<object>() {"clientOrderId"});
@@ -6673,10 +6673,10 @@ public partial class htx : Exchange
         double? stopLossTriggerPrice = this.safeNumber2(parameters, "stopLossPrice", "sl_trigger_price");
         double? takeProfitTriggerPrice = this.safeNumber2(parameters, "takeProfitPrice", "tp_trigger_price");
         double? trailingPercent = this.safeNumber(parameters, "trailingPercent");
-        bool isTrailingPercentOrder = !isEqual(trailingPercent, null);
-        bool isTrigger = !isEqual(triggerPrice, null);
-        bool isStopLossTriggerOrder = !isEqual(stopLossTriggerPrice, null);
-        bool isTakeProfitTriggerOrder = !isEqual(takeProfitTriggerPrice, null);
+        bool isTrailingPercentOrder = (trailingPercent != null);
+        bool isTrigger = (triggerPrice != null);
+        bool isStopLossTriggerOrder = (stopLossTriggerPrice != null);
+        bool isTakeProfitTriggerOrder = (takeProfitTriggerPrice != null);
         Dictionary<string, object> response = null;
         if (isEqual(GetValue(market, "spot"), true))
         {
@@ -8144,13 +8144,13 @@ public partial class htx : Exchange
         if (isTrue(this.safeBool(withdrawOptions, "includeFee", false)))
         {
             double? fee = this.safeNumber(parameters, "fee");
-            if (isEqual(fee, null))
+            if ((fee == null))
             {
                 IDictionary<string, object> currencies = await this.fetchCurrencies();
                 this.currencies = this.mapToSafeMap(this.deepExtend(this.currencies, currencies));
                 object targetNetwork = this.safeValue(GetValue(currency, "networks"), networkCode, new Dictionary<string, object>() {});
                 fee = this.safeNumber(targetNetwork, "fee");
-                if (isEqual(fee, null))
+                if ((fee == null))
                 {
                     throw new ArgumentsRequired (add(this.id, " withdraw() function can not find withdraw fee for chosen network. You need to re-load markets with \"exchange.loadMarkets(true)\", or provide the \"fee\" parameter")) ;
                 }
@@ -8402,7 +8402,7 @@ public partial class htx : Exchange
             request["start_time"] = since;
         }
         Int64? until = this.safeInteger(parameters, "until");
-        if (!isEqual(until, null))
+        if ((until != null))
         {
             parameters = this.omit(parameters, "until");
             request["end_time"] = until;

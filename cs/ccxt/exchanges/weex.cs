@@ -1204,7 +1204,7 @@ public partial class weex : Exchange
         }
         double? amountPrecision = this.safeNumber(market, "stepSize");
         double? pricePrecision = this.safeNumber(market, "tickSize");
-        if (isEqual(amountPrecision, null))
+        if ((amountPrecision == null))
         {
             string? amountPrecisionString = this.parsePrecision(this.safeString(market, "quantityPrecision"));
             string? pricePrecisionString = this.parsePrecision(this.safeString(market, "pricePrecision"));
@@ -1846,19 +1846,19 @@ public partial class weex : Exchange
             }
             object startTime = since;
             object endTime = until;
-            if ((isEqual(since, null)) || (isEqual(until, null)))
+            if ((isEqual(since, null)) || ((until == null)))
             {
                 Int64 now = this.milliseconds();
                 Int64 duration = multiply(this.parseTimeframe(timeframeVar), 1000);
                 object numberOfCandles = (!isEqual(limitVar, null) && !isEqual(limitVar, null) && !isEqual(limitVar, 0)) ? limitVar : maxHistoricalLimit;
                 object timeDelta = multiply(numberOfCandles, duration);
-                if ((isEqual(since, null)) && (isEqual(until, null)))
+                if ((isEqual(since, null)) && ((until == null)))
                 {
                     endTime = now;
                     startTime = subtract(now, timeDelta);
                 } else if (isEqual(since, null))
                 {
-                    if (isEqual(until, null))
+                    if ((until == null))
                     {
                         throw new ArgumentsRequired (add(this.id, " fetchOHLCV() requires a since or until argument")) ;
                     }
@@ -2001,10 +2001,10 @@ public partial class weex : Exchange
         bool? isBuyer = this.safeBool(trade, "isBuyer");
         string? side = this.safeStringLower(trade, "side");
         bool? isBuyerMaker = this.safeBool(trade, "isBuyerMaker");
-        if (!isEqual(isBuyer, null))
+        if ((isBuyer != null))
         {
             side = isTrue(isBuyer) ? "buy" : "sell";
-        } else if (!isEqual(isBuyerMaker, null))
+        } else if ((isBuyerMaker != null))
         {
             side = isTrue(isBuyerMaker) ? "sell" : "buy";
         }
@@ -2043,10 +2043,10 @@ public partial class weex : Exchange
         }
         bool? isMaker = this.safeBool(trade, "maker");
         string? takerOrMaker = null;
-        if (!isEqual(isMaker, null))
+        if ((isMaker != null))
         {
             takerOrMaker = isTrue(isMaker) ? "maker" : "taker";
-        } else if (!isEqual(isBuyerMaker, null))
+        } else if ((isBuyerMaker != null))
         {
             takerOrMaker = "taker";
         }
@@ -4790,7 +4790,7 @@ public partial class weex : Exchange
         double? isolatedLongLeverage = this.safeNumber(parameters, "isolatedLongLeverage");
         double? isolatedShortLeverage = this.safeNumber(parameters, "isolatedShortLeverage");
         double? crossLeverage = this.safeNumber(parameters, "crossLeverage");
-        if ((isEqual(isolatedLongLeverage, null)) && (isEqual(isolatedShortLeverage, null)) && (isEqual(crossLeverage, null)))
+        if (((isolatedLongLeverage == null)) && ((isolatedShortLeverage == null)) && ((crossLeverage == null)))
         {
             if (isEqual(marginMode, "isolated"))
             {

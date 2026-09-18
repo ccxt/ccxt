@@ -1470,7 +1470,7 @@ public partial class digifinex : Exchange
         //     }
         //
         double? indexPrice = this.safeNumber(ticker, "index_price");
-        string marketType = (!isEqual(indexPrice, null)) ? "contract" : "spot";
+        string marketType = ((indexPrice != null)) ? "contract" : "spot";
         string? marketId = this.safeStringUpper2(ticker, "symbol", "instrument_id");
         string? symbol = this.safeSymbol(marketId, market, null, marketType);
         market = this.safeMarket(marketId, market, null, marketType);
@@ -1857,9 +1857,9 @@ public partial class digifinex : Exchange
             int duration = this.parseTimeframe(timeframeVar);
             if (isEqual(startTime, null))
             {
-                if ((!isEqual(limit, null)) || (!isEqual(until, null)))
+                if ((!isEqual(limit, null)) || ((until != null)))
                 {
-                    Int64? endTime = (!isEqual(until, null)) ? until : this.milliseconds();
+                    Int64? endTime = ((until != null)) ? until : this.milliseconds();
                     object startLimit = (!isEqual(limit, null)) ? limit : 200;
                     startTime = subtract(endTime, (multiply(multiply(startLimit, duration), 1000)));
                 }
@@ -1868,9 +1868,9 @@ public partial class digifinex : Exchange
             {
                 startTime = this.parseToInt(divide(startTime, 1000));
                 request["start_time"] = startTime;
-                if ((!isEqual(limit, null)) || (!isEqual(until, null)))
+                if ((!isEqual(limit, null)) || ((until != null)))
                 {
-                    if (!isEqual(until, null))
+                    if ((until != null))
                     {
                         Int64? endByUntil = this.parseToInt(divide(until, 1000));
                         if (!isEqual(limit, null))
@@ -2224,7 +2224,7 @@ public partial class digifinex : Exchange
             {
                 double? cost = this.safeNumber(parameters, "cost");
                 parameters = this.omit(parameters, "cost");
-                if (!isEqual(cost, null))
+                if ((cost != null))
                 {
                     quantity = this.costToPrecision(symbol, cost);
                 } else if (isTrue(createMarketBuyOrderRequiresPrice))
@@ -2251,7 +2251,7 @@ public partial class digifinex : Exchange
         }
         if (postOnly)
         {
-            if ((!isEqual(postOnlyParsed, null)) && (!isEqual(postOnlyParsed, 0)))
+            if (((postOnlyParsed != null)) && (!isEqual(postOnlyParsed, 0)))
             {
                 request["post_only"] = postOnlyParsed;
             } else
@@ -2542,7 +2542,7 @@ public partial class digifinex : Exchange
         if (isEqual(getValue(market, "type"), "swap"))
         {
             Int64? orderType = this.safeInteger(order, "order_type");
-            if (!isEqual(orderType, null))
+            if ((orderType != null))
             {
                 if (((orderType == 9)) || ((orderType == 10)) || ((orderType == 11)) || ((orderType == 12)) || ((orderType == 15)))
                 {
@@ -3139,7 +3139,7 @@ public partial class digifinex : Exchange
         double? amount = this.safeNumber2(item, "num", "change");
         double? after = this.safeNumber(item, "balance");
         Int64? timestamp = this.safeTimestamp(item, "time");
-        if (isEqual(timestamp, null))
+        if ((timestamp == null))
         {
             timestamp = this.safeInteger(item, "timestamp");
         }
@@ -3476,7 +3476,7 @@ public partial class digifinex : Exchange
         double? amount = this.safeNumber(transaction, "amount");
         double? feeCost = this.safeNumber(transaction, "fee");
         Dictionary<string, object> fee = null;
-        if (!isEqual(feeCost, null))
+        if ((feeCost != null))
         {
             fee = new Dictionary<string, object>() {
                 { "currency", code },

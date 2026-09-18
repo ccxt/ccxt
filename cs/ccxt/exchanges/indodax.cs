@@ -412,7 +412,7 @@ public partial class indodax : Exchange
             object bs = this.safeCurrencyCode(baseId);
             string? quote = this.safeCurrencyCode(quoteId);
             Int64? isMaintenance = this.safeInteger(market, "is_maintenance");
-            bool inMaintenance = (!isEqual(isMaintenance, null)) && ((isMaintenance != 0));
+            bool inMaintenance = ((isMaintenance != null)) && ((isMaintenance != 0));
             ((IList<object>)result).Add(new Dictionary<string, object>() {
                 { "id", id },
                 { "symbol", add(add(bs, "/"), quote) },
@@ -1091,7 +1091,7 @@ public partial class indodax : Exchange
                 string? quoteAmount = null;
                 double? cost = this.safeNumber(parameters, "cost");
                 parameters = this.omit(parameters, "cost");
-                if (!isEqual(cost, null))
+                if ((cost != null))
                 {
                     quoteAmount = this.costToPrecision(symbol, cost);
                 } else
@@ -1487,7 +1487,7 @@ public partial class indodax : Exchange
         string? depositId = this.safeString(transaction, "deposit_id");
         double? feeCost = this.safeNumber(transaction, "fee");
         Dictionary<string, object> fee = null;
-        if (!isEqual(feeCost, null))
+        if ((feeCost != null))
         {
             fee = new Dictionary<string, object>() {
                 { "currency", this.safeCurrencyCode(null, currency) },

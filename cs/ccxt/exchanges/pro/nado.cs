@@ -1428,7 +1428,7 @@ public partial class nado : ccxt.nado
         Int64? timestamp = this.parseWsTimestamp(trade, "timestamp");
         bool? isTakerBuyer = this.safeBool(trade, "is_taker_buyer");
         string? side = null;
-        if (!isEqual(isTakerBuyer, null))
+        if ((isTakerBuyer != null))
         {
             side = isTrue(isTakerBuyer) ? "buy" : "sell";
         }
@@ -1475,19 +1475,19 @@ public partial class nado : ccxt.nado
         Int64? timestamp = this.parseWsTimestamp(trade, "timestamp");
         bool? isBid = this.safeBool(trade, "is_bid");
         string? side = null;
-        if (!isEqual(isBid, null))
+        if ((isBid != null))
         {
             side = isTrue(isBid) ? "buy" : "sell";
         }
         bool? isTaker = this.safeBool(trade, "is_taker");
         string? takerOrMaker = null;
-        if (!isEqual(isTaker, null))
+        if ((isTaker != null))
         {
             takerOrMaker = isTrue(isTaker) ? "taker" : "maker";
         }
         double? feeCost = this.parseX18(this.safeString(trade, "fee"));
         Dictionary<string, object> fee = null;
-        if (!isEqual(feeCost, null))
+        if ((feeCost != null))
         {
             fee = new Dictionary<string, object>() {
                 { "cost", feeCost },
@@ -1634,7 +1634,7 @@ public partial class nado : ccxt.nado
             { "clientOrderId", null },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
-            { "lastTradeTimestamp", (isEqual(filled, null)) ? null : timestamp },
+            { "lastTradeTimestamp", ((filled == null)) ? null : timestamp },
             { "lastUpdateTimestamp", timestamp },
             { "symbol", getValue(market, "symbol") },
             { "type", null },

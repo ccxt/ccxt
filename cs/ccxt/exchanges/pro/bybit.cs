@@ -2874,7 +2874,7 @@ public partial class bybit : ccxt.bybit
         }
         // spot pong
         Int64? pong = this.safeInteger(message, "pong");
-        if (!isEqual(pong, null))
+        if ((pong != null))
         {
             this.handlePong(client, (Dictionary<string, object>)message);
             return;

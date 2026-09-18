@@ -318,7 +318,7 @@ public partial class hyperliquid : PredictionExchange
                     }
                     int thresholdsLength = thresholds.Count;
                     Int64? index = this.parseToInt(indexStr);
-                    if (isGreaterThan(thresholdsLength, 0) && !isEqual(index, null))
+                    if (isGreaterThan(thresholdsLength, 0) && (index != null))
                     {
                         object bucketLabel = null;
                         if (isLessThanOrEqual(index, 0))
@@ -440,7 +440,7 @@ public partial class hyperliquid : PredictionExchange
         {
             IDictionary<string, object> question = this.safeDict(questionsList, qi, new Dictionary<string, object>() {});
             Int64? fallbackOutcome = this.safeInteger(question, "fallbackOutcome");
-            if (!isEqual(fallbackOutcome, null))
+            if ((fallbackOutcome != null))
             {
                 string fallbackKey = ((object)fallbackOutcome).ToString();
                 outcomesToQuestions[(string)fallbackKey] = question;
@@ -449,7 +449,7 @@ public partial class hyperliquid : PredictionExchange
             for (int ni = 0; isLessThan(ni, namedOutcomes.Count); postFixIncrement(ref ni))
             {
                 Int64? namedOutcomeId = this.safeInteger(namedOutcomes, ni);
-                if (!isEqual(namedOutcomeId, null))
+                if ((namedOutcomeId != null))
                 {
                     string namedKey = ((object)namedOutcomeId).ToString();
                     outcomesToQuestions[(string)namedKey] = question;
@@ -770,7 +770,7 @@ public partial class hyperliquid : PredictionExchange
             IDictionary<string, object> info = this.safeDict(outcomeObj, "info", new Dictionary<string, object>() {});
             string? coin = this.safeString(info, "coinName");
             double? mid = this.safeNumber(mids, coin);
-            if (isEqual(mid, null))
+            if ((mid == null))
             {
                 continue;
             }
@@ -822,7 +822,7 @@ public partial class hyperliquid : PredictionExchange
         double? askVolume = ((topAsk != null)) ? this.safeNumber(topAsk, "sz") : null;
         // Use synthetic mid if no l2Book
         object mid = this.safeNumber(raw, "mid");
-        if (isEqual(mid, null) && !isEqual(bid, null) && !isEqual(ask, null))
+        if (isEqual(mid, null) && (bid != null) && (ask != null))
         {
             mid = divide(this.sum(bid, ask), 2);
         }
@@ -1309,7 +1309,7 @@ public partial class hyperliquid : PredictionExchange
         {
             ((IList<object>)candidates).Add(add("#", outcomeInput)); // encoding id without #
             Int64? numeric = this.parseToInt(outcomeInput);
-            if (!isEqual(numeric, null))
+            if ((numeric != null))
             {
                 ((IList<object>)candidates).Add(this.outcomeCoin(this.outcomeEncoding(numeric, 0))); // raw outcome id -> YES encoding
                 ((IList<object>)candidates).Add(this.outcomeCoin(this.outcomeEncoding(numeric, 1))); // raw outcome id -> NO encoding
@@ -1724,7 +1724,7 @@ public partial class hyperliquid : PredictionExchange
                 {
                     Int64? existingTs = this.safeInteger(getValue(deduped, oid), "statusTimestamp");
                     Int64? currentTs = this.safeInteger(raw, "statusTimestamp");
-                    if (!isEqual(currentTs, null) && (isEqual(existingTs, null) || isGreaterThan(currentTs, existingTs)))
+                    if ((currentTs != null) && ((existingTs == null) || isGreaterThan(currentTs, existingTs)))
                     {
                         deduped[(string)oid] = raw;
                     }
@@ -2002,7 +2002,7 @@ public partial class hyperliquid : PredictionExchange
         }
         Int64? until = this.safeInteger(parameters, "until");
         parameters = this.omit(parameters, "until");
-        if (!isEqual(until, null))
+        if ((until != null))
         {
             request["endTime"] = until;
         }
@@ -2064,7 +2064,7 @@ public partial class hyperliquid : PredictionExchange
         string? feeCurrency = this.safeString(trade, "feeToken", "USDC");
         string? outcomeSymbol = this.safeString(outcomeObj, "outcome");
         Dictionary<string, object> feeObject = null;
-        if (!isEqual(fee, null))
+        if ((fee != null))
         {
             feeObject = new Dictionary<string, object>() {
                 { "cost", fee },
@@ -2264,7 +2264,7 @@ public partial class hyperliquid : PredictionExchange
             }
             title = add(underlying, titleSuffix);
         }
-        Int64? endValue = (!isEqual(expiryMs, null)) ? expiryMs : firstExpiry;
+        Int64? endValue = ((expiryMs != null)) ? expiryMs : firstExpiry;
         return this.extend(new Dictionary<string, object>() {
             { "id", parentSymbol },
             { "slug", parentSymbol },
@@ -2295,7 +2295,7 @@ public partial class hyperliquid : PredictionExchange
         double? prec = this.safeNumber(this.safeDict(market, "precision", new Dictionary<string, object>() {}), "amount", 0.0001);
         // Convert precision to decimal places
         int decimals = 4;
-        if (isEqual(prec, null))
+        if ((prec == null))
         {
             throw new ExchangeError (add(this.id, " amountToPrecision() missing prec")) ;
         }
@@ -2311,7 +2311,7 @@ public partial class hyperliquid : PredictionExchange
         Dictionary<string, object> market = this.market(outcome);
         double? prec = this.safeNumber(this.safeDict(market, "precision", new Dictionary<string, object>() {}), "price", 0.0001);
         int decimals = 4;
-        if (isEqual(prec, null))
+        if ((prec == null))
         {
             throw new ExchangeError (add(this.id, " priceToPrecision() missing prec")) ;
         }

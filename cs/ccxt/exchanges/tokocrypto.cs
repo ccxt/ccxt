@@ -1605,7 +1605,7 @@ public partial class tokocrypto : Exchange
         {
             request["startTime"] = since;
         }
-        if (!isEqual(until, null))
+        if ((until != null))
         {
             request["endTime"] = until;
         }
@@ -2054,7 +2054,7 @@ public partial class tokocrypto : Exchange
                 parameters = createMarketBuyOrderRequiresPriceparametersVariable[1];
                 double? cost = this.safeNumber2(parameters, "cost", "quoteOrderQty");
                 parameters = this.omit(parameters, new List<object>() {"cost", "quoteOrderQty"});
-                if (!isEqual(cost, null))
+                if ((cost != null))
                 {
                     quoteAmount = cost;
                 } else if (isTrue(createMarketBuyOrderRequiresPrice))
@@ -2399,7 +2399,7 @@ public partial class tokocrypto : Exchange
         {
             request["startTime"] = since;
         }
-        if (!isEqual(endTime, null))
+        if ((endTime != null))
         {
             request["endTime"] = endTime;
             parameters = this.omit(parameters, new List<object>() {"endTime", "until"});
@@ -2528,7 +2528,7 @@ public partial class tokocrypto : Exchange
             request["startTime"] = since;
             // max 3 months range https://github.com/ccxt/ccxt/issues/6495
             object endTime = this.sum(since, 7776000000);
-            if (!isEqual(until, null))
+            if ((until != null))
             {
                 endTime = mathMin(endTime, until);
             }
@@ -2722,11 +2722,11 @@ public partial class tokocrypto : Exchange
         string? type = this.safeString(transaction, "type");
         if ((type == null))
         {
-            if ((!isEqual(insertTime, null)) && (isEqual(createTime, null)))
+            if (((insertTime != null)) && ((createTime == null)))
             {
                 type = "deposit";
                 timestamp = insertTime;
-            } else if ((isEqual(insertTime, null)) && (!isEqual(createTime, null)))
+            } else if (((insertTime == null)) && ((createTime != null)))
             {
                 type = "withdrawal";
                 timestamp = createTime;
@@ -2738,14 +2738,14 @@ public partial class tokocrypto : Exchange
             { "cost", null },
             { "rate", null },
         };
-        if (!isEqual(feeCost, null))
+        if ((feeCost != null))
         {
             fee["currency"] = code;
             fee["cost"] = feeCost;
         }
         Int64? internalRaw = this.safeInteger(transaction, "transferType");
         bool intern = false;
-        if (!isEqual(internalRaw, null))
+        if ((internalRaw != null))
         {
             intern = true;
         }
@@ -2877,12 +2877,12 @@ public partial class tokocrypto : Exchange
             Dictionary<string, object> extendedParams = this.extend(new Dictionary<string, object>() {
                 { "timestamp", this.nonce() },
             }, parameters);
-            if (!isEqual(defaultRecvWindow, null))
+            if ((defaultRecvWindow != null))
             {
                 extendedParams["recvWindow"] = defaultRecvWindow;
             }
             Int64? recvWindow = this.safeInteger(parameters, "recvWindow");
-            if (!isEqual(recvWindow, null))
+            if ((recvWindow != null))
             {
                 extendedParams["recvWindow"] = recvWindow;
             }

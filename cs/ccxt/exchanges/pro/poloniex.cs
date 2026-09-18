@@ -252,7 +252,7 @@ public partial class poloniex : ccxt.poloniex
             parameters = createMarketBuyOrderRequiresPriceparametersVariable[1];
             double? cost = this.safeNumber(parameters, "cost");
             parameters = this.omit(parameters, "cost");
-            if (!isEqual(cost, null))
+            if ((cost != null))
             {
                 quoteAmount = this.costToPrecision(symbol, cost);
             } else if (isTrue(createMarketBuyOrderRequiresPrice))

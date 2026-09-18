@@ -809,7 +809,7 @@ public partial class hibachi : Exchange
             reduceOnly = true;
         }
         Int64? timestamp = this.safeInteger(order, "createdAt");
-        if (isEqual(timestamp, null))
+        if ((timestamp == null))
         {
             timestamp = this.safeIntegerProduct(order, "creationTime", 1000);
         }
@@ -988,8 +988,8 @@ public partial class hibachi : Exchange
         Dictionary<string, object> market = this.market(symbol);
         double? takerFee = this.safeNumber(market, "taker", this.safeNumber(this.options, "defaultTakerFee", 0.00045));
         double? makerFee = this.safeNumber(market, "maker", this.safeNumber(this.options, "defaultMakerFee", 0.00015));
-        double? takerFeeValue = (isEqual(takerFee, null)) ? 0 : takerFee;
-        double? makerFeeValue = (isEqual(makerFee, null)) ? 0 : makerFee;
+        double? takerFeeValue = ((takerFee == null)) ? 0 : takerFee;
+        double? makerFeeValue = ((makerFee == null)) ? 0 : makerFee;
         object feeRate = mathMax(takerFeeValue, makerFeeValue);
         string sideInternal = "";
         if (isEqual(side, "sell"))
@@ -1137,8 +1137,8 @@ public partial class hibachi : Exchange
         Dictionary<string, object> market = this.market(symbol);
         double? takerFee = this.safeNumber(market, "taker", 0);
         double? makerFee = this.safeNumber(market, "maker", 0);
-        double? takerFeeValue = (isEqual(takerFee, null)) ? 0 : takerFee;
-        double? makerFeeValue = (isEqual(makerFee, null)) ? 0 : makerFee;
+        double? takerFeeValue = ((takerFee == null)) ? 0 : takerFee;
+        double? makerFeeValue = ((makerFee == null)) ? 0 : makerFee;
         object feeRate = mathMax(takerFeeValue, makerFeeValue);
         object message = this.orderMessage(market, nonce, feeRate, type, side, amount, price);
         object signature = this.signMessage(message, this.privateKey);

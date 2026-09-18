@@ -1064,7 +1064,7 @@ public partial class foxbit : Exchange
         };
         if (isEqual(typeVar, "STOP_MARKET") || isEqual(typeVar, "STOP_LIMIT"))
         {
-            if (isEqual(triggerPrice, null))
+            if ((triggerPrice == null))
             {
                 throw new InvalidOrder (add(add("Invalid order type: ", typeVar), ". Must have triggerPrice.")) ;
             }
@@ -1083,7 +1083,7 @@ public partial class foxbit : Exchange
         {
             request["post_only"] = true;
         }
-        if (!isEqual(triggerPrice, null))
+        if ((triggerPrice != null))
         {
             request["stop_price"] = this.priceToPrecision(symbol, triggerPrice);
         }
@@ -1151,7 +1151,7 @@ public partial class foxbit : Exchange
             };
             if (type == "STOP_MARKET" || type == "STOP_LIMIT")
             {
-                if (isEqual(triggerPrice, null))
+                if ((triggerPrice == null))
                 {
                     throw new InvalidOrder (add(add("Invalid order type: ", type), ". Must have triggerPrice.")) ;
                 }
@@ -1172,7 +1172,7 @@ public partial class foxbit : Exchange
                 request["post_only"] = true;
                 ((IDictionary<string,object>)orderParams).Remove((string)"postOnly");
             }
-            if (!isEqual(triggerPrice, null))
+            if ((triggerPrice != null))
             {
                 request["stop_price"] = this.priceToPrecision(symbol, triggerPrice);
                 ((IDictionary<string,object>)orderParams).Remove((string)"triggerPrice");
@@ -2208,24 +2208,24 @@ public partial class foxbit : Exchange
             { "cost", this.safeNumber(item, "fee") },
             { "currency", currencySymbol },
         };
-        if (isEqual(amount, null))
+        if ((amount == null))
         {
             throw new ArgumentsRequired (add(this.id, " parseLedgerEntry() requires a amount argument")) ;
         }
         if (isLessThan(amount, 0))
         {
             direction = "out";
-            if (isEqual(amount, null))
+            if ((amount == null))
             {
                 throw new ArgumentsRequired (add(this.id, " parseLedgerEntry() requires a amount argument")) ;
             }
             realAmount = multiply(amount, -1);
         }
-        if (isEqual(balance, null))
+        if ((balance == null))
         {
             throw new ExchangeError (add(this.id, " parseLedgerEntry() missing balance")) ;
         }
-        if (isEqual(amount, null))
+        if ((amount == null))
         {
             throw new ArgumentsRequired (add(this.id, " parseLedgerEntry() requires a amount argument")) ;
         }

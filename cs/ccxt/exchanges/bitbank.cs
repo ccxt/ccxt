@@ -1273,7 +1273,7 @@ public partial class bitbank : Exchange
         }
         Int64? success = this.safeInteger(response, "success");
         IDictionary<string, object> data = ((IDictionary<string, object>)this.safeValue(response, "data"));
-        if ((isEqual(success, null) || (success == 0)) || ((data == null)))
+        if (((success == null) || (success == 0)) || ((data == null)))
         {
             Dictionary<string, object> errorMessages = new Dictionary<string, object>() {
                 { "10000", "URL does not exist" },

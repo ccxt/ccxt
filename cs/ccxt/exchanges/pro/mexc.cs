@@ -776,7 +776,7 @@ public partial class mexc : ccxt.mexc
         double? volume = this.safeNumber2(ohlcv, "v", "volume");
         // MEXC swap websocket klines publish contracts volume in `q`,
         // while spot/protobuf uses `v`/`volume`.
-        if ((!isEqual(market, null)) && ((this.safeBool(market, "spot") != true)) && (isEqual(volume, null)))
+        if ((!isEqual(market, null)) && ((this.safeBool(market, "spot") != true)) && ((volume == null)))
         {
             volume = this.safeNumber2(ohlcv, "q", "v");
         }
@@ -845,7 +845,7 @@ public partial class mexc : ccxt.mexc
         Int64? nonce = this.safeInteger(orderbook, "nonce");
         object firstDelta = this.safeValue(cache, 0);
         Int64? firstDeltaNonce = this.safeIntegerN(firstDelta, new List<object>() {"r", "version", "fromVersion"});
-        if ((isEqual(nonce, null)) || (isEqual(firstDeltaNonce, null)))
+        if (((nonce == null)) || ((firstDeltaNonce == null)))
         {
             return -1;
         }
@@ -857,7 +857,7 @@ public partial class mexc : ccxt.mexc
         {
             object delta = getValue(cache, i);
             Int64? deltaNonce = this.safeIntegerN(delta, new List<object>() {"r", "version", "fromVersion"});
-            if (isEqual(deltaNonce, null))
+            if ((deltaNonce == null))
             {
                 continue;
             }
@@ -950,7 +950,7 @@ public partial class mexc : ccxt.mexc
         ccxt.pro.IOrderBook storedOrderBook = this.getOrderBook(this.orderbooks, symbol);
         Int64? nonce = this.safeInteger(storedOrderBook, "nonce");
         bool shouldReturn = false;
-        if (isEqual(nonce, null))
+        if ((nonce == null))
         {
             int cacheLength = getArrayLength((storedOrderBook as ccxt.pro.OrderBook).cache);
             object snapshotDelay = this.handleOption("watchOrderBook", "snapshotDelay", 25);
@@ -1008,7 +1008,7 @@ public partial class mexc : ccxt.mexc
     {
         Int64? existingNonce = this.safeInteger(orderbook, "nonce");
         Int64? deltaNonce = this.safeIntegerN(delta, new List<object>() {"r", "version", "fromVersion"});
-        if ((!isEqual(deltaNonce, null)) && (!isEqual(existingNonce, null)) && (isLessThan(deltaNonce, existingNonce)))
+        if (((deltaNonce != null)) && ((existingNonce != null)) && (isLessThan(deltaNonce, existingNonce)))
         {
             // even when doing < comparison, this happens: https://app.travis-ci.com/github/ccxt/ccxt/builds/269234741#L1809
             // so, we just skip old updates
@@ -1321,7 +1321,7 @@ public partial class mexc : ccxt.mexc
         //
         Int64? timestamp = this.safeInteger2(trade, "T", "time");
         string? tradeId = this.safeString2(trade, "t", "tradeId");
-        if (isEqual(timestamp, null))
+        if ((timestamp == null))
         {
             timestamp = this.safeInteger(trade, "t");
             tradeId = null;
@@ -1342,7 +1342,7 @@ public partial class mexc : ccxt.mexc
             { "symbol", this.safeSymbol(null, market) },
             { "type", null },
             { "side", side },
-            { "takerOrMaker", (!isEqual(isMaker, null) && (isMaker != 0)) ? "maker" : "taker" },
+            { "takerOrMaker", ((isMaker != null) && (isMaker != 0)) ? "maker" : "taker" },
             { "price", priceString },
             { "amount", amountString },
             { "cost", this.safeString(trade, "amount") },
@@ -1489,7 +1489,7 @@ public partial class mexc : ccxt.mexc
         {
             parsed = this.parseWsOrder(data, market);
             Int64? sendTime = this.safeInteger(message, "sendTime");
-            if (!isEqual(sendTime, null))
+            if ((sendTime != null))
             {
                 parsed["lastTradeTimestamp"] = sendTime;
             }

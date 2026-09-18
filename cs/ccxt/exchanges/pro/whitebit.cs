@@ -1243,7 +1243,7 @@ public partial class whitebit : ccxt.whitebit
             return;
         }
         Int64? id = this.safeInteger(message, "id");
-        if (!isEqual(id, null))
+        if ((id != null))
         {
             this.handleSubscriptionStatus(client, (Dictionary<string, object>)message, id);
             return;
@@ -1279,7 +1279,7 @@ public partial class whitebit : ccxt.whitebit
             if (!isEqual(subscription, true))
             {
                 Int64? subId = this.safeInteger(subscription, "id");
-                if ((!isEqual(subId, null)) && (isEqual(subId, id)))
+                if (((subId != null)) && (isEqual(subId, id)))
                 {
                     object method = this.safeValue(subscription, "method");
                     if ((method != null))

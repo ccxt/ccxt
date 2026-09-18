@@ -1213,12 +1213,12 @@ public partial class apex : Exchange
             request["limit"] = limit;
         }
         Int64? page = this.safeInteger(parameters, "page");
-        if (!isEqual(page, null))
+        if ((page != null))
         {
             request["page"] = page;
         }
         Int64? endTimeExclusive = this.safeIntegerN(parameters, new List<object>() {"endTime", "endTimeExclusive", "until"});
-        if (!isEqual(endTimeExclusive, null))
+        if ((endTimeExclusive != null))
         {
             request["endTimeExclusive"] = endTimeExclusive;
         }
@@ -1661,7 +1661,7 @@ public partial class apex : Exchange
         }
         string? tokenId = this.safeString(currency, "tokenId", "");
         double? decimalsNum = this.safeNumber(currency, "decimals", 0);
-        double? decimalsNumber = (isEqual(decimalsNum, null)) ? 0 : decimalsNum;
+        double? decimalsNumber = ((decimalsNum == null)) ? 0 : decimalsNum;
         double mathPowResult = (Math.Pow(Convert.ToDouble(10), Convert.ToDouble(decimalsNumber)));
         Int64? amountNumber = this.parseToInt(multiply(amount, mathPowResult));
         Int64? timestampSeconds = this.parseToInt(divide(this.milliseconds(), 1000));
@@ -1918,7 +1918,7 @@ public partial class apex : Exchange
             request["limit"] = limit;
         }
         Int64? endTimeExclusive = this.safeIntegerN(parameters, new List<object>() {"endTime", "endTimeExclusive", "until"});
-        if (!isEqual(endTimeExclusive, null))
+        if ((endTimeExclusive != null))
         {
             request["endTimeExclusive"] = endTimeExclusive;
             parameters = this.omit(parameters, new List<object>() {"endTime", "endTimeExclusive", "until"});
@@ -2002,7 +2002,7 @@ public partial class apex : Exchange
             request["limit"] = limit;
         }
         Int64? endTimeExclusive = this.safeIntegerN(parameters, new List<object>() {"endTime", "endTimeExclusive", "until"});
-        if (!isEqual(endTimeExclusive, null))
+        if ((endTimeExclusive != null))
         {
             request["endTimeExclusive"] = endTimeExclusive;
             parameters = this.omit(parameters, new List<object>() {"endTime", "endTimeExclusive", "until"});
@@ -2050,7 +2050,7 @@ public partial class apex : Exchange
             request["limit"] = limit;
         }
         Int64? endTimeExclusive = this.safeIntegerN(parameters, new List<object>() {"endTime", "endTimeExclusive", "until"});
-        if (!isEqual(endTimeExclusive, null))
+        if ((endTimeExclusive != null))
         {
             parameters = this.omit(parameters, new List<object>() {"endTime", "endTimeExclusive", "until"});
             request["endTimeExclusive"] = endTimeExclusive;
@@ -2263,7 +2263,7 @@ public partial class apex : Exchange
             return null;
         }
         Int64? errorCode = this.safeInteger(response, "code");
-        if (!isEqual(errorCode, null) && (errorCode != 0))
+        if ((errorCode != null) && (errorCode != 0))
         {
             string feedback = add(add(this.id, " "), body);
             string? message = this.safeString2(response, "key", "msg");

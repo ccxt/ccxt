@@ -758,7 +758,7 @@ public partial class revolutx : Exchange
             request["since"] = since;
         }
         Int64? until = this.safeInteger2(parameters, "until", "until");
-        if (!isEqual(until, null))
+        if ((until != null))
         {
             request["until"] = until;
         } else
@@ -803,7 +803,7 @@ public partial class revolutx : Exchange
         string? side = this.safeStringLower(trade, "side");
         Int64? timestamp = this.safeInteger(trade, "timestamp");
         object cost = null;
-        if (!isEqual(price, null) && !isEqual(amount, null))
+        if ((price != null) && (amount != null))
         {
             cost = multiply(price, amount);
         }
@@ -860,7 +860,7 @@ public partial class revolutx : Exchange
             request["start_date"] = since;
         }
         Int64? until = this.safeInteger2(parameters, "until", "until");
-        if (!isEqual(until, null))
+        if ((until != null))
         {
             request["end_date"] = until;
         } else if (!isEqual(since, null))
@@ -1340,11 +1340,11 @@ public partial class revolutx : Exchange
         if (!isEqual(since, null))
         {
             request["start_date"] = since;
-        } else if (!isEqual(until, null))
+        } else if ((until != null))
         {
             request["start_date"] = subtract(until, thirtyDays);
         }
-        if (!isEqual(until, null))
+        if ((until != null))
         {
             request["end_date"] = until;
         } else if (!isEqual(since, null))
@@ -1424,7 +1424,7 @@ public partial class revolutx : Exchange
         bool? isMaker = this.safeBool(trade, "im", false);
         string takerOrMaker = isTrue((isMaker)) ? "maker" : "taker";
         object cost = null;
-        if (!isEqual(price, null) && !isEqual(amount, null))
+        if ((price != null) && (amount != null))
         {
             cost = multiply(price, amount);
         }
@@ -1480,11 +1480,11 @@ public partial class revolutx : Exchange
         if (!isEqual(since, null))
         {
             request["start_date"] = since;
-        } else if (!isEqual(until, null))
+        } else if ((until != null))
         {
             request["start_date"] = subtract(until, thirtyDays);
         }
-        if (!isEqual(until, null))
+        if ((until != null))
         {
             request["end_date"] = until;
         } else if (!isEqual(since, null))
