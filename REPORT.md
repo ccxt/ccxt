@@ -7,7 +7,8 @@
 `object` funnel declarations + 62 in other positions = 345 funnel mentions).
 
 **Result: 282 funnel locals typed (254 exchanges + 28 base), 5 knock-on declaration retypes,
-0 casts removed, 138 knock-on helper rewrites, farm-green.**
+0 casts removed, 53 knock-on helper rewrites (39 `getArrayLength` → `x?.Count ?? 0`,
+14 `getValue` → `GetValue`), farm-green (build-input commit gated: job 765, exit=0).**
 
 ## What changed
 
