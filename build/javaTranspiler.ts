@@ -1145,7 +1145,16 @@ function javaPrintedExpressionType (printer: any, emittedStringLocals: WeakSet<a
         } catch (e) {
             return undefined;
         }
-        return (declaration !== undefined && emittedStringLocals.has (declaration)) ? 'String' : undefined;
+        if (declaration === undefined || !emittedStringLocals.has (declaration)) {
+            return undefined;
+        }
+        // the Java printer renames the identifiers captured by an object literal in place
+        // (`baseId` -> `finalBaseId`, declared `final Object finalBaseId = baseId`), so a
+        // renamed use site is NOT the type the local's own declaration was emitted with
+        if (String (current.escapedText) !== String (declaration.name?.escapedText)) {
+            return undefined;
+        }
+        return 'String';
     }
     if (current.kind === ts.SyntaxKind.CallExpression) {
         const callee = current.expression;
@@ -1181,12 +1190,17 @@ export function installJavaExpressionTypeResolver (transpiler: any): void {
             if (declarations !== undefined && declarations.length === 1) {
                 const declaration = declarations[0];
                 if (declaration.name?.kind === ts.SyntaxKind.Identifier && declaration.initializer !== undefined) {
-                    const iden = printer.getIden (identation);
-                    const printedName = printer.printNode (declaration.name, 0);
-                    const marker = `${iden}String ${printedName} = `;
-                    const at = printed.lastIndexOf (marker);
-                    if (at !== -1 && (at === 0 || printed.charAt (at - 1) === '\n')) {
-                        emittedStringLocals.add (declaration);
+                    // a pro/prediction declaration the ws post-process rewrites back to
+                    // `Object` is not a String at the use sites either (same guard the
+                    // SS-03 `+` acceptance uses: wsPostProcessReverts)
+                    if (!wsPostProcessReverts (declaration)) {
+                        const iden = printer.getIden (identation);
+                        const printedName = printer.printNode (declaration.name, 0);
+                        const marker = `${iden}String ${printedName} = `;
+                        const at = printed.lastIndexOf (marker);
+                        if (at !== -1 && (at === 0 || printed.charAt (at - 1) === '\n')) {
+                            emittedStringLocals.add (declaration);
+                        }
                     }
                 }
             }
