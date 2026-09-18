@@ -1467,12 +1467,12 @@ public class Bitstamp extends BitstampApi
             }
             Object parts = Helpers.split(minimumOrder, " ");
             String cost = (String) Helpers.GetValue(parts, 0);
-            if ((!java.util.Objects.equals(base, null)) && !(((Map<?, ?>)result).containsKey(base)))
+            if ((!java.util.Objects.equals(base, null)) && !(result.containsKey(base)))
             {
                 Long baseDecimals = this.safeInteger(market, "base_decimals");
                 Helpers.addElementToObject(result, base, this.constructCurrencyObject(baseId, base, baseDescription, baseDecimals, null, market));
             }
-            if ((!java.util.Objects.equals(quote, null)) && !(((Map<?, ?>)result).containsKey(quote)))
+            if ((!java.util.Objects.equals(quote, null)) && !(result.containsKey(quote)))
             {
                 Long counterDecimals = this.safeInteger(market, "counter_decimals");
                 Helpers.addElementToObject(result, quote, this.constructCurrencyObject(quoteId, quote, quoteDescription, counterDecimals, this.parseNumber(cost), market));

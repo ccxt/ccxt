@@ -3981,7 +3981,7 @@ final Object finalClientOrderId = clientOrderId;
                 String oid = this.safeString(entry, "oid");
                 if (!java.util.Objects.equals(oid, null))
                 {
-                    if (!(((Map<?, ?>)deduplicatedByOid).containsKey(oid)))
+                    if (!(deduplicatedByOid.containsKey(oid)))
                     {
                         Helpers.addElementToObject(deduplicatedByOid, oid, rawOrder);
                     } else

@@ -968,7 +968,7 @@ public class Tokocrypto extends TokocryptoApi
                     put( "created", null );
                     put( "info", market );
                 }};
-                if (((Map<?, ?>)filtersByType).containsKey("PRICE_FILTER"))
+                if (filtersByType.containsKey("PRICE_FILTER"))
                 {
                     Object filter = this.safeDict(filtersByType, "PRICE_FILTER", new HashMap<String, Object>() {{}});
                     Helpers.addElementToObject(Helpers.GetValue(entry, "precision"), "price", this.safeNumber(filter, "tickSize"));
@@ -982,7 +982,7 @@ public class Tokocrypto extends TokocryptoApi
     }});
                     Helpers.addElementToObject(Helpers.GetValue(entry, "precision"), "price", ((Map<String, Object>)filter).get("tickSize"));
                 }
-                if (((Map<?, ?>)filtersByType).containsKey("LOT_SIZE"))
+                if (filtersByType.containsKey("LOT_SIZE"))
                 {
                     Object filter = this.safeValue(filtersByType, "LOT_SIZE", new HashMap<String, Object>() {{}});
                     Helpers.addElementToObject(Helpers.GetValue(entry, "precision"), "amount", this.safeNumber(filter, "stepSize"));
@@ -991,7 +991,7 @@ public class Tokocrypto extends TokocryptoApi
         put( "max", Tokocrypto.this.safeNumber(filter, "maxQty") );
     }});
                 }
-                if (((Map<?, ?>)filtersByType).containsKey("MARKET_LOT_SIZE"))
+                if (filtersByType.containsKey("MARKET_LOT_SIZE"))
                 {
                     Object filter = this.safeValue(filtersByType, "MARKET_LOT_SIZE", new HashMap<String, Object>() {{}});
                     Helpers.addElementToObject(Helpers.GetValue(entry, "limits"), "market", new HashMap<String, Object>() {{
@@ -999,7 +999,7 @@ public class Tokocrypto extends TokocryptoApi
         put( "max", Tokocrypto.this.safeNumber(filter, "maxQty") );
     }});
                 }
-                if (((Map<?, ?>)filtersByType).containsKey("MIN_NOTIONAL"))
+                if (filtersByType.containsKey("MIN_NOTIONAL"))
                 {
                     Object filter = this.safeValue(filtersByType, "MIN_NOTIONAL", new HashMap<String, Object>() {{}});
                     Helpers.addElementToObject(Helpers.GetValue(Helpers.GetValue(entry, "limits"), "cost"), "min", this.safeNumber2(filter, "minNotional", "notional"));

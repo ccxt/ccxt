@@ -2446,7 +2446,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
         {
             return;
         }
-        if (((Map<?, ?>)methods).containsKey(channel))
+        if (methods.containsKey(channel))
         {
             String subscriptionHash = this.safeString(client.subscriptions, id);
             Object subscription = this.safeValue(client.subscriptions, subscriptionHash);

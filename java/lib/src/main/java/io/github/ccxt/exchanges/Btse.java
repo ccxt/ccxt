@@ -3495,7 +3495,7 @@ public class Btse extends BtseApi
             {
                 Object entry = Helpers.GetValue(rawRows, i);
                 String type = this.safeString(entry, "type", "");
-                if (((Map<?, ?>)allowed).containsKey(type))
+                if (allowed.containsKey(type))
                 {
                     ((List<Object>)rows).add(entry);
                 }

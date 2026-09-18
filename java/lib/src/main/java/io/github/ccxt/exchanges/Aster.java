@@ -4739,7 +4739,7 @@ public class Aster extends AsterApi
             if (!Helpers.isTrue(filterClosed) || Helpers.isTrue(isPositionOpen))
             {
                 // sometimes not all the codes are correctly returned...
-                if (((Map<?, ?>)balances).containsKey(code))
+                if (balances.containsKey(code))
                 {
                     final Object finalCode = code;
                     Object parsed = this.parseAccountPosition(this.extend(position, new HashMap<String, Object>() {{

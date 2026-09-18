@@ -1108,7 +1108,7 @@ public class Pacifica extends PacificaApi
                 Helpers.addElementToObject(account, "total", this.safeString(balance, "amount"));
                 Helpers.addElementToObject(account, "free", this.safeString(balance, "available_to_withdraw"));
                 // skip a spot USDC entry so it can't clobber the perp-collateral account above
-                if ((!java.util.Objects.equals(code, null)) && !(((Map<?, ?>)result).containsKey(code)))
+                if ((!java.util.Objects.equals(code, null)) && !(result.containsKey(code)))
                 {
                     Helpers.addElementToObject(result, code, account);
                 }

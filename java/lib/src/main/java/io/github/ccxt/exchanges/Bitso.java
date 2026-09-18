@@ -2239,7 +2239,7 @@ public class Bitso extends BitsoApi
                 put( "LTC", "Litecoin" );
             }};
             Map<String, Object> currency = (Map<String, Object>) this.currency(code);
-            Object method = (((((Map<?, ?>)methods).containsKey(code)))) ? Helpers.GetValue(methods, code) : null;
+            Object method = (((methods.containsKey(code)))) ? Helpers.GetValue(methods, code) : null;
             if (java.util.Objects.equals(method, null))
             {
                 throw new ExchangeError(((this.id + " not valid withdraw coin: ") + code)) ;

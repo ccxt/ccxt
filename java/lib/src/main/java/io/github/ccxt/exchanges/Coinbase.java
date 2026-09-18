@@ -1753,7 +1753,7 @@ public class Coinbase extends CoinbaseApi
             {
                 Object baseId = Helpers.GetValue(baseIds, i);
                 String base = this.safeCurrencyCode(baseId);
-                String type = (((((Map<?, ?>)dataById).containsKey(baseId)))) ? "fiat" : "crypto";
+                String type = (((dataById.containsKey(baseId)))) ? "fiat" : "crypto";
                 // https://github.com/ccxt/ccxt/issues/6066
                 if (java.util.Objects.equals(type, "crypto"))
                 {
@@ -2467,7 +2467,7 @@ public class Coinbase extends CoinbaseApi
             {
                 Object currencyId = Helpers.GetValue(ratesIds, i);
                 String code = this.safeCurrencyCode(currencyId);
-                if ((java.util.Objects.equals(code, null)) || !(((Map<?, ?>)result).containsKey(code)))
+                if ((java.util.Objects.equals(code, null)) || !(result.containsKey(code)))
                 {
                     if (!java.util.Objects.equals(code, null))
                     {

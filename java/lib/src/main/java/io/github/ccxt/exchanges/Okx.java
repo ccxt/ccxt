@@ -9306,7 +9306,7 @@ public class Okx extends OkxApi
             String code = this.safeCurrencyCode(this.safeString(item, "ccy"));
             if ((!java.util.Objects.equals(code, null)) && (java.util.Objects.equals(codes, null) || Helpers.isTrue(this.inArray(code, codes))))
             {
-                if (!(((Map<?, ?>)borrowRateHistories).containsKey(code)))
+                if (!(borrowRateHistories.containsKey(code)))
                 {
                     Helpers.addElementToObject(borrowRateHistories, code, new ArrayList<Object>(Arrays.asList()));
                 }

@@ -2546,7 +2546,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
             put( "pong", "handlePong");
             put( "push.funding.rate", "handleFundingRate");
         }};
-        if ((!java.util.Objects.equals(channel, null)) && (((Map<?, ?>)methods).containsKey(channel)))
+        if ((!java.util.Objects.equals(channel, null)) && (methods.containsKey(channel)))
         {
             Object method = Helpers.GetValue(methods, channel);
             Helpers.callDynamically(this, method, new Object[] {client, message});

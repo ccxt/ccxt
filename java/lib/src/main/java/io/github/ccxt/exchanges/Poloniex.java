@@ -2917,7 +2917,7 @@ public class Poloniex extends PoloniexApi
             (this.loadMarkets()).join();
             Object orders = (this.fetchOpenOrders((Object)(symbol), (Object)(null), (Object)(null), (Object)(parameters))).join();
             Map<String, Object> indexed = this.indexBy(orders, "id");
-            return (((((Map<?, ?>)indexed).containsKey(id)))) ? "open" : "closed";
+            return (((indexed.containsKey(id)))) ? "open" : "closed";
         }).thenApply(res -> (String) res);
 
     }

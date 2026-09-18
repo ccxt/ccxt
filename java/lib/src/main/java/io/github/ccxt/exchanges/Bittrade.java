@@ -1061,7 +1061,7 @@ public class Bittrade extends BittradeApi
             //         }
             //     }
             //
-            if (((Map<?, ?>)response).containsKey("tick"))
+            if (response.containsKey("tick"))
             {
                 if ((java.util.Objects.equals(((Map<String, Object>)response).get("tick"), null)) || (java.util.Objects.equals(((Map<String, Object>)response).get("tick"), null)))
                 {
@@ -1626,7 +1626,7 @@ public class Bittrade extends BittradeApi
             String currencyId = this.safeString(balance, "currency");
             String code = this.safeCurrencyCode(currencyId);
             Object account = null;
-            if ((!java.util.Objects.equals(code, null)) && (((Map<?, ?>)result).containsKey(code)))
+            if ((!java.util.Objects.equals(code, null)) && (result.containsKey(code)))
             {
                 account = Helpers.GetValue(result, code);
             } else

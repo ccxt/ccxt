@@ -1523,7 +1523,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                     String baseIdLower = this.safeStringLower(market, "baseId", "");
                     String quoteIdLower = this.safeStringLower(market, "quoteId", "");
                     Object underlying = Helpers.add(Helpers.add(baseIdLower, ""), quoteIdLower);
-                    if (!(((Map<?, ?>)seenUnderlyings).containsKey(underlying)))
+                    if (!(seenUnderlyings.containsKey(underlying)))
                     {
                         Helpers.addElementToObject(seenUnderlyings, underlying, true);
                         ((List<Object>)subParams).add((underlying + "@optionTrade"));
@@ -1630,7 +1630,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                     String baseIdLower = this.safeStringLower(market, "baseId", "");
                     String quoteIdLower = this.safeStringLower(market, "quoteId", "");
                     Object underlying = Helpers.add(Helpers.add(baseIdLower, ""), quoteIdLower);
-                    if (!(((Map<?, ?>)seenUnderlyings).containsKey(underlying)))
+                    if (!(seenUnderlyings.containsKey(underlying)))
                     {
                         Helpers.addElementToObject(seenUnderlyings, underlying, true);
                         ((List<Object>)subParams).add((underlying + "@optionTrade"));
@@ -2934,7 +2934,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                         String baseIdLower = this.safeStringLower(market, "baseId", "");
                         String quoteIdLower = this.safeStringLower(market, "quoteId", "");
                         Object underlying = Helpers.add(Helpers.add(baseIdLower, ""), quoteIdLower);
-                        if (!(((Map<?, ?>)seenUnderlyings).containsKey(underlying)))
+                        if (!(seenUnderlyings.containsKey(underlying)))
                         {
                             Helpers.addElementToObject(seenUnderlyings, underlying, true);
                             ((List<Object>)subscriptionArgs).add((underlying + "@optionMarkPrice"));
@@ -2950,7 +2950,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                         String quoteIdLower = this.safeStringLower(market, "quoteId", "");
                         Object underlying = Helpers.add(Helpers.add(baseIdLower, ""), quoteIdLower);
                         Object subscriptionArg = Helpers.add((underlying + "@optionTicker@"), expiryDate);
-                        if (!(((Map<?, ?>)seenUnderlyings).containsKey(subscriptionArg)))
+                        if (!(seenUnderlyings.containsKey(subscriptionArg)))
                         {
                             Helpers.addElementToObject(seenUnderlyings, subscriptionArg, true);
                             ((List<Object>)subscriptionArgs).add(subscriptionArg);
