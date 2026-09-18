@@ -760,7 +760,7 @@ public partial class nado : Exchange
         {
             ((IList<object>)result).Add(this.parseOrder(this.extend(new Dictionary<string, object>() {
                 { "status", "canceled" },
-            }, getValue(cancelledOrders, i)), market));
+            }, cancelledOrders[i]), market));
         }
         return ccxt.BaseExchange.ToOrderList(result);
     }
@@ -864,7 +864,7 @@ public partial class nado : Exchange
         {
             ((IList<object>)result).Add(this.parseOrder(this.extend(new Dictionary<string, object>() {
                 { "status", "canceled" },
-            }, getValue(cancelledOrders, i)), market));
+            }, cancelledOrders[i]), market));
         }
         return ccxt.BaseExchange.ToOrderList(result);
     }
@@ -1236,7 +1236,7 @@ public partial class nado : Exchange
         List<object> orders = this.safeList(response, "orders", new List<object>() {});
         for (int i = 0; isLessThan(i, orders.Count); postFixIncrement(ref i))
         {
-            object order = getValue(orders, i);
+            object order = orders[i];
             if (isTrue(this.isArchiveOrderClosed(order)))
             {
                 ((IList<object>)closedOrders).Add(this.extend(new Dictionary<string, object>() {
@@ -1369,7 +1369,7 @@ public partial class nado : Exchange
         List<object> trades = new List<object>() {};
         for (int i = 0; isLessThan(i, matches.Count); postFixIncrement(ref i))
         {
-            object match = getValue(matches, i);
+            object match = matches[i];
             string? submissionIdx = this.safeString(match, "submission_idx");
             IDictionary<string, object> tx = this.safeDict(txsBySubmission, submissionIdx, new Dictionary<string, object>() {});
             ((IList<object>)trades).Add(this.extend(tx, match));
@@ -1536,12 +1536,12 @@ public partial class nado : Exchange
         List<object> transactions = new List<object>() {};
         for (int i = 0; isLessThan(i, events.Count); postFixIncrement(ref i))
         {
-            object eventVar = getValue(events, i);
+            object eventVar = events[i];
             string? submissionIdx = this.safeString(eventVar, "submission_idx");
             object tx = new Dictionary<string, object>() {};
             for (int j = 0; isLessThan(j, txs.Count); postFixIncrement(ref j))
             {
-                object rawTx = getValue(txs, j);
+                object rawTx = txs[j];
                 string? txSubmissionIdx = this.safeString(rawTx, "submission_idx");
                 if ((txSubmissionIdx == submissionIdx))
                 {
@@ -1618,7 +1618,7 @@ public partial class nado : Exchange
         List<object> result = new List<object>() {};
         for (int i = 0; isLessThan(i, positions.Count); postFixIncrement(ref i))
         {
-            object position = getValue(positions, i);
+            object position = positions[i];
             IDictionary<string, object> balance = this.safeDict(position, "balance", new Dictionary<string, object>() {});
             string? amount = this.safeString(balance, "amount");
             if (((amount == null)) || isTrue(Precise.stringEquals(amount, "0")))
@@ -1629,7 +1629,7 @@ public partial class nado : Exchange
             object product = new Dictionary<string, object>() {};
             for (int j = 0; isLessThan(j, products.Count); postFixIncrement(ref j))
             {
-                object rawProduct = getValue(products, j);
+                object rawProduct = products[j];
                 string? rawProductId = this.safeString(rawProduct, "product_id");
                 if ((rawProductId == productId))
                 {
@@ -1721,7 +1721,7 @@ public partial class nado : Exchange
         Dictionary<string, object> pairsById = new Dictionary<string, object>() {};
         for (int i = 0; isLessThan(i, pairs.Count); postFixIncrement(ref i))
         {
-            object rawPair = getValue(pairs, i);
+            object rawPair = pairs[i];
             string? pairProductId = this.safeString(rawPair, "product_id");
             if ((pairProductId != null))
             {
@@ -1731,7 +1731,7 @@ public partial class nado : Exchange
         Dictionary<string, object> assetsById = new Dictionary<string, object>() {};
         for (int i = 0; isLessThan(i, assets.Count); postFixIncrement(ref i))
         {
-            object rawAsset = getValue(assets, i);
+            object rawAsset = assets[i];
             string? assetProductId = this.safeString(rawAsset, "product_id");
             if ((assetProductId != null))
             {
@@ -1741,7 +1741,7 @@ public partial class nado : Exchange
         Dictionary<string, object> assetsByCode = new Dictionary<string, object>() {};
         for (int i = 0; isLessThan(i, assets.Count); postFixIncrement(ref i))
         {
-            object rawAsset = getValue(assets, i);
+            object rawAsset = assets[i];
             string? assetSymbol = this.safeString(rawAsset, "symbol");
             string? assetCode = this.safeCurrencyCode(this.removeMarketSuffix(assetSymbol));
             if ((assetCode == null))
@@ -1767,7 +1767,7 @@ public partial class nado : Exchange
         List<object> markets = new List<object>() {};
         for (int i = 0; isLessThan(i, symbols.Count); postFixIncrement(ref i))
         {
-            object market = getValue(symbols, i);
+            object market = symbols[i];
             string? id = this.safeString(market, "product_id");
             IDictionary<string, object> pair = this.safeDict(pairsById, id, new Dictionary<string, object>() {});
             IDictionary<string, object> asset = this.safeDict(assetsById, id, new Dictionary<string, object>() {});
@@ -1876,7 +1876,7 @@ public partial class nado : Exchange
         IList<object> assets = this.toArray(response);
         for (int i = 0; isLessThan(i, assets?.Count ?? 0); postFixIncrement(ref i))
         {
-            object currency = getValue(assets, i);
+            object currency = assets[i];
             Dictionary<string, object> parsed = this.parseCurrency(currency);
             string? code = this.safeString(parsed, "code");
             if ((code == null))
@@ -2070,7 +2070,7 @@ public partial class nado : Exchange
         List<object> result = new List<object>() {};
         for (int i = 0; isLessThan(i, fundingPayments.Count); postFixIncrement(ref i))
         {
-            ((IList<object>)result).Add(this.parseFundingHistory(getValue(fundingPayments, i), market));
+            ((IList<object>)result).Add(this.parseFundingHistory(fundingPayments[i], market));
         }
         List<object> sorted = this.sortBy(result, "timestamp");
         return ccxt.BaseExchange.ToFundingHistoryList(this.filterBySymbolSinceLimit(sorted, symbol, since, limit));
@@ -2119,7 +2119,7 @@ public partial class nado : Exchange
         List<object> rates = new List<object>() {};
         for (int i = 0; isLessThan(i, tickers.Count); postFixIncrement(ref i))
         {
-            string? ticker = ((string)getValue(tickers, i));
+            string? ticker = ((string)tickers[i]);
             ((IList<object>)rates).Add(this.safeDict(response, ticker, new Dictionary<string, object>() {}));
         }
         return ccxt.BaseExchange.ToFundingRates(this.parseFundingRates(rates, symbols));
@@ -2216,7 +2216,7 @@ public partial class nado : Exchange
         List<object> interests = new List<object>() {};
         for (int i = 0; isLessThan(i, tickers.Count); postFixIncrement(ref i))
         {
-            string? ticker = ((string)getValue(tickers, i));
+            string? ticker = ((string)tickers[i]);
             ((IList<object>)interests).Add(this.safeDict(response, ticker, new Dictionary<string, object>() {}));
         }
         return ccxt.BaseExchange.ToOpenInterests(this.parseOpenInterests(interests, symbols));
@@ -2703,7 +2703,7 @@ public partial class nado : Exchange
         List<object> balances = this.safeList(response, "spot_balances", new List<object>() {});
         for (int i = 0; isLessThan(i, balances.Count); postFixIncrement(ref i))
         {
-            object rawBalance = getValue(balances, i);
+            object rawBalance = balances[i];
             string? currencyId = this.safeString(rawBalance, "product_id");
             string? code = this.safeCurrencyCode(currencyId);
             if (code == "0")

@@ -403,7 +403,7 @@ public partial class zaif : Exchange
         List<object> currencyIds = new List<object>(funds.Keys);
         for (int i = 0; isLessThan(i, currencyIds.Count); postFixIncrement(ref i))
         {
-            string? currencyId = ((string)getValue(currencyIds, i));
+            string? currencyId = ((string)currencyIds[i]);
             string? code = this.safeCurrencyCode(currencyId);
             string? balance = this.safeString(funds, currencyId);
             Dictionary<string, object> account = this.account();

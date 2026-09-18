@@ -1369,7 +1369,7 @@ public partial class woo : Exchange
         }
         for (int i = 0; isLessThan(i, symbols?.Count ?? 0); postFixIncrement(ref i))
         {
-            string? symbol = ((string)getValue(symbols, i));
+            string? symbol = ((string)symbols[i]);
             result[(string)symbol] = new Dictionary<string, object>() {
                 { "info", response },
                 { "symbol", symbol },
@@ -1479,7 +1479,7 @@ public partial class woo : Exchange
         List<object> currencyIds = new List<object>(tokensById.Keys);
         for (int i = 0; isLessThan(i, currencyIds.Count); postFixIncrement(ref i))
         {
-            string? id = ((string)getValue(currencyIds, i));
+            string? id = ((string)currencyIds[i]);
             Dictionary<string, object> customCurrency = new Dictionary<string, object>() {
                 { "_coin_id", id },
                 { "_tokens_by_id", getValue(tokensById, id) },
@@ -1505,7 +1505,7 @@ public partial class woo : Exchange
         Dictionary<string, object> resultingNetworks = new Dictionary<string, object>() {};
         for (int j = 0; isLessThan(j, keys.Count); postFixIncrement(ref j))
         {
-            string? networkId = ((string)getValue(keys, j));
+            string? networkId = ((string)keys[j]);
             IDictionary<string, object> tokenEntry = this.safeDict(tokensByNetworkId, networkId, new Dictionary<string, object>() {});
             IDictionary<string, object> networkEntry = this.safeDict(chainsByNetworkId, networkId, new Dictionary<string, object>() {});
             string? networkCode = this.networkIdToCode(networkId, code);
@@ -2750,7 +2750,7 @@ public partial class woo : Exchange
         List<object> result = new List<object>() {};
         for (int i = 0; isLessThan(i, rows.Count); postFixIncrement(ref i))
         {
-            object row = getValue(rows, i);
+            object row = rows[i];
             string? marketId = this.safeString(row, "symbol");
             if ((marketId == null))
             {
@@ -3137,7 +3137,7 @@ public partial class woo : Exchange
         List<object> balances = this.safeList(response, "holding", new List<object>() {});
         for (int i = 0; isLessThan(i, balances.Count); postFixIncrement(ref i))
         {
-            object balance = getValue(balances, i);
+            object balance = balances[i];
             string? code = this.safeCurrencyCode(this.safeString(balance, "token"));
             Dictionary<string, object> account = this.account();
             account["total"] = this.safeString(balance, "holding");
@@ -4317,7 +4317,7 @@ public partial class woo : Exchange
         List<object> rates = new List<object>() {};
         for (int i = 0; isLessThan(i, rows.Count); postFixIncrement(ref i))
         {
-            object entry = getValue(rows, i);
+            object entry = rows[i];
             string? marketId = this.safeString(entry, "symbol");
             Int64? timestamp = this.safeInteger(entry, "fundingRateTimestamp");
             rates.Add(new Dictionary<string, object>() {
@@ -5061,7 +5061,7 @@ public partial class woo : Exchange
         List<object> data = this.safeList(response, "rows", new List<object>() {});
         for (int i = 0; isLessThan(i, data.Count); postFixIncrement(ref i))
         {
-            object entry = getValue(data, i);
+            object entry = data[i];
             string? id = this.safeString(entry, "token");
             string? code = this.safeCurrencyCode(id);
             if ((code != null))
@@ -5210,7 +5210,7 @@ public partial class woo : Exchange
         List<object> networkKeys = new List<object>(((IDictionary<string,object>)networks).Keys);
         for (int i = 0; isLessThan(i, networkKeys.Count); postFixIncrement(ref i))
         {
-            object network = getValue(networkKeys, i);
+            object network = networkKeys[i];
             if (isEqual(network, "ETH"))
             {
                 return network;

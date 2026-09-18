@@ -386,7 +386,7 @@ public partial class cryptomus : Exchange
         string? marketId = this.safeString(market, "symbol");
         if ((marketId == null))
         {
-            throw new ExchangeError ((this.id + " parseMarket() missing marketId")) ;
+            throw new ExchangeError (add(this.id, " parseMarket() missing marketId")) ;
         }
         List<object> parts = marketId.Split(new [] {"_"}, StringSplitOptions.None).ToList<object>();
         string? baseId = ((string)getValue(parts, 0));
@@ -483,7 +483,7 @@ public partial class cryptomus : Exchange
         //
         List<object> coins = this.safeList(response, "result");
         Dictionary<string, object> groupedById = this.groupBy(coins, "currency_code");
-        List<object> groupedArray = new List<object>(groupedById.Values);
+        List<object> groupedArray = new List<object>(((IDictionary<string,object>)groupedById).Values);
         return this.parseCurrencies(groupedArray);
     }
 
@@ -796,7 +796,7 @@ public partial class cryptomus : Exchange
                 result[(string)code] = account;
             }
         }
-        return this.safeBalance(result);
+        return ((Dictionary<string, object>)((object)(this.safeBalance(result))));
     }
 
     /**
@@ -854,7 +854,7 @@ public partial class cryptomus : Exchange
                 {
                     if ((isEqual(price, null)) && ((cost == null)))
                     {
-                        throw new InvalidOrder ((this.id + " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option of param to false and pass the cost to spend in the amount argument")) ;
+                        throw new InvalidOrder (add(this.id, " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option of param to false and pass the cost to spend in the amount argument")) ;
                     } else if ((cost == null))
                     {
                         cost = Precise.stringMul(amountToString, priceToString);
@@ -873,14 +873,14 @@ public partial class cryptomus : Exchange
         {
             if (isEqual(price, null))
             {
-                throw new ArgumentsRequired ((((this.id + " createOrder() requires a price parameter for a ") + type) + " order")) ;
+                throw new ArgumentsRequired (add(add(add(this.id, " createOrder() requires a price parameter for a "), type), " order")) ;
             }
             request["quantity"] = amountToString;
             request["price"] = price;
             response = await this.privatePostV2UserApiExchangeOrders(this.extend(request, parameters));
         } else
         {
-            throw new ArgumentsRequired ((this.id + " createOrder() requires a type parameter (limit or market)")) ;
+            throw new ArgumentsRequired (add(this.id, " createOrder() requires a type parameter (limit or market)")) ;
         }
         //
         //     {
@@ -996,8 +996,8 @@ public partial class cryptomus : Exchange
         List<object> orders = new List<object>() {};
         for (int i = 0; isLessThan(i, result.Count); postFixIncrement(ref i))
         {
-            object order = getValue(result, i);
-            orders.Add(this.parseOrder(order, market));
+            object order = result[i];
+            ((IList<object>)orders).Add(this.parseOrder(order, market));
         }
         return ccxt.BaseExchange.ToOrderList(orders);
     }
@@ -1138,7 +1138,7 @@ public partial class cryptomus : Exchange
                 { "cost", this.safeNumber(firstTx, "fee") },
             };
         }
-        if ((price == null))
+        if (isEqual(price, null))
         {
             price = this.safeNumber(firstTx, "filledPrice");
         }
@@ -1261,7 +1261,7 @@ public partial class cryptomus : Exchange
         }
         for (int i = 0; isLessThan(i, symbols?.Count ?? 0); postFixIncrement(ref i))
         {
-            string? symbol = ((string)getValue(symbols, i));
+            string? symbol = ((string)symbols[i]);
             result[(string)symbol] = new Dictionary<string, object>() {
                 { "info", response },
                 { "symbol", symbol },
@@ -1287,8 +1287,8 @@ public partial class cryptomus : Exchange
             string? maker = this.safeString(tier, "maker_percent");
             maker = Precise.stringDiv(maker, "100");
             taker = Precise.stringDiv(taker, "100");
-            makerFees.Add(new List<object>() {turnover, this.parseNumber(maker)});
-            takerFees.Add(new List<object>() {turnover, this.parseNumber(taker)});
+            ((IList<object>)makerFees).Add(new List<object>() {turnover, this.parseNumber(maker)});
+            ((IList<object>)takerFees).Add(new List<object>() {turnover, this.parseNumber(taker)});
         }
         return new Dictionary<string, object>() {
             { "maker", makerFees },
@@ -1321,11 +1321,11 @@ public partial class cryptomus : Exchange
                 string query = this.urlencode(parameters);
                 if ((query.Length != 0))
                 {
-                    url = add(url, ("?" + query));
+                    url = add(url, add("?", query));
                 }
             }
-            string jsonParamsBase64 = this.stringToBase64(jsonParams);
-            string stringToSign = add(jsonParamsBase64, this.secret);
+            object jsonParamsBase64 = this.stringToBase64(jsonParams);
+            object stringToSign = add(jsonParamsBase64, this.secret);
             object signature = this.hash(this.encode(stringToSign), md5);
             ((IDictionary<string,object>)headers)["sign"] = signature;
         } else
@@ -1333,7 +1333,7 @@ public partial class cryptomus : Exchange
             string query = this.urlencode(parameters);
             if ((query.Length != 0))
             {
-                url = add(url, ("?" + query));
+                url = add(url, add("?", query));
             }
         }
         return new Dictionary<string, object>() {
@@ -1353,7 +1353,7 @@ public partial class cryptomus : Exchange
         if (inOp(response, "code"))
         {
             string? code = this.safeString(response, "code");
-            string feedback = ((this.id + " ") + body);
+            string feedback = add(add(this.id, " "), body);
             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), code, feedback);
             throw new ExchangeError (feedback) ;
         } else if (inOp(response, "message"))
@@ -1362,7 +1362,7 @@ public partial class cryptomus : Exchange
             //      {"message":"Minimum amount 15 USDT","state":1}
             //
             string? message = this.safeString(response, "message");
-            string feedback = ((this.id + " ") + body);
+            string feedback = add(add(this.id, " "), body);
             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), message, feedback);
             this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), message, feedback);
             throw new ExchangeError (feedback) ;

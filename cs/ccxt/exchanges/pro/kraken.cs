@@ -120,7 +120,7 @@ public partial class kraken : ccxt.kraken
         {
             if (isEqual(price, null))
             {
-                throw new ArgumentsRequired ((this.id + " limit orders require a price argument")) ;
+                throw new ArgumentsRequired (add(this.id, " limit orders require a price argument")) ;
             }
             ((IDictionary<string,object>)getValue(request, "params"))["limit_price"] = this.parseToNumeric(this.priceToPrecision(symbol, price));
         }
@@ -164,10 +164,10 @@ public partial class kraken : ccxt.kraken
         bool isTrailingLimitAmountOrder = (trailingLimitAmount != null);
         bool isTrailingLimitPercentOrder = (trailingLimitPercent != null);
         string offset = ((string)this.safeString(parameters, "offset", "")); // can set this to - for minus
-        string? trailingAmountString = ((trailingAmount != null)) ? (offset + this.numberToString(trailingAmount)) : null;
-        string? trailingPercentString = ((trailingPercent != null)) ? (offset + this.numberToString(trailingPercent)) : null;
-        string? trailingLimitAmountString = ((trailingLimitAmount != null)) ? (offset + this.numberToString(trailingLimitAmount)) : null;
-        string? trailingLimitPercentString = ((trailingLimitPercent != null)) ? (offset + this.numberToString(trailingLimitPercent)) : null;
+        string? trailingAmountString = ((trailingAmount != null)) ? add(offset, this.numberToString(trailingAmount)) : null;
+        string? trailingPercentString = ((trailingPercent != null)) ? add(offset, this.numberToString(trailingPercent)) : null;
+        string? trailingLimitAmountString = ((trailingLimitAmount != null)) ? add(offset, this.numberToString(trailingLimitAmount)) : null;
+        string? trailingLimitPercentString = ((trailingLimitPercent != null)) ? add(offset, this.numberToString(trailingLimitPercent)) : null;
         string priceType = (isTrailingPercentOrder || isTrailingLimitPercentOrder) ? "pct" : "quote";
         if (isEqual(method, "createOrderWs"))
         {
@@ -262,7 +262,7 @@ public partial class kraken : ccxt.kraken
         {
             if (isPresetStopLoss || isPresetTakeProfit)
             {
-                throw new NotSupported ((this.id + " editing the stopLoss and takeProfit on existing orders is currently not supported")) ;
+                throw new NotSupported (add(this.id, " editing the stopLoss and takeProfit on existing orders is currently not supported")) ;
             }
             if (isStopLossPriceOrder || isTakeProfitPriceOrder)
             {
@@ -427,7 +427,7 @@ public partial class kraken : ccxt.kraken
         parameters ??= new Dictionary<string, object>();
         if (!isEqual(symbol, null))
         {
-            throw new NotSupported ((this.id + " cancelOrdersWs () does not support cancelling orders for a specific symbol.")) ;
+            throw new NotSupported (add(this.id, " cancelOrdersWs () does not support cancelling orders for a specific symbol.")) ;
         }
         await this.loadMarkets();
         string? token = await this.authenticate();
@@ -460,7 +460,7 @@ public partial class kraken : ccxt.kraken
         parameters ??= new Dictionary<string, object>();
         if (!isEqual(symbol, null))
         {
-            throw new NotSupported ((this.id + " cancelOrderWs () does not support cancelling orders for a specific symbol.")) ;
+            throw new NotSupported (add(this.id, " cancelOrderWs () does not support cancelling orders for a specific symbol.")) ;
         }
         await this.loadMarkets();
         string? token = await this.authenticate();
@@ -510,7 +510,7 @@ public partial class kraken : ccxt.kraken
         parameters ??= new Dictionary<string, object>();
         if (!isEqual(symbol, null))
         {
-            throw new NotSupported ((this.id + " cancelAllOrdersWs () does not support cancelling orders in a specific market.")) ;
+            throw new NotSupported (add(this.id, " cancelAllOrdersWs () does not support cancelling orders in a specific market.")) ;
         }
         await this.loadMarkets();
         string? token = await this.authenticate();
@@ -641,7 +641,7 @@ public partial class kraken : ccxt.kraken
         IList<object> parsed = this.parseTrades(data, market);
         for (int i = 0; isLessThan(i, parsed?.Count ?? 0); postFixIncrement(ref i))
         {
-            callDynamically(stored, "append", new object[] {getValue(parsed, i)});
+            callDynamically(stored, "append", new object[] {parsed[i]});
         }
         callDynamically(client, "resolve", new object[] {stored, messageHash});
     }
@@ -858,7 +858,7 @@ public partial class kraken : ccxt.kraken
                 requiredParams["depth"] = limit; // default 10, valid options 10, 25, 100, 500, 1000
             } else
             {
-                throw new NotSupported ((this.id + " watchOrderBook accepts limit values of 10, 25, 100, 500 and 1000 only")) ;
+                throw new NotSupported (add(this.id, " watchOrderBook accepts limit values of 10, 25, 100, 500 and 1000 only")) ;
             }
         }
         object orderbook = await this.watchMultiHelper("orderbook", "book", symbols, new Dictionary<string, object>() {
@@ -925,7 +925,7 @@ public partial class kraken : ccxt.kraken
             {
                 for (int i = 0; isLessThan(i, symbols?.Count ?? 0); postFixIncrement(ref i))
                 {
-                    string? symbol = ((string)getValue(symbols, i));
+                    string? symbol = ((string)symbols[i]);
                     Dictionary<string, object> market = this.market(symbol);
                     object info = this.safeValue(market, "info", new Dictionary<string, object>() {});
                     string wsName = ((string)this.safeString(info, "wsname"));
@@ -1069,7 +1069,7 @@ public partial class kraken : ccxt.kraken
             List<object> keys = new List<object>() {"asks", "bids"};
             for (int i = 0; isLessThan(i, keys.Count); postFixIncrement(ref i))
             {
-                string? key = ((string)getValue(keys, i));
+                string? key = ((string)keys[i]);
                 object bookside = getValue(orderbook, key);
                 List<object> deltas = this.safeList(first, key, new List<object>() {});
                 int deltasLength = deltas.Count;
@@ -1095,13 +1095,13 @@ public partial class kraken : ccxt.kraken
                 for (int i = 0; isLessThan(i, 10); postFixIncrement(ref i))
                 {
                     object currentAsk = this.safeValue(checkAsks, i, new Dictionary<string, object>() {});
-                    string formattedAsk = (this.formatNumber(getValue(currentAsk, 0)) + this.formatNumber(getValue(currentAsk, 1)));
+                    string formattedAsk = add(this.formatNumber(getValue(currentAsk, 0)), this.formatNumber(getValue(currentAsk, 1)));
                     ((IList<object>)payloadArray).Add(formattedAsk);
                 }
                 for (int i = 0; isLessThan(i, 10); postFixIncrement(ref i))
                 {
                     object currentBid = this.safeValue(checkBids, i, new Dictionary<string, object>() {});
-                    string formattedBid = (this.formatNumber(getValue(currentBid, 0)) + this.formatNumber(getValue(currentBid, 1)));
+                    string formattedBid = add(this.formatNumber(getValue(currentBid, 0)), this.formatNumber(getValue(currentBid, 1)));
                     ((IList<object>)payloadArray).Add(formattedBid);
                 }
             }
@@ -1109,7 +1109,7 @@ public partial class kraken : ccxt.kraken
             Int64 localChecksum = this.crc32(payload, false);
             if (!isEqual(localChecksum, c))
             {
-                var error = new ChecksumError(((this.id + " ") + this.orderbookChecksumMessage(symbol)));
+                var error = new ChecksumError(add(add(this.id, " "), this.orderbookChecksumMessage(symbol)));
                 ((IDictionary<string,object>)client.subscriptions).Remove((string)messageHash);
                 ((IDictionary<string,object>)this.orderbooks).Remove(symbol);
                 client.reject(error, messageHash);
@@ -1229,7 +1229,7 @@ public partial class kraken : ccxt.kraken
                 string? token = this.safeString(subscription, "token");
                 if ((token == null))
                 {
-                    throw new AuthenticationError ((this.id + " authenticate() received an empty token")) ;
+                    throw new AuthenticationError (add(this.id, " authenticate() received an empty token")) ;
                 }
                 ((IDictionary<string,object>)subscription)["start"] = now;
                 ((IDictionary<string,object>)client.subscriptions)[authenticated] = subscription;
@@ -1260,7 +1260,7 @@ public partial class kraken : ccxt.kraken
         if (!isEqual(symbol, null))
         {
             symbol = this.symbol(symbol);
-            messageHash = add(messageHash, (":" + symbol));
+            messageHash = add(messageHash, add(":", symbol));
         }
         object url = getValue(getValue(getValue(this.urls, "api"), "ws"), "privateV2");
         Int64 requestId = ((Int64)this.requestId());
@@ -1274,7 +1274,7 @@ public partial class kraken : ccxt.kraken
         };
         if (!isEqual(parameters, null))
         {
-            subscribe["params"] = this.deepExtend(subscribe["params"], parameters);
+            subscribe["params"] = this.deepExtend(((IDictionary<string,object>)subscribe)["params"], parameters);
         }
         object result = await this.watch(url, messageHash, subscribe, subscriptionHash);
         if (isTrue(this.newUpdates))
@@ -1356,10 +1356,10 @@ public partial class kraken : ccxt.kraken
             }
             string name = "myTrades";
             callDynamically(client, "resolve", new object[] {this.myTrades, name});
-            List<object> keys = new List<object>(symbols.Keys);
+            List<object> keys = new List<object>(((IDictionary<string,object>)symbols).Keys);
             for (int i = 0; isLessThan(i, keys.Count); postFixIncrement(ref i))
             {
-                string messageHash = ((name + ":") + getValue(keys, i));
+                string messageHash = add(add(name, ":"), keys[i]);
                 callDynamically(client, "resolve", new object[] {this.myTrades, messageHash});
             }
         }
@@ -1504,7 +1504,7 @@ public partial class kraken : ccxt.kraken
                     IDictionary<string, object> symbolsByOrderId = this.safeDict(this.options, "symbolsByOrderId", new Dictionary<string, object>() {});
                     if (inOp(symbolsByOrderId, getValue(first, "id")))
                     {
-                        symbolsByOrderId.Remove((string)getValue(first, "id"));
+                        ((IDictionary<string,object>)symbolsByOrderId).Remove((string)getValue(first, "id"));
                     }
                 }
                 callDynamically(stored, "append", new object[] {newOrder});
@@ -1515,10 +1515,10 @@ public partial class kraken : ccxt.kraken
             }
             string name = "orders";
             callDynamically(client, "resolve", new object[] {this.orders, name});
-            List<object> keys = new List<object>(symbols.Keys);
+            List<object> keys = new List<object>(((IDictionary<string,object>)symbols).Keys);
             for (int i = 0; isLessThan(i, keys.Count); postFixIncrement(ref i))
             {
-                string messageHash = ((name + ":") + getValue(keys, i));
+                string messageHash = add(add(name, ":"), keys[i]);
                 callDynamically(client, "resolve", new object[] {this.orders, messageHash});
             }
         }
@@ -1627,7 +1627,7 @@ public partial class kraken : ccxt.kraken
             } },
             { "req_id", this.requestId() },
         };
-        request["params"] = this.deepExtend(request["params"], parameters);
+        request["params"] = this.deepExtend(((IDictionary<string,object>)request)["params"], parameters);
         object url = getValue(getValue(getValue(this.urls, "api"), "ws"), "publicV2");
         return await this.watchMultiple(url, messageHashes, request, messageHashes, subscriptionArgs);
     }
@@ -1689,10 +1689,10 @@ public partial class kraken : ccxt.kraken
         };
         for (int i = 0; isLessThan(i, data.Count); postFixIncrement(ref i))
         {
-            string? currencyId = this.safeString(getValue(data, i), "asset");
+            string? currencyId = this.safeString(data[i], "asset");
             string code = ((string)this.safeCurrencyCode(currencyId));
             Dictionary<string, object> account = this.account();
-            string? eq = this.safeString(getValue(data, i), "balance");
+            string? eq = this.safeString(data[i], "balance");
             account["total"] = eq;
             result[(string)code] = account;
         }
@@ -1716,11 +1716,11 @@ public partial class kraken : ccxt.kraken
             messageHash = add(messageHash, "s");
         } else
         {
-            messageHash = add(messageHash, ("@" + symbol));
+            messageHash = add(messageHash, add("@", symbol));
         }
         if (!isEqual(subChannelName, null))
         {
-            messageHash = add(messageHash, ("#" + subChannelName));
+            messageHash = add(messageHash, add("#", subChannelName));
         }
         return ((string?)((object)(messageHash)));
     }

@@ -882,7 +882,7 @@ public partial class cryptocom : Exchange
         List<object> chains = this.safeList(currency, "network_list", new List<object>() {});
         for (int j = 0; isLessThan(j, chains.Count); postFixIncrement(ref j))
         {
-            object chain = getValue(chains, j);
+            object chain = chains[j];
             string? networkId = this.safeString(chain, "network_id");
             string? network = this.networkIdToCode(networkId, code);
             if ((network != null))
@@ -1030,7 +1030,7 @@ public partial class cryptocom : Exchange
         List<object> result = new List<object>() {};
         for (int i = 0; isLessThan(i, data.Count); postFixIncrement(ref i))
         {
-            object market = getValue(data, i);
+            object market = data[i];
             string? inst_type = this.safeString(market, "inst_type");
             bool spot = inst_type == "CCY_PAIR";
             bool swap = inst_type == "PERPETUAL_SWAP";
@@ -1533,7 +1533,7 @@ public partial class cryptocom : Exchange
         };
         for (int i = 0; isLessThan(i, positionBalances.Count); postFixIncrement(ref i))
         {
-            object balance = getValue(positionBalances, i);
+            object balance = positionBalances[i];
             string? currencyId = this.safeString(balance, "instrument_name");
             string? code = this.safeCurrencyCode(currencyId);
             Dictionary<string, object> account = this.account();
@@ -3803,7 +3803,7 @@ public partial class cryptocom : Exchange
         List<object> rates = new List<object>() {};
         for (int i = 0; isLessThan(i, data.Count); postFixIncrement(ref i))
         {
-            object entry = getValue(data, i);
+            object entry = data[i];
             Int64? timestamp = this.safeInteger(entry, "t");
             rates.Add(new Dictionary<string, object>() {
                 { "info", entry },
@@ -3930,7 +3930,7 @@ public partial class cryptocom : Exchange
         List<object> result = new List<object>() {};
         for (int i = 0; isLessThan(i, positions.Count); postFixIncrement(ref i))
         {
-            object entry = getValue(positions, i);
+            object entry = positions[i];
             string? marketId = this.safeString(entry, "instrument_name");
             Dictionary<string, object> marketInner = this.safeMarket(marketId, null, null, "contract");
             result.Add(this.parsePosition(entry, marketInner));

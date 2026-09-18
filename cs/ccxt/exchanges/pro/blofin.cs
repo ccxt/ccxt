@@ -146,7 +146,7 @@ public partial class blofin : ccxt.blofin
         }
         for (int i = 0; isLessThan(i, data?.Count ?? 0); postFixIncrement(ref i))
         {
-            object rawTrade = getValue(data, i);
+            object rawTrade = data[i];
             Dictionary<string, object> trade = this.parseWsTrade(rawTrade);
             object symbol = GetValue(trade, "symbol");
             object stored = this.safeValue(this.trades, symbol);
@@ -336,7 +336,7 @@ public partial class blofin : ccxt.blofin
         List<object> data = this.safeList(message, "data");
         for (int i = 0; isLessThan(i, data?.Count ?? 0); postFixIncrement(ref i))
         {
-            Dictionary<string, object> ticker = this.parseWsTicker(getValue(data, i));
+            Dictionary<string, object> ticker = this.parseWsTicker(data[i]);
             object symbol = GetValue(ticker, "symbol");
             object messageHash = add(add(channelName, ":"), symbol);
             ((IDictionary<string,object>)this.tickers)[(string)((string)symbol)] = ticker;
@@ -401,7 +401,7 @@ public partial class blofin : ccxt.blofin
         List<object> data = this.safeList(message, "data");
         for (int i = 0; isLessThan(i, data?.Count ?? 0); postFixIncrement(ref i))
         {
-            Dictionary<string, object> ticker = this.parseWsBidAsk(getValue(data, i));
+            Dictionary<string, object> ticker = this.parseWsBidAsk(data[i]);
             object symbol = GetValue(ticker, "symbol");
             string messageHash = ("bidask:" + symbol);
             ((IDictionary<string,object>)this.bidsasks)[(string)((string)symbol)] = ticker;
@@ -516,7 +516,7 @@ public partial class blofin : ccxt.blofin
         }
         for (int i = 0; isLessThan(i, data?.Count ?? 0); postFixIncrement(ref i))
         {
-            object candle = getValue(data, i);
+            object candle = data[i];
             IList<object> parsed = this.parseOHLCV(candle, market);
             callDynamically(stored, "append", new object[] {parsed});
         }
@@ -661,7 +661,7 @@ public partial class blofin : ccxt.blofin
         List<object> data = this.safeList(message, "data");
         for (int i = 0; isLessThan(i, data?.Count ?? 0); postFixIncrement(ref i))
         {
-            Dictionary<string, object> order = this.parseWsOrder(getValue(data, i));
+            Dictionary<string, object> order = this.parseWsOrder(data[i]);
             object symbol = GetValue(order, "symbol");
             object messageHash = add(add(channelName, ":"), symbol);
             callDynamically(orders, "append", new object[] {order});
@@ -723,7 +723,7 @@ public partial class blofin : ccxt.blofin
         List<object> newPositions = new List<object>() {};
         for (int i = 0; isLessThan(i, data?.Count ?? 0); postFixIncrement(ref i))
         {
-            Dictionary<string, object> position = this.parseWsPosition(getValue(data, i));
+            Dictionary<string, object> position = this.parseWsPosition(data[i]);
             ((IList<object>)newPositions).Add(position);
             callDynamically(cache, "append", new object[] {position});
             object messageHash = add(add(channelName, ":"), GetValue(position, "symbol"));

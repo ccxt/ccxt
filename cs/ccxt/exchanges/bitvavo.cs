@@ -700,7 +700,7 @@ public partial class bitvavo : Exchange
         // btw, absolutely all of them have 1 network atm
         for (int j = 0; isLessThan(j, networksArray.Count); postFixIncrement(ref j))
         {
-            object networkId = getValue(networksArray, j);
+            object networkId = networksArray[j];
             string? networkCode = this.networkIdToCode(networkId, code);
             if ((networkCode != null))
             {

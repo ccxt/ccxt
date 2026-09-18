@@ -1512,7 +1512,7 @@ public partial class aster : ccxt.aster
             List<object> messageHashes = new List<object>(((IDictionary<string, ccxt.Exchange.Future>)client.futures).Keys);
             for (int i = 0; isLessThan(i, messageHashes.Count); postFixIncrement(ref i))
             {
-                string? messageHash = ((string)getValue(messageHashes, i));
+                string? messageHash = ((string)messageHashes[i]);
                 client.reject(error, messageHash);
             }
             ((IDictionary<string,object>)getValue(this.options, "listenKey"))[(string)type] = null;
@@ -1676,7 +1676,7 @@ public partial class aster : ccxt.aster
         string? wallet = this.safeString(this.options, "wallet", "wb");
         for (int i = 0; isLessThan(i, B.Count); postFixIncrement(ref i))
         {
-            object entry = getValue(B, i);
+            object entry = B[i];
             string? currencyId = this.safeString(entry, "a");
             string? code = this.safeCurrencyCode(currencyId);
             Dictionary<string, object> account = this.account();
@@ -1836,7 +1836,7 @@ public partial class aster : ccxt.aster
         List<object> newPositions = new List<object>() {};
         for (int i = 0; isLessThan(i, rawPositions.Count); postFixIncrement(ref i))
         {
-            object rawPosition = getValue(rawPositions, i);
+            object rawPosition = rawPositions[i];
             Dictionary<string, object> position = this.parseWsPosition(rawPosition);
             Int64? timestamp = this.safeInteger(message, "E");
             position["timestamp"] = timestamp;
@@ -1849,7 +1849,7 @@ public partial class aster : ccxt.aster
         {
             for (int i = 0; isLessThan(i, newPositions.Count); postFixIncrement(ref i))
             {
-                object position = getValue(newPositions, i);
+                object position = newPositions[i];
                 object symbol = getValue(position, "symbol");
                 string symbolMessageHash = ((messageHash + "::") + symbol);
                 callDynamically(client, "resolve", new object[] {position, symbolMessageHash});

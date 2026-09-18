@@ -436,12 +436,12 @@ public partial class independentreserve : Exchange
         IList<object> quoteCurrencyIds = this.toArray(quoteCurrencies);
         for (int i = 0; isLessThan(i, baseCurrencyIds?.Count ?? 0); postFixIncrement(ref i))
         {
-            object baseId = getValue(baseCurrencyIds, i);
+            object baseId = baseCurrencyIds[i];
             object bs = this.safeCurrencyCode(baseId);
             double? minAmount = this.safeNumber(limits, baseId);
             for (int j = 0; isLessThan(j, quoteCurrencyIds?.Count ?? 0); postFixIncrement(ref j))
             {
-                object quoteId = getValue(quoteCurrencyIds, j);
+                object quoteId = quoteCurrencyIds[j];
                 string? quote = this.safeCurrencyCode(quoteId);
                 object id = add(add(baseId, "/"), quoteId);
                 result.Add(new Dictionary<string, object>() {
@@ -1040,7 +1040,7 @@ public partial class independentreserve : Exchange
         IList<object> rows = this.toArray(response);
         for (int i = 0; isLessThan(i, rows?.Count ?? 0); postFixIncrement(ref i))
         {
-            object fee = getValue(rows, i);
+            object fee = rows[i];
             string? currencyId = this.safeString(fee, "CurrencyCode");
             string? code = this.safeCurrencyCode(currencyId);
             double? tradingFee = this.safeNumber(fee, "Fee");
@@ -1056,7 +1056,7 @@ public partial class independentreserve : Exchange
         List<object> symbols = this.symbols;
         for (int i = 0; isLessThan(i, symbols?.Count ?? 0); postFixIncrement(ref i))
         {
-            string? symbol = ((string)getValue(symbols, i));
+            string? symbol = ((string)symbols[i]);
             Dictionary<string, object> market = this.market(symbol);
             object fee = this.safeValue(fees, GetValue(market, "base"), new Dictionary<string, object>() {});
             result[(string)symbol] = new Dictionary<string, object>() {
@@ -1342,7 +1342,7 @@ public partial class independentreserve : Exchange
             List<object> keys = new List<object>(((IDictionary<string,object>)parameters).Keys);
             for (int i = 0; isLessThan(i, keys.Count); postFixIncrement(ref i))
             {
-                object key = getValue(keys, i);
+                object key = keys[i];
                 string value = getValue(parameters, key).ToString();
                 auth.Add(add(add(key, "="), value));
             }
@@ -1354,7 +1354,7 @@ public partial class independentreserve : Exchange
             query["signature"] = signature.ToUpper();
             for (int i = 0; isLessThan(i, keys.Count); postFixIncrement(ref i))
             {
-                string? key = ((string)getValue(keys, i));
+                string? key = ((string)keys[i]);
                 query[(string)key] = getValue(parameters, key);
             }
             body = this.json(query);

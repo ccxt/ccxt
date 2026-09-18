@@ -52,7 +52,7 @@ public partial class bullish : ccxt.bullish
     {
         Int64 requestId = this.sum(this.safeInteger(this.options, "requestId", 0), 1);
         ((IDictionary<string,object>)this.options)["requestId"] = requestId;
-        return requestId;
+        return ((Int64)((object)(requestId))!);
     }
 
     public override object ping(WebSocketClient client)
@@ -144,7 +144,7 @@ public partial class bullish : ccxt.bullish
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        string messageHash = ("trades::" + GetValue(market, "symbol"));
+        string messageHash = add("trades::", GetValue(market, "symbol"));
         string url = "/trading-api/v1/market-data/trades";
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "topic", "anonymousTrades" },
@@ -199,10 +199,10 @@ public partial class bullish : ccxt.bullish
         object tradesArray = getValue(this.trades, symbol);
         for (int i = 0; isLessThan(i, trades?.Count ?? 0); postFixIncrement(ref i))
         {
-            callDynamically(tradesArray, "append", new object[] {getValue(trades, i)});
+            callDynamically(tradesArray, "append", new object[] {trades[i]});
         }
         ((IDictionary<string,object>)this.trades)[(string)symbol] = tradesArray;
-        string messageHash = ("trades::" + GetValue(market, "symbol"));
+        string messageHash = add("trades::", GetValue(market, "symbol"));
         callDynamically(client, "resolve", new object[] {tradesArray, messageHash});
     }
 
@@ -226,7 +226,7 @@ public partial class bullish : ccxt.bullish
         Dictionary<string, object> market = this.market(symbolVar);
         symbolVar = GetValue(market, "symbol");
         object url = add(add(getValue(getValue(getValue(this.urls, "api"), "ws"), "public"), "/trading-api/v1/market-data/tick/"), GetValue(market, "id"));
-        string messageHash = ("ticker::" + symbolVar);
+        string messageHash = add("ticker::", symbolVar);
         return ccxt.BaseExchange.ToTicker(await this.watch(url, messageHash, parameters, messageHash));  // no need to send a subscribe message, the server sends a ticker update on connect
     }
 
@@ -290,7 +290,7 @@ public partial class bullish : ccxt.bullish
             parsed = this.parseTicker(merged, market);
         }
         ((IDictionary<string,object>)this.tickers)[(string)symbol] = parsed;
-        string messageHash = ("ticker::" + symbol);
+        string messageHash = add("ticker::", symbol);
         callDynamically(client, "resolve", new object[] {getValue(this.tickers, symbol), messageHash});
     }
 
@@ -313,7 +313,7 @@ public partial class bullish : ccxt.bullish
         }
         Dictionary<string, object> market = this.market(symbol);
         string url = "/trading-api/v1/market-data/orderbook";
-        string messageHash = ("orderbook::" + GetValue(market, "symbol"));
+        string messageHash = add("orderbook::", GetValue(market, "symbol"));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "topic", "l2Orderbook" },
             { "symbol", GetValue(market, "id") },
@@ -349,7 +349,7 @@ public partial class bullish : ccxt.bullish
         IDictionary<string, object> data = this.safeDict(message, "data", new Dictionary<string, object>() {});
         string? marketId = this.safeString(data, "symbol");
         string? symbol = this.safeSymbol(marketId);
-        string messageHash = ("orderbook::" + symbol);
+        string messageHash = add("orderbook::", symbol);
         Int64? timestamp = this.safeInteger(data, "timestamp");
         if (!(inOp(this.orderbooks, symbol)))
         {
@@ -390,7 +390,7 @@ public partial class bullish : ccxt.bullish
             string? amount = this.safeString(entry, add(i, 1));
             ((IList<object>)result).Add(new List<object>() {price, amount});
         }
-        return result;
+        return ((List<object>)((object)(result)));
     }
 
     /**
@@ -506,7 +506,7 @@ public partial class bullish : ccxt.bullish
             Dictionary<string, object> symbols = new Dictionary<string, object>() {};
             for (int i = 0; isLessThan(i, rawOrders.Count); postFixIncrement(ref i))
             {
-                object rawOrder = getValue(rawOrders, i);
+                object rawOrder = rawOrders[i];
                 Dictionary<string, object> parsedOrder = this.parseOrder(rawOrder);
                 callDynamically(orders, "append", new object[] {parsedOrder});
                 string? symbol = this.safeString(parsedOrder, "symbol");
@@ -517,11 +517,11 @@ public partial class bullish : ccxt.bullish
             }
             string messageHash = "orders";
             callDynamically(client, "resolve", new object[] {orders, messageHash});
-            List<object> keys = new List<object>(symbols.Keys);
+            List<object> keys = new List<object>(((IDictionary<string,object>)symbols).Keys);
             for (int i = 0; isLessThan(i, keys.Count); postFixIncrement(ref i))
             {
-                string? hashSymbol = ((string)getValue(keys, i));
-                string symbolMessageHash = ((messageHash + "::") + hashSymbol);
+                string? hashSymbol = ((string)keys[i]);
+                string symbolMessageHash = add(add(messageHash, "::"), hashSymbol);
                 callDynamically(client, "resolve", new object[] {this.orders, symbolMessageHash});
             }
         }
@@ -553,7 +553,7 @@ public partial class bullish : ccxt.bullish
         if (!isEqual(symbolVar, null))
         {
             symbolVar = this.symbol(symbolVar);
-            messageHash = add(messageHash, ("::" + symbolVar));
+            messageHash = add(messageHash, add("::", symbolVar));
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "topic", "trades" },
@@ -633,7 +633,7 @@ public partial class bullish : ccxt.bullish
             Dictionary<string, object> symbols = new Dictionary<string, object>() {};
             for (int i = 0; isLessThan(i, rawTrades.Count); postFixIncrement(ref i))
             {
-                object rawTrade = getValue(rawTrades, i);
+                object rawTrade = rawTrades[i];
                 Dictionary<string, object> parsedTrade = this.parseTrade(rawTrade);
                 callDynamically(trades, "append", new object[] {parsedTrade});
                 string? symbol = this.safeString(parsedTrade, "symbol");
@@ -644,11 +644,11 @@ public partial class bullish : ccxt.bullish
             }
             string messageHash = "myTrades";
             callDynamically(client, "resolve", new object[] {trades, messageHash});
-            List<object> keys = new List<object>(symbols.Keys);
+            List<object> keys = new List<object>(((IDictionary<string,object>)symbols).Keys);
             for (int i = 0; isLessThan(i, keys.Count); postFixIncrement(ref i))
             {
-                string? hashSymbol = ((string)getValue(keys, i));
-                string symbolMessageHash = ((messageHash + "::") + hashSymbol);
+                string? hashSymbol = ((string)keys[i]);
+                string symbolMessageHash = add(add(messageHash, "::"), hashSymbol);
                 callDynamically(client, "resolve", new object[] {this.myTrades, symbolMessageHash});
             }
         }
@@ -679,7 +679,7 @@ public partial class bullish : ccxt.bullish
         {
             parameters = this.omit(parameters, "tradingAccountId");
             request["tradingAccountId"] = tradingAccountId;
-            messageHash = add(messageHash, ("::" + tradingAccountId));
+            messageHash = add(messageHash, add("::", tradingAccountId));
         }
         return ccxt.BaseExchange.ToBalances(await this.watchPrivate(messageHash, messageHash, request, parameters));
     }
@@ -757,9 +757,9 @@ public partial class bullish : ccxt.bullish
             ((IDictionary<string,object>)this.balance)[(string)tradingAccountId] = this.safeBalance(getValue(this.balance, tradingAccountId));
         }
         string messageHash = "balance";
-        string tradingAccountIdHash = ("::" + tradingAccountId);
+        string tradingAccountIdHash = add("::", tradingAccountId);
         callDynamically(client, "resolve", new object[] {getValue(this.balance, tradingAccountId), messageHash});
-        callDynamically(client, "resolve", new object[] {getValue(this.balance, tradingAccountId), (messageHash + tradingAccountIdHash)});
+        callDynamically(client, "resolve", new object[] {getValue(this.balance, tradingAccountId), add(messageHash, tradingAccountIdHash)});
     }
 
     /**
@@ -785,7 +785,7 @@ public partial class bullish : ccxt.bullish
         if ((!isEqual(symbols, null)) && !isTrue(this.isEmpty(symbols)))
         {
             symbols = this.marketSymbols(symbols);
-            messageHash = add(messageHash, ("::" + String.Join(",", ((IList<object>)symbols).ToArray())));
+            messageHash = add(messageHash, add("::", String.Join(",", ((IList<object>)symbols).ToArray())));
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "topic", "derivativesPositionsV2" },
@@ -821,7 +821,7 @@ public partial class bullish : ccxt.bullish
         List<object> newPositions = new List<object>() {};
         for (int i = 0; isLessThan(i, rawPositions.Count); postFixIncrement(ref i))
         {
-            object rawPosition = getValue(rawPositions, i);
+            object rawPosition = rawPositions[i];
             Dictionary<string, object> position = this.parsePosition(rawPosition);
             callDynamically(positions, "append", new object[] {position});
             ((IList<object>)newPositions).Add(position);
@@ -829,7 +829,7 @@ public partial class bullish : ccxt.bullish
         List<object> messageHashes = this.findMessageHashes(client, "positions::");
         for (int i = 0; isLessThan(i, messageHashes?.Count ?? 0); postFixIncrement(ref i))
         {
-            string? messageHash = ((string)getValue(messageHashes, i));
+            string? messageHash = ((string)messageHashes[i]);
             List<object> parts = messageHash.Split(new [] {"::"}, StringSplitOptions.None).ToList<object>();
             string? symbolsString = ((string)getValue(parts, 1));
             List<object> symbols = symbolsString.Split(new [] {","}, StringSplitOptions.None).ToList<object>();
@@ -856,7 +856,7 @@ public partial class bullish : ccxt.bullish
         //     }
         //
         IDictionary<string, object> data = this.safeDict(message, "data", new Dictionary<string, object>() {});
-        string feedback = ((this.id + " ") + this.json(data));
+        string feedback = add(add(this.id, " "), this.json(data));
         try
         {
             string? errorCode = this.safeString(data, "errorCode");

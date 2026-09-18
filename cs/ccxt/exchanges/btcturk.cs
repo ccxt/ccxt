@@ -365,7 +365,7 @@ public partial class btcturk : Exchange
         double? minCost = null;
         for (int j = 0; isLessThan(j, filters.Count); postFixIncrement(ref j))
         {
-            object filter = getValue(filters, j);
+            object filter = filters[j];
             string? filterType = this.safeString(filter, "filterType");
             if (filterType == "PRICE_FILTER")
             {
@@ -438,7 +438,7 @@ public partial class btcturk : Exchange
         };
         for (int i = 0; isLessThan(i, data.Count); postFixIncrement(ref i))
         {
-            object entry = getValue(data, i);
+            object entry = data[i];
             string? currencyId = this.safeString(entry, "asset");
             string? code = this.safeCurrencyCode(currencyId);
             Dictionary<string, object> account = this.account();

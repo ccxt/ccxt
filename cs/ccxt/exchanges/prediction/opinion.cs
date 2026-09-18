@@ -305,7 +305,7 @@ public partial class opinion : PredictionExchange
         string? resolvedOutcome = null;
         for (int i = 0; isLessThan(i, outcomeLabels.Count); postFixIncrement(ref i))
         {
-            string? label = ((string)getValue(outcomeLabels, i));
+            string? label = ((string)outcomeLabels[i]);
             string? tokenId = ((string)getValue(outcomeTokenIds, i));
             string? outcomeHandle = this.slugToOutcomeSymbol(effectiveEventSlug, slug, label);
             bool? winner = null;

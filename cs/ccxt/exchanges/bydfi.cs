@@ -749,9 +749,9 @@ public partial class bydfi : Exchange
             {
                 throw new ArgumentsRequired ((this.id + " getClosestLimit() requires a limit argument")) ;
             }
-            if (isLessThanOrEqual(limit, getValue(limits, i)))
+            if (isLessThanOrEqual(limit, limits[i]))
             {
-                result = getValue(limits, i);
+                result = limits[i];
                 break;
             }
         }

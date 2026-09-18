@@ -157,7 +157,7 @@ public partial class coinex : ccxt.coinex
         Dictionary<string, object> newTickers = new Dictionary<string, object>() {};
         for (int i = 0; isLessThan(i, rawTickers.Count); postFixIncrement(ref i))
         {
-            object entry = getValue(rawTickers, i);
+            object entry = rawTickers[i];
             string? marketId = this.safeString(entry, "market");
             string? symbol = this.safeSymbol(marketId, null, null, defaultType);
             Dictionary<string, object> market = this.safeMarket(marketId, null, null, defaultType);
@@ -168,7 +168,7 @@ public partial class coinex : ccxt.coinex
         List<object> messageHashes = this.findMessageHashes(client, "tickers::");
         for (int i = 0; isLessThan(i, messageHashes?.Count ?? 0); postFixIncrement(ref i))
         {
-            string? messageHash = ((string)getValue(messageHashes, i));
+            string? messageHash = ((string)messageHashes[i]);
             List<object> parts = messageHash.Split(new [] {"::"}, StringSplitOptions.None).ToList<object>();
             string? symbolsString = ((string)getValue(parts, 1));
             List<object> symbols = symbolsString.Split(new [] {","}, StringSplitOptions.None).ToList<object>();
@@ -374,7 +374,7 @@ public partial class coinex : ccxt.coinex
         }
         for (int i = 0; isLessThan(i, rawBalances?.Count ?? 0); postFixIncrement(ref i))
         {
-            object entry = getValue(rawBalances, i);
+            object entry = rawBalances[i];
             this.parseWsBalance(entry, account);
         }
         string? messageHash = null;
@@ -606,7 +606,7 @@ public partial class coinex : ccxt.coinex
         }
         for (int i = 0; isLessThan(i, trades.Count); postFixIncrement(ref i))
         {
-            object trade = getValue(trades, i);
+            object trade = trades[i];
             Dictionary<string, object> parsed = this.parseWsTrade(trade, market);
             callDynamically(stored, "append", new object[] {parsed});
         }

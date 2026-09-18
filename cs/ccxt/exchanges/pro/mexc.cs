@@ -328,7 +328,7 @@ public partial class mexc : ccxt.mexc
         List<object> result = new List<object>() {};
         for (int i = 0; isLessThan(i, data.Count); postFixIncrement(ref i))
         {
-            object entry = getValue(data, i);
+            object entry = data[i];
             Dictionary<string, object> ticker = null;
             if (isEqual(isSpot, true))
             {
@@ -1142,10 +1142,10 @@ public partial class mexc : ccxt.mexc
             Dictionary<string, object> parsedTrade = null;
             if (isEqual(GetValue(market, "spot"), true))
             {
-                parsedTrade = this.parseWsTrade(getValue(trades, j), market);
+                parsedTrade = this.parseWsTrade(trades[j], market);
             } else
             {
-                parsedTrade = this.parseTrade(getValue(trades, j), market);
+                parsedTrade = this.parseTrade(trades[j], market);
             }
             callDynamically(stored, "append", new object[] {parsedTrade});
         }
@@ -2122,7 +2122,7 @@ public partial class mexc : ccxt.mexc
                     List<object> symbols = new List<object>(((IDictionary<string,object>)this.tickers).Keys);
                     for (int j = 0; isLessThan(j, symbols.Count); postFixIncrement(ref j))
                     {
-                        ((IDictionary<string,object>)this.tickers).Remove((string)getValue(symbols, j));
+                        ((IDictionary<string,object>)this.tickers).Remove((string)symbols[j]);
                     }
                 } else if (inOp(this.tickers, symbol))
                 {

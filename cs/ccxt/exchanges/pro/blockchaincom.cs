@@ -114,7 +114,7 @@ public partial class blockchaincom : ccxt.blockchaincom
         List<object> balances = this.safeList(message, "balances", new List<object>() {});
         for (int i = 0; isLessThan(i, balances.Count); postFixIncrement(ref i))
         {
-            object entry = getValue(balances, i);
+            object entry = balances[i];
             string? currencyId = this.safeString(entry, "currency");
             string? code = this.safeCurrencyCode(currencyId);
             Dictionary<string, object> account = this.account();
@@ -591,7 +591,7 @@ public partial class blockchaincom : ccxt.blockchaincom
             List<object> orders = this.safeList(message, "orders", new List<object>() {});
             for (int i = 0; isLessThan(i, orders.Count); postFixIncrement(ref i))
             {
-                object order = getValue(orders, i);
+                object order = orders[i];
                 Dictionary<string, object> parsedOrder = this.parseWsOrder(order);
                 callDynamically(cachedOrders, "append", new object[] {parsedOrder});
             }

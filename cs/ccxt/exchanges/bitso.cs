@@ -482,7 +482,7 @@ public partial class bitso : Exchange
         //     }
         string? operation = this.safeString(item, "operation");
         string? type = this.parseLedgerEntryType(operation);
-        List<object> balanceUpdates = this.safeList(item, "balance_updates", new List<object>() {});
+        object balanceUpdates = this.safeValue(item, "balance_updates", new List<object>() {});
         object firstBalance = this.safeValue(balanceUpdates, 0, new Dictionary<string, object>() {});
         string? direction = null;
         Dictionary<string, object> fee = null;
@@ -490,7 +490,7 @@ public partial class bitso : Exchange
         string? currencyId = this.safeString(firstBalance, "currency");
         string? code = this.safeCurrencyCode(currencyId, currency);
         currency = this.safeCurrency(currencyId, currency);
-        IDictionary<string, object> details = this.safeDict(item, "details", new Dictionary<string, object>() {});
+        object details = this.safeValue(item, "details", new Dictionary<string, object>() {});
         string? referenceId = this.safeString2(details, "fid", "wid");
         if ((referenceId == null))
         {
@@ -583,17 +583,17 @@ public partial class bitso : Exchange
         List<object> result = new List<object>() {};
         for (int i = 0; isLessThan(i, markets.Count); postFixIncrement(ref i))
         {
-            object market = getValue(markets, i);
+            object market = markets[i];
             string? id = this.safeString(market, "book");
             var baseIdquoteIdVariable = id.Split(new [] {"_"}, StringSplitOptions.None).ToList<object>();
-            var baseId = baseIdquoteIdVariable[0];
-            var quoteId = baseIdquoteIdVariable[1];
+            var baseId = ((IList<object>) baseIdquoteIdVariable)[0];
+            var quoteId = ((IList<object>) baseIdquoteIdVariable)[1];
             object bs = ((string)baseId).ToUpper();
             string? quote = ((string)quoteId).ToUpper();
             bs = this.safeCurrencyCode(bs);
             quote = this.safeCurrencyCode(quote);
-            IDictionary<string, object> fees = this.safeDict(market, "fees", new Dictionary<string, object>() {});
-            IDictionary<string, object> flatRate = this.safeDict(fees, "flat_rate", new Dictionary<string, object>() {});
+            object fees = this.safeValue(market, "fees", new Dictionary<string, object>() {});
+            object flatRate = this.safeValue(fees, "flat_rate", new Dictionary<string, object>() {});
             string? takerString = this.safeString(flatRate, "taker");
             string? makerString = this.safeString(flatRate, "maker");
             double? taker = this.parseNumber(Precise.stringDiv(takerString, "100"));
@@ -609,12 +609,12 @@ public partial class bitso : Exchange
             List<object> makerFees = new List<object>() {};
             for (int j = 0; isLessThan(j, feeTiers.Count); postFixIncrement(ref j))
             {
-                object tier = getValue(feeTiers, j);
+                object tier = feeTiers[j];
                 double? volume = this.safeNumber(tier, "volume");
                 double? takerFee = this.safeNumber(tier, "taker");
                 double? makerFee = this.safeNumber(tier, "maker");
-                takerFees.Add(new List<object>() {volume, takerFee});
-                makerFees.Add(new List<object>() {volume, makerFee});
+                ((IList<object>)takerFees).Add(new List<object>() {volume, takerFee});
+                ((IList<object>)makerFees).Add(new List<object>() {volume, makerFee});
                 if (isEqual(j, 0))
                 {
                     fee["taker"] = takerFee;
@@ -627,7 +627,7 @@ public partial class bitso : Exchange
             };
             fee["tiers"] = tiers;
             IDictionary<string, object> baseCurrency = this.safeDict(currencies, bs);
-            result.Add(this.safeMarketStructure(this.extend(new Dictionary<string, object>() {
+            ((IList<object>)result).Add(this.safeMarketStructure(this.extend(new Dictionary<string, object>() {
                 { "id", id },
                 { "symbol", add(add(bs, "/"), quote) },
                 { "base", bs },
@@ -767,7 +767,7 @@ public partial class bitso : Exchange
         };
         for (int i = 0; isLessThan(i, balances.Count); postFixIncrement(ref i))
         {
-            object balance = getValue(balances, i);
+            object balance = balances[i];
             string? currencyId = this.safeString(balance, "currency");
             string? code = this.safeCurrencyCode(currencyId);
             Dictionary<string, object> account = this.account();
@@ -779,7 +779,7 @@ public partial class bitso : Exchange
                 result[(string)code] = account;
             }
         }
-        return this.safeBalance(result);
+        return ((Dictionary<string, object>)((object)(this.safeBalance(result))));
     }
 
     /**
@@ -1230,7 +1230,7 @@ public partial class bitso : Exchange
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         for (int i = 0; isLessThan(i, fees.Count); postFixIncrement(ref i))
         {
-            object fee = getValue(fees, i);
+            object fee = fees[i];
             string? marketId = this.safeString(fee, "book");
             string? symbol = this.safeSymbol(marketId, null, "_");
             result[(string)symbol] = new Dictionary<string, object>() {
@@ -1258,8 +1258,8 @@ public partial class bitso : Exchange
      */
     public async override Task<List<ccxt.Trade>> FetchMyTrades(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        Int64? limitVar = limit;
-        limitVar ??= ((Int64?)25);
+        object limitVar = limit;
+        limitVar ??= 25;
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
         {
@@ -1274,12 +1274,12 @@ public partial class bitso : Exchange
         // starting from since timestamp, but does not set the trade id with an extra 'marker' param
         if ((!isEqual(since, null)) && !markerInParams)
         {
-            throw new ExchangeError ((this.id + " fetchMyTrades() does not support fetching trades starting from a timestamp with the `since` argument, use the `marker` extra param to filter starting from an integer trade id")) ;
+            throw new ExchangeError (add(this.id, " fetchMyTrades() does not support fetching trades starting from a timestamp with the `since` argument, use the `marker` extra param to filter starting from an integer trade id")) ;
         }
         // convert it to an integer unconditionally
         if (markerInParams)
         {
-            Int64? marker = parseInt(getValue(parameters, "marker"));
+            object marker = parseInt(getValue(parameters, "marker"));
             parameters = this.extend(parameters, new Dictionary<string, object>() {
                 { "marker", marker },
             });
@@ -1377,7 +1377,7 @@ public partial class bitso : Exchange
         parameters ??= new Dictionary<string, object>();
         if (!((ids is IList<object>) || (ids.GetType().IsGenericType && ids.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
         {
-            throw new ArgumentsRequired ((this.id + " cancelOrders() ids argument should be an array")) ;
+            throw new ArgumentsRequired (add(this.id, " cancelOrders() ids argument should be an array")) ;
         }
         IDictionary<string, object> market = null;
         if (!isEqual(symbol, null))
@@ -1399,8 +1399,8 @@ public partial class bitso : Exchange
         List<object> orders = new List<object>() {};
         for (int i = 0; isLessThan(i, payload.Count); postFixIncrement(ref i))
         {
-            object id = getValue(payload, i);
-            orders.Add(this.parseOrder(id, market));
+            object id = payload[i];
+            ((IList<object>)orders).Add(this.parseOrder(id, market));
         }
         return ccxt.BaseExchange.ToOrderList(orders);
     }
@@ -1419,7 +1419,7 @@ public partial class bitso : Exchange
         parameters ??= new Dictionary<string, object>();
         if (!isEqual(symbol, null))
         {
-            throw new NotSupported ((this.id + " cancelAllOrders() deletes all orders for user, it does not support filtering by symbol.")) ;
+            throw new NotSupported (add(this.id, " cancelAllOrders() deletes all orders for user, it does not support filtering by symbol.")) ;
         }
         Dictionary<string, object> response = await this.privateDeleteOrdersAll(parameters);
         //
@@ -1432,8 +1432,8 @@ public partial class bitso : Exchange
         List<object> canceledOrders = new List<object>() {};
         for (int i = 0; isLessThan(i, payload.Count); postFixIncrement(ref i))
         {
-            Dictionary<string, object> order = this.parseOrder(getValue(payload, i));
-            canceledOrders.Add(order);
+            Dictionary<string, object> order = this.parseOrder(payload[i]);
+            ((IList<object>)canceledOrders).Add(order);
         }
         return ccxt.BaseExchange.ToOrderList(canceledOrders);
     }
@@ -1456,10 +1456,10 @@ public partial class bitso : Exchange
         // canceledOrder
         // yWTQGxDMZ0VimZgZ
         //
-        string? id = null;
+        object id = null;
         if ((order is string))
         {
-            id = ((string)order);
+            id = order;
         } else
         {
             id = this.safeString(order, "oid");
@@ -1512,8 +1512,8 @@ public partial class bitso : Exchange
      */
     public async override Task<List<ccxt.Order>> FetchOpenOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        Int64? limitVar = limit;
-        limitVar ??= ((Int64?)25);
+        object limitVar = limit;
+        limitVar ??= 25;
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
         {
@@ -1528,12 +1528,12 @@ public partial class bitso : Exchange
         // starting from since timestamp, but does not set the trade id with an extra 'marker' param
         if ((!isEqual(since, null)) && !markerInParams)
         {
-            throw new ExchangeError ((this.id + " fetchOpenOrders() does not support fetching orders starting from a timestamp with the `since` argument, use the `marker` extra param to filter starting from an integer trade id")) ;
+            throw new ExchangeError (add(this.id, " fetchOpenOrders() does not support fetching orders starting from a timestamp with the `since` argument, use the `marker` extra param to filter starting from an integer trade id")) ;
         }
         // convert it to an integer unconditionally
         if (markerInParams)
         {
-            Int64? marker = parseInt(getValue(parameters, "marker"));
+            object marker = parseInt(getValue(parameters, "marker"));
             parameters = this.extend(parameters, new Dictionary<string, object>() {
                 { "marker", marker },
             });
@@ -1577,7 +1577,7 @@ public partial class bitso : Exchange
                 return ccxt.BaseExchange.ToOrder(this.parseOrder(getValue(payload, 0)));
             }
         }
-        throw new OrderNotFound ((((this.id + ": The order ") + id) + " not found.")) ;
+        throw new OrderNotFound (add(add(add(this.id, ": The order "), id), " not found.")) ;
     }
 
     /**
@@ -1652,7 +1652,7 @@ public partial class bitso : Exchange
         //         }]
         //     }
         //
-        List<object> transactions = this.safeList(response, "payload", new List<object>() {});
+        object transactions = this.safeValue(response, "payload", new List<object>() {});
         IDictionary<string, object> first = this.safeDict(transactions, 0, new Dictionary<string, object>() {});
         return ccxt.BaseExchange.ToTransaction(this.parseTransaction(first));
     }
@@ -1807,7 +1807,7 @@ public partial class bitso : Exchange
         List<object> depositFees = this.safeList(payload, "deposit_fees", new List<object>() {});
         for (int i = 0; isLessThan(i, depositFees.Count); postFixIncrement(ref i))
         {
-            object depositFee = getValue(depositFees, i);
+            object depositFee = depositFees[i];
             string? currencyId = this.safeString(depositFee, "currency");
             string? code = this.safeCurrencyCode(currencyId);
             if ((!isEqual(codes, null)) && !this.inArray(code, codes))
@@ -1830,7 +1830,7 @@ public partial class bitso : Exchange
         List<object> currencyIds = new List<object>(((IDictionary<string,object>)withdrawalFees).Keys);
         for (int i = 0; isLessThan(i, currencyIds.Count); postFixIncrement(ref i))
         {
-            string? currencyId = ((string)getValue(currencyIds, i));
+            string? currencyId = ((string)currencyIds[i]);
             string? code = this.safeCurrencyCode(currencyId);
             if ((!isEqual(codes, null)) && !this.inArray(code, codes))
             {
@@ -1962,7 +1962,7 @@ public partial class bitso : Exchange
         object withdrawalResponse = this.safeValue(response, "withdrawal_fees", new List<object>() {});
         for (int i = 0; isLessThan(i, depositResponse.Count); postFixIncrement(ref i))
         {
-            object entry = getValue(depositResponse, i);
+            object entry = depositResponse[i];
             string? currencyId = this.safeString(entry, "currency");
             string? code = this.safeCurrencyCode(currencyId);
             if ((isEqual(codes, null)) || (((code != null)) && (inOp(codes, code))))
@@ -1987,7 +1987,7 @@ public partial class bitso : Exchange
         List<object> withdrawalKeys = new List<object>(((IDictionary<string,object>)withdrawalResponse).Keys);
         for (int i = 0; isLessThan(i, withdrawalKeys.Count); postFixIncrement(ref i))
         {
-            string? currencyId = ((string)getValue(withdrawalKeys, i));
+            string? currencyId = ((string)withdrawalKeys[i]);
             string? code = this.safeCurrencyCode(currencyId);
             if (((code != null)) && ((isEqual(codes, null)) || (inOp(codes, code))))
             {
@@ -2001,7 +2001,7 @@ public partial class bitso : Exchange
                 ((IDictionary<string,object>)getValue(getValue(result, code), "info"))[(string)code] = withdrawFee;
             }
         }
-        return result;
+        return ((Dictionary<string, object>)((object)(result)));
     }
 
     /**
@@ -2017,10 +2017,10 @@ public partial class bitso : Exchange
      */
     public async override Task<ccxt.Transaction> Withdraw(string code, double amount, string address, string tag = null, object parameters = null)
     {
-        string tagVar = tag;
+        object tagVar = tag;
         parameters ??= new Dictionary<string, object>();
         IList<object> tagparametersVariable = (IList<object>)this.handleWithdrawTagAndParams(tagVar, parameters);
-        tagVar = (string)tagparametersVariable[0];
+        tagVar = tagparametersVariable[0];
         parameters = tagparametersVariable[1];
         this.checkAddress(address);
         if (isEqual(this.markets, null))
@@ -2038,14 +2038,14 @@ public partial class bitso : Exchange
         object method = (inOp(methods, code)) ? getValue(methods, code) : null;
         if ((method == null))
         {
-            throw new ExchangeError (((this.id + " not valid withdraw coin: ") + code)) ;
+            throw new ExchangeError (add(add(this.id, " not valid withdraw coin: "), code)) ;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "amount", amount },
             { "address", address },
             { "destination_tag", tagVar },
         };
-        string classMethod = (("privatePost" + method) + "Withdrawal");
+        string classMethod = add(add("privatePost", method), "Withdrawal");
         object response = await ((Task<object>)callDynamically(this, classMethod, new object[] { this.extend(request, parameters) }));
         //
         //     {
@@ -2066,7 +2066,7 @@ public partial class bitso : Exchange
         //         ]
         //     }
         //
-        List<object> payload = this.safeList(response, "payload", new List<object>() {});
+        object payload = this.safeValue(response, "payload", new List<object>() {});
         IDictionary<string, object> first = this.safeDict(payload, 0);
         return ccxt.BaseExchange.ToTransaction(this.parseTransaction(first, currency));
     }
@@ -2111,7 +2111,7 @@ public partial class bitso : Exchange
         //
         string? currencyId = this.safeString2(transaction, "currency", "asset");
         currency = this.safeCurrency(currencyId, currency);
-        IDictionary<string, object> details = this.safeDict(transaction, "details", new Dictionary<string, object>() {});
+        object details = this.safeValue(transaction, "details", new Dictionary<string, object>() {});
         string? datetime = this.safeString(transaction, "created_at");
         string? withdrawalAddress = this.safeString(details, "withdrawal_address");
         string? receivingAddress = this.safeString(details, "receiving_address");
@@ -2165,21 +2165,21 @@ public partial class bitso : Exchange
         api ??= "public";
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
-        string endpoint = ((("/" + this.version) + "/") + this.implodeParams(path, parameters));
+        string endpoint = add(add(add("/", this.version), "/"), this.implodeParams(path, parameters));
         object query = this.omit(parameters, this.extractParams(path));
         if (isEqual(method, "GET") || isEqual(method, "DELETE"))
         {
             if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
             {
-                endpoint = add(endpoint, ("?" + this.urlencode(query)));
+                endpoint = add(endpoint, add("?", this.urlencode(query)));
             }
         }
-        string? url = ((string)add(getValue(getValue(this.urls, "api"), "rest"), endpoint));
+        object url = add(getValue(getValue(this.urls, "api"), "rest"), endpoint);
         if (isEqual(api, "private"))
         {
             this.checkRequiredCredentials();
             string nonce = this.nonce().ToString();
-            endpoint = ("/api" + endpoint);
+            endpoint = add("/api", endpoint);
             List<object> content = new List<object>() {nonce, method, endpoint};
             object request = String.Join("", content.ToArray());
             if (!isEqual(method, "GET") && !isEqual(method, "DELETE"))
@@ -2191,9 +2191,9 @@ public partial class bitso : Exchange
                 }
             }
             string signature = this.hmac(this.encode(request), this.encode(this.secret), sha256);
-            string? auth = add(add(add(add(this.apiKey, ":"), nonce), ":"), signature);
+            object auth = add(add(add(add(this.apiKey, ":"), nonce), ":"), signature);
             headers = new Dictionary<string, object>() {
-                { "Authorization", ("Bitso " + auth) },
+                { "Authorization", add("Bitso ", auth) },
             };
         }
         return new Dictionary<string, object>() {
@@ -2228,7 +2228,7 @@ public partial class bitso : Exchange
             }
             if (!isEqual(success, true))
             {
-                string feedback = ((this.id + " ") + this.json(response));
+                string feedback = add(add(this.id, " "), this.json(response));
                 object error = this.safeValue(response, "error");
                 if ((error == null))
                 {

@@ -313,9 +313,9 @@ public partial class modetrade : ccxt.modetrade
         List<object> result = new List<object>() {};
         for (int i = 0; isLessThan(i, data.Count); postFixIncrement(ref i))
         {
-            string? marketId = this.safeString(getValue(data, i), "symbol");
+            string? marketId = this.safeString(data[i], "symbol");
             Dictionary<string, object> market = this.safeMarket(marketId);
-            Dictionary<string, object> ticker = this.parseWsTicker(this.extend(getValue(data, i), new Dictionary<string, object>() {
+            Dictionary<string, object> ticker = this.parseWsTicker(this.extend(data[i], new Dictionary<string, object>() {
                 { "date", timestamp },
             }), market);
             ((IDictionary<string,object>)this.tickers)[(string)GetValue(market, "symbol")] = ticker;
@@ -375,7 +375,7 @@ public partial class modetrade : ccxt.modetrade
         List<object> result = new List<object>() {};
         for (int i = 0; isLessThan(i, data.Count); postFixIncrement(ref i))
         {
-            Dictionary<string, object> ticker = this.parseWsBidAsk(this.extend(getValue(data, i), new Dictionary<string, object>() {
+            Dictionary<string, object> ticker = this.parseWsBidAsk(this.extend(data[i], new Dictionary<string, object>() {
                 { "ts", timestamp },
             }));
             object symbol = GetValue(ticker, "symbol");
@@ -1228,7 +1228,7 @@ public partial class modetrade : ccxt.modetrade
         List<object> newPositions = new List<object>() {};
         for (int i = 0; isLessThan(i, rawPositions.Count); postFixIncrement(ref i))
         {
-            object rawPosition = getValue(rawPositions, i);
+            object rawPosition = rawPositions[i];
             string? marketId = this.safeString(rawPosition, "symbol");
             Dictionary<string, object> market = this.safeMarket(marketId);
             Dictionary<string, object> position = this.parseWsPosition(rawPosition, market);
@@ -1379,7 +1379,7 @@ public partial class modetrade : ccxt.modetrade
         ((IDictionary<string,object>)this.balance)["datetime"] = this.iso8601(ts);
         for (int i = 0; isLessThan(i, keys.Count); postFixIncrement(ref i))
         {
-            string? key = ((string)getValue(keys, i));
+            string? key = ((string)keys[i]);
             object value = getValue(balances, key);
             string? code = this.safeCurrencyCode(key);
             object account = this.account();

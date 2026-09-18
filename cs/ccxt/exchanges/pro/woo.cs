@@ -1570,7 +1570,7 @@ public partial class woo : ccxt.woo
         List<object> newPositions = new List<object>() {};
         for (int i = 0; isLessThan(i, postitionsIds.Count); postFixIncrement(ref i))
         {
-            string? marketId = ((string)getValue(postitionsIds, i));
+            string? marketId = ((string)postitionsIds[i]);
             Dictionary<string, object> market = this.safeMarket(marketId);
             object rawPosition = getValue(rawPositions, marketId);
             Dictionary<string, object> position = this.parsePosition(rawPosition, market);
@@ -1646,7 +1646,7 @@ public partial class woo : ccxt.woo
         ((IDictionary<string,object>)this.balance)["datetime"] = this.iso8601(ts);
         for (int i = 0; isLessThan(i, keys.Count); postFixIncrement(ref i))
         {
-            string? key = ((string)getValue(keys, i));
+            string? key = ((string)keys[i]);
             object value = getValue(balances, key);
             string? code = this.safeCurrencyCode(key);
             object account = this.account();
@@ -1779,7 +1779,7 @@ public partial class woo : ccxt.woo
         List<object> unsubMessageHashes = this.safeList(subscription, "unsubMessageHashes", new List<object>() {});
         for (int i = 0; isLessThan(i, subMessageHashes.Count); postFixIncrement(ref i))
         {
-            object subHash = getValue(subMessageHashes, i);
+            object subHash = subMessageHashes[i];
             object unsubHash = getValue(unsubMessageHashes, i);
             this.cleanUnsubscription(client, subHash, unsubHash);
         }

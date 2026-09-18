@@ -197,7 +197,7 @@ public partial class bitopro : ccxt.bitopro
         }
         for (int i = 0; isLessThan(i, trades?.Count ?? 0); postFixIncrement(ref i))
         {
-            callDynamically(tradesCache, "append", new object[] {getValue(trades, i)});
+            callDynamically(tradesCache, "append", new object[] {trades[i]});
         }
         ((IDictionary<string,object>)this.trades)[(string)symbol] = tradesCache;
         callDynamically(client, "resolve", new object[] {tradesCache, messageHash});

@@ -1862,7 +1862,7 @@ public partial class kucoin : ccxt.kucoin
                 object subscription = null;
                 for (int i = 0; isLessThan(i, subscriptions.Count); postFixIncrement(ref i))
                 {
-                    string? key = ((string)getValue(subscriptions, i));
+                    string? key = ((string)subscriptions[i]);
                     if ((getIndexOf(key, ((string)topicSymbol)) >= 0) && (getIndexOf(key, ((string)topicChannel)) >= 0))
                     {
                         subscription = getValue(client.subscriptions, key);
@@ -2048,7 +2048,7 @@ public partial class kucoin : ccxt.kucoin
         {
             for (int i = 0; isLessThan(i, symbols.Count); postFixIncrement(ref i))
             {
-                object symbol = getValue(symbols, i);
+                object symbol = symbols[i];
                 ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook(new Dictionary<string, object>() {}, limit);
             }
         }
@@ -2089,7 +2089,7 @@ public partial class kucoin : ccxt.kucoin
             List<object> subMessageHashes = this.safeList(subscription, "subMessageHashes", new List<object>() {});
             for (int i = 0; isLessThan(i, messageHashes.Count); postFixIncrement(ref i))
             {
-                object messageHash = getValue(messageHashes, i);
+                object messageHash = messageHashes[i];
                 object subHash = getValue(subMessageHashes, i);
                 this.cleanUnsubscription(client, subHash, messageHash);
             }
@@ -2100,7 +2100,7 @@ public partial class kucoin : ccxt.kucoin
                 List<object> symbols = this.safeList(subscription, "symbols", new List<object>() {});
                 for (int i = 0; isLessThan(i, symbols.Count); postFixIncrement(ref i))
                 {
-                    object symbol = getValue(symbols, i);
+                    object symbol = symbols[i];
                     if (inOp(this.fundingRates, symbol))
                     {
                         ((IDictionary<string,object>)this.fundingRates).Remove((string)symbol);
@@ -3421,7 +3421,7 @@ public partial class kucoin : ccxt.kucoin
         List<object> keys = new List<object>(newPosition.Keys);
         for (int i = 0; isLessThan(i, keys.Count); postFixIncrement(ref i))
         {
-            string? key = ((string)getValue(keys, i));
+            string? key = ((string)keys[i]);
             if (isEqual(getValue(newPosition, key), null))
             {
                 newPosition.Remove((string)key);
@@ -3472,7 +3472,7 @@ public partial class kucoin : ccxt.kucoin
         List<object> keys = new List<object>(newPosition.Keys);
         for (int i = 0; isLessThan(i, keys.Count); postFixIncrement(ref i))
         {
-            string? key = ((string)getValue(keys, i));
+            string? key = ((string)keys[i]);
             if (isEqual(getValue(newPosition, key), null))
             {
                 newPosition.Remove((string)key);

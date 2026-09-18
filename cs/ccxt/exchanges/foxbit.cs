@@ -430,7 +430,7 @@ public partial class foxbit : Exchange
         Dictionary<string, object> parsedNetworks = new Dictionary<string, object>() {};
         for (int j = 0; isLessThan(j, networks.Count); postFixIncrement(ref j))
         {
-            object network = getValue(networks, j);
+            object network = networks[j];
             string? networkId = this.safeString(network, "code");
             string? networkCode = this.networkIdToCode(networkId, code);
             IDictionary<string, object> networkWithdrawInfo = this.safeDict(network, "withdraw_info");
@@ -732,7 +732,7 @@ public partial class foxbit : Exchange
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         for (int i = 0; isLessThan(i, data.Count); postFixIncrement(ref i))
         {
-            object entry = getValue(data, i);
+            object entry = data[i];
             string? marketId = this.safeString(entry, "market_symbol");
             Dictionary<string, object> market = this.safeMarket(marketId);
             string? symbol = ((string)GetValue(market, "symbol"));
@@ -927,7 +927,7 @@ public partial class foxbit : Exchange
         };
         for (int i = 0; isLessThan(i, accounts.Count); postFixIncrement(ref i))
         {
-            object account = getValue(accounts, i);
+            object account = accounts[i];
             string? currencyId = this.safeString(account, "currency_symbol");
             string? currencyCode = this.safeCurrencyCode(currencyId);
             string? total = this.safeString(account, "balance");
@@ -2277,7 +2277,7 @@ public partial class foxbit : Exchange
             }
             for (int i = 0; isLessThan(i, paramKeys.Count); postFixIncrement(ref i))
             {
-                object key = getValue(paramKeys, i);
+                object key = paramKeys[i];
                 string? value = this.safeString(parameters, key);
                 if ((value != null))
                 {
@@ -2335,7 +2335,7 @@ public partial class foxbit : Exchange
         {
             for (int i = 0; isLessThan(i, details.Count); postFixIncrement(ref i))
             {
-                detailsString = add(add(detailsString, getValue(details, i)), " ");
+                detailsString = add(add(detailsString, details[i]), " ");
             }
         }
         if ((error != null))

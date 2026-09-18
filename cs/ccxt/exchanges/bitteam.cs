@@ -740,7 +740,7 @@ public partial class bitteam : Exchange
         string? typeRaw = this.safeString(currency, "type");
         for (int j = 0; isLessThan(j, networkIds.Count); postFixIncrement(ref j))
         {
-            string? networkId = ((string)getValue(networkIds, j));
+            string? networkId = ((string)networkIds[j]);
             string? networkCode = this.networkIdToCode(networkId, code);
             double? networkFee = this.safeNumber(feesByNetworkId, networkId);
             if ((networkCode != null))
@@ -1565,7 +1565,7 @@ public partial class bitteam : Exchange
         }
         for (int i = 0; isLessThan(i, rawTickers?.Count ?? 0); postFixIncrement(ref i))
         {
-            object rawTicker = getValue(rawTickers, i);
+            object rawTicker = rawTickers[i];
             Dictionary<string, object> ticker = this.parseTicker(rawTicker);
             tickers.Add(ticker);
         }
@@ -2313,7 +2313,7 @@ public partial class bitteam : Exchange
         List<object> rawCurrencyIds = new List<object>(((IDictionary<string,object>)balanceByCurrencies).Keys);
         for (int i = 0; isLessThan(i, rawCurrencyIds.Count); postFixIncrement(ref i))
         {
-            string? rawCurrencyId = ((string)getValue(rawCurrencyIds, i));
+            string? rawCurrencyId = ((string)rawCurrencyIds[i]);
             object currencyBalance = this.safeValue(result, rawCurrencyId);
             string? free = this.safeString(currencyBalance, "free");
             string? used = this.safeString(currencyBalance, "used");

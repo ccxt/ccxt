@@ -763,7 +763,7 @@ public partial class coinsph : Exchange
         Dictionary<string, object> networks = new Dictionary<string, object>() {};
         for (int j = 0; isLessThan(j, networkList.Count); postFixIncrement(ref j))
         {
-            object networkItem = getValue(networkList, j);
+            object networkItem = networkList[j];
             string? network = this.safeString(networkItem, "network");
             string? networkCode = this.networkIdToCode(network, code);
             if ((networkCode != null))
@@ -823,7 +823,7 @@ public partial class coinsph : Exchange
             List<object> byNumberOfSymbols = this.safeList(config, "byNumberOfSymbols", new List<object>() {});
             for (int i = 0; isLessThan(i, byNumberOfSymbols.Count); postFixIncrement(ref i))
             {
-                object entry = getValue(byNumberOfSymbols, i);
+                object entry = byNumberOfSymbols[i];
                 if (isGreaterThanOrEqual(symbolsAmount, getValue(entry, 0)))
                 {
                     return getValue(entry, 1);
@@ -835,7 +835,7 @@ public partial class coinsph : Exchange
             List<object> byLimit = this.safeList(config, "byLimit", new List<object>() {});
             for (int i = 0; isLessThan(i, byLimit.Count); postFixIncrement(ref i))
             {
-                object entry = getValue(byLimit, i);
+                object entry = byLimit[i];
                 if (isGreaterThanOrEqual(limit, getValue(entry, 0)))
                 {
                     return getValue(entry, 1);
@@ -953,7 +953,7 @@ public partial class coinsph : Exchange
         List<object> result = new List<object>() {};
         for (int i = 0; isLessThan(i, markets.Count); postFixIncrement(ref i))
         {
-            object market = getValue(markets, i);
+            object market = markets[i];
             string? id = this.safeString(market, "symbol");
             string? baseId = this.safeString(market, "baseAsset");
             string? quoteId = this.safeString(market, "quoteAsset");
@@ -1569,7 +1569,7 @@ public partial class coinsph : Exchange
         };
         for (int i = 0; isLessThan(i, balances.Count); postFixIncrement(ref i))
         {
-            object balance = getValue(balances, i);
+            object balance = balances[i];
             string? currencyId = this.safeString(balance, "asset");
             string? code = this.safeCurrencyCode(currencyId);
             Dictionary<string, object> account = this.account();
@@ -2147,7 +2147,7 @@ public partial class coinsph : Exchange
         IList<object> fees = this.toArray(response);
         for (int i = 0; isLessThan(i, fees?.Count ?? 0); postFixIncrement(ref i))
         {
-            Dictionary<string, object> fee = this.parseTradingFee(getValue(fees, i));
+            Dictionary<string, object> fee = this.parseTradingFee(fees[i]);
             object symbol = GetValue(fee, "symbol");
             if ((symbol != null))
             {
@@ -2547,7 +2547,7 @@ public partial class coinsph : Exchange
         List<object> keys = new List<object>(((IDictionary<string,object>)query).Keys);
         for (int i = 0; isLessThan(i, keys.Count); postFixIncrement(ref i))
         {
-            string? key = ((string)getValue(keys, i));
+            string? key = ((string)keys[i]);
             if (((getValue(query, key) is IList<object>) || (getValue(query, key).GetType().IsGenericType && getValue(query, key).GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
             {
                 if (!isEqual(i, 0))

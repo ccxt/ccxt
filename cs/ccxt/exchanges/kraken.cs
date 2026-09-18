@@ -740,7 +740,7 @@ public partial class kraken : Exchange
         List<object> result = new List<object>() {};
         for (int i = 0; isLessThan(i, keys.Count); postFixIncrement(ref i))
         {
-            string? id = ((string)getValue(keys, i));
+            string? id = ((string)keys[i]);
             bool isSynthetic = false;
             if (getIndexOf(id, ":BTNL") >= 0)
             {
@@ -1269,7 +1269,7 @@ public partial class kraken : Exchange
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         for (int i = 0; isLessThan(i, ids.Count); postFixIncrement(ref i))
         {
-            string? id = ((string)getValue(ids, i));
+            string? id = ((string)ids[i]);
             Dictionary<string, object> market = this.safeMarket(id);
             string? symbol = ((string)getValue(market, "symbol"));
             object ticker = getValue(tickers, id);
@@ -1517,7 +1517,7 @@ public partial class kraken : Exchange
         List<object> items = new List<object>() {};
         for (int i = 0; isLessThan(i, keys.Count); postFixIncrement(ref i))
         {
-            string? key = ((string)getValue(keys, i));
+            string? key = ((string)keys[i]);
             object value = getValue(ledger, key);
             ((IDictionary<string,object>)value)["id"] = key;
             items.Add(value);
@@ -1552,7 +1552,7 @@ public partial class kraken : Exchange
         List<object> items = new List<object>() {};
         for (int i = 0; isLessThan(i, keys.Count); postFixIncrement(ref i))
         {
-            string? key = ((string)getValue(keys, i));
+            string? key = ((string)keys[i]);
             object value = getValue(result, key);
             ((IDictionary<string,object>)value)["id"] = key;
             items.Add(value);
@@ -1803,7 +1803,7 @@ public partial class kraken : Exchange
         List<object> currencyIds = new List<object>(balances.Keys);
         for (int i = 0; isLessThan(i, currencyIds.Count); postFixIncrement(ref i))
         {
-            string? currencyId = ((string)getValue(currencyIds, i));
+            string? currencyId = ((string)currencyIds[i]);
             string? code = this.safeCurrencyCode(currencyId);
             object balance = this.safeValue(balances, currencyId, new Dictionary<string, object>() {});
             Dictionary<string, object> account = this.account();
@@ -2333,7 +2333,7 @@ public partial class kraken : Exchange
         List<object> trades = new List<object>() {};
         for (int i = 0; isLessThan(i, rawTrades.Count); postFixIncrement(ref i))
         {
-            object rawTrade = getValue(rawTrades, i);
+            object rawTrade = rawTrades[i];
             if ((rawTrade is string))
             {
                 trades.Add(this.safeTrade(new Dictionary<string, object>() {
@@ -2821,7 +2821,7 @@ public partial class kraken : Exchange
             List<object> ids = new List<object>(((IDictionary<string,object>)rawTrades).Keys);
             for (int i = 0; isLessThan(i, ids.Count); postFixIncrement(ref i))
             {
-                ((IDictionary<string,object>)getValue(rawTrades, getValue(ids, i)))["id"] = getValue(ids, i);
+                ((IDictionary<string,object>)getValue(rawTrades, ids[i]))["id"] = ids[i];
             }
             IList<object> trades = this.parseTrades(rawTrades, null, since, limit);
             IList<object> tradesFilteredBySymbol = this.filterBySymbol(trades, symbolVar);
@@ -2856,7 +2856,7 @@ public partial class kraken : Exchange
         List<object> orderIds = new List<object>(result.Keys);
         for (int i = 0; isLessThan(i, orderIds.Count); postFixIncrement(ref i))
         {
-            string? id = ((string)getValue(orderIds, i));
+            string? id = ((string)orderIds[i]);
             object item = getValue(result, id);
             Dictionary<string, object> order = this.parseOrder(this.extend(new Dictionary<string, object>() {
                 { "id", id },
@@ -2932,7 +2932,7 @@ public partial class kraken : Exchange
         List<object> ids = new List<object>(trades.Keys);
         for (int i = 0; isLessThan(i, ids.Count); postFixIncrement(ref i))
         {
-            ((IDictionary<string,object>)getValue(trades, getValue(ids, i)))["id"] = getValue(ids, i);
+            ((IDictionary<string,object>)getValue(trades, ids[i]))["id"] = ids[i];
         }
         IDictionary<string, object> market = null;
         if (!isEqual(symbol, null))
@@ -3178,7 +3178,7 @@ public partial class kraken : Exchange
         List<object> orderIds = new List<object>(open.Keys);
         for (int i = 0; isLessThan(i, orderIds.Count); postFixIncrement(ref i))
         {
-            string? id = ((string)getValue(orderIds, i));
+            string? id = ((string)orderIds[i]);
             object item = getValue(open, id);
             orders.Add(this.extend(new Dictionary<string, object>() {
                 { "id", id },
@@ -3279,7 +3279,7 @@ public partial class kraken : Exchange
         List<object> orderIds = new List<object>(closed.Keys);
         for (int i = 0; isLessThan(i, orderIds.Count); postFixIncrement(ref i))
         {
-            string? id = ((string)getValue(orderIds, i));
+            string? id = ((string)orderIds[i]);
             object item = getValue(closed, id);
             orders.Add(this.extend(new Dictionary<string, object>() {
                 { "id", id },
@@ -4178,7 +4178,7 @@ public partial class kraken : Exchange
                         List<object> orders = this.safeList(result, "orders", new List<object>() {});
                         for (int i = 0; isLessThan(i, orders.Count); postFixIncrement(ref i))
                         {
-                            object order = getValue(orders, i);
+                            object order = orders[i];
                             string? error = this.safeString(order, "error");
                             if ((error != null))
                             {

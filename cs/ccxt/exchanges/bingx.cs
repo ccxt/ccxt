@@ -1316,7 +1316,7 @@ public partial class bingx : Exchange
         Dictionary<string, object> networks = new Dictionary<string, object>() {};
         for (int j = 0; isLessThan(j, networkList?.Count ?? 0); postFixIncrement(ref j))
         {
-            object rawNetwork = getValue(networkList, j);
+            object rawNetwork = networkList[j];
             string? network = this.safeString(rawNetwork, "network");
             string? networkCode = this.networkIdToCode(network, code);
             Dictionary<string, object> limits = new Dictionary<string, object>() {
@@ -3154,7 +3154,7 @@ public partial class bingx : Exchange
         {
             for (int i = 0; isLessThan(i, contractBalances?.Count ?? 0); postFixIncrement(ref i))
             {
-                object balance = getValue(contractBalances, i);
+                object balance = contractBalances[i];
                 string? currencyId = this.safeString(balance, "asset");
                 if ((currencyId == null))
                 {
@@ -3174,7 +3174,7 @@ public partial class bingx : Exchange
         {
             for (int i = 0; isLessThan(i, spotBalances.Count); postFixIncrement(ref i))
             {
-                object balance = getValue(spotBalances, i);
+                object balance = spotBalances[i];
                 string? currencyId = this.safeString(balance, "asset");
                 string? code = this.safeCurrencyCode(currencyId);
                 Dictionary<string, object> account = this.account();
@@ -6405,7 +6405,7 @@ public partial class bingx : Exchange
         List<object> responseCodes = new List<object>(response.Keys);
         for (int i = 0; isLessThan(i, responseCodes.Count); postFixIncrement(ref i))
         {
-            string? code = ((string)getValue(responseCodes, i));
+            string? code = ((string)responseCodes[i]);
             if ((isEqual(codes, null)) || (this.inArray(code, codes)))
             {
                 object entry = getValue(response, code);
@@ -6763,7 +6763,7 @@ public partial class bingx : Exchange
         for (int i = 0; isLessThan(i, success.Count); postFixIncrement(ref i))
         {
             Dictionary<string, object> position = this.parsePosition(new Dictionary<string, object>() {
-                { "positionId", getValue(success, i) },
+                { "positionId", success[i] },
             });
             positions.Add(position);
         }

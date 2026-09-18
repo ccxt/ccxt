@@ -425,7 +425,7 @@ public partial class derive : ccxt.derive
             List<object> topics = new List<object>(status.Keys);
             for (int i = 0; isLessThan(i, topics.Count); postFixIncrement(ref i))
             {
-                string? topic = ((string)getValue(topics, i));
+                string? topic = ((string)topics[i]);
                 if (getIndexOf(topic, "orderbook") >= 0)
                 {
                     this.handleOrderBookUnSubscription(client, topic);
@@ -654,7 +654,7 @@ public partial class derive : ccxt.derive
         List<object> rawOrders = this.safeList(parameters, "data", new List<object>() {});
         for (int i = 0; isLessThan(i, rawOrders.Count); postFixIncrement(ref i))
         {
-            object data = getValue(rawOrders, i);
+            object data = rawOrders[i];
             Dictionary<string, object> parsed = this.parseOrder(data);
             string? symbol = this.safeString(parsed, "symbol");
             string? orderId = this.safeString(parsed, "id");
