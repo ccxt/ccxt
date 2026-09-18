@@ -919,7 +919,7 @@ func (this *Bigone) ParseTicker(ticker any, optionalArgs ...any) any {
 	//
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var marketType any = func() any {
+	var marketType string = func() string {
 		if InOp(ticker, "asset_pair_name") {
 			return "spot"
 		}
@@ -1322,7 +1322,7 @@ func (this *Bigone) ParseTrade(trade any, optionalArgs ...any) any {
 	var takerSide *string = this.SafeString(trade, "taker_side")
 	var takerOrMaker any = nil
 	if (takerSide != nil) && (!IsEqual(side, nil)) && (!IsEqual(side, "SELF_TRADING")) {
-		takerOrMaker = func() any {
+		takerOrMaker = func() string {
 			if IsEqual(takerSide, side) {
 				return "taker"
 			}
@@ -1332,7 +1332,7 @@ func (this *Bigone) ParseTrade(trade any, optionalArgs ...any) any {
 	if IsEqual(side, nil) {
 		// taker side is not related to buy/sell side
 		// the following code is probably a mistake
-		side = func() any {
+		side = func() string {
 			if takerSide != nil && *takerSide == "ASK" {
 				return "sell"
 			}
@@ -1552,7 +1552,7 @@ func (this *Bigone) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 	var untilIsDefined bool = (until != nil)
 	var sinceIsDefined bool = (!IsEqual(since, nil))
 	if IsEqual(limit, nil) {
-		limit = func() any {
+		limit = func() int {
 			if sinceIsDefined && untilIsDefined {
 				return 500
 			}
@@ -1842,7 +1842,7 @@ func (this *Bigone) createOrderBody(ch chan any, symbol any, typeVar any, side a
 	}
 	var market any = this.Market(symbol)
 	var isBuy bool = (IsEqual(side, "buy"))
-	var requestSide any = func() any {
+	var requestSide string = func() string {
 		if isBuy {
 			return "BID"
 		}
@@ -1905,7 +1905,7 @@ func (this *Bigone) createOrderBody(ch chan any, symbol any, typeVar any, side a
 	}
 	if triggerPrice != nil {
 		request["stop_price"] = this.PriceToPrecision(symbol, triggerPrice)
-		request["operator"] = func() any {
+		request["operator"] = func() string {
 			if isBuy {
 				return "GTE"
 			}
@@ -2540,7 +2540,7 @@ func (this *Bigone) ParseTransaction(transaction any, optionalArgs ...any) any {
 	var txid *string = this.SafeString(transaction, "txid")
 	var address *string = this.SafeString(transaction, "target_address")
 	var tag *string = this.SafeString(transaction, "memo")
-	var typeVar any = func() any {
+	var typeVar string = func() string {
 		if InOp(transaction, "customer_id") {
 			return "withdrawal"
 		}

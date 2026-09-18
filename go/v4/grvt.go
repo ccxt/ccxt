@@ -1509,11 +1509,11 @@ func (this *Grvt) ParseTrade(trade any, optionalArgs ...any) any {
 	var marketId *string = this.SafeString(trade, "instrument")
 	market = this.SafeMarket(marketId, market)
 	var timestamp *int64 = this.SafeIntegerProduct(trade, "event_time", 0.000001)
-	var takerOrMaker any = nil
+	var takerOrMaker string
 	var isTakerBuyer *bool = this.SafeBool(trade, "is_taker_buyer")
-	var side any = nil
+	var side string
 	if isTakerBuyer != nil {
-		side = func() any {
+		side = func() string {
 			if isTakerBuyer != nil && *isTakerBuyer {
 				return "buy"
 			}
@@ -1523,13 +1523,13 @@ func (this *Grvt) ParseTrade(trade any, optionalArgs ...any) any {
 	} else {
 		var isTaker bool = (IsEqual(this.SafeBool(trade, "is_taker"), true))
 		var isBuyer bool = (IsEqual(this.SafeBool(trade, "is_buyer"), true))
-		takerOrMaker = func() any {
+		takerOrMaker = func() string {
 			if isTaker {
 				return "taker"
 			}
 			return "maker"
 		}()
-		side = func() any {
+		side = func() string {
 			if isBuyer {
 				return "buy"
 			}
@@ -2775,14 +2775,14 @@ func (this *Grvt) createOrderBody(ch chan any, symbol any, typeVar any, side any
 		var selectedType any = nil
 		var isBuy bool = (IsEqual(side, "buy"))
 		if stopLossPrice != nil {
-			selectedType = func() any {
+			selectedType = func() string {
 				if isBuy {
 					return "STOP_LOSS"
 				}
 				return "TAKE_PROFIT"
 			}()
 		} else if takeProfitPrice != nil {
-			selectedType = func() any {
+			selectedType = func() string {
 				if isBuy {
 					return "TAKE_PROFIT"
 				}
@@ -2795,14 +2795,14 @@ func (this *Grvt) createOrderBody(ch chan any, symbol any, typeVar any, side any
 			}
 			if triggerDirection != nil {
 				if triggerDirection != nil && *triggerDirection == "ascending" {
-					selectedType = func() any {
+					selectedType = func() string {
 						if isBuy {
 							return "STOP_LOSS"
 						}
 						return "TAKE_PROFIT"
 					}()
 				} else if triggerDirection != nil && *triggerDirection == "descending" {
-					selectedType = func() any {
+					selectedType = func() string {
 						if isBuy {
 							return "TAKE_PROFIT"
 						}
@@ -3174,7 +3174,7 @@ func (this *Grvt) ParsePosition(position any, optionalArgs ...any) any {
 	var timestamp *int64 = this.SafeIntegerProduct(position, "event_time", 0.000001)
 	var sizeRaw *string = this.SafeString(position, "size")
 	var isLong bool = (Precise.StringGe(sizeRaw, "0"))
-	var side any = func() any {
+	var side string = func() string {
 		if isLong {
 			return "long"
 		}
@@ -3926,7 +3926,7 @@ func (this *Grvt) ParseOrder(order any, optionalArgs ...any) any {
 		})
 	}
 	var isMarket *bool = this.SafeBool(order, "is_market")
-	var orderType any = func() any {
+	var orderType string = func() string {
 		if isMarket != nil && *isMarket == true {
 			return "market"
 		}
@@ -3958,7 +3958,7 @@ func (this *Grvt) ParseOrder(order any, optionalArgs ...any) any {
 		market = this.SafeMarket(marketId, market)
 		size = DerefScalar(this.SafeString(firstLeg, "size"))
 		var isBuyingAsset bool = (IsEqual(this.SafeBool(firstLeg, "is_buying_asset"), true))
-		side = func() any {
+		side = func() string {
 			if isBuyingAsset {
 				return "buy"
 			}
@@ -4141,7 +4141,7 @@ func (this *Grvt) EipDomainData() any {
 	return map[string]any{
 		"name":    "GRVT Exchange",
 		"version": "0",
-		"chainId": func() any {
+		"chainId": func() int {
 			if this.IsSandboxModeEnabled {
 				return 326
 			}
@@ -4247,7 +4247,7 @@ func (this *Grvt) DefaultSignature() any {
 		"v":          0,
 		"expiration": ToString(expiration),
 		"nonce":      this.Nonce(),
-		"chain_id": func() any {
+		"chain_id": func() string {
 			if this.IsSandboxModeEnabled {
 				return "326"
 			}

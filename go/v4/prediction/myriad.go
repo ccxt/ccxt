@@ -1240,7 +1240,7 @@ func (this *Myriad) createOrderbookOrderBody(ch chan any, outcome any, typeVar a
 		}
 		return ccxt.ToLower(side)
 	}()
-	var typeStr any = func() any {
+	var typeStr string = func() string {
 		if typeVar == nil {
 			return "limit"
 		}
@@ -1295,21 +1295,21 @@ func (this *Myriad) BuildOrderbookOrder(outcome any, typeVar any, side any, amou
 	var marketId *string = this.SafeString(info, "marketId")
 	var outcomeId *int64 = this.SafeInteger(info, "outcomeId", 0)
 	var trader string = this.EthGetAddressFromPrivateKey(this.PrivateKey)
-	var typeStr any = func() any {
+	var typeStr string = func() string {
 		if typeVar == nil {
 			return "limit"
 		}
 		return ccxt.ToLower(typeVar)
 	}()
 	var sideStr string = ccxt.ToLower(side)
-	var sideInt any = func() any {
+	var sideInt int = func() int {
 		if sideStr == "buy" {
 			return 0
 		}
 		return 1
 	}()
-	var isMarket bool = (ccxt.IsEqual(typeStr, "market"))
-	var defaultTif any = func() any {
+	var isMarket bool = (typeStr == "market")
+	var defaultTif string = func() string {
 		if isMarket {
 			return "FOK"
 		}
@@ -1319,8 +1319,8 @@ func (this *Myriad) BuildOrderbookOrder(outcome any, typeVar any, side any, amou
 	var priceValue any = price
 	if ccxt.IsEqual(priceValue, nil) {
 		if isMarket {
-			priceValue = func() any {
-				if ccxt.IsEqual(sideInt, 0) {
+			priceValue = func() int {
+				if sideInt == 0 {
 					return 1
 				}
 				return 0
@@ -1807,7 +1807,7 @@ func (this *Myriad) ParsePredictionOrder(order any, optionalArgs ...any) any {
 	var inner map[string]any = ccxt.SafeMapTyped(order, "order")
 	var orderHash *string = this.SafeString2(order, "orderHash", "hash")
 	var sideInt *int64 = this.SafeInteger(inner, "side")
-	var side any = func() any {
+	var side string = func() string {
 		if sideInt != nil && *sideInt == 1 {
 			return "sell"
 		}
@@ -1870,7 +1870,7 @@ func (this *Myriad) ParsePredictionOrder(order any, optionalArgs ...any) any {
 		"outcomeId":          this.SafeString2(outcomeObj, "outcomeId", "id"),
 		"label":              this.SafeString(outcomeObj, "label"),
 		"market":             this.SafeString(outcomeObj, "market"),
-		"type": func() any {
+		"type": func() string {
 			if isMarketTif {
 				return "market"
 			}
@@ -2897,7 +2897,7 @@ func (this *Myriad) ParseMyriadMarket(raw any, optionalArgs ...any) any {
 		var settleFractionRaw any = nil
 		if hasResolution {
 			winnerRaw = (outcomeId == resolvedOutcomeId || (outcomeId != nil && resolvedOutcomeId != nil && *outcomeId == *resolvedOutcomeId))
-			settleFractionRaw = func() any {
+			settleFractionRaw = func() int {
 				if ccxt.EvalTruthy(winnerRaw) {
 					return 1
 				}
@@ -2942,7 +2942,7 @@ func (this *Myriad) ParseMyriadMarket(raw any, optionalArgs ...any) any {
 		})
 	}
 	var marketTradingModel *string = this.SafeString(raw, "tradingModel", "amm")
-	var marketExecutionModel any = func() any {
+	var marketExecutionModel string = func() string {
 		if marketTradingModel != nil && *marketTradingModel == "amm" {
 			return "amm"
 		}
@@ -2954,7 +2954,7 @@ func (this *Myriad) ParseMyriadMarket(raw any, optionalArgs ...any) any {
 	return map[string]any{
 		"id":     ccxt.Add(ccxt.Add(networkId, ":"), marketId),
 		"market": marketSymbol,
-		"marketType": func() any {
+		"marketType": func() string {
 			if outcomesLength > 2 {
 				return "categorical"
 			}
@@ -4915,7 +4915,7 @@ func (this *Myriad) HandleOrder(client any, data any) {
 		"outcomeId":     this.SafeString2(outcomeObj, "outcomeId", "id"),
 		"label":         this.SafeString(outcomeObj, "label"),
 		"market":        this.SafeString(outcomeObj, "market"),
-		"type": func() any {
+		"type": func() string {
 			if isMarketTif {
 				return "market"
 			}

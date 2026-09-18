@@ -195,7 +195,7 @@ func (this *Kraken) OrderRequestWs(method any, symbol any, typeVar any, request 
 		}
 		return nil
 	}()
-	var priceType any = func() any {
+	var priceType string = func() string {
 		if isTrailingPercentOrder || isTrailingLimitPercentOrder {
 			return "pct"
 		}
@@ -1623,7 +1623,7 @@ func (this *Kraken) ParseWsTrade(trade any, optionalArgs ...any) any {
 	}
 	var datetime *string = this.SafeString(trade, "timestamp")
 	var liquidityIndicator *string = this.SafeString(trade, "liquidity_ind")
-	var takerOrMaker any = func() any {
+	var takerOrMaker string = func() string {
 		if liquidityIndicator != nil && *liquidityIndicator == "t" {
 			return "taker"
 		}
@@ -2053,7 +2053,7 @@ func (this *Kraken) HandleMessage(client any, message any) {
 			var data any = this.SafeList(message, "data", []any{})
 			var first map[string]any = ccxt.SafeMapTyped(data, 0)
 			var execType *string = this.SafeString(first, "exec_type")
-			channel = func() any {
+			channel = func() string {
 				if execType != nil && *execType == "trade" {
 					return "myTrades"
 				}

@@ -1244,7 +1244,7 @@ func (this *Btcmarkets) createOrderBody(ch chan any, symbol any, typeVar any, si
 	var request map[string]any = map[string]any{
 		"marketId": GetValue(market, "id"),
 		"amount":   this.AmountToPrecision(symbol, amount),
-		"side": func() any {
+		"side": func() string {
 			if IsEqual(side, "buy") {
 				return "Bid"
 			}

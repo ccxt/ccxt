@@ -1182,7 +1182,7 @@ func (this *Bit2c) ParseTrade(trade any, optionalArgs ...any) any {
 		market = this.SafeMarket(marketId, market)
 		market = this.SafeMarket(GetValue(reference_parts, 0), market)
 		var isMaker any = this.SafeValue(trade, "isMaker")
-		makerOrTaker = func() any {
+		makerOrTaker = func() string {
 			if isMaker == true {
 				return "maker"
 			}

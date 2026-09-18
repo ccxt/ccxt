@@ -588,7 +588,7 @@ func (this *Hollaex) ParseCurrency(rawCurrency any) any {
 	var code *string = this.SafeCurrencyCode(id)
 	var withdrawalLimits any = this.SafeList(rawCurrency, "withdrawal_limits", []any{})
 	var rawType *string = this.SafeString(rawCurrency, "type")
-	var typeVar any = func() any {
+	var typeVar string = func() string {
 		if rawType != nil && *rawType == "blockchain" {
 			return "crypto"
 		}

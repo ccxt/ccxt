@@ -541,7 +541,7 @@ func (this *Hollaex) HandleBalance(client any, message any) {
 			account = ccxt.GetValue(this.Balance, code)
 		}
 		var second *string = this.SafeString(parts, 1)
-		var freeOrTotal any = func() any {
+		var freeOrTotal string = func() string {
 			if second != nil && *second == "available" {
 				return "free"
 			}

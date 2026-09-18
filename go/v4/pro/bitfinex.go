@@ -681,19 +681,19 @@ func (this *Bitfinex) ParseWsTrade(trade any, optionalArgs ...any) any {
 		return nil
 	}()
 	market = this.SafeMarket(marketId, market)
-	var createdKey any = func() any {
+	var createdKey int = func() int {
 		if isPublic {
 			return 1
 		}
 		return 2
 	}()
-	var priceKey any = func() any {
+	var priceKey int = func() int {
 		if isPublic {
 			return 3
 		}
 		return 5
 	}()
-	var amountKey any = func() any {
+	var amountKey int = func() int {
 		if isPublic {
 			return 2
 		}
@@ -721,7 +721,7 @@ func (this *Bitfinex) ParseWsTrade(trade any, optionalArgs ...any) any {
 	var amount any = this.ParseNumber(ccxt.Precise.StringAbs(amountString))
 	var side any = nil
 	if !ccxt.IsEqual(amount, nil) {
-		side = func() any {
+		side = func() string {
 			if ccxt.Precise.StringGt(amountString, "0") {
 				return "buy"
 			}
@@ -742,7 +742,7 @@ func (this *Bitfinex) ParseWsTrade(trade any, optionalArgs ...any) any {
 	var maker *int64 = this.SafeInteger(trade, 8)
 	var takerOrMaker any = nil
 	if maker != nil {
-		takerOrMaker = func() any {
+		takerOrMaker = func() string {
 			if ccxt.IsEqual(maker, ccxt.OpNeg(1)) {
 				return "taker"
 			}
@@ -936,7 +936,7 @@ func (this *Bitfinex) HandleOrderBook(client any, message any, subscription any)
 					}
 					return delta2
 				}()
-				var side any = func() any {
+				var side string = func() string {
 					if ccxt.IsLessThan(delta2, 0) {
 						return "asks"
 					}
@@ -963,7 +963,7 @@ func (this *Bitfinex) HandleOrderBook(client any, message any, subscription any)
 					}
 					return amount
 				}()
-				var side any = func() any {
+				var side string = func() string {
 					if ccxt.IsLessThan(amount, 0) {
 						return "asks"
 					}
@@ -988,7 +988,7 @@ func (this *Bitfinex) HandleOrderBook(client any, message any, subscription any)
 				}
 				return deltas2
 			}()
-			var side any = func() any {
+			var side string = func() string {
 				if ccxt.IsLessThan(deltas2, 0) {
 					return "asks"
 				}
@@ -1014,7 +1014,7 @@ func (this *Bitfinex) HandleOrderBook(client any, message any, subscription any)
 				}
 				return amount
 			}()
-			var side any = func() any {
+			var side string = func() string {
 				if ccxt.Precise.StringLt(amount, "0") {
 					return "asks"
 				}
@@ -1044,7 +1044,7 @@ func (this *Bitfinex) HandleChecksum(client any, message any, subscription any) 
 	var asks any = ccxt.GetValue(book, "asks")
 	var prec *string = this.SafeString(subscription, "prec", "P0")
 	var isRaw bool = (prec != nil && *prec == "R0")
-	var idToCheck any = func() any {
+	var idToCheck int = func() int {
 		if isRaw {
 			return 2
 		}

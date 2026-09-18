@@ -1381,7 +1381,7 @@ func (this *Hashkey) ParseCurrency(rawCurrency any) any {
 		}
 	}
 	var rawType *string = this.SafeString(rawCurrency, "tokenType")
-	var typeVar any = func() any {
+	var typeVar string = func() string {
 		if rawType != nil && *rawType == "REAL_MONEY" {
 			return "fiat"
 		}
@@ -1691,7 +1691,7 @@ func (this *Hashkey) ParseTrade(trade any, optionalArgs ...any) any {
 	}
 	var isBuyer *bool = this.SafeBool(trade, "isBuyer")
 	if isBuyer != nil {
-		side = func() any {
+		side = func() string {
 			if isBuyer != nil && *isBuyer {
 				return "buy"
 			}
@@ -1701,7 +1701,7 @@ func (this *Hashkey) ParseTrade(trade any, optionalArgs ...any) any {
 	var takerOrMaker any = nil
 	var isMaker *bool = this.SafeBool2(trade, "isMaker", "isMarker")
 	if isMaker != nil {
-		takerOrMaker = func() any {
+		takerOrMaker = func() string {
 			if isMaker != nil && *isMaker {
 				return "maker"
 			}
@@ -1712,7 +1712,7 @@ func (this *Hashkey) ParseTrade(trade any, optionalArgs ...any) any {
 	// if public trade
 	if isBuyerMaker != nil {
 		takerOrMaker = "taker"
-		side = func() any {
+		side = func() string {
 			if isBuyerMaker != nil && *isBuyerMaker {
 				return "sell"
 			}
@@ -4883,7 +4883,7 @@ func (this *Hashkey) ParseMarginModification(data any, optionalArgs ...any) any 
 		"amount":     nil,
 		"total":      this.SafeNumber(data, "margin"),
 		"code":       GetValue(market, "settle"),
-		"status": func() any {
+		"status": func() string {
 			if success {
 				return "ok"
 			}

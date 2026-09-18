@@ -495,7 +495,7 @@ func (this *Gemini) HandleOrderBook(client any, message any) {
 		var delta any = ccxt.GetValue(changes, i)
 		var price *float64 = this.SafeNumber(delta, 1)
 		var size *float64 = this.SafeNumber(delta, 2)
-		var side any = func() any {
+		var side string = func() string {
 			if ccxt.IsEqual(ccxt.GetValue(delta, 0), "buy") {
 				return "bids"
 			}
@@ -1102,7 +1102,7 @@ func (this *Gemini) authenticateBody(ch chan any, optionalArgs ...any) any {
 		return strings.Index(*url, "?")
 	}()
 	var urlLength int = ccxt.GetLength(url)
-	var endIndex any = func() any {
+	var endIndex int = func() int {
 		if urlParamsIndex >= 0 {
 			return urlParamsIndex
 		}

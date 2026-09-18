@@ -870,7 +870,7 @@ func (this *Toobit) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 	marketType = ccxt.GetValue(marketTypeparamsVariable, 0)
 	params = ccxt.GetValue(marketTypeparamsVariable, 1)
 	var isSpot bool = (ccxt.IsEqual(marketType, "spot"))
-	var typeVar any = func() any {
+	var typeVar string = func() string {
 		if isSpot {
 			return "spot"
 		}
@@ -880,25 +880,25 @@ func (this *Toobit) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 	var swapSubHash string = "contract:private"
 	var spotMessageHash string = "spot:balance"
 	var swapMessageHash string = "contract:balance"
-	var messageHash any = func() any {
+	var messageHash string = func() string {
 		if isSpot {
 			return spotMessageHash
 		}
 		return swapMessageHash
 	}()
-	var subscriptionHash any = func() any {
+	var subscriptionHash string = func() string {
 		if isSpot {
 			return spotSubHash
 		}
 		return swapSubHash
 	}()
-	if subscriptionHash == nil {
+	if ccxt.IsEqual(subscriptionHash, nil) {
 		panic(ccxt.ArgumentsRequired(this.Id + " watchBalance() requires a subscription hash"))
 	}
 	var url any = this.GetUserStreamUrl()
 	var client ccxt.ClientInterface = this.Client(url)
 	this.SetBalanceCache(client, marketType, subscriptionHash, params)
-	client.(ccxt.ClientInterface).Future(ccxt.Add(typeVar, ":fetchBalanceSnapshot"))
+	client.(ccxt.ClientInterface).Future(typeVar + ":fetchBalanceSnapshot")
 
 	retRes71715 := (<-this.Watch(url, messageHash, params, subscriptionHash))
 	ccxt.PanicOnError(retRes71715)
@@ -913,13 +913,13 @@ func (this *Toobit) SetBalanceCache(client any, marketType any, optionalArgs ...
 	if (subscriptionHash == nil) || (ccxt.InOp(client.(ccxt.ClientInterface).GetSubscriptions(), subscriptionHash)) {
 		return
 	}
-	var typeVar any = func() any {
+	var typeVar string = func() string {
 		if ccxt.IsEqual(marketType, "spot") {
 			return "spot"
 		}
 		return "contract"
 	}()
-	var messageHash any = ccxt.Add(typeVar, ":fetchBalanceSnapshot")
+	var messageHash any = typeVar + ":fetchBalanceSnapshot"
 	if !(ccxt.InOp(client.(ccxt.ClientInterface).GetFutures(), messageHash)) {
 		client.(ccxt.ClientInterface).Future(messageHash)
 		this.Spawn(this.LoadBalanceSnapshotAsync, client, messageHash, marketType)
@@ -962,7 +962,7 @@ func (this *Toobit) HandleBalance(client any, message any) {
 	var channel *string = this.SafeString(message, "e")
 	var data any = this.SafeList(message, "B", []any{})
 	var timestamp *int64 = this.SafeInteger(message, "E")
-	var typeVar any = func() any {
+	var typeVar string = func() string {
 		if channel != nil && *channel == "outboundContractAccountInfo" {
 			return "contract"
 		}
@@ -982,12 +982,12 @@ func (this *Toobit) HandleBalance(client any, message any) {
 		ccxt.AddElementToObject(account, "info", balance)
 		ccxt.AddElementToObject(account, "used", this.SafeString(balance, "l"))
 		ccxt.AddElementToObject(account, "free", this.SafeString(balance, "f"))
-		if (typeVar != nil) && (code != nil) {
+		if (!ccxt.IsEqual(typeVar, nil)) && (code != nil) {
 			ccxt.AddElementToObject(ccxt.GetValue(this.Balance, typeVar), code, account)
 		}
 	}
 	ccxt.AddElementToObject(this.Balance, typeVar, this.SafeBalance(ccxt.GetValue(this.Balance, typeVar)))
-	client.(ccxt.ClientInterface).Resolve(ccxt.GetValue(this.Balance, typeVar), ccxt.Add(typeVar, ":balance"))
+	client.(ccxt.ClientInterface).Resolve(ccxt.GetValue(this.Balance, typeVar), typeVar+":balance")
 }
 func (this *Toobit) LoadBalanceSnapshotAsync(client any, messageHash any, marketType any) <-chan any {
 	ch := make(chan any, 1)
@@ -1002,7 +1002,7 @@ func (this *Toobit) loadBalanceSnapshotBody(ch chan any, client any, messageHash
 		"type": marketType,
 	}))
 	ccxt.PanicOnError(response)
-	var typeVar any = func() any {
+	var typeVar string = func() string {
 		if ccxt.IsEqual(marketType, "spot") {
 			return "spot"
 		}
@@ -1013,8 +1013,8 @@ func (this *Toobit) loadBalanceSnapshotBody(ch chan any, client any, messageHash
 	if ccxt.InOp(client.(ccxt.ClientInterface).GetFutures(), messageHash) {
 		var future any = ccxt.GetValue(client.(ccxt.ClientInterface).GetFutures(), messageHash)
 		future.(*ccxt.Future).Resolve()
-		client.(ccxt.ClientInterface).Resolve(ccxt.GetValue(this.Balance, typeVar), ccxt.Add(typeVar, ":fetchBalanceSnapshot"))
-		client.(ccxt.ClientInterface).Resolve(ccxt.GetValue(this.Balance, typeVar), ccxt.Add(typeVar, ":balance")) // we should also resolve right away after snapshot, so user doesn't double-fetch balance
+		client.(ccxt.ClientInterface).Resolve(ccxt.GetValue(this.Balance, typeVar), typeVar+":fetchBalanceSnapshot")
+		client.(ccxt.ClientInterface).Resolve(ccxt.GetValue(this.Balance, typeVar), typeVar+":balance") // we should also resolve right away after snapshot, so user doesn't double-fetch balance
 	}
 	return nil
 }
@@ -1253,7 +1253,7 @@ func (this *Toobit) ParseMyTrade(trade any, optionalArgs ...any) any {
 	var marketId *string = this.SafeString(trade, "s")
 	var ts *string = this.SafeString(trade, "t")
 	var isMaker bool = (ccxt.IsEqual(this.SafeBool(trade, "m"), true))
-	var takerOrMaker any = func() any {
+	var takerOrMaker string = func() string {
 		if isMaker {
 			return "maker"
 		}

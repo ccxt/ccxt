@@ -1917,7 +1917,7 @@ func (this *Coinbaseinternational) ParseMarket(market any) any {
 		"baseId":      baseId,
 		"quoteId":     quoteId,
 		"settleId":    settleId,
-		"type": func() any {
+		"type": func() string {
 			if isSpot {
 				return "spot"
 			}
@@ -2310,7 +2310,7 @@ func (this *Coinbaseinternational) transferBody(ch chan any, code any, amount an
 		"amount":      amount,
 		"fromAccount": fromAccount,
 		"toAccount":   toAccount,
-		"status": func() any {
+		"status": func() string {
 			if success != nil && *success == true {
 				return "ok"
 			}

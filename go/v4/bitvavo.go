@@ -767,7 +767,7 @@ func (this *Bitvavo) ParseCurrency(rawCurrency any) any {
 		"networks":  networks,
 		"fee":       withdrawFee,
 		"precision": nil,
-		"type": func() any {
+		"type": func() string {
 			if isFiat {
 				return "fiat"
 			}
@@ -1088,7 +1088,7 @@ func (this *Bitvavo) ParseTrade(trade any, optionalArgs ...any) any {
 	var taker any = this.SafeValue(trade, "taker")
 	var takerOrMaker any = nil
 	if !IsEqual(taker, nil) {
-		takerOrMaker = func() any {
+		takerOrMaker = func() string {
 			if taker == true {
 				return "taker"
 			}
@@ -1887,7 +1887,7 @@ func (this *Bitvavo) CreateOrderRequest(symbol any, typeVar any, side any, amoun
 		if !IsEqual(stopLossPrice, nil) {
 			triggerPrice = stopLossPrice
 		}
-		request["orderType"] = func() any {
+		request["orderType"] = func() string {
 			if isMarketOrder {
 				return "stopLoss"
 			}
@@ -1897,7 +1897,7 @@ func (this *Bitvavo) CreateOrderRequest(symbol any, typeVar any, side any, amoun
 		if !IsEqual(takeProfitPrice, nil) {
 			triggerPrice = takeProfitPrice
 		}
-		request["orderType"] = func() any {
+		request["orderType"] = func() string {
 			if isMarketOrder {
 				return "takeProfit"
 			}

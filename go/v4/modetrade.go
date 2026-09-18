@@ -1152,7 +1152,7 @@ func (this *Modetrade) ParseTrade(trade any, optionalArgs ...any) any {
 	var takerOrMaker any = nil
 	if isFromFetchOrder {
 		var isMaker bool = IsEqual(this.SafeString(trade, "is_maker"), "1")
-		takerOrMaker = func() any {
+		takerOrMaker = func() string {
 			if isMaker {
 				return "maker"
 			}
@@ -1941,7 +1941,7 @@ func (this *Modetrade) ParseOrder(order any, optionalArgs ...any) any {
 	var status any = this.SafeValue2(order, "status", "algoStatus")
 	var success *bool = this.SafeBool(order, "success")
 	if success != nil {
-		status = func() any {
+		status = func() string {
 			if success != nil && *success {
 				return "NEW"
 			}
@@ -2089,25 +2089,25 @@ func (this *Modetrade) CreateOrderRequest(symbol any, typeVar any, side any, amo
 	var isMarket bool = (orderType == "MARKET")
 	var timeInForce *string = this.SafeStringLower(params, "timeInForce")
 	var postOnly bool = this.IsPostOnly(isMarket, nil, params)
-	var orderQtyKey any = func() any {
+	var orderQtyKey string = func() string {
 		if isConditional {
 			return "quantity"
 		}
 		return "order_quantity"
 	}()
-	var priceKey any = func() any {
+	var priceKey string = func() string {
 		if isConditional {
 			return "price"
 		}
 		return "order_price"
 	}()
-	var typeKey any = func() any {
+	var typeKey string = func() string {
 		if isConditional {
 			return "type"
 		}
 		return "order_type"
 	}()
-	AddElementToObject(request, typeKey, orderType) // LIMIT/MARKET/IOC/FOK/POST_ONLY/ASK/BID
+	request[typeKey] = orderType // LIMIT/MARKET/IOC/FOK/POST_ONLY/ASK/BID
 	if !isConditional {
 		if postOnly {
 			request["order_type"] = "POST_ONLY"
@@ -2121,12 +2121,12 @@ func (this *Modetrade) CreateOrderRequest(symbol any, typeVar any, side any, amo
 		request["reduce_only"] = reduceOnly
 	}
 	if !IsEqual(price, nil) {
-		AddElementToObject(request, priceKey, this.PriceToPrecision(symbol, price))
+		request[priceKey] = this.PriceToPrecision(symbol, price)
 	}
 	if isMarket && !isConditional {
-		AddElementToObject(request, orderQtyKey, this.AmountToPrecision(symbol, amount))
+		request[orderQtyKey] = this.AmountToPrecision(symbol, amount)
 	} else if algoType == nil || *algoType != "POSITIONAL_TP_SL" {
-		AddElementToObject(request, orderQtyKey, this.AmountToPrecision(symbol, amount))
+		request[orderQtyKey] = this.AmountToPrecision(symbol, amount)
 	}
 	var clientOrderId *string = this.SafeStringN(params, []any{"clOrdID", "clientOrderId", "client_order_id"})
 	if clientOrderId != nil {
@@ -2144,7 +2144,7 @@ func (this *Modetrade) CreateOrderRequest(symbol any, typeVar any, side any, amo
 			"child_orders": []any{},
 		}
 		var childOrders any = outterOrder["child_orders"]
-		var closeSide any = func() any {
+		var closeSide string = func() string {
 			if orderSide == "BUY" {
 				return "SELL"
 			}
@@ -2367,23 +2367,23 @@ func (this *Modetrade) editOrderBody(ch chan any, id any, symbol any, typeVar an
 		request["triggerPrice"] = this.PriceToPrecision(symbol, triggerPrice)
 	}
 	var isConditional bool = (triggerPrice != nil) || (!IsEqual(this.SafeValue(params, "childOrders"), nil))
-	var orderQtyKey any = func() any {
+	var orderQtyKey string = func() string {
 		if isConditional {
 			return "quantity"
 		}
 		return "order_quantity"
 	}()
-	var priceKey any = func() any {
+	var priceKey string = func() string {
 		if isConditional {
 			return "price"
 		}
 		return "order_price"
 	}()
 	if !IsEqual(price, nil) {
-		AddElementToObject(request, priceKey, this.PriceToPrecision(symbol, price))
+		request[priceKey] = this.PriceToPrecision(symbol, price)
 	}
 	if !IsEqual(amount, nil) {
-		AddElementToObject(request, orderQtyKey, this.AmountToPrecision(symbol, amount))
+		request[orderQtyKey] = this.AmountToPrecision(symbol, amount)
 	}
 	params = this.Omit(params, []any{"stopPrice", "triggerPrice", "takeProfitPrice", "stopLossPrice", "trailingTriggerPrice", "trailingAmount", "trailingPercent"})
 	var response any = nil
@@ -2811,7 +2811,7 @@ func (this *Modetrade) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	}
 	var paginate any = false
 	var isTrigger *bool = this.SafeBool2(params, "stop", "trigger", false)
-	var maxLimit any = func() any {
+	var maxLimit int = func() int {
 		if isTrigger != nil && *isTrigger == true {
 			return 100
 		}
@@ -3306,7 +3306,7 @@ func (this *Modetrade) ParseLedgerEntry(item any, optionalArgs ...any) any {
 	currency = this.SafeCurrency(currencyId, currency)
 	var amount *float64 = this.SafeNumber(item, "amount")
 	var side *string = this.SafeString(item, "token_side")
-	var direction any = func() any {
+	var direction string = func() string {
 		if side != nil && *side == "DEPOSIT" {
 			return "in"
 		}

@@ -855,7 +855,7 @@ func (this *Deribit) CreateExpiredOptionMarket(symbol any) any {
 		"contractSize":   nil,
 		"expiry":         timestamp,
 		"expiryDatetime": datetime,
-		"optionType": func() any {
+		"optionType": func() string {
 			if optionType != nil && *optionType == "C" {
 				return "call"
 			}
@@ -1064,7 +1064,7 @@ func (this *Deribit) fetchStatusBody(ch chan any, optionalArgs ...any) any {
 	var updateTime *int64 = this.SafeIntegerProduct(response, "usIn", 0.001, this.Milliseconds())
 
 	ch <- map[string]any{
-		"status": func() any {
+		"status": func() string {
 			if locked != nil && *locked == "false" {
 				return "ok"
 			}
@@ -1375,7 +1375,7 @@ func (this *Deribit) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 					if option {
 						strike = this.SafeNumber(market, "strike")
 						optionType = DerefScalar(this.SafeString(market, "option_type"))
-						var letter any = func() any {
+						var letter string = func() string {
 							if IsEqual(optionType, "call") {
 								return "C"
 							}
@@ -2104,7 +2104,7 @@ func (this *Deribit) ParseTrade(trade any, optionalArgs ...any) any {
 	var takerOrMaker any = nil
 	if liquidity != nil {
 		// M = maker, T = taker, MT = both
-		takerOrMaker = func() any {
+		takerOrMaker = func() string {
 			if liquidity != nil && *liquidity == "M" {
 				return "maker"
 			}
@@ -3556,7 +3556,7 @@ func (this *Deribit) ParsePosition(position any, optionalArgs ...any) any {
 	var contract *string = this.SafeString(position, "instrument_name")
 	market = this.SafeMarket(contract, market)
 	var side any = DerefScalar(this.SafeString(position, "direction"))
-	side = func() any {
+	side = func() string {
 		if IsEqual(side, "buy") {
 			return "long"
 		}

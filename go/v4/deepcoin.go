@@ -1770,7 +1770,7 @@ func (this *Deepcoin) ParseLedgerEntry(item any, optionalArgs ...any) any {
 	var timestamp *int64 = this.SafeInteger(item, "ts")
 	var change *string = this.SafeString(item, "balChg")
 	var amount *string = Precise.StringAbs(change)
-	var direction any = func() any {
+	var direction string = func() string {
 		if Precise.StringLt(change, "0") {
 			return "out"
 		}
@@ -2965,7 +2965,7 @@ func (this *Deepcoin) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any 
 	var mergedparamsVariable []any = this.HandleOptionAndParams(params, "cancelAllOrders", "merged", merged)
 	merged = GetValue(mergedparamsVariable, 0)
 	params = GetValue(mergedparamsVariable, 1)
-	var isMergedMode any = func() any {
+	var isMergedMode int = func() int {
 		if EvalTruthy(merged) {
 			return 1
 		}

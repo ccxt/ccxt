@@ -338,7 +338,7 @@ func (this *Bitrue) ParseWsOrder(order any, optionalArgs ...any) any {
 	var sideId *int64 = this.SafeInteger(order, "S")
 	// 1: buy
 	// 2: sell
-	var side any = func() any {
+	var side string = func() string {
 		if sideId != nil && *sideId == 1 {
 			return "buy"
 		}

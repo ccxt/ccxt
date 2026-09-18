@@ -1594,7 +1594,7 @@ func (this *Coinex) ParseTicker(ticker any, optionalArgs ...any) any {
 	//
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var marketType any = func() any {
+	var marketType string = func() string {
 		if InOp(ticker, "mark_price") {
 			return "swap"
 		}
@@ -2790,7 +2790,7 @@ func (this *Coinex) ParseOrder(order any, optionalArgs ...any) any {
 	if IsEqual(orderType, "futures") {
 		orderType = "swap"
 	}
-	var marketType any = func() any {
+	var marketType string = func() string {
 		if IsEqual(orderType, "swap") {
 			return "swap"
 		}
@@ -4695,7 +4695,7 @@ func (this *Coinex) modifyMarginHelperBody(ch chan any, symbol any, amount any, 
 	//
 	var data any = this.SafeDict(response, "data", map[string]any{})
 	var status *string = this.SafeStringLower(response, "message")
-	var typeVar any = func() any {
+	var typeVar string = func() string {
 		if IsEqual(addOrReduce, "reduce") {
 			return "reduce"
 		}
@@ -5405,7 +5405,7 @@ func (this *Coinex) ParseTransaction(transaction any, optionalArgs ...any) any {
 	var currencyId *string = this.SafeString(transaction, "ccy")
 	var code *string = this.SafeCurrencyCode(currencyId, currency)
 	var timestamp *int64 = this.SafeInteger(transaction, "created_at")
-	var typeVar any = func() any {
+	var typeVar string = func() string {
 		if InOp(transaction, "withdraw_id") {
 			return "withdrawal"
 		}
@@ -5419,7 +5419,7 @@ func (this *Coinex) ParseTransaction(transaction any, optionalArgs ...any) any {
 	if amount == nil {
 		amount = this.SafeNumber(transaction, "amount")
 	}
-	if IsEqual(typeVar, "deposit") {
+	if typeVar == "deposit" {
 		feeCost = "0"
 	}
 	var feeCurrencyId *string = this.SafeString2(transaction, "fee_asset", "fee_ccy") // https://github.com/ccxt/ccxt/issues/25153

@@ -1642,7 +1642,7 @@ func (this *Derive) ParseFundingRate(contract any, optionalArgs ...any) any {
 func (this *Derive) HashOrderMessage(order any) any {
 	var accountHash any = this.Hash(this.EthAbiEncode([]any{"bytes32", "uint256", "uint256", "address", "bytes32", "uint256", "address", "address"}, order), keccak, "binary")
 	var sandboxMode *bool = this.SafeBool(this.Options, "sandboxMode", false)
-	var DOMAIN_SEPARATOR any = func() any {
+	var DOMAIN_SEPARATOR string = func() string {
 		if sandboxMode != nil && *sandboxMode == true {
 			return "9bcf4dc06df5d8bf23af818d5716491b995020f377d3b7b64c29ed14e3dd1105"
 		}
@@ -1738,7 +1738,7 @@ func (this *Derive) createOrderBody(ch chan any, symbol any, typeVar any, side a
 	var signatureExpiry *int64 = this.SafeInteger(params, "signature_expiry_sec", this.Seconds()+7776000)
 	var ACTION_TYPEHASH []byte = this.Base16ToBinary("4d7a9f27c403ff9c0f19bce61d76d82f9aa29f8d6d4b0c5474607d9770d1af17")
 	var sandboxMode *bool = this.SafeBool(this.Options, "sandboxMode", false)
-	var TRADE_MODULE_ADDRESS any = func() any {
+	var TRADE_MODULE_ADDRESS string = func() string {
 		if sandboxMode != nil && *sandboxMode == true {
 			return "0x87F2863866D85E3192a35A73b388BD625D83f2be"
 		}
@@ -1943,7 +1943,7 @@ func (this *Derive) editOrderBody(ch chan any, id any, symbol any, typeVar any, 
 	// TODO: subaccount id / trade module address
 	var ACTION_TYPEHASH []byte = this.Base16ToBinary("4d7a9f27c403ff9c0f19bce61d76d82f9aa29f8d6d4b0c5474607d9770d1af17")
 	var sandboxMode *bool = this.SafeBool(this.Options, "sandboxMode", false)
-	var TRADE_MODULE_ADDRESS any = func() any {
+	var TRADE_MODULE_ADDRESS string = func() string {
 		if sandboxMode != nil && *sandboxMode == true {
 			return "0x87F2863866D85E3192a35A73b388BD625D83f2be"
 		}

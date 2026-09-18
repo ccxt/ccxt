@@ -771,7 +771,7 @@ func (this *Bitrue) fetchStatusBody(ch chan any, optionalArgs ...any) any {
 	//
 	var keys []string = ObjectKeys(response)
 	var keysLength int = len(keys)
-	var formattedStatus any = func() any {
+	var formattedStatus string = func() string {
 		if keysLength > 0 {
 			return "maintenance"
 		}
@@ -1977,7 +1977,7 @@ func (this *Bitrue) ParseTrade(trade any, optionalArgs ...any) any {
 	var buyerMaker *bool = this.SafeBool(trade, "isBuyerMaker") // ignore "m" until Bitrue fixes api
 	var isBuyer *bool = this.SafeBool(trade, "isBuyer")
 	if buyerMaker != nil {
-		side = func() any {
+		side = func() string {
 			if buyerMaker != nil && *buyerMaker {
 				return "sell"
 			}
@@ -1985,7 +1985,7 @@ func (this *Bitrue) ParseTrade(trade any, optionalArgs ...any) any {
 		}()
 	}
 	if isBuyer != nil {
-		side = func() any {
+		side = func() string {
 			if isBuyer != nil && *isBuyer {
 				return "buy"
 			}
@@ -2002,7 +2002,7 @@ func (this *Bitrue) ParseTrade(trade any, optionalArgs ...any) any {
 	var takerOrMaker any = nil
 	var isMaker *bool = this.SafeBool(trade, "isMaker")
 	if isMaker != nil {
-		takerOrMaker = func() any {
+		takerOrMaker = func() string {
 			if isMaker != nil && *isMaker {
 				return "maker"
 			}
@@ -2355,7 +2355,7 @@ func (this *Bitrue) createOrderBody(ch chan any, symbol any, typeVar any, side a
 		}
 		request["positionType"] = 1
 		var reduceOnly any = this.SafeValue2(params, "reduceOnly", "reduce_only")
-		request["open"] = func() any {
+		request["open"] = func() string {
 			if reduceOnly == true {
 				return "CLOSE"
 			}
@@ -3276,7 +3276,7 @@ func (this *Bitrue) ParseTransaction(transaction any, optionalArgs ...any) any {
 	var updated *int64 = this.SafeInteger(transaction, "updatedAt")
 	var payAmount bool = (InOp(transaction, "payAmount"))
 	var ctime bool = (InOp(transaction, "ctime"))
-	var typeVar any = func() any {
+	var typeVar string = func() string {
 		if payAmount || ctime {
 			return "withdrawal"
 		}

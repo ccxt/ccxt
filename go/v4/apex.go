@@ -1664,7 +1664,7 @@ func (this *Apex) createOrderBody(ch chan any, symbol any, typeVar any, side any
 		PanicOnError(retRes136912)
 	}
 	var market any = this.Market(symbol)
-	var orderType any = ToUpper(typeVar)
+	var orderType string = ToUpper(typeVar)
 	if side == nil {
 		panic(ArgumentsRequired(this.Id + " createOrder() requires a side argument"))
 	}
@@ -1683,23 +1683,23 @@ func (this *Apex) createOrderBody(ch chan any, symbol any, typeVar any, side any
 	var stopLossPrice *string = this.SafeString(params, "stopLossPrice")
 	var takeProfitPrice *string = this.SafeString(params, "takeProfitPrice")
 	if stopLossPrice != nil {
-		orderType = func() any {
-			if IsEqual(orderType, "MARKET") {
+		orderType = func() string {
+			if orderType == "MARKET" {
 				return "STOP_MARKET"
 			}
 			return "STOP_LIMIT"
 		}()
 		triggerPrice = stopLossPrice
 	} else if takeProfitPrice != nil {
-		orderType = func() any {
-			if IsEqual(orderType, "MARKET") {
+		orderType = func() string {
+			if orderType == "MARKET" {
 				return "TAKE_PROFIT_MARKET"
 			}
 			return "TAKE_PROFIT_LIMIT"
 		}()
 		triggerPrice = takeProfitPrice
 	}
-	var isMarket bool = (IsEqual(orderType, "MARKET"))
+	var isMarket bool = (orderType == "MARKET")
 	if isMarket && (IsEqual(price, nil)) {
 		panic(ArgumentsRequired(this.Id + " createOrder() requires a price argument for market orders"))
 	}

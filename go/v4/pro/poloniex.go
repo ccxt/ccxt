@@ -177,7 +177,7 @@ func (this *Poloniex) subscribeBody(ch chan any, name any, messageHash any, isPr
 	_ = symbols
 	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	var publicOrPrivate any = func() any {
+	var publicOrPrivate string = func() string {
 		if ccxt.EvalTruthy(isPrivate) {
 			return "private"
 		}

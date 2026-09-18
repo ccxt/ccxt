@@ -1124,7 +1124,7 @@ func (this *Polymarket) ParseEventToMarkets(event any) any {
 			}
 			return marketId
 		}()
-		var marketType any = func() any {
+		var marketType string = func() string {
 			if outcomeLabelsLength > 2 {
 				return "categorical"
 			}
@@ -1937,7 +1937,7 @@ func (this *Polymarket) fetchStatusBody(ch chan any, optionalArgs ...any) any {
 	var ok bool = (response == "OK") || (response == "ok")
 
 	ch <- map[string]any{
-		"status": func() any {
+		"status": func() string {
 			if ok {
 				return "ok"
 			}
@@ -2861,7 +2861,7 @@ func (this *Polymarket) BuildClobOrderBody(outcome any, typeVar any, side any, a
 		}
 	}
 	if ccxt.IsEqual(orderTypeStr, nil) {
-		orderTypeStr = func() any {
+		orderTypeStr = func() string {
 			if isMarket {
 				return "FOK"
 			}
@@ -2901,7 +2901,7 @@ func (this *Polymarket) BuildClobOrderBody(outcome any, typeVar any, side any, a
 	var amounts any = this.PolymarketOrderRawAmounts(sideStr, amount, price, tickSize, cost)
 	var makerAmount *string = this.SafeString(amounts, "makerAmount")
 	var takerAmount *string = this.SafeString(amounts, "takerAmount")
-	var sideInt any = func() any {
+	var sideInt int = func() int {
 		if sideStr == "BUY" {
 			return 0
 		}
@@ -3253,7 +3253,7 @@ func (this *Polymarket) cancelOrderBody(ch chan any, id any, optionalArgs ...any
 	// fields, so report the cancellation outcome explicitly rather than parsing an empty order
 	var notCanceled map[string]any = ccxt.SafeMapTyped(response, "not_canceled")
 	var failureReason *string = this.SafeString(notCanceled, id)
-	var status any = func() any {
+	var status string = func() string {
 		if failureReason == nil {
 			return "canceled"
 		}

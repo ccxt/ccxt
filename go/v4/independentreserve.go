@@ -1218,7 +1218,7 @@ func (this *Independentreserve) createOrderBody(ch chan any, symbol any, typeVar
 	}
 	var market any = this.Market(symbol)
 	var orderType any = this.Capitalize(typeVar)
-	orderType = Add(orderType, func() any {
+	orderType = Add(orderType, func() string {
 		if IsEqual(side, "sell") {
 			return "Offer"
 		}

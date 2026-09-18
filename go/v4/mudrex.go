@@ -993,13 +993,13 @@ func (this *Mudrex) createOrderBody(ch chan any, symbol any, typeVar any, side a
 		"leverage":    this.NumberToString(lev),
 		"quantity":    this.AmountToPrecision(symbol, amount),
 		"order_price": this.PriceToPrecision(symbol, price),
-		"order_type": func() any {
+		"order_type": func() string {
 			if IsEqual(side, "buy") {
 				return "LONG"
 			}
 			return "SHORT"
 		}(),
-		"trigger_type": func() any {
+		"trigger_type": func() string {
 			if IsEqual(typeVar, "market") {
 				return "MARKET"
 			}

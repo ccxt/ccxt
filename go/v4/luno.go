@@ -1334,7 +1334,7 @@ func (this *Luno) ParseTrade(trade any, optionalArgs ...any) any {
 			takerOrMaker = "taker"
 		}
 	} else {
-		side = func() any {
+		side = func() string {
 			if IsEqual(GetValue(trade, "is_buy"), true) {
 				return "buy"
 			}
@@ -1696,7 +1696,7 @@ func (this *Luno) createOrderBody(ch chan any, symbol any, typeVar any, side any
 	} else {
 		request["volume"] = this.AmountToPrecision(GetValue(market, "symbol"), amount)
 		request["price"] = this.PriceToPrecision(GetValue(market, "symbol"), price)
-		request["type"] = func() any {
+		request["type"] = func() string {
 			if IsEqual(side, "buy") {
 				return "BID"
 			}

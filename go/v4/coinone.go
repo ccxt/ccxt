@@ -482,7 +482,7 @@ func (this *Coinone) ParseCurrency(rawCurrency any) any {
 	var code *string = this.SafeCurrencyCode(id)
 	var isWithdrawEnabled bool = IsEqual(this.SafeString(rawCurrency, "withdraw_status", ""), "normal")
 	var isDepositEnabled bool = IsEqual(this.SafeString(rawCurrency, "deposit_status", ""), "normal")
-	var typeVar any = func() any {
+	var typeVar string = func() string {
 		if code == nil || *code != "KRW" {
 			return "crypto"
 		}
@@ -999,7 +999,7 @@ func (this *Coinone) ParseTrade(trade any, optionalArgs ...any) any {
 	var isSellerMaker *bool = this.SafeBool(trade, "is_seller_maker")
 	var side any = nil
 	if isSellerMaker != nil {
-		side = func() any {
+		side = func() string {
 			if isSellerMaker != nil && *isSellerMaker {
 				return "sell"
 			}

@@ -1646,7 +1646,7 @@ func (this *Backpack) ParseTrade(trade any, optionalArgs ...any) any {
 	var isMaker *bool = this.SafeBool(trade, "isMaker")
 	var takerOrMaker any = nil
 	if isMaker != nil {
-		takerOrMaker = func() any {
+		takerOrMaker = func() string {
 			if isMaker != nil && *isMaker {
 				return "maker"
 			}
@@ -1654,7 +1654,7 @@ func (this *Backpack) ParseTrade(trade any, optionalArgs ...any) any {
 		}()
 	} else if isBuyerMaker != nil {
 		takerOrMaker = "taker"
-		side = func() any {
+		side = func() string {
 			if isBuyerMaker != nil && *isBuyerMaker {
 				return "sell"
 			}
@@ -2313,7 +2313,7 @@ func (this *Backpack) CreateOrderRequest(symbol any, typeVar any, side any, amou
 	}
 	var triggerPrice *string = this.SafeString(params, "triggerPrice")
 	var isTriggerOrder bool = (triggerPrice != nil)
-	var quantityKey any = func() any {
+	var quantityKey string = func() string {
 		if isTriggerOrder {
 			return "triggerQuantity"
 		}
@@ -2322,14 +2322,14 @@ func (this *Backpack) CreateOrderRequest(symbol any, typeVar any, side any, amou
 	// handle basic limit/market order types
 	if IsEqual(typeVar, "limit") {
 		request["price"] = this.PriceToPrecision(symbol, price)
-		AddElementToObject(request, quantityKey, this.AmountToPrecision(symbol, amount))
+		request[quantityKey] = this.AmountToPrecision(symbol, amount)
 	} else if IsEqual(typeVar, "market") {
 		var cost *string = this.SafeString2(params, "cost", "quoteQuantity")
 		if cost != nil {
 			request["quoteQuantity"] = this.CostToPrecision(symbol, cost)
 			params = this.Omit(params, []any{"cost", "quoteQuantity"})
 		} else {
-			AddElementToObject(request, quantityKey, this.AmountToPrecision(symbol, amount))
+			request[quantityKey] = this.AmountToPrecision(symbol, amount)
 		}
 	}
 	// trigger orders

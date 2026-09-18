@@ -818,7 +818,7 @@ func (this *Whitebit) ParseWsOrder(order any, optionalArgs ...any) any {
 	var lastTradeTimestamp *int64 = this.SafeTimestamp(order, "mtime")
 	var symbol any = ccxt.GetValue(market, "symbol")
 	var rawSide *int64 = this.SafeInteger(order, "side")
-	var side any = func() any {
+	var side string = func() string {
 		if rawSide != nil && *rawSide == 1 {
 			return "sell"
 		}

@@ -1352,7 +1352,7 @@ func (this *Coinbaseexchange) ParseTrade(trade any, optionalArgs ...any) any {
 		cost = DerefScalar(this.SafeString(trade, costField))
 		var liquidity *string = this.SafeString(trade, "liquidity")
 		if liquidity != nil {
-			takerOrMaker = func() any {
+			takerOrMaker = func() string {
 				if liquidity != nil && *liquidity == "T" {
 					return "taker"
 				}
@@ -1368,7 +1368,7 @@ func (this *Coinbaseexchange) ParseTrade(trade any, optionalArgs ...any) any {
 		"rate":     feeRate,
 	}
 	var id *string = this.SafeString(trade, "trade_id")
-	var side any = func() any {
+	var side string = func() string {
 		if IsEqual(GetValue(trade, "side"), "buy") {
 			return "sell"
 		}
@@ -1379,7 +1379,7 @@ func (this *Coinbaseexchange) ParseTrade(trade any, optionalArgs ...any) any {
 	var makerOrderId *string = this.SafeString(trade, "maker_order_id")
 	var takerOrderId *string = this.SafeString(trade, "taker_order_id")
 	if (orderId != nil) || ((makerOrderId != nil) && (takerOrderId != nil)) {
-		side = func() any {
+		side = func() string {
 			if IsEqual(GetValue(trade, "side"), "buy") {
 				return "buy"
 			}

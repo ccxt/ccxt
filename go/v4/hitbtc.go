@@ -1675,9 +1675,9 @@ func (this *Hitbtc) ParseTrade(trade any, optionalArgs ...any) any {
 	var fee any = nil
 	var feeCostString *string = this.SafeString(trade, "fee")
 	var taker any = this.SafeValue(trade, "taker")
-	var takerOrMaker any = nil
+	var takerOrMaker string
 	if !IsEqual(taker, nil) {
-		takerOrMaker = func() any {
+		takerOrMaker = func() string {
 			if taker == true {
 				return "taker"
 			}

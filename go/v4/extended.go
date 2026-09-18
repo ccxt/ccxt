@@ -1542,7 +1542,7 @@ func (this *Extended) ParseTrade(trade any, optionalArgs ...any) any {
 	var isTaker *bool = this.SafeBool(trade, "isTaker")
 	var takerOrMaker any = nil
 	if isTaker != nil {
-		takerOrMaker = func() any {
+		takerOrMaker = func() string {
 			if isTaker != nil && *isTaker {
 				return "taker"
 			}
@@ -2063,7 +2063,7 @@ func (this *Extended) ParseAccount(account any) any {
 	var accountIndex *int64 = this.SafeInteger(account, "accountIndex")
 	var typeVar any = nil
 	if accountIndex != nil {
-		typeVar = func() any {
+		typeVar = func() string {
 			if accountIndex != nil && *accountIndex == 0 {
 				return "main"
 			}
@@ -2172,7 +2172,7 @@ func (this *Extended) ParseLedgerEntry(item any, optionalArgs ...any) any {
 	var amountString *string = this.SafeString(item, "amount")
 	var direction any = nil
 	if amountString != nil {
-		direction = func() any {
+		direction = func() string {
 			if Precise.StringLt(amountString, "0") {
 				return "out"
 			}
@@ -2610,9 +2610,9 @@ func (this *Extended) transferBody(ch chan any, code any, amount any, fromAccoun
 	var data map[string]any = SafeMapTyped(response, "data")
 	var validSignature *bool = this.SafeBool(data, "validSignature")
 	var now int64 = this.Milliseconds()
-	var status any = "pending"
+	var status string = "pending"
 	if validSignature != nil {
-		status = func() any {
+		status = func() string {
 			if validSignature != nil && *validSignature {
 				return "ok"
 			}
@@ -2657,7 +2657,7 @@ func (this *Extended) ParseTransfer(transfer any, optionalArgs ...any) any {
 	var validSignature *bool = this.SafeBool(transfer, "validSignature")
 	var status any = nil
 	if validSignature != nil {
-		status = func() any {
+		status = func() string {
 			if validSignature != nil && *validSignature {
 				return "ok"
 			}
@@ -3460,7 +3460,7 @@ func (this *Extended) createExtendedOrderRequestBody(ch chan any, symbol any, ty
 	var reduceOnly *bool = this.SafeBool2(params, "reduceOnly", "reduce_only", false)
 	var timeInForce any = this.SafeStringUpper(params, "timeInForce")
 	if IsEqual(timeInForce, nil) {
-		timeInForce = func() any {
+		timeInForce = func() string {
 			if uppercaseType == "MARKET" {
 				return "IOC"
 			}
@@ -3637,14 +3637,14 @@ func (this *Extended) createExtendedOrderRequestBody(ch chan any, symbol any, ty
 				"triggerPrice": this.PriceToPrecision(symbol, triggerPriceStr),
 			}
 			if isBuy {
-				trigger["direction"] = func() any {
+				trigger["direction"] = func() string {
 					if isStopLossOrder {
 						return "UP"
 					}
 					return "DOWN"
 				}()
 			} else {
-				trigger["direction"] = func() any {
+				trigger["direction"] = func() string {
 					if isStopLossOrder {
 						return "DOWN"
 					}
@@ -4545,7 +4545,7 @@ func (this *Extended) GetExtendedSignatureHex(signature any) any {
 func (this *Extended) GetExtendedDomainHash() any {
 	var domainTypeHash any = this.ConvertToBigInt(this.ExtendedStarknetGetSelectorFromName("\"StarknetDomain\"(\"name\":\"shortstring\",\"version\":\"shortstring\",\"chainId\":\"shortstring\",\"revision\":\"shortstring\")"))
 	var isTestnet bool = (GetIndexOf(GetValue(GetValue(this.Urls, "api"), "rest"), "sepolia") >= 0)
-	var defaultChainId any = func() any {
+	var defaultChainId string = func() string {
 		if isTestnet {
 			return "SN_SEPOLIA"
 		}

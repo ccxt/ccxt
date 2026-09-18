@@ -455,7 +455,7 @@ func (this *Indodax) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 			"swap":     false,
 			"future":   false,
 			"option":   false,
-			"active": func() any {
+			"active": func() bool {
 				if inMaintenance {
 					return false
 				}
@@ -1727,7 +1727,7 @@ func (this *Indodax) ParseTransaction(transaction any, optionalArgs ...any) any 
 		"address":     this.SafeString(transaction, "withdraw_address"),
 		"addressTo":   nil,
 		"amount":      this.SafeNumberN(transaction, []any{"amount", "withdraw_amount", "deposit_amount"}),
-		"type": func() any {
+		"type": func() string {
 			if depositId == nil {
 				return "withdraw"
 			}

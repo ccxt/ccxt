@@ -250,7 +250,7 @@ func (this *Hyperliquid) BuildOutcomeSymbol(desc any, side any, outcomeId any) a
 		}
 		return ""
 	}()
-	var label any = func() any {
+	var label string = func() string {
 		if ccxt.IsEqual(side, 0) {
 			return "YES"
 		}
@@ -1496,7 +1496,7 @@ func (this *Hyperliquid) createOrderBody(ch chan any, outcome any, typeVar any, 
 	var postOnly *bool = this.SafeBool(params, "postOnly", false)
 	var defaultSlippage *string = this.SafeString(this.Options, "defaultSlippage", "0.05")
 	var slippage *string = this.SafeString(params, "slippage", defaultSlippage)
-	var defaultTif any = func() any {
+	var defaultTif string = func() string {
 		if isMarket {
 			return "Ioc"
 		}
@@ -2061,7 +2061,7 @@ func (this *Hyperliquid) ParsePredictionOrder(order any, optionalArgs ...any) an
 		return market
 	}()
 	var sideRaw *string = this.SafeString(entry, "side")
-	var side any = func() any {
+	var side string = func() string {
 		if sideRaw != nil && *sideRaw == "B" {
 			return "buy"
 		}
@@ -2331,7 +2331,7 @@ func (this *Hyperliquid) ParsePredictionTrade(trade any, optionalArgs ...any) an
 		return market
 	}()
 	var rawSide *string = this.SafeString(trade, "side")
-	var side any = func() any {
+	var side string = func() string {
 		if rawSide != nil && *rawSide == "B" {
 			return "buy"
 		}
@@ -2352,7 +2352,7 @@ func (this *Hyperliquid) ParsePredictionTrade(trade any, optionalArgs ...any) an
 		cost = this.ParseNumber(ccxt.Precise.StringMul(price, amount))
 	}
 	var crossed bool = (ccxt.IsEqual(this.SafeBool(trade, "crossed"), true))
-	var takerOrMaker any = func() any {
+	var takerOrMaker string = func() string {
 		if crossed {
 			return "taker"
 		}
@@ -2632,7 +2632,7 @@ func (this *Hyperliquid) SignMessage(message any, privateKey any) any {
 func (this *Hyperliquid) ConstructPhantomAgent(hash any, optionalArgs ...any) any {
 	isTestnet := ccxt.GetArg(optionalArgs, 0, true)
 	_ = isTestnet
-	var source any = func() any {
+	var source string = func() string {
 		if ccxt.EvalTruthy(isTestnet) {
 			return "b"
 		}
@@ -2734,7 +2734,7 @@ func (this *Hyperliquid) approveBuilderFeeBody(ch chan any, builder any, maxFeeR
 	var nonce int64 = this.Milliseconds()
 	var isSandboxMode *bool = this.SafeBool(this.Options, "sandboxMode", false)
 	var payload map[string]any = map[string]any{
-		"hyperliquidChain": func() any {
+		"hyperliquidChain": func() string {
 			if isSandboxMode != nil && *isSandboxMode == true {
 				return "Testnet"
 			}

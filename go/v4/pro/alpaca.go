@@ -740,7 +740,7 @@ func (this *Alpaca) ParseMyTrade(trade any, optionalArgs ...any) any {
 		"order":     this.SafeString(trade, "id"),
 		"type":      typeVar,
 		"side":      this.SafeString(trade, "side"),
-		"takerOrMaker": func() any {
+		"takerOrMaker": func() string {
 			if ccxt.IsEqual(typeVar, "market") {
 				return "taker"
 			}

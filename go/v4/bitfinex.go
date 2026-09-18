@@ -1548,7 +1548,7 @@ func (this *Bitfinex) fetchOrderBookBody(ch chan any, symbol any, optionalArgs .
 		"datetime":  this.Iso8601(timestamp),
 		"nonce":     nil,
 	}
-	var priceIndex any = func() any {
+	var priceIndex int = func() int {
 		if IsEqual(fullRequest["precision"], "R0") {
 			return 1
 		}
@@ -1560,13 +1560,13 @@ func (this *Bitfinex) fetchOrderBookBody(ch chan any, symbol any, optionalArgs .
 		var price *float64 = this.SafeNumber(order, priceIndex)
 		var signedAmount *string = this.SafeString(order, 2)
 		var amount *string = Precise.StringAbs(signedAmount)
-		var side any = func() any {
+		var side string = func() string {
 			if Precise.StringGt(signedAmount, "0") {
 				return "bids"
 			}
 			return "asks"
 		}()
-		retRes121912 := GetValue(result, side)
+		retRes121912 := result[side]
 		AppendToArray(&retRes121912, []any{price, this.ParseNumber(amount)})
 	}
 	result["bids"] = this.SortBy(result["bids"], 0, true)
@@ -1842,7 +1842,7 @@ func (this *Bitfinex) ParseTrade(trade any, optionalArgs ...any) any {
 	var tradeLength int = GetArrayLength(tradeList)
 	var isPrivate bool = (tradeLength > 5)
 	var id *string = this.SafeString(tradeList, 0)
-	var amountIndex any = func() any {
+	var amountIndex int = func() int {
 		if isPrivate {
 			return 4
 		}
@@ -1850,7 +1850,7 @@ func (this *Bitfinex) ParseTrade(trade any, optionalArgs ...any) any {
 	}()
 	var side string
 	var amountString *string = this.SafeString(tradeList, amountIndex)
-	var priceIndex any = func() any {
+	var priceIndex int = func() int {
 		if isPrivate {
 			return 5
 		}
@@ -1868,7 +1868,7 @@ func (this *Bitfinex) ParseTrade(trade any, optionalArgs ...any) any {
 	var typeVar any = nil
 	var fee any = nil
 	var symbol *string = this.SafeSymbol(nil, market)
-	var timestampIndex any = func() any {
+	var timestampIndex int = func() int {
 		if isPrivate {
 			return 2
 		}
@@ -1880,7 +1880,7 @@ func (this *Bitfinex) ParseTrade(trade any, optionalArgs ...any) any {
 		symbol = this.SafeSymbol(marketId)
 		orderId = DerefScalar(this.SafeString(tradeList, 3))
 		var maker *int64 = this.SafeInteger(tradeList, 8)
-		takerOrMaker = func() any {
+		takerOrMaker = func() string {
 			if maker != nil && *maker == 1 {
 				return "maker"
 			}
@@ -2143,7 +2143,7 @@ func (this *Bitfinex) ParseOrder(order any, optionalArgs ...any) any {
 	var remaining *string = Precise.StringAbs(this.SafeString(orderList, 6))
 	var signedAmount *string = this.SafeString(orderList, 7)
 	var amount *string = Precise.StringAbs(signedAmount)
-	var side any = func() any {
+	var side string = func() string {
 		if Precise.StringLt(signedAmount, "0") {
 			return "sell"
 		}
@@ -3859,7 +3859,7 @@ func (this *Bitfinex) ParsePosition(position any, optionalArgs ...any) any {
 		"contractSize":     nil,
 		"markPrice":        nil,
 		"lastPrice":        nil,
-		"side": func() any {
+		"side": func() string {
 			if Precise.StringGt(amount, "0") {
 				return "long"
 			}
@@ -4706,7 +4706,7 @@ func (this *Bitfinex) ParseOpenInterest(interest any, optionalArgs ...any) any {
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
 	var interestLength int = GetArrayLength(interest)
-	var openInterestIndex any = func() any {
+	var openInterestIndex int = func() int {
 		if IsEqual(interestLength, 23) {
 			return 17
 		}
@@ -4834,7 +4834,7 @@ func (this *Bitfinex) ParseLiquidation(liquidation any, optionalArgs ...any) any
 	var baseValue *string = Precise.StringMul(contracts, contractSize)
 	var price *string = this.SafeString(entry, 11)
 	var sideFlag *int64 = this.SafeInteger(entry, 8)
-	var side any = func() any {
+	var side string = func() string {
 		if sideFlag != nil && *sideFlag == 1 {
 			return "buy"
 		}
@@ -4915,7 +4915,7 @@ func (this *Bitfinex) ParseMarginModification(data any, optionalArgs ...any) any
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
 	var marginStatusRaw any = GetValue(data, 0)
-	var marginStatus any = func() any {
+	var marginStatus string = func() string {
 		if IsEqual(marginStatusRaw, 1) {
 			return "ok"
 		}

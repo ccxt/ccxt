@@ -653,7 +653,7 @@ func (this *Onetrading) ParseMarket(market any) any {
 			}
 			return nil
 		}(),
-		"type": func() any {
+		"type": func() string {
 			if isPerp {
 				return "swap"
 			}

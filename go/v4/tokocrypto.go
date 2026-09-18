@@ -1181,7 +1181,7 @@ func (this *Tokocrypto) ParseTrade(trade any, optionalArgs ...any) any {
 	var buyerMaker any = this.SafeValue2(trade, "m", "isBuyerMaker")
 	var takerOrMaker any = nil
 	if !IsEqual(buyerMaker, nil) {
-		side = func() any {
+		side = func() string {
 			if buyerMaker == true {
 				return "sell"
 			}
@@ -1192,7 +1192,7 @@ func (this *Tokocrypto) ParseTrade(trade any, optionalArgs ...any) any {
 		side = this.SafeStringLower(trade, "side")
 	} else {
 		if InOp(trade, "isBuyer") {
-			side = func() any {
+			side = func() string {
 				if IsEqual(GetValue(trade, "isBuyer"), true) {
 					return "buy"
 				}
@@ -1208,7 +1208,7 @@ func (this *Tokocrypto) ParseTrade(trade any, optionalArgs ...any) any {
 		}
 	}
 	if InOp(trade, "isMaker") {
-		takerOrMaker = func() any {
+		takerOrMaker = func() string {
 			if IsEqual(GetValue(trade, "isMaker"), true) {
 				return "maker"
 			}
@@ -1216,7 +1216,7 @@ func (this *Tokocrypto) ParseTrade(trade any, optionalArgs ...any) any {
 		}()
 	}
 	if InOp(trade, "maker") {
-		takerOrMaker = func() any {
+		takerOrMaker = func() string {
 			if IsEqual(GetValue(trade, "maker"), true) {
 				return "maker"
 			}

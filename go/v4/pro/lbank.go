@@ -634,7 +634,7 @@ func (this *Lbank) ParseWsTrade(trade any, optionalArgs ...any) any {
 	var side any = firstPart
 	// reverse if it was 'maker'
 	if secondPart != nil && *secondPart == "maker" {
-		side = func() any {
+		side = func() string {
 			if ccxt.IsEqual(side, "buy") {
 				return "sell"
 			}
@@ -805,7 +805,7 @@ func (this *Lbank) ParseWsOrder(order any, optionalArgs ...any) any {
 	var exchangeType *string = this.SafeString(typeParts, 1)
 	var typeVar any = nil
 	if (rawType == nil || *rawType != "buy") && (rawType == nil || *rawType != "sell") {
-		typeVar = func() any {
+		typeVar = func() string {
 			if exchangeType != nil && *exchangeType == "market" {
 				return "market"
 			}

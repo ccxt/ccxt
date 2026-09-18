@@ -427,7 +427,7 @@ func (this *Bitopro) ParseCurrency(rawCurrency any) any {
 		"id":   currencyId,
 		"code": code,
 		"info": rawCurrency,
-		"type": func() any {
+		"type": func() string {
 			if isFiat {
 				return "fiat"
 			}

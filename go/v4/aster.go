@@ -1399,7 +1399,7 @@ func (this *Aster) ParseMarket(market any) any {
 		"baseId":   baseId,
 		"quoteId":  quoteId,
 		"settleId": settleId,
-		"type": func() any {
+		"type": func() string {
 			if isContract {
 				return "swap"
 			}
@@ -1657,7 +1657,7 @@ func (this *Aster) ParseTrade(trade any, optionalArgs ...any) any {
 	_ = market
 	var id *string = this.SafeString2(trade, "id", "a")
 	var marketId *string = this.SafeString(trade, "symbol")
-	var marketType any = func() any {
+	var marketType string = func() string {
 		if InOp(trade, "positionSide") {
 			return "swap"
 		}
@@ -1674,7 +1674,7 @@ func (this *Aster) ParseTrade(trade any, optionalArgs ...any) any {
 	var isMaker *bool = this.SafeBool(trade, "maker")
 	var takerOrMaker any = nil
 	if isMaker != nil {
-		takerOrMaker = func() any {
+		takerOrMaker = func() string {
 			if isMaker != nil && *isMaker {
 				return "maker"
 			}
@@ -1683,7 +1683,7 @@ func (this *Aster) ParseTrade(trade any, optionalArgs ...any) any {
 		if IsEqual(side, nil) {
 			var isBuyer *bool = this.SafeBool(trade, "buyer")
 			if isBuyer != nil {
-				side = func() any {
+				side = func() string {
 					if isBuyer != nil && *isBuyer {
 						return "buy"
 					}
@@ -1694,7 +1694,7 @@ func (this *Aster) ParseTrade(trade any, optionalArgs ...any) any {
 	}
 	var isBuyerMaker *bool = this.SafeBool2(trade, "isBuyerMaker", "m")
 	if isBuyerMaker != nil {
-		side = func() any {
+		side = func() string {
 			if isBuyerMaker != nil && *isBuyerMaker {
 				return "sell"
 			}
@@ -2011,16 +2011,16 @@ func (this *Aster) ParseTicker(ticker any, optionalArgs ...any) any {
 	var high *string = this.SafeString(ticker, "highPrice")
 	var low *string = this.SafeString(ticker, "lowPrice")
 	var isTickerResponse bool = (InOp(ticker, "priceChange"))
-	var marketType any = nil
+	var marketType string
 	if isTickerResponse {
-		marketType = func() any {
+		marketType = func() string {
 			if InOp(ticker, "baseAsset") {
 				return "spot"
 			}
 			return "swap"
 		}()
 	} else {
-		marketType = func() any {
+		marketType = func() string {
 			if InOp(ticker, "lastUpdateId") {
 				return "swap"
 			}
@@ -2826,7 +2826,7 @@ func (this *Aster) setPositionModeBody(ch chan any, hedged any, optionalArgs ...
 	_ = symbol
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	var strValue any = func() any {
+	var strValue string = func() string {
 		if EvalTruthy(hedged) {
 			return "true"
 		}
@@ -2993,7 +2993,7 @@ func (this *Aster) ParseOrder(order any, optionalArgs ...any) any {
 	_ = market
 	var info any = order
 	var positionSide *string = this.SafeString(order, "positionSide")
-	var defaultType any = func() any {
+	var defaultType string = func() string {
 		if positionSide != nil {
 			return "swap"
 		}
@@ -4183,7 +4183,7 @@ func (this *Aster) fetchMarginAdjustmentHistoryBody(ch chan any, optionalArgs ..
 		"symbol": GetValue(market, "id"),
 	}
 	if typeVar != nil {
-		request["type"] = func() any {
+		request["type"] = func() int {
 			if IsEqual(typeVar, "add") {
 				return 1
 			}
@@ -4249,7 +4249,7 @@ func (this *Aster) ParseMarginModification(data any, optionalArgs ...any) any {
 	return map[string]any{
 		"info":   data,
 		"symbol": GetValue(market, "symbol"),
-		"type": func() any {
+		"type": func() string {
 			if rawType != nil && *rawType == 1 {
 				return "add"
 			}
@@ -4259,7 +4259,7 @@ func (this *Aster) ParseMarginModification(data any, optionalArgs ...any) any {
 		"amount":     this.SafeNumber(data, "amount"),
 		"code":       this.SafeString(data, "asset"),
 		"total":      nil,
-		"status": func() any {
+		"status": func() string {
 			if success || noErrorCode {
 				return "ok"
 			}
@@ -4620,7 +4620,7 @@ func (this *Aster) ParsePositionRisk(position any, optionalArgs ...any) any {
 	var collateralString any = nil
 	var marginMode any = DerefScalar(this.SafeString(position, "marginType"))
 	if IsEqual(marginMode, nil) && (isolatedMarginString != nil) {
-		marginMode = func() any {
+		marginMode = func() string {
 			if Precise.StringEq(isolatedMarginString, "0") {
 				return "cross"
 			}
@@ -5011,7 +5011,7 @@ func (this *Aster) ParseAccountPosition(position any, optionalArgs ...any) any {
 	if Precise.StringEquals(notionalString, "0") {
 		entryPrice = nil
 	} else {
-		side = func() any {
+		side = func() string {
 			if Precise.StringLt(notionalString, "0") {
 				return "short"
 			}

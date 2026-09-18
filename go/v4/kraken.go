@@ -900,7 +900,7 @@ func (this *Kraken) fetchStatusBody(ch chan any, optionalArgs ...any) any {
 	var statusRaw *string = this.SafeString(result, "status")
 
 	ch <- map[string]any{
-		"status": func() any {
+		"status": func() string {
 			if statusRaw != nil && *statusRaw == "online" {
 				return "ok"
 			}
@@ -1053,7 +1053,7 @@ func (this *Kraken) ParseCurrency(rawCurrency any) any {
 		"info":   rawCurrency,
 		"name":   this.SafeString(rawCurrency, "altname"),
 		"active": IsEqual(this.SafeString(rawCurrency, "status"), "enabled"),
-		"type": func() any {
+		"type": func() string {
 			if isFiat {
 				return "fiat"
 			}
@@ -1789,13 +1789,13 @@ func (this *Kraken) ParseTrade(trade any, optionalArgs ...any) any {
 	var symbol any = nil
 	if IsArray(trade) {
 		timestamp = this.SafeTimestamp(trade, 2)
-		side = func() any {
+		side = func() string {
 			if IsEqual(GetValue(trade, 3), "s") {
 				return "sell"
 			}
 			return "buy"
 		}()
-		typeVar = func() any {
+		typeVar = func() string {
 			if IsEqual(GetValue(trade, 4), "l") {
 				return "limit"
 			}
@@ -1851,7 +1851,7 @@ func (this *Kraken) ParseTrade(trade any, optionalArgs ...any) any {
 	var maker *bool = this.SafeBool(trade, "maker")
 	var takerOrMaker any = nil
 	if maker != nil {
-		takerOrMaker = func() any {
+		takerOrMaker = func() string {
 			if maker != nil && *maker {
 				return "maker"
 			}
@@ -2573,7 +2573,7 @@ func (this *Kraken) ParseOrder(order any, optionalArgs ...any) any {
 	// for "space-delimited" orders we dont have market/limit suffixes, their format is
 	// eg: `stop loss > limit 123`, so we need to parse them manually
 	if this.InArray(typeParsed, []any{"stop loss", "take profit"}) {
-		typeParsed = func() any {
+		typeParsed = func() string {
 			if IsEqual(price, nil) {
 				return "market"
 			}
@@ -4388,7 +4388,7 @@ func (this *Kraken) ParsePosition(position any, optionalArgs ...any) any {
 	_ = market
 	var marketId *string = this.SafeString(position, "pair")
 	var rawSide *string = this.SafeString(position, "type")
-	var side any = func() any {
+	var side string = func() string {
 		if rawSide != nil && *rawSide == "buy" {
 			return "long"
 		}
@@ -4568,9 +4568,9 @@ func (this *Kraken) Sign(path any, optionalArgs ...any) any {
 		}
 	} else if IsEqual(api, "private") {
 		var price *string = this.SafeString(params, "price")
-		var isTriggerPercent any = false
+		var isTriggerPercent bool = false
 		if price != nil {
-			isTriggerPercent = func() any {
+			isTriggerPercent = func() bool {
 				if EndsWith(price, "%") {
 					return true
 				}
@@ -4581,7 +4581,7 @@ func (this *Kraken) Sign(path any, optionalArgs ...any) any {
 		var isBatchOrder bool = (IsEqual(path, "AddOrderBatch"))
 		this.CheckRequiredCredentials()
 		var nonce string = ToString(this.Nonce())
-		if isCancelOrderBatch || EvalTruthy(isTriggerPercent) || isBatchOrder {
+		if isCancelOrderBatch || isTriggerPercent || isBatchOrder {
 			body = this.Json(this.Extend(map[string]any{
 				"nonce": nonce,
 			}, params))
@@ -4601,7 +4601,7 @@ func (this *Kraken) Sign(path any, optionalArgs ...any) any {
 			"API-Key":  this.ApiKey,
 			"API-Sign": signature,
 		}
-		if isCancelOrderBatch || EvalTruthy(isTriggerPercent) || isBatchOrder {
+		if isCancelOrderBatch || isTriggerPercent || isBatchOrder {
 			AddElementToObject(headers, "Content-Type", "application/json")
 		} else {
 			AddElementToObject(headers, "Content-Type", "application/x-www-form-urlencoded")

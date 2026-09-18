@@ -388,13 +388,13 @@ func AssertTimestampOrder(exchange ccxt.ICoreExchange, method any, codeOrSymbol 
 			var currentTs any = GetValue(GetValue(items, Subtract(i, 1)), "timestamp")
 			var nextTs any = GetValue(GetValue(items, i), "timestamp")
 			if !IsEqual(currentTs, nil) && !IsEqual(nextTs, nil) {
-				var ascendingOrDescending any = func() any {
+				var ascendingOrDescending string = func() string {
 					if EvalTruthy(ascending) {
 						return "ascending"
 					}
 					return "descending"
 				}()
-				var comparison any = func() any {
+				var comparison bool = func() bool {
 					if EvalTruthy(ascending) {
 						return (IsLessThanOrEqual(currentTs, nextTs))
 					}
@@ -578,7 +578,7 @@ func AssertOrderState(exchange ccxt.ICoreExchange, skippedProperties any, method
 	var nonstrictOpen bool = (statusOpen || statusUndefined) && ((!filledDefined || !amountDefined) || ccxt.Precise.StringLt(filled, amount))
 	// check
 	if AssertedStatus == "open" {
-		condition = func() any {
+		condition = func() bool {
 			if EvalTruthy(strictCheck) {
 				return strictOpen
 			}
@@ -596,7 +596,7 @@ func AssertOrderState(exchange ccxt.ICoreExchange, skippedProperties any, method
 	var closedNonStrict bool = (statusClosed || statusUndefined) && ((!filledDefined || !amountDefined) || ccxt.Precise.StringEq(filled, amount))
 	// check
 	if AssertedStatus == "closed" {
-		condition = func() any {
+		condition = func() bool {
 			if EvalTruthy(strictCheck) {
 				return closedStrict
 			}
@@ -614,7 +614,7 @@ func AssertOrderState(exchange ccxt.ICoreExchange, skippedProperties any, method
 	var canceledNonStrict bool = (statusClanceled || statusUndefined) && ((!filledDefined || !amountDefined) || ccxt.Precise.StringLt(filled, amount))
 	// check
 	if AssertedStatus == "canceled" {
-		condition = func() any {
+		condition = func() bool {
 			if EvalTruthy(strictCheck) {
 				return canceledStrict
 			}

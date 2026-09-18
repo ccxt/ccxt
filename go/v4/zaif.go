@@ -608,7 +608,7 @@ func (this *Zaif) ParseTrade(trade any, optionalArgs ...any) any {
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
 	var side any = DerefScalar(this.SafeString(trade, "trade_type"))
-	side = func() any {
+	side = func() string {
 		if IsEqual(side, "bid") {
 			return "buy"
 		}
@@ -735,7 +735,7 @@ func (this *Zaif) createOrderBody(ch chan any, symbol any, typeVar any, side any
 	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"currency_pair": GetValue(market, "id"),
-		"action": func() any {
+		"action": func() string {
 			if IsEqual(side, "buy") {
 				return "bid"
 			}
@@ -829,7 +829,7 @@ func (this *Zaif) ParseOrder(order any, optionalArgs ...any) any {
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
 	var side any = DerefScalar(this.SafeString(order, "action"))
-	side = func() any {
+	side = func() string {
 		if IsEqual(side, "bid") {
 			return "buy"
 		}

@@ -552,7 +552,7 @@ func (this *Krakenfutures) fetchMarketsBody(ch chan any, optionalArgs ...any) an
 		var market any = GetValue(instruments, i)
 		var id *string = this.SafeString(market, "symbol")
 		var marketType *string = this.SafeString(market, "type")
-		var typeVar any = nil
+		var typeVar string
 		var index bool = (GetIndexOf(marketType, " index") >= 0)
 		var linear any = nil
 		var inverse any = nil
@@ -561,7 +561,7 @@ func (this *Krakenfutures) fetchMarketsBody(ch chan any, optionalArgs ...any) an
 			linear = (GetIndexOf(marketType, "_vanilla") >= 0)
 			inverse = !EvalTruthy(linear)
 			var settleTime *string = this.SafeString(market, "lastTradingTime")
-			typeVar = func() any {
+			typeVar = func() string {
 				if settleTime == nil {
 					return "swap"
 				}
@@ -571,8 +571,8 @@ func (this *Krakenfutures) fetchMarketsBody(ch chan any, optionalArgs ...any) an
 		} else {
 			typeVar = "index"
 		}
-		var swap bool = (IsEqual(typeVar, "swap"))
-		var future bool = (IsEqual(typeVar, "future"))
+		var swap bool = (typeVar == "swap")
+		var future bool = (typeVar == "future")
 		var symbol any = id
 		var split []string = Split(id, "_")
 		var splitMarket *string = this.SafeString(split, 1)

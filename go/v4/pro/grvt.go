@@ -134,7 +134,7 @@ func (this *Grvt) subscribeMultipleBody(ch chan any, messageHashes any, request 
 		"params":  request,
 		"id":      this.RequestId(),
 	}
-	var apiPart any = func() any {
+	var apiPart string = func() string {
 		if ccxt.EvalTruthy(publicOrPrivate) {
 			return "publicMarket"
 		}

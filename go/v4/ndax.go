@@ -635,7 +635,7 @@ func (this *Ndax) fetchStatusBody(ch chan any, optionalArgs ...any) any {
 	var message *string = this.SafeString(response, "msg")
 
 	ch <- map[string]any{
-		"status": func() any {
+		"status": func() string {
 			if message != nil && *message == "PONG" {
 				return "ok"
 			}
@@ -775,7 +775,7 @@ func (this *Ndax) ParseCurrency(rawCurrency any) any {
 	var id *string = this.SafeString(rawCurrency, "ProductId")
 	var code *string = this.SafeCurrencyCode(this.SafeString(rawCurrency, "Product"))
 	var ProductType *string = this.SafeString(rawCurrency, "ProductType")
-	var typeVar any = func() any {
+	var typeVar string = func() string {
 		if ProductType != nil && *ProductType == "NationalCurrency" {
 			return "fiat"
 		}
@@ -2055,7 +2055,7 @@ func (this *Ndax) createOrderBody(ch chan any, symbol any, typeVar any, side any
 	}
 	params = this.Omit(params, []any{"accountId", "AccountId", "clientOrderId", "ClientOrderId", "triggerPrice"})
 	var market any = this.Market(symbol)
-	var orderSide any = func() any {
+	var orderSide int = func() int {
 		if IsEqual(side, "buy") {
 			return 0
 		}
@@ -2147,7 +2147,7 @@ func (this *Ndax) editOrderBody(ch chan any, id any, symbol any, typeVar any, si
 	var clientOrderId *int64 = this.SafeInteger2(params, "ClientOrderId", "clientOrderId")
 	params = this.Omit(params, []any{"accountId", "AccountId", "clientOrderId", "ClientOrderId"})
 	var market any = this.Market(symbol)
-	var orderSide any = func() any {
+	var orderSide int = func() int {
 		if IsEqual(side, "buy") {
 			return 0
 		}

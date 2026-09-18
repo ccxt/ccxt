@@ -914,7 +914,7 @@ func (this *Coinbaseinternational) HandleOrderBook(client any, message any) {
 }
 func (this *Coinbaseinternational) HandleDelta(orderbook any, delta any) {
 	var rawSide *string = this.SafeStringLower(delta, 0)
-	var side any = func() any {
+	var side string = func() string {
 		if rawSide != nil && *rawSide == "buy" {
 			return "bids"
 		}

@@ -83,7 +83,7 @@ func (this *Backpack) watchPublicBody(ch chan any, topics any, messageHashes any
 		ccxt.PanicOnError(retRes6412)
 	}
 	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "public")
-	var method any = func() any {
+	var method string = func() string {
 		if ccxt.EvalTruthy(unwatch) {
 			return "UNSUBSCRIBE"
 		}
@@ -121,7 +121,7 @@ func (this *Backpack) watchPrivateBody(ch chan any, topics any, messageHashes an
 	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "private")
 	var instruction string = "subscribe"
 	var ts string = ccxt.ToString(this.Nonce())
-	var method any = func() any {
+	var method string = func() string {
 		if ccxt.EvalTruthy(unwatch) {
 			return "UNSUBSCRIBE"
 		}

@@ -3258,7 +3258,7 @@ func (this *Bitstamp) ParseOrder(order any, optionalArgs ...any) any {
 	var clientOrderId *string = this.SafeString2(order, "client_order_id", "orig_client_order_id")
 	var side any = DerefScalar(this.SafeString2(order, "type", "order_type"))
 	if !IsEqual(side, nil) {
-		side = func() any {
+		side = func() string {
 			if IsEqual(side, "1") {
 				return "sell"
 			}
@@ -3351,7 +3351,7 @@ func (this *Bitstamp) ParseLedgerEntry(item any, optionalArgs ...any) any {
 		if IsEqual(market, nil) {
 			market = this.GetMarketFromTrade(item)
 		}
-		var direction any = func() any {
+		var direction string = func() string {
 			if IsEqual(GetValue(parsedTrade, "side"), "buy") {
 				return "in"
 			}
@@ -3379,7 +3379,7 @@ func (this *Bitstamp) ParseLedgerEntry(item any, optionalArgs ...any) any {
 		var direction any = nil
 		if InOp(item, "amount") {
 			var amount *string = this.SafeString(item, "amount")
-			direction = func() any {
+			direction = func() string {
 				if Precise.StringGt(amount, "0") {
 					return "in"
 				}
@@ -3389,7 +3389,7 @@ func (this *Bitstamp) ParseLedgerEntry(item any, optionalArgs ...any) any {
 			var currencyCode *string = this.SafeString(parsedTransaction, "currency")
 			currency = this.Currency(currencyCode)
 			var amount *string = this.SafeString(item, GetValue(currency, "id"))
-			direction = func() any {
+			direction = func() string {
 				if Precise.StringGt(amount, "0") {
 					return "in"
 				}

@@ -432,7 +432,7 @@ func (this *Cex) ParseCurrency(rawCurrency any) any {
 	var id *string = this.SafeString(rawCurrency, "currency")
 	var code *string = this.SafeCurrencyCode(id)
 	var isFiat bool = (IsEqual(this.SafeBool(rawCurrency, "fiat"), true))
-	var typeVar any = func() any {
+	var typeVar string = func() string {
 		if isFiat {
 			return "fiat"
 		}
@@ -2025,7 +2025,7 @@ func (this *Cex) ParseTransaction(transaction any, optionalArgs ...any) any {
 	_ = currency
 	var currencyId *string = this.SafeString(transaction, "currency")
 	var direction *string = this.SafeString(transaction, "direction")
-	var typeVar any = func() any {
+	var typeVar string = func() string {
 		if direction != nil && *direction == "withdraw" {
 			return "withdrawal"
 		}

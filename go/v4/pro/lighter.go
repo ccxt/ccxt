@@ -716,7 +716,7 @@ func (this *Lighter) ParseWsTrade(trade any, optionalArgs ...any) any {
 	var priceString *string = this.SafeString(trade, "price")
 	var amountString *string = this.SafeString(trade, "size")
 	var isMakerAsk *bool = this.SafeBool(trade, "is_maker_ask")
-	var side any = func() any {
+	var side string = func() string {
 		if isMakerAsk != nil && *isMakerAsk == true {
 			return "buy"
 		}
@@ -929,7 +929,7 @@ func (this *Lighter) ParseWsOrderTrade(trade any, optionalArgs ...any) any {
 			// Own trades should use the account's order side
 			side = "buy"
 			order = ccxt.DerefScalar(this.SafeString(trade, "bid_id"))
-			takerOrMaker = func() any {
+			takerOrMaker = func() string {
 				if isMakerAsk != nil && *isMakerAsk == true {
 					return "taker"
 				}
@@ -938,7 +938,7 @@ func (this *Lighter) ParseWsOrderTrade(trade any, optionalArgs ...any) any {
 		} else if askAccountId == accountIndex || (askAccountId != nil && accountIndex != nil && *askAccountId == *accountIndex) {
 			side = "sell"
 			order = ccxt.DerefScalar(this.SafeString(trade, "ask_id"))
-			takerOrMaker = func() any {
+			takerOrMaker = func() string {
 				if isMakerAsk != nil && *isMakerAsk == true {
 					return "maker"
 				}
@@ -948,7 +948,7 @@ func (this *Lighter) ParseWsOrderTrade(trade any, optionalArgs ...any) any {
 	}
 	// public trades use Lighter's taker-side convention
 	if side == nil {
-		side = func() any {
+		side = func() string {
 			if isMakerAsk != nil && *isMakerAsk == true {
 				return "buy"
 			}
@@ -1193,7 +1193,7 @@ func (this *Lighter) ParseWsLiquidation(liquidation any, optionalArgs ...any) an
 	_ = market
 	var timestamp *int64 = this.SafeInteger(liquidation, "timestamp")
 	var isMakerAsk *bool = this.SafeBool(liquidation, "is_maker_ask")
-	var side any = func() any {
+	var side string = func() string {
 		if isMakerAsk != nil && *isMakerAsk == true {
 			return "buy"
 		}

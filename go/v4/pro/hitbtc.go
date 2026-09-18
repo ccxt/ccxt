@@ -347,7 +347,7 @@ func (this *Hitbtc) HandleOrderBook(client any, message any) {
 	//
 	var snapshot any = this.SafeDict(message, "snapshot")
 	var data any = this.SafeDict2(message, "snapshot", "update", map[string]any{})
-	var typeVar any = func() any {
+	var typeVar string = func() string {
 		if !ccxt.IsEqual(snapshot, nil) && !ccxt.IsEqual(snapshot, nil) {
 			return "snapshot"
 		}
@@ -368,7 +368,7 @@ func (this *Hitbtc) HandleOrderBook(client any, message any) {
 		var orderbook any = ccxt.GetValue(this.Orderbooks, symbol)
 		var timestamp *int64 = this.SafeInteger(item, "t")
 		var nonce *int64 = this.SafeInteger(item, "s")
-		if ccxt.IsEqual(typeVar, "snapshot") {
+		if typeVar == "snapshot" {
 			var parsedSnapshot any = this.ParseOrderBook(item, symbol, timestamp, "b", "a")
 			orderbook.(ccxt.OrderBookInterface).Reset(parsedSnapshot)
 		} else {
