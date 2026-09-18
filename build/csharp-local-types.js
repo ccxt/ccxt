@@ -2974,6 +2974,10 @@ function numericLiteralType (text) {
     }
     return undefined;
 }
+// A LITERAL-INIT declaration is only box-identical as `int` (the object spelling boxes an Int32):
+// naming Int64/Int64?/double CONVERTS the literal (U23/U32 rule), and every later write of a typed
+// numeric expression adds an Int64 box — U38 census of the 71 `object x = <int literal>` sites:
+// 0 provable (write join 47, destructured object element 14, int `-` operand 5, uint literal 3, += 2).
 
 // C# static type of a decimal integer literal when it stands as an OPERAND of a printed
 // arithmetic call: the compiler types it int, uint (2^31..2^32-1) or long
