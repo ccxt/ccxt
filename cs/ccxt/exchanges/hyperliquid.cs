@@ -829,7 +829,7 @@ public partial class hyperliquid : Exchange
             // Count the numbers before the decimal separator
             string? integerPart = this.safeString(priceSplitted, 0, "");
             // Get significant digits, take the max() of 5 and the integer digits count
-            object significantDigits = mathMax(5, ((string)integerPart).Length);
+            object significantDigits = Math.Max(5, ((string)integerPart).Length);
             // Calculate price precision based on maxDecimals - szDecimals and significantDigits - integerPart.length
             pricePrecision = mathMin(subtract(maxDecimals, amountPrecision), subtract(significantDigits, ((string)integerPart).Length));
         }
@@ -1740,7 +1740,7 @@ public partial class hyperliquid : Exchange
         Dictionary<string, object> market = this.market(symbol);
         string? priceStr = this.numberToString(price);
         object integerPart = getValue(((string)((string)priceStr)).Split(new [] {((string)".")}, StringSplitOptions.None).ToList<object>(), 0);
-        object significantDigits = mathMax(5, ((string)integerPart).Length);
+        object significantDigits = Math.Max(5, ((string)integerPart).Length);
         string result = this.decimalToPrecision(price, ROUND, significantDigits, SIGNIFICANT_DIGITS, this.paddingMode);
         object maxDecimals = ((bool) (isEqual(getValue(market, "spot"), true))) ? 8 : 6;
         object subtractedValue = subtract(maxDecimals, this.precisionFromString(this.safeString(getValue(market, "precision"), "amount")));
