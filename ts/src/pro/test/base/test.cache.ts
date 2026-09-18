@@ -674,6 +674,23 @@ function testWsCache () {
     cacheEvictSeen.append ({ 'symbol': 'BTC/USDT', 'id': 'd', 'i': 4 }); // evicts id b
     const evictGlobalCount = cacheEvictSeen.getLimit (undefined, 100);
     assert (evictGlobalCount === 2); // ids c and d - the counts track distinct ids within the retained window in both scopes
+
+    const plainPollCache = new ArrayCache (2);
+    const unknownPlainLimit = plainPollCache.getLimit ('unknown', 7);
+    assert (unknownPlainLimit === 7);
+    plainPollCache.append ({ 'symbol': 'A', 'i': 1 });
+    plainPollCache.append ({ 'symbol': 'A', 'i': 2 });
+    const initialPlainGlobal = plainPollCache.getLimit (undefined, undefined);
+    assert (initialPlainGlobal === 2);
+    plainPollCache.append ({ 'symbol': 'A', 'i': 3 });
+    const nextPlainGlobal = plainPollCache.getLimit (undefined, undefined);
+    const independentPlainSymbol = plainPollCache.getLimit ('A', undefined);
+    assert (nextPlainGlobal === 1);
+    assert (independentPlainSymbol === 3);
+    plainPollCache.append ({ 'symbol': 'A', 'i': 4 });
+    const resetPlainSymbol = plainPollCache.getLimit ('A', undefined);
+    assert (resetPlainSymbol === 1);
+    assert (plainPollCache.length === 2);
 }
 
 export default testWsCache;
