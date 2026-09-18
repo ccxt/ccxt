@@ -7709,7 +7709,7 @@ public partial class binance : Exchange
         {
             throw new ArgumentsRequired ((string)(this.id + " requires a side argument")) ;
         }
-        if ((isEqual(price, null)) && !(inOp(parameters, "priceMatch")))
+        if ((isEqual(price, null)) && !(((IDictionary<string, object>)parameters).ContainsKey("priceMatch")))
         {
             throw new ArgumentsRequired ((string)(this.id + " editOrder() and editOrderWs() require a price argument for swap orders")) ;
         }
@@ -15853,16 +15853,16 @@ public partial class binance : Exchange
     {
         // safeValue keeps runtime identical to the prior bare index (no empty-array default)
         config ??= new Dictionary<string, object>();
-        if ((inOp(config, "noCoin")) && !(inOp(parameters, "coin")))
+        if ((((IDictionary<string, object>)config).ContainsKey("noCoin")) && !(inOp(parameters, "coin")))
         {
             return ((IDictionary<string,object>)config)["noCoin"];
-        } else if ((inOp(config, "noSymbol")) && !(inOp(parameters, "symbol")))
+        } else if ((((IDictionary<string, object>)config).ContainsKey("noSymbol")) && !(inOp(parameters, "symbol")))
         {
             return ((IDictionary<string,object>)config)["noSymbol"];
-        } else if ((inOp(config, "noPoolId")) && !(inOp(parameters, "poolId")))
+        } else if ((((IDictionary<string, object>)config).ContainsKey("noPoolId")) && !(inOp(parameters, "poolId")))
         {
             return ((IDictionary<string,object>)config)["noPoolId"];
-        } else if ((inOp(config, "byLimit")) && (inOp(parameters, "limit")))
+        } else if ((((IDictionary<string, object>)config).ContainsKey("byLimit")) && (inOp(parameters, "limit")))
         {
             object limit = getValue(parameters, "limit");
             object byLimit = this.safeValue(config, "byLimit");
