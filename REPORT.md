@@ -83,15 +83,16 @@ object locals −66, typed locals +66, `(bool)` casts 1 → 58 (+57), `(string)`
 
 ## Gates
 
-- `python3 campaigns/cs90/verify-diff.py HEAD` → `files=29 pairs=74 unexpected=8`. The 8 UNEXPECTED
+- `python3 campaigns/cs90/verify-diff.py d847892a6fcf5699640862316303b6344a3e4daf` (and the same
+  run against `HEAD` with the changes uncommitted) → `files=29 pairs=74 unexpected=8`. The 8 UNEXPECTED
   pairs are one declared class: `if (isEqual(method, "lit"))` → `if (method == "lit")`, the printer's
   string-equality rewrite for a now-`string` local (bittrade ×4, blofin ×1, gemini ×2 lines; the
   bittrade `fetchOrdersByStates` line holds two calls). Equivalent for every input: `isEqual` is
   `(object, object)` (Exchange.TranspileHelpers.cs:293) and `method` is a non-null string by the cast.
-- `campaigns/cs90/tools/U41/pair-audit.py` → `CLEAN` (all 74 pairs are class A
-  `object N = REST;` → `T N = ((T)REST);` with REST byte-equal, or class B the `isEqual` rewrite);
-  `--selftest` → `SELFTEST PASS: 10/10` (mutated operand, wrong cast target, renamed local, trailing
-  comma, literal mutation and a dropped second `isEqual` all flagged).
+- `campaigns/cs90/tools/U41/pair-audit.py d847892a6fcf5699640862316303b6344a3e4daf` → `CLEAN` (all 74
+  pairs are class A `object N = REST;` → `T N = ((T)REST);` with REST byte-equal, or class B the
+  `isEqual` rewrite); `--selftest` → `SELFTEST PASS: 10/10` (mutated operand, wrong cast target,
+  renamed local, trailing comma, literal mutation and a dropped second `isEqual` all flagged).
 - `campaigns/cs90/tools/U41/output-audit.py` (independent, reads the generated tree): 67 typed
   declarations of this shape (66 mine + bittrade's pre-existing `as string` site), **0 with zero
   reads** (no CS0219), use lines = 61 `isEqual(x, true)` + 17 benign (dict values `{ "precision",
