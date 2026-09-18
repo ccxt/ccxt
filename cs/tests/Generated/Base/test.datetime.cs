@@ -162,7 +162,7 @@ public partial class BaseTest
             });
             object testMs = 1750123456789; // 17 June 2025
             string? value = exchange.yymmdd(testMs, "_");
-            Assert(isEqual(value, "25_06_17"));
+            Assert((value == "25_06_17"));
             string? value2 = exchange.yymmdd(exchange.milliseconds());
             Assert((((string)value2).Length == 6));
             Int64? intNum = exchange.parseToInt(value2);
@@ -175,7 +175,7 @@ public partial class BaseTest
             });
             object testMs = 1750123456789; // 17 June 2025
             string? value = exchange.yyyymmdd(testMs, "_");
-            Assert(isEqual(value, "2025_06_17"));
+            Assert((value == "2025_06_17"));
             string? value2 = exchange.yyyymmdd(exchange.milliseconds());
             Assert((((string)value2).Length == 10));
             Int64? intNum = exchange.parseToInt(((string)(((string)value2).Replace((string)"-", (string)""))).Replace((string)"-", (string)""));
@@ -197,7 +197,7 @@ public partial class BaseTest
             });
             object testMs = 1750123456789; // 17 June 2025
             string? value = exchange.ymdhms(testMs, "_");
-            Assert(isEqual(value, "2025-06-17_01:24:16") || isEqual(value, "2025-06-17_01:24:17")); // todo: php/py rounds up to 17
+            Assert((value == "2025-06-17_01:24:16") || (value == "2025-06-17_01:24:17")); // todo: php/py rounds up to 17
         }
         public void testDatetime()
         {

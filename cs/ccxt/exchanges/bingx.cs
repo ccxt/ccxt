@@ -1490,8 +1490,8 @@ public partial class bingx : Exchange
             quantityPrecision = this.parseNumber(this.parsePrecision(this.safeString(market, "quantityPrecision")));
         }
         string type = ((bool) ((settle != null))) ? "swap" : "spot";
-        bool spot = isEqual(type, "spot");
-        bool swap = isEqual(type, "swap");
+        bool spot = (type == "spot");
+        bool swap = (type == "swap");
         object symbol = add(add(bs, "/"), quote);
         if ((settle != null))
         {
@@ -1818,10 +1818,10 @@ public partial class bingx : Exchange
         parameters = ((IList<object>)marketTypeparametersVariable)[1];
         if (!isEqual(limit, null))
         {
-            int maxLimit = ((bool) (isEqual(marketType, "spot"))) ? 500 : 1000;
+            int maxLimit = ((bool) ((marketType == "spot"))) ? 500 : 1000;
             ((IDictionary<string,object>)request)["limit"] = mathMin(limit, maxLimit);
         }
-        if (isEqual(marketType, "spot"))
+        if ((marketType == "spot"))
         {
             response = await this.spotV1PublicGetMarketTrades(this.extend(request, parameters));
         } else
@@ -2085,7 +2085,7 @@ public partial class bingx : Exchange
         parameters = ((IList<object>)marketTypeparametersVariable)[1];
         if (!isEqual(limit, null))
         {
-            if (isEqual(marketType, "spot"))
+            if ((marketType == "spot"))
             {
                 ((IDictionary<string,object>)request)["limit"] = mathMin(limit, 1000); // api maximum 1000
             } else
@@ -2093,7 +2093,7 @@ public partial class bingx : Exchange
                 ((IDictionary<string,object>)request)["limit"] = this.findNearestCeiling(new List<object>() {5, 10, 20, 50, 100, 500, 1000}, limit);
             }
         }
-        if (isEqual(marketType, "spot"))
+        if ((marketType == "spot"))
         {
             response = await this.spotV1PublicGetMarketDepth(this.extend(request, parameters));
         } else
@@ -2744,7 +2744,7 @@ public partial class bingx : Exchange
         subType = ((IList<object>)subTypeparametersVariable)[0];
         parameters = ((IList<object>)subTypeparametersVariable)[1];
         object response = null;
-        if (isEqual(type, "spot"))
+        if ((type == "spot"))
         {
             response = await this.spotV1PublicGetTicker24hr(parameters);
         } else
@@ -3575,7 +3575,7 @@ public partial class bingx : Exchange
             { "side", ((string)((string)side)).ToUpper() },
         };
         bool isMarketOrder = isEqual(type, "MARKET");
-        bool isSpot = isEqual(marketType, "spot");
+        bool isSpot = (marketType == "spot");
         bool isTwapOrder = isEqual(type, "TWAP");
         if (isTwapOrder && isSpot)
         {
@@ -4628,7 +4628,7 @@ public partial class bingx : Exchange
             IList<object> subTypeparametersVariable = (IList<object>)this.handleSubTypeAndParams("cancelOrder", market, parameters);
             subType = ((IList<object>)subTypeparametersVariable)[0];
             parameters = ((IList<object>)subTypeparametersVariable)[1];
-            if (isEqual(type, "spot"))
+            if ((type == "spot"))
             {
                 response = await this.spotV1PrivatePostTradeCancel(this.extend(request, parameters));
             } else
@@ -4903,14 +4903,14 @@ public partial class bingx : Exchange
         IList<object> subTypeparametersVariable = (IList<object>)this.handleSubTypeAndParams("cancelAllOrdersAfter", null, parameters);
         subType = ((IList<object>)subTypeparametersVariable)[0];
         parameters = ((IList<object>)subTypeparametersVariable)[1];
-        if ((isEqual(type, "swap")) && (isEqual(subType, "inverse")))
+        if (((type == "swap")) && (isEqual(subType, "inverse")))
         {
             throw new NotSupported ((string)(this.id + " cancelAllOrdersAfter() is not supported for inverse swap markets")) ;
         }
-        if (isEqual(type, "spot"))
+        if ((type == "spot"))
         {
             response = await this.spotV1PrivatePostTradeCancelAllAfter(this.extend(request, parameters));
-        } else if (isEqual(type, "swap"))
+        } else if ((type == "swap"))
         {
             response = await this.swapV2PrivatePostTradeCancelAllAfter(this.extend(request, parameters));
         } else
@@ -4981,7 +4981,7 @@ public partial class bingx : Exchange
             IList<object> subTypeparametersVariable = (IList<object>)this.handleSubTypeAndParams("fetchOrder", market, parameters);
             subType = ((IList<object>)subTypeparametersVariable)[0];
             parameters = ((IList<object>)subTypeparametersVariable)[1];
-            if (isEqual(type, "spot"))
+            if ((type == "spot"))
             {
                 response = await this.spotV1PrivateGetTradeQuery(this.extend(request, parameters));
             } else
@@ -5032,7 +5032,7 @@ public partial class bingx : Exchange
         IList<object> typeparametersVariable = (IList<object>)this.handleMarketTypeAndParams("fetchOrders", market, parameters);
         type = (string)((IList<object>)typeparametersVariable)[0];
         parameters = ((IList<object>)typeparametersVariable)[1];
-        if (!isEqual(type, "swap"))
+        if ((type != "swap"))
         {
             throw new NotSupported ((string)(this.id + " fetchOrders() is only supported for swap markets")) ;
         }
@@ -5143,7 +5143,7 @@ public partial class bingx : Exchange
         IList<object> subTypeparametersVariable = (IList<object>)this.handleSubTypeAndParams("fetchOpenOrders", market, parameters);
         subType = ((IList<object>)subTypeparametersVariable)[0];
         parameters = ((IList<object>)subTypeparametersVariable)[1];
-        if (isEqual(type, "spot"))
+        if ((type == "spot"))
         {
             response = await this.spotV1PrivateGetTradeOpenOrders(this.extend(request, parameters));
         } else
@@ -5407,7 +5407,7 @@ public partial class bingx : Exchange
         if (isTrue(standard))
         {
             response = await this.contractV1PrivateGetAllOrders(this.extend(request, parameters));
-        } else if (isEqual(type, "spot"))
+        } else if ((type == "spot"))
         {
             if (!isEqual(limit, null))
             {
@@ -5467,7 +5467,7 @@ public partial class bingx : Exchange
         parameters = ((IList<object>)subTypeparametersVariable)[1];
         string? fromId = this.safeString(accountsByType, fromAccount, fromAccount);
         string? toId = this.safeString(accountsByType, toAccount, toAccount);
-        if (isEqual(fromId, "swap"))
+        if ((fromId == "swap"))
         {
             if (isEqual(subType, "inverse"))
             {
@@ -5477,7 +5477,7 @@ public partial class bingx : Exchange
                 fromId = "USDTMPerp";
             }
         }
-        if (isEqual(toId, "swap"))
+        if ((toId == "swap"))
         {
             if (isEqual(subType, "inverse"))
             {
@@ -6741,7 +6741,7 @@ public partial class bingx : Exchange
         IList<object> subTypeparametersVariable = (IList<object>)this.handleSubTypeAndParams("closeAllPositions", null, parameters);
         subType = ((IList<object>)subTypeparametersVariable)[0];
         parameters = ((IList<object>)subTypeparametersVariable)[1];
-        if (isEqual(marketType, "margin"))
+        if ((marketType == "margin"))
         {
             throw new BadRequest ((string)(((this.id + " closePositions () cannot be used for ") + marketType) + " markets")) ;
         }

@@ -2076,7 +2076,7 @@ public partial class deepcoin : Exchange
         }
         string? timeInForce = this.handleTimeInForce(parameters);
         parameters = this.omit(parameters, "timeInForce");
-        if (((timeInForce != null)) && (isEqual(timeInForce, "IOC")))
+        if (((timeInForce != null)) && ((timeInForce == "IOC")))
         {
             type = "ioc";
         }
@@ -2872,7 +2872,7 @@ public partial class deepcoin : Exchange
         string? state = this.safeString(order, "state");
         string? orderType = this.safeString(order, "ordType");
         string? average = this.safeString(order, "avgPx");
-        if (isEqual(average, ""))
+        if ((average == ""))
         {
             average = null;
         }
@@ -3601,7 +3601,7 @@ public partial class deepcoin : Exchange
         string? sCode = this.safeString(data, "sCode");
         string? sMsg = this.safeString(data, "sMsg");
         string? errorCode = this.safeString(data, "errorCode");
-        if (((msg != null)) && (isEqual(msg, "")) && ((sMsg != null)))
+        if (((msg != null)) && ((msg == "")) && ((sMsg != null)))
         {
             msg = sMsg;
         }
@@ -3624,7 +3624,7 @@ public partial class deepcoin : Exchange
         {
             sCode = retCode;
         }
-        if ((!isEqual(code, 200)) || ((messageCode != "0")) || ((sCode != null) && !isEqual(sCode, "0")))
+        if ((!isEqual(code, 200)) || ((messageCode != "0")) || ((sCode != null) && (sCode != "0")))
         {
             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), messageCode, feedback);
             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), sCode, feedback);

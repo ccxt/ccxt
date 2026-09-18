@@ -109,7 +109,7 @@ public partial class bingx : ccxt.bingx
         IList<object> subTypeparametersVariable = (IList<object>)this.handleSubTypeAndParams(methodName, market, parameters, "linear");
         subType = ((IList<object>)subTypeparametersVariable)[0];
         parameters = ((IList<object>)subTypeparametersVariable)[1];
-        if (isEqual(marketType, "swap"))
+        if ((marketType == "swap"))
         {
             url = this.safeString(getValue(getValue(this.urls, "api"), "ws"), subType);
         } else
@@ -172,7 +172,7 @@ public partial class bingx : ccxt.bingx
         IList<object> subTypeparametersVariable = (IList<object>)this.handleSubTypeAndParams("watchTicker", market, parameters, "linear");
         subType = ((IList<object>)subTypeparametersVariable)[0];
         parameters = ((IList<object>)subTypeparametersVariable)[1];
-        if (isEqual(marketType, "swap"))
+        if ((marketType == "swap"))
         {
             url = this.safeString(getValue(getValue(this.urls, "api"), "ws"), subType);
         } else
@@ -186,7 +186,7 @@ public partial class bingx : ccxt.bingx
             { "id", uuid },
             { "dataType", dataType },
         };
-        if (isEqual(marketType, "swap"))
+        if ((marketType == "swap"))
         {
             ((IDictionary<string,object>)request)["reqType"] = "sub";
         }
@@ -425,7 +425,7 @@ public partial class bingx : ccxt.bingx
         IList<object> subTypeparametersVariable = (IList<object>)this.handleSubTypeAndParams("watchTrades", market, parameters, "linear");
         subType = ((IList<object>)subTypeparametersVariable)[0];
         parameters = ((IList<object>)subTypeparametersVariable)[1];
-        if (isEqual(marketType, "swap"))
+        if ((marketType == "swap"))
         {
             url = this.safeString(getValue(getValue(this.urls, "api"), "ws"), subType);
         } else
@@ -439,7 +439,7 @@ public partial class bingx : ccxt.bingx
             { "id", uuid },
             { "dataType", rawHash },
         };
-        if (isEqual(marketType, "swap"))
+        if ((marketType == "swap"))
         {
             ((IDictionary<string,object>)request)["reqType"] = "sub";
         }
@@ -632,7 +632,7 @@ public partial class bingx : ccxt.bingx
         IList<object> subTypeparametersVariable = (IList<object>)this.handleSubTypeAndParams("watchOrderBook", market, parameters, "linear");
         subType = ((IList<object>)subTypeparametersVariable)[0];
         parameters = ((IList<object>)subTypeparametersVariable)[1];
-        if (isEqual(marketType, "swap"))
+        if ((marketType == "swap"))
         {
             url = this.safeString(getValue(getValue(this.urls, "api"), "ws"), subType);
         } else
@@ -648,7 +648,7 @@ public partial class bingx : ccxt.bingx
             { "id", uuid },
             { "dataType", subscriptionHash },
         };
-        if (isEqual(marketType, "swap"))
+        if ((marketType == "swap"))
         {
             ((IDictionary<string,object>)request)["reqType"] = "sub";
         }
@@ -782,7 +782,7 @@ public partial class bingx : ccxt.bingx
         string? dataType = this.safeString(message, "dataType", "");
         List<object> parts = ((string)dataType).Split(new [] {((string)"@")}, StringSplitOptions.None).ToList<object>();
         string? firstPart = ((string)getValue(parts, 0));
-        bool isAllEndpoint = (isEqual(firstPart, "all"));
+        bool isAllEndpoint = ((firstPart == "all"));
         string? marketId = this.safeString(data, "symbol", firstPart);
         bool isSwap = getIndexOf(client.url, "swap") >= 0;
         string marketType = ((bool) isSwap) ? "swap" : "spot";
@@ -918,7 +918,7 @@ public partial class bingx : ccxt.bingx
         string? dataType = this.safeString(message, "dataType", "");
         List<object> parts = ((string)dataType).Split(new [] {((string)"@")}, StringSplitOptions.None).ToList<object>();
         string? firstPart = ((string)getValue(parts, 0));
-        bool isAllEndpoint = (isEqual(firstPart, "all"));
+        bool isAllEndpoint = ((firstPart == "all"));
         string? marketId = this.safeString(message, "s", firstPart);
         string marketType = ((bool) isSwap) ? "swap" : "spot";
         Dictionary<string, object> market = this.safeMarket(marketId, null, null, marketType);
@@ -1005,7 +1005,7 @@ public partial class bingx : ccxt.bingx
         IList<object> subTypeparametersVariable = (IList<object>)this.handleSubTypeAndParams("watchOHLCV", market, parameters, "linear");
         subType = ((IList<object>)subTypeparametersVariable)[0];
         parameters = ((IList<object>)subTypeparametersVariable)[1];
-        if (isEqual(marketType, "swap"))
+        if ((marketType == "swap"))
         {
             url = this.safeString(getValue(getValue(this.urls, "api"), "ws"), subType);
         } else
@@ -1026,7 +1026,7 @@ public partial class bingx : ccxt.bingx
             { "id", uuid },
             { "dataType", subscriptionHash },
         };
-        if (isEqual(marketType, "swap"))
+        if ((marketType == "swap"))
         {
             ((IDictionary<string,object>)request)["reqType"] = "sub";
         }
@@ -1116,7 +1116,7 @@ public partial class bingx : ccxt.bingx
         IList<object> subTypeparametersVariable = (IList<object>)this.handleSubTypeAndParams("watchOrders", market, parameters, "linear");
         subType = ((IList<object>)subTypeparametersVariable)[0];
         parameters = ((IList<object>)subTypeparametersVariable)[1];
-        bool isSpot = (isEqual(type, "spot"));
+        bool isSpot = ((type == "spot"));
         string spotHash = "spot:private";
         string swapHash = "swap:private";
         string subscriptionHash = ((bool) isSpot) ? spotHash : swapHash;
@@ -1130,7 +1130,7 @@ public partial class bingx : ccxt.bingx
         string uuid = this.uuid();
         object baseUrl = null;
         Dictionary<string, object> request = null;
-        if (isEqual(type, "swap"))
+        if ((type == "swap"))
         {
             if (isEqual(subType, "inverse"))
             {
@@ -1196,7 +1196,7 @@ public partial class bingx : ccxt.bingx
         IList<object> subTypeparametersVariable = (IList<object>)this.handleSubTypeAndParams("watchMyTrades", market, parameters, "linear");
         subType = ((IList<object>)subTypeparametersVariable)[0];
         parameters = ((IList<object>)subTypeparametersVariable)[1];
-        bool isSpot = (isEqual(type, "spot"));
+        bool isSpot = ((type == "spot"));
         string spotHash = "spot:private";
         string swapHash = "swap:private";
         string subscriptionHash = ((bool) isSpot) ? spotHash : swapHash;
@@ -1210,7 +1210,7 @@ public partial class bingx : ccxt.bingx
         string uuid = this.uuid();
         object baseUrl = null;
         Dictionary<string, object> request = new Dictionary<string, object>() {};
-        if (isEqual(type, "swap"))
+        if ((type == "swap"))
         {
             if (isEqual(subType, "inverse"))
             {
@@ -1488,7 +1488,7 @@ public partial class bingx : ccxt.bingx
         string? contractsAbs = Precise.stringAbs(contracts);
         string? positionSide = this.safeStringLower(position, "ps");
         bool hedged = true;
-        if (isEqual(positionSide, "both"))
+        if ((positionSide == "both"))
         {
             hedged = false;
             if (!isTrue(Precise.stringEq(contracts, "0")))

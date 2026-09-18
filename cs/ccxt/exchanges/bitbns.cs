@@ -607,7 +607,7 @@ public partial class bitbns : Exchange
                 Dictionary<string, object> account = this.account();
                 ((IDictionary<string,object>)account)["free"] = this.safeString(data, key);
                 ((IDictionary<string,object>)account)["used"] = this.safeString(data, ("inorder" + currencyId));
-                if (isEqual(currencyId, "Money"))
+                if ((currencyId == "Money"))
                 {
                     currencyId = "INR";
                 }
@@ -706,10 +706,10 @@ public partial class bitbns : Exchange
         string? datetime = this.safeString(order, "time");
         string? triggerPrice = this.safeString(order, "t_rate");
         string? side = this.safeString(order, "type");
-        if (isEqual(side, "0"))
+        if ((side == "0"))
         {
             side = "buy";
-        } else if (isEqual(side, "1"))
+        } else if ((side == "1"))
         {
             side = "sell";
         }

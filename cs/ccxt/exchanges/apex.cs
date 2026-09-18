@@ -1522,14 +1522,14 @@ public partial class apex : Exchange
         string? takeProfitPrice = this.safeString(parameters, "takeProfitPrice");
         if ((stopLossPrice != null))
         {
-            orderType = ((bool) (isEqual(orderType, "MARKET"))) ? "STOP_MARKET" : "STOP_LIMIT";
+            orderType = ((bool) ((orderType == "MARKET"))) ? "STOP_MARKET" : "STOP_LIMIT";
             triggerPrice = stopLossPrice;
         } else if ((takeProfitPrice != null))
         {
-            orderType = ((bool) (isEqual(orderType, "MARKET"))) ? "TAKE_PROFIT_MARKET" : "TAKE_PROFIT_LIMIT";
+            orderType = ((bool) ((orderType == "MARKET"))) ? "TAKE_PROFIT_MARKET" : "TAKE_PROFIT_LIMIT";
             triggerPrice = takeProfitPrice;
         }
-        bool isMarket = isEqual(orderType, "MARKET");
+        bool isMarket = (orderType == "MARKET");
         if (isMarket && (isEqual(price, null)))
         {
             throw new ArgumentsRequired ((string)(this.id + " createOrder() requires a price argument for market orders")) ;
@@ -1545,7 +1545,7 @@ public partial class apex : Exchange
             if (isTrue(postOnly))
             {
                 timeInForce = "POST_ONLY";
-            } else if (isEqual(timeInForce, "ioc"))
+            } else if ((timeInForce == "ioc"))
             {
                 timeInForce = "IMMEDIATE_OR_CANCEL";
             }

@@ -931,7 +931,7 @@ public partial class woo : Exchange
         if ((status == null))
         {
             status = "error";
-        } else if (isEqual(status, "0"))
+        } else if ((status == "0"))
         {
             status = "ok";
         } else
@@ -2735,7 +2735,7 @@ public partial class woo : Exchange
             IList<object> marketTypeparametersVariable = (IList<object>)this.handleMarketTypeAndParams("fetchTickers", null, parameters, "swap");
             marketType = (string)((IList<object>)marketTypeparametersVariable)[0];
             parameters = ((IList<object>)marketTypeparametersVariable)[1];
-            if (!isEqual(marketType, "swap"))
+            if ((marketType != "swap"))
             {
                 throw new NotSupported ((string)(this.id + " fetchTickers() supports swap markets only")) ;
             }
@@ -3489,7 +3489,7 @@ public partial class woo : Exchange
         object currencyDefined = this.getCurrencyFromChaincode(networkizedCode, currency);
         object code = getValue(currencyDefined, "code");
         string? movementDirection = this.safeStringLowerN(transaction, new List<object>() {"token_side", "tokenSide", "type"});
-        if (isEqual(movementDirection, "withdraw"))
+        if ((movementDirection == "withdraw"))
         {
             movementDirection = "withdrawal";
         }

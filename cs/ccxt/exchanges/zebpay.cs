@@ -339,7 +339,7 @@ public partial class zebpay : Exchange
         IList<object> typeparametersVariable = (IList<object>)this.handleMarketTypeAndParams("fetchStatus", null, parameters);
         type = (string)((IList<object>)typeparametersVariable)[0];
         parameters = ((IList<object>)typeparametersVariable)[1];
-        bool isSpot = (isEqual(type, "spot"));
+        bool isSpot = ((type == "spot"));
         Dictionary<string, object> response = null;
         IDictionary<string, object> data = new Dictionary<string, object>() {};
         if (isSpot)
@@ -382,7 +382,7 @@ public partial class zebpay : Exchange
         IList<object> typeparametersVariable = (IList<object>)this.handleMarketTypeAndParams("fetchTime", null, parameters);
         type = (string)((IList<object>)typeparametersVariable)[0];
         parameters = ((IList<object>)typeparametersVariable)[1];
-        bool isSpot = (isEqual(type, "spot"));
+        bool isSpot = ((type == "spot"));
         Dictionary<string, object> response = null;
         IDictionary<string, object> data = new Dictionary<string, object>() {};
         if (isSpot)
@@ -661,7 +661,7 @@ public partial class zebpay : Exchange
         type = (string)((IList<object>)typeparametersVariable)[0];
         parameters = ((IList<object>)typeparametersVariable)[1];
         Dictionary<string, object> response = null;
-        if (isEqual(type, "spot"))
+        if ((type == "spot"))
         {
             response = await this.publicSpotGetV2ExTradefees(parameters);
         } else
@@ -797,7 +797,7 @@ public partial class zebpay : Exchange
         IList<object> typeparametersVariable = (IList<object>)this.handleMarketTypeAndParams("fetchTickers", null, parameters);
         type = (string)((IList<object>)typeparametersVariable)[0];
         parameters = ((IList<object>)typeparametersVariable)[1];
-        if (!isEqual(type, "spot"))
+        if ((type != "spot"))
         {
             throw new NotSupported ((string)(((this.id + " fetchTickers() does not support ") + type) + " markets")) ;
         }
@@ -1014,7 +1014,7 @@ public partial class zebpay : Exchange
         type = (string)((IList<object>)typeparametersVariable)[0];
         parameters = ((IList<object>)typeparametersVariable)[1];
         Dictionary<string, object> response = null;
-        if (isEqual(type, "spot"))
+        if ((type == "spot"))
         {
             throw new NotSupported ((string)(this.id + " fetchMyTrades() does not support spot markets")) ;
         } else
@@ -1045,7 +1045,7 @@ public partial class zebpay : Exchange
         IList<object> typeparametersVariable = (IList<object>)this.handleMarketTypeAndParams("fetchOrderTrades", null, parameters);
         type = (string)((IList<object>)typeparametersVariable)[0];
         parameters = ((IList<object>)typeparametersVariable)[1];
-        if (!isEqual(type, "spot"))
+        if ((type != "spot"))
         {
             throw new NotSupported ((string)(((this.id + " fetchOrderTrades() does not support ") + type) + " markets")) ;
         }
@@ -1159,7 +1159,7 @@ public partial class zebpay : Exchange
         IList<object> typeparametersVariable = (IList<object>)this.handleMarketTypeAndParams("fetchBalance", null, parameters);
         type = (string)((IList<object>)typeparametersVariable)[0];
         parameters = ((IList<object>)typeparametersVariable)[1];
-        bool isSpot = (isEqual(type, "spot"));
+        bool isSpot = ((type == "spot"));
         Dictionary<string, object> response = null;
         if (isSpot)
         {
@@ -1376,7 +1376,7 @@ public partial class zebpay : Exchange
         IList<object> typeparametersVariable = (IList<object>)this.handleMarketTypeAndParams("cancelAllOrders", null, parameters);
         type = (string)((IList<object>)typeparametersVariable)[0];
         parameters = ((IList<object>)typeparametersVariable)[1];
-        if (!isEqual(type, "spot"))
+        if ((type != "spot"))
         {
             throw new NotSupported ((string)(((this.id + " cancelAllOrders() does not support ") + type) + " markets")) ;
         }
@@ -2218,7 +2218,7 @@ public partial class zebpay : Exchange
         } else
         {
             this.checkRequiredCredentials();
-            bool isSpot = isEqual(marketType, "spot");
+            bool isSpot = (marketType == "spot");
             ((IDictionary<string,object>)parameters)["timestamp"] = timestamp;
             if (isEqual(method, "GET") || (isEqual(method, "DELETE") && isSpot))
             {

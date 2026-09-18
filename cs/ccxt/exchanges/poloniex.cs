@@ -1363,7 +1363,7 @@ public partial class poloniex : Exchange
         IList<object> marketTypeparametersVariable = (IList<object>)this.handleMarketTypeAndParams("fetchTickers", market, parameters);
         marketType = (string)((IList<object>)marketTypeparametersVariable)[0];
         parameters = ((IList<object>)marketTypeparametersVariable)[1];
-        if (isEqual(marketType, "swap"))
+        if ((marketType == "swap"))
         {
             Dictionary<string, object> responseRaw = await this.swapPublicGetV3MarketTickers(this.extend(request, parameters));
             //
@@ -2138,13 +2138,13 @@ public partial class poloniex : Exchange
         parameters = ((IList<object>)marketTypeparametersVariable)[1];
         if (!isEqual(limit, null))
         {
-            int max = ((bool) (isEqual(marketType, "spot"))) ? 2000 : 100;
+            int max = ((bool) ((marketType == "spot"))) ? 2000 : 100;
             ((IDictionary<string,object>)request)["limit"] = mathMax(limit, max);
         }
         object isTrigger = this.safeValue2(parameters, "trigger", "stop");
         parameters = this.omit(parameters, new List<object>() {"trigger", "stop"});
         List<object> response = new List<object>() {};
-        if (!isEqual(marketType, "spot"))
+        if ((marketType != "spot"))
         {
             Dictionary<string, object> raw = await this.swapPrivateGetV3TradeOrderOpens(this.extend(request, parameters));
             //
@@ -2250,7 +2250,7 @@ public partial class poloniex : Exchange
         IList<object> marketTypeparametersVariable = (IList<object>)this.handleMarketTypeAndParams("fetchClosedOrders", market, parameters, "swap");
         marketType = (string)((IList<object>)marketTypeparametersVariable)[0];
         parameters = ((IList<object>)marketTypeparametersVariable)[1];
-        if (isEqual(marketType, "spot"))
+        if ((marketType == "spot"))
         {
             throw new NotSupported ((string)(this.id + " fetchClosedOrders() is not supported for spot markets yet")) ;
         }
@@ -2384,7 +2384,7 @@ public partial class poloniex : Exchange
             IList<object> hedgedparametersVariable = (IList<object>)this.handleParamString(parameters, "hedged");
             hedged = (string)((IList<object>)hedgedparametersVariable)[0];
             parameters = ((IList<object>)hedgedparametersVariable)[1];
-            if (((hedged != null)) && (!isEqual(hedged, "")))
+            if (((hedged != null)) && ((hedged != "")))
             {
                 if ((marginMode == null))
                 {
@@ -2397,8 +2397,8 @@ public partial class poloniex : Exchange
             }
         }
         string upperCaseType = ((string)type).ToUpper();
-        bool isMarket = isEqual(upperCaseType, "MARKET");
-        bool isPostOnly = this.isPostOnly(isMarket, isEqual(upperCaseType, "LIMIT_MAKER"), parameters);
+        bool isMarket = (upperCaseType == "MARKET");
+        bool isPostOnly = this.isPostOnly(isMarket, (upperCaseType == "LIMIT_MAKER"), parameters);
         parameters = this.omit(parameters, new List<object>() {"postOnly", "triggerPrice", "stopPrice"});
         if (!isEqual(triggerPrice, null))
         {
@@ -2621,7 +2621,7 @@ public partial class poloniex : Exchange
         IList<object> marketTypeparametersVariable = (IList<object>)this.handleMarketTypeAndParams("cancelAllOrders", market, parameters);
         marketType = (string)((IList<object>)marketTypeparametersVariable)[0];
         parameters = ((IList<object>)marketTypeparametersVariable)[1];
-        if (isEqual(marketType, "swap") || isEqual(marketType, "future"))
+        if ((marketType == "swap") || (marketType == "future"))
         {
             Dictionary<string, object> raw = await this.swapPrivateDeleteV3TradeAllOrders(this.extend(request, parameters));
             //
@@ -2701,7 +2701,7 @@ public partial class poloniex : Exchange
         IList<object> marketTypeparametersVariable = (IList<object>)this.handleMarketTypeAndParams("fetchOrder", market, parameters);
         marketType = (string)((IList<object>)marketTypeparametersVariable)[0];
         parameters = ((IList<object>)marketTypeparametersVariable)[1];
-        if (!isEqual(marketType, "spot"))
+        if ((marketType != "spot"))
         {
             throw new NotSupported ((string)(((this.id + " fetchOrder() is not supported for ") + marketType) + " markets yet")) ;
         }
@@ -2863,7 +2863,7 @@ public partial class poloniex : Exchange
         IList<object> marketTypeparametersVariable = (IList<object>)this.handleMarketTypeAndParams("fetchBalance", null, parameters);
         marketType = (string)((IList<object>)marketTypeparametersVariable)[0];
         parameters = ((IList<object>)marketTypeparametersVariable)[1];
-        if (!isEqual(marketType, "spot"))
+        if ((marketType != "spot"))
         {
             Dictionary<string, object> responseRaw = await this.swapPrivateGetV3AccountBalance(parameters);
             //
@@ -3660,7 +3660,7 @@ public partial class poloniex : Exchange
         string? tag = this.safeString(transaction, "paymentID");
         string? amountString = this.safeString(transaction, "amount");
         string? feeCostString = this.safeString(transaction, "fee");
-        if (isEqual(type, "withdrawal"))
+        if ((type == "withdrawal"))
         {
             amountString = Precise.stringSub(amountString, feeCostString);
         }

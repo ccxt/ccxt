@@ -322,7 +322,7 @@ public partial class testMainClass
             await exchange.loadMarkets(true);
             dump(this.addPadding("[INFO] TESTING DONE", 25), name, methodName);
         }
-        if ((skipMessage != null) && !isEqual(skipMessage, ""))
+        if ((skipMessage != null) && (skipMessage != ""))
         {
             if (isTrue(this.info))
             {

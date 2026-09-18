@@ -886,10 +886,10 @@ public partial class backpack : Exchange
         string? settle = null;
         string? settleId = null;
         int? contractSize = null;
-        if (isEqual(typeOfMarket, "spot"))
+        if ((typeOfMarket == "spot"))
         {
             type = "spot";
-        } else if (isEqual(typeOfMarket, "swap"))
+        } else if ((typeOfMarket == "swap"))
         {
             type = "swap";
             linear = true;
@@ -910,13 +910,13 @@ public partial class backpack : Exchange
             { "quoteId", quoteId },
             { "settleId", settleId },
             { "type", type },
-            { "spot", isEqual(type, "spot") },
-            { "margin", isEqual(type, "spot") },
-            { "swap", isEqual(type, "swap") },
+            { "spot", (type == "spot") },
+            { "margin", (type == "spot") },
+            { "swap", (type == "swap") },
             { "future", false },
             { "option", false },
             { "active", (orderBookState == "Open") },
-            { "contract", !isEqual(type, "spot") },
+            { "contract", (type != "spot") },
             { "linear", linear },
             { "inverse", inverse },
             { "taker", null },

@@ -1604,7 +1604,7 @@ public partial class coinbaseexchange : Exchange
         market = this.safeMarket(marketId, market, "-");
         string? status = this.parseOrderStatus(this.safeString(order, "status"));
         string? doneReason = this.safeString(order, "done_reason");
-        if ((isEqual(status, "closed")) && ((doneReason == "canceled")))
+        if (((status == "closed")) && ((doneReason == "canceled")))
         {
             status = "canceled";
         }
@@ -2415,7 +2415,7 @@ public partial class coinbaseexchange : Exchange
             { "cost", null },
             { "rate", null },
         };
-        if (isEqual(type, "withdraw"))
+        if ((type == "withdraw"))
         {
             type = "withdrawal";
             address = this.safeString(details, "sent_to_address", address);

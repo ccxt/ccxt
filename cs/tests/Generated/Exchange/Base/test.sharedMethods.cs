@@ -118,7 +118,7 @@ public partial class testMainClass : BaseTest
                     // if it was in needed keys, then it should have value.
                     assert((value != null), add((add("\"", stringValue(key)) + "\" key is expected to have a value"), logText));
                     // add exclusion for info key, as it can be any type
-                    if (!isEqual(key, "info"))
+                    if ((key != "info"))
                     {
                         object typeAssertion = assertType(exchange, new Dictionary<string, object>() {}, entry, key, format);
                         assert(isEqual(typeAssertion, true), add((add("\"", stringValue(key)) + "\" key is neither undefined, neither of expected type"), logText));

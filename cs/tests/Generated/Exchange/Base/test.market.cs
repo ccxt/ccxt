@@ -265,7 +265,7 @@ public partial class testMainClass : BaseTest
             // only allow very high priced markets (wher coin costs around 100k) to have a 5$ price tickSize
             bool isExclusivePair = isEqual(getValue(market, "baseId"), "BTC");
             bool isNonSpot = !isEqual(spot, true); // such high precision is only allowed in contract markets
-            bool isPrice = isEqual(priceOrAmountKey, "price");
+            bool isPrice = (priceOrAmountKey == "price");
             bool isTickSize5 = Precise.stringEq("5", exchange.safeString(getValue(market, "precision"), priceOrAmountKey));
             if (isNonSpot && isPrice && isExclusivePair && isTrue(isTickSize5))
             {

@@ -1544,7 +1544,7 @@ public partial class toobit : Exchange
         type = (string)((IList<object>)typeparametersVariable)[0];
         parameters = ((IList<object>)typeparametersVariable)[1];
         List<object> response = null;
-        if (isEqual(type, "spot"))
+        if ((type == "spot"))
         {
             response = await this.commonGetQuoteV1Ticker24hr(this.extend(request, parameters));
         } else
@@ -2221,7 +2221,7 @@ public partial class toobit : Exchange
             rawSideLower = this.safeString(sideParts, 0);
         }
         string? triggerPrice = ((string)this.omitZero(this.safeString(order, "stopPrice")));
-        if (isEqual(triggerPrice, "0.0"))
+        if ((triggerPrice == "0.0"))
         {
             triggerPrice = null;
         }
@@ -2316,12 +2316,12 @@ public partial class toobit : Exchange
         IList<object> marketTypeparametersVariable = (IList<object>)this.handleMarketTypeAndParams("cancelOrder", market, parameters, "none");
         marketType = (string)((IList<object>)marketTypeparametersVariable)[0];
         parameters = ((IList<object>)marketTypeparametersVariable)[1];
-        if (isEqual(marketType, "none"))
+        if ((marketType == "none"))
         {
             throw new ArgumentsRequired ((string)(this.id + " cancelOrder() requires a symbol argument or the \"defaultType\" parameter to be set to \"spot\" or \"swap\"")) ;
         }
         Dictionary<string, object> response = new Dictionary<string, object>() {};
-        if (isEqual(marketType, "spot"))
+        if ((marketType == "spot"))
         {
             response = await this.privateDeleteApiV1SpotOrder(this.extend(request, parameters));
         } else
@@ -2330,7 +2330,7 @@ public partial class toobit : Exchange
         }
         // response same as in `createOrder`
         string? status = this.parseOrderStatus(this.safeString(response, "status"));
-        if (!isEqual(status, "open"))
+        if ((status != "open"))
         {
             throw new OrderNotFound ((string)((add((this.id + " order "), id) + " can not be canceled, ") + this.json(response))) ;
         }
@@ -2365,12 +2365,12 @@ public partial class toobit : Exchange
         IList<object> marketTypeparametersVariable = (IList<object>)this.handleMarketTypeAndParams("cancelAllOrders", market, parameters, "none");
         marketType = (string)((IList<object>)marketTypeparametersVariable)[0];
         parameters = ((IList<object>)marketTypeparametersVariable)[1];
-        if (isEqual(marketType, "none"))
+        if ((marketType == "none"))
         {
             throw new ArgumentsRequired ((string)(this.id + " cancelAllOrders() requires a symbol argument or the \"defaultType\" parameter to be set to \"spot\" or \"swap\"")) ;
         }
         Dictionary<string, object> response = null;
-        if (isEqual(marketType, "spot"))
+        if ((marketType == "spot"))
         {
             response = await this.privateDeleteApiV1SpotOpenOrders(this.extend(request, parameters));
         } else
@@ -2411,12 +2411,12 @@ public partial class toobit : Exchange
         IList<object> marketTypeparametersVariable = (IList<object>)this.handleMarketTypeAndParams("cancelOrders", market, parameters, "none");
         marketType = (string)((IList<object>)marketTypeparametersVariable)[0];
         parameters = ((IList<object>)marketTypeparametersVariable)[1];
-        if (isEqual(marketType, "none"))
+        if ((marketType == "none"))
         {
             throw new ArgumentsRequired ((string)(this.id + " cancelOrders() requires a symbol argument or the \"defaultType\" parameter to be set to \"spot\" or \"swap\"")) ;
         }
         Dictionary<string, object> response = null;
-        if (isEqual(marketType, "spot"))
+        if ((marketType == "spot"))
         {
             response = await this.privateDeleteApiV1SpotCancelOrderByIds(this.extend(request, parameters));
         } else
@@ -2527,7 +2527,7 @@ public partial class toobit : Exchange
         marketType = (string)((IList<object>)marketTypeparametersVariable)[0];
         parameters = ((IList<object>)marketTypeparametersVariable)[1];
         List<object> response = new List<object>() {};
-        if (isEqual(marketType, "spot"))
+        if ((marketType == "spot"))
         {
             response = await this.privateGetApiV1SpotOpenOrders(this.extend(request, parameters));
         } else
@@ -2578,7 +2578,7 @@ public partial class toobit : Exchange
         marketType = (string)((IList<object>)marketTypeparametersVariable)[0];
         parameters = ((IList<object>)marketTypeparametersVariable)[1];
         List<object> response = new List<object>() {};
-        if (isEqual(marketType, "spot"))
+        if ((marketType == "spot"))
         {
             response = await this.privateGetApiV1SpotTradeOrders(request);
         } else
@@ -2626,7 +2626,7 @@ public partial class toobit : Exchange
         marketType = (string)((IList<object>)marketTypeparametersVariable)[0];
         parameters = ((IList<object>)marketTypeparametersVariable)[1];
         List<object> response = new List<object>() {};
-        if (isEqual(marketType, "spot"))
+        if ((marketType == "spot"))
         {
             throw new NotSupported ((string)(((this.id + " fetchOrders() is not supported for ") + marketType) + " markets")) ;
         } else
@@ -2691,7 +2691,7 @@ public partial class toobit : Exchange
         request = (Dictionary<string, object>)((IList<object>)requestparametersVariable)[0];
         parameters = ((IList<object>)requestparametersVariable)[1];
         List<object> response = new List<object>() {};
-        if (isEqual(marketType, "spot"))
+        if ((marketType == "spot"))
         {
             response = await this.privateGetApiV1AccountTrades(this.extend(request, parameters));
         } else
@@ -2804,7 +2804,7 @@ public partial class toobit : Exchange
         marketType = (string)((IList<object>)marketTypeparametersVariable)[0];
         parameters = ((IList<object>)marketTypeparametersVariable)[1];
         List<object> response = null;
-        if (isEqual(marketType, "spot"))
+        if ((marketType == "spot"))
         {
             response = await this.privateGetApiV1AccountBalanceFlow(this.extend(request, parameters));
         } else
@@ -2894,7 +2894,7 @@ public partial class toobit : Exchange
         IList<object> marketTypeparametersVariable = (IList<object>)this.handleMarketTypeAndParams("fetchTradingFees", null, parameters);
         marketType = (string)((IList<object>)marketTypeparametersVariable)[0];
         parameters = ((IList<object>)marketTypeparametersVariable)[1];
-        if (isEqual(marketType, "spot"))
+        if ((marketType == "spot"))
         {
             throw new NotSupported ((string)(((this.id + " fetchTradingFees(): does not support ") + marketType) + " markets")) ;
         } else if (this.inArray(marketType, new List<object>() {"swap", "future"}))
@@ -3488,7 +3488,7 @@ public partial class toobit : Exchange
                 payload = add(body, payload);
             }
             string signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256, "hex");
-            if (!isEqual(queryString, ""))
+            if ((queryString != ""))
             {
                 queryString = queryString + ("&signature=" + signature);
                 url = add(url, ("?" + queryString));

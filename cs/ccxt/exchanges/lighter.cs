@@ -2341,7 +2341,7 @@ public partial class lighter : Exchange
             { "symbol", getValue(market, "symbol") },
             { "timestamp", null },
             { "datetime", null },
-            { "isolated", (isEqual(marginMode, "isolated")) },
+            { "isolated", ((marginMode == "isolated")) },
             { "hedged", null },
             { "side", side },
             { "contracts", this.safeNumber(position, "position") },
@@ -2743,7 +2743,7 @@ public partial class lighter : Exchange
             { "symbol", getValue(market, "symbol") },
             { "type", this.parseOrderType(type) },
             { "timeInForce", this.parseOrderTimeInForce(tif) },
-            { "postOnly", isEqual(tif, "post-only") },
+            { "postOnly", (tif == "post-only") },
             { "reduceOnly", reduceOnly },
             { "side", side },
             { "price", this.safeString(order, "price") },
@@ -3492,7 +3492,7 @@ public partial class lighter : Exchange
         string? takerOrMaker = null;
         if ((side != null) && !isEqual(isMakerAsk, null))
         {
-            bool? isMaker = ((bool) (isEqual(side, "sell"))) ? isMakerAsk : !isTrue(isMakerAsk);
+            bool? isMaker = ((bool) ((side == "sell"))) ? isMakerAsk : !isTrue(isMakerAsk);
             takerOrMaker = ((bool) isTrue(isMaker)) ? "maker" : "taker";
         }
         return this.safeTrade(new Dictionary<string, object>() {

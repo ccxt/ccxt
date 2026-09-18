@@ -756,10 +756,10 @@ public partial class p2b : Exchange
         //
         object timestamp = this.safeIntegerProduct2(trade, "time", "deal_time", 1000);
         string? takerOrMaker = this.safeString(trade, "role");
-        if (isEqual(takerOrMaker, "1"))
+        if ((takerOrMaker == "1"))
         {
             takerOrMaker = "maker";
-        } else if (isEqual(takerOrMaker, "2"))
+        } else if ((takerOrMaker == "2"))
         {
             takerOrMaker = "taker";
         }

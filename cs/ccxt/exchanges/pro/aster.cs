@@ -1877,7 +1877,7 @@ public partial class aster : ccxt.aster
         string? contractsAbs = Precise.stringAbs(this.safeString(position, "pa"));
         string? positionSide = this.safeStringLower(position, "ps");
         bool hedged = true;
-        if (isEqual(positionSide, "both"))
+        if ((positionSide == "both"))
         {
             hedged = false;
             if (!isTrue(Precise.stringEq(contracts, "0")))
@@ -2249,7 +2249,7 @@ public partial class aster : ccxt.aster
         }
         string? stopPrice = this.safeStringN(order, new List<object>() {"P", "sp", "tp"});
         string? timeInForce = this.safeString(order, "f");
-        if (isEqual(timeInForce, "GTX"))
+        if ((timeInForce == "GTX"))
         {
             // GTX means "Good Till Crossing" and is an equivalent way of saying Post Only
             timeInForce = "PO";

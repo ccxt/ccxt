@@ -281,7 +281,7 @@ public partial class coinex : ccxt.coinex
             currencies = new List<object>() {};
         }
         string messageHash = "balances";
-        if (isEqual(type, "spot"))
+        if ((type == "spot"))
         {
             messageHash = messageHash + ":spot";
         } else
@@ -481,7 +481,7 @@ public partial class coinex : ccxt.coinex
             ((IList<object>)subscribedSymbols).Add(getValue(market, "id"));
         } else
         {
-            if (isEqual(type, "spot"))
+            if ((type == "spot"))
             {
                 messageHash = messageHash + ":spot";
             } else
@@ -1063,7 +1063,7 @@ public partial class coinex : ccxt.coinex
         } else
         {
             marketList = new List<object>() {};
-            if (isEqual(type, "spot"))
+            if ((type == "spot"))
             {
                 messageHash = messageHash + ":spot";
             } else

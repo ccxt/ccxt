@@ -1882,22 +1882,22 @@ public partial class tokocrypto : Exchange
         string? id = this.safeString(order, "orderId");
         string? type = this.parseOrderType(this.safeStringLower(order, "type"));
         string? side = this.safeStringLower(order, "side");
-        if (isEqual(side, "0"))
+        if ((side == "0"))
         {
             side = "buy";
-        } else if (isEqual(side, "1"))
+        } else if ((side == "1"))
         {
             side = "sell";
         }
         object fills = this.safeValue(order, "fills", new List<object>() {});
         string? clientOrderId = this.safeString2(order, "clientOrderId", "clientId");
         string? timeInForce = this.safeString(order, "timeInForce");
-        if (isEqual(timeInForce, "GTX"))
+        if ((timeInForce == "GTX"))
         {
             // GTX means "Good Till Crossing" and is an equivalent way of saying Post Only
             timeInForce = "PO";
         }
-        bool postOnly = (isEqual(type, "limit_maker")) || (isEqual(timeInForce, "PO"));
+        bool postOnly = ((type == "limit_maker")) || ((timeInForce == "PO"));
         return this.safeOrder(new Dictionary<string, object>() {
             { "info", order },
             { "id", id },
@@ -1973,10 +1973,10 @@ public partial class tokocrypto : Exchange
         if ((triggerPrice != null))
         {
             parameters = this.omit(parameters, new List<object>() {"triggerPrice", "stopPrice"});
-            if (isEqual(uppercaseType, "MARKET"))
+            if ((uppercaseType == "MARKET"))
             {
                 uppercaseType = "STOP_LOSS";
-            } else if (isEqual(uppercaseType, "LIMIT"))
+            } else if ((uppercaseType == "LIMIT"))
             {
                 uppercaseType = "STOP_LOSS_LIMIT";
             }
@@ -2042,7 +2042,7 @@ public partial class tokocrypto : Exchange
         //     TAKE_PROFIT_LIMIT    timeInForce, quantity, price, stopPrice
         //     LIMIT_MAKER          quantity, price
         //
-        if (isEqual(uppercaseType, "MARKET"))
+        if ((uppercaseType == "MARKET"))
         {
             if (isEqual(side, "buy"))
             {
@@ -2077,11 +2077,11 @@ public partial class tokocrypto : Exchange
             {
                 quantityIsRequired = true;
             }
-        } else if (isEqual(uppercaseType, "LIMIT"))
+        } else if ((uppercaseType == "LIMIT"))
         {
             priceIsRequired = true;
             quantityIsRequired = true;
-        } else if ((isEqual(uppercaseType, "STOP_LOSS")) || (isEqual(uppercaseType, "TAKE_PROFIT")))
+        } else if (((uppercaseType == "STOP_LOSS")) || ((uppercaseType == "TAKE_PROFIT")))
         {
             triggerPriceIsRequired = true;
             quantityIsRequired = true;
@@ -2089,12 +2089,12 @@ public partial class tokocrypto : Exchange
             {
                 priceIsRequired = true;
             }
-        } else if ((isEqual(uppercaseType, "STOP_LOSS_LIMIT")) || (isEqual(uppercaseType, "TAKE_PROFIT_LIMIT")))
+        } else if (((uppercaseType == "STOP_LOSS_LIMIT")) || ((uppercaseType == "TAKE_PROFIT_LIMIT")))
         {
             quantityIsRequired = true;
             triggerPriceIsRequired = true;
             priceIsRequired = true;
-        } else if (isEqual(uppercaseType, "LIMIT_MAKER"))
+        } else if ((uppercaseType == "LIMIT_MAKER"))
         {
             priceIsRequired = true;
             quantityIsRequired = true;

@@ -1081,7 +1081,7 @@ public partial class opinion : PredictionExchange
         string? priceFrac = this.safeString(priceParts, 1, "");
         string priceDenom = "1000000";
         string? priceNum = Precise.stringAdd(Precise.stringMul(priceInt, priceDenom), (priceFrac as String).PadRight(Convert.ToInt32(6), Convert.ToChar("0")));
-        if (isEqual(priceNum, "0"))
+        if ((priceNum == "0"))
         {
             throw new InvalidOrder ((string)((this.id + " createOrder() invalid price ") + priceStr)) ;
         }

@@ -322,7 +322,7 @@ public partial class PredictionExchange : BaseExchange
         for (int i = 0; i < getArrayLength(tags); postFixIncrement(ref i))
         {
             string? wantedKey = this.normalizeTagKey(getValue(tags, i));
-            if (!isEqual(wantedKey, ""))
+            if ((wantedKey != ""))
             {
                 // an empty normalized key would substring-match every tag
                 ((IList<object>)wanted).Add(wantedKey);
@@ -640,7 +640,7 @@ public partial class PredictionExchange : BaseExchange
         // already-unique handles stay clean.
         string marketPart = this.shortenSlug(marketSlug);
         string eventPart = this.shortenSlug(eventSlug);
-        if (((eventPart == null)) || (isEqual(eventPart, "")) || (isEqual(eventPart, marketPart)))
+        if (((eventPart == null)) || ((eventPart == "")) || (isEqual(eventPart, marketPart)))
         {
             return marketPart;
         }
@@ -1596,7 +1596,7 @@ public partial class PredictionExchange : BaseExchange
             }
         } else if (isEqual(postOnly, null))
         {
-            postOnly = (isEqual(timeInForce, "PO"));
+            postOnly = ((timeInForce == "PO"));
         }
         Int64? timestamp = this.safeInteger(outcomeOrder, "timestamp");
         string? datetime = this.safeString(outcomeOrder, "datetime");

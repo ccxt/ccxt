@@ -418,7 +418,7 @@ public partial class limitless : PredictionExchange
             string? eventKey = ((bool) ((groupId != null) && (groupId != ""))) ? this.shortenSlug(groupId) : null;
             Dictionary<string, object> m = this.parseMarket(raw);
             ((IList<object>)markets).Add(m);
-            if (((eventKey != null)) && (!isEqual(eventKey, "")))
+            if (((eventKey != null)) && ((eventKey != "")))
             {
                 if (!(inOp(eventGroups, eventKey)))
                 {
@@ -2123,7 +2123,7 @@ public partial class limitless : PredictionExchange
         string? rawSide = this.safeString(rawOrder, "side");
         string? side = this.parseOrderSide(rawSide);
         string? price = this.safeString(rawOrder, "price");
-        string amountKey = ((bool) (isEqual(side, "buy"))) ? "takerAmount" : "makerAmount"; // todo check
+        string amountKey = ((bool) ((side == "buy"))) ? "takerAmount" : "makerAmount"; // todo check
         string? amount = this.safeString(rawOrder, amountKey);
         string? remaining = this.safeString(rawOrder, "remainingSize");
         string? datetime = this.safeString(rawOrder, "createdAt");
@@ -2150,7 +2150,7 @@ public partial class limitless : PredictionExchange
             filled = this.safeString(totals, "contractsGross");
             string? feeCurrency = "USDC";
             string? feeCost = this.safeString(totals, "usdFee");
-            if (isEqual(side, "buy"))
+            if ((side == "buy"))
             {
                 feeCurrency = outcomeSymbol;
                 feeCost = this.safeString(totals, "contractsFee");
@@ -3370,7 +3370,7 @@ public partial class limitless : PredictionExchange
                 throw new ExchangeError ((string)(this.id + " fetchEvents() missing m")) ;
             }
             ((IDictionary<string,object>)this.markets)[(string)getValue(m, "market")] = m;
-            if (((eventKey != null)) && (!isEqual(eventKey, "")))
+            if (((eventKey != null)) && ((eventKey != "")))
             {
                 if (!(inOp(eventGroups, eventKey)))
                 {
@@ -3571,7 +3571,7 @@ public partial class limitless : PredictionExchange
         object url = ("/" + this.implodeParams(path, parameters));
         object query = this.omit(parameters, this.extractParams(path));
         string querystring = this.urlencodeWithArrayRepeat(query);
-        if (isEqual(method, "GET") && (!isEqual(querystring, "")))
+        if (isEqual(method, "GET") && ((querystring != "")))
         {
             url = add(url, ("?" + querystring));
         }
@@ -3582,7 +3582,7 @@ public partial class limitless : PredictionExchange
             {
                 headers = new Dictionary<string, object>() {};
             }
-            if (isEqual(method, "POST") && (!isEqual(querystring, "")))
+            if (isEqual(method, "POST") && ((querystring != "")))
             {
                 bodyString = this.json(query);
                 body = bodyString;

@@ -550,8 +550,8 @@ public partial class krakenfutures : Exchange
             {
                 type = "index";
             }
-            bool swap = (isEqual(type, "swap"));
-            bool future = (isEqual(type, "future"));
+            bool swap = ((type == "swap"));
+            bool future = ((type == "future"));
             object symbol = id;
             List<object> split = ((string)((string)id)).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
             string? splitMarket = this.safeString(split, 1);
@@ -1039,10 +1039,10 @@ public partial class krakenfutures : Exchange
             return ccxt.BaseExchange.ToOHLCVList(await this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limitVar,((string)timeframeVar), parameters, 2000));
         }
         string? priceType = this.safeString(parameters, "price", "trade");
-        if (isEqual(priceType, "index"))
+        if ((priceType == "index"))
         {
             priceType = "spot"; // the venue's name for index-price candles
-        } else if ((!isEqual(priceType, "trade")) && (!isEqual(priceType, "mark")) && (!isEqual(priceType, "spot")))
+        } else if (((priceType != "trade")) && ((priceType != "mark")) && ((priceType != "spot")))
         {
             throw new NotSupported ((string)(this.id + " fetchOHLCV() price parameter must be one of \"trade\", \"mark\", \"index\" or \"spot\"")) ;
         }

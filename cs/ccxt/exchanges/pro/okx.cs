@@ -890,10 +890,10 @@ public partial class okx : ccxt.okx
         type = (string)((IList<object>)typeparametersVariable)[0];
         parameters = ((IList<object>)typeparametersVariable)[1];
         string channel = "liquidation-orders";
-        if (isEqual(type, "spot"))
+        if ((type == "spot"))
         {
             type = "SWAP";
-        } else if (isEqual(type, "future"))
+        } else if ((type == "future"))
         {
             type = "futures";
         }

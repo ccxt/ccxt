@@ -167,7 +167,7 @@ public partial class cex : ccxt.cex
                     continue;
                 }
                 subscriptionKey = slice(subscriptionKey, 0, 3);
-                if (isEqual(subscriptionKey, "old"))
+                if ((subscriptionKey == "old"))
                 {
                     throw new ExchangeError ((string)(this.id + " watchTrades() only supports watching one symbol at a time.")) ;
                 }

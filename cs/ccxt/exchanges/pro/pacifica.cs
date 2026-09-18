@@ -1023,16 +1023,16 @@ public partial class pacifica : ccxt.pacifica
         string? id = this.safeString(trade, "h");
         string? fee = this.safeString(trade, "f");
         string? side = this.safeString2(trade, "ts", "d");
-        if (isEqual(side, "open_long"))
+        if ((side == "open_long"))
         {
             side = "buy";
-        } else if (isEqual(side, "close_long"))
+        } else if ((side == "close_long"))
         {
             side = "sell";
-        } else if (isEqual(side, "open_short"))
+        } else if ((side == "open_short"))
         {
             side = "sell";
-        } else if (isEqual(side, "close_short"))
+        } else if ((side == "close_short"))
         {
             side = "buy";
         }

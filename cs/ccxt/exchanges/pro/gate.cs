@@ -708,7 +708,7 @@ public partial class gate : ccxt.gate
         //     }
         //
         string channel = ((string)this.safeString(message, "channel"));
-        if (isEqual(channel, "spot.obu"))
+        if ((channel == "spot.obu"))
         {
             this.handleNewSpotOrderBook(client as WebSocketClient, message);
             return;
@@ -1322,7 +1322,7 @@ public partial class gate : ccxt.gate
         object url = this.getUrlByMarketType(type, isInverse);
         List<object> payload = new List<object>() {marketId};
         // uid required for non spot markets
-        bool requiresUid = (!isEqual(type, "spot"));
+        bool requiresUid = ((type != "spot"));
         object trades = await this.subscribePrivate(url, messageHash, payload, channel, parameters, requiresUid);
         if (isTrue(this.newUpdates))
         {
@@ -1818,7 +1818,7 @@ public partial class gate : ccxt.gate
         bool isInverse = (isEqual(subType, "inverse"));
         object url = this.getUrlByMarketType(type, isInverse);
         // uid required for non spot markets
-        bool requiresUid = (!isEqual(type, "spot"));
+        bool requiresUid = ((type != "spot"));
         object orders = await this.subscribePrivate(url, messageHash, payload, channel, query, requiresUid);
         if (isTrue(this.newUpdates))
         {

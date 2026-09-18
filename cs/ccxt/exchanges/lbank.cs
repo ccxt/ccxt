@@ -485,7 +485,7 @@ public partial class lbank : Exchange
         type = (string)((IList<object>)typeparametersVariable)[0];
         parameters = ((IList<object>)typeparametersVariable)[1];
         object response = null;
-        if (isEqual(type, "swap"))
+        if ((type == "swap"))
         {
             response = await this.contractPublicGetCfdOpenApiV1PubGetTime(parameters);
         } else
@@ -983,7 +983,7 @@ public partial class lbank : Exchange
         type = (string)((IList<object>)typeparametersVariable)[0];
         parameters = ((IList<object>)typeparametersVariable)[1];
         object response = null;
-        if (isEqual(type, "swap"))
+        if ((type == "swap"))
         {
             ((IDictionary<string,object>)request)["productGroup"] = "SwapU";
             response = await this.contractPublicGetCfdOpenApiV1PubMarketData(this.extend(request, parameters));
@@ -1073,7 +1073,7 @@ public partial class lbank : Exchange
         type = (string)((IList<object>)typeparametersVariable)[0];
         parameters = ((IList<object>)typeparametersVariable)[1];
         object response = null;
-        if (isEqual(type, "swap"))
+        if ((type == "swap"))
         {
             ((IDictionary<string,object>)request)["depth"] = limitVar;
             response = await this.contractPublicGetCfdOpenApiV1PubMarketOrder(this.extend(request, parameters));
@@ -2783,7 +2783,7 @@ public partial class lbank : Exchange
         string? address = this.safeString(transaction, "address");
         string? addressFrom = null;
         string? addressTo = null;
-        if (isEqual(type, "deposit"))
+        if ((type == "deposit"))
         {
             addressFrom = address;
         } else
@@ -2822,7 +2822,7 @@ public partial class lbank : Exchange
             { "status", status },
             { "updated", null },
             { "comment", null },
-            { "internal", (isEqual(status, "transfer")) },
+            { "internal", ((status == "transfer")) },
             { "fee", fee },
         };
     }
@@ -3426,7 +3426,7 @@ public partial class lbank : Exchange
             object hash = this.hash(encoded, md5);
             string uppercaseHash = ((string)hash).ToUpper();
             string? sign = null;
-            if (isEqual(signatureMethod, "RSA"))
+            if ((signatureMethod == "RSA"))
             {
                 bool? cacheSecretAsPem = this.safeBool(this.options, "cacheSecretAsPem", true);
                 object pem = null;
@@ -3443,7 +3443,7 @@ public partial class lbank : Exchange
                     pem = this.convertSecretToPem(this.encode(this.secret));
                 }
                 sign = rsa(uppercaseHash, pem, sha256);
-            } else if (isEqual(signatureMethod, "HmacSHA256"))
+            } else if ((signatureMethod == "HmacSHA256"))
             {
                 sign = this.hmac(this.encode(uppercaseHash), this.encode(this.secret), sha256);
             }

@@ -557,7 +557,7 @@ public partial class upbit : ccxt.upbit
         //
         string? id = this.safeString(order, "uuid");
         string? side = this.safeStringLower(order, "ask_bid");
-        if (isEqual(side, "bid"))
+        if ((side == "bid"))
         {
             side = "buy";
         } else
@@ -607,7 +607,7 @@ public partial class upbit : ccxt.upbit
     {
         // see: parseWsOrder
         string? side = this.safeStringLower(trade, "ask_bid");
-        if (isEqual(side, "bid"))
+        if ((side == "bid"))
         {
             side = "buy";
         } else

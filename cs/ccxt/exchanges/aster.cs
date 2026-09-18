@@ -1444,7 +1444,7 @@ public partial class aster : Exchange
         marketType = (string)((IList<object>)marketTypeparametersVariable)[0];
         parameters = ((IList<object>)marketTypeparametersVariable)[1];
         object response = null;
-        if (isEqual(marketType, "swap"))
+        if ((marketType == "swap"))
         {
             response = await this.fapiPublicGetV3Time(parameters);
         } else
@@ -1755,7 +1755,7 @@ public partial class aster : Exchange
         request = (Dictionary<string, object>)((IList<object>)requestparametersVariable)[0];
         parameters = ((IList<object>)requestparametersVariable)[1];
         object response = null;
-        if (isEqual(marketType, "swap"))
+        if ((marketType == "swap"))
         {
             response = await this.fapiPrivateGetV3UserTrades(this.extend(request, parameters));
         } else
@@ -2022,10 +2022,10 @@ public partial class aster : Exchange
         marketType = (string)((IList<object>)marketTypeparametersVariable)[0];
         parameters = ((IList<object>)marketTypeparametersVariable)[1];
         object response = null;
-        if (isEqual(marketType, "swap"))
+        if ((marketType == "swap"))
         {
             response = await this.fapiPublicGetV3Ticker24hr(parameters);
-        } else if (isEqual(marketType, "spot"))
+        } else if ((marketType == "spot"))
         {
             response = await this.sapiPublicGetV3Ticker24hr(parameters);
         }
@@ -2085,10 +2085,10 @@ public partial class aster : Exchange
         marketType = (string)((IList<object>)marketTypeparametersVariable)[0];
         parameters = ((IList<object>)marketTypeparametersVariable)[1];
         List<object> response = null;
-        if (isEqual(marketType, "swap"))
+        if ((marketType == "swap"))
         {
             response = await this.fapiPublicGetV3TickerPrice(parameters);
-        } else if (isEqual(marketType, "spot"))
+        } else if ((marketType == "spot"))
         {
             response = await this.sapiPublicGetV3TickerPrice(parameters);
         }
@@ -2168,10 +2168,10 @@ public partial class aster : Exchange
         marketType = (string)((IList<object>)marketTypeparametersVariable)[0];
         parameters = ((IList<object>)marketTypeparametersVariable)[1];
         object response = null;
-        if (isEqual(marketType, "swap"))
+        if ((marketType == "swap"))
         {
             response = await this.fapiPublicGetV3TickerBookTicker(parameters);
-        } else if (isEqual(marketType, "spot"))
+        } else if ((marketType == "spot"))
         {
             response = await this.sapiPublicGetV3TickerBookTicker(parameters);
         }
@@ -2451,10 +2451,10 @@ public partial class aster : Exchange
         parameters = ((IList<object>)marketTypeparametersVariable)[1];
         Dictionary<string, object> response = null;
         List<object> data = null;
-        if (isEqual(marketType, "swap"))
+        if ((marketType == "swap"))
         {
             data = await this.fapiPrivateGetV3Balance(parameters);
-        } else if (isEqual(marketType, "spot"))
+        } else if ((marketType == "spot"))
         {
             response = await this.sapiPrivateGetV3Account(parameters);
             data = this.safeList(response, "balances", new List<object>() {});
@@ -3013,7 +3013,7 @@ public partial class aster : Exchange
         if (isTrue(this.isLinear(marketType, subType)))
         {
             response = await this.fapiPrivateGetV3OpenOrders(this.extend(request, parameters));
-        } else if (isEqual(marketType, "spot"))
+        } else if ((marketType == "spot"))
         {
             response = await this.sapiPrivateGetV3OpenOrders(this.extend(request, parameters));
         }
@@ -3292,7 +3292,7 @@ public partial class aster : Exchange
         bool triggerPriceIsRequired = false;
         bool quantityIsRequired = false;
         ((IDictionary<string,object>)request)["type"] = uppercaseType;
-        if (isEqual(uppercaseType, "MARKET"))
+        if ((uppercaseType == "MARKET"))
         {
             if (((getValue(market, "spot") as bool?) == true))
             {
@@ -3322,24 +3322,24 @@ public partial class aster : Exchange
             {
                 quantityIsRequired = true;
             }
-        } else if (isEqual(uppercaseType, "LIMIT"))
+        } else if ((uppercaseType == "LIMIT"))
         {
             timeInForceIsRequired = true;
             quantityIsRequired = true;
             priceIsRequired = true;
-        } else if ((isEqual(uppercaseType, "STOP")) || (isEqual(uppercaseType, "TAKE_PROFIT")))
+        } else if (((uppercaseType == "STOP")) || ((uppercaseType == "TAKE_PROFIT")))
         {
             quantityIsRequired = true;
             priceIsRequired = true;
             triggerPriceIsRequired = true;
-        } else if ((isEqual(uppercaseType, "STOP_MARKET")) || (isEqual(uppercaseType, "TAKE_PROFIT_MARKET")))
+        } else if (((uppercaseType == "STOP_MARKET")) || ((uppercaseType == "TAKE_PROFIT_MARKET")))
         {
             if ((closePosition != true))
             {
                 quantityIsRequired = true;
             }
             triggerPriceIsRequired = true;
-        } else if (isEqual(uppercaseType, "TRAILING_STOP_MARKET"))
+        } else if ((uppercaseType == "TRAILING_STOP_MARKET"))
         {
             ((IDictionary<string,object>)request)["callbackRate"] = trailingPercent;
             if ((trailingTriggerPrice != null))
@@ -4134,7 +4134,7 @@ public partial class aster : Exchange
         string? contractSizeString = this.numberToString(contractSize);
         // as oppose to notionalValue
         bool linear = (inOp(position, "notional"));
-        if (isEqual(marginMode, "cross"))
+        if ((marginMode == "cross"))
         {
             // calculate collateral
             IDictionary<string, object> precision = this.safeDict(market, "precision", new Dictionary<string, object>() {});
@@ -4148,7 +4148,7 @@ public partial class aster : Exchange
                     // walletBalance = (liquidationPrice * (±1 + mmp) ± entryPrice) * contracts
                     string? onePlusMaintenanceMarginPercentageString = null;
                     string? entryPriceSignString = entryPriceString;
-                    if (isEqual(side, "short"))
+                    if ((side == "short"))
                     {
                         onePlusMaintenanceMarginPercentageString = Precise.stringAdd("1", maintenanceMarginPercentageString);
                         entryPriceSignString = Precise.stringMul("-1", entryPriceSignString);
@@ -4168,7 +4168,7 @@ public partial class aster : Exchange
                     // walletBalance = (contracts * contractSize) * (±1/entryPrice - (±1 - mmp) / liquidationPrice)
                     string? onePlusMaintenanceMarginPercentageString = null;
                     string? entryPriceSignString = entryPriceString;
-                    if (isEqual(side, "short"))
+                    if ((side == "short"))
                     {
                         onePlusMaintenanceMarginPercentageString = Precise.stringSub("1", maintenanceMarginPercentageString);
                     } else
@@ -4516,7 +4516,7 @@ public partial class aster : Exchange
                 // TODO: calculate liquidation price for coinm contracts
                 string? onePlusMaintenanceMarginPercentageString = null;
                 string? entryPriceSignString = entryPriceString;
-                if (isEqual(side, "short"))
+                if ((side == "short"))
                 {
                     onePlusMaintenanceMarginPercentageString = Precise.stringAdd("1", maintenanceMarginPercentageString);
                 } else
@@ -4535,7 +4535,7 @@ public partial class aster : Exchange
                 //
                 string? onePlusMaintenanceMarginPercentageString = null;
                 string? entryPriceSignString = entryPriceString;
-                if (isEqual(side, "short"))
+                if ((side == "short"))
                 {
                     onePlusMaintenanceMarginPercentageString = Precise.stringSub("1", maintenanceMarginPercentageString);
                 } else
@@ -4869,10 +4869,10 @@ public partial class aster : Exchange
         {
             toId = ((string)this.convertTypeToAccount(toAccount)).ToUpper();
         }
-        if (isEqual(fromId, "SPOT") && isEqual(toId, "FUTURE"))
+        if ((fromId == "SPOT") && (toId == "FUTURE"))
         {
             type = "SPOT_FUTURE";
-        } else if (isEqual(fromId, "FUTURE") && isEqual(toId, "SPOT"))
+        } else if ((fromId == "FUTURE") && (toId == "SPOT"))
         {
             type = "FUTURE_SPOT";
         }

@@ -750,7 +750,7 @@ public partial class alpaca : Exchange
         double? amount = this.safeNumber(asset, "min_trade_increment");
         double? price = this.safeNumber(asset, "price_increment");
         double? minCost = null;
-        if (((assetClass == "crypto")) && (isEqual(quote, "USD")))
+        if (((assetClass == "crypto")) && ((quote == "USD")))
         {
             // alpaca rejects USD-quoted crypto buy orders below 10 USD notional: {"code":40310000,"message":"cost basis must be >= minimal amount of order 10"}
             // USDT-, USDC- and BTC-quoted pairs accept smaller orders, and sell orders are not floored — verified live 2026-08-25

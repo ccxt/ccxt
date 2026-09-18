@@ -1487,7 +1487,7 @@ public partial class phemex : ccxt.phemex
         }
         string? timeInForce = this.parseTimeInForce(this.safeString(order, "timeInForce"));
         string? stopPrice = this.safeString(order, "stopPx");
-        bool postOnly = (isEqual(timeInForce, "PO"));
+        bool postOnly = ((timeInForce == "PO"));
         return this.safeOrder(new Dictionary<string, object>() {
             { "info", order },
             { "id", id },

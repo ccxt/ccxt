@@ -44,15 +44,15 @@ public partial class testMainClass : BaseTest
             ((IDictionary<string,object>)format)["type"] = "crypto"; // crypto, fiat, leverage, other
             testSharedMethods.assertInArray(exchange, skippedProperties, method, entry, "type", new List<object>() {"fiat", "crypto", "leveraged", "other", null}); // todo: remove undefined
             // only require "deposit" & "withdraw" values, when currency is not fiat, or when it's fiat, but not skipped
-            if (!isEqual(currencyType, "crypto") && (inOp(skippedProperties, "depositForNonCrypto")))
+            if ((currencyType != "crypto") && (inOp(skippedProperties, "depositForNonCrypto")))
             {
                 ((IList<object>)emptyAllowedFor).Add("deposit");
             }
-            if (!isEqual(currencyType, "crypto") && (inOp(skippedProperties, "withdrawForNonCrypto")))
+            if ((currencyType != "crypto") && (inOp(skippedProperties, "withdrawForNonCrypto")))
             {
                 ((IList<object>)emptyAllowedFor).Add("withdraw");
             }
-            if (isEqual(currencyType, "leveraged") || isEqual(currencyType, "other"))
+            if ((currencyType == "leveraged") || (currencyType == "other"))
             {
                 ((IList<object>)emptyAllowedFor).Add("precision");
             }

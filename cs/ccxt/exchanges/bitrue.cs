@@ -1231,7 +1231,7 @@ public partial class bitrue : Exchange
         parameters = ((IList<object>)subTypeparametersVariable)[1];
         Dictionary<string, object> response = null;
         IDictionary<string, object> result = null;
-        if (isEqual(type, "swap"))
+        if ((type == "swap"))
         {
             if ((subType != null) && isEqual(subType, "inverse"))
             {
@@ -1753,7 +1753,7 @@ public partial class bitrue : Exchange
             IList<object> typeparametersVariable = (IList<object>)this.handleMarketTypeAndParams("fetchTickers", null, parameters);
             type = (string)((IList<object>)typeparametersVariable)[0];
             parameters = ((IList<object>)typeparametersVariable)[1];
-            if (!isEqual(type, "spot"))
+            if ((type != "spot"))
             {
                 throw new NotSupported ((string)(this.id + " fetchTickers only support spot when symbols are not proved")) ;
             }
@@ -2054,7 +2054,7 @@ public partial class bitrue : Exchange
             timestamp = this.safeInteger(order, "transactTime");
         } else if (inOp(order, "updateTime"))
         {
-            if (isEqual(status, "open"))
+            if ((status == "open"))
             {
                 if (isTrue(Precise.stringGt(filled, "0")))
                 {
@@ -2078,8 +2078,8 @@ public partial class bitrue : Exchange
         List<object> fills = this.safeList(order, "fills", new List<object>() {});
         string? clientOrderId = this.safeString(order, "clientOrderId");
         string? timeInForce = this.safeString(order, "timeInForce");
-        bool postOnly = (isEqual(type, "limit_maker")) || ((timeInForce == "GTX")) || (isEqual(type, "post_only"));
-        if (isEqual(type, "limit_maker"))
+        bool postOnly = ((type == "limit_maker")) || ((timeInForce == "GTX")) || ((type == "post_only"));
+        if ((type == "limit_maker"))
         {
             type = "limit";
         }

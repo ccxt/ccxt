@@ -832,7 +832,7 @@ public partial class binance : ccxt.binance
         IList<object> rpiparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "watchOrderBookForSymbols", "rpi", false);
         rpi = ((IList<object>)rpiparametersVariable)[0];
         parameters = ((IList<object>)rpiparametersVariable)[1];
-        if (isTrue(rpi) && isEqual(type, "future"))
+        if (isTrue(rpi) && (type == "future"))
         {
             name = "rpiDepth";
             watchOrderBookRate = "500";
@@ -1911,12 +1911,12 @@ public partial class binance : ccxt.binance
             type = ((bool) (((getValue(firstMarket, "linear") as bool?) == true))) ? "future" : "delivery";
             wsUrlType = type;
         }
-        bool isSpot = (isEqual(type, "spot"));
+        bool isSpot = ((type == "spot"));
         string? timezone = null;
         IList<object> timezoneparametersVariable = (IList<object>)this.handleParamString(parameters, "timezone");
         timezone = (string)((IList<object>)timezoneparametersVariable)[0];
         parameters = ((IList<object>)timezoneparametersVariable)[1];
-        bool isUtc8 = ((timezone != null)) && ((isEqual(timezone, "+08:00")) || isTrue(Precise.stringEq(timezone, "8")));
+        bool isUtc8 = ((timezone != null)) && (((timezone == "+08:00")) || isTrue(Precise.stringEq(timezone, "8")));
         List<object> rawHashes = new List<object>() {};
         List<object> messageHashes = new List<object>() {};
         for (int i = 0; i < getArrayLength(symbolsAndTimeframes); postFixIncrement(ref i))
@@ -1931,7 +1931,7 @@ public partial class binance : ccxt.binance
             {
                 throw new ArgumentsRequired ((string)(this.id + " watchOHLCVForSymbols() marketId is required")) ;
             }
-            if (isEqual(klineType, "indexPriceKline"))
+            if ((klineType == "indexPriceKline"))
             {
                 // weird behavior for index price kline we can't use the perp suffix
                 marketId = ((string)marketId).Replace((string)"_perp", (string)"");
@@ -2003,12 +2003,12 @@ public partial class binance : ccxt.binance
             type = ((bool) (((getValue(firstMarket, "linear") as bool?) == true))) ? "future" : "delivery";
             wsUrlType = type;
         }
-        bool isSpot = (isEqual(type, "spot"));
+        bool isSpot = ((type == "spot"));
         string? timezone = null;
         IList<object> timezoneparametersVariable = (IList<object>)this.handleParamString(parameters, "timezone");
         timezone = (string)((IList<object>)timezoneparametersVariable)[0];
         parameters = ((IList<object>)timezoneparametersVariable)[1];
-        bool isUtc8 = ((timezone != null)) && ((isEqual(timezone, "+08:00")) || isTrue(Precise.stringEq(timezone, "8")));
+        bool isUtc8 = ((timezone != null)) && (((timezone == "+08:00")) || isTrue(Precise.stringEq(timezone, "8")));
         List<object> rawHashes = new List<object>() {};
         List<object> subMessageHashes = new List<object>() {};
         List<object> messageHashes = new List<object>() {};
@@ -2024,7 +2024,7 @@ public partial class binance : ccxt.binance
             {
                 throw new ArgumentsRequired ((string)(this.id + " unWatchOHLCVForSymbols() marketId is required")) ;
             }
-            if (isEqual(klineType, "indexPriceKline"))
+            if ((klineType == "indexPriceKline"))
             {
                 // weird behavior for index price kline we can't use the perp suffix
                 marketId = ((string)marketId).Replace((string)"_perp", (string)"");
@@ -2894,11 +2894,11 @@ public partial class binance : ccxt.binance
         string? marketId = this.safeString2(message, "s", "symbol");
         string? symbol = this.safeSymbol(marketId, null, null, marketType);
         string? eventVar = this.safeString(message, "e", "bookTicker");
-        if (isEqual(eventVar, "24hrTicker"))
+        if ((eventVar == "24hrTicker"))
         {
             eventVar = "ticker";
         }
-        if (isEqual(eventVar, "markPriceUpdate") || isEqual(eventVar, "markPrice"))
+        if ((eventVar == "markPriceUpdate") || (eventVar == "markPrice"))
         {
             // handle this separately because some fields clash with the ticker fields
             // futures use 'p' for mark price; options use 'mp'
@@ -2912,7 +2912,7 @@ public partial class binance : ccxt.binance
             });
         }
         Int64? timestamp = null;
-        if (isEqual(eventVar, "bookTicker"))
+        if ((eventVar == "bookTicker"))
         {
             // take the event timestamp, if available, for spot tickers it is not
             timestamp = this.safeInteger2(message, "E", "time");
@@ -3530,7 +3530,7 @@ public partial class binance : ccxt.binance
         parameters = ((IList<object>)isPortfolioMarginparametersVariable)[1];
         List<object> subTypeInfo = this.handleSubTypeAndParams("keepAliveListenKey", null, parameters);
         object subType = getValue(subTypeInfo, 0);
-        if (!isEqual(type, "option") && !isEqual(type, "stock"))
+        if ((type != "option") && (type != "stock"))
         {
             // guard options first: isLinear returns true for linear-settled options (subType='linear')
             // which would incorrectly convert type='option' to 'future'.
@@ -3548,11 +3548,11 @@ public partial class binance : ccxt.binance
             }
         }
         // For margin, token renewal is handled by renewListenToken method
-        if (isEqual(type, "margin"))
+        if ((type == "margin"))
         {
             return;
         }
-        bool isStock = (isEqual(type, "stock"));
+        bool isStock = ((type == "stock"));
         object options = this.safeValue(this.options, type, new Dictionary<string, object>() {});
         string? listenKey = this.safeString(options, "listenKey");
         if ((listenKey == null))
@@ -3580,13 +3580,13 @@ public partial class binance : ccxt.binance
                 parameters = this.extend(parameters, new Dictionary<string, object>() {
                     { "portfolioMargin", true },
                 });
-            } else if (isEqual(type, "future"))
+            } else if ((type == "future"))
             {
                 await this.fapiPrivatePutListenKey(this.extend(request, parameters));
-            } else if (isEqual(type, "delivery"))
+            } else if ((type == "delivery"))
             {
                 await this.dapiPrivatePutListenKey(this.extend(request, parameters));
-            } else if (isEqual(type, "option"))
+            } else if ((type == "option"))
             {
                 await this.eapiPrivatePutListenKey(this.extend(request, parameters));
             } else
@@ -3609,7 +3609,7 @@ public partial class binance : ccxt.binance
                 {
                     urlType = "papi";
                 }
-                if (isEqual(type, "option"))
+                if ((type == "option"))
                 {
                     urlType = "optionPrivate";
                 }
@@ -4192,7 +4192,7 @@ public partial class binance : ccxt.binance
         IList<object> subTypeparametersVariable = (IList<object>)this.handleSubTypeAndParams(methodName, market, parameters);
         subType = ((IList<object>)subTypeparametersVariable)[0];
         parameters = ((IList<object>)subTypeparametersVariable)[1];
-        if (!isEqual(type, "option") && !isEqual(type, "stock"))
+        if ((type != "option") && (type != "stock"))
         {
             if (isTrue(this.isLinear(type, subType)))
             {
@@ -5264,7 +5264,7 @@ public partial class binance : ccxt.binance
         }
         string? stopPrice = this.safeStringN(order, new List<object>() {"P", "sp", "tp"});
         string? timeInForce = this.safeString(order, "f");
-        if (isEqual(timeInForce, "GTX"))
+        if ((timeInForce == "GTX"))
         {
             // GTX means "Good Till Crossing" and is an equivalent way of saying Post Only
             timeInForce = "PO";
@@ -5841,7 +5841,7 @@ public partial class binance : ccxt.binance
         string? contractsAbs = Precise.stringAbs(this.safeString(position, "pa"));
         string? positionSide = this.safeStringLower(position, "ps");
         bool hedged = true;
-        if (isEqual(positionSide, "both"))
+        if ((positionSide == "both"))
         {
             hedged = false;
             if (!isTrue(Precise.stringEq(contracts, "0")))

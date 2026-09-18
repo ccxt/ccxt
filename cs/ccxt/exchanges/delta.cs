@@ -954,7 +954,7 @@ public partial class delta : Exchange
         {
             object market = getValue(markets, i);
             string? type = this.safeString(market, "contract_type");
-            if ((isEqual(type, "options_combos")) || (isEqual(type, "binary_call_options")) || (isEqual(type, "binary_put_options")))
+            if (((type == "options_combos")) || ((type == "binary_call_options")) || ((type == "binary_put_options")))
             {
                 continue;
             }
@@ -971,12 +971,12 @@ public partial class delta : Exchange
             object bs = this.safeCurrencyCode(baseId);
             string? quote = this.safeCurrencyCode(quoteId);
             string? settle = this.safeCurrencyCode(settleId);
-            bool callOptions = (isEqual(type, "call_options"));
-            bool putOptions = (isEqual(type, "put_options"));
-            bool moveOptions = (isEqual(type, "move_options"));
-            bool spot = (isEqual(type, "spot"));
-            bool swap = (isEqual(type, "perpetual_futures"));
-            bool future = (isEqual(type, "futures"));
+            bool callOptions = ((type == "call_options"));
+            bool putOptions = ((type == "put_options"));
+            bool moveOptions = ((type == "move_options"));
+            bool spot = ((type == "spot"));
+            bool swap = ((type == "perpetual_futures"));
+            bool future = ((type == "futures"));
             bool option = (callOptions || putOptions || moveOptions);
             string? strike = this.safeString(market, "strike_price");
             string? expiryDatetime = this.safeString(market, "settlement_time");

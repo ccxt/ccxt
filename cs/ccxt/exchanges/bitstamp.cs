@@ -1214,7 +1214,7 @@ public partial class bitstamp : Exchange
                     subType = "inverse";
                 }
             }
-            bool isSpot = (isEqual(type, "spot"));
+            bool isSpot = ((type == "spot"));
             string? settle = ((bool) ((settleId != null) && !isEqual(settleId, ""))) ? this.safeCurrencyCode(settleId) : null;
             ((IList<object>)result).Add(new Dictionary<string, object>() {
                 { "id", this.safeString(market, "market_symbol") },
@@ -1714,7 +1714,7 @@ public partial class bitstamp : Exchange
             for (int i = 0; i < keys.Count; postFixIncrement(ref i))
             {
                 string? currentKey = ((string)getValue(keys, i));
-                if (!isEqual(currentKey, "order_id") && getIndexOf(currentKey, "_") >= 0)
+                if ((currentKey != "order_id") && getIndexOf(currentKey, "_") >= 0)
                 {
                     rawMarketId = currentKey;
                     market = this.safeMarket(rawMarketId, market, "_");
@@ -1783,10 +1783,10 @@ public partial class bitstamp : Exchange
         } else
         {
             side = this.safeString(trade, "type");
-            if (isEqual(side, "1"))
+            if ((side == "1"))
             {
                 side = "sell";
-            } else if (isEqual(side, "0"))
+            } else if ((side == "0"))
             {
                 side = "buy";
             } else
@@ -2981,7 +2981,7 @@ public partial class bitstamp : Exchange
         string? side = this.safeString2(order, "type", "order_type");
         if ((side != null))
         {
-            side = ((bool) (isEqual(side, "1"))) ? "sell" : "buy";
+            side = ((bool) ((side == "1"))) ? "sell" : "buy";
         }
         // there is no timestamp from fetchOrder
         Int64? timestamp = this.parse8601(this.safeString(order, "datetime"));

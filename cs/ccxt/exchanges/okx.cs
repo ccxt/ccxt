@@ -2741,14 +2741,14 @@ public partial class okx : Exchange
         //
         string? id = this.safeString(market, "instId", "");
         string? type = this.safeStringLower(market, "instType");
-        if (isEqual(type, "futures"))
+        if ((type == "futures"))
         {
             type = "future";
         }
-        bool spot = (isEqual(type, "spot"));
-        bool future = (isEqual(type, "future"));
-        bool swap = (isEqual(type, "swap"));
-        bool option = (isEqual(type, "option"));
+        bool spot = ((type == "spot"));
+        bool future = ((type == "future"));
+        bool swap = ((type == "swap"));
+        bool option = ((type == "option"));
         bool contract = swap || future || option;
         string? baseId = this.safeString(market, "baseCcy", ""); // defaulting to '' because some weird preopen markets have empty baseId
         string? quoteId = this.safeString(market, "quoteCcy", "");
@@ -2802,7 +2802,7 @@ public partial class okx : Exchange
                 {
                     string? ymd = this.yymmdd(expiry);
                     symbol = add(add(add(add(add(add(symbol, "-"), ymd), "-"), strikePrice), "-"), optionType);
-                    optionType = ((bool) (isEqual(optionType, "P"))) ? "put" : "call";
+                    optionType = ((bool) ((optionType == "P"))) ? "put" : "call";
                 }
             }
         }
@@ -3335,7 +3335,7 @@ public partial class okx : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "instType", this.convertToInstrumentType(marketType) },
         };
-        if (isEqual(marketType, "option"))
+        if ((marketType == "option"))
         {
             string? defaultUnderlying = this.safeString(this.options, "defaultUnderlying", "BTC-USD");
             string? currencyId = this.safeString2(parameters, "uly", "marketId", defaultUnderlying);
@@ -3442,7 +3442,7 @@ public partial class okx : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "instType", this.convertToInstrumentType(marketType) },
         };
-        if (isEqual(marketType, "option"))
+        if ((marketType == "option"))
         {
             string? defaultUnderlying = this.safeString(this.options, "defaultUnderlying", "BTC-USD");
             string? currencyId = this.safeString2(parameters, "uly", "marketId", defaultUnderlying);
@@ -3532,10 +3532,10 @@ public partial class okx : Exchange
             };
         }
         string? takerOrMaker = this.safeString(trade, "execType");
-        if (isEqual(takerOrMaker, "T"))
+        if ((takerOrMaker == "T"))
         {
             takerOrMaker = "taker";
-        } else if (isEqual(takerOrMaker, "M"))
+        } else if ((takerOrMaker == "M"))
         {
             takerOrMaker = "maker";
         }
@@ -4292,7 +4292,7 @@ public partial class okx : Exchange
         string? defaultMarginMode = this.safeString2(this.options, "defaultMarginMode", "marginMode", "cross");
         string? marginMode = this.safeString2(parameters, "marginMode", "tdMode"); // cross or isolated, tdMode not omitted so as to be extended into the request
         bool? margin = false;
-        if (((marginMode != null)) && (!isEqual(marginMode, "cash")))
+        if (((marginMode != null)) && ((marginMode != "cash")))
         {
             margin = true;
         } else
@@ -4657,11 +4657,11 @@ public partial class okx : Exchange
         {
             method = "privatePostTradeOrderAlgo";
         }
-        if ((!isEqual(method, "privatePostTradeOrder")) && (!isEqual(method, "privatePostTradeOrderAlgo")) && (!isEqual(method, "privatePostTradeBatchOrders")))
+        if (((method != "privatePostTradeOrder")) && ((method != "privatePostTradeOrderAlgo")) && ((method != "privatePostTradeBatchOrders")))
         {
             throw new ExchangeError ((string)(this.id + " createOrder() this.options[\"createOrder\"] must be either privatePostTradeBatchOrders or privatePostTradeOrder or privatePostTradeOrderAlgo")) ;
         }
-        if (isEqual(method, "privatePostTradeBatchOrders"))
+        if ((method == "privatePostTradeBatchOrders"))
         {
             // keep the request body the same
             // submit a single order in an array to the batch order endpoint
@@ -4669,10 +4669,10 @@ public partial class okx : Exchange
             request = new List<object>() {request};
         }
         Dictionary<string, object> response = null;
-        if (isEqual(method, "privatePostTradeOrder"))
+        if ((method == "privatePostTradeOrder"))
         {
             response = await this.privatePostTradeOrder(request);
-        } else if (isEqual(method, "privatePostTradeOrderAlgo"))
+        } else if ((method == "privatePostTradeOrderAlgo"))
         {
             response = await this.privatePostTradeOrderAlgo(request);
         } else
@@ -5099,7 +5099,7 @@ public partial class okx : Exchange
             }
         }
         Dictionary<string, object> response = null;
-        if (isEqual(method, "privatePostTradeCancelAlgos"))
+        if ((method == "privatePostTradeCancelAlgos"))
         {
             response = await this.privatePostTradeCancelAlgos(request); // * dont extend with params, otherwise ARRAY will be turned into OBJECT
         } else
@@ -5198,7 +5198,7 @@ public partial class okx : Exchange
             ((IList<object>)request).Add(requestItem);
         }
         Dictionary<string, object> response = null;
-        if (isEqual(method, "privatePostTradeCancelAlgos"))
+        if ((method == "privatePostTradeCancelAlgos"))
         {
             response = await this.privatePostTradeCancelAlgos(request); // * dont extend with params, otherwise ARRAY will be turned into OBJECT
         } else
@@ -5500,19 +5500,19 @@ public partial class okx : Exchange
         string? type = this.safeString(order, "ordType");
         bool? postOnly = null;
         string? timeInForce = null;
-        if (isEqual(type, "post_only"))
+        if ((type == "post_only"))
         {
             postOnly = true;
             type = "limit";
-        } else if (isEqual(type, "fok"))
+        } else if ((type == "fok"))
         {
             timeInForce = "FOK";
             type = "limit";
-        } else if (isEqual(type, "ioc"))
+        } else if ((type == "ioc"))
         {
             timeInForce = "IOC";
             type = "limit";
-        } else if (isEqual(type, "rpi"))
+        } else if ((type == "rpi"))
         {
             // retail price improvement orders are maker-only limit orders
             postOnly = true;
@@ -5533,7 +5533,7 @@ public partial class okx : Exchange
         string? defaultTgtCcy = this.safeString(this.options, "tgtCcy", "base_ccy");
         string? tgtCcy = this.safeString(order, "tgtCcy", defaultTgtCcy);
         string? instType = this.safeString(order, "instType");
-        if (((side == "buy")) && (isEqual(type, "market")) && ((instType == "SPOT")) && ((tgtCcy == "quote_ccy")))
+        if (((side == "buy")) && ((type == "market")) && ((instType == "SPOT")) && ((tgtCcy == "quote_ccy")))
         {
             // "sz" refers to the cost
             cost = this.safeString(order, "sz");
@@ -5650,7 +5650,7 @@ public partial class okx : Exchange
         }
         object query = this.omit(parameters, new List<object>() {"method", "clOrdId", "clientOrderId", "stop", "trigger"});
         Dictionary<string, object> response = null;
-        if (isEqual(method, "privateGetTradeOrderAlgo"))
+        if ((method == "privateGetTradeOrderAlgo"))
         {
             response = await this.privateGetTradeOrderAlgo(this.extend(request, query));
         } else
@@ -5823,7 +5823,7 @@ public partial class okx : Exchange
         }
         object query = this.omit(parameters, new List<object>() {"method", "stop", "trigger", "trailing"});
         Dictionary<string, object> response = null;
-        if (isEqual(method, "privateGetTradeOrdersAlgoPending"))
+        if ((method == "privateGetTradeOrdersAlgoPending"))
         {
             response = await this.privateGetTradeOrdersAlgoPending(this.extend(request, query));
         } else
@@ -6014,7 +6014,7 @@ public partial class okx : Exchange
         }
         object send = this.omit(query, new List<object>() {"method", "stop", "trigger", "trailing"});
         Dictionary<string, object> response = null;
-        if (isEqual(method, "privateGetTradeOrdersAlgoHistory"))
+        if ((method == "privateGetTradeOrdersAlgoHistory"))
         {
             response = await this.privateGetTradeOrdersAlgoHistory(this.extend(request, send));
         } else
@@ -6214,10 +6214,10 @@ public partial class okx : Exchange
         }
         object send = this.omit(query, new List<object>() {"method", "stop", "trigger", "trailing"});
         Dictionary<string, object> response = null;
-        if (isEqual(method, "privateGetTradeOrdersAlgoHistory"))
+        if ((method == "privateGetTradeOrdersAlgoHistory"))
         {
             response = await this.privateGetTradeOrdersAlgoHistory(this.extend(request, send));
-        } else if (isEqual(method, "privateGetTradeOrdersHistoryArchive"))
+        } else if ((method == "privateGetTradeOrdersHistoryArchive"))
         {
             response = await this.privateGetTradeOrdersHistoryArchive(this.extend(request, send));
         } else
@@ -7303,7 +7303,7 @@ public partial class okx : Exchange
         string? txid = this.safeString(transaction, "txId");
         Int64? timestamp = this.safeInteger(transaction, "ts");
         object feeCost = null;
-        if (isEqual(type, "deposit"))
+        if ((type == "deposit"))
         {
             feeCost = 0;
         } else
@@ -7697,12 +7697,12 @@ public partial class okx : Exchange
         string? pos = this.safeString(position, "pos"); // 'pos' field: One way mode: 0 if position is not open, 1 if open | Two way (hedge) mode: -1 if short, 1 if long, 0 if position is not open
         string? contractsAbs = Precise.stringAbs(pos);
         string? side = this.safeString2(position, "posSide", "direction");
-        bool hedged = !isEqual(side, "net");
+        bool hedged = (side != "net");
         double? contracts = this.parseNumber(contractsAbs);
         if (isEqual(getValue(market, "margin"), true))
         {
             // margin position
-            if (isEqual(side, "net"))
+            if ((side == "net"))
             {
                 string? posCcy = this.safeString(position, "posCcy");
                 string? parsedCurrency = this.safeCurrencyCode(posCcy);
@@ -7719,7 +7719,7 @@ public partial class okx : Exchange
         {
             if ((pos != null))
             {
-                if (isEqual(side, "net"))
+                if ((side == "net"))
                 {
                     if (isTrue(Precise.stringGt(pos, "0")))
                     {
@@ -9096,7 +9096,7 @@ public partial class okx : Exchange
         string? uly = this.safeString(getValue(market, "info"), "uly");
         if (((uly == null)) || ((uly == "")))
         {
-            if (!isEqual(type, "MARGIN"))
+            if ((type != "MARGIN"))
             {
                 throw new BadRequest ((string)add((this.id + " fetchMarketLeverageTiers() cannot fetch leverage tiers for "), symbol)) ;
             }
@@ -9114,7 +9114,7 @@ public partial class okx : Exchange
             { "tdMode", marginMode },
             { "uly", uly },
         };
-        if (isEqual(type, "MARGIN"))
+        if ((type == "MARGIN"))
         {
             ((IDictionary<string,object>)request)["instId"] = getValue(market, "id");
         }
@@ -9580,7 +9580,7 @@ public partial class okx : Exchange
         IList<object> typeparametersVariable = (IList<object>)this.handleMarketTypeAndParams("fetchOpenInterestHistory", market, parameters);
         type = (string)((IList<object>)typeparametersVariable)[0];
         parameters = ((IList<object>)typeparametersVariable)[1];
-        if (isEqual(type, "option"))
+        if ((type == "option"))
         {
             response = await this.publicGetRubikStatOptionOpenInterestVolume(this.extend(request, parameters));
         } else
@@ -9862,7 +9862,7 @@ public partial class okx : Exchange
         IList<object> typeparametersVariable = (IList<object>)this.handleMarketTypeAndParams("fetchSettlementHistory", market, parameters);
         type = (string)((IList<object>)typeparametersVariable)[0];
         parameters = ((IList<object>)typeparametersVariable)[1];
-        if (!isEqual(type, "future") && !isEqual(type, "option"))
+        if ((type != "future") && (type != "option"))
         {
             throw new NotSupported ((string)(this.id + " fetchSettlementHistory() supports futures and options markets only")) ;
         }
@@ -9974,11 +9974,11 @@ public partial class okx : Exchange
         IList<object> marketTypeparametersVariable = (IList<object>)this.handleMarketTypeAndParams("fetchUnderlyingAssets", null, parameters);
         marketType = (string)((IList<object>)marketTypeparametersVariable)[0];
         parameters = ((IList<object>)marketTypeparametersVariable)[1];
-        if (((marketType == null)) || (isEqual(marketType, "spot")))
+        if (((marketType == null)) || ((marketType == "spot")))
         {
             marketType = "option";
         }
-        if ((!isEqual(marketType, "option")) && (!isEqual(marketType, "swap")) && (!isEqual(marketType, "future")))
+        if (((marketType != "option")) && ((marketType != "swap")) && ((marketType != "future")))
         {
             throw new NotSupported ((string)(this.id + " fetchUnderlyingAssets() supports contract markets only")) ;
         }

@@ -2202,10 +2202,10 @@ public partial class bitteam : Exchange
         string? order = null;
         if ((takerOrMaker == "maker"))
         {
-            if (isEqual(side, "sell"))
+            if ((side == "sell"))
             {
                 side = "buy";
-            } else if (isEqual(side, "buy"))
+            } else if ((side == "buy"))
             {
                 side = "sell";
             }

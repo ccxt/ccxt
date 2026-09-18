@@ -1074,7 +1074,7 @@ public partial class myriad : PredictionExchange
         string typeStr = ((bool) ((type == null))) ? "limit" : ((string)type).ToLower();
         string sideStr = ((string)((string)side)).ToLower();
         int sideInt = ((bool) ((sideStr == "buy"))) ? 0 : 1;
-        bool isMarket = (isEqual(typeStr, "market"));
+        bool isMarket = ((typeStr == "market"));
         string defaultTif = ((bool) isMarket) ? "FOK" : "GTC";
         string? timeInForce = this.safeStringUpper(parameters, "timeInForce", defaultTif);
         object priceValue = price;
@@ -1219,7 +1219,7 @@ public partial class myriad : PredictionExchange
         parameters ??= new Dictionary<string, object>();
         string? sideLower = ((bool) ((side != null))) ? ((string)((string)side)).ToLower() : null;
         bool? isCostDenominated = this.safeBool(parameters, "costDenominated", false);
-        if ((isEqual(sideLower, "buy")) && ((isCostDenominated != true)))
+        if (((sideLower == "buy")) && ((isCostDenominated != true)))
         {
             throw new NotSupported ((string)(this.id + " createOrder() market buy on the AMM sizes by collateral, not shares — use createMarketBuyOrderWithCost(outcome, collateral) for a dollar buy, or the default order book (omit enableAmm) for a share-denominated order")) ;
         }
@@ -1257,7 +1257,7 @@ public partial class myriad : PredictionExchange
         string? txHashParam = this.safeString2(parameters, "transactionHash", "txHash");
         bool hasPreBroadcastTxHash = ((txHashParam != null));
         bool? skipAllowance = this.safeBool(parameters, "skipAllowance", hasPreBroadcastTxHash);
-        if ((isEqual(sideStr, "buy")) && ((tokenAddress != null)) && ((skipAllowance != true)))
+        if (((sideStr == "buy")) && ((tokenAddress != null)) && ((skipAllowance != true)))
         {
             await this.ensureErc20Allowance(rpcUrl, networkId, tokenAddress, fromAddress, predictionMarket);
         }
@@ -4318,7 +4318,7 @@ public partial class myriad : PredictionExchange
         // apply it to the REST-seeded balance keyed by outcome id to maintain a running contracts figure
         string? deltaStr = this.safeString(data, "delta", "0");
         string? firstChar = slice(deltaStr, 0, 1);
-        if (isEqual(firstChar, "+"))
+        if ((firstChar == "+"))
         {
             deltaStr = slice(deltaStr, 1, null);
         }
@@ -4422,7 +4422,7 @@ public partial class myriad : PredictionExchange
         if (isEqual(method, "GET"))
         {
             string querystring = this.urlencode(query);
-            if (!isEqual(querystring, ""))
+            if ((querystring != ""))
             {
                 url = add(url, ("?" + querystring));
             }

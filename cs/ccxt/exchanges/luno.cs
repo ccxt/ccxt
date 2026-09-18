@@ -1162,10 +1162,10 @@ public partial class luno : Exchange
             {
                 side = "buy";
             }
-            if ((isEqual(side, "sell")) && (isEqual(getValue(trade, "is_buy"), true)))
+            if (((side == "sell")) && (isEqual(getValue(trade, "is_buy"), true)))
             {
                 takerOrMaker = "maker";
-            } else if ((isEqual(side, "buy")) && (!isEqual(getValue(trade, "is_buy"), true)))
+            } else if (((side == "buy")) && (!isEqual(getValue(trade, "is_buy"), true)))
             {
                 takerOrMaker = "maker";
             } else
@@ -1620,7 +1620,7 @@ public partial class luno : Exchange
         {
             type = "fee";
         }
-        if ((isEqual(type, "reserved")) && ((fourthWord == "order")))
+        if (((type == "reserved")) && ((fourthWord == "order")))
         {
             referenceId = this.safeString(words, 4);
         }

@@ -1983,7 +1983,7 @@ public partial class upbit : Exchange
         string? updatedRaw = this.safeString(transaction, "done_at");
         Int64? timestamp = this.parse8601(this.safeString(transaction, "created_at", updatedRaw));
         string? type = this.safeString(transaction, "type");
-        if (isEqual(type, "withdraw"))
+        if ((type == "withdraw"))
         {
             type = "withdrawal";
         }
@@ -2103,10 +2103,10 @@ public partial class upbit : Exchange
         //      }
         string? id = this.safeString(order, "uuid");
         string? side = this.safeStringLower(order, "side");
-        if (isEqual(side, "bid"))
+        if ((side == "bid"))
         {
             side = "buy";
-        } else if (isEqual(side, "ask"))
+        } else if ((side == "ask"))
         {
             side = "sell";
         }
@@ -2120,7 +2120,7 @@ public partial class upbit : Exchange
         string? remaining = this.safeString(order, "remaining_volume");
         string? filled = this.safeString(order, "executed_volume");
         string? cost = null;
-        if (isEqual(type, "price"))
+        if ((type == "price"))
         {
             type = "market";
             cost = price;

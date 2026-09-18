@@ -4432,7 +4432,7 @@ public partial class bitget : Exchange
         parameters = ((IList<object>)utaparametersVariable)[1];
         if (isEqual(uta, true))
         {
-            if (isEqual(productType, "SPOT"))
+            if ((productType == "SPOT"))
             {
                 if ((marginMode != null))
                 {
@@ -5674,7 +5674,7 @@ public partial class bitget : Exchange
             }
             ((IDictionary<string,object>)request)["category"] = productType;
             response = await this.publicUtaGetV3MarketTickers(this.extend(request, parameters));
-        } else if (isEqual(type, "spot") && (passedSubType == null))
+        } else if ((type == "spot") && (passedSubType == null))
         {
             response = await this.publicSpotGetV2SpotMarketTickers(this.extend(request, parameters));
         } else
@@ -6022,7 +6022,7 @@ public partial class bitget : Exchange
         parameters = ((IList<object>)productTypeparametersVariable)[1];
         if (isEqual(uta, true))
         {
-            if (isEqual(productType, "SPOT"))
+            if ((productType == "SPOT"))
             {
                 object marginMode = null;
                 IList<object> marginModeparametersVariable = (IList<object>)this.handleMarginModeAndParams("fetchTrades", parameters);
@@ -6256,7 +6256,7 @@ public partial class bitget : Exchange
             bool? utaMargin = this.safeBool(parameters, "margin", false);
             parameters = this.omit(parameters, "margin");
             Dictionary<string, object> request = new Dictionary<string, object>() {};
-            if (isEqual(marketType, "spot"))
+            if ((marketType == "spot"))
             {
                 if (((marginMode != null)) || ((utaMargin == true)))
                 {
@@ -6265,7 +6265,7 @@ public partial class bitget : Exchange
                 {
                     ((IDictionary<string,object>)request)["category"] = "SPOT";
                 }
-            } else if ((isEqual(marketType, "swap")) || (isEqual(marketType, "future")))
+            } else if (((marketType == "swap")) || ((marketType == "future")))
             {
                 object productType = null;
                 IList<object> productTypeparametersVariable = (IList<object>)this.handleProductTypeAndParams(null, parameters);
@@ -6311,7 +6311,7 @@ public partial class bitget : Exchange
             }
             return ccxt.BaseExchange.ToTradingFees(utaResult);
         }
-        if (isEqual(marketType, "spot"))
+        if ((marketType == "spot"))
         {
             bool? margin = this.safeBool(parameters, "margin", false);
             parameters = this.omit(parameters, "margin");
@@ -6322,7 +6322,7 @@ public partial class bitget : Exchange
             {
                 response = await this.publicSpotGetV2SpotPublicSymbols(parameters);
             }
-        } else if ((isEqual(marketType, "swap")) || (isEqual(marketType, "future")))
+        } else if (((marketType == "swap")) || ((marketType == "future")))
         {
             object productType = null;
             IList<object> productTypeparametersVariable = (IList<object>)this.handleProductTypeAndParams(null, parameters);
@@ -6615,10 +6615,10 @@ public partial class bitget : Exchange
         {
             if ((priceType != null))
             {
-                if (isEqual(priceType, "mark"))
+                if ((priceType == "mark"))
                 {
                     ((IDictionary<string,object>)request)["type"] = "MARK";
-                } else if (isEqual(priceType, "index"))
+                } else if ((priceType == "index"))
                 {
                     ((IDictionary<string,object>)request)["type"] = "INDEX";
                 }
@@ -6644,7 +6644,7 @@ public partial class bitget : Exchange
         {
             ((IDictionary<string,object>)request)["productType"] = productType;
             Dictionary<string, object> extended = this.extend(request, parameters);
-            if (!historicalEndpointNeeded && (isEqual(priceType, "mark") || isEqual(priceType, "index")))
+            if (!historicalEndpointNeeded && ((priceType == "mark") || (priceType == "index")))
             {
                 if (!limitDefined)
                 {
@@ -6656,10 +6656,10 @@ public partial class bitget : Exchange
                 response = await this.publicMixGetV2MixMarketCandles(this.extend(new Dictionary<string, object>() {
                     { "kLineType", priceType },
                 }, extended));
-            } else if (isEqual(priceType, "mark"))
+            } else if ((priceType == "mark"))
             {
                 response = await this.publicMixGetV2MixMarketHistoryMarkCandles(extended);
-            } else if (isEqual(priceType, "index"))
+            } else if ((priceType == "index"))
             {
                 response = await this.publicMixGetV2MixMarketHistoryIndexCandles(extended);
             } else
@@ -6736,7 +6736,7 @@ public partial class bitget : Exchange
         if (isEqual(uta, true))
         {
             List<object> assets = null;
-            if (isEqual(marketType, "funding"))
+            if ((marketType == "funding"))
             {
                 response = await this.privateUtaGetV3AccountFundingAssets(this.extend(request, parameters));
                 assets = this.safeList(response, "data", new List<object>() {});
@@ -6747,7 +6747,7 @@ public partial class bitget : Exchange
                 assets = this.safeList(results, "assets", new List<object>() {});
             }
             return ccxt.BaseExchange.ToBalances(this.parseUtaBalance(assets));
-        } else if ((isEqual(marketType, "swap")) || (isEqual(marketType, "future")))
+        } else if (((marketType == "swap")) || ((marketType == "future")))
         {
             string? productType = null;
             IList<object> productTypeparametersVariable = (IList<object>)this.handleProductTypeAndParams(null, parameters);
@@ -6761,7 +6761,7 @@ public partial class bitget : Exchange
         } else if (isEqual(marginMode, "cross"))
         {
             response = await this.privateMarginGetV2MarginCrossedAccountAssets(this.extend(request, parameters));
-        } else if (isEqual(marketType, "spot"))
+        } else if ((marketType == "spot"))
         {
             response = await this.privateSpotGetV2SpotAccountAssets(this.extend(request, parameters));
         } else
@@ -7303,7 +7303,7 @@ public partial class bitget : Exchange
         }
         bool? postOnly = null;
         string? timeInForce = this.safeStringUpper2(order, "force", "timeInForce");
-        if (isEqual(timeInForce, "POST_ONLY"))
+        if ((timeInForce == "POST_ONLY"))
         {
             postOnly = true;
             timeInForce = "PO";
@@ -7344,10 +7344,10 @@ public partial class bitget : Exchange
         string? posMode = this.safeString(order, "posMode");
         if ((posMode == "hedge_mode") && (isEqual(reduceOnly, true)))
         {
-            side = ((bool) (isEqual(side, "buy"))) ? "sell" : "buy";
+            side = ((bool) ((side == "buy"))) ? "sell" : "buy";
         }
         string? orderType = this.safeString(order, "orderType");
-        bool isBuyMarket = (isEqual(side, "buy")) && ((orderType == "market"));
+        bool isBuyMarket = ((side == "buy")) && ((orderType == "market"));
         if ((isEqual(getValue(market, "spot"), true)) && isBuyMarket)
         {
             // as noted in top comment, for 'buy market' the 'size' field is COST, not AMOUNT
@@ -7554,7 +7554,7 @@ public partial class bitget : Exchange
         IList<object> productTypeparametersVariable = (IList<object>)this.handleProductTypeAndParams(market, parameters);
         productType = (string)((IList<object>)productTypeparametersVariable)[0];
         parameters = ((IList<object>)productTypeparametersVariable)[1];
-        if (isEqual(productType, "SPOT"))
+        if ((productType == "SPOT"))
         {
             object marginMode = null;
             IList<object> marginModeparametersVariable = (IList<object>)this.handleMarginModeAndParams("createOrder", parameters);
@@ -7804,7 +7804,7 @@ public partial class bitget : Exchange
             ((IDictionary<string,object>)request)["force"] = "IOC";
         }
         parameters = this.omit(parameters, new List<object>() {"stopPrice", "triggerType", "stopLossPrice", "takeProfitPrice", "stopLoss", "takeProfit", "postOnly", "reduceOnly", "clientOrderId", "trailingPercent", "trailingTriggerPrice"});
-        if ((isEqual(marketType, "swap")) || (isEqual(marketType, "future")))
+        if (((marketType == "swap")) || ((marketType == "future")))
         {
             ((IDictionary<string,object>)request)["marginCoin"] = getValue(market, "settleId");
             ((IDictionary<string,object>)request)["size"] = this.amountToPrecision(symbol, amount);
@@ -7948,7 +7948,7 @@ public partial class bitget : Exchange
                 }
                 ((IDictionary<string,object>)request)["side"] = requestSide;
             }
-        } else if (isEqual(marketType, "spot"))
+        } else if ((marketType == "spot"))
         {
             if (isStopLossOrTakeProfitTrigger || isStopLossOrTakeProfit)
             {
@@ -8913,7 +8913,7 @@ public partial class bitget : Exchange
         parameters = ((IList<object>)utaparametersVariable)[1];
         if (isEqual(uta, true))
         {
-            if (isEqual(productType, "SPOT"))
+            if ((productType == "SPOT"))
             {
                 if ((marginMode != null))
                 {
@@ -9239,7 +9239,7 @@ public partial class bitget : Exchange
             {
                 cursorReceived = "cursor";
                 cursorSent = "cursor";
-            } else if (isEqual(type, "spot"))
+            } else if ((type == "spot"))
             {
                 if ((marginMode != null))
                 {
@@ -9269,7 +9269,7 @@ public partial class bitget : Exchange
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
-        if ((!isEqual(uta, true)) && ((isEqual(type, "swap")) || (isEqual(type, "future")) || ((marginMode != null))))
+        if ((!isEqual(uta, true)) && (((type == "swap")) || ((type == "future")) || ((marginMode != null))))
         {
             string? clientOrderId = this.safeString2(parameters, "clientOid", "clientOrderId");
             parameters = this.omit(parameters, "clientOrderId");
@@ -9285,7 +9285,7 @@ public partial class bitget : Exchange
         parameters = this.omit(parameters, new List<object>() {"type", "stop", "trigger", "trailing"});
         if (isEqual(uta, true))
         {
-            if (isEqual(type, "spot"))
+            if ((type == "spot"))
             {
                 if ((marginMode != null))
                 {
@@ -9303,7 +9303,7 @@ public partial class bitget : Exchange
             {
                 response = await this.privateUtaGetV3TradeUnfilledOrders(this.extend(request, parameters));
             }
-        } else if (isEqual(type, "spot"))
+        } else if ((type == "spot"))
         {
             if ((marginMode != null))
             {
@@ -9611,7 +9611,7 @@ public partial class bitget : Exchange
                 result = this.safeList(data, "list", new List<object>() {});
             }
             return ccxt.BaseExchange.ToOrderList(this.parseOrders(result, market, sinceVar, limit));
-        } else if (isEqual(type, "spot"))
+        } else if ((type == "spot"))
         {
             if (((marginMode != null)) || ((trigger == true)))
             {
@@ -9757,7 +9757,7 @@ public partial class bitget : Exchange
         if (isTrue(paginate))
         {
             string? cursorReceived = null;
-            if (isEqual(marketType, "spot"))
+            if ((marketType == "spot"))
             {
                 if ((marginMode != null))
                 {
@@ -9784,7 +9784,7 @@ public partial class bitget : Exchange
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
-        if ((isEqual(marketType, "swap")) || (isEqual(marketType, "future")) || ((marginMode != null)))
+        if (((marketType == "swap")) || ((marketType == "future")) || ((marginMode != null)))
         {
             string? clientOrderId = this.safeString2(parameters, "clientOid", "clientOrderId");
             parameters = this.omit(parameters, "clientOrderId");
@@ -9794,7 +9794,7 @@ public partial class bitget : Exchange
             }
         }
         Int64 now = this.milliseconds();
-        if (isEqual(marketType, "spot"))
+        if ((marketType == "spot"))
         {
             if ((marginMode != null))
             {
@@ -10034,7 +10034,7 @@ public partial class bitget : Exchange
         //     }
         //
         object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
-        if (isEqual(marketType, "spot"))
+        if ((marketType == "spot"))
         {
             if (((marginMode != null)) || ((trigger == true)))
             {
@@ -10068,7 +10068,7 @@ public partial class bitget : Exchange
         IList<object> productTypeparametersVariable = (IList<object>)this.handleProductTypeAndParams(market, parameters);
         productType = (string)((IList<object>)productTypeparametersVariable)[0];
         parameters = ((IList<object>)productTypeparametersVariable)[1];
-        if (isEqual(productType, "SPOT"))
+        if ((productType == "SPOT"))
         {
             object marginMode = null;
             IList<object> marginModeparametersVariable = (IList<object>)this.handleMarginModeAndParams("fetchCanceledAndClosedOrders", parameters);
@@ -10240,7 +10240,7 @@ public partial class bitget : Exchange
         if (isTrue(paginate))
         {
             string? cursorReceived = null;
-            if (!isEqual(marketType, "spot"))
+            if ((marketType != "spot"))
             {
                 cursorReceived = "endId";
             }
@@ -10265,7 +10265,7 @@ public partial class bitget : Exchange
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
         Dictionary<string, object> response = null;
-        if (isEqual(marketType, "spot"))
+        if ((marketType == "spot"))
         {
             response = await this.privateSpotGetV2SpotAccountBills(this.extend(request, parameters));
         } else
@@ -10326,7 +10326,7 @@ public partial class bitget : Exchange
         //     }
         //
         object data = this.safeValue(response, "data");
-        if ((isEqual(marketType, "swap")) || (isEqual(marketType, "future")))
+        if (((marketType == "swap")) || ((marketType == "future")))
         {
             object bills = this.safeValue(data, "bills", new List<object>() {});
             return ccxt.BaseExchange.ToLedgerEntryList(this.parseLedger(bills, currency, since, limit));
@@ -10896,19 +10896,19 @@ public partial class bitget : Exchange
             if ((market != null))
             {
                 marginCoin = ((string)getValue(market, "settleId"));
-            } else if (isEqual(productType, "USDT-FUTURES"))
+            } else if ((productType == "USDT-FUTURES"))
             {
                 marginCoin = "USDT";
-            } else if (isEqual(productType, "USDC-FUTURES"))
+            } else if ((productType == "USDC-FUTURES"))
             {
                 marginCoin = "USDC";
-            } else if (isEqual(productType, "SUSDT-FUTURES"))
+            } else if ((productType == "SUSDT-FUTURES"))
             {
                 marginCoin = "SUSDT";
-            } else if (isEqual(productType, "SUSDC-FUTURES"))
+            } else if ((productType == "SUSDC-FUTURES"))
             {
                 marginCoin = "SUSDC";
-            } else if ((isEqual(productType, "SCOIN-FUTURES")) || (isEqual(productType, "COIN-FUTURES")))
+            } else if (((productType == "SCOIN-FUTURES")) || ((productType == "COIN-FUTURES")))
             {
                 if ((marginCoin == null))
                 {
@@ -11187,10 +11187,10 @@ public partial class bitget : Exchange
         string? initialMargin = null;
         string? unrealizedPnl = this.safeString2(position, "unrealizedPL", "unrealisedPnl");
         string? rawCollateral = this.safeString2(position, "marginSize", "positionBalance");
-        if (isEqual(marginMode, "isolated"))
+        if ((marginMode == "isolated"))
         {
             collateral = Precise.stringAdd(rawCollateral, unrealizedPnl);
-        } else if (isEqual(marginMode, "crossed"))
+        } else if ((marginMode == "crossed"))
         {
             marginMode = "cross";
             initialMargin = rawCollateral;
@@ -11227,7 +11227,7 @@ public partial class bitget : Exchange
         double? liquidationPrice = this.parseNumber(this.omitZero(this.safeString(position, "liquidationPrice")));
         string calcTakerFeeRate = "0.0006";
         string calcTakerFeeMult = "0.9994";
-        if ((isEqual(liquidationPrice, null)) && (isEqual(marginMode, "isolated")) && isTrue(Precise.stringGt(baseAmount, "0")))
+        if ((isEqual(liquidationPrice, null)) && ((marginMode == "isolated")) && isTrue(Precise.stringGt(baseAmount, "0")))
         {
             string? signedMargin = Precise.stringDiv(rawCollateral, baseAmount);
             string? signedMmp = maintenanceMarginPercentage;
@@ -12039,7 +12039,7 @@ public partial class bitget : Exchange
         parameters = ((IList<object>)utaparametersVariable)[1];
         if (isEqual(uta, true))
         {
-            if (isEqual(productType, "SPOT"))
+            if ((productType == "SPOT"))
             {
                 object marginMode = null;
                 IList<object> marginModeparametersVariable = (IList<object>)this.handleMarginModeAndParams("setLeverage", parameters);
@@ -12834,7 +12834,7 @@ public partial class bitget : Exchange
         IList<object> typeparametersVariable = (IList<object>)this.handleMarketTypeAndParams("fetchMyLiquidations", market, parameters);
         type = (string)((IList<object>)typeparametersVariable)[0];
         parameters = ((IList<object>)typeparametersVariable)[1];
-        if (!isEqual(type, "spot"))
+        if ((type != "spot"))
         {
             throw new NotSupported ((string)(this.id + " fetchMyLiquidations() supports spot margin markets only")) ;
         }

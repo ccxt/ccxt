@@ -420,7 +420,7 @@ public partial class kalshi : PredictionExchange
                 {
                     object m = getValue(parsed, j);
                     ((IList<object>)flatMarkets).Add(m);
-                    if (((eventKey != null)) && (!isEqual(eventKey, "")))
+                    if (((eventKey != null)) && ((eventKey != "")))
                     {
                         if (!(inOp(eventsDict, eventKey)))
                         {
@@ -444,7 +444,7 @@ public partial class kalshi : PredictionExchange
             }
             cursor = this.safeString(response, "cursor");
             int collectedLength = getArrayLength(flatMarkets);
-            if (((cursor == null) || isEqual(cursor, "")) || isLessThan(rawMarketsLength, limit) || isGreaterThanOrEqual(collectedLength, maxMarkets))
+            if (((cursor == null) || (cursor == "")) || isLessThan(rawMarketsLength, limit) || isGreaterThanOrEqual(collectedLength, maxMarkets))
             {
                 break;
             }
@@ -488,7 +488,7 @@ public partial class kalshi : PredictionExchange
             // the python transpiler — this form emits strlen()/len() correctly in both
             Int64? symbolLength = this.parseToInt(((string)outcomeSymbol).Length);
             string? suffix = slice(outcomeSymbol, subtract(symbolLength, 3), null);
-            bool isNo = (isEqual(suffix, "-NO"));
+            bool isNo = ((suffix == "-NO"));
             object baseTicker = ((bool) isNo) ? slice(outcomeSymbol, 0, subtract(symbolLength, 3)) : outcomeSymbol;
             Dictionary<string, object> response = null;
             try
@@ -583,7 +583,7 @@ public partial class kalshi : PredictionExchange
             // parseToInt-wrapped .length — see the fetchOutcome comment (php count()/python slice traps)
             Int64? symbolLength = this.parseToInt(((string)outcomeSymbol).Length);
             string? suffix = slice(outcomeSymbol, subtract(symbolLength, 3), null);
-            object baseTicker = ((bool) (isEqual(suffix, "-NO"))) ? slice(outcomeSymbol, 0, subtract(symbolLength, 3)) : outcomeSymbol;
+            object baseTicker = ((bool) ((suffix == "-NO"))) ? slice(outcomeSymbol, 0, subtract(symbolLength, 3)) : outcomeSymbol;
             if (!(inOp(seen, baseTicker)))
             {
                 ((IDictionary<string,object>)seen)[(string)baseTicker] = true;
@@ -2856,7 +2856,7 @@ public partial class kalshi : PredictionExchange
                 {
                     break;
                 }
-                if (((cursor == null)) || (isEqual(cursor, "")) || (isLessThan(pageEventsLength, reqLimit)))
+                if (((cursor == null)) || ((cursor == "")) || (isLessThan(pageEventsLength, reqLimit)))
                 {
                     break;
                 }
@@ -3073,7 +3073,7 @@ public partial class kalshi : PredictionExchange
         object url = add(add(baseUrl, "/"), implodedPath);
         object query = this.omit(parameters, this.extractParams(path));
         string querystring = this.urlencode(query);
-        if (isEqual(method, "GET") && (!isEqual(querystring, "")))
+        if (isEqual(method, "GET") && ((querystring != "")))
         {
             url = add(url, ("?" + querystring));
         }
@@ -3102,7 +3102,7 @@ public partial class kalshi : PredictionExchange
                 { "KALSHI-ACCESS-SIGNATURE", signature },
                 { "KALSHI-ACCESS-TIMESTAMP", timestamp },
             });
-            if (!isEqual(method, "GET") && (!isEqual(querystring, "")))
+            if (!isEqual(method, "GET") && ((querystring != "")))
             {
                 // kalshi expects a JSON body; the signature covers only timestamp+method+path
                 body = this.json(query);

@@ -2216,7 +2216,7 @@ public partial class xt : Exchange
         if (isEqual(subType, "inverse"))
         {
             response = await this.publicInverseGetFutureMarketV1PublicQAggTickers(this.extend(request, parameters));
-        } else if ((isEqual(subType, "linear")) || (isEqual(type, "swap")) || (isEqual(type, "future")))
+        } else if ((isEqual(subType, "linear")) || ((type == "swap")) || ((type == "future")))
         {
             response = await this.publicLinearGetFutureMarketV1PublicQAggTickers(this.extend(request, parameters));
         } else
@@ -2318,7 +2318,7 @@ public partial class xt : Exchange
         subType = ((IList<object>)subTypeparametersVariable)[0];
         parameters = ((IList<object>)subTypeparametersVariable)[1];
         bool isInverse = (isEqual(subType, "inverse"));
-        bool isLinear = (isEqual(subType, "linear")) || (isEqual(type, "swap")) || (isEqual(type, "future"));
+        bool isLinear = (isEqual(subType, "linear")) || ((type == "swap")) || ((type == "future"));
         bool isContract = isInverse || isLinear;
         Dictionary<string, object> response = null;
         if (isInverse)
@@ -2598,7 +2598,7 @@ public partial class xt : Exchange
         IList<object> subTypeparametersVariable = (IList<object>)this.handleSubTypeAndParams("fetchMyTrades", market, parameters);
         subType = ((IList<object>)subTypeparametersVariable)[0];
         parameters = ((IList<object>)subTypeparametersVariable)[1];
-        if (((subType != null)) || (isEqual(type, "swap")) || (isEqual(type, "future")))
+        if (((subType != null)) || ((type == "swap")) || ((type == "future")))
         {
             if (!isEqual(limit, null))
             {
@@ -2900,7 +2900,7 @@ public partial class xt : Exchange
         IList<object> subTypeparametersVariable = (IList<object>)this.handleSubTypeAndParams("fetchBalance", null, parameters);
         subType = ((IList<object>)subTypeparametersVariable)[0];
         parameters = ((IList<object>)subTypeparametersVariable)[1];
-        bool isContractWallet = ((isEqual(type, "swap")) || (isEqual(type, "future")));
+        bool isContractWallet = (((type == "swap")) || ((type == "future")));
         if (isEqual(subType, "inverse"))
         {
             response = await this.privateInverseGetFutureUserV1BalanceList(parameters);
@@ -3160,7 +3160,7 @@ public partial class xt : Exchange
             ((IDictionary<string,object>)request)["price"] = this.priceToPrecision(symbol, price);
         }
         bool? postOnly = null;
-        IList<object> postOnlyparametersVariable = (IList<object>)this.handlePostOnly(isEqual(type, "market"), isEqual(timeInForce, "GTX"), parameters);
+        IList<object> postOnlyparametersVariable = (IList<object>)this.handlePostOnly(isEqual(type, "market"), (timeInForce == "GTX"), parameters);
         postOnly = (bool?)((IList<object>)postOnlyparametersVariable)[0];
         parameters = ((IList<object>)postOnlyparametersVariable)[1];
         if (isEqual(postOnly, true))
@@ -3202,7 +3202,7 @@ public partial class xt : Exchange
         };
         string? timeInForce = this.safeStringUpper(parameters, "timeInForce");
         bool? postOnly = null;
-        IList<object> postOnlyparametersVariable = (IList<object>)this.handlePostOnly(isEqual(type, "market"), isEqual(timeInForce, "GTX"), parameters);
+        IList<object> postOnlyparametersVariable = (IList<object>)this.handlePostOnly(isEqual(type, "market"), (timeInForce == "GTX"), parameters);
         postOnly = (bool?)((IList<object>)postOnlyparametersVariable)[0];
         parameters = ((IList<object>)postOnlyparametersVariable)[1];
         if (isEqual(postOnly, true))
@@ -3380,7 +3380,7 @@ public partial class xt : Exchange
         bool? trailing = this.safeBool(parameters, "trailing");
         if ((trailing == true))
         {
-            bool isContract = ((subType != null)) || (isEqual(type, "swap")) || (isEqual(type, "future"));
+            bool isContract = ((subType != null)) || ((type == "swap")) || ((type == "future"));
             if (!isContract)
             {
                 throw new NotSupported ((string)(this.id + " fetchOrder() trailing orders are only supported on swap and future markets")) ;
@@ -3432,7 +3432,7 @@ public partial class xt : Exchange
         } else if (isEqual(subType, "inverse"))
         {
             response = await this.privateInverseGetFutureTradeV1OrderDetail(this.extend(request, parameters));
-        } else if ((isEqual(subType, "linear")) || (isEqual(type, "swap")) || (isEqual(type, "future")))
+        } else if ((isEqual(subType, "linear")) || ((type == "swap")) || ((type == "future")))
         {
             response = await this.privateLinearGetFutureTradeV1OrderDetail(this.extend(request, parameters));
         } else
@@ -3611,7 +3611,7 @@ public partial class xt : Exchange
         bool? trailing = this.safeBool(parameters, "trailing");
         if ((trailing == true))
         {
-            bool isContract = ((subType != null)) || (isEqual(type, "swap")) || (isEqual(type, "future"));
+            bool isContract = ((subType != null)) || ((type == "swap")) || ((type == "future"));
             if (!isContract)
             {
                 throw new NotSupported ((string)(this.id + " fetchOrders() trailing orders are only supported on swap and future markets")) ;
@@ -3640,7 +3640,7 @@ public partial class xt : Exchange
         } else if (isEqual(subType, "inverse"))
         {
             response = await this.privateInverseGetFutureTradeV1OrderListHistory(this.extend(request, parameters));
-        } else if ((isEqual(subType, "linear")) || (isEqual(type, "swap")) || (isEqual(type, "future")))
+        } else if ((isEqual(subType, "linear")) || ((type == "swap")) || ((type == "future")))
         {
             response = await this.privateLinearGetFutureTradeV1OrderListHistory(this.extend(request, parameters));
         } else
@@ -3804,7 +3804,7 @@ public partial class xt : Exchange
         bool? trailing = this.safeBool(parameters, "trailing");
         if ((trailing == true))
         {
-            bool isContract = ((subType != null)) || (isEqual(type, "swap")) || (isEqual(type, "future"));
+            bool isContract = ((subType != null)) || ((type == "swap")) || ((type == "future"));
             if (!isContract)
             {
                 throw new NotSupported ((string)(this.id + " fetchOrdersByStatus() trailing orders are only supported on swap and future markets")) ;
@@ -3818,7 +3818,7 @@ public partial class xt : Exchange
             if (((trigger == true)) || ((stopLossTakeProfit == true)))
             {
                 ((IDictionary<string,object>)request)["state"] = "NOT_TRIGGERED";
-            } else if (isEqual(type, "swap"))
+            } else if ((type == "swap"))
             {
                 ((IDictionary<string,object>)request)["state"] = "UNFINISHED"; // NEW & PARTIALLY_FILLED
             }
@@ -3844,7 +3844,7 @@ public partial class xt : Exchange
         {
             ((IDictionary<string,object>)request)["state"] = status;
         }
-        if (((trigger == true)) || ((stopLossTakeProfit == true)) || ((subType != null)) || (isEqual(type, "swap")) || (isEqual(type, "future")))
+        if (((trigger == true)) || ((stopLossTakeProfit == true)) || ((subType != null)) || ((type == "swap")) || ((type == "future")))
         {
             if (!isEqual(since, null))
             {
@@ -3897,7 +3897,7 @@ public partial class xt : Exchange
                     response = await this.privateLinearGetFutureTradeV1EntrustTrackListHistory(this.extend(request, parameters));
                 }
             }
-        } else if (((subType != null)) || (isEqual(type, "swap")) || (isEqual(type, "future")))
+        } else if (((subType != null)) || ((type == "swap")) || ((type == "future")))
         {
             if (isEqual(subType, "inverse"))
             {
@@ -4246,7 +4246,7 @@ public partial class xt : Exchange
         bool? trailing = this.safeBool(parameters, "trailing");
         if ((trailing == true))
         {
-            bool isContract = ((subType != null)) || (isEqual(type, "swap")) || (isEqual(type, "future"));
+            bool isContract = ((subType != null)) || ((type == "swap")) || ((type == "future"));
             if (!isContract)
             {
                 throw new NotSupported ((string)(this.id + " cancelOrder() trailing orders are only supported on swap and future markets")) ;
@@ -4298,7 +4298,7 @@ public partial class xt : Exchange
         } else if (isEqual(subType, "inverse"))
         {
             response = await this.privateInversePostFutureTradeV1OrderCancel(this.extend(request, parameters));
-        } else if ((isEqual(subType, "linear")) || (isEqual(type, "swap")) || (isEqual(type, "future")))
+        } else if ((isEqual(subType, "linear")) || ((type == "swap")) || ((type == "future")))
         {
             response = await this.privateLinearPostFutureTradeV1OrderCancel(this.extend(request, parameters));
         } else
@@ -4326,7 +4326,7 @@ public partial class xt : Exchange
         //         "result": "208319789679471616"
         //     }
         //
-        bool isContractResponse = (((subType != null)) || (isEqual(type, "swap")) || (isEqual(type, "future")));
+        bool isContractResponse = (((subType != null)) || ((type == "swap")) || ((type == "future")));
         IDictionary<string, object> order = ((bool) isContractResponse) ? response : this.safeDict(response, "result", new Dictionary<string, object>() {});
         return ccxt.BaseExchange.ToOrder(this.parseOrder(order, market));
     }
@@ -4375,7 +4375,7 @@ public partial class xt : Exchange
         bool? trailing = this.safeBool(parameters, "trailing");
         if ((trailing == true))
         {
-            bool isContract = ((subType != null)) || (isEqual(type, "swap")) || (isEqual(type, "future"));
+            bool isContract = ((subType != null)) || ((type == "swap")) || ((type == "future"));
             if (!isContract)
             {
                 throw new NotSupported ((string)(this.id + " cancelAllOrders() trailing orders are only supported on swap and future markets")) ;
@@ -4414,7 +4414,7 @@ public partial class xt : Exchange
         } else if (isEqual(subType, "inverse"))
         {
             response = await this.privateInversePostFutureTradeV1OrderCancelAll(this.extend(request, parameters));
-        } else if ((isEqual(subType, "linear")) || (isEqual(type, "swap")) || (isEqual(type, "future")))
+        } else if ((isEqual(subType, "linear")) || ((type == "swap")) || ((type == "future")))
         {
             response = await this.privateLinearPostFutureTradeV1OrderCancelAll(this.extend(request, parameters));
         } else
@@ -4630,20 +4630,20 @@ public partial class xt : Exchange
         string? symbol = this.safeSymbol(marketId, market, null, marketType);
         Int64? timestamp = this.safeInteger2(order, "time", "createdTime");
         double? quantity = this.safeNumber(order, "origQty");
-        object amount = ((bool) (isEqual(marketType, "spot"))) ? quantity : Precise.stringMul(this.numberToString(quantity), this.numberToString(getValue(market, "contractSize")));
+        object amount = ((bool) ((marketType == "spot"))) ? quantity : Precise.stringMul(this.numberToString(quantity), this.numberToString(getValue(market, "contractSize")));
         double? filledQuantity = this.safeNumber(order, "executedQty");
-        object filled = ((bool) (isEqual(marketType, "spot"))) ? filledQuantity : Precise.stringMul(this.numberToString(filledQuantity), this.numberToString(getValue(market, "contractSize")));
+        object filled = ((bool) ((marketType == "spot"))) ? filledQuantity : Precise.stringMul(this.numberToString(filledQuantity), this.numberToString(getValue(market, "contractSize")));
         Int64? lastUpdatedTimestamp = this.safeInteger(order, "updatedTime");
         string? timeInForce = this.safeString(order, "timeInForce");
         bool? postOnly = null;
         if ((timeInForce != null))
         {
-            if (isEqual(timeInForce, "GTX"))
+            if ((timeInForce == "GTX"))
             {
                 // GTX means "Good Till Crossing" and is an equivalent way of saying Post Only
                 timeInForce = "PO";
             }
-            postOnly = (isEqual(timeInForce, "PO"));
+            postOnly = ((timeInForce == "PO"));
         }
         string? side = this.safeStringLower2(order, "side", "orderSide");
         if ((side == null))
@@ -4761,7 +4761,7 @@ public partial class xt : Exchange
         if (isEqual(subType, "inverse"))
         {
             response = await this.privateInverseGetFutureUserV1BalanceBills(this.extend(request, parameters));
-        } else if ((isEqual(subType, "linear")) || (isEqual(type, "swap")) || (isEqual(type, "future")))
+        } else if ((isEqual(subType, "linear")) || ((type == "swap")) || ((type == "future")))
         {
             response = await this.privateLinearGetFutureUserV1BalanceBills(this.extend(request, parameters));
         } else
@@ -6787,7 +6787,7 @@ public partial class xt : Exchange
             string? recvWindow = this.safeString(query, "recvWindow", defaultRecvWindow);
             string? timestamp = this.numberToString(this.nonce());
             body = query;
-            if ((isEqual(payload, "/v4/order")) || (isEqual(payload, "/future/trade/v1/order/create")) || (isEqual(payload, "/future/trade/v1/entrust/create-plan")) || (isEqual(payload, "/future/trade/v1/entrust/create-profit")) || (isEqual(payload, "/future/trade/v1/order/create-batch")))
+            if (((payload == "/v4/order")) || ((payload == "/future/trade/v1/order/create")) || ((payload == "/future/trade/v1/entrust/create-plan")) || ((payload == "/future/trade/v1/entrust/create-profit")) || ((payload == "/future/trade/v1/order/create-batch")))
             {
                 string id = "CCXT";
                 if ((body == null))
@@ -6818,7 +6818,7 @@ public partial class xt : Exchange
                 payloadString = (((((add("xt-validate-algorithms=HmacSHA256&xt-validate-appkey=", this.apiKey) + "&xt-validate-recvwindow=") + recvWindow) + "&xt-validate-t") + "imestamp=") + timestamp);
                 if (isUndefinedBody)
                 {
-                    if (!isEqual(urlencoded, ""))
+                    if ((urlencoded != ""))
                     {
                         url = add(url, ("?" + urlencoded));
                         payloadString = add(payloadString, ((((add("#", method) + "#") + payload) + "#") + this.rawencode(this.keysort(query))));
@@ -6837,7 +6837,7 @@ public partial class xt : Exchange
                 payloadString = (((add("xt-validate-appkey=", this.apiKey) + "&xt-validate-t") + "imestamp=") + timestamp); // we can't glue timestamp, breaks in php
                 if (isEqual(method, "GET"))
                 {
-                    if (!isEqual(urlencoded, ""))
+                    if ((urlencoded != ""))
                     {
                         url = add(url, ("?" + urlencoded));
                         payloadString = add(payloadString, ((("#" + payload) + "#") + urlencoded));
@@ -6856,7 +6856,7 @@ public partial class xt : Exchange
             ((IDictionary<string,object>)headers)["xt-validate-signature"] = signature;
         } else
         {
-            if (!isEqual(urlencoded, ""))
+            if ((urlencoded != ""))
             {
                 url = add(url, ("?" + urlencoded));
             }

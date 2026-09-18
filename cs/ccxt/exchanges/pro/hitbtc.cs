@@ -231,10 +231,10 @@ public partial class hitbtc : ccxt.hitbtc
         string? name = this.safeString2(parameters, "method", "defaultMethod", defaultMethod);
         string? depth = this.safeString(parameters, "depth", "20");
         string? speed = this.safeString(parameters, "depth", "100");
-        if (isEqual(name, "orderbook/{depth}/{speed}"))
+        if ((name == "orderbook/{depth}/{speed}"))
         {
             name = (((("orderbook/D" + depth) + "/") + speed) + "ms");
-        } else if (isEqual(name, "orderbook/{depth}/{speed}/batch"))
+        } else if ((name == "orderbook/{depth}/{speed}/batch"))
         {
             name = (((("orderbook/D" + depth) + "/") + speed) + "ms/batch");
         }
@@ -293,7 +293,7 @@ public partial class hitbtc : ccxt.hitbtc
             ccxt.pro.IOrderBook orderbook = this.getOrderBook(this.orderbooks, symbol);
             Int64? timestamp = this.safeInteger(item, "t");
             Int64? nonce = this.safeInteger(item, "s");
-            if (isEqual(type, "snapshot"))
+            if ((type == "snapshot"))
             {
                 Dictionary<string, object> parsedSnapshot = ((Dictionary<string, object>)this.parseOrderBook(item, symbol, timestamp, "b", "a"));
                 (orderbook as IOrderBook).reset(parsedSnapshot);
@@ -1237,10 +1237,10 @@ public partial class hitbtc : ccxt.hitbtc
         request = (Dictionary<string, object>)((IList<object>)requestparametersVariable)[0];
         parameters = ((IList<object>)requestparametersVariable)[1];
         request = this.extend(request, parameters);
-        if (isEqual(marketType, "swap"))
+        if ((marketType == "swap"))
         {
             return ccxt.BaseExchange.ToOrder(await this.tradeRequest("futures_new_order", request));
-        } else if ((isEqual(marketType, "margin")) || ((marginMode != null)))
+        } else if (((marketType == "margin")) || ((marginMode != null)))
         {
             return ccxt.BaseExchange.ToOrder(await this.tradeRequest("margin_new_order", request));
         } else
@@ -1286,10 +1286,10 @@ public partial class hitbtc : ccxt.hitbtc
         var marginMode = ((IList<object>) marginModequeryVariable)[0];
         var query = ((IList<object>) marginModequeryVariable)[1];
         request = this.extend(request, query);
-        if (isEqual(marketType, "swap"))
+        if ((marketType == "swap"))
         {
             return ccxt.BaseExchange.ToOrder(await this.tradeRequest("futures_cancel_order", request));
-        } else if ((isEqual(marketType, "margin")) || ((marginMode != null)))
+        } else if (((marketType == "margin")) || ((marginMode != null)))
         {
             return ccxt.BaseExchange.ToOrder(await this.tradeRequest("margin_cancel_order", request));
         } else
@@ -1330,10 +1330,10 @@ public partial class hitbtc : ccxt.hitbtc
         IList<object> marginModeparametersVariable = (IList<object>)this.handleMarginModeAndParams("cancelAllOrdersWs", parameters);
         marginMode = ((IList<object>)marginModeparametersVariable)[0];
         parameters = ((IList<object>)marginModeparametersVariable)[1];
-        if (isEqual(marketType, "swap"))
+        if ((marketType == "swap"))
         {
             return ccxt.BaseExchange.ToOrderList(await this.tradeRequest("futures_cancel_orders", parameters));
-        } else if ((isEqual(marketType, "margin")) || ((marginMode != null)))
+        } else if (((marketType == "margin")) || ((marginMode != null)))
         {
             throw new NotSupported ((string)(this.id + " cancelAllOrdersWs is not supported for margin orders")) ;
         } else
@@ -1379,10 +1379,10 @@ public partial class hitbtc : ccxt.hitbtc
         IList<object> marginModeparametersVariable = (IList<object>)this.handleMarginModeAndParams("fetchOpenOrdersWs", parameters);
         marginMode = ((IList<object>)marginModeparametersVariable)[0];
         parameters = ((IList<object>)marginModeparametersVariable)[1];
-        if (isEqual(marketType, "swap"))
+        if ((marketType == "swap"))
         {
             return ccxt.BaseExchange.ToOrderList(await this.tradeRequest("futures_get_orders", request));
-        } else if ((isEqual(marketType, "margin")) || ((marginMode != null)))
+        } else if (((marketType == "margin")) || ((marginMode != null)))
         {
             return ccxt.BaseExchange.ToOrderList(await this.tradeRequest("margin_get_orders", request));
         } else
@@ -1482,7 +1482,7 @@ public partial class hitbtc : ccxt.hitbtc
         {
             List<object> splitChannel = ((string)channel).Split(new [] {((string)"/")}, StringSplitOptions.None).ToList<object>();
             channel = this.safeString(splitChannel, 0);
-            if (isEqual(channel, "orderbook"))
+            if ((channel == "orderbook"))
             {
                 string? channel2 = this.safeString(splitChannel, 1);
                 if ((channel2 != null) && (channel2 == "top"))

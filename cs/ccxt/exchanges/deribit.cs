@@ -1300,7 +1300,7 @@ public partial class deribit : Exchange
                         {
                             strike = this.safeNumber(market, "strike");
                             optionType = this.safeString(market, "option_type");
-                            string letter = ((bool) (isEqual(optionType, "call"))) ? "C" : "P";
+                            string letter = ((bool) ((optionType == "call"))) ? "C" : "P";
                             symbol = add(add(add(add(symbol, "-"), this.numberToString(strike)), "-"), letter);
                         }
                     }
@@ -2340,7 +2340,7 @@ public partial class deribit : Exchange
         Int64? lastUpdate = this.safeInteger(order, "last_update_timestamp");
         string? id = this.safeString(order, "order_id");
         string? priceString = this.safeString(order, "price");
-        if (isEqual(priceString, "market_price"))
+        if ((priceString == "market_price"))
         {
             priceString = null;
         }
@@ -3234,7 +3234,7 @@ public partial class deribit : Exchange
         string? contract = this.safeString(position, "instrument_name");
         market = this.safeMarket(contract, market);
         string? side = this.safeString(position, "direction");
-        side = ((bool) (isEqual(side, "buy"))) ? "long" : "short";
+        side = ((bool) ((side == "buy"))) ? "long" : "short";
         string? unrealizedPnl = this.safeString(position, "floating_profit_loss");
         string? initialMarginString = this.safeString(position, "initial_margin");
         string? notionalString = this.safeString(position, "size_currency");

@@ -952,7 +952,7 @@ public partial class bigone : Exchange
         IList<object> typeparametersVariable = (IList<object>)this.handleMarketTypeAndParams("fetchTicker", market, parameters);
         type = (string)((IList<object>)typeparametersVariable)[0];
         parameters = ((IList<object>)typeparametersVariable)[1];
-        if (isEqual(type, "spot"))
+        if ((type == "spot"))
         {
             Dictionary<string, object> request = new Dictionary<string, object>() {
                 { "asset_pair_name", getValue(market, "id") },
@@ -1009,7 +1009,7 @@ public partial class bigone : Exchange
         IList<object> typeparametersVariable = (IList<object>)this.handleMarketTypeAndParams("fetchTickers", market, parameters);
         type = (string)((IList<object>)typeparametersVariable)[0];
         parameters = ((IList<object>)typeparametersVariable)[1];
-        bool isSpot = isEqual(type, "spot");
+        bool isSpot = (type == "spot");
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         symbols = this.marketSymbols(symbols);
         IList<object> data = null;
@@ -1248,7 +1248,7 @@ public partial class bigone : Exchange
         string? side = this.safeString(trade, "side");
         string? takerSide = this.safeString(trade, "taker_side");
         string? takerOrMaker = null;
-        if (((takerSide != null)) && ((side != null)) && (!isEqual(side, "SELF_TRADING")))
+        if (((takerSide != null)) && ((side != null)) && ((side != "SELF_TRADING")))
         {
             takerOrMaker = ((bool) (isEqual(takerSide, side))) ? "taker" : "maker";
         }
@@ -1259,10 +1259,10 @@ public partial class bigone : Exchange
             side = ((bool) ((takerSide == "ASK"))) ? "sell" : "buy";
         } else
         {
-            if (isEqual(side, "BID"))
+            if ((side == "BID"))
             {
                 side = "buy";
-            } else if (isEqual(side, "ASK"))
+            } else if ((side == "ASK"))
             {
                 side = "sell";
             }
@@ -1296,9 +1296,9 @@ public partial class bigone : Exchange
         object takerCurrencyCode = null;
         if ((takerOrMaker != null))
         {
-            if (isEqual(side, "buy"))
+            if ((side == "buy"))
             {
-                if (isEqual(takerOrMaker, "maker"))
+                if ((takerOrMaker == "maker"))
                 {
                     makerCurrencyCode = getValue(market, "base");
                     takerCurrencyCode = getValue(market, "quote");
@@ -1309,7 +1309,7 @@ public partial class bigone : Exchange
                 }
             } else
             {
-                if (isEqual(takerOrMaker, "maker"))
+                if ((takerOrMaker == "maker"))
                 {
                     makerCurrencyCode = getValue(market, "quote");
                     takerCurrencyCode = getValue(market, "base");
@@ -1319,7 +1319,7 @@ public partial class bigone : Exchange
                     takerCurrencyCode = getValue(market, "quote");
                 }
             }
-        } else if (isEqual(side, "SELF_TRADING"))
+        } else if ((side == "SELF_TRADING"))
         {
             if ((takerSide == "BID"))
             {
@@ -1619,7 +1619,7 @@ public partial class bigone : Exchange
         string? symbol = this.safeSymbol(marketId, market, "-");
         Int64? timestamp = this.parse8601(this.safeString(order, "created_at"));
         string? side = this.safeString(order, "side");
-        if (isEqual(side, "BID"))
+        if ((side == "BID"))
         {
             side = "buy";
         } else
@@ -1642,7 +1642,7 @@ public partial class bigone : Exchange
         string? amount = null;
         string? filled = null;
         string? cost = null;
-        if (isEqual(type, "market") && isEqual(side, "buy"))
+        if ((type == "market") && (side == "buy"))
         {
             cost = this.safeString(order, "filled_amount");
         } else

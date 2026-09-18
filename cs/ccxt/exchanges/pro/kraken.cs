@@ -1806,7 +1806,7 @@ public partial class kraken : ccxt.kraken
         string? channel = this.safeString(message, "channel");
         if ((channel != null))
         {
-            if (isEqual(channel, "executions"))
+            if ((channel == "executions"))
             {
                 List<object> data = this.safeList(message, "data", new List<object>() {});
                 IDictionary<string, object> first = this.safeDict(data, 0, new Dictionary<string, object>() {});

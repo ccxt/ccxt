@@ -988,7 +988,7 @@ public partial class htx : ccxt.htx
             subType = this.safeString(parameters, "subType", subType);
             parameters = this.omit(parameters, new List<object>() {"type", "subType"});
         }
-        bool linear = (isEqual(subType, "linear"));
+        bool linear = ((subType == "linear"));
         bool swap = (isEqual(type, "swap"));
         bool future = (isEqual(type, "future"));
         bool isV5Linear = (linear && (swap || future));
@@ -1146,7 +1146,7 @@ public partial class htx : ccxt.htx
             subType = this.safeString(parameters, "subType", subType);
             parameters = this.omit(parameters, new List<object>() {"type", "subType"});
         }
-        bool linear = (isEqual(subType, "linear"));
+        bool linear = ((subType == "linear"));
         bool swap = (isEqual(type, "swap"));
         bool future = (isEqual(type, "future"));
         bool isV5Linear = (linear && (swap || future));
@@ -1934,7 +1934,7 @@ public partial class htx : ccxt.htx
             ((IDictionary<string,object>)position)["timestamp"] = timestamp;
             ((IDictionary<string,object>)position)["datetime"] = this.iso8601(timestamp);
             string? marginMode = this.safeStringLower(position, "marginMode", defaultMarginMode);
-            if ((!isEqual(marginMode, "cross")) && (!isEqual(marginMode, "isolated")))
+            if (((marginMode != "cross")) && ((marginMode != "isolated")))
             {
                 marginMode = defaultMarginMode;
             }
@@ -2002,10 +2002,10 @@ public partial class htx : ccxt.htx
         object channel = null;
         string? marginMode = null;
         bool linear = (isEqual(subType, "linear"));
-        bool swap = (isEqual(type, "swap"));
-        bool future = (isEqual(type, "future"));
+        bool swap = ((type == "swap"));
+        bool future = ((type == "future"));
         bool isV5Linear = (linear && (swap || future));
-        if (isEqual(type, "spot"))
+        if ((type == "spot"))
         {
             string? mode = this.safeString2(this.options, "watchBalance", "mode", "2");
             mode = this.safeString(parameters, "mode", mode);
@@ -2038,9 +2038,9 @@ public partial class htx : ccxt.htx
                 } else
                 {
                     // usdt contracts account
-                    prefix = ((bool) (isEqual(marginMode, "cross"))) ? add(prefix, "_cross") : prefix;
+                    prefix = ((bool) ((marginMode == "cross"))) ? add(prefix, "_cross") : prefix;
                     messageHash = prefix;
-                    if (isEqual(marginMode, "isolated"))
+                    if ((marginMode == "isolated"))
                     {
                         // isolated margin only allows filtering by symbol3
                         if (((symbol != null)) && ((market != null)))
@@ -2066,7 +2066,7 @@ public partial class htx : ccxt.htx
                         }
                     }
                 }
-            } else if (isEqual(type, "future"))
+            } else if ((type == "future"))
             {
                 // inverse futures account
                 if ((currencyCode != null))

@@ -891,7 +891,7 @@ public partial class bitfinex : Exchange
             {
                 type = "spot";
             }
-            bool swap = isEqual(type, "swap");
+            bool swap = (type == "swap");
             object baseId = null;
             object quoteId = null;
             if (getIndexOf(((string)id), ":") >= 0)

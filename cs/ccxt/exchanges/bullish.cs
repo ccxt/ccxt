@@ -967,7 +967,7 @@ public partial class bullish : Exchange
         string? optionType = null;
         object strike = null;
         bool? margin = false;
-        if (isEqual(type, "spot"))
+        if ((type == "spot"))
         {
             spot = true;
             contract = false;
@@ -978,7 +978,7 @@ public partial class bullish : Exchange
             symbol = add(symbol, (":" + settle));
             linear = (settle == quote);
             inverse = !isTrue(linear);
-            if (isEqual(type, "swap"))
+            if ((type == "swap"))
             {
                 swap = true;
             } else
@@ -988,10 +988,10 @@ public partial class bullish : Exchange
                 string datePart = ((string)this.safeString(idParts, 2));
                 string? dateYmd = slice(datePart, 2, null);
                 symbol = add(symbol, ("-" + dateYmd));
-                if (isEqual(type, "future"))
+                if ((type == "future"))
                 {
                     future = true;
-                } else if (isEqual(type, "option"))
+                } else if ((type == "option"))
                 {
                     option = true;
                     optionType = this.safeStringLower(market, "optionType");
@@ -2283,7 +2283,7 @@ public partial class bullish : Exchange
         string? amount = this.safeString(order, "quantity");
         string? filled = this.safeString(order, "quantityFilled");
         string? status = this.parseOrderStatus(this.safeString(order, "status"));
-        if (isEqual(status, "closed"))
+        if ((status == "closed"))
         {
             string? statusReason = this.safeString(order, "statusReason");
             if ((statusReason == "User cancelled"))

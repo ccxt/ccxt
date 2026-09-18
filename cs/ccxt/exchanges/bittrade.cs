@@ -1665,7 +1665,7 @@ public partial class bittrade : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         string method = ((string)this.handleOption("fetchOpenOrders", "method", "fetch_open_orders_v1"));
-        if ((isEqual(method, "fetch_open_orders_v2")) || (isEqual(method, "fetchOpenOrdersV2")))
+        if (((method == "fetch_open_orders_v2")) || ((method == "fetchOpenOrdersV2")))
         {
             return await this.FetchOpenOrdersV2(symbol,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), parameters);
         }
@@ -2331,7 +2331,7 @@ public partial class bittrade : Exchange
         Int64? timestamp = this.safeInteger(transaction, "created-at");
         string? code = this.safeCurrencyCode(this.safeString(transaction, "currency"));
         string? type = this.safeString(transaction, "type");
-        if (isEqual(type, "withdraw"))
+        if ((type == "withdraw"))
         {
             type = "withdrawal";
         }

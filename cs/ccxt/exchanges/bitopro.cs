@@ -1737,7 +1737,7 @@ public partial class bitopro : Exchange
         string? tag = this.safeString(transaction, "message");
         string? status = this.safeString(transaction, "status");
         string? networkId = this.safeString(transaction, "protocol");
-        if (isEqual(networkId, "MAIN"))
+        if ((networkId == "MAIN"))
         {
             networkId = code;
         }

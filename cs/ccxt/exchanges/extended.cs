@@ -709,7 +709,7 @@ public partial class extended : Exchange
         // SPOT rows are still parsed on purpose even though has['spot'] is false - that flag
         // only advertises the capability and gates the unified spot tests, it does not filter
         // markets, so accounts still holding spot balances keep resolving their symbols
-        if (isEqual(type, "spot"))
+        if ((type == "spot"))
         {
             isSpot = true;
         } else
@@ -846,7 +846,7 @@ public partial class extended : Exchange
             currencyId = ((string)currencyId).Replace((string)"SPOT", (string)"");
         }
         string? code = this.safeCurrencyCode(currencyId);
-        if (isEqual(currencyId, "USD"))
+        if ((currencyId == "USD"))
         {
             code = "USDC";
         }
@@ -2307,7 +2307,7 @@ public partial class extended : Exchange
             return getValue(currency, "code");
         }
         string? code = this.safeCurrencyCode(assetId);
-        if (isEqual(code, "USD"))
+        if ((code == "USD"))
         {
             code = "USDC";
         }
@@ -2387,7 +2387,7 @@ public partial class extended : Exchange
             { "fee", fee },
             { "network", network },
             { "comment", null },
-            { "internal", (isEqual(transactionType, "transfer")) },
+            { "internal", ((transactionType == "transfer")) },
         };
     }
 

@@ -1004,7 +1004,7 @@ public partial class derive : Exchange
             strike = this.safeInteger(optionDetails, "strike");
             optionLetter = this.safeString(optionDetails, "option_type");
             symbol = add(add(add(add(add(add(add(add(add(add(bs, "/"), quote), ":"), settle), "-"), this.yymmdd(expiry)), "-"), this.numberToString(strike)), "-"), optionLetter);
-            if (isEqual(optionLetter, "P"))
+            if ((optionLetter == "P"))
             {
                 optionType = "put";
             } else
@@ -3144,7 +3144,7 @@ public partial class derive : Exchange
         string? code = this.safeString(transaction, "asset");
         Int64? timestamp = this.safeInteger(transaction, "timestamp");
         string? txId = this.safeString(transaction, "tx_hash");
-        if (isEqual(txId, "0x0"))
+        if ((txId == "0x0"))
         {
             txId = null;
         }

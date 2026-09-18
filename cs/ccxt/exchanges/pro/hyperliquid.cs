@@ -907,7 +907,7 @@ public partial class hyperliquid : ccxt.hyperliquid
         string? side = this.safeString(trade, "side");
         if ((side != null))
         {
-            side = ((bool) (isEqual(side, "A"))) ? "sell" : "buy";
+            side = ((bool) ((side == "A"))) ? "sell" : "buy";
         }
         string? fee = this.safeString(trade, "fee");
         return this.safeTrade(new Dictionary<string, object>() {
@@ -1098,7 +1098,7 @@ public partial class hyperliquid : ccxt.hyperliquid
         isUnifiedEnabled = this.safeBool(unifiedResult, 0);
         parameters = this.safeDict(unifiedResult, 1, parameters);
         string? dex = this.safeString(parameters, "dex");
-        bool isSpot = ((isEqual(type, "spot")) || (isEqual(isUnifiedEnabled, true))) && ((dex == null));
+        bool isSpot = (((type == "spot")) || (isEqual(isUnifiedEnabled, true))) && ((dex == null));
         string topic = ((bool) ((isSpot == true))) ? "spotState" : "clearinghouseState";
         string messageHash = (topic + "::balance");
         string? url = ((string)getValue(getValue(getValue(this.urls, "api"), "ws"), "public"));
@@ -1156,7 +1156,7 @@ public partial class hyperliquid : ccxt.hyperliquid
         isUnifiedEnabled = this.safeBool(unifiedResult, 0);
         parameters = this.safeDict(unifiedResult, 1, parameters);
         string? dex = this.safeString(parameters, "dex");
-        bool isSpot = ((isEqual(type, "spot")) || (isEqual(isUnifiedEnabled, true))) && ((dex == null));
+        bool isSpot = (((type == "spot")) || (isEqual(isUnifiedEnabled, true))) && ((dex == null));
         string topic = ((bool) ((isSpot == true))) ? "spotState" : "clearinghouseState";
         string messageHash = (("unsubscribe" + ":") + topic);
         Dictionary<string, object> request = new Dictionary<string, object>() {
