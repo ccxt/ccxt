@@ -74,7 +74,7 @@ const RUST_BOOL_RUNTIME_FNS = new Set([
     'is_instance', 'in_op', 'starts_with', 'ends_with', 'is_true',
 ]);
 
-class RustTranspilerBuilder {
+export class RustTranspilerBuilder {
 
     transpiler!: Transpiler;
 
@@ -3932,6 +3932,189 @@ class RustTranspilerBuilder {
     }
 
     /**
+     * Types `let [mut] X: Value = self.safe_number[_k](…)` /
+     * `self.safe_integer[_k](…)` as `Option<f64>` / `Option<i64>` when every
+     * later use of `X` in the enclosing fn is one of the two Option-native
+     * shapes: a `Value::Null` test (`X != Value::Null` -> `X.is_some()`) or an
+     * `X.as_f64() [!=]= Some(<integral literal>)` comparison. Both readers
+     * return a `Value::Float`/`Value::Int` or their `Value::Null`/numeric
+     * default, so the `Option` carries the same value with `None` for `Null`
+     * (`as_f64()`/`as_i64()` on those two variants is exact).
+     *
+     * Rejected (kept as `Value`): any other use — `.clone()` into a `Value`
+     * slot, arithmetic, `return X`, `is_true(&X)` — and any later write of a
+     * different printed type (`X = Value::Null`), per the D2 rule: typing a
+     * local whose every sink re-boxes it only moves the boxing to the use
+     * site. A non-literal or non-numeric default (`&[until.clone()]`,
+     * `Value::Str(…)`) is rejected too: the default flows into the local as a
+     * `Value` the `Option` accessor would drop.
+     *
+     * The scan is scoped to the enclosing fn by brace depth and masks string
+     * literals + line comments, so map keys never count as uses. A nested
+     * `let`/`for`/`fn`/closure binding of the same name rejects the site (the
+     * scan cannot tell the two apart). Idempotent.
+     */
+    narrowOptionalSafeLocals(content: string): string {
+        const declRe = /^([ \t]*)let (mut )?([a-zA-Z_][a-zA-Z0-9_]*): Value = self\.safe_(number|integer)(_k)?\(/gm;
+        // Index just past the `)` matching the `(` at `open`, string/comment aware.
+        const closeOf = (src: string, open: number): number => {
+            let depth = 0; let inStr = false; let esc = false; let inLine = false;
+            for (let k = open; k < src.length; k++) {
+                const c = src[k];
+                if (inLine) { if (c === '\n') inLine = false; continue; }
+                if (inStr) {
+                    if (esc) esc = false;
+                    else if (c === '\\') esc = true;
+                    else if (c === '"') inStr = false;
+                    continue;
+                }
+                if (c === '"') { inStr = true; continue; }
+                if (c === '/' && src[k + 1] === '/') { inLine = true; continue; }
+                if (c === '(') depth++;
+                else if (c === ')') { depth--; if (depth === 0) return k + 1; }
+            }
+            return -1;
+        };
+        // End of the enclosing fn body: from `from`, walk braces until the
+        // depth goes below zero (the fn's closing `}`).
+        const scopeEnd = (src: string, from: number): number => {
+            let depth = 0; let inStr = false; let esc = false; let inLine = false;
+            for (let k = from; k < src.length; k++) {
+                const c = src[k];
+                if (inLine) { if (c === '\n') inLine = false; continue; }
+                if (inStr) {
+                    if (esc) esc = false;
+                    else if (c === '\\') esc = true;
+                    else if (c === '"') inStr = false;
+                    continue;
+                }
+                if (c === '"') { inStr = true; continue; }
+                if (c === '/' && src[k + 1] === '/') { inLine = true; continue; }
+                if (c === '{') depth++;
+                else if (c === '}') { depth--; if (depth < 0) return k; }
+            }
+            return src.length;
+        };
+        // Same-length copy with string bodies + line comments blanked, so an
+        // identifier scan cannot see `"k"` keys or commented-out code.
+        const mask = (src: string): string => {
+            let out = ''; let inStr = false; let esc = false; let inLine = false;
+            for (let k = 0; k < src.length; k++) {
+                const c = src[k];
+                if (inLine) { out += c === '\n' ? '\n' : ' '; if (c === '\n') inLine = false; continue; }
+                if (inStr) {
+                    out += ' ';
+                    if (esc) esc = false;
+                    else if (c === '\\') esc = true;
+                    else if (c === '"') inStr = false;
+                    continue;
+                }
+                if (c === '"') { inStr = true; out += ' '; continue; }
+                if (c === '/' && src[k + 1] === '/') { inLine = true; out += ' '; continue; }
+                out += c;
+            }
+            return out;
+        };
+        const splitArgs = (src: string): string[] => {
+            const out: string[] = []; let cur = ''; let depth = 0;
+            let inStr = false; let esc = false;
+            for (const c of src) {
+                if (inStr) {
+                    cur += c;
+                    if (esc) esc = false;
+                    else if (c === '\\') esc = true;
+                    else if (c === '"') inStr = false;
+                    continue;
+                }
+                if (c === '"') { inStr = true; cur += c; continue; }
+                if (c === '(' || c === '[' || c === '{') depth++;
+                else if (c === ')' || c === ']' || c === '}') depth--;
+                if (c === ',' && depth === 0) { out.push(cur); cur = ''; continue; }
+                cur += c;
+            }
+            out.push(cur);
+            return out;
+        };
+        // Ends the statement — `self.safe_number_k(a, b, &[])` and nothing else.
+        const stmtTailRe = /^\s*;/;
+
+        const rewrites: Array<{ start: number, end: number, text: string }> = [];
+        let m: RegExpExecArray | null;
+        while ((m = declRe.exec(content)) !== null) {
+            const name = m[3]; const isInt = m[4] === 'integer';
+            const acc = isInt ? 'i64' : 'f64';
+            const callOpen = m.index + m[0].length - 1;
+            const callClose = closeOf(content, callOpen);
+            if (callClose < 0) continue;
+            const tail = stmtTailRe.exec(content.slice(callClose, callClose + 3));
+            if (tail === null) continue;
+            const stmtEnd = callClose + tail[0].length;
+            const args = splitArgs(content.slice(callOpen + 1, callClose - 1));
+            if (args.length !== 3) continue;
+            const def = args[2].trim();
+            const defaultIsNative = /^&\[\s*\]$/.test(def)
+                || /^&\[\s*Value::Null\s*\]$/.test(def)
+                || /^&\[\s*Value::Int\(-?\d+\)\s*\]$/.test(def)
+                || (!isInt && /^&\[\s*Value::Float\(-?\d+(?:\.\d+)?\)\s*\]$/.test(def));
+            if (!defaultIsNative) continue;
+            const end = scopeEnd(content, stmtEnd);
+            const body = content.slice(stmtEnd, end);
+            const masked = mask(body);
+            // A nested binding of the same name makes the use scan ambiguous.
+            if (new RegExp(`\\b(?:let|for|fn)\\s+(?:mut\\s+)?${name}\\b`).test(masked)) continue;
+            if (new RegExp(`\\|[^|\\n]*\\b${name}\\b[^|\\n]*\\|`).test(masked)) continue;
+            // The allowed shapes, with the text each one prints as.
+            const shapes: Array<{ re: RegExp, text: (g: RegExpExecArray) => string }> = [
+                { re: new RegExp(`\\b${name}\\s*!=\\s*Value::Null`, 'g'), text: () => `${name}.is_some()` },
+                { re: new RegExp(`\\b${name}\\s*==\\s*Value::Null`, 'g'), text: () => `${name}.is_none()` },
+                {
+                    re: new RegExp(`\\b${name}\\.as_f64\\(\\)\\s*(==|!=)\\s*Some\\((-?\\d+)\\.0\\)`, 'g'),
+                    text: (g) => `${name} ${g[1]} Some(${isInt ? g[2] : `${g[2]}.0`})`,
+                },
+            ];
+            const spans: Array<{ start: number, end: number, text: string }> = [];
+            const covered: Array<[number, number]> = [];
+            for (const shape of shapes) {
+                shape.re.lastIndex = 0;
+                let g: RegExpExecArray | null;
+                while ((g = shape.re.exec(masked)) !== null) {
+                    const e = g.index + g[0].length;
+                    spans.push({ start: g.index, end: e, text: shape.text(g) });
+                    covered.push([g.index, e]);
+                }
+            }
+            // Every printed use of `name` in the fn must be one of those spans.
+            const useRe = new RegExp(`(?<![A-Za-z0-9_.])${name}(?![A-Za-z0-9_])`, 'g');
+            let ok = true;
+            let u: RegExpExecArray | null;
+            while ((u = useRe.exec(masked)) !== null) {
+                const at = u.index;
+                if (!covered.some(([s, e]) => at >= s && at < e)) { ok = false; break; }
+            }
+            if (!ok) continue;
+            rewrites.push({
+                start: m.index,
+                end: stmtEnd,
+                text: `${content.slice(m.index, callOpen).replace(': Value =', `: Option<${acc}> =`)}`
+                    + `${content.slice(callOpen, callClose)}.as_${acc}()${content.slice(callClose, stmtEnd)}`,
+            });
+            for (const sp of spans) {
+                rewrites.push({ start: stmtEnd + sp.start, end: stmtEnd + sp.end, text: sp.text });
+            }
+        }
+        if (rewrites.length === 0) return content;
+        rewrites.sort((a, b) => a.start - b.start);
+        let out = ''; let last = 0;
+        for (const r of rewrites) {
+            if (r.start < last) continue; // overlapping — should not happen; keep the first
+            out += content.slice(last, r.start) + r.text;
+            last = r.end;
+        }
+        out += content.slice(last);
+        return out;
+    }
+
+    /**
      * Drops `is_true(&X)` where `X` is already a native Rust `bool`:
      * a local narrowed to `let mut X: bool` by `narrowBoolLocals`, a
      * `!` / `&&` / `||` over such expressions, or a call to one of the
@@ -6892,6 +7075,9 @@ impl std::ops::DerefMut for ${coreName} {
                 rustContent = this.createRustExchange(exchangeName, result, ws, isPrediction);
                 rustContent = this.rewriteLiteralKeySafeCalls(rustContent);
                 rustContent = this.rewriteJavaReqAliases(rustContent);
+                // Then type the `safe_number[_k]` / `safe_integer[_k]` locals
+                // whose every sink is Option-native.
+                rustContent = this.narrowOptionalSafeLocals(rustContent);
                 // Last: narrow `Value::Bool` locals whose every sink takes
                 // a `bool`. Must see the final shape of the file.
                 rustContent = this.narrowBoolLocals(rustContent);
@@ -7587,6 +7773,7 @@ impl std::ops::DerefMut for ${coreName} {
 
         let finalFile = this.rewriteLiteralKeySafeCalls(file);
         finalFile = this.rewriteJavaReqAliases(finalFile);
+        finalFile = this.narrowOptionalSafeLocals(finalFile);
         finalFile = this.narrowBoolLocals(finalFile);
         finalFile = this.dropRedundantIsTrue(finalFile);
 
