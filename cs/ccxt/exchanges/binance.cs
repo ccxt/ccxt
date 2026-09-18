@@ -4424,9 +4424,9 @@ public partial class binance : Exchange
         if (isOption && ((isEqual(this.markets_by_id, null)) || !(inOp(this.markets_by_id, marketId))))
         {
             // handle expired option contracts
-            return ((Dictionary<string, object>)((object)(this.createExpiredOptionMarket(marketId))));
+            return this.createExpiredOptionMarket(marketId);
         }
-        return ((Dictionary<string, object>)((object)(base.safeMarket(marketId, market, delimiter, marketType))));
+        return base.safeMarket(marketId, market, delimiter, marketType);
     }
 
     public override Int64 nonce()
@@ -4725,7 +4725,7 @@ public partial class binance : Exchange
             parsed["margin"] = this.safeBool(marginEntry, "isBorrowable");
             result[(string)code] = parsed;
         }
-        return ((Dictionary<string, object>)((object)(result)));
+        return result;
     }
 
     public override Dictionary<string, object> parseCurrency(object rawCurrency)
@@ -7738,7 +7738,7 @@ public partial class binance : Exchange
             request["origClientOrderId"] = clientOrderId;
         }
         parameters = this.omit(parameters, new List<object>() {"clientOrderId", "newClientOrderId"});
-        return ((Dictionary<string, object>)((object)(request)));
+        return request;
     }
 
     /**
@@ -13020,7 +13020,7 @@ public partial class binance : Exchange
         //       "tranId": 100000001
         //   }
         //
-        return ((Dictionary<string, object>)((object)(this.parseTransfer(response, currency))));
+        return this.parseTransfer(response, currency);
     }
 
     /**
@@ -13327,7 +13327,7 @@ public partial class binance : Exchange
                 }
             }
         }
-        return ((List<object>)((object)(result)));
+        return result;
     }
 
     public virtual Dictionary<string, object> parseAccountPosition(Dictionary<string, object> position, IDictionary<string, object> market = null)
@@ -15941,9 +15941,9 @@ public partial class binance : Exchange
         {
             throw new NullResponse (add(this.id, " parseMarginModification() returned empty response")) ;
         }
-        return ((Dictionary<string, object>)((object)(this.extend(this.parseMarginModification(response, market), new Dictionary<string, object>() {
+        return this.extend(this.parseMarginModification(response, market), new Dictionary<string, object>() {
             { "code", code },
-        }))));
+        });
     }
 
     public override Dictionary<string, object> parseMarginModification(object data, IDictionary<string, object> market = null)
@@ -16006,7 +16006,7 @@ public partial class binance : Exchange
     public async override Task<Dictionary<string, object>> reduceMargin(string symbol, double amount, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        return ((Dictionary<string, object>)((object)(await this.modifyMarginHelper(symbol, amount, 2, parameters))));
+        return await this.modifyMarginHelper(symbol, amount, 2, parameters);
     }
 
     /**
@@ -16023,7 +16023,7 @@ public partial class binance : Exchange
     public async override Task<Dictionary<string, object>> addMargin(string symbol, double amount, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        return ((Dictionary<string, object>)((object)(await this.modifyMarginHelper(symbol, amount, 1, parameters))));
+        return await this.modifyMarginHelper(symbol, amount, 1, parameters);
     }
 
     /**
@@ -16313,7 +16313,7 @@ public partial class binance : Exchange
         //         "success": true
         //     }
         //
-        return ((Dictionary<string, object>)((object)(response)));
+        return response;
     }
 
     /**
@@ -16340,7 +16340,7 @@ public partial class binance : Exchange
         //         "success": true
         //     }
         //
-        return ((Dictionary<string, object>)((object)(response)));
+        return response;
     }
 
     /**
@@ -16509,7 +16509,7 @@ public partial class binance : Exchange
             request["type"] = "REPAY";
             response = await this.sapiPostMarginBorrowRepay(this.extend(request, parameters));
         }
-        return ((Dictionary<string, object>)((object)(this.parseMarginLoan(response, currency))));
+        return this.parseMarginLoan(response, currency);
     }
 
     /**
@@ -16546,7 +16546,7 @@ public partial class binance : Exchange
         //         "clientTag":""
         //     }
         //
-        return ((Dictionary<string, object>)((object)(this.parseMarginLoan(response, currency))));
+        return this.parseMarginLoan(response, currency);
     }
 
     /**
@@ -16593,7 +16593,7 @@ public partial class binance : Exchange
         //         "clientTag":""
         //     }
         //
-        return ((Dictionary<string, object>)((object)(this.parseMarginLoan(response, currency))));
+        return this.parseMarginLoan(response, currency);
     }
 
     /**
@@ -16630,7 +16630,7 @@ public partial class binance : Exchange
         //         "clientTag":""
         //     }
         //
-        return ((Dictionary<string, object>)((object)(this.parseMarginLoan(response, currency))));
+        return this.parseMarginLoan(response, currency);
     }
 
     public virtual Dictionary<string, object> parseMarginLoan(object info, Dictionary<string, object> currency = null)

@@ -849,7 +849,7 @@ public partial class lighter : Exchange
             { "tx_info", newTxInfo },
         };
         Dictionary<string, object> response = await this.publicPostSendTx(request);
-        return ((Dictionary<string, object>)((object)(response)));
+        return response;
     }
 
     public async virtual Task<object> changeApiKey(object parameters = null)

@@ -4777,7 +4777,7 @@ public partial class mexc : Exchange
     public async override Task<Dictionary<string, object>> reduceMargin(string symbol, double amount, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        return ((Dictionary<string, object>)((object)(await this.modifyMarginHelper(symbol, amount, "SUB", parameters))));
+        return await this.modifyMarginHelper(symbol, amount, "SUB", parameters);
     }
 
     /**
@@ -4793,7 +4793,7 @@ public partial class mexc : Exchange
     public async override Task<Dictionary<string, object>> addMargin(string symbol, double amount, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        return ((Dictionary<string, object>)((object)(await this.modifyMarginHelper(symbol, amount, "ADD", parameters))));
+        return await this.modifyMarginHelper(symbol, amount, "ADD", parameters);
     }
 
     /**
@@ -6472,7 +6472,7 @@ public partial class mexc : Exchange
             double? fee = this.safeNumber(networkEntry, "withdrawFee");
             result[(string)((string)networkCode)] = fee;
         }
-        return ((Dictionary<string, object>)((object)(result)));
+        return result;
     }
 
     /**

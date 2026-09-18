@@ -486,7 +486,7 @@ public partial class hibachi : Exchange
                 { "info", new Dictionary<string, object>() {} },
             });
         }
-        return ((Dictionary<string, object>)((object)(result)));
+        return result;
     }
 
     public override Dictionary<string, object> parseBalance(object response)
@@ -503,7 +503,7 @@ public partial class hibachi : Exchange
         {
             result[(string)code] = account;
         }
-        return ((Dictionary<string, object>)((object)(this.safeBalance(result))));
+        return this.safeBalance(result);
     }
 
     /**

@@ -160,7 +160,7 @@ public partial class kucoin : ccxt.kucoin
         Int64 requestId = this.sum(this.safeInteger(this.options, "requestId", 0), 1);
         this.options["requestId"] = requestId;
         this.unlockId();
-        return ((Int64)((object)(requestId))!);
+        return requestId;
     }
 
     public async virtual Task<object> subscribe(object url, object messageHash, object subscriptionHash, object parameters = null, object subscription = null)

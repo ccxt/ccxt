@@ -2119,7 +2119,7 @@ public partial class weex : ccxt.weex
         }
         string? marketId = this.safeString(message, "s");
         Dictionary<string, object> market = this.safeMarket(marketId, null, null, marketType);
-        return ((Dictionary<string, object>)((object)(market)));
+        return market;
     }
 
     public async virtual Task pong(WebSocketClient client, object message)

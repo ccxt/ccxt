@@ -32,8 +32,8 @@ public partial class ndax : ccxt.ndax
     public virtual Int64 requestId()
     {
         Int64 requestId = this.sum(this.safeInteger(this.options, "requestId", 0), 1);
-        this.options["requestId"] = requestId;
-        return ((Int64)((object)(requestId))!);
+        ((IDictionary<string,object>)this.options)["requestId"] = requestId;
+        return requestId;
     }
 
     /**
@@ -57,7 +57,7 @@ public partial class ndax : ccxt.ndax
         string name = "SubscribeLevel1";
         string messageHash = add(add(name, ":"), GetValue(market, "id"));
         string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
-        Int64 requestId = ((Int64)this.requestId());
+        Int64 requestId = this.requestId();
         Dictionary<string, object> payload = new Dictionary<string, object>() {
             { "OMSId", omsId },
             { "InstrumentId", this.safeInteger(market, "id") },
@@ -126,7 +126,7 @@ public partial class ndax : ccxt.ndax
     public async override Task<List<ccxt.Trade>> WatchTrades(string symbol, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         object symbolVar = symbol;
-        Int64? limitVar = limit;
+        object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         Int64? omsId = this.safeInteger(this.options, "omsId", 1);
         if (isEqual(this.markets, null))
@@ -138,7 +138,7 @@ public partial class ndax : ccxt.ndax
         string name = "SubscribeTrades";
         string messageHash = add(add(name, ":"), GetValue(market, "id"));
         string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
-        Int64 requestId = ((Int64)this.requestId());
+        Int64 requestId = this.requestId();
         Dictionary<string, object> payload = new Dictionary<string, object>() {
             { "OMSId", omsId },
             { "InstrumentId", this.safeInteger(market, "id") },
@@ -154,7 +154,7 @@ public partial class ndax : ccxt.ndax
         object trades = await this.watch(url, messageHash, message, messageHash);
         if (isTrue(this.newUpdates))
         {
-            limitVar = ((Int64?)callDynamically(trades, "getLimit", new object[] {symbolVar, limitVar}));
+            limitVar = callDynamically(trades, "getLimit", new object[] {symbolVar, limitVar});
         }
         return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitVar, "timestamp", true));
     }
@@ -230,7 +230,7 @@ public partial class ndax : ccxt.ndax
     {
         object symbolVar = symbol;
         object timeframeVar = timeframe;
-        Int64? limitVar = limit;
+        object limitVar = limit;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
         Int64? omsId = this.safeInteger(this.options, "omsId", 1);
@@ -243,7 +243,7 @@ public partial class ndax : ccxt.ndax
         string name = "SubscribeTicker";
         string messageHash = add(add(add(add(name, ":"), timeframeVar), ":"), GetValue(market, "id"));
         string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
-        Int64 requestId = ((Int64)this.requestId());
+        Int64 requestId = this.requestId();
         Dictionary<string, object> payload = new Dictionary<string, object>() {
             { "OMSId", omsId },
             { "InstrumentId", this.safeInteger(market, "id") },
@@ -260,7 +260,7 @@ public partial class ndax : ccxt.ndax
         object ohlcv = await this.watch(url, messageHash, message, messageHash);
         if (isTrue(this.newUpdates))
         {
-            limitVar = ((Int64?)callDynamically(ohlcv, "getLimit", new object[] {symbolVar, limitVar}));
+            limitVar = callDynamically(ohlcv, "getLimit", new object[] {symbolVar, limitVar});
         }
         return ccxt.BaseExchange.ToOHLCVList(this.filterBySinceLimit(ohlcv, since, limitVar, 0, true));
     }
@@ -309,7 +309,7 @@ public partial class ndax : ccxt.ndax
             {
                 string? timeframe = ((string)getValue(keys, j));
                 string? interval = this.safeString(this.timeframes, timeframe, timeframe);
-                Int64? duration = multiply(parseInt(interval), 1000);
+                object duration = multiply(parseInt(interval), 1000);
                 Int64? timestamp = this.safeInteger(ohlcv, 0);
                 if (isEqual(timestamp, null))
                 {
@@ -407,7 +407,7 @@ public partial class ndax : ccxt.ndax
         string name = "SubscribeLevel2";
         string messageHash = add(add(name, ":"), GetValue(market, "id"));
         string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
-        Int64 requestId = ((Int64)this.requestId());
+        Int64 requestId = this.requestId();
         limitVar = (isEqual(limitVar, null)) ? 100 : limitVar;
         Dictionary<string, object> payload = new Dictionary<string, object>() {
             { "OMSId", omsId },
@@ -517,9 +517,9 @@ public partial class ndax : ccxt.ndax
                 (orderbookSide as IOrderBookSide).store(price, 0);
             }
         }
-        orderbook["nonce"] = nonce;
-        orderbook["timestamp"] = timestamp;
-        orderbook["datetime"] = this.iso8601(timestamp);
+        ((IDictionary<string,object>)orderbook)["nonce"] = nonce;
+        ((IDictionary<string,object>)orderbook)["timestamp"] = timestamp;
+        ((IDictionary<string,object>)orderbook)["datetime"] = this.iso8601(timestamp);
         string name = "SubscribeLevel2";
         string messageHash = add(add(name, ":"), marketId);
         ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = orderbook;

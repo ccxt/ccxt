@@ -500,9 +500,9 @@ public partial class delta : Exchange
         if (isOption && ((isEqual(this.markets_by_id, null)) || !(inOp(this.markets_by_id, marketId))))
         {
             // handle expired option contracts
-            return ((Dictionary<string, object>)((object)(this.createExpiredOptionMarket(marketId))));
+            return this.createExpiredOptionMarket(marketId);
         }
-        return ((Dictionary<string, object>)((object)(base.safeMarket(marketId, market, delimiter, marketType))));
+        return base.safeMarket(marketId, market, delimiter, marketType);
     }
 
     /**
@@ -1844,7 +1844,7 @@ public partial class delta : Exchange
             account["free"] = this.safeString(balance, "available_balance");
             result[(string)code] = account;
         }
-        return ((Dictionary<string, object>)((object)(this.safeBalance(result))));
+        return this.safeBalance(result);
     }
 
     /**
@@ -3056,7 +3056,7 @@ public partial class delta : Exchange
     public async override Task<Dictionary<string, object>> addMargin(string symbol, double amount, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        return ((Dictionary<string, object>)((object)(await this.modifyMarginHelper(symbol, amount, "add", parameters))));
+        return await this.modifyMarginHelper(symbol, amount, "add", parameters);
     }
 
     /**
@@ -3072,7 +3072,7 @@ public partial class delta : Exchange
     public async override Task<Dictionary<string, object>> reduceMargin(string symbol, double amount, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        return ((Dictionary<string, object>)((object)(await this.modifyMarginHelper(symbol, amount, "reduce", parameters))));
+        return await this.modifyMarginHelper(symbol, amount, "reduce", parameters);
     }
 
     public async virtual Task<Dictionary<string, object>> modifyMarginHelper(object symbol, object amount, string? type, object parameters = null)
@@ -3114,7 +3114,7 @@ public partial class delta : Exchange
         //     }
         //
         IDictionary<string, object> result = this.safeDict(response, "result", new Dictionary<string, object>() {});
-        return ((Dictionary<string, object>)((object)(this.parseMarginModification(result, market))));
+        return this.parseMarginModification(result, market);
     }
 
     public override Dictionary<string, object> parseMarginModification(object data, IDictionary<string, object> market = null)

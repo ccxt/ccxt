@@ -926,7 +926,7 @@ public partial class p2b : Exchange
             };
             result[(string)((string)code)] = account;
         }
-        return ((Dictionary<string, object>)((object)(this.safeBalance(result))));
+        return this.safeBalance(result);
     }
 
     /**

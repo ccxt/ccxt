@@ -1067,7 +1067,7 @@ public partial class poloniex : Exchange
         bool active = state == "NORMAL";
         IDictionary<string, object> symbolTradeLimit = this.safeDict(market, "symbolTradeLimit");
         // these are known defaults
-        return ((Dictionary<string, object>)((object)(this.safeMarketStructure(new Dictionary<string, object>() {
+        return this.safeMarketStructure(new Dictionary<string, object>() {
             { "id", id },
             { "symbol", add(add(bs, "/"), quote) },
             { "base", bs },
@@ -1111,7 +1111,7 @@ public partial class poloniex : Exchange
             } },
             { "created", this.safeInteger(market, "tradableStartTime") },
             { "info", market },
-        }))));
+        });
     }
 
     public virtual Dictionary<string, object> parseSwapMarket(object market)
@@ -1176,7 +1176,7 @@ public partial class poloniex : Exchange
             type = "future";
         }
         string marketType = (type == "future") ? "future" : "swap";
-        return ((Dictionary<string, object>)((object)(this.safeMarketStructure(new Dictionary<string, object>() {
+        return this.safeMarketStructure(new Dictionary<string, object>() {
             { "id", id },
             { "symbol", symbol },
             { "base", bs },
@@ -1226,7 +1226,7 @@ public partial class poloniex : Exchange
             } },
             { "created", this.safeInteger(market, "oDate") },
             { "info", market },
-        }))));
+        });
     }
 
     /**
@@ -2822,7 +2822,7 @@ public partial class poloniex : Exchange
                     result[(string)code] = account;
                 }
             }
-            return ((Dictionary<string, object>)((object)(this.safeBalance(result))));
+            return this.safeBalance(result);
         }
         // for spot
         for (int i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
@@ -2843,7 +2843,7 @@ public partial class poloniex : Exchange
                 }
             }
         }
-        return ((Dictionary<string, object>)((object)(this.safeBalance(result))));
+        return this.safeBalance(result);
     }
 
     /**
@@ -3535,7 +3535,7 @@ public partial class poloniex : Exchange
                 }
             }
         }
-        return ((Dictionary<string, object>)((object)(depositWithdrawFees)));
+        return depositWithdrawFees;
     }
 
     public override object parseDepositWithdrawFee(object fee, Dictionary<string, object> currency = null)
@@ -4063,7 +4063,7 @@ public partial class poloniex : Exchange
             amount = Precise.stringAbs(amount);
         }
         IDictionary<string, object> data = this.safeDict(response, "data");
-        return ((Dictionary<string, object>)((object)(this.parseMarginModification(data, market))));
+        return this.parseMarginModification(data, market);
     }
 
     public override Dictionary<string, object> parseMarginModification(object data, IDictionary<string, object> market = null)
@@ -4099,7 +4099,7 @@ public partial class poloniex : Exchange
     {
         object amountVar = amount;
         parameters ??= new Dictionary<string, object>();
-        return ((Dictionary<string, object>)((object)(await this.modifyMarginHelper(symbol, prefixUnaryNeg(ref amountVar), "reduce", parameters))));
+        return await this.modifyMarginHelper(symbol, prefixUnaryNeg(ref amountVar), "reduce", parameters);
     }
 
     /**
@@ -4114,7 +4114,7 @@ public partial class poloniex : Exchange
     public async override Task<Dictionary<string, object>> addMargin(string symbol, double amount, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        return ((Dictionary<string, object>)((object)(await this.modifyMarginHelper(symbol, amount, "add", parameters))));
+        return await this.modifyMarginHelper(symbol, amount, "add", parameters);
     }
 
     public override Int64 nonce()

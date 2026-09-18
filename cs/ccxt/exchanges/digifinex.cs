@@ -1058,7 +1058,7 @@ public partial class digifinex : Exchange
                 result[(string)code] = account;
             }
         }
-        return ((Dictionary<string, object>)((object)(this.safeBalance(result))));
+        return this.safeBalance(result);
     }
 
     /**
@@ -2411,7 +2411,7 @@ public partial class digifinex : Exchange
                 { "clientOrderId", this.safeString(order, "client-order-id") },
             }));
         }
-        return ((List<object>)((object)(result)));
+        return result;
     }
 
     /**
@@ -3892,7 +3892,7 @@ public partial class digifinex : Exchange
                 result[(string)code] = borrowRate;
             }
         }
-        return ((Dictionary<string, object>)((object)(result)));
+        return result;
     }
 
     /**
@@ -4892,7 +4892,7 @@ public partial class digifinex : Exchange
             Dictionary<string, object> currency = this.currency(((string)code));
             depositWithdrawFees[(string)code] = this.assignDefaultDepositWithdrawFees(getValue(depositWithdrawFees, code), currency);
         }
-        return ((Dictionary<string, object>)((object)(depositWithdrawFees)));
+        return depositWithdrawFees;
     }
 
     /**
@@ -4911,7 +4911,7 @@ public partial class digifinex : Exchange
         parameters ??= new Dictionary<string, object>();
         string? side = this.safeString(parameters, "side");
         this.checkRequiredArgument("addMargin", side, "side", new List<object>() {"long", "short"});
-        return ((Dictionary<string, object>)((object)(await this.modifyMarginHelper(symbol, amount, 1, parameters))));
+        return await this.modifyMarginHelper(symbol, amount, 1, parameters);
     }
 
     /**
@@ -4930,7 +4930,7 @@ public partial class digifinex : Exchange
         parameters ??= new Dictionary<string, object>();
         string? side = this.safeString(parameters, "side");
         this.checkRequiredArgument("reduceMargin", side, "side", new List<object>() {"long", "short"});
-        return ((Dictionary<string, object>)((object)(await this.modifyMarginHelper(symbol, amount, 2, parameters))));
+        return await this.modifyMarginHelper(symbol, amount, 2, parameters);
     }
 
     public async virtual Task<Dictionary<string, object>> modifyMarginHelper(object symbol, object amount, object type, object parameters = null)
@@ -4963,9 +4963,9 @@ public partial class digifinex : Exchange
         Int64? code = this.safeInteger(response, "code");
         string status = ((code == 0)) ? "ok" : "failed";
         object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
-        return ((Dictionary<string, object>)((object)(this.extend(this.parseMarginModification(data, market), new Dictionary<string, object>() {
+        return this.extend(this.parseMarginModification(data, market), new Dictionary<string, object>() {
             { "status", status },
-        }))));
+        });
     }
 
     public override Dictionary<string, object> parseMarginModification(object data, IDictionary<string, object> market = null)

@@ -1891,7 +1891,7 @@ public partial class coinbase : Exchange
         double? defaultMakerFee = this.safeNumber(getValue(this.fees, "trading"), "maker");
         double? takerFee = this.inArray(id, stablePairs) ? 0.00001 : this.safeNumber(feeTier, "taker_fee_rate", defaultTakerFee);
         double? makerFee = this.inArray(id, stablePairs) ? 0 : this.safeNumber(feeTier, "maker_fee_rate", defaultMakerFee);
-        return ((Dictionary<string, object>)((object)(this.safeMarketStructure(new Dictionary<string, object>() {
+        return this.safeMarketStructure(new Dictionary<string, object>() {
             { "id", id },
             { "symbol", add(add(bs, "/"), quote) },
             { "base", bs },
@@ -1941,7 +1941,7 @@ public partial class coinbase : Exchange
             } },
             { "created", null },
             { "info", market },
-        }))));
+        });
     }
 
     public virtual Dictionary<string, object> parseContractMarket(object market, object feeTier)
@@ -2091,7 +2091,7 @@ public partial class coinbase : Exchange
         double? makerFeeRate = this.safeNumber(feeTier, "maker_fee_rate");
         double? taker = (!isEqual(takerFeeRate, null) && !isEqual(takerFeeRate, null) && !isEqual(takerFeeRate, 0)) ? takerFeeRate : this.parseNumber("0.06");
         double? maker = (!isEqual(makerFeeRate, null) && !isEqual(makerFeeRate, null) && !isEqual(makerFeeRate, 0)) ? makerFeeRate : this.parseNumber("0.04");
-        return ((Dictionary<string, object>)((object)(this.safeMarketStructure(new Dictionary<string, object>() {
+        return this.safeMarketStructure(new Dictionary<string, object>() {
             { "id", id },
             { "symbol", symbol },
             { "base", bs },
@@ -2141,7 +2141,7 @@ public partial class coinbase : Exchange
             } },
             { "created", null },
             { "info", market },
-        }))));
+        });
     }
 
     public async virtual Task<Dictionary<string, object>> FetchCurrenciesFromCache(object parameters = null)
@@ -3326,7 +3326,7 @@ public partial class coinbase : Exchange
         {
             request["limit"] = limit;
         }
-        return ((Dictionary<string, object>)((object)(request)));
+        return request;
     }
 
     public async virtual Task<object> prepareAccountRequestWithCurrencyCode(string code = null, object limit = null, object parameters = null)
@@ -5067,7 +5067,7 @@ public partial class coinbase : Exchange
         //
         // https://github.com/ccxt/ccxt/issues/25484
         IDictionary<string, object> data = this.safeDict2(response, "data", "transfer", new Dictionary<string, object>() {});
-        return ((Dictionary<string, object>)((object)(this.parseTransaction(data))));
+        return this.parseTransaction(data);
     }
 
     /**
@@ -5237,7 +5237,7 @@ public partial class coinbase : Exchange
             Dictionary<string, object> id = this.extend(this.parseDepositMethodId(getValue(ids, i)), parameters);
             result.Add(id);
         }
-        return ((List<object>)((object)(result)));
+        return result;
     }
 
     public virtual Dictionary<string, object> parseDepositMethodId(object depositId)
@@ -5851,7 +5851,7 @@ public partial class coinbase : Exchange
             };
             parsedPositions.Add(positionData);
         }
-        return ((List<object>)((object)(parsedPositions)));
+        return parsedPositions;
     }
 
     public virtual string createAuthToken(object seconds, object method = null, object url = null, object useEddsa = null)

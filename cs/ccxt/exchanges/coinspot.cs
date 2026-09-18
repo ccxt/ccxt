@@ -621,7 +621,7 @@ public partial class coinspot : Exchange
                 }
             }
         }
-        return ((Dictionary<string, object>)((object)(this.safeBalance(result))));
+        return this.safeBalance(result);
     }
 
     /**

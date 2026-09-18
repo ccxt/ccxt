@@ -2286,7 +2286,7 @@ public partial class aster : ccxt.aster
     {
         string? marketId = this.safeString(order, "s");
         string marketType = this.getAccountTypeFromUrl(client.url);
-        return ((Dictionary<string, object>)((object)(this.safeMarket(marketId, null, null, marketType))));
+        return this.safeMarket(marketId, null, null, marketType);
     }
 
     public virtual void handleBalanceAndPosition(WebSocketClient client, object message)

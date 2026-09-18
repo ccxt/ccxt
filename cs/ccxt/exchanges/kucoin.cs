@@ -10930,7 +10930,7 @@ public partial class kucoin : Exchange
             string? code = ((string)getValue(keys, i));
             borrowRateHistories[(string)code] = this.filterByCurrencySinceLimit(getValue(borrowRateHistories, code),((string)code), since, limit);
         }
-        return ((Dictionary<string, object>)((object)(borrowRateHistories)));
+        return borrowRateHistories;
     }
 
     /**
@@ -11009,7 +11009,7 @@ public partial class kucoin : Exchange
         //     }
         //
         IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
-        return ((Dictionary<string, object>)((object)(this.parseMarginLoan(data, currency))));
+        return this.parseMarginLoan(data, currency);
     }
 
     /**
@@ -11054,7 +11054,7 @@ public partial class kucoin : Exchange
         //     }
         //
         IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
-        return ((Dictionary<string, object>)((object)(this.parseMarginLoan(data, currency))));
+        return this.parseMarginLoan(data, currency);
     }
 
     /**
@@ -11093,7 +11093,7 @@ public partial class kucoin : Exchange
         //     }
         //
         IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
-        return ((Dictionary<string, object>)((object)(this.parseMarginLoan(data, currency))));
+        return this.parseMarginLoan(data, currency);
     }
 
     /**
@@ -11136,7 +11136,7 @@ public partial class kucoin : Exchange
         //     }
         //
         IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
-        return ((Dictionary<string, object>)((object)(this.parseMarginLoan(data, currency))));
+        return this.parseMarginLoan(data, currency);
     }
 
     public virtual Dictionary<string, object> parseMarginLoan(object info, Dictionary<string, object> currency = null)
@@ -12533,10 +12533,10 @@ public partial class kucoin : Exchange
         //    }
         //
         object data = this.safeValue(response, "data");
-        return ((Dictionary<string, object>)((object)(this.extend(this.parseMarginModification(data, market), new Dictionary<string, object>() {
+        return this.extend(this.parseMarginModification(data, market), new Dictionary<string, object>() {
             { "amount", this.amountToPrecision(symbol, amount) },
             { "direction", "in" },
-        }))));
+        });
     }
 
     /**

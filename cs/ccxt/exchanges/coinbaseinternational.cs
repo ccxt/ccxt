@@ -1081,7 +1081,7 @@ public partial class coinbaseinternational : Exchange
             Dictionary<string, object> network = this.extend(this.parseNetwork(getValue(networks, i)), parameters);
             result[(string)GetValue(network, "network")] = network;
         }
-        return ((Dictionary<string, object>)((object)(result)));
+        return result;
     }
 
     public virtual object parseNetwork(object network, object parameters = null)
@@ -1988,7 +1988,7 @@ public partial class coinbaseinternational : Exchange
                 result[(string)code] = account;
             }
         }
-        return ((Dictionary<string, object>)((object)(this.safeBalance(result))));
+        return this.safeBalance(result);
     }
 
     /**

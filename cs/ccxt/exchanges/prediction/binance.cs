@@ -914,7 +914,7 @@ public partial class binance : PredictionExchange
             }
         }
         Int64 now = this.milliseconds();
-        return ((Dictionary<string, object>)((object)(this.safePredictionTicker(new Dictionary<string, object>() {
+        return this.safePredictionTicker(new Dictionary<string, object>() {
             { "outcome", this.safeString(outcomeObj, "outcome") },
             { "outcomeId", this.safeString2(outcomeObj, "outcomeId", "id") },
             { "label", this.safeString(outcomeObj, "label") },
@@ -938,7 +938,7 @@ public partial class binance : PredictionExchange
             { "baseVolume", null },
             { "quoteVolume", null },
             { "info", raw },
-        }, market))));
+        }, market);
     }
 
     /**
@@ -1123,7 +1123,7 @@ public partial class binance : PredictionExchange
         }
         string? side = this.safeStringLower(order, "side");
         Int64? timestamp = this.safeInteger(order, "createTime");
-        return ((Dictionary<string, object>)((object)(this.safePredictionOrder(new Dictionary<string, object>() {
+        return this.safePredictionOrder(new Dictionary<string, object>() {
             { "id", this.safeString(order, "orderId") },
             { "clientOrderId", null },
             { "info", order },
@@ -1149,7 +1149,7 @@ public partial class binance : PredictionExchange
             { "remaining", null },
             { "fee", null },
             { "trades", new List<object>() {} },
-        }, outcomeObj))));
+        }, outcomeObj);
     }
 
     public virtual string? parseOrderStatus(string? status)
@@ -1725,7 +1725,7 @@ public partial class binance : PredictionExchange
                 { "cost", this.parseNumber(feeCost) },
             };
         }
-        return ((Dictionary<string, object>)((object)(this.safePredictionTrade(new Dictionary<string, object>() {
+        return this.safePredictionTrade(new Dictionary<string, object>() {
             { "id", null },
             { "info", trade },
             { "timestamp", timestamp },
@@ -1744,7 +1744,7 @@ public partial class binance : PredictionExchange
             { "filled", filled },
             { "cost", cost },
             { "fee", fee },
-        }, outcomeObj))));
+        }, outcomeObj);
     }
 
     /**

@@ -2106,7 +2106,7 @@ public partial class gate : ccxt.gate
         string? originalSize = this.safeString(liquidation, "size");
         string? left = this.safeString(liquidation, "left");
         string? amount = Precise.stringAbs(Precise.stringSub(originalSize, left));
-        return ((Dictionary<string, object>)((object)(this.safeLiquidation(new Dictionary<string, object>() {
+        return this.safeLiquidation(new Dictionary<string, object>() {
             { "info", liquidation },
             { "symbol", this.safeSymbol(marketId, market) },
             { "contracts", this.parseNumber(amount) },
@@ -2116,7 +2116,7 @@ public partial class gate : ccxt.gate
             { "quoteValue", null },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
-        }))));
+        });
     }
 
     public virtual bool? handleErrorMessage(WebSocketClient client, object message)
@@ -2530,13 +2530,13 @@ public partial class gate : ccxt.gate
         Int64 reqid = this.sum(this.safeInteger(this.options, "reqid", 0), 1);
         this.options["reqid"] = reqid;
         this.unlockId();
-        return ((Int64)((object)(reqid))!);
+        return reqid;
     }
 
     public async virtual Task<object> subscribePublic(object url, object messageHash, object payload, object channel, object parameters = null, object subscription = null)
     {
         parameters ??= new Dictionary<string, object>();
-        Int64 requestId = ((Int64)this.requestId());
+        Int64 requestId = this.requestId();
         Int64 time = this.seconds();
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "id", requestId },
@@ -2561,7 +2561,7 @@ public partial class gate : ccxt.gate
     public async virtual Task<object> subscribePublicMultiple(object url, object messageHashes, object payload, object channel, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        Int64 requestId = ((Int64)this.requestId());
+        Int64 requestId = this.requestId();
         Int64 time = this.seconds();
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "id", requestId },
@@ -2577,7 +2577,7 @@ public partial class gate : ccxt.gate
     public async virtual Task<object> unSubscribePublicMultiple(object url, object topic, IList<object> symbols, object messageHashes, object subMessageHashes, object payload, object channel, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        Int64 requestId = ((Int64)this.requestId());
+        Int64 requestId = this.requestId();
         Int64 time = this.seconds();
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "id", requestId },
@@ -2626,7 +2626,7 @@ public partial class gate : ccxt.gate
         string eventVar = "api";
         if (isEqual(requestId, null))
         {
-            Int64 reqId = ((Int64)this.requestId());
+            Int64 reqId = this.requestId();
             requestId = reqId.ToString();
         }
         object messageHash = requestId;
@@ -2686,7 +2686,7 @@ public partial class gate : ccxt.gate
             { "KEY", this.apiKey },
             { "SIGN", signature },
         };
-        Int64 requestId = ((Int64)this.requestId());
+        Int64 requestId = this.requestId();
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "id", requestId },
             { "time", time },

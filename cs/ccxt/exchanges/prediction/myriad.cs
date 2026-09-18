@@ -1555,7 +1555,7 @@ public partial class myriad : PredictionExchange
             outcomeObj = this.safeOutcome(composite, market);
             outcome = this.safeString(outcomeObj, "outcome");
         }
-        return ((Dictionary<string, object>)((object)(this.safePredictionOrder(new Dictionary<string, object>() {
+        return this.safePredictionOrder(new Dictionary<string, object>() {
             { "id", orderHash },
             { "clientOrderId", null },
             { "info", order },
@@ -1580,7 +1580,7 @@ public partial class myriad : PredictionExchange
             { "status", status },
             { "fee", null },
             { "trades", null },
-        }, market))));
+        }, market);
     }
 
     /**
@@ -2808,7 +2808,7 @@ public partial class myriad : PredictionExchange
                 percentage = multiply(divide(change, previousClose), 100);
             }
         }
-        return ((Dictionary<string, object>)((object)(this.safePredictionTicker(new Dictionary<string, object>() {
+        return this.safePredictionTicker(new Dictionary<string, object>() {
             { "outcome", this.safeString(market, "outcome") },
             { "outcomeId", this.safeString(market, "id") },
             { "label", this.safeString(market, "label") },
@@ -2832,7 +2832,7 @@ public partial class myriad : PredictionExchange
             { "baseVolume", this.safeNumber(raw, "volumeNotional24h") },
             { "quoteVolume", this.safeNumber(raw, "volume24h") },
             { "info", raw },
-        }, market))));
+        }, market);
     }
 
     /**
@@ -3352,7 +3352,7 @@ public partial class myriad : PredictionExchange
         {
             priceStr = Precise.stringDiv(costStr, amountStr);
         }
-        return ((Dictionary<string, object>)((object)(this.safePredictionTrade(new Dictionary<string, object>() {
+        return this.safePredictionTrade(new Dictionary<string, object>() {
             { "id", this.safeString(trade, "txId") },
             { "info", trade },
             { "timestamp", timestamp },
@@ -3369,7 +3369,7 @@ public partial class myriad : PredictionExchange
             { "amount", this.parseNumber(amountStr) },
             { "cost", this.parseNumber(costStr) },
             { "fee", null },
-        }, market))));
+        }, market);
     }
 
     /**
@@ -3574,7 +3574,7 @@ public partial class myriad : PredictionExchange
         {
             ((IDictionary<string,object>)getValue(this.options, "requestId"))[(string)url] = newValue;
         }
-        return ((Int64)((object)(newValue))!);
+        return newValue;
     }
 
     public virtual double? fromWei(object wei)
@@ -3608,7 +3608,7 @@ public partial class myriad : PredictionExchange
         if ((connectSent == null))
         {
             ((IDictionary<string,object>)this.options)["wsConnected"] = false;
-            Int64 requestId = ((Int64)this.requestId(url));
+            Int64 requestId = this.requestId(url);
             // give the anonymous connect a name so the params object is non-empty (PHP serialises an
             // empty array as a JSON array, which Centrifugo rejects)
             Dictionary<string, object> connectMsg = new Dictionary<string, object>() {
@@ -3640,7 +3640,7 @@ public partial class myriad : PredictionExchange
         string? url = this.safeString(getValue(this.urls, "api"), "ws");
         // finish the connect handshake first so the subscribe frame is sent after the connect reply
         await this.connectCentrifugo(url);
-        Int64 requestId = ((Int64)this.requestId(url));
+        Int64 requestId = this.requestId(url);
         Dictionary<string, object> subscribeMsg = new Dictionary<string, object>() {
             { "subscribe", new Dictionary<string, object>() {
                 { "channel", channel },
@@ -3752,7 +3752,7 @@ public partial class myriad : PredictionExchange
             // fresh subscription (first call or after a reconnect that cleared ((WebSocketClient)client).subscriptions)
             await this.seedOrderBook(outcome, sym, limit);
         }
-        Int64 requestId = ((Int64)this.requestId(url));
+        Int64 requestId = this.requestId(url);
         Dictionary<string, object> subscribeMsg = new Dictionary<string, object>() {
             { "subscribe", new Dictionary<string, object>() {
                 { "channel", channel },
@@ -4058,7 +4058,7 @@ public partial class myriad : PredictionExchange
             if (isEqual(this.safeValue(seenChannels, channel), null))
             {
                 seenChannels[(string)channel] = true;
-                Int64 requestId = ((Int64)this.requestId(url));
+                Int64 requestId = this.requestId(url);
                 Dictionary<string, object> subscribeMsg = new Dictionary<string, object>() {
                     { "subscribe", new Dictionary<string, object>() {
                         { "channel", channel },
@@ -4269,7 +4269,7 @@ public partial class myriad : PredictionExchange
             // handlePosition can maintain a running contracts figure
             await this.seedPositionBalances(trader);
         }
-        Int64 requestId = ((Int64)this.requestId(url));
+        Int64 requestId = this.requestId(url);
         Dictionary<string, object> subscribeMsg = new Dictionary<string, object>() {
             { "subscribe", new Dictionary<string, object>() {
                 { "channel", channel },

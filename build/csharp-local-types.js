@@ -926,6 +926,21 @@ export const CSHARP_COLLECTION_RETURN_METHODS = {
     // Dictionary row) — every path boxes that row or null.
     'getMarketFromSymbols': 'Dictionary<string, object>',
     'opinionOrderRawAmounts': 'Dictionary<string, object>', 'parseAccountPosition': 'Dictionary<string, object>', 'parseAccountSettings': 'Dictionary<string, object>', 'parseBidAskCustom': 'Dictionary<string, object>',
+    // U49: ts/src/base/Exchange.ts#safeBalance — ONE declaration in the whole tree, one return
+    // path, `return balance as any` where `balance` is the `Dict` parameter, i.e. the box is the
+    // caller's own balance row. The body already unboxes the parameter on its first write
+    // (`((IDictionary<string,object>)balance)["free"] = …`), so naming the type moves the 84
+    // call sites' unbox into the body on the SAME value: no runtime change, and the boundary
+    // cast the callers carried becomes an identity box.
+    'safeBalance': 'Dictionary<string, object>',
+    // U49: ts/src/base/Exchange.ts#safeLiquidation — same proof as safeBalance: ONE
+    // declaration, one return path `return liquidation as Liquidation` where `liquidation` is
+    // the `Dict` parameter, and the body ALREADY unboxes it five lines earlier
+    // (`((IDictionary<string,object>)liquidation)["contracts"] = …`), so a non-dict caller
+    // throws today. The unbox the retype adds sits at the `return`, i.e. strictly after the
+    // body's own unbox: no call site can fail that does not already fail. All in-tree callers
+    // pass a fresh `new Dictionary<string, object>() {...}` literal.
+    'safeLiquidation': 'Dictionary<string, object>',
     'parseBorrowRateHistories': 'Dictionary<string, object>', 'parseBorrowRates': 'Dictionary<string, object>', 'parseContractMarket': 'Dictionary<string, object>', 'parseCurrenciesCustom': 'Dictionary<string, object>',
     // parseBorrowRate: the BaseExchange `throw` stub plus 7 venue overrides whose only return is
     // an object literal, so base virtual and every override print one type (the stub has no
@@ -1410,6 +1425,74 @@ function callCollectionReturnType (csharp, call) {
     return (typeof csharp.csharpTypeOfInitializer === 'function') ? csharp.csharpTypeOfInitializer (call) : undefined;
 }
 
+// the boundary-cast targets this unit (U49) owns; a wrap mapped to anything else belongs to the
+// sibling cast units (U47 string, U48 IList<object>). `IDictionary<string, object>` is listed
+// because the boundary wrap's own value can be EXACTLY that box (a local the local pass declares
+// `IDictionary<string, object>`) — a `Dictionary<string, object>` producer feeding an
+// `IDictionary<string, object>` mapped method is NOT listed: the concrete box is not the cast
+// target, so rule 1 keeps that cast.
+const U49_OWNED_CAST_TYPES = new Set ([ 'object', 'Int64', 'Int64?', 'Dictionary<string, object>', 'List<object>', 'IDictionary<string, object>' ]);
+
+// U49: the called method's own generated C# signature already names `mapped`, so the call
+// expression's static type IS `mapped` and the boundary cast `((mapped)((object)(call)))` is an
+// identity box (a box + an unbox of the same value). The proof reads the same tables that decide
+// the emitted signature: CSHARP_COLLECTION_RETURN_METHODS / _BY_DECLARATION (their entries print
+// the mapped type by construction), the hand-written base signatures mirrored by
+// CSHARP_LOCAL_THIS_RETURN_TYPES (callReturnType), and — for an awaited call — the async-core
+// table whose entries print `Task<mapped>`. Exact string equality only: an interface spelling
+// (IDictionary/IList) never crosses to the concrete box, and a nullable spelling never crosses
+// to the non-nullable one.
+function callReturnIsMapped (csharp, expression, mapped) {
+    // U49's cast family only: the boundary wraps whose mapped type is one of the four this unit
+    // owns — (object) / (Int64[?]) / (Dictionary<string, object>) / (List<object>). A wrap whose
+    // mapped type is `string?` / `IList<object>` is another unit's family (U47 / U48) and keeps
+    // its cast here.
+    if (expression === undefined || !U49_OWNED_CAST_TYPES.has (mapped)) {
+        return false;
+    }
+    let node = expression;
+    let awaited = false;
+    for (;;) {
+        if (node?.kind === ts.SyntaxKind.ParenthesizedExpression || node?.kind === ts.SyntaxKind.NonNullExpression) {
+            node = node.expression;
+            continue;
+        }
+        if (node?.kind === ts.SyntaxKind.AwaitExpression) {
+            awaited = true;
+            node = node.expression;
+            continue;
+        }
+        break;
+    }
+    // a bare local read the local pass declares with exactly `mapped`: the printed declaration
+    // is `mapped x = …`, so `return x;` in a method declared `mapped` compiles
+    if (node?.kind === ts.SyntaxKind.Identifier) {
+        return identifierType (csharp, node) === mapped;
+    }
+    if (node?.kind !== ts.SyntaxKind.CallExpression) {
+        return false;
+    }
+    const callee = node.expression;
+    if (callee?.kind !== ts.SyntaxKind.PropertyAccessExpression) {
+        return false;
+    }
+    const receiver = callee.expression;
+    // `base.<name>(...)` binds the BASE declaration, whose hand-written signature is what
+    // CSHARP_LOCAL_THIS_RETURN_TYPES mirrors — the same authority as the `this.` form below,
+    // minus the venue overrides (which print the same type: CS0508 keeps them compatible)
+    if (receiver?.kind === ts.SyntaxKind.SuperKeyword) {
+        return CSHARP_LOCAL_THIS_RETURN_TYPES[callee.name?.escapedText] === mapped;
+    }
+    if (receiver?.kind !== ts.SyntaxKind.ThisKeyword) {
+        return false;
+    }
+    if (awaited) {
+        const declared = CSHARP_ASYNC_CORE_RETURNS[callee.name?.escapedText];
+        return declared === mapped || (Array.isArray (declared) && declared.includes (mapped));
+    }
+    return callReturnType (csharp, node) === mapped || callCollectionReturnType (csharp, node) === mapped;
+}
+
 // true only when EVERY return path of the declaration already prints the mapped box. A
 // declaration with no return statement at all (the base-class `throw new NotSupported` stub
 // that owns the virtual slot of its venue overrides) has no path to carry a cast, and naming
@@ -1558,8 +1641,10 @@ export function installCsharpCollectionReturns (transpiler) {
         const enclosing = ts.findAncestor (node.parent, ts.isFunctionLike);
         const mapped = collectionReturnType (csharp, enclosing, 'object');
         // a proven per-declaration method already hands the mapped box back on EVERY path, so
-        // the boundary cast would be a redundant `(T)((object)v)` on each of them
-        if (mapped === undefined || !node.expression || collectionReturnIsTyped (csharp, node.expression, mapped) || rowBuilderReturnIsTyped (csharp, enclosing, node.expression, mapped) || byDeclarationCollectionReturnIsProven (csharp, enclosing)) {
+        // the boundary cast would be a redundant `(T)((object)v)` on each of them (U49 adds the
+        // called method's own signature: a callee that already returns `mapped` makes the cast
+        // an identity box too)
+        if (mapped === undefined || !node.expression || collectionReturnIsTyped (csharp, node.expression, mapped) || callReturnIsMapped (csharp, node.expression, mapped) || rowBuilderReturnIsTyped (csharp, enclosing, node.expression, mapped) || byDeclarationCollectionReturnIsProven (csharp, enclosing)) {
             return upstreamReturnStatement (node, identation);
         }
         // the printed expression keeps its upstream shape; the cast only names the box
@@ -1606,6 +1691,13 @@ export const CSHARP_LOCAL_THIS_RETURN_TYPES = {
     // itself, so naming the type moves no value.
     'safeMarketStructure': 'Dictionary<string, object>',
     'safeCurrencyStructure': 'Dictionary<string, object>',
+    // U49: Exchange.BaseMethods.cs#safeBalance — retyped by CSHARP_COLLECTION_RETURN_METHODS on
+    // the same proof (single `return balance as any` of the Dict parameter); the call sites'
+    // locals take the same box.
+    'safeBalance': 'Dictionary<string, object>',
+    // U49: same proof as safeBalance (Exchange.BaseMethods.cs#safeLiquidation is retyped by
+    // CSHARP_COLLECTION_RETURN_METHODS on its own single `return liquidation as Liquidation`).
+    'safeLiquidation': 'Dictionary<string, object>',
     'safeMarket': 'Dictionary<string, object>',
     'safeCurrency': 'Dictionary<string, object>',
     'market': 'Dictionary<string, object>',
@@ -9367,6 +9459,15 @@ function csharpLocalTypeOf (csharp, declaration, context) {
                 if (callCastType !== undefined) {
                     csharpType = callCastType;
                     cast = callCastType.endsWith ('?') ? callCastType.slice (0, -1) : callCastType;
+                    // U49: the Int64 counter definitions (requestId) get the typed signature from
+                    // the same per-definition proof (csharpMethodReturnType / sameFileCallBoxType),
+                    // so the call's own C# type IS the box and the cast back is an identity
+                    // conversion. The check must sit in THIS arm: callResultCastType answers
+                    // 'Int64' for exactly these sites, so a check in the else-branch below never
+                    // runs (it was dead code before U49).
+                    if (typedRequestIdCall (declaration.initializer)) {
+                        cast = undefined;
+                    }
                 } else {
                     // `const x = this.getMessageHash (...)` / `const x = this.parseWsTrade (...)`: the
                     // generated definition's every return path boxes the named type, so the
@@ -9375,15 +9476,10 @@ function csharpLocalTypeOf (csharp, declaration, context) {
                     // non-null collection names for the ws row builders — the same spelling the
                     // CSHARP_COLLECTION_RETURN_METHODS declarations carry).
                     // Every later write is still checked by csharpLocalIsSafeToRetype.
-                    const callCastType = callResultCastType (declaration.initializer);
-                    if (callCastType !== undefined) {
-                        csharpType = callCastType;
-                        cast = callCastType.endsWith ('?') ? callCastType.slice (0, -1) : callCastType;
-                        // the Int64 counter definitions get the typed signature from the same
-                        // proof (installCsharpNumericReturns), so no cast back is needed
-                        if (typedRequestIdCall (declaration.initializer)) {
-                            cast = undefined;
-                        }
+                    const perDeclarationCastType = callResultCastType (declaration.initializer);
+                    if (perDeclarationCastType !== undefined) {
+                        csharpType = perDeclarationCastType;
+                        cast = perDeclarationCastType.endsWith ('?') ? perDeclarationCastType.slice (0, -1) : perDeclarationCastType;
                     }
                 }
             }
@@ -10713,6 +10809,12 @@ export function installCsharpMethodReturnTypes (csharp) {
         if (retype === undefined || !node.expression) {
             return upstreamReturnStatement (node, identation);
         }
+        // U49: a return path whose expression already carries the retyped box (a call to a
+        // method whose generated signature names it, or a local the local pass declares with it)
+        // needs no boundary cast — `((T)((object)(x)))` is then a box + unbox of the same value
+        if (callReturnIsMapped (csharp, node.expression, retype)) {
+            return upstreamReturnStatement (node, identation);
+        }
         // the printed expression is the `object` box the rest of the printer produces;
         // the cast only names the type the box already has (null in, null out)
         const leadingComment = csharp.printLeadingComments (node, identation);
@@ -11858,7 +11960,7 @@ export function installCsharpAsyncCoreReturns (transpiler) {
         let trailingComment = csharp.printTraillingComment (node, identation);
         trailingComment = trailingComment ? ' ' + trailingComment : trailingComment;
         const value = csharp.printNode (node.expression, identation).trim ();
-        const already = retype.awaited ? awaitedCoreReturnIsAlreadyTyped (value, retype.type) : asyncCoreReturnIsAlreadyTyped (value);
+        const already = (retype.awaited ? awaitedCoreReturnIsAlreadyTyped (value, retype.type) : asyncCoreReturnIsAlreadyTyped (value)) || callReturnIsMapped (csharp, node.expression, retype.type);
         if (already) {
             return upstreamReturnStatement (node, identation);
         }
@@ -12011,6 +12113,16 @@ function needsUnboxingWrap (csharp, expression, mapped) {
         return false;
     }
     if (typeof csharp.csharpTypeOfInitializer === 'function' && csharp.csharpTypeOfInitializer (expression) === mapped) {
+        return false;
+    }
+    // U49: the expression is a bare local read (or a call whose generated signature already
+    // names the box) that the local pass declares with exactly `mapped` — `return x;` in a
+    // method declared `mapped` is the same conversion the box + unbox performs, so the
+    // boundary cast names a type the value already has
+    if (expression.kind === ts.SyntaxKind.Identifier && identifierType (csharp, expression) === mapped) {
+        return false;
+    }
+    if (callReturnIsMapped (csharp, expression, mapped)) {
         return false;
     }
     return true;

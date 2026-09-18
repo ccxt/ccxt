@@ -72,7 +72,7 @@ public partial class modetrade : ccxt.modetrade
         Int64? previousValue = this.safeInteger(options, url, 0);
         Int64 newValue = this.sum(previousValue, 1);
         ((IDictionary<string,object>)getValue(this.options, "requestId"))[(string)url] = newValue;
-        return ((Int64)((object)(newValue))!);
+        return newValue;
     }
 
     public async virtual Task<object> watchPublic(object messageHash, object message)
@@ -84,7 +84,7 @@ public partial class modetrade : ccxt.modetrade
             id = this.accountId;
         }
         object url = add(add(getValue(getValue(getValue(this.urls, "api"), "ws"), "public"), "/"), id);
-        Int64 requestId = ((Int64)this.requestId(url));
+        Int64 requestId = this.requestId(url);
         Dictionary<string, object> subscribe = new Dictionary<string, object>() {
             { "id", requestId },
         };
@@ -711,7 +711,7 @@ public partial class modetrade : ccxt.modetrade
         parameters ??= new Dictionary<string, object>();
         await this.authenticate(parameters);
         object url = add(add(getValue(getValue(getValue(this.urls, "api"), "ws"), "private"), "/"), this.accountId);
-        Int64 requestId = ((Int64)this.requestId(url));
+        Int64 requestId = this.requestId(url);
         Dictionary<string, object> subscribe = new Dictionary<string, object>() {
             { "id", requestId },
         };
@@ -724,7 +724,7 @@ public partial class modetrade : ccxt.modetrade
         parameters ??= new Dictionary<string, object>();
         await this.authenticate(parameters);
         object url = add(add(getValue(getValue(getValue(this.urls, "api"), "ws"), "private"), "/"), this.accountId);
-        Int64 requestId = ((Int64)this.requestId(url));
+        Int64 requestId = this.requestId(url);
         Dictionary<string, object> subscribe = new Dictionary<string, object>() {
             { "id", requestId },
         };

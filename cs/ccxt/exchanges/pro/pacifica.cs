@@ -1605,7 +1605,7 @@ public partial class pacifica : ccxt.pacifica
             { "params", new Dictionary<string, object>() {} },
         };
         ((IDictionary<string,object>)((IDictionary<string,object>)payload)["params"])[(string)operationType] = request;
-        return ((Dictionary<string, object>)((object)(payload)));
+        return payload;
     }
 
     public virtual void handleWsPost(WebSocketClient client, Dictionary<string, object> message)

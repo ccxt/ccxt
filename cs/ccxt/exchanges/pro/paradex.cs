@@ -44,8 +44,8 @@ public partial class paradex : ccxt.paradex
     public virtual Int64 requestId()
     {
         Int64 requestId = this.sum(this.safeInteger(this.options, "requestId", 0), 1);
-        this.options["requestId"] = requestId;
-        return ((Int64)((object)(requestId))!);
+        ((IDictionary<string,object>)this.options)["requestId"] = requestId;
+        return requestId;
     }
 
     public async virtual Task<object> authenticate(object parameters = null)
@@ -85,7 +85,7 @@ public partial class paradex : ccxt.paradex
         if ((result != null))
         {
             // client.resolve (true, messageHash);
-            Future future = ((Future)this.safeValue(client.futures, "authenticated"));
+            var future = this.safeValue(client.futures, "authenticated");
             if ((future != null))
             {
                 (future as Future).resolve(true);
@@ -106,7 +106,7 @@ public partial class paradex : ccxt.paradex
      */
     public async override Task<List<ccxt.Trade>> WatchTrades(string symbol, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        Int64? limitVar = limit;
+        object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
         {
@@ -132,7 +132,7 @@ public partial class paradex : ccxt.paradex
         object trades = await this.watch(url, messageHash, this.deepExtend(request, parameters), messageHash);
         if (isTrue(this.newUpdates))
         {
-            limitVar = ((Int64?)callDynamically(trades, "getLimit", new object[] {symbol, limitVar}));
+            limitVar = callDynamically(trades, "getLimit", new object[] {symbol, limitVar});
         }
         return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitVar, "timestamp", true));
     }
@@ -335,11 +335,11 @@ public partial class paradex : ccxt.paradex
             for (int i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
             {
                 string messageHash = add(add(channel, "."), getValue(symbols, i));
-                messageHashes.Add(messageHash);
+                ((IList<object>)messageHashes).Add(messageHash);
             }
         } else
         {
-            messageHashes.Add(channel);
+            ((IList<object>)messageHashes).Add(channel);
         }
         object newTicker = await this.watchMultiple(url, messageHashes, this.deepExtend(request, parameters), messageHashes);
         if (isTrue(this.newUpdates))
@@ -365,7 +365,7 @@ public partial class paradex : ccxt.paradex
     public async override Task<List<ccxt.Order>> WatchOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         object symbolVar = symbol;
-        Int64? limitVar = limit;
+        object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
         {
@@ -395,7 +395,7 @@ public partial class paradex : ccxt.paradex
         object orders = await this.watch(url, messageHash, this.deepExtend(request, parameters), channel);
         if (isTrue(this.newUpdates))
         {
-            limitVar = ((Int64?)callDynamically(orders, "getLimit", new object[] {symbolVar, limitVar}));
+            limitVar = callDynamically(orders, "getLimit", new object[] {symbolVar, limitVar});
         }
         return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(orders, symbolVar, since, limitVar, true));
     }
@@ -554,15 +554,15 @@ public partial class paradex : ccxt.paradex
                 for (int i = 0; isLessThan(i, symbols?.Count ?? 0); postFixIncrement(ref i))
                 {
                     string messageHash = add(add(channel, "."), getValue(symbols, i));
-                    messageHashes.Add(messageHash);
+                    ((IList<object>)messageHashes).Add(messageHash);
                 }
             } else
             {
-                messageHashes.Add(channel); // if an empty array is passed, subscribe to all funding rates
+                ((IList<object>)messageHashes).Add(channel); // if an empty array is passed, subscribe to all funding rates
             }
         } else
         {
-            messageHashes.Add(channel);
+            ((IList<object>)messageHashes).Add(channel);
         }
         object newFundingRates = await this.watchMultiple(url, messageHashes, this.deepExtend(request, parameters), messageHashes);
         if (isTrue(this.newUpdates))

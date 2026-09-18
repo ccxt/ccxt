@@ -2367,7 +2367,7 @@ public partial class weex : Exchange
                 result[(string)code] = account;
             }
         }
-        return ((Dictionary<string, object>)((object)(this.safeBalance(result))));
+        return this.safeBalance(result);
     }
 
     /**
@@ -4891,10 +4891,10 @@ public partial class weex : Exchange
         };
         string parsedType = (isEqual(type, 1)) ? "add" : "reduce";
         Dictionary<string, object> response = await this.contractPrivatePostCapiV3AccountPositionMargin(this.extend(request, parameters));
-        return ((Dictionary<string, object>)((object)(this.extend(this.parseMarginModification(response, market), new Dictionary<string, object>() {
+        return this.extend(this.parseMarginModification(response, market), new Dictionary<string, object>() {
             { "amount", this.parseNumber(amount) },
             { "type", parsedType },
-        }))));
+        });
     }
 
     public override Dictionary<string, object> parseMarginModification(object data, IDictionary<string, object> market = null)
@@ -4937,7 +4937,7 @@ public partial class weex : Exchange
     public async override Task<Dictionary<string, object>> reduceMargin(string symbol, double amount, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        return ((Dictionary<string, object>)((object)(await this.modifyMarginHelper(symbol, amount, 2, parameters))));
+        return await this.modifyMarginHelper(symbol, amount, 2, parameters);
     }
 
     /**
@@ -4954,7 +4954,7 @@ public partial class weex : Exchange
     public async override Task<Dictionary<string, object>> addMargin(string symbol, double amount, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        return ((Dictionary<string, object>)((object)(await this.modifyMarginHelper(symbol, amount, 1, parameters))));
+        return await this.modifyMarginHelper(symbol, amount, 1, parameters);
     }
 
     /**

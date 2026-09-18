@@ -759,7 +759,7 @@ public partial class mudrex : Exchange
             account["free"] = this.safeString(data, "withdrawable");
         }
         result[(string)currency] = account;
-        return ((Dictionary<string, object>)((object)(this.safeBalance(result))));
+        return this.safeBalance(result);
     }
 
     /**
@@ -1489,7 +1489,7 @@ public partial class mudrex : Exchange
     {
         object amountVar = amount;
         parameters ??= new Dictionary<string, object>();
-        return ((Dictionary<string, object>)((object)(await this.addMargin(symbol,ccxt.BaseExchange.ToDoubleArgRequired(prefixUnaryNeg(ref amountVar)), parameters))));
+        return await this.addMargin(symbol,ccxt.BaseExchange.ToDoubleArgRequired(prefixUnaryNeg(ref amountVar)), parameters);
     }
 
     /**

@@ -1257,7 +1257,7 @@ public partial class btse : Exchange
             account["used"] = this.safeString(useds, code);
             result[(string)code] = account;
         }
-        return ((Dictionary<string, object>)((object)(this.safeBalance(result))));
+        return this.safeBalance(result);
     }
 
     /**

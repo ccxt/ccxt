@@ -1249,7 +1249,7 @@ public partial class whitebit : Exchange
             Dictionary<string, object> currency = this.currency(((string)code));
             depositWithdrawFees[(string)code] = this.assignDefaultDepositWithdrawFees(getValue(depositWithdrawFees, code), currency);
         }
-        return ((Dictionary<string, object>)((object)(depositWithdrawFees)));
+        return depositWithdrawFees;
     }
 
     /**
@@ -2849,7 +2849,7 @@ public partial class whitebit : Exchange
                 }
             }
         }
-        return ((Dictionary<string, object>)((object)(this.safeBalance(result))));
+        return this.safeBalance(result);
     }
 
     /**

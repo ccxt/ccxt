@@ -2728,7 +2728,7 @@ public partial class nado : Exchange
                 result[(string)code] = account;
             }
         }
-        return ((Dictionary<string, object>)((object)(this.safeBalance(result))));
+        return this.safeBalance(result);
     }
 
     public override Dictionary<string, object> parseTransaction(object transaction, object currency = null)

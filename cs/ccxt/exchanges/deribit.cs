@@ -884,9 +884,9 @@ public partial class deribit : Exchange
         if (isOption && ((isEqual(this.markets_by_id, null)) || !(inOp(this.markets_by_id, marketId))))
         {
             // handle expired option contracts
-            return ((Dictionary<string, object>)((object)(this.createExpiredOptionMarket(marketId))));
+            return this.createExpiredOptionMarket(marketId);
         }
-        return ((Dictionary<string, object>)((object)(base.safeMarket(marketId, market, delimiter, marketType))));
+        return base.safeMarket(marketId, market, delimiter, marketType);
     }
 
     /**
@@ -1401,7 +1401,7 @@ public partial class deribit : Exchange
                 result[(string)currencyCode] = account;
             }
         }
-        return ((Dictionary<string, object>)((object)(this.safeBalance(result))));
+        return this.safeBalance(result);
     }
 
     /**
@@ -3451,7 +3451,7 @@ public partial class deribit : Exchange
                 { "volatility", volatilityObj },
             });
         }
-        return ((List<object>)((object)(result)));
+        return result;
     }
 
     /**

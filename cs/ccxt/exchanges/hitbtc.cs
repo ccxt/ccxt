@@ -1183,7 +1183,7 @@ public partial class hitbtc : Exchange
                 result[(string)code] = account;
             }
         }
-        return ((Dictionary<string, object>)((object)(this.safeBalance(result))));
+        return this.safeBalance(result);
     }
 
     /**
@@ -3878,10 +3878,10 @@ public partial class hitbtc : Exchange
         //     }
         //
         double? parsedAmount = this.parseNumber(amount);
-        return ((Dictionary<string, object>)((object)(this.extend(this.parseMarginModification(response, market), new Dictionary<string, object>() {
+        return this.extend(this.parseMarginModification(response, market), new Dictionary<string, object>() {
             { "amount", parsedAmount },
             { "type", type },
-        }))));
+        });
     }
 
     public override Dictionary<string, object> parseMarginModification(object data, IDictionary<string, object> market = null)
@@ -3943,7 +3943,7 @@ public partial class hitbtc : Exchange
         {
             throw new BadRequest (add(this.id, " reduceMargin() on hitbtc requires the amount to be 0 and that will remove the entire margin amount")) ;
         }
-        return ((Dictionary<string, object>)((object)(await this.modifyMarginHelper(symbol, amount, "reduce", parameters))));
+        return await this.modifyMarginHelper(symbol, amount, "reduce", parameters);
     }
 
     /**
@@ -3962,7 +3962,7 @@ public partial class hitbtc : Exchange
     public async override Task<Dictionary<string, object>> addMargin(string symbol, double amount, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        return ((Dictionary<string, object>)((object)(await this.modifyMarginHelper(symbol, amount, "add", parameters))));
+        return await this.modifyMarginHelper(symbol, amount, "add", parameters);
     }
 
     /**

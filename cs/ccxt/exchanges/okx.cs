@@ -2382,7 +2382,7 @@ public partial class okx : Exchange
         {
             ((IDictionary<string,object>)parameters)["type"] = instType;
         }
-        return ((List<object>)((object)(base.handleMarketTypeAndParams(methodName, market, parameters, defaultValue))));
+        return base.handleMarketTypeAndParams(methodName, market, parameters, defaultValue);
     }
 
     public virtual string? convertToInstrumentType(object type)
@@ -2475,9 +2475,9 @@ public partial class okx : Exchange
         if (isOption && (!isEqual(marketId, null)) && ((isEqual(this.markets_by_id, null)) || !(inOp(this.markets_by_id, marketId))))
         {
             // handle expired option contracts
-            return ((Dictionary<string, object>)((object)(this.createExpiredOptionMarket(marketId))));
+            return this.createExpiredOptionMarket(marketId);
         }
-        return ((Dictionary<string, object>)((object)(base.safeMarket(marketId, market, delimiter, marketType))));
+        return base.safeMarket(marketId, market, delimiter, marketType);
     }
 
     /**
@@ -8827,7 +8827,7 @@ public partial class okx : Exchange
             string? code = ((string)getValue(keys, i));
             borrowRateHistories[(string)code] = this.filterByCurrencySinceLimit(getValue(borrowRateHistories, code),((string)code), since, limit);
         }
-        return ((Dictionary<string, object>)((object)(borrowRateHistories)));
+        return borrowRateHistories;
     }
 
     /**
@@ -8959,9 +8959,9 @@ public partial class okx : Exchange
         List<object> data = this.safeList(response, "data", new List<object>() {});
         IDictionary<string, object> entry = this.safeDict(data, 0, new Dictionary<string, object>() {});
         string? errorCode = this.safeString(response, "code");
-        return ((Dictionary<string, object>)((object)(this.extend(this.parseMarginModification(entry, market), new Dictionary<string, object>() {
+        return this.extend(this.parseMarginModification(entry, market), new Dictionary<string, object>() {
             { "status", (errorCode == "0") ? "ok" : "failed" },
-        }))));
+        });
     }
 
     public override Dictionary<string, object> parseMarginModification(object data, IDictionary<string, object> market = null)
@@ -9056,7 +9056,7 @@ public partial class okx : Exchange
     public async override Task<Dictionary<string, object>> reduceMargin(string symbol, double amount, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        return ((Dictionary<string, object>)((object)(await this.modifyMarginHelper(symbol, amount, "reduce", parameters))));
+        return await this.modifyMarginHelper(symbol, amount, "reduce", parameters);
     }
 
     /**
@@ -9072,7 +9072,7 @@ public partial class okx : Exchange
     public async override Task<Dictionary<string, object>> addMargin(string symbol, double amount, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        return ((Dictionary<string, object>)((object)(await this.modifyMarginHelper(symbol, amount, "add", parameters))));
+        return await this.modifyMarginHelper(symbol, amount, "add", parameters);
     }
 
     /**
@@ -9328,7 +9328,7 @@ public partial class okx : Exchange
         //
         List<object> data = this.safeList(response, "data", new List<object>() {});
         IDictionary<string, object> loan = this.safeDict(data, 0, new Dictionary<string, object>() {});
-        return ((Dictionary<string, object>)((object)(this.parseMarginLoan(loan, currency))));
+        return this.parseMarginLoan(loan, currency);
     }
 
     /**
@@ -9380,7 +9380,7 @@ public partial class okx : Exchange
         //
         List<object> data = this.safeList(response, "data", new List<object>() {});
         IDictionary<string, object> loan = this.safeDict(data, 0, new Dictionary<string, object>() {});
-        return ((Dictionary<string, object>)((object)(this.parseMarginLoan(loan, currency))));
+        return this.parseMarginLoan(loan, currency);
     }
 
     public virtual Dictionary<string, object> parseMarginLoan(object info, Dictionary<string, object> currency = null)
@@ -9833,7 +9833,7 @@ public partial class okx : Exchange
             Dictionary<string, object> currency = this.currency(((string)code));
             depositWithdrawFees[(string)code] = this.assignDefaultDepositWithdrawFees(getValue(depositWithdrawFees, code), currency);
         }
-        return ((Dictionary<string, object>)((object)(depositWithdrawFees)));
+        return depositWithdrawFees;
     }
 
     /**

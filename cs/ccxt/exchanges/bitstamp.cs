@@ -1978,7 +1978,7 @@ public partial class bitstamp : Exchange
                 result[(string)currencyCode] = account;
             }
         }
-        return ((Dictionary<string, object>)((object)(this.safeBalance(result))));
+        return this.safeBalance(result);
     }
 
     /**
@@ -2083,7 +2083,7 @@ public partial class bitstamp : Exchange
                 result[(string)symbol] = fee;
             }
         }
-        return ((Dictionary<string, object>)((object)(result)));
+        return result;
     }
 
     /**
@@ -2173,7 +2173,7 @@ public partial class bitstamp : Exchange
                 };
             }
         }
-        return ((Dictionary<string, object>)((object)(result)));
+        return result;
     }
 
     /**

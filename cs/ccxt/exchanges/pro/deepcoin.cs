@@ -105,7 +105,7 @@ public partial class deepcoin : ccxt.deepcoin
         Int64 newValue = this.sum(previousValue, 1);
         this.options["lastRequestId"] = newValue;
         this.unlockId();
-        return ((Int64)((object)(newValue))!);
+        return newValue;
     }
 
     public virtual Dictionary<string, object> createPublicRequest(object market, object requestId, object topicID, object suffix = null, object unWatch = null)
@@ -131,7 +131,7 @@ public partial class deepcoin : ccxt.deepcoin
                 { "TopicID", topicID },
             } },
         };
-        return ((Dictionary<string, object>)((object)(request)));
+        return request;
     }
 
     public async virtual Task<object> watchPublic(object market, object messageHash, object topicID, object parameters = null, object suffix = null)
@@ -139,7 +139,7 @@ public partial class deepcoin : ccxt.deepcoin
         parameters ??= new Dictionary<string, object>();
         suffix ??= "";
         object url = getValue(getValue(getValue(getValue(this.urls, "api"), "ws"), "public"), getValue(market, "type"));
-        Int64 requestId = ((Int64)this.requestId());
+        Int64 requestId = this.requestId();
         Dictionary<string, object> request = this.createPublicRequest(market, requestId, topicID, suffix);
         Dictionary<string, object> subscription = new Dictionary<string, object>() {
             { "subHash", messageHash },
@@ -154,7 +154,7 @@ public partial class deepcoin : ccxt.deepcoin
         subscription ??= new Dictionary<string, object>();
         suffix ??= "";
         object url = getValue(getValue(getValue(getValue(this.urls, "api"), "ws"), "public"), getValue(market, "type"));
-        Int64 requestId = ((Int64)this.requestId());
+        Int64 requestId = this.requestId();
         var client = this.client(url);
         IDictionary<string, object> existingSubscription = this.safeDict(client.subscriptions, messageHash);
         if ((existingSubscription == null))

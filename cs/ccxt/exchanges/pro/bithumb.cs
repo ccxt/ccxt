@@ -952,7 +952,7 @@ public partial class bithumb : ccxt.bithumb
         {
             request.Add(getValue(subscriptions, getValue(keys, i)));
         }
-        return ((List<object>)((object)(request)));
+        return request;
     }
 
     public async virtual Task<object> authenticate(object parameters = null)

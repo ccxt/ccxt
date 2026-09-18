@@ -2557,7 +2557,7 @@ public partial class alpaca : Exchange
                 result[(string)positionCode] = positionAccount;
             }
         }
-        return ((Dictionary<string, object>)((object)(this.safeBalance(result))));
+        return this.safeBalance(result);
     }
 
     public override Dictionary<string, object> sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)

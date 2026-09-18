@@ -2787,7 +2787,7 @@ public partial class dydx : Exchange
             { "info", response },
             { "USDC", account },
         };
-        return ((Dictionary<string, object>)((object)(this.safeBalance(result))));
+        return this.safeBalance(result);
     }
 
     public override Int64 nonce()

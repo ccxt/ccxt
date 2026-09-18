@@ -525,7 +525,7 @@ public partial class bithumb : Exchange
         // their ids are the base currency (BTC for instance), so we can have
         // multiple "BTC" ids representing the different markets (BTC/ETH, "BTC/DOGE", etc)
         // since they're the same we just need to return one
-        return ((Dictionary<string, object>)((object)(base.safeMarket(marketId, market, delimiter, "spot"))));
+        return base.safeMarket(marketId, market, delimiter, "spot");
     }
 
     public override string? amountToPrecision(object symbol, object amount)
@@ -802,7 +802,7 @@ public partial class bithumb : Exchange
                 result[(string)code] = account;
             }
         }
-        return ((Dictionary<string, object>)((object)(this.safeBalance(result))));
+        return this.safeBalance(result);
     }
 
     /**

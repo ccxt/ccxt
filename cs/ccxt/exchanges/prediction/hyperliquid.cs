@@ -225,7 +225,7 @@ public partial class hyperliquid : PredictionExchange
                 result[(string)key] = value;
             }
         }
-        return ((Dictionary<string, object>)((object)(result)));
+        return result;
     }
 
     /**
@@ -831,7 +831,7 @@ public partial class hyperliquid : PredictionExchange
         Dictionary<string, object> parentMarket = ((parentSymbol != null)) ? this.safeMarket(parentSymbol) : null;
         object ctx = ((parentMarket != null)) ? this.safeDict(this.safeDict(parentMarket, "info", new Dictionary<string, object>() {}), "ctx", new Dictionary<string, object>() {}) : new Dictionary<string, object>() {};
         double? dayVolume = this.safeNumber(ctx, "dayNtlVlm");
-        return ((Dictionary<string, object>)((object)(this.safePredictionTicker(new Dictionary<string, object>() {
+        return this.safePredictionTicker(new Dictionary<string, object>() {
             { "outcome", outcome },
             { "outcomeId", this.safeString2(mkt, "outcomeId", "id") },
             { "label", this.safeString(mkt, "label") },
@@ -855,7 +855,7 @@ public partial class hyperliquid : PredictionExchange
             { "baseVolume", null },
             { "quoteVolume", dayVolume },
             { "info", raw },
-        }, market))));
+        }, market);
     }
 
     /**
@@ -1234,7 +1234,7 @@ public partial class hyperliquid : PredictionExchange
                 string? ocLabel = this.safeStringUpper(oc, "label");
                 if (isEqual(ocLabel, normalizedHint) || ((string)ocSymbol).EndsWith(add(":", normalizedHint)))
                 {
-                    return ((IDictionary<string, object>)((object)(oc)));
+                    return oc;
                 }
             }
         }
@@ -1244,10 +1244,10 @@ public partial class hyperliquid : PredictionExchange
             IDictionary<string, object> info = this.safeDict(oc, "info", new Dictionary<string, object>() {});
             if ((this.safeInteger(info, "side") == 0))
             {
-                return ((IDictionary<string, object>)((object)(oc)));
+                return oc;
             }
         }
-        return ((IDictionary<string, object>)((object)(this.safeDict(outcomesList, 0, new Dictionary<string, object>() {}))));
+        return this.safeDict(outcomesList, 0, new Dictionary<string, object>() {});
     }
 
     public virtual string? parseOutcomeInputSideHint(object outcomeInput)
@@ -1320,11 +1320,11 @@ public partial class hyperliquid : PredictionExchange
             object key = getValue(candidates, i);
             if (inOp(this.outcomes, key))
             {
-                return ((IDictionary<string, object>)((object)(this.safeDict(this.outcomes, key, new Dictionary<string, object>() {}))));
+                return this.safeDict(this.outcomes, key, new Dictionary<string, object>() {});
             }
             if (inOp(this.outcomes_by_id, key))
             {
-                return ((IDictionary<string, object>)((object)(this.safeDict(this.outcomes_by_id, key, new Dictionary<string, object>() {}))));
+                return this.safeDict(this.outcomes_by_id, key, new Dictionary<string, object>() {});
             }
         }
         if (((!isEqual(this.markets, null)) && (inOp(this.markets, outcomeInput))) || ((!isEqual(this.markets_by_id, null)) && (inOp(this.markets_by_id, outcomeInput))))
@@ -1848,7 +1848,7 @@ public partial class hyperliquid : PredictionExchange
         bool postOnly = (tif == "PO");
         bool isTrigger = ((this.safeBool(entry, "isTrigger") == true));
         double? triggerPrice = isTrigger ? this.safeNumber(entry, "triggerPx") : null;
-        return ((Dictionary<string, object>)((object)(this.safePredictionOrder(new Dictionary<string, object>() {
+        return this.safePredictionOrder(new Dictionary<string, object>() {
             { "id", this.safeString(entry, "oid") },
             { "clientOrderId", this.safeString(entry, "cloid") },
             { "info", order },
@@ -1874,7 +1874,7 @@ public partial class hyperliquid : PredictionExchange
             { "remaining", this.parseNumber(remaining) },
             { "fee", null },
             { "trades", new List<object>() {} },
-        }, resolvedMarket))));
+        }, resolvedMarket);
     }
 
     public virtual string? parseOrderStatus(string? status)
@@ -2078,7 +2078,7 @@ public partial class hyperliquid : PredictionExchange
         }
         bool crossed = ((this.safeBool(trade, "crossed") == true));
         string takerOrMaker = crossed ? "taker" : "maker";
-        return ((Dictionary<string, object>)((object)(this.safePredictionTrade(new Dictionary<string, object>() {
+        return this.safePredictionTrade(new Dictionary<string, object>() {
             { "id", this.safeString(trade, "tid") },
             { "info", trade },
             { "timestamp", timestamp },
@@ -2095,7 +2095,7 @@ public partial class hyperliquid : PredictionExchange
             { "amount", this.parseNumber(amount) },
             { "cost", cost },
             { "fee", feeObject },
-        }, resolvedMarket))));
+        }, resolvedMarket);
     }
 
     /**

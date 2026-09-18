@@ -43,7 +43,7 @@ public partial class BaseTest
             // the merged dict is a regular safeBalance input. safeBalance parses to a number,
             // and each port spells that number differently (JS "3", PHP "3.0"), so Assert on
             // the parsed value rather than on its string form
-            object balance = exchange.safeBalance(result);
+            Dictionary<string, object> balance = exchange.safeBalance(result);
             Assert(isEqual(exchange.safeNumber(getValue(balance, "BTC"), "free"), exchange.parseNumber("3")));
             Assert(isEqual(exchange.safeNumber(getValue(balance, "free"), "USDT"), exchange.parseNumber("5")));
             Assert(isEqual(exchange.safeNumber(getValue(balance, "debt"), "BTC"), exchange.parseNumber("0.1")));

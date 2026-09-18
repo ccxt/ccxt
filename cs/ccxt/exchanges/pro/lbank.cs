@@ -59,7 +59,7 @@ public partial class lbank : ccxt.lbank
         Int64 newValue = this.sum(previousValue, 1);
         this.options["requestId"] = newValue;
         this.unlockId();
-        return ((Int64)((object)(newValue))!);
+        return newValue;
     }
 
     public virtual void checkContractMarket(object market, object methodName)
@@ -115,7 +115,7 @@ public partial class lbank : ccxt.lbank
             message["size"] = limit;
         }
         Dictionary<string, object> request = this.deepExtend(message, parameters);
-        Int64 requestId = ((Int64)this.requestId());
+        Int64 requestId = this.requestId();
         return ccxt.BaseExchange.ToOHLCVList(await this.watch(url, messageHash, request, requestId, request));
     }
 
@@ -285,7 +285,7 @@ public partial class lbank : ccxt.lbank
             { "pair", GetValue(market, "id") },
         };
         Dictionary<string, object> request = this.deepExtend(message, parameters);
-        Int64 requestId = ((Int64)this.requestId());
+        Int64 requestId = this.requestId();
         return ccxt.BaseExchange.ToTicker(await this.watch(url, messageHash, request, requestId, request));
     }
 
@@ -436,7 +436,7 @@ public partial class lbank : ccxt.lbank
             { "size", limit },
         };
         Dictionary<string, object> request = this.deepExtend(message, parameters);
-        Int64 requestId = ((Int64)this.requestId());
+        Int64 requestId = this.requestId();
         return ccxt.BaseExchange.ToTradeList(await this.watch(url, messageHash, request, requestId, request));
     }
 

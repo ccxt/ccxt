@@ -1150,7 +1150,7 @@ public partial class kalshi : PredictionExchange
         {
             average = this.parseNumber(Precise.stringDiv(Precise.stringAdd(this.numberToString(bid), this.numberToString(ask)), "2"));
         }
-        return ((Dictionary<string, object>)((object)(this.safePredictionTicker(new Dictionary<string, object>() {
+        return this.safePredictionTicker(new Dictionary<string, object>() {
             { "outcome", outcome },
             { "outcomeId", this.safeString2(outcomeObj, "outcomeId", "id") },
             { "label", this.safeString(outcomeObj, "label") },
@@ -1174,7 +1174,7 @@ public partial class kalshi : PredictionExchange
             { "baseVolume", this.safeNumberN(raw, new List<object>() {"volume_24h_fp", "volume_24h", "volume"}) },
             { "quoteVolume", null },
             { "info", raw },
-        }, market))));
+        }, market);
     }
 
     /**
@@ -1619,7 +1619,7 @@ public partial class kalshi : PredictionExchange
         {
             cost = multiply(price, amount);
         }
-        return ((Dictionary<string, object>)((object)(this.safePredictionTrade(new Dictionary<string, object>() {
+        return this.safePredictionTrade(new Dictionary<string, object>() {
             { "id", id },
             { "info", trade },
             { "timestamp", ts },
@@ -1636,7 +1636,7 @@ public partial class kalshi : PredictionExchange
             { "amount", amount },
             { "cost", cost },
             { "fee", null },
-        }, market))));
+        }, market);
     }
 
     /**
@@ -2245,7 +2245,7 @@ public partial class kalshi : PredictionExchange
             remaining = subtract(amount, filled);
         }
         Int64? ts = this.parse8601(this.safeString(order, "created_time"));
-        return ((Dictionary<string, object>)((object)(this.safePredictionOrder(new Dictionary<string, object>() {
+        return this.safePredictionOrder(new Dictionary<string, object>() {
             { "id", id },
             { "clientOrderId", this.safeString(order, "client_order_id") },
             { "info", order },
@@ -2271,7 +2271,7 @@ public partial class kalshi : PredictionExchange
             { "remaining", remaining },
             { "fee", null },
             { "trades", new List<object>() {} },
-        }, mkt))));
+        }, mkt);
     }
 
     /**

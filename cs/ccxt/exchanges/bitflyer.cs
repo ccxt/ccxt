@@ -309,7 +309,7 @@ public partial class bitflyer : Exchange
             { "DEC", "12" },
         };
         string? month = this.safeString(months, monthName);
-        return ((Int64?)((object)(this.parse8601(add(add(add(add(add(year, "-"), month), "-"), day), "T00:00:00Z")))));
+        return this.parse8601(add(add(add(add(add(year, "-"), month), "-"), day), "T00:00:00Z"));
     }
 
     public override Dictionary<string, object> safeMarket(object marketId = null, object market = null, object delimiter = null, object marketType = null)
@@ -317,7 +317,7 @@ public partial class bitflyer : Exchange
         // Bitflyer has a different type of conflict in markets, because
         // some of their ids (ETH/BTC and BTC/JPY) are duplicated in US, EU and JP.
         // Since they're the same we just need to return one
-        return ((Dictionary<string, object>)((object)(base.safeMarket(marketId, market, delimiter, "spot"))));
+        return base.safeMarket(marketId, market, delimiter, "spot");
     }
 
     /**
@@ -503,7 +503,7 @@ public partial class bitflyer : Exchange
                 result[(string)code] = account;
             }
         }
-        return ((Dictionary<string, object>)((object)(this.safeBalance(result))));
+        return this.safeBalance(result);
     }
 
     /**

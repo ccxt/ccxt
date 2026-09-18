@@ -2282,7 +2282,7 @@ public partial class hyperliquid : Exchange
         request["action"] = action;
         request["signature"] = signature;
         Dictionary<string, object> response = await this.privatePostExchange(this.extend(request, parameters));
-        return ((Dictionary<string, object>)((object)(response)));
+        return response;
     }
 
     /**
@@ -3198,7 +3198,7 @@ public partial class hyperliquid : Exchange
         {
             request["vaultAddress"] = vaultAddress;
         }
-        return ((Dictionary<string, object>)((object)(request)));
+        return request;
     }
 
     /**
@@ -4482,7 +4482,7 @@ public partial class hyperliquid : Exchange
     public async override Task<Dictionary<string, object>> addMargin(string symbol, double amount, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        return ((Dictionary<string, object>)((object)(await this.modifyMarginHelper(symbol, amount, "add", parameters))));
+        return await this.modifyMarginHelper(symbol, amount, "add", parameters);
     }
 
     /**
@@ -4500,7 +4500,7 @@ public partial class hyperliquid : Exchange
     public async override Task<Dictionary<string, object>> reduceMargin(string symbol, double amount, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        return ((Dictionary<string, object>)((object)(await this.modifyMarginHelper(symbol, amount, "reduce", parameters))));
+        return await this.modifyMarginHelper(symbol, amount, "reduce", parameters);
     }
 
     public async virtual Task<Dictionary<string, object>> modifyMarginHelper(object symbol, object amount, string? type, object parameters = null)
@@ -4548,9 +4548,9 @@ public partial class hyperliquid : Exchange
         //         'status': 'ok'
         //     }
         //
-        return ((Dictionary<string, object>)((object)(this.extend(this.parseMarginModification(response, market), new Dictionary<string, object>() {
+        return this.extend(this.parseMarginModification(response, market), new Dictionary<string, object>() {
             { "code", this.safeString(response, "status") },
-        }))));
+        });
     }
 
     public override Dictionary<string, object> parseMarginModification(object data, IDictionary<string, object> market = null)
@@ -5469,7 +5469,7 @@ public partial class hyperliquid : Exchange
         request["action"] = action;
         request["signature"] = signature;
         Dictionary<string, object> response = await this.privatePostExchange(this.extend(request, parameters));
-        return ((Dictionary<string, object>)((object)(response)));
+        return response;
     }
 
     /**
@@ -5515,7 +5515,7 @@ public partial class hyperliquid : Exchange
             ((IDictionary<string,object>)record)["type"] = getValue(getValue(record, "delta"), "type");
             records.Add(record);
         }
-        return ((List<object>)((object)(records)));
+        return records;
     }
 
     public virtual string? formatVaultAddress(object address = null)

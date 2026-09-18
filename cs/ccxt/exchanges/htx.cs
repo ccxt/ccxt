@@ -4627,7 +4627,7 @@ public partial class htx : Exchange
         //     }
         //
         Dictionary<string, object> finalResponse = response;
-        object result = new Dictionary<string, object>() {
+        Dictionary<string, object> result = new Dictionary<string, object>() {
             { "info", finalResponse },
         };
         object data = this.safeValue(response, "data");
@@ -4644,7 +4644,7 @@ public partial class htx : Exchange
                 account["total"] = this.safeString(balance, "equity");
                 if ((code != null))
                 {
-                    ((IDictionary<string,object>)result)[(string)code] = account;
+                    result[(string)code] = account;
                 }
             }
             result = this.safeBalance(result);
@@ -4685,7 +4685,7 @@ public partial class htx : Exchange
                     string? code = this.safeCurrencyCode(currencyId);
                     if ((code != null))
                     {
-                        ((IDictionary<string,object>)result)[(string)code] = this.parseMarginBalanceHelper(balance, code, result);
+                        result[(string)code] = this.parseMarginBalanceHelper(balance, code, result);
                     }
                 }
                 result = this.safeBalance(result);
@@ -4702,7 +4702,7 @@ public partial class htx : Exchange
                 account["used"] = this.safeString(balance, "margin_frozen");
                 if ((code != null))
                 {
-                    ((IDictionary<string,object>)result)[(string)code] = account;
+                    result[(string)code] = account;
                 }
             }
             result = this.safeBalance(result);
@@ -7525,7 +7525,7 @@ public partial class htx : Exchange
                 { "clientOrderId", this.safeString(order, "client-order-id") },
             }));
         }
-        return ((List<object>)((object)(result)));
+        return result;
     }
 
     /**
@@ -10348,10 +10348,10 @@ public partial class htx : Exchange
         //     }
         //
         Dictionary<string, object> transaction = this.parseMarginLoan(response, currency);
-        return ((Dictionary<string, object>)((object)(this.extend(transaction, new Dictionary<string, object>() {
+        return this.extend(transaction, new Dictionary<string, object>() {
             { "amount", amount },
             { "symbol", symbol },
-        }))));
+        });
     }
 
     /**
@@ -10387,9 +10387,9 @@ public partial class htx : Exchange
         //     }
         //
         Dictionary<string, object> transaction = this.parseMarginLoan(response, currency);
-        return ((Dictionary<string, object>)((object)(this.extend(transaction, new Dictionary<string, object>() {
+        return this.extend(transaction, new Dictionary<string, object>() {
             { "amount", amount },
-        }))));
+        });
     }
 
     /**
@@ -10432,10 +10432,10 @@ public partial class htx : Exchange
         List<object> data = this.safeList(response, "Data", new List<object>() {});
         object loan = this.safeValue(data, 0);
         Dictionary<string, object> transaction = this.parseMarginLoan(loan, currency);
-        return ((Dictionary<string, object>)((object)(this.extend(transaction, new Dictionary<string, object>() {
+        return this.extend(transaction, new Dictionary<string, object>() {
             { "amount", amount },
             { "symbol", symbol },
-        }))));
+        });
     }
 
     /**
@@ -10477,9 +10477,9 @@ public partial class htx : Exchange
         List<object> data = this.safeList(response, "Data", new List<object>() {});
         object loan = this.safeValue(data, 0);
         Dictionary<string, object> transaction = this.parseMarginLoan(loan, currency);
-        return ((Dictionary<string, object>)((object)(this.extend(transaction, new Dictionary<string, object>() {
+        return this.extend(transaction, new Dictionary<string, object>() {
             { "amount", amount },
-        }))));
+        });
     }
 
     public virtual Dictionary<string, object> parseMarginLoan(object info, Dictionary<string, object> currency = null)

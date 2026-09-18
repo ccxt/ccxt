@@ -967,7 +967,7 @@ public partial class phemex : Exchange
             contractSize = this.parseNumber(contractSizeString);
         }
         bool isLinear = !inverse;
-        return ((Dictionary<string, object>)((object)(this.safeMarketStructure(new Dictionary<string, object>() {
+        return this.safeMarketStructure(new Dictionary<string, object>() {
             { "id", id },
             { "symbol", add(add(add(add(bs, "/"), quote), ":"), settle) },
             { "base", bs },
@@ -1020,7 +1020,7 @@ public partial class phemex : Exchange
             } },
             { "created", null },
             { "info", market },
-        }))));
+        });
     }
 
     public virtual Dictionary<string, object> parseSpotMarket(object market)
@@ -1070,7 +1070,7 @@ public partial class phemex : Exchange
         string? status = this.safeString(market, "status");
         object precisionAmount = this.parseSafeNumber(this.safeString(market, "baseTickSize"));
         object precisionPrice = this.parseSafeNumber(this.safeString(market, "quoteTickSize"));
-        return ((Dictionary<string, object>)((object)(this.safeMarketStructure(new Dictionary<string, object>() {
+        return this.safeMarketStructure(new Dictionary<string, object>() {
             { "id", id },
             { "symbol", add(add(bs, "/"), quote) },
             { "base", bs },
@@ -1123,7 +1123,7 @@ public partial class phemex : Exchange
             } },
             { "created", this.safeInteger(market, "listTime") },
             { "info", market },
-        }))));
+        });
     }
 
     /**
@@ -1482,7 +1482,7 @@ public partial class phemex : Exchange
         }
         result[(string)bidsKey] = this.sortBy(getValue(result, bidsKey), 0, true);
         result[(string)asksKey] = this.sortBy(getValue(result, asksKey), 0);
-        return ((Dictionary<string, object>)((object)(result)));
+        return result;
     }
 
     /**

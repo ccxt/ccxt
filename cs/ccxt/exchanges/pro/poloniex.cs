@@ -1343,7 +1343,7 @@ public partial class poloniex : ccxt.poloniex
                 result[(string)code] = newAccount;
             }
         }
-        return ((Dictionary<string, object>)((object)(this.safeBalance(result))));
+        return this.safeBalance(result);
     }
 
     public virtual void handleMyTrades(WebSocketClient client, object parsedTrade)

@@ -1760,7 +1760,7 @@ public partial class extended : Exchange
                 result[(string)code] = account;
             }
         }
-        return ((Dictionary<string, object>)((object)(this.safeBalance(result))));
+        return this.safeBalance(result);
     }
 
     /**
@@ -2867,7 +2867,7 @@ public partial class extended : Exchange
         string? s = this.getExtendedSignatureHex(getValue(sig, 1));
         settlement["r"] = r;
         settlement["s"] = s;
-        return ((Dictionary<string, object>)((object)(settlement)));
+        return settlement;
     }
 
     public virtual Dictionary<string, object> createWithdrawalSettlementData(object address, object amountString, Dictionary<string, object> currency, object account, object parameters = null)
@@ -2903,7 +2903,7 @@ public partial class extended : Exchange
             { "r", this.getExtendedSignatureHex(getValue(sig, 0)) },
             { "s", this.getExtendedSignatureHex(getValue(sig, 1)) },
         };
-        return ((Dictionary<string, object>)((object)(settlement)));
+        return settlement;
     }
 
     public virtual Dictionary<string, object> createTransferSettlementData(object amountString, Dictionary<string, object> currency, object account, object toVault, object toL2Key, object parameters = null)
@@ -2938,7 +2938,7 @@ public partial class extended : Exchange
             { "r", this.getExtendedSignatureHex(getValue(sig, 0)) },
             { "s", this.getExtendedSignatureHex(getValue(sig, 1)) },
         };
-        return ((Dictionary<string, object>)((object)(settlement)));
+        return settlement;
     }
 
     public async virtual Task<Dictionary<string, object>> CreateExtendedOrderRequest(object symbol, object type, object side, double amount, double? price = null, object parameters = null)

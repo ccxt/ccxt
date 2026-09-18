@@ -273,7 +273,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
                 output.Add(symbol);
             }
         }
-        return ((List<object>)((object)(output)));
+        return output;
     }
 
     /**

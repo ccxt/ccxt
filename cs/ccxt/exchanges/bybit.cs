@@ -2505,9 +2505,9 @@ public partial class bybit : Exchange
         if (isOption && ((isEqual(this.markets_by_id, null)) || !(inOp(this.markets_by_id, marketId))))
         {
             // handle expired option contracts
-            return ((Dictionary<string, object>)((object)(this.createExpiredOptionMarket(marketId))));
+            return this.createExpiredOptionMarket(marketId);
         }
-        return ((Dictionary<string, object>)((object)(base.safeMarket(marketId, market, delimiter, marketType))));
+        return base.safeMarket(marketId, market, delimiter, marketType);
     }
 
     public virtual List<object> getBybitType(object method, object market, object parameters = null)
@@ -4709,7 +4709,7 @@ public partial class bybit : Exchange
                 }
             }
         }
-        return ((Dictionary<string, object>)((object)(this.safeBalance(result))));
+        return this.safeBalance(result);
     }
 
     /**
@@ -9359,7 +9359,7 @@ public partial class bybit : Exchange
         //     }
         //
         IDictionary<string, object> result = this.safeDict(response, "result", new Dictionary<string, object>() {});
-        return ((Dictionary<string, object>)((object)(this.parseMarginLoan(result, currency))));
+        return this.parseMarginLoan(result, currency);
     }
 
     /**
@@ -9398,9 +9398,9 @@ public partial class bybit : Exchange
         //
         IDictionary<string, object> result = this.safeDict(response, "result", new Dictionary<string, object>() {});
         Dictionary<string, object> transaction = this.parseMarginLoan(result, currency);
-        return ((Dictionary<string, object>)((object)(this.extend(transaction, new Dictionary<string, object>() {
+        return this.extend(transaction, new Dictionary<string, object>() {
             { "amount", amount },
-        }))));
+        });
     }
 
     public virtual Dictionary<string, object> parseMarginLoan(object info, Dictionary<string, object> currency = null)
@@ -10076,7 +10076,7 @@ public partial class bybit : Exchange
                 { "volatility", this.safeNumber(entry, "value") },
             });
         }
-        return ((List<object>)((object)(result)));
+        return result;
     }
 
     /**

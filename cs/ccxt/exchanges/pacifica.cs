@@ -1192,7 +1192,7 @@ public partial class pacifica : Exchange
             string? symbol = ((string)GetValue(market, "symbol"));
             settingsBySymbol[(string)symbol] = getValue(settings, i);
         }
-        return ((Dictionary<string, object>)((object)(settingsBySymbol)));
+        return settingsBySymbol;
     }
 
     /**
@@ -4151,6 +4151,6 @@ public partial class pacifica : Exchange
         finalHeaders["timestamp"] = this.safeInteger(signatureHeader, "timestamp");
         finalHeaders["expiry_window"] = this.safeInteger(signatureHeader, "expiry_window");
         Dictionary<string, object> request = this.extend(finalHeaders, sigPayload);
-        return ((Dictionary<string, object>)((object)(request)));
+        return request;
     }
 }

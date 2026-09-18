@@ -978,7 +978,7 @@ public partial class lighter : ccxt.lighter
         {
             return ((Dictionary<string, object>)((object)(null)));
         }
-        return ((Dictionary<string, object>)((object)(this.safeLiquidation(new Dictionary<string, object>() {
+        return this.safeLiquidation(new Dictionary<string, object>() {
             { "info", liquidation },
             { "symbol", getValue(market, "symbol") },
             { "contracts", contracts },
@@ -989,7 +989,7 @@ public partial class lighter : ccxt.lighter
             { "quoteValue", quoteValue },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
-        }))));
+        });
     }
 
     public virtual void handleLiquidation(WebSocketClient client, Dictionary<string, object> message)
