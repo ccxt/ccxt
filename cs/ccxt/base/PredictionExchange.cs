@@ -256,7 +256,7 @@ public partial class PredictionExchange : BaseExchange
                 {
                     throw new ExchangeError ((string)(this.id + " filterEventsBySearchIn() missing title")) ;
                 }
-                if (checkTitle && (getIndexOf(title, q) >= 0))
+                if (checkTitle && (((string)title).IndexOf(q, StringComparison.Ordinal) >= 0))
                 {
                     matched = true;
                     break;
@@ -265,7 +265,7 @@ public partial class PredictionExchange : BaseExchange
                 {
                     throw new ExchangeError ((string)(this.id + " filterEventsBySearchIn() missing description")) ;
                 }
-                if (checkDescription && (getIndexOf(description, q) >= 0))
+                if (checkDescription && (((string)description).IndexOf(q, StringComparison.Ordinal) >= 0))
                 {
                     matched = true;
                     break;
@@ -294,7 +294,7 @@ public partial class PredictionExchange : BaseExchange
         for (int i = 0; i < getArrayLength(chars); postFixIncrement(ref i))
         {
             string? ch = ((string)getValue(chars, i));
-            if (getIndexOf(allowed, ch) >= 0)
+            if (((string)allowed).IndexOf(((string)ch), StringComparison.Ordinal) >= 0)
             {
                 if (pendingSep && (!isEqual(s, "")))
                 {
@@ -593,7 +593,7 @@ public partial class PredictionExchange : BaseExchange
         for (int i = 0; i < getArrayLength(chars); postFixIncrement(ref i))
         {
             string? ch = ((string)getValue(chars, i));
-            if (getIndexOf(allowed, ch) >= 0)
+            if (((string)allowed).IndexOf(((string)ch), StringComparison.Ordinal) >= 0)
             {
                 s = add(s, ch);
                 lastDash = false;
@@ -667,7 +667,7 @@ public partial class PredictionExchange : BaseExchange
         for (int i = 0; i < getArrayLength(chars); postFixIncrement(ref i))
         {
             string? ch = ((string)getValue(chars, i));
-            if (getIndexOf(allowed, ch) >= 0)
+            if (((string)allowed).IndexOf(((string)ch), StringComparison.Ordinal) >= 0)
             {
                 if (pendingSep && (!isEqual(label, "")))
                 {
@@ -951,7 +951,7 @@ public partial class PredictionExchange : BaseExchange
         // download. returns undefined for id-like inputs (numeric token ids, 0x hashes) that
         // carry no searchable words
         object marketPart = outcomeSymbol;
-        int colonIndex = getIndexOf(outcomeSymbol, ":");
+        int colonIndex = ((string)outcomeSymbol).IndexOf(":", StringComparison.Ordinal);
         if (colonIndex >= 0)
         {
             marketPart = slice(outcomeSymbol, 0, colonIndex);
@@ -979,7 +979,7 @@ public partial class PredictionExchange : BaseExchange
             object chars = this.stringToCharsArray(word);
             for (int ci = 0; ci < getArrayLength(chars); postFixIncrement(ref ci))
             {
-                if (getIndexOf(letters, getValue(chars, ci)) >= 0)
+                if (((string)letters).IndexOf(((string)getValue(chars, ci)), StringComparison.Ordinal) >= 0)
                 {
                     wordHasLetters = true;
                     break;
