@@ -1677,7 +1677,7 @@
                             "currency": "ETH",
                             "cost": 0
                         },
-                        "network": "11155111",
+                        "network": null,
                         "side": "DEPOSIT"
                     }
                 ]
@@ -1748,7 +1748,7 @@
                             "currency": "USDC",
                             "cost": 123
                         },
-                        "network": "986532",
+                        "network": null,
                         "side": "WITHDRAW"
                     }
                 ]

@@ -2573,7 +2573,6 @@ export default class modetrade extends Exchange {
                 'cost': feeCost,
             };
         }
-        const networkId = this.safeString (transaction, 'chain_id');
         const timestamp = this.safeInteger (transaction, 'created_time');
         return {
             'info': transaction,
@@ -2595,7 +2594,7 @@ export default class modetrade extends Exchange {
             'comment': undefined,
             'internal': undefined,
             'fee': fee,
-            'network': this.networkIdToCode (networkId, code),
+            'network': undefined, // raw rows carry only a chain id, no mapping to unified network codes exists yet
         } as Transaction;
     }
 
