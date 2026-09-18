@@ -464,6 +464,18 @@
 // handleParamBool* / handlePostOnly / handleHfAndParams / handleOptionAndParams*) stay
 // `object`.
 //
+// cs90 U13 extends that same proof three ways (no new kind of evidence): the LITERAL-initialised
+// shard joins it (a `let type = 'spot'` target with the same destructuring write becomes
+// `string?`, its own box is the string the helper may hand back — see literalInitElement0Type);
+// the defaultValue gate also accepts an argument whose own proven C# type is string / string?
+// (`defaultMarket = isMarkPrice ? 'swap' : undefined`, so the helper still hands back a string
+// or null); and two venue helpers whose slot IS one of the audited boxes join the table —
+// getBybitType (element 0 is its `type`/`subType` from the two handle*AndParams above) and
+// resolveAuthType (element 0 its `type`, element 1 its `subType` — the slot table below).
+// handleOptionAndParams / handleOptionAndParams2 / handleMarginModeAndParams /
+// customHandleMarginModeAndParams / getInstType stay out for the same reason as before: their
+// slot holds the CALLER's params value on the `value != null` path, so no cast can be exact.
+//
 // The destructured ELEMENTS are cast back for element 0 of the helpers below: each of them
 // holds a CONCRETELY-TYPED local in that slot on EVERY return path (read off the generated
 // C# body, not the TS tuple annotation), so `x = (T)((IList<object>)tmp)[0]` names exactly
@@ -4392,7 +4404,7 @@ export function csharpLocalIsSafeToRetype (csharp, scope, declaration, varName, 
             // `[x, y] = f()` prints element reads into untyped slots; accepted when the
             // assignment is an audited request builder whose element is cast back (see below)
             if (parent.parent?.kind === ts.SyntaxKind.BinaryExpression && parent.parent.left === parent && parent.parent.operatorToken.kind === ts.SyntaxKind.EqualsToken) {
-                if (!destructuredWriteIsCastable (csharp, index, declaration, n, parent.parent, csharpType)) {
+                if (!destructuredWriteIsCastable (csharp, index, declaration, n, parent.parent, csharpType, context)) {
                     return false;
                 }
             }
@@ -5927,8 +5939,9 @@ export const DESTRUCTURED_DICT_HELPERS = [
 //     same-named helper is NOT listed: its element 0 comes from handleOptionAndParams
 // `defaultValueArg` is the 1-based position of an argument the helper can hand back as
 // element 0 whose TS type is not a string (handleMarketTypeAndParams's `any`) — a present
-// argument there must be a string literal or `undefined`, or the call keeps `object`. 0 = no
-// such argument. The element-1 target (`params`) is never touched: it is the caller's own dict.
+// argument there must be a string literal, `undefined`, the target itself, or an expression
+// whose own proven C# type is string / string? (see destructuredStringElementProof), or the
+// call keeps `object`. 0 = no such argument.
 export const DESTRUCTURED_STRING_HELPERS = {
     'handleMarketTypeAndParams': 4,
     'handleSubTypeAndParams': 4,
@@ -5938,10 +5951,31 @@ export const DESTRUCTURED_STRING_HELPERS = {
     'handleParamString2': 4,
     'getMarginMode': 0,
     'handleOriginAndSingleAddress': 0,
+    // cs90 U13 — venue helpers whose element 0 is one of the audited boxes above:
+    //   getBybitType (bybit)    [type, params] from handleMarketTypeAndParams, or
+    //     [subType, params] from handleSubTypeAndParams — the slot holds that local on
+    //     every return path (the 'option'/'spot' guard only picks which of the two)
+    //   resolveAuthType (pro/binance)  element 0 is `type` from handleMarketTypeAndParams,
+    //     kept for option/stock or rewritten to the 'future' / 'delivery' literals; its
+    //     element 1 is the same `subType` handleSubTypeAndParams boxed (see the slot table)
+    'getBybitType': 0,
+    'resolveAuthType': 0,
 };
 
+// The slot indexes of an audited helper whose value is that proven string-or-null box. Slot 0 is
+// the default (the whole table above); resolveAuthType carries TWO of them — its
+// `[ type, subType, params ]` puts the handleSubTypeAndParams box in slot 1 (the bybit/pro-binance
+// entry above), so a `[ type, subType, params ] = this.resolveAuthType (…)` target at index 1 is
+// the same proof as index 0 and its element load takes the same `(string)` cast.
+const DESTRUCTURED_STRING_ELEMENT_INDEXES = { 'resolveAuthType': [ 0, 1 ] };
+function stringElementIndexes (name) {
+    return DESTRUCTURED_STRING_ELEMENT_INDEXES[name] ?? [ 0 ];
+}
+
 // `let x: Str = undefined` / `let x = null` — the null-initialised declarations this family
-// owns. A literal-initialised local with the same destructuring write is another unit's.
+// owns, joined with the destructured write's nullable contribution. A literal-initialised
+// local joins the same element-0 proof with the literal's own box (literalInitElement0Type,
+// so a `let type = 'spot'` target becomes `string?` exactly like the null-initialised shard).
 function isNullInit (declaration) {
     const init = declaration?.initializer;
     if (init === undefined) {
@@ -6002,32 +6036,32 @@ const SAFE_STRING_ELEMENT0_HELPERS = [ 'handleParamString', 'handleParamString2'
 // null-initialised shard is the audited list above, gated per call site on the defaultValue
 // argument (handleMarketTypeAndParams can hand that argument back UNCHANGED, so its box must
 // be provable); the literal-initialised shard is limited to the SafeString-bodied helpers.
-function destructuredStringElementProof (declaration, idNode, assignment, name) {
+function destructuredStringElementProof (csharp, declaration, idNode, assignment, name, context) {
     if (assignment.right?.kind !== ts.SyntaxKind.CallExpression) {
         return false;
     }
     if (!Object.prototype.hasOwnProperty.call (DESTRUCTURED_STRING_HELPERS, name)
-            || !(isNullInit (declaration) || isStringLiteralInit (declaration))) {
+            || !(isNullInit (declaration) || isLiteralInit (declaration))) {
         return false;
     }
-    if (idNode.parent?.elements?.[0] !== idNode) {
+    if (!stringElementIndexes (name).includes (idNode.parent?.elements?.indexOf (idNode))) {
         return false;
-    }
-    if (!isNullInit (declaration)) {
-        return isLiteralInit (declaration) && SAFE_STRING_ELEMENT0_HELPERS.includes (name);
     }
     const defaultValueArg = DESTRUCTURED_STRING_HELPERS[name];
     if (defaultValueArg > 0) {
         const argument = assignment.right.arguments[defaultValueArg - 1];
         // the helper hands `defaultValue` back verbatim on its default path, so a present
-        // argument must be a proven string box: a string literal, an explicit `undefined`, or
-        // the TARGET LOCAL ITSELF (`[ x, params ] = this.handleMarketTypeAndParams (…, x)`) —
-        // the box such a local holds before this write is its initialiser's, i.e. a string or
-        // null (isNullInit / isStringLiteralInit). Every other write of the name is re-scanned
-        // against the joined type by csharpLocalIsSafeToRetype before anything is emitted.
+        // argument must be a proven string box: a string literal, an explicit `undefined`,
+        // the TARGET LOCAL ITSELF (`[ x, params ] = this.handleMarketTypeAndParams (…, x)` —
+        // the box such a local holds before this write is its initialiser's, a string or
+        // null), or any expression this module's own tables already prove string / string?
+        // (a typed local, a ternary over string literals): each hands back a string or null.
+        // Every other write of the name is re-scanned against the joined type by
+        // csharpLocalIsSafeToRetype before anything is emitted.
         const selfArgument = argument?.kind === ts.SyntaxKind.Identifier
             && argument.escapedText === declaration.name?.escapedText;
-        if (argument !== undefined && !isStringLiteral (argument) && !isUndefinedLiteral (argument) && !selfArgument) {
+        if (argument !== undefined && !isStringLiteral (argument) && !isUndefinedLiteral (argument) && !selfArgument
+                && !STRING_TYPES.includes (csharpTypeOfValue (csharp, argument, context))) {
             return false;
         }
     }
@@ -6054,13 +6088,14 @@ export const DESTRUCTURED_ELEMENT0_TYPES = {
     'handlePostOnly': 'bool',
 };
 
-// S28: element 0 of `[ value, params ] = this.helper (...)` for a LITERAL-initialised target.
-// The helper's own generated C# body boxes a concretely-typed local in slot 0 on every path
-// (DESTRUCTURED_ELEMENT0_TYPES) or the SafeString result (SAFE_STRING_ELEMENT0_HELPERS), so the
-// injected `(T)` unboxing cast names exactly that box: a literal `false` / `'x'` initialiser
-// keeps its box through the box-identical T -> T? edge (a Nullable<bool> holding a value boxes
-// as the bool), and the join below still rejects every non-box-identical element type.
-function literalInitElement0Type (declaration, idNode, assignment, name) {
+// S28 (+ cs90 U13): element 0 of `[ value, params ] = this.helper (...)` for a LITERAL-initialised
+// target. The helper's own generated C# body boxes a concretely-typed local in slot 0 on every path
+// (DESTRUCTURED_ELEMENT0_TYPES), or the audited string box (DESTRUCTURED_STRING_HELPERS, whose
+// SafeString subset is SAFE_STRING_ELEMENT0_HELPERS), so the injected `(T)` unboxing cast names
+// exactly that box: a literal `false` / `'x'` initialiser keeps its box through the box-identical
+// T -> T? edge (a Nullable<bool> holding a value boxes as the bool), and the join below still
+// rejects every non-box-identical element type.
+function literalInitElement0Type (csharp, declaration, idNode, assignment, name, context) {
     if (!isLiteralInit (declaration) || idNode.parent?.elements?.[0] !== idNode) {
         return undefined;
     }
@@ -6071,7 +6106,13 @@ function literalInitElement0Type (declaration, idNode, assignment, name) {
     if (elementType !== undefined) {
         return elementType;
     }
-    return SAFE_STRING_ELEMENT0_HELPERS.includes (name) ? 'string?' : undefined;
+    if (SAFE_STRING_ELEMENT0_HELPERS.includes (name)) {
+        return 'string?';
+    }
+    // the rest of the audited string helpers prove element 0 the same way on a literal-init
+    // target (its initialiser is the string box the helper would hand back); the join keeps
+    // the initialiser's box and the element's nullable contribution
+    return destructuredStringElementProof (csharp, declaration, idNode, assignment, name, context) ? 'string?' : undefined;
 }
 
 // scope (enclosing function node) -> Map<printed local name, proven C# type>, filled while the
@@ -6091,7 +6132,7 @@ export function recordDestructuredWriteType (scope, printedName, csharpType) {
 }
 
 // is `[ ..., x, ... ] = this.helper (...)` a write the cast makes type-correct?
-function destructuredWriteIsCastable (csharp, index, declaration, idNode, assignment, csharpType) {
+function destructuredWriteIsCastable (csharp, index, declaration, idNode, assignment, csharpType, context) {
     const right = assignment.right;
     if (right?.kind !== ts.SyntaxKind.CallExpression) {
         return false;
@@ -6106,7 +6147,7 @@ function destructuredWriteIsCastable (csharp, index, declaration, idNode, assign
         if (!DESTRUCTURED_DICT_HELPERS.includes (helper)) {
             return false;
         }
-    } else if ((csharpType === 'string' || csharpType === 'string?') && destructuredStringElementProof (declaration, idNode, assignment, helper)) {
+    } else if ((csharpType === 'string' || csharpType === 'string?') && destructuredStringElementProof (csharp, declaration, idNode, assignment, helper, context)) {
         // the null-initialised string family: element 0 of an audited helper (see
         // DESTRUCTURED_STRING_HELPERS) is a string or null, and the `(string)` cast names that box
     } else {
@@ -6143,6 +6184,15 @@ function destructuredWriteIsCastable (csharp, index, declaration, idNode, assign
 // block's holder — indexed directly when the holder is declared `IList<object>`, through the
 // `((IList<object>)<tmp>)` cast when it stayed a `var` box
 const DESTRUCTURED_READ_RE = /^(\s*)([A-Za-z_][A-Za-z0-9_]*) = ((?:\(\(IList<object>\)[ \t]*([A-Za-z_][A-Za-z0-9_]*)\)|([A-Za-z_][A-Za-z0-9_]*))\[(\d+)\])(;?)$/;
+
+// the audited helper a destructuring statement calls, read off its own holder line
+// (`var <tmp> = this.<helper> (…)` / `IList<object> <tmp> = (IList<object>)this.<helper> (…)`):
+// which element slots carry the proven string-or-null box is keyed on it
+const DESTRUCTURING_HELPER_RE = /^[ \t]*(?:var|IList<object>) [A-Za-z_]\w* = (?:\(IList<object>\)[ \t]*)?this\.([A-Za-z_]\w*)[ \t]*\(/m;
+function holderHelper (printed) {
+    const match = DESTRUCTURING_HELPER_RE.exec (printed);
+    return match === null ? undefined : match[1];
+}
 
 // wrap printCustomBinaryExpressionIfAny: the destructuring assignment print emits one
 // `<target> = <tmp>[<i>]` line per element — `<tmp>` the holder the statement's own first
@@ -6181,11 +6231,12 @@ function installDestructuredCasts (csharp) {
             if (targetType === undefined) {
                 return line;
             }
-            // the string family only ever proves element 0 and is cast with the
-            // non-nullable spelling this module uses everywhere (the box is a string or
-            // null; a reference cast accepts null unchanged)
+            // the string family proves element 0 of the audited helpers (and every slot
+            // DESTRUCTURED_STRING_ELEMENT_INDEXES lists) and casts with the non-nullable
+            // spelling this module uses everywhere (the box is a string or null; a reference
+            // cast accepts null unchanged)
             if (targetType === 'string' || targetType === 'string?') {
-                if (match[6] !== '0') {
+                if (match[6] !== '0' && !stringElementIndexes (holderHelper (printed)).includes (Number (match[6]))) {
                     return line;
                 }
                 return match[1] + match[2] + ' = (string)' + match[3] + match[7];
@@ -6372,9 +6423,9 @@ function typeFromValueOrWrites (csharp, scope, declaration, varName, initial, co
                     ? destructuredCallee.name?.escapedText : undefined;
                 let elementType;
                 if (initial === 'null') {
-                    elementType = (destructuredName !== undefined && destructuredStringElementProof (declaration, n, parent.parent, destructuredName)) ? 'string' : undefined;
+                    elementType = (destructuredName !== undefined && destructuredStringElementProof (csharp, declaration, n, parent.parent, destructuredName, context)) ? 'string' : undefined;
                 } else if (destructuredName !== undefined) {
-                    elementType = literalInitElement0Type (declaration, n, parent.parent, destructuredName);
+                    elementType = literalInitElement0Type (csharp, declaration, n, parent.parent, destructuredName, context);
                 }
                 if (elementType !== undefined) {
                     // the element can be null (the helper's default paths hand back null), so the

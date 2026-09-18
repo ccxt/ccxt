@@ -660,11 +660,11 @@ public partial class binance : ccxt.binance
                 ((IList<object>)messageHashes).Add(add("myLiquidations::", symbol));
             }
         }
-        object type = null;
-        object subType = null;
+        string? type = null;
+        string? subType = null;
         var typesubTypeparametersVariable = this.resolveAuthType("watchMyLiquidationsForSymbols", market, parameters);
-        type = ((IList<object>)typesubTypeparametersVariable)[0];
-        subType = ((IList<object>)typesubTypeparametersVariable)[1];
+        type = (string)((IList<object>)typesubTypeparametersVariable)[0];
+        subType = (string)((IList<object>)typesubTypeparametersVariable)[1];
         parameters = ((IList<object>)typesubTypeparametersVariable)[2];
         // hand the resolved type forward: the helper already omitted type and
         // subType from params, so a bare authenticate would re-derive from
@@ -2614,7 +2614,7 @@ public partial class binance : ccxt.binance
         bool isMarkPrice = (isEqual(channelName, "markPrice"));
         bool? use1sFreq = this.safeBool(parameters, "use1sFreq", true);
         IDictionary<string, object> firstMarket = null;
-        object marketType = null;
+        string? marketType = null;
         bool symbolsDefined = (!isEqual(symbols, null));
         if (!isEqual(symbols, null))
         {
@@ -2623,16 +2623,16 @@ public partial class binance : ccxt.binance
         string? userDefaultType = this.safeString(this.options, "defaultType");
         string? defaultMarket = (isMarkPrice && userDefaultType != "option") ? "swap" : null;
         IList<object> marketTypeparametersVariable = (IList<object>)this.handleMarketTypeAndParams(methodName, firstMarket, parameters, defaultMarket);
-        marketType = marketTypeparametersVariable[0];
+        marketType = (string)marketTypeparametersVariable[0];
         parameters = marketTypeparametersVariable[1];
         string? subType = null;
         IList<object> subTypeparametersVariable = (IList<object>)this.handleSubTypeAndParams(methodName, firstMarket, parameters);
         subType = (string)subTypeparametersVariable[0];
         parameters = subTypeparametersVariable[1];
         // use marketType (not firstMarket) so the no-symbols case with defaultType='option' is also detected
-        bool isOptionMarkPrice = (isMarkPrice && isEqual(marketType, "option"));
-        object rawMarketType = null;
-        if (isEqual(marketType, "option"))
+        bool isOptionMarkPrice = (isMarkPrice && marketType == "option");
+        string? rawMarketType = null;
+        if (marketType == "option")
         {
             // check option first — isLinear returns true for linear-settled options, which would incorrectly route to futures
             // eOptions: mark price and klines stream from /market/stream; tickers/bids-asks/depth/trades from /public/stream
@@ -2643,7 +2643,7 @@ public partial class binance : ccxt.binance
         } else if (isTrue(this.isInverse(marketType, subType)))
         {
             rawMarketType = "delivery";
-        } else if (isEqual(marketType, "spot"))
+        } else if (marketType == "spot")
         {
             rawMarketType = marketType;
         } else
@@ -2652,7 +2652,7 @@ public partial class binance : ccxt.binance
         }
         // eOptions tickers have a different stream name (@optionTicker) but the same event type (24hrTicker)
         // so only the subscription arg changes — channelName stays as-is to keep messageHashes aligned
-        bool isOptionTicker = (isEqual(marketType, "option") && !isMarkPrice && !isBidAsk);
+        bool isOptionTicker = (marketType == "option" && !isMarkPrice && !isBidAsk);
         if (isMarkPrice && !this.inArray(marketType, new List<object>() {"swap", "future", "option"}))
         {
             throw new NotSupported (add(add(add(add(add(this.id, " "), methodName), "() does not support "), marketType), " markets yet")) ;
@@ -2723,7 +2723,7 @@ public partial class binance : ccxt.binance
             }
         } else
         {
-            if (isEqual(marketType, "option"))
+            if (marketType == "option")
             {
                 object underlying = this.safeStringLower(parameters, "underlying");
                 if ((underlying == null))
@@ -2748,7 +2748,7 @@ public partial class binance : ccxt.binance
                 ((IList<object>)unsubscribeMessageHashes).Add(add("unsubscribe::", channelName));
             } else if (isBidAsk)
             {
-                if (isEqual(marketType, "spot"))
+                if (marketType == "spot")
                 {
                     throw new ArgumentsRequired (add(add(add(this.id, " "), methodName), "() requires symbols for this channel for spot markets")) ;
                 }
@@ -3979,10 +3979,10 @@ public partial class binance : ccxt.binance
         // options.watchBalance.type seeds one bucket while the read below
         // indexes another - the same derive-first shape watchOrders uses
         object type = null;
-        object subType = null;
+        string? subType = null;
         var typesubTypeparametersVariable = this.resolveAuthType("watchBalance", null, parameters);
         type = ((IList<object>)typesubTypeparametersVariable)[0];
-        subType = ((IList<object>)typesubTypeparametersVariable)[1];
+        subType = (string)((IList<object>)typesubTypeparametersVariable)[1];
         parameters = ((IList<object>)typesubTypeparametersVariable)[2];
         await this.authenticate(this.extend(new Dictionary<string, object>() {
             { "type", type },
@@ -4975,11 +4975,11 @@ public partial class binance : ccxt.binance
             symbolVar = GetValue(market, "symbol");
             messageHash = add(messageHash, add(":", symbolVar));
         }
-        object type = null;
-        object subType = null;
+        string? type = null;
+        string? subType = null;
         var typesubTypeparametersVariable = this.resolveAuthType("watchOrders", market, parameters);
-        type = ((IList<object>)typesubTypeparametersVariable)[0];
-        subType = ((IList<object>)typesubTypeparametersVariable)[1];
+        type = (string)((IList<object>)typesubTypeparametersVariable)[0];
+        subType = (string)((IList<object>)typesubTypeparametersVariable)[1];
         parameters = ((IList<object>)typesubTypeparametersVariable)[2];
         parameters = this.extend(parameters, new Dictionary<string, object>() {
             { "type", type },
@@ -4991,8 +4991,8 @@ public partial class binance : ccxt.binance
         IList<object> marginModeparametersVariable = (IList<object>)this.handleMarginModeAndParams("watchOrders", parameters);
         marginMode = marginModeparametersVariable[0];
         parameters = marginModeparametersVariable[1];
-        object urlType = type;
-        if ((isEqual(type, "margin")) || ((isEqual(type, "spot")) && ((marginMode != null))))
+        string? urlType = type;
+        if ((type == "margin") || ((type == "spot") && ((marginMode != null))))
         {
             urlType = "spot"; // spot-margin shares the same stream as regular spot
         }
@@ -5001,7 +5001,7 @@ public partial class binance : ccxt.binance
         isPortfolioMargin = isPortfolioMarginparametersVariable[0];
         parameters = isPortfolioMarginparametersVariable[1];
         object url = "";
-        if (isEqual(type, "spot") || isEqual(type, "margin"))
+        if (type == "spot" || type == "margin")
         {
             // route orders to ws-api user data stream
             url = getValue(getValue(getValue(getValue(this.urls, "api"), "ws"), "ws-api"), "spot");
@@ -5010,7 +5010,7 @@ public partial class binance : ccxt.binance
             if (isTrue(isPortfolioMargin))
             {
                 urlType = "papi";
-            } else if (isEqual(type, "option"))
+            } else if (type == "option")
             {
                 bool? demoMode = this.safeBool(this.options, "enableDemoTrading", false);
                 if (((demoMode == true)) || isTrue(this.isSandboxModeEnabled))
@@ -5633,10 +5633,10 @@ public partial class binance : ccxt.binance
             messageHash = add("::", String.Join(",", ((IList<object>)symbols).ToArray()));
         }
         object type = null;
-        object subType = null;
+        string? subType = null;
         var typesubTypeparametersVariable = this.resolveAuthType("watchPositions", market, parameters);
         type = ((IList<object>)typesubTypeparametersVariable)[0];
-        subType = ((IList<object>)typesubTypeparametersVariable)[1];
+        subType = (string)((IList<object>)typesubTypeparametersVariable)[1];
         parameters = ((IList<object>)typesubTypeparametersVariable)[2];
         // spot and margin have no positions - whatever still RESOLVES to spot
         // or margin after the helper falls through to the derivatives stream
@@ -5645,7 +5645,7 @@ public partial class binance : ccxt.binance
         // the same stream the old raw-type ordering produced in every case
         if (isEqual(type, "spot") || isEqual(type, "margin"))
         {
-            type = (isEqual(subType, "inverse")) ? "delivery" : "future";
+            type = (subType == "inverse") ? "delivery" : "future";
         }
         // 'option' stays as 'option', don't redirect to 'future' - the helper's
         // guard finally makes this comment true
@@ -6128,7 +6128,7 @@ public partial class binance : ccxt.binance
         {
             await this.loadMarkets();
         }
-        object type = null;
+        string? type = null;
         IDictionary<string, object> market = null;
         if (!isEqual(symbolVar, null))
         {
@@ -6136,10 +6136,10 @@ public partial class binance : ccxt.binance
             market = marketResolved;
             symbolVar = GetValue(market, "symbol");
         }
-        object subType = null;
+        string? subType = null;
         var typesubTypeparametersVariable = this.resolveAuthType("watchMyTrades", market, parameters);
-        type = ((IList<object>)typesubTypeparametersVariable)[0];
-        subType = ((IList<object>)typesubTypeparametersVariable)[1];
+        type = (string)((IList<object>)typesubTypeparametersVariable)[0];
+        subType = (string)((IList<object>)typesubTypeparametersVariable)[1];
         parameters = ((IList<object>)typesubTypeparametersVariable)[2];
         string messageHash = "myTrades";
         if ((!isEqual(symbolVar, null)) && ((market != null)))
@@ -6155,8 +6155,8 @@ public partial class binance : ccxt.binance
             { "type", type },
             { "subType", subType },
         }, parameters));
-        object urlType = type; // we don't change type because the listening key is different
-        if (isEqual(type, "margin"))
+        string? urlType = type; // we don't change type because the listening key is different
+        if (type == "margin")
         {
             urlType = "spot"; // spot-margin shares the same stream as regular spot
         }
@@ -6165,7 +6165,7 @@ public partial class binance : ccxt.binance
         isPortfolioMargin = isPortfolioMarginparametersVariable[0];
         parameters = isPortfolioMarginparametersVariable[1];
         object url = "";
-        if (isEqual(type, "spot") || isEqual(type, "margin"))
+        if (type == "spot" || type == "margin")
         {
             url = getValue(getValue(getValue(getValue(this.urls, "api"), "ws"), "ws-api"), "spot");
         } else
@@ -6173,7 +6173,7 @@ public partial class binance : ccxt.binance
             if (isTrue(isPortfolioMargin))
             {
                 urlType = "papi";
-            } else if (isEqual(type, "option"))
+            } else if (type == "option")
             {
                 bool? demoMode = this.safeBool(this.options, "enableDemoTrading", false);
                 if (((demoMode == true)) || isTrue(this.isSandboxModeEnabled))

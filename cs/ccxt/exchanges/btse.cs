@@ -1155,12 +1155,12 @@ public partial class btse : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        object type = "spot";
+        string? type = "spot";
         IList<object> typeparametersVariable = (IList<object>)this.handleMarketTypeAndParams("fetchBalance", null, parameters, type);
-        type = typeparametersVariable[0];
+        type = (string)typeparametersVariable[0];
         parameters = typeparametersVariable[1];
         List<object> response = null;
-        if (isEqual(type, "spot"))
+        if (type == "spot")
         {
             Dictionary<string, object> walletResponse = await this.privateGetPublicApiWalletV1UserAssets(parameters);
             //
@@ -1827,12 +1827,12 @@ public partial class btse : Exchange
         IList<object> requestparametersVariable = (IList<object>)this.handleUntilOption("endTime", request, parameters);
         request = (Dictionary<string, object>)requestparametersVariable[0];
         parameters = requestparametersVariable[1];
-        object marketType = "spot";
+        string? marketType = "spot";
         IList<object> marketTypeparametersVariable = (IList<object>)this.handleMarketTypeAndParams("fetchMyTrades", market, parameters, marketType);
-        marketType = marketTypeparametersVariable[0];
+        marketType = (string)marketTypeparametersVariable[0];
         parameters = marketTypeparametersVariable[1];
         object response = null;
-        if (isEqual(marketType, "spot"))
+        if (marketType == "spot")
         {
             if (isEqual(symbol, null))
             {
@@ -2638,12 +2638,12 @@ public partial class btse : Exchange
         {
             market = this.market(symbol);
         }
-        object marketType = "spot";
+        string? marketType = "spot";
         IList<object> marketTypeparametersVariable = (IList<object>)this.handleMarketTypeAndParams("fetchOrder", market, parameters, marketType);
-        marketType = marketTypeparametersVariable[0];
+        marketType = (string)marketTypeparametersVariable[0];
         parameters = marketTypeparametersVariable[1];
         object response = null;
-        if (isEqual(marketType, "spot"))
+        if (marketType == "spot")
         {
             response = await this.privateGetSpotApiV4TradeOrder(this.extend(request, parameters));
         } else
@@ -2834,13 +2834,13 @@ public partial class btse : Exchange
         {
             market = this.market(symbol);
         }
-        object marketType = "spot";
+        string? marketType = "spot";
         IList<object> marketTypeparametersVariable = (IList<object>)this.handleMarketTypeAndParams("cancelAllOrders", market, parameters, marketType);
-        marketType = marketTypeparametersVariable[0];
+        marketType = (string)marketTypeparametersVariable[0];
         parameters = marketTypeparametersVariable[1];
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         object response = null;
-        if (isEqual(marketType, "spot"))
+        if (marketType == "spot")
         {
             // the literal ALL value cancels every open order across all pairs
             request["symbol"] = ((market != null)) ? GetValue(market, "id") : "ALL";
@@ -2877,11 +2877,11 @@ public partial class btse : Exchange
         await this.loadMarkets();
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         Dictionary<string, object> response = null;
-        object marketType = "spot";
+        string? marketType = "spot";
         IList<object> marketTypeparametersVariable = (IList<object>)this.handleMarketTypeAndParams("cancelAllOrdersAfter", null, parameters, marketType);
-        marketType = marketTypeparametersVariable[0];
+        marketType = (string)marketTypeparametersVariable[0];
         parameters = marketTypeparametersVariable[1];
-        if (isEqual(marketType, "spot"))
+        if (marketType == "spot")
         {
             request["timeout"] = timeout;
             response = await this.privatePostSpotApiV4TradeOrdersCancelAllAfter(this.extend(request, parameters));
@@ -2917,12 +2917,12 @@ public partial class btse : Exchange
         {
             market = this.market(symbol);
         }
-        object marketType = "spot";
+        string? marketType = "spot";
         IList<object> marketTypeparametersVariable = (IList<object>)this.handleMarketTypeAndParams("fetchOpenOrders", market, parameters, marketType);
-        marketType = marketTypeparametersVariable[0];
+        marketType = (string)marketTypeparametersVariable[0];
         parameters = marketTypeparametersVariable[1];
         List<object> response = null;
-        if (isEqual(marketType, "spot"))
+        if (marketType == "spot")
         {
             if ((market != null))
             {
@@ -3122,11 +3122,11 @@ public partial class btse : Exchange
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         List<object> response = null;
-        object marketType = "spot";
+        string? marketType = "spot";
         IList<object> marketTypeparametersVariable = (IList<object>)this.handleMarketTypeAndParams("fetchTradingFees", null, parameters, marketType);
-        marketType = marketTypeparametersVariable[0];
+        marketType = (string)marketTypeparametersVariable[0];
         parameters = marketTypeparametersVariable[1];
-        if (isEqual(marketType, "spot"))
+        if (marketType == "spot")
         {
             response = await this.privateGetSpotApiV4TradeFees(parameters);
         } else

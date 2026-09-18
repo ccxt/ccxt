@@ -9327,9 +9327,9 @@ public partial class kucoin : Exchange
         {
             currency = this.currency(((string)code));
         }
-        object requestedType = "spot";
+        string? requestedType = "spot";
         IList<object> requestedTypeparametersVariable = (IList<object>)this.handleMarketTypeAndParams("fetchBalance", null, parameters);
-        requestedType = requestedTypeparametersVariable[0];
+        requestedType = (string)requestedTypeparametersVariable[0];
         parameters = requestedTypeparametersVariable[1];
         IDictionary<string, object> accountsByType = this.safeDict(this.options, "accountsByType", new Dictionary<string, object>() {});
         string? type = this.safeString(accountsByType, requestedType, requestedType);

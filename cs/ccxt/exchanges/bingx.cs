@@ -2265,12 +2265,12 @@ public partial class bingx : Exchange
         }
         symbols = this.marketSymbols(symbols, "swap", true, true, true);
         Dictionary<string, object> firstMarket = this.getMarketFromSymbols(symbols);
-        object subType = "linear";
+        string? subType = "linear";
         IList<object> subTypeparametersVariable = (IList<object>)this.handleSubTypeAndParams("fetchFundingRates", firstMarket, parameters, subType);
-        subType = subTypeparametersVariable[0];
+        subType = (string)subTypeparametersVariable[0];
         parameters = subTypeparametersVariable[1];
         Dictionary<string, object> response = null;
-        if (isEqual(subType, "inverse"))
+        if (subType == "inverse")
         {
             response = await this.cswapV1PublicGetMarketPremiumIndex(parameters);
         } else
@@ -4772,19 +4772,19 @@ public partial class bingx : Exchange
             market = this.market(symbol);
             request["symbol"] = GetValue(market, "id");
         }
-        object marketType = "spot";
+        string? marketType = "spot";
         string? subType = null;
         IList<object> marketTypeparametersVariable = (IList<object>)this.handleMarketTypeAndParams("cancelAllOrders", market, parameters);
-        marketType = marketTypeparametersVariable[0];
+        marketType = (string)marketTypeparametersVariable[0];
         parameters = marketTypeparametersVariable[1];
         IList<object> subTypeparametersVariable = (IList<object>)this.handleSubTypeAndParams("cancelAllOrders", market, parameters);
         subType = (string)subTypeparametersVariable[0];
         parameters = subTypeparametersVariable[1];
         Dictionary<string, object> response = null;
-        if (isEqual(marketType, "spot"))
+        if (marketType == "spot")
         {
             response = await this.spotV1PrivatePostTradeCancelOpenOrders(this.extend(request, parameters));
-        } else if (isEqual(marketType, "swap"))
+        } else if (marketType == "swap")
         {
             if (subType == "inverse")
             {
