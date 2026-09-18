@@ -3819,7 +3819,7 @@ public class Bitget extends BitgetApi
                 Object res = this.safeDict(results, i);
                 Object data = this.safeList(res, "data", new ArrayList<Object>(Arrays.asList()));
                 Object firstData = this.safeDict(data, 0, new HashMap<String, Object>() {{}});
-                Object isBorrowable = this.safeBool(firstData, "isBorrowable");
+                Boolean isBorrowable = (Boolean) this.safeBool(firstData, "isBorrowable");
                 if (Helpers.isTrue(fetchMargins) && !java.util.Objects.equals(isBorrowable, null))
                 {
                     // cross and isolated availability are per-symbol - a coin can be listed by
@@ -3832,12 +3832,12 @@ public class Bitget extends BitgetApi
                     {
                         Object entry = this.safeDict(data, j, new HashMap<String, Object>() {{}});
                         String entrySymbol = this.safeString(entry, "symbol");
-                        Object entryBorrowable = this.safeBool(entry, "isBorrowable", true);
+                        Boolean entryBorrowable = (Boolean) this.safeBool(entry, "isBorrowable", true);
                         if ((java.util.Objects.equals(entryBorrowable, true)) && Helpers.isTrue(this.safeBool(entry, "isCrossBorrowable", true)))
                         {
                             ((List<Object>)crossKeys).add(entrySymbol);
                         }
-                        Object isolatedBase = this.safeBool(entry, "isIsolatedBaseBorrowable", true);
+                        Boolean isolatedBase = (Boolean) this.safeBool(entry, "isIsolatedBaseBorrowable", true);
                         Object isolatedQuote = this.safeBool2(entry, "isIsolatedQuotedBorrowable", "isIsolatedQuoteBorrowable", true);
                         if ((java.util.Objects.equals(entryBorrowable, true)) && ((java.util.Objects.equals(isolatedBase, true)) || (java.util.Objects.equals(isolatedQuote, true))))
                         {
@@ -4965,7 +4965,7 @@ final Object finalMinNotional = minNotional;
             Object result = this.parseTransaction(data, currency);
             Helpers.addElementToObject(result, "type", "withdrawal");
             Object withdrawOptions = this.safeValue(this.options, "withdraw", new HashMap<String, Object>() {{}});
-            Object fillResponseFromRequest = this.safeBool(withdrawOptions, "fillResponseFromRequest", true);
+            Boolean fillResponseFromRequest = (Boolean) this.safeBool(withdrawOptions, "fillResponseFromRequest", true);
             if (java.util.Objects.equals(fillResponseFromRequest, true))
             {
                 Helpers.addElementToObject(result, "currency", code);
@@ -6463,7 +6463,7 @@ final Object finalMinNotional = minNotional;
             parameters = ((List<Object>) utaparametersVariable).get(1);
             if (java.util.Objects.equals(uta, true))
             {
-                Object utaMargin = this.safeBool(parameters, "margin", false);
+                Boolean utaMargin = (Boolean) this.safeBool(parameters, "margin", false);
                 parameters = this.omit(parameters, "margin");
                 Map<String, Object> request = new HashMap<String, Object>() {{}};
                 if (java.util.Objects.equals(marketType, "spot"))
@@ -6523,7 +6523,7 @@ final Object finalMinNotional = minNotional;
             }
             if (java.util.Objects.equals(marketType, "spot"))
             {
-                Object margin = this.safeBool(parameters, "margin", false);
+                Boolean margin = (Boolean) this.safeBool(parameters, "margin", false);
                 parameters = this.omit(parameters, "margin");
                 if ((!java.util.Objects.equals(marginMode, null)) || (java.util.Objects.equals(margin, true)))
                 {
@@ -6659,7 +6659,7 @@ final Object finalMinNotional = minNotional;
         //     ]
         //
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-        Object inverse = this.safeBool(market, "inverse");
+        Boolean inverse = (Boolean) this.safeBool(market, "inverse");
         Object volumeIndex = (((java.util.Objects.equals(inverse, true)))) ? 6 : 5;
         return new ArrayList<Object>(Arrays.asList(this.safeInteger(ohlcv, 0), this.safeNumber(ohlcv, 1), this.safeNumber(ohlcv, 2), this.safeNumber(ohlcv, 3), this.safeNumber(ohlcv, 4), this.safeNumber(ohlcv, volumeIndex)));
     }
@@ -6704,8 +6704,8 @@ final Object finalMinNotional = minNotional;
             Integer defaultLimit = 100; // default 100, max 1000
             Object maxLimitForRecentEndpoint = 1000;
             Object maxLimitForHistoryEndpoint = 200; // note, max 1000 bars are supported for "recent-candles" endpoint, but "historical-candles" support only max 200
-            Object useHistoryEndpoint = this.safeBool(parameters, "useHistoryEndpoint", false);
-            Object useHistoryEndpointForPagination = this.safeBool(parameters, "useHistoryEndpointForPagination", true);
+            Boolean useHistoryEndpoint = (Boolean) this.safeBool(parameters, "useHistoryEndpoint", false);
+            Boolean useHistoryEndpointForPagination = (Boolean) this.safeBool(parameters, "useHistoryEndpointForPagination", true);
             Object paginate = false;
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate");
             paginate = ((List<Object>) paginateparametersVariable).get(0);
@@ -7934,7 +7934,7 @@ final Object finalMinNotional = minNotional;
                 ((Map<String, Object>)request).put("timeInForce", "ioc");
             }
         }
-        Object reduceOnly = this.safeBool(parameters, "reduceOnly", false);
+        Boolean reduceOnly = (Boolean) this.safeBool(parameters, "reduceOnly", false);
         Boolean hedged = null;
         List<Object> hedgedparametersVariable = (List<Object>) this.handleParamBool(parameters, "hedged", false);
         hedged = (Boolean) ((List<Object>) hedgedparametersVariable).get(0);
@@ -8032,7 +8032,7 @@ final Object finalMinNotional = minNotional;
             ((Map<String, Object>)request).put("price", this.priceToPrecision(symbol, price));
         }
         String triggerPriceType = this.safeString2(parameters, "triggerPriceType", "triggerType", "mark_price");
-        Object reduceOnly = this.safeBool(parameters, "reduceOnly", false);
+        Boolean reduceOnly = (Boolean) this.safeBool(parameters, "reduceOnly", false);
         String clientOrderId = this.safeString2(parameters, "clientOid", "clientOrderId");
         String exchangeSpecificTifParam = this.safeString2(parameters, "force", "timeInForce");
         Boolean postOnly = null;
@@ -8634,7 +8634,7 @@ final Object finalMinNotional = minNotional;
             {
                 String cost = this.safeString(parameters, "cost");
                 parameters = this.omit(parameters, "cost");
-                Object editMarketBuyOrderRequiresPrice = this.safeBool(this.options, "editMarketBuyOrderRequiresPrice", true);
+                Boolean editMarketBuyOrderRequiresPrice = (Boolean) this.safeBool(this.options, "editMarketBuyOrderRequiresPrice", true);
                 if (((java.util.Objects.equals(editMarketBuyOrderRequiresPrice, true)) || (!java.util.Objects.equals(cost, null))) && Helpers.isTrue(isMarketOrder) && (java.util.Objects.equals(side, "buy")))
                 {
                     if (java.util.Objects.equals(price, null) && java.util.Objects.equals(cost, null))
@@ -9572,7 +9572,7 @@ final Object finalMinNotional = minNotional;
                 return (this.fetchPaginatedCallCursor("fetchOpenOrders", symbol, since, limit, parameters, cursorReceived, cursorSent)).join();
             }
             Object response = null;
-            Object trailing = this.safeBool(parameters, "trailing");
+            Boolean trailing = (Boolean) this.safeBool(parameters, "trailing");
             Object trigger = this.safeBool2(parameters, "stop", "trigger");
             Boolean planTypeDefined = !java.util.Objects.equals(this.safeString(parameters, "planType"), null);
             Boolean isTrigger = (java.util.Objects.equals(trigger, true)) || Helpers.isTrue(planTypeDefined);
@@ -10111,7 +10111,7 @@ final Object finalMinNotional = minNotional;
                 return (this.fetchPaginatedCallCursor("fetchCanceledAndClosedOrders", symbol, since, limit, parameters, cursorReceived, "idLessThan")).join();
             }
             Object response = null;
-            Object trailing = this.safeBool(parameters, "trailing");
+            Boolean trailing = (Boolean) this.safeBool(parameters, "trailing");
             Object trigger = this.safeBool2(parameters, "stop", "trigger");
             parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("stop", "trigger", "trailing")));
             List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("endTime", request, parameters);
@@ -11234,7 +11234,7 @@ final Object finalMinNotional = minNotional;
                 return (this.fetchPaginatedCallCursor("fetchPositions", null, null, null, parameters, "endId", "idLessThan")).join();
             }
             Object method = null;
-            Object useHistoryEndpoint = this.safeBool(parameters, "useHistoryEndpoint", false);
+            Boolean useHistoryEndpoint = (Boolean) this.safeBool(parameters, "useHistoryEndpoint", false);
             if (java.util.Objects.equals(useHistoryEndpoint, true))
             {
                 method = "privateMixGetV2MixPositionHistoryPosition";

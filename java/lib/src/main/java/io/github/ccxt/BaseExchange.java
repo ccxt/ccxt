@@ -6115,14 +6115,14 @@ public Object describe()
             {
                 Object key = Helpers.GetValue(keys, i);
                 Object network = Helpers.GetValue(networks, key);
-                Object deposit = this.safeBool(network, "deposit");
-                Object currencyDeposit = this.safeBool(currency, "deposit");
+                Boolean deposit = (Boolean) this.safeBool(network, "deposit");
+                Boolean currencyDeposit = (Boolean) this.safeBool(currency, "deposit");
                 if (java.util.Objects.equals(currencyDeposit, null) || (java.util.Objects.equals(deposit, true)))
                 {
                     ((Map<String, Object>)currency).put("deposit", deposit);
                 }
-                Object withdraw = this.safeBool(network, "withdraw");
-                Object currencyWithdraw = this.safeBool(currency, "withdraw");
+                Boolean withdraw = (Boolean) this.safeBool(network, "withdraw");
+                Boolean currencyWithdraw = (Boolean) this.safeBool(currency, "withdraw");
                 if (java.util.Objects.equals(currencyWithdraw, null) || (java.util.Objects.equals(withdraw, true)))
                 {
                     ((Map<String, Object>)currency).put("withdraw", withdraw);
@@ -6743,7 +6743,7 @@ public Object describe()
             }
         }
         // ensure that the average field is calculated correctly
-        Object inverse = this.safeBool(market, "inverse", false);
+        Boolean inverse = (Boolean) this.safeBool(market, "inverse", false);
         Object contractSize = this.numberToString(this.safeValue(market, "contractSize", 1));
         // inverse
         // price = filled * contract size / cost
@@ -7071,7 +7071,7 @@ public Object describe()
             String multiplyPrice = price;
             if (!java.util.Objects.equals(contractSize, null))
             {
-                Object inverse = this.safeBool(market, "inverse", false);
+                Boolean inverse = (Boolean) this.safeBool(market, "inverse", false);
                 if (java.util.Objects.equals(inverse, true))
                 {
                     multiplyPrice = Precise.stringDiv("1", price);
@@ -7686,7 +7686,7 @@ public Object describe()
             Object endRegex = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
             Object errorMessage = "";
             Object options = this.safeValue(this.options, method, new HashMap<String, Object>() {{}});
-            Object muteOnFailure = this.safeBool(options, "webApiMuteFailure", true);
+            Boolean muteOnFailure = (Boolean) this.safeBool(options, "webApiMuteFailure", true);
             try
             {
                 // if it was not explicitly disabled, then don't fetch
@@ -7959,12 +7959,12 @@ public Object describe()
 
     public Object safeNetwork(Object network)
     {
-        Object withdrawEnabled = this.safeBool(network, "withdraw");
-        Object depositEnabled = this.safeBool(network, "deposit");
+        Boolean withdrawEnabled = (Boolean) this.safeBool(network, "withdraw");
+        Boolean depositEnabled = (Boolean) this.safeBool(network, "deposit");
         Object limits = this.safeDict(network, "limits");
         Object withdraw = this.safeDict(limits, "withdraw");
         Object deposit = this.safeDict(limits, "deposit");
-        Object isEnabled = withdrawEnabled;
+        Boolean isEnabled = withdrawEnabled;
         if (java.util.Objects.equals(withdrawEnabled, true))
         {
             isEnabled = depositEnabled;
@@ -8306,7 +8306,7 @@ public Object describe()
                 String id = (((java.util.Objects.equals(marketIdKey, null)))) ? null : this.safeString(item, marketIdKey);
                 Map<String, Object> market = (Map<String, Object>) this.safeMarket(id, null, null, "swap");
                 Object symbol = ((Map<String, Object>)market).get("symbol");
-                Object contract = this.safeBool(market, "contract", false);
+                Boolean contract = (Boolean) this.safeBool(market, "contract", false);
                 if ((java.util.Objects.equals(contract, true)) && (Helpers.isTrue(noSymbols) || ((!java.util.Objects.equals(symbols, null)) && Helpers.isTrue(this.inArray(symbol, symbols)))))
                 {
                     Helpers.addElementToObject(tiers, symbol, this.parseMarketLeverageTiers(item, market));
@@ -8321,7 +8321,7 @@ public Object describe()
                 Object item = Helpers.GetValue(response, marketId);
                 Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, null, null, "swap");
                 Object symbol = ((Map<String, Object>)market).get("symbol");
-                Object contract = this.safeBool(market, "contract", false);
+                Boolean contract = (Boolean) this.safeBool(market, "contract", false);
                 if ((java.util.Objects.equals(contract, true)) && (Helpers.isTrue(noSymbols) || ((!java.util.Objects.equals(symbols, null)) && Helpers.isTrue(this.inArray(symbol, symbols)))))
                 {
                     Helpers.addElementToObject(tiers, symbol, this.parseMarketLeverageTiers(item, market));
@@ -8963,7 +8963,7 @@ public Object describe()
         Object tradesLength = ((List<?>)trades).size();
         Object oldest = Helpers.mathMin(tradesLength, limit);
         Object options = this.safeDict(this.options, "buildOHLCVC", new HashMap<String, Object>() {{}});
-        Object skipZeroPrices = this.safeBool(options, "skipZeroPrices", true);
+        Boolean skipZeroPrices = (Boolean) this.safeBool(options, "skipZeroPrices", true);
         for (var i = 0; Helpers.isLessThan(i, oldest); i++)
         {
             Object trade = Helpers.GetValue(trades, i);
