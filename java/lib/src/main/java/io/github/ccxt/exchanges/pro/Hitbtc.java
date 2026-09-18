@@ -165,7 +165,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
                 (this.loadMarkets()).join();
             }
             symbols = this.marketSymbols(symbols);
-            Boolean isBatch = Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(name, "batch"), 0);
+            Boolean isBatch = Helpers.isGreaterThanOrEqual(((String)name).indexOf("batch"), 0);
             Object url = Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "public");
             List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
             if (!java.util.Objects.equals(symbols, null) && !Helpers.isTrue(isBatch))

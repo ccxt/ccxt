@@ -110,7 +110,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
 
     public String getAccountTypeFromUrl(Object url)
     {
-        if (Helpers.isGreaterThan(Helpers.getIndexOf(url, "fstream"), Helpers.opNeg(1)))
+        if (Helpers.isGreaterThan(((String)url).indexOf("fstream"), Helpers.opNeg(1)))
         {
             return "swap";
         }
@@ -2246,7 +2246,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
         String executionType = this.safeString(message, "x");
         if (java.util.Objects.equals(executionType, "TRADE"))
         {
-            Boolean isSwap = Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(client.url, "fstream"), 0);
+            Boolean isSwap = Helpers.isGreaterThanOrEqual(((String)client.url).indexOf("fstream"), 0);
             String type = ((Helpers.isTrue(isSwap))) ? "swap" : "spot";
             Map<String, Object> fakeMarket = (Map<String, Object>) this.safeMarketStructure(new HashMap<String, Object>() {{
                 put( "type", type );

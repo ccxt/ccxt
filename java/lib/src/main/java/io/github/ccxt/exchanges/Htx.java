@@ -3622,7 +3622,7 @@ public class Htx extends HtxApi
         String order = this.safeString2(trade, "order-id", "order_id");
         String side = this.safeString2(trade, "direction", "side");
         String type = this.safeString(trade, "type");
-        if ((!java.util.Objects.equals(type, null)) && (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(type, "-"), 0)))
+        if ((!java.util.Objects.equals(type, null)) && (Helpers.isGreaterThanOrEqual(((String)type).indexOf("-"), 0)))
         {
             Object typeParts = Helpers.split(type, "-");
             side = (String) Helpers.GetValue(typeParts, 0);
@@ -3668,7 +3668,7 @@ public class Htx extends HtxApi
         // - otherwise the least priority is given to the `id` key
         String id = null;
         String safeId = this.safeString(trade, "id");
-        if (!java.util.Objects.equals(safeId, null) && Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(safeId, "-"), 0))
+        if (!java.util.Objects.equals(safeId, null) && Helpers.isGreaterThanOrEqual(((String)safeId).indexOf("-"), 0))
         {
             id = safeId;
         } else
@@ -6376,7 +6376,7 @@ public class Htx extends HtxApi
             String rawType = this.safeString(order, "type");
             if (!java.util.Objects.equals(rawType, null))
             {
-                if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(rawType, "-"), 0))
+                if (Helpers.isGreaterThanOrEqual(((String)rawType).indexOf("-"), 0))
                 {
                     Object orderType = Helpers.split(rawType, "-");
                     side = (String) Helpers.GetValue(orderType, 0);
@@ -6391,7 +6391,7 @@ public class Htx extends HtxApi
         String clientOrderId = this.safeStringN(order, new ArrayList<Object>(Arrays.asList("client_order_id", ("client-or" + "der-id"), "algo_client_order_id"))); // transpiler regex trick for php issue
         String cost = null;
         String amount = null;
-        if ((!java.util.Objects.equals(type, null)) && (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(type, "market"), 0)) && (!java.util.Objects.equals(isLinearOrder, true)))
+        if ((!java.util.Objects.equals(type, null)) && (Helpers.isGreaterThanOrEqual(((String)type).indexOf("market"), 0)) && (!java.util.Objects.equals(isLinearOrder, true)))
         {
             cost = this.safeString(order, "field-cash-amount");
         } else
@@ -8467,7 +8467,7 @@ public class Htx extends HtxApi
         {
             throw new ExchangeError((this.id + " parseTransaction() missing txHash")) ;
         }
-        if (java.util.Objects.equals(networkId, "ETH") && Helpers.isLessThan(Helpers.getIndexOf(txHash, "0x"), 0))
+        if (java.util.Objects.equals(networkId, "ETH") && Helpers.isLessThan(((String)txHash).indexOf("0x"), 0))
         {
             txHash = ("0x" + txHash);
         }
@@ -9571,7 +9571,7 @@ public class Htx extends HtxApi
                     String id = this.safeString(options, "id", "AA03022abc");
                     if (!Helpers.isTrue(isArrayParams))
                     {
-                        if ((Helpers.isEqual(Helpers.getIndexOf(pathString, "cancel"), Helpers.opNeg(1))) && Helpers.isTrue(((String)pathString).endsWith("order")))
+                        if ((Helpers.isEqual(((String)pathString).indexOf("cancel"), Helpers.opNeg(1))) && Helpers.isTrue(((String)pathString).endsWith("order")))
                         {
                             // swap order placement
                             String channelCode = this.safeString(parameters, "channel_code");

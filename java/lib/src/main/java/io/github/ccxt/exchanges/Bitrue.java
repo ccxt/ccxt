@@ -3859,15 +3859,15 @@ public class Bitrue extends BitrueApi
         // will switch "code" checks eventually, when we know all of them
         if (Helpers.isGreaterThanOrEqual(code, 400))
         {
-            if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(body, "Price * QTY is zero or less"), 0))
+            if (Helpers.isGreaterThanOrEqual(((String)body).indexOf("Price * QTY is zero or less"), 0))
             {
                 throw new InvalidOrder(((this.id + " order cost = amount * price is zero or less ") + body)) ;
             }
-            if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(body, "LOT_SIZE"), 0))
+            if (Helpers.isGreaterThanOrEqual(((String)body).indexOf("LOT_SIZE"), 0))
             {
                 throw new InvalidOrder(((this.id + " order amount should be evenly divisible by lot size ") + body)) ;
             }
-            if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(body, "PRICE_FILTER"), 0))
+            if (Helpers.isGreaterThanOrEqual(((String)body).indexOf("PRICE_FILTER"), 0))
             {
                 throw new InvalidOrder(((this.id + " order price is invalid, i.e. exceeds allowed price precision, exceeds min price or max price limits or is invalid float value in general, use this.priceToPrecision (symbol, amount) ") + body)) ;
             }

@@ -1612,7 +1612,7 @@ public class Lighter extends LighterApi
                 String type = this.safeString(market, "market_type");
                 type = (((java.util.Objects.equals(type, "perp")))) ? "swap" : type;
                 Object baseId = this.safeString(market, "symbol");
-                if (!java.util.Objects.equals(baseId, null) && !Helpers.isEqual(Helpers.getIndexOf(baseId, "/"), Helpers.opNeg(1)))
+                if (!java.util.Objects.equals(baseId, null) && !Helpers.isEqual(((String)baseId).indexOf("/"), Helpers.opNeg(1)))
                 {
                     baseId = Helpers.GetValue(Helpers.split(baseId, "/"), 0);
                 }
@@ -2947,11 +2947,11 @@ public class Lighter extends LighterApi
         Object takeProfitPrice = null;
         if (!java.util.Objects.equals(type, null))
         {
-            if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(type, "stop-loss"), 0))
+            if (Helpers.isGreaterThanOrEqual(((String)type).indexOf("stop-loss"), 0))
             {
                 stopLossPrice = triggerPrice;
             }
-            if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(type, "take-profit"), 0))
+            if (Helpers.isGreaterThanOrEqual(((String)type).indexOf("take-profit"), 0))
             {
                 takeProfitPrice = triggerPrice;
             }

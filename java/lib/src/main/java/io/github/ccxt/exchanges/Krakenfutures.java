@@ -575,13 +575,13 @@ public class Krakenfutures extends KrakenfuturesApi
                 String id = this.safeString(market, "symbol");
                 String marketType = this.safeString(market, "type");
                 String type = null;
-                Boolean index = (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(marketType, " index"), 0));
+                Boolean index = (Helpers.isGreaterThanOrEqual(((String)marketType).indexOf(" index"), 0));
                 Object linear = null;
                 Object inverse = null;
                 Object expiry = null;
                 if (!Helpers.isTrue(index))
                 {
-                    linear = (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(marketType, "_vanilla"), 0));
+                    linear = (Helpers.isGreaterThanOrEqual(((String)marketType).indexOf("_vanilla"), 0));
                     inverse = !Helpers.isTrue(linear);
                     String settleTime = this.safeString(market, "lastTradingTime");
                     type = (((java.util.Objects.equals(settleTime, null)))) ? "swap" : "future";
@@ -1464,10 +1464,10 @@ public class Krakenfutures extends KrakenfuturesApi
         String fillType = this.safeString(trade, "fillType");
         if (!java.util.Objects.equals(fillType, null))
         {
-            if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(fillType, "taker"), 0))
+            if (Helpers.isGreaterThanOrEqual(((String)fillType).indexOf("taker"), 0))
             {
                 takerOrMaker = "taker";
-            } else if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(fillType, "maker"), 0))
+            } else if (Helpers.isGreaterThanOrEqual(((String)fillType).indexOf("maker"), 0))
             {
                 takerOrMaker = "maker";
             }

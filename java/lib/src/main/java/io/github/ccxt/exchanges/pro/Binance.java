@@ -246,7 +246,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
 
     public Object isSpotUrl(Client client)
     {
-        return (Helpers.isGreaterThan(Helpers.getIndexOf(client.url, "/stream"), Helpers.opNeg(1))) || (Helpers.isGreaterThan(Helpers.getIndexOf(client.url, "demo-stream"), Helpers.opNeg(1)));
+        return (Helpers.isGreaterThan(((String)client.url).indexOf("/stream"), Helpers.opNeg(1))) || (Helpers.isGreaterThan(((String)client.url).indexOf("demo-stream"), Helpers.opNeg(1)));
     }
 
     public Object stream(Object type, Object subscriptionHash, Object... optionalArgs)
@@ -363,7 +363,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         }
         Object safeQuote = (((java.util.Objects.equals(quote, null)))) ? "USDC" : quote;
         String parsed = this.safeSymbol(stockSymbol, null, "/", "spot");
-        if ((!java.util.Objects.equals(parsed, null)) && (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(parsed, "/"), 0)))
+        if ((!java.util.Objects.equals(parsed, null)) && (Helpers.isGreaterThanOrEqual(((String)parsed).indexOf("/"), 0)))
         {
             return parsed;
         }
@@ -3404,7 +3404,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         extendedParams = this.keysort(extendedParams);
         Object query = this.rawencode(extendedParams);
         Object signature = null;
-        if (Helpers.isGreaterThan(Helpers.getIndexOf(this.secret, "PRIVATE KEY"), Helpers.opNeg(1)))
+        if (Helpers.isGreaterThan(((String)this.secret).indexOf("PRIVATE KEY"), Helpers.opNeg(1)))
         {
             if (this.secret.length() > 120)
             {
@@ -5577,7 +5577,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         {
             String baseAssetCode = this.safeString(order, "b");
             Object stockBaseSymbol = baseAssetCode;
-            if ((!java.util.Objects.equals(stockBaseSymbol, null)) && (Helpers.isEqual(Helpers.getIndexOf(stockBaseSymbol, "EQ_"), 0)))
+            if ((!java.util.Objects.equals(stockBaseSymbol, null)) && (Helpers.isEqual(((String)stockBaseSymbol).indexOf("EQ_"), 0)))
             {
                 stockBaseSymbol = Helpers.slice(stockBaseSymbol, 3, null);
             }

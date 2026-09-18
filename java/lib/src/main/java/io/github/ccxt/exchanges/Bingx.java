@@ -4225,12 +4225,12 @@ public class Bingx extends BingxApi
             String stopLoss = this.safeString(result, "stopLoss");
             // for py fix, the SL is already parsed as object (instead of stringified, as it's provided)
             // so we need trick to check if it's non-parsed string yet
-            if ((java.util.Objects.equals(stopLossDict, null)) && (!java.util.Objects.equals(stopLoss, null)) && (Helpers.isEqual(Helpers.getIndexOf(stopLoss, "{"), 0)))
+            if ((java.util.Objects.equals(stopLossDict, null)) && (!java.util.Objects.equals(stopLoss, null)) && (Helpers.isEqual(((String)stopLoss).indexOf("{"), 0)))
             {
                 ((Map<String, Object>)result).put("stopLoss", this.parseJson(stopLoss));
             }
             String takeProfit = this.safeString(result, "takeProfit");
-            if ((!java.util.Objects.equals(takeProfit, null)) && (Helpers.isEqual(Helpers.getIndexOf(takeProfit, "{"), 0)))
+            if ((!java.util.Objects.equals(takeProfit, null)) && (Helpers.isEqual(((String)takeProfit).indexOf("{"), 0)))
             {
                 ((Map<String, Object>)result).put("takeProfit", this.parseJson(takeProfit));
             }
@@ -4744,12 +4744,12 @@ public class Bingx extends BingxApi
         Object triggerPrice = stopPrice;
         if (!java.util.Objects.equals(stopPrice, null))
         {
-            if ((Helpers.isGreaterThan(Helpers.getIndexOf(rawType, "stop"), Helpers.opNeg(1))) && (java.util.Objects.equals(stopLossPrice, null)))
+            if ((Helpers.isGreaterThan(((String)rawType).indexOf("stop"), Helpers.opNeg(1))) && (java.util.Objects.equals(stopLossPrice, null)))
             {
                 stopLossPrice = stopPrice;
                 triggerPrice = null;
             }
-            if ((Helpers.isGreaterThan(Helpers.getIndexOf(rawType, "take"), Helpers.opNeg(1))) && (java.util.Objects.equals(takeProfitPrice, null)))
+            if ((Helpers.isGreaterThan(((String)rawType).indexOf("take"), Helpers.opNeg(1))) && (java.util.Objects.equals(takeProfitPrice, null)))
             {
                 takeProfitPrice = stopPrice;
                 triggerPrice = null;
@@ -6301,7 +6301,7 @@ public class Bingx extends BingxApi
         String network = this.safeString(transaction, "network");
         String currencyId = this.safeString(transaction, "coin");
         Object code = this.safeCurrencyCode(currencyId, currency);
-        if ((!java.util.Objects.equals(code, null)) && (!java.util.Objects.equals(network, null)) && (!java.util.Objects.equals(code, network)) && Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(code, network), 0))
+        if ((!java.util.Objects.equals(code, null)) && (!java.util.Objects.equals(network, null)) && (!java.util.Objects.equals(code, network)) && Helpers.isGreaterThanOrEqual(((String)code).indexOf(((String)network)), 0))
         {
             if (!java.util.Objects.equals(network, null))
             {

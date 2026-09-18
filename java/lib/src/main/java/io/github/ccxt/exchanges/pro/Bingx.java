@@ -324,14 +324,14 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
         Object data = this.safeValue(message, "data", new HashMap<String, Object>() {{}});
         String marketId = this.safeString(data, "s");
         // const marketId = messageHash.split('@')[0];
-        Boolean isSwap = Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(client.url, "swap"), 0);
+        Boolean isSwap = Helpers.isGreaterThanOrEqual(((String)client.url).indexOf("swap"), 0);
         String marketType = ((Helpers.isTrue(isSwap))) ? "swap" : "spot";
         Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, null, null, marketType);
         Object symbol = ((Map<String, Object>)market).get("symbol");
         // the Coin-M stream is a distinct endpoint, so it identifies an inverse
         // ticker even when the market id could not be resolved
         String inverseUrl = this.safeString(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "inverse");
-        Boolean isInverse = (!java.util.Objects.equals(inverseUrl, null)) && (Helpers.isEqual(Helpers.getIndexOf(client.url, inverseUrl), 0));
+        Boolean isInverse = (!java.util.Objects.equals(inverseUrl, null)) && (Helpers.isEqual(((String)client.url).indexOf(((String)inverseUrl)), 0));
         Object ticker = this.parseWsTicker(data, market, isInverse);
         Helpers.addElementToObject(this.tickers, symbol, ticker);
         client.resolve(ticker, this.getMessageHash("ticker", symbol));
@@ -633,7 +633,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
         Object data = this.safeValue(message, "data", new ArrayList<Object>(Arrays.asList()));
         String rawHash = this.safeString(message, "dataType", "");
         Object marketId = Helpers.GetValue(Helpers.split(rawHash, "@"), 0);
-        Boolean isSwap = Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(client.url, "swap"), 0);
+        Boolean isSwap = Helpers.isGreaterThanOrEqual(((String)client.url).indexOf("swap"), 0);
         String marketType = ((Helpers.isTrue(isSwap))) ? "swap" : "spot";
         Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, null, null, marketType);
         Object symbol = ((Map<String, Object>)market).get("symbol");
@@ -854,7 +854,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
         String firstPart = (String) Helpers.GetValue(parts, 0);
         Boolean isAllEndpoint = (java.util.Objects.equals(firstPart, "all"));
         String marketId = this.safeString(data, "symbol", firstPart);
-        Boolean isSwap = Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(client.url, "swap"), 0);
+        Boolean isSwap = Helpers.isGreaterThanOrEqual(((String)client.url).indexOf("swap"), 0);
         String marketType = ((Helpers.isTrue(isSwap))) ? "swap" : "spot";
         Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, null, null, marketType);
         Object symbol = ((Map<String, Object>)market).get("symbol");
@@ -985,7 +985,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
         //         }
         //     }
         //
-        Boolean isSwap = Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(client.url, "swap"), 0);
+        Boolean isSwap = Helpers.isGreaterThanOrEqual(((String)client.url).indexOf("swap"), 0);
         String dataType = this.safeString(message, "dataType", "");
         Object parts = Helpers.split(dataType, "@");
         String firstPart = (String) Helpers.GetValue(parts, 0);
@@ -2117,7 +2117,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
         Object data = this.safeList(a, "B", new ArrayList<Object>(Arrays.asList()));
         Long timestamp = (Long) this.safeInteger2(message, "T", "E");
         String spotUrl = this.safeString(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "spot");
-        Boolean isSpot = (!java.util.Objects.equals(spotUrl, null)) && (Helpers.isEqual(Helpers.getIndexOf(client.url, spotUrl), 0));
+        Boolean isSpot = (!java.util.Objects.equals(spotUrl, null)) && (Helpers.isEqual(((String)client.url).indexOf(((String)spotUrl)), 0));
         String type = ((Helpers.isTrue(isSpot))) ? "spot" : "swap";
         if (!(Helpers.inOp(this.balance, type)))
         {
@@ -2157,27 +2157,27 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
             return;
         }
         String dataType = this.safeString(message, "dataType", "");
-        if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(dataType, "@depth"), 0))
+        if (Helpers.isGreaterThanOrEqual(((String)dataType).indexOf("@depth"), 0))
         {
             this.handleOrderBook(client, message);
             return;
         }
-        if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(dataType, "@ticker"), 0))
+        if (Helpers.isGreaterThanOrEqual(((String)dataType).indexOf("@ticker"), 0))
         {
             this.handleTicker(client, message);
             return;
         }
-        if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(dataType, "@trade"), 0))
+        if (Helpers.isGreaterThanOrEqual(((String)dataType).indexOf("@trade"), 0))
         {
             this.handleTrades(client, message);
             return;
         }
-        if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(dataType, "@kline"), 0))
+        if (Helpers.isGreaterThanOrEqual(((String)dataType).indexOf("@kline"), 0))
         {
             this.handleOHLCV(client, message);
             return;
         }
-        if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(dataType, "executionReport"), 0))
+        if (Helpers.isGreaterThanOrEqual(((String)dataType).indexOf("executionReport"), 0))
         {
             Object data = this.safeValue(message, "data", new HashMap<String, Object>() {{}});
             String type = this.safeString(data, "x");

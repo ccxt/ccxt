@@ -727,7 +727,7 @@ public class Extended extends ExtendedApi
         Object tradingConfig = this.safeDict(market, "tradingConfig", new HashMap<String, Object>() {{}});
         String marketId = this.safeString(market, "name");
         String baseId = this.safeString(market, "assetName", "");
-        if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(baseId, "SPOT"), 0))
+        if (Helpers.isGreaterThanOrEqual(((String)baseId).indexOf("SPOT"), 0))
         {
             baseId = Helpers.replace(baseId, (String)"SPOT", (String)"");
         }
@@ -906,7 +906,7 @@ public class Extended extends ExtendedApi
         //     }
         //
         String currencyId = this.safeString(currency, "symbol");
-        if ((!java.util.Objects.equals(currencyId, null)) && (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(currencyId, "SPOT"), 0)))
+        if ((!java.util.Objects.equals(currencyId, null)) && (Helpers.isGreaterThanOrEqual(((String)currencyId).indexOf("SPOT"), 0)))
         {
             currencyId = Helpers.replace(currencyId, (String)"SPOT", (String)"");
         }
@@ -4314,14 +4314,14 @@ public class Extended extends ExtendedApi
     {
         if ((signature instanceof String))
         {
-            if (Helpers.isEqual(Helpers.getIndexOf(signature, "0x"), 0))
+            if (Helpers.isEqual(((String)signature).indexOf("0x"), 0))
             {
                 return signature;
             }
             return ("0x" + this.getExtendedDecimalToBase16(signature));
         }
         Object signatureString = this.numberToString(signature);
-        if (Helpers.isEqual(Helpers.getIndexOf(signatureString, "0x"), 0))
+        if (Helpers.isEqual(((String)signatureString).indexOf("0x"), 0))
         {
             return signatureString;
         }

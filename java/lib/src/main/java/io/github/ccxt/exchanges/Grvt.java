@@ -2339,7 +2339,7 @@ public class Grvt extends GrvtApi
             {
                 Object msg = this.exceptionMessage(error);
                 Boolean isFromFundingAccount = java.util.Objects.equals(fromAccount, "funding");
-                if (Helpers.isTrue(isFromFundingAccount) && (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(msg, "You are not authorized"), 0)))
+                if (Helpers.isTrue(isFromFundingAccount) && (Helpers.isGreaterThanOrEqual(((String)msg).indexOf("You are not authorized"), 0)))
                 {
                     throw new PermissionDenied(((this.id + " transfer() failed. Ensure you use funding api-keys when trying to transfer from Funding accounts: ") + msg)) ;
                 }

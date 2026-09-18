@@ -858,7 +858,7 @@ public class Cryptocom extends CryptocomApi
             } catch(Exception e)
             {
                 Object erString = this.exceptionMessage(e);
-                if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(erString, "SYS_ERROR"), 0))
+                if (Helpers.isGreaterThanOrEqual(((String)erString).indexOf("SYS_ERROR"), 0))
                 {
                     // sub-accounts can't access this endpoint
                     // {"code":"10001","msg":"SYS_ERROR"}

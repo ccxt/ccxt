@@ -1952,7 +1952,7 @@ public class Dydx extends DydxApi
                 throw new ArgumentsRequired((this.id + " cancelOrder() requires a clientOrderId parameter, cancelling using id is not currently supported.")) ;
             }
             Object idString = String.valueOf(id);
-            if (!java.util.Objects.equals(id, null) && Helpers.isGreaterThan(Helpers.getIndexOf(idString, "-"), Helpers.opNeg(1)))
+            if (!java.util.Objects.equals(id, null) && Helpers.isGreaterThan(((String)idString).indexOf("-"), Helpers.opNeg(1)))
             {
                 throw new NotSupported((this.id + " cancelOrder() cancelling using id is not currently supported, please use provide the clientOrderId parameter.")) ;
             }
@@ -2339,7 +2339,7 @@ public class Dydx extends DydxApi
             {
                 throw new ExchangeError((this.id + " estimateTxFee() missing feeAmount")) ;
             }
-            if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(feeAmount, "."), 0))
+            if (Helpers.isGreaterThanOrEqual(((String)feeAmount).indexOf("."), 0))
             {
                 feeAmount = this.numberToString(Math.ceil(Double.parseDouble(Helpers.toString(this.parseToNumeric(feeAmount)))));
             }

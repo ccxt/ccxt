@@ -2266,10 +2266,10 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
             Object messageHash = Helpers.GetValue(messageHashes, i);
             Object subMessageHash = Helpers.replace(((String)messageHash), "unsubscribe:", "");
             this.cleanUnsubscription(client, subMessageHash, messageHash);
-            if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(messageHash, "ticker"), 0))
+            if (Helpers.isGreaterThanOrEqual(((String)messageHash).indexOf("ticker"), 0))
             {
                 Object symbol = Helpers.replace(((String)messageHash), "unsubscribe:ticker:", "");
-                if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(symbol, "unsubscribe"), 0))
+                if (Helpers.isGreaterThanOrEqual(((String)symbol).indexOf("unsubscribe"), 0))
                 {
                     // unWatchTickers
                     Object symbols = Helpers.objectKeys(this.tickers);
@@ -2281,14 +2281,14 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
                 {
                     ((Map<String,Object>)this.tickers).remove((String)symbol);
                 }
-            } else if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(messageHash, "bidask"), 0))
+            } else if (Helpers.isGreaterThanOrEqual(((String)messageHash).indexOf("bidask"), 0))
             {
                 Object symbol = Helpers.replace(((String)messageHash), "unsubscribe:bidask:", "");
                 if (((Map<?, ?>)this.bidsasks).containsKey(symbol))
                 {
                     ((Map<String,Object>)this.bidsasks).remove((String)symbol);
                 }
-            } else if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(messageHash, "candles"), 0))
+            } else if (Helpers.isGreaterThanOrEqual(((String)messageHash).indexOf("candles"), 0))
             {
                 Object splitHashes = Helpers.split(messageHash, ":");
                 String symbol = this.safeString(splitHashes, 2);
@@ -2301,21 +2301,21 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
                 {
                     ((Map<String,Object>)this.ohlcvs).remove((String)symbol);
                 }
-            } else if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(messageHash, "orderbook"), 0))
+            } else if (Helpers.isGreaterThanOrEqual(((String)messageHash).indexOf("orderbook"), 0))
             {
                 Object symbol = Helpers.replace(((String)messageHash), "unsubscribe:orderbook:", "");
                 if (((Map<?, ?>)this.orderbooks).containsKey(symbol))
                 {
                     ((Map<String,Object>)this.orderbooks).remove((String)symbol);
                 }
-            } else if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(messageHash, "trades"), 0))
+            } else if (Helpers.isGreaterThanOrEqual(((String)messageHash).indexOf("trades"), 0))
             {
                 Object symbol = Helpers.replace(((String)messageHash), "unsubscribe:trades:", "");
                 if (((Map<?, ?>)this.trades).containsKey(symbol))
                 {
                     ((Map<String,Object>)this.trades).remove((String)symbol);
                 }
-            } else if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(messageHash, "fundingRate"), 0))
+            } else if (Helpers.isGreaterThanOrEqual(((String)messageHash).indexOf("fundingRate"), 0))
             {
                 Object symbol = Helpers.replace(((String)messageHash), "unsubscribe:fundingRate:", "");
                 if (((Map<?, ?>)this.fundingRates).containsKey(symbol))
@@ -2429,7 +2429,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
         if (java.util.Objects.equals(msg, "PONG"))
         {
             this.handlePong(client, message);
-        } else if (Helpers.isGreaterThan(Helpers.getIndexOf(msg, "@"), Helpers.opNeg(1)))
+        } else if (Helpers.isGreaterThan(((String)msg).indexOf("@"), Helpers.opNeg(1)))
         {
             Object parts = Helpers.split(msg, "@");
             String channel = this.safeString(parts, 1);

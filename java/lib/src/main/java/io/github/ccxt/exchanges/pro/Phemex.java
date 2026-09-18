@@ -1710,7 +1710,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
             }
         }
         String methodName = this.safeString(message, "method", "");
-        if ((Helpers.inOp(message, "market24h")) || (Helpers.inOp(message, "spot_market24h")) || (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(methodName, "perp_market24h_pack_p"), 0)))
+        if ((Helpers.inOp(message, "market24h")) || (Helpers.inOp(message, "spot_market24h")) || (Helpers.isGreaterThanOrEqual(((String)methodName).indexOf("perp_market24h_pack_p"), 0)))
         {
             this.handleTicker(client, message);
             return;

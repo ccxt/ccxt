@@ -3493,20 +3493,20 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
         {
             Object arg = Helpers.GetValue(argsList, i);
             String channel = this.safeString2(arg, "channel", "topic", "");
-            if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(channel, "books"), 0))
+            if (Helpers.isGreaterThanOrEqual(((String)channel).indexOf("books"), 0))
             {
                 // for now only unWatchOrderBook is supported
                 this.handleOrderBookUnSubscription(client, message);
-            } else if ((Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(channel, "trade"), 0)) || (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(channel, "publicTrade"), 0)))
+            } else if ((Helpers.isGreaterThanOrEqual(((String)channel).indexOf("trade"), 0)) || (Helpers.isGreaterThanOrEqual(((String)channel).indexOf("publicTrade"), 0)))
             {
                 this.handleTradesUnSubscription(client, message);
-            } else if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(channel, "ticker"), 0))
+            } else if (Helpers.isGreaterThanOrEqual(((String)channel).indexOf("ticker"), 0))
             {
                 this.handleTickerUnSubscription(client, message);
-            } else if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(channel, "candle"), 0))
+            } else if (Helpers.isGreaterThanOrEqual(((String)channel).indexOf("candle"), 0))
             {
                 this.handleOHLCVUnSubscription(client, message);
-            } else if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(channel, "kline"), 0))
+            } else if (Helpers.isGreaterThanOrEqual(((String)channel).indexOf("kline"), 0))
             {
                 this.handleOHLCVUnSubscription(client, message);
             }

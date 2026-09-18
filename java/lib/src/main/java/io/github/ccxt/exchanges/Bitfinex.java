@@ -940,7 +940,7 @@ public class Bitfinex extends BitfinexApi
                 Object market = this.safeValue(pairObj, 1, new HashMap<String, Object>() {{}});
                 Boolean spot = true;
                 String type = null;
-                if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(id, "F0"), 0))
+                if (Helpers.isGreaterThanOrEqual(((String)id).indexOf("F0"), 0))
                 {
                     spot = false;
                     type = "swap";
@@ -951,7 +951,7 @@ public class Bitfinex extends BitfinexApi
                 Boolean swap = java.util.Objects.equals(type, "swap");
                 Object baseId = null;
                 Object quoteId = null;
-                if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(id, ":"), 0))
+                if (Helpers.isGreaterThanOrEqual(((String)id).indexOf(":"), 0))
                 {
                     Object parts = Helpers.split(id, ":");
                     baseId = Helpers.GetValue(parts, 0);
@@ -3899,22 +3899,22 @@ public class Bitfinex extends BitfinexApi
         if (java.util.Objects.equals(type, null))
         {
             return null;
-        } else if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(type, "fee"), 0) || Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(type, "charged"), 0))
+        } else if (Helpers.isGreaterThanOrEqual(((String)type).indexOf("fee"), 0) || Helpers.isGreaterThanOrEqual(((String)type).indexOf("charged"), 0))
         {
             return "fee";
-        } else if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(type, "rebate"), 0))
+        } else if (Helpers.isGreaterThanOrEqual(((String)type).indexOf("rebate"), 0))
         {
             return "rebate";
-        } else if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(type, "deposit"), 0) || Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(type, "withdrawal"), 0))
+        } else if (Helpers.isGreaterThanOrEqual(((String)type).indexOf("deposit"), 0) || Helpers.isGreaterThanOrEqual(((String)type).indexOf("withdrawal"), 0))
         {
             return "transaction";
-        } else if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(type, "transfer"), 0))
+        } else if (Helpers.isGreaterThanOrEqual(((String)type).indexOf("transfer"), 0))
         {
             return "transfer";
-        } else if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(type, "payment"), 0))
+        } else if (Helpers.isGreaterThanOrEqual(((String)type).indexOf("payment"), 0))
         {
             return "payout";
-        } else if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(type, "exchange"), 0) || Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(type, "position"), 0))
+        } else if (Helpers.isGreaterThanOrEqual(((String)type).indexOf("exchange"), 0) || Helpers.isGreaterThanOrEqual(((String)type).indexOf("position"), 0))
         {
             return "trade";
         } else

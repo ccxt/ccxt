@@ -83,7 +83,7 @@ public class TestCurrency extends BaseTest {
         {
             Object message = exchange.exceptionMessage(e);
             // check structure if key is numeric, not string
-            if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(message, "\"id\" key"), 0))
+            if (Helpers.isGreaterThanOrEqual(((String)message).indexOf("\"id\" key"), 0))
             {
                 // @ts-ignore
                 ((Map<String, Object>)format).put("id", 123);

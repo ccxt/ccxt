@@ -1697,7 +1697,7 @@ public class Bitstamp extends BitstampApi
         for (var i = 0; i < ((List<?>)ids).size(); i++)
         {
             Object id = Helpers.GetValue(ids, i);
-            if (Helpers.isLessThan(Helpers.getIndexOf(id, "_"), 0))
+            if (Helpers.isLessThan(((String)id).indexOf("_"), 0))
             {
                 Long value = this.safeInteger(transaction, id);
                 if ((!java.util.Objects.equals(value, null)) && (!Helpers.isEqual(value, 0)))
@@ -1791,7 +1791,7 @@ public class Bitstamp extends BitstampApi
             for (var i = 0; i < ((List<?>)keys).size(); i++)
             {
                 Object currentKey = Helpers.GetValue(keys, i);
-                if (!java.util.Objects.equals(currentKey, "order_id") && Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(currentKey, "_"), 0))
+                if (!java.util.Objects.equals(currentKey, "order_id") && Helpers.isGreaterThanOrEqual(((String)currentKey).indexOf("_"), 0))
                 {
                     rawMarketId = currentKey;
                     market = this.safeMarket(rawMarketId, market, "_");
@@ -1831,7 +1831,7 @@ public class Bitstamp extends BitstampApi
         Object timestamp = null;
         if (!java.util.Objects.equals(datetimeString, null))
         {
-            if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(datetimeString, " "), 0))
+            if (Helpers.isGreaterThanOrEqual(((String)datetimeString).indexOf(" "), 0))
             {
                 // iso8601
                 timestamp = this.parse8601(datetimeString);
@@ -3275,7 +3275,7 @@ public class Bitstamp extends BitstampApi
             Object keys = Helpers.objectKeys(item);
             for (var i = 0; i < ((List<?>)keys).size(); i++)
             {
-                if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(Helpers.GetValue(keys, i), "_"), 0))
+                if (Helpers.isGreaterThanOrEqual(((String)Helpers.GetValue(keys, i)).indexOf("_"), 0))
                 {
                     Object marketId = Helpers.replace(((String)Helpers.GetValue(keys, i)), "_", "");
                     market = this.safeMarket(marketId, market);

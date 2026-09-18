@@ -3396,7 +3396,7 @@ public class Nado extends NadoApi
             } else
             {
                 status = this.safeString(order, "status", "rejected");
-                if ((java.util.Objects.equals(status, "success")) || (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(status, "waiting"), 0)))
+                if ((java.util.Objects.equals(status, "success")) || (Helpers.isGreaterThanOrEqual(((String)status).indexOf("waiting"), 0)))
                 {
                     status = "open";
                 }

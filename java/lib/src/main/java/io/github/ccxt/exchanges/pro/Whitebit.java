@@ -411,7 +411,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
         for (var i = 0; i < ((List<?>)messageHashes).size(); i++)
         {
             Object currentMessageHash = Helpers.GetValue(messageHashes, i);
-            if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(currentMessageHash, "tickers"), 0) && Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(currentMessageHash, symbol), 0))
+            if (Helpers.isGreaterThanOrEqual(((String)currentMessageHash).indexOf("tickers"), 0) && Helpers.isGreaterThanOrEqual(((String)currentMessageHash).indexOf(((String)symbol)), 0))
             {
                 // Example: user calls watchTickers with ['LTC/USDT', 'ETH/USDT']
                 // the associated messagehash will be: 'tickers:LTC/USDT:ETH/USDT'
@@ -1023,7 +1023,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
         {
             return;
         }
-        Boolean isMargin = (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(method, "Margin"), 0));
+        Boolean isMargin = (Helpers.isGreaterThanOrEqual(((String)method).indexOf("Margin"), 0));
         Object data = this.safeList(message, "params", new ArrayList<Object>(Arrays.asList()));
         for (var i = 0; i < ((List<?>)data).size(); i++)
         {
@@ -1061,7 +1061,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
         }
         this.balance = this.safeBalance(this.balance);
         String messageHash = "wallet:";
-        if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(method, "Spot"), 0))
+        if (Helpers.isGreaterThanOrEqual(((String)method).indexOf("Spot"), 0))
         {
             messageHash = (messageHash + "spot");
         } else

@@ -837,11 +837,11 @@ public class Deribit extends DeribitApi
         Object symbolBase = Helpers.split(symbol, "/");
         Object base = null;
         Object expiry = null;
-        if (Helpers.isGreaterThan(Helpers.getIndexOf(symbol, "/"), Helpers.opNeg(1)))
+        if (Helpers.isGreaterThan(((String)symbol).indexOf("/"), Helpers.opNeg(1)))
         {
             base = this.safeString(symbolBase, 0);
             expiry = this.safeString(optionParts, 1);
-            if (Helpers.isGreaterThan(Helpers.getIndexOf(symbol, "USDC"), Helpers.opNeg(1)))
+            if (Helpers.isGreaterThan(((String)symbol).indexOf("USDC"), Helpers.opNeg(1)))
             {
                 base = Helpers.add(base, "_USDC");
             }
@@ -850,7 +850,7 @@ public class Deribit extends DeribitApi
             base = this.safeString(optionParts, 0);
             expiry = this.convertMarketIdExpireDate(this.safeString(optionParts, 1));
         }
-        if (Helpers.isGreaterThan(Helpers.getIndexOf(symbol, "USDC"), Helpers.opNeg(1)))
+        if (Helpers.isGreaterThan(((String)symbol).indexOf("USDC"), Helpers.opNeg(1)))
         {
             quote = "USDC";
             settle = "USDC";
@@ -863,7 +863,7 @@ public class Deribit extends DeribitApi
         {
             throw new ExchangeError((this.id + " createExpiredOptionMarket() missing base")) ;
         }
-        if (Helpers.isGreaterThan(Helpers.getIndexOf(base, "_"), Helpers.opNeg(1)))
+        if (Helpers.isGreaterThan(((String)base).indexOf("_"), Helpers.opNeg(1)))
         {
             Object splitSymbol = Helpers.split(base, "_");
             splitBase = this.safeString(splitSymbol, 0);
@@ -1339,17 +1339,17 @@ public class Deribit extends DeribitApi
                     {
                         throw new ExchangeError((this.id + " method() missing kind")) ;
                     }
-                    Boolean future = !Helpers.isTrue(swap) && (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(kind, "future"), 0));
+                    Boolean future = !Helpers.isTrue(swap) && (Helpers.isGreaterThanOrEqual(((String)kind).indexOf("future"), 0));
                     if (java.util.Objects.equals(kind, null))
                     {
                         throw new ExchangeError((this.id + " method() missing kind")) ;
                     }
-                    Boolean option = (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(kind, "option"), 0));
+                    Boolean option = (Helpers.isGreaterThanOrEqual(((String)kind).indexOf("option"), 0));
                     if (java.util.Objects.equals(kind, null))
                     {
                         throw new ExchangeError((this.id + " method() missing kind")) ;
                     }
-                    Boolean isComboMarket = Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(kind, "combo"), 0);
+                    Boolean isComboMarket = Helpers.isGreaterThanOrEqual(((String)kind).indexOf("combo"), 0);
                     Long expiry = this.safeInteger(market, "expiration_timestamp");
                     Object strike = null;
                     String optionType = null;

@@ -6340,7 +6340,7 @@ public class Coinbase extends CoinbaseApi
         if (!java.util.Objects.equals(url, null))
         {
             uri = Helpers.add(Helpers.add(method, " "), Helpers.replace(((String)url), "https://", ""));
-            Object quesPos = Helpers.getIndexOf(uri, "?");
+            Object quesPos = ((String)uri).indexOf("?");
             // Due to we use mb_strpos, quesPos could be false in php. In that case, the quesPos >= 0 is true
             // Also it's not possible that the question mark is first character, only check > 0 here.
             if (Helpers.isGreaterThan(quesPos, 0))
@@ -6453,7 +6453,7 @@ public class Coinbase extends CoinbaseApi
                 // https://docs.cdp.coinbase.com/coinbase-app/authentication-authorization/api-key-authentication
                 // v2: 'GET' require payload in the signature
                 // https://docs.cdp.coinbase.com/coinbase-app/authentication-authorization/api-key-authentication
-                Boolean isCloudAPiKey = (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(this.apiKey, "organizations/"), 0)) || Helpers.isTrue((this.secret.startsWith("-----BEGIN")));
+                Boolean isCloudAPiKey = (Helpers.isGreaterThanOrEqual(((String)this.apiKey).indexOf("organizations/"), 0)) || Helpers.isTrue((this.secret.startsWith("-----BEGIN")));
                 // using the size might be fragile, so we add an option to force v2 cloud api key if needed
                 Boolean isV2CloudAPiKey = Helpers.isEqual(this.secret.length(), 88) || Helpers.isTrue(this.safeBool(this.options, "v2CloudAPiKey", false)) || Helpers.isTrue(this.secret.endsWith("="));
                 if (Helpers.isTrue(isCloudAPiKey) || Helpers.isTrue(isV2CloudAPiKey))

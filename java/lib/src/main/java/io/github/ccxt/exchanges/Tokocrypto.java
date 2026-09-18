@@ -2890,7 +2890,7 @@ public class Tokocrypto extends TokocryptoApi
             }
         }
         String txid = this.safeString(transaction, "txId");
-        if ((!java.util.Objects.equals(txid, null)) && (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(txid, "Internal transfer "), 0)))
+        if ((!java.util.Objects.equals(txid, null)) && (Helpers.isGreaterThanOrEqual(((String)txid).indexOf("Internal transfer "), 0)))
         {
             txid = Helpers.slice(txid, 18, null);
         }
@@ -3132,15 +3132,15 @@ public class Tokocrypto extends TokocryptoApi
         // will switch "code" checks eventually, when we know all of them
         if (Helpers.isGreaterThanOrEqual(code, 400))
         {
-            if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(body, "Price * QTY is zero or less"), 0))
+            if (Helpers.isGreaterThanOrEqual(((String)body).indexOf("Price * QTY is zero or less"), 0))
             {
                 throw new InvalidOrder(((this.id + " order cost = amount * price is zero or less ") + body)) ;
             }
-            if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(body, "LOT_SIZE"), 0))
+            if (Helpers.isGreaterThanOrEqual(((String)body).indexOf("LOT_SIZE"), 0))
             {
                 throw new InvalidOrder(((this.id + " order amount should be evenly divisible by lot size ") + body)) ;
             }
-            if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(body, "PRICE_FILTER"), 0))
+            if (Helpers.isGreaterThanOrEqual(((String)body).indexOf("PRICE_FILTER"), 0))
             {
                 throw new InvalidOrder(((this.id + " order price is invalid, i.e. exceeds allowed price precision, exceeds min price or max price limits or is invalid value in general, use this.priceToPrecision (symbol, amount) ") + body)) ;
             }

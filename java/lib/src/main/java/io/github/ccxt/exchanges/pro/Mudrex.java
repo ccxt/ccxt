@@ -229,10 +229,10 @@ public class Mudrex extends io.github.ccxt.exchanges.Mudrex
         String stream = this.safeString(message, "stream");
         if (!java.util.Objects.equals(stream, null))
         {
-            if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(stream, "kline"), 0) || Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(stream, "markKline"), 0))
+            if (Helpers.isGreaterThanOrEqual(((String)stream).indexOf("kline"), 0) || Helpers.isGreaterThanOrEqual(((String)stream).indexOf("markKline"), 0))
             {
                 this.handleOHLCV(client, message);
-            } else if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(stream, "ticker"), 0))
+            } else if (Helpers.isGreaterThanOrEqual(((String)stream).indexOf("ticker"), 0))
             {
                 this.handleTicker(client, message);
             }

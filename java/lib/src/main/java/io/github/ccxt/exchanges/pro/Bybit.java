@@ -998,7 +998,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
             return;
         }
         String marketId = this.safeString(topicParts, Helpers.subtract(topicLength, 1));
-        Boolean isSpot = Helpers.isGreaterThan(Helpers.getIndexOf(client.url, "spot"), Helpers.opNeg(1));
+        Boolean isSpot = Helpers.isGreaterThan(((String)client.url).indexOf("spot"), Helpers.opNeg(1));
         String marketType = ((Helpers.isTrue(isSpot))) ? "spot" : "contract";
         Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, null, null, marketType);
         Object symbol = ((Map<String, Object>)market).get("symbol");
@@ -1244,7 +1244,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
         //
         String topic = this.safeString(message, "topic", "");
         Object limit = Helpers.GetValue(Helpers.split(topic, "."), 1);
-        Boolean isSpot = Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(client.url, "spot"), 0);
+        Boolean isSpot = Helpers.isGreaterThanOrEqual(((String)client.url).indexOf("spot"), 0);
         String type = this.safeString(message, "type");
         Boolean isSnapshot = (java.util.Objects.equals(type, "snapshot"));
         Object data = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
@@ -1461,7 +1461,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
         String topic = this.safeString(message, "topic", "");
         Object trades = data;
         Object parts = Helpers.split(topic, ".");
-        Boolean isSpot = Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(client.url, "spot"), 0);
+        Boolean isSpot = Helpers.isGreaterThanOrEqual(((String)client.url).indexOf("spot"), 0);
         String marketType = ((Helpers.isTrue((isSpot)))) ? "spot" : "contract";
         String marketId = this.safeString(parts, 1);
         Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, null, null, marketType);
@@ -3148,7 +3148,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
         // 'orderbook.50.BTCUSDT' could be wrongly captured by the 'order' key in a
         // first-match loop (in Go map iteration order is randomized). Check the
         // orderbook prefix explicitly, then fall back to a simple first-match.
-        if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(topic, "orderbook"), 0))
+        if (Helpers.isGreaterThanOrEqual(((String)topic).indexOf("orderbook"), 0))
         {
             this.handleOrderBook(client, message);
             return;
@@ -3157,7 +3157,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
             Object key = Helpers.GetValue(keys, i);
-            if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(topic, key), 0))
+            if (Helpers.isGreaterThanOrEqual(((String)topic).indexOf(((String)key)), 0))
             {
                 Object method = Helpers.GetValue(methods, key);
                 Helpers.callDynamically(this, method, new Object[] {client, message});

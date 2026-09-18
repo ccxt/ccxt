@@ -1055,7 +1055,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
     {
         Object url = client.url;
         Map<String, Object> request = new HashMap<String, Object>() {{}};
-        if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(url, "v2"), 0))
+        if (Helpers.isGreaterThanOrEqual(((String)url).indexOf("v2"), 0))
         {
             ((Map<String, Object>)request).put("method", "ping");
         } else

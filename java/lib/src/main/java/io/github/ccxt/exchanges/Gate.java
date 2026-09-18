@@ -2074,7 +2074,7 @@ public class Gate extends GateApi
         Object marketIdBase = Helpers.split(symbol, "_");
         String base = null;
         String expiry = this.safeString(optionParts, 1);
-        if (Helpers.isGreaterThan(Helpers.getIndexOf(symbol, "/"), Helpers.opNeg(1)))
+        if (Helpers.isGreaterThan(((String)symbol).indexOf("/"), Helpers.opNeg(1)))
         {
             base = this.safeString(symbolBase, 0);
         } else
@@ -2141,7 +2141,7 @@ public class Gate extends GateApi
         Object market = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
         Object delimiter = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
         Object marketType = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : null;
-        Boolean isOption = (!java.util.Objects.equals(marketId, null)) && ((Helpers.isGreaterThan(Helpers.getIndexOf(marketId, "-C"), Helpers.opNeg(1))) || (Helpers.isGreaterThan(Helpers.getIndexOf(marketId, "-P"), Helpers.opNeg(1))));
+        Boolean isOption = (!java.util.Objects.equals(marketId, null)) && ((Helpers.isGreaterThan(((String)marketId).indexOf("-C"), Helpers.opNeg(1))) || (Helpers.isGreaterThan(((String)marketId).indexOf("-P"), Helpers.opNeg(1))));
         if (Helpers.isTrue(isOption) && ((java.util.Objects.equals(this.markets_by_id, null)) || !(((Map<?, ?>)this.markets_by_id).containsKey(marketId))))
         {
             // handle expired option contracts
@@ -6748,7 +6748,7 @@ final Object finalPointFee = pointFee;
             timestampStr = this.safeString2(order, "create_time", "ctime");
             if (!java.util.Objects.equals(timestampStr, null))
             {
-                if (Helpers.isEqual(timestampStr.length(), 10) || Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(timestampStr, "."), 0))
+                if (Helpers.isEqual(timestampStr.length(), 10) || Helpers.isGreaterThanOrEqual(((String)timestampStr).indexOf("."), 0))
                 {
                     // ts in seconds, multiply to ms
                     timestampStr = Precise.stringMul(timestampStr, "1000");
@@ -6765,7 +6765,7 @@ final Object finalPointFee = pointFee;
             lastTradeTimestampStr = this.safeString2(order, "update_time", "finish_time");
             if (!java.util.Objects.equals(lastTradeTimestampStr, null))
             {
-                if (Helpers.isEqual(lastTradeTimestampStr.length(), 10) || Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(lastTradeTimestampStr, "."), 0))
+                if (Helpers.isEqual(lastTradeTimestampStr.length(), 10) || Helpers.isGreaterThanOrEqual(((String)lastTradeTimestampStr).indexOf("."), 0))
                 {
                     // ts in seconds, multiply to ms
                     lastTradeTimestampStr = Precise.stringMul(lastTradeTimestampStr, "1000");
@@ -9103,7 +9103,7 @@ final Object finalI = i;
             {
                 Object pathParts = Helpers.split(path, "/");
                 Object secondPart = this.safeString(pathParts, 1, "");
-                requiresURLEncoding = (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(secondPart, "dual"), 0)) || (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(secondPart, "positions"), 0));
+                requiresURLEncoding = (Helpers.isGreaterThanOrEqual(((String)secondPart).indexOf("dual"), 0)) || (Helpers.isGreaterThanOrEqual(((String)secondPart).indexOf("positions"), 0));
             }
             if ((java.util.Objects.equals(method, "GET")) || (java.util.Objects.equals(method, "DELETE")) || Helpers.isTrue(requiresURLEncoding) || (java.util.Objects.equals(method, "PATCH")))
             {
@@ -9113,7 +9113,7 @@ final Object finalI = i;
                     rawQueryString = this.rawencode(query);
                     queryString = this.urlencode(query);
                     // https://github.com/ccxt/ccxt/issues/25570
-                    if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(queryString, "currencies="), 0) && Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(queryString, "%2C"), 0))
+                    if (Helpers.isGreaterThanOrEqual(((String)queryString).indexOf("currencies="), 0) && Helpers.isGreaterThanOrEqual(((String)queryString).indexOf("%2C"), 0))
                     {
                         queryString = (queryString == null ? null : ((String)queryString).replace("%2C", ","));
                     }

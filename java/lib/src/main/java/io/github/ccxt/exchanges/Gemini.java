@@ -1133,7 +1133,7 @@ public class Gemini extends GeminiApi
                 minSize = this.safeNumber(response, 3); // quantityMinimum
             }
             Object marketIdUpper = ((String)((String)marketId)).toUpperCase();
-            Boolean isPerp = (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(marketIdUpper, "PERP"), 0));
+            Boolean isPerp = (Helpers.isGreaterThanOrEqual(((String)marketIdUpper).indexOf("PERP"), 0));
             Object marketIdWithoutPerp = Helpers.replace(((String)marketIdUpper), "PERP", "");
             Object conflictingMarkets = this.safeDict(this.options, "conflictingMarkets", new HashMap<String, Object>() {{}});
             Object lowerCaseId = ((String)marketIdWithoutPerp).toLowerCase();
@@ -2592,7 +2592,7 @@ public class Gemini extends GeminiApi
         {
             this.checkRequiredCredentials();
             String apiKey = this.apiKey;
-            if (Helpers.isLessThan(Helpers.getIndexOf(apiKey, "account"), 0))
+            if (Helpers.isLessThan(((String)apiKey).indexOf("account"), 0))
             {
                 throw new AuthenticationError((this.id + " sign() requires an account-key, master-keys are not-supported")) ;
             }

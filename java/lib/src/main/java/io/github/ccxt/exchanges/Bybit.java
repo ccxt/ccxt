@@ -2469,7 +2469,7 @@ public class Bybit extends BybitApi
         Object symbolBase = Helpers.split(symbol, "/");
         String base = null;
         Object expiry = null;
-        if (Helpers.isGreaterThan(Helpers.getIndexOf(symbol, "/"), Helpers.opNeg(1)))
+        if (Helpers.isGreaterThan(((String)symbol).indexOf("/"), Helpers.opNeg(1)))
         {
             base = this.safeString(symbolBase, 0);
             expiry = this.safeString(optionParts, 1);
@@ -2577,7 +2577,7 @@ public class Bybit extends BybitApi
         Object market = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
         Object delimiter = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
         Object marketType = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : null;
-        Boolean isOption = (!java.util.Objects.equals(marketId, null)) && ((Helpers.isGreaterThan(Helpers.getIndexOf(marketId, "-C"), Helpers.opNeg(1))) || (Helpers.isGreaterThan(Helpers.getIndexOf(marketId, "-P"), Helpers.opNeg(1))));
+        Boolean isOption = (!java.util.Objects.equals(marketId, null)) && ((Helpers.isGreaterThan(((String)marketId).indexOf("-C"), Helpers.opNeg(1))) || (Helpers.isGreaterThan(((String)marketId).indexOf("-P"), Helpers.opNeg(1))));
         if (Helpers.isTrue(isOption) && ((java.util.Objects.equals(this.markets_by_id, null)) || !(((Map<?, ?>)this.markets_by_id).containsKey(marketId))))
         {
             // handle expired option contracts
@@ -3726,7 +3726,7 @@ public class Bybit extends BybitApi
                     Object symbol = Helpers.GetValue(symbols, i);
                     // using safeMarket here because if the user provides for instance BTCUSDT and "type": "spot" in params we should
                     // infer the market type from the type provided and not from the conflicting id (BTCUSDT might be swap or spot)
-                    Boolean isExchangeSpecificSymbol = (Helpers.isEqual(Helpers.getIndexOf(symbol, "/"), Helpers.opNeg(1)));
+                    Boolean isExchangeSpecificSymbol = (Helpers.isEqual(((String)symbol).indexOf("/"), Helpers.opNeg(1)));
                     if (Helpers.isTrue(isExchangeSpecificSymbol))
                     {
                         market = this.safeMarket(symbol, null, null, defaultType);
@@ -12441,10 +12441,10 @@ final Object finalMarket = market;
         } else if (java.util.Objects.equals(api, "private"))
         {
             this.checkRequiredCredentials();
-            Boolean isOpenapi = Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(url, "openapi"), 0);
-            Boolean isV3UnifiedMargin = Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(url, "unified/v3"), 0);
-            Boolean isV3Contract = Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(url, "contract/v3"), 0);
-            Boolean isV5UnifiedAccount = Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(url, "v5"), 0);
+            Boolean isOpenapi = Helpers.isGreaterThanOrEqual(((String)url).indexOf("openapi"), 0);
+            Boolean isV3UnifiedMargin = Helpers.isGreaterThanOrEqual(((String)url).indexOf("unified/v3"), 0);
+            Boolean isV3Contract = Helpers.isGreaterThanOrEqual(((String)url).indexOf("contract/v3"), 0);
+            Boolean isV5UnifiedAccount = Helpers.isGreaterThanOrEqual(((String)url).indexOf("v5"), 0);
             Object timestamp = String.valueOf(this.nonce());
             if (Helpers.isTrue(isOpenapi))
             {
@@ -12493,7 +12493,7 @@ final Object finalMarket = market;
                     url = (url + ("?" + queryEncoded));
                 }
                 Object signature = null;
-                if (Helpers.isGreaterThan(Helpers.getIndexOf(this.secret, "PRIVATE KEY"), Helpers.opNeg(1)))
+                if (Helpers.isGreaterThan(((String)this.secret).indexOf("PRIVATE KEY"), Helpers.opNeg(1)))
                 {
                     signature = rsa(authFull, this.secret, sha256());
                 } else
@@ -12512,7 +12512,7 @@ final Object finalMarket = market;
                 Map<String, Object> sortedQuery = this.keysort(query);
                 Object auth = this.rawencode(sortedQuery, true);
                 Object signature = null;
-                if (Helpers.isGreaterThan(Helpers.getIndexOf(this.secret, "PRIVATE KEY"), Helpers.opNeg(1)))
+                if (Helpers.isGreaterThan(((String)this.secret).indexOf("PRIVATE KEY"), Helpers.opNeg(1)))
                 {
                     signature = rsa(auth, this.secret, sha256());
                 } else
@@ -12521,7 +12521,7 @@ final Object finalMarket = market;
                 }
                 if (java.util.Objects.equals(method, "POST"))
                 {
-                    Boolean isSpot = Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(url, "spot"), 0);
+                    Boolean isSpot = Helpers.isGreaterThanOrEqual(((String)url).indexOf("spot"), 0);
                     final Object finalSignature = signature;
                     Map<String, Object> extendedQuery = this.extend(query, new HashMap<String, Object>() {{
                         put( "sign", finalSignature );
@@ -12601,14 +12601,14 @@ final Object finalMarket = market;
                 return null;
             }
             Object feedback = null;
-            if (java.util.Objects.equals(errorCode, "10005") && Helpers.isLessThan(Helpers.getIndexOf(url, "order"), 0))
+            if (java.util.Objects.equals(errorCode, "10005") && Helpers.isLessThan(((String)url).indexOf("order"), 0))
             {
                 feedback = ((this.id + " private api uses /user/v3/private/query-api to check if you have a unified account. The API key of user id must own one of permissions: \"Account Transfer\", \"Subaccount Transfer\", \"Withdrawal\" ") + body);
             } else
             {
                 feedback = ((this.id + " ") + body);
             }
-            if (Helpers.isGreaterThan(Helpers.getIndexOf(body, "Withdraw address chain or destination tag are not equal"), Helpers.opNeg(1)))
+            if (Helpers.isGreaterThan(((String)body).indexOf("Withdraw address chain or destination tag are not equal"), Helpers.opNeg(1)))
             {
                 feedback = (feedback + "; You might also need to ensure the address is whitelisted");
             }

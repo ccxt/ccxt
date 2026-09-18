@@ -779,7 +779,7 @@ public class Kraken extends KrakenApi
             {
                 Object id = Helpers.GetValue(keys, i);
                 Boolean isSynthetic = false;
-                if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(id, ":BTNL"), 0))
+                if (Helpers.isGreaterThanOrEqual(((String)id).indexOf(":BTNL"), 0))
                 {
                     isSynthetic = true;
                 }
@@ -1028,7 +1028,7 @@ public class Kraken extends KrakenApi
         {
             throw new ExchangeError((this.id + " parseCurrency() missing id")) ;
         }
-        if (Helpers.isLessThan(Helpers.getIndexOf(id, "."), 0))
+        if (Helpers.isLessThan(((String)id).indexOf("."), 0))
         {
             String altName = this.safeString(rawCurrency, "altname");
             // handle cases like below:
@@ -1058,7 +1058,7 @@ public class Kraken extends KrakenApi
         {
             throw new ExchangeError((this.id + " parseCurrency() missing code")) ;
         }
-        Boolean isFiat = Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(code, ".HOLD"), 0);
+        Boolean isFiat = Helpers.isGreaterThanOrEqual(((String)code).indexOf(".HOLD"), 0);
         rawCurrency = this.omit(rawCurrency, "_coin_id");
         final Object finalId = id;
         final Object finalCode = code;
@@ -1095,7 +1095,7 @@ public class Kraken extends KrakenApi
         {
             return (String) currencyId;
         }
-        if (Helpers.isGreaterThan(Helpers.getIndexOf(currencyId, "."), 0))
+        if (Helpers.isGreaterThan(((String)currencyId).indexOf("."), 0))
         {
             // if ID contains .M, .S or .F, then it can't contain X or Z prefix. in such case, ID equals to ALTNAME
             Object parts = Helpers.split(currencyId, ".");
@@ -2094,7 +2094,7 @@ public class Kraken extends KrakenApi
             }};
             Object orderRequest = this.orderRequest("createOrder", symbol, type, request, amount, price, parameters);
             String flags = this.safeString(Helpers.GetValue(orderRequest, 0), "oflags", "");
-            Boolean isUsingCost = Helpers.isGreaterThan(Helpers.getIndexOf(flags, "viqc"), Helpers.opNeg(1));
+            Boolean isUsingCost = Helpers.isGreaterThan(((String)flags).indexOf("viqc"), Helpers.opNeg(1));
             Map<String, Object> response = (this.privatePostAddOrder(this.extend(Helpers.GetValue(orderRequest, 0), Helpers.GetValue(orderRequest, 1)))).join();
             //
             //     {
@@ -2468,7 +2468,7 @@ public class Kraken extends KrakenApi
             price = this.safeString2(order, "limitprice", "price", price);
         }
         String flags = this.safeString(order, "oflags", "");
-        Boolean isPostOnly = Helpers.isGreaterThan(Helpers.getIndexOf(flags, "post"), Helpers.opNeg(1));
+        Boolean isPostOnly = Helpers.isGreaterThan(((String)flags).indexOf("post"), Helpers.opNeg(1));
         Double average = this.safeNumber(order, "price");
         if (!java.util.Objects.equals(market, null))
         {
@@ -2480,10 +2480,10 @@ public class Kraken extends KrakenApi
                     put( "cost", feeCost );
                     put( "rate", null );
                 }};
-                if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(flags, "fciq"), 0))
+                if (Helpers.isGreaterThanOrEqual(((String)flags).indexOf("fciq"), 0))
                 {
                     ((Map<String, Object>)fee).put("currency", ((Map<String, Object>)market).get("quote"));
-                } else if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(flags, "fcib"), 0))
+                } else if (Helpers.isGreaterThanOrEqual(((String)flags).indexOf("fcib"), 0))
                 {
                     ((Map<String, Object>)fee).put("currency", ((Map<String, Object>)market).get("base"));
                 }
@@ -2623,7 +2623,7 @@ final Object finalId = id;
         String cost = this.safeString(parameters, "cost");
         String flags = this.safeString(parameters, "oflags");
         parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("cost", "oflags")));
-        Boolean isViqcOrder = (!java.util.Objects.equals(flags, null)) && (Helpers.isGreaterThan(Helpers.getIndexOf(flags, "viqc"), Helpers.opNeg(1))); // volume in quote currency
+        Boolean isViqcOrder = (!java.util.Objects.equals(flags, null)) && (Helpers.isGreaterThan(((String)flags).indexOf("viqc"), Helpers.opNeg(1))); // volume in quote currency
         if (Helpers.isTrue(isMarketOrder) && (!java.util.Objects.equals(cost, null) || Helpers.isTrue(isViqcOrder)))
         {
             if (java.util.Objects.equals(cost, null) && (!java.util.Objects.equals(amount, null)))
@@ -3208,7 +3208,7 @@ final Object finalId = id;
             {
                 if ((!java.util.Objects.equals(this.last_http_response, null)) && (!java.util.Objects.equals(this.last_http_response, "")))
                 {
-                    if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(this.last_http_response, "EOrder:Unknown order"), 0))
+                    if (Helpers.isGreaterThanOrEqual(((String)this.last_http_response).indexOf("EOrder:Unknown order"), 0))
                     {
                         throw new OrderNotFound(((this.id + " cancelOrder() error ") + this.last_http_response)) ;
                     }
@@ -4049,7 +4049,7 @@ final Object finalId = id;
                         {
                             throw new ExchangeError((this.id + " fetchDepositAddress() missing entry")) ;
                         }
-                        if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(entry, network), 0))
+                        if (Helpers.isGreaterThanOrEqual(((String)entry).indexOf(((String)network)), 0))
                         {
                             depositMethod = entry;
                             break;

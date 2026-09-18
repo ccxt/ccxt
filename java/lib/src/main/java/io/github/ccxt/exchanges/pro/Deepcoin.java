@@ -110,7 +110,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
     public Object ping(Client client)
     {
         Object url = client.url;
-        if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(url, "private"), 0))
+        if (Helpers.isGreaterThanOrEqual(((String)url).indexOf("private"), 0))
         {
             client.lastPong = ((Number)this.milliseconds()).longValue();
         }

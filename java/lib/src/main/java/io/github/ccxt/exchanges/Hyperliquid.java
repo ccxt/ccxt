@@ -4235,10 +4235,10 @@ final Object finalClientOrderId = clientOrderId;
         Object takeProfitPrice = null;
         if (!java.util.Objects.equals(triggerPx, null))
         {
-            if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(orderTypeRaw, "stop"), 0))
+            if (Helpers.isGreaterThanOrEqual(((String)orderTypeRaw).indexOf("stop"), 0))
             {
                 stopLossPrice = triggerPx;
-            } else if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(orderTypeRaw, "take profit"), 0))
+            } else if (Helpers.isGreaterThanOrEqual(((String)orderTypeRaw).indexOf("take profit"), 0))
             {
                 takeProfitPrice = triggerPx;
             }
@@ -6070,11 +6070,11 @@ final Object finalClientOrderId = clientOrderId;
             String code = this.safeString(hip3Dict, "code", coin);
             return ((((code + "/") + quote) + ":") + quote);
         }
-        if (Helpers.isGreaterThan(Helpers.getIndexOf(coin, "/"), Helpers.opNeg(1)) || Helpers.isGreaterThan(Helpers.getIndexOf(coin, "@"), Helpers.opNeg(1)))
+        if (Helpers.isGreaterThan(((String)coin).indexOf("/"), Helpers.opNeg(1)) || Helpers.isGreaterThan(((String)coin).indexOf("@"), Helpers.opNeg(1)))
         {
             return coin;  // spot
         }
-        if (Helpers.isGreaterThan(Helpers.getIndexOf(coin, ":"), Helpers.opNeg(1)))
+        if (Helpers.isGreaterThan(((String)coin).indexOf(":"), Helpers.opNeg(1)))
         {
             coin = Helpers.replace(((String)coin), ":", "-"); // hip3
         }

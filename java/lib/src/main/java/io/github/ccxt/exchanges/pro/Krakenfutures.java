@@ -1949,7 +1949,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
         // below rejects every pending future on the connection, so a stray
         // re-subscribe warning would kill unrelated in-flight watch* calls —
         // mirrors the bitmart 90008 fix.
-        if (!java.util.Objects.equals(errMsg, null) && Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(errMsg, "Already subscribed"), 0))
+        if (!java.util.Objects.equals(errMsg, null) && Helpers.isGreaterThanOrEqual(((String)errMsg).indexOf("Already subscribed"), 0))
         {
             return false;
         }

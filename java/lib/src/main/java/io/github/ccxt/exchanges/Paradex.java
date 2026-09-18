@@ -2324,7 +2324,7 @@ public class Paradex extends ParadexApi
             {
                 throw new ExchangeError((this.id + " signOrderRequest() missing orderType")) ;
             }
-            Boolean isMarket = (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(orderType, "MARKET"), 0));
+            Boolean isMarket = (Helpers.isGreaterThanOrEqual(((String)orderType).indexOf("MARKET"), 0));
             final Object finalNow = now;
             Map<String, Object> orderReq = new HashMap<String, Object>() {{
                 put( "timestamp", Helpers.multiply(finalNow, 1000) );

@@ -1553,7 +1553,7 @@ public class Apex extends ApexApi
     public Object addHyphenBeforeUsdt(Object symbol)
     {
         Object uppercaseSymbol = ((String)symbol).toUpperCase();
-        Object index = Helpers.getIndexOf(uppercaseSymbol, "USDT");
+        Object index = ((String)uppercaseSymbol).indexOf("USDT");
         String symbolChar = this.safeString(symbol, Helpers.subtract(index, 1));
         if (Helpers.isGreaterThan(index, 0) && !java.util.Objects.equals(symbolChar, "-"))
         {

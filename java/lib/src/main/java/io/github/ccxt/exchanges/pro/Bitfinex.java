@@ -647,10 +647,10 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
         String type = this.safeString(trade, 6);
         if (!java.util.Objects.equals(type, null))
         {
-            if (Helpers.isGreaterThan(Helpers.getIndexOf(type, "LIMIT"), Helpers.opNeg(1)))
+            if (Helpers.isGreaterThan(((String)type).indexOf("LIMIT"), Helpers.opNeg(1)))
             {
                 type = "limit";
-            } else if (Helpers.isGreaterThan(Helpers.getIndexOf(type, "MARKET"), Helpers.opNeg(1)))
+            } else if (Helpers.isGreaterThan(((String)type).indexOf("MARKET"), Helpers.opNeg(1)))
             {
                 type = "market";
             }
@@ -1468,10 +1468,10 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
         }
         String remaining = Precise.stringAbs(this.safeString(order, 6));
         String type = this.safeString(order, 8, "");
-        if (Helpers.isGreaterThan(Helpers.getIndexOf(type, "LIMIT"), Helpers.opNeg(1)))
+        if (Helpers.isGreaterThan(((String)type).indexOf("LIMIT"), Helpers.opNeg(1)))
         {
             type = "limit";
-        } else if (Helpers.isGreaterThan(Helpers.getIndexOf(type, "MARKET"), Helpers.opNeg(1)))
+        } else if (Helpers.isGreaterThan(((String)type).indexOf("MARKET"), Helpers.opNeg(1)))
         {
             type = "market";
         }

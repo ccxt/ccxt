@@ -354,15 +354,15 @@ public class Mudrex extends MudrexApi
             this.throwBroadlyMatchedException(((Map<String, Object>)this.exceptions).get("broad"), text, ((this.id + " ") + text));
             Object msg = ((this.id + " ") + text);
             Object low = text.toLowerCase();
-            if (Helpers.isEqual(code, 401) || Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(low, "auth"), 0))
+            if (Helpers.isEqual(code, 401) || Helpers.isGreaterThanOrEqual(((String)low).indexOf("auth"), 0))
             {
                 throw new AuthenticationError((String)msg) ;
             }
-            if (Helpers.isEqual(code, 429) || Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(low, "rate"), 0))
+            if (Helpers.isEqual(code, 429) || Helpers.isGreaterThanOrEqual(((String)low).indexOf("rate"), 0))
             {
                 throw new RateLimitExceeded((String)msg) ;
             }
-            if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(low, "insufficient"), 0))
+            if (Helpers.isGreaterThanOrEqual(((String)low).indexOf("insufficient"), 0))
             {
                 throw new InsufficientFunds((String)msg) ;
             }

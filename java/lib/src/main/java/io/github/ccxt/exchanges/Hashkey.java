@@ -2882,7 +2882,7 @@ public class Hashkey extends HashkeyApi
         String amountString = this.safeString(item, "change");
         Object amount = this.parseNumber(amountString);
         String direction = "in";
-        if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(amountString, "-"), 0))
+        if (Helpers.isGreaterThanOrEqual(((String)amountString).indexOf("-"), 0))
         {
             direction = "out";
         }

@@ -468,7 +468,7 @@ public class Delta extends DeltaApi
         String base = null;
         Object expiry = null;
         String optionType = null;
-        if (Helpers.isGreaterThan(Helpers.getIndexOf(symbol, "/"), Helpers.opNeg(1)))
+        if (Helpers.isGreaterThan(((String)symbol).indexOf("/"), Helpers.opNeg(1)))
         {
             base = this.safeString(symbolBase, 0);
             expiry = this.safeString(optionParts, 1);
@@ -2251,7 +2251,7 @@ public class Delta extends DeltaApi
         Object timestamp = null;
         if (!java.util.Objects.equals(createdAt, null))
         {
-            if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(createdAt, "-"), 0))
+            if (Helpers.isGreaterThanOrEqual(((String)createdAt).indexOf("-"), 0))
             {
                 timestamp = this.parse8601(createdAt);
             } else

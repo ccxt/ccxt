@@ -712,7 +712,7 @@ public class Alpaca extends io.github.ccxt.exchanges.Alpaca
         {
             return null;
         }
-        if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(type, "limit"), 0))
+        if (Helpers.isGreaterThanOrEqual(((String)type).indexOf("limit"), 0))
         {
             // might be limit or stop-limit
             type = "limit";

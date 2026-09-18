@@ -1463,10 +1463,10 @@ public class Latoken extends LatokenApi
         String message = this.safeString(order, "message");
         if (!java.util.Objects.equals(message, null))
         {
-            if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(message, "cancel"), 0))
+            if (Helpers.isGreaterThanOrEqual(((String)message).indexOf("cancel"), 0))
             {
                 status = "canceled";
-            } else if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(message, "accept"), 0))
+            } else if (Helpers.isGreaterThanOrEqual(((String)message).indexOf("accept"), 0))
             {
                 status = "open";
             }
@@ -2162,7 +2162,7 @@ public class Latoken extends LatokenApi
                 put( "value", Latoken.this.currencyToPrecision(code, amount) );
             }};
             Object response = null;
-            if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(toAccount, "@"), 0))
+            if (Helpers.isGreaterThanOrEqual(((String)toAccount).indexOf("@"), 0))
             {
                 response = (this.privatePostAuthTransferEmail(this.extend(request, parameters))).join();
             } else if (Helpers.isEqual(((String)toAccount).length(), 36))

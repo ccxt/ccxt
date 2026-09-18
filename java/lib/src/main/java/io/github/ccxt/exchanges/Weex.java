@@ -4384,7 +4384,7 @@ public class Weex extends WeexApi
         {
             throw new ExchangeError((this.id + " parseLedgerEntry() missing amountRaw")) ;
         }
-        if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(amountRaw, "-"), 0))
+        if (Helpers.isGreaterThanOrEqual(((String)amountRaw).indexOf("-"), 0))
         {
             direction = "out";
         }

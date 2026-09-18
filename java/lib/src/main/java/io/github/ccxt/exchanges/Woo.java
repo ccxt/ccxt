@@ -1284,7 +1284,7 @@ public class Woo extends WooApi
         Object timestamp = null;
         if (!java.util.Objects.equals(timestampString, null))
         {
-            if (Helpers.isGreaterThan(Helpers.getIndexOf(timestampString, "."), Helpers.opNeg(1)))
+            if (Helpers.isGreaterThan(((String)timestampString).indexOf("."), Helpers.opNeg(1)))
             {
                 timestamp = this.safeTimestamp2(trade, "executed_timestamp", "executedTimestamp");
             } else
@@ -2631,7 +2631,7 @@ public class Woo extends WooApi
         String timestrampString = this.safeString(order, "createdTime");
         if (!java.util.Objects.equals(timestrampString, null))
         {
-            if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(timestrampString, "."), 0))
+            if (Helpers.isGreaterThanOrEqual(((String)timestrampString).indexOf("."), 0))
             {
                 timestamp = this.safeTimestamp(order, "createdTime"); // algo orders
             } else
@@ -2664,7 +2664,7 @@ public class Woo extends WooApi
         Object lastUpdateTimestamp = null;
         if (!java.util.Objects.equals(lastUpdateTimestampString, null))
         {
-            if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(lastUpdateTimestampString, "."), 0))
+            if (Helpers.isGreaterThanOrEqual(((String)lastUpdateTimestampString).indexOf("."), 0))
             {
                 lastUpdateTimestamp = this.safeTimestamp(order, "updatedTime"); // algo orders
             } else
@@ -5162,7 +5162,7 @@ public class Woo extends WooApi
         Object timestamp = null;
         if (!java.util.Objects.equals(timestampString, null))
         {
-            if (Helpers.isGreaterThan(Helpers.getIndexOf(timestampString, "."), Helpers.opNeg(1)))
+            if (Helpers.isGreaterThan(((String)timestampString).indexOf("."), Helpers.opNeg(1)))
             {
                 timestamp = this.safeTimestamp(position, "timestamp");
             } else

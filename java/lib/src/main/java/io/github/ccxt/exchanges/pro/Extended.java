@@ -460,7 +460,7 @@ public class Extended extends io.github.ccxt.exchanges.Extended
         for (var i = 0; i < ((List<?>)subscriptions).size(); i++)
         {
             Object messageHash = Helpers.GetValue(subscriptions, i);
-            if (Helpers.isEqual(Helpers.getIndexOf(messageHash, "myTrades:"), 0))
+            if (Helpers.isEqual(((String)messageHash).indexOf("myTrades:"), 0))
             {
                 client.resolve(stored, messageHash);
             }
@@ -641,7 +641,7 @@ public class Extended extends io.github.ccxt.exchanges.Extended
         for (var i = 0; i < ((List<?>)subscriptions).size(); i++)
         {
             Object messageHash = Helpers.GetValue(subscriptions, i);
-            if (Helpers.isEqual(Helpers.getIndexOf(messageHash, "orders:"), 0))
+            if (Helpers.isEqual(((String)messageHash).indexOf("orders:"), 0))
             {
                 client.resolve(orders, messageHash);
             }

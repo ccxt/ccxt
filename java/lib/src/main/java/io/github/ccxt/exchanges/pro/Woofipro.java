@@ -756,7 +756,7 @@ public class Woofipro extends io.github.ccxt.exchanges.Woofipro
                 Object ts = String.valueOf(this.nonce());
                 Object auth = ts;
                 Object secret = this.secret;
-                if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(secret, "ed25519:"), 0))
+                if (Helpers.isGreaterThanOrEqual(((String)secret).indexOf("ed25519:"), 0))
                 {
                     Object parts = Helpers.split(secret, "ed25519:");
                     secret = Helpers.GetValue(parts, 1);

@@ -570,7 +570,7 @@ public class Bithumb extends BithumbApi
     public Object getGen2MarketId(Object market)
     {
         String marketId = this.safeString(market, "id");
-        if ((!java.util.Objects.equals(marketId, null)) && (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(marketId, "-"), 0)))
+        if ((!java.util.Objects.equals(marketId, null)) && (Helpers.isGreaterThanOrEqual(((String)marketId).indexOf("-"), 0)))
         {
             return marketId;
         }
@@ -2561,7 +2561,7 @@ public class Bithumb extends BithumbApi
         Object timestamp = null;
         if (!java.util.Objects.equals(datetime, null))
         {
-            if (Helpers.isGreaterThan(Helpers.getIndexOf(datetime, "+09:00"), Helpers.opNeg(1)))
+            if (Helpers.isGreaterThan(((String)datetime).indexOf("+09:00"), Helpers.opNeg(1)))
             {
                 Object normalized = Helpers.replace(datetime, (String)"+09:00", (String)"Z");
                 Long normalizedTimestamp = this.parse8601(normalized);
@@ -3296,7 +3296,7 @@ public class Bithumb extends BithumbApi
         currency = this.safeCurrency(currencyId, currency);
         String datetime = this.safeString(transaction, "created_at");
         Object timestamp = this.parse8601(datetime);
-        if ((!java.util.Objects.equals(datetime, null)) && (Helpers.isGreaterThan(Helpers.getIndexOf(datetime, "+09:00"), Helpers.opNeg(1))))
+        if ((!java.util.Objects.equals(datetime, null)) && (Helpers.isGreaterThan(((String)datetime).indexOf("+09:00"), Helpers.opNeg(1))))
         {
             Object normalized = Helpers.replace(datetime, (String)"+09:00", (String)"Z");
             Long normalizedTimestamp = this.parse8601(normalized);

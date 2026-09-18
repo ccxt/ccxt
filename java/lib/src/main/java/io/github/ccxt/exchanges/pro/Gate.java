@@ -1067,7 +1067,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             {
                 throw new ArgumentsRequired((this.id + " requires a callerMethodName argument")) ;
             }
-            Boolean isWatchTickers = Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(callerMethodName, "watchTicker"), 0);
+            Boolean isWatchTickers = Helpers.isGreaterThanOrEqual(((String)callerMethodName).indexOf("watchTicker"), 0);
             String prefix = ((Helpers.isTrue(isWatchTickers))) ? "ticker" : "bidask";
             Object messageHashes = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)symbols).size(); i++)
@@ -2062,7 +2062,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
         //
         Object orders = this.safeValue(message, "result", new ArrayList<Object>(Arrays.asList()));
         String channel = this.safeString(message, "channel", "");
-        Boolean isTrigger = (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(channel, "autoorders"), 0)) || (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(channel, "priceorders"), 0));
+        Boolean isTrigger = (Helpers.isGreaterThanOrEqual(((String)channel).indexOf("autoorders"), 0)) || (Helpers.isGreaterThanOrEqual(((String)channel).indexOf("priceorders"), 0));
         String hashPrefix = ((Helpers.isTrue(isTrigger))) ? "triggerOrders" : "orders";
         Long limit = this.safeInteger(this.options, "ordersLimit", 1000);
         if (java.util.Objects.equals(this.orders, null))
@@ -2401,7 +2401,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
                 }
                 // remove subscriptions for watchSymbols
                 Object channel = this.safeString(message, "channel");
-                if ((!java.util.Objects.equals(channel, null)) && (Helpers.isGreaterThan(Helpers.getIndexOf(channel, "."), 0)))
+                if ((!java.util.Objects.equals(channel, null)) && (Helpers.isGreaterThan(((String)channel).indexOf("."), 0)))
                 {
                     Object parsedChannel = Helpers.split(channel, ".");
                     Object payload = this.safeList(message, "payload", new ArrayList<Object>(Arrays.asList()));
@@ -2721,7 +2721,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
         {
             Object key = Helpers.GetValue(keys, i);
             Object value = Helpers.GetValue(findBy, key);
-            if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(url, key), 0))
+            if (Helpers.isGreaterThanOrEqual(((String)url).indexOf(((String)key)), 0))
             {
                 return value;
             }

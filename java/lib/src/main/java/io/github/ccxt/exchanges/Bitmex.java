@@ -2585,8 +2585,8 @@ public class Bitmex extends BitmexApi
         Object reduceOnly = null;
         if (execInst.length() > 0)
         {
-            postOnly = (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(execInst, "ParticipateDoNotInitiate"), 0));
-            reduceOnly = ((Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(execInst, "ReduceOnly"), 0)) || (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(execInst, "Close"), 0)));
+            postOnly = (Helpers.isGreaterThanOrEqual(((String)execInst).indexOf("ParticipateDoNotInitiate"), 0));
+            reduceOnly = ((Helpers.isGreaterThanOrEqual(((String)execInst).indexOf("ReduceOnly"), 0)) || (Helpers.isGreaterThanOrEqual(((String)execInst).indexOf("Close"), 0)));
         }
         Long timestamp = this.parse8601(this.safeString(order, "timestamp"));
         Double triggerPrice = this.safeNumber(order, "stopPx");
@@ -2967,7 +2967,7 @@ public class Bitmex extends BitmexApi
             String error = this.safeString(order, "error");
             if (!java.util.Objects.equals(error, null))
             {
-                if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(error, "Unable to cancel order due to existing state"), 0))
+                if (Helpers.isGreaterThanOrEqual(((String)error).indexOf("Unable to cancel order due to existing state"), 0))
                 {
                     throw new OrderNotFound(((this.id + " cancelOrder() failed: ") + error)) ;
                 }

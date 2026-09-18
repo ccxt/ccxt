@@ -404,7 +404,7 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
         //
         String type = this.safeString(message, "type", "");
         Object timeframeId = Helpers.slice(type, 8, null);
-        Object timeframeEndIndex = Helpers.getIndexOf(timeframeId, "_");
+        Object timeframeEndIndex = ((String)timeframeId).indexOf("_");
         timeframeId = Helpers.slice(timeframeId, 0, timeframeEndIndex);
         Object marketId = this.safeString(message, "symbol", "").toLowerCase();
         Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
@@ -1045,7 +1045,7 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
             put( "heartbeat", "handleHeartbeat");
         }};
         String type = this.safeString(message, "type", "");
-        if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(type, "candles"), 0))
+        if (Helpers.isGreaterThanOrEqual(((String)type).indexOf("candles"), 0))
         {
             this.handleOHLCV(client, message);
             return;
@@ -1122,7 +1122,7 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
             }
             this.checkRequiredCredentials();
             Object startIndex = Helpers.getArrayLength(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"));
-            Object urlParamsIndex = Helpers.getIndexOf(url, "?");
+            Object urlParamsIndex = ((String)url).indexOf("?");
             Object urlLength = url.length();
             Object endIndex = (((Helpers.isGreaterThanOrEqual(urlParamsIndex, 0)))) ? urlParamsIndex : urlLength;
             Object request = Helpers.slice(url, startIndex, endIndex);

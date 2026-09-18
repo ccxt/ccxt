@@ -1831,7 +1831,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
         if (java.util.Objects.equals(channel, "error"))
         {
             String ret_msg = this.safeString(message, "data", "");
-            if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(ret_msg, "Already subscribed"), 0))
+            if (Helpers.isGreaterThanOrEqual(((String)ret_msg).indexOf("Already subscribed"), 0))
             {
                 // a duplicate subscribe is harmless - the server-side subscription is intact
                 // and data keeps flowing; rejecting all pending futures here would poison the
