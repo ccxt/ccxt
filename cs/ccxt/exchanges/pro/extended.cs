@@ -212,7 +212,7 @@ public partial class extended : ccxt.extended
             { "symbol", symbolVar },
             { "limit", limitVar },
         });
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             limitVar = callDynamically(orders, "getLimit", new object[] {symbolVar, limitVar});
         }
@@ -333,7 +333,7 @@ public partial class extended : ccxt.extended
             { "symbol", symbolVar },
             { "limit", limitVar },
         });
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             limitVar = callDynamically(trades, "getLimit", new object[] {symbolVar, limitVar});
         }
@@ -435,7 +435,7 @@ public partial class extended : ccxt.extended
             { "symbols", symbols },
             { "limit", limit },
         });
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             return ccxt.BaseExchange.ToPositionList(positions);
         }
@@ -754,7 +754,7 @@ public partial class extended : ccxt.extended
             { "symbol", symbolVar },
             { "limit", limitVar },
         });
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             limitVar = callDynamically(trades, "getLimit", new object[] {symbolVar, limitVar});
         }
@@ -871,7 +871,7 @@ public partial class extended : ccxt.extended
             { "limit", limitVar },
             { "messageHash", messageHash },
         });
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             limitVar = callDynamically(ohlcv, "getLimit", new object[] {symbolVar, limitVar});
         }

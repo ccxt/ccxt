@@ -244,7 +244,7 @@ public partial class mexc : ccxt.mexc
             ((IList<object>)messageHashes).Add("ticker");
         }
         object ticker = await this.watchMultiple(url, messageHashes, this.extend(request, parameters), messageHashes);
-        if (isSpot && isTrue(this.newUpdates))
+        if (isSpot && this.newUpdates)
         {
             Dictionary<string, object> result = new Dictionary<string, object>() {};
             ((IDictionary<string,object>)result)[(string)getValue(ticker, "symbol")] = ticker;
@@ -458,7 +458,7 @@ public partial class mexc : ccxt.mexc
             { "params", topics },
         };
         object ticker = await this.watchMultiple(url, messageHashes, this.extend(request, parameters), messageHashes);
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             Dictionary<string, object> tickers = new Dictionary<string, object>() {};
             ((IDictionary<string,object>)tickers)[(string)getValue(ticker, "symbol")] = ticker;
@@ -616,7 +616,7 @@ public partial class mexc : ccxt.mexc
             ohlcv = await this.watchSwapPublic(channel, messageHash, requestParams, parameters);
         }
         ohlcv = this.requireValue(ohlcv, "watchOHLCV() ohlcv is required");
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             limitVar = callDynamically(ohlcv, "getLimit", new object[] {symbolVar, limitVar});
         }
@@ -1061,7 +1061,7 @@ public partial class mexc : ccxt.mexc
             trades = await this.watchSwapPublic(channel, messageHash, requestParams, parameters);
         }
         trades = this.requireValue(trades, "watchTrades() trades is required");
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             limitVar = callDynamically(trades, "getLimit", new object[] {symbolVar, limitVar});
         }
@@ -1195,7 +1195,7 @@ public partial class mexc : ccxt.mexc
             trades = await this.watchSwapPrivate(messageHash, parameters);
         }
         trades = this.requireValue(trades, "watchMyTrades() trades is required");
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             limitVar = callDynamically(trades, "getLimit", new object[] {symbolVar, limitVar});
         }
@@ -1397,7 +1397,7 @@ public partial class mexc : ccxt.mexc
             orders = await this.watchSwapPrivate(messageHash, parameters);
         }
         orders = this.requireValue(orders, "watchOrders() orders is required");
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             limitVar = callDynamically(orders, "getLimit", new object[] {symbolVar, limitVar});
         }

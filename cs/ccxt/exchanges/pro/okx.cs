@@ -260,7 +260,7 @@ public partial class okx : ccxt.okx
         }
         object url = this.getUrl(channel, access);
         object trades = await this.watchMultiple(url, messageHashes, request, messageHashes);
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             object first = this.safeValue(trades, 0);
             string? tradeSymbol = this.safeString(first, "symbol");
@@ -447,7 +447,7 @@ public partial class okx : ccxt.okx
         };
         object url = this.getUrl(channel, "public");
         object fundingRate = await this.watchMultiple(url, messageHashes, request, messageHashes);
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             string? symbol = this.safeString(fundingRate, "symbol");
             Dictionary<string, object> result = new Dictionary<string, object>() {};
@@ -559,7 +559,7 @@ public partial class okx : ccxt.okx
         channel = ((IList<object>)channelparametersVariable)[0];
         parameters = ((IList<object>)channelparametersVariable)[1];
         object newTickers = await this.subscribeMultiple("public", channel, symbols, parameters);
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             return ccxt.BaseExchange.ToTickers(newTickers);
         }
@@ -614,7 +614,7 @@ public partial class okx : ccxt.okx
         channel = ((IList<object>)channelparametersVariable)[0];
         parameters = ((IList<object>)channelparametersVariable)[1];
         object newTickers = await this.subscribeMultiple("public", channel, symbols, parameters);
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             return ccxt.BaseExchange.ToTickers(newTickers);
         }
@@ -750,7 +750,7 @@ public partial class okx : ccxt.okx
             { "args", args },
         };
         object newTickers = await this.watchMultiple(url, messageHashes, request, messageHashes);
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             Dictionary<string, object> tickers = new Dictionary<string, object>() {};
             ((IDictionary<string,object>)tickers)[(string)getValue(newTickers, "symbol")] = newTickers;
@@ -911,7 +911,7 @@ public partial class okx : ccxt.okx
         };
         object url = this.getUrl(channel, "public");
         object newLiquidations = await this.watchMultiple(url, messageHashes, request, messageHashes);
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             return ccxt.BaseExchange.ToLiquidationList(newLiquidations);
         }
@@ -1012,7 +1012,7 @@ public partial class okx : ccxt.okx
         };
         object url = this.getUrl(channel, "private");
         object newLiquidations = await this.watchMultiple(url, messageHashes, this.deepExtend(request, parameters), messageHashes);
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             return ccxt.BaseExchange.ToLiquidationList(newLiquidations);
         }
@@ -1194,7 +1194,7 @@ public partial class okx : ccxt.okx
         string? interval = this.safeString(this.timeframes, timeframeVar, timeframeVar);
         string name = ("candle" + interval);
         object ohlcv = await this.subscribe("public", name, name, symbolVar, parameters);
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             limitVar = callDynamically(ohlcv, "getLimit", new object[] {symbolVar, limitVar});
         }
@@ -1268,7 +1268,7 @@ public partial class okx : ccxt.okx
         var symbol = ((IList<object>) symboltimeframecandlesVariable)[0];
         var timeframe = ((IList<object>) symboltimeframecandlesVariable)[1];
         var candles = ((IList<object>) symboltimeframecandlesVariable)[2];
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             limit = callDynamically(candles, "getLimit", new object[] {symbol, limit});
         }
@@ -2048,7 +2048,7 @@ public partial class okx : ccxt.okx
             { "instType", uppercaseType },
         };
         object orders = await this.subscribe("private", messageHash, channel, null, this.extend(request, parameters));
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             limitVar = callDynamically(orders, "getLimit", new object[] {symbolVar, limitVar});
         }
@@ -2097,7 +2097,7 @@ public partial class okx : ccxt.okx
         {
             newPositions = await this.subscribeMultiple("private", channel, symbols, this.extend(request, parameters));
         }
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             return ccxt.BaseExchange.ToPositionList(((bool) ((newPositions == null))) ? new List<object>() {} : newPositions);
         }
@@ -2273,7 +2273,7 @@ public partial class okx : ccxt.okx
         };
         string channel = ((bool) (isEqual(isTrigger, true))) ? "orders-algo" : "orders";
         object orders = await this.subscribe("private", channel, channel, symbolVar, this.extend(request, parameters));
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             limitVar = callDynamically(orders, "getLimit", new object[] {symbolVar, limitVar});
         }

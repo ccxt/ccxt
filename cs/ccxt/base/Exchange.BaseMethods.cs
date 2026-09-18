@@ -945,7 +945,7 @@ public partial class BaseExchange
                 object entryKeyValue = this.safeValue(entry, key);
                 bool entryKeyGESince = ((entryKeyValue != null)) && ((entryKeyValue != null)) && (!isEqual(entryKeyValue, 0)) && (!isEqual(since, null)) && (isGreaterThanOrEqual(entryKeyValue, since));
                 bool secondCondition = ((bool) sinceIsDefined) ? entryKeyGESince : true;
-                if (isTrue(firstCondition) && isTrue(secondCondition))
+                if (firstCondition && secondCondition)
                 {
                     ((IList<object>)result).Add(entry);
                 }
@@ -1009,7 +1009,7 @@ public partial class BaseExchange
      */
     public virtual void enableDemoTrading(object enable)
     {
-        if (isTrue(this.isSandboxModeEnabled))
+        if (this.isSandboxModeEnabled)
         {
             throw new NotSupported ((string)(this.id + " demo trading does not support in sandbox environment. Please check https://www.binance.com/en/support/faq/detail/9be58f73e5e14338809e3b705b9687dd to see the differences")) ;
         }
@@ -2483,7 +2483,7 @@ public partial class BaseExchange
         if (shouldParseFees)
         {
             List<object> reducedFees = fees;
-            if (isTrue(this.reduceFees))
+            if (this.reduceFees)
             {
                 reducedFees = this.reduceFeesByCurrency(fees);
             }
@@ -2921,7 +2921,7 @@ public partial class BaseExchange
             }
             // 'fees' were set, so reparse them
             object reducedFees = fees;
-            if (isTrue(this.reduceFees))
+            if (this.reduceFees)
             {
                 reducedFees = this.reduceFeesByCurrency(fees);
             }
@@ -4454,7 +4454,7 @@ public partial class BaseExchange
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
         config ??= new Dictionary<string, object>();
-        if (isTrue(this.enableRateLimit))
+        if (this.enableRateLimit)
         {
             object cost = this.calculateRateLimiterCost(api, method, path, parameters, config);
             await this.throttle(cost);
@@ -4504,11 +4504,11 @@ public partial class BaseExchange
                     ((IDictionary<string,object>)fetchData)["error"] = e;
                     this.addFetchCache(fetchData);
                 }
-                if (isTrue(e is OperationFailed))
+                if (e is OperationFailed)
                 {
                     if (isLessThan(i, retries))
                     {
-                        if (isTrue(this.verbose))
+                        if (this.verbose)
                         {
                             object index = add(i, 1);
                             this.log((((((("Request failed with the error: " + ((object)e).ToString()) + ", retrying ") + ((object)index).ToString()) + " of ") + ((object)retries).ToString()) + "..."));
@@ -5571,7 +5571,7 @@ public partial class BaseExchange
 
     public virtual object commonCurrencyCode(string code)
     {
-        if (!isTrue(this.substituteCommonCurrencyCodes))
+        if (!this.substituteCommonCurrencyCodes)
         {
             return code;
         }
@@ -6901,7 +6901,7 @@ public partial class BaseExchange
                     }
                     object response = await ((Task<object>)callDynamically(this, method, new object[] { symbol, null, maxEntriesPerRequest, parameters }));
                     int responseLength = getArrayLength(response);
-                    if (isTrue(this.verbose))
+                    if (this.verbose)
                     {
                         string backwardMessage = ((add((("Dynamic pagination call " + this.numberToString(calls)) + " method "), method) + " response length ") + this.numberToString(responseLength));
                         if (!isEqual(paginationTimestamp, null))
@@ -6931,7 +6931,7 @@ public partial class BaseExchange
                     // do it forwards, starting from the since
                     object response = await ((Task<object>)callDynamically(this, method, new object[] { symbol, paginationTimestamp, maxEntriesPerRequest, parameters }));
                     int responseLength = getArrayLength(response);
-                    if (isTrue(this.verbose))
+                    if (this.verbose)
                     {
                         string forwardMessage = ((add((("Dynamic pagination call " + this.numberToString(calls)) + " method "), method) + " response length ") + this.numberToString(responseLength));
                         if (!isEqual(paginationTimestamp, null))
@@ -6999,7 +6999,7 @@ public partial class BaseExchange
                 }
             } catch(Exception e)
             {
-                if (isTrue(e is RateLimitExceeded))
+                if (e is RateLimitExceeded)
                 {
                     throw e;
                 }
@@ -7149,7 +7149,7 @@ public partial class BaseExchange
                     throw new NullResponse ((string)(this.id + " fetchPaginatedCallCursor() returned empty response")) ;
                 }
                 int responseLength = getArrayLength(response);
-                if (isTrue(this.verbose))
+                if (this.verbose)
                 {
                     object cursorString = ((bool) (isEqual(cursorValue, null))) ? "" : cursorValue;
                     object iteration = (add(i, 1));
@@ -7232,7 +7232,7 @@ public partial class BaseExchange
                 object response = await ((Task<object>)callDynamically(this, method, new object[] { symbol, since, maxEntriesPerRequest, parameters }));
                 errors = 0;
                 int responseLength = getArrayLength(response);
-                if (isTrue(this.verbose))
+                if (this.verbose)
                 {
                     string iteration = ((object)(add(i, 1))).ToString();
                     string incrementalMessage = ((add((("Incremental pagination call " + iteration) + " method "), method) + " response length ") + ((object)responseLength).ToString());

@@ -405,7 +405,7 @@ public partial class bydfi : ccxt.bydfi
         var symbol = ((IList<object>) symboltimeframecandlesVariable)[0];
         var timeframe = ((IList<object>) symboltimeframecandlesVariable)[1];
         var candles = ((IList<object>) symboltimeframecandlesVariable)[2];
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             limit = callDynamically(candles, "getLimit", new object[] {symbol, limit});
         }
@@ -698,7 +698,7 @@ public partial class bydfi : ccxt.bydfi
             }
         }
         object orders = await this.watchPrivate(messageHashes, parameters);
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             object first = this.safeValue(orders, 0);
             string? tradeSymbol = this.safeString(first, "symbol");
@@ -857,7 +857,7 @@ public partial class bydfi : ccxt.bydfi
             }
         }
         object positions = await this.watchPrivate(messageHashes, parameters);
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             return ccxt.BaseExchange.ToPositionList(positions);
         }

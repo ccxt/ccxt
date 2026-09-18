@@ -500,7 +500,7 @@ public partial class kalshi : PredictionExchange
             {
                 // an unknown ticker returns 'not_found', which handleErrors maps to BadSymbol —
                 // fall through to the search-driven base resolution; let network failures propagate
-                if (!isTrue((e is BadSymbol)))
+                if (!(e is BadSymbol))
                 {
                     throw e;
                 }
@@ -543,7 +543,7 @@ public partial class kalshi : PredictionExchange
                 {
                     // an unknown series is a plain miss — the free-text fallback below still runs;
                     // let network failures propagate
-                    if (!isTrue((e is BadSymbol)))
+                    if (!(e is BadSymbol))
                     {
                         throw e;
                     }
@@ -2681,7 +2681,7 @@ public partial class kalshi : PredictionExchange
                 ((IList<object>)rawEvents).Add(fullEvent);
             } catch(Exception e)
             {
-                if (!isTrue((e is BadSymbol)))
+                if (!(e is BadSymbol))
                 {
                     throw e;
                 }

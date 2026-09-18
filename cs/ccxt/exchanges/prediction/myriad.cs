@@ -485,7 +485,7 @@ public partial class myriad : PredictionExchange
             result = await this.myriadPublicGetQuestionsId(this.extend(request, parameters));
         } catch(Exception e)
         {
-            if (isTrue((e is RateLimitExceeded)) || isTrue((e is AuthenticationError)))
+            if ((e is RateLimitExceeded) || (e is AuthenticationError))
             {
                 throw e;
             }
@@ -4277,7 +4277,7 @@ public partial class myriad : PredictionExchange
             { "id", requestId },
         };
         object positions = await this.watch(url, messageHash, subscribeMsg, channel);
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             return ccxt.BaseExchange.ToPositionList(positions);
         }

@@ -148,7 +148,7 @@ public partial class hollaex : ccxt.hollaex
         symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
         string messageHash = add(("trade" + ":"), (market.ContainsKey("id") ? market["id"] : null));
         object trades = await this.watchPublic(messageHash, parameters);
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             limitVar = callDynamically(trades, "getLimit", new object[] {symbolVar, limitVar});
         }
@@ -223,7 +223,7 @@ public partial class hollaex : ccxt.hollaex
             messageHash = messageHash + add(":", (market.ContainsKey("id") ? market["id"] : null));
         }
         object trades = await this.watchPrivate(messageHash, parameters);
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             limitVar = callDynamically(trades, "getLimit", new object[] {symbolVar, limitVar});
         }
@@ -323,7 +323,7 @@ public partial class hollaex : ccxt.hollaex
             messageHash = messageHash + add(":", (market.ContainsKey("id") ? market["id"] : null));
         }
         object orders = await this.watchPrivate(messageHash, parameters);
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             limitVar = callDynamically(orders, "getLimit", new object[] {symbolVar, limitVar});
         }
@@ -562,7 +562,7 @@ public partial class hollaex : ccxt.hollaex
             }
         } catch(Exception e)
         {
-            if (isTrue(e is AuthenticationError))
+            if (e is AuthenticationError)
             {
                 return ((bool?)((object)(false)));
             }

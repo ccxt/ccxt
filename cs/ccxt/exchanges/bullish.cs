@@ -1533,7 +1533,7 @@ public partial class bullish : Exchange
                 }
             } catch(Exception e)
             {
-                if (isTrue(e is RateLimitExceeded))
+                if (e is RateLimitExceeded)
                 {
                     throw e;
                 }
@@ -2047,7 +2047,7 @@ public partial class bullish : Exchange
         IList<object> postOnlyparametersVariable = (IList<object>)this.handlePostOnly(isMarketOrder, isEqual(typeVar, "POST_ONLY"), parameters);
         postOnly = (bool)((IList<object>)postOnlyparametersVariable)[0];
         parameters = ((IList<object>)postOnlyparametersVariable)[1];
-        if (isTrue(postOnly))
+        if (postOnly)
         {
             typeVar = "POST_ONLY";
         }

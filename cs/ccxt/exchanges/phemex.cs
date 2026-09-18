@@ -3765,7 +3765,7 @@ public partial class phemex : Exchange
             }
         } catch(Exception e)
         {
-            if (isTrue(e is OrderNotFound))
+            if (e is OrderNotFound)
             {
                 return ccxt.BaseExchange.ToOrderList(new List<object>() {});
             }

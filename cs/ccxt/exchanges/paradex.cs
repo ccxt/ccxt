@@ -2067,7 +2067,7 @@ public partial class paradex : Exchange
         bool postOnly = this.isPostOnly(isMarket, null, parameters);
         if (!isMarket)
         {
-            if (isTrue(postOnly))
+            if (postOnly)
             {
                 ((IDictionary<string,object>)request)["instruction"] = "POST_ONLY";
             } else if ((timeInForce == "IOC"))

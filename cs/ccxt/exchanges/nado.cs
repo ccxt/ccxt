@@ -3158,7 +3158,7 @@ public partial class nado : Exchange
         } else if ((timeInForce == "FOK"))
         {
             orderType = 2;
-        } else if (isTrue(postOnly) || ((timeInForce == "PO")))
+        } else if (postOnly || ((timeInForce == "PO")))
         {
             orderType = 3;
         } else if (((timeInForce != null)) && ((timeInForce != "GTC")))

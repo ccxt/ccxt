@@ -2433,7 +2433,7 @@ public partial class grvt : Exchange
         };
         string? timeInForce = this.safeStringUpper(parameters, "timeInForce", "GOOD_TILL_TIME");
         bool postOnly = this.isPostOnly(isMarketOrder, null, parameters);
-        if (isTrue(postOnly))
+        if (postOnly)
         {
             ((IDictionary<string,object>)orderRequest)["post_only"] = true;
         }
@@ -2452,7 +2452,7 @@ public partial class grvt : Exchange
         ((IDictionary<string,object>)orderRequest)["time_in_force"] = timeInForce;
         if (!isMarketOrder)
         {
-            if (isTrue(postOnly))
+            if (postOnly)
             {
                 timeInForce = "POST_ONLY";
             } else if ((timeInForce == "ioc"))
@@ -2839,7 +2839,7 @@ public partial class grvt : Exchange
         Int64? timestamp = this.safeIntegerProduct(position, "event_time", 0.000001);
         string? sizeRaw = this.safeString(position, "size");
         bool isLong = (Precise.stringGe(sizeRaw, "0"));
-        string side = ((bool) isTrue(isLong)) ? "long" : "short";
+        string side = ((bool) isLong) ? "long" : "short";
         return this.safePosition(new Dictionary<string, object>() {
             { "info", position },
             { "id", null },
@@ -3652,7 +3652,7 @@ public partial class grvt : Exchange
         return new Dictionary<string, object>() {
             { "name", "GRVT Exchange" },
             { "version", "0" },
-            { "chainId", ((bool) isTrue(this.isSandboxModeEnabled)) ? 326 : 325 },
+            { "chainId", ((bool) this.isSandboxModeEnabled) ? 326 : 325 },
         };
     }
 
@@ -3756,7 +3756,7 @@ public partial class grvt : Exchange
             { "v", 0 },
             { "expiration", ((object)expiration).ToString() },
             { "nonce", this.nonce() },
-            { "chain_id", ((bool) isTrue(this.isSandboxModeEnabled)) ? "326" : "325" },
+            { "chain_id", ((bool) this.isSandboxModeEnabled) ? "326" : "325" },
         };
     }
 

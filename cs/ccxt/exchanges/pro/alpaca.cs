@@ -184,7 +184,7 @@ public partial class alpaca : ccxt.alpaca
         };
         string messageHash = add("ohlcv:", symbolVar);
         object ohlcv = await this.watch(url, messageHash, this.extend(request, parameters), messageHash);
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             limitVar = callDynamically(ohlcv, "getLimit", new object[] {symbolVar, limitVar});
         }
@@ -348,7 +348,7 @@ public partial class alpaca : ccxt.alpaca
             { "trades", new List<object>() {(market.ContainsKey("id") ? market["id"] : null)} },
         };
         object trades = await this.watch(url, messageHash, this.extend(request, parameters), messageHash);
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             limitVar = callDynamically(trades, "getLimit", new object[] {symbolVar, limitVar});
         }
@@ -419,7 +419,7 @@ public partial class alpaca : ccxt.alpaca
             } },
         };
         object trades = await this.watch(url, messageHash, this.extend(request, parameters), messageHash);
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             limitVar = callDynamically(trades, "getLimit", new object[] {symbolVar, limitVar});
         }
@@ -461,7 +461,7 @@ public partial class alpaca : ccxt.alpaca
             } },
         };
         object orders = await this.watch(url, messageHash, this.extend(request, parameters), messageHash);
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             limitVar = callDynamically(orders, "getLimit", new object[] {symbolVar, limitVar});
         }

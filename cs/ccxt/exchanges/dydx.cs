@@ -1564,7 +1564,7 @@ public partial class dydx : Exchange
             {
                 // long-term
                 orderFlag = 64;
-                if (isTrue(postOnly))
+                if (postOnly)
                 {
                     timeInForceNumber = 2;
                 } else

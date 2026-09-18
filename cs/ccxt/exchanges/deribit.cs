@@ -2361,7 +2361,7 @@ public partial class deribit : Exchange
         if ((filledString != null))
         {
             bool isFilledPositive = Precise.stringGt(filledString, "0");
-            if (isTrue(isFilledPositive))
+            if (isFilledPositive)
             {
                 lastTradeTimestamp = lastUpdate;
             }
@@ -2566,7 +2566,7 @@ public partial class deribit : Exchange
         {
             ((IDictionary<string,object>)request)["reduce_only"] = true;
         }
-        if (isTrue(postOnly))
+        if (postOnly)
         {
             ((IDictionary<string,object>)request)["post_only"] = true;
             ((IDictionary<string,object>)request)["reject_post_only"] = true;

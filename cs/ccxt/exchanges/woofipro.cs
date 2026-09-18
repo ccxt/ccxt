@@ -2257,7 +2257,7 @@ public partial class woofipro : Exchange
         ((IDictionary<string,object>)request)[(string)typeKey] = orderType; // LIMIT/MARKET/IOC/FOK/POST_ONLY/ASK/BID
         if (!isConditional)
         {
-            if (isTrue(postOnly))
+            if (postOnly)
             {
                 ((IDictionary<string,object>)request)["order_type"] = "POST_ONLY";
             } else if ((timeInForce == "fok"))
@@ -2508,7 +2508,7 @@ public partial class woofipro : Exchange
             string? timeInForce = this.safeStringLower(parameters, "timeInForce");
             bool isMarket = (orderType == "MARKET");
             bool postOnly = this.isPostOnly(isMarket, null, parameters);
-            if (isTrue(postOnly))
+            if (postOnly)
             {
                 ((IDictionary<string,object>)request)["order_type"] = "POST_ONLY";
             } else if ((timeInForce == "fok"))

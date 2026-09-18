@@ -159,7 +159,7 @@ public partial class bitfinex : ccxt.bitfinex
         string? url = ((string)getValue(getValue(getValue(this.urls, "api"), "ws"), "public"));
         // not using subscribe here because this message has a different format
         object ohlcv = await this.watch(url, messageHash, this.deepExtend(request, parameters), messageHash);
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             limitVar = callDynamically(ohlcv, "getLimit", new object[] {symbolVar, limitVar});
         }
@@ -313,7 +313,7 @@ public partial class bitfinex : ccxt.bitfinex
         object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         object trades = await this.subscribe("trades", symbol, parameters);
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             limitVar = callDynamically(trades, "getLimit", new object[] {symbol, limitVar});
         }
@@ -359,7 +359,7 @@ public partial class bitfinex : ccxt.bitfinex
             messageHash = messageHash + add(":", getValue(market, "id"));
         }
         object trades = await this.subscribePrivate(messageHash);
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             limitVar = callDynamically(trades, "getLimit", new object[] {symbol, limitVar});
         }
@@ -1202,7 +1202,7 @@ public partial class bitfinex : ccxt.bitfinex
             messageHash = messageHash + add(":", getValue(market, "id"));
         }
         object orders = await this.subscribePrivate(messageHash);
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             limitVar = callDynamically(orders, "getLimit", new object[] {symbol, limitVar});
         }

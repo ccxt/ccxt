@@ -19,7 +19,7 @@ public partial class testMainClass : BaseTest
         }
         public object isTemporaryFailure(object e)
         {
-            return isTrue((e is OperationFailed)) && (!isTrue((e is OnMaintenance)));
+            return (e is OperationFailed) && (!(e is OnMaintenance));
         }
         public object stringValue(object value)
         {

@@ -233,7 +233,7 @@ public partial class bitget : ccxt.bitget
             ((IList<object>)messageHashes).Add(add("ticker:", symbol));
         }
         object tickers = await this.watchPublicMultiple(uta, messageHashes, topics, parameters);
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             Dictionary<string, object> result = new Dictionary<string, object>() {};
             ((IDictionary<string,object>)result)[(string)getValue(tickers, "symbol")] = tickers;
@@ -492,7 +492,7 @@ public partial class bitget : ccxt.bitget
             ((IList<object>)messageHashes).Add(add("bidask:", symbol));
         }
         object tickers = await this.watchPublicMultiple(uta, messageHashes, topics, parameters);
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             Dictionary<string, object> result = new Dictionary<string, object>() {};
             ((IDictionary<string,object>)result)[(string)getValue(tickers, "symbol")] = tickers;
@@ -595,7 +595,7 @@ public partial class bitget : ccxt.bitget
             messageHash = add((add("candles:", timeframeVar) + ":"), symbolVar);
         }
         object ohlcv = await this.watchPublic(uta, messageHash, args, parameters);
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             limitVar = callDynamically(ohlcv, "getLimit", new object[] {symbolVar, limitVar});
         }
@@ -1192,7 +1192,7 @@ public partial class bitget : ccxt.bitget
             });
         }
         object trades = await this.watchPublicMultiple(uta, messageHashes, topics, parameters);
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             object first = this.safeValue(trades, 0);
             string? tradeSymbol = this.safeString(first, "symbol");
@@ -1491,7 +1491,7 @@ public partial class bitget : ccxt.bitget
             });
         }
         object newPositions = await this.watchPrivate(uta, messageHash, subscriptionHash, args, parameters);
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             return ccxt.BaseExchange.ToPositionList(newPositions);
         }
@@ -1847,7 +1847,7 @@ public partial class bitget : ccxt.bitget
             });
         }
         object orders = await this.watchPrivate(uta, messageHash, subscriptionHash, args, parameters);
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             limitVar = callDynamically(orders, "getLimit", new object[] {symbolVar, limitVar});
         }
@@ -2378,7 +2378,7 @@ public partial class bitget : ccxt.bitget
             });
         }
         object trades = await this.watchPrivate(uta, messageHash, subscriptionHash, args, parameters);
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             limitVar = callDynamically(trades, "getLimit", new object[] {symbolVar, limitVar});
         }
@@ -2935,7 +2935,7 @@ public partial class bitget : ccxt.bitget
             return ((bool?)((object)(false)));
         } catch(Exception e)
         {
-            if (isTrue(e is AuthenticationError))
+            if (e is AuthenticationError)
             {
                 string messageHash = "authenticated";
                 ((WebSocketClient)client).reject(e, messageHash);

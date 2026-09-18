@@ -281,7 +281,7 @@ public partial class bitstamp : ccxt.bitstamp
         };
         Dictionary<string, object> message = this.extend(request, parameters);
         object trades = await this.watch(url, messageHash, message, messageHash);
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             limitVar = callDynamically(trades, "getLimit", new object[] {symbolVar, limitVar});
         }
@@ -498,7 +498,7 @@ public partial class bitstamp : ccxt.bitstamp
             { "params", parameters },
         };
         object orders = await this.subscribePrivate(subscription, messageHash, parameters);
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             limitVar = callDynamically(orders, "getLimit", new object[] {symbolVar, limitVar});
         }
@@ -567,7 +567,7 @@ public partial class bitstamp : ccxt.bitstamp
             { "params", parameters },
         };
         object trades = await this.subscribePrivate(subscription, messageHash, parameters);
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             limitVar = callDynamically(trades, "getLimit", new object[] {symbolVar, limitVar});
         }

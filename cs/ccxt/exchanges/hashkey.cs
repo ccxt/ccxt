@@ -2910,7 +2910,7 @@ public partial class hashkey : Exchange
         IList<object> postOnlyparametersVariable = (IList<object>)this.handlePostOnly(isMarketOrder, isEqual(type, "LIMIT_MAKER"), parameters);
         postOnly = (bool)((IList<object>)postOnlyparametersVariable)[0];
         parameters = ((IList<object>)postOnlyparametersVariable)[1];
-        if (isTrue(postOnly) && (isEqual(type, "LIMIT")))
+        if (postOnly && (isEqual(type, "LIMIT")))
         {
             ((IDictionary<string,object>)request)["type"] = "LIMIT_MAKER";
         }
@@ -2980,7 +2980,7 @@ public partial class hashkey : Exchange
         IList<object> postOnlyparametersVariable = (IList<object>)this.handlePostOnly(isMarketOrder, (timeInForce == "LIMIT_MAKER"), parameters);
         postOnly = (bool)((IList<object>)postOnlyparametersVariable)[0];
         parameters = ((IList<object>)postOnlyparametersVariable)[1];
-        if (isTrue(postOnly))
+        if (postOnly)
         {
             timeInForce = "LIMIT_MAKER";
         }

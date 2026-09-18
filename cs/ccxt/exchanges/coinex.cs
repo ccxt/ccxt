@@ -2712,7 +2712,7 @@ public partial class coinex : Exchange
                 ((IDictionary<string,object>)request)["side"] = side;
             }
             object requestType = type;
-            if (isTrue(postOnly))
+            if (postOnly)
             {
                 requestType = "maker_only";
             } else if ((timeInForceRaw != null))

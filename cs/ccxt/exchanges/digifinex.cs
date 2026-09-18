@@ -2249,7 +2249,7 @@ public partial class digifinex : Exchange
             }
             ((IDictionary<string,object>)request)["amount"] = quantity;
         }
-        if (isTrue(postOnly))
+        if (postOnly)
         {
             if ((!isEqual(postOnlyParsed, null)) && (!isEqual(postOnlyParsed, 0)))
             {

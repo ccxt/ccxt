@@ -30,7 +30,7 @@ public partial class testMainClass : BaseTest
                 response = ((IOrderBook)(await exchange.WatchOrderBook(((string)symbol)))).Copy();
             } catch(Exception e)
             {
-                if (!isTrue(testSharedMethods.isTemporaryFailure(e)) && !isTrue((e is InvalidNonce)))
+                if (!isTrue(testSharedMethods.isTemporaryFailure(e)) && !(e is InvalidNonce))
                 {
                     throw e;
                 }

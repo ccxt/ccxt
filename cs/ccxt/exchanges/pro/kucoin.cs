@@ -524,7 +524,7 @@ public partial class kucoin : ccxt.kucoin
         {
             object allTopic = add(method, ":all");
             tickers = await this.subscribe(url, messageHash, allTopic, parameters);
-            if (isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 return ccxt.BaseExchange.ToTickers(tickers);
             }
@@ -533,7 +533,7 @@ public partial class kucoin : ccxt.kucoin
             IList<object> marketIds = this.marketIds(symbols);
             object symbolsTopic = add(add(method, ":"), String.Join(",", ((IList<object>)marketIds).ToArray()));
             tickers = await this.subscribeMultiple(url, messageHashes, symbolsTopic, topics, parameters);
-            if (isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 Dictionary<string, object> newDict = new Dictionary<string, object>() {};
                 ((IDictionary<string,object>)newDict)[(string)getValue(tickers, "symbol")] = tickers;
@@ -593,7 +593,7 @@ public partial class kucoin : ccxt.kucoin
             ((IList<object>)messageHashes).Add(subMessageHash);
         }
         object tickers = await this.subscribePublicMultipleUta(messageHashes, "ticker", symbols, parameters);
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             return ccxt.BaseExchange.ToTickers(tickers);
         }
@@ -846,7 +846,7 @@ public partial class kucoin : ccxt.kucoin
             channelName = "/contractMarket/tickerV2:";
         }
         object ticker = await this.watchMultiHelper("watchBidsAsks", channelName, isFuturesMethod, symbols, parameters);
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             Dictionary<string, object> tickers = new Dictionary<string, object>() {};
             ((IDictionary<string,object>)tickers)[(string)getValue(ticker, "symbol")] = ticker;
@@ -1026,7 +1026,7 @@ public partial class kucoin : ccxt.kucoin
             object topic = add(add(add(channelName, getValue(market, "id")), "_"), period);
             ohlcv = await this.subscribe(url, messageHash, topic, parameters);
         }
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             limitVar = callDynamically(ohlcv, "getLimit", new object[] {symbolVar, limitVar});
         }
@@ -1240,7 +1240,7 @@ public partial class kucoin : ccxt.kucoin
             string messageHash = add("uta:trades:", symbolVar);
             string channel = "trade";
             object trades = await this.subscribePublicUta(messageHash, channel, symbolVar, parameters);
-            if (isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 object first = this.safeValue(trades, 0);
                 string? tradeSymbol = this.safeString(first, "symbol");
@@ -1297,7 +1297,7 @@ public partial class kucoin : ccxt.kucoin
             ((IList<object>)subscriptionHashes).Add(add(channelName, marketId));
         }
         object trades = await this.subscribeMultiple(url, messageHashes, topic, subscriptionHashes, parameters);
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             object first = this.safeValue(trades, 0);
             string? tradeSymbol = this.safeString(first, "symbol");
@@ -2217,7 +2217,7 @@ public partial class kucoin : ccxt.kucoin
             };
             orders = await this.subscribe(url, messageHash, topic, this.extend(request, parameters));
         }
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             limitVar = callDynamically(orders, "getLimit", new object[] {symbolVar, limitVar});
         }
@@ -2670,7 +2670,7 @@ public partial class kucoin : ccxt.kucoin
             }
             trades = await this.subscribe(url, messageHash, topic, this.extend(request, parameters));
         }
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             limitVar = callDynamically(trades, "getLimit", new object[] {symbolVar, limitVar});
         }
@@ -3223,7 +3223,7 @@ public partial class kucoin : ccxt.kucoin
             { "tradeType", tradeType },
         });
         object newPositions = await this.subscribePrivateUta(messageHashes, channel, channel, null, parameters);
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             return ccxt.BaseExchange.ToPositionList(newPositions);
         }

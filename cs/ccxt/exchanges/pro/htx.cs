@@ -287,7 +287,7 @@ public partial class htx : ccxt.htx
         string messageHash = (("market." + (getValue(market, "id"))) + ".trade.detail");
         object url = this.getUrlByMarketType(getValue(market, "type"), getValue(market, "linear"));
         object trades = await this.subscribePublic(url, symbolVar, messageHash, null, parameters);
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             limitVar = callDynamically(trades, "getLimit", new object[] {symbolVar, limitVar});
         }
@@ -402,7 +402,7 @@ public partial class htx : ccxt.htx
         string messageHash = ((("market." + (getValue(market, "id"))) + ".kline.") + interval);
         object url = this.getUrlByMarketType(getValue(market, "type"), getValue(market, "linear"));
         object ohlcv = await this.subscribePublic(url, symbolVar, messageHash, null, parameters);
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             limitVar = callDynamically(ohlcv, "getLimit", new object[] {symbolVar, limitVar});
         }
@@ -1026,7 +1026,7 @@ public partial class htx : ccxt.htx
         {
             throw new ArgumentsRequired ((string)(this.id + " watchMyTrades() trades is required")) ;
         }
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             limitVar = callDynamically(trades, "getLimit", new object[] {symbolVar, limitVar});
         }
@@ -1172,7 +1172,7 @@ public partial class htx : ccxt.htx
             { "isV5", isV5Linear },
         };
         object orders = await this.subscribePrivate(channel, messageHash, type, subType, parameters, subscriptionParams);
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             limitVar = callDynamically(orders, "getLimit", new object[] {symbolVar, limitVar});
         }
@@ -1810,7 +1810,7 @@ public partial class htx : ccxt.htx
             { "margin", marginMode },
         };
         object newPositions = await this.subscribePrivate(channel, messageHash, type, subType, parameters, subscriptionParams);
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             return ccxt.BaseExchange.ToPositionList(newPositions);
         }
@@ -2756,7 +2756,7 @@ public partial class htx : ccxt.htx
                 throw new ExchangeError ((string)feedback) ;
             } catch(Exception e)
             {
-                if (isTrue(e is AuthenticationError))
+                if (e is AuthenticationError)
                 {
                     ((WebSocketClient)client).reject(e, "auth");
                     string method = "auth";

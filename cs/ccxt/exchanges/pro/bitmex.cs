@@ -116,7 +116,7 @@ public partial class bitmex : ccxt.bitmex
             { "args", rawSubscriptions },
         };
         object ticker = await this.watchMultiple(url, messageHashes, this.extend(request, parameters), rawSubscriptions);
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             Dictionary<string, object> result = new Dictionary<string, object>() {};
             ((IDictionary<string,object>)result)[(string)getValue(ticker, "symbol")] = ticker;
@@ -433,7 +433,7 @@ public partial class bitmex : ccxt.bitmex
             { "args", subscriptionHashes },
         };
         object newLiquidations = await this.watchMultiple(url, messageHashes, this.deepExtend(request, parameters), subscriptionHashes);
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             return ccxt.BaseExchange.ToLiquidationList(newLiquidations);
         }
@@ -805,7 +805,7 @@ public partial class bitmex : ccxt.bitmex
             { "args", new List<object>() {subscriptionHash} },
         };
         object newPositions = await this.watch(url, messageHash, request, subscriptionHash);
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             return ccxt.BaseExchange.ToPositionList(newPositions);
         }
@@ -1048,7 +1048,7 @@ public partial class bitmex : ccxt.bitmex
             { "args", new List<object>() {subscriptionHash} },
         };
         object orders = await this.watch(url, messageHash, request, subscriptionHash);
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             limitVar = callDynamically(orders, "getLimit", new object[] {symbolVar, limitVar});
         }
@@ -1279,7 +1279,7 @@ public partial class bitmex : ccxt.bitmex
             { "args", new List<object>() {subscriptionHash} },
         };
         object trades = await this.watch(url, messageHash, request, subscriptionHash);
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             limitVar = callDynamically(trades, "getLimit", new object[] {symbolVar, limitVar});
         }
@@ -1482,7 +1482,7 @@ public partial class bitmex : ccxt.bitmex
             { "args", topics },
         };
         object trades = await this.watchMultiple(url, messageHashes, this.deepExtend(request, parameters), topics);
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             object first = this.safeValue(trades, 0);
             string? tradeSymbol = this.safeString(first, "symbol");
@@ -1524,7 +1524,7 @@ public partial class bitmex : ccxt.bitmex
             { "args", new List<object>() {messageHash} },
         };
         object ohlcv = await this.watch(url, messageHash, this.extend(request, parameters), messageHash);
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             limitVar = callDynamically(ohlcv, "getLimit", new object[] {symbolVar, limitVar});
         }

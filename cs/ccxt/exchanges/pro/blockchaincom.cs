@@ -166,7 +166,7 @@ public partial class blockchaincom : ccxt.blockchaincom
         request = this.deepExtend(request, parameters);
         string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
         object ohlcv = await this.watch(url, messageHash, request, messageHash, request);
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             limitVar = callDynamically(ohlcv, "getLimit", new object[] {symbolVar, limitVar});
         }
@@ -489,7 +489,7 @@ public partial class blockchaincom : ccxt.blockchaincom
         string messageHash = "orders";
         Dictionary<string, object> request = this.deepExtend(message, parameters);
         object orders = await this.watch(url, messageHash, request, messageHash);
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             limitVar = callDynamically(orders, "getLimit", new object[] {symbolVar, limitVar});
         }

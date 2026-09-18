@@ -5935,7 +5935,7 @@ public partial class bitget : Exchange
             };
             string? feeCostString = this.safeString2(feeStructure, "totalFee", "fee");
             bool deduction = ((bool) (this.safeString(feeStructure, "deduction") == "yes")) ? true : false;
-            if (isTrue(deduction))
+            if (deduction)
             {
                 ((IDictionary<string,object>)fee)["cost"] = feeCostString;
             } else

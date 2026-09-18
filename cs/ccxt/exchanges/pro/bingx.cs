@@ -448,7 +448,7 @@ public partial class bingx : ccxt.bingx
             { "id", uuid },
         };
         object trades = await this.watch(url, messageHash, this.extend(request, parameters), messageHash, subscription);
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             limitVar = callDynamically(trades, "getLimit", new object[] {symbolVar, limitVar});
         }
@@ -1038,7 +1038,7 @@ public partial class bingx : ccxt.bingx
         };
         object result = await this.watch(url, messageHash, this.extend(request, parameters), subscriptionHash, subscriptionArgs);
         object ohlcv = getValue(result, 2);
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             limitVar = callDynamically(ohlcv, "getLimit", new object[] {symbol, limitVar});
         }
@@ -1152,7 +1152,7 @@ public partial class bingx : ccxt.bingx
             { "id", uuid },
         };
         object orders = await this.watch(url, messageHash, request, subscriptionHash, subscription);
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             limitVar = callDynamically(orders, "getLimit", new object[] {symbolVar, limitVar});
         }
@@ -1232,7 +1232,7 @@ public partial class bingx : ccxt.bingx
             { "id", uuid },
         };
         object trades = await this.watch(url, messageHash, request, subscriptionHash, subscription);
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             limitVar = callDynamically(trades, "getLimit", new object[] {symbolVar, limitVar});
         }
@@ -1419,7 +1419,7 @@ public partial class bingx : ccxt.bingx
             return ccxt.BaseExchange.ToPositionList(this.filterBySymbolsSinceLimit(snapshot, symbols, since, limit, true));
         }
         object newPositions = await this.watch(url, messageHash, null, subscriptionHash, subscription);
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             return ccxt.BaseExchange.ToPositionList(newPositions);
         }

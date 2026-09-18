@@ -411,7 +411,7 @@ public partial class cryptocom : ccxt.cryptocom
             ((IList<object>)topics).Add(currentTopic);
         }
         object trades = await this.watchPublicMultiple(topics, topics, parameters);
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             object first = this.safeValue(trades, 0);
             string? tradeSymbol = this.safeString(first, "symbol");
@@ -535,7 +535,7 @@ public partial class cryptocom : ccxt.cryptocom
         object messageHash = "user.trade";
         messageHash = ((bool) ((market != null))) ? (add(add(messageHash, "."), (market.ContainsKey("id") ? market["id"] : null))) : messageHash;
         object trades = await this.watchPrivateSubscribe(messageHash, parameters);
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             limitVar = callDynamically(trades, "getLimit", new object[] {symbolVar, limitVar});
         }
@@ -619,7 +619,7 @@ public partial class cryptocom : ccxt.cryptocom
             { "nonce", id },
         };
         object ticker = await this.watchMultiple(url, messageHashes, this.extend(request, parameters), messageHashes);
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             Dictionary<string, object> result = new Dictionary<string, object>() {};
             ((IDictionary<string,object>)result)[(string)getValue(ticker, "symbol")] = ticker;
@@ -786,7 +786,7 @@ public partial class cryptocom : ccxt.cryptocom
             { "nonce", id },
         };
         object newTickers = await this.watchMultiple(url, messageHashes, this.extend(request, parameters), messageHashes);
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             Dictionary<string, object> tickers = new Dictionary<string, object>() {};
             ((IDictionary<string,object>)tickers)[(string)getValue(newTickers, "symbol")] = newTickers;
@@ -855,7 +855,7 @@ public partial class cryptocom : ccxt.cryptocom
         string? interval = this.safeString(this.timeframes, timeframeVar, timeframeVar);
         string messageHash = add(((("candlestick" + ".") + interval) + "."), (market.ContainsKey("id") ? market["id"] : null));
         object ohlcv = await this.watchPublic(messageHash, parameters);
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             limitVar = callDynamically(ohlcv, "getLimit", new object[] {symbolVar, limitVar});
         }
@@ -960,7 +960,7 @@ public partial class cryptocom : ccxt.cryptocom
         object messageHash = "user.order";
         messageHash = ((bool) ((market != null))) ? (add(add(messageHash, "."), (market.ContainsKey("id") ? market["id"] : null))) : messageHash;
         object orders = await this.watchPrivateSubscribe(messageHash, parameters);
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             limitVar = callDynamically(orders, "getLimit", new object[] {symbolVar, limitVar});
         }
@@ -1071,7 +1071,7 @@ public partial class cryptocom : ccxt.cryptocom
             return ccxt.BaseExchange.ToPositionList(this.filterBySymbolsSinceLimit(snapshot, symbols, since, limit, true));
         }
         object newPositions = await this.watch(url, messageHash, this.extend(request, parameters));
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             return ccxt.BaseExchange.ToPositionList(newPositions);
         }
@@ -1531,7 +1531,7 @@ public partial class cryptocom : ccxt.cryptocom
             return ((bool?)((object)(false)));
         } catch(Exception e)
         {
-            if (isTrue(e is AuthenticationError))
+            if (e is AuthenticationError)
             {
                 string messageHash = "authenticated";
                 ((WebSocketClient)client).reject(e, messageHash);

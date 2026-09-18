@@ -98,7 +98,7 @@ public partial class nado : ccxt.nado
         Dictionary<string, object> market = this.market(symbol);
         string messageHash = add("trade:", (market.ContainsKey("symbol") ? market["symbol"] : null));
         object trades = await this.watchPublic("trade", market, messageHash, parameters);
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             limitVar = callDynamically(trades, "getLimit", new object[] {(market.ContainsKey("symbol") ? market["symbol"] : null), limitVar});
         }
@@ -152,7 +152,7 @@ public partial class nado : ccxt.nado
             ((IList<object>)messageHashes).Add(add("trade:", (market.ContainsKey("symbol") ? market["symbol"] : null)));
         }
         object trades = await this.watchPublicMultiple("trade", markets, messageHashes, parameters);
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             IDictionary<string, object> first = this.safeDict(trades, 0);
             string? tradeSymbol = this.safeString(first, "symbol");
@@ -327,7 +327,7 @@ public partial class nado : ccxt.nado
         };
         object result = await this.watchPublic("latest_candlestick", market, messageHash, this.extend(request, parameters));
         object stored = getValue(result, 2);
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             limitVar = callDynamically(stored, "getLimit", new object[] {(market.ContainsKey("symbol") ? market["symbol"] : null), limitVar});
         }
@@ -373,7 +373,7 @@ public partial class nado : ccxt.nado
         var resultSymbol = ((IList<object>) resultSymbolresultTimeframestoredVariable)[0];
         var resultTimeframe = ((IList<object>) resultSymbolresultTimeframestoredVariable)[1];
         var stored = ((IList<object>) resultSymbolresultTimeframestoredVariable)[2];
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             limit = callDynamically(stored, "getLimit", new object[] {resultSymbol, limit});
         }
@@ -499,7 +499,7 @@ public partial class nado : ccxt.nado
             }
         }
         object ticker = await this.watchPublic(streamType, market, messageHash, parameters);
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             if ((messageHash == "ticker"))
             {
@@ -570,7 +570,7 @@ public partial class nado : ccxt.nado
             }
         }
         object ticker = await this.watchPublic(streamType, market, messageHash, parameters);
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             if ((messageHash == "bidask"))
             {
@@ -655,7 +655,7 @@ public partial class nado : ccxt.nado
             { "product_id", productId },
         };
         object orders = await this.watchPrivate("order_update", stream, messageHash, parameters);
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             limitVar = callDynamically(orders, "getLimit", new object[] {symbolVar, limitVar});
         }
@@ -743,7 +743,7 @@ public partial class nado : ccxt.nado
             { "product_id", productId },
         };
         object trades = await this.watchPrivate("fill", stream, messageHash, parameters);
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             limitVar = callDynamically(trades, "getLimit", new object[] {symbolVar, limitVar});
         }
@@ -832,7 +832,7 @@ public partial class nado : ccxt.nado
             { "product_id", productId },
         };
         object positions = await this.watchPrivate("position_change", stream, messageHash, parameters);
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             return ccxt.BaseExchange.ToPositionList(positions);
         }

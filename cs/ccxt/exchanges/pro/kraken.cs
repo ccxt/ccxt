@@ -745,7 +745,7 @@ public partial class kraken : ccxt.kraken
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols, null, false);
         object ticker = await this.watchMultiHelper("ticker", "ticker", symbols, null, parameters);
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             Dictionary<string, object> result = new Dictionary<string, object>() {};
             ((IDictionary<string,object>)result)[(string)getValue(ticker, "symbol")] = ticker;
@@ -770,7 +770,7 @@ public partial class kraken : ccxt.kraken
         symbols = this.marketSymbols(symbols, null, false);
         ((IDictionary<string,object>)parameters)["event_trigger"] = "bbo";
         object ticker = await this.watchMultiHelper("bidask", "ticker", symbols, null, parameters);
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             Dictionary<string, object> result = new Dictionary<string, object>() {};
             ((IDictionary<string,object>)result)[(string)getValue(ticker, "symbol")] = ticker;
@@ -812,7 +812,7 @@ public partial class kraken : ccxt.kraken
         object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         object trades = await this.watchMultiHelper("trade", "trade", symbols, null, parameters);
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             List<object> first = this.safeList(trades, 0);
             string? tradeSymbol = this.safeString(first, "symbol");
@@ -904,7 +904,7 @@ public partial class kraken : ccxt.kraken
         };
         Dictionary<string, object> request = this.deepExtend(subscribe, parameters);
         object ohlcv = await this.watch(url, messageHash, request, messageHash);
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             limitVar = callDynamically(ohlcv, "getLimit", new object[] {symbolVar, limitVar});
         }
@@ -1277,7 +1277,7 @@ public partial class kraken : ccxt.kraken
             ((IDictionary<string,object>)subscribe)["params"] = this.deepExtend(((IDictionary<string,object>)subscribe)["params"], parameters);
         }
         object result = await this.watch(url, messageHash, subscribe, subscriptionHash);
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             limit = callDynamically(result, "getLimit", new object[] {symbol, limit});
         }

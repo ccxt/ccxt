@@ -1285,7 +1285,7 @@ public partial class bitopro : Exchange
             }
         }
         bool postOnly = this.isPostOnly((orderType == "MARKET"), null, parameters);
-        if (isTrue(postOnly))
+        if (postOnly)
         {
             ((IDictionary<string,object>)request)["timeInForce"] = "POST_ONLY";
         }

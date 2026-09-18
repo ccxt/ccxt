@@ -114,7 +114,7 @@ public partial class p2b : ccxt.p2b
         List<object> request = new List<object>() {(market.ContainsKey("id") ? market["id"] : null), channel};
         string messageHash = add("kline::", (market.ContainsKey("symbol") ? market["symbol"] : null));
         object ohlcv = await this.subscribe("kline.subscribe", messageHash, request, parameters);
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             limitVar = callDynamically(ohlcv, "getLimit", new object[] {symbol, limitVar});
         }
@@ -250,7 +250,7 @@ public partial class p2b : ccxt.p2b
         };
         Dictionary<string, object> query = this.extend(subscribe, parameters);
         object trades = await this.watchMultiple(url, messageHashes, query, messageHashes);
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             object first = this.safeValue(trades, 0);
             string? tradeSymbol = this.safeString(first, "symbol");

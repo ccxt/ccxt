@@ -2138,7 +2138,7 @@ public partial class kucoin : Exchange
         IDictionary<string, object> fetchMarketsOptions = this.safeDict(this.options, "fetchMarkets");
         List<object> types = this.safeList(fetchMarketsOptions, "types", defaultTypes);
         bool credentialsSet = this.checkRequiredCredentials(false);
-        bool requestMarginables = isTrue(credentialsSet) && isTrue(this.safeBool(parameters, "marginables", true));
+        bool requestMarginables = credentialsSet && isTrue(this.safeBool(parameters, "marginables", true));
         parameters = this.omit(parameters, "marginables");
         bool fetchContractMarkets = false;
         if (this.inArray("swap", types) || this.inArray("future", types) || this.inArray("contract", types))
@@ -2201,7 +2201,7 @@ public partial class kucoin : Exchange
         {
             ((IList<object>)promises).Add(this.FetchContractMarkets(parameters));
         }
-        if (isTrue(credentialsSet))
+        if (credentialsSet)
         {
             // load migration status for account
             ((IList<object>)promises).Add(this.loadMigrationStatus());
@@ -4476,7 +4476,7 @@ public partial class kucoin : Exchange
             {
                 throw new BadRequest ((string)(this.id + " fetchOrderBook() limit argument must be 20 or 100")) ;
             }
-        } else if (!isTrue(isAuthenticated) || !isEqual(limit, null))
+        } else if (!isAuthenticated || !isEqual(limit, null))
         {
             if ((level == 2))
             {

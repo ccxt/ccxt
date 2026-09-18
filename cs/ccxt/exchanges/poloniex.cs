@@ -2408,7 +2408,7 @@ public partial class poloniex : Exchange
             }
             upperCaseType = ((bool) (isEqual(price, null))) ? "STOP" : "STOP_LIMIT";
             ((IDictionary<string,object>)request)["stopPrice"] = triggerPrice;
-        } else if (isTrue(isPostOnly))
+        } else if (isPostOnly)
         {
             upperCaseType = "LIMIT_MAKER";
         }

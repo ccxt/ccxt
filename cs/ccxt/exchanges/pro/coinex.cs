@@ -498,7 +498,7 @@ public partial class coinex : ccxt.coinex
         };
         Dictionary<string, object> request = this.deepExtend(message, parameters);
         object trades = await this.watch(url, messageHash, request, messageHash);
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             limitVar = callDynamically(trades, "getLimit", new object[] {symbolVar, limitVar});
         }
@@ -755,7 +755,7 @@ public partial class coinex : ccxt.coinex
             { "id", this.requestId() },
         };
         object result = await this.watchMultiple(url, messageHashes, this.deepExtend(subscribe, parameters), subscriptionHashes);
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             return ccxt.BaseExchange.ToTickers(result);
         }
@@ -835,7 +835,7 @@ public partial class coinex : ccxt.coinex
             { "id", this.requestId() },
         };
         object trades = await this.watchMultiple(url, messageHashes, this.deepExtend(subscribe, parameters), messageHashes);
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             return ccxt.BaseExchange.ToTradeList(trades);
         }
@@ -913,7 +913,7 @@ public partial class coinex : ccxt.coinex
         // const subscriptionHashes = this.hash (this.encode (this.json (watchOrderBookSubscriptions)), sha256);
         object url = getValue(getValue(getValue(this.urls, "api"), "ws"), type);
         object orderbooks = await this.watchMultiple(url, messageHashes, this.deepExtend(subscribe, parameters), messageHashes);
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             return ccxt.BaseExchange.ToOrderBookSnapshot(orderbooks);
         }
@@ -1089,7 +1089,7 @@ public partial class coinex : ccxt.coinex
         object url = getValue(getValue(getValue(this.urls, "api"), "ws"), type);
         Dictionary<string, object> request = this.deepExtend(message, parameters);
         object orders = await this.watch(url, messageHash, request, messageHash, request);
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             limitVar = callDynamically(orders, "getLimit", new object[] {symbolVar, limitVar});
         }
@@ -1428,7 +1428,7 @@ public partial class coinex : ccxt.coinex
             { "id", this.requestId() },
         };
         object result = await this.watchMultiple(url, messageHashes, this.deepExtend(subscribe, parameters), subscriptionHashes);
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             return ccxt.BaseExchange.ToTickers(result);
         }

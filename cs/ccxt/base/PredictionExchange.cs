@@ -1023,7 +1023,7 @@ public partial class PredictionExchange : BaseExchange
             {
                 // a query with zero matches surfaces as BadSymbol on some venues — treat it as a
                 // plain miss (the guidance-rich throw below); let real transport errors propagate
-                if (!isTrue((e is BadSymbol)))
+                if (!(e is BadSymbol))
                 {
                     throw e;
                 }

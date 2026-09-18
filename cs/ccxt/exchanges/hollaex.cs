@@ -1475,7 +1475,7 @@ public partial class hollaex : Exchange
         {
             ((IDictionary<string,object>)request)["stop"] = this.priceToPrecision(symbol, triggerPrice);
         }
-        if (isTrue(postOnly))
+        if (postOnly)
         {
             ((IDictionary<string,object>)request)["meta"] = new Dictionary<string, object>() {
                 { "post_only", true },

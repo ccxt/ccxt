@@ -3756,7 +3756,7 @@ public partial class bitmex : Exchange
         object cost = this.safeValue(config, "cost", 1);
         if (!isEqual(cost, 1))
         {
-            if (isTrue(isAuthenticated))
+            if (isAuthenticated)
             {
                 return cost;
             } else
@@ -4320,7 +4320,7 @@ public partial class bitmex : Exchange
         }
         object url = add(getValue(getValue(this.urls, "api"), api), query);
         bool isAuthenticated = this.checkRequiredCredentials(false);
-        if (isEqual(api, "private") || (isEqual(api, "public") && isTrue(isAuthenticated)))
+        if (isEqual(api, "private") || (isEqual(api, "public") && isAuthenticated))
         {
             this.checkRequiredCredentials();
             object auth = add(method, query);

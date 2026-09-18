@@ -1210,7 +1210,7 @@ public partial class coinone : Exchange
             if (((remainingString != null)) && ((amountString != null)))
             {
                 bool isLessThan = Precise.stringLt(remainingString, amountString);
-                if (isTrue(isLessThan))
+                if (isLessThan)
                 {
                     status = "canceled";
                 }

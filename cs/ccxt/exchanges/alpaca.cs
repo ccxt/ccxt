@@ -2134,7 +2134,7 @@ public partial class alpaca : Exchange
         {
             currency = this.currency(((string)code));
         }
-        bool sandboxMode = isTrue(this.isSandboxModeEnabled) || isTrue(this.safeBool(this.options, "sandboxMode", false));
+        bool sandboxMode = this.isSandboxModeEnabled || isTrue(this.safeBool(this.options, "sandboxMode", false));
         if ((sandboxMode == true))
         {
             // paper-trading hosts do not serve the crypto wallets api at all, so route
