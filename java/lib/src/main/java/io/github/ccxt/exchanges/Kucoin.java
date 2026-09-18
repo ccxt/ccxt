@@ -13052,7 +13052,7 @@ public class Kucoin extends KucoinApi
                 }
             } else if (!java.util.Objects.equals(type, null))
             {
-                if (Helpers.isGreaterThan(Helpers.getIndexOf(type, "long"), Helpers.opNeg(1)))
+                if (Helpers.isGreaterThan(((String)type).indexOf("long"), Helpers.opNeg(1)))
                 {
                     side = "long";
                 } else

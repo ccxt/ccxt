@@ -2302,21 +2302,21 @@ public class Nado extends io.github.ccxt.exchanges.Nado
         {
             return;
         }
-        if (Helpers.isEqual(Helpers.getIndexOf(messageHash, "trade:"), 0))
+        if (Helpers.isEqual(((String)messageHash).indexOf("trade:"), 0))
         {
             Object symbol = Helpers.replace(((String)messageHash), "trade:", "");
             if (((Map<?, ?>)this.trades).containsKey(symbol))
             {
                 ((Map<String,Object>)this.trades).remove((String)symbol);
             }
-        } else if (Helpers.isEqual(Helpers.getIndexOf(messageHash, "orderbook:"), 0))
+        } else if (Helpers.isEqual(((String)messageHash).indexOf("orderbook:"), 0))
         {
             Object symbol = Helpers.replace(((String)messageHash), "orderbook:", "");
             if (((Map<?, ?>)this.orderbooks).containsKey(symbol))
             {
                 ((Map<String,Object>)this.orderbooks).remove((String)symbol);
             }
-        } else if (Helpers.isEqual(Helpers.getIndexOf(messageHash, "ohlcv:"), 0))
+        } else if (Helpers.isEqual(((String)messageHash).indexOf("ohlcv:"), 0))
         {
             Object parts = Helpers.split(messageHash, ":");
             String timeframe = this.safeString(parts, 1);
@@ -2325,7 +2325,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
             {
                 ((Map<String,Object>)Helpers.GetValue(this.ohlcvs, symbol)).remove((String)timeframe);
             }
-        } else if (Helpers.isEqual(Helpers.getIndexOf(messageHash, "ticker:"), 0))
+        } else if (Helpers.isEqual(((String)messageHash).indexOf("ticker:"), 0))
         {
             Object symbol = Helpers.replace(((String)messageHash), "ticker:", "");
             if (((Map<?, ?>)this.tickers).containsKey(symbol))
@@ -2339,7 +2339,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
             {
                 ((Map<String,Object>)this.tickers).remove((String)Helpers.GetValue(symbols, i));
             }
-        } else if (Helpers.isEqual(Helpers.getIndexOf(messageHash, "bidask:"), 0))
+        } else if (Helpers.isEqual(((String)messageHash).indexOf("bidask:"), 0))
         {
             Object symbol = Helpers.replace(((String)messageHash), "bidask:", "");
             if (((Map<?, ?>)this.bidsasks).containsKey(symbol))
@@ -2353,13 +2353,13 @@ public class Nado extends io.github.ccxt.exchanges.Nado
             {
                 ((Map<String,Object>)this.bidsasks).remove((String)Helpers.GetValue(symbols, i));
             }
-        } else if (Helpers.isEqual(Helpers.getIndexOf(messageHash, "orders"), 0))
+        } else if (Helpers.isEqual(((String)messageHash).indexOf("orders"), 0))
         {
             this.orders = null;
-        } else if (Helpers.isEqual(Helpers.getIndexOf(messageHash, "myTrades"), 0))
+        } else if (Helpers.isEqual(((String)messageHash).indexOf("myTrades"), 0))
         {
             this.myTrades = null;
-        } else if (Helpers.isEqual(Helpers.getIndexOf(messageHash, "positions"), 0))
+        } else if (Helpers.isEqual(((String)messageHash).indexOf("positions"), 0))
         {
             this.positions = null;
         }

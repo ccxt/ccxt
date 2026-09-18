@@ -969,7 +969,7 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
         {
             return;
         }
-        if (Helpers.isGreaterThan(Helpers.getIndexOf(channel, "order_book"), Helpers.opNeg(1)))
+        if (Helpers.isGreaterThan(((String)channel).indexOf("order_book"), Helpers.opNeg(1)))
         {
             this.handleOrderBookSubscription(client, message);
         }
@@ -1098,7 +1098,7 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
             Object key = Helpers.GetValue(keys, i);
-            if (Helpers.isGreaterThan(Helpers.getIndexOf(channel, key), Helpers.opNeg(1)))
+            if (Helpers.isGreaterThan(((String)channel).indexOf(((String)key)), Helpers.opNeg(1)))
             {
                 Object method = Helpers.GetValue(methods, key);
                 Helpers.callDynamically(this, method, new Object[] {client, message});

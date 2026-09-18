@@ -359,7 +359,7 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
             Object key = Helpers.GetValue(keys, i);
-            if (Helpers.isEqual(Helpers.getIndexOf(key, "ticker::"), 0))
+            if (Helpers.isEqual(((String)key).indexOf("ticker::"), 0))
             {
                 ((List<Object>)messageHashes).add(key);
             }

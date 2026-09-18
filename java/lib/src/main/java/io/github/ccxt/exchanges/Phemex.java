@@ -995,7 +995,7 @@ public class Phemex extends PhemexApi
         if (java.util.Objects.equals(settle, "USDT"))
         {
             contractSize = this.parseNumber("1");
-        } else if (!Helpers.isEqual(Helpers.getIndexOf(contractSizeString, " "), Helpers.opNeg(1)))
+        } else if (!Helpers.isEqual(((String)contractSizeString).indexOf(" "), Helpers.opNeg(1)))
         {
             // "1 USD"
             // "0.005 ETH"

@@ -305,12 +305,12 @@ public class TestMain extends BaseTest
         return BaseExchange.supplyAsync(() -> {
             Object methodName = methodName3;
             // todo: temporary skip for c#
-            if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(methodName, "OrderBook"), 0) && java.util.Objects.equals(this.ext, "cs"))
+            if (Helpers.isGreaterThanOrEqual(((String)methodName).indexOf("OrderBook"), 0) && java.util.Objects.equals(this.ext, "cs"))
             {
                 Helpers.addElementToObject(exchange.options, "checksum", false);
             }
             // todo: temporary skip for php
-            if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(methodName, "OrderBook"), 0) && java.util.Objects.equals(this.ext, "php"))
+            if (Helpers.isGreaterThanOrEqual(((String)methodName).indexOf("OrderBook"), 0) && java.util.Objects.equals(this.ext, "php"))
             {
                 return true;
             }
@@ -1136,7 +1136,7 @@ public class TestMain extends BaseTest
                         {
                             unscopedError = exceptionMessage(e);
                         }
-                        Assert(Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(unscopedError, "requires at least one of"), 0), Helpers.add(Helpers.add(exchange.id, " fetchEvents () without a scope must throw ArgumentsRequired, got: "), unscopedError));
+                        Assert(Helpers.isGreaterThanOrEqual(((String)unscopedError).indexOf("requires at least one of"), 0), Helpers.add(Helpers.add(exchange.id, " fetchEvents () without a scope must throw ArgumentsRequired, got: "), unscopedError));
                     }
                     // every venue requires fetchEvents to be scoped; a skip-tests.json
                     // preferredEventQuery supplies a query known to match the venue's markets
@@ -1243,7 +1243,7 @@ public class TestMain extends BaseTest
                     {
                         tickersError = exceptionMessage(e);
                     }
-                    Assert(Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(tickersError, "requires an outcomes argument"), 0), Helpers.add(Helpers.add(exchange.id, " fetchTickers () without outcomes must throw ArgumentsRequired, got: "), tickersError));
+                    Assert(Helpers.isGreaterThanOrEqual(((String)tickersError).indexOf("requires an outcomes argument"), 0), Helpers.add(Helpers.add(exchange.id, " fetchTickers () without outcomes must throw ArgumentsRequired, got: "), tickersError));
                 }
             }
             dump("[INFO:MAIN] Selected prediction OUTCOME:", outcomeSymbol, "| EVENT:", exchange.json(eventId));
@@ -1799,7 +1799,7 @@ public class TestMain extends BaseTest
             if (Helpers.isGreaterThan(i, 2))
             {
                 String current = (String) Helpers.GetValue(urlParts, i);
-                if (Helpers.isGreaterThan(Helpers.getIndexOf(current, "?"), Helpers.opNeg(1)))
+                if (Helpers.isGreaterThan(((String)current).indexOf("?"), Helpers.opNeg(1)))
                 {
                     // handle urls like this: /v1/account/accounts?AccessK
                     List<Object> currentParts = (List<Object>) Helpers.split(current, "?");

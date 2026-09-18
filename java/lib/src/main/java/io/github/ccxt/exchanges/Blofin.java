@@ -2542,7 +2542,7 @@ public class Blofin extends BlofinApi
         {
             return null;
         }
-        if (Helpers.isGreaterThan(Helpers.getIndexOf(chainId, "("), Helpers.opNeg(1)))
+        if (Helpers.isGreaterThan(((String)chainId).indexOf("("), Helpers.opNeg(1)))
         {
             // php-safe suffix extraction: split instead of index arithmetic,
             // because a stored strpos result and a two-argument slice do not
