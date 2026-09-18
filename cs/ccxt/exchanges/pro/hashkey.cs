@@ -155,7 +155,7 @@ public partial class hashkey : ccxt.hashkey
             ((IDictionary<string,object>)getValue(this.ohlcvs, symbol))[timeframe] = new ArrayCacheByTimestamp(limit);
         }
         List<object> data = this.safeList(message, "data", new List<object>() {});
-        object stored = getValue(getValue(this.ohlcvs, symbol), timeframe);
+        ccxt.pro.ArrayCache stored = ((ccxt.pro.ArrayCache)getValue(getValue(this.ohlcvs, symbol), timeframe));
         for (int i = 0; isLessThan(i, data.Count); postFixIncrement(ref i))
         {
             IDictionary<string, object> candle = this.safeDict(data, i, new Dictionary<string, object>() {});
@@ -313,7 +313,7 @@ public partial class hashkey : ccxt.hashkey
             Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);
             ((IDictionary<string,object>)this.trades)[(string)symbol] = new ArrayCache(limit);
         }
-        object stored = getValue(this.trades, symbol);
+        ccxt.pro.ArrayCache stored = ((ccxt.pro.ArrayCache)getValue(this.trades, symbol));
         List<object> data = this.safeList(message, "data");
         if ((data != null))
         {

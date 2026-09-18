@@ -556,7 +556,7 @@ public partial class woofipro : ccxt.woofipro
             var stored = new ArrayCache(limit);
             ((IDictionary<string,object>)this.trades)[(string)symbol] = stored;
         }
-        object trades = getValue(this.trades, symbol);
+        ccxt.pro.ArrayCache trades = ((ccxt.pro.ArrayCache)getValue(this.trades, symbol));
         callDynamically(trades, "append", new object[] {trade});
         ((IDictionary<string,object>)this.trades)[(string)symbol] = trades;
         callDynamically(client, "resolve", new object[] {trades, topic});

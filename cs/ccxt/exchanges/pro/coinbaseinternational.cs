@@ -560,7 +560,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
             Int64? limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
             ((IDictionary<string,object>)getValue(this.ohlcvs, symbol))[timeframe] = new ArrayCacheByTimestamp(limit);
         }
-        object stored = getValue(getValue(this.ohlcvs, symbol), timeframe);
+        ccxt.pro.ArrayCache stored = ((ccxt.pro.ArrayCache)getValue(getValue(this.ohlcvs, symbol), timeframe));
         List<object> data = this.safeList(message, "candles", new List<object>() {});
         for (int i = 0; isLessThan(i, data.Count); postFixIncrement(ref i))
         {
@@ -641,7 +641,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
             var tradesArrayCache = new ArrayCache(limit);
             ((IDictionary<string,object>)this.trades)[(string)((string)symbol)] = tradesArrayCache;
         }
-        object tradesArray = getValue(this.trades, ((string)symbol));
+        ccxt.pro.ArrayCache tradesArray = ((ccxt.pro.ArrayCache)getValue(this.trades, ((string)symbol)));
         callDynamically(tradesArray, "append", new object[] {trade});
         ((IDictionary<string,object>)this.trades)[(string)((string)symbol)] = tradesArray;
         callDynamically(client, "resolve", new object[] {tradesArray, channel});

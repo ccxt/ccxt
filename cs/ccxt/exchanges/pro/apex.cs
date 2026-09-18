@@ -628,7 +628,7 @@ public partial class apex : ccxt.apex
             Int64? limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
             ((IDictionary<string,object>)getValue(this.ohlcvs, symbol))[timeframe] = new ArrayCacheByTimestamp(limit);
         }
-        object stored = getValue(getValue(this.ohlcvs, symbol), timeframe);
+        ccxt.pro.ArrayCache stored = ((ccxt.pro.ArrayCache)getValue(getValue(this.ohlcvs, symbol), timeframe));
         for (int i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
         {
             List<object> parsed = this.parseWsOHLCV(getValue(data, i));

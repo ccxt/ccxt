@@ -2181,7 +2181,7 @@ public partial class opinion : PredictionExchange
             Int64? tradesLimit = this.safeInteger(this.options, "tradesLimit", 1000);
             ((IDictionary<string,object>)this.trades)[(string)sym] = new ArrayCache(tradesLimit);
         }
-        object stored = getValue(this.trades, sym);
+        ccxt.pro.ArrayCache stored = ((ccxt.pro.ArrayCache)getValue(this.trades, sym));
         callDynamically(stored, "append", new object[] {trade});
         callDynamically(client, "resolve", new object[] {stored, add("trades::", sym)});
     }

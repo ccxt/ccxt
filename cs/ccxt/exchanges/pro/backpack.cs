@@ -656,7 +656,7 @@ public partial class backpack : ccxt.backpack
             var stored = new ArrayCacheByTimestamp(limit);
             ((IDictionary<string,object>)getValue(this.ohlcvs, symbol))[timeframe] = stored;
         }
-        object ohlcv = getValue(getValue(this.ohlcvs, symbol), timeframe);
+        ccxt.pro.ArrayCache ohlcv = ((ccxt.pro.ArrayCache)getValue(getValue(this.ohlcvs, symbol), timeframe));
         List<object> parsed = this.parseWsOHLCV(data);
         callDynamically(ohlcv, "append", new object[] {parsed});
         string messageHash = add(add(add("candles:", symbol), ":"), timeframe);
@@ -824,7 +824,7 @@ public partial class backpack : ccxt.backpack
             var stored = new ArrayCache(limit);
             ((IDictionary<string,object>)this.trades)[(string)symbol] = stored;
         }
-        object cache = getValue(this.trades, symbol);
+        ccxt.pro.ArrayCache cache = ((ccxt.pro.ArrayCache)getValue(this.trades, symbol));
         Dictionary<string, object> trade = this.parseWsTrade(data, market);
         callDynamically(cache, "append", new object[] {trade});
         string messageHash = add("trades:", symbol);

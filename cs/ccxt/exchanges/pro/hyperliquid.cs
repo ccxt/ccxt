@@ -850,7 +850,7 @@ public partial class hyperliquid : ccxt.hyperliquid
             var stored = new ArrayCache(limit);
             ((IDictionary<string,object>)this.trades)[(string)symbol] = stored;
         }
-        object trades = getValue(this.trades, symbol);
+        ccxt.pro.ArrayCache trades = ((ccxt.pro.ArrayCache)getValue(this.trades, symbol));
         for (int i = 0; isLessThan(i, entry.Count); postFixIncrement(ref i))
         {
             IDictionary<string, object> data = this.safeDict(entry, i, new Dictionary<string, object>() {});
@@ -1044,7 +1044,7 @@ public partial class hyperliquid : ccxt.hyperliquid
             var stored = new ArrayCacheByTimestamp(limit);
             ((IDictionary<string,object>)getValue(this.ohlcvs, symbol))[timeframe] = stored;
         }
-        object ohlcv = getValue(getValue(this.ohlcvs, symbol), timeframe);
+        ccxt.pro.ArrayCache ohlcv = ((ccxt.pro.ArrayCache)getValue(getValue(this.ohlcvs, symbol), timeframe));
         IList<object> parsed = this.parseOHLCV(data);
         callDynamically(ohlcv, "append", new object[] {parsed});
         string messageHash = add(add(add("candles:", timeframe), ":"), symbol);

@@ -196,7 +196,7 @@ public partial class bullish : ccxt.bullish
             var tradesArrayCache = new ArrayCache(limit);
             ((IDictionary<string,object>)this.trades)[(string)symbol] = tradesArrayCache;
         }
-        object tradesArray = getValue(this.trades, symbol);
+        ccxt.pro.ArrayCache tradesArray = ((ccxt.pro.ArrayCache)getValue(this.trades, symbol));
         for (int i = 0; isLessThan(i, trades?.Count ?? 0); postFixIncrement(ref i))
         {
             callDynamically(tradesArray, "append", new object[] {getValue(trades, i)});

@@ -492,7 +492,7 @@ public partial class deepcoin : ccxt.deepcoin
             Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);
             ((IDictionary<string,object>)this.trades)[(string)symbol] = new ArrayCache(limit);
         }
-        object strored = getValue(this.trades, symbol);
+        ccxt.pro.ArrayCache strored = ((ccxt.pro.ArrayCache)getValue(this.trades, symbol));
         if ((data != null))
         {
             Dictionary<string, object> trade = this.parseWsTrade(data, market);
@@ -695,7 +695,7 @@ public partial class deepcoin : ccxt.deepcoin
             Int64? limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
             ((IDictionary<string,object>)getValue(this.ohlcvs, symbol))[timeframe] = new ArrayCacheByTimestamp(limit);
         }
-        object stored = getValue(getValue(this.ohlcvs, symbol), timeframe);
+        ccxt.pro.ArrayCache stored = ((ccxt.pro.ArrayCache)getValue(getValue(this.ohlcvs, symbol), timeframe));
         if ((data != null))
         {
             List<object> ohlcv = this.parseWsOHLCV(data, market);

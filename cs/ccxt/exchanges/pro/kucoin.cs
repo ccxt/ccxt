@@ -1429,7 +1429,7 @@ public partial class kucoin : ccxt.kucoin
             var stored = new ArrayCache(limit);
             ((IDictionary<string,object>)this.trades)[(string)((string)symbol)] = stored;
         }
-        object cache = getValue(this.trades, ((string)symbol));
+        ccxt.pro.ArrayCache cache = ((ccxt.pro.ArrayCache)getValue(this.trades, ((string)symbol)));
         callDynamically(cache, "append", new object[] {trade});
         callDynamically(client, "resolve", new object[] {cache, messageHash});
     }
@@ -1463,7 +1463,7 @@ public partial class kucoin : ccxt.kucoin
             var stored = new ArrayCache(limit);
             ((IDictionary<string,object>)this.trades)[(string)((string)symbol)] = stored;
         }
-        object cache = getValue(this.trades, ((string)symbol));
+        ccxt.pro.ArrayCache cache = ((ccxt.pro.ArrayCache)getValue(this.trades, ((string)symbol)));
         callDynamically(cache, "append", new object[] {trade});
         callDynamically(client, "resolve", new object[] {cache, messageHash});
     }
