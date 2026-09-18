@@ -7585,7 +7585,7 @@ public partial class binance : Exchange
         List<object> validOrderTypes = this.safeList(getValue(market, "info"), "orderTypes", new List<object>() {});
         if (!this.inArray(uppercaseType, validOrderTypes))
         {
-            if (!isEqual(initialUppercaseType, uppercaseType))
+            if ((initialUppercaseType != uppercaseType))
             {
                 throw new InvalidOrder ((string)(add((add((this.id + " triggerPrice parameter is not allowed for "), symbol) + " "), type) + " orders")) ;
             } else
@@ -9103,7 +9103,7 @@ public partial class binance : Exchange
             }
             if (!this.inArray(uppercaseType, validOrderTypes))
             {
-                if (!isEqual(initialUppercaseType, uppercaseType))
+                if ((initialUppercaseType != uppercaseType))
                 {
                     throw new InvalidOrder ((string)(add((add((this.id + " triggerPrice parameter is not allowed for "), symbol) + " "), type) + " orders")) ;
                 } else

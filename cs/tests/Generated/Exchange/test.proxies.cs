@@ -65,7 +65,7 @@ public partial class testMainClass : BaseTest
         {
             for (int j = 0; j < getArrayLength(possibleOptionsArray); j++)
             {
-                if (!isEqual(j, i))
+                if ((j != i))
                 {
                     string? proxyFirst = ((string)getValue(possibleOptionsArray, i));
                     string? proxySecond = ((string)getValue(possibleOptionsArray, j));

@@ -8047,7 +8047,7 @@ public partial class bitget : Exchange
                 symbol = marketId;
             } else
             {
-                if (!isEqual(symbol, marketId))
+                if ((symbol != marketId))
                 {
                     throw new BadRequest ((string)(this.id + " createOrders() requires all orders to have the same symbol")) ;
                 }
@@ -8135,7 +8135,7 @@ public partial class bitget : Exchange
                 symbol = marketId;
             } else
             {
-                if (!isEqual(symbol, marketId))
+                if ((symbol != marketId))
                 {
                     throw new BadRequest ((string)(this.id + " createOrders() requires all orders to have the same symbol")) ;
                 }

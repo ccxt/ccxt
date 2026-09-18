@@ -140,7 +140,7 @@ public partial class testMainClass
                     {
                         string? methodName = ((string)getValue(possibleMethodNames, j));
                         methodName = ((string)methodName).Replace((string)"()", (string)"");
-                        if (isEqual(testFileName, methodName))
+                        if ((testFileName == methodName))
                         {
                             ((IList<object>)this.onlySpecificTests).Add(testFileName);
                         }

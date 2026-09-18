@@ -1755,7 +1755,7 @@ public partial class myriad : PredictionExchange
                 continue;
             }
             string? currentOutcomeId = this.safeString(row, "outcomeId");
-            if (((rowOutcomeId != null)) && (!isEqual(currentOutcomeId, rowOutcomeId)))
+            if (((rowOutcomeId != null)) && ((currentOutcomeId != rowOutcomeId)))
             {
                 continue;
             }
@@ -3944,7 +3944,7 @@ public partial class myriad : PredictionExchange
         {
             List<object> myLegs = new List<object>() {};
             string? takerTrader = this.safeStringLower(taker, "trader");
-            if (isEqual(takerTrader, myWallet))
+            if ((takerTrader == myWallet))
             {
                 ((IList<object>)myLegs).Add(trade);
             }
@@ -3954,7 +3954,7 @@ public partial class myriad : PredictionExchange
             {
                 object maker = getValue(makers, i);
                 string? makerTrader = this.safeStringLower(maker, "trader");
-                if (isEqual(makerTrader, myWallet))
+                if ((makerTrader == myWallet))
                 {
                     string? makerSym = this.marketOutcomeToSymbol(networkId, marketId, this.safeString(maker, "outcome"));
                     Dictionary<string, object> makerMarket = this.safeMarket(makerSym);

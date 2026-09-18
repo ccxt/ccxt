@@ -1107,7 +1107,7 @@ public partial class kraken : ccxt.kraken
             }
             string payload = String.Join("", ((IList<object>)payloadArray).ToArray());
             Int64 localChecksum = this.crc32(payload, false);
-            if (!isEqual(localChecksum, c))
+            if ((localChecksum != c))
             {
                 var error = new ChecksumError(((this.id + " ") + (this.orderbookChecksumMessage(symbol))));
                 ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)messageHash);
