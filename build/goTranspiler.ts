@@ -2758,7 +2758,7 @@ ${constStatements.join('\n')}
 
             const file = coerceGoBoolMethodReturns (fileHeader + baseMethods + "\n", CCXT_GO_BOOL_METHOD_NAMES);
             // repeated base passes (REST / prediction recursion / WS) emit identical bytes —
-            // skip the rewrite (and its gofmt spawnSync over a ~390 KB file) after the first
+            // skip the rewrite of this ~390 KB file after the first
             this.writeGeneratedOnce (goExchangeBase, file);
         }
     }
@@ -3409,8 +3409,8 @@ ${caseStatements.join('\n')}
         return classes;
     }
 
-    // Write a generated file, skipping the write (and the blocking gofmt spawnSync inside
-    // overwriteFileAndFolder) when this process already wrote byte-identical content to the
+    // Write a generated file, skipping the write when this process already wrote
+    // byte-identical content to the
     // same path. transpileBaseMethods re-emits exchange_generated.go / exchange_wrappers.go
     // on every one of its three passes and the later passes produce the same bytes; only
     // those two paths are remembered, so the cache never grows with the ~200 per-exchange files.
