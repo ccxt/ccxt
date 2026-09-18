@@ -2399,12 +2399,22 @@ public class Bingx extends BingxApi
         //         "markPrice": "16884.5",
         //         "indexPrice": "16886.9",
         //         "lastFundingRate": "0.0001",
-        //         "nextFundingTime": 1672041600000
+        //         "nextFundingTime": 1672041600000,
+        //         "fundingIntervalHours": 8,
+        //         "updateTime": 1672012800000
         //     }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String marketId = this.safeString(contract, "symbol");
         Long nextFundingTimestamp = this.safeInteger(contract, "nextFundingTime");
+        Long timestamp = this.safeInteger(contract, "updateTime");
+        String interval = this.safeString(contract, "fundingIntervalHours");
+        Object intervalString = null;
+        if (Helpers.isTrue(!Helpers.isEqual(interval, null)))
+        {
+            intervalString = Helpers.add(interval, "h");
+        }
+        final Object finalIntervalString = intervalString;
         return new HashMap<String, Object>() {{
             put( "info", contract );
             put( "symbol", Bingx.this.safeSymbol(marketId, market, "-", "swap") );
@@ -2412,8 +2422,8 @@ public class Bingx extends BingxApi
             put( "indexPrice", Bingx.this.safeNumber(contract, "indexPrice") );
             put( "interestRate", null );
             put( "estimatedSettlePrice", null );
-            put( "timestamp", null );
-            put( "datetime", null );
+            put( "timestamp", timestamp );
+            put( "datetime", Bingx.this.iso8601(timestamp) );
             put( "fundingRate", Bingx.this.safeNumber(contract, "lastFundingRate") );
             put( "fundingTimestamp", null );
             put( "fundingDatetime", null );
@@ -2423,7 +2433,7 @@ public class Bingx extends BingxApi
             put( "previousFundingRate", null );
             put( "previousFundingTimestamp", null );
             put( "previousFundingDatetime", null );
-            put( "interval", null );
+            put( "interval", finalIntervalString );
         }};
     }
 

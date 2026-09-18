@@ -1806,6 +1806,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
                 ((Map<String,Object>)this.orderbooks).remove((String)symbol);
             }
             client.reject(error, messageHash);
+            return orderbook;
         }
         Long timestamp = this.safeInteger(message, "ts");
         Helpers.addElementToObject(orderbook, "nonce", seqId);
@@ -1926,7 +1927,11 @@ public class Okx extends io.github.ccxt.exchanges.Okx
                 io.github.ccxt.ws.WsOrderBook orderbook = this.orderBook(new HashMap<String, Object>() {{}}, limit);
                 Helpers.addElementToObject(this.orderbooks, symbol, orderbook);
                 Helpers.addElementToObject(orderbook, "symbol", symbol);
-                this.handleOrderBookMessage(client, update, orderbook, messageHash);
+                this.handleOrderBookMessage(client, update, orderbook, messageHash, market);
+                if (!Helpers.isTrue((Helpers.inOp(client.subscriptions, messageHash))))
+                {
+                    break;
+                }
                 client.resolve(orderbook, messageHash);
             }
         } else if (Helpers.isTrue(Helpers.isEqual(action, "update")))
@@ -1938,6 +1943,12 @@ public class Okx extends io.github.ccxt.exchanges.Okx
                 {
                     Object update = Helpers.GetValue(data, i);
                     this.handleOrderBookMessage(client, update, orderbook, messageHash, market);
+                    if (!Helpers.isTrue((Helpers.inOp(client.subscriptions, messageHash))))
+                    {
+                        // a nonce gap rejected the future and always cleared the subscription entry, while the book
+                        // removal alone is skipped for a frame lacking an instrument id - stop replaying leftover rows
+                        break;
+                    }
                     client.resolve(orderbook, messageHash);
                 }
             }

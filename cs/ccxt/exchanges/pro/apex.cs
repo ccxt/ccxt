@@ -144,7 +144,7 @@ public partial class apex : ccxt.apex
         List<object> parts = ((string)((string)topic)).Split(new [] {((string)".")}, StringSplitOptions.None).ToList<object>();
         string? marketId = this.safeString(parts, 2);
         Dictionary<string, object> market = this.safeMarket(marketId, null, null);
-        object symbol = getValue(market, "symbol");
+        string? symbol = ((string)getValue(market, "symbol"));
         object stored = this.safeValue(this.trades, symbol);
         if (isTrue(isEqual(stored, null)))
         {
@@ -156,7 +156,7 @@ public partial class apex : ccxt.apex
         for (object j = 0; isLessThan(j, length); postFixIncrement(ref j))
         {
             object index = subtract(subtract(length, j), 1);
-            object parsed = this.parseWsTrade(getValue(trades, index), market);
+            Dictionary<string, object> parsed = ((Dictionary<string, object>)this.parseWsTrade(getValue(trades, index), market));
             callDynamically(stored, "append", new object[] {parsed});
         }
         string messageHash = add(add("trade", ":"), symbol);
@@ -362,7 +362,7 @@ public partial class apex : ccxt.apex
         IDictionary<string, object> data = this.safeDict(message, "data", new Dictionary<string, object>() {});
         string? marketId = this.safeString(data, "s");
         Dictionary<string, object> market = this.safeMarket(marketId, null, null);
-        object symbol = getValue(market, "symbol");
+        string? symbol = ((string)getValue(market, "symbol"));
         Int64? timestamp = this.safeIntegerProduct(message, "ts", 0.001);
         if (!isTrue((inOp(this.orderbooks, symbol))))
         {
@@ -371,7 +371,7 @@ public partial class apex : ccxt.apex
         ccxt.pro.IOrderBook orderbook = this.getOrderBook(this.orderbooks, symbol);
         if (isTrue(isSnapshot))
         {
-            object snapshot = this.parseOrderBook(data, symbol, timestamp, "b", "a");
+            Dictionary<string, object> snapshot = ((Dictionary<string, object>)this.parseOrderBook(data, symbol, timestamp, "b", "a"));
             (orderbook as IOrderBook).reset(snapshot);
         } else
         {
@@ -493,7 +493,7 @@ public partial class apex : ccxt.apex
         string? updateType = this.safeString(message, "type", "");
         IDictionary<string, object> data = this.safeDict(message, "data", new Dictionary<string, object>() {});
         object symbol = null;
-        object parsed = this.parseTicker(data);
+        Dictionary<string, object> parsed = this.parseTicker(data);
         if (isTrue((isEqual(updateType, "snapshot"))))
         {
             parsed = this.parseTicker(data);
@@ -532,7 +532,7 @@ public partial class apex : ccxt.apex
      */
     public async override Task<List<ccxt.OHLCV>> WatchOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object timeframeVar = timeframe;
+        string timeframeVar = timeframe;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
         ((IDictionary<string,object>)parameters)["callerMethodName"] = "watchOHLCV";
@@ -613,12 +613,12 @@ public partial class apex : ccxt.apex
         List<object> topicParts = ((string)((string)topic)).Split(new [] {((string)".")}, StringSplitOptions.None).ToList<object>();
         int topicLength = getArrayLength(topicParts);
         string? timeframeId = this.safeString(topicParts, 1);
-        object timeframe = this.findTimeframe(timeframeId);
+        string? timeframe = this.findTimeframe(timeframeId);
         string? marketId = this.safeString(topicParts, subtract(topicLength, 1));
         bool isSpot = isGreaterThan(getIndexOf(client.url, "spot"), -1);
         string marketType = ((bool) isTrue(isSpot)) ? "spot" : "contract";
         Dictionary<string, object> market = this.safeMarket(marketId, null, null, marketType);
-        object symbol = getValue(market, "symbol");
+        string? symbol = ((string)getValue(market, "symbol"));
         if (!isTrue((inOp(this.ohlcvs, symbol))))
         {
             ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = new Dictionary<string, object>() {};
@@ -806,7 +806,7 @@ public partial class apex : ccxt.apex
         for (int i = 0; isLessThan(i, getArrayLength(lists)); postFixIncrement(ref i))
         {
             object rawTrade = getValue(lists, i);
-            object parsed = this.parseWsTrade(rawTrade);
+            Dictionary<string, object> parsed = ((Dictionary<string, object>)this.parseWsTrade(rawTrade));
             object symbol = getValue(parsed, "symbol");
             ((IDictionary<string,object>)symbols)[(string)((string)symbol)] = true;
             callDynamically(trades, "append", new object[] {parsed});
@@ -862,7 +862,7 @@ public partial class apex : ccxt.apex
         Dictionary<string, object> symbols = new Dictionary<string, object>() {};
         for (int i = 0; isLessThan(i, getArrayLength(lists)); postFixIncrement(ref i))
         {
-            object parsed = this.parseOrder(getValue(lists, i));
+            Dictionary<string, object> parsed = this.parseOrder(getValue(lists, i));
             object symbol = getValue(parsed, "symbol");
             ((IDictionary<string,object>)symbols)[(string)((string)symbol)] = true;
             callDynamically(orders, "append", new object[] {parsed});
@@ -895,7 +895,7 @@ public partial class apex : ccxt.apex
     {
         // as only one ws channel gives positions for all types, for snapshot must load all positions
         List<object> fetchFunctions = new List<object> {this.FetchPositions()};
-        object promises = await promiseAll(fetchFunctions);
+        List<object> promises = await promiseAll(fetchFunctions);
         this.positions = new ArrayCacheBySymbolBySide();
         object cache = this.positions;
         for (int i = 0; isLessThan(i, getArrayLength(promises)); postFixIncrement(ref i))
@@ -910,7 +910,7 @@ public partial class apex : ccxt.apex
         // don't remove the future from the .futures cache
         if (isTrue(inOp(client.futures, messageHash)))
         {
-            Future future = ((Future)getValue(client.futures, messageHash));
+            var future = getValue(client.futures, messageHash);
             (future as Future).resolve(cache);
             callDynamically(client as WebSocketClient, "resolve", new object[] {cache, "positions"});
         }
@@ -949,7 +949,7 @@ public partial class apex : ccxt.apex
         for (int i = 0; isLessThan(i, getArrayLength(lists)); postFixIncrement(ref i))
         {
             object rawPosition = getValue(lists, i);
-            object position = this.parsePosition(rawPosition);
+            Dictionary<string, object> position = this.parsePosition(rawPosition);
             string? side = this.safeString(position, "side");
             // hacky solution to handle closing positions
             // without crashing, we should handle this properly later
@@ -992,7 +992,7 @@ public partial class apex : ccxt.apex
         string timestamp = ((object)this.milliseconds()).ToString();
         string request_path = "/ws/accounts";
         string http_method = "GET";
-        object messageString = (add(add(timestamp, http_method), request_path));
+        string messageString = (add(add(timestamp, http_method), request_path));
         string signature = this.hmac(this.encode(messageString), this.encode(this.stringToBase64(this.secret)), sha256, "base64");
         string messageHash = "authenticated";
         var client = this.client(url);
@@ -1259,7 +1259,7 @@ public partial class apex : ccxt.apex
         string messageHash = "authenticated";
         if (isTrue(isTrue((isEqual(success, true))) || isTrue((isEqual(code, 0)))))
         {
-            Future future = ((Future)this.safeValue((client as WebSocketClient).futures, messageHash));
+            var future = this.safeValue((client as WebSocketClient).futures, messageHash);
             (future as Future).resolve(true);
         } else
         {

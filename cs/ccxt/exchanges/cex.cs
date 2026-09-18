@@ -402,7 +402,7 @@ public partial class cex : Exchange
         //            },
         //            ...
         //
-        object responses = await promiseAll(promises);
+        List<object> responses = await promiseAll(promises);
         List<object> dataCurrencies = this.safeList(getValue(responses, 0), "data", new List<object>() {});
         IDictionary<string, object> dataNetworks = this.safeDict(getValue(responses, 1), "data", new Dictionary<string, object>() {});
         Dictionary<string, object> currenciesIndexed = this.indexBy(dataCurrencies, "currency");
@@ -673,7 +673,7 @@ public partial class cex : Exchange
         return ccxt.BaseExchange.ToTickers(this.parseTickers(data, symbols));
     }
 
-    public override object parseTicker(object ticker, object market = null)
+    public override Dictionary<string, object> parseTicker(object ticker, object market = null)
     {
         string? marketId = this.safeString(ticker, "id");
         string? symbol = this.safeSymbol(marketId, market);
@@ -727,9 +727,9 @@ public partial class cex : Exchange
         {
             ((IDictionary<string,object>)request)["fromDateISO"] = this.iso8601(since);
         }
-        object until = null;
+        Int64? until = null;
         IList<object> untilparametersVariable = (IList<object>)this.handleParamInteger2(parameters, "until", "till");
-        until = ((IList<object>)untilparametersVariable)[0];
+        until = (Int64?)((IList<object>)untilparametersVariable)[0];
         parameters = ((IList<object>)untilparametersVariable)[1];
         if (isTrue(!isEqual(until, null)))
         {
@@ -760,7 +760,7 @@ public partial class cex : Exchange
         return ccxt.BaseExchange.ToTradeList(this.parseTrades(trades, market, since, limit));
     }
 
-    public override object parseTrade(object trade, object market = null)
+    public override Dictionary<string, object> parseTrade(object trade, object market = null)
     {
         //
         // public fetchTrades
@@ -853,7 +853,7 @@ public partial class cex : Exchange
      */
     public async override Task<List<ccxt.OHLCV>> FetchOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object timeframeVar = timeframe;
+        string timeframeVar = timeframe;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
         object dataType = null;
@@ -878,9 +878,9 @@ public partial class cex : Exchange
         {
             ((IDictionary<string,object>)request)["fromISO"] = this.iso8601(since);
         }
-        object until = null;
+        Int64? until = null;
         IList<object> untilparametersVariable = (IList<object>)this.handleParamInteger2(parameters, "until", "till");
-        until = ((IList<object>)untilparametersVariable)[0];
+        until = (Int64?)((IList<object>)untilparametersVariable)[0];
         parameters = ((IList<object>)untilparametersVariable)[1];
         if (isTrue(!isEqual(until, null)))
         {
@@ -978,7 +978,7 @@ public partial class cex : Exchange
                 ((IDictionary<string,object>)result)[(string)getValue(parsed, "symbol")] = parsed;
             }
         }
-        object symbols = this.symbols;
+        List<object> symbols = this.symbols;
         for (int i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
             object symbol = getValue(symbols, i);
@@ -1060,15 +1060,15 @@ public partial class cex : Exchange
     public async override Task<ccxt.Balances> FetchBalance(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object accountName = null;
+        string? accountName = null;
         IList<object> accountNameparametersVariable = (IList<object>)this.handleParamString(parameters, "account", "");
-        accountName = ((IList<object>)accountNameparametersVariable)[0];
+        accountName = (string)((IList<object>)accountNameparametersVariable)[0];
         parameters = ((IList<object>)accountNameparametersVariable)[1]; // default is empty string
-        object method = null;
+        string? method = null;
         IList<object> methodparametersVariable = (IList<object>)this.handleParamString(parameters, "method", "privatePostGetMyWalletBalance");
-        method = ((IList<object>)methodparametersVariable)[0];
+        method = (string)((IList<object>)methodparametersVariable)[0];
         parameters = ((IList<object>)methodparametersVariable)[1];
-        object accountBalance = null;
+        IDictionary<string, object> accountBalance = null;
         if (isTrue(isEqual(method, "privatePostGetMyAccountStatusV3")))
         {
             Dictionary<string, object> response = await this.privatePostGetMyAccountStatusV3(parameters);
@@ -1175,9 +1175,9 @@ public partial class cex : Exchange
             // exchange requires a `since` parameter for closed orders, so set default to allowed 365
             ((IDictionary<string,object>)request)["serverCreateTimestampFrom"] = subtract(this.milliseconds(), multiply(multiply(multiply(multiply(364, 24), 60), 60), 1000));
         }
-        object until = null;
+        Int64? until = null;
         IList<object> untilparametersVariable = (IList<object>)this.handleParamInteger2(parameters, "until", "till");
-        until = ((IList<object>)untilparametersVariable)[0];
+        until = (Int64?)((IList<object>)untilparametersVariable)[0];
         parameters = ((IList<object>)untilparametersVariable)[1];
         if (isTrue(!isEqual(until, null)))
         {
@@ -1325,7 +1325,7 @@ public partial class cex : Exchange
         return this.safeString(statuses, status, status);
     }
 
-    public override object parseOrder(object order, object market = null)
+    public override Dictionary<string, object> parseOrder(object order, object market = null)
     {
         //
         //                "orderId": "1313003",
@@ -1463,9 +1463,9 @@ public partial class cex : Exchange
             ((IDictionary<string,object>)request)["price"] = this.priceToPrecision(symbol, price);
             ((IDictionary<string,object>)request)["timeInForce"] = timeInForce;
         }
-        object triggerPrice = null;
+        string? triggerPrice = null;
         IList<object> triggerPriceparametersVariable = (IList<object>)this.handleParamString(parameters, "triggerPrice");
-        triggerPrice = ((IList<object>)triggerPriceparametersVariable)[0];
+        triggerPrice = (string)((IList<object>)triggerPriceparametersVariable)[0];
         parameters = ((IList<object>)triggerPriceparametersVariable)[1];
         if (isTrue(!isEqual(triggerPrice, null)))
         {
@@ -1629,9 +1629,9 @@ public partial class cex : Exchange
         {
             ((IDictionary<string,object>)request)["pageSize"] = limit;
         }
-        object until = null;
+        Int64? until = null;
         IList<object> untilparametersVariable = (IList<object>)this.handleParamInteger2(parameters, "until", "till");
-        until = ((IList<object>)untilparametersVariable)[0];
+        until = (Int64?)((IList<object>)untilparametersVariable)[0];
         parameters = ((IList<object>)untilparametersVariable)[1];
         if (isTrue(!isEqual(until, null)))
         {
@@ -1736,9 +1736,9 @@ public partial class cex : Exchange
         {
             ((IDictionary<string,object>)request)["pageSize"] = limit;
         }
-        object until = null;
+        Int64? until = null;
         IList<object> untilparametersVariable = (IList<object>)this.handleParamInteger2(parameters, "until", "till");
-        until = ((IList<object>)untilparametersVariable)[0];
+        until = (Int64?)((IList<object>)untilparametersVariable)[0];
         parameters = ((IList<object>)untilparametersVariable)[1];
         if (isTrue(!isEqual(until, null)))
         {
@@ -1977,9 +1977,9 @@ public partial class cex : Exchange
         {
             await this.loadMarkets();
         }
-        object networkCode = null;
+        string? networkCode = null;
         IList<object> networkCodeparametersVariable = (IList<object>)this.handleNetworkCodeAndParams(parameters);
-        networkCode = ((IList<object>)networkCodeparametersVariable)[0];
+        networkCode = (string)((IList<object>)networkCodeparametersVariable)[0];
         parameters = ((IList<object>)networkCodeparametersVariable)[1];
         Dictionary<string, object> currency = this.currency(((string)code));
         Dictionary<string, object> request = new Dictionary<string, object>() {

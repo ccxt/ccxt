@@ -279,7 +279,7 @@ public partial class PredictionExchange : BaseExchange
         return result;
     }
 
-    public virtual object normalizeTagKey(object tag)
+    public virtual string? normalizeTagKey(object tag)
     {
         // reduce a tag to lowercase alphanumeric words joined by single spaces ("Fed Rates" /
         // "fed-rates" / "FED_RATES" all become "fed rates") so label, slug and handle spellings
@@ -307,7 +307,7 @@ public partial class PredictionExchange : BaseExchange
                 pendingSep = true;
             }
         }
-        return s;
+        return ((string?)((object)(s)));
     }
 
     public virtual object filterEventsByTags(object events, object tags = null)
@@ -321,7 +321,7 @@ public partial class PredictionExchange : BaseExchange
         List<object> wanted = new List<object>() {};
         for (int i = 0; isLessThan(i, getArrayLength(tags)); postFixIncrement(ref i))
         {
-            object wantedKey = this.normalizeTagKey(getValue(tags, i));
+            string? wantedKey = this.normalizeTagKey(getValue(tags, i));
             if (isTrue(!isEqual(wantedKey, "")))
             {
                 // an empty normalized key would substring-match every tag
@@ -347,7 +347,7 @@ public partial class PredictionExchange : BaseExchange
                 }
                 if (isTrue(!isEqual(tagLabel, null)))
                 {
-                    object tagKey = this.normalizeTagKey(tagLabel);
+                    string? tagKey = this.normalizeTagKey(tagLabel);
                     for (int wi = 0; isLessThan(wi, getArrayLength(wanted)); postFixIncrement(ref wi))
                     {
                         if (isTrue(isGreaterThanOrEqual(getIndexOf(tagKey, getValue(wanted, wi)), 0)))
@@ -1092,7 +1092,7 @@ public partial class PredictionExchange : BaseExchange
      */
     public async override Task<List<ccxt.OHLCV>> FetchOHLCV(string outcome, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object timeframeVar = timeframe;
+        string timeframeVar = timeframe;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
         return ccxt.BaseExchange.ToOHLCVList(await base.FetchOHLCV(((string)outcome),((string)timeframeVar),ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), parameters));

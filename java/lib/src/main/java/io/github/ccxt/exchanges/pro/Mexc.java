@@ -1433,7 +1433,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
             put( "symbol", Mexc.this.safeSymbol(null, market) );
             put( "type", null );
             put( "side", side );
-            put( "takerOrMaker", ((Helpers.isTrue((Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(finalIsMaker, null)) && Helpers.isTrue(!Helpers.isEqual(finalIsMaker, null))) && Helpers.isTrue(!Helpers.isEqual(finalIsMaker, 0)))))) ? "maker" : "taker" );
+            put( "takerOrMaker", ((Helpers.isTrue((Helpers.isTrue(!Helpers.isEqual(finalIsMaker, null)) && Helpers.isTrue(!Helpers.isEqual(finalIsMaker, 0)))))) ? "maker" : "taker" );
             put( "price", priceString );
             put( "amount", amountString );
             put( "cost", Mexc.this.safeString(trade, "amount") );

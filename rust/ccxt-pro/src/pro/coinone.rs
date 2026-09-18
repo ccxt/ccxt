@@ -693,8 +693,8 @@ impl CoinoneCore {
             let mut keys: Value = object_keys(&methods);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_283: bool = true;
-                while { if !__for_first_283 { i = add(&i, &Value::Int(1)); } __for_first_283 = false; is_less_than(&i, &get_array_length(&keys)) } {
+                let mut __for_first_288: bool = true;
+                while { if !__for_first_288 { i = add(&i, &Value::Int(1)); } __for_first_288 = false; is_less_than(&i, &get_array_length(&keys)) } {
                 let mut key: Value = get_value(&keys, &i);
                 let mut key: Value = get_value(&keys, &i);
                 if is_greater_than_or_equal(&get_index_of(&topic, &get_value(&keys, &i)), &Value::Int(0)) {
