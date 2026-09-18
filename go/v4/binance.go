@@ -4732,7 +4732,7 @@ func (this *Binance) ParseCurrenciesCustom(responseCurrencies any, marginablesBy
 		if IsEqual(parsed, nil) {
 			panic(ExchangeError(this.Id + " parseCurrenciesCustom() could not resolve parsed"))
 		}
-		var marginEntry any = this.SafeDict(marginablesById, GetValue(parsed, "id"))
+		var marginEntry map[string]any = SafeMapTyped(marginablesById, GetValue(parsed, "id"))
 		if IsEqual(parsed, nil) {
 			panic(ExchangeError(this.Id + " parseCurrenciesCustom() could not resolve parsed"))
 		}
@@ -9294,7 +9294,7 @@ func (this *Binance) CreateOrderRequest(symbol any, typeVar any, side any, amoun
 		clientOrderIdRequest = "clientOrderId"
 	}
 	if clientOrderId == nil {
-		var broker any = this.SafeDict(this.Options, "broker", map[string]any{})
+		var broker map[string]any = SafeMapTyped(this.Options, "broker")
 		var defaultId any = func() any {
 			if IsEqual(GetValue(market, "contract"), true) {
 				return "x-xcKtGhcu"
@@ -12088,7 +12088,7 @@ func (this *Binance) ParseTransactionStatusByType(status any, optionalArgs ...an
 			"Refund Failed": "failed",
 		},
 	}
-	var statuses any = this.SafeDict(statusesByType, typeVar, map[string]any{})
+	var statuses map[string]any = SafeMapTyped(statusesByType, typeVar)
 	return this.SafeString(statuses, status, status)
 }
 func (this *Binance) ParseTransaction(transaction any, optionalArgs ...any) any {
@@ -12189,7 +12189,7 @@ func (this *Binance) ParseTransaction(transaction any, optionalArgs ...any) any 
 				return "withdrawal"
 			}()
 		}
-		var legalMoneyCurrenciesById any = this.SafeDict(this.Options, "legalMoneyCurrenciesById")
+		var legalMoneyCurrenciesById map[string]any = SafeMapTyped(this.Options, "legalMoneyCurrenciesById")
 		code = this.SafeString(legalMoneyCurrenciesById, code, code)
 	}
 	var status any = this.ParseTransactionStatusByType(this.SafeString(transaction, "status"), typeVar)
@@ -12319,7 +12319,7 @@ func (this *Binance) ParseTransfer(transfer any, optionalArgs ...any) any {
 	var typeVar *string = this.SafeString(transfer, "type")
 	var fromAccount any = nil
 	var toAccount any = nil
-	var accountsById any = this.SafeDict(this.Options, "accountsById", map[string]any{})
+	var accountsById map[string]any = SafeMapTyped(this.Options, "accountsById")
 	if typeVar != nil {
 		var parts []string = Split(typeVar, "_")
 		fromAccount = this.SafeValue(parts, 0)
@@ -12329,8 +12329,8 @@ func (this *Binance) ParseTransfer(transfer any, optionalArgs ...any) any {
 	}
 	var walletType *int64 = this.SafeInteger(transfer, "walletType")
 	if walletType != nil {
-		var payer any = this.SafeDict(transfer, "payerInfo", map[string]any{})
-		var receiver any = this.SafeDict(transfer, "receiverInfo", map[string]any{})
+		var payer map[string]any = SafeMapTyped(transfer, "payerInfo")
+		var receiver map[string]any = SafeMapTyped(transfer, "receiverInfo")
 		fromAccount = DerefScalar(this.SafeString(payer, "accountId"))
 		toAccount = DerefScalar(this.SafeString(receiver, "accountId"))
 	}
@@ -12561,7 +12561,7 @@ func (this *Binance) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 		}()
 		var toAccount *string = this.SafeString(params, "toAccount", defaultTo)
 		var typeVar any = DerefScalar(this.SafeString(params, "type"))
-		var accountsByType any = this.SafeDict(this.Options, "accountsByType", map[string]any{})
+		var accountsByType map[string]any = SafeMapTyped(this.Options, "accountsByType")
 		var fromId *string = this.SafeString(accountsByType, fromAccount)
 		var toId *string = this.SafeString(accountsByType, toAccount)
 		if IsEqual(typeVar, nil) {
@@ -13916,7 +13916,7 @@ func (this *Binance) ParseAccountPosition(position any, optionalArgs ...any) any
 		contractsStringAbs = Precise.StringDiv(Precise.StringAdd(contractsString, "0.5"), "1", 0)
 	}
 	var contracts any = this.ParseNumber(contractsStringAbs)
-	var leverageBrackets any = this.SafeDict(this.Options, "leverageBrackets", map[string]any{})
+	var leverageBrackets map[string]any = SafeMapTyped(this.Options, "leverageBrackets")
 	var leverageBracket any = this.SafeList(leverageBrackets, symbol, []any{})
 	var maintenanceMarginPercentageString any = nil
 	for i := 0; i < GetArrayLength(leverageBracket); i++ {
@@ -14141,7 +14141,7 @@ func (this *Binance) ParsePositionRisk(position any, optionalArgs ...any) any {
 	market = this.SafeMarket(marketId, market, nil, "contract")
 	var symbol *string = this.SafeString(market, "symbol")
 	var isolatedMarginString *string = this.SafeString(position, "isolatedMargin")
-	var leverageBrackets any = this.SafeDict(this.Options, "leverageBrackets", map[string]any{})
+	var leverageBrackets map[string]any = SafeMapTyped(this.Options, "leverageBrackets")
 	var leverageBracket any = this.SafeList(leverageBrackets, symbol, []any{})
 	var notionalString *string = this.SafeString2(position, "notional", "notionalValue")
 	var notionalStringAbs *string = Precise.StringAbs(notionalString)
@@ -14184,7 +14184,7 @@ func (this *Binance) ParsePositionRisk(position any, optionalArgs ...any) any {
 	var linear bool = (InOp(position, "notional"))
 	if IsEqual(marginMode, "cross") {
 		// calculate collateral
-		var precision any = this.SafeDict(market, "precision", map[string]any{})
+		var precision map[string]any = SafeMapTyped(market, "precision")
 		var basePrecisionValue *string = this.SafeString(precision, "base")
 		var quotePrecisionValue *string = this.SafeString2(precision, "quote", "price")
 		var precisionIsUndefined bool = (basePrecisionValue == nil) && (quotePrecisionValue == nil)
@@ -16125,11 +16125,11 @@ func (this *Binance) GetNetworkCodeByNetworkUrl(currencyCode any, optionalArgs .
 	}
 	var networkCode any = nil
 	var currency any = this.Currency(currencyCode)
-	var networks any = this.SafeDict(currency, "networks", map[string]any{})
+	var networks map[string]any = SafeMapTyped(currency, "networks")
 	var networkCodes []string = ObjectKeys(networks)
 	for i := 0; i < len(networkCodes); i++ {
 		var currentNetworkCode string = GetValue(networkCodes, i).(string)
-		var info any = this.SafeDict(GetValue(networks, currentNetworkCode), "info", map[string]any{})
+		var info map[string]any = SafeMapTyped(networks[currentNetworkCode], "info")
 		var siteUrl *string = this.SafeString(info, "contractAddressUrl")
 		// check if url matches the field's value
 		var baseDomain any = this.GetBaseDomainFromUrl(siteUrl)
@@ -16341,7 +16341,7 @@ func (this *Binance) GetExceptionsByUrl(url any, exactOrBroad any) any {
 		marketType = "portfolioMargin"
 	}
 	if marketType != nil {
-		var exceptionsForMarketType any = this.SafeDict(this.Exceptions, marketType, map[string]any{})
+		var exceptionsForMarketType map[string]any = SafeMapTyped(this.Exceptions, marketType)
 		return this.SafeDict(exceptionsForMarketType, exactOrBroad, map[string]any{})
 	}
 	return map[string]any{}
@@ -16926,8 +16926,8 @@ func (this *Binance) ParseIsolatedBorrowRate(info any, optionalArgs ...any) any 
 	var marketId *string = this.SafeString(info, "symbol")
 	market = this.SafeMarket(marketId, market, nil, "spot")
 	var data any = this.SafeList(info, "data")
-	var baseInfo any = this.SafeDict(data, 0)
-	var quoteInfo any = this.SafeDict(data, 1)
+	var baseInfo map[string]any = SafeMapTyped(data, 0)
+	var quoteInfo map[string]any = SafeMapTyped(data, 1)
 	return map[string]any{
 		"info":      info,
 		"symbol":    this.SafeString(market, "symbol"),
@@ -16983,7 +16983,7 @@ func (this *Binance) createGiftCodeBody(ch chan any, code any, amount any, optio
 	//         "success": true
 	//     }
 	//
-	var data any = this.SafeDict(response, "data")
+	var data map[string]any = SafeMapTyped(response, "data")
 	var giftcardCode *string = this.SafeString(data, "code")
 	var id *string = this.SafeString(data, "referenceNo")
 
@@ -19382,7 +19382,7 @@ func (this *Binance) ParseADLRank(info any, optionalArgs ...any) any {
 	//
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var adlQuantile any = this.SafeDict(info, "adlQuantile", map[string]any{})
+	var adlQuantile map[string]any = SafeMapTyped(info, "adlQuantile")
 	var longNum *float64 = this.SafeNumber(adlQuantile, "LONG")
 	var shortNum *float64 = this.SafeNumber(adlQuantile, "SHORT")
 	var both *float64 = this.SafeNumber(adlQuantile, "BOTH")

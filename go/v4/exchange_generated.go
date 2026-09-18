@@ -2179,7 +2179,7 @@ func (this *BaseExchange) SafeLedgerEntry(entry any, optionalArgs ...any) any {
 }
 func (this *BaseExchange) SafeCurrencyStructure(currency any) any {
 	// derive data from networks: deposit, withdraw, active, fee, limits, precision
-	var networks any = this.SafeDict(currency, "networks", map[string]any{})
+	var networks map[string]any = SafeMapTyped(currency, "networks")
 	var keys []string = ObjectKeys(networks)
 	var length int = len(keys)
 	if length != 0 {
@@ -2209,13 +2209,13 @@ func (this *BaseExchange) SafeCurrencyStructure(currency any) any {
 				AddElementToObject(currency, "precision", this.ParseNumber(precision))
 			}
 			// limits
-			var limits any = this.SafeDict(network, "limits")
+			var limits map[string]any = SafeMapTyped(network, "limits")
 			var limitsMain any = this.SafeDict(currency, "limits")
 			if IsEqual(limitsMain, nil) {
 				AddElementToObject(currency, "limits", map[string]any{})
 			}
 			// deposits
-			var limitsDeposit any = this.SafeDict(limits, "deposit")
+			var limitsDeposit map[string]any = SafeMapTyped(limits, "deposit")
 			var limitsDepositMain any = this.SafeDict(limitsMain, "deposit")
 			if IsEqual(limitsDepositMain, nil) {
 				AddElementToObject(GetValue(currency, "limits"), "deposit", map[string]any{})
@@ -2233,7 +2233,7 @@ func (this *BaseExchange) SafeCurrencyStructure(currency any) any {
 				AddElementToObject(GetValue(GetValue(currency, "limits"), "deposit"), "max", this.ParseNumber(limitsDepositMax))
 			}
 			// withdrawals
-			var limitsWithdraw any = this.SafeDict(limits, "withdraw")
+			var limitsWithdraw map[string]any = SafeMapTyped(limits, "withdraw")
 			var limitsWithdrawMain any = this.SafeDict(limitsMain, "withdraw")
 			if IsEqual(limitsWithdrawMain, nil) {
 				AddElementToObject(GetValue(currency, "limits"), "withdraw", map[string]any{})
@@ -2431,7 +2431,7 @@ func (this *BaseExchange) SetMarkets(markets any, optionalArgs ...any) any {
 				}
 				return this.ParseNumber("1e-8")
 			}()
-			var marketPrecision any = this.SafeDict(market, "precision", map[string]any{})
+			var marketPrecision map[string]any = SafeMapTyped(market, "precision")
 			if InOp(market, "base") {
 				var currency any = this.SafeCurrencyStructure(map[string]any{
 					"id":        this.SafeString2(market, "baseId", "base"),
@@ -3317,7 +3317,7 @@ func (this *BaseExchange) SafeTicker(ticker any, optionalArgs ...any) any {
 		if (average == nil) && (close != nil) {
 			var precision int = 18
 			if !IsEqual(market, nil) && EvalTruthy(this.IsTickPrecision()) {
-				var marketPrecision any = this.SafeDict(market, "precision")
+				var marketPrecision map[string]any = SafeMapTyped(market, "precision")
 				var precisionPrice *string = this.SafeString(marketPrecision, "price")
 				if precisionPrice != nil {
 					precision = this.PrecisionFromString(precisionPrice)
@@ -3900,9 +3900,9 @@ func (this *BaseExchange) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
 func (this *BaseExchange) SafeNetwork(network any) any {
 	var withdrawEnabled *bool = this.SafeBool(network, "withdraw")
 	var depositEnabled *bool = this.SafeBool(network, "deposit")
-	var limits any = this.SafeDict(network, "limits")
-	var withdraw any = this.SafeDict(limits, "withdraw")
-	var deposit any = this.SafeDict(limits, "deposit")
+	var limits map[string]any = SafeMapTyped(network, "limits")
+	var withdraw map[string]any = SafeMapTyped(limits, "withdraw")
+	var deposit map[string]any = SafeMapTyped(limits, "deposit")
 	var isEnabled *bool = withdrawEnabled
 	if withdrawEnabled != nil && *withdrawEnabled == true {
 		isEnabled = depositEnabled
@@ -3958,11 +3958,11 @@ func (this *BaseExchange) PrioritizedNetworkAliases(optionalArgs ...any) any {
 	if networkCode == nil {
 		return nil
 	}
-	var replacements any = this.SafeDict(this.Options, "defaultNetworkCodeReplacements", map[string]any{})
+	var replacements map[string]any = SafeMapTyped(this.Options, "defaultNetworkCodeReplacements")
 	var keys []string = ObjectKeys(replacements)
 	for i := 0; i < len(keys); i++ {
 		var baseCoin string = GetValue(keys, i).(string)
-		var entry any = GetValue(replacements, baseCoin)
+		var entry any = replacements[baseCoin]
 		var primary any = GetValue(entry, "primary")
 		var secondary any = GetValue(entry, "secondary")
 		if !IsEqual(networkCode, primary) && !IsEqual(networkCode, secondary) {
@@ -4003,7 +4003,7 @@ func (this *BaseExchange) NetworkCodeToId(networkCode any, optionalArgs ...any) 
 	if networkCode == nil {
 		return nil
 	}
-	var networkIdsByCodes any = this.SafeDict(this.Options, "networks", map[string]any{})
+	var networkIdsByCodes map[string]any = SafeMapTyped(this.Options, "networks")
 	// try the preferred form first, fall back to its alternative (e.g. when only 'ETH' or only 'ERC20' is defined)
 	var chainPair any = this.PrioritizedNetworkAliases(networkCode, currencyCode, false)
 	var preferredChain any = func() any {
@@ -4059,7 +4059,7 @@ func (this *BaseExchange) NetworkIdToCode(optionalArgs ...any) any {
 	if networkId == nil {
 		return nil
 	}
-	var networkCodesByIds any = this.SafeDict(this.Options, "networksById", map[string]any{})
+	var networkCodesByIds map[string]any = SafeMapTyped(this.Options, "networksById")
 	var networkCode *string = this.SafeString(networkCodesByIds, networkId, networkId)
 	var chainPair any = this.PrioritizedNetworkAliases(networkCode, currencyCode, true)
 	if IsEqual(chainPair, nil) {
@@ -6454,8 +6454,8 @@ func (this *BaseExchange) CurrencyToPrecision(code any, fee any, optionalArgs ..
 	var currency any = GetValue(this.Currencies, code)
 	var precision any = this.SafeValue(currency, "precision")
 	if networkCode != nil {
-		var networks any = this.SafeDict(currency, "networks", map[string]any{})
-		var networkItem any = this.SafeDict(networks, networkCode, map[string]any{})
+		var networks map[string]any = SafeMapTyped(currency, "networks")
+		var networkItem map[string]any = SafeMapTyped(networks, networkCode)
 		precision = this.SafeValue(networkItem, "precision", precision)
 	}
 	if IsEqual(precision, nil) {
@@ -8063,13 +8063,13 @@ func (this *BaseExchange) fetchPaginatedCallCursorBody(ch chan any, method any, 
 				if !IsEqual(response, nil) {
 					result = this.ArrayConcat(result, response)
 				}
-				var last any = this.SafeDict(response, Subtract(responseLength, 1))
+				var last map[string]any = SafeMapTyped(response, Subtract(responseLength, 1))
 				// cursorValue = this.safeValue (last['info'], cursorReceived);
 				cursorValue = nil // search for the cursor
 				for j := 0; j < responseLength; j++ {
 					var index any = Subtract(Subtract(responseLength, j), 1)
-					var entry any = this.SafeDict(response, index)
-					var info any = this.SafeDict(entry, "info")
+					var entry map[string]any = SafeMapTyped(response, index)
+					var info map[string]any = SafeMapTyped(entry, "info")
 					var cursor any = func() any {
 						if cursorReceived == nil {
 							return nil

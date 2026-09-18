@@ -3795,9 +3795,9 @@ func (this *Bitget) fetchDefaultMarketsBody(ch chan any, params any) any {
 	AddElementToObject(this.Options, "crossMarginPairsData", []any{})
 	AddElementToObject(this.Options, "isolatedMarginPairsData", []any{})
 	for i := 0; i < GetArrayLength(results); i++ {
-		var res any = this.SafeDict(results, i)
+		var res map[string]any = SafeMapTyped(results, i)
 		var data any = this.SafeList(res, "data", []any{})
-		var firstData any = this.SafeDict(data, 0, map[string]any{})
+		var firstData map[string]any = SafeMapTyped(data, 0)
 		var isBorrowable *bool = this.SafeBool(firstData, "isBorrowable")
 		if fetchMargins && (isBorrowable != nil) {
 			// cross and isolated availability are per-symbol - a coin can be listed by
@@ -3807,7 +3807,7 @@ func (this *Bitget) fetchDefaultMarketsBody(ch chan any, params any) any {
 			var crossKeys any = []any{}
 			var isolatedKeys any = []any{}
 			for j := 0; j < GetArrayLength(data); j++ {
-				var entry any = this.SafeDict(data, j, map[string]any{})
+				var entry map[string]any = SafeMapTyped(data, j)
 				var entrySymbol *string = this.SafeString(entry, "symbol")
 				var entryBorrowable *bool = this.SafeBool(entry, "isBorrowable", true)
 				if (entryBorrowable != nil && *entryBorrowable == true) && EvalTruthy(this.SafeBool(entry, "isCrossBorrowable", true)) {
@@ -4061,7 +4061,7 @@ func (this *Bitget) fetchUtaMarketsBody(ch chan any, params any) any {
 	PanicOnError(results)
 	var markets []any = []any{}
 	for i := 0; i < GetArrayLength(results); i++ {
-		var res any = this.SafeDict(results, i)
+		var res map[string]any = SafeMapTyped(results, i)
 		var data any = this.SafeList(res, "data", []any{})
 		markets = this.ArrayConcat(markets, data)
 	}
@@ -6781,10 +6781,10 @@ func (this *Bitget) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 		}
 		return "swap"
 	}()
-	var ohlcOptions any = this.SafeDict(GetValue(this.Options, "fetchOHLCV"), key, map[string]any{})
-	var maxLimitPerTimeframe any = this.SafeDict(ohlcOptions, "maxLimitPerTimeframe", map[string]any{})
+	var ohlcOptions map[string]any = SafeMapTyped(GetValue(this.Options, "fetchOHLCV"), key)
+	var maxLimitPerTimeframe map[string]any = SafeMapTyped(ohlcOptions, "maxLimitPerTimeframe")
 	var maxLimitForThisTimeframe *int64 = this.SafeInteger(maxLimitPerTimeframe, timeframe, limit)
-	var recentEndpointDaysMap any = this.SafeDict(GetValue(this.Options, "fetchOHLCV"), "maxRecentDaysPerTimeframe", map[string]any{})
+	var recentEndpointDaysMap map[string]any = SafeMapTyped(GetValue(this.Options, "fetchOHLCV"), "maxRecentDaysPerTimeframe")
 	var recentEndpointAvailableDays *int64 = this.SafeInteger(recentEndpointDaysMap, timeframe)
 	var recentEndpointBoundaryTs any = Subtract(now, Multiply((Subtract(recentEndpointAvailableDays, 1)), msInDay))
 	if limitDefined {
@@ -6991,7 +6991,7 @@ func (this *Bitget) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 
 			response = (<-this.PrivateUtaGetV3AccountAssets(this.Extend(request, params)))
 			PanicOnError(response)
-			var results any = this.SafeDict(response, "data", map[string]any{})
+			var results map[string]any = SafeMapTyped(response, "data")
 			assets = this.SafeList(results, "assets", []any{})
 		}
 
@@ -7515,7 +7515,7 @@ func (this *Bitget) ParseOrder(order any, optionalArgs ...any) any {
 	var feeDetail any = this.SafeValue(order, "feeDetail")
 	var uta bool = (this.SafeString(order, "category") != nil)
 	if uta {
-		var feeResult any = this.SafeDict(feeDetail, 0, map[string]any{})
+		var feeResult map[string]any = SafeMapTyped(feeDetail, 0)
 		var utaFee *string = this.SafeString(feeResult, "fee")
 		fee = map[string]any{
 			"cost":     this.ParseNumber(Precise.StringNeg(utaFee)),
@@ -9204,7 +9204,7 @@ func (this *Bitget) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 			//     }
 			//
 			var timestamp *int64 = this.SafeInteger(response, "requestTime")
-			var responseData any = this.SafeDict(response, "data")
+			var responseData map[string]any = SafeMapTyped(response, "data")
 			var marketId *string = this.SafeString(responseData, "symbol")
 
 			ch <- []any{this.SafeOrder(map[string]any{
@@ -9227,7 +9227,7 @@ func (this *Bitget) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 			PanicOnError(response)
 		}
 	}
-	var data any = this.SafeDict(response, "data")
+	var data map[string]any = SafeMapTyped(response, "data")
 	var resultList any = this.SafeListN(data, []any{"resultList", "successList", "list"})
 	var failureList any = this.SafeList2(data, "failure", "failureList")
 	var responseList any = nil
@@ -10540,7 +10540,7 @@ func (this *Bitget) fetchUtaCanceledAndClosedOrdersBody(ch chan any, optionalArg
 	//         }
 	//     }
 	//
-	var data any = this.SafeDict(response, "data", map[string]any{})
+	var data map[string]any = SafeMapTyped(response, "data")
 	var orders any = this.SafeList(data, "list", []any{})
 
 	ch <- this.ParseOrders(orders, market, since, limit)
@@ -11165,7 +11165,7 @@ func (this *Bitget) fetchPositionBody(ch chan any, symbol any, optionalArgs ...a
 		//         }
 		//     }
 		//
-		var data any = this.SafeDict(response, "data", map[string]any{})
+		var data map[string]any = SafeMapTyped(response, "data")
 		result = this.SafeList(data, "list", []any{})
 	} else {
 		request["marginCoin"] = GetValue(market, "settleId")
@@ -11424,7 +11424,7 @@ func (this *Bitget) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	//
 	var position any = []any{}
 	if (uta == true) || isHistory {
-		var data any = this.SafeDict(response, "data", map[string]any{})
+		var data map[string]any = SafeMapTyped(response, "data")
 		position = this.SafeList(data, "list", []any{})
 	} else {
 		position = this.SafeList(response, "data", []any{})
@@ -11740,7 +11740,7 @@ func (this *Bitget) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any
 		//         }
 		//     }
 		//
-		var data any = this.SafeDict(response, "data", map[string]any{})
+		var data map[string]any = SafeMapTyped(response, "data")
 		result = this.SafeList(data, "resultList", []any{})
 	} else {
 		var paginate any = false
@@ -14390,7 +14390,7 @@ func (this *Bitget) fetchPositionsHistoryBody(ch chan any, optionalArgs ...any) 
 		response = (<-this.PrivateMixGetV2MixPositionHistoryPosition(this.Extend(request, params)))
 		PanicOnError(response)
 	}
-	var data any = this.SafeDict(response, "data", map[string]any{})
+	var data map[string]any = SafeMapTyped(response, "data")
 	var responseList any = this.SafeList(data, "list", []any{})
 	var positions any = this.ParsePositions(responseList, symbols, params)
 
@@ -14607,7 +14607,7 @@ func (this *Bitget) fetchConvertTradeHistoryBody(ch chan any, optionalArgs ...an
 	//         }
 	//     }
 	//
-	var data any = this.SafeDict(response, "data", map[string]any{})
+	var data map[string]any = SafeMapTyped(response, "data")
 	var dataList any = this.SafeList(data, "dataList", []any{})
 
 	ch <- this.ParseConversions(dataList, code, "fromCoin", "toCoin", since, limit)
