@@ -1748,7 +1748,7 @@ public partial class htx : ccxt.htx
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
      */
-    public async override Task<List<ccxt.Position>> WatchPositions(IList<object> symbols = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.Position>> WatchPositions(object symbols = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
@@ -1760,7 +1760,7 @@ public partial class htx : ccxt.htx
         if ((!isTrue(this.isEmpty(symbols))) && (!isEqual(symbols, null)))
         {
             market = this.getMarketFromSymbols(symbols);
-            messageHash = add("::", String.Join(",", symbols.ToArray()));
+            messageHash = add("::", String.Join(",", ((IList<object>)symbols).ToArray()));
         }
         object type = null;
         object subType = null;
@@ -1797,7 +1797,7 @@ public partial class htx : ccxt.htx
         if (isV5Linear)
         {
             IDictionary<string, object> v5Market = null;
-            if ((!isEqual(symbols, null)) && (((symbols?.Count ?? 0) == 1)))
+            if ((!isEqual(symbols, null)) && ((getArrayLength(symbols) == 1)))
             {
                 v5Market = market;
             }

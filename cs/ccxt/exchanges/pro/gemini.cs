@@ -89,7 +89,7 @@ public partial class gemini : ccxt.gemini
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public async override Task<List<ccxt.Trade>> WatchTradesForSymbols(IList<object> symbols, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.Trade>> WatchTradesForSymbols(object symbols, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
@@ -479,7 +479,7 @@ public partial class gemini : ccxt.gemini
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<ccxt.pro.IOrderBook> WatchOrderBookForSymbols(IList<object> symbols, Int64? limit = null, object parameters = null)
+    public async override Task<ccxt.pro.IOrderBook> WatchOrderBookForSymbols(object symbols, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object orderbook = await this.helperForWatchMultipleConstruct("orderbook", symbols, parameters);
@@ -495,7 +495,7 @@ public partial class gemini : ccxt.gemini
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<ccxt.Tickers> WatchBidsAsks(IList<object> symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> WatchBidsAsks(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         return ccxt.BaseExchange.ToTickers(await this.helperForWatchMultipleConstruct("bidsasks", symbols, parameters));
@@ -571,29 +571,28 @@ public partial class gemini : ccxt.gemini
         callDynamically(client, "resolve", new object[] {bidsAsksDict, messageHash});
     }
 
-    public async virtual Task<object> helperForWatchMultipleConstruct(object itemHashName, IList<object> symbols = null, object parameters = null)
+    public async virtual Task<object> helperForWatchMultipleConstruct(object itemHashName, object symbols = null, object parameters = null)
     {
-        object symbolsVar = symbols;
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
         {
             await this.loadMarkets();
         }
-        if (isEqual(symbolsVar, null))
+        if (isEqual(symbols, null))
         {
             throw new NotSupported (add(this.id, " watchMultiple requires at least one symbol")) ;
         }
-        symbolsVar = this.marketSymbols(symbolsVar, null, false, true, true);
-        Dictionary<string, object> firstMarket = this.market(getValue(symbolsVar, 0));
+        symbols = this.marketSymbols(symbols, null, false, true, true);
+        Dictionary<string, object> firstMarket = this.market(getValue(symbols, 0));
         if ((!isEqual(GetValue(firstMarket, "spot"), true)) && (!isEqual(GetValue(firstMarket, "linear"), true)))
         {
             throw new NotSupported (add(this.id, " watchMultiple supports only spot or linear-swap symbols")) ;
         }
         List<object> messageHashes = new List<object>() {};
         List<object> marketIds = new List<object>() {};
-        for (int i = 0; isLessThan(i, getArrayLength(symbolsVar)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
-            object symbol = getValue(symbolsVar, i);
+            object symbol = getValue(symbols, i);
             object messageHash = add(add(itemHashName, ":"), symbol);
             ((IList<object>)messageHashes).Add(messageHash);
             Dictionary<string, object> market = this.market(symbol);

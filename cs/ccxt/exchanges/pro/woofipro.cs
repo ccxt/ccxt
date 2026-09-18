@@ -333,7 +333,7 @@ public partial class woofipro : ccxt.woofipro
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<ccxt.Tickers> WatchBidsAsks(IList<object> symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> WatchBidsAsks(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
@@ -1097,7 +1097,7 @@ public partial class woofipro : ccxt.woofipro
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
      */
-    public async override Task<List<ccxt.Position>> WatchPositions(IList<object> symbols = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.Position>> WatchPositions(object symbols = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
@@ -1112,7 +1112,7 @@ public partial class woofipro : ccxt.woofipro
             {
                 throw new ArgumentsRequired (add(this.id, " watchPositions() symbols is required")) ;
             }
-            for (int i = 0; isLessThan(i, symbols?.Count ?? 0); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
             {
                 if (isEqual(symbols, null))
                 {

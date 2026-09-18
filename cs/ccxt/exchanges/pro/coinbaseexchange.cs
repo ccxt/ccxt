@@ -213,11 +213,11 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public async override Task<List<ccxt.Trade>> WatchTradesForSymbols(IList<object> symbols, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.Trade>> WatchTradesForSymbols(object symbols, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
-        int symbolsLength = symbols?.Count ?? 0;
+        int symbolsLength = getArrayLength(symbols);
         if ((symbolsLength == 0))
         {
             throw new BadRequest (add(this.id, " watchTradesForSymbols() requires a non-empty array of symbols")) ;
@@ -381,10 +381,10 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<ccxt.pro.IOrderBook> WatchOrderBookForSymbols(IList<object> symbols, Int64? limit = null, object parameters = null)
+    public async override Task<ccxt.pro.IOrderBook> WatchOrderBookForSymbols(object symbols, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        int symbolsLength = symbols?.Count ?? 0;
+        int symbolsLength = getArrayLength(symbols);
         if ((symbolsLength == 0))
         {
             throw new BadRequest (add(this.id, " watchOrderBookForSymbols() requires a non-empty array of symbols")) ;

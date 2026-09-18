@@ -893,7 +893,7 @@ public partial class gate : ccxt.gate
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<ccxt.Tickers> WatchBidsAsks(IList<object> symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> WatchBidsAsks(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         return ccxt.BaseExchange.ToTickers(await this.subscribeWatchTickersAndBidsAsks(symbols, "watchBidsAsks", this.extend(new Dictionary<string, object>() {             { "method", "book_ticker" },         }, parameters)));
@@ -1040,7 +1040,7 @@ public partial class gate : ccxt.gate
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public async override Task<List<ccxt.Trade>> WatchTradesForSymbols(IList<object> symbols, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.Trade>> WatchTradesForSymbols(object symbols, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
@@ -1054,7 +1054,7 @@ public partial class gate : ccxt.gate
         object messageType = this.getTypeByMarket(market);
         object channel = add(messageType, ".trades");
         List<object> messageHashes = new List<object>() {};
-        for (int i = 0; isLessThan(i, symbols?.Count ?? 0); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
             object symbol = getValue(symbols, i);
             ((IList<object>)messageHashes).Add(add("trades:", symbol));
@@ -1541,7 +1541,7 @@ public partial class gate : ccxt.gate
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
      */
-    public async override Task<List<ccxt.Position>> WatchPositions(IList<object> symbols = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.Position>> WatchPositions(object symbols = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
@@ -1576,7 +1576,7 @@ public partial class gate : ccxt.gate
             {
                 throw new ArgumentsRequired (add(this.id, " watchPositions() symbols is required")) ;
             }
-            messageHash = add(messageHash, add("::", String.Join(",", symbols.ToArray())));
+            messageHash = add(messageHash, add("::", String.Join(",", ((IList<object>)symbols).ToArray())));
         }
         object channel = add(typeId, ".positions");
         string? subType = null;
@@ -1602,7 +1602,7 @@ public partial class gate : ccxt.gate
         return ccxt.BaseExchange.ToPositionList(this.filterBySymbolsSinceLimit(this.safeValue(this.positions, type), symbols, since, limit, true));
     }
 
-    public virtual void setPositionsCache(WebSocketClient client, object type, IList<object> symbols = null)
+    public virtual void setPositionsCache(WebSocketClient client, object type, object symbols = null)
     {
         if (isEqual(this.positions, null))
         {

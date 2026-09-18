@@ -89,7 +89,7 @@ public partial class Exchange
         throw new NotSupported (add(this.id, " watchMyTradesForSymbols() is not supported yet")) ;
     }
 
-    public async virtual Task<List<ccxt.Trade>> WatchTradesForSymbols(IList<object> symbols, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async virtual Task<List<ccxt.Trade>> WatchTradesForSymbols(object symbols, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported (add(this.id, " watchTradesForSymbols() is not supported yet")) ;
@@ -131,7 +131,7 @@ public partial class Exchange
         throw new NotSupported (add(this.id, " fetchMarkPrices() is not supported yet")) ;
     }
 
-    public async virtual Task<ccxt.Tickers> WatchBidsAsks(IList<object> symbols = null, object parameters = null)
+    public async virtual Task<ccxt.Tickers> WatchBidsAsks(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported (add(this.id, " watchBidsAsks() is not supported yet")) ;
@@ -155,7 +155,7 @@ public partial class Exchange
         throw new BadRequest (add(this.id, " fetchL3OrderBook() is not supported yet")) ;
     }
 
-    public async virtual Task<ccxt.pro.IOrderBook> WatchOrderBookForSymbols(IList<object> symbols, Int64? limit = null, object parameters = null)
+    public async virtual Task<ccxt.pro.IOrderBook> WatchOrderBookForSymbols(object symbols, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported (add(this.id, " watchOrderBookForSymbols() is not supported yet")) ;
@@ -718,7 +718,7 @@ public partial class Exchange
         throw new NotSupported (add(this.id, " fetchPosition() is not supported yet")) ;
     }
 
-    public async virtual Task<List<ccxt.Position>> WatchPositions(IList<object> symbols = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async virtual Task<List<ccxt.Position>> WatchPositions(object symbols = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported (add(this.id, " watchPositions() is not supported yet")) ;
