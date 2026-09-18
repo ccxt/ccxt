@@ -1004,7 +1004,7 @@ impl DeriveCore {
             let mut symbol: Value = self.safe_string_k(parsed.clone(), "symbol", &[]);
             let mut orderId: Value = self.safe_string_k(parsed.clone(), "id", &[]);
             if (symbol != Value::Null) {
-                if is_equal(&self.orders, &Value::Null) {
+                if (self.orders.clone() == Value::Null) {
                     let mut limit: Value = self.safe_integer_k(self.options.clone(), "ordersLimit", &[Value::Int(1000)]);
                     self.orders = ArrayCacheBySymbolById::new(limit.clone());
                 }
@@ -1098,7 +1098,7 @@ impl DeriveCore {
         //
         //
         let mut myTrades: Value = self.myTrades.clone();
-        if is_equal(&myTrades, &Value::Null) {
+        if (myTrades == Value::Null) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
             myTrades = ArrayCacheBySymbolById::new(limit.clone());
         }

@@ -1618,7 +1618,7 @@ impl BackpackCore {
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         let mut parsed: Value = self.parse_ws_order(data.clone(), &[market.clone()]);
         let mut orders: Value = self.orders.clone();
-        if is_equal(&orders, &Value::Null) {
+        if (orders == Value::Null) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "ordersLimit", &[Value::Int(1000)]);
             orders = ArrayCacheBySymbolById::new(limit.clone());
             self.orders = orders.clone();

@@ -516,7 +516,7 @@ impl BitoproCore {
         let mut quote: Value = self.safe_currency_code(quoteId.clone(), &[]);
         let mut symbol: Value = self.symbol(add(&add(&base, &Value::Str("/".to_string())), &quote));
         let mut messageHash: Value = self.safe_string_k(message.clone(), "event", &[]);
-        if is_equal(&self.myTrades, &Value::Null) {
+        if (self.myTrades.clone() == Value::Null) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
             self.myTrades = ArrayCacheBySymbolById::new(limit.clone());
         }

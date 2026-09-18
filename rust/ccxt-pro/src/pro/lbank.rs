@@ -961,12 +961,12 @@ impl LbankCore {
         let mut marketId: Value = self.safe_string_k(message.clone(), "pair", &[]);
         let mut symbol: Value = self.safe_symbol(marketId.clone(), &[Value::Null, Value::Str("_".to_string())]);
         let mut myOrders: Value = self.orders.clone();
-        if is_equal(&self.orders, &Value::Null) {
+        if (self.orders.clone() == Value::Null) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "ordersLimit", &[Value::Int(1000)]);
             myOrders = ArrayCacheBySymbolById::new(limit.clone());
         }
         let mut order: Value = self.parse_ws_order(message.clone(), &[]);
-        if is_equal(&myOrders, &Value::Null) {
+        if (myOrders == Value::Null) {
             return;
         }
         myOrders.append(order.clone());

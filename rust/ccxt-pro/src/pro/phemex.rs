@@ -1324,7 +1324,7 @@ impl PhemexCore {
             return;
         }
         let mut cachedTrades: Value = self.myTrades.clone();
-        if is_equal(&cachedTrades, &Value::Null) {
+        if (cachedTrades == Value::Null) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
             cachedTrades = ArrayCacheBySymbolById::new(limit.clone());
         }
@@ -1622,7 +1622,7 @@ impl PhemexCore {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        if is_equal(&self.orders, &Value::Null) {
+        if (self.orders.clone() == Value::Null) {
             self.orders = ArrayCacheBySymbolById::new(limit.clone());
         }
         let mut type_var: Value = Value::Null;

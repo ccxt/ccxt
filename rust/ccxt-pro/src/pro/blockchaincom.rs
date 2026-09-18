@@ -855,7 +855,7 @@ impl BlockchaincomCore {
         let mut event: Value = self.safe_string_k(message.clone(), "event", &[]);
         let mut messageHash: Value = Value::Str("orders".to_string());
         let mut cachedOrders: Value = self.orders.clone();
-        if is_equal(&cachedOrders, &Value::Null) {
+        if (cachedOrders == Value::Null) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "ordersLimit", &[Value::Int(1000)]);
             cachedOrders = ArrayCacheBySymbolById::new(limit.clone());
             self.orders = cachedOrders.clone();

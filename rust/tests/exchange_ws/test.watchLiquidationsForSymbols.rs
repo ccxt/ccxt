@@ -18,7 +18,7 @@ pub async fn testWatchLiquidationsForSymbols(mut exchange: Value, mut skippedPro
         println_val(&m1);
         return Value::Bool(false);
     }
-    if (get_value(&get_value(&exchange, &Value::Str("has".to_string())), &method) == Value::Null) || is_equal(&get_value(&get_value(&exchange, &Value::Str("has".to_string())), &method), &Value::Bool(false)) {
+    if (get_value(&get_value(&exchange, &Value::Str("has".to_string())), &method) == Value::Null) || (get_value(&get_value(&exchange, &Value::Str("has".to_string())), &method).as_bool() == Some(false)) {
         let mut m2: Value = (Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", get_value(&exchange, &Value::Str("id".to_string())), Value::Str(" does not support ".to_string()))), method)), Value::Str("() method".to_string()))));
         println_val(&m2);
         return Value::Bool(false);

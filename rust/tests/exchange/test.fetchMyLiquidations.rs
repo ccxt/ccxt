@@ -11,7 +11,7 @@ use super::*;
 
 pub async fn testFetchMyLiquidations(mut exchange: Value, mut skippedProperties: Value, mut code: Value) -> Value {
     let mut method: Value = Value::Str("fetchMyLiquidations".to_string());
-    if (get_value(&exchange, &Value::Str("has".to_string())).as_map().and_then(|__m| __m.get("fetchMyLiquidations")).cloned().unwrap_or(Value::Null) == Value::Null) || is_equal(&get_value(&exchange, &Value::Str("has".to_string())).as_map().and_then(|__m| __m.get("fetchMyLiquidations")).cloned().unwrap_or(Value::Null), &Value::Bool(false)) {
+    if (get_value(&exchange, &Value::Str("has".to_string())).as_map().and_then(|__m| __m.get("fetchMyLiquidations")).cloned().unwrap_or(Value::Null) == Value::Null) || (get_value(&exchange, &Value::Str("has".to_string())).as_map().and_then(|__m| __m.get("fetchMyLiquidations")).cloned().unwrap_or(Value::Null).as_bool() == Some(false)) {
         return Value::Bool(true);
     }
     let mut items: Value = crate::live_dispatch::dispatch(&mut exchange, "fetch_my_liquidations", vec![code.clone()]).await;

@@ -1229,7 +1229,7 @@ impl CoinbaseCore {
             return;
         }
         let mut marketIds: Value = Value::List(vec![]);
-        if is_equal(&self.orders, &Value::Null) {
+        if (self.orders.clone() == Value::Null) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "ordersLimit", &[Value::Int(1000)]);
             self.orders = ArrayCacheBySymbolById::new(limit.clone());
         }

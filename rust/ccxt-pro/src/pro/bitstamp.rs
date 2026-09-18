@@ -941,7 +941,7 @@ impl BitstampCore {
             return;
         }
         let mut market: Value = self.market(symbol.clone());
-        if is_equal(&self.myTrades, &Value::Null) {
+        if (self.myTrades.clone() == Value::Null) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
             self.myTrades = ArrayCacheBySymbolById::new(limit.clone());
         }
@@ -1042,7 +1042,7 @@ impl BitstampCore {
             return;
         }
         let mut limit: Value = self.safe_integer_k(self.options.clone(), "ordersLimit", &[Value::Int(1000)]);
-        if is_equal(&self.orders, &Value::Null) {
+        if (self.orders.clone() == Value::Null) {
             self.orders = ArrayCacheBySymbolById::new(limit.clone());
         }
         let mut stored: Value = self.orders.clone();
@@ -1207,11 +1207,11 @@ impl BitstampCore {
         // would wipe the whole orders/myTrades cache - rebuild those without
         // the unsubscribed symbols instead, so the markets that are still
         // subscribed keep their cached history
-        if is_true(&(Value::Bool(topic.as_str() == Some("orders")))) && (!is_equal(&self.orders, &Value::Null)) {
+        if is_true(&(Value::Bool(topic.as_str() == Some("orders")))) && is_true(&(Value::Bool(self.orders.clone() != Value::Null))) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "ordersLimit", &[Value::Int(1000)]);
             let mut freshOrdersCache = ArrayCacheBySymbolById::new(limit.clone());
             { let __t = self.prune_cached_by_symbols(freshOrdersCache.clone(), self.orders.clone(), symbols.clone()); self.orders = __t; }
-        }  else if is_true(&(Value::Bool(topic.as_str() == Some("myTrades")))) && (!is_equal(&self.myTrades, &Value::Null)) {
+        }  else if is_true(&(Value::Bool(topic.as_str() == Some("myTrades")))) && is_true(&(Value::Bool(self.myTrades.clone() != Value::Null))) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
             let mut freshTradesCache = ArrayCacheBySymbolById::new(limit.clone());
             { let __t = self.prune_cached_by_symbols(freshTradesCache.clone(), self.myTrades.clone(), symbols.clone()); self.myTrades = __t; }

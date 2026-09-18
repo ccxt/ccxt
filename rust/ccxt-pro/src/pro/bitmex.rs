@@ -1551,7 +1551,7 @@ impl BitmexCore {
         // initial subscription response with multiple orders
         let mut dataLength: Value = Value::Int(data.len() as i64);
         if dataLength.as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN) {
-            if is_equal(&self.orders, &Value::Null) {
+            if (self.orders.clone() == Value::Null) {
                 let mut limit: Value = self.safe_integer_k(self.options.clone(), "ordersLimit", &[Value::Int(1000)]);
                 self.orders = ArrayCacheBySymbolById::new(limit.clone());
             }
@@ -1701,7 +1701,7 @@ impl BitmexCore {
         let mut dataByExecType: Value = self.group_by(data.clone(), Value::Str("execType".to_string()), &[]);
         let mut rawTrades: Value = self.safe_value_k(dataByExecType.clone(), "Trade", &[Value::List(vec![])]);
         let mut trades: Value = self.parse_trades(rawTrades.clone(), &[]);
-        if is_equal(&self.myTrades, &Value::Null) {
+        if (self.myTrades.clone() == Value::Null) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
             self.myTrades = ArrayCacheBySymbolById::new(limit.clone());
         }

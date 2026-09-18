@@ -1388,7 +1388,7 @@ impl ModetradeCore {
         let mut symbol: Value = self.safe_string_k(parsed.clone(), "symbol", &[]);
         let mut orderId: Value = self.safe_string_k(parsed.clone(), "id", &[]);
         if (symbol != Value::Null) {
-            if is_equal(&self.orders, &Value::Null) {
+            if (self.orders.clone() == Value::Null) {
                 let mut limit: Value = self.safe_integer_k(self.options.clone(), "ordersLimit", &[Value::Int(1000)]);
                 self.orders = ArrayCacheBySymbolById::new(limit.clone());
             }
@@ -1453,7 +1453,7 @@ impl ModetradeCore {
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         let mut trade: Value = self.parse_ws_trade(message.clone(), &[market.clone()]);
         let mut trades: Value = self.myTrades.clone();
-        if is_equal(&trades, &Value::Null) {
+        if (trades == Value::Null) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
             trades = ArrayCacheBySymbolById::new(limit.clone());
             self.myTrades = trades.clone();

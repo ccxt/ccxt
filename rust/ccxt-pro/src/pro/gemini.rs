@@ -1096,7 +1096,7 @@ impl GeminiCore {
         //     ]
         //
         let mut messageHash: Value = Value::Str("orders".to_string());
-        if is_equal(&self.orders, &Value::Null) {
+        if (self.orders.clone() == Value::Null) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "ordersLimit", &[Value::Int(1000)]);
             self.orders = ArrayCacheBySymbolById::new(limit.clone());
         }

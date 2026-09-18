@@ -809,7 +809,7 @@ impl BullishCore {
         }
         let mut numRawOrders: Value = Value::Int(rawOrders.len() as i64); // hoisted - inline .length within conditionals becomes strlen for php, fatal on arrays
         if numRawOrders.as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN) {
-            if is_equal(&self.orders, &Value::Null) {
+            if (self.orders.clone() == Value::Null) {
                 let mut limit: Value = self.safe_integer_k(self.options.clone(), "ordersLimit", &[Value::Int(1000)]);
                 self.orders = ArrayCacheBySymbolById::new(limit.clone());
             }
@@ -947,7 +947,7 @@ impl BullishCore {
         }
         let mut numRawTrades: Value = Value::Int(rawTrades.len() as i64); // hoisted - inline .length within conditionals becomes strlen for php, fatal on arrays
         if numRawTrades.as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN) {
-            if is_equal(&self.myTrades, &Value::Null) {
+            if (self.myTrades.clone() == Value::Null) {
                 let mut limit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
                 self.myTrades = ArrayCacheBySymbolById::new(limit.clone());
             }
