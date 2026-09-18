@@ -1354,7 +1354,7 @@ public class Gemini extends GeminiApi
             Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             Object tickerPromiseA = this.fetchTickerV1(symbol, parameters);
             Object tickerPromiseB = this.fetchTickerV2(symbol, parameters);
-            var tickerAtickerBVariable = (Helpers.promiseAll(new ArrayList<Object>(Arrays.asList(tickerPromiseA, tickerPromiseB)))).join();
+            var tickerAtickerBVariable = (CompletableFuture.allOf(((CompletableFuture<?>) tickerPromiseA), ((CompletableFuture<?>) tickerPromiseB)).thenApply(promiseAllValue -> new ArrayList<Object>(Arrays.asList(((CompletableFuture<?>) tickerPromiseA).join(), ((CompletableFuture<?>) tickerPromiseB).join())))).join();
             var tickerA = ((List<Object>) tickerAtickerBVariable).get(0);
             var tickerB = ((List<Object>) tickerAtickerBVariable).get(1);
             return this.deepExtend(tickerA, new HashMap<String, Object>() {{

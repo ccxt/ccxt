@@ -1091,7 +1091,7 @@ public class Woofipro extends WoofiproApi
             // }
             //
             Object chainPromise = this.v1PublicGetPublicChainInfo(parameters);
-            var tokenResponsechainResponseVariable = (Helpers.promiseAll(new ArrayList<Object>(Arrays.asList(tokenPromise, chainPromise)))).join();
+            var tokenResponsechainResponseVariable = (CompletableFuture.allOf(((CompletableFuture<?>) tokenPromise), ((CompletableFuture<?>) chainPromise)).thenApply(promiseAllValue -> new ArrayList<Object>(Arrays.asList(((CompletableFuture<?>) tokenPromise).join(), ((CompletableFuture<?>) chainPromise).join())))).join();
             var tokenResponse = ((List<Object>) tokenResponsechainResponseVariable).get(0);
             var chainResponse = ((List<Object>) tokenResponsechainResponseVariable).get(1);
             Object tokenData = this.safeDict(tokenResponse, "data", new HashMap<String, Object>() {{}});

@@ -450,7 +450,7 @@ public class Independentreserve extends IndependentreserveApi
             Object quoteCurrenciesPromise = this.publicGetGetValidSecondaryCurrencyCodes(parameters);
             //     ['Aud', 'Usd', 'Nzd', 'Sgd']
             Object limitsPromise = this.publicGetGetOrderMinimumVolumes(parameters);
-            var baseCurrenciesquoteCurrencieslimitsVariable = (Helpers.promiseAll(new ArrayList<Object>(Arrays.asList(baseCurrenciesPromise, quoteCurrenciesPromise, limitsPromise)))).join();
+            var baseCurrenciesquoteCurrencieslimitsVariable = (CompletableFuture.allOf(((CompletableFuture<?>) baseCurrenciesPromise), ((CompletableFuture<?>) quoteCurrenciesPromise), ((CompletableFuture<?>) limitsPromise)).thenApply(promiseAllValue -> new ArrayList<Object>(Arrays.asList(((CompletableFuture<?>) baseCurrenciesPromise).join(), ((CompletableFuture<?>) quoteCurrenciesPromise).join(), ((CompletableFuture<?>) limitsPromise).join())))).join();
             var baseCurrencies = ((List<Object>) baseCurrenciesquoteCurrencieslimitsVariable).get(0);
             var quoteCurrencies = ((List<Object>) baseCurrenciesquoteCurrencieslimitsVariable).get(1);
             var limits = ((List<Object>) baseCurrenciesquoteCurrencieslimitsVariable).get(2);

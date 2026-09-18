@@ -905,7 +905,7 @@ public class Derive extends DeriveApi
             Object spotMarketsPromise = this.fetchSpotMarkets(parameters);
             Object swapMarketsPromise = this.fetchSwapMarkets(parameters);
             Object optionMarketsPromise = this.fetchOptionMarkets(parameters);
-            var spotMarketsswapMarketsoptionMarketsVariable = (Helpers.promiseAll(new ArrayList<Object>(Arrays.asList(spotMarketsPromise, swapMarketsPromise, optionMarketsPromise)))).join();
+            var spotMarketsswapMarketsoptionMarketsVariable = (CompletableFuture.allOf(((CompletableFuture<?>) spotMarketsPromise), ((CompletableFuture<?>) swapMarketsPromise), ((CompletableFuture<?>) optionMarketsPromise)).thenApply(promiseAllValue -> new ArrayList<Object>(Arrays.asList(((CompletableFuture<?>) spotMarketsPromise).join(), ((CompletableFuture<?>) swapMarketsPromise).join(), ((CompletableFuture<?>) optionMarketsPromise).join())))).join();
             var spotMarkets = ((List<Object>) spotMarketsswapMarketsoptionMarketsVariable).get(0);
             var swapMarkets = ((List<Object>) spotMarketsswapMarketsoptionMarketsVariable).get(1);
             var optionMarkets = ((List<Object>) spotMarketsswapMarketsoptionMarketsVariable).get(2);
