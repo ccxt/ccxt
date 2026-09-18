@@ -67,10 +67,18 @@ transpile reported `branch_update=unchanged`.
 
 ## Farm
 
-* `ccxt-farm build --targets cs --wait` on `da7552c902f4e639261ed98660f1ce2c178939b6`
+* `ccxt-farm build --targets cs --wait` on `da7552c902f4e639261ed98660f1ce2c178939b6` (code commit)
   → `job=666 exit=0 branch_update=unchanged generator=404e9daa7f0ab58d085ed04aaa61a19546dfeda2`
-* `ccxt-farm log 666 --step buildCS --tail 60`: `Build succeeded. 0 Warning(s) 0 Error(s)`.
-* Final sha gate: see "Farm (final tip)" at the bottom of this file.
+* `ccxt-farm build --targets cs --wait` on `3eebf54ab26519ed4ad63dc0acf96bfb7b0b9544` (this report's
+  first revision) → `job=680 exit=0 branch_update=unchanged`
+* `ccxt-farm log <job> --step buildCS --tail 60` for both: `Build succeeded. 0 Warning(s) 0 Error(s)`.
+* Fixed point over the WHOLE tree (not just the family's ids): from this committed tree,
+  `ccxt-perf-slot.sh --local npx tsx build/csharpTranspiler.ts --force --noTests` (exit 0) and
+  `... --force --ws --noTests` (exit 0) both leave `git status --short -- cs/` **empty** — the
+  REST/prediction and the pro tier are byte-identical under the new classifier pass.
+* The tip of this branch is gated with the same `ccxt-farm build --targets cs --wait`; its job id
+  and exit are the ones recorded in the unit's submission record (`ccxt-farm status <sha>` is the
+  evidence).
 
 ## Evidence / tooling (`campaigns/cs90/tools/U07/`)
 
