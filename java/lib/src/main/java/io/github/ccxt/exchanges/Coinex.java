@@ -1272,7 +1272,7 @@ public class Coinex extends CoinexApi
             //         "message": "OK"
             //     }
             //
-            Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseCurrencies(data);
         });
 
@@ -1282,7 +1282,7 @@ public class Coinex extends CoinexApi
     {
         Object asset = this.safeDict(coin, "asset", new HashMap<String, Object>() {{}});
         String currencyId = this.safeString(asset, "ccy");
-        Object chains = this.safeList(coin, "chains", new ArrayList<Object>(Arrays.asList()));
+        List<Object> chains = (List<Object>) this.safeList(coin, "chains", new ArrayList<Object>(Arrays.asList()));
         String code = this.safeCurrencyCode(currencyId);
         Map<String, Object> networks = new HashMap<String, Object>() {{}};
         for (var j = 0; j < ((List<?>)chains).size(); j++)
@@ -1407,7 +1407,7 @@ public class Coinex extends CoinexApi
             //         "message": "OK"
             //     }
             //
-            Object markets = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> markets = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)markets).size(); i++)
             {
@@ -1503,13 +1503,13 @@ public class Coinex extends CoinexApi
             //         "message": "OK"
             //     }
             //
-            Object markets = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> markets = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)markets).size(); i++)
             {
                 Object entry = Helpers.GetValue(markets, i);
                 Object fees = this.fees;
-                Object leverages = this.safeList(entry, "leverage", new ArrayList<Object>(Arrays.asList()));
+                List<Object> leverages = (List<Object>) this.safeList(entry, "leverage", new ArrayList<Object>(Arrays.asList()));
                 String subType = this.safeString(entry, "contract_type");
                 Boolean linear = (java.util.Objects.equals(subType, "linear"));
                 Boolean inverse = (java.util.Objects.equals(subType, "inverse"));
@@ -1731,7 +1731,7 @@ public class Coinex extends CoinexApi
             //         "message": "OK"
             //     }
             //
-            Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             Object result = this.safeDict(data, 0, new HashMap<String, Object>() {{}});
             return this.parseTicker(result, market);
         }).thenApply(Ticker::new);
@@ -1824,7 +1824,7 @@ public class Coinex extends CoinexApi
             //         "message": "OK"
             //     }
             //
-            Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseTickers(data, symbols);
         }).thenApply(Tickers::new);
 
@@ -2084,7 +2084,7 @@ public class Coinex extends CoinexApi
             {
                 response = (this.v2PublicGetFuturesMarket(this.extend(request, parameters))).join();
             }
-            Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             Object result = this.safeDict(data, 0, new HashMap<String, Object>() {{}});
             return this.parseTradingFee(result, market);
         }).thenApply(TradingFeeInterface::new);
@@ -2122,7 +2122,7 @@ public class Coinex extends CoinexApi
             {
                 response = (this.v2PublicGetSpotMarket(parameters)).join();
             }
-            Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> result = new HashMap<String, Object>() {{}};
             for (var i = 0; i < ((List<?>)data).size(); i++)
             {
@@ -2233,7 +2233,7 @@ public class Coinex extends CoinexApi
             //         "message": "OK"
             //     }
             //
-            Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseOHLCVs(data, market, timeframe, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
 
@@ -2284,7 +2284,7 @@ public class Coinex extends CoinexApi
             Map<String, Object> result = new HashMap<String, Object>() {{
                 put( "info", response );
             }};
-            Object balances = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> balances = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             for (var i = 0; i < ((List<?>)balances).size(); i++)
             {
                 Object entry = Helpers.GetValue(balances, i);
@@ -2337,7 +2337,7 @@ public class Coinex extends CoinexApi
             Map<String, Object> result = new HashMap<String, Object>() {{
                 put( "info", response );
             }};
-            Object balances = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> balances = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             for (var i = 0; i < ((List<?>)balances).size(); i++)
             {
                 Object entry = Helpers.GetValue(balances, i);
@@ -2386,7 +2386,7 @@ public class Coinex extends CoinexApi
             Map<String, Object> result = new HashMap<String, Object>() {{
                 put( "info", response );
             }};
-            Object balances = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> balances = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             for (var i = 0; i < ((List<?>)balances).size(); i++)
             {
                 Object entry = Helpers.GetValue(balances, i);
@@ -2432,7 +2432,7 @@ public class Coinex extends CoinexApi
             Map<String, Object> result = new HashMap<String, Object>() {{
                 put( "info", response );
             }};
-            Object balances = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> balances = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             for (var i = 0; i < ((List<?>)balances).size(); i++)
             {
                 Object entry = Helpers.GetValue(balances, i);
@@ -3145,7 +3145,7 @@ public class Coinex extends CoinexApi
                     }
                 }
             }
-            Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             List<Object> results = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)data).size(); i++)
             {
@@ -3248,7 +3248,7 @@ public class Coinex extends CoinexApi
                     response = (this.v2PrivatePostFuturesCancelBatchOrder(this.extend(request, parameters))).join();
                 }
             }
-            Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             List<Object> results = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)data).size(); i++)
             {
@@ -3434,7 +3434,7 @@ public class Coinex extends CoinexApi
             {
                 response = (this.v2PrivatePostFuturesBatchModifyOrder(this.extend(request, parameters))).join();
             }
-            Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)data).size(); i++)
             {
@@ -3566,7 +3566,7 @@ public class Coinex extends CoinexApi
             Object data = null;
             if (!java.util.Objects.equals(clientOrderId, null))
             {
-                Object rows = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+                List<Object> rows = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
                 data = this.safeDict(Helpers.GetValue(rows, 0), "data", new HashMap<String, Object>() {{}});
             } else
             {
@@ -3785,7 +3785,7 @@ public class Coinex extends CoinexApi
                     }
                 }
             }
-            Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(data, market, since, limit);
         });
 
@@ -4054,7 +4054,7 @@ public class Coinex extends CoinexApi
                 }
                 response = (this.v2PrivateGetSpotUserDeals(this.extend(request, parameters))).join();
             }
-            Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseTrades(data, market, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
@@ -4160,7 +4160,7 @@ public class Coinex extends CoinexApi
             //         }
             //     }
             //
-            Object position = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> position = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)position).size(); i++)
             {
@@ -4239,7 +4239,7 @@ public class Coinex extends CoinexApi
             //         }
             //     }
             //
-            Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parsePosition(Helpers.GetValue(data, 0), market);
         }).thenApply(Position::new);
 
@@ -4483,7 +4483,7 @@ public class Coinex extends CoinexApi
             //         "message": "OK"
             //     }
             //
-            Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseLeverageTiers(data, symbols, "market");
         }).thenApply(LeverageTiers::new);
 
@@ -4493,7 +4493,7 @@ public class Coinex extends CoinexApi
     {
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         List<Object> tiers = new ArrayList<Object>(Arrays.asList());
-        Object brackets = this.safeList(info, "level", new ArrayList<Object>(Arrays.asList()));
+        List<Object> brackets = (List<Object>) this.safeList(info, "level", new ArrayList<Object>(Arrays.asList()));
         Object minNotional = 0;
         for (var i = 0; i < ((List<?>)brackets).size(); i++)
         {
@@ -4775,7 +4775,7 @@ final Object finalI = i;
             //         }
             //     }
             //
-            Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)data).size(); i++)
             {
@@ -4845,7 +4845,7 @@ final Object finalI = i;
             //         "message": "OK"
             //     }
             //
-            Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             Object first = this.safeDict(data, 0, new HashMap<String, Object>() {{}});
             return this.parseFundingRate(first, market);
         }).thenApply(FundingRate::new);
@@ -4982,7 +4982,7 @@ final Object finalI = i;
             //         "message": "OK"
             //     }
             //
-            Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseFundingRates(data, symbols);
         }).thenApply(FundingRates::new);
 
@@ -5155,7 +5155,7 @@ final Object finalI = i;
             //         }
             //     }
             //
-            Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             List<Object> rates = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)data).size(); i++)
             {
@@ -5478,7 +5478,7 @@ final Object finalI = i;
             //         "message": "OK"
             //     }
             //
-            Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseTransfers(data, currency, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(TransferEntry::new).collect(Collectors.toList()));
 
@@ -5552,7 +5552,7 @@ final Object finalI = i;
             //         "message": "OK"
             //     }
             //
-            Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseTransactions(data, currency, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
@@ -5623,7 +5623,7 @@ final Object finalI = i;
             //         "message": "OK"
             //     }
             //
-            Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseTransactions(data, currency, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
@@ -6081,7 +6081,7 @@ final Object finalI = i;
             //         "message": "OK"
             //     }
             //
-            Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> result = new HashMap<String, Object>() {{}};
             for (var i = 0; i < ((List<?>)data).size(); i++)
             {
@@ -6150,7 +6150,7 @@ final Object finalI = i;
             }} );
             put( "networks", new HashMap<String, Object>() {{}} );
         }};
-        Object chains = this.safeList(fee, "chains", new ArrayList<Object>(Arrays.asList()));
+        List<Object> chains = (List<Object>) this.safeList(fee, "chains", new ArrayList<Object>(Arrays.asList()));
         Object asset = this.safeDict(fee, "asset", new HashMap<String, Object>() {{}});
         for (var i = 0; i < ((List<?>)chains).size(); i++)
         {
@@ -6346,7 +6346,7 @@ final Object finalI = i;
             //         }
             //     }
             //
-            Object records = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> records = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             Object positions = this.parsePositions(records);
             return this.filterBySymbolSinceLimit(positions, symbol, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));
@@ -6699,7 +6699,7 @@ final Object finalI = i;
             //         }
             //     }
             //
-            Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             Object modifications = this.parseMarginModifications(data, null, "market", "swap");
             return this.filterBySymbolSinceLimit(modifications, symbol, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(MarginModification::new).collect(Collectors.toList()));

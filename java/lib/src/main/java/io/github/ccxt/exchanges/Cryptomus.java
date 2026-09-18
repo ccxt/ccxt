@@ -392,7 +392,7 @@ public class Cryptomus extends CryptomusApi
             //         ]
             //     }
             //
-            Object result = this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
+            List<Object> result = (List<Object>) this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
             return this.parseMarkets(result);
         });
 
@@ -517,7 +517,7 @@ public class Cryptomus extends CryptomusApi
             //         ]
             //     }
             //
-            Object coins = this.safeList(response, "result");
+            List<Object> coins = (List<Object>) this.safeList(response, "result");
             Map<String, Object> groupedById = this.groupBy(coins, "currency_code");
             Object groupedArray = Helpers.objectValues(groupedById);
             return this.parseCurrencies(groupedArray);
@@ -611,7 +611,7 @@ public class Cryptomus extends CryptomusApi
             //         ...
             //     }
             //
-            Object data = this.safeList(response, "data");
+            List<Object> data = (List<Object>) this.safeList(response, "data");
             return this.parseTickers(data, symbols);
         }).thenApply(Tickers::new);
 
@@ -756,7 +756,7 @@ public class Cryptomus extends CryptomusApi
             //         ]
             //     }
             //
-            Object data = this.safeList(response, "data");
+            List<Object> data = (List<Object>) this.safeList(response, "data");
             Object dataList = new ArrayList<Object>(Arrays.asList());
             if (!java.util.Objects.equals(data, null))
             {
@@ -832,7 +832,7 @@ public class Cryptomus extends CryptomusApi
             //         ]
             //     }
             //
-            Object result = this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
+            List<Object> result = (List<Object>) this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
             return this.parseBalance(result);
         }).thenApply(Balances::new);
 
@@ -1082,7 +1082,7 @@ public class Cryptomus extends CryptomusApi
             //         ]
             //     }
             //
-            Object result = this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
+            List<Object> result = (List<Object>) this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
             List<Object> orders = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)result).size(); i++)
             {
@@ -1153,7 +1153,7 @@ public class Cryptomus extends CryptomusApi
             //             ...
             //         ]
             //     }
-            Object result = this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
+            List<Object> result = (List<Object>) this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(result, market, null);
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
@@ -1228,7 +1228,7 @@ public class Cryptomus extends CryptomusApi
         String type = this.safeString(order, "type");
         String side = this.safeString(order, "direction");
         Double price = this.safeNumber(order, "price");
-        Object transaction = this.safeList(deal, "transactions", new ArrayList<Object>(Arrays.asList()));
+        List<Object> transaction = (List<Object>) this.safeList(deal, "transactions", new ArrayList<Object>(Arrays.asList()));
         Object fee = null;
         Object firstTx = this.safeDict(transaction, 0);
         String feeCurrency = this.safeString(firstTx, "feeCurrency");
@@ -1360,7 +1360,7 @@ public class Cryptomus extends CryptomusApi
             String takerFee = this.safeString(currentFeeTier, "taker_percent");
             makerFee = Precise.stringDiv(makerFee, "100");
             takerFee = Precise.stringDiv(takerFee, "100");
-            Object feeTiers = this.safeList(data, "tariff_steps", new ArrayList<Object>(Arrays.asList()));
+            List<Object> feeTiers = (List<Object>) this.safeList(data, "tariff_steps", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> result = new HashMap<String, Object>() {{}};
             Object tiers = this.parseFeeTiers(feeTiers);
             List<Object> symbols = this.symbols;

@@ -718,7 +718,7 @@ public class Delta extends DeltaApi
             //         "success":true
             //     }
             //
-            Object currencies = this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
+            List<Object> currencies = (List<Object>) this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
             return this.parseCurrencies(currencies);
         });
 
@@ -729,7 +729,7 @@ public class Delta extends DeltaApi
         String id = this.safeString(rawCurrency, "symbol");
         Long numericId = this.safeInteger(rawCurrency, "id");
         String code = this.safeCurrencyCode(id);
-        Object chains = this.safeList(rawCurrency, "networks", new ArrayList<Object>(Arrays.asList()));
+        List<Object> chains = (List<Object>) this.safeList(rawCurrency, "networks", new ArrayList<Object>(Arrays.asList()));
         Map<String, Object> networks = new HashMap<String, Object>() {{}};
         for (var j = 0; j < ((List<?>)chains).size(); j++)
         {
@@ -1025,7 +1025,7 @@ public class Delta extends DeltaApi
             //         "success":true
             //     }
             //
-            Object markets = this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
+            List<Object> markets = (List<Object>) this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)markets).size(); i++)
             {
@@ -1625,7 +1625,7 @@ public class Delta extends DeltaApi
             //         "success":true
             //     }
             //
-            Object tickers = this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
+            List<Object> tickers = (List<Object>) this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> result = new HashMap<String, Object>() {{}};
             for (var i = 0; i < ((List<?>)tickers).size(); i++)
             {
@@ -1850,7 +1850,7 @@ public class Delta extends DeltaApi
             //         "success":true
             //     }
             //
-            Object result = this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
+            List<Object> result = (List<Object>) this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
             return this.parseTrades(result, market, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
@@ -1945,7 +1945,7 @@ public class Delta extends DeltaApi
             //         ]
             //     }
             //
-            Object result = this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
+            List<Object> result = (List<Object>) this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
             return this.parseOHLCVs(result, market, timeframe, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
 
@@ -1953,7 +1953,7 @@ public class Delta extends DeltaApi
 
     public Object parseBalance(Object response)
     {
-        Object balances = this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
+        List<Object> balances = (List<Object>) this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", response );
         }};
@@ -2090,7 +2090,7 @@ public class Delta extends DeltaApi
             //         ]
             //     }
             //
-            Object result = this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
+            List<Object> result = (List<Object>) this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
             return this.parsePositions(result, symbols);
         }).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));
 
@@ -2754,7 +2754,7 @@ public class Delta extends DeltaApi
             //         }
             //     }
             //
-            Object result = this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
+            List<Object> result = (List<Object>) this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(result, market, since, limit);
         });
 
@@ -2842,7 +2842,7 @@ public class Delta extends DeltaApi
             //         "success":true
             //     }
             //
-            Object result = this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
+            List<Object> result = (List<Object>) this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
             return this.parseTrades(result, market, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
@@ -2902,7 +2902,7 @@ public class Delta extends DeltaApi
             //         "success":true
             //     }
             //
-            Object result = this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
+            List<Object> result = (List<Object>) this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
             return this.parseLedger(result, currency, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(LedgerEntry::new).collect(Collectors.toList()));
 
@@ -3211,7 +3211,7 @@ public class Delta extends DeltaApi
             //         "success":true
             //     }
             //
-            Object rates = this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
+            List<Object> rates = (List<Object>) this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
             return this.parseFundingRates(rates, symbols);
         }).thenApply(FundingRates::new);
 
@@ -3758,7 +3758,7 @@ public class Delta extends DeltaApi
             //         "success": true
             //     }
             //
-            Object result = this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
+            List<Object> result = (List<Object>) this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
             Object settlements = this.parseSettlements(result, market);
             List<Object> sorted = this.sortBy(settlements, "timestamp");
             return this.filterBySymbolSinceLimit(sorted, this.safeString(market, "symbol"), since, limit);
@@ -4514,7 +4514,7 @@ public class Delta extends DeltaApi
             //         "success": true
             //     }
             //
-            Object result = this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
+            List<Object> result = (List<Object>) this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
             return this.parseADLRanks(result, symbols);
         }).thenApply(res -> ((List<?>) res).stream().map(ADL::new).collect(Collectors.toList()));
 

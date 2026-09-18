@@ -117,7 +117,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
             Object response = (this.watch(url, requestId, request, requestId, null)).join();
             Object responseOjb = this.safeDict(response, "response", new HashMap<String, Object>() {{}});
             Object data = this.safeDict(responseOjb, "data", new HashMap<String, Object>() {{}});
-            Object statuses = this.safeList(data, "statuses", new ArrayList<Object>(Arrays.asList()));
+            List<Object> statuses = (List<Object>) this.safeList(data, "statuses", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(statuses);
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
@@ -215,7 +215,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
             // response is the same as in this.editOrder
             Object responseObject = this.safeDict(response, "response", new HashMap<String, Object>() {{}});
             Object dataObject = this.safeDict(responseObject, "data", new HashMap<String, Object>() {{}});
-            Object statuses = this.safeList(dataObject, "statuses", new ArrayList<Object>(Arrays.asList()));
+            List<Object> statuses = (List<Object>) this.safeList(dataObject, "statuses", new ArrayList<Object>(Arrays.asList()));
             Object first = this.safeDict(statuses, 0, new HashMap<String, Object>() {{}});
             Object parsedOrder = this.parseOrder(first, market);
             return parsedOrder;
@@ -255,7 +255,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
             Object response = (this.watch(url, requestId, wsRequest, requestId, null)).join();
             Object responseObj = this.safeDict(response, "response", new HashMap<String, Object>() {{}});
             Object data = this.safeDict(responseObj, "data", new HashMap<String, Object>() {{}});
-            Object statuses = this.safeList(data, "statuses", new ArrayList<Object>(Arrays.asList()));
+            List<Object> statuses = (List<Object>) this.safeList(data, "statuses", new ArrayList<Object>(Arrays.asList()));
             List<Object> orders = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)statuses).size(); i++)
             {
@@ -405,7 +405,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
         Object marketId = this.coinToMarketId(coin);
         Map<String, Object> market = (Map<String, Object>) this.market(marketId);
         Object symbol = ((Map<String, Object>)market).get("symbol");
-        Object rawData = this.safeList(entry, "levels", new ArrayList<Object>(Arrays.asList()));
+        List<Object> rawData = (List<Object>) this.safeList(entry, "levels", new ArrayList<Object>(Arrays.asList()));
         Map<String, Object> data = new HashMap<String, Object>() {{
             put( "bids", Hyperliquid.this.safeList(rawData, 0, new ArrayList<Object>(Arrays.asList())) );
             put( "asks", Hyperliquid.this.safeList(rawData, 1, new ArrayList<Object>(Arrays.asList())) );
@@ -822,7 +822,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
         }
         Object trades = this.myTrades;
         Map<String, Object> symbols = new HashMap<String, Object>() {{}};
-        Object data = this.safeList(entry, "fills", new ArrayList<Object>(Arrays.asList()));
+        List<Object> data = (List<Object>) this.safeList(entry, "fills", new ArrayList<Object>(Arrays.asList()));
         Object dataLength = ((List<?>)data).size();
         if (Helpers.isEqual(dataLength, 0))
         {
@@ -947,7 +947,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
         //         ]
         //     }
         //
-        Object entry = this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
+        List<Object> entry = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
         Object entryLength = ((List<?>)entry).size();
         if (Helpers.isEqual(entryLength, 0))
         {
@@ -1556,7 +1556,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
         Object data = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         Object clearinghouseState = this.safeDict(data, "clearinghouseState", new HashMap<String, Object>() {{}});
         List<Object> newPositions = new ArrayList<Object>(Arrays.asList());
-        Object rawPositions = this.safeList(clearinghouseState, "assetPositions", new ArrayList<Object>(Arrays.asList()));
+        List<Object> rawPositions = (List<Object>) this.safeList(clearinghouseState, "assetPositions", new ArrayList<Object>(Arrays.asList()));
         for (var i = 0; i < ((List<?>)rawPositions).size(); i++)
         {
             Object rawPosition = Helpers.GetValue(rawPositions, i);
@@ -1764,7 +1764,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
         //         ]
         //     }
         //
-        Object data = this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
+        List<Object> data = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
         if (java.util.Objects.equals(this.orders, null))
         {
             Long limit = this.safeInteger(this.options, "ordersLimit", 1000);

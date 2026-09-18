@@ -631,7 +631,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
             Helpers.addElementToObject(Helpers.GetValue(this.ohlcvs, symbol), ((String)timeframe), new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue()));
         }
         Object stored = Helpers.GetValue(Helpers.GetValue(this.ohlcvs, symbol), ((String)timeframe));
-        Object data = this.safeList(message, "candles", new ArrayList<Object>(Arrays.asList()));
+        List<Object> data = (List<Object>) this.safeList(message, "candles", new ArrayList<Object>(Arrays.asList()));
         for (var i = 0; i < ((List<?>)data).size(); i++)
         {
             Object tick = Helpers.GetValue(data, i);
@@ -865,7 +865,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
             Helpers.addElementToObject(orderbook, "symbol", symbol);
         } else
         {
-            Object changes = this.safeList(message, "changes", new ArrayList<Object>(Arrays.asList()));
+            List<Object> changes = (List<Object>) this.safeList(message, "changes", new ArrayList<Object>(Arrays.asList()));
             this.handleDeltas(orderbook, changes);
         }
         Helpers.addElementToObject(orderbook, "nonce", this.safeInteger(message, "sequence"));

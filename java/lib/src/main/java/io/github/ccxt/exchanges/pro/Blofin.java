@@ -180,7 +180,7 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
         //
         Object arg = this.safeDict(message, "arg");
         String channelName = this.safeString(arg, "channel");
-        Object data = this.safeList(message, "data");
+        List<Object> data = (List<Object>) this.safeList(message, "data");
         if (java.util.Objects.equals(data, null))
         {
             return;
@@ -312,8 +312,8 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
             Helpers.callDynamically(orderbook, "reset", new Object[]{orderBookSnapshot});
         } else
         {
-            Object asks = this.safeList(data, "asks", new ArrayList<Object>(Arrays.asList()));
-            Object bids = this.safeList(data, "bids", new ArrayList<Object>(Arrays.asList()));
+            List<Object> asks = (List<Object>) this.safeList(data, "asks", new ArrayList<Object>(Arrays.asList()));
+            List<Object> bids = (List<Object>) this.safeList(data, "bids", new ArrayList<Object>(Arrays.asList()));
             this.handleDeltasWithKeys(Helpers.GetValue(orderbook, "asks"), asks);
             this.handleDeltasWithKeys(Helpers.GetValue(orderbook, "bids"), bids);
             Helpers.addElementToObject(orderbook, "timestamp", timestamp);
@@ -397,7 +397,7 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
         this.handleBidAsk(client, message);
         Object arg = this.safeDict(message, "arg");
         String channelName = this.safeString(arg, "channel");
-        Object data = this.safeList(message, "data");
+        List<Object> data = (List<Object>) this.safeList(message, "data");
         for (var i = 0; i < ((List<?>)data).size(); i++)
         {
             Object ticker = this.parseWsTicker(Helpers.GetValue(data, i));
@@ -469,7 +469,7 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
 
     public void handleBidAsk(Client client, Object message)
     {
-        Object data = this.safeList(message, "data");
+        List<Object> data = (List<Object>) this.safeList(message, "data");
         for (var i = 0; i < ((List<?>)data).size(); i++)
         {
             Object ticker = this.parseWsBidAsk(Helpers.GetValue(data, i));
@@ -585,7 +585,7 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
         //
         Object arg = this.safeDict(message, "arg");
         String channelName = this.safeString(arg, "channel");
-        Object data = this.safeList(message, "data");
+        List<Object> data = (List<Object>) this.safeList(message, "data");
         String marketId = this.safeString(arg, "instId");
         Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
         Object symbol = ((Map<String, Object>)market).get("symbol");
@@ -762,7 +762,7 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
         Object orders = this.orders;
         Object arg = this.safeDict(message, "arg");
         String channelName = this.safeString(arg, "channel");
-        Object data = this.safeList(message, "data");
+        List<Object> data = (List<Object>) this.safeList(message, "data");
         for (var i = 0; i < ((List<?>)data).size(); i++)
         {
             Object order = this.parseWsOrder(Helpers.GetValue(data, i));
@@ -832,7 +832,7 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
         Object cache = this.positions;
         Object arg = this.safeDict(message, "arg");
         String channelName = this.safeString(arg, "channel");
-        Object data = this.safeList(message, "data");
+        List<Object> data = (List<Object>) this.safeList(message, "data");
         List<Object> newPositions = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ((List<?>)data).size(); i++)
         {
@@ -903,7 +903,7 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
         //         ]
         //     }
         //
-        Object data = this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
+        List<Object> data = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
         Object first = this.safeDict(data, 0, new HashMap<String, Object>() {{}});
         Object fundingRate = this.parseFundingRate(first);
         Object symbol = ((Map<String, Object>)fundingRate).get("symbol");

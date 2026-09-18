@@ -1017,8 +1017,8 @@ public class Whitebit extends WhitebitApi
         Boolean hasProvider = (((Map<?, ?>)rawCurrency).containsKey("providers"));
         Map<String, Object> networks = new HashMap<String, Object>() {{}};
         Object rawNetworks = this.safeDict(rawCurrency, "networks", new HashMap<String, Object>() {{}});
-        Object depositsNetworks = this.safeList(rawNetworks, "deposits", new ArrayList<Object>(Arrays.asList()));
-        Object withdrawsNetworks = this.safeList(rawNetworks, "withdraws", new ArrayList<Object>(Arrays.asList()));
+        List<Object> depositsNetworks = (List<Object>) this.safeList(rawNetworks, "deposits", new ArrayList<Object>(Arrays.asList()));
+        List<Object> withdrawsNetworks = (List<Object>) this.safeList(rawNetworks, "withdraws", new ArrayList<Object>(Arrays.asList()));
         Object networkLimits = this.safeDict(rawCurrency, "limits", new HashMap<String, Object>() {{}});
         Object depositLimits = this.safeDict(networkLimits, "deposit", new HashMap<String, Object>() {{}});
         Object withdrawLimits = this.safeDict(networkLimits, "withdraw", new HashMap<String, Object>() {{}});
@@ -1951,7 +1951,7 @@ public class Whitebit extends WhitebitApi
                     {
                         Object marketId = Helpers.GetValue(marketIds, i);
                         Map<String, Object> marketNew = (Map<String, Object>) this.safeMarket(marketId, null, "_");
-                        Object marketOrders = this.safeList(response, marketId, new ArrayList<Object>(Arrays.asList()));
+                        List<Object> marketOrders = (List<Object>) this.safeList(response, marketId, new ArrayList<Object>(Arrays.asList()));
                         for (var j = 0; j < ((List<?>)marketOrders).size(); j++)
                         {
                             Object order = Helpers.GetValue(marketOrders, j);
@@ -2095,7 +2095,7 @@ public class Whitebit extends WhitebitApi
             {
                 response = (this.v2PublicGetTicker(parameters)).join();
             }
-            Object resultList = this.safeList(response, "result");
+            List<Object> resultList = (List<Object>) this.safeList(response, "result");
             if (!java.util.Objects.equals(resultList, null))
             {
                 return this.parseTickers(resultList, symbols);
@@ -2453,7 +2453,7 @@ public class Whitebit extends WhitebitApi
             //         ]
             //     }
             //
-            Object result = this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
+            List<Object> result = (List<Object>) this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
             return this.parseOHLCVs(result, market, timeframe, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
 
@@ -3271,7 +3271,7 @@ public class Whitebit extends WhitebitApi
             {
                 Object marketId = Helpers.GetValue(marketIds, i);
                 Map<String, Object> marketNew = (Map<String, Object>) this.safeMarket(marketId, null, "_");
-                Object orders = this.safeList(response, marketId, new ArrayList<Object>(Arrays.asList()));
+                List<Object> orders = (List<Object>) this.safeList(response, marketId, new ArrayList<Object>(Arrays.asList()));
                 for (var j = 0; j < ((List<?>)orders).size(); j++)
                 {
                     Object order = this.parseOrder(Helpers.GetValue(orders, j), marketNew);
@@ -3494,7 +3494,7 @@ public class Whitebit extends WhitebitApi
             //         "limit": 100
             //     }
             //
-            Object data = this.safeList(response, "records", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = (List<Object>) this.safeList(response, "records", new ArrayList<Object>(Arrays.asList()));
             return this.parseTrades(data, market);
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
@@ -3643,7 +3643,7 @@ public class Whitebit extends WhitebitApi
             //         "offset": 0
             //     }
             //
-            Object records = this.safeList(response, "records", new ArrayList<Object>(Arrays.asList()));
+            List<Object> records = (List<Object>) this.safeList(response, "records", new ArrayList<Object>(Arrays.asList()));
             return this.parseTransactions(records, currency, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
@@ -3847,7 +3847,7 @@ public class Whitebit extends WhitebitApi
             //         ]
             //     }
             //
-            Object subAccounts = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> subAccounts = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             for (var i = 0; i < ((List<?>)subAccounts).size(); i++)
             {
                 Object subAccount = this.safeDict(subAccounts, i, new HashMap<String, Object>() {{}});
@@ -4275,7 +4275,7 @@ public class Whitebit extends WhitebitApi
             //         "total": 300                                                                                             // total number of  transactions, use this for calculating ‘limit’ and ‘offset'
             //     }
             //
-            Object records = this.safeList(response, "records", new ArrayList<Object>(Arrays.asList()));
+            List<Object> records = (List<Object>) this.safeList(response, "records", new ArrayList<Object>(Arrays.asList()));
             Object recordsList = new ArrayList<Object>(Arrays.asList());
             if (!java.util.Objects.equals(records, null))
             {
@@ -4477,7 +4477,7 @@ public class Whitebit extends WhitebitApi
             //        }
             //    ]
             //
-            Object data = this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = (List<Object>) this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
             return this.parseFundingRates(data, symbols);
         }).thenApply(FundingRates::new);
 
@@ -4608,7 +4608,7 @@ public class Whitebit extends WhitebitApi
             //         "offset": 0
             //     }
             //
-            Object data = this.safeList(response, "records", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = (List<Object>) this.safeList(response, "records", new ArrayList<Object>(Arrays.asList()));
             return this.parseFundingHistories(data, market, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(FundingHistory::new).collect(Collectors.toList()));
 
@@ -4738,7 +4738,7 @@ public class Whitebit extends WhitebitApi
             //        "total": 300                                                                                    // total number of  transactions, use this for calculating ‘limit’ and ‘offset'
             //    }
             //
-            Object records = this.safeList(response, "records");
+            List<Object> records = (List<Object>) this.safeList(response, "records");
             Object recordsList = new ArrayList<Object>(Arrays.asList());
             if (!java.util.Objects.equals(records, null))
             {
@@ -4905,7 +4905,7 @@ public class Whitebit extends WhitebitApi
             //         "offset": 0
             //     }
             //
-            Object rows = this.safeList(response, "records", new ArrayList<Object>(Arrays.asList()));
+            List<Object> rows = (List<Object>) this.safeList(response, "records", new ArrayList<Object>(Arrays.asList()));
             return this.parseConversions(rows, code, "fromCurrency", "toCurrency", since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Conversion::new).collect(Collectors.toList()));
 
@@ -4952,7 +4952,7 @@ public class Whitebit extends WhitebitApi
         //
         Object fromCurrency = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Object toCurrency = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-        Object path = this.safeList(conversion, "path", new ArrayList<Object>(Arrays.asList()));
+        List<Object> path = (List<Object>) this.safeList(conversion, "path", new ArrayList<Object>(Arrays.asList()));
         Object first = this.safeDict(path, 0, new HashMap<String, Object>() {{}});
         String fromPath = this.safeString(first, "from");
         String toPath = this.safeString(first, "to");
@@ -5417,7 +5417,7 @@ public class Whitebit extends WhitebitApi
                     if (Helpers.isGreaterThan(errorsLength, 0))
                     {
                         Object errorKey = Helpers.GetValue(errorKeys, 0);
-                        Object errorMessageArray = this.safeList(errorObject, errorKey, new ArrayList<Object>(Arrays.asList()));
+                        List<Object> errorMessageArray = (List<Object>) this.safeList(errorObject, errorKey, new ArrayList<Object>(Arrays.asList()));
                         Object errorMessageLength = ((List<?>)errorMessageArray).size();
                         errorInfo = (((Helpers.isGreaterThan(errorMessageLength, 0)))) ? Helpers.GetValue(errorMessageArray, 0) : body;
                     }
@@ -5437,7 +5437,7 @@ public class Whitebit extends WhitebitApi
                 if (Helpers.isGreaterThan(errKeysLength, 0))
                 {
                     Object errorKey = Helpers.GetValue(errKeys, 0);
-                    Object errorMessageArray = this.safeList(errMsg, errorKey, new ArrayList<Object>(Arrays.asList()));
+                    List<Object> errorMessageArray = (List<Object>) this.safeList(errMsg, errorKey, new ArrayList<Object>(Arrays.asList()));
                     Object errorMessageLength = ((List<?>)errorMessageArray).size();
                     errorInfo = (((Helpers.isGreaterThan(errorMessageLength, 0)))) ? Helpers.GetValue(errorMessageArray, 0) : body;
                 }

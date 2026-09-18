@@ -439,7 +439,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
         //    }
         //
         String messageHash = this.safeString(message, "id");
-        Object data = this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
+        List<Object> data = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
         List<Object> orders = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ((List<?>)data).size(); i++)
         {
@@ -858,7 +858,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
         //        ]
         //    }
         //
-        Object data = this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
+        List<Object> data = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
         for (var i = 0; i < ((List<?>)data).size(); i++)
         {
             Object item = Helpers.GetValue(data, i);
@@ -1061,7 +1061,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
         //        ]
         //    }
         //
-        Object data = this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
+        List<Object> data = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
         Object orders = this.orders;
         if (java.util.Objects.equals(orders, null))
         {
@@ -1266,7 +1266,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
         //        ]
         //    }
         //
-        Object data = this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
+        List<Object> data = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
         Map<String, Object> newTickers = new HashMap<String, Object>() {{}};
         for (var i = 0; i < ((List<?>)data).size(); i++)
         {
@@ -1352,7 +1352,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
         //        "action": "update"
         //    }
         //
-        Object data = this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
+        List<Object> data = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
         String type = this.safeString(message, "action");
         Boolean snapshot = java.util.Objects.equals(type, "snapshot");
         Boolean update = java.util.Objects.equals(type, "update");
@@ -1543,7 +1543,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
             this.handleOrderRequest(client, message);
         } else
         {
-            Object data = this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
             Object dataLength = ((List<?>)data).size();
             if (Helpers.isGreaterThan(dataLength, 0))
             {
@@ -1585,7 +1585,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
         //
         String id = this.safeString(message, "id");
         String eventVar = this.safeString(message, "event");
-        Object data = this.safeList(message, "data");
+        List<Object> data = (List<Object>) this.safeList(message, "data");
         Object first = this.safeDict(data, 0);
         String orderId = this.safeString(first, "orderId");
         if ((java.util.Objects.equals(eventVar, "error")) || (java.util.Objects.equals(orderId, "0")))

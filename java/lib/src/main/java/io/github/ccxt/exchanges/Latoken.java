@@ -775,7 +775,7 @@ public class Latoken extends LatokenApi
             Object types = this.safeValue(this.options, "types", new HashMap<String, Object>() {{}});
             String accountType = this.safeString(types, type, type);
             Map<String, Object> balancesByType = this.groupBy(response, "type");
-            Object balances = this.safeList(balancesByType, accountType, new ArrayList<Object>(Arrays.asList()));
+            List<Object> balances = (List<Object>) this.safeList(balancesByType, accountType, new ArrayList<Object>(Arrays.asList()));
             for (var i = 0; i < ((List<?>)balances).size(); i++)
             {
                 Object balance = Helpers.GetValue(balances, i);
@@ -862,8 +862,8 @@ public class Latoken extends LatokenApi
             // observed live on 2026-08-17 with bestAskQuantity -0.1791852 served
             // for over half an hour - such a level is a deleted level their
             // aggregation failed to drop, so it is removed here
-            Object rawAsks = this.safeList(response, "ask", new ArrayList<Object>(Arrays.asList()));
-            Object rawBids = this.safeList(response, "bid", new ArrayList<Object>(Arrays.asList()));
+            List<Object> rawAsks = (List<Object>) this.safeList(response, "ask", new ArrayList<Object>(Arrays.asList()));
+            List<Object> rawBids = (List<Object>) this.safeList(response, "bid", new ArrayList<Object>(Arrays.asList()));
             List<Object> asks = new ArrayList<Object>(Arrays.asList());
             List<Object> bids = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)rawAsks).size(); i++)
@@ -1973,7 +1973,7 @@ public class Latoken extends LatokenApi
             {
                 currency = this.currency(code);
             }
-            Object content = this.safeList(response, "content", new ArrayList<Object>(Arrays.asList()));
+            List<Object> content = (List<Object>) this.safeList(response, "content", new ArrayList<Object>(Arrays.asList()));
             return this.parseTransactions(content, currency, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
@@ -2125,7 +2125,7 @@ public class Latoken extends LatokenApi
             //         "hasContent": true
             //     }
             //
-            Object transfers = this.safeList(response, "content", new ArrayList<Object>(Arrays.asList()));
+            List<Object> transfers = (List<Object>) this.safeList(response, "content", new ArrayList<Object>(Arrays.asList()));
             return this.parseTransfers(transfers, currency, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(TransferEntry::new).collect(Collectors.toList()));
 

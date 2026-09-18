@@ -353,7 +353,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
         //         "s": "BTCUSDT"
         //     }
         //
-        Object data = this.safeList2(message, "data", "d", new ArrayList<Object>(Arrays.asList()));
+        List<Object> data = (List<Object>) this.safeList2(message, "data", "d", new ArrayList<Object>(Arrays.asList()));
         String channel = this.safeString(message, "c", "");
         String marketId = this.safeString(message, "s");
         Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
@@ -1091,8 +1091,8 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
             return;
         }
         Helpers.addElementToObject(orderbook, "nonce", deltaNonce);
-        Object asks = this.safeList(delta, "asks", new ArrayList<Object>(Arrays.asList()));
-        Object bids = this.safeList(delta, "bids", new ArrayList<Object>(Arrays.asList()));
+        List<Object> asks = (List<Object>) this.safeList(delta, "asks", new ArrayList<Object>(Arrays.asList()));
+        List<Object> bids = (List<Object>) this.safeList(delta, "bids", new ArrayList<Object>(Arrays.asList()));
         Object asksOrderSide = Helpers.GetValue(orderbook, "asks");
         Object bidsOrderSide = Helpers.GetValue(orderbook, "bids");
         this.handleBooksideDelta(asksOrderSide, asks);

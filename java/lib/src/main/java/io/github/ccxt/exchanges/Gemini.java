@@ -966,7 +966,7 @@ public class Gemini extends GeminiApi
             {
                 return new ArrayList<Object>(Arrays.asList());  // sandbox does not have usdt markets
             }
-            Object fetchUsdtMarkets = this.safeList(this.options, "fetchUsdtMarkets", new ArrayList<Object>(Arrays.asList()));
+            List<Object> fetchUsdtMarkets = (List<Object>) this.safeList(this.options, "fetchUsdtMarkets", new ArrayList<Object>(Arrays.asList()));
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)fetchUsdtMarkets).size(); i++)
             {
@@ -999,7 +999,7 @@ public class Gemini extends GeminiApi
             //
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             Object options = this.safeDict(this.options, "fetchMarketsFromAPI", new HashMap<String, Object>() {{}});
-            Object brokenPairs = this.safeList(this.options, "brokenPairs", new ArrayList<Object>(Arrays.asList()));
+            List<Object> brokenPairs = (List<Object>) this.safeList(this.options, "brokenPairs", new ArrayList<Object>(Arrays.asList()));
             List<Object> marketIds = new ArrayList<Object>(Arrays.asList());
             List<Object> allMarketIds = new ArrayList<Object>(Arrays.asList());
             if (Helpers.isTrue(Helpers.isArray(marketIdsRaw)))
@@ -1032,14 +1032,14 @@ public class Gemini extends GeminiApi
             } else
             {
                 // use trading-pairs info, if it was fetched
-                Object tradingPairs = this.safeList(this.options, "tradingPairs");
+                List<Object> tradingPairs = (List<Object>) this.safeList(this.options, "tradingPairs");
                 if (!java.util.Objects.equals(tradingPairs, null))
                 {
                     Map<String, Object> indexedTradingPairs = this.indexBy(tradingPairs, 0);
                     for (var i = 0; i < ((List<?>)marketIds).size(); i++)
                     {
                         Object marketId = Helpers.GetValue(marketIds, i);
-                        Object pairInfo = this.safeList(indexedTradingPairs, ((String)marketId).toUpperCase());
+                        List<Object> pairInfo = (List<Object>) this.safeList(indexedTradingPairs, ((String)marketId).toUpperCase());
                         if (!java.util.Objects.equals(pairInfo, null) && !Helpers.isTrue(this.inArray(marketId, brokenPairs)))
                         {
                             ((List<Object>)result).add(this.parseMarket(pairInfo));
@@ -1538,7 +1538,7 @@ public class Gemini extends GeminiApi
             //     ]
             //
             Object result = this.parseTickers(response, symbols);
-            Object brokenPairs = this.safeList(this.options, "brokenPairs", new ArrayList<Object>(Arrays.asList()));
+            List<Object> brokenPairs = (List<Object>) this.safeList(this.options, "brokenPairs", new ArrayList<Object>(Arrays.asList()));
             return this.removeKeysFromDict(result, brokenPairs);
         }).thenApply(Tickers::new);
 

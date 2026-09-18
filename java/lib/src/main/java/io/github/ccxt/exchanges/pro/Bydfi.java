@@ -1039,7 +1039,7 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
         //     }
         //
         Object data = this.safeDict(message, "a", new HashMap<String, Object>() {{}});
-        Object positionsData = this.safeList(data, "p", new ArrayList<Object>(Arrays.asList()));
+        List<Object> positionsData = (List<Object>) this.safeList(data, "p", new ArrayList<Object>(Arrays.asList()));
         Object rawPosition = this.safeDict(positionsData, 0, new HashMap<String, Object>() {{}});
         String marketId = this.safeString(rawPosition, "s");
         Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
@@ -1242,7 +1242,7 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
         if (((Map<?, ?>)client.futures).containsKey(messageHash))
         {
             Object data = this.safeDict(message, "a", new HashMap<String, Object>() {{}});
-            Object balances = this.safeList(data, "B", new ArrayList<Object>(Arrays.asList()));
+            List<Object> balances = (List<Object>) this.safeList(data, "B", new ArrayList<Object>(Arrays.asList()));
             Long timestamp = this.safeInteger(message, "T");
             Map<String, Object> result = new HashMap<String, Object>() {{
                 put( "info", message );
@@ -1289,7 +1289,7 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
 
     public void handleUnSubscription(Client client, Object subscription)
     {
-        Object messageHashes = this.safeList(subscription, "messageHashes", new ArrayList<Object>(Arrays.asList()));
+        List<Object> messageHashes = (List<Object>) this.safeList(subscription, "messageHashes", new ArrayList<Object>(Arrays.asList()));
         Object subHashIsPrefix = this.safeBool(subscription, "subHashIsPrefix", false);
         for (var i = 0; i < ((List<?>)messageHashes).size(); i++)
         {
@@ -1361,13 +1361,13 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
             } else if (java.util.Objects.equals(eventVar, "ACCOUNT_UPDATE"))
             {
                 Object account = this.safeDict(message, "a", new HashMap<String, Object>() {{}});
-                Object balances = this.safeList(account, "B", new ArrayList<Object>(Arrays.asList()));
+                List<Object> balances = (List<Object>) this.safeList(account, "B", new ArrayList<Object>(Arrays.asList()));
                 Object balancesLength = ((List<?>)balances).size();
                 if (Helpers.isGreaterThan(balancesLength, 0))
                 {
                     this.handleBalance(client, message);
                 }
-                Object positions = this.safeList(account, "p", new ArrayList<Object>(Arrays.asList()));
+                List<Object> positions = (List<Object>) this.safeList(account, "p", new ArrayList<Object>(Arrays.asList()));
                 Object positionsLength = ((List<?>)positions).size();
                 if (Helpers.isGreaterThan(positionsLength, 0))
                 {

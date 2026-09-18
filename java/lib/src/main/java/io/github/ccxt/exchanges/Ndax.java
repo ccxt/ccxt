@@ -2724,7 +2724,7 @@ public class Ndax extends NdaxApi
             //     ]
             //
             Map<String, Object> grouped = this.groupBy(response, "ChangeReason");
-            Object trades = this.safeList(grouped, "Trade", new ArrayList<Object>(Arrays.asList()));
+            List<Object> trades = (List<Object>) this.safeList(grouped, "Trade", new ArrayList<Object>(Arrays.asList()));
             return this.parseTrades(trades, market, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 

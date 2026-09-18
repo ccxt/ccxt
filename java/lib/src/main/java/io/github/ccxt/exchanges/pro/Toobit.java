@@ -305,7 +305,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
             Helpers.addElementToObject(this.trades, symbol, new ArrayCache(((Number)limit).intValue()));
         }
         io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) Helpers.GetValue(this.trades, symbol);
-        Object data = this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
+        List<Object> data = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
         Object parsed = this.parseWsTrades(data, market);
         for (var i = 0; i < ((List<?>)parsed).size(); i++)
         {
@@ -466,7 +466,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
                 Helpers.addElementToObject(Helpers.GetValue(this.ohlcvs, symbol), timeframe, stored);
             }
         }
-        Object data = this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
+        List<Object> data = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
         for (var i = 0; i < ((List<?>)data).size(); i++)
         {
             Object parsed = this.parseWsOHLCV(Helpers.GetValue(data, i), market);
@@ -612,7 +612,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
         //        "shared": false
         //    }
         //
-        Object data = this.safeList(message, "data");
+        List<Object> data = (List<Object>) this.safeList(message, "data");
         if (java.util.Objects.equals(data, null))
         {
             return;
@@ -753,7 +753,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
         String marketId = this.safeString(message, "symbol");
         Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
         Object symbol = ((Map<String, Object>)market).get("symbol");
-        Object data = this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
+        List<Object> data = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
         for (var i = 0; i < ((List<?>)data).size(); i++)
         {
             Object entry = Helpers.GetValue(data, i);
@@ -765,8 +765,8 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
             }
             io.github.ccxt.ws.WsOrderBook orderBook = (io.github.ccxt.ws.WsOrderBook) Helpers.GetValue(this.orderbooks, symbol);
             Long timestamp = this.safeInteger(entry, "t");
-            Object bids = this.safeList(entry, "b", new ArrayList<Object>(Arrays.asList()));
-            Object asks = this.safeList(entry, "a", new ArrayList<Object>(Arrays.asList()));
+            List<Object> bids = (List<Object>) this.safeList(entry, "b", new ArrayList<Object>(Arrays.asList()));
+            List<Object> asks = (List<Object>) this.safeList(entry, "a", new ArrayList<Object>(Arrays.asList()));
             this.handleDeltas(Helpers.GetValue(orderBook, "asks"), asks);
             this.handleDeltas(Helpers.GetValue(orderBook, "bids"), bids);
             Helpers.addElementToObject(orderBook, "timestamp", timestamp);
@@ -810,7 +810,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
 
     public void setOrderBookSnapshot(Client client, Object message, Object channel)
     {
-        Object data = this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
+        List<Object> data = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
         Object length = ((List<?>)data).size();
         if (Helpers.isEqual(length, 0))
         {
@@ -933,7 +933,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
         // ]
         //
         String channel = this.safeString(message, "e");
-        Object data = this.safeList(message, "B", new ArrayList<Object>(Arrays.asList()));
+        List<Object> data = (List<Object>) this.safeList(message, "B", new ArrayList<Object>(Arrays.asList()));
         Long timestamp = this.safeInteger(message, "E");
         String type = (((java.util.Objects.equals(channel, "outboundContractAccountInfo")))) ? "contract" : "spot";
         if (!(Helpers.inOp(this.balance, type)))

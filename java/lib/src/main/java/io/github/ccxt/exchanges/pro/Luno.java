@@ -120,7 +120,7 @@ public class Luno extends io.github.ccxt.exchanges.Luno
         //         "timestamp": 1660598775360
         //     }
         //
-        Object rawTrades = this.safeList(message, "trade_updates", new ArrayList<Object>(Arrays.asList()));
+        List<Object> rawTrades = (List<Object>) this.safeList(message, "trade_updates", new ArrayList<Object>(Arrays.asList()));
         Object length = ((List<?>)rawTrades).size();
         if (Helpers.isEqual(length, 0))
         {

@@ -997,7 +997,7 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
         }
         String subHash = this.safeString(subscription, "subHash");
         String topic = this.safeString(subscription, "topic");
-        Object symbols = this.safeList(subscription, "symbols", new ArrayList<Object>(Arrays.asList()));
+        List<Object> symbols = (List<Object>) this.safeList(subscription, "symbols", new ArrayList<Object>(Arrays.asList()));
         // the base cleanCache only prunes trades/orderbooks per symbol and
         // would wipe the whole orders/myTrades cache - rebuild those without
         // the unsubscribed symbols instead, so the markets that are still

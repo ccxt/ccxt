@@ -627,7 +627,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
         //         ]
         //     }
         //
-        Object data = this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
+        List<Object> data = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
         Object ticker = Helpers.GetValue(data, 0);
         Object symbol = this.safeString(ticker, "symbol");
         Object messageHash = this.getMessageHash("ticker", null, symbol);
@@ -687,7 +687,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
         //         ]
         //     }
         //
-        Object data = this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
+        List<Object> data = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
         Object trade = Helpers.GetValue(data, 0);
         Object symbol = this.safeString(trade, "symbol");
         Object messageHash = this.getMessageHash("trade", null, symbol);
@@ -731,7 +731,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
         //         ]
         //     }
         //
-        Object data = this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
+        List<Object> data = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
         Object first = Helpers.GetValue(data, 0);
         String marketId = this.safeString(first, "symbol");
         String symbol = this.safeSymbol(marketId);
@@ -903,7 +903,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
             Object trades = (this.watchMultiHelper("trade", "trade", symbols, null, parameters)).join();
             if (Helpers.isTrue(this.newUpdates))
             {
-                Object first = this.safeList(trades, 0);
+                List<Object> first = (List<Object>) this.safeList(trades, 0);
                 String tradeSymbol = this.safeString(first, "symbol");
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{tradeSymbol, limit});
             }
@@ -1154,10 +1154,10 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
         //     }
         //
         String type = this.safeString(message, "type");
-        Object data = this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
+        List<Object> data = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
         Object first = this.safeDict(data, 0, new HashMap<String, Object>() {{}});
         Object symbol = this.safeString(first, "symbol");
-        Object a = this.safeList(first, "asks", new ArrayList<Object>(Arrays.asList()));
+        List<Object> a = (List<Object>) this.safeList(first, "asks", new ArrayList<Object>(Arrays.asList()));
         Object b = this.safeValue(first, "bids", new ArrayList<Object>(Arrays.asList()));
         Long c = this.safeInteger(first, "checksum");
         Object messageHash = this.getMessageHash("orderbook", null, symbol);
@@ -1190,7 +1190,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
             {
                 String key = (String) Helpers.GetValue(keys, i);
                 Object bookside = Helpers.GetValue(orderbook, key);
-                Object deltas = this.safeList(first, key, new ArrayList<Object>(Arrays.asList()));
+                List<Object> deltas = (List<Object>) this.safeList(first, key, new ArrayList<Object>(Arrays.asList()));
                 Object deltasLength = ((List<?>)deltas).size();
                 if (Helpers.isGreaterThan(deltasLength, 0))
                 {
@@ -1476,7 +1476,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
         //     }
         //
         Object subscription = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-        Object allTrades = this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
+        List<Object> allTrades = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
         Object allTradesLength = ((List<?>)allTrades).size();
         if (Helpers.isGreaterThan(allTradesLength, 0))
         {
@@ -1541,7 +1541,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
         Object fee = null;
         if (Helpers.inOp(trade, "fees"))
         {
-            Object fees = this.safeList(trade, "fees", new ArrayList<Object>(Arrays.asList()));
+            List<Object> fees = (List<Object>) this.safeList(trade, "fees", new ArrayList<Object>(Arrays.asList()));
             Object firstFee = this.safeDict(fees, 0, new HashMap<String, Object>() {{}});
             fee = new HashMap<String, Object>() {{
                 put( "cost", Kraken.this.safeNumber(firstFee, "qty") );
@@ -1627,7 +1627,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
         //     }
         //
         Object subscription = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-        Object allOrders = this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
+        List<Object> allOrders = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
         Object allOrdersLength = ((List<?>)allOrders).size();
         if (Helpers.isGreaterThan(allOrdersLength, 0))
         {
@@ -1852,7 +1852,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
         //         "sequence": 1
         //     }
         //
-        Object data = this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
+        List<Object> data = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", message );
         }};
@@ -1979,7 +1979,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
         {
             if (java.util.Objects.equals(channel, "executions"))
             {
-                Object data = this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
+                List<Object> data = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
                 Object first = this.safeDict(data, 0, new HashMap<String, Object>() {{}});
                 String execType = this.safeString(first, "exec_type");
                 channel = (((java.util.Objects.equals(execType, "trade")))) ? "myTrades" : "orders";

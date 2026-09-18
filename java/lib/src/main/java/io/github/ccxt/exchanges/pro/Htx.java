@@ -1480,7 +1480,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
         {
             // contract branch
             parsedOrder = this.parseWsOrder(message, market);
-            Object rawTrades = this.safeList(message, "trade", new ArrayList<Object>(Arrays.asList()));
+            List<Object> rawTrades = (List<Object>) this.safeList(message, "trade", new ArrayList<Object>(Arrays.asList()));
             Object tradesLength = ((List<?>)rawTrades).size();
             if (Helpers.isGreaterThan(tradesLength, 0))
             {
@@ -2016,7 +2016,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
         {
             Helpers.addElementToObject(this.positions, url, new HashMap<String, Object>() {{}});
         }
-        Object rawPositions = this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
+        List<Object> rawPositions = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
         if (Helpers.isTrue(this.isEmpty(rawPositions)))
         {
             List<Object> prefixes = new ArrayList<Object>(Arrays.asList("cross:positions", "isolated:positions"));
@@ -2336,7 +2336,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
         //     }
         //
         String channel = this.safeString(message, "ch");
-        Object data = this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
+        List<Object> data = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
         Long timestamp = this.safeInteger(data, "changeTime", this.safeInteger(message, "ts"));
         Helpers.addElementToObject(this.balance, "timestamp", timestamp);
         Helpers.addElementToObject(this.balance, "datetime", this.iso8601(timestamp));
@@ -2366,7 +2366,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             if (java.util.Objects.equals(topic, "account"))
             {
                 Object accountData = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
-                Object details = this.safeList(accountData, "details", new ArrayList<Object>(Arrays.asList()));
+                List<Object> details = (List<Object>) this.safeList(accountData, "details", new ArrayList<Object>(Arrays.asList()));
                 Object detailsLength = ((List<?>)details).size();
                 for (var i = 0; Helpers.isLessThan(i, detailsLength); i++)
                 {
@@ -2544,8 +2544,8 @@ public class Htx extends io.github.ccxt.exchanges.Htx
 
     public void handleUnSubscription(Client client, Object subscription)
     {
-        Object messageHashes = this.safeList(subscription, "messageHashes", new ArrayList<Object>(Arrays.asList()));
-        Object subMessageHashes = this.safeList(subscription, "subMessageHashes", new ArrayList<Object>(Arrays.asList()));
+        List<Object> messageHashes = (List<Object>) this.safeList(subscription, "messageHashes", new ArrayList<Object>(Arrays.asList()));
+        List<Object> subMessageHashes = (List<Object>) this.safeList(subscription, "subMessageHashes", new ArrayList<Object>(Arrays.asList()));
         for (var i = 0; i < ((List<?>)messageHashes).size(); i++)
         {
             Object unsubHash = Helpers.GetValue(messageHashes, i);
@@ -3131,7 +3131,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             {
                 // this trades object is artificially created
                 // in handleOrder
-                Object rawTrades = this.safeList(message, "trades", new ArrayList<Object>(Arrays.asList()));
+                List<Object> rawTrades = (List<Object>) this.safeList(message, "trades", new ArrayList<Object>(Arrays.asList()));
                 Object marketId = this.safeValue(message, "symbol");
                 Map<String, Object> market = (Map<String, Object>) this.market(marketId);
                 for (var i = 0; i < ((List<?>)rawTrades).size(); i++)
@@ -3368,7 +3368,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
                 put( "symbols", new ArrayList<Object>(Arrays.asList(((Map<String, Object>)finalMarket).get("symbol"))) );
                 put( "topic", finalTopic );
             }};
-            Object symbolsAndTimeframes = this.safeList(parameters, "symbolsAndTimeframes");
+            List<Object> symbolsAndTimeframes = (List<Object>) this.safeList(parameters, "symbolsAndTimeframes");
             if (!java.util.Objects.equals(symbolsAndTimeframes, null))
             {
                 ((Map<String, Object>)subscription).put("symbolsAndTimeframes", symbolsAndTimeframes);

@@ -796,7 +796,7 @@ public class Coinsph extends CoinsphApi
         String id = this.safeString(rawCurrency, "coin");
         String code = this.safeCurrencyCode(id);
         Object isFiat = this.safeBool(rawCurrency, "isLegalMoney");
-        Object networkList = this.safeList(rawCurrency, "networkList", new ArrayList<Object>(Arrays.asList()));
+        List<Object> networkList = (List<Object>) this.safeList(rawCurrency, "networkList", new ArrayList<Object>(Arrays.asList()));
         Map<String, Object> networks = new HashMap<String, Object>() {{}};
         for (var j = 0; j < ((List<?>)networkList).size(); j++)
         {
@@ -859,7 +859,7 @@ public class Coinsph extends CoinsphApi
         {
             Object symbols = Helpers.GetValue(parameters, "symbols");
             Object symbolsAmount = Helpers.getArrayLength(symbols);
-            Object byNumberOfSymbols = this.safeList(config, "byNumberOfSymbols", new ArrayList<Object>(Arrays.asList()));
+            List<Object> byNumberOfSymbols = (List<Object>) this.safeList(config, "byNumberOfSymbols", new ArrayList<Object>(Arrays.asList()));
             for (var i = 0; i < ((List<?>)byNumberOfSymbols).size(); i++)
             {
                 Object entry = Helpers.GetValue(byNumberOfSymbols, i);
@@ -871,7 +871,7 @@ public class Coinsph extends CoinsphApi
         } else if ((((Map<?, ?>)config).containsKey("byLimit")) && (Helpers.inOp(parameters, "limit")))
         {
             Object limit = Helpers.GetValue(parameters, "limit");
-            Object byLimit = this.safeList(config, "byLimit", new ArrayList<Object>(Arrays.asList()));
+            List<Object> byLimit = (List<Object>) this.safeList(config, "byLimit", new ArrayList<Object>(Arrays.asList()));
             for (var i = 0; i < ((List<?>)byLimit).size(); i++)
             {
                 Object entry = Helpers.GetValue(byLimit, i);
@@ -1007,7 +1007,7 @@ public class Coinsph extends CoinsphApi
             //         ]
             //     }
             //
-            Object markets = this.safeList(response, "symbols", new ArrayList<Object>(Arrays.asList()));
+            List<Object> markets = (List<Object>) this.safeList(response, "symbols", new ArrayList<Object>(Arrays.asList()));
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)markets).size(); i++)
             {
@@ -1683,7 +1683,7 @@ public class Coinsph extends CoinsphApi
 
     public Object parseBalance(Object response)
     {
-        Object balances = this.safeList(response, "balances", new ArrayList<Object>(Arrays.asList()));
+        List<Object> balances = (List<Object>) this.safeList(response, "balances", new ArrayList<Object>(Arrays.asList()));
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", response );
             put( "timestamp", null );

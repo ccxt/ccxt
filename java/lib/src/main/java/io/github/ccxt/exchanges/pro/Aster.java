@@ -1855,7 +1855,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
         }
         Helpers.addElementToObject(Helpers.GetValue(this.balance, accountType), "info", message);
         message = this.safeDict(message, "a", message);
-        Object B = this.safeList(message, "B", new ArrayList<Object>(Arrays.asList()));
+        List<Object> B = (List<Object>) this.safeList(message, "B", new ArrayList<Object>(Arrays.asList()));
         String wallet = this.safeString(this.options, "wallet", "wb");
         for (var i = 0; i < ((List<?>)B).size(); i++)
         {
@@ -2029,7 +2029,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
         }
         Object cache = this.positions;
         Object data = this.safeDict(message, "a", new HashMap<String, Object>() {{}});
-        Object rawPositions = this.safeList(data, "P", new ArrayList<Object>(Arrays.asList()));
+        List<Object> rawPositions = (List<Object>) this.safeList(data, "P", new ArrayList<Object>(Arrays.asList()));
         List<Object> newPositions = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ((List<?>)rawPositions).size(); i++)
         {
@@ -2307,7 +2307,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
                             Helpers.addElementToObject(order, "fee", tradeFee);
                         }
                         // save this trade in the order
-                        Object orderTrades = this.safeList(order, "trades", new ArrayList<Object>(Arrays.asList()));
+                        List<Object> orderTrades = (List<Object>) this.safeList(order, "trades", new ArrayList<Object>(Arrays.asList()));
                         ((List<Object>)orderTrades).add(trade);
                         Helpers.addElementToObject(order, "trades", orderTrades);
                     }

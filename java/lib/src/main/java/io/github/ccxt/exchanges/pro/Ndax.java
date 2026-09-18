@@ -196,7 +196,7 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
 
     public void handleTrades(Client client, Object message)
     {
-        Object payload = this.safeList(message, "o", new ArrayList<Object>(Arrays.asList()));
+        List<Object> payload = (List<Object>) this.safeList(message, "o", new ArrayList<Object>(Arrays.asList()));
         //
         // initial snapshot
         //
@@ -315,7 +315,7 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
         //         "o": [[1608284160000,23113.52,23070.88,23075.76,23075.39,162.44964300,23075.38,23075.39,8,1608284100000]],
         //     }
         //
-        Object payload = this.safeList(message, "o", new ArrayList<Object>(Arrays.asList()));
+        List<Object> payload = (List<Object>) this.safeList(message, "o", new ArrayList<Object>(Arrays.asList()));
         //
         //     [
         //         [
@@ -492,7 +492,7 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
         //         "o": [[2,1,1608208308265,0,20782.49,1,25000,8,1,1]]
         //     }
         //
-        Object payload = this.safeList(message, "o", new ArrayList<Object>(Arrays.asList()));
+        List<Object> payload = (List<Object>) this.safeList(message, "o", new ArrayList<Object>(Arrays.asList()));
         //
         //     [
         //         0,   // 0 MDUpdateId

@@ -600,7 +600,7 @@ public class Bigone extends BigoneApi
             //     ],
             // }
             //
-            Object currenciesData = this.safeList(data, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> currenciesData = (List<Object>) this.safeList(data, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseCurrencies(currenciesData);
         });
 
@@ -612,7 +612,7 @@ public class Bigone extends BigoneApi
         String code = this.safeCurrencyCode(id);
         String name = this.safeString(rawCurrency, "name");
         Map<String, Object> networks = new HashMap<String, Object>() {{}};
-        Object chains = this.safeList(rawCurrency, "binding_gateways", new ArrayList<Object>(Arrays.asList()));
+        List<Object> chains = (List<Object>) this.safeList(rawCurrency, "binding_gateways", new ArrayList<Object>(Arrays.asList()));
         Object currencyMaxPrecision = this.parsePrecision(this.safeString2(rawCurrency, "withdrawal_scale", "scale"));
         for (var j = 0; j < ((List<?>)chains).size(); j++)
         {
@@ -765,7 +765,7 @@ public class Bigone extends BigoneApi
             //        ...
             //    ]
             //
-            Object markets = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> markets = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)markets).size(); i++)
             {
@@ -1496,7 +1496,7 @@ public class Bigone extends BigoneApi
             //         ]
             //     }
             //
-            Object trades = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> trades = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseTrades(trades, market, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
@@ -1603,7 +1603,7 @@ public class Bigone extends BigoneApi
             //         ]
             //     }
             //
-            Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseOHLCVs(data, market, timeframe, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
 
@@ -1616,7 +1616,7 @@ public class Bigone extends BigoneApi
             put( "timestamp", null );
             put( "datetime", null );
         }};
-        Object balances = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+        List<Object> balances = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
         for (var i = 0; i < ((List<?>)balances).size(); i++)
         {
             Object balance = Helpers.GetValue(balances, i);
@@ -2026,8 +2026,8 @@ public class Bigone extends BigoneApi
             //     }
             //
             Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            Object cancelled = this.safeList(data, "cancelled", new ArrayList<Object>(Arrays.asList()));
-            Object failed = this.safeList(data, "failed", new ArrayList<Object>(Arrays.asList()));
+            List<Object> cancelled = (List<Object>) this.safeList(data, "cancelled", new ArrayList<Object>(Arrays.asList()));
+            List<Object> failed = (List<Object>) this.safeList(data, "failed", new ArrayList<Object>(Arrays.asList()));
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)cancelled).size(); i++)
             {
@@ -2140,7 +2140,7 @@ public class Bigone extends BigoneApi
             //        "page_token":"dxzef",
             //    }
             //
-            Object orders = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> orders = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(orders, market, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
@@ -2217,7 +2217,7 @@ public class Bigone extends BigoneApi
             //         "page_token":"dxfv"
             //     }
             //
-            Object trades = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> trades = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseTrades(trades, market, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
@@ -2392,7 +2392,7 @@ public class Bigone extends BigoneApi
             //         ]
             //     }
             //
-            Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             Object dataLength = ((List<?>)data).size();
             if (Helpers.isLessThan(dataLength, 1))
             {
@@ -2574,7 +2574,7 @@ public class Bigone extends BigoneApi
             //         ]
             //     }
             //
-            Object deposits = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> deposits = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseTransactions(deposits, currency, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
@@ -2637,7 +2637,7 @@ public class Bigone extends BigoneApi
             //         "page_token":"dxvf"
             //     }
             //
-            Object withdrawals = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> withdrawals = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseTransactions(withdrawals, currency, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 

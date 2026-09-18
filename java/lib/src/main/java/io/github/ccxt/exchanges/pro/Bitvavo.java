@@ -230,7 +230,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
         //
         this.handleBidAsk(client, message);
         String eventVar = this.safeString(message, "event");
-        Object tickers = this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
+        List<Object> tickers = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
         List<Object> result = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ((List<?>)tickers).size(); i++)
         {
@@ -278,7 +278,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
     public void handleBidAsk(Client client, Object message)
     {
         String eventVar = "bidask";
-        Object tickers = this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
+        List<Object> tickers = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
         List<Object> result = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ((List<?>)tickers).size(); i++)
         {
@@ -1468,7 +1468,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
         //    }
         //
         // const action = this.safeString (message, 'action');
-        Object response = this.safeList(message, "response");
+        List<Object> response = (List<Object>) this.safeList(message, "response");
         // const firstRawOrder = this.safeValue (response, 0, {});
         // const marketId = this.safeString (firstRawOrder, 'market');
         List<Object> orders = this.parseOrders(response);

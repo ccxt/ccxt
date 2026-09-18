@@ -990,7 +990,7 @@ public class Modetrade extends ModetradeApi
             //   }
             //
             Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            Object rows = this.safeList(data, "rows", new ArrayList<Object>(Arrays.asList()));
+            List<Object> rows = (List<Object>) this.safeList(data, "rows", new ArrayList<Object>(Arrays.asList()));
             return this.parseMarkets(rows);
         });
 
@@ -1034,7 +1034,7 @@ public class Modetrade extends ModetradeApi
             // }
             //
             Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            Object tokenRows = this.safeList(data, "rows", new ArrayList<Object>(Arrays.asList()));
+            List<Object> tokenRows = (List<Object>) this.safeList(data, "rows", new ArrayList<Object>(Arrays.asList()));
             return this.parseCurrencies(tokenRows);
         });
 
@@ -1043,7 +1043,7 @@ public class Modetrade extends ModetradeApi
     public Object parseCurrency(Object rawCurrency)
     {
         String currencyId = this.safeString(rawCurrency, "token");
-        Object networks = this.safeList(rawCurrency, "chain_details", new ArrayList<Object>(Arrays.asList()));
+        List<Object> networks = (List<Object>) this.safeList(rawCurrency, "chain_details", new ArrayList<Object>(Arrays.asList()));
         String code = this.safeCurrencyCode(currencyId);
         Object minPrecision = null;
         Map<String, Object> resultingNetworks = new HashMap<String, Object>() {{}};
@@ -1241,7 +1241,7 @@ public class Modetrade extends ModetradeApi
             // }
             //
             Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            Object rows = this.safeList(data, "rows", new ArrayList<Object>(Arrays.asList()));
+            List<Object> rows = (List<Object>) this.safeList(data, "rows", new ArrayList<Object>(Arrays.asList()));
             return this.parseTrades(rows, market, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
@@ -1409,7 +1409,7 @@ public class Modetrade extends ModetradeApi
             // }
             //
             Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            Object rows = this.safeList(data, "rows", new ArrayList<Object>(Arrays.asList()));
+            List<Object> rows = (List<Object>) this.safeList(data, "rows", new ArrayList<Object>(Arrays.asList()));
             return this.parseFundingRates(rows, symbols);
         }).thenApply(FundingRates::new);
 
@@ -1484,7 +1484,7 @@ public class Modetrade extends ModetradeApi
             // }
             //
             Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            Object result = this.safeList(data, "rows", new ArrayList<Object>(Arrays.asList()));
+            List<Object> result = (List<Object>) this.safeList(data, "rows", new ArrayList<Object>(Arrays.asList()));
             List<Object> rates = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)result).size(); i++)
             {
@@ -1620,7 +1620,7 @@ public class Modetrade extends ModetradeApi
             // }
             //
             Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            Object rows = this.safeList(data, "rows", new ArrayList<Object>(Arrays.asList()));
+            List<Object> rows = (List<Object>) this.safeList(data, "rows", new ArrayList<Object>(Arrays.asList()));
             return this.parseIncomes(rows, market, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(FundingHistory::new).collect(Collectors.toList()));
 
@@ -1814,7 +1814,7 @@ public class Modetrade extends ModetradeApi
             //     }
             // }
             //
-            Object rows = this.safeList(data, "rows", new ArrayList<Object>(Arrays.asList()));
+            List<Object> rows = (List<Object>) this.safeList(data, "rows", new ArrayList<Object>(Arrays.asList()));
             return this.parseOHLCVs(rows, market, timeframe, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
 
@@ -1898,7 +1898,7 @@ public class Modetrade extends ModetradeApi
         if (!java.util.Objects.equals(childOrders, null))
         {
             Object first = this.safeValue(childOrders, 0);
-            Object innerChildOrders = this.safeList(first, "childOrders", new ArrayList<Object>(Arrays.asList()));
+            List<Object> innerChildOrders = (List<Object>) this.safeList(first, "childOrders", new ArrayList<Object>(Arrays.asList()));
             Object innerChildOrdersLength = ((List<?>)innerChildOrders).size();
             if (Helpers.isGreaterThan(innerChildOrdersLength, 0))
             {
@@ -2251,7 +2251,7 @@ public class Modetrade extends ModetradeApi
             //     }
             //
             Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            Object rows = this.safeList(data, "rows", new ArrayList<Object>(Arrays.asList()));
+            List<Object> rows = (List<Object>) this.safeList(data, "rows", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(rows);
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
@@ -2783,7 +2783,7 @@ public class Modetrade extends ModetradeApi
             //     }
             //
             Object data = this.safeValue(response, "data", response);
-            Object orders = this.safeList(data, "rows", new ArrayList<Object>(Arrays.asList()));
+            List<Object> orders = (List<Object>) this.safeList(data, "rows", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(orders, market, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
@@ -2921,7 +2921,7 @@ public class Modetrade extends ModetradeApi
             // }
             //
             Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            Object trades = this.safeList(data, "rows", new ArrayList<Object>(Arrays.asList()));
+            List<Object> trades = (List<Object>) this.safeList(data, "rows", new ArrayList<Object>(Arrays.asList()));
             return this.parseTrades(trades, market, since, limit, parameters);
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
@@ -3010,7 +3010,7 @@ public class Modetrade extends ModetradeApi
             // }
             //
             Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            Object trades = this.safeList(data, "rows", new ArrayList<Object>(Arrays.asList()));
+            List<Object> trades = (List<Object>) this.safeList(data, "rows", new ArrayList<Object>(Arrays.asList()));
             return this.parseTrades(trades, market, since, limit, parameters);
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
@@ -3021,7 +3021,7 @@ public class Modetrade extends ModetradeApi
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", response );
         }};
-        Object balances = this.safeList(response, "holding", new ArrayList<Object>(Arrays.asList()));
+        List<Object> balances = (List<Object>) this.safeList(response, "holding", new ArrayList<Object>(Arrays.asList()));
         for (var i = 0; i < ((List<?>)balances).size(); i++)
         {
             Object balance = Helpers.GetValue(balances, i);
@@ -3204,7 +3204,7 @@ public class Modetrade extends ModetradeApi
             Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
             Object currencyRows = (this.getAssetHistoryRows(code, since, limit, parameters)).join();
             Object currency = this.safeValue(currencyRows, 0);
-            Object rows = this.safeList(currencyRows, 1);
+            List<Object> rows = (List<Object>) this.safeList(currencyRows, 1);
             return this.parseLedger(rows, currency, since, limit, parameters);
         }).thenApply(res -> ((List<?>) res).stream().map(LedgerEntry::new).collect(Collectors.toList()));
 
@@ -3344,7 +3344,7 @@ public class Modetrade extends ModetradeApi
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Object currencyRows = (this.getAssetHistoryRows(code, since, limit, this.extend(request, parameters))).join();
             Object currency = this.safeValue(currencyRows, 0);
-            Object rows = this.safeList(currencyRows, 1, new ArrayList<Object>(Arrays.asList()));
+            List<Object> rows = (List<Object>) this.safeList(currencyRows, 1, new ArrayList<Object>(Arrays.asList()));
             //
             //     {
             //         "rows":[],
@@ -3813,7 +3813,7 @@ public class Modetrade extends ModetradeApi
             // }
             //
             Object result = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            Object positions = this.safeList(result, "rows", new ArrayList<Object>(Arrays.asList()));
+            List<Object> positions = (List<Object>) this.safeList(result, "rows", new ArrayList<Object>(Arrays.asList()));
             return this.parsePositions(positions, symbols);
         }).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));
 
@@ -3857,7 +3857,7 @@ public class Modetrade extends ModetradeApi
                     String brokerId = this.safeString(this.options, "brokerId", "CCXTMODE");
                     if (java.util.Objects.equals(path, "batch-order"))
                     {
-                        Object ordersList = this.safeList(parameters, "orders", new ArrayList<Object>(Arrays.asList()));
+                        List<Object> ordersList = (List<Object>) this.safeList(parameters, "orders", new ArrayList<Object>(Arrays.asList()));
                         for (var i = 0; i < ((List<?>)ordersList).size(); i++)
                         {
                             Helpers.addElementToObject(Helpers.GetValue(Helpers.GetValue(parameters, "orders"), i), "order_tag", brokerId);

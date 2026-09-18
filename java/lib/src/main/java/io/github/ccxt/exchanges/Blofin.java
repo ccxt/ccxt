@@ -826,7 +826,7 @@ public class Blofin extends BlofinApi
 
             Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             Map<String, Object> response = (this.publicGetMarketInstruments(parameters)).join();
-            Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseMarkets(data);
         });
 
@@ -978,7 +978,7 @@ public class Blofin extends BlofinApi
             //         ]
             //     }
             //
-            Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             Object first = this.safeDict(data, 0, new HashMap<String, Object>() {{}});
             Long timestamp = this.safeInteger(first, "ts");
             return this.parseOrderBook(first, symbol, timestamp);
@@ -1069,7 +1069,7 @@ public class Blofin extends BlofinApi
                 put( "instId", ((Map<String, Object>)market).get("id") );
             }};
             Map<String, Object> response = (this.publicGetMarketTickers(this.extend(request, parameters))).join();
-            Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             Object first = this.safeDict(data, 0, new HashMap<String, Object>() {{}});
             return this.parseTicker(first, market);
         }).thenApply(Ticker::new);
@@ -1101,7 +1101,7 @@ public class Blofin extends BlofinApi
                 put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
             Map<String, Object> response = (this.publicGetMarketMarkPrice(this.extend(request, parameters))).join();
-            Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             Object first = this.safeDict(data, 0, new HashMap<String, Object>() {{}});
             return this.parseTicker(first, market);
         }).thenApply(Ticker::new);
@@ -1130,7 +1130,7 @@ public class Blofin extends BlofinApi
             }
             symbols = this.marketSymbols(symbols);
             Map<String, Object> response = (this.publicGetMarketTickers(parameters)).join();
-            Object tickers = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> tickers = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseTickers(tickers, symbols);
         }).thenApply(Tickers::new);
 
@@ -1308,7 +1308,7 @@ public class Blofin extends BlofinApi
             {
                 response = (this.publicGetMarketTrades(this.extend(request, parameters))).join();
             }
-            Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseTrades(data, market, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
@@ -1386,7 +1386,7 @@ public class Blofin extends BlofinApi
                 parameters = this.omit(parameters, "until");
             }
             Map<String, Object> response = (this.publicGetMarketCandles(this.extend(request, parameters))).join();
-            Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseOHLCVs(data, market, timeframe, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
 
@@ -1450,7 +1450,7 @@ public class Blofin extends BlofinApi
             }
             Map<String, Object> response = (this.publicGetMarketFundingRateHistory(this.extend(request, parameters))).join();
             List<Object> rates = new ArrayList<Object>(Arrays.asList());
-            Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             for (var i = 0; i < ((List<?>)data).size(); i++)
             {
                 Object rate = Helpers.GetValue(data, i);
@@ -1546,7 +1546,7 @@ public class Blofin extends BlofinApi
             //        "msg": ""
             //    }
             //
-            Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             Object entry = this.safeDict(data, 0, new HashMap<String, Object>() {{}});
             return this.parseFundingRate(entry, market);
         }).thenApply(FundingRate::new);
@@ -1555,7 +1555,7 @@ public class Blofin extends BlofinApi
 
     public Object parseBalanceByType(Object response)
     {
-        Object data = this.safeList(response, "data");
+        List<Object> data = (List<Object>) this.safeList(response, "data");
         if ((!java.util.Objects.equals(data, null)) && Helpers.isTrue(Helpers.isArray(data)))
         {
             return this.parseFundingBalance(response);
@@ -1602,7 +1602,7 @@ public class Blofin extends BlofinApi
         }};
         Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
         Long timestamp = this.safeInteger(data, "ts");
-        Object details = this.safeList(data, "details", new ArrayList<Object>(Arrays.asList()));
+        List<Object> details = (List<Object>) this.safeList(data, "details", new ArrayList<Object>(Arrays.asList()));
         for (var i = 0; i < ((List<?>)details).size(); i++)
         {
             Object balance = Helpers.GetValue(details, i);
@@ -1648,7 +1648,7 @@ public class Blofin extends BlofinApi
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", response );
         }};
-        Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+        List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
         for (var i = 0; i < ((List<?>)data).size(); i++)
         {
             Object balance = Helpers.GetValue(data, i);
@@ -2037,7 +2037,7 @@ public class Blofin extends BlofinApi
                 Object dataDict = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
                 return this.parseOrder(dataDict, market);
             }
-            Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             Object first = this.safeDict(data, 0);
             Object order = this.parseOrder(first, market);
             Helpers.addElementToObject(order, "type", type);
@@ -2183,7 +2183,7 @@ public class Blofin extends BlofinApi
                 return this.parseOrder(triggerData, market);
             }
             Map<String, Object> response = (this.privatePostTradeCancelOrder(this.extend(request, query))).join();
-            Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             Object order = this.safeDict(data, 0);
             return this.parseOrder(order, market);
         }).thenApply(Order::new);
@@ -2224,7 +2224,7 @@ public class Blofin extends BlofinApi
                 ((List<Object>)ordersRequests).add(orderRequest);
             }
             Map<String, Object> response = (this.privatePostTradeBatchOrders(ordersRequests)).join();
-            Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(data);
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
@@ -2296,7 +2296,7 @@ public class Blofin extends BlofinApi
             {
                 response = (this.privateGetTradeOrdersPending(this.extend(request, query))).join();
             }
-            Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(data, market, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
@@ -2386,7 +2386,7 @@ public class Blofin extends BlofinApi
             {
                 response = (this.privateGetTradeFillsHistory(this.extend(request, parameters))).join();
             }
-            Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseTrades(data, market, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
@@ -2445,7 +2445,7 @@ public class Blofin extends BlofinApi
             request = ((List<Object>) requestparametersVariable).get(0);
             parameters = ((List<Object>) requestparametersVariable).get(1);
             Map<String, Object> response = (this.privateGetAssetDepositHistory(this.extend(request, parameters))).join();
-            Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseTransactions(data, currency, since, limit, parameters);
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
@@ -2504,7 +2504,7 @@ public class Blofin extends BlofinApi
             request = ((List<Object>) requestparametersVariable).get(0);
             parameters = ((List<Object>) requestparametersVariable).get(1);
             Map<String, Object> response = (this.privateGetAssetWithdrawalHistory(this.extend(request, parameters))).join();
-            Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseTransactions(data, currency, since, limit, parameters);
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
@@ -2709,7 +2709,7 @@ public class Blofin extends BlofinApi
             request = ((List<Object>) requestparametersVariable).get(0);
             parameters = ((List<Object>) requestparametersVariable).get(1);
             Map<String, Object> response = (this.privateGetAssetBills(this.extend(request, parameters))).join();
-            Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseLedger(data, currency, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(LedgerEntry::new).collect(Collectors.toList()));
 
@@ -2998,7 +2998,7 @@ public class Blofin extends BlofinApi
             {
                 response = (this.privatePostTradeCancelBatchOrders(request)).join(); // * dont extend with params, otherwise ARRAY will be turned into OBJECT
             }
-            Object ordersData = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> ordersData = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(ordersData, market, null, null, parameters);
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
@@ -3085,7 +3085,7 @@ public class Blofin extends BlofinApi
                 put( "instId", ((Map<String, Object>)market).get("id") );
             }};
             Map<String, Object> response = (this.privateGetAccountPositions(this.extend(request, parameters))).join();
-            Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             Object position = this.safeDict(data, 0);
             if (java.util.Objects.equals(position, null))
             {
@@ -3119,7 +3119,7 @@ public class Blofin extends BlofinApi
             }
             symbols = this.marketSymbols(symbols);
             Map<String, Object> response = (this.privateGetAccountPositions(parameters)).join();
-            Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             Object result = this.parsePositions(data);
             return this.filterByArrayPositions(result, "symbol", symbols, false);
         }).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));
@@ -3203,7 +3203,7 @@ public class Blofin extends BlofinApi
             //        ]
             //    }
             //
-            Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             Object positions = this.parsePositions(data, symbols, parameters);
             return this.filterBySinceLimit(positions, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));
@@ -3439,7 +3439,7 @@ public class Blofin extends BlofinApi
             //         ]
             //     }
             //
-            Object leverages = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> leverages = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseLeverages(leverages, symbols, "instId");
         }).thenApply(Leverages::new);
 
@@ -3683,7 +3683,7 @@ public class Blofin extends BlofinApi
             {
                 response = (this.privateGetTradeOrdersHistory(this.extend(request, query))).join();
             }
-            Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(data, market, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
@@ -3903,7 +3903,7 @@ public class Blofin extends BlofinApi
             //         ]
             //     }
             //
-            Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseADLRanks(data, symbols);
         }).thenApply(res -> ((List<?>) res).stream().map(ADL::new).collect(Collectors.toList()));
 
@@ -3977,7 +3977,7 @@ public class Blofin extends BlofinApi
         //      code: '103003'
         //  }
         //
-        Object data = this.safeList(response, "data");
+        List<Object> data = (List<Object>) this.safeList(response, "data");
         Object first = this.safeDict(data, 0);
         String insideMsg = this.safeString(first, "msg");
         String insideCode = this.safeString(first, "code");

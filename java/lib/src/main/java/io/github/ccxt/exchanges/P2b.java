@@ -406,7 +406,7 @@ public class P2b extends P2bApi
             //        ]
             //    }
             //
-            Object markets = this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
+            List<Object> markets = (List<Object>) this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
             return this.parseMarkets(markets);
         });
 
@@ -769,7 +769,7 @@ public class P2b extends P2bApi
             //        current_time: '1699255571.413828'
             //    }
             //
-            Object result = this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
+            List<Object> result = (List<Object>) this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
             return this.parseTrades(result, market, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
@@ -906,7 +906,7 @@ public class P2b extends P2bApi
             //        current_time: '1699256375.030494'
             //    }
             //
-            Object result = this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
+            List<Object> result = (List<Object>) this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
             return this.parseOHLCVs(result, market, timeframe, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
 
@@ -1194,7 +1194,7 @@ public class P2b extends P2bApi
             //        ]
             //    }
             //
-            Object result = this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
+            List<Object> result = (List<Object>) this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(result, market, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
@@ -1261,7 +1261,7 @@ public class P2b extends P2bApi
             //    }
             //
             Object result = this.safeValue(response, "result", new HashMap<String, Object>() {{}});
-            Object records = this.safeList(result, "records", new ArrayList<Object>(Arrays.asList()));
+            List<Object> records = (List<Object>) this.safeList(result, "records", new ArrayList<Object>(Arrays.asList()));
             return this.parseTrades(records, market, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
@@ -1359,7 +1359,7 @@ public class P2b extends P2bApi
             //    }
             //
             Object result = this.safeValue(response, "result", new HashMap<String, Object>() {{}});
-            Object deals = this.safeList(result, "deals", new ArrayList<Object>(Arrays.asList()));
+            List<Object> deals = (List<Object>) this.safeList(result, "deals", new ArrayList<Object>(Arrays.asList()));
             return this.parseTrades(deals, market, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 

@@ -483,7 +483,7 @@ public class Coinone extends CoinoneApi
             //         ]
             //     }
             //
-            Object currencies = this.safeList(response, "currencies", new ArrayList<Object>(Arrays.asList()));
+            List<Object> currencies = (List<Object>) this.safeList(response, "currencies", new ArrayList<Object>(Arrays.asList()));
             return this.parseCurrencies(currencies);
         });
 
@@ -573,7 +573,7 @@ public class Coinone extends CoinoneApi
             //         ]
             //     }
             //
-            Object tickers = this.safeList(response, "tickers", new ArrayList<Object>(Arrays.asList()));
+            List<Object> tickers = (List<Object>) this.safeList(response, "tickers", new ArrayList<Object>(Arrays.asList()));
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)tickers).size(); i++)
             {
@@ -818,7 +818,7 @@ public class Coinone extends CoinoneApi
             //         ]
             //     }
             //
-            Object data = this.safeList(response, "tickers", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = (List<Object>) this.safeList(response, "tickers", new ArrayList<Object>(Arrays.asList()));
             return this.parseTickers(data, symbols);
         }).thenApply(Tickers::new);
 
@@ -882,7 +882,7 @@ public class Coinone extends CoinoneApi
             //         ]
             //     }
             //
-            Object data = this.safeList(response, "tickers", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = (List<Object>) this.safeList(response, "tickers", new ArrayList<Object>(Arrays.asList()));
             Object ticker = this.safeDict(data, 0, new HashMap<String, Object>() {{}});
             return this.parseTicker(ticker, market);
         }).thenApply(Ticker::new);
@@ -920,8 +920,8 @@ public class Coinone extends CoinoneApi
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Long timestamp = this.safeInteger(ticker, "timestamp");
         String last = this.safeString(ticker, "last");
-        Object asks = this.safeList(ticker, "best_asks", new ArrayList<Object>(Arrays.asList()));
-        Object bids = this.safeList(ticker, "best_bids", new ArrayList<Object>(Arrays.asList()));
+        List<Object> asks = (List<Object>) this.safeList(ticker, "best_asks", new ArrayList<Object>(Arrays.asList()));
+        List<Object> bids = (List<Object>) this.safeList(ticker, "best_bids", new ArrayList<Object>(Arrays.asList()));
         String baseId = this.safeString(ticker, "target_currency");
         String quoteId = this.safeString(ticker, "quote_currency");
         String base = this.safeCurrencyCode(baseId);
@@ -1075,7 +1075,7 @@ public class Coinone extends CoinoneApi
             //         ]
             //     }
             //
-            Object data = this.safeList(response, "transactions", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = (List<Object>) this.safeList(response, "transactions", new ArrayList<Object>(Arrays.asList()));
             return this.parseTrades(data, market, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
@@ -1404,7 +1404,7 @@ public class Coinone extends CoinoneApi
             //         ]
             //     }
             //
-            Object openOrders = this.safeList2(response, "open_orders", "limitOrders", new ArrayList<Object>(Arrays.asList()));
+            List<Object> openOrders = (List<Object>) this.safeList2(response, "open_orders", "limitOrders", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(openOrders, market, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
@@ -1462,7 +1462,7 @@ public class Coinone extends CoinoneApi
             //         ]
             //     }
             //
-            Object completeOrders = this.safeList(response, "completeOrders", new ArrayList<Object>(Arrays.asList()));
+            List<Object> completeOrders = (List<Object>) this.safeList(response, "completeOrders", new ArrayList<Object>(Arrays.asList()));
             return this.parseTrades(completeOrders, market, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 

@@ -2178,7 +2178,7 @@ public class Gate extends GateApi
             }
             List<Object> rawPromises = new ArrayList<Object>(Arrays.asList());
             Object fetchMarketsOptions = this.safeDict(this.options, "fetchMarkets");
-            Object types = this.safeList(fetchMarketsOptions, "types", new ArrayList<Object>(Arrays.asList("spot", "swap", "future", "option")));
+            List<Object> types = (List<Object>) this.safeList(fetchMarketsOptions, "types", new ArrayList<Object>(Arrays.asList("spot", "swap", "future", "option")));
             for (var i = 0; i < ((List<?>)types).size(); i++)
             {
                 Object marketType = Helpers.GetValue(types, i);
@@ -3000,7 +3000,7 @@ public class Gate extends GateApi
         String code = this.safeCurrencyCode(currencyId);
         // check leveraged tokens (e.g. BTC3S, ETH5L)
         String type = ((Helpers.isTrue(this.isLeveragedCurrency(currencyId)))) ? "leveraged" : "crypto";
-        Object chains = this.safeList(rawCurrency, "chains", new ArrayList<Object>(Arrays.asList()));
+        List<Object> chains = (List<Object>) this.safeList(rawCurrency, "chains", new ArrayList<Object>(Arrays.asList()));
         Map<String, Object> networks = new HashMap<String, Object>() {{}};
         for (var j = 0; j < ((List<?>)chains).size(); j++)
         {

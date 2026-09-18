@@ -259,7 +259,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
         //         "time": "2022-06-23T16:41:00.004162Z"
         //     }
         //
-        Object tickers = this.safeList(message, "ticker_updates", new ArrayList<Object>(Arrays.asList()));
+        List<Object> tickers = (List<Object>) this.safeList(message, "ticker_updates", new ArrayList<Object>(Arrays.asList()));
         String datetime = this.safeString(message, "time");
         for (var i = 0; i < ((List<?>)tickers).size(); i++)
         {
@@ -826,7 +826,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
             Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
             this.myTrades = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
-        Object rawOrders = this.safeList(message, "orders", new ArrayList<Object>(Arrays.asList()));
+        List<Object> rawOrders = (List<Object>) this.safeList(message, "orders", new ArrayList<Object>(Arrays.asList()));
         Object rawOrdersLength = ((List<?>)rawOrders).size();
         if (Helpers.isEqual(rawOrdersLength, 0))
         {
@@ -839,7 +839,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
             String symbol = this.safeString(order, "symbol", "");
             Helpers.callDynamically(orders, "append", new Object[]{order});
             client.resolve(this.orders, ("orders:" + symbol));
-            Object rawTrades = this.safeList(Helpers.GetValue(rawOrders, i), "trades", new ArrayList<Object>(Arrays.asList()));
+            List<Object> rawTrades = (List<Object>) this.safeList(Helpers.GetValue(rawOrders, i), "trades", new ArrayList<Object>(Arrays.asList()));
             for (var ii = 0; ii < ((List<?>)rawTrades).size(); ii++)
             {
                 Object trade = this.parseTrade(Helpers.GetValue(rawTrades, ii));

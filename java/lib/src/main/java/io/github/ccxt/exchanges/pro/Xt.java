@@ -206,8 +206,8 @@ public class Xt extends io.github.ccxt.exchanges.Xt
     public void handleDelta(Object orderbook, Object delta)
     {
         Helpers.addElementToObject(orderbook, "nonce", this.safeInteger2(delta, "i", "u"));
-        Object obAsks = this.safeList(delta, "a", new ArrayList<Object>(Arrays.asList()));
-        Object obBids = this.safeList(delta, "b", new ArrayList<Object>(Arrays.asList()));
+        List<Object> obAsks = (List<Object>) this.safeList(delta, "a", new ArrayList<Object>(Arrays.asList()));
+        List<Object> obBids = (List<Object>) this.safeList(delta, "b", new ArrayList<Object>(Arrays.asList()));
         Object bids = Helpers.GetValue(orderbook, "bids");
         Object asks = Helpers.GetValue(orderbook, "asks");
         for (var i = 0; i < ((List<?>)obBids).size(); i++)
@@ -370,7 +370,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
                 put( "symbols", symbols );
                 put( "topic", topic );
             }};
-            Object symbolsAndTimeframes = this.safeList(subscriptionParams, "symbolsAndTimeframes");
+            List<Object> symbolsAndTimeframes = (List<Object>) this.safeList(subscriptionParams, "symbolsAndTimeframes");
             if (!java.util.Objects.equals(symbolsAndTimeframes, null))
             {
                 ((Map<String, Object>)subscription).put("symbolsAndTimeframes", symbolsAndTimeframes);
@@ -1238,7 +1238,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
         //        ]
         //    }
         //
-        Object data = this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
+        List<Object> data = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
         Object firstTicker = this.safeDict(data, 0);
         String spotTest = this.safeString2(firstTicker, "cv", "aq");
         String tradeType = (((!java.util.Objects.equals(spotTest, null)))) ? "spot" : "contract";
@@ -1469,8 +1469,8 @@ public class Xt extends io.github.ccxt.exchanges.Xt
             }
             Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, null, null, tradeType);
             Object symbol = ((Map<String, Object>)market).get("symbol");
-            Object obAsks = this.safeList(data, "a");
-            Object obBids = this.safeList(data, "b");
+            List<Object> obAsks = (List<Object>) this.safeList(data, "a");
+            List<Object> obBids = (List<Object>) this.safeList(data, "b");
             Object messageHash = ((eventVar + "::") + tradeType);
             if (!(((Map<?, ?>)this.orderbooks).containsKey(symbol)))
             {
@@ -1919,8 +1919,8 @@ public class Xt extends io.github.ccxt.exchanges.Xt
 
     public void handleUnSubscription(Client client, Object subscription)
     {
-        Object messageHashes = this.safeList(subscription, "messageHashes", new ArrayList<Object>(Arrays.asList()));
-        Object subMessageHashes = this.safeList(subscription, "subMessageHashes", new ArrayList<Object>(Arrays.asList()));
+        List<Object> messageHashes = (List<Object>) this.safeList(subscription, "messageHashes", new ArrayList<Object>(Arrays.asList()));
+        List<Object> subMessageHashes = (List<Object>) this.safeList(subscription, "subMessageHashes", new ArrayList<Object>(Arrays.asList()));
         for (var j = 0; j < ((List<?>)messageHashes).size(); j++)
         {
             Object unsubHash = Helpers.GetValue(messageHashes, j);

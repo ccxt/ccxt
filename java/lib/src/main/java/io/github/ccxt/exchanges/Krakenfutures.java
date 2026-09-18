@@ -567,7 +567,7 @@ public class Krakenfutures extends KrakenfuturesApi
             //        "serverTime": "2018-07-19T11:32:39.433Z"
             //    }
             //
-            Object instruments = this.safeList(response, "instruments", new ArrayList<Object>(Arrays.asList()));
+            List<Object> instruments = (List<Object>) this.safeList(response, "instruments", new ArrayList<Object>(Arrays.asList()));
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)instruments).size(); i++)
             {
@@ -876,7 +876,7 @@ public class Krakenfutures extends KrakenfuturesApi
             //        "serverTime": "2022-02-18T14:16:29.440Z"
             //    }
             //
-            Object tickers = this.safeList(response, "tickers");
+            List<Object> tickers = (List<Object>) this.safeList(response, "tickers");
             return this.parseTickers(tickers, symbols);
         }).thenApply(Tickers::new);
 
@@ -1010,7 +1010,7 @@ public class Krakenfutures extends KrakenfuturesApi
                 //
                 volumes = this.safeDict(volumesResponse, "volumesByFeeSchedule", new HashMap<String, Object>() {{}});
             }
-            Object feeSchedules = this.safeList(response, "feeSchedules", new ArrayList<Object>(Arrays.asList()));
+            List<Object> feeSchedules = (List<Object>) this.safeList(response, "feeSchedules", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> schedulesByUid = new HashMap<String, Object>() {{}};
             for (var i = 0; i < ((List<?>)feeSchedules).size(); i++)
             {
@@ -1056,7 +1056,7 @@ public class Krakenfutures extends KrakenfuturesApi
         // fees are expressed in percent, tiers are sorted by ascending usdVolume
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Object volume = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-        Object tiers = this.safeList(fee, "tiers", new ArrayList<Object>(Arrays.asList()));
+        List<Object> tiers = (List<Object>) this.safeList(fee, "tiers", new ArrayList<Object>(Arrays.asList()));
         String makerFee = null;
         String takerFee = null;
         for (var i = 0; i < ((List<?>)tiers).size(); i++)
@@ -1171,7 +1171,7 @@ public class Krakenfutures extends KrakenfuturesApi
             //        "more_candles": true
             //    }
             //
-            Object candles = this.safeList(response, "candles");
+            List<Object> candles = (List<Object>) this.safeList(response, "candles");
             return this.parseOHLCVs(candles, market, timeframe, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
 
@@ -1302,7 +1302,7 @@ public class Krakenfutures extends KrakenfuturesApi
                 //        "continuationToken": "QTexMDE0OTe33NTcyXy8xNDIzAjc1NjY5MwI="
                 //    }
                 //
-                Object elements = this.safeList(response, "elements", new ArrayList<Object>(Arrays.asList()));
+                List<Object> elements = (List<Object>) this.safeList(response, "elements", new ArrayList<Object>(Arrays.asList()));
                 // we need to reverse the list to fix chronology
                 rawTrades = new ArrayList<Object>(Arrays.asList());
                 Object length = ((List<?>)elements).size();
@@ -1793,7 +1793,7 @@ public class Krakenfutures extends KrakenfuturesApi
             //     ]
             // }
             //
-            Object data = this.safeList(response, "batchStatus", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = (List<Object>) this.safeList(response, "batchStatus", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(data);
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
@@ -1910,7 +1910,7 @@ public class Krakenfutures extends KrakenfuturesApi
                 (this.loadMarkets()).join();
             }
             List<Object> orders = new ArrayList<Object>(Arrays.asList());
-            Object clientOrderIds = this.safeList(parameters, "clientOrderIds", new ArrayList<Object>(Arrays.asList()));
+            List<Object> clientOrderIds = (List<Object>) this.safeList(parameters, "clientOrderIds", new ArrayList<Object>(Arrays.asList()));
             Object clientOrderIdsLength = ((List<?>)clientOrderIds).size();
             if (Helpers.isGreaterThan(clientOrderIdsLength, 0))
             {
@@ -1966,7 +1966,7 @@ public class Krakenfutures extends KrakenfuturesApi
             //       }
             //     ]
             // }
-            Object batchStatus = this.safeList(response, "batchStatus", new ArrayList<Object>(Arrays.asList()));
+            List<Object> batchStatus = (List<Object>) this.safeList(response, "batchStatus", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(batchStatus);
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
@@ -2026,7 +2026,7 @@ public class Krakenfutures extends KrakenfuturesApi
             //    }
             //
             Object cancelStatus = this.safeDict(response, "cancelStatus");
-            Object orderEvents = this.safeList(cancelStatus, "orderEvents", new ArrayList<Object>(Arrays.asList()));
+            List<Object> orderEvents = (List<Object>) this.safeList(cancelStatus, "orderEvents", new ArrayList<Object>(Arrays.asList()));
             List<Object> orders = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)orderEvents).size(); i++)
             {
@@ -2107,7 +2107,7 @@ public class Krakenfutures extends KrakenfuturesApi
                 market = this.market(symbol);
             }
             Map<String, Object> response = (this.privateGetOpenorders(parameters)).join();
-            Object orders = this.safeList(response, "openOrders", new ArrayList<Object>(Arrays.asList()));
+            List<Object> orders = (List<Object>) this.safeList(response, "openOrders", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(orders, market, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
@@ -2143,7 +2143,7 @@ public class Krakenfutures extends KrakenfuturesApi
                 market = this.market(symbol);
             }
             Map<String, Object> response = (this.privateGetOrdersStatus(parameters)).join();
-            Object orders = this.safeList(response, "orders", new ArrayList<Object>(Arrays.asList()));
+            List<Object> orders = (List<Object>) this.safeList(response, "orders", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(orders, market, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
@@ -2234,7 +2234,7 @@ public class Krakenfutures extends KrakenfuturesApi
             {
                 response = (this.historyGetOrders(this.extend(request, parameters))).join();
             }
-            Object allOrders = this.safeList(response, "elements", new ArrayList<Object>(Arrays.asList()));
+            List<Object> allOrders = (List<Object>) this.safeList(response, "elements", new ArrayList<Object>(Arrays.asList()));
             List<Object> closedOrders = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)allOrders).size(); i++)
             {
@@ -2316,7 +2316,7 @@ public class Krakenfutures extends KrakenfuturesApi
             {
                 response = (this.historyGetOrders(this.extend(request, parameters))).join();
             }
-            Object allOrders = this.safeList(response, "elements", new ArrayList<Object>(Arrays.asList()));
+            List<Object> allOrders = (List<Object>) this.safeList(response, "elements", new ArrayList<Object>(Arrays.asList()));
             List<Object> canceledAndRejected = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)allOrders).size(); i++)
             {
@@ -2774,7 +2774,7 @@ public class Krakenfutures extends KrakenfuturesApi
                 put( "trades", null );
             }});
         }
-        Object orderEvents = this.safeList(order, "orderEvents", new ArrayList<Object>(Arrays.asList()));
+        List<Object> orderEvents = (List<Object>) this.safeList(order, "orderEvents", new ArrayList<Object>(Arrays.asList()));
         String errorStatus = this.safeString(order, "status");
         Object orderEventsLength = ((List<?>)orderEvents).size();
         if ((((Map<?, ?>)order).containsKey("orderEvents")) && (!java.util.Objects.equals(errorStatus, null)) && (Helpers.isEqual(orderEventsLength, 0)))
@@ -3026,7 +3026,7 @@ public class Krakenfutures extends KrakenfuturesApi
             //        ]
             //    }
             //
-            Object fills = this.safeList(response, "fills", new ArrayList<Object>(Arrays.asList()));
+            List<Object> fills = (List<Object>) this.safeList(response, "fills", new ArrayList<Object>(Arrays.asList()));
             return this.parseTrades(fills, market, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
@@ -3105,7 +3105,7 @@ public class Krakenfutures extends KrakenfuturesApi
             //        ]
             //    }
             //
-            Object logs = this.safeList(response, "logs", new ArrayList<Object>(Arrays.asList()));
+            List<Object> logs = (List<Object>) this.safeList(response, "logs", new ArrayList<Object>(Arrays.asList()));
             // each execution emits two rows: a cash leg(asset is a currency) and
             // a position-size leg(asset equals the contract id) - keep the cash legs only
             List<Object> rows = new ArrayList<Object>(Arrays.asList());
@@ -3205,7 +3205,7 @@ public class Krakenfutures extends KrakenfuturesApi
             //        ]
             //    }
             //
-            Object logs = this.safeList(response, "logs", new ArrayList<Object>(Arrays.asList()));
+            List<Object> logs = (List<Object>) this.safeList(response, "logs", new ArrayList<Object>(Arrays.asList()));
             return this.parseIncomes(logs, market, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(FundingHistory::new).collect(Collectors.toList()));
 
@@ -3621,7 +3621,7 @@ public class Krakenfutures extends KrakenfuturesApi
             }
             Object marketIds = this.marketIds(symbols);
             Map<String, Object> response = (this.publicGetTickers(parameters)).join();
-            Object tickers = this.safeList(response, "tickers", new ArrayList<Object>(Arrays.asList()));
+            List<Object> tickers = (List<Object>) this.safeList(response, "tickers", new ArrayList<Object>(Arrays.asList()));
             List<Object> fundingRates = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)tickers).size(); i++)
             {
@@ -3843,7 +3843,7 @@ public class Krakenfutures extends KrakenfuturesApi
         // reconciliation logic, see https://github.com/ccxt/ccxt/issues/29710
         // the crash guarded against in #19896 is still avoided, since we no
         // longer call .length on a non-list value
-        Object positions = this.safeList(response, "openPositions");
+        List<Object> positions = (List<Object>) this.safeList(response, "openPositions");
         if (java.util.Objects.equals(positions, null))
         {
             throw new ExchangeNotAvailable((this.id + " fetchPositions() returned a response without an \"openPositions\" list")) ;
@@ -3985,7 +3985,7 @@ public class Krakenfutures extends KrakenfuturesApi
             //        "serverTime": "2018-07-19T11:32:39.433Z"
             //    }
             //
-            Object data = this.safeList(response, "instruments");
+            List<Object> data = (List<Object>) this.safeList(response, "instruments");
             return this.parseLeverageTiers(data, symbols, "symbol");
         }).thenApply(LeverageTiers::new);
 
@@ -4289,7 +4289,7 @@ final Object finalI = i;
             //         ]
             //     }
             //
-            Object leveragePreferences = this.safeList(response, "leveragePreferences", new ArrayList<Object>(Arrays.asList()));
+            List<Object> leveragePreferences = (List<Object>) this.safeList(response, "leveragePreferences", new ArrayList<Object>(Arrays.asList()));
             return this.parseLeverages(leveragePreferences, symbols, "symbol");
         }).thenApply(Leverages::new);
 
@@ -4336,7 +4336,7 @@ final Object finalI = i;
             //         "leveragePreferences": [ { symbol: "PF_LTCUSD", maxLeverage: "5.00" } ]
             //     }
             //
-            Object leveragePreferences = this.safeList(response, "leveragePreferences", new ArrayList<Object>(Arrays.asList()));
+            List<Object> leveragePreferences = (List<Object>) this.safeList(response, "leveragePreferences", new ArrayList<Object>(Arrays.asList()));
             Object data = this.safeDict(leveragePreferences, 0, new HashMap<String, Object>() {{}});
             return this.parseLeverage(data, market);
         }).thenApply(Leverage::new);

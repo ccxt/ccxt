@@ -401,7 +401,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
         {
             return;
         }
-        Object tickers = this.safeList(message, "d", new ArrayList<Object>(Arrays.asList()));
+        List<Object> tickers = (List<Object>) this.safeList(message, "d", new ArrayList<Object>(Arrays.asList()));
         Object data = this.safeDict(tickers, 0, new HashMap<String, Object>() {{}});
         Object ticker = this.parseWsTicker(data, market);
         Object symbol = ((Map<String, Object>)market).get("symbol");
@@ -640,7 +640,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             Helpers.addElementToObject(this.trades, symbol, new ArrayCache(((Number)limit).intValue()));
         }
         io.github.ccxt.ws.ArrayCache tradesArray = (io.github.ccxt.ws.ArrayCache) Helpers.GetValue(this.trades, symbol);
-        Object data = this.safeList(message, "d", new ArrayList<Object>(Arrays.asList()));
+        List<Object> data = (List<Object>) this.safeList(message, "d", new ArrayList<Object>(Arrays.asList()));
         List<Object> newTrades = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ((List<?>)data).size(); i++)
         {
@@ -759,7 +759,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             parameters = this.omit(parameters, "callerMethodName");
             Object channels = new ArrayList<Object>(Arrays.asList());
             Object messageHashes = new ArrayList<Object>(Arrays.asList());
-            Object firstEntry = this.safeList(symbolsAndTimeframes, 0, new ArrayList<Object>(Arrays.asList()));
+            List<Object> firstEntry = (List<Object>) this.safeList(symbolsAndTimeframes, 0, new ArrayList<Object>(Arrays.asList()));
             String firstSymbol = this.safeString(firstEntry, 0);
             Map<String, Object> firstMarket = (Map<String, Object>) this.market(firstSymbol);
             Object isContract = ((Map<String, Object>)firstMarket).get("contract");
@@ -772,7 +772,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             }
             for (var i = 0; i < ((List<?>)symbolsAndTimeframes).size(); i++)
             {
-                Object data = this.safeList(symbolsAndTimeframes, i);
+                List<Object> data = (List<Object>) this.safeList(symbolsAndTimeframes, i);
                 Object symbolString = this.safeString(data, 0);
                 Map<String, Object> market = (Map<String, Object>) this.market(symbolString);
                 if (!java.util.Objects.equals(((Map<String, Object>)market).get("type"), ((Map<String, Object>)firstMarket).get("type")))
@@ -850,7 +850,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             Object channels = new ArrayList<Object>(Arrays.asList());
             List<Object> subHashes = new ArrayList<Object>(Arrays.asList());
             Object unSubHashes = new ArrayList<Object>(Arrays.asList());
-            Object firstEntry = this.safeList(symbolsAndTimeframes, 0, new ArrayList<Object>(Arrays.asList()));
+            List<Object> firstEntry = (List<Object>) this.safeList(symbolsAndTimeframes, 0, new ArrayList<Object>(Arrays.asList()));
             String firstSymbol = this.safeString(firstEntry, 0);
             Map<String, Object> firstMarket = (Map<String, Object>) this.market(firstSymbol);
             Object isContract = ((Map<String, Object>)firstMarket).get("contract");
@@ -863,7 +863,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             }
             for (var i = 0; i < ((List<?>)symbolsAndTimeframes).size(); i++)
             {
-                Object data = this.safeList(symbolsAndTimeframes, i);
+                List<Object> data = (List<Object>) this.safeList(symbolsAndTimeframes, i);
                 Object symbolString = this.safeString(data, 0);
                 Map<String, Object> market = (Map<String, Object>) this.market(symbolString);
                 if (!java.util.Objects.equals(((Map<String, Object>)market).get("type"), ((Map<String, Object>)firstMarket).get("type")))
@@ -929,7 +929,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
         {
             Helpers.addElementToObject(this.ohlcvs, symbol, new HashMap<String, Object>() {{}});
         }
-        Object data = this.safeList(message, "d", new ArrayList<Object>(Arrays.asList()));
+        List<Object> data = (List<Object>) this.safeList(message, "d", new ArrayList<Object>(Arrays.asList()));
         Object firstEntry = this.safeDict(data, 0, new HashMap<String, Object>() {{}});
         String interval = this.safeString(firstEntry, "i");
         Object timeframe = this.findTimeframe(interval);
@@ -1179,8 +1179,8 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             Helpers.callDynamically(orderbook, "reset", new Object[]{parsed});
         } else
         {
-            Object asks = this.safeList(message, "a", new ArrayList<Object>(Arrays.asList()));
-            Object bids = this.safeList(message, "b", new ArrayList<Object>(Arrays.asList()));
+            List<Object> asks = (List<Object>) this.safeList(message, "a", new ArrayList<Object>(Arrays.asList()));
+            List<Object> bids = (List<Object>) this.safeList(message, "b", new ArrayList<Object>(Arrays.asList()));
             this.handleDeltas(Helpers.GetValue(orderbook, "asks"), asks);
             this.handleDeltas(Helpers.GetValue(orderbook, "bids"), bids);
             Helpers.addElementToObject(orderbook, "timestamp", timestamp);
@@ -1494,7 +1494,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             this.myTrades = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
         Object trades = this.myTrades;
-        Object data = this.safeList(message, "d", new ArrayList<Object>(Arrays.asList()));
+        List<Object> data = (List<Object>) this.safeList(message, "d", new ArrayList<Object>(Arrays.asList()));
         Map<String, Object> symbols = new HashMap<String, Object>() {{}};
         for (var i = 0; i < ((List<?>)data).size(); i++)
         {
@@ -1740,7 +1740,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
         //         ]
         //     }
         //
-        Object data = this.safeList(message, "d", new ArrayList<Object>(Arrays.asList()));
+        List<Object> data = (List<Object>) this.safeList(message, "d", new ArrayList<Object>(Arrays.asList()));
         Map<String, Object> symbols = new HashMap<String, Object>() {{}};
         if (java.util.Objects.equals(this.orders, null))
         {
@@ -2104,7 +2104,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             Helpers.addElementToObject(this.balance, accountType, new HashMap<String, Object>() {{}});
         }
         Helpers.addElementToObject(Helpers.GetValue(this.balance, accountType), "info", message);
-        Object balanceUpdates = this.safeList(message, "d", new ArrayList<Object>(Arrays.asList()));
+        List<Object> balanceUpdates = (List<Object>) this.safeList(message, "d", new ArrayList<Object>(Arrays.asList()));
         for (var i = 0; i < ((List<?>)balanceUpdates).size(); i++)
         {
             Object entry = this.safeDict(balanceUpdates, i);
@@ -2301,7 +2301,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
         }
         Object cache = this.positions;
         List<Object> newPositions = new ArrayList<Object>(Arrays.asList());
-        Object data = this.safeList(message, "d", new ArrayList<Object>(Arrays.asList()));
+        List<Object> data = (List<Object>) this.safeList(message, "d", new ArrayList<Object>(Arrays.asList()));
         for (var i = 0; i < ((List<?>)data).size(); i++)
         {
             Object rawPosition = this.safeDict(data, i, new HashMap<String, Object>() {{}});
@@ -2382,8 +2382,8 @@ public class Weex extends io.github.ccxt.exchanges.Weex
         if (java.util.Objects.equals(unsubscribe, true))
         {
             Object subHashIsPrefix = this.safeBool(subscription, "subHashIsPrefix", false);
-            Object messageHashes = this.safeList(subscription, "messageHashes", new ArrayList<Object>(Arrays.asList()));
-            Object subHashes = this.safeList(subscription, "subMessageHashes", new ArrayList<Object>(Arrays.asList()));
+            List<Object> messageHashes = (List<Object>) this.safeList(subscription, "messageHashes", new ArrayList<Object>(Arrays.asList()));
+            List<Object> subHashes = (List<Object>) this.safeList(subscription, "subMessageHashes", new ArrayList<Object>(Arrays.asList()));
             for (var i = 0; i < ((List<?>)messageHashes).size(); i++)
             {
                 String unSubHash = this.safeString(messageHashes, i);

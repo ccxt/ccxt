@@ -541,7 +541,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
         Object content = this.safeDict(message, "content");
         if (!java.util.Objects.equals(content, null))
         {
-            Object list = this.safeList(content, "list", new ArrayList<Object>(Arrays.asList()));
+            List<Object> list = (List<Object>) this.safeList(content, "list", new ArrayList<Object>(Arrays.asList()));
             Object first = this.safeDict(list, 0, new HashMap<String, Object>() {{}});
             String legacyMarketId = this.safeString(first, "symbol");
             if (java.util.Objects.equals(legacyMarketId, null))
@@ -587,7 +587,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
         Helpers.addElementToObject(orderbook, "symbol", symbol);
         Object bids = Helpers.GetValue(orderbook, "bids");
         Object asks = Helpers.GetValue(orderbook, "asks");
-        Object units = this.safeList(message, "orderbook_units", new ArrayList<Object>(Arrays.asList()));
+        List<Object> units = (List<Object>) this.safeList(message, "orderbook_units", new ArrayList<Object>(Arrays.asList()));
         for (var i = 0; i < ((List<?>)units).size(); i++)
         {
             Object entry = Helpers.GetValue(units, i);
@@ -749,7 +749,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
         //     }
         //
         Object content = this.safeDict(message, "content");
-        Object rawTrades = this.safeList(content, "list");
+        List<Object> rawTrades = (List<Object>) this.safeList(content, "list");
         if (java.util.Objects.equals(rawTrades, null))
         {
             rawTrades = new ArrayList<Object>(Arrays.asList(message));
@@ -961,7 +961,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
         //    }
         //
         String messageHash = "myAsset";
-        Object assets = this.safeList(message, "assets", new ArrayList<Object>(Arrays.asList()));
+        List<Object> assets = (List<Object>) this.safeList(message, "assets", new ArrayList<Object>(Arrays.asList()));
         if (java.util.Objects.equals(this.balance, null))
         {
             this.balance = new HashMap<String, Object>() {{}};
@@ -1086,7 +1086,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
             (this.authenticate()).join();
             Object url = Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "privateGen2");
             Object messageHash = "myOrder";
-            Object codes = this.safeList(parameters, "codes", new ArrayList<Object>(Arrays.asList()));
+            List<Object> codes = (List<Object>) this.safeList(parameters, "codes", new ArrayList<Object>(Arrays.asList()));
             final Object finalMessageHash = messageHash;
             Object request = this.buildGen2SubscriptionRequest(messageHash, new HashMap<String, Object>() {{
                 put( "type", finalMessageHash );

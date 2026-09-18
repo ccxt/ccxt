@@ -888,7 +888,7 @@ public class Bitrue extends BitrueApi
             //         ],
             //     }
             //
-            Object coins = this.safeList(response, "coins", new ArrayList<Object>(Arrays.asList()));
+            List<Object> coins = (List<Object>) this.safeList(response, "coins", new ArrayList<Object>(Arrays.asList()));
             return this.parseCurrencies(coins);
         });
 
@@ -899,7 +899,7 @@ public class Bitrue extends BitrueApi
         String id = this.safeString(rawCurrency, "coin");
         String name = this.safeString(rawCurrency, "coinFulName");
         String code = this.safeCurrencyCode(id);
-        Object networkDetails = this.safeList(rawCurrency, "chainDetail", new ArrayList<Object>(Arrays.asList()));
+        List<Object> networkDetails = (List<Object>) this.safeList(rawCurrency, "chainDetail", new ArrayList<Object>(Arrays.asList()));
         Map<String, Object> networks = new HashMap<String, Object>() {{}};
         for (var j = 0; j < ((List<?>)networkDetails).size(); j++)
         {
@@ -1117,7 +1117,7 @@ public class Bitrue extends BitrueApi
         {
             symbol = (symbol + (":" + settle));
         }
-        Object filters = this.safeList(market, "filters", new ArrayList<Object>(Arrays.asList()));
+        List<Object> filters = (List<Object>) this.safeList(market, "filters", new ArrayList<Object>(Arrays.asList()));
         Map<String, Object> filtersByType = this.indexBy(filters, "filterType");
         String status = this.safeString(market, "status");
         Object priceFilter = this.safeDict(filtersByType, "PRICE_FILTER", new HashMap<String, Object>() {{}});
@@ -1254,7 +1254,7 @@ public class Bitrue extends BitrueApi
             put( "info", response );
         }};
         Long timestamp = this.safeInteger(response, "updateTime");
-        Object balances = this.safeList2(response, "balances", "account", new ArrayList<Object>(Arrays.asList()));
+        List<Object> balances = (List<Object>) this.safeList2(response, "balances", "account", new ArrayList<Object>(Arrays.asList()));
         for (var i = 0; i < ((List<?>)balances).size(); i++)
         {
             Object balance = Helpers.GetValue(balances, i);
@@ -2194,7 +2194,7 @@ public class Bitrue extends BitrueApi
         String id = this.safeString(order, "orderId");
         String type = this.safeStringLower(order, "type");
         String side = this.safeStringLower(order, "side");
-        Object fills = this.safeList(order, "fills", new ArrayList<Object>(Arrays.asList()));
+        List<Object> fills = (List<Object>) this.safeList(order, "fills", new ArrayList<Object>(Arrays.asList()));
         String clientOrderId = this.safeString(order, "clientOrderId");
         String timeInForce = this.safeString(order, "timeInForce");
         Boolean postOnly = (java.util.Objects.equals(type, "limit_maker")) || (java.util.Objects.equals(timeInForce, "GTX")) || (java.util.Objects.equals(type, "post_only"));
@@ -3056,7 +3056,7 @@ public class Bitrue extends BitrueApi
             //         ]
             //     }
             //
-            Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseTransactions(data, currency, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
@@ -3127,7 +3127,7 @@ public class Bitrue extends BitrueApi
             //        ]
             //    }
             //
-            Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseTransactions(data, currency);
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
@@ -3374,7 +3374,7 @@ public class Bitrue extends BitrueApi
         //   }
         //
         Object currency = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-        Object chainDetails = this.safeList(fee, "chainDetail", new ArrayList<Object>(Arrays.asList()));
+        List<Object> chainDetails = (List<Object>) this.safeList(fee, "chainDetail", new ArrayList<Object>(Arrays.asList()));
         Object chainDetailLength = ((List<?>)chainDetails).size();
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", fee );
@@ -3440,7 +3440,7 @@ public class Bitrue extends BitrueApi
                 (this.loadMarkets()).join();
             }
             Map<String, Object> response = (this.spotV1PublicGetExchangeInfo(parameters)).join();
-            Object coins = this.safeList(response, "coins");
+            List<Object> coins = (List<Object>) this.safeList(response, "coins");
             return this.parseDepositWithdrawFees(coins, codes, "coin");
         }).thenApply(DepositWithdrawFees::new);
 
@@ -3558,7 +3558,7 @@ public class Bitrue extends BitrueApi
             //         }]
             //     }
             //
-            Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseTransfers(data, currency, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(TransferEntry::new).collect(Collectors.toList()));
 
@@ -3942,7 +3942,7 @@ public class Bitrue extends BitrueApi
         } else if ((((Map<?, ?>)config).containsKey("byLimit")) && (Helpers.inOp(parameters, "limit")))
         {
             Object limit = Helpers.GetValue(parameters, "limit");
-            Object byLimit = this.safeList(config, "byLimit", new ArrayList<Object>(Arrays.asList()));
+            List<Object> byLimit = (List<Object>) this.safeList(config, "byLimit", new ArrayList<Object>(Arrays.asList()));
             for (var i = 0; i < ((List<?>)byLimit).size(); i++)
             {
                 Object entry = Helpers.GetValue(byLimit, i);

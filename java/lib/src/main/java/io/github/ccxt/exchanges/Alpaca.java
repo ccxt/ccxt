@@ -1135,7 +1135,7 @@ public class Alpaca extends AlpacaApi
                         ((Map<String, Object>)request).put("page_token", pageToken);
                         response = (this.marketPublicGetV1beta3CryptoLocBars(this.extend(request, parameters))).join();
                         bars = this.safeDict(response, "bars", new HashMap<String, Object>() {{}});
-                        Object page = this.safeList(bars, marketId, new ArrayList<Object>(Arrays.asList()));
+                        List<Object> page = (List<Object>) this.safeList(bars, marketId, new ArrayList<Object>(Arrays.asList()));
                         Object pageLength = ((List<?>)page).size();
                         if (Helpers.isEqual(pageLength, 0))
                         {
@@ -2729,7 +2729,7 @@ public class Alpaca extends AlpacaApi
         //     ]
         //
         Object account = this.safeDict(response, "account", new HashMap<String, Object>() {{}});
-        Object positions = this.safeList(response, "positions", new ArrayList<Object>(Arrays.asList()));
+        List<Object> positions = (List<Object>) this.safeList(response, "positions", new ArrayList<Object>(Arrays.asList()));
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", response );
         }};

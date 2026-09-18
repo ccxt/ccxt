@@ -194,7 +194,7 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
             Long limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
             Helpers.addElementToObject(Helpers.GetValue(this.ohlcvs, symbol), ((String)timeframe), new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue()));
         }
-        Object data = this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
+        List<Object> data = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
         Object stored = Helpers.GetValue(Helpers.GetValue(this.ohlcvs, symbol), ((String)timeframe));
         for (var i = 0; i < ((List<?>)data).size(); i++)
         {
@@ -283,7 +283,7 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
         //         "shared": false
         //     }
         //
-        Object data = this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
+        List<Object> data = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
         Object ticker = this.parseTicker(this.safeDict(data, 0));
         Object symbol = ((Map<String, Object>)ticker).get("symbol");
         String messageHash = Helpers.add("ticker:", symbol);
@@ -449,7 +449,7 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
             Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook(new HashMap<String, Object>() {{}}));
         }
         io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) Helpers.GetValue(this.orderbooks, symbol);
-        Object data = this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
+        List<Object> data = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
         Object dataEntry = this.safeDict(data, 0);
         Long timestamp = this.safeInteger(dataEntry, "t");
         Object snapshot = this.parseOrderBook(dataEntry, symbol, timestamp, "b", "a");
@@ -987,7 +987,7 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
         //     }
         //
         String eventVar = this.safeString(message, "e");
-        Object data = this.safeList(message, "B", new ArrayList<Object>(Arrays.asList()));
+        List<Object> data = (List<Object>) this.safeList(message, "B", new ArrayList<Object>(Arrays.asList()));
         Object balanceUpdate = this.safeDict(data, 0);
         Boolean isSpot = java.util.Objects.equals(eventVar, "outboundAccountInfo");
         String type = ((Helpers.isTrue(isSpot))) ? "spot" : "swap";

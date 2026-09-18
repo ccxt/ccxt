@@ -2683,7 +2683,7 @@ public class Htx extends HtxApi
             //         "ts":1640736207263
             //     }
             //
-            Object markets = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> markets = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             Object numMarkets = ((List<?>)markets).size();
             if (Helpers.isLessThan(numMarkets, 1))
             {
@@ -3317,7 +3317,7 @@ public class Htx extends HtxApi
             //         "ts":1637504679376
             //     }
             //
-            Object rawTickers = this.safeList2(response, "data", "ticks", new ArrayList<Object>(Arrays.asList()));
+            List<Object> rawTickers = (List<Object>) this.safeList2(response, "data", "ticks", new ArrayList<Object>(Arrays.asList()));
             Object tickers = this.parseTickers(rawTickers, symbols, parameters);
             return this.filterByArrayTickers(tickers, "symbol", symbols);
         }).thenApply(Tickers::new);
@@ -3371,7 +3371,7 @@ public class Htx extends HtxApi
                 throw new NotSupported((((this.id + " fetchLastPrices() does not support ") + type) + " markets yet")) ;
             }
             Object tick = this.safeValue(response, "tick", new HashMap<String, Object>() {{}});
-            Object data = this.safeList(tick, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = (List<Object>) this.safeList(tick, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseLastPrices(data, symbols);
         }).thenApply(LastPrices::new);
 
@@ -3766,7 +3766,7 @@ public class Htx extends HtxApi
                 put( "order-id", id );
             }};
             Map<String, Object> response = (this.spotPrivateGetV1OrderOrdersOrderIdMatchresults(this.extend(request, parameters))).join();
-            Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseTrades(data, null, since, limit);
         });
 
@@ -4071,11 +4071,11 @@ public class Htx extends HtxApi
             //         ]
             //     }
             //
-            Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             Object result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)data).size(); i++)
             {
-                Object trades = this.safeList(Helpers.GetValue(data, i), "data", new ArrayList<Object>(Arrays.asList()));
+                List<Object> trades = (List<Object>) this.safeList(Helpers.GetValue(data, i), "data", new ArrayList<Object>(Arrays.asList()));
                 for (var j = 0; j < ((List<?>)trades).size(); j++)
                 {
                     Object trade = this.parseTrade(Helpers.GetValue(trades, j), market);
@@ -4296,7 +4296,7 @@ public class Htx extends HtxApi
             //         ]
             //     }
             //
-            Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseOHLCVs(data, market, timeframe, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
 
@@ -4471,7 +4471,7 @@ public class Htx extends HtxApi
             //        ]
             //    }
             //
-            Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             Helpers.addElementToObject(this.options, "networkNamesByChainIds", new HashMap<String, Object>() {{}});
             Helpers.addElementToObject(this.options, "networkChainIdsByNames", new HashMap<String, Object>() {{}});
             return this.parseCurrencies(data);
@@ -4497,7 +4497,7 @@ public class Htx extends HtxApi
         {
             Helpers.addElementToObject(Helpers.GetValue(this.options, "networkChainIdsByNames"), code, new HashMap<String, Object>() {{}});
         }
-        Object chains = this.safeList(rawCurrency, "chains", new ArrayList<Object>(Arrays.asList()));
+        List<Object> chains = (List<Object>) this.safeList(rawCurrency, "chains", new ArrayList<Object>(Arrays.asList()));
         Map<String, Object> networks = new HashMap<String, Object>() {{}};
         for (var j = 0; j < ((List<?>)chains).size(); j++)
         {
@@ -4854,7 +4854,7 @@ public class Htx extends HtxApi
             Object data = this.safeValue(response, "data");
             if (Helpers.isTrue(isMultiAssetMode) || (Helpers.isTrue(linear) && (Helpers.isTrue(swap) || Helpers.isTrue(future))))
             {
-                Object details = this.safeList(data, "details", new ArrayList<Object>(Arrays.asList()));
+                List<Object> details = (List<Object>) this.safeList(data, "details", new ArrayList<Object>(Arrays.asList()));
                 for (var i = 0; i < ((List<?>)details).size(); i++)
                 {
                     Object balance = Helpers.GetValue(details, i);
@@ -4898,7 +4898,7 @@ public class Htx extends HtxApi
                     result = this.safeBalance(result);
                 } else
                 {
-                    Object balances = this.safeList(data, "list", new ArrayList<Object>(Arrays.asList()));
+                    List<Object> balances = (List<Object>) this.safeList(data, "list", new ArrayList<Object>(Arrays.asList()));
                     for (var i = 0; i < ((List<?>)balances).size(); i++)
                     {
                         Object balance = Helpers.GetValue(balances, i);
@@ -5284,7 +5284,7 @@ public class Htx extends HtxApi
             //         ]
             //     }
             //
-            Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(data, market, since, limit);
         });
 
@@ -7577,7 +7577,7 @@ public class Htx extends HtxApi
             {
                 if ((java.util.Objects.equals(trigger, true)) || (java.util.Objects.equals(stopLossTakeProfit, true)) || (java.util.Objects.equals(trailing, true)))
                 {
-                    Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+                    List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
                     result = this.safeDict(data, 0, new HashMap<String, Object>() {{}});
                 } else
                 {
@@ -7879,8 +7879,8 @@ public class Htx extends HtxApi
         {
             success = this.safeList(orders, "success", new ArrayList<Object>(Arrays.asList()));
         }
-        Object failed = this.safeList2(orders, "errors", "failed", new ArrayList<Object>(Arrays.asList()));
-        Object data = this.safeList(orders, "data", new ArrayList<Object>(Arrays.asList()));
+        List<Object> failed = (List<Object>) this.safeList2(orders, "errors", "failed", new ArrayList<Object>(Arrays.asList()));
+        List<Object> data = (List<Object>) this.safeList(orders, "data", new ArrayList<Object>(Arrays.asList()));
         List<Object> result = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ((List<?>)data).size(); i++)
         {
@@ -8313,7 +8313,7 @@ public class Htx extends HtxApi
             //         ]
             //     }
             //
-            Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseTransactions(data, currency, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
@@ -8390,7 +8390,7 @@ public class Htx extends HtxApi
             //         ]
             //     }
             //
-            Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseTransactions(data, currency, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
@@ -8886,7 +8886,7 @@ public class Htx extends HtxApi
             //         ]
             //     }
             //
-            Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseTransfers(data, currency, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(TransferEntry::new).collect(Collectors.toList()));
 
@@ -9087,7 +9087,7 @@ public class Htx extends HtxApi
             } else
             {
                 Object cursor = this.safeValue(data, "current_page");
-                Object result = this.safeList(data, "data", new ArrayList<Object>(Arrays.asList()));
+                List<Object> result = (List<Object>) this.safeList(data, "data", new ArrayList<Object>(Arrays.asList()));
                 for (var i = 0; i < ((List<?>)result).size(); i++)
                 {
                     Object entry = Helpers.GetValue(result, i);
@@ -9217,7 +9217,7 @@ public class Htx extends HtxApi
             Object result = null;
             if (java.util.Objects.equals(((Map<String, Object>)market).get("linear"), true))
             {
-                Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+                List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
                 result = this.safeDict(data, 0, new HashMap<String, Object>() {{}});
             } else
             {
@@ -9687,7 +9687,7 @@ public class Htx extends HtxApi
             this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), code, feedback);
         }
         Object data = this.safeDict(response, "data");
-        Object errorsList = this.safeList(data, "errors");
+        List<Object> errorsList = (List<Object>) this.safeList(data, "errors");
         if (!java.util.Objects.equals(errorsList, null))
         {
             Object first = this.safeDict(errorsList, 0);
@@ -9795,7 +9795,7 @@ public class Htx extends HtxApi
                 ((Map<String, Object>)request).put("symbol", ((Map<String, Object>)market).get("id"));
                 response = (this.contractPrivatePostApiV3ContractFinancialRecordExact(this.extend(request, parameters))).join();
             }
-            Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseIncomes(data, market, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(FundingHistory::new).collect(Collectors.toList()));
 
@@ -10139,7 +10139,7 @@ public class Htx extends HtxApi
                     throw new NotSupported((this.id + " fetchPositions() not support this market type")) ;
                 }
             }
-            Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             Long timestamp = this.safeInteger(response, "ts");
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)data).size(); i++)
@@ -10462,7 +10462,7 @@ public class Htx extends HtxApi
             //        ]
             //    }
             //
-            Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseLeverageTiers(data, symbols, "contract_code");
         }).thenApply(LeverageTiers::new);
 
@@ -10474,12 +10474,12 @@ public class Htx extends HtxApi
         String currencyId = this.safeString(info, "trade_partition");
         String marketId = this.safeString(info, "contract_code");
         List<Object> tiers = new ArrayList<Object>(Arrays.asList());
-        Object brackets = this.safeList(info, "list", new ArrayList<Object>(Arrays.asList()));
+        List<Object> brackets = (List<Object>) this.safeList(info, "list", new ArrayList<Object>(Arrays.asList()));
         for (var i = 0; i < ((List<?>)brackets).size(); i++)
         {
             Object item = Helpers.GetValue(brackets, i);
             String leverage = this.safeString(item, "lever_rate");
-            Object ladders = this.safeList(item, "ladders", new ArrayList<Object>(Arrays.asList()));
+            List<Object> ladders = (List<Object>) this.safeList(item, "ladders", new ArrayList<Object>(Arrays.asList()));
             for (var k = 0; k < ((List<?>)ladders).size(); k++)
             {
                 Object bracket = Helpers.GetValue(ladders, k);
@@ -10630,7 +10630,7 @@ public class Htx extends HtxApi
             //    }
             //
             Object data = this.safeValue(response, "data");
-            Object tick = this.safeList(data, "tick");
+            List<Object> tick = (List<Object>) this.safeList(data, "tick");
             return this.parseOpenInterestsHistory(tick, market, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(OpenInterest::new).collect(Collectors.toList()));
 
@@ -10688,7 +10688,7 @@ public class Htx extends HtxApi
             {
                 throw new NotSupported((this.id + " fetchOpenInterests() does not currently support linear markets")) ;
             }
-            Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseOpenInterests(data, symbols);
         }).thenApply(OpenInterests::new);
 
@@ -10807,7 +10807,7 @@ public class Htx extends HtxApi
                     put( "datetime", Htx.this.iso8601(timestamp) );
                 }});
             }
-            Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             Object openInterest = this.parseOpenInterest(Helpers.GetValue(data, 0), market);
             Helpers.addElementToObject(openInterest, "timestamp", timestamp);
             Helpers.addElementToObject(openInterest, "datetime", this.iso8601(timestamp));
@@ -11247,7 +11247,7 @@ public class Htx extends HtxApi
             //
             if (java.util.Objects.equals(((Map<String, Object>)market).get("linear"), true))
             {
-                Object dataLinear = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+                List<Object> dataLinear = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
                 Object settlementsLinear = this.parseSettlements(dataLinear, market);
                 return this.sortBy(settlementsLinear, "timestamp");
             }
@@ -11316,7 +11316,7 @@ public class Htx extends HtxApi
             //        ]
             //    }
             //
-            Object data = this.safeList(response, "data");
+            List<Object> data = (List<Object>) this.safeList(response, "data");
             return this.parseDepositWithdrawFees(data, codes, "currency");
         }).thenApply(DepositWithdrawFees::new);
 
@@ -11356,7 +11356,7 @@ public class Htx extends HtxApi
         //          }
         //
         Object currency = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-        Object chains = this.safeList(fee, "chains", new ArrayList<Object>(Arrays.asList()));
+        List<Object> chains = (List<Object>) this.safeList(fee, "chains", new ArrayList<Object>(Arrays.asList()));
         String code = this.safeString(currency, "code");
         Object result = this.depositWithdrawFee(fee);
         for (var j = 0; j < ((List<?>)chains).size(); j++)
@@ -11615,7 +11615,7 @@ public class Htx extends HtxApi
             //         "ts": 1604312615051
             //     }
             //
-            Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseLiquidations(data, market, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Liquidation::new).collect(Collectors.toList()));
 
@@ -11869,7 +11869,7 @@ public class Htx extends HtxApi
                     throw new NotSupported((this.id + " fetchPositionsADLRank() not support this market type")) ;
                 }
             }
-            Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseADLRanks(data, symbols);
         }).thenApply(res -> ((List<?>) res).stream().map(ADL::new).collect(Collectors.toList()));
 

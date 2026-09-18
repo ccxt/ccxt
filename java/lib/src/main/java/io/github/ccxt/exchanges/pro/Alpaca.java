@@ -331,8 +331,8 @@ public class Alpaca extends io.github.ccxt.exchanges.Alpaca
             Helpers.callDynamically(orderbook, "reset", new Object[]{snapshot});
         } else
         {
-            Object asks = this.safeList(message, "a", new ArrayList<Object>(Arrays.asList()));
-            Object bids = this.safeList(message, "b", new ArrayList<Object>(Arrays.asList()));
+            List<Object> asks = (List<Object>) this.safeList(message, "a", new ArrayList<Object>(Arrays.asList()));
+            List<Object> bids = (List<Object>) this.safeList(message, "b", new ArrayList<Object>(Arrays.asList()));
             this.handleDeltas(Helpers.GetValue(orderbook, "asks"), asks);
             this.handleDeltas(Helpers.GetValue(orderbook, "bids"), bids);
             Helpers.addElementToObject(orderbook, "timestamp", timestamp);

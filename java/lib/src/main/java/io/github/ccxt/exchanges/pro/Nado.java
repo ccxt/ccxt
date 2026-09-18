@@ -1263,7 +1263,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
             //     }
             //
             Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            Object cancelledOrders = this.safeList(data, "cancelled_orders", new ArrayList<Object>(Arrays.asList()));
+            List<Object> cancelledOrders = (List<Object>) this.safeList(data, "cancelled_orders", new ArrayList<Object>(Arrays.asList()));
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)cancelledOrders).size(); i++)
             {
@@ -1318,7 +1318,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
             Object request = (this.cancelAllOrdersRequest(symbol, parameters)).join();
             Object response = (this.watchExecuteRequest(requestIdString, request)).join();
             Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            Object cancelledOrders = this.safeList(data, "cancelled_orders", new ArrayList<Object>(Arrays.asList()));
+            List<Object> cancelledOrders = (List<Object>) this.safeList(data, "cancelled_orders", new ArrayList<Object>(Arrays.asList()));
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)cancelledOrders).size(); i++)
             {
@@ -2195,8 +2195,8 @@ public class Nado extends io.github.ccxt.exchanges.Nado
             client.reject(error, messageHash);
             return;
         }
-        Object asks = this.safeList(message, "asks", new ArrayList<Object>(Arrays.asList()));
-        Object bids = this.safeList(message, "bids", new ArrayList<Object>(Arrays.asList()));
+        List<Object> asks = (List<Object>) this.safeList(message, "asks", new ArrayList<Object>(Arrays.asList()));
+        List<Object> bids = (List<Object>) this.safeList(message, "bids", new ArrayList<Object>(Arrays.asList()));
         this.handleDeltas(Helpers.GetValue(orderbook, "asks"), asks);
         this.handleDeltas(Helpers.GetValue(orderbook, "bids"), bids);
         Object timestamp = this.parseWsTimestamp(message, "max_timestamp");

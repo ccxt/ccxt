@@ -366,7 +366,7 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
         Helpers.addElementToObject(orderbook, "symbol", symbol);
         Object bids = Helpers.GetValue(orderbook, "bids");
         Object asks = Helpers.GetValue(orderbook, "asks");
-        Object data = this.safeList(message, "orderbook_units", new ArrayList<Object>(Arrays.asList()));
+        List<Object> data = (List<Object>) this.safeList(message, "orderbook_units", new ArrayList<Object>(Arrays.asList()));
         for (var i = 0; i < ((List<?>)data).size(); i++)
         {
             Object entry = Helpers.GetValue(data, i);
@@ -861,7 +861,7 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
         //     "stream_type": "REALTIME"
         // }
         //
-        Object data = this.safeList(message, "assets", new ArrayList<Object>(Arrays.asList()));
+        List<Object> data = (List<Object>) this.safeList(message, "assets", new ArrayList<Object>(Arrays.asList()));
         Long timestamp = this.safeInteger(message, "timestamp");
         Helpers.addElementToObject(this.balance, "timestamp", timestamp);
         Helpers.addElementToObject(this.balance, "datetime", this.iso8601(timestamp));

@@ -713,7 +713,7 @@ public class Lighter extends LighterApi
                 //     ]
                 // }
                 //
-                Object subAccounts = this.safeList(res, "sub_accounts");
+                List<Object> subAccounts = (List<Object>) this.safeList(res, "sub_accounts");
                 if (Helpers.isTrue(Helpers.isArray(subAccounts)))
                 {
                     Object account = this.safeDict(subAccounts, 0);
@@ -1601,8 +1601,8 @@ public class Lighter extends LighterApi
             //        ]
             //    }
             //
-            Object spotMarkets = this.safeList(response, "spot_order_book_details", new ArrayList<Object>(Arrays.asList()));
-            Object swapMarkets = this.safeList(response, "order_book_details", new ArrayList<Object>(Arrays.asList()));
+            List<Object> spotMarkets = (List<Object>) this.safeList(response, "spot_order_book_details", new ArrayList<Object>(Arrays.asList()));
+            List<Object> swapMarkets = (List<Object>) this.safeList(response, "order_book_details", new ArrayList<Object>(Arrays.asList()));
             List<Object> markets = (List<Object>) this.arrayConcat(spotMarkets, swapMarkets);
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)markets).size(); i++)
@@ -1730,7 +1730,7 @@ public class Lighter extends LighterApi
             //         ]
             //     }
             //
-            Object data = this.safeList(response, "asset_details", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = (List<Object>) this.safeList(response, "asset_details", new ArrayList<Object>(Arrays.asList()));
             return this.parseCurrencies(data);
         });
 
@@ -2019,8 +2019,8 @@ public class Lighter extends LighterApi
             //         ]
             //     }
             //
-            Object spotTickers = this.safeList(response, "spot_order_book_details", new ArrayList<Object>(Arrays.asList()));
-            Object swapTickers = this.safeList(response, "order_book_details", new ArrayList<Object>(Arrays.asList()));
+            List<Object> spotTickers = (List<Object>) this.safeList(response, "spot_order_book_details", new ArrayList<Object>(Arrays.asList()));
+            List<Object> swapTickers = (List<Object>) this.safeList(response, "order_book_details", new ArrayList<Object>(Arrays.asList()));
             List<Object> tickers = (List<Object>) this.arrayConcat(spotTickers, swapTickers);
             Object first = this.safeDict(tickers, 0, new HashMap<String, Object>() {{}});
             return this.parseTicker(first, market);
@@ -2050,8 +2050,8 @@ public class Lighter extends LighterApi
             }
             symbols = this.marketSymbols(symbols);
             Map<String, Object> response = (this.publicGetOrderBookDetails(parameters)).join();
-            Object spotTickers = this.safeList(response, "spot_order_book_details", new ArrayList<Object>(Arrays.asList()));
-            Object swapTickers = this.safeList(response, "order_book_details", new ArrayList<Object>(Arrays.asList()));
+            List<Object> spotTickers = (List<Object>) this.safeList(response, "spot_order_book_details", new ArrayList<Object>(Arrays.asList()));
+            List<Object> swapTickers = (List<Object>) this.safeList(response, "order_book_details", new ArrayList<Object>(Arrays.asList()));
             List<Object> tickers = (List<Object>) this.arrayConcat(spotTickers, swapTickers);
             return this.parseTickers(tickers, symbols);
         }).thenApply(Tickers::new);
@@ -2174,7 +2174,7 @@ public class Lighter extends LighterApi
             //     ]
             // }
             //
-            Object ohlcvs = this.safeList(response, "c", new ArrayList<Object>(Arrays.asList()));
+            List<Object> ohlcvs = (List<Object>) this.safeList(response, "c", new ArrayList<Object>(Arrays.asList()));
             return this.parseOHLCVs(ohlcvs, market, timeframe, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
 
@@ -2248,7 +2248,7 @@ public class Lighter extends LighterApi
             //         ]
             //     }
             //
-            Object data = this.safeList(response, "funding_rates", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = (List<Object>) this.safeList(response, "funding_rates", new ArrayList<Object>(Arrays.asList()));
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)data).size(); i++)
             {
@@ -2344,13 +2344,13 @@ public class Lighter extends LighterApi
             Map<String, Object> result = new HashMap<String, Object>() {{
                 put( "info", response );
             }};
-            Object accounts = this.safeList(response, "accounts", new ArrayList<Object>(Arrays.asList()));
+            List<Object> accounts = (List<Object>) this.safeList(response, "accounts", new ArrayList<Object>(Arrays.asList()));
             for (var i = 0; i < ((List<?>)accounts).size(); i++)
             {
                 Object account = Helpers.GetValue(accounts, i);
                 if (java.util.Objects.equals(type, "spot"))
                 {
-                    Object assets = this.safeList(account, "assets", new ArrayList<Object>(Arrays.asList()));
+                    List<Object> assets = (List<Object>) this.safeList(account, "assets", new ArrayList<Object>(Arrays.asList()));
                     for (var j = 0; j < ((List<?>)assets).size(); j++)
                     {
                         Object asset = Helpers.GetValue(assets, j);
@@ -2487,11 +2487,11 @@ public class Lighter extends LighterApi
             //     }
             //
             List<Object> allPositions = new ArrayList<Object>(Arrays.asList());
-            Object accounts = this.safeList(response, "accounts", new ArrayList<Object>(Arrays.asList()));
+            List<Object> accounts = (List<Object>) this.safeList(response, "accounts", new ArrayList<Object>(Arrays.asList()));
             for (var i = 0; i < ((List<?>)accounts).size(); i++)
             {
                 Object account = Helpers.GetValue(accounts, i);
-                Object positions = this.safeList(account, "positions", new ArrayList<Object>(Arrays.asList()));
+                List<Object> positions = (List<Object>) this.safeList(account, "positions", new ArrayList<Object>(Arrays.asList()));
                 for (var j = 0; j < ((List<?>)positions).size(); j++)
                 {
                     ((List<Object>)allPositions).add(Helpers.GetValue(positions, j));
@@ -2641,7 +2641,7 @@ public class Lighter extends LighterApi
             //         ]
             //     }
             //
-            Object accounts = this.safeList(response, "accounts", new ArrayList<Object>(Arrays.asList()));
+            List<Object> accounts = (List<Object>) this.safeList(response, "accounts", new ArrayList<Object>(Arrays.asList()));
             return this.parseAccounts(accounts, parameters);
         }).thenApply(res -> ((List<?>) res).stream().map(Account::new).collect(Collectors.toList()));
 
@@ -2773,7 +2773,7 @@ public class Lighter extends LighterApi
             //         ]
             //     }
             //
-            Object data = this.safeList(response, "orders", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = (List<Object>) this.safeList(response, "orders", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(data, market, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
@@ -2873,7 +2873,7 @@ public class Lighter extends LighterApi
             //         ]
             //     }
             //
-            Object data = this.safeList(response, "orders", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = (List<Object>) this.safeList(response, "orders", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(data, market, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
@@ -3259,7 +3259,7 @@ public class Lighter extends LighterApi
             //         "cursor": "eyJpbmRleCI6MzA4NDkxNX0="
             //     }
             //
-            Object rows = this.safeList(response, "transfers", new ArrayList<Object>(Arrays.asList()));
+            List<Object> rows = (List<Object>) this.safeList(response, "transfers", new ArrayList<Object>(Arrays.asList()));
             String cursor = this.safeString(response, "cursor");
             Object first = this.safeDict(rows, 0);
             if ((!java.util.Objects.equals(first, null)) && (!java.util.Objects.equals(cursor, null)))
@@ -3392,7 +3392,7 @@ public class Lighter extends LighterApi
             //         "cursor": "eyJpbmRleCI6MjkwMTg0MH0="
             //     }
             //
-            Object data = this.safeList(response, "deposits", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = (List<Object>) this.safeList(response, "deposits", new ArrayList<Object>(Arrays.asList()));
             String cursor = this.safeString(response, "cursor");
             Object first = this.safeDict(data, 0);
             if ((!java.util.Objects.equals(first, null)) && (!java.util.Objects.equals(cursor, null)))
@@ -3477,7 +3477,7 @@ public class Lighter extends LighterApi
             //         "cursor": "string"
             //     }
             //
-            Object data = this.safeList(response, "withdraws", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = (List<Object>) this.safeList(response, "withdraws", new ArrayList<Object>(Arrays.asList()));
             String cursor = this.safeString(response, "cursor");
             Object first = this.safeDict(data, 0);
             if ((!java.util.Objects.equals(first, null)) && (!java.util.Objects.equals(cursor, null)))
@@ -3735,7 +3735,7 @@ public class Lighter extends LighterApi
             //         ]
             //     }
             //
-            Object data = this.safeList(response, "trades", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = (List<Object>) this.safeList(response, "trades", new ArrayList<Object>(Arrays.asList()));
             for (var i = 0; i < ((List<?>)data).size(); i++)
             {
                 Helpers.addElementToObject(Helpers.GetValue(data, i), "account_index", accountIndex);

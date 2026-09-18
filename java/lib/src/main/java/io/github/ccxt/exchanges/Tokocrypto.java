@@ -885,7 +885,7 @@ public class Tokocrypto extends TokocryptoApi
                 (this.loadTimeDifference()).join();
             }
             Object data = this.safeValue(response, "data", new HashMap<String, Object>() {{}});
-            Object list = this.safeList(data, "list", new ArrayList<Object>(Arrays.asList()));
+            List<Object> list = (List<Object>) this.safeList(data, "list", new ArrayList<Object>(Arrays.asList()));
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)list).size(); i++)
             {
@@ -903,7 +903,7 @@ public class Tokocrypto extends TokocryptoApi
                 Map<String, Object> filtersByType = this.indexBy(filters, "filterType");
                 String status = this.safeString(market, "spotTradingEnable");
                 Boolean active = (java.util.Objects.equals(status, "1"));
-                Object permissions = this.safeList(market, "permissions", new ArrayList<Object>(Arrays.asList()));
+                List<Object> permissions = (List<Object>) this.safeList(market, "permissions", new ArrayList<Object>(Arrays.asList()));
                 for (var j = 0; j < ((List<?>)permissions).size(); j++)
                 {
                     if (java.util.Objects.equals(Helpers.GetValue(permissions, j), "TRD_GRP_003"))
@@ -1305,7 +1305,7 @@ public class Tokocrypto extends TokocryptoApi
                 //    }
                 //
                 Object data = this.safeDict(responseInner, "data", new HashMap<String, Object>() {{}});
-                Object list = this.safeList(data, "list", new ArrayList<Object>(Arrays.asList()));
+                List<Object> list = (List<Object>) this.safeList(data, "list", new ArrayList<Object>(Arrays.asList()));
                 return this.parseTrades(list, market, since, limit);
             }
             if (!java.util.Objects.equals(limit, null))
@@ -1741,7 +1741,7 @@ public class Tokocrypto extends TokocryptoApi
                 data = response;
             } else
             {
-                Object dataList = this.safeList(response, "data");
+                List<Object> dataList = (List<Object>) this.safeList(response, "data");
                 if (!java.util.Objects.equals(dataList, null))
                 {
                     data = dataList;
@@ -1823,7 +1823,7 @@ public class Tokocrypto extends TokocryptoApi
             put( "datetime", Tokocrypto.this.iso8601(timestamp) );
         }};
         Object data = this.safeValue(response, "data", new HashMap<String, Object>() {{}});
-        Object balances = this.safeList(data, "accountAssets", new ArrayList<Object>(Arrays.asList()));
+        List<Object> balances = (List<Object>) this.safeList(data, "accountAssets", new ArrayList<Object>(Arrays.asList()));
         for (var i = 0; i < ((List<?>)balances).size(); i++)
         {
             Object balance = Helpers.GetValue(balances, i);
@@ -2394,7 +2394,7 @@ public class Tokocrypto extends TokocryptoApi
             //     }
             //
             Object data = this.safeValue(response, "data", new HashMap<String, Object>() {{}});
-            Object orders = this.safeList(data, "list", new ArrayList<Object>(Arrays.asList()));
+            List<Object> orders = (List<Object>) this.safeList(data, "list", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(orders, market, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
@@ -2583,7 +2583,7 @@ public class Tokocrypto extends TokocryptoApi
             //     }
             //
             Object data = this.safeValue(response, "data", new HashMap<String, Object>() {{}});
-            Object trades = this.safeList(data, "list", new ArrayList<Object>(Arrays.asList()));
+            List<Object> trades = (List<Object>) this.safeList(data, "list", new ArrayList<Object>(Arrays.asList()));
             return this.parseTrades(trades, market, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
@@ -2731,7 +2731,7 @@ public class Tokocrypto extends TokocryptoApi
             //     }
             //
             Object data = this.safeValue(response, "data", new HashMap<String, Object>() {{}});
-            Object deposits = this.safeList(data, "list", new ArrayList<Object>(Arrays.asList()));
+            List<Object> deposits = (List<Object>) this.safeList(data, "list", new ArrayList<Object>(Arrays.asList()));
             return this.parseTransactions(deposits, currency, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
@@ -2805,7 +2805,7 @@ public class Tokocrypto extends TokocryptoApi
             //     }
             //
             Object data = this.safeValue(response, "data", new HashMap<String, Object>() {{}});
-            Object withdrawals = this.safeList(data, "list", new ArrayList<Object>(Arrays.asList()));
+            List<Object> withdrawals = (List<Object>) this.safeList(data, "list", new ArrayList<Object>(Arrays.asList()));
             return this.parseTransactions(withdrawals, currency, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
@@ -3225,7 +3225,7 @@ public class Tokocrypto extends TokocryptoApi
         } else if ((((Map<?, ?>)config).containsKey("byLimit")) && (Helpers.inOp(parameters, "limit")))
         {
             Object limit = Helpers.GetValue(parameters, "limit");
-            Object byLimit = this.safeList(config, "byLimit", new ArrayList<Object>(Arrays.asList()));
+            List<Object> byLimit = (List<Object>) this.safeList(config, "byLimit", new ArrayList<Object>(Arrays.asList()));
             for (var i = 0; i < ((List<?>)byLimit).size(); i++)
             {
                 Object entry = Helpers.GetValue(byLimit, i);

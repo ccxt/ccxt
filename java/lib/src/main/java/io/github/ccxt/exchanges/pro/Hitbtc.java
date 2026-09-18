@@ -353,8 +353,8 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
                 Helpers.callDynamically(orderbook, "reset", new Object[]{parsedSnapshot});
             } else
             {
-                Object asks = this.safeList(item, "a", new ArrayList<Object>(Arrays.asList()));
-                Object bids = this.safeList(item, "b", new ArrayList<Object>(Arrays.asList()));
+                List<Object> asks = (List<Object>) this.safeList(item, "a", new ArrayList<Object>(Arrays.asList()));
+                List<Object> bids = (List<Object>) this.safeList(item, "b", new ArrayList<Object>(Arrays.asList()));
                 this.handleDeltas(Helpers.GetValue(orderbook, "asks"), asks);
                 this.handleDeltas(Helpers.GetValue(orderbook, "bids"), bids);
             }

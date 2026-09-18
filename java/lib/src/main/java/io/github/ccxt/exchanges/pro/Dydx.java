@@ -156,7 +156,7 @@ public class Dydx extends io.github.ccxt.exchanges.Dydx
         Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
         Object symbol = ((Map<String, Object>)market).get("symbol");
         Object content = this.safeDict(message, "contents");
-        Object rawTrades = this.safeList(content, "trades", new ArrayList<Object>(Arrays.asList()));
+        List<Object> rawTrades = (List<Object>) this.safeList(content, "trades", new ArrayList<Object>(Arrays.asList()));
         Object stored = this.safeValue(this.trades, symbol);
         if (java.util.Objects.equals(stored, null))
         {
@@ -308,8 +308,8 @@ public class Dydx extends io.github.ccxt.exchanges.Dydx
             orderbook = this.orderBook();
         }
         Helpers.addElementToObject(orderbook, "symbol", symbol);
-        Object asks = this.safeList(content, "asks", new ArrayList<Object>(Arrays.asList()));
-        Object bids = this.safeList(content, "bids", new ArrayList<Object>(Arrays.asList()));
+        List<Object> asks = (List<Object>) this.safeList(content, "asks", new ArrayList<Object>(Arrays.asList()));
+        List<Object> bids = (List<Object>) this.safeList(content, "bids", new ArrayList<Object>(Arrays.asList()));
         this.handleDeltas(Helpers.GetValue(orderbook, "asks"), asks);
         this.handleDeltas(Helpers.GetValue(orderbook, "bids"), bids);
         Helpers.addElementToObject(orderbook, "nonce", this.safeInteger(message, "message_id"));
@@ -473,7 +473,7 @@ public class Dydx extends io.github.ccxt.exchanges.Dydx
         Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
         Object symbol = ((Map<String, Object>)market).get("symbol");
         Object content = this.safeDict(message, "contents");
-        Object candles = this.safeList(content, "candles");
+        List<Object> candles = (List<Object>) this.safeList(content, "candles");
         String messageHash = ("ohlcv:" + symbol);
         Object ohlcv = this.safeDict(candles, 0, content);
         Object parsed = this.parseOHLCV(ohlcv, market);

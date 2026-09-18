@@ -391,7 +391,7 @@ public class Bitmex extends io.github.ccxt.exchanges.Bitmex
         //         ]
         //     }
         //
-        Object data = this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
+        List<Object> data = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
         Map<String, Object> tickers = new HashMap<String, Object>() {{}};
         for (var i = 0; i < ((List<?>)data).size(); i++)
         {
@@ -520,7 +520,7 @@ public class Bitmex extends io.github.ccxt.exchanges.Bitmex
         //        ]
         //    }
         //
-        Object rawLiquidations = this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
+        List<Object> rawLiquidations = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
         List<Object> newLiquidations = new ArrayList<Object>(Arrays.asList());
         if (java.util.Objects.equals(this.liquidations, null))
         {
@@ -1044,7 +1044,7 @@ public class Bitmex extends io.github.ccxt.exchanges.Bitmex
             this.positions = new ArrayCache.ArrayCacheBySymbolBySide();
         }
         Object cache = this.positions;
-        Object rawPositions = this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
+        List<Object> rawPositions = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
         List<Object> newPositions = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ((List<?>)rawPositions).size(); i++)
         {
@@ -1289,7 +1289,7 @@ public class Bitmex extends io.github.ccxt.exchanges.Bitmex
         //         ]
         //     }
         //
-        Object data = this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
+        List<Object> data = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
         String messageHash = "order";
         // initial subscription response with multiple orders
         Object dataLength = ((List<?>)data).size();
@@ -1713,7 +1713,7 @@ public class Bitmex extends io.github.ccxt.exchanges.Bitmex
         Object interval = Helpers.replace(table, (String)"tradeBin", (String)"");
         Object timeframe = this.findTimeframe(interval);
         Object duration = this.parseTimeframe(timeframe);
-        Object candles = this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
+        List<Object> candles = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
         Map<String, Object> results = new HashMap<String, Object>() {{}};
         for (var i = 0; i < ((List<?>)candles).size(); i++)
         {
@@ -1816,7 +1816,7 @@ public class Bitmex extends io.github.ccxt.exchanges.Bitmex
         {
             return;  // protecting from weird updates
         }
-        Object data = this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
+        List<Object> data = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
         // if it's an initial snapshot
         if (java.util.Objects.equals(action, "partial"))
         {
@@ -1949,7 +1949,7 @@ public class Bitmex extends io.github.ccxt.exchanges.Bitmex
         if (!java.util.Objects.equals(error, null))
         {
             Object request = this.safeValue(message, "request", new HashMap<String, Object>() {{}});
-            Object args = this.safeList(request, "args", new ArrayList<Object>(Arrays.asList()));
+            List<Object> args = (List<Object>) this.safeList(request, "args", new ArrayList<Object>(Arrays.asList()));
             Object numArgs = ((List<?>)args).size();
             if (Helpers.isGreaterThan(numArgs, 0))
             {

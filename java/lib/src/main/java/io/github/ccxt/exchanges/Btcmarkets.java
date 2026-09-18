@@ -1326,8 +1326,8 @@ public class Btcmarkets extends BtcmarketsApi
             //        ]
             //    }
             //
-            Object cancelOrders = this.safeList(response, "cancelOrders", new ArrayList<Object>(Arrays.asList()));
-            Object unprocessedRequests = this.safeList(response, "unprocessedRequests", new ArrayList<Object>(Arrays.asList()));
+            List<Object> cancelOrders = (List<Object>) this.safeList(response, "cancelOrders", new ArrayList<Object>(Arrays.asList()));
+            List<Object> unprocessedRequests = (List<Object>) this.safeList(response, "unprocessedRequests", new ArrayList<Object>(Arrays.asList()));
             List<Object> orders = (List<Object>) this.arrayConcat(cancelOrders, unprocessedRequests);
             return this.parseOrders(orders);
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));

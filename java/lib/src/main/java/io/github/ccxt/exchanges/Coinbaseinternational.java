@@ -684,7 +684,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             //       ]
             //   }
             //
-            Object candles = this.safeList(response, "aggregations", new ArrayList<Object>(Arrays.asList()));
+            List<Object> candles = (List<Object>) this.safeList(response, "aggregations", new ArrayList<Object>(Arrays.asList()));
             return this.parseOHLCVs(candles, market, timeframe, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
 
@@ -777,7 +777,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             //        ]
             //    }
             //
-            Object rawRates = this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
+            List<Object> rawRates = (List<Object>) this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
             return this.parseFundingRateHistories(rawRates, market, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(FundingRateHistory::new).collect(Collectors.toList()));
 
@@ -874,7 +874,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
                 ((Map<String, Object>)request).put("result_limit", 100);
             }
             Map<String, Object> response = (this.v1PrivateGetTransfers(this.extend(request, parameters))).join();
-            Object fundings = this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
+            List<Object> fundings = (List<Object>) this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
             return this.parseIncomes(fundings, market, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(FundingHistory::new).collect(Collectors.toList()));
 
@@ -976,7 +976,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
                 ((Map<String, Object>)request).put("result_limit", 100);
             }
             Map<String, Object> response = (this.v1PrivateGetTransfers(this.extend(request, parameters))).join();
-            Object transfers = this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
+            List<Object> transfers = (List<Object>) this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
             return this.parseTransfers(transfers, currency, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(TransferEntry::new).collect(Collectors.toList()));
 
@@ -1364,7 +1364,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             //        ]
             //    }
             //
-            Object rawTransactions = this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
+            List<Object> rawTransactions = (List<Object>) this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
             return this.parseTransactions(rawTransactions);
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
@@ -2782,7 +2782,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             //        ]
             //    }
             //
-            Object rawOrders = this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
+            List<Object> rawOrders = (List<Object>) this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(rawOrders, market, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
@@ -2896,7 +2896,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             //        ]
             //    }
             //
-            Object trades = this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
+            List<Object> trades = (List<Object>) this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
             return this.parseTrades(trades, market, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 

@@ -168,7 +168,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
                     response = (this.futuresPublicPostBulletPublic(parameters)).join();
                 }
                 Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-                Object instanceServers = this.safeList(data, "instanceServers", new ArrayList<Object>(Arrays.asList()));
+                List<Object> instanceServers = (List<Object>) this.safeList(data, "instanceServers", new ArrayList<Object>(Arrays.asList()));
                 Object firstInstanceServer = this.safeDict(instanceServers, 0);
                 Object pingInterval = this.safeInteger(firstInstanceServer, "pingInterval");
                 String endpoint = this.safeString(firstInstanceServer, "endpoint");
@@ -1072,8 +1072,8 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             market = this.safeMarket(marketId, market);
             String symbol = this.safeString(market, "symbol");
             Object data = this.safeDict(ticker, "data", new HashMap<String, Object>() {{}});
-            Object ask = this.safeList(data, "asks", new ArrayList<Object>(Arrays.asList()));
-            Object bid = this.safeList(data, "bids", new ArrayList<Object>(Arrays.asList()));
+            List<Object> ask = (List<Object>) this.safeList(data, "asks", new ArrayList<Object>(Arrays.asList()));
+            List<Object> bid = (List<Object>) this.safeList(data, "bids", new ArrayList<Object>(Arrays.asList()));
             Long timestamp = this.safeInteger(data, "timestamp");
             return this.safeTicker(new HashMap<String, Object>() {{
                 put( "symbol", symbol );
@@ -1289,7 +1289,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
         //
         Object data = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         String marketId = this.safeString(data, "symbol");
-        Object candles = this.safeList(data, "candles", new ArrayList<Object>(Arrays.asList()));
+        List<Object> candles = (List<Object>) this.safeList(data, "candles", new ArrayList<Object>(Arrays.asList()));
         String topic = this.safeString(message, "topic");
         Object parts = Helpers.split(topic, "_");
         String interval = this.safeString(parts, 1);
@@ -2214,14 +2214,14 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             }
         } else if (!java.util.Objects.equals(changes, null))
         {
-            Object bids = this.safeList(changes, "bids", new ArrayList<Object>(Arrays.asList()));
-            Object asks = this.safeList(changes, "asks", new ArrayList<Object>(Arrays.asList()));
+            List<Object> bids = (List<Object>) this.safeList(changes, "bids", new ArrayList<Object>(Arrays.asList()));
+            List<Object> asks = (List<Object>) this.safeList(changes, "asks", new ArrayList<Object>(Arrays.asList()));
             this.handleBidAsks(storedBids, bids);
             this.handleBidAsks(storedAsks, asks);
         } else
         {
-            Object bids = this.safeList2(delta, "bids", "b", new ArrayList<Object>(Arrays.asList()));
-            Object asks = this.safeList2(delta, "asks", "a", new ArrayList<Object>(Arrays.asList()));
+            List<Object> bids = (List<Object>) this.safeList2(delta, "bids", "b", new ArrayList<Object>(Arrays.asList()));
+            List<Object> asks = (List<Object>) this.safeList2(delta, "asks", "a", new ArrayList<Object>(Arrays.asList()));
             this.handleBidAsks(storedBids, bids);
             this.handleBidAsks(storedAsks, asks);
         }
@@ -2239,7 +2239,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
     public void handleOrderBookSubscription(Client client, Object message, Object subscription)
     {
         Long limit = this.safeInteger(subscription, "limit");
-        Object symbols = this.safeList(subscription, "symbols");
+        List<Object> symbols = (List<Object>) this.safeList(subscription, "symbols");
         if (java.util.Objects.equals(symbols, null))
         {
             String symbol = this.safeString(subscription, "symbol");
@@ -2285,8 +2285,8 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
         Object isUnSub = this.safeBool(subscription, "unsubscribe", false);
         if (java.util.Objects.equals(isUnSub, true))
         {
-            Object messageHashes = this.safeList(subscription, "messageHashes", new ArrayList<Object>(Arrays.asList()));
-            Object subMessageHashes = this.safeList(subscription, "subMessageHashes", new ArrayList<Object>(Arrays.asList()));
+            List<Object> messageHashes = (List<Object>) this.safeList(subscription, "messageHashes", new ArrayList<Object>(Arrays.asList()));
+            List<Object> subMessageHashes = (List<Object>) this.safeList(subscription, "subMessageHashes", new ArrayList<Object>(Arrays.asList()));
             for (var i = 0; i < ((List<?>)messageHashes).size(); i++)
             {
                 Object messageHash = Helpers.GetValue(messageHashes, i);
@@ -2297,7 +2297,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             if (java.util.Objects.equals(topic, "fundingRate"))
             {
                 // todo: add fundingRate topic to cleanCache
-                Object symbols = this.safeList(subscription, "symbols", new ArrayList<Object>(Arrays.asList()));
+                List<Object> symbols = (List<Object>) this.safeList(subscription, "symbols", new ArrayList<Object>(Arrays.asList()));
                 for (var i = 0; i < ((List<?>)symbols).size(); i++)
                 {
                     Object symbol = Helpers.GetValue(symbols, i);

@@ -2625,7 +2625,7 @@ public class Bullish extends BullishApi
             //         "totalCount": 1
             //     }
             //
-            Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             Object currency = null;
             if (!java.util.Objects.equals(code, null))
             {
@@ -2736,7 +2736,7 @@ public class Bullish extends BullishApi
         String currencyId = this.safeString(transaction, "symbol");
         String code = this.safeCurrencyCode(currencyId, currency);
         String status = this.safeString(transaction, "status");
-        Object sources = this.safeList(transactionDetails, "sources", new ArrayList<Object>(Arrays.asList()));
+        List<Object> sources = (List<Object>) this.safeList(transactionDetails, "sources", new ArrayList<Object>(Arrays.asList()));
         Object source = this.safeDict(sources, 0, new HashMap<String, Object>() {{}});
         String sourceAddress = this.safeString(source, "address");
         Map<String, Object> fee = new HashMap<String, Object>() {{

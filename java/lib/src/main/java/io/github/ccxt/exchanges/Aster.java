@@ -1192,7 +1192,7 @@ public class Aster extends AsterApi
 
             Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             Map<String, Object> sapiResult = (this.sapiPublicGetV3ExchangeInfo(parameters)).join();
-            Object sapiRows = this.safeList(sapiResult, "assets", new ArrayList<Object>(Arrays.asList()));
+            List<Object> sapiRows = (List<Object>) this.safeList(sapiResult, "assets", new ArrayList<Object>(Arrays.asList()));
             //
             //     [
             //         {
@@ -1260,9 +1260,9 @@ public class Aster extends AsterApi
             ((List<Object>)promises).add(this.signIn());
             Object results = (Helpers.promiseAll(promises)).join();
             Object sapiResult = this.safeDict(results, 0, new HashMap<String, Object>() {{}});
-            Object sapiRows = this.safeList(sapiResult, "symbols", new ArrayList<Object>(Arrays.asList()));
+            List<Object> sapiRows = (List<Object>) this.safeList(sapiResult, "symbols", new ArrayList<Object>(Arrays.asList()));
             Object fapiResult = this.safeDict(results, 1, new HashMap<String, Object>() {{}});
-            Object fapiRows = this.safeList(fapiResult, "symbols", new ArrayList<Object>(Arrays.asList()));
+            List<Object> fapiRows = (List<Object>) this.safeList(fapiResult, "symbols", new ArrayList<Object>(Arrays.asList()));
             //
             // example:
             //
@@ -1409,7 +1409,7 @@ public class Aster extends AsterApi
             symbol = Helpers.add(Helpers.add(base, "/"), quote);
         }
         // filters
-        Object filters = this.safeList(market, "filters", new ArrayList<Object>(Arrays.asList()));
+        List<Object> filters = (List<Object>) this.safeList(market, "filters", new ArrayList<Object>(Arrays.asList()));
         Map<String, Object> filtersByType = this.indexBy(filters, "filterType");
         Object filterNotional = this.safeDict2(filtersByType, "MIN_NOTIONAL", "NOTIONAL");
         Object filterPrice = this.safeDict(filtersByType, "PRICE_FILTER");
@@ -3763,7 +3763,7 @@ public class Aster extends AsterApi
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
-            Object clientOrderIdList = this.safeList(parameters, "origClientOrderIdList");
+            List<Object> clientOrderIdList = (List<Object>) this.safeList(parameters, "origClientOrderIdList");
             if (!java.util.Objects.equals(clientOrderIdList, null))
             {
                 ((Map<String, Object>)request).put("origClientOrderIdList", clientOrderIdList);
@@ -4419,7 +4419,7 @@ public class Aster extends AsterApi
         String symbol = this.safeString(market, "symbol");
         String isolatedMarginString = this.safeString(position, "isolatedMargin");
         Object leverageBrackets = this.safeDict(this.options, "leverageBrackets", new HashMap<String, Object>() {{}});
-        Object leverageBracket = this.safeList(leverageBrackets, symbol, new ArrayList<Object>(Arrays.asList()));
+        List<Object> leverageBracket = (List<Object>) this.safeList(leverageBrackets, symbol, new ArrayList<Object>(Arrays.asList()));
         String notionalString = this.safeString2(position, "notional", "notionalValue");
         String notionalStringAbs = Precise.stringAbs(notionalString);
         Object maintenanceMarginPercentageString = null;
@@ -4708,8 +4708,8 @@ public class Aster extends AsterApi
     public Object parseAccountPositions(Object account, Object... optionalArgs)
     {
         Object filterClosed = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : false;
-        Object positions = this.safeList(account, "positions", new ArrayList<Object>(Arrays.asList()));
-        Object assets = this.safeList(account, "assets", new ArrayList<Object>(Arrays.asList()));
+        List<Object> positions = (List<Object>) this.safeList(account, "positions", new ArrayList<Object>(Arrays.asList()));
+        List<Object> assets = (List<Object>) this.safeList(account, "assets", new ArrayList<Object>(Arrays.asList()));
         Map<String, Object> balances = new HashMap<String, Object>() {{}};
         for (var i = 0; i < ((List<?>)assets).size(); i++)
         {
@@ -4797,7 +4797,7 @@ public class Aster extends AsterApi
         }
         Object contracts = this.parseNumber(contractsStringAbs);
         Object leverageBrackets = this.safeDict(this.options, "leverageBrackets", new HashMap<String, Object>() {{}});
-        Object leverageBracket = this.safeList(leverageBrackets, symbol, new ArrayList<Object>(Arrays.asList()));
+        List<Object> leverageBracket = (List<Object>) this.safeList(leverageBrackets, symbol, new ArrayList<Object>(Arrays.asList()));
         Object maintenanceMarginPercentageString = null;
         for (var i = 0; i < ((List<?>)leverageBracket).size(); i++)
         {
@@ -5035,7 +5035,7 @@ public class Aster extends AsterApi
                     Object entry = Helpers.GetValue(entries, i);
                     String marketId = this.safeString(entry, "symbol");
                     String symbol = this.safeSymbol(marketId, null, null, "contract");
-                    Object brackets = this.safeList(entry, "brackets", new ArrayList<Object>(Arrays.asList()));
+                    List<Object> brackets = (List<Object>) this.safeList(entry, "brackets", new ArrayList<Object>(Arrays.asList()));
                     List<Object> result = new ArrayList<Object>(Arrays.asList());
                     for (var j = 0; j < ((List<?>)brackets).size(); j++)
                     {

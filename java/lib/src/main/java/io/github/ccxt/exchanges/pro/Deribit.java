@@ -115,7 +115,7 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
             (this.authenticate(parameters)).join();
             String messageHash = "balance";
             Object url = ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
-            Object currencies = this.safeList(this.options, "currencies", new ArrayList<Object>(Arrays.asList()));
+            List<Object> currencies = (List<Object>) this.safeList(this.options, "currencies", new ArrayList<Object>(Arrays.asList()));
             List<Object> channels = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)currencies).size(); i++)
             {
@@ -535,7 +535,7 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
         String interval = this.safeString(parts, 2);
         String symbol = this.safeSymbol(marketId);
         Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
-        Object trades = this.safeList(parameters, "data", new ArrayList<Object>(Arrays.asList()));
+        List<Object> trades = (List<Object>) this.safeList(parameters, "data", new ArrayList<Object>(Arrays.asList()));
         if (java.util.Objects.equals(this.safeValue(this.trades, symbol), null))
         {
             Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
@@ -802,8 +802,8 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
             Helpers.addElementToObject(this.orderbooks, symbol, this.countedOrderBook());
         }
         io.github.ccxt.ws.WsOrderBook storedOrderBook = (io.github.ccxt.ws.WsOrderBook) Helpers.GetValue(this.orderbooks, symbol);
-        Object asks = this.safeList(data, "asks", new ArrayList<Object>(Arrays.asList()));
-        Object bids = this.safeList(data, "bids", new ArrayList<Object>(Arrays.asList()));
+        List<Object> asks = (List<Object>) this.safeList(data, "asks", new ArrayList<Object>(Arrays.asList()));
+        List<Object> bids = (List<Object>) this.safeList(data, "bids", new ArrayList<Object>(Arrays.asList()));
         this.handleDeltas(Helpers.GetValue(storedOrderBook, "asks"), asks);
         this.handleDeltas(Helpers.GetValue(storedOrderBook, "bids"), bids);
         Helpers.addElementToObject(storedOrderBook, "nonce", timestamp);
@@ -817,8 +817,8 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
 
     public Object cleanOrderBook(Object data)
     {
-        Object bids = this.safeList(data, "bids", new ArrayList<Object>(Arrays.asList()));
-        Object asks = this.safeList(data, "asks", new ArrayList<Object>(Arrays.asList()));
+        List<Object> bids = (List<Object>) this.safeList(data, "bids", new ArrayList<Object>(Arrays.asList()));
+        List<Object> asks = (List<Object>) this.safeList(data, "asks", new ArrayList<Object>(Arrays.asList()));
         List<Object> cleanedBids = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ((List<?>)bids).size(); i++)
         {

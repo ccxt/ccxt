@@ -179,7 +179,7 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
         //
         String defaultType = this.safeString(this.options, "defaultType");
         Object data = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
-        Object rawTickers = this.safeList(data, "state_list", new ArrayList<Object>(Arrays.asList()));
+        List<Object> rawTickers = (List<Object>) this.safeList(data, "state_list", new ArrayList<Object>(Arrays.asList()));
         Map<String, Object> newTickers = new HashMap<String, Object>() {{}};
         for (var i = 0; i < ((List<?>)rawTickers).size(); i++)
         {
@@ -378,7 +378,7 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
             this.balance = new HashMap<String, Object>() {{}};
         }
         Object data = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
-        Object balances = this.safeList(data, "balance_list", new ArrayList<Object>(Arrays.asList()));
+        List<Object> balances = (List<Object>) this.safeList(data, "balance_list", new ArrayList<Object>(Arrays.asList()));
         Object firstEntry = Helpers.GetValue(balances, 0);
         Long updated = this.safeInteger(firstEntry, "updated_at");
         String unrealizedPnl = this.safeString(firstEntry, "unrealized_pnl");
@@ -630,7 +630,7 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
         //     }
         //
         Object data = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
-        Object trades = this.safeList(data, "deal_list", new ArrayList<Object>(Arrays.asList()));
+        List<Object> trades = (List<Object>) this.safeList(data, "deal_list", new ArrayList<Object>(Arrays.asList()));
         String marketId = this.safeString(data, "market");
         Boolean isSpot = Helpers.isGreaterThan(Helpers.getIndexOf(client.url, "spot"), Helpers.opNeg(1));
         String defaultType = ((Helpers.isTrue(isSpot))) ? "spot" : "swap";
@@ -1087,8 +1087,8 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
             }
         } else
         {
-            Object asks = this.safeList(depth, "asks", new ArrayList<Object>(Arrays.asList()));
-            Object bids = this.safeList(depth, "bids", new ArrayList<Object>(Arrays.asList()));
+            List<Object> asks = (List<Object>) this.safeList(depth, "asks", new ArrayList<Object>(Arrays.asList()));
+            List<Object> bids = (List<Object>) this.safeList(depth, "bids", new ArrayList<Object>(Arrays.asList()));
             this.handleDeltas(Helpers.GetValue(currentOrderBook, "asks"), asks);
             this.handleDeltas(Helpers.GetValue(currentOrderBook, "bids"), bids);
             Helpers.addElementToObject(currentOrderBook, "nonce", timestamp);

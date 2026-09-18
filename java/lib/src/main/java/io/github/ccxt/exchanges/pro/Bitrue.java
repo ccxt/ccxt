@@ -478,8 +478,8 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
         Object parseable = tick;
         if (Helpers.isTrue(isFutures))
         {
-            Object rawAsks = this.safeList(tick, "asks", new ArrayList<Object>(Arrays.asList()));
-            Object rawBuys = this.safeList(tick, "buys", new ArrayList<Object>(Arrays.asList()));
+            List<Object> rawAsks = (List<Object>) this.safeList(tick, "asks", new ArrayList<Object>(Arrays.asList()));
+            List<Object> rawBuys = (List<Object>) this.safeList(tick, "buys", new ArrayList<Object>(Arrays.asList()));
             final Object finalSymbol = symbol;
             parseable = new HashMap<String, Object>() {{
                 put( "asks", Bitrue.this.parseContractBidsAsks(rawAsks, finalSymbol) );
@@ -636,7 +636,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
         }
         Object symbol = Helpers.GetValue(market, "symbol");
         Object tick = this.safeValue(message, "tick", new HashMap<String, Object>() {{}});
-        Object data = this.safeList(tick, "data", new ArrayList<Object>(Arrays.asList()));
+        List<Object> data = (List<Object>) this.safeList(tick, "data", new ArrayList<Object>(Arrays.asList()));
         Boolean appended = false;
         Object stored = this.safeValue(this.trades, symbol);
         for (var i = 0; i < ((List<?>)data).size(); i++)

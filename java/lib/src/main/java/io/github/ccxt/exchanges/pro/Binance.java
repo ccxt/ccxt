@@ -1444,8 +1444,8 @@ public class Binance extends io.github.ccxt.exchanges.Binance
 
     public void handleUnSubscription(Client client, Object subscription)
     {
-        Object messageHashes = this.safeList(subscription, "messageHashes", new ArrayList<Object>(Arrays.asList()));
-        Object subMessageHashes = this.safeList(subscription, "subMessageHashes", new ArrayList<Object>(Arrays.asList()));
+        List<Object> messageHashes = (List<Object>) this.safeList(subscription, "messageHashes", new ArrayList<Object>(Arrays.asList()));
+        List<Object> subMessageHashes = (List<Object>) this.safeList(subscription, "subMessageHashes", new ArrayList<Object>(Arrays.asList()));
         for (var j = 0; j < ((List<?>)messageHashes).size(); j++)
         {
             Object unsubHash = Helpers.GetValue(messageHashes, j);
@@ -2479,7 +2479,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         //        ]
         //    }
         //
-        Object result = this.safeList(message, "result");
+        List<Object> result = (List<Object>) this.safeList(message, "result");
         List<Object> parsed = this.parseOHLCVs(result);
         // use a reverse lookup in a static map instead
         String messageHash = this.safeString(message, "id");
@@ -4261,7 +4261,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         //
         //
         String messageHash = this.safeString(message, "id");
-        Object result = this.safeList(message, "result", new ArrayList<Object>(Arrays.asList()));
+        List<Object> result = (List<Object>) this.safeList(message, "result", new ArrayList<Object>(Arrays.asList()));
         List<Object> positions = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ((List<?>)result).size(); i++)
         {
@@ -4456,7 +4456,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         } else
         {
             message = this.safeDict(message, "a", message);
-            Object B = this.safeList(message, "B");
+            List<Object> B = (List<Object>) this.safeList(message, "B");
             if (java.util.Objects.equals(B, null))
             {
                 return;
@@ -4738,7 +4738,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         //    }
         //
         String messageHash = this.safeString(message, "id");
-        Object result = this.safeList(message, "result", new ArrayList<Object>(Arrays.asList()));
+        List<Object> result = (List<Object>) this.safeList(message, "result", new ArrayList<Object>(Arrays.asList()));
         List<Object> orders = this.parseOrders(result);
         client.resolve(orders, messageHash);
     }
@@ -5870,7 +5870,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         //         "e": "price"
         //     }
         //
-        Object rates = this.safeList(message, "rates", new ArrayList<Object>(Arrays.asList()));
+        List<Object> rates = (List<Object>) this.safeList(message, "rates", new ArrayList<Object>(Arrays.asList()));
         Map<String, Object> tickers = new HashMap<String, Object>() {{}};
         for (var i = 0; i < ((List<?>)rates).size(); i++)
         {
@@ -5960,11 +5960,11 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         //         ]
         //     }
         //
-        Object orders = this.safeList(message, "o", new ArrayList<Object>(Arrays.asList()));
+        List<Object> orders = (List<Object>) this.safeList(message, "o", new ArrayList<Object>(Arrays.asList()));
         for (var i = 0; i < ((List<?>)orders).size(); i++)
         {
             Object order = Helpers.GetValue(orders, i);
-            Object fills = this.safeList(order, "fi", new ArrayList<Object>(Arrays.asList()));
+            List<Object> fills = (List<Object>) this.safeList(order, "fi", new ArrayList<Object>(Arrays.asList()));
             String rawQty = this.safeString(order, "q", "0");
             String side = "BUY";
             if (Helpers.isTrue(Precise.stringLt(rawQty, "0")))
@@ -6234,7 +6234,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         }
         Object cache = Helpers.GetValue(this.positions, accountType);
         Object data = this.safeDict(message, "a", new HashMap<String, Object>() {{}});
-        Object rawPositions = this.safeList(data, "P", new ArrayList<Object>(Arrays.asList()));
+        List<Object> rawPositions = (List<Object>) this.safeList(data, "P", new ArrayList<Object>(Arrays.asList()));
         List<Object> newPositions = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ((List<?>)rawPositions).size(); i++)
         {
@@ -6567,7 +6567,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         //    }
         //
         String messageHash = this.safeString(message, "id");
-        Object result = this.safeList(message, "result", new ArrayList<Object>(Arrays.asList()));
+        List<Object> result = (List<Object>) this.safeList(message, "result", new ArrayList<Object>(Arrays.asList()));
         List<Object> trades = this.parseTrades(result);
         client.resolve(trades, messageHash);
     }
@@ -6740,7 +6740,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                             Helpers.addElementToObject(order, "fee", tradeFee);
                         }
                         // save this trade in the order
-                        Object orderTrades = this.safeList(order, "trades", new ArrayList<Object>(Arrays.asList()));
+                        List<Object> orderTrades = (List<Object>) this.safeList(order, "trades", new ArrayList<Object>(Arrays.asList()));
                         ((List<Object>)orderTrades).add(trade);
                         Helpers.addElementToObject(order, "trades", orderTrades);
                         // write the updated order back into the cache: php
@@ -6849,7 +6849,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         {
             return;
         }
-        Object B = this.safeList(message, "B", new ArrayList<Object>(Arrays.asList()));
+        List<Object> B = (List<Object>) this.safeList(message, "B", new ArrayList<Object>(Arrays.asList()));
         for (var i = 0; i < ((List<?>)B).size(); i++)
         {
             Object entry = Helpers.GetValue(B, i);
@@ -6877,7 +6877,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             Helpers.addElementToObject(this.positions, accountType, new ArrayCache.ArrayCacheBySymbolBySide());
         }
         Object cache = Helpers.GetValue(this.positions, accountType);
-        Object P = this.safeList(message, "P", new ArrayList<Object>(Arrays.asList()));
+        List<Object> P = (List<Object>) this.safeList(message, "P", new ArrayList<Object>(Arrays.asList()));
         List<Object> newPositions = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ((List<?>)P).size(); i++)
         {

@@ -2044,7 +2044,7 @@ public class Bitstamp extends BitstampApi
             //     }
             //
             Object data = this.safeValue(response, "data", new HashMap<String, Object>() {{}});
-            Object ohlc = this.safeList(data, "ohlc", new ArrayList<Object>(Arrays.asList()));
+            List<Object> ohlc = (List<Object>) this.safeList(data, "ohlc", new ArrayList<Object>(Arrays.asList()));
             return this.parseOHLCVs(ohlc, market, timeframe, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
 
@@ -2584,7 +2584,7 @@ public class Bitstamp extends BitstampApi
             //        "success": true
             //    }
             //
-            Object canceled = this.safeList(response, "canceled");
+            List<Object> canceled = (List<Object>) this.safeList(response, "canceled");
             return this.parseOrders(canceled);
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
@@ -3836,7 +3836,7 @@ public class Bitstamp extends BitstampApi
                 ((List<Object>)errors).add(reasonInner);
             } else
             {
-                Object all = this.safeList(reasonInner, "__all__", new ArrayList<Object>(Arrays.asList()));
+                List<Object> all = (List<Object>) this.safeList(reasonInner, "__all__", new ArrayList<Object>(Arrays.asList()));
                 for (var i = 0; i < ((List<?>)all).size(); i++)
                 {
                     ((List<Object>)errors).add(Helpers.GetValue(all, i));

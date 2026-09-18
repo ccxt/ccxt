@@ -333,7 +333,7 @@ public class Extended extends io.github.ccxt.exchanges.Extended
                 Helpers.addElementToObject(result, code, account);
             }
         }
-        Object spotBalances = this.safeList(data, "spotBalances", new ArrayList<Object>(Arrays.asList()));
+        List<Object> spotBalances = (List<Object>) this.safeList(data, "spotBalances", new ArrayList<Object>(Arrays.asList()));
         for (var i = 0; i < ((List<?>)spotBalances).size(); i++)
         {
             Object spotBalance = this.safeDict(spotBalances, i, new HashMap<String, Object>() {{}});
@@ -435,7 +435,7 @@ public class Extended extends io.github.ccxt.exchanges.Extended
         }
         Object stored = this.myTrades;
         Object data = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
-        Object rawTrades = this.safeList(data, "trades", new ArrayList<Object>(Arrays.asList()));
+        List<Object> rawTrades = (List<Object>) this.safeList(data, "trades", new ArrayList<Object>(Arrays.asList()));
         Map<String, Object> symbols = new HashMap<String, Object>() {{}};
         Object first = this.safeDict(rawTrades, 0);
         if (java.util.Objects.equals(first, null))
@@ -542,7 +542,7 @@ public class Extended extends io.github.ccxt.exchanges.Extended
         }
         Object stored = this.positions;
         Object data = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
-        Object rawPositions = this.safeList(data, "positions", new ArrayList<Object>(Arrays.asList()));
+        List<Object> rawPositions = (List<Object>) this.safeList(data, "positions", new ArrayList<Object>(Arrays.asList()));
         List<Object> newPositions = new ArrayList<Object>(Arrays.asList());
         Object first = this.safeDict(rawPositions, 0);
         if (java.util.Objects.equals(first, null))
@@ -877,7 +877,7 @@ public class Extended extends io.github.ccxt.exchanges.Extended
         //         "seq": 2
         //     }
         //
-        Object data = this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
+        List<Object> data = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
         Object first = this.safeDict(data, 0);
         if (java.util.Objects.equals(first, null))
         {
@@ -1026,7 +1026,7 @@ public class Extended extends io.github.ccxt.exchanges.Extended
             return;
         }
         ((Map<String, Object>)subscription).put("nonce", nonce);
-        Object data = this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
+        List<Object> data = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
         for (var i = 0; i < ((List<?>)data).size(); i++)
         {
             Object parsed = this.parseOHLCV(Helpers.GetValue(data, i));

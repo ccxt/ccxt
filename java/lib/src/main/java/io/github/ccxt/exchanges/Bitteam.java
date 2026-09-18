@@ -902,7 +902,7 @@ public class Bitteam extends BitteamApi
             //     }
             //
             Object result = this.safeValue(response, "result", new HashMap<String, Object>() {{}});
-            Object data = this.safeList(result, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = (List<Object>) this.safeList(result, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseOHLCVs(data, market, timeframe, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
 
@@ -1107,7 +1107,7 @@ public class Bitteam extends BitteamApi
             //     }
             //
             Object result = this.safeValue(response, "result", new HashMap<String, Object>() {{}});
-            Object orders = this.safeList(result, "orders", new ArrayList<Object>(Arrays.asList()));
+            List<Object> orders = (List<Object>) this.safeList(result, "orders", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(orders, market, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
@@ -2269,7 +2269,7 @@ public class Bitteam extends BitteamApi
             //     }
             //
             Object result = this.safeValue(response, "result", new HashMap<String, Object>() {{}});
-            Object trades = this.safeList(result, "trades", new ArrayList<Object>(Arrays.asList()));
+            List<Object> trades = (List<Object>) this.safeList(result, "trades", new ArrayList<Object>(Arrays.asList()));
             return this.parseTrades(trades, market, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
@@ -2613,7 +2613,7 @@ public class Bitteam extends BitteamApi
             //     }
             //
             Object result = this.safeValue(response, "result", new HashMap<String, Object>() {{}});
-            Object transactions = this.safeList(result, "transactions", new ArrayList<Object>(Arrays.asList()));
+            List<Object> transactions = (List<Object>) this.safeList(result, "transactions", new ArrayList<Object>(Arrays.asList()));
             return this.parseTransactions(transactions, currency, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 

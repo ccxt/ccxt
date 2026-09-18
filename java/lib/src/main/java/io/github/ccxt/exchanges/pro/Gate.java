@@ -1511,7 +1511,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
         //     ]
         // }
         //
-        Object result = this.safeList(message, "result", new ArrayList<Object>(Arrays.asList()));
+        List<Object> result = (List<Object>) this.safeList(message, "result", new ArrayList<Object>(Arrays.asList()));
         Object tradesLength = ((List<?>)result).size();
         if (Helpers.isEqual(tradesLength, 0))
         {
@@ -1659,7 +1659,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
         //       ]
         //   }
         //
-        Object result = this.safeList(message, "result", new ArrayList<Object>(Arrays.asList()));
+        List<Object> result = (List<Object>) this.safeList(message, "result", new ArrayList<Object>(Arrays.asList()));
         Helpers.addElementToObject(this.balance, "info", result);
         for (var i = 0; i < ((List<?>)result).size(); i++)
         {
@@ -1866,7 +1866,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
         //    }
         //
         Object type = this.getMarketTypeByUrl(client.url);
-        Object data = this.safeList(message, "result", new ArrayList<Object>(Arrays.asList()));
+        List<Object> data = (List<Object>) this.safeList(message, "result", new ArrayList<Object>(Arrays.asList()));
         Object cache = Helpers.GetValue(this.positions, type);
         List<Object> newPositions = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ((List<?>)data).size(); i++)
@@ -2253,7 +2253,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
         //        ]
         //    }
         //
-        Object rawLiquidations = this.safeList(message, "result", new ArrayList<Object>(Arrays.asList()));
+        List<Object> rawLiquidations = (List<Object>) this.safeList(message, "result", new ArrayList<Object>(Arrays.asList()));
         List<Object> newLiquidations = new ArrayList<Object>(Arrays.asList());
         if (java.util.Objects.equals(this.liquidations, null))
         {
@@ -2404,7 +2404,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
                 if ((!java.util.Objects.equals(channel, null)) && (Helpers.isGreaterThan(Helpers.getIndexOf(channel, "."), 0)))
                 {
                     Object parsedChannel = Helpers.split(channel, ".");
-                    Object payload = this.safeList(message, "payload", new ArrayList<Object>(Arrays.asList()));
+                    List<Object> payload = (List<Object>) this.safeList(message, "payload", new ArrayList<Object>(Arrays.asList()));
                     for (var i = 0; i < ((List<?>)payload).size(); i++)
                     {
                         Object marketType = ((java.util.Objects.equals(Helpers.GetValue(parsedChannel, 0), "futures"))) ? "swap" : Helpers.GetValue(parsedChannel, 0);
@@ -2499,8 +2499,8 @@ public class Gate extends io.github.ccxt.exchanges.Gate
                 {
                     continue;
                 }
-                Object messageHashes = this.safeList(subscription, "messageHashes", new ArrayList<Object>(Arrays.asList()));
-                Object subMessageHashes = this.safeList(subscription, "subMessageHashes", new ArrayList<Object>(Arrays.asList()));
+                List<Object> messageHashes = (List<Object>) this.safeList(subscription, "messageHashes", new ArrayList<Object>(Arrays.asList()));
+                List<Object> subMessageHashes = (List<Object>) this.safeList(subscription, "subMessageHashes", new ArrayList<Object>(Arrays.asList()));
                 for (var j = 0; j < ((List<?>)messageHashes).size(); j++)
                 {
                     Object unsubHash = Helpers.GetValue(messageHashes, j);

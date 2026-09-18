@@ -838,7 +838,7 @@ public class Nado extends NadoApi
                 response = (this.gatewayPrivatePostExecute(request)).join();
             }
             Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            Object cancelledOrders = this.safeList(data, "cancelled_orders", new ArrayList<Object>(Arrays.asList()));
+            List<Object> cancelledOrders = (List<Object>) this.safeList(data, "cancelled_orders", new ArrayList<Object>(Arrays.asList()));
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)cancelledOrders).size(); i++)
             {
@@ -954,7 +954,7 @@ public class Nado extends NadoApi
                 response = (this.gatewayPrivatePostExecute(request)).join();
             }
             Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            Object cancelledOrders = this.safeList(data, "cancelled_orders", new ArrayList<Object>(Arrays.asList()));
+            List<Object> cancelledOrders = (List<Object>) this.safeList(data, "cancelled_orders", new ArrayList<Object>(Arrays.asList()));
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)cancelledOrders).size(); i++)
             {
@@ -1191,7 +1191,7 @@ public class Nado extends NadoApi
             // }
             //
             Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            Object orders = this.safeList(data, "orders", new ArrayList<Object>(Arrays.asList()));
+            List<Object> orders = (List<Object>) this.safeList(data, "orders", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(orders, market, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
@@ -1276,7 +1276,7 @@ public class Nado extends NadoApi
             //     }
             //
             Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            Object orders = this.safeList(data, "orders", new ArrayList<Object>(Arrays.asList()));
+            List<Object> orders = (List<Object>) this.safeList(data, "orders", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(orders, market, since, limit, new HashMap<String, Object>() {{
                 put( "status", "open" );
             }});
@@ -1369,7 +1369,7 @@ public class Nado extends NadoApi
             //     }
             //
             List<Object> closedOrders = new ArrayList<Object>(Arrays.asList());
-            Object orders = this.safeList(response, "orders", new ArrayList<Object>(Arrays.asList()));
+            List<Object> orders = (List<Object>) this.safeList(response, "orders", new ArrayList<Object>(Arrays.asList()));
             for (var i = 0; i < ((List<?>)orders).size(); i++)
             {
                 Object order = Helpers.GetValue(orders, i);
@@ -1525,8 +1525,8 @@ public class Nado extends NadoApi
             //         ]
             //     }
             //
-            Object matches = this.safeList(response, "matches", new ArrayList<Object>(Arrays.asList()));
-            Object txs = this.safeList(response, "txs", new ArrayList<Object>(Arrays.asList()));
+            List<Object> matches = (List<Object>) this.safeList(response, "matches", new ArrayList<Object>(Arrays.asList()));
+            List<Object> txs = (List<Object>) this.safeList(response, "txs", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> txsBySubmission = this.indexBy(txs, "submission_idx");
             List<Object> trades = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)matches).size(); i++)
@@ -1726,8 +1726,8 @@ public class Nado extends NadoApi
             //         ]
             //     }
             //
-            Object events = this.safeList(response, "events", new ArrayList<Object>(Arrays.asList()));
-            Object txs = this.safeList(response, "txs", new ArrayList<Object>(Arrays.asList()));
+            List<Object> events = (List<Object>) this.safeList(response, "events", new ArrayList<Object>(Arrays.asList()));
+            List<Object> txs = (List<Object>) this.safeList(response, "txs", new ArrayList<Object>(Arrays.asList()));
             List<Object> transactions = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)events).size(); i++)
             {
@@ -1815,8 +1815,8 @@ public class Nado extends NadoApi
             //     }
             //
             Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            Object positions = this.safeList(data, "perp_balances", new ArrayList<Object>(Arrays.asList()));
-            Object products = this.safeList(data, "perp_products", new ArrayList<Object>(Arrays.asList()));
+            List<Object> positions = (List<Object>) this.safeList(data, "perp_balances", new ArrayList<Object>(Arrays.asList()));
+            List<Object> products = (List<Object>) this.safeList(data, "perp_products", new ArrayList<Object>(Arrays.asList()));
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)positions).size(); i++)
             {
@@ -1938,9 +1938,9 @@ public class Nado extends NadoApi
             Object pairsRequest = this.gatewayV2PublicGetPairs(parameters);
             Object assetsRequest = this.gatewayV2PublicGetAssets(parameters);
             Object responses = (Helpers.promiseAll(new ArrayList<Object>(Arrays.asList(symbolsRequest, pairsRequest, assetsRequest)))).join();
-            Object symbols = this.safeList(responses, 0, new ArrayList<Object>(Arrays.asList()));
-            Object pairs = this.safeList(responses, 1, new ArrayList<Object>(Arrays.asList()));
-            Object assets = this.safeList(responses, 2, new ArrayList<Object>(Arrays.asList()));
+            List<Object> symbols = (List<Object>) this.safeList(responses, 0, new ArrayList<Object>(Arrays.asList()));
+            List<Object> pairs = (List<Object>) this.safeList(responses, 1, new ArrayList<Object>(Arrays.asList()));
+            List<Object> assets = (List<Object>) this.safeList(responses, 2, new ArrayList<Object>(Arrays.asList()));
             // product_id is a JSON number: JS object keys are always strings but a Python
             // dict keeps int keys, so indexBy would never match the safeString lookups below
             Map<String, Object> pairsById = new HashMap<String, Object>() {{}};
@@ -2325,7 +2325,7 @@ public class Nado extends NadoApi
             //         "next_idx": "1314805"
             //     }
             //
-            Object fundingPayments = this.safeList(response, "funding_payments", new ArrayList<Object>(Arrays.asList()));
+            List<Object> fundingPayments = (List<Object>) this.safeList(response, "funding_payments", new ArrayList<Object>(Arrays.asList()));
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)fundingPayments).size(); i++)
             {
@@ -2655,7 +2655,7 @@ public class Nado extends NadoApi
             //         ]
             //     }
             //
-            Object data = this.safeList(response, "candlesticks", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = (List<Object>) this.safeList(response, "candlesticks", new ArrayList<Object>(Arrays.asList()));
             return this.parseOHLCVs(data, market, timeframe, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
 
@@ -3017,7 +3017,7 @@ public class Nado extends NadoApi
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", response );
         }};
-        Object balances = this.safeList(response, "spot_balances", new ArrayList<Object>(Arrays.asList()));
+        List<Object> balances = (List<Object>) this.safeList(response, "spot_balances", new ArrayList<Object>(Arrays.asList()));
         for (var i = 0; i < ((List<?>)balances).size(); i++)
         {
             Object rawBalance = Helpers.GetValue(balances, i);

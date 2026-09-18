@@ -494,8 +494,8 @@ public class Zebpay extends ZebpayApi
                 }
             }
             Object promises = (Helpers.promiseAll(promisesUnresolved)).join();
-            Object spotMarkets = this.safeList(promises, 0, new ArrayList<Object>(Arrays.asList()));
-            Object futureMarkets = this.safeList(promises, 1, new ArrayList<Object>(Arrays.asList()));
+            List<Object> spotMarkets = (List<Object>) this.safeList(promises, 0, new ArrayList<Object>(Arrays.asList()));
+            List<Object> futureMarkets = (List<Object>) this.safeList(promises, 1, new ArrayList<Object>(Arrays.asList()));
             return this.arrayConcat(spotMarkets, futureMarkets);
         });
 
@@ -547,7 +547,7 @@ public class Zebpay extends ZebpayApi
             //             ]
             //     }
             //
-            Object rows = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> rows = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseCurrencies(rows);
         });
 
@@ -559,7 +559,7 @@ public class Zebpay extends ZebpayApi
         String code = this.safeCurrencyCode(currencyId);
         String name = this.safeString(rawCurrency, "name");
         Object precision = this.parseNumber(this.parsePrecision(this.safeString(rawCurrency, "precision")));
-        Object chains = this.safeList(rawCurrency, "chains", new ArrayList<Object>(Arrays.asList()));
+        List<Object> chains = (List<Object>) this.safeList(rawCurrency, "chains", new ArrayList<Object>(Arrays.asList()));
         Map<String, Object> networks = new HashMap<String, Object>() {{}};
         String minWithdrawFeeString = null;
         String minWithdrawString = null;
@@ -713,7 +713,7 @@ public class Zebpay extends ZebpayApi
                 //     "customMessage": ["OK"]
                 // }
                 //
-                Object responseData = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+                List<Object> responseData = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
                 data = this.safeDict(responseData, 0, new HashMap<String, Object>() {{}});
             }
             return this.parseTradingFee(data, market);
@@ -761,7 +761,7 @@ public class Zebpay extends ZebpayApi
             //     "customMessage": ["OK"]
             // }
             //
-            Object fees = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> fees = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> result = new HashMap<String, Object>() {{}};
             for (var i = 0; i < ((List<?>)fees).size(); i++)
             {
@@ -921,7 +921,7 @@ public class Zebpay extends ZebpayApi
             //        }
             //     ]
             //
-            Object tickerList = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> tickerList = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseTickers(tickerList, symbols);
         }).thenApply(Tickers::new);
 
@@ -1032,7 +1032,7 @@ public class Zebpay extends ZebpayApi
             //                 ]
             //             ]
             //
-            Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseOHLCVs(data, market, timeframe, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
 
@@ -1090,7 +1090,7 @@ public class Zebpay extends ZebpayApi
             //         }
             //     ]
             //
-            Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseTrades(data, market, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
@@ -1138,7 +1138,7 @@ public class Zebpay extends ZebpayApi
                 response = (this.privateSwapGetV1TradeHistory(parameters)).join();
             }
             Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            Object items = this.safeList(data, "items", new ArrayList<Object>(Arrays.asList()));
+            List<Object> items = (List<Object>) this.safeList(data, "items", new ArrayList<Object>(Arrays.asList()));
             return this.parseTrades(items, market, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
@@ -1831,7 +1831,7 @@ public class Zebpay extends ZebpayApi
             //         ]
             //     }
             //
-            Object leveragePreferences = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> leveragePreferences = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseLeverages(leveragePreferences, symbols, "symbol");
         }).thenApply(Leverages::new);
 
@@ -1950,7 +1950,7 @@ public class Zebpay extends ZebpayApi
             //        ],
             //    }
             //
-            Object positions = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> positions = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             Object result = this.parsePositions(positions);
             return this.filterByArrayPositions(result, "symbol", symbols, false);
         }).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));
@@ -2088,7 +2088,7 @@ public class Zebpay extends ZebpayApi
             //
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            Object markets = this.safeList(data, "symbols", new ArrayList<Object>(Arrays.asList()));
+            List<Object> markets = (List<Object>) this.safeList(data, "symbols", new ArrayList<Object>(Arrays.asList()));
             for (var i = 0; i < ((List<?>)markets).size(); i++)
             {
                 Object market = Helpers.GetValue(markets, i);
@@ -2176,7 +2176,7 @@ public class Zebpay extends ZebpayApi
             //
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            Object markets = this.safeList(data, "symbols", new ArrayList<Object>(Arrays.asList()));
+            List<Object> markets = (List<Object>) this.safeList(data, "symbols", new ArrayList<Object>(Arrays.asList()));
             for (var i = 0; i < ((List<?>)markets).size(); i++)
             {
                 Object market = Helpers.GetValue(markets, i);
@@ -2235,7 +2235,7 @@ public class Zebpay extends ZebpayApi
             put( "timestamp", null );
             put( "datetime", null );
         }};
-        Object currencyList = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+        List<Object> currencyList = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
         for (var i = 0; i < ((List<?>)currencyList).size(); i++)
         {
             Object entry = Helpers.GetValue(currencyList, i);

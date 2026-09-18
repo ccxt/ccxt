@@ -1099,7 +1099,7 @@ public class Hitbtc extends HitbtcApi
         Object currencyId = ((Map<String, Object>)currency).get("_coin_id");
         String code = this.safeCurrencyCode(currencyId);
         Object entry = currency;
-        Object rawNetworks = this.safeList(entry, "networks", new ArrayList<Object>(Arrays.asList()));
+        List<Object> rawNetworks = (List<Object>) this.safeList(entry, "networks", new ArrayList<Object>(Arrays.asList()));
         Map<String, Object> networks = new HashMap<String, Object>() {{}};
         for (var j = 0; j < ((List<?>)rawNetworks).size(); j++)
         {
@@ -1519,7 +1519,7 @@ public class Hitbtc extends HitbtcApi
             {
                 Object marketId = Helpers.GetValue(marketIds, i);
                 Map<String, Object> marketInner = (Map<String, Object>) this.market(marketId);
-                Object rawTrades = this.safeList(response, marketId, new ArrayList<Object>(Arrays.asList()));
+                List<Object> rawTrades = (List<Object>) this.safeList(response, marketId, new ArrayList<Object>(Arrays.asList()));
                 List<Object> parsed = this.parseTrades(rawTrades, marketInner);
                 trades = this.arrayConcat(trades, parsed);
             }
@@ -3257,7 +3257,7 @@ public class Hitbtc extends HitbtcApi
             {
                 throw new BadSymbol((this.id + " fetchMarginModes () supports swap contracts and margin only")) ;
             }
-            Object config = this.safeList(response, "config", new ArrayList<Object>(Arrays.asList()));
+            List<Object> config = (List<Object>) this.safeList(response, "config", new ArrayList<Object>(Arrays.asList()));
             return this.parseMarginModes(config, symbols, "symbol");
         }).thenApply(MarginModes::new);
 
@@ -3614,7 +3614,7 @@ public class Hitbtc extends HitbtcApi
             {
                 Object marketId = Helpers.GetValue(contracts, i);
                 Map<String, Object> marketInner = (Map<String, Object>) this.safeMarket(marketId);
-                Object fundingRateData = this.safeList(response, marketId, new ArrayList<Object>(Arrays.asList()));
+                List<Object> fundingRateData = (List<Object>) this.safeList(response, marketId, new ArrayList<Object>(Arrays.asList()));
                 for (var j = 0; j < ((List<?>)fundingRateData).size(); j++)
                 {
                     Object entry = Helpers.GetValue(fundingRateData, j);
@@ -3859,7 +3859,7 @@ public class Hitbtc extends HitbtcApi
         String marginMode = this.safeString(position, "type");
         Double leverage = this.safeNumber(position, "leverage");
         String datetime = this.safeString(position, "updated_at");
-        Object positions = this.safeList(position, "positions", new ArrayList<Object>(Arrays.asList()));
+        List<Object> positions = (List<Object>) this.safeList(position, "positions", new ArrayList<Object>(Arrays.asList()));
         Object liquidationPrice = null;
         Object entryPrice = null;
         Object contracts = null;
@@ -3870,7 +3870,7 @@ public class Hitbtc extends HitbtcApi
             entryPrice = this.safeNumber(entry, "price_entry");
             contracts = this.safeNumber(entry, "quantity");
         }
-        Object currencies = this.safeList(position, "currencies", new ArrayList<Object>(Arrays.asList()));
+        List<Object> currencies = (List<Object>) this.safeList(position, "currencies", new ArrayList<Object>(Arrays.asList()));
         Object collateral = null;
         for (var i = 0; i < ((List<?>)currencies).size(); i++)
         {
@@ -4547,7 +4547,7 @@ public class Hitbtc extends HitbtcApi
         //    }
         //
         Object currency = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-        Object networks = this.safeList(fee, "networks", new ArrayList<Object>(Arrays.asList()));
+        List<Object> networks = (List<Object>) this.safeList(fee, "networks", new ArrayList<Object>(Arrays.asList()));
         Object result = this.depositWithdrawFee(fee);
         for (var j = 0; j < ((List<?>)networks).size(); j++)
         {

@@ -358,7 +358,7 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
             // }
             //
             Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            Object results = this.safeList(data, "results", new ArrayList<Object>(Arrays.asList()));
+            List<Object> results = (List<Object>) this.safeList(data, "results", new ArrayList<Object>(Arrays.asList()));
             List<Object> ordersToReturn = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)results).size(); i++)
             {
@@ -655,7 +655,7 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
         String marketId = this.safeString(entry, "s");
         Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
         Object symbol = ((Map<String, Object>)market).get("symbol");
-        Object levels = this.safeList(entry, "l", new ArrayList<Object>(Arrays.asList()));
+        List<Object> levels = (List<Object>) this.safeList(entry, "l", new ArrayList<Object>(Arrays.asList()));
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "bids", Pacifica.this.safeList(levels, 0, new ArrayList<Object>(Arrays.asList())) );
             put( "asks", Pacifica.this.safeList(levels, 1, new ArrayList<Object>(Arrays.asList())) );
@@ -905,7 +905,7 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
         // }
         //
         List<Object> parsedTickers = new ArrayList<Object>(Arrays.asList());
-        Object data = this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
+        List<Object> data = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
         for (var i = 0; i < ((List<?>)data).size(); i++)
         {
             Object info = Helpers.GetValue(data, i);
@@ -960,7 +960,7 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
         }
         Object trades = this.myTrades;
         Map<String, Object> symbols = new HashMap<String, Object>() {{}};
-        Object data = this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
+        List<Object> data = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
         Object dataLength = ((List<?>)data).size();
         if (Helpers.isEqual(dataLength, 0))
         {
@@ -1093,7 +1093,7 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
         //   ]
         // }
         //
-        Object entry = this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
+        List<Object> entry = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
         Object first = this.safeDict(entry, 0, new HashMap<String, Object>() {{}});
         String marketId = this.safeString(first, "s");
         Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
@@ -1482,7 +1482,7 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
         //     }
         //   ]
         // }
-        Object data = this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
+        List<Object> data = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
         if (java.util.Objects.equals(this.orders, null))
         {
             Long limit = this.safeInteger(this.options, "ordersLimit", 1000);

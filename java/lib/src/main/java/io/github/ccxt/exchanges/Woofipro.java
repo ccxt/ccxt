@@ -1045,7 +1045,7 @@ public class Woofipro extends WoofiproApi
             //   }
             //
             Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            Object rows = this.safeList(data, "rows", new ArrayList<Object>(Arrays.asList()));
+            List<Object> rows = (List<Object>) this.safeList(data, "rows", new ArrayList<Object>(Arrays.asList()));
             return this.parseMarkets(rows);
         });
 
@@ -1095,9 +1095,9 @@ public class Woofipro extends WoofiproApi
             var tokenResponse = ((List<Object>) tokenResponsechainResponseVariable).get(0);
             var chainResponse = ((List<Object>) tokenResponsechainResponseVariable).get(1);
             Object tokenData = this.safeDict(tokenResponse, "data", new HashMap<String, Object>() {{}});
-            Object tokenRows = this.safeList(tokenData, "rows", new ArrayList<Object>(Arrays.asList()));
+            List<Object> tokenRows = (List<Object>) this.safeList(tokenData, "rows", new ArrayList<Object>(Arrays.asList()));
             Object chainData = this.safeDict(chainResponse, "data", new HashMap<String, Object>() {{}});
-            Object chainRows = this.safeList(chainData, "rows", new ArrayList<Object>(Arrays.asList()));
+            List<Object> chainRows = (List<Object>) this.safeList(chainData, "rows", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> indexedChains = this.indexBy(chainRows, "chain_id");
             for (var i = 0; i < ((List<?>)tokenRows).size(); i++)
             {
@@ -1121,7 +1121,7 @@ public class Woofipro extends WoofiproApi
     {
         Object token = this.safeDict(rawCurrency, "_token", new HashMap<String, Object>() {{}});
         String currencyId = this.safeString(token, "token");
-        Object networks = this.safeList(token, "chain_details", new ArrayList<Object>(Arrays.asList()));
+        List<Object> networks = (List<Object>) this.safeList(token, "chain_details", new ArrayList<Object>(Arrays.asList()));
         String code = this.safeCurrencyCode(currencyId);
         Object indexedChains = this.safeDict(rawCurrency, "_indexedChains", new HashMap<String, Object>() {{}});
         Map<String, Object> resultingNetworks = new HashMap<String, Object>() {{}};
@@ -1321,7 +1321,7 @@ public class Woofipro extends WoofiproApi
             // }
             //
             Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            Object rows = this.safeList(data, "rows", new ArrayList<Object>(Arrays.asList()));
+            List<Object> rows = (List<Object>) this.safeList(data, "rows", new ArrayList<Object>(Arrays.asList()));
             return this.parseTrades(rows, market, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
@@ -1489,7 +1489,7 @@ public class Woofipro extends WoofiproApi
             // }
             //
             Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            Object rows = this.safeList(data, "rows", new ArrayList<Object>(Arrays.asList()));
+            List<Object> rows = (List<Object>) this.safeList(data, "rows", new ArrayList<Object>(Arrays.asList()));
             return this.parseFundingRates(rows, symbols);
         }).thenApply(FundingRates::new);
 
@@ -1646,7 +1646,7 @@ public class Woofipro extends WoofiproApi
             // }
             //
             Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            Object rows = this.safeList(data, "rows", new ArrayList<Object>(Arrays.asList()));
+            List<Object> rows = (List<Object>) this.safeList(data, "rows", new ArrayList<Object>(Arrays.asList()));
             Long timestamp = this.safeInteger(response, "timestamp");
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)rows).size(); i++)
@@ -1783,7 +1783,7 @@ public class Woofipro extends WoofiproApi
             // }
             //
             Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            Object rows = this.safeList(data, "rows", new ArrayList<Object>(Arrays.asList()));
+            List<Object> rows = (List<Object>) this.safeList(data, "rows", new ArrayList<Object>(Arrays.asList()));
             Long timestamp = this.safeInteger(response, "timestamp");
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)rows).size(); i++)
@@ -1873,7 +1873,7 @@ public class Woofipro extends WoofiproApi
             // }
             //
             Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            Object result = this.safeList(data, "rows", new ArrayList<Object>(Arrays.asList()));
+            List<Object> result = (List<Object>) this.safeList(data, "rows", new ArrayList<Object>(Arrays.asList()));
             List<Object> rates = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)result).size(); i++)
             {
@@ -2009,7 +2009,7 @@ public class Woofipro extends WoofiproApi
             // }
             //
             Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            Object rows = this.safeList(data, "rows", new ArrayList<Object>(Arrays.asList()));
+            List<Object> rows = (List<Object>) this.safeList(data, "rows", new ArrayList<Object>(Arrays.asList()));
             return this.parseIncomes(rows, market, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(FundingHistory::new).collect(Collectors.toList()));
 
@@ -2200,7 +2200,7 @@ public class Woofipro extends WoofiproApi
             //     }
             // }
             //
-            Object rows = this.safeList(data, "rows", new ArrayList<Object>(Arrays.asList()));
+            List<Object> rows = (List<Object>) this.safeList(data, "rows", new ArrayList<Object>(Arrays.asList()));
             return this.parseOHLCVs(rows, market, timeframe, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
 
@@ -2284,7 +2284,7 @@ public class Woofipro extends WoofiproApi
         if (!java.util.Objects.equals(childOrders, null))
         {
             Object first = this.safeValue(childOrders, 0);
-            Object innerChildOrders = this.safeList(first, "childOrders", new ArrayList<Object>(Arrays.asList()));
+            List<Object> innerChildOrders = (List<Object>) this.safeList(first, "childOrders", new ArrayList<Object>(Arrays.asList()));
             Object innerChildOrdersLength = ((List<?>)innerChildOrders).size();
             if (Helpers.isGreaterThan(innerChildOrdersLength, 0))
             {
@@ -2618,7 +2618,7 @@ public class Woofipro extends WoofiproApi
             //     }
             //
             Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            Object rows = this.safeList(data, "rows", new ArrayList<Object>(Arrays.asList()));
+            List<Object> rows = (List<Object>) this.safeList(data, "rows", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(rows);
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
@@ -3153,7 +3153,7 @@ public class Woofipro extends WoofiproApi
             //     }
             //
             Object data = this.safeValue(response, "data", response);
-            Object orders = this.safeList(data, "rows");
+            List<Object> orders = (List<Object>) this.safeList(data, "rows");
             return this.parseOrders(orders, market, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
@@ -3291,7 +3291,7 @@ public class Woofipro extends WoofiproApi
             // }
             //
             Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            Object trades = this.safeList(data, "rows", new ArrayList<Object>(Arrays.asList()));
+            List<Object> trades = (List<Object>) this.safeList(data, "rows", new ArrayList<Object>(Arrays.asList()));
             return this.parseTrades(trades, market, since, limit, parameters);
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
@@ -3380,7 +3380,7 @@ public class Woofipro extends WoofiproApi
             // }
             //
             Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            Object trades = this.safeList(data, "rows", new ArrayList<Object>(Arrays.asList()));
+            List<Object> trades = (List<Object>) this.safeList(data, "rows", new ArrayList<Object>(Arrays.asList()));
             return this.parseTrades(trades, market, since, limit, parameters);
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
@@ -3391,7 +3391,7 @@ public class Woofipro extends WoofiproApi
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", response );
         }};
-        Object balances = this.safeList(response, "holding", new ArrayList<Object>(Arrays.asList()));
+        List<Object> balances = (List<Object>) this.safeList(response, "holding", new ArrayList<Object>(Arrays.asList()));
         for (var i = 0; i < ((List<?>)balances).size(); i++)
         {
             Object balance = Helpers.GetValue(balances, i);
@@ -3574,7 +3574,7 @@ public class Woofipro extends WoofiproApi
             Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
             Object currencyRows = (this.getAssetHistoryRows(code, since, limit, parameters)).join();
             Object currency = this.safeValue(currencyRows, 0);
-            Object rows = this.safeList(currencyRows, 1);
+            List<Object> rows = (List<Object>) this.safeList(currencyRows, 1);
             return this.parseLedger(rows, currency, since, limit, parameters);
         }).thenApply(res -> ((List<?>) res).stream().map(LedgerEntry::new).collect(Collectors.toList()));
 
@@ -3710,7 +3710,7 @@ public class Woofipro extends WoofiproApi
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Object currencyRows = (this.getAssetHistoryRows(code, since, limit, this.extend(request, parameters))).join();
             Object currency = this.safeValue(currencyRows, 0);
-            Object rows = this.safeList(currencyRows, 1);
+            List<Object> rows = (List<Object>) this.safeList(currencyRows, 1);
             //
             //     {
             //         "rows":[],
@@ -3936,7 +3936,7 @@ public class Woofipro extends WoofiproApi
             // }
             //
             Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            Object rows = this.safeList(data, "rows", new ArrayList<Object>(Arrays.asList()));
+            List<Object> rows = (List<Object>) this.safeList(data, "rows", new ArrayList<Object>(Arrays.asList()));
             return this.parseMarginModes(rows, symbols, "symbol");
         }).thenApply(MarginModes::new);
 
@@ -4427,7 +4427,7 @@ public class Woofipro extends WoofiproApi
             // }
             //
             Object result = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            Object positions = this.safeList(result, "rows", new ArrayList<Object>(Arrays.asList()));
+            List<Object> positions = (List<Object>) this.safeList(result, "rows", new ArrayList<Object>(Arrays.asList()));
             return this.parsePositions(positions, symbols);
         }).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));
 
@@ -4469,7 +4469,7 @@ public class Woofipro extends WoofiproApi
                     String brokerId = this.safeString(this.options, "brokerId", "CCXT");
                     if (java.util.Objects.equals(path, "batch-order"))
                     {
-                        Object ordersList = this.safeList(parameters, "orders", new ArrayList<Object>(Arrays.asList()));
+                        List<Object> ordersList = (List<Object>) this.safeList(parameters, "orders", new ArrayList<Object>(Arrays.asList()));
                         for (var i = 0; i < ((List<?>)ordersList).size(); i++)
                         {
                             Helpers.addElementToObject(Helpers.GetValue(Helpers.GetValue(parameters, "orders"), i), "order_tag", brokerId);

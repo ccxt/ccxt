@@ -1102,7 +1102,7 @@ public class Poloniex extends PoloniexApi
             //                "limitMaxQty": "1000000"
             //            },
             //
-            Object markets = this.safeList(response, "data");
+            List<Object> markets = (List<Object>) this.safeList(response, "data");
             return this.parseMarkets(markets);
         });
 
@@ -1471,7 +1471,7 @@ public class Poloniex extends PoloniexApi
                 //                "iPx": "2.1834"
                 //            },
                 //
-                Object data = this.safeList(responseRaw, "data");
+                List<Object> data = (List<Object>) this.safeList(responseRaw, "data");
                 return this.parseTickers(data, symbols);
             }
             List<Object> response = (this.publicGetMarketsTicker24h(parameters)).join();
@@ -1559,7 +1559,7 @@ public class Poloniex extends PoloniexApi
         String id = this.safeString(entry, "coin");
         String code = this.safeCurrencyCode(id);
         Map<String, Object> networks = new HashMap<String, Object>() {{}};
-        Object chains = this.safeList(entry, "networkList", new ArrayList<Object>(Arrays.asList()));
+        List<Object> chains = (List<Object>) this.safeList(entry, "networkList", new ArrayList<Object>(Arrays.asList()));
         Object chainsLength = ((List<?>)chains).size();
         for (var j = 0; Helpers.isLessThan(j, chainsLength); j++)
         {
@@ -1848,7 +1848,7 @@ public class Poloniex extends PoloniexApi
                 //             cT: "1740777074704",
                 //         },
                 //
-                Object tradesList = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+                List<Object> tradesList = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
                 return this.parseTrades(tradesList, market, since, limit);
             }
             List<Object> trades = (this.publicGetMarketsSymbolTrades(this.extend(request, parameters))).join();
@@ -1964,7 +1964,7 @@ public class Poloniex extends PoloniexApi
                 //                "actType": "TRADING"
                 //            },
                 //
-                Object data = this.safeList(raw, "data", new ArrayList<Object>(Arrays.asList()));
+                List<Object> data = (List<Object>) this.safeList(raw, "data", new ArrayList<Object>(Arrays.asList()));
                 return this.parseTrades(data, market, since, limit);
             }
             List<Object> response = (this.privateGetTrades(this.extend(request, parameters))).join();
@@ -2438,7 +2438,7 @@ public class Poloniex extends PoloniexApi
             //                "qCcy": "USDT"
             //            },
             //
-            Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(data, market, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
@@ -2987,7 +2987,7 @@ public class Poloniex extends PoloniexApi
             Long ts = this.safeInteger(response, "uTime");
             ((Map<String, Object>)result).put("timestamp", ts);
             ((Map<String, Object>)result).put("datetime", this.iso8601(ts));
-            Object details = this.safeList(response, "details", new ArrayList<Object>(Arrays.asList()));
+            List<Object> details = (List<Object>) this.safeList(response, "details", new ArrayList<Object>(Arrays.asList()));
             for (var i = 0; i < ((List<?>)details).size(); i++)
             {
                 Object balance = Helpers.GetValue(details, i);
@@ -4102,7 +4102,7 @@ public class Poloniex extends PoloniexApi
         Object longLeverage = null;
         String marketId = null;
         Object marginMode = null;
-        Object data = this.safeList(leverage, "data", new ArrayList<Object>(Arrays.asList()));
+        List<Object> data = (List<Object>) this.safeList(leverage, "data", new ArrayList<Object>(Arrays.asList()));
         for (var i = 0; i < ((List<?>)data).size(); i++)
         {
             Object entry = Helpers.GetValue(data, i);
@@ -4263,7 +4263,7 @@ public class Poloniex extends PoloniexApi
             //        ]
             //    }
             //
-            Object positions = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> positions = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parsePositions(positions, symbols);
         }).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));
 

@@ -618,8 +618,8 @@ public class Apex extends ApexApi
             //        }
             //     ]
             // }
-            Object rows = this.safeList(spotConfig, "assets", new ArrayList<Object>(Arrays.asList()));
-            Object chains = this.safeList(multiChain, "chains", new ArrayList<Object>(Arrays.asList()));
+            List<Object> rows = (List<Object>) this.safeList(spotConfig, "assets", new ArrayList<Object>(Arrays.asList()));
+            List<Object> chains = (List<Object>) this.safeList(multiChain, "chains", new ArrayList<Object>(Arrays.asList()));
             Helpers.addElementToObject(this.options, "_temp_currencies_chains", chains);
             Object result = this.parseCurrencies(rows);
             ((Map<String,Object>)this.options).remove("_temp_currencies_chains");
@@ -638,7 +638,7 @@ public class Apex extends ApexApi
         for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(chains)); j++)
         {
             Object chain = Helpers.GetValue(chains, j);
-            Object tokens = this.safeList(chain, "tokens", new ArrayList<Object>(Arrays.asList()));
+            List<Object> tokens = (List<Object>) this.safeList(chain, "tokens", new ArrayList<Object>(Arrays.asList()));
             for (var f = 0; f < ((List<?>)tokens).size(); f++)
             {
                 Object token = Helpers.GetValue(tokens, f);
@@ -724,7 +724,7 @@ public class Apex extends ApexApi
             Map<String, Object> response = (this.publicGetV3Symbols(parameters)).join();
             Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             Object contractConfig = this.safeDict(data, "contractConfig", new HashMap<String, Object>() {{}});
-            Object perpetualContract = this.safeList(contractConfig, "perpetualContract", new ArrayList<Object>(Arrays.asList()));
+            List<Object> perpetualContract = (List<Object>) this.safeList(contractConfig, "perpetualContract", new ArrayList<Object>(Arrays.asList()));
             // {
             //     "perpetualContract":[
             //         {
@@ -935,7 +935,7 @@ public class Apex extends ApexApi
                 put( "symbol", Apex.this.safeString(market, "id2") );
             }};
             Map<String, Object> response = (this.publicGetV3Ticker(this.extend(request, parameters))).join();
-            Object tickers = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> tickers = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             Object rawTicker = this.safeDict(tickers, 0, new HashMap<String, Object>() {{}});
             return this.parseTicker(rawTicker, market);
         }).thenApply(Ticker::new);
@@ -963,7 +963,7 @@ public class Apex extends ApexApi
                 (this.loadMarkets()).join();
             }
             Map<String, Object> response = (this.publicGetV3DataAllTickerInfo(parameters)).join();
-            Object tickers = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> tickers = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseTickers(tickers, symbols);
         }).thenApply(Tickers::new);
 
@@ -1014,7 +1014,7 @@ public class Apex extends ApexApi
             }
             Map<String, Object> response = (this.publicGetV3Klines(this.extend(request, parameters))).join();
             Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            Object OHLCVs = this.safeList(data, this.safeString(market, "id2"), new ArrayList<Object>(Arrays.asList()));
+            List<Object> OHLCVs = (List<Object>) this.safeList(data, this.safeString(market, "id2"), new ArrayList<Object>(Arrays.asList()));
             return this.parseOHLCVs(OHLCVs, market, timeframe, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
 
@@ -1160,7 +1160,7 @@ public class Apex extends ApexApi
             //  }
             //  ]
             //
-            Object trades = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> trades = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseTrades(trades, market, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
@@ -1232,7 +1232,7 @@ public class Apex extends ApexApi
                 put( "symbol", Apex.this.safeString(market, "id2") );
             }};
             Map<String, Object> response = (this.publicGetV3Ticker(this.extend(request, parameters))).join();
-            Object tickers = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> tickers = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             Object rawTicker = this.safeDict(tickers, 0, new HashMap<String, Object>() {{}});
             return this.parseOpenInterest(rawTicker, market);
         }).thenApply(OpenInterest::new);
@@ -1342,7 +1342,7 @@ public class Apex extends ApexApi
             //
             List<Object> rates = new ArrayList<Object>(Arrays.asList());
             Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            Object resultList = this.safeList(data, "historyFunds", new ArrayList<Object>(Arrays.asList()));
+            List<Object> resultList = (List<Object>) this.safeList(data, "historyFunds", new ArrayList<Object>(Arrays.asList()));
             for (var i = 0; i < ((List<?>)resultList).size(); i++)
             {
                 Object entry = Helpers.GetValue(resultList, i);
@@ -1751,9 +1751,9 @@ public class Apex extends ApexApi
             Map<String, Object> configResponse = (this.publicGetV3Symbols(parameters)).join();
             Object configData = this.safeDict(configResponse, "data", new HashMap<String, Object>() {{}});
             Object contractConfig = this.safeDict(configData, "contractConfig", new HashMap<String, Object>() {{}});
-            Object contractAssets = this.safeList(contractConfig, "assets", new ArrayList<Object>(Arrays.asList()));
+            List<Object> contractAssets = (List<Object>) this.safeList(contractConfig, "assets", new ArrayList<Object>(Arrays.asList()));
             Object spotConfig = this.safeDict(configData, "spotConfig", new HashMap<String, Object>() {{}});
-            Object spotAssets = this.safeList(spotConfig, "assets", new ArrayList<Object>(Arrays.asList()));
+            List<Object> spotAssets = (List<Object>) this.safeList(spotConfig, "assets", new ArrayList<Object>(Arrays.asList()));
             Object globalConfig = this.safeDict(spotConfig, "global", new HashMap<String, Object>() {{}});
             String receiverAddress = this.safeString(globalConfig, "contractAssetPoolEthAddress", "");
             String receiverZkAccountId = this.safeString(globalConfig, "contractAssetPoolZkAccountId", "");
@@ -1764,7 +1764,7 @@ public class Apex extends ApexApi
             Object spotAccount = this.safeDict(accountData, "spotAccount", new HashMap<String, Object>() {{}});
             String zkAccountId = this.safeString(spotAccount, "zkAccountId", "");
             String subAccountId = this.safeString(spotAccount, "defaultSubAccountId", "0");
-            Object subAccounts = this.safeList(spotAccount, "subAccounts", new ArrayList<Object>(Arrays.asList()));
+            List<Object> subAccounts = (List<Object>) this.safeList(spotAccount, "subAccounts", new ArrayList<Object>(Arrays.asList()));
             String nonce = "0";
             if (((List<?>)subAccounts).size() > 0)
             {
@@ -2046,7 +2046,7 @@ public class Apex extends ApexApi
                 (this.loadMarkets()).join();
             }
             Map<String, Object> response = (this.privateGetV3OpenOrders(parameters)).join();
-            Object orders = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> orders = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(orders, null, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
@@ -2105,7 +2105,7 @@ public class Apex extends ApexApi
             }
             Map<String, Object> response = (this.privateGetV3HistoryOrders(this.extend(request, parameters))).join();
             Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            Object orders = this.safeList(data, "orders", new ArrayList<Object>(Arrays.asList()));
+            List<Object> orders = (List<Object>) this.safeList(data, "orders", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(orders, market, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
@@ -2148,7 +2148,7 @@ public class Apex extends ApexApi
             parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId", "clientId")));
             Map<String, Object> response = (this.privateGetV3OrderFills(this.extend(request, parameters))).join();
             Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            Object orders = this.safeList(data, "orders", new ArrayList<Object>(Arrays.asList()));
+            List<Object> orders = (List<Object>) this.safeList(data, "orders", new ArrayList<Object>(Arrays.asList()));
             return this.parseTrades(orders, null, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
@@ -2205,7 +2205,7 @@ public class Apex extends ApexApi
             }
             Map<String, Object> response = (this.privateGetV3Fills(this.extend(request, parameters))).join();
             Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            Object orders = this.safeList(data, "orders", new ArrayList<Object>(Arrays.asList()));
+            List<Object> orders = (List<Object>) this.safeList(data, "orders", new ArrayList<Object>(Arrays.asList()));
             return this.parseTrades(orders, market, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
@@ -2261,7 +2261,7 @@ public class Apex extends ApexApi
             }
             Map<String, Object> response = (this.privateGetV3Funding(this.extend(request, parameters))).join();
             Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            Object fundingValues = this.safeList(data, "fundingValues", new ArrayList<Object>(Arrays.asList()));
+            List<Object> fundingValues = (List<Object>) this.safeList(data, "fundingValues", new ArrayList<Object>(Arrays.asList()));
             return this.parseIncomes(fundingValues, market, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(FundingHistory::new).collect(Collectors.toList()));
 
@@ -2362,7 +2362,7 @@ public class Apex extends ApexApi
             }
             Map<String, Object> response = (this.privateGetV3Account(parameters)).join();
             Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            Object positions = this.safeList(data, "positions", new ArrayList<Object>(Arrays.asList()));
+            List<Object> positions = (List<Object>) this.safeList(data, "positions", new ArrayList<Object>(Arrays.asList()));
             return this.parsePositions(positions, symbols);
         }).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));
 

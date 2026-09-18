@@ -758,8 +758,8 @@ public class Grvt extends io.github.ccxt.exchanges.Grvt
             Helpers.callDynamically(orderbook, "reset", new Object[]{snapshot});
         } else
         {
-            Object asks = this.safeList(data, "asks", new ArrayList<Object>(Arrays.asList()));
-            Object bids = this.safeList(data, "bids", new ArrayList<Object>(Arrays.asList()));
+            List<Object> asks = (List<Object>) this.safeList(data, "asks", new ArrayList<Object>(Arrays.asList()));
+            List<Object> bids = (List<Object>) this.safeList(data, "bids", new ArrayList<Object>(Arrays.asList()));
             this.handleDeltasWithKeys(Helpers.GetValue(orderbook, "asks"), asks, "price", "size");
             this.handleDeltasWithKeys(Helpers.GetValue(orderbook, "bids"), bids, "price", "size");
             Helpers.addElementToObject(orderbook, "timestamp", timestamp);

@@ -927,10 +927,10 @@ public class Bitfinex extends BitfinexApi
                 put( "config", config );
             }};
             List<Object> response = (this.publicGetConfConfig(this.extend(request, parameters))).join();
-            Object spotMarketsInfo = this.safeList(response, 0, new ArrayList<Object>(Arrays.asList()));
-            Object futuresMarketsInfo = this.safeList(response, 1, new ArrayList<Object>(Arrays.asList()));
-            Object securitiesMarketsIds = this.safeList(response, 2, new ArrayList<Object>(Arrays.asList()));
-            Object marginIds = this.safeList(response, 3, new ArrayList<Object>(Arrays.asList()));
+            List<Object> spotMarketsInfo = (List<Object>) this.safeList(response, 0, new ArrayList<Object>(Arrays.asList()));
+            List<Object> futuresMarketsInfo = (List<Object>) this.safeList(response, 1, new ArrayList<Object>(Arrays.asList()));
+            List<Object> securitiesMarketsIds = (List<Object>) this.safeList(response, 2, new ArrayList<Object>(Arrays.asList()));
+            List<Object> marginIds = (List<Object>) this.safeList(response, 3, new ArrayList<Object>(Arrays.asList()));
             List<Object> markets = (List<Object>) this.arrayConcat(spotMarketsInfo, futuresMarketsInfo);
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)markets).size(); i++)
@@ -1165,14 +1165,14 @@ public class Bitfinex extends BitfinexApi
             {
                 Object networkObj = Helpers.GetValue(((Map<String, Object>)indexed).get("networks"), i);
                 String networkId = this.safeString(networkObj, 0);
-                Object valuesList = this.safeList(networkObj, 1);
+                List<Object> valuesList = (List<Object>) this.safeList(networkObj, 1);
                 String networkName = this.safeString(valuesList, 0);
                 // for GOlang transpiler, do with "safe" method
-                Object networksList = this.safeList(indexedNetworks, networkName, new ArrayList<Object>(Arrays.asList()));
+                List<Object> networksList = (List<Object>) this.safeList(indexedNetworks, networkName, new ArrayList<Object>(Arrays.asList()));
                 ((List<Object>)networksList).add(networkId);
                 Helpers.addElementToObject(indexedNetworks, networkName, networksList);
             }
-            Object ids = this.safeList(response, 0, new ArrayList<Object>(Arrays.asList()));
+            List<Object> ids = (List<Object>) this.safeList(response, 0, new ArrayList<Object>(Arrays.asList()));
             return this.parseCurrenciesCustom(ids, indexed, indexedNetworks);
         });
 
@@ -1204,23 +1204,23 @@ public class Bitfinex extends BitfinexApi
     public Object parseCurrencyCustom(Object id, Object indexed, Object indexedNetworks)
     {
         String code = this.safeCurrencyCode(id);
-        Object label = this.safeList(Helpers.GetValue(indexed, "label"), id, new ArrayList<Object>(Arrays.asList()));
+        List<Object> label = (List<Object>) this.safeList(Helpers.GetValue(indexed, "label"), id, new ArrayList<Object>(Arrays.asList()));
         String name = this.safeString(label, 1);
-        Object pool = this.safeList(Helpers.GetValue(indexed, "pool"), id, new ArrayList<Object>(Arrays.asList()));
+        List<Object> pool = (List<Object>) this.safeList(Helpers.GetValue(indexed, "pool"), id, new ArrayList<Object>(Arrays.asList()));
         String rawType = this.safeString(pool, 1);
         Boolean isCryptoCoin = (!java.util.Objects.equals(rawType, null)) || (Helpers.inOp(Helpers.GetValue(indexed, "explorer"), id)); // "hacky" solution
         String type = ((Helpers.isTrue(isCryptoCoin))) ? "crypto" : null;
-        Object feeValues = this.safeList(Helpers.GetValue(indexed, "fees"), id, new ArrayList<Object>(Arrays.asList()));
-        Object fees = this.safeList(feeValues, 1, new ArrayList<Object>(Arrays.asList()));
+        List<Object> feeValues = (List<Object>) this.safeList(Helpers.GetValue(indexed, "fees"), id, new ArrayList<Object>(Arrays.asList()));
+        List<Object> fees = (List<Object>) this.safeList(feeValues, 1, new ArrayList<Object>(Arrays.asList()));
         Double fee = this.safeNumber(fees, 1);
-        Object undl = this.safeList(Helpers.GetValue(indexed, "undl"), id, new ArrayList<Object>(Arrays.asList()));
+        List<Object> undl = (List<Object>) this.safeList(Helpers.GetValue(indexed, "undl"), id, new ArrayList<Object>(Arrays.asList()));
         String defaultCurrencyPrecision = this.safeString(this.options, "defaultCurrencyPrecision", "8"); // kept here for backward-compatibility
         // numberToString instead of an `as string` cast: the describe() default for this option is the
         // NUMBER 8 (and users may override with numbers too), and the hard cast makes the C# build throw
         // InvalidCastException Int32 to String here, breaking bitfinex loadMarkets entirely in C#
         Object precision = this.numberToString(this.handleOption("fetchCurrencies", "defaultPrecision", defaultCurrencyPrecision));
         Map<String, Object> networks = new HashMap<String, Object>() {{}};
-        Object networkIds = this.safeList(indexedNetworks, id, new ArrayList<Object>(Arrays.asList()));
+        List<Object> networkIds = (List<Object>) this.safeList(indexedNetworks, id, new ArrayList<Object>(Arrays.asList()));
         for (var j = 0; j < ((List<?>)networkIds).size(); j++)
         {
             // safeString instead of raw access: the venue config payload can carry numeric
@@ -1232,7 +1232,7 @@ public class Bitfinex extends BitfinexApi
                 continue;
             }
             Object network = this.networkIdToCode(networkId, code);
-            Object dwStatuses = this.safeList(Helpers.GetValue(indexed, "statuses"), networkId, new ArrayList<Object>(Arrays.asList()));
+            List<Object> dwStatuses = (List<Object>) this.safeList(Helpers.GetValue(indexed, "statuses"), networkId, new ArrayList<Object>(Arrays.asList()));
             if (!java.util.Objects.equals(network, null))
             {
                 final Object finalNetworkId = networkId;
@@ -1461,7 +1461,7 @@ public class Bitfinex extends BitfinexApi
         //     ]
         //
         Object currency = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-        Object result = this.safeList(transfer, "result");
+        List<Object> result = (List<Object>) this.safeList(transfer, "result");
         Long timestamp = this.safeInteger(result, 0);
         Object info = this.safeValue(result, 4);
         String fromAccount = this.safeString(info, 1);
@@ -1845,7 +1845,7 @@ public class Bitfinex extends BitfinexApi
         //     ]
         //
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-        Object tradeList = this.safeList(trade, "result", new ArrayList<Object>(Arrays.asList()));
+        List<Object> tradeList = (List<Object>) this.safeList(trade, "result", new ArrayList<Object>(Arrays.asList()));
         Object tradeLength = ((List<?>)tradeList).size();
         Boolean isPrivate = (Helpers.isGreaterThan(tradeLength, 5));
         String id = this.safeString(tradeList, 0);
@@ -2123,7 +2123,7 @@ public class Bitfinex extends BitfinexApi
     public Object parseOrder(Object order, Object... optionalArgs)
     {
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-        Object orderList = this.safeList(order, "result");
+        List<Object> orderList = (List<Object>) this.safeList(order, "result");
         String id = this.safeString(orderList, 0);
         String marketId = this.safeString(orderList, 3);
         String symbol = this.safeSymbol(marketId);
@@ -2409,8 +2409,8 @@ public class Bitfinex extends BitfinexApi
                 String errorText = this.safeString(response, 7);
                 throw new ExchangeError((Helpers.add((Helpers.add((Helpers.add((this.id + " "), status) + ": "), errorText) + " (#"), errorCode) + ")")) ;
             }
-            Object orders = this.safeList(response, 4, new ArrayList<Object>(Arrays.asList()));
-            Object order = this.safeList(orders, 0);
+            List<Object> orders = (List<Object>) this.safeList(response, 4, new ArrayList<Object>(Arrays.asList()));
+            List<Object> order = (List<Object>) this.safeList(orders, 0);
             Map<String, Object> newOrder = new HashMap<String, Object>() {{
                 put( "result", order );
             }};
@@ -2481,7 +2481,7 @@ public class Bitfinex extends BitfinexApi
             //     ]
             //
             List<Object> results = new ArrayList<Object>(Arrays.asList());
-            Object data = this.safeList(response, 4, new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = (List<Object>) this.safeList(response, 4, new ArrayList<Object>(Arrays.asList()));
             for (var i = 0; i < ((List<?>)data).size(); i++)
             {
                 Object entry = Helpers.GetValue(data, i);
@@ -2519,7 +2519,7 @@ public class Bitfinex extends BitfinexApi
                 put( "all", 1 );
             }};
             List<Object> response = (this.privatePostAuthWOrderCancelMulti(this.extend(request, parameters))).join();
-            Object orders = this.safeList(response, 4, new ArrayList<Object>(Arrays.asList()));
+            List<Object> orders = (List<Object>) this.safeList(response, 4, new ArrayList<Object>(Arrays.asList()));
             List<Object> ordersList = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)orders).size(); i++)
             {
@@ -2677,7 +2677,7 @@ public class Bitfinex extends BitfinexApi
             //         "Submitting 2 order cancellations."
             //     ]
             //
-            Object orders = this.safeList(response, 4, new ArrayList<Object>(Arrays.asList()));
+            List<Object> orders = (List<Object>) this.safeList(response, 4, new ArrayList<Object>(Arrays.asList()));
             List<Object> ordersList = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)orders).size(); i++)
             {
@@ -3767,7 +3767,7 @@ public class Bitfinex extends BitfinexApi
         //    ]
         //
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-        Object positionList = this.safeList(position, "result");
+        List<Object> positionList = (List<Object>) this.safeList(position, "result");
         String marketId = this.safeString(positionList, 0);
         String amount = this.safeString(positionList, 2);
         Long timestamp = this.safeInteger(positionList, 12);
@@ -3941,7 +3941,7 @@ public class Bitfinex extends BitfinexApi
         //     ]
         //
         Object currency = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-        Object itemList = this.safeList(item, "result", new ArrayList<Object>(Arrays.asList()));
+        List<Object> itemList = (List<Object>) this.safeList(item, "result", new ArrayList<Object>(Arrays.asList()));
         Object type = null;
         String id = this.safeString(itemList, 0);
         String currencyId = this.safeString(itemList, 1);
@@ -4457,7 +4457,7 @@ public class Bitfinex extends BitfinexApi
             //         ]
             //     ]
             //
-            Object oi = this.safeList(response, 0);
+            List<Object> oi = (List<Object>) this.safeList(response, 0);
             return this.parseOpenInterest(oi, market);
         }).thenApply(OpenInterest::new);
 
@@ -4884,7 +4884,7 @@ public class Bitfinex extends BitfinexApi
             //         ]
             //     ]
             //
-            Object order = this.safeList(response, 0);
+            List<Object> order = (List<Object>) this.safeList(response, 0);
             Map<String, Object> newOrder = new HashMap<String, Object>() {{
                 put( "result", order );
             }};
@@ -5038,7 +5038,7 @@ public class Bitfinex extends BitfinexApi
                 String errorText = this.safeString(response, 7);
                 throw new ExchangeError((Helpers.add((Helpers.add((Helpers.add((this.id + " "), status) + ": "), errorText) + " (#"), errorCode) + ")")) ;
             }
-            Object order = this.safeList(response, 4, new ArrayList<Object>(Arrays.asList()));
+            List<Object> order = (List<Object>) this.safeList(response, 4, new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> newOrder = new HashMap<String, Object>() {{
                 put( "result", order );
             }};

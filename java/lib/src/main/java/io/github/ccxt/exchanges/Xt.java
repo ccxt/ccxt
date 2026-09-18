@@ -1357,9 +1357,9 @@ public class Xt extends XtApi
             //
             // note: individual network's full data is available on per-currency endpoint: https://www.xt.com/sapi/v4/balance/public/currency/11
             //
-            Object chainsData = this.safeList(chainsResponse, "result", new ArrayList<Object>(Arrays.asList()));
+            List<Object> chainsData = (List<Object>) this.safeList(chainsResponse, "result", new ArrayList<Object>(Arrays.asList()));
             Object currenciesResult = this.safeDict(currenciesResponse, "result", new HashMap<String, Object>() {{}});
-            Object currenciesData = this.safeList(currenciesResult, "currencies", new ArrayList<Object>(Arrays.asList()));
+            List<Object> currenciesData = (List<Object>) this.safeList(currenciesResult, "currencies", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> chainsDataIndexed = this.indexBy(chainsData, "currency");
             Map<String, Object> result = new HashMap<String, Object>() {{}};
             for (var i = 0; i < ((List<?>)currenciesData).size(); i++)
@@ -1368,7 +1368,7 @@ public class Xt extends XtApi
                 String currencyId = this.safeString(entry, "currency");
                 String code = this.safeCurrencyCode(currencyId);
                 Object networkEntry = this.safeDict(chainsDataIndexed, currencyId, new HashMap<String, Object>() {{}});
-                Object rawNetworks = this.safeList(networkEntry, "supportChains", new ArrayList<Object>(Arrays.asList()));
+                List<Object> rawNetworks = (List<Object>) this.safeList(networkEntry, "supportChains", new ArrayList<Object>(Arrays.asList()));
                 Map<String, Object> networks = new HashMap<String, Object>() {{}};
                 for (var j = 0; j < ((List<?>)rawNetworks).size(); j++)
                 {
@@ -1540,7 +1540,7 @@ public class Xt extends XtApi
             //     }
             //
             Object data = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            Object symbols = this.safeList(data, "symbols", new ArrayList<Object>(Arrays.asList()));
+            List<Object> symbols = (List<Object>) this.safeList(data, "symbols", new ArrayList<Object>(Arrays.asList()));
             return this.parseMarkets(symbols);
         });
 
@@ -1756,7 +1756,7 @@ public class Xt extends XtApi
         String quote = this.safeCurrencyCode(quoteId);
         String state = this.safeString(market, "state");
         Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
-        Object filters = this.safeList(market, "filters", new ArrayList<Object>(Arrays.asList()));
+        List<Object> filters = (List<Object>) this.safeList(market, "filters", new ArrayList<Object>(Arrays.asList()));
         Object minAmount = null;
         Object maxAmount = null;
         Object minCost = null;
@@ -2042,7 +2042,7 @@ public class Xt extends XtApi
             //         ]
             //     }
             //
-            Object ohlcvs = this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
+            List<Object> ohlcvs = (List<Object>) this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
             return this.parseOHLCVs(ohlcvs, market, timeframe, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
 
@@ -2381,7 +2381,7 @@ public class Xt extends XtApi
             //         ]
             //     }
             //
-            Object tickers = this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
+            List<Object> tickers = (List<Object>) this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> result = new HashMap<String, Object>() {{}};
             for (var i = 0; i < ((List<?>)tickers).size(); i++)
             {
@@ -2484,7 +2484,7 @@ public class Xt extends XtApi
             //         ]
             //     }
             //
-            Object tickers = this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
+            List<Object> tickers = (List<Object>) this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> result = new HashMap<String, Object>() {{}};
             for (var i = 0; i < ((List<?>)tickers).size(); i++)
             {
@@ -2680,7 +2680,7 @@ public class Xt extends XtApi
             //         ]
             //     }
             //
-            Object trades = this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
+            List<Object> trades = (List<Object>) this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
             return this.parseTrades(trades, market);
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
@@ -2817,7 +2817,7 @@ public class Xt extends XtApi
             //     }
             //
             Object data = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            Object trades = this.safeList(data, "items", new ArrayList<Object>(Arrays.asList()));
+            List<Object> trades = (List<Object>) this.safeList(data, "items", new ArrayList<Object>(Arrays.asList()));
             return this.parseTrades(trades, market, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
@@ -3949,7 +3949,7 @@ public class Xt extends XtApi
             //     }
             //
             Object data = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            Object orders = this.safeList(data, "items", new ArrayList<Object>(Arrays.asList()));
+            List<Object> orders = (List<Object>) this.safeList(data, "items", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(orders, market, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
@@ -5039,7 +5039,7 @@ public class Xt extends XtApi
             //     }
             //
             Object data = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            Object ledger = this.safeList(data, "items", new ArrayList<Object>(Arrays.asList()));
+            List<Object> ledger = (List<Object>) this.safeList(data, "items", new ArrayList<Object>(Arrays.asList()));
             return this.parseLedger(ledger, currency, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(LedgerEntry::new).collect(Collectors.toList()));
 
@@ -5239,7 +5239,7 @@ public class Xt extends XtApi
             //     }
             //
             Object data = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            Object deposits = this.safeList(data, "items", new ArrayList<Object>(Arrays.asList()));
+            List<Object> deposits = (List<Object>) this.safeList(data, "items", new ArrayList<Object>(Arrays.asList()));
             return this.parseTransactions(deposits, currency, since, limit, parameters);
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
@@ -5312,7 +5312,7 @@ public class Xt extends XtApi
             //     }
             //
             Object data = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            Object withdrawals = this.safeList(data, "items", new ArrayList<Object>(Arrays.asList()));
+            List<Object> withdrawals = (List<Object>) this.safeList(data, "items", new ArrayList<Object>(Arrays.asList()));
             return this.parseTransactions(withdrawals, currency, since, limit, parameters);
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
@@ -5703,7 +5703,7 @@ public class Xt extends XtApi
             //         ]
             //     }
             //
-            Object data = this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = (List<Object>) this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
             symbols = this.marketSymbols(symbols);
             return this.parseLeverageTiers(data, symbols, "symbol");
         }).thenApply(LeverageTiers::new);
@@ -5836,7 +5836,7 @@ public class Xt extends XtApi
         //
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         List<Object> tiers = new ArrayList<Object>(Arrays.asList());
-        Object brackets = this.safeList(info, "leverageBrackets", new ArrayList<Object>(Arrays.asList()));
+        List<Object> brackets = (List<Object>) this.safeList(info, "leverageBrackets", new ArrayList<Object>(Arrays.asList()));
         for (var i = 0; i < ((List<?>)brackets).size(); i++)
         {
             Object tier = Helpers.GetValue(brackets, i);
@@ -5943,7 +5943,7 @@ final Object finalMarket = market;
             //     }
             //
             Object result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            Object items = this.safeList(result, "items", new ArrayList<Object>(Arrays.asList()));
+            List<Object> items = (List<Object>) this.safeList(result, "items", new ArrayList<Object>(Arrays.asList()));
             List<Object> rates = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)items).size(); i++)
             {
@@ -6364,7 +6364,7 @@ final Object finalMarket = market;
             //     }
             //
             Object data = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            Object items = this.safeList(data, "items", new ArrayList<Object>(Arrays.asList()));
+            List<Object> items = (List<Object>) this.safeList(data, "items", new ArrayList<Object>(Arrays.asList()));
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)items).size(); i++)
             {
@@ -6532,7 +6532,7 @@ final Object finalMarket = market;
             //         ]
             //     }
             //
-            Object positions = this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
+            List<Object> positions = (List<Object>) this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
             Object breakBySymbolSide = this.indexPositionBreakList(this.safeList(breakResponse, "result", new ArrayList<Object>(Arrays.asList())));
             for (var i = 0; i < ((List<?>)positions).size(); i++)
             {
@@ -6631,7 +6631,7 @@ final Object finalMarket = market;
             //         ]
             //     }
             //
-            Object positions = this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
+            List<Object> positions = (List<Object>) this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
             Object breakBySymbolSide = this.indexPositionBreakList(this.safeList(breakResponse, "result", new ArrayList<Object>(Arrays.asList())));
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)positions).size(); i++)
@@ -6739,7 +6739,7 @@ final Object finalMarket = market;
             //     }
             //
             Object result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            Object items = this.safeList(result, "items", new ArrayList<Object>(Arrays.asList()));
+            List<Object> items = (List<Object>) this.safeList(result, "items", new ArrayList<Object>(Arrays.asList()));
             Object positions = this.parsePositions(items, symbols);
             return this.filterBySinceLimit(positions, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));

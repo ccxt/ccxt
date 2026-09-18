@@ -965,7 +965,7 @@ public class Toobit extends ToobitApi
             //            },
             //          ...
             //
-            Object coins = this.safeList(response, "coins", new ArrayList<Object>(Arrays.asList()));
+            List<Object> coins = (List<Object>) this.safeList(response, "coins", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> result = new HashMap<String, Object>() {{}};
             for (var i = 0; i < ((List<?>)coins).size(); i++)
             {
@@ -987,7 +987,7 @@ public class Toobit extends ToobitApi
         String id = this.safeString(rawCurrency, "coinId");
         String code = this.safeCurrencyCode(id);
         Map<String, Object> networks = new HashMap<String, Object>() {{}};
-        Object rawNetworks = this.safeList(rawCurrency, "chainTypes", new ArrayList<Object>(Arrays.asList()));
+        List<Object> rawNetworks = (List<Object>) this.safeList(rawCurrency, "chainTypes", new ArrayList<Object>(Arrays.asList()));
         for (var j = 0; j < ((List<?>)rawNetworks).size(); j++)
         {
             Object rawNetwork = Helpers.GetValue(rawNetworks, j);
@@ -1195,8 +1195,8 @@ public class Toobit extends ToobitApi
             //            },
             //          ...
             //
-            Object symbols = this.safeList(response, "symbols", new ArrayList<Object>(Arrays.asList()));
-            Object contracts = this.safeList(response, "contracts", new ArrayList<Object>(Arrays.asList()));
+            List<Object> symbols = (List<Object>) this.safeList(response, "symbols", new ArrayList<Object>(Arrays.asList()));
+            List<Object> contracts = (List<Object>) this.safeList(response, "contracts", new ArrayList<Object>(Arrays.asList()));
             List<Object> all = (List<Object>) this.arrayConcat(symbols, contracts);
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)all).size(); i++)
@@ -1226,7 +1226,7 @@ public class Toobit extends ToobitApi
         String settle = this.safeCurrencyCode(settleId);
         String status = this.safeString(market, "status");
         Boolean active = (java.util.Objects.equals(status, "TRADING"));
-        Object filters = this.safeList(market, "filters", new ArrayList<Object>(Arrays.asList()));
+        List<Object> filters = (List<Object>) this.safeList(market, "filters", new ArrayList<Object>(Arrays.asList()));
         Map<String, Object> filtersByType = this.indexBy(filters, "filterType");
         Object priceFilter = this.safeDict(filtersByType, "PRICE_FILTER", new HashMap<String, Object>() {{}});
         Object lotSizeFilter = this.safeDict(filtersByType, "LOT_SIZE", new HashMap<String, Object>() {{}});
@@ -2594,7 +2594,7 @@ public class Toobit extends ToobitApi
             {
                 response = (this.privateDeleteApiV1FuturesCancelOrderByIds(this.extend(request, parameters))).join();
             }
-            Object result = this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
+            List<Object> result = (List<Object>) this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(result, market);
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 

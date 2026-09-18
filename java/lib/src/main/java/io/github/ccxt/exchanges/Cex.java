@@ -439,7 +439,7 @@ public class Cex extends CexApi
             //            ...
             //
             Object responses = (Helpers.promiseAll(promises)).join();
-            Object dataCurrencies = this.safeList(Helpers.GetValue(responses, 0), "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> dataCurrencies = (List<Object>) this.safeList(Helpers.GetValue(responses, 0), "data", new ArrayList<Object>(Arrays.asList()));
             Object dataNetworks = this.safeDict(Helpers.GetValue(responses, 1), "data", new HashMap<String, Object>() {{}});
             Map<String, Object> currenciesIndexed = this.indexBy(dataCurrencies, "currency");
             Map<String, Object> data = this.deepExtend(currenciesIndexed, dataNetworks);
@@ -552,7 +552,7 @@ public class Cex extends CexApi
             //            },
             //            ...
             //
-            Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseMarkets(data);
         });
 
@@ -823,7 +823,7 @@ public class Cex extends CexApi
             //                ... followed by older trades
             //
             Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            Object trades = this.safeList(data, "trades", new ArrayList<Object>(Arrays.asList()));
+            List<Object> trades = (List<Object>) this.safeList(data, "trades", new ArrayList<Object>(Arrays.asList()));
             return this.parseTrades(trades, market, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
@@ -1001,7 +1001,7 @@ public class Cex extends CexApi
             //            },
             //            ...
             //
-            Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseOHLCVs(data, market, timeframe, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
 
@@ -1331,7 +1331,7 @@ public class Cex extends CexApi
             //            },
             //            ...
             //
-            Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(data, market, since, limit);
         });
 
@@ -1742,7 +1742,7 @@ public class Cex extends CexApi
             //    }
             //
             Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            Object ids = this.safeList(data, "clientOrderIds", new ArrayList<Object>(Arrays.asList()));
+            List<Object> ids = (List<Object>) this.safeList(data, "clientOrderIds", new ArrayList<Object>(Arrays.asList()));
             List<Object> orders = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)ids).size(); i++)
             {
@@ -1820,7 +1820,7 @@ public class Cex extends CexApi
             //            },
             //            ...
             //
-            Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseLedger(data, currency, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(LedgerEntry::new).collect(Collectors.toList()));
 
@@ -1941,7 +1941,7 @@ public class Cex extends CexApi
             //            },
             //            ...
             //
-            Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseTransactions(data, currency, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 

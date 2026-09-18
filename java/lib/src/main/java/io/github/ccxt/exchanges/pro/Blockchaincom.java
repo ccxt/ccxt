@@ -141,7 +141,7 @@ public class Blockchaincom extends io.github.ccxt.exchanges.Blockchaincom
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", message );
         }};
-        Object balances = this.safeList(message, "balances", new ArrayList<Object>(Arrays.asList()));
+        List<Object> balances = (List<Object>) this.safeList(message, "balances", new ArrayList<Object>(Arrays.asList()));
         for (var i = 0; i < ((List<?>)balances).size(); i++)
         {
             Object entry = Helpers.GetValue(balances, i);
@@ -641,7 +641,7 @@ public class Blockchaincom extends io.github.ccxt.exchanges.Blockchaincom
             throw new ExchangeError(((this.id + " ") + this.json(message))) ;
         } else if (java.util.Objects.equals(eventVar, "snapshot"))
         {
-            Object orders = this.safeList(message, "orders", new ArrayList<Object>(Arrays.asList()));
+            List<Object> orders = (List<Object>) this.safeList(message, "orders", new ArrayList<Object>(Arrays.asList()));
             for (var i = 0; i < ((List<?>)orders).size(); i++)
             {
                 Object order = Helpers.GetValue(orders, i);
@@ -845,8 +845,8 @@ final Object finalTradeId = tradeId;
             Helpers.callDynamically(orderbook, "reset", new Object[]{snapshot});
         } else if (java.util.Objects.equals(eventVar, "updated"))
         {
-            Object asks = this.safeList(message, "asks", new ArrayList<Object>(Arrays.asList()));
-            Object bids = this.safeList(message, "bids", new ArrayList<Object>(Arrays.asList()));
+            List<Object> asks = (List<Object>) this.safeList(message, "asks", new ArrayList<Object>(Arrays.asList()));
+            List<Object> bids = (List<Object>) this.safeList(message, "bids", new ArrayList<Object>(Arrays.asList()));
             this.handleDeltas(Helpers.GetValue(orderbook, "asks"), asks);
             this.handleDeltas(Helpers.GetValue(orderbook, "bids"), bids);
             Helpers.addElementToObject(orderbook, "timestamp", timestamp);

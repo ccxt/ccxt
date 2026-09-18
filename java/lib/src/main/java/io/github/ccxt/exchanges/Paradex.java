@@ -841,7 +841,7 @@ public class Paradex extends ParadexApi
             //         ]
             //     }
             //
-            Object data = this.safeList(response, "results");
+            List<Object> data = (List<Object>) this.safeList(response, "results");
             return this.parseMarkets(data);
         });
 
@@ -1099,7 +1099,7 @@ public class Paradex extends ParadexApi
             //         ]
             //     }
             //
-            Object data = this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = (List<Object>) this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
             Object first = this.safeDict(data, 0, new HashMap<String, Object>() {{}});
             return this.parseTradingFee(first, market);
         }).thenApply(TradingFeeInterface::new);
@@ -1144,7 +1144,7 @@ public class Paradex extends ParadexApi
             //         ]
             //     }
             //
-            Object fees = this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
+            List<Object> fees = (List<Object>) this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> result = new HashMap<String, Object>() {{}};
             for (var i = 0; i < ((List<?>)fees).size(); i++)
             {
@@ -1234,7 +1234,7 @@ public class Paradex extends ParadexApi
             //         ]
             //     }
             //
-            Object data = this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = (List<Object>) this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
             return this.parseOHLCVs(data, market, timeframe, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
 
@@ -1302,7 +1302,7 @@ public class Paradex extends ParadexApi
             //         ]
             //     }
             //
-            Object data = this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = (List<Object>) this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
             return this.parseTickers(data, symbols);
         }).thenApply(Tickers::new);
 
@@ -1353,7 +1353,7 @@ public class Paradex extends ParadexApi
             //         ]
             //     }
             //
-            Object data = this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = (List<Object>) this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
             Object ticker = this.safeDict(data, 0, new HashMap<String, Object>() {{}});
             return this.parseTicker(ticker, market);
         }).thenApply(Ticker::new);
@@ -1454,7 +1454,7 @@ public class Paradex extends ParadexApi
                 put( "market", finalTarget );
             }};
             Map<String, Object> response = (this.publicGetMarketsSummary(this.extend(request, parameters))).join();
-            Object data = this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = (List<Object>) this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
             return this.parseFundingRates(data, symbols);
         }).thenApply(FundingRates::new);
 
@@ -1676,7 +1676,7 @@ public class Paradex extends ParadexApi
             //         ]
             //     }
             //
-            Object trades = this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
+            List<Object> trades = (List<Object>) this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
             for (var i = 0; i < ((List<?>)trades).size(); i++)
             {
                 Helpers.addElementToObject(Helpers.GetValue(trades, i), "next", this.safeString(response, "next"));
@@ -1803,7 +1803,7 @@ public class Paradex extends ParadexApi
             //         ]
             //     }
             //
-            Object data = this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = (List<Object>) this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
             Object interest = this.safeDict(data, 0, new HashMap<String, Object>() {{}});
             return this.parseOpenInterest(interest, market);
         }).thenApply(OpenInterest::new);
@@ -2120,7 +2120,7 @@ public class Paradex extends ParadexApi
         Object remaining = this.omitZero(this.safeString(order, "remaining_size"));
         Object triggerPrice = this.omitZero(this.safeString(order, "trigger_price"));
         Long lastUpdateTimestamp = this.safeInteger(order, "last_updated_at");
-        Object flags = this.safeList(order, "flags");
+        List<Object> flags = (List<Object>) this.safeList(order, "flags");
         Object reduceOnly = null;
         if (!java.util.Objects.equals(flags, null))
         {
@@ -2591,9 +2591,9 @@ public class Paradex extends ParadexApi
             //     ]
             // }
             //
-            Object responseOrders = this.safeList(response, "orders", new ArrayList<Object>(Arrays.asList()));
+            List<Object> responseOrders = (List<Object>) this.safeList(response, "orders", new ArrayList<Object>(Arrays.asList()));
             List<Object> parsedOrders = this.parseOrders(responseOrders);
-            Object errors = this.safeList(response, "errors", new ArrayList<Object>(Arrays.asList()));
+            List<Object> errors = (List<Object>) this.safeList(response, "errors", new ArrayList<Object>(Arrays.asList()));
             for (var i = 0; i < ((List<?>)errors).size(); i++)
             {
                 Object error = Helpers.GetValue(errors, i);
@@ -2674,7 +2674,7 @@ public class Paradex extends ParadexApi
             {
                 (this.loadMarkets()).join();
             }
-            Object clientOrderIds = this.safeListN(parameters, new ArrayList<Object>(Arrays.asList("clOrdIDs", "clientOrderIds", "client_order_ids")));
+            List<Object> clientOrderIds = (List<Object>) this.safeListN(parameters, new ArrayList<Object>(Arrays.asList("clOrdIDs", "clientOrderIds", "client_order_ids")));
             parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("clOrdIDs", "clientOrderIds", "client_order_ids")));
             Boolean hasOrderIds = (!java.util.Objects.equals(ids, null)) && Helpers.isTrue((Helpers.isArray(ids)));
             Boolean hasClientOrderIds = (!java.util.Objects.equals(clientOrderIds, null)) && Helpers.isTrue((Helpers.isArray(clientOrderIds)));
@@ -2716,7 +2716,7 @@ public class Paradex extends ParadexApi
             //     ]
             // }
             //
-            Object results = this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
+            List<Object> results = (List<Object>) this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
             List<Object> orders = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)results).size(); i++)
             {
@@ -2946,7 +2946,7 @@ public class Paradex extends ParadexApi
             //     ]
             //   }
             //
-            Object orders = this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
+            List<Object> orders = (List<Object>) this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
             String paginationCursor = this.safeString(response, "next");
             Object ordersLength = ((List<?>)orders).size();
             if ((!java.util.Objects.equals(paginationCursor, null)) && (Helpers.isGreaterThan(ordersLength, 0)))
@@ -3025,7 +3025,7 @@ public class Paradex extends ParadexApi
             //     ]
             //   }
             //
-            Object orders = this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
+            List<Object> orders = (List<Object>) this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(orders, market, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
@@ -3062,7 +3062,7 @@ public class Paradex extends ParadexApi
             //         ]
             //     }
             //
-            Object data = this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = (List<Object>) this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
             return this.parseBalance(data);
         }).thenApply(Balances::new);
 
@@ -3165,7 +3165,7 @@ public class Paradex extends ParadexApi
             //         ]
             //     }
             //
-            Object trades = this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
+            List<Object> trades = (List<Object>) this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
             for (var i = 0; i < ((List<?>)trades).size(); i++)
             {
                 Helpers.addElementToObject(Helpers.GetValue(trades, i), "next", this.safeString(response, "next"));
@@ -3250,7 +3250,7 @@ public class Paradex extends ParadexApi
             //         ]
             //     }
             //
-            Object data = this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = (List<Object>) this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
             return this.parsePositions(data, symbols);
         }).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));
 
@@ -3373,7 +3373,7 @@ public class Paradex extends ParadexApi
             //         ]
             //     }
             //
-            Object data = this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = (List<Object>) this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
             return this.parseLiquidations(data, market, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Liquidation::new).collect(Collectors.toList()));
 
@@ -3472,7 +3472,7 @@ public class Paradex extends ParadexApi
             //         ]
             //     }
             //
-            Object rows = this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
+            List<Object> rows = (List<Object>) this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
             List<Object> deposits = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)rows).size(); i++)
             {
@@ -3556,7 +3556,7 @@ public class Paradex extends ParadexApi
             //         ]
             //     }
             //
-            Object rows = this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
+            List<Object> rows = (List<Object>) this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
             List<Object> deposits = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)rows).size(); i++)
             {
@@ -3645,7 +3645,7 @@ public class Paradex extends ParadexApi
             //         ]
             //     }
             //
-            Object rows = this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
+            List<Object> rows = (List<Object>) this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
             return this.parseTransfers(rows, currency, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(TransferEntry::new).collect(Collectors.toList()));
 
@@ -3803,7 +3803,7 @@ public class Paradex extends ParadexApi
             //     ]
             // }
             //
-            Object configs = this.safeList(response, "configs");
+            List<Object> configs = (List<Object>) this.safeList(response, "configs");
             return this.parseMarginMode(this.safeDict(configs, 0), market);
         }).thenApply(MarginMode::new);
 
@@ -3900,7 +3900,7 @@ public class Paradex extends ParadexApi
             //     ]
             // }
             //
-            Object configs = this.safeList(response, "configs");
+            List<Object> configs = (List<Object>) this.safeList(response, "configs");
             return this.parseLeverage(this.safeDict(configs, 0), market);
         }).thenApply(Leverage::new);
 
@@ -4029,7 +4029,7 @@ public class Paradex extends ParadexApi
             //         ]
             //     }
             //
-            Object data = this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = (List<Object>) this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
             Object greeks = this.safeDict(data, 0, new HashMap<String, Object>() {{}});
             return this.parseGreeks(greeks, market);
         }).thenApply(Greeks::new);
@@ -4095,7 +4095,7 @@ public class Paradex extends ParadexApi
             //         ]
             //     }
             //
-            Object results = this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
+            List<Object> results = (List<Object>) this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
             return this.parseAllGreeks(results, symbols);
         });
 
@@ -4240,7 +4240,7 @@ public class Paradex extends ParadexApi
             //     ]
             // }
             //
-            Object results = this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
+            List<Object> results = (List<Object>) this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
             return this.parseIncomes(results, market, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(FundingHistory::new).collect(Collectors.toList()));
 
@@ -4346,7 +4346,7 @@ public class Paradex extends ParadexApi
             // every row is one observation of a rate quoted for a whole funding period,
             // not a settled payment: paradex recomputes it each second and accrues it
             // into funding_index, so the series cannot be summed
-            Object results = this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
+            List<Object> results = (List<Object>) this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
             List<Object> rates = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)results).size(); i++)
             {

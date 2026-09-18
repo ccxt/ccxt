@@ -431,8 +431,8 @@ public class Apex extends io.github.ccxt.exchanges.Apex
             Helpers.callDynamically(orderbook, "reset", new Object[]{snapshot});
         } else
         {
-            Object asks = this.safeList(data, "a", new ArrayList<Object>(Arrays.asList()));
-            Object bids = this.safeList(data, "b", new ArrayList<Object>(Arrays.asList()));
+            List<Object> asks = (List<Object>) this.safeList(data, "a", new ArrayList<Object>(Arrays.asList()));
+            List<Object> bids = (List<Object>) this.safeList(data, "b", new ArrayList<Object>(Arrays.asList()));
             this.handleDeltas(Helpers.GetValue(orderbook, "asks"), asks);
             this.handleDeltas(Helpers.GetValue(orderbook, "bids"), bids);
             Helpers.addElementToObject(orderbook, "timestamp", timestamp);
@@ -1346,17 +1346,17 @@ public class Apex extends io.github.ccxt.exchanges.Apex
     public void handleAccount(Client client, Object message)
     {
         Object contents = this.safeDict(message, "contents", new HashMap<String, Object>() {{}});
-        Object fills = this.safeList(contents, "fills", new ArrayList<Object>(Arrays.asList()));
+        List<Object> fills = (List<Object>) this.safeList(contents, "fills", new ArrayList<Object>(Arrays.asList()));
         if (!java.util.Objects.equals(fills, null))
         {
             this.handleMyTrades(client, fills);
         }
-        Object positions = this.safeList(contents, "positions", new ArrayList<Object>(Arrays.asList()));
+        List<Object> positions = (List<Object>) this.safeList(contents, "positions", new ArrayList<Object>(Arrays.asList()));
         if (!java.util.Objects.equals(positions, null))
         {
             this.handlePositions(client, positions);
         }
-        Object orders = this.safeList(contents, "orders", new ArrayList<Object>(Arrays.asList()));
+        List<Object> orders = (List<Object>) this.safeList(contents, "orders", new ArrayList<Object>(Arrays.asList()));
         if (!java.util.Objects.equals(orders, null))
         {
             this.handleOrder(client, orders);

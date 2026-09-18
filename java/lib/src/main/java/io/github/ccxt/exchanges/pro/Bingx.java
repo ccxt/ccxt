@@ -164,7 +164,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
                 put( "symbols", symbols );
                 put( "topic", topic );
             }};
-            Object symbolsAndTimeframes = this.safeList(parameters, "symbolsAndTimeframes");
+            List<Object> symbolsAndTimeframes = (List<Object>) this.safeList(parameters, "symbolsAndTimeframes");
             if (!java.util.Objects.equals(symbolsAndTimeframes, null))
             {
                 ((Map<String, Object>)subscription).put("symbolsAndTimeframes", symbolsAndTimeframes);
@@ -1696,7 +1696,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
         {
             return;
         }
-        Object rawPositions = this.safeList(data, "P", new ArrayList<Object>(Arrays.asList()));
+        List<Object> rawPositions = (List<Object>) this.safeList(data, "P", new ArrayList<Object>(Arrays.asList()));
         List<Object> newPositions = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ((List<?>)rawPositions).size(); i++)
         {
@@ -2114,7 +2114,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
         //     }
         //
         Object a = this.safeDict(message, "a", new HashMap<String, Object>() {{}});
-        Object data = this.safeList(a, "B", new ArrayList<Object>(Arrays.asList()));
+        List<Object> data = (List<Object>) this.safeList(a, "B", new ArrayList<Object>(Arrays.asList()));
         Long timestamp = (Long) this.safeInteger2(message, "T", "E");
         String spotUrl = this.safeString(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "spot");
         Boolean isSpot = (!java.util.Objects.equals(spotUrl, null)) && (Helpers.isEqual(Helpers.getIndexOf(client.url, spotUrl), 0));
@@ -2240,8 +2240,8 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
 
     public void handleUnSubscription(Client client, Object subscription)
     {
-        Object messageHashes = this.safeList(subscription, "messageHashes", new ArrayList<Object>(Arrays.asList()));
-        Object subMessageHashes = this.safeList(subscription, "subMessageHashes", new ArrayList<Object>(Arrays.asList()));
+        List<Object> messageHashes = (List<Object>) this.safeList(subscription, "messageHashes", new ArrayList<Object>(Arrays.asList()));
+        List<Object> subMessageHashes = (List<Object>) this.safeList(subscription, "subMessageHashes", new ArrayList<Object>(Arrays.asList()));
         for (var i = 0; i < ((List<?>)messageHashes).size(); i++)
         {
             Object unsubHash = Helpers.GetValue(messageHashes, i);

@@ -796,8 +796,8 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
         Long timestamp = this.safeInteger(orderbook, "timestamp");
         List<Object> bids = this.sortBy(this.aggregate(Helpers.GetValue(orderbook, "bids")), 0);
         List<Object> asks = this.sortBy(this.aggregate(Helpers.GetValue(orderbook, "asks")), 0);
-        Object bestBid = this.safeList(bids, 0, new ArrayList<Object>(Arrays.asList()));
-        Object bestAsk = this.safeList(asks, 0, new ArrayList<Object>(Arrays.asList()));
+        List<Object> bestBid = (List<Object>) this.safeList(bids, 0, new ArrayList<Object>(Arrays.asList()));
+        List<Object> bestAsk = (List<Object>) this.safeList(asks, 0, new ArrayList<Object>(Arrays.asList()));
         return this.safeTicker(new HashMap<String, Object>() {{
             put( "symbol", Bybit.this.safeString(market, "symbol") );
             put( "timestamp", timestamp );
@@ -1112,7 +1112,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
                     put( "option", new ArrayList<Object>(Arrays.asList(25, 100)) );
                     put( "default", new ArrayList<Object>(Arrays.asList(1, 50, 200, 1000)) );
                 }};
-                Object selectedLimits = this.safeList2(limits, ((Map<String, Object>)market).get("type"), "default", new ArrayList<Object>(Arrays.asList()));
+                List<Object> selectedLimits = (List<Object>) this.safeList2(limits, ((Map<String, Object>)market).get("type"), "default", new ArrayList<Object>(Arrays.asList()));
                 if (!Helpers.isTrue(this.inArray(limit, selectedLimits)))
                 {
                     throw new BadRequest(((Helpers.add((this.id + " watchOrderBookForSymbols(): for "), ((Map<String, Object>)market).get("type")) + " markets limit can be one of: ") + this.json(selectedLimits))) ;
@@ -1265,8 +1265,8 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
             Helpers.callDynamically(orderbook, "reset", new Object[]{snapshot});
         } else
         {
-            Object asks = this.safeList(data, "a", new ArrayList<Object>(Arrays.asList()));
-            Object bids = this.safeList(data, "b", new ArrayList<Object>(Arrays.asList()));
+            List<Object> asks = (List<Object>) this.safeList(data, "a", new ArrayList<Object>(Arrays.asList()));
+            List<Object> bids = (List<Object>) this.safeList(data, "b", new ArrayList<Object>(Arrays.asList()));
             this.handleDeltas(Helpers.GetValue(orderbook, "asks"), asks);
             this.handleDeltas(Helpers.GetValue(orderbook, "bids"), bids);
             Helpers.addElementToObject(orderbook, "timestamp", timestamp);
@@ -2007,7 +2007,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
         }
         Object cache = this.positions;
         List<Object> newPositions = new ArrayList<Object>(Arrays.asList());
-        Object rawPositions = this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
+        List<Object> rawPositions = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
         for (var i = 0; i < ((List<?>)rawPositions).size(); i++)
         {
             Object rawPosition = Helpers.GetValue(rawPositions, i);
@@ -2159,7 +2159,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
         //
         if (Helpers.isTrue(Helpers.isArray(Helpers.GetValue(message, "data"))))
         {
-            Object rawLiquidations = this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> rawLiquidations = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
             for (var i = 0; i < ((List<?>)rawLiquidations).size(); i++)
             {
                 Object rawLiquidation = Helpers.GetValue(rawLiquidations, i);
@@ -2716,7 +2716,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
         if (java.util.Objects.equals(topic, "outboundAccountInfo"))
         {
             account = "spot";
-            Object data = this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
             for (var i = 0; i < ((List<?>)data).size(); i++)
             {
                 Object B = this.safeValue(Helpers.GetValue(data, i), "B", new ArrayList<Object>(Arrays.asList()));
@@ -2862,7 +2862,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
                 for (var i = 0; i < ((List<?>)subscriptionHashes).size(); i++)
                 {
                     Object existing = this.safeDict(client.subscriptions, Helpers.GetValue(subscriptionHashes, i), new HashMap<String, Object>() {{}});
-                    Object recordedTopics = this.safeList(existing, "topics", new ArrayList<Object>(Arrays.asList()));
+                    List<Object> recordedTopics = (List<Object>) this.safeList(existing, "topics", new ArrayList<Object>(Arrays.asList()));
                     Object recordedLength = ((List<?>)recordedTopics).size();
                     for (var j = 0; Helpers.isLessThan(j, recordedLength); j++)
                     {
@@ -3297,8 +3297,8 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
                 {
                     continue;
                 }
-                Object messageHashes = this.safeList(subscription, "messageHashes", new ArrayList<Object>(Arrays.asList()));
-                Object subMessageHashes = this.safeList(subscription, "subMessageHashes", new ArrayList<Object>(Arrays.asList()));
+                List<Object> messageHashes = (List<Object>) this.safeList(subscription, "messageHashes", new ArrayList<Object>(Arrays.asList()));
+                List<Object> subMessageHashes = (List<Object>) this.safeList(subscription, "subMessageHashes", new ArrayList<Object>(Arrays.asList()));
                 for (var j = 0; j < ((List<?>)messageHashes).size(); j++)
                 {
                     Object unsubHash = Helpers.GetValue(messageHashes, j);

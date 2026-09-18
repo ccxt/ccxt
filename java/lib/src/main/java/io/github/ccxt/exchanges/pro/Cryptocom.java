@@ -567,7 +567,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
             stored = new ArrayCache(((Number)limit).intValue());
             Helpers.addElementToObject(this.trades, symbol, stored);
         }
-        Object data = this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
+        List<Object> data = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
         Object dataLength = ((List<?>)data).size();
         if (Helpers.isEqual(dataLength, 0))
         {
@@ -793,7 +793,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
         String messageHash = this.safeString(message, "subscription");
         String marketId = this.safeString(message, "instrument_name");
         Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
-        Object data = this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
+        List<Object> data = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
         for (var i = 0; i < ((List<?>)data).size(); i++)
         {
             Object ticker = Helpers.GetValue(data, i);
@@ -911,7 +911,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
 
     public void handleBidAsk(Client client, Object message)
     {
-        Object data = this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
+        List<Object> data = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
         Object ticker = this.safeDict(data, 0, new HashMap<String, Object>() {{}});
         Object parsedTicker = this.parseWsBidAsk(ticker);
         Object symbol = ((Map<String, Object>)parsedTicker).get("symbol");
@@ -1131,7 +1131,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
         Object subscription = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String channel = this.safeString(message, "channel");
         String symbolSpecificMessageHash = this.safeString(message, "subscription");
-        Object orders = this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
+        List<Object> orders = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
         Object ordersLength = ((List<?>)orders).size();
         if (Helpers.isGreaterThan(ordersLength, 0))
         {
@@ -1293,7 +1293,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
         // and has exactly one subscriptionhash which is the account type
         Object data = this.safeValue(message, "data", new ArrayList<Object>(Arrays.asList()));
         Object firstData = this.safeValue(data, 0, new HashMap<String, Object>() {{}});
-        Object rawPositions = this.safeList(firstData, "positions", new ArrayList<Object>(Arrays.asList()));
+        List<Object> rawPositions = (List<Object>) this.safeList(firstData, "positions", new ArrayList<Object>(Arrays.asList()));
         if (java.util.Objects.equals(this.positions, null))
         {
             this.positions = new ArrayCache.ArrayCacheBySymbolBySide();
@@ -1391,8 +1391,8 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
         //     }
         //
         String messageHash = this.safeString(message, "subscription");
-        Object data = this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
-        Object positionBalances = this.safeList(Helpers.GetValue(data, 0), "position_balances", new ArrayList<Object>(Arrays.asList()));
+        List<Object> data = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
+        List<Object> positionBalances = (List<Object>) this.safeList(Helpers.GetValue(data, 0), "position_balances", new ArrayList<Object>(Arrays.asList()));
         Helpers.addElementToObject(this.balance, "info", data);
         for (var i = 0; i < ((List<?>)positionBalances).size(); i++)
         {
@@ -1908,8 +1908,8 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
                 {
                     continue;
                 }
-                Object messageHashes = this.safeList(subscription, "messageHashes", new ArrayList<Object>(Arrays.asList()));
-                Object subMessageHashes = this.safeList(subscription, "subMessageHashes", new ArrayList<Object>(Arrays.asList()));
+                List<Object> messageHashes = (List<Object>) this.safeList(subscription, "messageHashes", new ArrayList<Object>(Arrays.asList()));
+                List<Object> subMessageHashes = (List<Object>) this.safeList(subscription, "subMessageHashes", new ArrayList<Object>(Arrays.asList()));
                 for (var j = 0; j < ((List<?>)messageHashes).size(); j++)
                 {
                     Object unsubHash = Helpers.GetValue(messageHashes, j);

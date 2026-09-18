@@ -1089,7 +1089,7 @@ public class Weex extends WeexApi
         String code = this.safeCurrencyCode(currencyId);
         String name = this.safeString(rawCurrency, "name");
         Map<String, Object> networks = new HashMap<String, Object>() {{}};
-        Object chains = this.safeList(rawCurrency, "networkList", new ArrayList<Object>(Arrays.asList()));
+        List<Object> chains = (List<Object>) this.safeList(rawCurrency, "networkList", new ArrayList<Object>(Arrays.asList()));
         for (var j = 0; j < ((List<?>)chains).size(); j++)
         {
             Object chain = this.safeDict(chains, j);
@@ -1177,8 +1177,8 @@ public class Weex extends WeexApi
             var spotResponsecontractResponseVariable = (Helpers.promiseAll(promises)).join();
             var spotResponse = ((List<Object>) spotResponsecontractResponseVariable).get(0);
             var contractResponse = ((List<Object>) spotResponsecontractResponseVariable).get(1);
-            Object spotArray = this.safeList(spotResponse, "symbols", new ArrayList<Object>(Arrays.asList()));
-            Object contractArray = this.safeList(contractResponse, "symbols", new ArrayList<Object>(Arrays.asList()));
+            List<Object> spotArray = (List<Object>) this.safeList(spotResponse, "symbols", new ArrayList<Object>(Arrays.asList()));
+            List<Object> contractArray = (List<Object>) this.safeList(contractResponse, "symbols", new ArrayList<Object>(Arrays.asList()));
             List<Object> result = (List<Object>) this.arrayConcat(spotArray, contractArray);
             return this.parseMarkets(result);
         });
@@ -3249,7 +3249,7 @@ public class Weex extends WeexApi
             marketType = ((List<Object>) marketTypeparametersVariable).get(0);
             parameters = ((List<Object>) marketTypeparametersVariable).get(1);
             Boolean isSpot = (java.util.Objects.equals(marketType, "spot"));
-            Object clientOrderIds = this.safeList(parameters, "clientOrderIds");
+            List<Object> clientOrderIds = (List<Object>) this.safeList(parameters, "clientOrderIds");
             parameters = this.omit(parameters, "clientOrderIds");
             if (!java.util.Objects.equals(clientOrderIds, null))
             {
@@ -3281,7 +3281,7 @@ public class Weex extends WeexApi
             {
                 response = (this.contractPrivateDeleteCapiV3BatchOrders(this.extend(request, parameters))).join();
             }
-            Object ordersResponse = this.safeList(response, "orderList", new ArrayList<Object>(Arrays.asList()));
+            List<Object> ordersResponse = (List<Object>) this.safeList(response, "orderList", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> extendedParams = new HashMap<String, Object>() {{
                 put( "status", "canceled" );
             }};
@@ -4527,7 +4527,7 @@ public class Weex extends WeexApi
             //         ]
             //     }
             //
-            Object items = this.safeList(response, "items", new ArrayList<Object>(Arrays.asList()));
+            List<Object> items = (List<Object>) this.safeList(response, "items", new ArrayList<Object>(Arrays.asList()));
             return this.parseIncomes(items, market, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(FundingHistory::new).collect(Collectors.toList()));
 

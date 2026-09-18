@@ -357,7 +357,7 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
         //     }
         //
         String topic = this.safeString(message, "topic");
-        Object data = this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
+        List<Object> data = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
         Long timestamp = this.safeInteger(message, "ts");
         List<Object> result = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ((List<?>)data).size(); i++)
@@ -425,7 +425,7 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
         //     }
         //
         String topic = this.safeString(message, "topic");
-        Object data = this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
+        List<Object> data = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
         Long timestamp = this.safeInteger(message, "ts");
         List<Object> result = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ((List<?>)data).size(); i++)
@@ -1127,7 +1127,7 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
                 {
                     Helpers.addElementToObject(parsed, "fee", fee);
                 }
-                Object fees = this.safeList(order, "fees");
+                List<Object> fees = (List<Object>) this.safeList(order, "fees");
                 if (!java.util.Objects.equals(fees, null))
                 {
                     ((Map<String, Object>)parsed).put("fees", fees);
@@ -1334,7 +1334,7 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
         //    }
         //
         Object data = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
-        Object rawPositions = this.safeList(data, "positions", new ArrayList<Object>(Arrays.asList()));
+        List<Object> rawPositions = (List<Object>) this.safeList(data, "positions", new ArrayList<Object>(Arrays.asList()));
         if (java.util.Objects.equals(this.positions, null))
         {
             this.positions = new ArrayCache.ArrayCacheBySymbolBySide();

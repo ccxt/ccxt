@@ -150,7 +150,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
                 put( "subMessageHashes", new ArrayList<Object>(Arrays.asList(subHash)) );
                 put( "unsubMessageHashes", new ArrayList<Object>(Arrays.asList(unsubHash)) );
             }};
-            Object symbolsAndTimeframes = this.safeList(parameters, "symbolsAndTimeframes");
+            List<Object> symbolsAndTimeframes = (List<Object>) this.safeList(parameters, "symbolsAndTimeframes");
             if (!java.util.Objects.equals(symbolsAndTimeframes, null))
             {
                 ((Map<String, Object>)subscription).put("symbolsAndTimeframes", symbolsAndTimeframes);
@@ -765,7 +765,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
         //     }
         //
         String topic = this.safeString(message, "topic");
-        Object data = this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
+        List<Object> data = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
         Long timestamp = this.safeInteger(message, "ts");
         Map<String, Object> result = new HashMap<String, Object>() {{}};
         for (var i = 0; i < ((List<?>)data).size(); i++)
@@ -1944,8 +1944,8 @@ public class Woo extends io.github.ccxt.exchanges.Woo
         String subscribeHash = this.safeString(message, "data");
         String unsubscribeHash = Helpers.add("unsubscribe::", subscribeHash);
         Object subscription = this.safeDict(client.subscriptions, unsubscribeHash, new HashMap<String, Object>() {{}});
-        Object subMessageHashes = this.safeList(subscription, "subMessageHashes", new ArrayList<Object>(Arrays.asList()));
-        Object unsubMessageHashes = this.safeList(subscription, "unsubMessageHashes", new ArrayList<Object>(Arrays.asList()));
+        List<Object> subMessageHashes = (List<Object>) this.safeList(subscription, "subMessageHashes", new ArrayList<Object>(Arrays.asList()));
+        List<Object> unsubMessageHashes = (List<Object>) this.safeList(subscription, "unsubMessageHashes", new ArrayList<Object>(Arrays.asList()));
         for (var i = 0; i < ((List<?>)subMessageHashes).size(); i++)
         {
             Object subHash = Helpers.GetValue(subMessageHashes, i);

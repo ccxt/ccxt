@@ -849,7 +849,7 @@ public class Pacifica extends PacificaApi
             //   "error": null,
             //   "code": null
             // }
-            Object markets = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> markets = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseMarkets(markets);
         });
 
@@ -1098,7 +1098,7 @@ public class Pacifica extends PacificaApi
             Helpers.addElementToObject(usdcAccount, "total", this.safeString(data, "balance"));
             Helpers.addElementToObject(usdcAccount, "used", this.safeString(data, "total_margin_used"));
             ((Map<String, Object>)result).put("USDC", usdcAccount);
-            Object spotBalances = this.safeList(data, "spot_balances", new ArrayList<Object>(Arrays.asList()));
+            List<Object> spotBalances = (List<Object>) this.safeList(data, "spot_balances", new ArrayList<Object>(Arrays.asList()));
             for (var i = 0; i < ((List<?>)spotBalances).size(); i++)
             {
                 Object balance = Helpers.GetValue(spotBalances, i);
@@ -1438,7 +1438,7 @@ public class Pacifica extends PacificaApi
             //   "code": null
             // }
             Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            Object levels = this.safeList(data, "l", new ArrayList<Object>(Arrays.asList()));
+            List<Object> levels = (List<Object>) this.safeList(data, "l", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> result = new HashMap<String, Object>() {{
                 put( "bids", Pacifica.this.safeList(levels, 0, new ArrayList<Object>(Arrays.asList())) );
                 put( "asks", Pacifica.this.safeList(levels, 1, new ArrayList<Object>(Arrays.asList())) );
@@ -1487,7 +1487,7 @@ public class Pacifica extends PacificaApi
             //     "code": null
             //   }
             //
-            Object result = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> result = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseFundingRates(result, symbols);
         }).thenApply(FundingRates::new);
 
@@ -1636,7 +1636,7 @@ public class Pacifica extends PacificaApi
             //   "code": null
             // }
             //
-            Object candles = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> candles = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseOHLCVs(candles, market, timeframe, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
 
@@ -1708,7 +1708,7 @@ public class Pacifica extends PacificaApi
             //   "last_order_id": 1557404170
             // }
             //
-            Object recentTrades = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> recentTrades = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseTrades(recentTrades, market, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
@@ -2241,7 +2241,7 @@ public class Pacifica extends PacificaApi
             // }
             //
             Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            Object results = this.safeList(data, "results", new ArrayList<Object>(Arrays.asList()));
+            List<Object> results = (List<Object>) this.safeList(data, "results", new ArrayList<Object>(Arrays.asList()));
             List<Object> ordersToReturn = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)results).size(); i++)
             {
@@ -2320,7 +2320,7 @@ public class Pacifica extends PacificaApi
             // }
             //
             Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            Object results = this.safeList(data, "results", new ArrayList<Object>(Arrays.asList()));
+            List<Object> results = (List<Object>) this.safeList(data, "results", new ArrayList<Object>(Arrays.asList()));
             List<Object> ordersToReturn = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)results).size(); i++)
             {
@@ -2363,7 +2363,7 @@ public class Pacifica extends PacificaApi
             }};
             ((List<Object>)actions).add(action);
         }
-        Object clientOrderIds = this.safeList(parameters, "clientOrderIds", new ArrayList<Object>(Arrays.asList()));
+        List<Object> clientOrderIds = (List<Object>) this.safeList(parameters, "clientOrderIds", new ArrayList<Object>(Arrays.asList()));
         parameters = this.omit(parameters, "clientOrderIds");
         for (var i = 0; i < ((List<?>)clientOrderIds).size(); i++)
         {
@@ -2754,7 +2754,7 @@ public class Pacifica extends PacificaApi
             //   "code": null
             // }
             //
-            Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> result = new HashMap<String, Object>() {{}};
             for (var i = 0; i < ((List<?>)data).size(); i++)
             {
@@ -2966,7 +2966,7 @@ public class Pacifica extends PacificaApi
             //   "last_order_id": 1557370337
             // }
             //
-            Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(data, market, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
@@ -3063,7 +3063,7 @@ public class Pacifica extends PacificaApi
 
     public Object addPaginationCursorToResult(Object response)
     {
-        Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+        List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
         String paginationCursor = this.safeString(response, "next_cursor");
         Object hasMore = this.safeBool(response, "has_more", false);
         Object dataLength = ((List<?>)data).size();
@@ -3155,7 +3155,7 @@ public class Pacifica extends PacificaApi
             //   "code": null
             // }
             //
-            Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             // return last state
             List<Object> sorted = this.sortBy(data, "created_at", true);
             Object lastIdx = ((List<?>)sorted).size();
@@ -3424,7 +3424,7 @@ public class Pacifica extends PacificaApi
             //   "code": null,
             //   "last_order_id": 1557431179
             // }
-            Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)data).size(); i++)
             {
@@ -3733,7 +3733,7 @@ public class Pacifica extends PacificaApi
             }
             symbols = this.marketSymbols(symbols);
             Map<String, Object> response = (this.publicGetInfoPrices(parameters)).join();
-            Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseOpenInterests(data, symbols);
         }).thenApply(OpenInterests::new);
 
