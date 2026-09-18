@@ -654,7 +654,7 @@ func (this *Mercado) fetchTradesBody(ch chan any, symbol any, optionalArgs ...an
 }
 func (this *Mercado) ParseBalance(response any) any {
 	var data any = this.SafeValue(response, "response_data", map[string]any{})
-	var balances any = this.SafeDict(data, "balance", map[string]any{})
+	var balances map[string]any = SafeMapTyped(data, "balance")
 	var result map[string]any = map[string]any{
 		"info": response,
 	}
@@ -662,7 +662,7 @@ func (this *Mercado) ParseBalance(response any) any {
 	for i := 0; i < len(currencyIds); i++ {
 		var currencyId string = GetValue(currencyIds, i).(string)
 		var code *string = this.SafeCurrencyCode(currencyId)
-		if InOp(balances, currencyId) {
+		if func() bool { _, ok := balances[currencyId]; return ok }() {
 			var balance any = this.SafeValue(balances, currencyId, map[string]any{})
 			var account any = this.Account()
 			AddElementToObject(account, "free", this.SafeString(balance, "available"))

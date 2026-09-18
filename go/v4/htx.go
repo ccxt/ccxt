@@ -2890,7 +2890,7 @@ func (this *Htx) TryGetSymbolFromFutureMarkets(symbolOrMarketId any) any {
 	if !(InOp(this.Options, "futureMarketIdsForSymbols")) {
 		AddElementToObject(this.Options, "futureMarketIdsForSymbols", map[string]any{})
 	}
-	var futureMarketIdsForSymbols any = this.SafeDict(this.Options, "futureMarketIdsForSymbols", map[string]any{})
+	var futureMarketIdsForSymbols map[string]any = SafeMapTyped(this.Options, "futureMarketIdsForSymbols")
 	if InOp(futureMarketIdsForSymbols, symbolOrMarketId) {
 		return GetValue(futureMarketIdsForSymbols, symbolOrMarketId)
 	}
@@ -4586,7 +4586,7 @@ func (this *Htx) NetworkCodeToId(networkCode any, optionalArgs ...any) any {
 	if keysLength == 0 {
 		panic(ExchangeError(this.Id + " networkCodeToId() - markets need to be loaded at first"))
 	}
-	var uniqueNetworkIds any = this.SafeDict(GetValue(this.Options, "networkChainIdsByNames"), currencyCode, map[string]any{})
+	var uniqueNetworkIds map[string]any = SafeMapTyped(GetValue(this.Options, "networkChainIdsByNames"), currencyCode)
 	if InOp(uniqueNetworkIds, networkCode) {
 		return GetValue(uniqueNetworkIds, networkCode)
 	} else {
@@ -6626,7 +6626,7 @@ func (this *Htx) createSpotOrderRequestBody(ch chan any, symbol any, typeVar any
 	var options any = this.SafeValue(this.Options, GetValue(market, "type"), map[string]any{})
 	var triggerPrice *string = this.SafeStringN(params, []any{"triggerPrice", "stopPrice", "stop-price"})
 	if triggerPrice == nil {
-		var stopOrderTypes any = this.SafeDict(options, "stopOrderTypes", map[string]any{})
+		var stopOrderTypes map[string]any = SafeMapTyped(options, "stopOrderTypes")
 		if InOp(stopOrderTypes, orderType) {
 			panic(ArgumentsRequired(this.Id + " createOrder() requires a triggerPrice for a trigger order"))
 		}
@@ -6706,7 +6706,7 @@ func (this *Htx) createSpotOrderRequestBody(ch chan any, symbol any, typeVar any
 	} else {
 		request["amount"] = this.AmountToPrecision(symbol, amount)
 	}
-	var limitOrderTypes any = this.SafeDict(options, "limitOrderTypes", map[string]any{})
+	var limitOrderTypes map[string]any = SafeMapTyped(options, "limitOrderTypes")
 	if InOp(limitOrderTypes, orderType) {
 		request["price"] = this.PriceToPrecision(symbol, price)
 	}

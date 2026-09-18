@@ -4047,7 +4047,7 @@ func (this *Deepcoin) Sign(path any, optionalArgs ...any) any {
 	}
 }
 func (this *Deepcoin) HandleErrors(code any, reason any, url any, method any, headers any, body any, response any, requestHeaders any, requestBody any) any {
-	var data any = this.SafeDict(response, "data", map[string]any{})
+	var data map[string]any = SafeMapTyped(response, "data")
 	var msg *string = this.SafeString(response, "msg")
 	var messageCode *string = this.SafeString(response, "code")
 	var sCode *string = this.SafeString(data, "sCode")
@@ -4079,7 +4079,7 @@ func (this *Deepcoin) HandleErrors(code any, reason any, url any, method any, he
 		panic(ExchangeError(feedback))
 	} else {
 		var list any = this.SafeList(data, "list", []any{})
-		if (InOp(data, "list")) && (IsEqual(list, nil)) {
+		if (func() bool { _, ok := data["list"]; return ok }()) && (IsEqual(list, nil)) {
 			panic(NullResponse(feedback))
 		}
 	}

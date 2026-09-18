@@ -3483,7 +3483,7 @@ func (this *Bitfinex) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any
 	//     ]
 	//
 	var result map[string]any = map[string]any{}
-	var fiat any = this.SafeDict(this.Options, "fiat", map[string]any{})
+	var fiat map[string]any = SafeMapTyped(this.Options, "fiat")
 	var feeData any = this.SafeValue(response, 4, []any{})
 	var makerData any = this.SafeValue(feeData, 0, []any{})
 	var takerData any = this.SafeValue(feeData, 1, []any{})

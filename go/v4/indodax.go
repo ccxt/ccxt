@@ -1816,7 +1816,7 @@ func (this *Indodax) fetchDepositAddressesBody(ch chan any, optionalArgs ...any)
 	//
 	var data any = this.SafeDict(response, "return")
 	var addresses map[string]any = SafeMapTyped(data, "address")
-	var networks any = this.SafeDict(data, "network", map[string]any{})
+	var networks map[string]any = SafeMapTyped(data, "network")
 	var addressKeys []string = ObjectKeys(addresses)
 	var result map[string]any = map[string]any{
 		"info": data,
@@ -1828,7 +1828,7 @@ func (this *Indodax) fetchDepositAddressesBody(ch chan any, optionalArgs ...any)
 		if (address != nil) && ((IsEqual(codes, nil)) || (this.InArray(code, codes))) {
 			this.CheckAddress(address)
 			var network any = nil
-			if InOp(networks, marketId) {
+			if func() bool { _, ok := networks[marketId]; return ok }() {
 				var networkId *string = this.SafeString(networks, marketId)
 				if networkId == nil {
 					panic(ExchangeError(this.Id + " fetchDepositAddresses() missing networkId"))

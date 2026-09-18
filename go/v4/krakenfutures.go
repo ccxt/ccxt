@@ -2357,8 +2357,8 @@ func (this *Krakenfutures) fetchCanceledOrdersBody(ch chan any, optionalArgs ...
 	var canceledAndRejected any = []any{}
 	for i := 0; i < GetArrayLength(allOrders); i++ {
 		var order any = GetValue(allOrders, i)
-		var event any = this.SafeDict(order, "event", map[string]any{})
-		var isCancelledTriggerOrder bool = (InOp(event, "OrderTriggerCancelled"))
+		var event map[string]any = SafeMapTyped(order, "event")
+		var isCancelledTriggerOrder bool = (func() bool { _, ok := event["OrderTriggerCancelled"]; return ok }())
 		var orderPlaced any = this.SafeDict2(event, "OrderPlaced", "OrderTriggerCancelled")
 		if !IsEqual(orderPlaced, nil) {
 			var innerOrder any = this.SafeDict(orderPlaced, "order", map[string]any{})

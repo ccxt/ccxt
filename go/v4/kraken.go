@@ -749,7 +749,7 @@ func (this *Kraken) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	//     }
 	//
 	var markets map[string]any = SafeMapTyped(assetsResponse, "result")
-	var cachedCurrencies any = this.SafeDict(this.Options, "cachedCurrencies", map[string]any{})
+	var cachedCurrencies map[string]any = SafeMapTyped(this.Options, "cachedCurrencies")
 	var keys []string = ObjectKeys(markets)
 	var result any = []any{}
 	for i := 0; i < len(keys); i++ {
@@ -2242,7 +2242,7 @@ func (this *Kraken) createOrdersBody(ch chan any, orders any, optionalArgs ...an
 	return nil
 }
 func (this *Kraken) FindMarketByAltnameOrId(id any) any {
-	var marketsByAltname any = this.SafeDict(this.Options, "marketsByAltname", map[string]any{})
+	var marketsByAltname map[string]any = SafeMapTyped(this.Options, "marketsByAltname")
 	if InOp(marketsByAltname, id) {
 		return GetValue(marketsByAltname, id)
 	} else {
@@ -4606,8 +4606,8 @@ func (this *Kraken) HandleErrors(code any, reason any, url any, method any, head
 			}
 			// handleCreateOrdersErrors:
 			if InOp(response, "result") {
-				var result any = this.SafeDict(response, "result", map[string]any{})
-				if InOp(result, "orders") {
+				var result map[string]any = SafeMapTyped(response, "result")
+				if func() bool { _, ok := result["orders"]; return ok }() {
 					var orders any = this.SafeList(result, "orders", []any{})
 					for i := 0; i < GetArrayLength(orders); i++ {
 						var order any = GetValue(orders, i)

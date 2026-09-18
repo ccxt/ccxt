@@ -5842,7 +5842,7 @@ func (this *Mexc) fetchDepositAddressesByNetworkBody(ch chan any, code any, opti
 	if networkCode != nil {
 		// createDepositAddress and fetchDepositAddress use a different network-id compared to withdraw
 		var networkUnified any = this.NetworkIdToCode(networkCode, code)
-		var networks any = this.SafeDict(currency, "networks", map[string]any{})
+		var networks map[string]any = SafeMapTyped(currency, "networks")
 		if (networkUnified != nil) && (InOp(networks, networkUnified)) {
 			var network any = func() any {
 				if networkUnified == nil {
@@ -5916,7 +5916,7 @@ func (this *Mexc) createDepositAddressBody(ch chan any, code any, optionalArgs .
 	// createDepositAddress and fetchDepositAddress use a different network-id compared to withdraw
 	var networkId any = nil
 	var networkUnified any = this.NetworkIdToCode(networkCode, code)
-	var networks any = this.SafeDict(currency, "networks", map[string]any{})
+	var networks map[string]any = SafeMapTyped(currency, "networks")
 	if (networkUnified != nil) && (InOp(networks, networkUnified)) {
 		var network any = func() any {
 			if networkUnified == nil {

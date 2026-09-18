@@ -1271,7 +1271,7 @@ func (this *Bithumb) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 			}
 		}
 	} else {
-		var quoteCurrencies any = this.SafeDict(this.Options, "quoteCurrencies", map[string]any{})
+		var quoteCurrencies map[string]any = SafeMapTyped(this.Options, "quoteCurrencies")
 		var quotes []string = ObjectKeys(quoteCurrencies)
 		if !IsEqual(symbols, nil) {
 			var requiredQuotes map[string]any = map[string]any{}

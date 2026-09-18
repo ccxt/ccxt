@@ -6109,7 +6109,7 @@ func (this *Okx) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 		request["limit"] = mathMin(limit, maxLimit) // default 100, max 100
 	}
 	var options any = this.SafeDict(this.Options, "fetchOpenOrders", map[string]any{})
-	var algoOrderTypes any = this.SafeDict(this.Options, "algoOrderTypes", map[string]any{})
+	var algoOrderTypes map[string]any = SafeMapTyped(this.Options, "algoOrderTypes")
 	var defaultMethod *string = this.SafeString(options, "method", "privateGetTradeOrdersPending")
 	var method any = DerefScalar(this.SafeString(params, "method", defaultMethod))
 	var ordType *string = this.SafeString(params, "ordType")
@@ -6291,7 +6291,7 @@ func (this *Okx) fetchCanceledOrdersBody(ch chan any, optionalArgs ...any) any {
 	}
 	request["state"] = "canceled"
 	var options any = this.SafeDict(this.Options, "fetchCanceledOrders", map[string]any{})
-	var algoOrderTypes any = this.SafeDict(this.Options, "algoOrderTypes", map[string]any{})
+	var algoOrderTypes map[string]any = SafeMapTyped(this.Options, "algoOrderTypes")
 	var defaultMethod *string = this.SafeString(options, "method", "privateGetTradeOrdersHistory")
 	var method any = DerefScalar(this.SafeString(params, "method", defaultMethod))
 	var ordType *string = this.SafeString(params, "ordType")
@@ -6508,7 +6508,7 @@ func (this *Okx) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any {
 		request["limit"] = mathMin(limit, maxLimit) // default 100, max 100
 	}
 	var options any = this.SafeDict(this.Options, "fetchClosedOrders", map[string]any{})
-	var algoOrderTypes any = this.SafeDict(this.Options, "algoOrderTypes", map[string]any{})
+	var algoOrderTypes map[string]any = SafeMapTyped(this.Options, "algoOrderTypes")
 	var defaultMethod *string = this.SafeString(options, "method", "privateGetTradeOrdersHistory")
 	var method any = DerefScalar(this.SafeString(params, "method", defaultMethod))
 	var ordType *string = this.SafeString(params, "ordType")

@@ -1718,9 +1718,9 @@ func (this *Hitbtc) HandleMessage(client any, message any) {
 		}
 		if ccxt.IsArray(result) {
 			// to do improve this, not very reliable right now
-			var first any = this.SafeDict(result, 0, map[string]any{})
+			var first map[string]any = ccxt.SafeMapTyped(result, 0)
 			var arrayLength int = ccxt.GetArrayLength(result)
-			if (arrayLength == 0) || (ccxt.InOp(first, "client_order_id")) {
+			if (arrayLength == 0) || (func() bool { _, ok := first["client_order_id"]; return ok }()) {
 				this.HandleOrderRequest(client, message)
 			}
 		}

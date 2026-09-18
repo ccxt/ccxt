@@ -1766,8 +1766,8 @@ func (this *Bingx) HandlePositions(client any, message any) {
 		this.Positions = ccxt.NewArrayCacheBySymbolBySide()
 	}
 	var cache any = this.Positions
-	var data any = this.SafeDict(message, "a", map[string]any{})
-	if !(ccxt.InOp(data, "P")) {
+	var data map[string]any = ccxt.SafeMapTyped(message, "a")
+	if !(func() bool { _, ok := data["P"]; return ok }()) {
 		return
 	}
 	var rawPositions any = this.SafeList(data, "P", []any{})

@@ -373,7 +373,7 @@ func (this *Hyperliquid) Market(symbol any) any {
 	if (symbol != nil) && !(InOp(this.Markets, symbol)) {
 		var symbolParts []string = Split(symbol, "/")
 		var baseName *string = this.SafeString(symbolParts, 0)
-		var spotCurrencyMapping any = this.SafeDict(this.Options, "spotCurrencyMapping", map[string]any{})
+		var spotCurrencyMapping map[string]any = SafeMapTyped(this.Options, "spotCurrencyMapping")
 		if InOp(spotCurrencyMapping, baseName) {
 			var unifiedBaseName *string = this.SafeString(spotCurrencyMapping, baseName)
 			var quote *string = this.SafeString(symbolParts, 1)
@@ -715,7 +715,7 @@ func (this *Hyperliquid) fetchHip3MarketsBody(ch chan any, optionalArgs ...any) 
 			data["collateralToken"] = collateralToken
 			data["hip3"] = true
 			data["dex"] = dexName
-			var cachedCurrencies any = this.SafeDict(this.Options, "cachedCurrenciesById", map[string]any{})
+			var cachedCurrencies map[string]any = SafeMapTyped(this.Options, "cachedCurrenciesById")
 			// injecting collateral token name for further usage in parseMarket, already converted from like '0' to 'USDC', etc
 			if InOp(cachedCurrencies, collateralToken) {
 				var name *string = this.SafeString(data, "name")
@@ -6367,7 +6367,7 @@ func (this *Hyperliquid) HandleErrors(code any, reason any, url any, method any,
 		message = error
 	} else {
 		var responsePayload map[string]any = SafeMapTyped(response, "response")
-		var data any = this.SafeDict(responsePayload, "data", map[string]any{})
+		var data map[string]any = SafeMapTyped(responsePayload, "data")
 		var statuses any = this.SafeList(data, "statuses", []any{})
 		for i := 0; i < GetArrayLength(statuses); i++ {
 			message = DerefScalar(this.SafeString(GetValue(statuses, i), "error"))
@@ -6375,7 +6375,7 @@ func (this *Hyperliquid) HandleErrors(code any, reason any, url any, method any,
 				break
 			}
 		}
-		if InOp(data, "status") {
+		if func() bool { _, ok := data["status"]; return ok }() {
 			var errorStatus any = this.SafeDict(data, "status", map[string]any{})
 			var errorMsg *string = this.SafeString(errorStatus, "error")
 			if !IsEqual(errorStatus, nil) {

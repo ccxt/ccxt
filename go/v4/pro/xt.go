@@ -1903,7 +1903,7 @@ func (this *Xt) HandleBalance(client any, message any) {
 	//        }
 	//    }
 	//
-	var data any = this.SafeDict(message, "data", map[string]any{})
+	var data map[string]any = ccxt.SafeMapTyped(message, "data")
 	var currencyId *string = this.SafeString2(data, "c", "coin")
 	var code *string = this.SafeCurrencyCode(currencyId)
 	var account any = this.Account()
@@ -1915,7 +1915,7 @@ func (this *Xt) HandleBalance(client any, message any) {
 	}
 	this.Balance = this.SafeBalance(this.Balance)
 	var tradeType any = func() any {
-		if ccxt.InOp(data, "coin") {
+		if func() bool { _, ok := data["coin"]; return ok }() {
 			return "contract"
 		}
 		return "spot"

@@ -1122,10 +1122,10 @@ func (this *Gemini) ParseMarket(response any) any {
 		var marketIdUpper string = ToUpper(marketId)
 		var isPerp bool = (GetIndexOf(marketIdUpper, "PERP") >= 0)
 		var marketIdWithoutPerp string = Replace(marketIdUpper, "PERP", "")
-		var conflictingMarkets any = this.SafeDict(this.Options, "conflictingMarkets", map[string]any{})
+		var conflictingMarkets map[string]any = SafeMapTyped(this.Options, "conflictingMarkets")
 		var lowerCaseId string = ToLower(marketIdWithoutPerp)
-		if InOp(conflictingMarkets, lowerCaseId) {
-			var conflictingMarket any = GetValue(conflictingMarkets, lowerCaseId)
+		if func() bool { _, ok := conflictingMarkets[lowerCaseId]; return ok }() {
+			var conflictingMarket any = conflictingMarkets[lowerCaseId]
 			baseId = GetValue(conflictingMarket, "base")
 			quoteId = GetValue(conflictingMarket, "quote")
 			if isPerp {
