@@ -1280,7 +1280,7 @@ public class Cex extends CexApi
             } else if (Boolean.TRUE.equals(isClosedOrders))
             {
                 // exchange requires a `since` parameter for closed orders, so set default to allowed 365
-                ((Map<String, Object>)request).put("serverCreateTimestampFrom", Helpers.subtract(this.milliseconds(), ((((364L * 24L) * 60L) * 60L) * 1000L)));
+                ((Map<String, Object>)request).put("serverCreateTimestampFrom", (this.milliseconds() - ((((364L * 24L) * 60L) * 60L) * 1000L)));
             }
             Long until = null;
             List<Object> untilparametersVariable = (List<Object>) this.handleParamInteger2(parameters, "until", "till");
