@@ -386,11 +386,27 @@ function formatGoSource (filePath: string, content: string): string {
     return gofmt.stdout;
 }
 
+// Typed pointer locals print both `x !== undefined` and `x !== null` as `x != nil`, and the printer
+// also adds its own nil-guard before dereferencing (`x != nil && *x == ""`). Next to an explicit
+// TS undefined-check that yields `(x != nil) && (x != nil ...`, which is harmless but rejected by
+// `go vet` ("redundant and/or"), failing `go test`. Collapse the duplicated operand.
+export function collapseRedundantNilChecks (content: string): string {
+    const id = '([A-Za-z_][A-Za-z0-9_]*)';
+    return content
+        // (x != nil) && (x != nil && rest   ->  (x != nil) && (rest
+        .replace (new RegExp ('\\(' + id + ' != nil\\) && \\(\\1 != nil && ', 'g'), '($1 != nil) && (')
+        .replace (new RegExp ('\\(' + id + ' == nil\\) \\|\\| \\(\\1 == nil \\|\\| ', 'g'), '($1 == nil) || (')
+        // (x != nil) && (x != nil)          ->  (x != nil)
+        .replace (new RegExp ('\\(' + id + ' != nil\\) && \\(\\1 != nil\\)', 'g'), '($1 != nil)')
+        .replace (new RegExp ('\\(' + id + ' == nil\\) \\|\\| \\(\\1 == nil\\)', 'g'), '($1 == nil)');
+}
+
 function overwriteFileAndFolder (path: string, content: string) {
     if (!(fs.existsSync(path))) {
         checkCreateFolder (path);
     }
-    content = formatGoSource (path, content);
+    // after gofmt, so the match runs against canonical spacing
+    content = collapseRedundantNilChecks (formatGoSource (path, content));
     // overwriteFile() already opens+truncates+writes the file; the extra
     // fs.writeFileSync below wrote every generated file a second time
     overwriteFile (path, content);
