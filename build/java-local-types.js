@@ -7660,3 +7660,81 @@ function accessorResolvesToBase (printer, call, name, accessor) {
     }
     return resolvesToBaseAccessor (printer, call, name);
 }
+
+// ===== java-09: declared local types for the printer's element reads =====
+//
+// `x["lit"]` prints Helpers.GetValue(x, "lit") unless a proof types the receiver. The
+// checker proves dict-shaped values (phase-1 java-d3), the local-typing slices above
+// rewrite the DECLARATION of a box to its concrete Java type, and this slice closes the
+// gap between the two: it records the type every rewritten declaration carries and hands
+// the table to the printer (javaTranspiler.javaDeclaredLocalTypeResolver), so
+// `Helpers.GetValue(x, "lit")` prints `x.get("lit")` — the accessor returns the element or
+// null, exactly the helper's Map branch, and no cast is needed because the declaration
+// already carries the type. Installed LAST so the observer sees the final declaration text
+// of the whole chain (same print-order proof as patchJavaStringReceiverCasts). The table is
+// a WeakMap keyed by the declaration node, so a name in another scope can never match, and
+// a receiver that is not recorded (Object-declared, parameter, re-assigned) keeps the helper.
+//
+// A declaration is recorded only when the printed line is `<type> <name> = ` at its own
+// indentation; multi-declarator lists, `var` locals and prefix-rewritten statements are not
+// recorded (their type is the printer's, not a slice's).
+
+export function installJavaDeclaredLocalTypes (transpiler) {
+    const printer = transpiler?.javaTranspiler;
+    if (!printer || typeof printer.printVariableDeclarationList !== 'function' || printer._javaDeclaredLocalTypesPatched) {
+        return;
+    }
+    // declaration node -> Java type the emitted declaration carries
+    const declaredTypes = new WeakMap ();
+    const upstream = printer.printVariableDeclarationList.bind (printer);
+    printer.printVariableDeclarationList = function (node, identation) {
+        const printed = upstream (node, identation);
+        try {
+            javaDeclaredLocalTypeRecord (printer, node, identation, printed, declaredTypes);
+        } catch (e) {
+            // an observer error never breaks a print
+        }
+        return printed;
+    };
+    printer.javaDeclaredLocalTypeResolver = (declaration) => declaredTypes.get (declaration);
+    printer._javaDeclaredLocalTypesPatched = true;
+}
+
+// record `<type> <name> = ` when the FINAL printed text of the declaration chain carries a
+// type token in front of the local's name (the printer's own `Object` is a type too — the
+// consumers filter on the spelling they can use)
+function javaDeclaredLocalTypeRecord (printer, node, identation, printed, declaredTypes) {
+    if (node?.declarations?.length !== 1) {
+        return;
+    }
+    const declaration = node.declarations[0];
+    if (declaration.name?.kind !== ts.SyntaxKind.Identifier || declaration.initializer === undefined) {
+        return;
+    }
+    const iden = printer.getIden (identation);
+    const printedName = printer.printNode (declaration.name, 0);
+    const marker = ` ${printedName} = `;
+    const at = printed.lastIndexOf (marker);
+    if (at === -1) {
+        return;
+    }
+    const lineStart = printed.lastIndexOf ('\n', at) + 1;
+    if (!printed.startsWith (iden, lineStart)) {
+        return; // not the declaration's own line (a finalXxx prefix, a nested print)
+    }
+    const type = printed.slice (lineStart + iden.length, at).trim ();
+    if (!JAVA_EMITTED_TYPE_TEXT.test (type)) {
+        return;
+    }
+    if (JAVA_DECLARED_DEBUG) {
+        console.error (`[java09] ${declaration.name.escapedText} -> ${type}`);
+    }
+    declaredTypes.set (declaration, type);
+}
+
+const JAVA_DECLARED_DEBUG = typeof process !== 'undefined' && process.env !== undefined
+    && process.env.CCXT_JAVA09_DEBUG === '1';
+
+// a Java type token: a possibly qualified name, optional generic arguments, optional
+// array/varargs suffixes (`Map<String, Object>`, `java.util.List<Object>`, `Long`, `var`)
+const JAVA_EMITTED_TYPE_TEXT = /^[A-Za-z_$][\w$.]*(?:\s*<[^\n;=]*>)?(?:\s*\[\s*\])*$/;

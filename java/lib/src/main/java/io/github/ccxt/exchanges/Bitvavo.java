@@ -3197,7 +3197,7 @@ final Object finalBase = base;
         Object networkCode = this.networkIdToCode(networkId, currencyCode);
         if (!java.util.Objects.equals(networkCode, null))
         {
-            Helpers.addElementToObject(Helpers.GetValue(result, "networks"), networkCode, new HashMap<String, Object>() {{
+            Helpers.addElementToObject(result.get("networks"), networkCode, new HashMap<String, Object>() {{
     put( "deposit", ((Map<String, Object>)result).get("deposit") );
     put( "withdraw", ((Map<String, Object>)result).get("withdraw") );
 }});

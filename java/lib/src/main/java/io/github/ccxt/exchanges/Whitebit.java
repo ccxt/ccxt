@@ -1674,7 +1674,7 @@ public class Whitebit extends WhitebitApi
         put( "percent", Whitebit.this.safeNumber(Helpers.GetValue(finalDepositFee, "flex"), "percent") );
     }});
                         }
-                        Helpers.addElementToObject(Helpers.GetValue(limits, "deposit"), "fee", depositFeeData);
+                        Helpers.addElementToObject(limits.get("deposit"), "fee", depositFeeData);
                     }
                     if ((!java.util.Objects.equals(withdrawFee, null)) && (!java.util.Objects.equals(withdrawFee, null)))
                     {
@@ -1690,7 +1690,7 @@ public class Whitebit extends WhitebitApi
         put( "percent", Whitebit.this.safeNumber(Helpers.GetValue(finalWithdrawFee, "flex"), "percent") );
     }});
                         }
-                        Helpers.addElementToObject(Helpers.GetValue(limits, "withdraw"), "fee", withdrawFeeData);
+                        Helpers.addElementToObject(limits.get("withdraw"), "fee", withdrawFeeData);
                     }
                 }
                 // Add network-specific limits if available

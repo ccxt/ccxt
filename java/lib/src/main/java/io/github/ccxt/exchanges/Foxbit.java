@@ -1948,20 +1948,20 @@ public class Foxbit extends FoxbitApi
             }};
             if (java.util.Objects.equals(type, "LIMIT") || java.util.Objects.equals(type, "MARKET"))
             {
-                Helpers.addElementToObject(Helpers.GetValue(request, "create"), "quantity", this.amountToPrecision(symbol, amount));
+                Helpers.addElementToObject(request.get("create"), "quantity", this.amountToPrecision(symbol, amount));
                 if (java.util.Objects.equals(type, "LIMIT"))
                 {
-                    Helpers.addElementToObject(Helpers.GetValue(request, "create"), "price", this.priceToPrecision(symbol, price));
+                    Helpers.addElementToObject(request.get("create"), "price", this.priceToPrecision(symbol, price));
                 }
             }
             if (java.util.Objects.equals(type, "STOP_MARKET"))
             {
-                Helpers.addElementToObject(Helpers.GetValue(request, "create"), "stop_price", this.priceToPrecision(symbol, price));
-                Helpers.addElementToObject(Helpers.GetValue(request, "create"), "quantity", this.amountToPrecision(symbol, amount));
+                Helpers.addElementToObject(request.get("create"), "stop_price", this.priceToPrecision(symbol, price));
+                Helpers.addElementToObject(request.get("create"), "quantity", this.amountToPrecision(symbol, amount));
             }
             if (java.util.Objects.equals(type, "INSTANT"))
             {
-                Helpers.addElementToObject(Helpers.GetValue(request, "create"), "amount", this.priceToPrecision(symbol, amount));
+                Helpers.addElementToObject(request.get("create"), "amount", this.priceToPrecision(symbol, amount));
             }
             Map<String, Object> response = (this.v3PrivatePostOrdersCancelReplace(this.extend(request, parameters))).join();
             // {

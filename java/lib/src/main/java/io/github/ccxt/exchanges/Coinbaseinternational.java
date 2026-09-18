@@ -1180,7 +1180,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(networks)); i++)
         {
             Map<String, Object> network = this.extend(this.parseNetwork(Helpers.GetValue(networks, i)), parameters);
-            Helpers.addElementToObject(result, Helpers.GetValue(network, "network"), network);
+            Helpers.addElementToObject(result, network.get("network"), network);
         }
         return result;
     }

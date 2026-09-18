@@ -543,8 +543,8 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
             {
                 parameters = this.omit(parameters, "dex");
                 messageHash = ("tickers:" + defaultDex);
-                Helpers.addElementToObject(Helpers.GetValue(request, "subscription"), "type", "allMids");
-                Helpers.addElementToObject(Helpers.GetValue(request, "subscription"), "dex", defaultDex);
+                Helpers.addElementToObject(request.get("subscription"), "type", "allMids");
+                Helpers.addElementToObject(request.get("subscription"), "dex", defaultDex);
             }
             Object tickers = (this.watch(url, messageHash, this.extend(request, parameters), messageHash, null)).join();
             if (this.newUpdates)

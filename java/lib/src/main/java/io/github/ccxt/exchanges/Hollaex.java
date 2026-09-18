@@ -2362,7 +2362,7 @@ public class Hollaex extends HollaexApi
                 }
                 Object networkCodeUpper = ((String)networkCode).toUpperCase(); // default to the upper case network code
                 Double withdrawalFee = this.safeNumber(value, "value");
-                Helpers.addElementToObject(Helpers.GetValue(result, "networks"), networkCodeUpper, new HashMap<String, Object>() {{
+                Helpers.addElementToObject(result.get("networks"), networkCodeUpper, new HashMap<String, Object>() {{
     put( "deposit", null );
     put( "withdraw", withdrawalFee );
 }});

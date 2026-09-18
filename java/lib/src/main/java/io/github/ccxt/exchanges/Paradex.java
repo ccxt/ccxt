@@ -2047,8 +2047,8 @@ public class Paradex extends ParadexApi
             Object signature = this.starknetSign(msg, Helpers.GetValue(account, "privateKey"));
             ((Map<String, Object>)parameters).put("signature", signature);
             ((Map<String, Object>)parameters).put("account", Helpers.GetValue(account, "address"));
-            ((Map<String, Object>)parameters).put("timestamp", Helpers.GetValue(req, "timestamp"));
-            ((Map<String, Object>)parameters).put("expiration", Helpers.GetValue(req, "expiration"));
+            ((Map<String, Object>)parameters).put("timestamp", req.get("timestamp"));
+            ((Map<String, Object>)parameters).put("expiration", req.get("expiration"));
             Map<String, Object> response = (this.privatePostAuth(parameters)).join();
             //
             // {

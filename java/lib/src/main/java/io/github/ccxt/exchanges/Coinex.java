@@ -6158,8 +6158,8 @@ final Object finalI = i;
             Boolean isWithdrawEnabled = (Boolean) this.safeBool(entry, "withdraw_enabled");
             if (java.util.Objects.equals(isWithdrawEnabled, true))
             {
-                Helpers.addElementToObject(Helpers.GetValue(result, "withdraw"), "fee", this.safeNumber(entry, "withdrawal_fee"));
-                Helpers.addElementToObject(Helpers.GetValue(result, "withdraw"), "percentage", false);
+                Helpers.addElementToObject(result.get("withdraw"), "fee", this.safeNumber(entry, "withdrawal_fee"));
+                Helpers.addElementToObject(result.get("withdraw"), "percentage", false);
                 String networkId = this.safeString(entry, "chain");
                 if ((!java.util.Objects.equals(networkId, null)) && (!java.util.Objects.equals(networkId, "")))
                 {
@@ -6168,7 +6168,7 @@ final Object finalI = i;
                     Object networkCode = this.networkIdToCode(networkId, feeCode);
                     if (!java.util.Objects.equals(networkCode, null))
                     {
-                        Helpers.addElementToObject(Helpers.GetValue(result, "networks"), networkCode, new HashMap<String, Object>() {{
+                        Helpers.addElementToObject(result.get("networks"), networkCode, new HashMap<String, Object>() {{
     put( "withdraw", new HashMap<String, Object>() {{
         put( "fee", Coinex.this.safeNumber(entry, "withdrawal_fee") );
         put( "percentage", false );

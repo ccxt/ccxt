@@ -881,7 +881,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
             }};
             if (!java.util.Objects.equals(limit, null))
             {
-                Helpers.addElementToObject(Helpers.GetValue(request, "params"), "limit", limit);
+                Helpers.addElementToObject(request.get("params"), "limit", limit);
             }
             Object ohlcv = (this.subscribePublic(name, "candles", new ArrayList<Object>(Arrays.asList(symbol)), this.deepExtend(request, parameters))).join();
             if (this.newUpdates)
