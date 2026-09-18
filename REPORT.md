@@ -101,6 +101,9 @@ conversion removes no cast because these locals carried none.)
   repo-wide fixed point: the farm's own transpile of the committed sha reproduced this tree byte-for-byte
   (my scoped regen covered every file the change can touch). This REPORT is the tip commit on top of that
   sha and adds only `REPORT.md` (no build input), so the farm-green commit is the tree under the tip.
+  The report commit `677576bca2a9be548b4cc5e49767b4b695fbdbc2` was re-gated on its own (throwaway
+  branch `cs90-U12-verify`, deleted afterwards) → **job 662 exit=0 `branch_update=unchanged`**, so the
+  final tip itself carries a farm result (notes are sha-keyed: `ccxt-farm status <sha>`).
 
 ### verify-diff justifications (16/16)
 
