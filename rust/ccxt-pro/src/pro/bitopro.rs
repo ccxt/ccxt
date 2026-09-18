@@ -712,10 +712,10 @@ impl BitoproCore {
                 m.insert("X-BITOPRO-SIGNATURE".to_string(), signature.clone());
             m
         });
-        add_element_to_object(get_value_mut(get_value_mut(unsafe { crate::runtime::coerce_value_to_mut(&self.options) }, &Value::Str("ws".to_string())), &Value::Str("options".to_string())), &Value::Str("headers".to_string()), headers.clone());
+        add_element_to_object(get_value_mut(get_value_mut(&mut self.options, &Value::Str("ws".to_string())), &Value::Str("options".to_string())), &Value::Str("headers".to_string()), headers.clone());
         // instantiate client
         self.client(&[url.clone()]);
-        add_element_to_object(get_value_mut(get_value_mut(unsafe { crate::runtime::coerce_value_to_mut(&self.options) }, &Value::Str("ws".to_string())), &Value::Str("options".to_string())), &Value::Str("headers".to_string()), originalHeaders.clone());
+        add_element_to_object(get_value_mut(get_value_mut(&mut self.options, &Value::Str("ws".to_string())), &Value::Str("options".to_string())), &Value::Str("headers".to_string()), originalHeaders.clone());
 }
 
 /*

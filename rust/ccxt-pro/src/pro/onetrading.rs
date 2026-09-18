@@ -530,8 +530,8 @@ impl OnetradingCore {
             let mut symbol: Value = self.safe_symbol(marketId.clone(), &[]);
             { let __be_tmp = self.parse_ws_ticker(ticker.clone(), &[]); add_element_to_object(&mut self.tickers, &symbol, __be_tmp); };
             let mut timestamp: Value = self.parse8601(datetime.clone());
-            add_element_to_object(get_value_mut(unsafe { crate::runtime::coerce_value_to_mut(&self.tickers) }, &symbol), &Value::Str("timestamp".to_string()), timestamp.clone());
-            { let __be_tmp = self.iso8601(timestamp.clone()); add_element_to_object(get_value_mut(unsafe { crate::runtime::coerce_value_to_mut(&self.tickers) }, &symbol), &Value::Str("datetime".to_string()), __be_tmp); };
+            add_element_to_object(get_value_mut(&mut self.tickers, &symbol), &Value::Str("timestamp".to_string()), timestamp.clone());
+            { let __be_tmp = self.iso8601(timestamp.clone()); add_element_to_object(get_value_mut(&mut self.tickers, &symbol), &Value::Str("datetime".to_string()), __be_tmp); };
             client.resolve(&[get_value(&self.tickers, &symbol), Value::Str(format!("{}{}", Value::Str("ticker.".to_string()), symbol))]);
         }
         }
@@ -1612,7 +1612,7 @@ impl OnetradingCore {
         }
         stored.append(parsed.clone());
         if (symbol != Value::Null) && (timeframe != Value::Null) {
-            add_element_to_object(get_value_mut(unsafe { crate::runtime::coerce_value_to_mut(&self.ohlcvs) }, &symbol), &timeframe, stored.clone());
+            add_element_to_object(get_value_mut(&mut self.ohlcvs, &symbol), &timeframe, stored.clone());
         }
         client.resolve(&[stored.clone(), channel.clone()]);
 }

@@ -1369,7 +1369,7 @@ impl DeribitCore {
 })]); add_element_to_object(&mut self.ohlcvs, &symbol, __be_tmp); };
         if (self.safe_value(get_value(&self.ohlcvs, &symbol), unifiedTimeframe.clone(), &[]) == Value::Null) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "OHLCVLimit", &[Value::Int(1000)]);
-            add_element_to_object(get_value_mut(unsafe { crate::runtime::coerce_value_to_mut(&self.ohlcvs) }, &symbol), &unifiedTimeframe, ArrayCacheByTimestamp::new(limit.clone()));
+            add_element_to_object(get_value_mut(&mut self.ohlcvs, &symbol), &unifiedTimeframe, ArrayCacheByTimestamp::new(limit.clone()));
         }
         let mut stored: Value = get_value(&get_value(&self.ohlcvs, &symbol), &unifiedTimeframe);
         let mut ohlcv: Value = self.safe_dict_k(params, "data", &[Value::Map({
@@ -1379,7 +1379,7 @@ impl DeribitCore {
         // data contains a single OHLCV candle
         let mut parsed: Value = self.parse_ws_ohlcv(ohlcv.clone(), &[market.clone()]);
         stored.append(parsed.clone());
-        add_element_to_object(get_value_mut(unsafe { crate::runtime::coerce_value_to_mut(&self.ohlcvs) }, &symbol), &unifiedTimeframe, stored.clone());
+        add_element_to_object(get_value_mut(&mut self.ohlcvs, &symbol), &unifiedTimeframe, stored.clone());
         let mut resolveData: Value = Value::List(vec![symbol.clone(), unifiedTimeframe.clone(), stored.clone()]);
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("chart.trades|".to_string()), symbol)), Value::Str("|".to_string()))), rawTimeframe));
         client.resolve(&[resolveData.clone(), messageHash.clone()]);
