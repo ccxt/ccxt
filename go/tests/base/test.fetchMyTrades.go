@@ -18,7 +18,7 @@ func testFetchMyTradesBody(ch chan any, exchange ccxt.ICoreExchange, skippedProp
 	trades := (<-exchange.FetchMyTradesAsync(symbol))
 	PanicOnError(trades)
 	AssertNonEmtpyArray(exchange, skippedProperties, method, trades, symbol)
-	var now any = exchange.Milliseconds()
+	var now int64 = exchange.Milliseconds()
 	for i := 0; IsLessThan(i, GetArrayLength(trades)); i++ {
 		TestTrade(exchange, skippedProperties, method, GetValue(trades, i), symbol, now, false)
 	}

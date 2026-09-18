@@ -63,7 +63,7 @@ func TestExtend() {
 	var obj2SnapshotB0 any = ccxt.GetValue(ccxt.GetValue(obj2, "b"), 0)
 	var obj2SnapshotOther2 any = ccxt.GetValue(obj2, "other2")
 	// --- test 1: basic extend ---
-	var extended any = exchange.Extend(obj1, obj2)
+	var extended map[string]any = exchange.Extend(obj1, obj2)
 	TbfeCheckExtended(extended, true)
 	// --- mutation check: obj1 must NOT be mutated ---
 	assert((ccxt.GetValue(obj1, "a") == obj1SnapshotA), "obj1.a was mutated after extend")
@@ -85,7 +85,7 @@ func TestExtend() {
 		"e":      "back_to_string",
 		"other3": "z",
 	}
-	var extended2 any = exchange.Extend(extended, obj3)
+	var extended2 map[string]any = exchange.Extend(extended, obj3)
 	assert(ccxt.IsEqual(ccxt.GetValue(extended2, "a"), 3), "step2: a")
 	assert(ccxt.IsEqual(ccxt.GetValue(ccxt.GetValue(extended2, "b"), 0), 5), "step2: b[0]")
 	assert(ccxt.IsEqual(ccxt.GetValue(ccxt.GetValue(extended2, "b"), 1), 6), "step2: b[1]")
@@ -119,9 +119,9 @@ func TestExtend() {
 		"x":  3,
 		"p3": true,
 	}
-	var r1 any = exchange.Extend(base, patch1)
-	var r2 any = exchange.Extend(r1, patch2)
-	var r3 any = exchange.Extend(r2, patch3)
+	var r1 map[string]any = exchange.Extend(base, patch1)
+	var r2 map[string]any = exchange.Extend(r1, patch2)
+	var r3 map[string]any = exchange.Extend(r2, patch3)
 	assert(ccxt.IsEqual(ccxt.GetValue(r3, "x"), 3), "chain: r3['x'] should be 3 after 3 patches")
 	assert(ccxt.IsEqual(ccxt.GetValue(r3, "keep"), "yes"), "chain: r3['keep'] should be preserved")
 	assert(ccxt.IsEqual(ccxt.GetValue(r3, "p1"), true), "chain: r3['p1'] should be present")
@@ -143,7 +143,7 @@ func TestExtend() {
 		"keep2":  nil,
 		"newKey": "C",
 	}
-	var extUndef any = exchange.Extend(withValues, withUndefs)
+	var extUndef map[string]any = exchange.Extend(withValues, withUndefs)
 	// extend() merges ALL keys (including undefined ones), so undefined wins over previous value
 	assert(ccxt.IsEqual(ccxt.GetValue(extUndef, "keep1"), nil), "extend: extUndef['keep1'] should be undefined")
 	assert(ccxt.IsEqual(ccxt.GetValue(extUndef, "keep2"), nil), "extend: extUndef['keep2'] should be undefined")

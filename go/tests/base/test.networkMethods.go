@@ -128,7 +128,7 @@ func HelperBatchNetworkTests() {
 			var result any = exchange.NetworkIdToCode(randomNetworkCode, randomCurrencyCode)
 			var keys []string = ccxt.ObjectKeys(defaultNetworkCodeReplacements)
 			for k := 0; ccxt.IsLessThan(k, ccxt.GetArrayLength(keys)); k++ {
-				var chainBaseCoin any = ccxt.GetValue(keys, k)
+				var chainBaseCoin string = ccxt.GetValue(keys, k).(string)
 				var chainMapping any = ccxt.GetValue(defaultNetworkCodeReplacements, chainBaseCoin)
 				var primaryNetworkCode any = ccxt.GetValue(chainMapping, "primary")
 				var secondaryNetworkCode any = ccxt.GetValue(chainMapping, "secondary")

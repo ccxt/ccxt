@@ -523,6 +523,21 @@ func SafeBool(obj any, key any, defaultValue any) any {
 	return defaultValue
 }
 
+// SafeStringPtr gives a transpiled string-ish accessor the pointer shape the hand-written
+// Safe* layer uses: a string becomes a *string, anything else (including the untyped nil
+// derefScalar produces for an absent value) stays absent as a nil pointer. Used by the
+// coerced SafeCurrencyCode/SafeSymbol signatures (see coerceTypedStringAccessors and
+// coerceTypedStringAccessorOverrides in build/goTranspiler.ts); mirrors how SafeString below
+// unwraps its own result. Exported because an exchange that overrides one of the two
+// accessors lives outside the ccxt package (pro/prediction) and the transpiler qualifies
+// package-level names there.
+func SafeStringPtr(v any) *string {
+	if s, ok := derefScalar(v).(string); ok {
+		return &s
+	}
+	return nil
+}
+
 // private wrappers
 
 func (this *BaseExchange) SafeString(obj any, key any, defaultValue ...any) *string {
@@ -712,6 +727,71 @@ func (this *BaseExchange) SafeFloatN(obj any, keys []any, defaultValue ...any) *
 	return nil
 }
 
+// toFloat64Ptr boxes the value a numeric helper handed back as `any` into the *float64
+// shape the Safe*Number accessors return: an absent value (untyped or typed nil) stays
+// nil, any Go numeric becomes a float64 pointer — the Go encoding of the TS `number`,
+// matching what the hand-written SafeFloat layer does with a default value.
+func toFloat64Ptr(v any) *float64 {
+	switch n := derefScalar(v).(type) {
+	case float64:
+		return &n
+	case int64:
+		f := float64(n)
+		return &f
+	case int:
+		f := float64(n)
+		return &f
+	}
+	return nil
+}
+
+// SafeNumber / SafeNumber2 / SafeNumberN / SafeNumberOmitZero mirror the TS safeNumber*
+// methods. They are TS methods, so the printer emits them into exchange_generated.go —
+// with an `any` return, because the `Num` annotation is a nullable alias. The transpiled
+// copies are dropped (build/goTranspiler.ts) in favour of these: the same bodies, with
+// the honest *float64 the other ports carry, so their locals can be typed
+// (build/go-local-types.js) — nil pointer = absent, present zero = non-nil pointer.
+
+func (this *BaseExchange) SafeNumber(obj any, key any, defaultValue ...any) *float64 {
+	var defVal any = nil
+	if len(defaultValue) > 0 {
+		defVal = derefScalar(defaultValue[0])
+	}
+	var value *string = this.SafeString(obj, key)
+	return toFloat64Ptr(this.ParseNumber(value, defVal))
+}
+
+func (this *BaseExchange) SafeNumber2(obj any, key1 any, key2 any, defaultValue ...any) *float64 {
+	var defVal any = nil
+	if len(defaultValue) > 0 {
+		defVal = derefScalar(defaultValue[0])
+	}
+	var value *string = this.SafeString2(obj, key1, key2)
+	return toFloat64Ptr(this.ParseNumber(value, defVal))
+}
+
+func (this *BaseExchange) SafeNumberN(obj any, keys any, defaultValue ...any) *float64 {
+	var defVal any = nil
+	if len(defaultValue) > 0 {
+		defVal = derefScalar(defaultValue[0])
+	}
+	var value *string = this.SafeStringN(obj, keys)
+	return toFloat64Ptr(this.ParseNumber(value, defVal))
+}
+
+func (this *BaseExchange) SafeNumberOmitZero(obj any, key any, defaultValue ...any) *float64 {
+	var defVal any = nil
+	if len(defaultValue) > 0 {
+		defVal = derefScalar(defaultValue[0])
+	}
+	var value *string = this.SafeString(obj, key)
+	var final any = this.ParseNumber(this.OmitZero(value))
+	if IsEqual(final, nil) {
+		return toFloat64Ptr(defVal)
+	}
+	return toFloat64Ptr(final)
+}
+
 func (this *BaseExchange) SafeInteger(obj any, key any, defaultValue ...any) *int64 {
 	var defVal any = nil
 	if len(defaultValue) > 0 {
@@ -797,6 +877,53 @@ func (this *BaseExchange) SafeValueN(obj any, keys any, defaultValue ...any) any
 		defVal = derefScalar(defaultValue[0])
 	}
 	return SafeValueN(obj, keysArray, defVal)
+}
+
+// SafeBool / SafeBool2 / SafeBoolN. Unlike the rest of the Safe* pointer layer, whose TS
+// bodies are imported free functions, TS declares these three as methods, so the printer emits
+// `any` copies into exchange_generated.go. build/goTranspiler.ts drops that copy (see the
+// SafeBool entry in its base-methods regexAll) and these hand-written twins stand in, with the
+// same contract as SafeString/SafeFloat/SafeInteger: nil means "absent" (no default supplied,
+// or the default is not a bool), a present false is returned as a pointer to false, and the
+// value read back through a caller-facing shim is unchanged because every shim derefs at entry.
+func (this *BaseExchange) SafeBool(obj any, key any, defaultValue ...any) *bool {
+	var defVal any = nil
+	if len(defaultValue) > 0 {
+		defVal = derefScalar(defaultValue[0])
+	}
+	res := this.SafeValue(obj, key, defVal)
+	if v, ok := derefScalar(res).(bool); ok {
+		return &v
+	}
+	return nil
+}
+
+func (this *BaseExchange) SafeBool2(obj any, key any, key2 any, defaultValue ...any) *bool {
+	var defVal any = nil
+	if len(defaultValue) > 0 {
+		defVal = derefScalar(defaultValue[0])
+	}
+	res := this.SafeValue(obj, key)
+	if v, ok := derefScalar(res).(bool); ok {
+		return &v
+	}
+	res = this.SafeValue(obj, key2, defVal)
+	if v, ok := derefScalar(res).(bool); ok {
+		return &v
+	}
+	return nil
+}
+
+func (this *BaseExchange) SafeBoolN(obj any, keys any, defaultValue ...any) *bool {
+	var defVal any = nil
+	if len(defaultValue) > 0 {
+		defVal = derefScalar(defaultValue[0])
+	}
+	res := this.SafeValueN(obj, keys, defVal)
+	if v, ok := derefScalar(res).(bool); ok {
+		return &v
+	}
+	return nil
 }
 
 func (this *BaseExchange) SafeTimestamp(obj any, key any, defaultValue ...any) *int64 {
