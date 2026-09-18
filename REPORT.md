@@ -90,6 +90,10 @@ Determinism: the full local regen (REST + prediction + base, then `--ws`) run tw
   (21 files, same shape: `getValue(x, i)` → `x[i]`) and compiled the full C# tree with it.
   After the green build the branch was reset to `14e82a05d55` per the campaign rule, so the unit
   branch carries only its own commits (the farm's `[Automated changes]` commit stays on the farm ref).
+* Farm, final tip: **job 880, `HEAD 7a69a1f0a96d job=880 exit=0 branch_update=fast_forward
+  generator=040b8173b3a2d2ba21e730ae2f93dd7d1fa24069`** for sha `db0e8376a6e` (the report commit;
+  gated from the throwaway branch `cs90-U59-gate`, deleted after). Every commit after it is
+  report-only, so `git diff db0e8376a6e HEAD -- cs/` is empty and that build covers the tip's tree.
 
 ## Rejected sub-cases (each with its reason)
 
