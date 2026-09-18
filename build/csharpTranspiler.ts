@@ -1201,6 +1201,31 @@ const CORE_ARG_SHADOW_CALLEE_ONLY_POSITIONS: Record<string, number[]> = {
     'add': [ 1 ],
 };
 
+// cs90 U42: the declared types `retypeIdentifierCopies` may name for a plain identifier copy
+// (`object x = <typed param or local>;`). Every entry is a type the emitted tree already
+// carries on a declaration line, so the copy names what the box already is.
+const U42_COPY_TYPES = [ 'string', 'string?', 'Int64?', 'double?', 'bool?', 'IList<object>', 'List<object>', 'Dictionary<string, object>', 'IDictionary<string, object>' ];
+
+// The sources (parameter names) and copies the roster assigns to U23 (`limit`) and U24/U25
+// (`symbol`, `timeframe`, `since`, `currency`, `tag`): a sibling unit owns those sites, so this
+// unit never retypes them.
+const U42_COPY_OWNED_SOURCES = [ 'limit', 'symbol', 'timeframe', 'since', 'currency', 'tag' ];
+const U42_COPY_OWNED_ALIASES = [ 'limitVar', 'symbolVar', 'timeframeVar', 'sinceVar', 'currencyVar', 'tagVar', 'startTime', 'tag' ];
+
+// Callees every definition of which declares `object` in the position an argument lands in
+// (`currency`, `networkIdToCode`, `safeCurrencyCode`, `safeOutcome`, `safeOutcomeSymbol`,
+// `filterByValueSinceLimit`), plus `getArrayLength`, whose List/IList twins are identity copies
+// of the `object` overload's IList branch (null -> 0). Definitions: cs/ccxt/base/*.cs.
+const U42_COPY_CALLEES = [ 'currency', 'networkIdToCode', 'safeCurrencyCode', 'safeOutcome', 'safeOutcomeSymbol', 'filterByValueSinceLimit', 'getArrayLength' ];
+
+// Box-identical widening edges a write may cross: `List<object>` implements `IList<object>`, and
+// `string?` is the same C# type as `string` (a CS86xx warning is all the annotation adds).
+const U42_COPY_WIDENING: Record<string, boolean> = {
+    'List<object>->IList<object>': true,
+    'Dictionary<string, object>->IDictionary<string, object>': true,
+    'string?->string': true,
+};
+
 // cs-strict S01: the `code` core-arg. CORE_STRING_ARGS narrows the positions `code` is passed to,
 // and castCoreArgCallSites wraps every argument at those call sites -- including the ones that
 // already pass the narrowed type, which is what the caller cores do: `withdraw (code: Str)` prints
@@ -3539,6 +3564,260 @@ class NewTranspiler {
         return this.dropRedundantCoreArgCasts (this.retypeCoreArgCopies (content));
     }
 
+    // ===== cs90 U42: plain identifier copies of typed params / typed locals =====
+    // Rules and every rejected sub-case: campaigns/cs90/U42/REPORT.md. The source's type is read
+    // off the EMITTED text (the signature line / the local's declaration) -- the printer answers
+    // `object` for every parameter at print time, so this proof cannot live in the classifier --
+    // and the copy names it only when every other use is an identity by `coreArgShadowUseKind`
+    // plus the extra shapes below. Ownership: U23/U24/U25 sources and aliases are skipped.
+    retypeIdentifierCopies (content: string): string {
+        if (!/^\s*object \w+ = \w+;\s*$/m.test (content)) {
+            return content;
+        }
+        const lines = content.split ('\n');
+        const sigRe = /^(\s*)(?:public|private|protected|internal)\s+(?:static\s+)?(?:async\s+)?(?:virtual\s+|override\s+|sealed\s+|new\s+)*([\w<>., ?\[\]]+)\s+(\w+)\s*\((.*)\)\s*$/;
+        for (let i = 0; i < lines.length; i++) {
+            const sig = sigRe.exec (lines[i]);
+            if (sig === null || lines[i + 1] !== sig[1] + '{') {
+                continue; // only a method with its body block on the next line
+            }
+            const [ , indent, returnType, , plist ] = sig;
+            const params: Record<string, string> = {};
+            for (const param of this.splitCsharpParams (plist)) {
+                const decl = param.split ('=')[0].trim ().split (/\s+/);
+                if (decl.length >= 2) {
+                    params[decl[decl.length - 1]] = decl.slice (0, -1).join (' ');
+                }
+            }
+            let bodyEnd = lines.length - 1;
+            for (let j = i + 2; j < lines.length; j++) {
+                if (lines[j] === indent + '}') { bodyEnd = j; break; }
+            }
+            const bodyLines = lines.slice (i + 2, bodyEnd);
+            // local declarations of the body: a type the printer or a retype pass already
+            // emitted. A name declared twice (two sibling blocks) proves nothing.
+            const locals: Record<string, string> = {};
+            const localCounts: Record<string, number> = {};
+            for (const line of bodyLines) {
+                const decl = /^\s*([A-Za-z_][\w<>, ?\[\]]*?)\s+(\w+)\s*=/.exec (line);
+                if (decl !== null) {
+                    locals[decl[2]] = decl[1].trim ();
+                    localCounts[decl[2]] = (localCounts[decl[2]] ?? 0) + 1;
+                }
+            }
+            // declared types visible to the proof: the method's parameters and its own single
+            // local declarations. A name bound by both (a local shadowing a parameter) is dropped.
+            const declared: Record<string, string> = {};
+            for (const name of Object.keys (params)) {
+                if ((localCounts[name] ?? 0) === 0) {
+                    declared[name] = params[name];
+                }
+            }
+            for (const name of Object.keys (locals)) {
+                if ((localCounts[name] ?? 0) === 1 && params[name] === undefined) {
+                    declared[name] = locals[name];
+                }
+            }
+            let changed = false;
+            for (let k = 0; k < bodyLines.length; k++) {
+                const decl = /^(\s*)object (\w+) = (\w+);\s*$/.exec (bodyLines[k]);
+                if (decl === null) {
+                    continue;
+                }
+                const [ , dindent, alias, source ] = decl;
+                if (U42_COPY_OWNED_ALIASES.indexOf (alias) !== -1 || U42_COPY_OWNED_SOURCES.indexOf (source) !== -1) {
+                    continue;
+                }
+                const type = declared[source];
+                if (type === undefined || U42_COPY_TYPES.indexOf (type) === -1) {
+                    continue;
+                }
+                if (this.u42CopyIsProvable (bodyLines, alias, type, returnType, k, declared)) {
+                    bodyLines[k] = dindent + type + ' ' + alias + ' = ' + source + ';';
+                    changed = true;
+                }
+            }
+            if (changed) {
+                for (let k = 0; k < bodyLines.length; k++) {
+                    lines[i + 2 + k] = bodyLines[k];
+                }
+            }
+            i = bodyEnd;
+        }
+        return lines.join ('\n');
+    }
+
+    // True when `alias` (declared type `targetType` by retypeIdentifierCopies) is used only in
+    // the proven shapes of `coreArgShadowIsProvable` plus this unit's own extensions, and is
+    // read at least once (a write-only local is CS0219).
+    u42CopyIsProvable (bodyLines: string[], alias: string, targetType: string, methodReturnType: string, skipLine: number, declared: Record<string, string>): boolean {
+        const lines: string[] = [];
+        const dictInits: boolean[] = [];
+        const frames: number[][] = [];
+        let inBlock = false;
+        let depth = 0;
+        for (const raw of bodyLines) {
+            let line = raw;
+            if (inBlock) {
+                const end = line.indexOf ('*/');
+                if (end === -1) { line = ''; } else { line = line.slice (end + 2); inBlock = false; }
+            }
+            const open = line.indexOf ('/*');
+            if (open !== -1) {
+                const end = line.indexOf ('*/', open);
+                if (end === -1) { line = line.slice (0, open); inBlock = true; } else { line = line.slice (0, open) + line.slice (end + 2); }
+            }
+            const slash = this.coreArgShadowCommentAt (line);
+            if (slash !== -1) {
+                line = line.slice (0, slash);
+            }
+            while (frames.length > 0 && frames[frames.length - 1][0] > depth) {
+                frames.pop ();
+            }
+            dictInits.push (frames.some ((frame) => frame[1] === 1));
+            if (/(?:new Dictionary<string, object>|new List<object>|new object\[\])\s*\(?\s*\)?\s*\{/.test (line)) {
+                const isDict = /new Dictionary<string, object>\s*\(?\s*\)?\s*\{/.test (line);
+                frames.push ([ depth + this.coreArgShadowBraceDelta (line), isDict ? 1 : 0 ]);
+            }
+            depth += this.coreArgShadowBraceDelta (line);
+            lines.push (line);
+        }
+        let reads = 0;
+        for (let k = 0; k < lines.length; k++) {
+            if (k === skipLine) {
+                continue;
+            }
+            const line = lines[k];
+            for (const at of this.coreArgShadowOccurrences (line, alias)) {
+                const kind = this.u42CopyUseKind (line, at, alias, targetType, methodReturnType, dictInits[k], declared);
+                if (kind === '') {
+                    return false;
+                }
+                if (kind === 'read') {
+                    reads += 1;
+                }
+            }
+        }
+        return reads > 0;
+    }
+
+    // One occurrence of a U42 copy: `coreArgShadowUseKind`'s rules for the type it knows (`string?`
+    // is the same C# type as `string`), then this unit's extra write / read / callee shapes.
+    u42CopyUseKind (line: string, at: number, alias: string, targetType: string, methodReturnType: string, inDictInit: boolean, declared: Record<string, string>): string {
+        const bare = (targetType === 'string?') ? 'string' : targetType;
+        const known = this.coreArgShadowUseKind (line, at, alias, bare, methodReturnType, inDictInit, true);
+        if (known !== '') {
+            return known;
+        }
+        const pre = line.slice (0, at);
+        const post = line.slice (at + alias.length);
+        if (/(?:ref|out)\s+$/.test (pre)) {
+            return '';
+        }
+        if (pre.trim () === '') {
+            const m = /^\s*(?:\?\?=|=)\s*(.*?);?\s*$/.exec (post);
+            if (m !== null && this.u42CopyRhsIsTyped (m[1].trim (), targetType, declared)) {
+                return 'write';
+            }
+            return '';
+        }
+        const postl = post.replace (/^\s+/, '');
+        // `alias.ToString ()`: `object.ToString ()` and `string.ToString ()` are the same virtual
+        // call (a null throws either way), so the receiver's static type moves nothing
+        if ((targetType === 'string' || targetType === 'string?') && /^\.ToString\s*\(\s*\)/.test (postl)) {
+            return 'read';
+        }
+        if (postl.charAt (0) === ',' || postl.charAt (0) === ')') {
+            const callee = this.coreArgShadowCallee (line, at);
+            if (callee !== null && U42_COPY_CALLEES.indexOf (callee[0].split ('.').pop () as string) !== -1) {
+                return 'read';
+            }
+        }
+        // `<other> = alias;` where `other` is a local the body declares with a type the copy's
+        // own type converts to implicitly: the assignment stores the same reference / box the
+        // `object` spelling stored, and the target's own declaration (and every later use of it)
+        // is untouched by this pass.
+        const assign = /^(\w+)\s*=\s*$/.exec (pre.trim ());
+        if (assign !== null && postl.trim () === ';') {
+            const target = declared[assign[1]];
+            if (target === 'object' || target === targetType || U42_COPY_WIDENING[targetType + '->' + target] === true) {
+                return 'read';
+            }
+        }
+        // `<dict>["key"] = alias;` on a receiver this body declares Dictionary<string, object> /
+        // IDictionary<string, object>: the slot is `object`, so the value boxes the same either
+        // way (the `coreArgShadowUseKind` rule of the same shape needs the cast spelling in the
+        // line, which a typed local does not carry)
+        const element = /^(\w+)\s*\[[^\]]*\]\s*=\s*$/.exec (pre.trim ());
+        if (element !== null && postl.trim () === ';') {
+            const receiver = declared[element[1]];
+            if (receiver === 'Dictionary<string, object>' || receiver === 'IDictionary<string, object>') {
+                return 'read';
+            }
+        }
+        return '';
+    }
+
+    // One arm of a conditional write: a string literal, or a local the method declares with the
+    // string box (`string` / `string?`).
+    u42StringArmIsTyped (arm: string, declared: Record<string, string>): boolean {
+        if (/^"(?:[^"\\]|\\.)*"$/.test (arm)) {
+            return true;
+        }
+        if (/^\w+$/.test (arm)) {
+            const type = declared[arm];
+            return type === 'string' || type === 'string?';
+        }
+        return false;
+    }
+
+    // Right hand side whose C# static type is exactly `targetType` (or, for a `string?` target,
+    // any nullable string producer): the write stores the same box either way.
+    u42CopyRhsIsTyped (rhs: string, targetType: string, declared: Record<string, string>): boolean {
+        if (targetType === 'string' || targetType === 'string?') {
+            if (this.coreArgShadowRhsIsTyped (rhs, 'string', true)) {
+                return true;
+            }
+            // `this.safeOutcomeSymbol (...)` => string? (Exchange.PredictionAliases.cs /
+            // prediction tier), `x.ToString ()` => string for any non-null x, and the
+            // `(x as String).PadLeft (...)`: string
+            if (/^this\.safeOutcomeSymbol\s*\(/.test (rhs) || /^\w+\.ToString\s*\(\s*\)$/.test (rhs)
+                || /^\(\w+ as String\)\.PadLeft\s*\(/.test (rhs)) {
+                return true;
+            }
+            // `(cond) ? "a" : "b"` / `(cond) ? strLocal : strLocal2`: the conditional's value is
+            // the selected string (or null), so the declaration stores the same reference. Both
+            // arms must be a string literal or a local the method declares string / string?.
+            const arms = /^.*?\)\s*\?\s*(.*?)\s*:\s*(.*?)\s*$/.exec (rhs);
+            if (arms !== null && arms[0].indexOf ('?') !== -1 && this.u42StringArmIsTyped (arms[1], declared)
+                && this.u42StringArmIsTyped (arms[2], declared)) {
+                return true;
+            }
+        } else if (targetType === 'double?' || targetType === 'double') {
+            if (/^this\.(?:parseNumber|safeNumber)\s*\(/.test (rhs)) {
+                return true;
+            }
+            if (/^-?\d+\.\d*(?:[eE][-+]?\d+)?$/.test (rhs) || /^-?\d+[eE][-+]?\d+$/.test (rhs)) {
+                return true;
+            }
+        }
+        // a read of a local the method declares with the same box (`List<object>` into an
+        // `IList<object>` copy, `string?` into a `string?` copy): the compiler already proves
+        // every write to that local produces it.
+        if (/^\w+$/.test (rhs)) {
+            const source = declared[rhs];
+            if (source !== undefined && source !== 'object' && source !== 'var') {
+                if (source === targetType) {
+                    return true;
+                }
+                if (U42_COPY_WIDENING[source + '->' + targetType] === true) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
     // S04: `((string)timeframe)` / `((string)timeframeVar)` names the type the binding already has
     // once `typeCoreArgs` narrowed the `timeframe` parameter to `string` (or the body holds a
     // `string timeframe = ...` local) and `retypeCoreArgCopies` typed the `timeframeVar` shadow the
@@ -5733,7 +6012,7 @@ class NewTranspiler {
                 this.createGeneratedHeader().join('\n'),
                 "public partial class BaseExchange\n{\n\n"
             ]).join("\n");
-            const file = fileHeader + this.stripRedundantStringCasts (this.retypeStringReceiverCasts (this.foldIdentityStringCasts (this.nativeListHelperCalls (this.retypeParseMarketParams (this.retypeParameterArgs (this.typeVenueStringArgs (this.retypeSafeCollectionHelpers (this.pascalizeTypedCores (this.dropStringTimeframeCasts (this.retypeSignatureArgs (this.finalizeCoreArgTypes (this.castCoreArgCallSites (this.typeCoreArgs (this.typeCollectionReturns (this.typeCores (this.typeSyncCores (baseMethods), false))))))), false)), 'BaseExchange'))))))) + "\n";
+            const file = fileHeader + this.retypeIdentifierCopies (this.stripRedundantStringCasts (this.retypeStringReceiverCasts (this.foldIdentityStringCasts (this.nativeListHelperCalls (this.retypeParseMarketParams (this.retypeParameterArgs (this.typeVenueStringArgs (this.retypeSafeCollectionHelpers (this.pascalizeTypedCores (this.dropStringTimeframeCasts (this.retypeSignatureArgs (this.finalizeCoreArgTypes (this.castCoreArgCallSites (this.typeCoreArgs (this.typeCollectionReturns (this.typeCores (this.typeSyncCores (baseMethods), false))))))), false)), 'BaseExchange')))))))) + "\n";
             fs.writeFileSync (csharpExchangeBase, file);
             log.green ('Transpiled base methods to', (csharpExchangeBase as any).yellow)
             if (exchangeClassMatch) {
@@ -5741,7 +6020,7 @@ class NewTranspiler {
                     this.createGeneratedHeader().join('\n'),
                     "public partial class Exchange\n{\n\n"
                 ]).join("\n");
-                const tradingFile = tradingHeader + this.stripRedundantStringCasts (this.retypeStringReceiverCasts (this.foldIdentityStringCasts (this.nativeListHelperCalls (this.retypeParseMarketParams (this.retypeParameterArgs (this.typeVenueStringArgs (this.pascalizeTypedCores (this.dropStringTimeframeCasts (this.retypeSignatureArgs (this.finalizeCoreArgTypes (this.castCoreArgCallSites (this.typeCoreArgs (this.typeCollectionReturns (this.typeCores (this.typeSyncCores (exchangeBody), false))))))), false), 'Exchange'))))))) + "\n}\n";
+                const tradingFile = tradingHeader + this.retypeIdentifierCopies (this.stripRedundantStringCasts (this.retypeStringReceiverCasts (this.foldIdentityStringCasts (this.nativeListHelperCalls (this.retypeParseMarketParams (this.retypeParameterArgs (this.typeVenueStringArgs (this.pascalizeTypedCores (this.dropStringTimeframeCasts (this.retypeSignatureArgs (this.finalizeCoreArgTypes (this.castCoreArgCallSites (this.typeCoreArgs (this.typeCollectionReturns (this.typeCores (this.typeSyncCores (exchangeBody), false))))))), false), 'Exchange')))))))) + "\n}\n";
                 fs.writeFileSync (BASE_TRADING_METHODS_FILE, tradingFile);
                 log.green ('Transpiled trading methods to', (BASE_TRADING_METHODS_FILE as any).yellow)
             }
@@ -5789,7 +6068,7 @@ class NewTranspiler {
                 "public partial class PredictionExchange : BaseExchange\n{\n\n"
             ]).join("\n");
             // method wrappers retired: PascalCase cores on PredictionExchange are the public API
-            const file = fileHeader + fields + this.retypeStringReceiverCasts (this.foldIdentityStringCasts (this.nativeListHelperCalls (this.retypeParseMarketParams (this.typeVenueStringArgs (this.pascalizeTypedCores (this.dropStringTimeframeCasts (this.retypeSignatureArgs (this.finalizeCoreArgTypes (this.castCoreArgCallSites (this.typeCoreArgs (this.typeCollectionReturns (this.typeCores (this.typeSyncCores (baseMethods), true))))))), true), 'PredictionExchange'))))) + "\n";
+            const file = fileHeader + fields + this.retypeIdentifierCopies (this.retypeStringReceiverCasts (this.foldIdentityStringCasts (this.nativeListHelperCalls (this.retypeParseMarketParams (this.typeVenueStringArgs (this.pascalizeTypedCores (this.dropStringTimeframeCasts (this.retypeSignatureArgs (this.finalizeCoreArgTypes (this.castCoreArgCallSites (this.typeCoreArgs (this.typeCollectionReturns (this.typeCores (this.typeSyncCores (baseMethods), true))))))), true), 'PredictionExchange')))))) + "\n";
             fs.writeFileSync (predictionBase, file);
             this._predictionBaseWritten = true;
             log.green ('Transpiled prediction base methods to', (predictionBase as any).yellow)
@@ -6138,6 +6417,7 @@ class NewTranspiler {
         content = this.typeVenueStringArgs (this.stripRedundantStringCasts (this.retypeStringReceiverCasts (this.foldIdentityStringCasts (this.nativeListHelperCalls (this.retypeParseMarketParams (this.retypeWsHandlerMessages (this.retypeParameterArgs (this.pascalizeTypedCores (this.dropStringTimeframeCasts (this.retypeSignatureArgs (this.finalizeCoreArgTypes (this.castCoreArgCallSites (this.typeCoreArgs (this.typeCollectionReturns (this.typeCores (this.typeSyncCores (content)))))))))))))))), venueKey);
         content = this.dropRedundantObjectBoxCasts (content);
         content = this.retypeCacheElementWriteCasts (content);
+        content = this.retypeIdentifierCopies (content);
         this.currentVenue = '';
         content = this.createGeneratedHeader().join('\n') + '\n' + content;
         return csharpImports + content;

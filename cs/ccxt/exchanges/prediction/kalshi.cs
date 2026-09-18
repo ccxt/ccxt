@@ -2323,7 +2323,7 @@ public partial class kalshi : PredictionExchange
         // 'ask' = sell YES, price in dollars. a NO order maps to the complementary YES order
         // buy NO @ q == sell YES @ 1-q - flip the book side and the price
         string bookSide = (isBuy) ? "bid" : "ask";
-        object yesPrice = price;
+        double? yesPrice = price;
         if (isNo)
         {
             bookSide = (isBuy) ? "ask" : "bid";

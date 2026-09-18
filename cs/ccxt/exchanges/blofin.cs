@@ -3161,7 +3161,7 @@ public partial class blofin : Exchange
             throw new BadRequest (add(this.id, " fetchLeverages() requires a marginMode parameter that must be either cross or isolated")) ;
         }
         symbols = this.marketSymbols(symbols);
-        object symbolsList = symbols;
+        IList<object> symbolsList = symbols;
         object instIds = "";
         for (int i = 0; isLessThan(i, getArrayLength(symbolsList)); postFixIncrement(ref i))
         {

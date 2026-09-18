@@ -3184,7 +3184,7 @@ public partial class binance : ccxt.binance
      */
     public async virtual Task ensureUserDataStreamWsSubscribeSignature(string? marketType = null)
     {
-        object marketTypeVar = marketType;
+        string? marketTypeVar = marketType;
         marketTypeVar ??= "spot";
         object url = getValue(getValue(getValue(getValue(this.urls, "api"), "ws"), "ws-api"), marketTypeVar);
         var client = this.client(url);

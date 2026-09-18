@@ -3059,7 +3059,7 @@ public partial class phemex : Exchange
     public async override Task<ccxt.Order> CreateOrder(string symbol, string type, string side, double amount, double? price = null, object parameters = null)
     {
         string typeVar = type;
-        object sideVar = side;
+        string sideVar = side;
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
         {

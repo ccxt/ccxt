@@ -2201,7 +2201,7 @@ public partial class extended : Exchange
      */
     public async override Task<ccxt.TransferEntry> Transfer(string code, double amount, string fromAccount, string toAccount, object parameters = null)
     {
-        object fromAccountVar = fromAccount;
+        string fromAccountVar = fromAccount;
         parameters ??= new Dictionary<string, object>();
         this.checkRequiredCredentials();
         await this.loadMarkets();
