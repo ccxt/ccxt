@@ -3532,7 +3532,7 @@ impl HashkeyCore {
             append_to_array(&mut ordersRequests, orderRequest.clone());
         }
         }
-        let mut firstOrder: Value = ordersRequests.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
+        let mut firstOrder: Value = match &ordersRequests { Value::Arr(__a15) => __a15.get(0).cloned().unwrap_or(Value::Null), _ => Value::Null };
         let mut firstSymbol: Value = self.safe_string_k(firstOrder.clone(), "symbol", &[]);
         let mut market: Value = self.market(firstSymbol);
         let mut request: Value = Value::Map({

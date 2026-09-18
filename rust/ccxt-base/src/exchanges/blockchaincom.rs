@@ -998,10 +998,10 @@ impl BlockchaincomCore {
         }
         let mut priceRequired: bool = false;
         let mut stopPriceRequired: bool = false;
-        if (request.as_map().and_then(|__m| __m.get("ordType")).cloned().unwrap_or(Value::Null).as_str() == Some("LIMIT")) || (request.as_map().and_then(|__m| __m.get("ordType")).cloned().unwrap_or(Value::Null).as_str() == Some("STOPLIMIT")) {
+        if (match &request { Value::Dict(__m15) => __m15.get("ordType").cloned().unwrap_or(Value::Null), _ => Value::Null }.as_str() == Some("LIMIT")) || (match &request { Value::Dict(__m15) => __m15.get("ordType").cloned().unwrap_or(Value::Null), _ => Value::Null }.as_str() == Some("STOPLIMIT")) {
             priceRequired = true;
         }
-        if (request.as_map().and_then(|__m| __m.get("ordType")).cloned().unwrap_or(Value::Null).as_str() == Some("STOP")) || (request.as_map().and_then(|__m| __m.get("ordType")).cloned().unwrap_or(Value::Null).as_str() == Some("STOPLIMIT")) {
+        if (match &request { Value::Dict(__m15) => __m15.get("ordType").cloned().unwrap_or(Value::Null), _ => Value::Null }.as_str() == Some("STOP")) || (match &request { Value::Dict(__m15) => __m15.get("ordType").cloned().unwrap_or(Value::Null), _ => Value::Null }.as_str() == Some("STOPLIMIT")) {
             stopPriceRequired = true;
         }
         if priceRequired {

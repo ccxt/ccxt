@@ -579,26 +579,26 @@ impl NdaxCore {
                 let mut parsed: Value = Value::List(vec![self.parse_to_int((match (&(((match ((timestamp).as_f64(), (duration).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }))), &(duration)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })), self.safe_float(ohlcv.clone(), Value::Int(3), &[]), self.safe_float(ohlcv.clone(), Value::Int(1), &[]), self.safe_float(ohlcv.clone(), Value::Int(2), &[]), self.safe_float(ohlcv.clone(), Value::Int(4), &[]), self.safe_float(ohlcv.clone(), Value::Int(5), &[])]);
                 let mut stored: Value = self.safe_value(get_value(&self.ohlcvs, &symbol), timeframe.clone(), &[Value::List(vec![])]);
                 let mut length: Value = get_array_length(&stored);
-                if (is_greater_than(&length, &Value::Int(0))) && (is_equal(&parsed.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null), &get_value(&get_value(&stored, &subtract(&length, &Value::Int(1))), &Value::Int(0)))) {
+                if (is_greater_than(&length, &Value::Int(0))) && (is_equal(&match &parsed { Value::Arr(__a15) => __a15.get(0).cloned().unwrap_or(Value::Null), _ => Value::Null }, &get_value(&get_value(&stored, &subtract(&length, &Value::Int(1))), &Value::Int(0)))) {
                     let mut previous: Value = get_value(&stored, &subtract(&length, &Value::Int(1)));
-                    let mut high: Value = parsed.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
-                    if (parsed.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null) == Value::Null) {
+                    let mut high: Value = match &parsed { Value::Arr(__a15) => __a15.get(1).cloned().unwrap_or(Value::Null), _ => Value::Null };
+                    if (match &parsed { Value::Arr(__a15) => __a15.get(1).cloned().unwrap_or(Value::Null), _ => Value::Null } == Value::Null) {
                         high = get_value(&previous, &Value::Int(1));
                     }  else if (get_value(&previous, &Value::Int(1)) != Value::Null) {
-                        high = crate::runtime::Math::max(&parsed.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null), &get_value(&previous, &Value::Int(1)));
+                        high = crate::runtime::Math::max(&match &parsed { Value::Arr(__a15) => __a15.get(1).cloned().unwrap_or(Value::Null), _ => Value::Null }, &get_value(&previous, &Value::Int(1)));
                     }
-                    let mut low: Value = parsed.as_array().and_then(|__arr| __arr.get(2)).cloned().unwrap_or(Value::Null);
-                    if (parsed.as_array().and_then(|__arr| __arr.get(2)).cloned().unwrap_or(Value::Null) == Value::Null) {
+                    let mut low: Value = match &parsed { Value::Arr(__a15) => __a15.get(2).cloned().unwrap_or(Value::Null), _ => Value::Null };
+                    if (match &parsed { Value::Arr(__a15) => __a15.get(2).cloned().unwrap_or(Value::Null), _ => Value::Null } == Value::Null) {
                         low = get_value(&previous, &Value::Int(2));
                     }  else if (get_value(&previous, &Value::Int(2)) != Value::Null) {
-                        low = crate::runtime::Math::min(&parsed.as_array().and_then(|__arr| __arr.get(2)).cloned().unwrap_or(Value::Null), &get_value(&previous, &Value::Int(2)));
+                        low = crate::runtime::Math::min(&match &parsed { Value::Arr(__a15) => __a15.get(2).cloned().unwrap_or(Value::Null), _ => Value::Null }, &get_value(&previous, &Value::Int(2)));
                     }
-                    add_element_to_object(&mut stored, &subtract(&length, &Value::Int(1)), Value::List(vec![parsed.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null), get_value(&previous, &Value::Int(1)), high.clone(), low.clone(), parsed.as_array().and_then(|__arr| __arr.get(4)).cloned().unwrap_or(Value::Null), self.sum(&[parsed.as_array().and_then(|__arr| __arr.get(5)).cloned().unwrap_or(Value::Null), get_value(&previous, &Value::Int(5))])]));
+                    add_element_to_object(&mut stored, &subtract(&length, &Value::Int(1)), Value::List(vec![match &parsed { Value::Arr(__a15) => __a15.get(0).cloned().unwrap_or(Value::Null), _ => Value::Null }, get_value(&previous, &Value::Int(1)), high.clone(), low.clone(), match &parsed { Value::Arr(__a15) => __a15.get(4).cloned().unwrap_or(Value::Null), _ => Value::Null }, self.sum(&[match &parsed { Value::Arr(__a15) => __a15.get(5).cloned().unwrap_or(Value::Null), _ => Value::Null }, get_value(&previous, &Value::Int(5))])]));
                     if is_true(&(Value::Bool(marketId != Value::Null))) && is_true(&(Value::Bool(timeframe != Value::Null))) {
                         add_element_to_object(get_value_mut(&mut updates, &marketId), &timeframe, Value::Bool(true));
                     }
                 }  else {
-                    if (is_greater_than(&length, &Value::Int(0))) && is_true(&(self.parse_to_int(parsed.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null)).as_f64().unwrap_or(f64::NAN) < self.parse_to_int(get_value(&get_value(&stored, &subtract(&length, &Value::Int(1))), &Value::Int(0))).as_f64().unwrap_or(f64::NAN))) {
+                    if (is_greater_than(&length, &Value::Int(0))) && is_true(&(self.parse_to_int(match &parsed { Value::Arr(__a15) => __a15.get(0).cloned().unwrap_or(Value::Null), _ => Value::Null }).as_f64().unwrap_or(f64::NAN) < self.parse_to_int(get_value(&get_value(&stored, &subtract(&length, &Value::Int(1))), &Value::Int(0))).as_f64().unwrap_or(f64::NAN))) {
                         continue;
                     }  else {
                         append_to_array(&mut stored, parsed.clone());

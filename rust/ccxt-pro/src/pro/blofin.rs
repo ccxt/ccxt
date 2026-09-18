@@ -1302,7 +1302,7 @@ impl BlofinCore {
             let mut channelName: Value = self.safe_string_k(arg.clone(), "channel", &[]);
             method = self.safe_value(methods.clone(), channelName.clone(), &[]);
             if is_true(&(Value::Bool(method == Value::Null))) && is_true(&(get_index_of(&channelName, &Value::Str("candle".to_string())).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN))) {
-                method = methods.as_map().and_then(|__m| __m.get("candle")).cloned().unwrap_or(Value::Null);
+                method = match &methods { Value::Dict(__m15) => __m15.get("candle").cloned().unwrap_or(Value::Null), _ => Value::Null };
             }
         }
         if (method != Value::Null) {

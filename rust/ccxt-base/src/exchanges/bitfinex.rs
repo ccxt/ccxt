@@ -1713,7 +1713,7 @@ impl BitfinexCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_316: bool = true;
             while { if !__for_first_316 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_316 = false; is_less_than(&i, &get_array_length(&get_value(&indexed, &Value::Str("networks".to_string())))) } {
-            let mut networkObj: Value = get_value(&indexed.as_map().and_then(|__m| __m.get("networks")).cloned().unwrap_or(Value::Null), &i);
+            let mut networkObj: Value = get_value(&match &indexed { Value::Dict(__m15) => __m15.get("networks").cloned().unwrap_or(Value::Null), _ => Value::Null }, &i);
             let mut networkId: Value = self.safe_string(networkObj.clone(), Value::Int(0), &[]);
             let mut valuesList: Value = self.safe_list(networkObj.clone(), Value::Int(1), &[]);
             let mut networkName: Value = self.safe_string(valuesList.clone(), Value::Int(0), &[]);

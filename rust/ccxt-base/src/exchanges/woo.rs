@@ -2549,7 +2549,7 @@ impl WooCore {
                     m.insert("childOrders".to_string(), Value::List(vec![]));
                 m
             });
-            let mut childOrders: Value = outterOrder.as_map().and_then(|__m| __m.get("childOrders")).cloned().unwrap_or(Value::Null);
+            let mut childOrders: Value = match &outterOrder { Value::Dict(__m15) => __m15.get("childOrders").cloned().unwrap_or(Value::Null), _ => Value::Null };
             let mut closeSide: Value = (if is_true(&(Value::Bool(orderSide.as_str() == Some("BUY")))) { Value::Str("SELL".to_string()) } else { Value::Str("BUY".to_string()) });
             if hasStopLoss {
                 let mut stopLossPrice: Value = self.safe_string_k(stopLoss.clone(), "triggerPrice", &[stopLoss.clone()]);
