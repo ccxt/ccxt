@@ -1009,7 +1009,7 @@ public class Coinbase extends CoinbaseApi
         String currencyId = this.safeString(currency, "code", currencyIdV3);
         String typeV3 = this.safeString(account, "name");
         String typeV2 = this.safeString(account, "type");
-        Object parts = Helpers.split(typeV3, " ");
+        Object parts = new ArrayList<Object>(Arrays.asList(((String)typeV3).split(java.util.regex.Pattern.quote(" "))));
         final Object finalActive = active;
         return new HashMap<String, Object>() {{
             put( "id", Coinbase.this.safeString2(account, "id", "uuid") );
@@ -3490,7 +3490,7 @@ public class Coinbase extends CoinbaseApi
         Object accountId = null;
         if (!java.util.Objects.equals(path, null))
         {
-            Object parts = Helpers.split(path, "/");
+            Object parts = new ArrayList<Object>(Arrays.asList(((String)path).split(java.util.regex.Pattern.quote("/"))));
             Object numParts = ((List<?>)parts).size();
             if (Helpers.isGreaterThan(numParts, 3))
             {
@@ -5359,7 +5359,7 @@ public class Coinbase extends CoinbaseApi
         String currencyId = null;
         if (!java.util.Objects.equals(addressLabel, null))
         {
-            Object splitAddressLabel = Helpers.split(addressLabel, " ");
+            Object splitAddressLabel = new ArrayList<Object>(Arrays.asList(((String)addressLabel).split(java.util.regex.Pattern.quote(" "))));
             currencyId = this.safeString(splitAddressLabel, 0);
         } else
         {

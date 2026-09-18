@@ -625,7 +625,7 @@ public class Bithumb extends BithumbApi
                     Object quote = null;
                     if (!java.util.Objects.equals(marketId, null))
                     {
-                        Object parts = Helpers.split(marketId, "-");
+                        Object parts = new ArrayList<Object>(Arrays.asList(((String)marketId).split(java.util.regex.Pattern.quote("-"))));
                         // to match gen 1, the quoteId is the first currency derived from the market id
                         baseId = Helpers.GetValue(parts, 1);
                         quoteId = Helpers.GetValue(parts, 0);
@@ -1707,7 +1707,7 @@ public class Bithumb extends BithumbApi
         String transactionDatetime = this.safeString(trade, "transaction_date");
         if (!java.util.Objects.equals(transactionDatetime, null))
         {
-            Object parts = Helpers.split(transactionDatetime, " ");
+            Object parts = new ArrayList<Object>(Arrays.asList(((String)transactionDatetime).split(java.util.regex.Pattern.quote(" "))));
             Object numParts = ((List<?>)parts).size();
             if (Helpers.isGreaterThan(numParts, 1))
             {
@@ -4012,7 +4012,7 @@ public class Bithumb extends BithumbApi
                     put( "endpoint", finalEndpoint );
                 }}, query));
                 // bithumb verifies signatures with PHP http_build_query conventions, spaces must be '+'
-                Object bodyParts = Helpers.split(body, "%20");
+                Object bodyParts = new ArrayList<Object>(Arrays.asList(((String)body).split(java.util.regex.Pattern.quote("%20"))));
                 body = String.join("+", (List<String>)bodyParts);
                 Object nonce = String.valueOf(this.nonce());
                 Object auth = ((((endpoint + "\\") + body) + "\\") + nonce); // eslint-disable-line quotes

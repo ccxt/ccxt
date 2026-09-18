@@ -1278,7 +1278,7 @@ public class Whitebit extends WhitebitApi
         for (var i = 0; i < ((List<?>)currencyIds).size(); i++)
         {
             Object entry = Helpers.GetValue(currencyIds, i);
-            Object splitEntry = Helpers.split(entry, " ");
+            Object splitEntry = new ArrayList<Object>(Arrays.asList(((String)entry).split(java.util.regex.Pattern.quote(" "))));
             Object currencyId = Helpers.GetValue(splitEntry, 0);
             Object feeInfo = Helpers.GetValue(response, entry);
             String code = this.safeCurrencyCode(currencyId);

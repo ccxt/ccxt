@@ -209,7 +209,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
             }
             (this.authenticate()).join();
             Object url = Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "private");
-            Object splitName = Helpers.split(name, "_subscribe");
+            Object splitName = new ArrayList<Object>(Arrays.asList(((String)name).split(java.util.regex.Pattern.quote("_subscribe"))));
             String messageHash = this.safeString(splitName, 0, "");
             if (!java.util.Objects.equals(symbol, null))
             {
@@ -931,7 +931,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
         Object data = this.safeDict2(message, "snapshot", "update", new HashMap<String, Object>() {{}});
         Object marketIds = Helpers.objectKeys(data);
         String channel = this.safeString(message, "ch", "");
-        Object splitChannel = Helpers.split(channel, "/");
+        Object splitChannel = new ArrayList<Object>(Arrays.asList(((String)channel).split(java.util.regex.Pattern.quote("/"))));
         String period = this.safeString(splitChannel, 1);
         Object timeframe = this.findTimeframe(period);
         if (java.util.Objects.equals(timeframe, null))
@@ -1122,7 +1122,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
         }
         String marketId = this.safeStringLower2(order, "instrument", "symbol");
         String method = this.safeString(message, "method", "");
-        Object splitMethod = Helpers.split(method, "_order");
+        Object splitMethod = new ArrayList<Object>(Arrays.asList(((String)method).split(java.util.regex.Pattern.quote("_order"))));
         String messageHash = this.safeString(splitMethod, 0);
         String symbol = this.safeSymbol(marketId);
         Object parsed = this.parseOrder(order);
@@ -1612,7 +1612,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
         String channel = this.safeString2(message, "ch", "method");
         if (!java.util.Objects.equals(channel, null))
         {
-            Object splitChannel = Helpers.split(channel, "/");
+            Object splitChannel = new ArrayList<Object>(Arrays.asList(((String)channel).split(java.util.regex.Pattern.quote("/"))));
             channel = this.safeString(splitChannel, 0);
             if (java.util.Objects.equals(channel, "orderbook"))
             {

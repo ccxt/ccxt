@@ -725,7 +725,7 @@ public class Lbank extends LbankApi
             {
                 Object market = Helpers.GetValue(data, i);
                 String marketId = this.safeString(market, "symbol");
-                Object parts = Helpers.split(marketId, "_");
+                Object parts = new ArrayList<Object>(Arrays.asList(((String)marketId).split(java.util.regex.Pattern.quote("_"))));
                 String baseId = (String) Helpers.GetValue(parts, 0);
                 String quoteId = (String) Helpers.GetValue(parts, 1);
                 String base = this.safeCurrencyCode(baseId);
@@ -1285,7 +1285,7 @@ public class Lbank extends LbankApi
         String takerOrMaker = null;
         if (!java.util.Objects.equals(side, null))
         {
-            Object parts = Helpers.split(side, "_");
+            Object parts = new ArrayList<Object>(Arrays.asList(((String)side).split(java.util.regex.Pattern.quote("_"))));
             side = this.safeString(parts, 0);
             String typePart = this.safeString(parts, 1);
             type = "limit";
@@ -2221,7 +2221,7 @@ public class Lbank extends LbankApi
         Boolean postOnly = false;
         String type = "limit";
         String rawType = this.safeString2(order, "type", "tradeType"); // buy, sell, buy_market, sell_market, buy_maker,sell_maker,buy_ioc,sell_ioc, buy_fok, sell_fok
-        Object parts = Helpers.split(rawType, "_");
+        Object parts = new ArrayList<Object>(Arrays.asList(((String)rawType).split(java.util.regex.Pattern.quote("_"))));
         String side = this.safeString(parts, 0);
         String typePart = this.safeString(parts, 1); // market, maker, ioc, fok or undefined (limit)
         if (java.util.Objects.equals(typePart, "market"))

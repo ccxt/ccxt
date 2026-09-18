@@ -1243,7 +1243,7 @@ public class Onetrading extends OnetradingApi
             {
                 throw new ExchangeError((this.id + " fetchOHLCV() missing periodUnit")) ;
             }
-            var periodunitVariable = Helpers.split(periodUnit, "/");
+            var periodunitVariable = new ArrayList<Object>(Arrays.asList(((String)periodUnit).split(java.util.regex.Pattern.quote("/"))));
             var period = ((List<Object>) periodunitVariable).get(0);
             var unit = ((List<Object>) periodunitVariable).get(1);
             int durationInSeconds = this.parseTimeframe(timeframe);

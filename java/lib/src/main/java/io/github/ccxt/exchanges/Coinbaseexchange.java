@@ -870,7 +870,7 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
             {
                 Object market = Helpers.GetValue(rawMarkets, i);
                 String id = this.safeString(market, "id");
-                var baseIdquoteIdVariable = Helpers.split(id, "-");
+                var baseIdquoteIdVariable = new ArrayList<Object>(Arrays.asList(((String)id).split(java.util.regex.Pattern.quote("-"))));
                 var baseId = ((List<Object>) baseIdquoteIdVariable).get(0);
                 var quoteId = ((List<Object>) baseIdquoteIdVariable).get(1);
                 // BTCAUCTION-USD vs BTC-USD conflict workaround, see the output sample above

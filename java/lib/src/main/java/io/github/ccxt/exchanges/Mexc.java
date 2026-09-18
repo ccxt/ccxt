@@ -6041,7 +6041,7 @@ final Object finalRiskIncrVol = riskIncrVol;
         String currencyWithNetwork = this.safeString(transaction, "coin");
         if (!java.util.Objects.equals(currencyWithNetwork, null))
         {
-            currencyId = Helpers.GetValue(Helpers.split(currencyWithNetwork, "-"), 0);
+            currencyId = Helpers.GetValue(new ArrayList<Object>(Arrays.asList(((String)currencyWithNetwork).split(java.util.regex.Pattern.quote("-")))), 0);
         }
         String code = this.safeCurrencyCode(currencyId, currency);
         Object network = null;

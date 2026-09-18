@@ -1567,7 +1567,7 @@ public class Coinone extends CoinoneApi
                 {
                     continue;
                 }
-                Object parts = Helpers.split(key, "_");
+                Object parts = new ArrayList<Object>(Arrays.asList(((String)key).split(java.util.regex.Pattern.quote("_"))));
                 Object currencyId = this.safeValue(parts, 0);
                 Object secondPart = this.safeValue(parts, 1);
                 String code = this.safeCurrencyCode(currencyId);

@@ -761,7 +761,7 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
                 Object secret = this.secret;
                 if (Helpers.getIndexOf(secret, "ed25519:") >= 0)
                 {
-                    Object parts = Helpers.split(secret, "ed25519:");
+                    Object parts = new ArrayList<Object>(Arrays.asList(((String)secret).split(java.util.regex.Pattern.quote("ed25519:"))));
                     secret = Helpers.GetValue(parts, 1);
                 }
                 Object signature = eddsa(this.encode(auth), this.base58ToBinary(secret), ed25519());
@@ -1604,7 +1604,7 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
                 Helpers.callDynamically(this, method, new Object[] {client, message});
                 return;
             }
-            Object splitTopic = Helpers.split(topic, "@");
+            Object splitTopic = new ArrayList<Object>(Arrays.asList(((String)topic).split(java.util.regex.Pattern.quote("@"))));
             Object splitLength = ((List<?>)splitTopic).size();
             if (java.util.Objects.equals(splitLength, 2))
             {
@@ -1619,7 +1619,7 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
                     Helpers.callDynamically(this, method, new Object[] {client, message});
                     return;
                 }
-                Object splitName = Helpers.split(name, "_");
+                Object splitName = new ArrayList<Object>(Arrays.asList(((String)name).split(java.util.regex.Pattern.quote("_"))));
                 Object splitNameLength = ((List<?>)splitTopic).size();
                 if (java.util.Objects.equals(splitNameLength, 2))
                 {

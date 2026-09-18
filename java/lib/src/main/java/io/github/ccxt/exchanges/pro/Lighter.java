@@ -230,7 +230,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
         //
         Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "order_book", new HashMap<String, Object>() {{}});
         String channel = this.safeString(message, "channel", "");
-        Object parts = Helpers.split(channel, ":");
+        Object parts = new ArrayList<Object>(Arrays.asList(((String)channel).split(java.util.regex.Pattern.quote(":"))));
         String marketId = (String) Helpers.GetValue(parts, 1);
         Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
         Object symbol = ((Map<String, Object>)market).get("symbol");
@@ -724,7 +724,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
         }
         List<Object> data = (List<Object>) this.safeList(message, "trades", new ArrayList<Object>(Arrays.asList()));
         String channel = this.safeString(message, "channel", "");
-        Object parts = Helpers.split(channel, ":");
+        Object parts = new ArrayList<Object>(Arrays.asList(((String)channel).split(java.util.regex.Pattern.quote(":"))));
         String marketId = (String) Helpers.GetValue(parts, 1);
         Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
         Object symbol = ((Map<String, Object>)market).get("symbol");
@@ -943,7 +943,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
         //     }
         //
         String channel = this.safeString(message, "channel", "");
-        Object parts = Helpers.split(channel, ":");
+        Object parts = new ArrayList<Object>(Arrays.asList(((String)channel).split(java.util.regex.Pattern.quote(":"))));
         String accountIndex = (String) Helpers.GetValue(parts, 1);
         Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "trades", new HashMap<String, Object>() {{}});
         Object marketIds = Helpers.objectKeys(data);
@@ -1167,7 +1167,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
         //
         List<Object> data = (List<Object>) this.safeList(message, "liquidation_trades", new ArrayList<Object>(Arrays.asList()));
         String channel = this.safeString(message, "channel", "");
-        Object parts = Helpers.split(channel, ":");
+        Object parts = new ArrayList<Object>(Arrays.asList(((String)channel).split(java.util.regex.Pattern.quote(":"))));
         String marketId = (String) Helpers.GetValue(parts, 1);
         Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
         Object symbol = ((Map<String, Object>)market).get("symbol");
@@ -1815,7 +1815,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
         // "account_orders:{marketId}", so parts[1] is the market id on every family below
         //
         String channel = this.safeString(message, "channel", "");
-        Object parts = Helpers.split(channel, ":");
+        Object parts = new ArrayList<Object>(Arrays.asList(((String)channel).split(java.util.regex.Pattern.quote(":"))));
         String name = this.safeString(parts, 0, "");
         String channelId = this.safeString(parts, 1);
         if (java.util.Objects.equals(name, "order_book"))

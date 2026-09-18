@@ -770,7 +770,7 @@ public class Alpaca extends AlpacaApi
         {
             throw new ExchangeError((this.id + " parseMarket() missing marketId")) ;
         }
-        Object parts = Helpers.split(marketId, "/");
+        Object parts = new ArrayList<Object>(Arrays.asList(((String)marketId).split(java.util.regex.Pattern.quote("/"))));
         String assetClass = this.safeString(asset, "class");
         String baseId = this.safeString(parts, 0);
         String quoteId = this.safeString(parts, 1);
@@ -1357,7 +1357,7 @@ public class Alpaca extends AlpacaApi
     {
         String clientOrderIdprefix = this.safeString(this.options, "clientOrderId");
         Object uuid = this.uuid();
-        Object parts = Helpers.split(uuid, "-");
+        Object parts = new ArrayList<Object>(Arrays.asList(((String)uuid).split(java.util.regex.Pattern.quote("-"))));
         Object random_id = String.join("", (List<String>)parts);
         Object defaultClientId = this.implodeParams(clientOrderIdprefix, new HashMap<String, Object>() {{
             put( "id", random_id );
@@ -2755,7 +2755,7 @@ public class Alpaca extends AlpacaApi
             Object baseId = null;
             if (Helpers.getIndexOf(positionSymbol, "/") >= 0)
             {
-                Object parts = Helpers.split(positionSymbol, "/");
+                Object parts = new ArrayList<Object>(Arrays.asList(((String)positionSymbol).split(java.util.regex.Pattern.quote("/"))));
                 baseId = this.safeString(parts, 0);
             } else
             {

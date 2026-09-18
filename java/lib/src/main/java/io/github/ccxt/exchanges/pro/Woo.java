@@ -282,7 +282,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
         {
             return;
         }
-        String method = this.safeString(Helpers.split(topic, "@"), 1);
+        String method = this.safeString(new ArrayList<Object>(Arrays.asList(((String)topic).split(java.util.regex.Pattern.quote("@")))), 1);
         if (java.util.Objects.equals(method, "orderbookupdate"))
         {
             if (!(((Map<?, ?>)this.orderbooks).containsKey(symbol)))
@@ -1996,7 +1996,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
                 Helpers.callDynamically(this, method, new Object[] {client, message});
                 return;
             }
-            Object splitTopic = Helpers.split(topic, "@");
+            Object splitTopic = new ArrayList<Object>(Arrays.asList(((String)topic).split(java.util.regex.Pattern.quote("@"))));
             Object splitLength = ((List<?>)splitTopic).size();
             if (java.util.Objects.equals(splitLength, 2))
             {
@@ -2011,7 +2011,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
                     Helpers.callDynamically(this, method, new Object[] {client, message});
                     return;
                 }
-                Object splitName = Helpers.split(name, "_");
+                Object splitName = new ArrayList<Object>(Arrays.asList(((String)name).split(java.util.regex.Pattern.quote("_"))));
                 Object splitNameLength = ((List<?>)splitTopic).size();
                 if (java.util.Objects.equals(splitNameLength, 2))
                 {

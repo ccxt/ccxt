@@ -4337,8 +4337,8 @@ public class Binance extends BinanceApi
     {
         // support expired option contracts
         String settle = "USDT";
-        Object optionParts = Helpers.split(symbol, "-");
-        Object symbolBase = Helpers.split(symbol, "/");
+        Object optionParts = new ArrayList<Object>(Arrays.asList(((String)symbol).split(java.util.regex.Pattern.quote("-"))));
+        Object symbolBase = new ArrayList<Object>(Arrays.asList(((String)symbol).split(java.util.regex.Pattern.quote("/"))));
         String base = null;
         if (Helpers.isGreaterThan(Helpers.getIndexOf(symbol, "/"), Helpers.opNeg(1)))
         {
@@ -4464,7 +4464,7 @@ public class Binance extends BinanceApi
                 if ((!java.util.Objects.equals(defaultType, null)) && (!java.util.Objects.equals(defaultType, "spot")))
                 {
                     // support legacy symbols
-                    var basequoteVariable = Helpers.split(symbol, "/");
+                    var basequoteVariable = new ArrayList<Object>(Arrays.asList(((String)symbol).split(java.util.regex.Pattern.quote("/"))));
                     var base = ((List<Object>) basequoteVariable).get(0);
                     var quote = ((List<Object>) basequoteVariable).get(1);
                     Object settle = (((java.util.Objects.equals(quote, "USD")))) ? base : quote;
@@ -5385,7 +5385,7 @@ public class Binance extends BinanceApi
         {
             throw new ExchangeError((this.id + " parseMarket() missing id")) ;
         }
-        Object optionParts = Helpers.split(id, "-");
+        Object optionParts = new ArrayList<Object>(Arrays.asList(((String)id).split(java.util.regex.Pattern.quote("-"))));
         String optionBase = this.safeString(optionParts, 0);
         String lowercaseId = this.safeStringLower(market, "symbol");
         String baseId = this.safeString(market, "baseAsset", optionBase);
@@ -7037,7 +7037,7 @@ public class Binance extends BinanceApi
             }
             if (java.util.Objects.equals(price, "index"))
             {
-                Object parts = Helpers.split(marketId, "_");
+                Object parts = new ArrayList<Object>(Arrays.asList(((String)marketId).split(java.util.regex.Pattern.quote("_"))));
                 String pair = this.safeString(parts, 0);
                 ((Map<String, Object>)request).put("pair", pair); // Index price takes this argument instead of symbol
             } else
@@ -12369,7 +12369,7 @@ public class Binance extends BinanceApi
         Map<String, Object> accountsById = (Map<String, Object>) this.safeDict(this.options, "accountsById", new HashMap<String, Object>() {{}});
         if (!java.util.Objects.equals(type, null))
         {
-            Object parts = Helpers.split(type, "_");
+            Object parts = new ArrayList<Object>(Arrays.asList(((String)type).split(java.util.regex.Pattern.quote("_"))));
             fromAccount = this.safeValue(parts, 0);
             toAccount = this.safeValue(parts, 1);
             fromAccount = this.safeString(accountsById, fromAccount, fromAccount);
@@ -16122,7 +16122,7 @@ final Object finalMarket = market;
         {
             return null;
         }
-        Object urlParts = Helpers.split(url, "/");
+        Object urlParts = new ArrayList<Object>(Arrays.asList(((String)url).split(java.util.regex.Pattern.quote("/"))));
         String scheme = this.safeString(urlParts, 0);
         if (java.util.Objects.equals(scheme, null))
         {

@@ -300,7 +300,7 @@ public class Btcbox extends BtcboxApi
             for (var i = 0; i < ((List<?>)marketIds).size(); i++)
             {
                 Object marketId = Helpers.GetValue(marketIds, i);
-                Object symbolParts = Helpers.split(marketId, "_");
+                Object symbolParts = new ArrayList<Object>(Arrays.asList(((String)marketId).split(java.util.regex.Pattern.quote("_"))));
                 String baseCurr = this.safeString(symbolParts, 0, "");
                 String quote = this.safeString(symbolParts, 1, "");
                 Object quoteId = quote.toLowerCase();

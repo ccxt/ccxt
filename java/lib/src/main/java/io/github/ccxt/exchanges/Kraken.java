@@ -1098,7 +1098,7 @@ public class Kraken extends KrakenApi
         if (Helpers.getIndexOf(currencyId, ".") > 0)
         {
             // if ID contains .M, .S or .F, then it can't contain X or Z prefix. in such case, ID equals to ALTNAME
-            Object parts = Helpers.split(currencyId, ".");
+            Object parts = new ArrayList<Object>(Arrays.asList(((String)currencyId).split(java.util.regex.Pattern.quote("."))));
             String firstPart = this.safeString(parts, 0);
             String secondPart = this.safeString(parts, 1);
             return Helpers.add(Helpers.add(super.safeCurrencyCode(firstPart, currency), "."), secondPart);
@@ -2409,7 +2409,7 @@ public class Kraken extends KrakenApi
         String triggerPrice = null;
         if (!java.util.Objects.equals(orderDescription, null))
         {
-            Object parts = Helpers.split(orderDescription, " ");
+            Object parts = new ArrayList<Object>(Arrays.asList(((String)orderDescription).split(java.util.regex.Pattern.quote(" "))));
             side = this.safeString(parts, 0);
             if (!java.util.Objects.equals(isUsingCost, true))
             {
