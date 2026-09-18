@@ -5052,7 +5052,7 @@ public partial class aster : Exchange
             object value = getValue(values, key);
             bool isObj = ((value is IList<object>) || (value.GetType().IsGenericType && value.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))) || isTrue(this.isDictionary(value));
             string? valueJsonified = isObj ? this.json(value) : value.ToString();
-            object encoded = this.encodeURIComponent(valueJsonified);
+            string encoded = this.encodeURIComponent(valueJsonified);
             encodedString = add(encodedString, add(add(add(key, "="), encoded), "&"));
         }
         return slice(encodedString, 0, -1);

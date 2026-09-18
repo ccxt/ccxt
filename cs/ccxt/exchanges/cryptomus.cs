@@ -1326,7 +1326,7 @@ public partial class cryptomus : Exchange
             }
             string jsonParamsBase64 = this.stringToBase64(jsonParams);
             string stringToSign = add(jsonParamsBase64, this.secret);
-            string signature = ((string)this.hash(this.encode(stringToSign), md5));
+            object signature = this.hash(this.encode(stringToSign), md5);
             ((IDictionary<string,object>)headers)["sign"] = signature;
         } else
         {

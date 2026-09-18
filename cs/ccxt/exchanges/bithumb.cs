@@ -3652,7 +3652,7 @@ public partial class bithumb : Exchange
             object value = getValue(query, key);
             if (((value is IList<object>) || (value.GetType().IsGenericType && value.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
             {
-                object encodedKey = add(this.encodeURIComponent(key), "[]");
+                string encodedKey = add(this.encodeURIComponent(key), "[]");
                 for (int j = 0; isLessThan(j, getArrayLength(value)); postFixIncrement(ref j))
                 {
                     object item = getValue(value, j);
@@ -3673,9 +3673,9 @@ public partial class bithumb : Exchange
                 {
                     result = add(result, "&");
                 }
-                object encodedKey = this.encodeURIComponent(key);
+                string encodedKey = this.encodeURIComponent(key);
                 string? valueString = this.safeString(query, key);
-                object encodedValue = this.encodeURIComponent(valueString);
+                string encodedValue = this.encodeURIComponent(valueString);
                 result = add(result, add(add(encodedKey, "="), encodedValue));
             }
         }

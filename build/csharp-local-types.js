@@ -1713,6 +1713,9 @@ export const CSHARP_LOCAL_THIS_RETURN_TYPES = {
     'binaryToString': 'string',
     'encode': 'string?', // `(string)data` pass-through: null in, null out
     'decode': 'string?',
+    // `(string)str2` then a StringBuilder append loop: a null argument throws inside the cast,
+    // so every RETURN path is a non-null string (Exchange.Encode.cs#encodeURIComponent)
+    'encodeURIComponent': 'string',
     'urlencodeBase64': 'string', // Base64urlEncode: throws on null, non-null string otherwise
     // Exchange.Encode.cs / Exchange.ETH.cs — retyped object -> byte[] in this PR, together
     // with the table entries below: every return path of base16ToBinary is
@@ -6013,6 +6016,29 @@ function stringAccumulatorWriteType (csharp, context, declaration, value) {
 // resolution context, so a read of another emitted-with-a-concrete-type local counts
 // exactly like a literal or a string-typed member.
 // Everything else stays `object` — see the header comment for the divergences.
+// The right operand may also be a `this.<member>` read whose hand-written base declaration IS a
+// string box (cs/ccxt/base/Exchange.Options.cs: `public string <member> { get; set; }` — apiKey,
+// secret, password, privateKey, hostname, userAgent, ...): the read's C# static type is that box,
+// so add(string, string) / add(string, object) bind and concat a string-or-null right operand
+// exactly like add(object, object)'s `(string)b` branch (both hand back the left for null). A
+// member the base declares `object` (name, token, urls, markets, timeout) can hold a non-string
+// and stays unprovable, as does every other right-operand shape.
+const CSHARP_THIS_STRING_MEMBER_TYPES = [
+    'apiKey', 'secret', 'password', 'uid', 'accountId', 'login', 'privateKey', 'walletAddress',
+    'twofa', 'proxy', 'hostname', 'userAgent', 'id',
+];
+
+function thisStringMemberRead (node) {
+    let current = node;
+    while (current?.kind === ts.SyntaxKind.ParenthesizedExpression) {
+        current = current.expression;
+    }
+    if (current?.kind !== ts.SyntaxKind.PropertyAccessExpression || current.expression?.kind !== ts.SyntaxKind.ThisKeyword) {
+        return false;
+    }
+    return CSHARP_THIS_STRING_MEMBER_TYPES.includes (current.name?.escapedText);
+}
+
 function stringPlusOperandIsProvablyString (csharp, value, csharpType, context) {
     if (csharpType !== 'string') {
         return false;
@@ -6039,7 +6065,9 @@ function stringPlusOperandIsProvablyString (csharp, value, csharpType, context) 
     // add(string, object) calls b?.ToString() and add(object, object)'s string branch casts
     // (string)b — identical for a string box, and a null box concatenates as the empty string
     // on both paths.
-    return stringBoxLeafProof (csharp, parent.right) !== undefined;
+    // U43: a `this.<member>` read the module types as a string (`thisStringMemberRead`) is
+    // the same string box the leaf proofs above name
+    return stringBoxLeafProof (csharp, parent.right) !== undefined || thisStringMemberRead (parent.right);
 }
 
 // The same LEFT-operand rule for a `string?` local: the only divergence from the untyped
