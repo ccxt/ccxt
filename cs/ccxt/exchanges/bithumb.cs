@@ -2957,7 +2957,7 @@ public partial class bithumb : Exchange
      */
     public async override Task<ccxt.Transaction> Withdraw(string code, double amount, string address, string tag = null, object parameters = null)
     {
-        object tagVar = tag;
+        string tagVar = tag;
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
         {
@@ -2968,7 +2968,7 @@ public partial class bithumb : Exchange
         generation = generationparametersVariable[0];
         parameters = generationparametersVariable[1];
         IList<object> tagparametersVariable = (IList<object>)this.handleWithdrawTagAndParams(tagVar, parameters);
-        tagVar = tagparametersVariable[0];
+        tagVar = (string)tagparametersVariable[0];
         parameters = tagparametersVariable[1];
         this.checkAddress(address);
         string? network = this.safeString2(parameters, "network", "net_type");

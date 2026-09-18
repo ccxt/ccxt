@@ -6857,10 +6857,10 @@ public partial class okx : Exchange
     public async override Task<ccxt.Transaction> Withdraw(string code, double amount, string address, string tag = null, object parameters = null)
     {
         object addressVar = address;
-        object tagVar = tag;
+        string tagVar = tag;
         parameters ??= new Dictionary<string, object>();
         IList<object> tagparametersVariable = (IList<object>)this.handleWithdrawTagAndParams(tagVar, parameters);
-        tagVar = tagparametersVariable[0];
+        tagVar = (string)tagparametersVariable[0];
         parameters = tagparametersVariable[1];
         this.checkAddress(addressVar);
         if (isEqual(this.markets, null))
@@ -6868,7 +6868,7 @@ public partial class okx : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> currency = this.currency(code);
-        if ((!isEqual(tagVar, null)) && (((string)tagVar).Length > 0))
+        if ((!isEqual(tagVar, null)) && (tagVar.Length > 0))
         {
             addressVar = add(add(addressVar, ":"), tagVar);
         }

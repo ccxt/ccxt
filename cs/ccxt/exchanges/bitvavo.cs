@@ -2599,7 +2599,7 @@ public partial class bitvavo : Exchange
         }, currency);
     }
 
-    public virtual Dictionary<string, object> withdrawRequest(string code, object amount, object address, object tag = null, object parameters = null)
+    public virtual Dictionary<string, object> withdrawRequest(string code, object amount, object address, string tag = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> currency = this.currency(code);
@@ -2629,10 +2629,10 @@ public partial class bitvavo : Exchange
      */
     public async override Task<ccxt.Transaction> Withdraw(string code, double amount, string address, string tag = null, object parameters = null)
     {
-        object tagVar = tag;
+        string tagVar = tag;
         parameters ??= new Dictionary<string, object>();
         IList<object> tagparametersVariable = (IList<object>)this.handleWithdrawTagAndParams(tagVar, parameters);
-        tagVar = tagparametersVariable[0];
+        tagVar = (string)tagparametersVariable[0];
         parameters = tagparametersVariable[1];
         this.checkAddress(address);
         if (isEqual(this.markets, null))
@@ -2640,7 +2640,7 @@ public partial class bitvavo : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> currency = this.currency(code);
-        Dictionary<string, object> request = this.withdrawRequest(code, amount, address, tagVar, parameters);
+        Dictionary<string, object> request = this.withdrawRequest(code, amount, address,tagVar, parameters);
         Dictionary<string, object> response = await this.privatePostWithdrawal(request);
         //
         //     {
