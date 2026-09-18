@@ -221,6 +221,7 @@ public class Tests
         await baseTestInstance.testWsClientRetirementSameReference();
         await baseTestInstance.testWsClientCloseRetiresReplacedClient();
         await baseTestInstance.testWsClientRetireIsIdempotent();
+        await baseTestInstance.testWsClientRetiredClientShedsLateTraffic();
         Helper.Green(" [C#] WebSocketClient retirement race tests passed");
     }
 

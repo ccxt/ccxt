@@ -64,8 +64,13 @@ public partial class BaseExchange
 
         public List<object> mockSentMessages = new List<object>(); // frames recorded in mock mode
 
-        private Task retirement = null; // set once under retiredSync (non-null == retirement initiated); completes when the transport teardown has finished
-        private readonly object retiredSync = new object();
+        // retirement state is guarded by futuresSync (not a lock of its own) so
+        // that "is this client retired?" and "park a future / store a rejection"
+        // are decided in the same critical section - a watch() that read this
+        // client out of the registry just before cleanup detached it cannot
+        // park a future that nobody would settle (idea adopted from PR #30520)
+        private Task retirement = null; // set once (non-null == retirement initiated); completes when the transport teardown has finished
+        private object retirementError = null; // the error late future() requests are rejected with
 
         public WebSocketClient(string url, string proxy, handleMessageDelegate handleMessage, pingDelegate ping = null, onCloseDelegate onClose = null, onErrorDelegate onError = null, bool isVerbose = false, Int64 keepA = 30000, bool decompressBinary = true)
         {
@@ -94,8 +99,19 @@ public partial class BaseExchange
             object rejection = null;
             lock (futuresSync)
             {
-                future = (this.futures as ConcurrentDictionary<string, Future>).GetOrAdd(messageHash, (key) => new Future());
-                (this.rejections as ConcurrentDictionary<string, object>).TryRemove(messageHash, out rejection);
+                if (this.retirement != null)
+                {
+                    // retired: hand back a throwaway future pre-armed with the
+                    // retirement error instead of parking it in the cleared
+                    // dictionary where nobody would ever settle it
+                    future = new Future();
+                    rejection = this.retirementError;
+                }
+                else
+                {
+                    future = (this.futures as ConcurrentDictionary<string, Future>).GetOrAdd(messageHash, (key) => new Future());
+                    (this.rejections as ConcurrentDictionary<string, object>).TryRemove(messageHash, out rejection);
+                }
             }
             // settle outside the lock, the TaskCompletionSource is not
             // RunContinuationsAsynchronously so awaiter continuations can run
@@ -138,7 +154,13 @@ public partial class BaseExchange
                 Future future = null;
                 lock (futuresSync)
                 {
-                    if (!(this.futures as ConcurrentDictionary<string, Future>).TryRemove(messageHash, out future))
+                    if (this.retirement != null)
+                    {
+                        // retired: drop the straggler instead of repopulating
+                        // the rejections dictionary retire() just cleared
+                        future = null;
+                    }
+                    else if (!(this.futures as ConcurrentDictionary<string, Future>).TryRemove(messageHash, out future))
                     {
                         (this.rejections as ConcurrentDictionary<string, object>)[messageHash] = content;
                         future = null;
@@ -598,7 +620,8 @@ public partial class BaseExchange
         public Task retire(object error)
         {
             TaskCompletionSource<bool> settled;
-            lock (retiredSync)
+            var pending = new List<Future>();
+            lock (futuresSync)
             {
                 if (this.retirement != null)
                 {
@@ -612,21 +635,35 @@ public partial class BaseExchange
                 // task must not run inline on the transport-close thread
                 settled = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
                 this.retirement = settled.Task;
+                this.retirementError = error;
+                // drain-and-clear in the same critical section that future()
+                // and reject() check retirement in: after this lock releases,
+                // no future can ever be parked in these dictionaries again
+                foreach (var future in this.futures.Values)
+                {
+                    pending.Add(future);
+                }
+                this.futures.Clear();
+                this.rejections.Clear();
+                this.subscriptions.Clear();
             }
             this.error = true;
             this.isConnected = false; // PingLoop's while() condition
             try
             {
-                this.reject(error); // no messageHash: rejects and removes every pending future
+                // settle outside the lock, the TaskCompletionSource is not
+                // RunContinuationsAsynchronously so awaiter continuations can
+                // run synchronously on this thread
+                foreach (var future in pending)
+                {
+                    future.reject(error);
+                }
             }
             finally
             {
-                // in a finally so the client sheds its lifecycle state and the
-                // transport teardown still starts even if a synchronously-run
-                // awaiter continuation throws out of reject
-                this.futures.Clear();
-                this.rejections.Clear();
-                this.subscriptions.Clear();
+                // in a finally so the transport teardown still starts even if
+                // a synchronously-run awaiter continuation throws out of a
+                // reject above
                 this.closeTransport().ContinueWith(t => settled.TrySetResult(true), TaskScheduler.Default);
             }
             return this.retirement;

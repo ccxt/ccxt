@@ -34,6 +34,7 @@ public partial class BaseTest
         Assert(client.futures.Count == 0, who + ": retirement must clear futures");
         Assert(client.subscriptions.Count == 0, who + ": retirement must clear subscriptions");
         Assert(client.rejections.Count == 0, who + ": retirement must clear rejections");
+        Assert(client.webSocket.State != System.Net.WebSockets.WebSocketState.Open, who + ": retirement must terminate the transport");
     }
 
     public async Task testWsClientRetirementReplacementRace()
@@ -53,6 +54,8 @@ public partial class BaseTest
         Assert(exchange.clients.Count == 1 && ReferenceEquals(exchange.clients[retirementUrl], replacementClient), "replacement: must keep its registry slot");
         Assert(replacementClient.futures.Count == 1 && !replacementFuture.task.IsCompleted, "replacement: pending future must stay pending");
         Assert(replacementClient.subscriptions.Count == 1, "replacement: subscriptions must stay");
+        Assert(replacementClient.rejections.Count == 1, "replacement: rejections must stay");
+        Assert(replacementClient.webSocket.State != System.Net.WebSockets.WebSocketState.Aborted, "replacement: transport must stay usable");
     }
 
     public async Task testWsClientRetirementSameReference()
@@ -103,6 +106,22 @@ public partial class BaseTest
         await client.Close(); // third path into retire
         assertRetired(client, "twice");
         await AssertRejectedWith<NetworkError>(future, "twice: the first retirement must win the settlement");
+    }
+
+    public async Task testWsClientRetiredClientShedsLateTraffic()
+    {
+        // a watch() that read this client out of the registry just before
+        // cleanup detached it can still talk to it after retirement - a late
+        // future() must come back already rejected with the retirement error
+        // instead of parking forever, and a late per-hash reject must not
+        // repopulate the rejections dictionary retire() just cleared
+        var client = makeSeededClient("late");
+        await client.retire(new NetworkError("retired"));
+        var lateFuture = client.future("post-retirement-hash");
+        await AssertRejectedWith<NetworkError>(lateFuture, "late: post-retirement future must reject immediately");
+        Assert(client.futures.Count == 0, "late: post-retirement future must not be parked");
+        client.reject(new NetworkError("straggler"), "straggler-hash");
+        Assert(client.rejections.Count == 0, "late: post-retirement reject must not repopulate rejections");
     }
 
     private static async Task AssertRejectedWith<T>(BaseExchange.Future future, string message) where T : Exception
