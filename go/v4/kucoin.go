@@ -6988,9 +6988,9 @@ func (this *Kucoin) fetchSpotOrdersByStatusBody(ch chan any, status any, optiona
 	marginMode := GetValue(marginModequeryVariable, 0)
 	query := GetValue(marginModequeryVariable, 1)
 	var isMarginOrder bool = !IsEqual(marginMode, nil)
-	if IsEqual(lowercaseStatus, "open") {
+	if lowercaseStatus == "open" {
 		lowercaseStatus = "active"
-	} else if IsEqual(lowercaseStatus, "closed") {
+	} else if lowercaseStatus == "closed" {
 		lowercaseStatus = "done"
 	}
 	var request map[string]any = map[string]any{}
@@ -7001,7 +7001,7 @@ func (this *Kucoin) fetchSpotOrdersByStatusBody(ch chan any, status any, optiona
 	}
 	request["tradeType"] = this.SafeString(GetValue(this.Options, "marginModes"), marginMode, "TRADE")
 	var response any = nil
-	if isMarginOrder && IsEqual(lowercaseStatus, "active") && (trigger == nil || *trigger != true) {
+	if isMarginOrder && (lowercaseStatus == "active") && (trigger == nil || *trigger != true) {
 		// hf margin open non-trigger orders require only symbol and tradeType params
 
 		response = (<-this.PrivateGetHfMarginOrdersActive(this.Extend(request, query)))
@@ -7034,11 +7034,11 @@ func (this *Kucoin) fetchSpotOrdersByStatusBody(ch chan any, status any, optiona
 			response = (<-this.PrivateGetHfMarginOrdersDone(this.Extend(request, query)))
 			PanicOnError(response)
 		} else if hf == true {
-			if IsEqual(lowercaseStatus, "active") {
+			if lowercaseStatus == "active" {
 
 				response = (<-this.PrivateGetHfOrdersActive(this.Extend(request, query)))
 				PanicOnError(response)
-			} else if IsEqual(lowercaseStatus, "done") {
+			} else if lowercaseStatus == "done" {
 
 				response = (<-this.PrivateGetHfOrdersDone(this.Extend(request, query)))
 				PanicOnError(response)
@@ -7294,13 +7294,13 @@ func (this *Kucoin) fetchUtaOrdersByStatusBody(ch chan any, status any, optional
 		AddElementToObject(request, "pageSize", limit)
 	}
 	var lowercaseStatus string = ToLower(status)
-	if IsEqual(lowercaseStatus, "open") {
+	if lowercaseStatus == "open" {
 		lowercaseStatus = "active"
-	} else if IsEqual(lowercaseStatus, "closed") {
+	} else if lowercaseStatus == "closed" {
 		lowercaseStatus = "done"
 	}
 	var response any = nil
-	if IsEqual(lowercaseStatus, "active") {
+	if lowercaseStatus == "active" {
 		//
 		//     {
 		//         "code": "200000",

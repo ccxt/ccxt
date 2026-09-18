@@ -12426,12 +12426,12 @@ func (this *Binance) transferBody(ch chan any, code any, amount any, fromAccount
 		if !IsEqual(market, nil) {
 			isolatedSymbol = GetValue(market, "id")
 		}
-		if IsEqual(fromId, "ISOLATED") {
+		if fromId == "ISOLATED" {
 			if symbol == nil {
 				panic(ArgumentsRequired(Add(this.Id+" transfer () requires params[\"symbol\"] when fromAccount is ", fromAccount)))
 			}
 		}
-		if IsEqual(toId, "ISOLATED") {
+		if toId == "ISOLATED" {
 			if symbol == nil {
 				panic(ArgumentsRequired(Add(this.Id+" transfer () requires params[\"symbol\"] when toAccount is ", toAccount)))
 			}
@@ -12446,12 +12446,12 @@ func (this *Binance) transferBody(ch chan any, code any, amount any, fromAccount
 			isolatedSymbol = toId
 		}
 		if fromIsolated || toIsolated {
-			var fromFuture bool = IsEqual(fromId, "UMFUTURE") || IsEqual(fromId, "CMFUTURE")
-			var toFuture bool = IsEqual(toId, "UMFUTURE") || IsEqual(toId, "CMFUTURE")
-			var fromSpot bool = IsEqual(fromId, "MAIN")
-			var toSpot bool = IsEqual(toId, "MAIN")
-			var funding bool = IsEqual(fromId, "FUNDING") || IsEqual(toId, "FUNDING")
-			var option bool = IsEqual(fromId, "OPTION") || IsEqual(toId, "OPTION")
+			var fromFuture bool = (fromId == "UMFUTURE") || (fromId == "CMFUTURE")
+			var toFuture bool = (toId == "UMFUTURE") || (toId == "CMFUTURE")
+			var fromSpot bool = (fromId == "MAIN")
+			var toSpot bool = (toId == "MAIN")
+			var funding bool = (fromId == "FUNDING") || (toId == "FUNDING")
+			var option bool = (fromId == "OPTION") || (toId == "OPTION")
 			var prohibitedWithIsolated bool = fromFuture || toFuture || funding || option
 			if (fromIsolated || toIsolated) && prohibitedWithIsolated {
 				panic(BadRequest(Add(Add(Add(this.Id+" transfer () does not allow transfers between ", fromAccount), " and "), toAccount)))
