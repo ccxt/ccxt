@@ -1659,7 +1659,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
                 // to do improve this, not very reliable right now
                 Object first = this.safeDict(result, 0, new HashMap<String, Object>() {{}});
                 Object arrayLength = ((List<?>)result).size();
-                if ((Helpers.isEqual(arrayLength, 0)) || (((Map<?, ?>)first).containsKey("client_order_id")))
+                if ((java.util.Objects.equals(arrayLength, 0)) || (((Map<?, ?>)first).containsKey("client_order_id")))
                 {
                     this.handleOrderRequest(client, message);
                 }

@@ -489,7 +489,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
             {
                 symbolsLength = ((List<?>)symbols).size();
             }
-            if ((java.util.Objects.equals(symbols, null)) || (Helpers.isEqual(symbolsLength, 0)))
+            if ((java.util.Objects.equals(symbols, null)) || (java.util.Objects.equals(symbolsLength, 0)))
             {
                 ((List<Object>)messageHashes).add(this.getMessageHash("ticker"));
             } else
@@ -948,7 +948,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
         Object data = this.safeDict(message, "trades", new HashMap<String, Object>() {{}});
         Object marketIds = Helpers.objectKeys(data);
         Object idsLength = ((List<?>)marketIds).size();
-        if (Helpers.isEqual(idsLength, 0))
+        if (java.util.Objects.equals(idsLength, 0))
         {
             return false;  // nothing to process
         }
@@ -1637,7 +1637,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
         Object data = this.safeDict(message, "orders", new HashMap<String, Object>() {{}});
         Object marketIds = Helpers.objectKeys(data);
         Object idsLength = ((List<?>)marketIds).size();
-        if (Helpers.isEqual(idsLength, 0))
+        if (java.util.Objects.equals(idsLength, 0))
         {
             return false;  // nothing to process
         }

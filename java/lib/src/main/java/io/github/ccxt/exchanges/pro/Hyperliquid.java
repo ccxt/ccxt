@@ -159,7 +159,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
             var globalParams = ((List<Object>) orderglobalParamsVariable).get(1);
             Object orders = (this.createOrdersWs((Object)(new ArrayList<Object>(Arrays.asList(((Object)order)))), (Object)(globalParams))).join();
             Object ordersLength = ((List<?>)orders).size();
-            if (Helpers.isEqual(ordersLength, 0))
+            if (java.util.Objects.equals(ordersLength, 0))
             {
                 // not sure why but it is happening sometimes
                 return this.safeOrder(new HashMap<String, Object>() {{}});
@@ -824,7 +824,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
         Map<String, Object> symbols = new HashMap<String, Object>() {{}};
         Object data = this.safeList(entry, "fills", new ArrayList<Object>(Arrays.asList()));
         Object dataLength = ((List<?>)data).size();
-        if (Helpers.isEqual(dataLength, 0))
+        if (java.util.Objects.equals(dataLength, 0))
         {
             return;
         }
@@ -949,7 +949,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
         //
         Object entry = this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
         Object entryLength = ((List<?>)entry).size();
-        if (Helpers.isEqual(entryLength, 0))
+        if (java.util.Objects.equals(entryLength, 0))
         {
             return;
         }
@@ -1771,7 +1771,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
             this.orders = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
         Object dataLength = ((List<?>)data).size();
-        if (Helpers.isEqual(dataLength, 0))
+        if (java.util.Objects.equals(dataLength, 0))
         {
             return;
         }

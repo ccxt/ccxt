@@ -671,7 +671,7 @@ public class Grvt extends io.github.ccxt.exchanges.Grvt
             parameters = ((List<Object>) channelparametersVariable).get(1);
             Boolean isSnapshot = java.util.Objects.equals(channel, "v1.book.s");
             Object symbolsLength = ((List<?>)symbols).size();
-            if (Helpers.isEqual(symbolsLength, 0))
+            if (java.util.Objects.equals(symbolsLength, 0))
             {
                 throw new ArgumentsRequired((this.id + " watchOrderBookForSymbols() requires a non-empty array of symbols")) ;
             }

@@ -179,7 +179,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
             Object parameters = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}};
             (this.loadMarkets()).join();
             Object symbolsLength = ((List<?>)symbols).size();
-            if (Helpers.isEqual(symbolsLength, 0))
+            if (java.util.Objects.equals(symbolsLength, 0))
             {
                 throw new ArgumentsRequired((this.id + " watchTradesForSymbols() requires a non-empty array of symbols")) ;
             }
@@ -221,7 +221,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
             Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             (this.loadMarkets()).join();
             Object symbolsLength = ((List<?>)symbols).size();
-            if (Helpers.isEqual(symbolsLength, 0))
+            if (java.util.Objects.equals(symbolsLength, 0))
             {
                 throw new ArgumentsRequired((this.id + " unWatchTradesForSymbols() requires a non-empty array of symbols")) ;
             }
@@ -310,7 +310,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
             Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
             (this.loadMarkets()).join();
             Object symbolsLength = ((List<?>)symbols).size();
-            if (Helpers.isEqual(symbolsLength, 0))
+            if (java.util.Objects.equals(symbolsLength, 0))
             {
                 throw new ArgumentsRequired((this.id + " watchOrderBookForSymbols() requires a non-empty array of symbols")) ;
             }
@@ -353,7 +353,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
             Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             (this.loadMarkets()).join();
             Object symbolsLength = ((List<?>)symbols).size();
-            if (Helpers.isEqual(symbolsLength, 0))
+            if (java.util.Objects.equals(symbolsLength, 0))
             {
                 throw new ArgumentsRequired((this.id + " unWatchOrderBookForSymbols() requires a non-empty array of symbols")) ;
             }
@@ -429,7 +429,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
             Object limit = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
             Object parameters = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}};
             Object symbolsLength = ((List<?>)symbolsAndTimeframes).size();
-            if (Helpers.isEqual(symbolsLength, 0) || !Helpers.isTrue(Helpers.isArray(Helpers.GetValue(symbolsAndTimeframes, 0))))
+            if (java.util.Objects.equals(symbolsLength, 0) || !Helpers.isTrue(Helpers.isArray(Helpers.GetValue(symbolsAndTimeframes, 0))))
             {
                 throw new ArgumentsRequired((this.id + " watchOHLCVForSymbols() requires a an array of symbols and timeframes, like  [['BTC/USDT0:USDT0', '1m'], ['ETH/USDT0:USDT0', '5m']]")) ;
             }
@@ -502,7 +502,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
 
             Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             Object symbolsLength = ((List<?>)symbolsAndTimeframes).size();
-            if (Helpers.isEqual(symbolsLength, 0) || !Helpers.isTrue(Helpers.isArray(Helpers.GetValue(symbolsAndTimeframes, 0))))
+            if (java.util.Objects.equals(symbolsLength, 0) || !Helpers.isTrue(Helpers.isArray(Helpers.GetValue(symbolsAndTimeframes, 0))))
             {
                 throw new ArgumentsRequired((this.id + " unWatchOHLCVForSymbols() requires a an array of symbols and timeframes, like  [['BTC/USDT0:USDT0', '1m'], ['ETH/USDT0:USDT0', '5m']]")) ;
             }
@@ -595,7 +595,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
             if (!java.util.Objects.equals(symbols, null))
             {
                 Object symbolsLength = ((List<?>)symbols).size();
-                if (Helpers.isEqual(symbolsLength, 1))
+                if (java.util.Objects.equals(symbolsLength, 1))
                 {
                     market = this.market(Helpers.GetValue(symbols, 0));
                     messageHash = ("ticker:" + ((Map<String, Object>)market).get("symbol"));
@@ -642,7 +642,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
             if (!java.util.Objects.equals(symbols, null))
             {
                 Object symbolsLength = ((List<?>)symbols).size();
-                if (Helpers.isEqual(symbolsLength, 1))
+                if (java.util.Objects.equals(symbolsLength, 1))
                 {
                     market = this.market(Helpers.GetValue(symbols, 0));
                     messageHash = ("ticker:" + ((Map<String, Object>)market).get("symbol"));
@@ -678,7 +678,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
             if (!java.util.Objects.equals(symbols, null))
             {
                 Object symbolsLength = ((List<?>)symbols).size();
-                if (Helpers.isEqual(symbolsLength, 1))
+                if (java.util.Objects.equals(symbolsLength, 1))
                 {
                     market = this.market(Helpers.GetValue(symbols, 0));
                     messageHash = ("bidask:" + ((Map<String, Object>)market).get("symbol"));
@@ -725,7 +725,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
             if (!java.util.Objects.equals(symbols, null))
             {
                 Object symbolsLength = ((List<?>)symbols).size();
-                if (Helpers.isEqual(symbolsLength, 1))
+                if (java.util.Objects.equals(symbolsLength, 1))
                 {
                     market = this.market(Helpers.GetValue(symbols, 0));
                     messageHash = ("bidask:" + ((Map<String, Object>)market).get("symbol"));
@@ -972,7 +972,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
             if (!java.util.Objects.equals(symbols, null))
             {
                 Object symbolsLength = ((List<?>)symbols).size();
-                if (Helpers.isEqual(symbolsLength, 1))
+                if (java.util.Objects.equals(symbolsLength, 1))
                 {
                     Map<String, Object> market = (Map<String, Object>) this.market(Helpers.GetValue(symbols, 0));
                     messageHash = (messageHash + (":" + ((Map<String, Object>)market).get("symbol")));
@@ -1026,7 +1026,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
             if (!java.util.Objects.equals(symbols, null))
             {
                 Object symbolsLength = ((List<?>)symbols).size();
-                if (Helpers.isEqual(symbolsLength, 1))
+                if (java.util.Objects.equals(symbolsLength, 1))
                 {
                     Map<String, Object> market = (Map<String, Object>) this.market(Helpers.GetValue(symbols, 0));
                     messageHash = (messageHash + (":" + ((Map<String, Object>)market).get("symbol")));

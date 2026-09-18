@@ -133,7 +133,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
                 {
                     ((List<Object>)messageHashes).add(((name + "::") + Helpers.GetValue(parsedSymbols, i)));
                 }
-            } else if (Helpers.isEqual(symbolsLength, 1))
+            } else if (java.util.Objects.equals(symbolsLength, 1))
             {
                 market = this.market(Helpers.GetValue(symbols, 0));
                 messageHash = ((name + "::") + ((Map<String, Object>)market).get("symbol"));

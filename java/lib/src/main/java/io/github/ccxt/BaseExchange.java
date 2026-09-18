@@ -4686,7 +4686,7 @@ public Object describe()
         // check the address is not the same letter like 'aaaaa' nor too short nor has a space
         Object uniqChars = (this.unique(this.stringToCharsArray(address)));
         Object length = ((List<?>)uniqChars).size(); // py transpiler trick
-        if (Helpers.isEqual(length, 1) || Helpers.isLessThan(((String)address).length(), this.minFundingAddressLength) || Helpers.isGreaterThan(Helpers.getIndexOf(address, " "), Helpers.opNeg(1)))
+        if (java.util.Objects.equals(length, 1) || Helpers.isLessThan(((String)address).length(), this.minFundingAddressLength) || Helpers.isGreaterThan(Helpers.getIndexOf(address, " "), Helpers.opNeg(1)))
         {
             throw new InvalidAddress((((((this.id + " address is invalid or has less than ") + String.valueOf(this.minFundingAddressLength)) + " characters: \"") + String.valueOf(address)) + "\"")) ;
         }
@@ -6109,7 +6109,7 @@ public Object describe()
         Object networks = this.safeDict(currency, "networks", new HashMap<String, Object>() {{}});
         Object keys = Helpers.objectKeys(networks);
         Object length = ((List<?>)keys).size();
-        if (!Helpers.isEqual(length, 0))
+        if (!java.util.Objects.equals(length, 0))
         {
             for (var i = 0; Helpers.isLessThan(i, length); i++)
             {
@@ -6531,7 +6531,7 @@ public Object describe()
         }
         Object debtBalanceArray = Helpers.objectKeys(debtBalance);
         Object length = ((List<?>)debtBalanceArray).size();
-        if ((!java.util.Objects.equals(length, null)) && (!Helpers.isEqual(length, 0)))
+        if ((!java.util.Objects.equals(length, null)) && (!java.util.Objects.equals(length, 0)))
         {
             ((Map<String, Object>)balance).put("debt", debtBalance);
         }
@@ -6694,7 +6694,7 @@ public Object describe()
                     Helpers.addElementToObject(Helpers.GetValue(reducedFees, i), "rate", this.safeNumber(Helpers.GetValue(reducedFees, i), "rate"));
                 }
             }
-            if (!Helpers.isTrue(parseFee) && (Helpers.isEqual(reducedLength, 0)))
+            if (!Helpers.isTrue(parseFee) && (java.util.Objects.equals(reducedLength, 0)))
             {
                 // copy fee to avoid modification by reference
                 Map<String, Object> feeCopy = this.deepExtend(fee);
@@ -6706,7 +6706,7 @@ public Object describe()
                 ((List<Object>)reducedFees).add(feeCopy);
             }
             ((Map<String, Object>)order).put("fees", reducedFees);
-            if (Helpers.isTrue(parseFee) && (Helpers.isEqual(reducedLength, 1)))
+            if (Helpers.isTrue(parseFee) && (java.util.Objects.equals(reducedLength, 1)))
             {
                 ((Map<String, Object>)order).put("fee", Helpers.GetValue(reducedFees, 0));
             }
@@ -7158,10 +7158,10 @@ public Object describe()
                 Helpers.addElementToObject(reducedFees, i, this.parseFeeNumeric(Helpers.GetValue(reducedFees, i)));
             }
             fees = reducedFees;
-            if (Helpers.isEqual(reducedLength, 1))
+            if (java.util.Objects.equals(reducedLength, 1))
             {
                 fee = Helpers.GetValue(reducedFees, 0);
-            } else if (Helpers.isEqual(reducedLength, 0))
+            } else if (java.util.Objects.equals(reducedLength, 0))
             {
                 fee = null;
             }
@@ -7850,7 +7850,7 @@ public Object describe()
             return symbols;
         }
         Object symbolsLength = ((List<?>)symbols).size();
-        if (Helpers.isEqual(symbolsLength, 0))
+        if (java.util.Objects.equals(symbolsLength, 0))
         {
             if (!Helpers.isTrue(allowEmpty))
             {
@@ -8195,7 +8195,7 @@ public Object describe()
         Object responseNetworksLength = ((List<?>)availableNetworkIds).size();
         if (!java.util.Objects.equals(networkCode, null))
         {
-            if (Helpers.isEqual(responseNetworksLength, 0))
+            if (java.util.Objects.equals(responseNetworksLength, 0))
             {
                 throw new NotSupported(Helpers.add((Helpers.add((this.id + " - "), networkCode) + " network did not return any result for "), currencyCode)) ;
             } else
@@ -8212,7 +8212,7 @@ public Object describe()
             }
         } else
         {
-            if (Helpers.isEqual(responseNetworksLength, 0))
+            if (java.util.Objects.equals(responseNetworksLength, 0))
             {
                 throw new NotSupported(Helpers.add((this.id + " - no networks were returned for "), currencyCode)) ;
             } else
@@ -8297,7 +8297,7 @@ public Object describe()
         {
             symbolsLength = ((List<?>)symbols).size();
         }
-        Boolean noSymbols = (java.util.Objects.equals(symbols, null)) || (Helpers.isEqual(symbolsLength, 0));
+        Boolean noSymbols = (java.util.Objects.equals(symbols, null)) || (java.util.Objects.equals(symbolsLength, 0));
         if (Helpers.isTrue(Helpers.isArray(response)))
         {
             for (var i = 0; i < ((List<?>)response).size(); i++)
@@ -9159,7 +9159,7 @@ public Object describe()
                 {
                     throw new ExchangeError((this.id + " safeMarket() failed to build market structure")) ;
                 }
-                if (Helpers.isEqual(partsLength, 2))
+                if (java.util.Objects.equals(partsLength, 2))
                 {
                     String baseId = this.safeString(parts, 0);
                     String quoteId = this.safeString(parts, 1);
@@ -10319,7 +10319,7 @@ public Object describe()
         }
         Object keys = Helpers.objectKeys(this.currencies);
         Object numCurrencies = ((List<?>)keys).size();
-        if (Helpers.isEqual(numCurrencies, 0))
+        if (java.util.Objects.equals(numCurrencies, 0))
         {
             throw new ExchangeError((this.id + " currencies not loaded")) ;
         }
@@ -11522,7 +11522,7 @@ public Object describe()
         Object currency = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Object networkKeys = Helpers.objectKeys(Helpers.GetValue(fee, "networks"));
         Object numNetworks = ((List<?>)networkKeys).size();
-        if (Helpers.isEqual(numNetworks, 1))
+        if (java.util.Objects.equals(numNetworks, 1))
         {
             Helpers.addElementToObject(fee, "withdraw", Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(fee, "networks"), Helpers.GetValue(networkKeys, 0)), "withdraw"));
             Helpers.addElementToObject(fee, "deposit", Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(fee, "networks"), Helpers.GetValue(networkKeys, 0)), "deposit"));
@@ -12049,7 +12049,7 @@ public Object describe()
                         Object cursorMessage = Helpers.add((((((("Cursor pagination call " + String.valueOf(iteration)) + " method ") + method) + " response length ") + String.valueOf(responseLength)) + " cursor "), cursorString);
                         this.log(cursorMessage);
                     }
-                    if (Helpers.isEqual(responseLength, 0))
+                    if (java.util.Objects.equals(responseLength, 0))
                     {
                         break;
                     }
@@ -12583,7 +12583,7 @@ public Object describe()
             put( "DEC", "12" );
         }};
         // if exchange omits first zero and provides i.e. '3JAN24' instead of '03JAN24'
-        if (Helpers.isEqual(((String)date).length(), 6))
+        if ((((String)date).length() == 6))
         {
             date = ("0" + date);
         }

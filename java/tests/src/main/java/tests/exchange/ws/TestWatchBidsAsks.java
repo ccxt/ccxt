@@ -54,7 +54,7 @@ public class TestWatchBidsAsks extends BaseTest {
                 // for some exchanges, multi symbol methods might require symbols array to be present, so
                 // so, if method throws "arguments-required" exception, we don't fail test, but just skip silently,
                 // because tests will make a second call of this method with symbols array
-                if ((Helpers.isInstance(e, ArgumentsRequired.class)) && (java.util.Objects.equals(argSymbols, null) || Helpers.isEqual(((List<?>)argSymbols).size(), 0)))
+                if ((Helpers.isInstance(e, ArgumentsRequired.class)) && (java.util.Objects.equals(argSymbols, null) || (((List<?>)argSymbols).size() == 0)))
                 {
                     // todo: provide random symbols to try
                     // return false;
@@ -75,7 +75,7 @@ public class TestWatchBidsAsks extends BaseTest {
                 Assert(exchange.isDictionary(response), ((((((exchange.id + " ") + method) + " ") + exchange.json(argSymbols)) + " must return a dictionary. ") + exchange.json(response)));
                 Object values = Helpers.objectValues(response);
                 Object checkedSymbol = null;
-                if (!java.util.Objects.equals(argSymbols, null) && Helpers.isEqual(((List<?>)argSymbols).size(), 1))
+                if (!java.util.Objects.equals(argSymbols, null) && (((List<?>)argSymbols).size() == 1))
                 {
                     checkedSymbol = Helpers.GetValue(argSymbols, 0);
                 }

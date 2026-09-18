@@ -1356,7 +1356,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
             Object open = this.safeValue(message, "open", new ArrayList<Object>(Arrays.asList()));
             List<Object> orders = (List<Object>) this.arrayConcat(open, closed);
             Object ordersLength = ((List<?>)orders).size();
-            if (Helpers.isEqual(ordersLength, 0))
+            if (java.util.Objects.equals(ordersLength, 0))
             {
                 return;
             }

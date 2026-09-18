@@ -1513,7 +1513,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
         //
         Object result = this.safeList(message, "result", new ArrayList<Object>(Arrays.asList()));
         Object tradesLength = ((List<?>)result).size();
-        if (Helpers.isEqual(tradesLength, 0))
+        if (java.util.Objects.equals(tradesLength, 0))
         {
             return;
         }
@@ -2190,7 +2190,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             } else
             {
                 Object symbolsLength = ((List<?>)symbols).size();
-                if (!Helpers.isEqual(symbolsLength, 1))
+                if (!java.util.Objects.equals(symbolsLength, 1))
                 {
                     throw new BadRequest((this.id + " watchMyLiquidationsForSymbols() only allows one symbol at a time. To listen to several symbols call watchMyLiquidationsForSymbols() several times.")) ;
                 }
@@ -2905,7 +2905,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             // uid is required for some subscriptions only so it's not a part of required credentials
             if (Helpers.isTrue(requiresUid))
             {
-                if (java.util.Objects.equals(this.uid, null) || Helpers.isEqual(this.uid.length(), 0))
+                if (java.util.Objects.equals(this.uid, null) || (this.uid.length() == 0))
                 {
                     throw new ArgumentsRequired((this.id + " requires uid to subscribe")) ;
                 }

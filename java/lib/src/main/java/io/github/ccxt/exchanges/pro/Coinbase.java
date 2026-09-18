@@ -1235,7 +1235,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
         Boolean isUnsub = (((Map<?, ?>)firstEvent).containsKey("subscriptions"));
         Object subKeys = Helpers.objectKeys(((Map<String, Object>)firstEvent).get("subscriptions"));
         Object subKeysLength = ((List<?>)subKeys).size();
-        if (Helpers.isTrue(isUnsub) && Helpers.isEqual(subKeysLength, 0))
+        if (Helpers.isTrue(isUnsub) && java.util.Objects.equals(subKeysLength, 0))
         {
             Object unSubObject = this.safeDict(this.options, "unSubscription", new HashMap<String, Object>() {{}});
             Object messageHashes = this.safeList(unSubObject, "messageHashes", new ArrayList<Object>(Arrays.asList()));

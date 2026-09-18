@@ -962,7 +962,7 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
         Map<String, Object> symbols = new HashMap<String, Object>() {{}};
         Object data = this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
         Object dataLength = ((List<?>)data).size();
-        if (Helpers.isEqual(dataLength, 0))
+        if (java.util.Objects.equals(dataLength, 0))
         {
             return;
         }
@@ -1489,7 +1489,7 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
             this.orders = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
         Object dataLength = ((List<?>)data).size();
-        if (Helpers.isEqual(dataLength, 0))
+        if (java.util.Objects.equals(dataLength, 0))
         {
             return;
         }

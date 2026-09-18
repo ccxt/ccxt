@@ -828,7 +828,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
         }
         Object rawOrders = this.safeList(message, "orders", new ArrayList<Object>(Arrays.asList()));
         Object rawOrdersLength = ((List<?>)rawOrders).size();
-        if (Helpers.isEqual(rawOrdersLength, 0))
+        if (java.util.Objects.equals(rawOrdersLength, 0))
         {
             return;
         }
@@ -1485,7 +1485,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
             Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
             Object marketIds = new ArrayList<Object>(Arrays.asList());
             Object numSymbols = ((List<?>)symbols).size();
-            if (Helpers.isEqual(numSymbols, 0))
+            if (java.util.Objects.equals(numSymbols, 0))
             {
                 Map<String, Object> marketsById = this.markets_by_id;
                 if (java.util.Objects.equals(marketsById, null))

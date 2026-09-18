@@ -56,7 +56,7 @@ public class TestWatchTickers extends BaseTest {
                 // to "all tickers" itself, and it requires symbols to be set
                 // so, in such case, if it's arguments-required exception, we don't
                 // mark tests as failed, but just skip them
-                if ((Helpers.isInstance(e, ArgumentsRequired.class)) && (java.util.Objects.equals(argSymbols, null) || Helpers.isEqual(((List<?>)argSymbols).size(), 0)))
+                if ((Helpers.isInstance(e, ArgumentsRequired.class)) && (java.util.Objects.equals(argSymbols, null) || (((List<?>)argSymbols).size() == 0)))
                 {
                     // todo: provide random symbols to try
                     // return;
@@ -78,7 +78,7 @@ public class TestWatchTickers extends BaseTest {
                 Assert(exchange.isDictionary(response), ((((((exchange.id + " ") + method) + " ") + exchange.json(argSymbols)) + " must return a dictionary. ") + exchange.json(response)));
                 Object values = Helpers.objectValues(response);
                 Object checkedSymbol = null;
-                if (!java.util.Objects.equals(argSymbols, null) && Helpers.isEqual(((List<?>)argSymbols).size(), 1))
+                if (!java.util.Objects.equals(argSymbols, null) && (((List<?>)argSymbols).size() == 1))
                 {
                     checkedSymbol = Helpers.GetValue(argSymbols, 0);
                 }

@@ -812,7 +812,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
     {
         Object data = this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
         Object length = ((List<?>)data).size();
-        if (Helpers.isEqual(length, 0))
+        if (java.util.Objects.equals(length, 0))
         {
             return;
         }

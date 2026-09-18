@@ -127,7 +127,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
             }
             symbols = this.marketSymbols(symbols);
             Object symbolsLength = ((List<?>)symbols).size();
-            if (Helpers.isEqual(symbolsLength, 0))
+            if (java.util.Objects.equals(symbolsLength, 0))
             {
                 throw new ArgumentsRequired((this.id + " watchTradesForSymbols() requires a non-empty array of symbols")) ;
             }
@@ -287,7 +287,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
                 (this.loadMarkets()).join();
             }
             Object symbolsLength = ((List<?>)symbols).size();
-            if (Helpers.isEqual(symbolsLength, 0))
+            if (java.util.Objects.equals(symbolsLength, 0))
             {
                 throw new ArgumentsRequired((this.id + " watchOrderBookForSymbols() requires a non-empty array of symbols")) ;
             }

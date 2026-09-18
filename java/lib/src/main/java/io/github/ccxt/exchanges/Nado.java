@@ -3510,7 +3510,7 @@ public class Nado extends NadoApi
             throw new BadRequest((this.id + " createOrder() only supports timeInForce values GTC, IOC, FOK, or PO")) ;
         }
         String appendix = "1"; // version
-        if (!Helpers.isEqual(orderType, 0))
+        if (!java.util.Objects.equals(orderType, 0))
         {
             appendix = Precise.stringAdd(appendix, Precise.stringMul(this.numberToString(orderType), "512"));
         }

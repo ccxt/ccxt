@@ -1075,7 +1075,7 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
                 String eventType = this.safeString(eventVar, "type");
                 Boolean isOrderBook = (java.util.Objects.equals(eventType, "change")) && (Helpers.inOp(eventVar, "side")) && Helpers.isTrue(this.inArray(Helpers.GetValue(eventVar, "side"), new ArrayList<Object>(Arrays.asList("ask", "bid"))));
                 String eventReason = this.safeString(eventVar, "reason");
-                Boolean isBidAsk = (java.util.Objects.equals(eventReason, "top-of-book")) || (Helpers.isTrue(isOrderBook) && (java.util.Objects.equals(eventReason, "initial")) && Helpers.isEqual(eventsLength, 2));
+                Boolean isBidAsk = (java.util.Objects.equals(eventReason, "top-of-book")) || (Helpers.isTrue(isOrderBook) && (java.util.Objects.equals(eventReason, "initial")) && java.util.Objects.equals(eventsLength, 2));
                 if (Helpers.isTrue(isBidAsk))
                 {
                     ((List<Object>)bidaskItems).add(eventVar);
