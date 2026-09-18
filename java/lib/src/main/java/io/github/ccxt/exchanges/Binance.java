@@ -5103,7 +5103,7 @@ public class Binance extends BinanceApi
                 Object res = this.safeValue(results, i);
                 if ((java.util.Objects.equals(fetchMargins, true)) && Helpers.isTrue(Helpers.isArray(res)))
                 {
-                    Object keysList = Helpers.objectKeys(this.indexBy(res, "symbol"));
+                    Object keysList = new ArrayList<Object>(((Map<String, Object>)this.indexBy(res, "symbol")).keySet());
                     Object length = Helpers.getArrayLength(((Map<String, Object>)this.options).get("crossMarginPairsData"));
                     // first one is the cross-margin promise
                     if (Helpers.isEqual(length, 0))
@@ -12618,12 +12618,12 @@ public class Binance extends BinanceApi
                 {
                     if (java.util.Objects.equals(fromId, null))
                     {
-                        Object keys = Helpers.objectKeys(accountsByType);
+                        Object keys = new ArrayList<Object>(((Map<String, Object>)accountsByType).keySet());
                         throw new ExchangeError(((this.id + " fromAccount parameter must be one of ") + String.join(", ", (List<String>)keys))) ;
                     }
                     if (java.util.Objects.equals(toId, null))
                     {
-                        Object keys = Helpers.objectKeys(accountsByType);
+                        Object keys = new ArrayList<Object>(((Map<String, Object>)accountsByType).keySet());
                         throw new ExchangeError(((this.id + " toAccount parameter must be one of ") + String.join(", ", (List<String>)keys))) ;
                     }
                     type = ((fromId + "_") + toId);
@@ -13359,7 +13359,7 @@ public class Binance extends BinanceApi
                 {
                     throw new ExchangeError((this.id + " markets not loaded")) ;
                 }
-                Object symbols = Helpers.objectKeys(markets);
+                Object symbols = new ArrayList<Object>(((Map<String, Object>)markets).keySet());
                 Map<String, Object> result = new HashMap<String, Object>() {{}};
                 Object feeTier = this.safeInteger(response, "feeTier");
                 Object feeTiers = Helpers.GetValue(Helpers.GetValue(((Map<String, Object>)this.fees).get("linear"), "trading"), "tiers");
@@ -13399,7 +13399,7 @@ public class Binance extends BinanceApi
                 {
                     throw new ExchangeError((this.id + " markets not loaded")) ;
                 }
-                Object symbols = Helpers.objectKeys(markets);
+                Object symbols = new ArrayList<Object>(((Map<String, Object>)markets).keySet());
                 Map<String, Object> result = new HashMap<String, Object>() {{}};
                 Object feeTier = this.safeInteger(response, "feeTier");
                 Object feeTiers = Helpers.GetValue(Helpers.GetValue(((Map<String, Object>)this.fees).get("inverse"), "trading"), "tiers");
@@ -16100,7 +16100,7 @@ final Object finalMarket = market;
         Object networkCode = null;
         Map<String, Object> currency = (Map<String, Object>) this.currency(currencyCode);
         Object networks = this.safeDict(currency, "networks", new HashMap<String, Object>() {{}});
-        Object networkCodes = Helpers.objectKeys(networks);
+        Object networkCodes = new ArrayList<Object>(((Map<String, Object>)networks).keySet());
         for (var i = 0; i < ((List<?>)networkCodes).size(); i++)
         {
             Object currentNetworkCode = Helpers.GetValue(networkCodes, i);
@@ -16309,7 +16309,7 @@ final Object finalMarket = market;
             }
         } else
         {
-            if (((List<?>)Helpers.objectKeys(parameters)).size() > 0)
+            if (((List<?>)new ArrayList<Object>(((Map<String, Object>)parameters).keySet())).size() > 0)
             {
                 url = Helpers.add(url, ("?" + this.urlencode(parameters)));
             }

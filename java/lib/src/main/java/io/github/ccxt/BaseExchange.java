@@ -4492,7 +4492,7 @@ public Object describe()
         {
             timeframes = this.timeframes;
         }
-        Object keys = Helpers.objectKeys(timeframes);
+        Object keys = new ArrayList<Object>(((Map<String, Object>)timeframes).keySet());
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
             Object key = Helpers.GetValue(keys, i);
@@ -6367,8 +6367,8 @@ public Object describe()
         this.markets = this.mapToSafeMap(this.indexBy(values, "symbol"));
         Map<String, Object> marketsSortedBySymbol = this.keysort(this.markets);
         Map<String, Object> marketsSortedById = this.keysort(this.markets_by_id);
-        this.symbols = Helpers.objectKeys(marketsSortedBySymbol);
-        this.ids = Helpers.objectKeys(marketsSortedById);
+        this.symbols = new ArrayList<Object>(((Map<String, Object>)marketsSortedBySymbol).keySet());
+        this.ids = new ArrayList<Object>(((Map<String, Object>)marketsSortedById).keySet());
         Object numCurrencies = 0;
         if (!java.util.Objects.equals(currencies, null))
         {
@@ -6415,7 +6415,7 @@ public Object describe()
             this.quoteCurrencies = this.mapToSafeMap(this.indexBy(quoteCurrencies, "code"));
             List<Object> allCurrencies = (List<Object>) this.arrayConcat(baseCurrencies, quoteCurrencies);
             Map<String, Object> groupedCurrencies = this.groupBy(allCurrencies, "code");
-            Object codes = Helpers.objectKeys(groupedCurrencies);
+            Object codes = new ArrayList<Object>(((Map<String, Object>)groupedCurrencies).keySet());
             List<Object> resultingCurrencies = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)codes).size(); i++)
             {
@@ -6440,7 +6440,7 @@ public Object describe()
         }
         this.currencies_by_id = this.indexBySafe(this.currencies, "id");
         Map<String, Object> currenciesSortedByCode = this.keysort(this.currencies);
-        this.codes = Helpers.objectKeys(currenciesSortedByCode);
+        this.codes = new ArrayList<Object>(((Map<String, Object>)currenciesSortedByCode).keySet());
         if (java.util.Objects.equals(this.markets, null))
         {
             throw new ExchangeError((this.id + " setMarkets() markets not set")) ;
@@ -6529,7 +6529,7 @@ public Object describe()
                 Helpers.addElementToObject(debtBalance, code, Helpers.GetValue(Helpers.GetValue(balance, code), "debt"));
             }
         }
-        Object debtBalanceArray = Helpers.objectKeys(debtBalance);
+        Object debtBalanceArray = new ArrayList<Object>(((Map<String, Object>)debtBalance).keySet());
         Object length = ((List<?>)debtBalanceArray).size();
         if ((!java.util.Objects.equals(length, null)) && (!Helpers.isEqual(length, 0)))
         {
@@ -6934,7 +6934,7 @@ public Object describe()
             }
         } else
         {
-            Object ids = Helpers.objectKeys(orders);
+            Object ids = new ArrayList<Object>(((Map<String, Object>)orders).keySet());
             for (var i = 0; i < ((List<?>)ids).size(); i++)
             {
                 Object id = Helpers.GetValue(ids, i);
@@ -10237,7 +10237,7 @@ public Object describe()
                     return this.safeDict(addressStructures, network);
                 } else
                 {
-                    Object keys = Helpers.objectKeys(addressStructures);
+                    Object keys = new ArrayList<Object>(((Map<String, Object>)addressStructures).keySet());
                     Object key = Helpers.GetValue(keys, 0);
                     return this.safeDict(addressStructures, key);
                 }
@@ -12234,7 +12234,7 @@ public Object describe()
 
     public Object removeKeysFromDict(Object dict, Object removeKeys)
     {
-        Object keys = Helpers.objectKeys(dict);
+        Object keys = new ArrayList<Object>(((Map<String, Object>)dict).keySet());
         Map<String, Object> newDict = new HashMap<String, Object>() {{}};
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
