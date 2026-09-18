@@ -97,9 +97,9 @@ declaration.
    would become `":"+settle` instead of `null` — a behaviour change. `csharpLocalIsSafeToRetype`'s
    left-`+`-operand rule rejects the declaration and the site keeps `object`. (A cast-free `string`
    declaration is not available for the same reason: `bs` stays `object`.)
-2. **A later READ as the left operand of `+` — 2 more symbol sites with no later write**
-   (zebpay.cs:1973 `{ "symbol", add(add(symbol, ":"), settle) }`, and the read inside the same
-   expression class): same overload-move veto, no write needed.
+2. **A later READ as the left operand of `+` — 1 symbol site with no later write**
+   (zebpay.cs:1973 `{ "symbol", add(add(symbol, ":"), settle) }`): the same overload-move veto applies
+   to a read, no write needed. (The other no-write symbol site, bithumb.cs:1294, is class 4.)
 3. **A leaf written by a destructuring assignment** (`pro/binance.cs:1427/1530` `rawHash` — leaf
    `name`; `pro/kucoin.cs:394/450` `topic` — leaf `method`): the tuple print is
    `name = nameparametersVariable[0];` (an element read of the hand-written
@@ -198,7 +198,8 @@ the sha named in the unit summary must be farm-green. `hotspot:`-free and additi
 `tools/U20/add-chain-audit.py` (per-site leaf audit; `audit-out.txt` is its output on this diff),
 `tools/U20/cand-rest.txt` / `cand-ws.txt` (the id lists whose forced regen covers every file the rule
 can touch), `tools/U20/ids-{rest,ws,pred}.txt` (full-tree lists), `symbol-add-sites-before.txt` (the 74
-baseline `object symbol = add(` sites). The audit reports `sites=66 flags=38`; every flag is the
-`market` receiver of a `GetValue(market, "id")` read or the `depth` argument of
-`this.numberToString(depth)` — both are call internals, not `+` leaves; no leaf was anything but
-`object` + a `string?` producer, `string` or `string?`.
+baseline `object symbol = add(` sites). The audit walks 66 of the 67 declaration pairs (it pairs the
+diff by line text; `git diff … | grep -cE '^\+\s*string\?? \w+ = \(\(string\)add\('` is the direct
+count) and reports `flags=38`; every flag is the `market` receiver of a `GetValue(market, "id")` read or
+the `depth` argument of `this.numberToString(depth)` — both are call internals, not `+` leaves; no leaf
+was anything but `object` + a `string?` producer, `string` or `string?`.
