@@ -189,7 +189,7 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
             Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, null, null, defaultType);
             Object parsedTicker = this.parseWSTicker(entry, market);
             Helpers.addElementToObject(this.tickers, symbol, parsedTicker);
-            Helpers.addElementToObject(newTickers, symbol, parsedTicker);
+            ((Map<String, Object>)newTickers).put((String)symbol, parsedTicker);
         }
         Object messageHashes = this.findMessageHashes(client, "tickers::");
         for (var i = 0; i < ((List<?>)messageHashes).size(); i++)
@@ -453,8 +453,8 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
         Object account = this.account();
         String currencyId = this.safeString(balance, "ccy");
         String code = this.safeCurrencyCode(currencyId);
-        Helpers.addElementToObject(account, "free", this.safeString(balance, "available"));
-        Helpers.addElementToObject(account, "used", this.safeString(balance, "frozen"));
+        ((Map<String, Object>)account).put("free", this.safeString(balance, "available"));
+        ((Map<String, Object>)account).put("used", this.safeString(balance, "frozen"));
         if (!java.util.Objects.equals(accountType, null))
         {
             if (java.util.Objects.equals(this.safeValue(this.balance, accountType), null))
@@ -970,7 +970,7 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
                 Object symbol = Helpers.GetValue(symbols, i);
                 market = this.market(symbol);
                 ((List<Object>)messageHashes).add(("orderbook:" + ((Map<String, Object>)market).get("symbol")));
-                Helpers.addElementToObject(watchOrderBookSubscriptions, symbol, new ArrayList<Object>(Arrays.asList(((Map<String, Object>)market).get("id"), limit, aggregation, true)));
+                ((Map<String, Object>)watchOrderBookSubscriptions).put((String)symbol, new ArrayList<Object>(Arrays.asList(((Map<String, Object>)market).get("id"), limit, aggregation, true)));
             }
             List<Object> typeparametersVariable = (List<Object>) this.handleMarketTypeAndParams(callerMethodName, market, parameters);
             type = ((List<Object>) typeparametersVariable).get(0);
@@ -1725,7 +1725,7 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
                 }} );
             }};
             this.watch(url, messageHash, request, requestId, subscribe);
-            Helpers.addElementToObject(client.subscriptions, messageHash, true);
+            ((Map)client.subscriptions).put((String)messageHash, true);
             return ((io.github.ccxt.ws.Future)future).getFuture().join();
         });
 

@@ -562,7 +562,7 @@ public class Luno extends LunoApi
             if (!java.util.Objects.equals(networkCode, null))
             {
                 final Object finalNetworkCode = networkCode;
-                Helpers.addElementToObject(networks, networkCode, new HashMap<String, Object>() {{
+                ((Map<String, Object>)networks).put((String)networkCode, new HashMap<String, Object>() {{
     put( "id", networkId );
     put( "network", finalNetworkCode );
     put( "limits", new HashMap<String, Object>() {{
@@ -805,9 +805,9 @@ public class Luno extends LunoApi
             } else if (!java.util.Objects.equals(code, null))
             {
                 Object account = this.account();
-                Helpers.addElementToObject(account, "used", reservedUnconfirmed);
-                Helpers.addElementToObject(account, "total", balanceUnconfirmed);
-                Helpers.addElementToObject(result, code, account);
+                ((Map<String, Object>)account).put("used", reservedUnconfirmed);
+                ((Map<String, Object>)account).put("total", balanceUnconfirmed);
+                ((Map<String, Object>)result).put((String)code, account);
             }
         }
         return this.safeBalance(result);
@@ -1191,7 +1191,7 @@ public class Luno extends LunoApi
                 Map<String, Object> market = (Map<String, Object>) this.safeMarket(id);
                 Object symbol = ((Map<String, Object>)market).get("symbol");
                 Object ticker = Helpers.GetValue(tickers, id);
-                Helpers.addElementToObject(result, symbol, this.parseTicker(ticker, market));
+                ((Map<String, Object>)result).put((String)symbol, this.parseTicker(ticker, market));
             }
             return this.filterByArrayTickers(result, "symbol", symbols);
         }).thenApply(Tickers::new);

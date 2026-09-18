@@ -1470,12 +1470,12 @@ public class Bitstamp extends BitstampApi
             if ((!java.util.Objects.equals(base, null)) && !(((Map<?, ?>)result).containsKey(base)))
             {
                 Long baseDecimals = this.safeInteger(market, "base_decimals");
-                Helpers.addElementToObject(result, base, this.constructCurrencyObject(baseId, base, baseDescription, baseDecimals, null, market));
+                ((Map<String, Object>)result).put((String)base, this.constructCurrencyObject(baseId, base, baseDescription, baseDecimals, null, market));
             }
             if ((!java.util.Objects.equals(quote, null)) && !(((Map<?, ?>)result).containsKey(quote)))
             {
                 Long counterDecimals = this.safeInteger(market, "counter_decimals");
-                Helpers.addElementToObject(result, quote, this.constructCurrencyObject(quoteId, quote, quoteDescription, counterDecimals, this.parseNumber(cost), market));
+                ((Map<String, Object>)result).put((String)quote, this.constructCurrencyObject(quoteId, quote, quoteDescription, counterDecimals, this.parseNumber(cost), market));
             }
         }
         return result;
@@ -1530,7 +1530,7 @@ public class Bitstamp extends BitstampApi
             }
             Long timestamp = this.parseToInt(Helpers.divide(microtimestamp, 1000));
             Object orderbook = this.parseOrderBook(response, ((Map<String, Object>)market).get("symbol"), timestamp);
-            Helpers.addElementToObject(orderbook, "nonce", microtimestamp);
+            ((Map<String, Object>)orderbook).put("nonce", microtimestamp);
             return orderbook;
         }).thenApply(OrderBook::new);
 
@@ -2068,12 +2068,12 @@ public class Bitstamp extends BitstampApi
             String currencyId = this.safeString(currencyBalance, "currency");
             String currencyCode = this.safeCurrencyCode(currencyId);
             Object account = this.account();
-            Helpers.addElementToObject(account, "free", this.safeString(currencyBalance, "available"));
-            Helpers.addElementToObject(account, "used", this.safeString(currencyBalance, "reserved"));
-            Helpers.addElementToObject(account, "total", this.safeString(currencyBalance, "total"));
+            ((Map<String, Object>)account).put("free", this.safeString(currencyBalance, "available"));
+            ((Map<String, Object>)account).put("used", this.safeString(currencyBalance, "reserved"));
+            ((Map<String, Object>)account).put("total", this.safeString(currencyBalance, "total"));
             if (!java.util.Objects.equals(currencyCode, null))
             {
-                Helpers.addElementToObject(result, currencyCode, account);
+                ((Map<String, Object>)result).put((String)currencyCode, account);
             }
         }
         return this.safeBalance(result);
@@ -2189,7 +2189,7 @@ public class Bitstamp extends BitstampApi
             Object symbol = ((Map<String, Object>)fee).get("symbol");
             if (!java.util.Objects.equals(symbol, null))
             {
-                Helpers.addElementToObject(result, symbol, fee);
+                ((Map<String, Object>)result).put((String)symbol, fee);
             }
         }
         return result;
@@ -2288,7 +2288,7 @@ public class Bitstamp extends BitstampApi
             }
             if (!java.util.Objects.equals(code, null))
             {
-                Helpers.addElementToObject(result, code, new HashMap<String, Object>() {{
+                ((Map<String, Object>)result).put((String)code, new HashMap<String, Object>() {{
     put( "withdraw_fee", Bitstamp.this.safeNumber(fees, "fee") );
     put( "deposit", new HashMap<String, Object>() {{}} );
     put( "info", Bitstamp.this.safeDict(currencies, id) );

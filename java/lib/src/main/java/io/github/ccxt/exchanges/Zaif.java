@@ -439,18 +439,18 @@ public class Zaif extends ZaifApi
             String code = this.safeCurrencyCode(currencyId);
             String balance = this.safeString(funds, currencyId);
             Object account = this.account();
-            Helpers.addElementToObject(account, "free", balance);
-            Helpers.addElementToObject(account, "total", balance);
+            ((Map<String, Object>)account).put("free", balance);
+            ((Map<String, Object>)account).put("total", balance);
             if (!java.util.Objects.equals(deposit, null))
             {
                 if (Helpers.inOp(deposit, currencyId))
                 {
-                    Helpers.addElementToObject(account, "total", this.safeString(deposit, currencyId));
+                    ((Map<String, Object>)account).put("total", this.safeString(deposit, currencyId));
                 }
             }
             if (!java.util.Objects.equals(code, null))
             {
-                Helpers.addElementToObject(result, code, account);
+                ((Map<String, Object>)result).put((String)code, account);
             }
         }
         return this.safeBalance(result);

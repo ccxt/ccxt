@@ -527,11 +527,11 @@ public class Indodax extends IndodaxApi
             Object currencyId = Helpers.GetValue(currencyIds, i);
             String code = this.safeCurrencyCode(currencyId);
             Object account = this.account();
-            Helpers.addElementToObject(account, "free", this.safeString(free, currencyId));
-            Helpers.addElementToObject(account, "used", this.safeString(used, currencyId));
+            ((Map<String, Object>)account).put("free", this.safeString(free, currencyId));
+            ((Map<String, Object>)account).put("used", this.safeString(used, currencyId));
             if (!java.util.Objects.equals(code, null))
             {
-                Helpers.addElementToObject(result, code, account);
+                ((Map<String, Object>)result).put((String)code, account);
             }
         }
         return this.safeBalance(result);
@@ -757,7 +757,7 @@ public class Indodax extends IndodaxApi
                 Object marketId = Helpers.replace(((String)key), "_", "");
                 Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
                 Object parsed = this.parseTicker(rawTicker, market);
-                Helpers.addElementToObject(parsedTickers, marketId, parsed);
+                ((Map<String, Object>)parsedTickers).put((String)marketId, parsed);
             }
             return this.filterByArray(parsedTickers, "symbol", symbols);
         }).thenApply(Tickers::new);
@@ -1220,7 +1220,7 @@ public class Indodax extends IndodaxApi
                         String costRequest = Precise.stringMul(amountString, priceString);
                         quoteAmount = this.costToPrecision(symbol, costRequest);
                     }
-                    Helpers.addElementToObject(request, ((String)((Map<String, Object>)market).get("quoteId")), quoteAmount);
+                    ((Map<String, Object>)request).put((String)((String)((Map<String, Object>)market).get("quoteId")), quoteAmount);
                 } else
                 {
                     quantityIsRequired = true;
@@ -1231,7 +1231,7 @@ public class Indodax extends IndodaxApi
                 quantityIsRequired = true;
                 if (java.util.Objects.equals(side, "buy"))
                 {
-                    Helpers.addElementToObject(request, ((String)((Map<String, Object>)market).get("quoteId")), this.parseToNumeric(this.costToPrecision(symbol, Precise.stringMul(this.numberToString(amount), this.numberToString(price)))));
+                    ((Map<String, Object>)request).put((String)((String)((Map<String, Object>)market).get("quoteId")), this.parseToNumeric(this.costToPrecision(symbol, Precise.stringMul(this.numberToString(amount), this.numberToString(price)))));
                 }
             }
             if (Boolean.TRUE.equals(priceIsRequired))
@@ -1244,7 +1244,7 @@ public class Indodax extends IndodaxApi
             }
             if (Boolean.TRUE.equals(quantityIsRequired))
             {
-                Helpers.addElementToObject(request, ((String)((Map<String, Object>)market).get("baseId")), this.amountToPrecision(symbol, amount));
+                ((Map<String, Object>)request).put((String)((String)((Map<String, Object>)market).get("baseId")), this.amountToPrecision(symbol, amount));
             }
             Map<String, Object> result = (this.privatePostTrade(this.extend(request, parameters))).join();
             Object data = this.safeValue(result, "return", new HashMap<String, Object>() {{}});
@@ -1794,7 +1794,7 @@ public class Indodax extends IndodaxApi
                     {
                         final Object finalCode = code;
                         final Object finalAddress = address;
-                        Helpers.addElementToObject(result, code, new HashMap<String, Object>() {{
+                        ((Map<String, Object>)result).put((String)code, new HashMap<String, Object>() {{
         put( "info", new HashMap<String, Object>() {{}} );
         put( "currency", finalCode );
         put( "network", finalNetwork );

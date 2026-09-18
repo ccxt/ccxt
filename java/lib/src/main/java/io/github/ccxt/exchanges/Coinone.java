@@ -653,11 +653,11 @@ public class Coinone extends CoinoneApi
             Object balance = Helpers.GetValue(balances, currencyId);
             String code = this.safeCurrencyCode(currencyId);
             Object account = this.account();
-            Helpers.addElementToObject(account, "free", this.safeString(balance, "avail"));
-            Helpers.addElementToObject(account, "total", this.safeString(balance, "balance"));
+            ((Map<String, Object>)account).put("free", this.safeString(balance, "avail"));
+            ((Map<String, Object>)account).put("total", this.safeString(balance, "balance"));
             if (!java.util.Objects.equals(code, null))
             {
-                Helpers.addElementToObject(result, code, account);
+                ((Map<String, Object>)result).put((String)code, account);
             }
         }
         return this.safeBalance(result);
@@ -1595,7 +1595,7 @@ public class Coinone extends CoinoneApi
                 }
                 if (!java.util.Objects.equals(code, null))
                 {
-                    Helpers.addElementToObject(result, code, depositAddress);
+                    ((Map<String, Object>)result).put((String)code, depositAddress);
                 }
             }
             return result;

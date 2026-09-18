@@ -1394,7 +1394,7 @@ public class Deribit extends DeribitApi
                     }
                     if (!java.util.Objects.equals(symbol, null))
                     {
-                        Helpers.addElementToObject(parsedMarkets, symbol, true);
+                        ((Map<String, Object>)parsedMarkets).put((String)symbol, true);
                     }
                     Double minTradeAmount = this.safeNumber(market, "min_trade_amount");
                     Double tickSize = this.safeNumber(market, "tick_size");
@@ -1485,12 +1485,12 @@ public class Deribit extends DeribitApi
             String currencyId = this.safeString(data, "currency");
             String currencyCode = this.safeCurrencyCode(currencyId);
             Object account = this.account();
-            Helpers.addElementToObject(account, "free", this.safeString(data, "available_funds"));
-            Helpers.addElementToObject(account, "used", this.safeString(data, "maintenance_margin"));
-            Helpers.addElementToObject(account, "total", this.safeString(data, "equity"));
+            ((Map<String, Object>)account).put("free", this.safeString(data, "available_funds"));
+            ((Map<String, Object>)account).put("used", this.safeString(data, "maintenance_margin"));
+            ((Map<String, Object>)account).put("total", this.safeString(data, "equity"));
             if (!java.util.Objects.equals(currencyCode, null))
             {
-                Helpers.addElementToObject(result, currencyCode, account);
+                ((Map<String, Object>)result).put((String)currencyCode, account);
             }
         }
         return this.safeBalance(result);
@@ -1928,7 +1928,7 @@ public class Deribit extends DeribitApi
                 Object symbol = ((Map<String, Object>)ticker).get("symbol");
                 if (!java.util.Objects.equals(symbol, null))
                 {
-                    Helpers.addElementToObject(tickers, symbol, ticker);
+                    ((Map<String, Object>)tickers).put((String)symbol, ticker);
                 }
             }
             return this.filterByArrayTickers(tickers, "symbol", symbols);
@@ -2344,7 +2344,7 @@ public class Deribit extends DeribitApi
                 {
                     fee = this.extend(fee, optionFee);
                 }
-                Helpers.addElementToObject(parsedFees, symbol, fee);
+                ((Map<String, Object>)parsedFees).put((String)symbol, fee);
             }
             return parsedFees;
         }).thenApply(TradingFees::new);
@@ -2424,7 +2424,7 @@ public class Deribit extends DeribitApi
             Long timestamp = this.safeInteger(result, "timestamp");
             Long nonce = this.safeInteger(result, "change_id");
             Object orderbook = this.parseOrderBook(result, ((Map<String, Object>)market).get("symbol"), timestamp);
-            Helpers.addElementToObject(orderbook, "nonce", nonce);
+            ((Map<String, Object>)orderbook).put("nonce", nonce);
             return orderbook;
         }).thenApply(OrderBook::new);
 

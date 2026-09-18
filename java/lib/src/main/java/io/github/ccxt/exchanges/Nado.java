@@ -541,7 +541,7 @@ public class Nado extends NadoApi
                 String directionSuffix = (((java.util.Objects.equals(triggerDirection, "ascending")))) ? "above" : "below";
                 String triggerPriceX18 = this.convertToX18(triggerPrice);
                 Map<String, Object> priceRequirement = new HashMap<String, Object>() {{}};
-                Helpers.addElementToObject(priceRequirement, Helpers.add("oracle_price_", directionSuffix), triggerPriceX18);
+                ((Map<String, Object>)priceRequirement).put((String)Helpers.add("oracle_price_", directionSuffix), triggerPriceX18);
                 Map<String, Object> trigger = new HashMap<String, Object>() {{
                     put( "price_trigger", new HashMap<String, Object>() {{
                         put( "price_requirement", priceRequirement );
@@ -561,7 +561,7 @@ public class Nado extends NadoApi
                 triggerPrice = ((Boolean.TRUE.equals(isStopLossOrder))) ? stopLossTriggerPrice : takeProfitTriggerPrice;
                 String triggerPriceX18 = this.convertToX18(triggerPrice);
                 Map<String, Object> priceRequirement = new HashMap<String, Object>() {{}};
-                Helpers.addElementToObject(priceRequirement, ("oracle_price_" + triggerDirection), triggerPriceX18);
+                ((Map<String, Object>)priceRequirement).put((String)("oracle_price_" + triggerDirection), triggerPriceX18);
                 Map<String, Object> trigger = new HashMap<String, Object>() {{
                     put( "price_trigger", new HashMap<String, Object>() {{
                         put( "price_requirement", priceRequirement );
@@ -1950,7 +1950,7 @@ public class Nado extends NadoApi
                 String pairProductId = this.safeString(rawPair, "product_id");
                 if (!java.util.Objects.equals(pairProductId, null))
                 {
-                    Helpers.addElementToObject(pairsById, pairProductId, rawPair);
+                    ((Map<String, Object>)pairsById).put((String)pairProductId, rawPair);
                 }
             }
             Map<String, Object> assetsById = new HashMap<String, Object>() {{}};
@@ -1960,7 +1960,7 @@ public class Nado extends NadoApi
                 String assetProductId = this.safeString(rawAsset, "product_id");
                 if (!java.util.Objects.equals(assetProductId, null))
                 {
-                    Helpers.addElementToObject(assetsById, assetProductId, rawAsset);
+                    ((Map<String, Object>)assetsById).put((String)assetProductId, rawAsset);
                 }
             }
             Map<String, Object> assetsByCode = new HashMap<String, Object>() {{}};
@@ -1976,7 +1976,7 @@ public class Nado extends NadoApi
                 Map<String, Object> previous = (Map<String, Object>) this.safeDict(assetsByCode, assetCode);
                 if (java.util.Objects.equals(previous, null))
                 {
-                    Helpers.addElementToObject(assetsByCode, assetCode, rawAsset);
+                    ((Map<String, Object>)assetsByCode).put((String)assetCode, rawAsset);
                 } else
                 {
                     Object previousDeposit = this.safeBool(previous, "can_deposit", false);
@@ -1985,7 +1985,7 @@ public class Nado extends NadoApi
                     Object currentWithdraw = this.safeBool(rawAsset, "can_withdraw", false);
                     if ((!java.util.Objects.equals(previousDeposit, true)) && (!java.util.Objects.equals(previousWithdraw, true)) && ((java.util.Objects.equals(currentDeposit, true)) || (java.util.Objects.equals(currentWithdraw, true))))
                     {
-                        Helpers.addElementToObject(assetsByCode, assetCode, rawAsset);
+                        ((Map<String, Object>)assetsByCode).put((String)assetCode, rawAsset);
                     }
                 }
             }
@@ -2122,14 +2122,14 @@ public class Nado extends NadoApi
                 Object canWithdraw = this.safeBool(currency, "can_withdraw", false);
                 if (java.util.Objects.equals(previous, null))
                 {
-                    Helpers.addElementToObject(result, code, parsed);
+                    ((Map<String, Object>)result).put((String)code, parsed);
                 } else
                 {
                     Object previousDeposit = this.safeBool(previous, "deposit", false);
                     Object previousWithdraw = this.safeBool(previous, "withdraw", false);
                     if ((!java.util.Objects.equals(previousDeposit, true)) && (!java.util.Objects.equals(previousWithdraw, true)) && ((java.util.Objects.equals(canDeposit, true)) || (java.util.Objects.equals(canWithdraw, true))))
                     {
-                        Helpers.addElementToObject(result, code, parsed);
+                        ((Map<String, Object>)result).put((String)code, parsed);
                     }
                 }
             }
@@ -3037,12 +3037,12 @@ public class Nado extends NadoApi
             Map<String, Object> balance = (Map<String, Object>) this.safeDict(rawBalance, "balance", new HashMap<String, Object>() {{}});
             String amount = Precise.stringDiv(this.safeString(balance, "amount"), "1000000000000000000");
             Object account = this.account();
-            Helpers.addElementToObject(account, "total", amount);
+            ((Map<String, Object>)account).put("total", amount);
             // the subaccount balance carries no locked/reserved breakdown, the whole amount is spendable
-            Helpers.addElementToObject(account, "free", amount);
+            ((Map<String, Object>)account).put("free", amount);
             if (!java.util.Objects.equals(code, null))
             {
-                Helpers.addElementToObject(result, code, account);
+                ((Map<String, Object>)result).put((String)code, account);
             }
         }
         return this.safeBalance(result);

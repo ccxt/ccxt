@@ -616,7 +616,7 @@ public class Hollaex extends HollaexApi
             if (!java.util.Objects.equals(networkCode, null))
             {
                 final Object finalNetworkCode = networkCode;
-                Helpers.addElementToObject(networks, networkCode, new HashMap<String, Object>() {{
+                ((Map<String, Object>)networks).put((String)networkCode, new HashMap<String, Object>() {{
     put( "id", networkId );
     put( "network", finalNetworkCode );
     put( "active", Hollaex.this.safeBool(networkEntry, "active") );
@@ -691,7 +691,7 @@ public class Hollaex extends HollaexApi
                 Map<String, Object> orderbook = (Map<String, Object>) this.safeDict(response, marketId, new HashMap<String, Object>() {{}});
                 String symbol = this.safeSymbol(marketId, null, "-");
                 Long timestamp = this.parse8601(this.safeString(orderbook, "timestamp"));
-                Helpers.addElementToObject(result, symbol, this.parseOrderBook(orderbook, symbol, timestamp));
+                ((Map<String, Object>)result).put((String)symbol, this.parseOrderBook(orderbook, symbol, timestamp));
             }
             return result;
         }).thenApply(OrderBooks::new);
@@ -845,7 +845,7 @@ public class Hollaex extends HollaexApi
             String marketId = this.safeString(ticker, "symbol", key);
             Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, null, "-");
             Object symbol = ((Map<String, Object>)market).get("symbol");
-            Helpers.addElementToObject(result, symbol, this.extend(this.parseTicker(ticker, market), parameters));
+            ((Map<String, Object>)result).put((String)symbol, this.extend(this.parseTicker(ticker, market), parameters));
         }
         return this.filterByArrayTickers(result, "symbol", symbols);
     }
@@ -1076,7 +1076,7 @@ public class Hollaex extends HollaexApi
                 Map<String, Object> market = (Map<String, Object>) this.market(symbol);
                 String makerString = this.safeString(makerFees, ((Map<String, Object>)market).get("id"));
                 String takerString = this.safeString(takerFees, ((Map<String, Object>)market).get("id"));
-                Helpers.addElementToObject(result, symbol, new HashMap<String, Object>() {{
+                ((Map<String, Object>)result).put((String)symbol, new HashMap<String, Object>() {{
         put( "info", fees );
         put( "symbol", symbol );
         put( "maker", Hollaex.this.parseNumber(Precise.stringDiv(makerString, "100")) );
@@ -1200,11 +1200,11 @@ public class Hollaex extends HollaexApi
             Object currencyId = Helpers.GetValue(currencyIds, i);
             String code = this.safeCurrencyCode(currencyId);
             Object account = this.account();
-            Helpers.addElementToObject(account, "free", this.safeString(response, (currencyId + "_available")));
-            Helpers.addElementToObject(account, "total", this.safeString(response, (currencyId + "_balance")));
+            ((Map<String, Object>)account).put("free", this.safeString(response, (currencyId + "_available")));
+            ((Map<String, Object>)account).put("total", this.safeString(response, (currencyId + "_balance")));
             if (!java.util.Objects.equals(code, null))
             {
-                Helpers.addElementToObject(result, code, account);
+                ((Map<String, Object>)result).put((String)code, account);
             }
         }
         return this.safeBalance(result);

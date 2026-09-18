@@ -4803,7 +4803,7 @@ public class Binance extends BinanceApi
                 throw new ExchangeError((this.id + " parseCurrenciesCustom() could not resolve parsed")) ;
             }
             Helpers.addElementToObject(parsed, "margin", this.safeBool(marginEntry, "isBorrowable"));
-            Helpers.addElementToObject(result, code, parsed);
+            ((Map<String, Object>)result).put((String)code, parsed);
         }
         return result;
     }
@@ -4935,7 +4935,7 @@ public class Binance extends BinanceApi
             Object withdrawEnable = this.safeBool(networkItem, "withdrawEnable");
             if (!java.util.Objects.equals(networkCode, null))
             {
-                Helpers.addElementToObject(fees, networkCode, withdrawFee);
+                ((Map<String, Object>)fees).put((String)networkCode, withdrawFee);
             }
             Object isDefault = this.safeBool(networkItem, "isDefault");
             if ((java.util.Objects.equals(isDefault, true)) || (java.util.Objects.equals(fee, null)))
@@ -4957,7 +4957,7 @@ public class Binance extends BinanceApi
                 final Object finalNetwork = network;
                 final Object finalNetworkCode = networkCode;
                 final Object finalWithdrawPrecision = withdrawPrecision;
-                Helpers.addElementToObject(networks, networkCode, new HashMap<String, Object>() {{
+                ((Map<String, Object>)networks).put((String)networkCode, new HashMap<String, Object>() {{
     put( "info", networkItem );
     put( "id", finalNetwork );
     put( "network", finalNetworkCode );
@@ -5627,11 +5627,11 @@ public class Binance extends BinanceApi
     public Object parseBalanceHelper(Object entry)
     {
         Object account = this.account();
-        Helpers.addElementToObject(account, "used", this.safeString(entry, "locked"));
-        Helpers.addElementToObject(account, "free", this.safeString(entry, "free"));
+        ((Map<String, Object>)account).put("used", this.safeString(entry, "locked"));
+        ((Map<String, Object>)account).put("free", this.safeString(entry, "free"));
         String interest = this.safeString(entry, "interest");
         String debt = this.safeString(entry, "borrowed");
-        Helpers.addElementToObject(account, "debt", Precise.stringAdd(debt, interest));
+        ((Map<String, Object>)account).put("debt", Precise.stringAdd(debt, interest));
         return account;
     }
 
@@ -5656,31 +5656,31 @@ public class Binance extends BinanceApi
                 String code = this.safeCurrencyCode(currencyId);
                 if (java.util.Objects.equals(type, "linear"))
                 {
-                    Helpers.addElementToObject(account, "free", this.safeString(entry, "umWalletBalance"));
-                    Helpers.addElementToObject(account, "used", this.safeString(entry, "umUnrealizedPNL"));
+                    ((Map<String, Object>)account).put("free", this.safeString(entry, "umWalletBalance"));
+                    ((Map<String, Object>)account).put("used", this.safeString(entry, "umUnrealizedPNL"));
                 } else if (java.util.Objects.equals(type, "inverse"))
                 {
-                    Helpers.addElementToObject(account, "free", this.safeString(entry, "cmWalletBalance"));
-                    Helpers.addElementToObject(account, "used", this.safeString(entry, "cmUnrealizedPNL"));
+                    ((Map<String, Object>)account).put("free", this.safeString(entry, "cmWalletBalance"));
+                    ((Map<String, Object>)account).put("used", this.safeString(entry, "cmUnrealizedPNL"));
                 } else if (Helpers.isTrue(cross))
                 {
                     String borrowed = this.safeString(entry, "crossMarginBorrowed");
                     String interest = this.safeString(entry, "crossMarginInterest");
-                    Helpers.addElementToObject(account, "debt", Precise.stringAdd(borrowed, interest));
-                    Helpers.addElementToObject(account, "free", this.safeString(entry, "crossMarginFree"));
-                    Helpers.addElementToObject(account, "used", this.safeString(entry, "crossMarginLocked"));
-                    Helpers.addElementToObject(account, "total", this.safeString(entry, "crossMarginAsset"));
+                    ((Map<String, Object>)account).put("debt", Precise.stringAdd(borrowed, interest));
+                    ((Map<String, Object>)account).put("free", this.safeString(entry, "crossMarginFree"));
+                    ((Map<String, Object>)account).put("used", this.safeString(entry, "crossMarginLocked"));
+                    ((Map<String, Object>)account).put("total", this.safeString(entry, "crossMarginAsset"));
                 } else
                 {
                     String usedLinear = this.safeString(entry, "umUnrealizedPNL");
                     String usedInverse = this.safeString(entry, "cmUnrealizedPNL");
                     String totalUsed = Precise.stringAdd(usedLinear, usedInverse);
                     String totalWalletBalance = this.safeString(entry, "totalWalletBalance");
-                    Helpers.addElementToObject(account, "total", Precise.stringAdd(totalUsed, totalWalletBalance));
+                    ((Map<String, Object>)account).put("total", Precise.stringAdd(totalUsed, totalWalletBalance));
                 }
                 if (!java.util.Objects.equals(code, null))
                 {
-                    Helpers.addElementToObject(result, code, account);
+                    ((Map<String, Object>)result).put((String)code, account);
                 }
             }
         } else if (!Helpers.isTrue(isolated) && ((java.util.Objects.equals(type, "spot")) || Helpers.isTrue(cross)))
@@ -5693,17 +5693,17 @@ public class Binance extends BinanceApi
                 String currencyId = this.safeString(balance, "asset");
                 String code = this.safeCurrencyCode(currencyId);
                 Object account = this.account();
-                Helpers.addElementToObject(account, "free", this.safeString(balance, "free"));
-                Helpers.addElementToObject(account, "used", this.safeString(balance, "locked"));
+                ((Map<String, Object>)account).put("free", this.safeString(balance, "free"));
+                ((Map<String, Object>)account).put("used", this.safeString(balance, "locked"));
                 if (Helpers.isTrue(cross))
                 {
                     String debt = this.safeString(balance, "borrowed");
                     String interest = this.safeString(balance, "interest");
-                    Helpers.addElementToObject(account, "debt", Precise.stringAdd(debt, interest));
+                    ((Map<String, Object>)account).put("debt", Precise.stringAdd(debt, interest));
                 }
                 if (!java.util.Objects.equals(code, null))
                 {
-                    Helpers.addElementToObject(result, code, account);
+                    ((Map<String, Object>)result).put((String)code, account);
                 }
             }
         } else if (Helpers.isTrue(isolated))
@@ -5735,11 +5735,11 @@ public class Binance extends BinanceApi
                 String code = this.safeCurrencyCode(currencyId);
                 Object account = this.account();
                 String usedAndTotal = this.safeString(entry, "amount");
-                Helpers.addElementToObject(account, "total", usedAndTotal);
-                Helpers.addElementToObject(account, "used", usedAndTotal);
+                ((Map<String, Object>)account).put("total", usedAndTotal);
+                ((Map<String, Object>)account).put("used", usedAndTotal);
                 if (!java.util.Objects.equals(code, null))
                 {
-                    Helpers.addElementToObject(result, code, account);
+                    ((Map<String, Object>)result).put((String)code, account);
                 }
             }
         } else if (java.util.Objects.equals(type, "funding"))
@@ -5750,14 +5750,14 @@ public class Binance extends BinanceApi
                 Object account = this.account();
                 String currencyId = this.safeString(entry, "asset");
                 String code = this.safeCurrencyCode(currencyId);
-                Helpers.addElementToObject(account, "free", this.safeString(entry, "free"));
+                ((Map<String, Object>)account).put("free", this.safeString(entry, "free"));
                 String frozen = this.safeString(entry, "freeze");
                 String withdrawing = this.safeString(entry, "withdrawing");
                 String locked = this.safeString(entry, "locked");
-                Helpers.addElementToObject(account, "used", Precise.stringAdd(frozen, Precise.stringAdd(locked, withdrawing)));
+                ((Map<String, Object>)account).put("used", Precise.stringAdd(frozen, Precise.stringAdd(locked, withdrawing)));
                 if (!java.util.Objects.equals(code, null))
                 {
-                    Helpers.addElementToObject(result, code, account);
+                    ((Map<String, Object>)result).put((String)code, account);
                 }
             }
         } else
@@ -5779,12 +5779,12 @@ public class Binance extends BinanceApi
                 String currencyId = this.safeString(balance, "asset");
                 String code = this.safeCurrencyCode(currencyId);
                 Object account = this.account();
-                Helpers.addElementToObject(account, "free", this.safeString(balance, "availableBalance"));
-                Helpers.addElementToObject(account, "used", this.safeString(balance, "initialMargin"));
-                Helpers.addElementToObject(account, "total", this.safeString2(balance, "marginBalance", "balance"));
+                ((Map<String, Object>)account).put("free", this.safeString(balance, "availableBalance"));
+                ((Map<String, Object>)account).put("used", this.safeString(balance, "initialMargin"));
+                ((Map<String, Object>)account).put("total", this.safeString2(balance, "marginBalance", "balance"));
                 if (!java.util.Objects.equals(code, null))
                 {
-                    Helpers.addElementToObject(result, code, account);
+                    ((Map<String, Object>)result).put((String)code, account);
                 }
             }
         }
@@ -6195,7 +6195,7 @@ public class Binance extends BinanceApi
             //
             Long timestamp = this.safeInteger(response, "T");
             Object orderbook = this.parseOrderBook(response, symbol, timestamp);
-            Helpers.addElementToObject(orderbook, "nonce", this.safeInteger2(response, "lastUpdateId", "u"));
+            ((Map<String, Object>)orderbook).put("nonce", this.safeInteger2(response, "lastUpdateId", "u"));
             return orderbook;
         }).thenApply(OrderBook::new);
 
@@ -9377,10 +9377,10 @@ public class Binance extends BinanceApi
                 idMarketType = ((Helpers.isTrue(isLinearSwap))) ? "swap" : "inverse";
             }
             String brokerId = this.safeString(broker, idMarketType, defaultId);
-            Helpers.addElementToObject(request, clientOrderIdRequest, Helpers.add(brokerId, this.uuid22()));
+            ((Map<String, Object>)request).put((String)clientOrderIdRequest, Helpers.add(brokerId, this.uuid22()));
         } else
         {
-            Helpers.addElementToObject(request, clientOrderIdRequest, clientOrderId);
+            ((Map<String, Object>)request).put((String)clientOrderIdRequest, clientOrderId);
         }
         Object postOnly = null;
         if (!Helpers.isTrue(isPortfolioMargin))
@@ -9426,7 +9426,7 @@ public class Binance extends BinanceApi
         {
             typeRequest = "orderType";
         }
-        Helpers.addElementToObject(request, typeRequest, uppercaseType);
+        ((Map<String, Object>)request).put((String)typeRequest, uppercaseType);
         // additional required fields depending on the order type
         Object closePosition = this.safeBool(parameters, "closePosition", false);
         Boolean timeInForceIsRequired = false;
@@ -10527,7 +10527,7 @@ public class Binance extends BinanceApi
             parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("stop", "trigger", "conditional")));
             Boolean isPortfolioMarginConditional = (Helpers.isTrue(isPortfolioMargin) && Helpers.isTrue(isConditional));
             String orderIdRequest = (((java.util.Objects.equals(isPortfolioMarginConditional, true)))) ? "strategyId" : "orderId";
-            Helpers.addElementToObject(request, orderIdRequest, id);
+            ((Map<String, Object>)request).put((String)orderIdRequest, id);
             Object response = null;
             if (java.util.Objects.equals(((Map<String, Object>)market).get("linear"), true))
             {
@@ -12633,7 +12633,7 @@ public class Binance extends BinanceApi
             }
             if (!java.util.Objects.equals(limit, null))
             {
-                Helpers.addElementToObject(request, limitKey, limit);
+                ((Map<String, Object>)request).put((String)limitKey, limit);
             }
             if (!java.util.Objects.equals(since, null))
             {
@@ -12859,7 +12859,7 @@ public class Binance extends BinanceApi
                 Object networkList = this.safeList(entry, "networkList", new ArrayList<Object>(Arrays.asList()));
                 if (!java.util.Objects.equals(code, null))
                 {
-                    Helpers.addElementToObject(withdrawFees, code, new HashMap<String, Object>() {{}});
+                    ((Map<String, Object>)withdrawFees).put((String)code, new HashMap<String, Object>() {{}});
                 }
                 for (var j = 0; j < ((List<?>)networkList).size(); j++)
                 {
@@ -13327,7 +13327,7 @@ public class Binance extends BinanceApi
                     Object symbol = ((Map<String, Object>)fee).get("symbol");
                     if (!java.util.Objects.equals(symbol, null))
                     {
-                        Helpers.addElementToObject(result, symbol, fee);
+                        ((Map<String, Object>)result).put((String)symbol, fee);
                     }
                 }
                 return result;
@@ -13372,7 +13372,7 @@ public class Binance extends BinanceApi
                     if (java.util.Objects.equals(Helpers.GetValue(market, "linear"), true))
                     {
                         final Object finalSymbol = symbol;
-                        Helpers.addElementToObject(result, symbol, new HashMap<String, Object>() {{
+                        ((Map<String, Object>)result).put((String)symbol, new HashMap<String, Object>() {{
         put( "info", new HashMap<String, Object>() {{
             put( "feeTier", feeTier );
         }} );
@@ -13412,7 +13412,7 @@ public class Binance extends BinanceApi
                     if (java.util.Objects.equals(Helpers.GetValue(market, "inverse"), true))
                     {
                         final Object finalSymbol = symbol;
-                        Helpers.addElementToObject(result, symbol, new HashMap<String, Object>() {{
+                        ((Map<String, Object>)result).put((String)symbol, new HashMap<String, Object>() {{
         put( "info", new HashMap<String, Object>() {{
             put( "feeTier", feeTier );
         }} );
@@ -13770,7 +13770,7 @@ public class Binance extends BinanceApi
             String crossUnPnl = this.safeString(entry, "crossUnPnl");
             if (!java.util.Objects.equals(code, null))
             {
-                Helpers.addElementToObject(balances, code, new HashMap<String, Object>() {{
+                ((Map<String, Object>)balances).put((String)code, new HashMap<String, Object>() {{
     put( "crossMargin", Precise.stringAdd(crossWalletBalance, crossUnPnl) );
     put( "crossWalletBalance", crossWalletBalance );
 }});
@@ -17435,7 +17435,7 @@ final Object finalMarket = market;
                 ((Map<String, Object>)request).put("limit", limit);
             }
             String symbolKey = (((java.util.Objects.equals(((Map<String, Object>)market).get("linear"), true)))) ? "symbol" : "pair";
-            Helpers.addElementToObject(request, symbolKey, ((Map<String, Object>)market).get("id"));
+            ((Map<String, Object>)request).put((String)symbolKey, ((Map<String, Object>)market).get("id"));
             if (java.util.Objects.equals(((Map<String, Object>)market).get("inverse"), true))
             {
                 ((Map<String, Object>)request).put("contractType", this.safeString(parameters, "contractType", "CURRENT_QUARTER"));
@@ -17671,7 +17671,7 @@ final Object finalMarket = market;
                 String symbolKey = (((java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true)))) ? "isolatedSymbol" : "symbol";
                 if (!Helpers.isTrue(isPortfolioMargin))
                 {
-                    Helpers.addElementToObject(request, symbolKey, ((Map<String, Object>)market).get("id"));
+                    ((Map<String, Object>)request).put((String)symbolKey, ((Map<String, Object>)market).get("id"));
                 }
             }
             if (!java.util.Objects.equals(since, null))
@@ -18068,7 +18068,7 @@ final Object finalMarket = market;
                 {
                     if (!java.util.Objects.equals(symbol, null))
                     {
-                        Helpers.addElementToObject(tradingLimits, symbol, ((Map<String, Object>)((Map<String, Object>)market).get("limits")).get("amount"));
+                        ((Map<String, Object>)tradingLimits).put((String)symbol, ((Map<String, Object>)((Map<String, Object>)market).get("limits")).get("amount"));
                     }
                 }
             }
@@ -18489,7 +18489,7 @@ final Object finalMarket = market;
                 if (!java.util.Objects.equals(code, null))
                 {
                     final Object finalCode = code;
-                    Helpers.addElementToObject(result, code, new HashMap<String, Object>() {{
+                    ((Map<String, Object>)result).put((String)code, new HashMap<String, Object>() {{
         put( "info", entry );
         put( "id", id );
         put( "code", finalCode );

@@ -2132,9 +2132,9 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
             String currencyId = this.safeString(balance, "a");
             String code = this.safeCurrencyCode(currencyId);
             Object account = this.account();
-            Helpers.addElementToObject(account, "info", balance);
-            Helpers.addElementToObject(account, "used", this.safeString(balance, "lk"));
-            Helpers.addElementToObject(account, "free", this.safeString(balance, "wb"));
+            ((Map<String, Object>)account).put("info", balance);
+            ((Map<String, Object>)account).put("used", this.safeString(balance, "lk"));
+            ((Map<String, Object>)account).put("free", this.safeString(balance, "wb"));
             if ((!java.util.Objects.equals(type, null)) && (!java.util.Objects.equals(code, null)))
             {
                 Helpers.addElementToObject(Helpers.GetValue(this.balance, type), code, account);

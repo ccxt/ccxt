@@ -827,12 +827,12 @@ public class Bitso extends BitsoApi
             String currencyId = this.safeString(balance, "currency");
             String code = this.safeCurrencyCode(currencyId);
             Object account = this.account();
-            Helpers.addElementToObject(account, "free", this.safeString(balance, "available"));
-            Helpers.addElementToObject(account, "used", this.safeString(balance, "locked"));
-            Helpers.addElementToObject(account, "total", this.safeString(balance, "total"));
+            ((Map<String, Object>)account).put("free", this.safeString(balance, "available"));
+            ((Map<String, Object>)account).put("used", this.safeString(balance, "locked"));
+            ((Map<String, Object>)account).put("total", this.safeString(balance, "total"));
             if (!java.util.Objects.equals(code, null))
             {
-                Helpers.addElementToObject(result, code, account);
+                ((Map<String, Object>)result).put((String)code, account);
             }
         }
         return this.safeBalance(result);
@@ -1330,7 +1330,7 @@ public class Bitso extends BitsoApi
                 Object fee = Helpers.GetValue(fees, i);
                 String marketId = this.safeString(fee, "book");
                 String symbol = this.safeSymbol(marketId, null, "_");
-                Helpers.addElementToObject(result, symbol, new HashMap<String, Object>() {{
+                ((Map<String, Object>)result).put((String)symbol, new HashMap<String, Object>() {{
         put( "info", fee );
         put( "symbol", symbol );
         put( "maker", Bitso.this.safeNumber(fee, "maker_fee_decimal") );
@@ -2006,7 +2006,7 @@ public class Bitso extends BitsoApi
                 }
                 if (!java.util.Objects.equals(code, null))
                 {
-                    Helpers.addElementToObject(result, code, new HashMap<String, Object>() {{
+                    ((Map<String, Object>)result).put((String)code, new HashMap<String, Object>() {{
         put( "deposit", Bitso.this.safeNumber(depositFee, "fee") );
         put( "withdraw", null );
         put( "info", new HashMap<String, Object>() {{
@@ -2029,7 +2029,7 @@ public class Bitso extends BitsoApi
                 if (!java.util.Objects.equals(code, null))
                 {
                     final Object finalCode = code;
-                    Helpers.addElementToObject(result, code, new HashMap<String, Object>() {{
+                    ((Map<String, Object>)result).put((String)code, new HashMap<String, Object>() {{
         put( "deposit", Bitso.this.safeValue(Bitso.this.safeValue(result, finalCode), "deposit") );
         put( "withdraw", Bitso.this.safeNumber(withdrawalFees, currencyId) );
         put( "info", new HashMap<String, Object>() {{
@@ -2170,7 +2170,7 @@ public class Bitso extends BitsoApi
             {
                 if (!java.util.Objects.equals(code, null))
                 {
-                    Helpers.addElementToObject(result, code, new HashMap<String, Object>() {{
+                    ((Map<String, Object>)result).put((String)code, new HashMap<String, Object>() {{
     put( "deposit", new HashMap<String, Object>() {{
         put( "fee", Bitso.this.safeNumber(entry, "fee") );
         put( "percentage", (!java.util.Objects.equals(Bitso.this.safeValue(entry, "is_fixed"), true)) );
@@ -2196,7 +2196,7 @@ public class Bitso extends BitsoApi
                 Object resultValue = this.safeValue(result, code);
                 if (java.util.Objects.equals(resultValue, null))
                 {
-                    Helpers.addElementToObject(result, code, this.depositWithdrawFee(new HashMap<String, Object>() {{}}));
+                    ((Map<String, Object>)result).put((String)code, this.depositWithdrawFee(new HashMap<String, Object>() {{}}));
                 }
                 Helpers.addElementToObject(Helpers.GetValue(Helpers.GetValue(result, code), "withdraw"), "fee", withdrawFee);
                 Helpers.addElementToObject(Helpers.GetValue(Helpers.GetValue(result, code), "info"), code, withdrawFee);

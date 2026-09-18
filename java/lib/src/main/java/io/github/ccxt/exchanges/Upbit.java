@@ -793,11 +793,11 @@ public class Upbit extends UpbitApi
             String currencyId = this.safeString(balance, "currency");
             String code = this.safeCurrencyCode(currencyId);
             Object account = this.account();
-            Helpers.addElementToObject(account, "free", this.safeString(balance, "balance"));
-            Helpers.addElementToObject(account, "used", this.safeString(balance, "locked"));
+            ((Map<String, Object>)account).put("free", this.safeString(balance, "balance"));
+            ((Map<String, Object>)account).put("used", this.safeString(balance, "locked"));
             if (!java.util.Objects.equals(code, null))
             {
-                Helpers.addElementToObject(result, code, account);
+                ((Map<String, Object>)result).put((String)code, account);
             }
         }
         return this.safeBalance(result);
@@ -921,7 +921,7 @@ public class Upbit extends UpbitApi
                 String marketId = this.safeString(orderbook, "market");
                 String symbol = this.safeSymbol(marketId, null, "-");
                 Long timestamp = this.safeInteger(orderbook, "timestamp");
-                Helpers.addElementToObject(result, symbol, new HashMap<String, Object>() {{
+                ((Map<String, Object>)result).put((String)symbol, new HashMap<String, Object>() {{
         put( "symbol", symbol );
         put( "bids", Upbit.this.sortBy(Upbit.this.parseOrderBookBidsAsks(Helpers.GetValue(orderbook, "orderbook_units"), "bid_price", "bid_size"), 0, true) );
         put( "asks", Upbit.this.sortBy(Upbit.this.parseOrderBookBidsAsks(Helpers.GetValue(orderbook, "orderbook_units"), "ask_price", "ask_size"), 0) );
@@ -1427,7 +1427,7 @@ public class Upbit extends UpbitApi
                 String feeSymbol = this.safeString(Helpers.GetValue(fetchMarketResponse, i), "symbol");
                 if (!java.util.Objects.equals(feeSymbol, null))
                 {
-                    Helpers.addElementToObject(response, feeSymbol, element);
+                    ((Map<String, Object>)response).put((String)feeSymbol, element);
                 }
             }
             return response;

@@ -444,9 +444,9 @@ public class Apex extends ApexApi
         }};
         String code = "USDT";
         Object account = this.account();
-        Helpers.addElementToObject(account, "free", this.safeString(response, "availableBalance"));
-        Helpers.addElementToObject(account, "total", this.safeString(response, "totalEquityValue"));
-        Helpers.addElementToObject(result, code, account);
+        ((Map<String, Object>)account).put("free", this.safeString(response, "availableBalance"));
+        ((Map<String, Object>)account).put("total", this.safeString(response, "totalEquityValue"));
+        ((Map<String, Object>)result).put((String)code, account);
         return this.safeBalance(result);
     }
 
@@ -650,7 +650,7 @@ public class Apex extends ApexApi
                     if (!java.util.Objects.equals(networkCode, null))
                     {
                         final Object finalNetworkCode = networkCode;
-                        Helpers.addElementToObject(networks, networkCode, new HashMap<String, Object>() {{
+                        ((Map<String, Object>)networks).put((String)networkCode, new HashMap<String, Object>() {{
     put( "info", chain );
     put( "id", networkId );
     put( "network", finalNetworkCode );
@@ -1099,7 +1099,7 @@ public class Apex extends ApexApi
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             Long timestamp = this.milliseconds();
             Object orderbook = this.parseOrderBook(data, ((Map<String, Object>)market).get("symbol"), timestamp, "b", "a");
-            Helpers.addElementToObject(orderbook, "nonce", this.safeInteger(data, "u"));
+            ((Map<String, Object>)orderbook).put("nonce", this.safeInteger(data, "u"));
             return orderbook;
         }).thenApply(OrderBook::new);
 

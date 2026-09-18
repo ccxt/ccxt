@@ -828,10 +828,10 @@ public class Bithumb extends BithumbApi
                 Object account = this.account();
                 Map<String, Object> currency = (Map<String, Object>) this.currency(code);
                 String lowerCurrencyId = this.safeStringLower(currency, "id");
-                Helpers.addElementToObject(account, "total", this.safeString(balances, Helpers.add("total_", lowerCurrencyId)));
-                Helpers.addElementToObject(account, "used", this.safeString(balances, Helpers.add("in_use_", lowerCurrencyId)));
-                Helpers.addElementToObject(account, "free", this.safeString(balances, Helpers.add("available_", lowerCurrencyId)));
-                Helpers.addElementToObject(result, code, account);
+                ((Map<String, Object>)account).put("total", this.safeString(balances, Helpers.add("total_", lowerCurrencyId)));
+                ((Map<String, Object>)account).put("used", this.safeString(balances, Helpers.add("in_use_", lowerCurrencyId)));
+                ((Map<String, Object>)account).put("free", this.safeString(balances, Helpers.add("available_", lowerCurrencyId)));
+                ((Map<String, Object>)result).put((String)code, account);
             }
         } else
         {
@@ -845,9 +845,9 @@ public class Bithumb extends BithumbApi
                 {
                     continue;
                 }
-                Helpers.addElementToObject(account, "free", this.safeString(entry, "balance"));
-                Helpers.addElementToObject(account, "used", this.safeString(entry, "locked"));
-                Helpers.addElementToObject(result, code, account);
+                ((Map<String, Object>)account).put("free", this.safeString(entry, "balance"));
+                ((Map<String, Object>)account).put("used", this.safeString(entry, "locked"));
+                ((Map<String, Object>)result).put((String)code, account);
             }
         }
         return this.safeBalance(result);
@@ -1313,7 +1313,7 @@ public class Bithumb extends BithumbApi
                         {
                             continue;
                         }
-                        Helpers.addElementToObject(result, symbol, this.parseTicker(entry, market));
+                        ((Map<String, Object>)result).put((String)symbol, this.parseTicker(entry, market));
                     }
                 }
             } else
@@ -1330,7 +1330,7 @@ public class Bithumb extends BithumbApi
                         String quoteId = this.safeString(market, "quoteId");
                         if ((!java.util.Objects.equals(quoteId, null)) && (((Map<?, ?>)quoteCurrencies).containsKey(quoteId)))
                         {
-                            Helpers.addElementToObject(requiredQuotes, quoteId, true);
+                            ((Map<String, Object>)requiredQuotes).put((String)quoteId, true);
                         }
                     }
                     Object requiredQuoteIds = Helpers.objectKeys(requiredQuotes);
@@ -1363,7 +1363,7 @@ public class Bithumb extends BithumbApi
                         Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
                         Map<String, Object> market = (Map<String, Object>) this.safeMarket(symbol);
                         Helpers.addElementToObject(ticker, "date", timestamp);
-                        Helpers.addElementToObject(result, symbol, this.parseTicker(ticker, market));
+                        ((Map<String, Object>)result).put((String)symbol, this.parseTicker(ticker, market));
                     }
                 }
             }

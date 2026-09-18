@@ -1080,7 +1080,7 @@ public class Tokocrypto extends TokocryptoApi
             Object data = this.safeValue(response, "data", response);
             Long timestamp = (Long) this.safeInteger2(response, "T", "timestamp");
             Object orderbook = this.parseOrderBook(data, symbol, timestamp);
-            Helpers.addElementToObject(orderbook, "nonce", this.safeInteger(data, "lastUpdateId"));
+            ((Map<String, Object>)orderbook).put("nonce", this.safeInteger(data, "lastUpdateId"));
             return orderbook;
         }).thenApply(OrderBook::new);
 
@@ -1830,11 +1830,11 @@ public class Tokocrypto extends TokocryptoApi
             String currencyId = this.safeString(balance, "asset");
             String code = this.safeCurrencyCode(currencyId);
             Object account = this.account();
-            Helpers.addElementToObject(account, "free", this.safeString(balance, "free"));
-            Helpers.addElementToObject(account, "used", this.safeString(balance, "locked"));
+            ((Map<String, Object>)account).put("free", this.safeString(balance, "free"));
+            ((Map<String, Object>)account).put("used", this.safeString(balance, "locked"));
             if (!java.util.Objects.equals(code, null))
             {
-                Helpers.addElementToObject(result, code, account);
+                ((Map<String, Object>)result).put((String)code, account);
             }
         }
         return this.safeBalance(result);
@@ -2920,8 +2920,8 @@ public class Tokocrypto extends TokocryptoApi
         }};
         if (!java.util.Objects.equals(feeCost, null))
         {
-            Helpers.addElementToObject(fee, "currency", code);
-            Helpers.addElementToObject(fee, "cost", feeCost);
+            ((Map<String, Object>)fee).put("currency", code);
+            ((Map<String, Object>)fee).put("cost", feeCost);
         }
         Long internalRaw = this.safeInteger(transaction, "transferType");
         Boolean intern = false;

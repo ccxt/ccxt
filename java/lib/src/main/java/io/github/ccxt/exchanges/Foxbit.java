@@ -477,7 +477,7 @@ public class Foxbit extends FoxbitApi
             if (!java.util.Objects.equals(networkCode, null))
             {
                 final Object finalNetworkCode = networkCode;
-                Helpers.addElementToObject(parsedNetworks, networkCode, new HashMap<String, Object>() {{
+                ((Map<String, Object>)parsedNetworks).put((String)networkCode, new HashMap<String, Object>() {{
     put( "info", rawCurrency );
     put( "id", networkId );
     put( "network", finalNetworkCode );
@@ -793,7 +793,7 @@ public class Foxbit extends FoxbitApi
                 String marketId = this.safeString(entry, "market_symbol");
                 Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
                 Object symbol = ((Map<String, Object>)market).get("symbol");
-                Helpers.addElementToObject(result, symbol, this.parseTradingFee(entry, market));
+                ((Map<String, Object>)result).put((String)symbol, this.parseTradingFee(entry, market));
             }
             return result;
         }).thenApply(TradingFees::new);
@@ -1022,7 +1022,7 @@ public class Foxbit extends FoxbitApi
                 }};
                 if (!java.util.Objects.equals(currencyCode, null))
                 {
-                    Helpers.addElementToObject(result, currencyCode, balanceObj);
+                    ((Map<String, Object>)result).put((String)currencyCode, balanceObj);
                 }
             }
             return this.safeBalance(result);

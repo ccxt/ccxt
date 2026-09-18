@@ -2938,7 +2938,7 @@ public class Kucoin extends KucoinApi
             if (!java.util.Objects.equals(networkCode, null))
             {
                 final Object finalNetworkCode = networkCode;
-                Helpers.addElementToObject(networks, networkCode, new HashMap<String, Object>() {{
+                ((Map<String, Object>)networks).put((String)networkCode, new HashMap<String, Object>() {{
     put( "info", chain );
     put( "id", chainId );
     put( "name", Kucoin.this.safeString(chain, "chainName") );
@@ -3111,7 +3111,7 @@ public class Kucoin extends KucoinApi
             Map<String, Object> response = (this.privateGetWithdrawalsQuotas(this.extend(request, parameters))).join();
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             Map<String, Object> withdrawFees = new HashMap<String, Object>() {{}};
-            Helpers.addElementToObject(withdrawFees, code, this.safeNumber(data, "withdrawMinFee"));
+            ((Map<String, Object>)withdrawFees).put((String)code, this.safeNumber(data, "withdrawMinFee"));
             return new HashMap<String, Object>() {{
                 put( "info", response );
                 put( "withdraw", withdrawFees );
@@ -3660,7 +3660,7 @@ public class Kucoin extends KucoinApi
                 String symbol = this.safeString(ticker, "symbol");
                 if (!java.util.Objects.equals(symbol, null))
                 {
-                    Helpers.addElementToObject(result, symbol, ticker);
+                    ((Map<String, Object>)result).put((String)symbol, ticker);
                 }
             }
             return this.filterByArrayTickers(result, "symbol", symbols);
@@ -4771,7 +4771,7 @@ public class Kucoin extends KucoinApi
                 }
             }
             Object orderbook = this.parseOrderBook(data, ((Map<String, Object>)market).get("symbol"), timestamp, "bids", "asks", Helpers.subtract(level, 2), Helpers.subtract(level, 1));
-            Helpers.addElementToObject(orderbook, "nonce", this.safeInteger(data, "sequence"));
+            ((Map<String, Object>)orderbook).put("nonce", this.safeInteger(data, "sequence"));
             return orderbook;
         }).thenApply(OrderBook::new);
 
@@ -9871,12 +9871,12 @@ public class Kucoin extends KucoinApi
     public Object parseBalanceHelper(Object entry)
     {
         Object account = this.account();
-        Helpers.addElementToObject(account, "used", this.safeString2(entry, "holdBalance", "hold"));
-        Helpers.addElementToObject(account, "free", this.safeString2(entry, "availableBalance", "available"));
-        Helpers.addElementToObject(account, "total", this.safeString2(entry, "totalBalance", "total"));
+        ((Map<String, Object>)account).put("used", this.safeString2(entry, "holdBalance", "hold"));
+        ((Map<String, Object>)account).put("free", this.safeString2(entry, "availableBalance", "available"));
+        ((Map<String, Object>)account).put("total", this.safeString2(entry, "totalBalance", "total"));
         String debt = this.safeString(entry, "liability");
         String interest = this.safeString(entry, "interest");
-        Helpers.addElementToObject(account, "debt", Precise.stringAdd(debt, interest));
+        ((Map<String, Object>)account).put("debt", Precise.stringAdd(debt, interest));
         return account;
     }
 
@@ -10081,7 +10081,7 @@ public class Kucoin extends KucoinApi
                     String codeInner = this.safeCurrencyCode(currencyId);
                     if (!java.util.Objects.equals(codeInner, null))
                     {
-                        Helpers.addElementToObject(result, codeInner, this.parseBalanceHelper(balance));
+                        ((Map<String, Object>)result).put((String)codeInner, this.parseBalanceHelper(balance));
                     }
                 }
             } else
@@ -10096,12 +10096,12 @@ public class Kucoin extends KucoinApi
                         String currencyId = this.safeString(balance, "currency");
                         String codeInner2 = this.safeCurrencyCode(currencyId);
                         Object account = this.account();
-                        Helpers.addElementToObject(account, "total", this.safeString(balance, "balance"));
-                        Helpers.addElementToObject(account, "free", this.safeString(balance, "available"));
-                        Helpers.addElementToObject(account, "used", this.safeString(balance, "holds"));
+                        ((Map<String, Object>)account).put("total", this.safeString(balance, "balance"));
+                        ((Map<String, Object>)account).put("free", this.safeString(balance, "available"));
+                        ((Map<String, Object>)account).put("used", this.safeString(balance, "holds"));
                         if (!java.util.Objects.equals(codeInner2, null))
                         {
-                            Helpers.addElementToObject(result, codeInner2, account);
+                            ((Map<String, Object>)result).put((String)codeInner2, account);
                         }
                     }
                 }
@@ -10168,11 +10168,11 @@ public class Kucoin extends KucoinApi
             String currencyId = this.safeString(data, "currency");
             String currencyCode = this.safeCurrencyCode(currencyId, currency);
             Object account = this.account();
-            Helpers.addElementToObject(account, "free", this.safeString(data, "availableBalance"));
-            Helpers.addElementToObject(account, "total", this.safeString(data, "accountEquity"));
+            ((Map<String, Object>)account).put("free", this.safeString(data, "availableBalance"));
+            ((Map<String, Object>)account).put("total", this.safeString(data, "accountEquity"));
             if (!java.util.Objects.equals(currencyCode, null))
             {
-                Helpers.addElementToObject(result, currencyCode, account);
+                ((Map<String, Object>)result).put((String)currencyCode, account);
             }
             return this.safeBalance(result);
         });
@@ -10328,7 +10328,7 @@ public class Kucoin extends KucoinApi
                     String currencyCode = this.safeCurrencyCode(currencyId);
                     if (!java.util.Objects.equals(currencyCode, null))
                     {
-                        Helpers.addElementToObject(result, currencyCode, this.parseBalanceHelper(currencyEntry));
+                        ((Map<String, Object>)result).put((String)currencyCode, this.parseBalanceHelper(currencyEntry));
                     }
                 }
             }
@@ -10478,10 +10478,10 @@ public class Kucoin extends KucoinApi
             Object fillResponseFromRequest = this.safeBool(transferOptions, "fillResponseFromRequest", true);
             if (java.util.Objects.equals(fillResponseFromRequest, true))
             {
-                Helpers.addElementToObject(transfer, "amount", amount);
-                Helpers.addElementToObject(transfer, "fromAccount", fromAccount);
-                Helpers.addElementToObject(transfer, "toAccount", toAccount);
-                Helpers.addElementToObject(transfer, "status", "ok");
+                ((Map<String, Object>)transfer).put("amount", amount);
+                ((Map<String, Object>)transfer).put("fromAccount", fromAccount);
+                ((Map<String, Object>)transfer).put("toAccount", toAccount);
+                ((Map<String, Object>)transfer).put("status", "ok");
             }
             return transfer;
         });
@@ -10585,10 +10585,10 @@ public class Kucoin extends KucoinApi
             Object fillResponseFromRequest = this.safeBool(transferOptions, "fillResponseFromRequest", true);
             if (java.util.Objects.equals(fillResponseFromRequest, true))
             {
-                Helpers.addElementToObject(transfer, "amount", amount);
-                Helpers.addElementToObject(transfer, "fromAccount", fromAccount);
-                Helpers.addElementToObject(transfer, "toAccount", toAccount);
-                Helpers.addElementToObject(transfer, "status", "ok");
+                ((Map<String, Object>)transfer).put("amount", amount);
+                ((Map<String, Object>)transfer).put("fromAccount", fromAccount);
+                ((Map<String, Object>)transfer).put("toAccount", toAccount);
+                ((Map<String, Object>)transfer).put("status", "ok");
             }
             return transfer;
         });
@@ -11589,7 +11589,7 @@ public class Kucoin extends KucoinApi
             {
                 if (!(((Map<?, ?>)borrowRateHistories).containsKey(code)))
                 {
-                    Helpers.addElementToObject(borrowRateHistories, code, new ArrayList<Object>(Arrays.asList()));
+                    ((Map<String, Object>)borrowRateHistories).put((String)code, new ArrayList<Object>(Arrays.asList()));
                 }
                 Object borrowRateStructure = this.parseBorrowRate(item);
                 Object borrowRateHistoriesCode = Helpers.GetValue(borrowRateHistories, code);
@@ -11600,7 +11600,7 @@ public class Kucoin extends KucoinApi
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
             Object code = Helpers.GetValue(keys, i);
-            Helpers.addElementToObject(borrowRateHistories, code, this.filterByCurrencySinceLimit(Helpers.GetValue(borrowRateHistories, code), code, since, limit));
+            ((Map<String, Object>)borrowRateHistories).put((String)code, this.filterByCurrencySinceLimit(Helpers.GetValue(borrowRateHistories, code), code, since, limit));
         }
         return borrowRateHistories;
     }
@@ -13222,7 +13222,7 @@ public class Kucoin extends KucoinApi
             } else
             {
                 String requestKey = ((Helpers.isTrue(useClientorderId))) ? "clientOidsList" : "orderIdsList";
-                Helpers.addElementToObject(request, requestKey, ordersRequests);
+                ((Map<String, Object>)request).put((String)requestKey, ordersRequests);
                 response = (this.futuresPrivateDeleteOrdersMultiCancel(this.extend(request, parameters))).join();
                 //
                 //   {
@@ -13877,7 +13877,7 @@ final Object finalMarket = market;
                 {
                     if (!(((Map<?, ?>)result).containsKey(symbol)))
                     {
-                        Helpers.addElementToObject(result, symbol, new ArrayList<Object>(Arrays.asList()));
+                        ((Map<String, Object>)result).put((String)symbol, new ArrayList<Object>(Arrays.asList()));
                     }
                     ((List<Object>)Helpers.GetValue(result, symbol)).add(tier);
                 }

@@ -192,8 +192,8 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
             }};
             String topicOrChannel = ((Helpers.isTrue(uta))) ? "topic" : "channel";
             String symbolOrInstId = ((Helpers.isTrue(uta))) ? "symbol" : "instId";
-            Helpers.addElementToObject(args, topicOrChannel, "ticker");
-            Helpers.addElementToObject(args, symbolOrInstId, ((Map<String, Object>)market).get("id"));
+            ((Map<String, Object>)args).put((String)topicOrChannel, "ticker");
+            ((Map<String, Object>)args).put((String)symbolOrInstId, ((Map<String, Object>)market).get("id"));
             return (this.watchPublic(uta, messageHash, args, parameters)).join();
         }).thenApply(Ticker::new);
 
@@ -269,8 +269,8 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
                 }};
                 String topicOrChannel = ((Helpers.isTrue(uta))) ? "topic" : "channel";
                 String symbolOrInstId = ((Helpers.isTrue(uta))) ? "symbol" : "instId";
-                Helpers.addElementToObject(args, topicOrChannel, "ticker");
-                Helpers.addElementToObject(args, symbolOrInstId, ((Map<String, Object>)marketInner).get("id"));
+                ((Map<String, Object>)args).put((String)topicOrChannel, "ticker");
+                ((Map<String, Object>)args).put((String)symbolOrInstId, ((Map<String, Object>)marketInner).get("id"));
                 ((List<Object>)topics).add(args);
                 ((List<Object>)messageHashes).add(("ticker:" + symbol));
             }
@@ -537,8 +537,8 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
                 }};
                 String topicOrChannel = ((Helpers.isTrue(uta))) ? "topic" : "channel";
                 String symbolOrInstId = ((Helpers.isTrue(uta))) ? "symbol" : "instId";
-                Helpers.addElementToObject(args, topicOrChannel, "ticker");
-                Helpers.addElementToObject(args, symbolOrInstId, ((Map<String, Object>)marketInner).get("id"));
+                ((Map<String, Object>)args).put((String)topicOrChannel, "ticker");
+                ((Map<String, Object>)args).put((String)symbolOrInstId, ((Map<String, Object>)marketInner).get("id"));
                 ((List<Object>)topics).add(args);
                 ((List<Object>)messageHashes).add(("bidask:" + symbol));
             }
@@ -1021,8 +1021,8 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
                 }};
                 String topicOrChannel = ((Helpers.isTrue(uta))) ? "topic" : "channel";
                 String symbolOrInstId = ((Helpers.isTrue(uta))) ? "symbol" : "instId";
-                Helpers.addElementToObject(args, topicOrChannel, channel);
-                Helpers.addElementToObject(args, symbolOrInstId, ((Map<String, Object>)market).get("id"));
+                ((Map<String, Object>)args).put((String)topicOrChannel, channel);
+                ((Map<String, Object>)args).put((String)symbolOrInstId, ((Map<String, Object>)market).get("id"));
                 ((List<Object>)topics).add(args);
                 ((List<Object>)messageHashes).add(("orderbook:" + symbol));
             }
@@ -1288,8 +1288,8 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
                 }};
                 String topicOrChannel = ((Helpers.isTrue(uta))) ? "topic" : "channel";
                 String symbolOrInstId = ((Helpers.isTrue(uta))) ? "symbol" : "instId";
-                Helpers.addElementToObject(args, topicOrChannel, ((Helpers.isTrue(uta))) ? "publicTrade" : "trade");
-                Helpers.addElementToObject(args, symbolOrInstId, ((Map<String, Object>)market).get("id"));
+                ((Map<String, Object>)args).put((String)topicOrChannel, ((Helpers.isTrue(uta))) ? "publicTrade" : "trade");
+                ((Map<String, Object>)args).put((String)symbolOrInstId, ((Map<String, Object>)market).get("id"));
                 ((List<Object>)topics).add(args);
                 ((List<Object>)messageHashes).add(("trade:" + symbol));
             }
@@ -1606,7 +1606,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
             }};
             String topicOrChannel = ((Helpers.isTrue(uta))) ? "topic" : "channel";
             String channel = ((Helpers.isTrue(uta))) ? "position" : "positions";
-            Helpers.addElementToObject(args, topicOrChannel, channel);
+            ((Map<String, Object>)args).put((String)topicOrChannel, channel);
             if (!Helpers.isTrue(uta))
             {
                 ((Map<String, Object>)args).put("instId", "default");
@@ -1972,7 +1972,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
                 put( "instType", finalInstType );
             }};
             String topicOrChannel = ((Helpers.isTrue(uta))) ? "topic" : "channel";
-            Helpers.addElementToObject(args, topicOrChannel, channel);
+            ((Map<String, Object>)args).put((String)topicOrChannel, channel);
             if (!Helpers.isTrue(uta))
             {
                 ((Map<String, Object>)args).put("instId", instId);
@@ -2130,7 +2130,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
             Object symbol = ((Map<String, Object>)parsed).get("symbol");
             if (!java.util.Objects.equals(symbol, null))
             {
-                Helpers.addElementToObject(marketSymbols, symbol, true);
+                ((Map<String, Object>)marketSymbols).put((String)symbol, true);
             }
         }
         List<Object> keys = Helpers.objectKeys(marketSymbols);
@@ -2521,7 +2521,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
                 put( "instType", finalInstType );
             }};
             String topicOrChannel = ((Helpers.isTrue(uta))) ? "topic" : "channel";
-            Helpers.addElementToObject(args, topicOrChannel, "fill");
+            ((Map<String, Object>)args).put((String)topicOrChannel, "fill");
             if (!Helpers.isTrue(uta))
             {
                 ((Map<String, Object>)args).put("instId", "default");
@@ -2758,7 +2758,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
                 put( "instType", finalInstType );
             }};
             String topicOrChannel = ((Helpers.isTrue(uta))) ? "topic" : "channel";
-            Helpers.addElementToObject(args, topicOrChannel, channel);
+            ((Map<String, Object>)args).put((String)topicOrChannel, channel);
             if (!Helpers.isTrue(uta))
             {
                 ((Map<String, Object>)args).put("coin", "default");

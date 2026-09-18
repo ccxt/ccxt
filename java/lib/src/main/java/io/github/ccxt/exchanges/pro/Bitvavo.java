@@ -641,7 +641,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
                 String interval = this.safeString(this.timeframes, timeframeString, timeframeString);
                 if (!(((Map<?, ?>)marketIdsByInterval).containsKey(interval)))
                 {
-                    Helpers.addElementToObject(marketIdsByInterval, interval, new ArrayList<Object>(Arrays.asList()));
+                    ((Map<String, Object>)marketIdsByInterval).put((String)interval, new ArrayList<Object>(Arrays.asList()));
                 }
                 Object intervalIds = Helpers.GetValue(marketIdsByInterval, interval);
                 ((List<Object>)intervalIds).add(((Map<String, Object>)market).get("id"));
@@ -731,7 +731,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
                 String interval = this.safeString(this.timeframes, timeframeString, timeframeString);
                 if (!(((Map<?, ?>)marketIdsByInterval).containsKey(interval)))
                 {
-                    Helpers.addElementToObject(marketIdsByInterval, interval, new ArrayList<Object>(Arrays.asList()));
+                    ((Map<String, Object>)marketIdsByInterval).put((String)interval, new ArrayList<Object>(Arrays.asList()));
                 }
                 Object intervalIds = Helpers.GetValue(marketIdsByInterval, interval);
                 ((List<Object>)intervalIds).add(((Map<String, Object>)market).get("id"));
@@ -1004,7 +1004,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
             if (java.util.Objects.equals(watchingOrderBookSnapshot, null))
             {
                 Helpers.addElementToObject(subscription, flagKey, true);
-                Helpers.addElementToObject(client.subscriptions, messageHash, subscription);
+                ((Map)client.subscriptions).put((String)messageHash, subscription);
                 Object options = this.safeValue(this.options, "watchOrderBookSnapshot", new HashMap<String, Object>() {{}});
                 Long delay = this.safeInteger(options, "delay", this.rateLimit);
                 // fetch the snapshot in a separate async call after a warmup delay
@@ -1085,7 +1085,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
             return;
         }
         Object snapshot = this.parseOrderBook(response, symbol);
-        Helpers.addElementToObject(snapshot, "nonce", this.safeInteger(response, "nonce"));
+        ((Map<String, Object>)snapshot).put("nonce", this.safeInteger(response, "nonce"));
         Helpers.callDynamically(orderbook, "reset", new Object[]{snapshot});
         // unroll the accumulated deltas
         Object messages = ((List<Object>)Helpers.GetValue(orderbook, "cache"));
@@ -2262,7 +2262,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
                 }};
                 Map<String, Object> message = this.extend(request, parameters);
                 future = (this.watch(url, messageHash, message, messageHash, null)).join();
-                Helpers.addElementToObject(client.subscriptions, messageHash, future);
+                ((Map)client.subscriptions).put((String)messageHash, future);
             }
             return future;
         });

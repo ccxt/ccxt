@@ -1170,7 +1170,7 @@ public class Bitfinex extends BitfinexApi
                 // for GOlang transpiler, do with "safe" method
                 List<Object> networksList = (List<Object>) this.safeList(indexedNetworks, networkName, new ArrayList<Object>(Arrays.asList()));
                 ((List<Object>)networksList).add(networkId);
-                Helpers.addElementToObject(indexedNetworks, networkName, networksList);
+                ((Map<String, Object>)indexedNetworks).put((String)networkName, networksList);
             }
             List<Object> ids = (List<Object>) this.safeList(response, 0, new ArrayList<Object>(Arrays.asList()));
             return this.parseCurrenciesCustom(ids, indexed, indexedNetworks);
@@ -1236,7 +1236,7 @@ public class Bitfinex extends BitfinexApi
             if (!java.util.Objects.equals(network, null))
             {
                 final Object finalNetworkId = networkId;
-                Helpers.addElementToObject(networks, network, new HashMap<String, Object>() {{
+                ((Map<String, Object>)networks).put((String)network, new HashMap<String, Object>() {{
     put( "info", finalNetworkId );
     put( "id", ((String)finalNetworkId).toLowerCase() );
     put( "network", finalNetworkId );
@@ -1323,7 +1323,7 @@ public class Bitfinex extends BitfinexApi
                 String interest = this.safeString(balance, 3);
                 if (!java.util.Objects.equals(interest, "0"))
                 {
-                    Helpers.addElementToObject(account, "debt", interest);
+                    ((Map<String, Object>)account).put("debt", interest);
                 }
                 String type = this.safeString(balance, 0);
                 String currencyId = this.safeStringLower(balance, 1, "");
@@ -1334,11 +1334,11 @@ public class Bitfinex extends BitfinexApi
                 if ((java.util.Objects.equals(accountType, type)) && Helpers.isTrue(derivativeCondition))
                 {
                     String code = this.safeCurrencyCode(currencyId);
-                    Helpers.addElementToObject(account, "total", this.safeString(balance, 2));
-                    Helpers.addElementToObject(account, "free", this.safeString(balance, 4));
+                    ((Map<String, Object>)account).put("total", this.safeString(balance, 2));
+                    ((Map<String, Object>)account).put("free", this.safeString(balance, 4));
                     if (!java.util.Objects.equals(code, null))
                     {
-                        Helpers.addElementToObject(result, code, account);
+                        ((Map<String, Object>)result).put((String)code, account);
                     }
                 }
             }
@@ -3470,7 +3470,7 @@ public class Bitfinex extends BitfinexApi
                     ((Map<String, Object>)fee).put("maker", makerFee);
                     ((Map<String, Object>)fee).put("taker", takerFee);
                 }
-                Helpers.addElementToObject(result, symbol, fee);
+                ((Map<String, Object>)result).put((String)symbol, fee);
             }
             return result;
         }).thenApply(TradingFees::new);

@@ -909,7 +909,7 @@ public class Bitrue extends BitrueApi
             if (!java.util.Objects.equals(network, null))
             {
                 final Object finalNetwork = network;
-                Helpers.addElementToObject(networks, network, new HashMap<String, Object>() {{
+                ((Map<String, Object>)networks).put((String)network, new HashMap<String, Object>() {{
     put( "info", entry );
     put( "id", networkId );
     put( "network", finalNetwork );
@@ -1261,11 +1261,11 @@ public class Bitrue extends BitrueApi
             String currencyId = this.safeString2(balance, "asset", "marginCoin");
             String code = this.safeCurrencyCode(currencyId);
             Object account = this.account();
-            Helpers.addElementToObject(account, "free", this.safeString2(balance, "free", "accountNormal"));
-            Helpers.addElementToObject(account, "used", this.safeString2(balance, "locked", "accountLock"));
+            ((Map<String, Object>)account).put("free", this.safeString2(balance, "free", "accountNormal"));
+            ((Map<String, Object>)account).put("used", this.safeString2(balance, "locked", "accountLock"));
             if (!java.util.Objects.equals(code, null))
             {
-                Helpers.addElementToObject(result, code, account);
+                ((Map<String, Object>)result).put((String)code, account);
             }
         }
         ((Map<String, Object>)result).put("timestamp", timestamp);
@@ -1416,7 +1416,7 @@ public class Bitrue extends BitrueApi
             //
             Long timestamp = (Long) this.safeInteger2(response, "time", "lastUpdateId");
             Object orderbook = this.parseOrderBook(response, symbol, timestamp);
-            Helpers.addElementToObject(orderbook, "nonce", this.safeInteger(response, "lastUpdateId"));
+            ((Map<String, Object>)orderbook).put("nonce", this.safeInteger(response, "lastUpdateId"));
             return orderbook;
         }).thenApply(OrderBook::new);
 
@@ -1805,7 +1805,7 @@ public class Bitrue extends BitrueApi
             //     }
             //
             Map<String, Object> data = new HashMap<String, Object>() {{}};
-            Helpers.addElementToObject(data, ((String)((Map<String, Object>)market).get("id")), response);
+            ((Map<String, Object>)data).put((String)((String)((Map<String, Object>)market).get("id")), response);
             return this.parseTickers(data, symbols);
         }).thenApply(Tickers::new);
 
@@ -1918,7 +1918,7 @@ public class Bitrue extends BitrueApi
                     continue;
                 }
                 Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
-                Helpers.addElementToObject(tickers, ((String)((Map<String, Object>)market).get("id")), ticker);
+                ((Map<String, Object>)tickers).put((String)((String)((Map<String, Object>)market).get("id")), ticker);
             }
             return this.parseTickers(tickers, symbols);
         }).thenApply(Tickers::new);

@@ -3010,7 +3010,7 @@ public class Gate extends GateApi
             if (!java.util.Objects.equals(networkCode, null))
             {
                 final Object finalNetworkCode = networkCode;
-                Helpers.addElementToObject(networks, networkCode, new HashMap<String, Object>() {{
+                ((Map<String, Object>)networks).put((String)networkCode, new HashMap<String, Object>() {{
     put( "info", chain );
     put( "id", networkId );
     put( "network", finalNetworkCode );
@@ -3332,7 +3332,7 @@ public class Gate extends GateApi
                 String address = this.safeString(entry, "address");
                 String tag = this.safeString(entry, "payment_id");
                 final Object finalCode = code;
-                Helpers.addElementToObject(result, network, new HashMap<String, Object>() {{
+                ((Map<String, Object>)result).put((String)network, new HashMap<String, Object>() {{
         put( "info", entry );
         put( "code", finalCode );
         put( "currency", finalCode );
@@ -3524,7 +3524,7 @@ public class Gate extends GateApi
         {
             Object symbol = Helpers.GetValue(symbols, i);
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            Helpers.addElementToObject(result, symbol, this.parseTradingFee(response, market));
+            ((Map<String, Object>)result).put((String)symbol, this.parseTradingFee(response, market));
         }
         return result;
     }
@@ -3627,12 +3627,12 @@ public class Gate extends GateApi
                         Object networkCode = this.networkIdToCode(networkId, code);
                         if (!java.util.Objects.equals(networkCode, null))
                         {
-                            Helpers.addElementToObject(withdrawFees, networkCode, this.parseNumber(Helpers.GetValue(withdrawFixOnChains, networkId)));
+                            ((Map<String, Object>)withdrawFees).put((String)networkCode, this.parseNumber(Helpers.GetValue(withdrawFixOnChains, networkId)));
                         }
                     }
                 }
                 final Object finalWithdrawFees = withdrawFees;
-                Helpers.addElementToObject(result, ((String)code), new HashMap<String, Object>() {{
+                ((Map<String, Object>)result).put((String)((String)code), new HashMap<String, Object>() {{
         put( "withdraw", finalWithdrawFees );
         put( "deposit", null );
         put( "info", entry );
@@ -4007,7 +4007,7 @@ public class Gate extends GateApi
             Object amountKey = (((java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true)))) ? 1 : "s";
             Long nonce = this.safeInteger(response, "id");
             Object result = this.parseOrderBook(response, symbol, timestamp, "bids", "asks", priceKey, amountKey);
-            Helpers.addElementToObject(result, "nonce", nonce);
+            ((Map<String, Object>)result).put("nonce", nonce);
             return result;
         }).thenApply(OrderBook::new);
 
@@ -4271,12 +4271,12 @@ public class Gate extends GateApi
     public Object parseBalanceHelper(Object entry)
     {
         Object account = this.account();
-        Helpers.addElementToObject(account, "used", this.safeString2(entry, "freeze", "locked"));
-        Helpers.addElementToObject(account, "free", this.safeString(entry, "available"));
-        Helpers.addElementToObject(account, "total", this.safeString(entry, "total"));
+        ((Map<String, Object>)account).put("used", this.safeString2(entry, "freeze", "locked"));
+        ((Map<String, Object>)account).put("free", this.safeString(entry, "available"));
+        ((Map<String, Object>)account).put("total", this.safeString(entry, "total"));
         if (Helpers.inOp(entry, "borrowed"))
         {
-            Helpers.addElementToObject(account, "debt", this.safeString(entry, "borrowed"));
+            ((Map<String, Object>)account).put("debt", this.safeString(entry, "borrowed"));
         }
         return account;
     }
@@ -4598,7 +4598,7 @@ public class Gate extends GateApi
                 } else
                 {
                     Object code = this.safeCurrencyCode(this.safeString(entry, "currency"));
-                    Helpers.addElementToObject(result, ((String)code), this.parseBalanceHelper(entry));
+                    ((Map<String, Object>)result).put((String)((String)code), this.parseBalanceHelper(entry));
                 }
             }
             return this.safeBalance(result);

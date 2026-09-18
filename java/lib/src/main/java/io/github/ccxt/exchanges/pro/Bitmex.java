@@ -404,7 +404,7 @@ public class Bitmex extends io.github.ccxt.exchanges.Bitmex
             }
             Object updatedTicker = this.parseTicker(update);
             Map<String, Object> fullParsedTicker = this.deepExtend(Helpers.GetValue(this.tickers, symbol), updatedTicker);
-            Helpers.addElementToObject(tickers, symbol, fullParsedTicker);
+            ((Map<String, Object>)tickers).put((String)symbol, fullParsedTicker);
             Helpers.addElementToObject(this.tickers, symbol, fullParsedTicker);
             String messageHash = ("ticker:" + symbol);
             client.resolve(fullParsedTicker, messageHash);
@@ -1315,7 +1315,7 @@ public class Bitmex extends io.github.ccxt.exchanges.Bitmex
                 Object order = this.parseOrder(rawOrder);
                 Helpers.callDynamically(stored, "append", new Object[]{order});
                 Object symbol = ((Map<String, Object>)order).get("symbol");
-                Helpers.addElementToObject(symbols, ((String)symbol), true);
+                ((Map<String, Object>)symbols).put((String)((String)symbol), true);
             }
             client.resolve(this.orders, messageHash);
             Object keys = Helpers.objectKeys(symbols);
@@ -1451,7 +1451,7 @@ public class Bitmex extends io.github.ccxt.exchanges.Bitmex
             Object trade = Helpers.GetValue(trades, j);
             Object symbol = ((Map<String, Object>)trade).get("symbol");
             Helpers.callDynamically(stored, "append", new Object[]{trade});
-            Helpers.addElementToObject(symbols, ((String)symbol), trade);
+            ((Map<String, Object>)symbols).put((String)((String)symbol), trade);
         }
         Object numTrades = ((List<?>)trades).size();
         if (Helpers.isGreaterThan(numTrades, 0))
@@ -1732,7 +1732,7 @@ public class Bitmex extends io.github.ccxt.exchanges.Bitmex
                 Helpers.addElementToObject(Helpers.GetValue(this.ohlcvs, symbol), ((String)timeframe), stored);
             }
             Helpers.callDynamically(stored, "append", new Object[]{result});
-            Helpers.addElementToObject(results, messageHash, stored);
+            ((Map<String, Object>)results).put((String)messageHash, stored);
         }
         Object messageHashes = Helpers.objectKeys(results);
         for (var i = 0; i < ((List<?>)messageHashes).size(); i++)

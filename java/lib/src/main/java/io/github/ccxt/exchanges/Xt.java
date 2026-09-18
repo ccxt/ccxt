@@ -1378,7 +1378,7 @@ public class Xt extends XtApi
                     if (!java.util.Objects.equals(networkCode, null))
                     {
                         final Object finalNetworkCode = networkCode;
-                        Helpers.addElementToObject(networks, networkCode, new HashMap<String, Object>() {{
+                        ((Map<String, Object>)networks).put((String)networkCode, new HashMap<String, Object>() {{
         put( "info", rawNetwork );
         put( "id", networkId );
         put( "network", finalNetworkCode );
@@ -1418,7 +1418,7 @@ public class Xt extends XtApi
                 {
                     final Object finalCode = code;
                     final Object finalType = type;
-                    Helpers.addElementToObject(result, code, this.safeCurrencyStructure(new HashMap<String, Object>() {{
+                    ((Map<String, Object>)result).put((String)code, this.safeCurrencyStructure(new HashMap<String, Object>() {{
         put( "info", entry );
         put( "id", currencyId );
         put( "code", finalCode );
@@ -2185,11 +2185,11 @@ public class Xt extends XtApi
             if (java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true))
             {
                 Object ob = this.parseOrderBook(orderBook, symbol, timestamp);
-                Helpers.addElementToObject(ob, "nonce", this.safeInteger(orderBook, "lastUpdateId"));
+                ((Map<String, Object>)ob).put("nonce", this.safeInteger(orderBook, "lastUpdateId"));
                 return ob;
             }
             Object swapOb = this.parseOrderBook(orderBook, symbol, timestamp, "b", "a");
-            Helpers.addElementToObject(swapOb, "nonce", this.safeInteger2(orderBook, "u", "lastUpdateId"));
+            ((Map<String, Object>)swapOb).put("nonce", this.safeInteger2(orderBook, "u", "lastUpdateId"));
             return swapOb;
         }).thenApply(OrderBook::new);
 
@@ -2389,7 +2389,7 @@ public class Xt extends XtApi
                 Object symbol = ((Map<String, Object>)ticker).get("symbol");
                 if (!java.util.Objects.equals(symbol, null))
                 {
-                    Helpers.addElementToObject(result, symbol, ticker);
+                    ((Map<String, Object>)result).put((String)symbol, ticker);
                 }
             }
             return this.filterByArray(result, "symbol", symbols);
@@ -2498,7 +2498,7 @@ public class Xt extends XtApi
                 Object symbol = ((Map<String, Object>)ticker).get("symbol");
                 if (!java.util.Objects.equals(symbol, null))
                 {
-                    Helpers.addElementToObject(result, symbol, ticker);
+                    ((Map<String, Object>)result).put((String)symbol, ticker);
                 }
             }
             return this.filterByArray(result, "symbol", symbols);
@@ -3157,12 +3157,12 @@ public class Xt extends XtApi
                 String crossedAndIsolatedMargin = Precise.stringAdd(this.safeString(balance, "crossedMargin"), this.safeString(balance, "isolatedMargin"));
                 used = Precise.stringAdd(this.safeString(balance, "openOrderMarginFrozen"), crossedAndIsolatedMargin);
             }
-            Helpers.addElementToObject(account, "free", free);
-            Helpers.addElementToObject(account, "used", used);
-            Helpers.addElementToObject(account, "total", total);
+            ((Map<String, Object>)account).put("free", free);
+            ((Map<String, Object>)account).put("used", used);
+            ((Map<String, Object>)account).put("total", total);
             if (!java.util.Objects.equals(code, null))
             {
-                Helpers.addElementToObject(result, code, account);
+                ((Map<String, Object>)result).put((String)code, account);
             }
         }
         return this.safeBalance(result);
@@ -5742,11 +5742,11 @@ public class Xt extends XtApi
             {
                 if (this.inArray(symbol, symbols))
                 {
-                    Helpers.addElementToObject(result, symbol, this.parseMarketLeverageTiers(entry, market));
+                    ((Map<String, Object>)result).put((String)symbol, this.parseMarketLeverageTiers(entry, market));
                 }
             } else
             {
-                Helpers.addElementToObject(result, symbol, this.parseMarketLeverageTiers(Helpers.GetValue(response, i), market));
+                ((Map<String, Object>)result).put((String)symbol, this.parseMarketLeverageTiers(Helpers.GetValue(response, i), market));
             }
         }
         return result;
@@ -6268,7 +6268,7 @@ final Object finalMarket = market;
                 Object matchesSubType = ((Boolean.TRUE.equals(isInverse))) ? ((Map<String, Object>)market).get("inverse") : ((Map<String, Object>)market).get("linear");
                 if ((java.util.Objects.equals(((Map<String, Object>)market).get("contract"), true)) && (java.util.Objects.equals(matchesSubType, true)))
                 {
-                    Helpers.addElementToObject(result, symbol, this.parseTradingFee(fee, market));
+                    ((Map<String, Object>)result).put((String)symbol, this.parseTradingFee(fee, market));
                 }
             }
             return result;
@@ -6422,7 +6422,7 @@ final Object finalMarket = market;
             // mode that would report 'BOTH', see setLeverage()/setMarginMode() which
             // both validate positionSide against exactly ['LONG', 'SHORT'])
             Object key = Helpers.add(Helpers.add(this.safeString(breakEntry, "symbol"), "_"), this.safeString(breakEntry, "positionSide"));
-            Helpers.addElementToObject(breakBySymbolSide, key, breakEntry);
+            ((Map<String, Object>)breakBySymbolSide).put((String)key, breakEntry);
         }
         return breakBySymbolSide;
     }

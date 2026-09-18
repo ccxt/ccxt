@@ -917,7 +917,7 @@ public class Poloniex extends PoloniexApi
             String keyEnd = (((java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true)))) ? "endTime" : "eTime";
             if (!java.util.Objects.equals(since, null))
             {
-                Helpers.addElementToObject(request, keyStart, since);
+                ((Map<String, Object>)request).put((String)keyStart, since);
             }
             if (!java.util.Objects.equals(limit, null))
             {
@@ -1569,7 +1569,7 @@ public class Poloniex extends PoloniexApi
             if (!java.util.Objects.equals(networkCode, null))
             {
                 final Object finalNetworkCode = networkCode;
-                Helpers.addElementToObject(networks, networkCode, new HashMap<String, Object>() {{
+                ((Map<String, Object>)networks).put((String)networkCode, new HashMap<String, Object>() {{
     put( "info", chain );
     put( "id", chainId );
     put( "name", null );
@@ -1917,7 +1917,7 @@ public class Poloniex extends PoloniexApi
             String endKey = ((isContract)) ? "eTime" : "endTime";
             if (!java.util.Objects.equals(since, null))
             {
-                Helpers.addElementToObject(request, startKey, since);
+                ((Map<String, Object>)request).put((String)startKey, since);
             }
             if (!java.util.Objects.equals(limit, null))
             {
@@ -2994,11 +2994,11 @@ public class Poloniex extends PoloniexApi
                 String currencyId = this.safeString(balance, "ccy");
                 String code = this.safeCurrencyCode(currencyId);
                 Object account = this.account();
-                Helpers.addElementToObject(account, "total", this.safeString(balance, "avail"));
-                Helpers.addElementToObject(account, "used", this.safeString(balance, "im"));
+                ((Map<String, Object>)account).put("total", this.safeString(balance, "avail"));
+                ((Map<String, Object>)account).put("used", this.safeString(balance, "im"));
                 if (!java.util.Objects.equals(code, null))
                 {
-                    Helpers.addElementToObject(result, code, account);
+                    ((Map<String, Object>)result).put((String)code, account);
                 }
             }
             return this.safeBalance(result);
@@ -3014,11 +3014,11 @@ public class Poloniex extends PoloniexApi
                 String currencyId = this.safeString(balance, "currency");
                 String code = this.safeCurrencyCode(currencyId);
                 Object newAccount = this.account();
-                Helpers.addElementToObject(newAccount, "free", this.safeString(balance, "available"));
-                Helpers.addElementToObject(newAccount, "used", this.safeString(balance, "hold"));
+                ((Map<String, Object>)newAccount).put("free", this.safeString(balance, "available"));
+                ((Map<String, Object>)newAccount).put("used", this.safeString(balance, "hold"));
                 if (!java.util.Objects.equals(code, null))
                 {
-                    Helpers.addElementToObject(result, code, newAccount);
+                    ((Map<String, Object>)result).put((String)code, newAccount);
                 }
             }
         }
@@ -3142,7 +3142,7 @@ public class Poloniex extends PoloniexApi
             for (var i = 0; i < ((List<?>)symbols).size(); i++)
             {
                 Object symbol = Helpers.GetValue(symbols, i);
-                Helpers.addElementToObject(result, symbol, new HashMap<String, Object>() {{
+                ((Map<String, Object>)result).put((String)symbol, new HashMap<String, Object>() {{
         put( "info", response );
         put( "symbol", symbol );
         put( "maker", Poloniex.this.safeNumber(response, "makerRate") );
@@ -3721,7 +3721,7 @@ public class Poloniex extends PoloniexApi
                 Object entry = Helpers.GetValue(entries, i);
                 List<Object> currencies = Helpers.objectKeys(entry);
                 String currencyId = this.safeString(currencies, 0);
-                Helpers.addElementToObject(data, currencyId, Helpers.GetValue(entry, currencyId));
+                ((Map<String, Object>)data).put((String)currencyId, Helpers.GetValue(entry, currencyId));
             }
             return this.parseDepositWithdrawFees(data, codes);
         }).thenApply(DepositWithdrawFees::new);
@@ -3764,7 +3764,7 @@ public class Poloniex extends PoloniexApi
             if ((!java.util.Objects.equals(code, null)) && ((java.util.Objects.equals(codes, null)) || Helpers.isTrue((this.inArray(code, codes)))))
             {
                 Map<String, Object> currency = (Map<String, Object>) this.currency(code);
-                Helpers.addElementToObject(depositWithdrawFees, code, this.parseDepositWithdrawFee(feeInfo, currency));
+                ((Map<String, Object>)depositWithdrawFees).put((String)code, this.parseDepositWithdrawFee(feeInfo, currency));
                 Object childChains = this.safeValue(feeInfo, "childChains");
                 Object chainsLength = Helpers.getArrayLength(childChains);
                 if (Helpers.isGreaterThan(chainsLength, 0))
@@ -3780,7 +3780,7 @@ public class Poloniex extends PoloniexApi
                         if (!java.util.Objects.equals(networkCode, null))
                         {
                             final Object finalWithdrawFee = withdrawFee;
-                            Helpers.addElementToObject(networkObject, networkCode, new HashMap<String, Object>() {{
+                            ((Map<String, Object>)networkObject).put((String)networkCode, new HashMap<String, Object>() {{
     put( "withdraw", new HashMap<String, Object>() {{
         put( "fee", finalWithdrawFee );
         put( "percentage", (((!java.util.Objects.equals(finalWithdrawFee, null)))) ? false : null );

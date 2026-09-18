@@ -2361,7 +2361,7 @@ public class Lighter extends LighterApi
                         ((Map<String, Object>)balance).put("used", Precise.stringAdd(((Map<String, Object>)balance).get("used"), this.safeString(asset, "locked_balance")));
                         if (!java.util.Objects.equals(code, null))
                         {
-                            Helpers.addElementToObject(result, code, balance);
+                            ((Map<String, Object>)result).put((String)code, balance);
                         }
                     }
                 } else

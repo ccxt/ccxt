@@ -244,7 +244,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
         if (java.util.Objects.equals(type, "subscribed/order_book"))
         {
             Object parsed = this.parseOrderBook(data, symbol, timestamp, "bids", "asks", "price", "size");
-            Helpers.addElementToObject(parsed, "nonce", this.safeInteger(data, "offset"));
+            ((Map<String, Object>)parsed).put("nonce", this.safeInteger(data, "offset"));
             Helpers.callDynamically(orderbook, "reset", new Object[]{parsed});
         } else if (java.util.Objects.equals(type, "update/order_book"))
         {
@@ -1339,20 +1339,20 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
                 String codeId = this.safeString(asset, "symbol");
                 String code = this.safeCurrencyCode(codeId);
                 Object account = this.account();
-                Helpers.addElementToObject(account, "used", this.safeString(asset, "locked_balance"));
-                Helpers.addElementToObject(account, "total", this.safeString(asset, "balance"));
+                ((Map<String, Object>)account).put("used", this.safeString(asset, "locked_balance"));
+                ((Map<String, Object>)account).put("total", this.safeString(asset, "balance"));
                 if (!java.util.Objects.equals(code, null))
                 {
-                    Helpers.addElementToObject(balance, code, account);
+                    ((Map<String, Object>)balance).put((String)code, account);
                 }
             }
         } else
         {
             Map<String, Object> stats = (Map<String, Object>) this.safeDict(message, "stats", new HashMap<String, Object>() {{}});
             Object account = this.account();
-            Helpers.addElementToObject(account, "free", this.safeString(stats, "available_balance"));
-            Helpers.addElementToObject(account, "total", this.safeString(stats, "collateral"));
-            Helpers.addElementToObject(account, "info", stats);
+            ((Map<String, Object>)account).put("free", this.safeString(stats, "available_balance"));
+            ((Map<String, Object>)account).put("total", this.safeString(stats, "collateral"));
+            ((Map<String, Object>)account).put("info", stats);
             ((Map<String, Object>)balance).put("USDC", account);
         }
         Long timestamp = this.safeInteger(message, "timestamp");

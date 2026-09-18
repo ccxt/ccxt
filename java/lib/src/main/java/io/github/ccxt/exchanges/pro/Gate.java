@@ -733,8 +733,8 @@ public class Gate extends io.github.ccxt.exchanges.Gate
         if (java.util.Objects.equals(full, true))
         {
             Object snapshopt = this.parseOrderBook(result, symbol, null, "b", "a");
-            Helpers.addElementToObject(snapshopt, "nonce", this.safeInteger(result, "u"));
-            Helpers.addElementToObject(snapshopt, "timestamp", this.safeInteger(result, "t"));
+            ((Map<String, Object>)snapshopt).put("nonce", this.safeInteger(result, "u"));
+            ((Map<String, Object>)snapshopt).put("timestamp", this.safeInteger(result, "t"));
             Helpers.callDynamically(orderbook, "reset", new Object[]{snapshopt});
         } else
         {
@@ -1405,7 +1405,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
                 }
             }
             Helpers.callDynamically(stored, "append", new Object[]{parsed});
-            Helpers.addElementToObject(marketIds, symbol, timeframe);
+            ((Map<String, Object>)marketIds).put((String)symbol, timeframe);
         }
         Object keys = Helpers.objectKeys(marketIds);
         for (var i = 0; i < ((List<?>)keys).size(); i++)
@@ -1533,7 +1533,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             Object symbol = ((Map<String, Object>)trade).get("symbol");
             if (!java.util.Objects.equals(symbol, null))
             {
-                Helpers.addElementToObject(marketIds, symbol, true);
+                ((Map<String, Object>)marketIds).put((String)symbol, true);
             }
         }
         Object keys = Helpers.objectKeys(marketIds);
@@ -1670,9 +1670,9 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             Long timestamp = (Long) this.safeInteger2(rawBalance, "time_ms", "timestamp_ms");
             Helpers.addElementToObject(this.balance, "timestamp", timestamp);
             Helpers.addElementToObject(this.balance, "datetime", this.iso8601(timestamp));
-            Helpers.addElementToObject(account, "used", this.safeString(rawBalance, "freeze"));
-            Helpers.addElementToObject(account, "free", this.safeString(rawBalance, "available"));
-            Helpers.addElementToObject(account, "total", this.safeString2(rawBalance, "total", "balance"));
+            ((Map<String, Object>)account).put("used", this.safeString(rawBalance, "freeze"));
+            ((Map<String, Object>)account).put("free", this.safeString(rawBalance, "available"));
+            ((Map<String, Object>)account).put("total", this.safeString2(rawBalance, "total", "balance"));
             if (!java.util.Objects.equals(code, null))
             {
                 Helpers.addElementToObject(this.balance, code, account);
@@ -2096,7 +2096,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             if (!java.util.Objects.equals(((Map<String, Object>)market).get("id"), null))
             {
-                Helpers.addElementToObject(marketIds, ((Map<String, Object>)market).get("id"), true);
+                ((Map<String, Object>)marketIds).put((String)((Map<String, Object>)market).get("id"), true);
             }
         }
         Object keys = Helpers.objectKeys(marketIds);

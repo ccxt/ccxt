@@ -387,9 +387,9 @@ public class Coincheck extends CoincheckApi
             {
                 Object account = this.account();
                 Object reserved = (currencyId + "_reserved");
-                Helpers.addElementToObject(account, "free", this.safeString(response, currencyId));
-                Helpers.addElementToObject(account, "used", this.safeString(response, reserved));
-                Helpers.addElementToObject(result, code, account);
+                ((Map<String, Object>)account).put("free", this.safeString(response, currencyId));
+                ((Map<String, Object>)account).put("used", this.safeString(response, reserved));
+                ((Map<String, Object>)result).put((String)code, account);
             }
         }
         return this.safeBalance(result);
@@ -941,7 +941,7 @@ public class Coincheck extends CoincheckApi
                 Object symbol = Helpers.GetValue(symbols, i);
                 Map<String, Object> market = (Map<String, Object>) this.market(symbol);
                 Object fee = this.safeValue(fees, ((Map<String, Object>)market).get("id"), new HashMap<String, Object>() {{}});
-                Helpers.addElementToObject(result, symbol, new HashMap<String, Object>() {{
+                ((Map<String, Object>)result).put((String)symbol, new HashMap<String, Object>() {{
         put( "info", fee );
         put( "symbol", symbol );
         put( "maker", Coincheck.this.safeNumber(fee, "maker_fee") );

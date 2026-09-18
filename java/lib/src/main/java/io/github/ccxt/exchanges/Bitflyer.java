@@ -544,11 +544,11 @@ public class Bitflyer extends BitflyerApi
             String currencyId = this.safeString(balance, "currency_code");
             String code = this.safeCurrencyCode(currencyId);
             Object account = this.account();
-            Helpers.addElementToObject(account, "total", this.safeString(balance, "amount"));
-            Helpers.addElementToObject(account, "free", this.safeString(balance, "available"));
+            ((Map<String, Object>)account).put("total", this.safeString(balance, "amount"));
+            ((Map<String, Object>)account).put("free", this.safeString(balance, "available"));
             if (!java.util.Objects.equals(code, null))
             {
-                Helpers.addElementToObject(result, code, account);
+                ((Map<String, Object>)result).put((String)code, account);
             }
         }
         return this.safeBalance(result);

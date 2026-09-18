@@ -782,7 +782,7 @@ public class Bydfi extends BydfiApi
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             Long timestamp = this.milliseconds();
             Object orderBook = this.parseOrderBook(data, ((Map<String, Object>)market).get("symbol"), timestamp, "bids", "asks", "price", "amount");
-            Helpers.addElementToObject(orderBook, "nonce", this.safeInteger(data, "lastUpdateId"));
+            ((Map<String, Object>)orderBook).put("nonce", this.safeInteger(data, "lastUpdateId"));
             return orderBook;
         }).thenApply(OrderBook::new);
 
@@ -3247,11 +3247,11 @@ public class Bydfi extends BydfiApi
             String symbol = this.safeString(balance, "asset");
             String code = this.safeCurrencyCode(symbol);
             Object account = this.account();
-            Helpers.addElementToObject(account, "total", this.safeString2(balance, "total", "balance"));
-            Helpers.addElementToObject(account, "free", this.safeString2(balance, "available", "availableBalance"));
+            ((Map<String, Object>)account).put("total", this.safeString2(balance, "total", "balance"));
+            ((Map<String, Object>)account).put("free", this.safeString2(balance, "available", "availableBalance"));
             if (!java.util.Objects.equals(code, null))
             {
-                Helpers.addElementToObject(result, code, account);
+                ((Map<String, Object>)result).put((String)code, account);
             }
         }
         return this.safeBalance(result);
@@ -3303,12 +3303,12 @@ public class Bydfi extends BydfiApi
             if (java.util.Objects.equals(fillResponseFromRequest, true))
             {
                 Long timestamp = this.milliseconds();
-                Helpers.addElementToObject(transfer, "timestamp", timestamp);
-                Helpers.addElementToObject(transfer, "datetime", this.iso8601(timestamp));
-                Helpers.addElementToObject(transfer, "currency", code);
-                Helpers.addElementToObject(transfer, "fromAccount", fromAccount);
-                Helpers.addElementToObject(transfer, "toAccount", toAccount);
-                Helpers.addElementToObject(transfer, "amount", amount);
+                ((Map<String, Object>)transfer).put("timestamp", timestamp);
+                ((Map<String, Object>)transfer).put("datetime", this.iso8601(timestamp));
+                ((Map<String, Object>)transfer).put("currency", code);
+                ((Map<String, Object>)transfer).put("fromAccount", fromAccount);
+                ((Map<String, Object>)transfer).put("toAccount", toAccount);
+                ((Map<String, Object>)transfer).put("amount", amount);
             }
             return transfer;
         }).thenApply(TransferEntry::new);

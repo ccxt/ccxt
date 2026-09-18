@@ -819,7 +819,7 @@ public class Bitmex extends BitmexApi
                 final Object finalNetwork = network;
                 final Object finalIsDepositEnabled = isDepositEnabled;
                 final Object finalIsWithdrawEnabled = isWithdrawEnabled;
-                Helpers.addElementToObject(networks, network, new HashMap<String, Object>() {{
+                ((Map<String, Object>)networks).put((String)network, new HashMap<String, Object>() {{
     put( "info", chain );
     put( "id", networkId );
     put( "network", finalNetwork );
@@ -1361,11 +1361,11 @@ public class Bitmex extends BitmexApi
             Object account = this.account();
             String free = this.safeString(balance, "availableMargin");
             String total = this.safeString(balance, "marginBalance");
-            Helpers.addElementToObject(account, "free", this.convertToRealAmount(code, free));
-            Helpers.addElementToObject(account, "total", this.convertToRealAmount(code, total));
+            ((Map<String, Object>)account).put("free", this.convertToRealAmount(code, free));
+            ((Map<String, Object>)account).put("total", this.convertToRealAmount(code, total));
             if (!java.util.Objects.equals(code, null))
             {
-                Helpers.addElementToObject(result, code, account);
+                ((Map<String, Object>)result).put((String)code, account);
             }
         }
         return this.safeBalance(result);
@@ -2191,7 +2191,7 @@ public class Bitmex extends BitmexApi
                 String symbol = this.safeString(ticker, "symbol");
                 if (!java.util.Objects.equals(symbol, null))
                 {
-                    Helpers.addElementToObject(result, symbol, ticker);
+                    ((Map<String, Object>)result).put((String)symbol, ticker);
                 }
             }
             return this.filterByArrayTickers(result, "symbol", symbols);

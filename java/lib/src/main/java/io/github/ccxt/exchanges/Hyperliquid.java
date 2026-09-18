@@ -1321,11 +1321,11 @@ public class Hyperliquid extends HyperliquidApi
                     Object account = this.account();
                     String total = this.safeString(balance, "total");
                     String used = this.safeString(balance, "hold");
-                    Helpers.addElementToObject(account, "total", total);
-                    Helpers.addElementToObject(account, "used", used);
+                    ((Map<String, Object>)account).put("total", total);
+                    ((Map<String, Object>)account).put("used", used);
                     if (!java.util.Objects.equals(code, null))
                     {
-                        Helpers.addElementToObject(spotBalances, code, account);
+                        ((Map<String, Object>)spotBalances).put((String)code, account);
                     }
                 }
                 return this.safeBalance(spotBalances);
@@ -1480,7 +1480,7 @@ public class Hyperliquid extends HyperliquidApi
                 Object info = Helpers.GetValue(market, "info");
                 Object ticker = this.parseTicker(info, market);
                 String symbol = this.safeString(ticker, "symbol");
-                Helpers.addElementToObject(result, symbol, ticker);
+                ((Map<String, Object>)result).put((String)symbol, ticker);
             }
             return this.filterByArrayTickers(result, "symbol", symbols);
         }).thenApply(Tickers::new);
@@ -3219,8 +3219,8 @@ final Object finalClientOrderId = clientOrderId;
                 String idKey = ((Helpers.isTrue(cancelByCloid))) ? "cloid" : "o";
                 Map<String, Object> market = (Map<String, Object>) this.market(symbol);
                 Map<String, Object> cancelObj = new HashMap<String, Object>() {{}};
-                Helpers.addElementToObject(cancelObj, assetKey, this.parseToNumeric(((Map<String, Object>)market).get("baseId")));
-                Helpers.addElementToObject(cancelObj, idKey, ((Helpers.isTrue(cancelByCloid))) ? clientOrderId : this.parseToNumeric(id));
+                ((Map<String, Object>)cancelObj).put((String)assetKey, this.parseToNumeric(((Map<String, Object>)market).get("baseId")));
+                ((Map<String, Object>)cancelObj).put((String)idKey, ((Helpers.isTrue(cancelByCloid))) ? clientOrderId : this.parseToNumeric(id));
                 ((List<Object>)cancelReq).add(cancelObj);
             }
             ((Map<String, Object>)cancelAction).put("type", ((Helpers.isTrue(cancelByCloid))) ? "cancelByCloid" : "cancel");
@@ -3983,14 +3983,14 @@ final Object finalClientOrderId = clientOrderId;
                 {
                     if (!(((Map<?, ?>)deduplicatedByOid).containsKey(oid)))
                     {
-                        Helpers.addElementToObject(deduplicatedByOid, oid, rawOrder);
+                        ((Map<String, Object>)deduplicatedByOid).put((String)oid, rawOrder);
                     } else
                     {
                         Long existingTimestamp = this.safeInteger(Helpers.GetValue(deduplicatedByOid, oid), "statusTimestamp");
                         Long currentTimestamp = this.safeInteger(rawOrder, "statusTimestamp");
                         if (!java.util.Objects.equals(currentTimestamp, null) && (java.util.Objects.equals(existingTimestamp, null) || Helpers.isGreaterThan(currentTimestamp, existingTimestamp)))
                         {
-                            Helpers.addElementToObject(deduplicatedByOid, oid, rawOrder);
+                            ((Map<String, Object>)deduplicatedByOid).put((String)oid, rawOrder);
                         }
                     }
                 }

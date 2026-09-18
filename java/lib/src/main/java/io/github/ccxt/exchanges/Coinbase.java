@@ -2428,7 +2428,7 @@ public class Coinbase extends CoinbaseApi
                 if (!java.util.Objects.equals(code, null))
                 {
                     final Object finalCode = code;
-                    Helpers.addElementToObject(result, code, this.safeCurrencyStructure(new HashMap<String, Object>() {{
+                    ((Map<String, Object>)result).put((String)code, this.safeCurrencyStructure(new HashMap<String, Object>() {{
         put( "info", currency );
         put( "id", id );
         put( "code", finalCode );
@@ -2457,9 +2457,9 @@ public class Coinbase extends CoinbaseApi
                     Object lowerCaseName = name.toLowerCase();
                     if (!java.util.Objects.equals(code, null))
                     {
-                        Helpers.addElementToObject(networks, code, lowerCaseName);
+                        ((Map<String, Object>)networks).put((String)code, lowerCaseName);
                     }
-                    Helpers.addElementToObject(networksById, lowerCaseName, code);
+                    ((Map<String, Object>)networksById).put((String)lowerCaseName, code);
                 }
             }
             // we have to add other currencies here ( https://discord.com/channels/1220414409550336183/1220464770239430761/1372215891940479098 )
@@ -2472,7 +2472,7 @@ public class Coinbase extends CoinbaseApi
                     if (!java.util.Objects.equals(code, null))
                     {
                         final Object finalCode = code;
-                        Helpers.addElementToObject(result, code, this.safeCurrencyStructure(new HashMap<String, Object>() {{
+                        ((Map<String, Object>)result).put((String)code, this.safeCurrencyStructure(new HashMap<String, Object>() {{
         put( "info", new HashMap<String, Object>() {{}} );
         put( "id", currencyId );
         put( "code", finalCode );
@@ -2556,7 +2556,7 @@ public class Coinbase extends CoinbaseApi
                 Object marketId = Helpers.add(Helpers.add(baseId, delimiter), quoteId);
                 Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, null, delimiter);
                 Object symbol = ((Map<String, Object>)market).get("symbol");
-                Helpers.addElementToObject(result, symbol, this.parseTicker(Helpers.GetValue(rates, baseId), market));
+                ((Map<String, Object>)result).put((String)symbol, this.parseTicker(Helpers.GetValue(rates, baseId), market));
             }
             return this.filterByArrayTickers(result, "symbol", symbols);
         });
@@ -2645,7 +2645,7 @@ public class Coinbase extends CoinbaseApi
                 String marketId = this.safeString(entry, "product_id");
                 Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, null, "-");
                 Object symbol = ((Map<String, Object>)market).get("symbol");
-                Helpers.addElementToObject(result, symbol, this.parseTicker(entry, market));
+                ((Map<String, Object>)result).put((String)symbol, this.parseTicker(entry, market));
             }
             return this.filterByArrayTickers(result, "symbol", symbols);
         });
@@ -2950,7 +2950,7 @@ public class Coinbase extends CoinbaseApi
                     }
                     if (!java.util.Objects.equals(code, null))
                     {
-                        Helpers.addElementToObject(result, code, account);
+                        ((Map<String, Object>)result).put((String)code, account);
                     }
                 }
             } else if (Helpers.isTrue(this.inArray(type, v3Accounts)))
@@ -2979,7 +2979,7 @@ public class Coinbase extends CoinbaseApi
                     }
                     if (!java.util.Objects.equals(code, null))
                     {
-                        Helpers.addElementToObject(result, code, account);
+                        ((Map<String, Object>)result).put((String)code, account);
                     }
                 }
             }
@@ -5842,8 +5842,8 @@ public class Coinbase extends CoinbaseApi
             //     }
             //
             Object transfer = this.parseTransfer(response, currency);
-            Helpers.addElementToObject(transfer, "amount", amount);
-            Helpers.addElementToObject(transfer, "status", "ok");
+            ((Map<String, Object>)transfer).put("amount", amount);
+            ((Map<String, Object>)transfer).put("status", "ok");
             return transfer;
         }).thenApply(TransferEntry::new);
 
@@ -6234,7 +6234,7 @@ public class Coinbase extends CoinbaseApi
                 Map<String, Object> market = (Map<String, Object>) this.market(symbol);
                 if ((Boolean.TRUE.equals(isSpot) && (java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true))) || (!Boolean.TRUE.equals(isSpot) && (!java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true))))
                 {
-                    Helpers.addElementToObject(result, symbol, new HashMap<String, Object>() {{
+                    ((Map<String, Object>)result).put((String)symbol, new HashMap<String, Object>() {{
         put( "info", response );
         put( "symbol", symbol );
         put( "maker", maker_fee );

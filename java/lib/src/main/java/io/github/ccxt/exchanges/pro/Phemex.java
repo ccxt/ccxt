@@ -467,8 +467,8 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
                 String totalEv = this.safeString2(balance, "accountBalanceEv", "balanceEv");
                 total = this.fromEn(totalEv, scale);
             }
-            Helpers.addElementToObject(account, "used", used);
-            Helpers.addElementToObject(account, "total", total);
+            ((Map<String, Object>)account).put("used", used);
+            ((Map<String, Object>)account).put("total", total);
             if (!java.util.Objects.equals(code, null))
             {
                 Helpers.addElementToObject(this.balance, code, account);
@@ -1118,7 +1118,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
             }
             if (!java.util.Objects.equals(symbol, null))
             {
-                Helpers.addElementToObject(marketIds, symbol, true);
+                ((Map<String, Object>)marketIds).put((String)symbol, true);
             }
         }
         List<Object> keys = Helpers.objectKeys(marketIds);
@@ -1839,7 +1839,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
                     Helpers.addElementToObject(client.subscriptions, subscriptionHash, "handleAuthenticate");
                 }
                 future = (this.watch(url, messageHash, message, messageHash, null)).join();
-                Helpers.addElementToObject(client.subscriptions, messageHash, future);
+                ((Map)client.subscriptions).put((String)messageHash, future);
             }
             return future;
         });

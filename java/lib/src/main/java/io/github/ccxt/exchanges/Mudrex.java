@@ -577,7 +577,7 @@ public class Mudrex extends MudrexApi
                 {
                     continue;
                 }
-                Helpers.addElementToObject(resultTickers, symbol, this.parseTicker(t, m));
+                ((Map<String, Object>)resultTickers).put((String)symbol, this.parseTicker(t, m));
             }
             return this.filterByArrayTickers(resultTickers, "symbol", symbols);
         }).thenApply(Tickers::new);
@@ -830,15 +830,15 @@ public class Mudrex extends MudrexApi
         if (!java.util.Objects.equals(futuresBalance, null))
         {
             // futures wallet: balance is the free/available margin, locked_amount is used, safeBalance derives total
-            Helpers.addElementToObject(account, "free", futuresBalance);
-            Helpers.addElementToObject(account, "used", this.safeString(data, "locked_amount"));
+            ((Map<String, Object>)account).put("free", futuresBalance);
+            ((Map<String, Object>)account).put("used", this.safeString(data, "locked_amount"));
         } else
         {
             // spot wallet: total is the total, withdrawable is free, safeBalance derives used
-            Helpers.addElementToObject(account, "total", this.safeString(data, "total"));
-            Helpers.addElementToObject(account, "free", this.safeString(data, "withdrawable"));
+            ((Map<String, Object>)account).put("total", this.safeString(data, "total"));
+            ((Map<String, Object>)account).put("free", this.safeString(data, "withdrawable"));
         }
-        Helpers.addElementToObject(result, currency, account);
+        ((Map<String, Object>)result).put((String)currency, account);
         return this.safeBalance(result);
     }
 

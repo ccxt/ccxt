@@ -910,8 +910,8 @@ public class TestMain extends BaseTest
                         if (Helpers.isGreaterThan(volume, 0))
                         {
                             Map<String, Object> entry = new HashMap<String, Object>() {{}};
-                            Helpers.addElementToObject(entry, "symbol", tickerSymbol);
-                            Helpers.addElementToObject(entry, "volume", volume);
+                            ((Map<String, Object>)entry).put("symbol", tickerSymbol);
+                            ((Map<String, Object>)entry).put("volume", volume);
                             ((List<Object>)candidates).add(entry);
                         }
                     }
@@ -1154,7 +1154,7 @@ public class TestMain extends BaseTest
                     Map<String, Object> eventParams = new HashMap<String, Object>() {{}};
                     if (!java.util.Objects.equals(eventQuery, null))
                     {
-                        Helpers.addElementToObject(eventParams, "query", eventQuery);
+                        ((Map<String, Object>)eventParams).put("query", eventQuery);
                     }
                     Object events = (callExchangeMethodDynamically(exchange, "fetchEvents", new ArrayList<Object>(Arrays.asList(eventParams)))).join();
                     Assert(!java.util.Objects.equals(events, null), Helpers.add(exchange.id, " fetchEvents returned undefined"));
@@ -1781,7 +1781,7 @@ public class TestMain extends BaseTest
             }
             Object exchangeName = Helpers.replace(((String)file), ".json", "");
             Object content = ioFileRead(Helpers.add(folder, file));
-            Helpers.addElementToObject(result, exchangeName, content);
+            ((Map<String, Object>)result).put((String)exchangeName, content);
         }
         return result;
     }
@@ -1834,7 +1834,7 @@ public class TestMain extends BaseTest
                 // some exchanges might return something like this: timestamp=1699382693405&batchOrders=[{\"symbol\":\"LTCUSDT\",\"side\":\"BUY\",\"newClientOrderI
                 value = jsonParse(value);
             }
-            Helpers.addElementToObject(result, key, value);
+            ((Map<String, Object>)result).put((String)key, value);
         }
         return result;
     }
@@ -2689,8 +2689,8 @@ public class TestMain extends BaseTest
         }};
         if (java.util.Objects.equals(exchangeName, "grvt"))
         {
-            Helpers.addElementToObject(options, "apiKey", "");
-            Helpers.addElementToObject(options, "secret", "");
+            ((Map<String, Object>)options).put("apiKey", "");
+            ((Map<String, Object>)options).put("secret", "");
         }
         BaseExchange exchange = initExchange(exchangeName, options, isWs);
         if (!java.util.Objects.equals(currencies, null))

@@ -308,7 +308,7 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
         if (java.util.Objects.equals(action, "snapshot"))
         {
             Object orderBookSnapshot = this.parseOrderBook(data, symbol, timestamp);
-            Helpers.addElementToObject(orderBookSnapshot, "nonce", this.safeInteger(data, "seqId"));
+            ((Map<String, Object>)orderBookSnapshot).put("nonce", this.safeInteger(data, "seqId"));
             Helpers.callDynamically(orderbook, "reset", new Object[]{orderBookSnapshot});
         } else
         {

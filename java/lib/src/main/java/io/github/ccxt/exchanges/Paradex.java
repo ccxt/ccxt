@@ -1150,7 +1150,7 @@ public class Paradex extends ParadexApi
             {
                 Object fee = this.parseTradingFee(Helpers.GetValue(fees, i));
                 Object symbol = ((Map<String, Object>)fee).get("symbol");
-                Helpers.addElementToObject(result, ((String)symbol), fee);
+                ((Map<String, Object>)result).put((String)((String)symbol), fee);
             }
             return result;
         }).thenApply(TradingFees::new);
@@ -1604,7 +1604,7 @@ public class Paradex extends ParadexApi
             }
             Long timestamp = this.safeInteger(response, "last_updated_at");
             Object orderbook = this.parseOrderBook(response, ((Map<String, Object>)market).get("symbol"), timestamp);
-            Helpers.addElementToObject(orderbook, "nonce", this.safeInteger(response, "seq_no"));
+            ((Map<String, Object>)orderbook).put("nonce", this.safeInteger(response, "seq_no"));
             return orderbook;
         }).thenApply(OrderBook::new);
 
@@ -3079,10 +3079,10 @@ public class Paradex extends ParadexApi
             String currencyId = this.safeString(balance, "token");
             String code = this.safeCurrencyCode(currencyId);
             Object account = this.account();
-            Helpers.addElementToObject(account, "total", this.safeString(balance, "size"));
+            ((Map<String, Object>)account).put("total", this.safeString(balance, "size"));
             if (!java.util.Objects.equals(code, null))
             {
-                Helpers.addElementToObject(result, code, account);
+                ((Map<String, Object>)result).put((String)code, account);
             }
         }
         return this.safeBalance(result);

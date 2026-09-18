@@ -553,7 +553,7 @@ public class Extended extends ExtendedApi
             {
                 continue;
             }
-            Helpers.addElementToObject(result, numericIdString, item);
+            ((Map<String, Object>)result).put((String)numericIdString, item);
         }
         return result;
     }
@@ -1058,7 +1058,7 @@ public class Extended extends ExtendedApi
                 Object symbol = ((Map<String, Object>)ticker).get("symbol");
                 if (!java.util.Objects.equals(symbol, null))
                 {
-                    Helpers.addElementToObject(tickers, symbol, ticker);
+                    ((Map<String, Object>)tickers).put((String)symbol, ticker);
                 }
             }
             return this.filterByArrayTickers(tickers, "symbol", symbols);
@@ -1180,8 +1180,8 @@ public class Extended extends ExtendedApi
             Object orderbook = this.parseOrderBook(data, ((Map<String, Object>)market).get("symbol"), timestamp, "bid", "ask", "price", "qty");
             if (!java.util.Objects.equals(limit, null))
             {
-                Helpers.addElementToObject(orderbook, "bids", this.arraySlice(((Map<String, Object>)orderbook).get("bids"), 0, limit));
-                Helpers.addElementToObject(orderbook, "asks", this.arraySlice(((Map<String, Object>)orderbook).get("asks"), 0, limit));
+                ((Map<String, Object>)orderbook).put("bids", this.arraySlice(((Map<String, Object>)orderbook).get("bids"), 0, limit));
+                ((Map<String, Object>)orderbook).put("asks", this.arraySlice(((Map<String, Object>)orderbook).get("asks"), 0, limit));
             }
             return orderbook;
         }).thenApply(OrderBook::new);
@@ -1906,11 +1906,11 @@ public class Extended extends ExtendedApi
             String currencyId = this.safeString(balance, "asset");
             String code = this.safeCurrencyCode(currencyId);
             Object account = this.account();
-            Helpers.addElementToObject(account, "free", this.safeString(balance, "availableToWithdraw"));
-            Helpers.addElementToObject(account, "total", this.safeString(balance, "balance"));
+            ((Map<String, Object>)account).put("free", this.safeString(balance, "availableToWithdraw"));
+            ((Map<String, Object>)account).put("total", this.safeString(balance, "balance"));
             if (!java.util.Objects.equals(code, null))
             {
-                Helpers.addElementToObject(result, code, account);
+                ((Map<String, Object>)result).put((String)code, account);
             }
         }
         return this.safeBalance(result);
@@ -2741,7 +2741,7 @@ public class Extended extends ExtendedApi
                 String symbol = this.safeString(parsed, "symbol");
                 if (!java.util.Objects.equals(symbol, null))
                 {
-                    Helpers.addElementToObject(result, symbol, parsed);
+                    ((Map<String, Object>)result).put((String)symbol, parsed);
                 }
             }
             return result;

@@ -1858,8 +1858,8 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
         String currencyId = this.safeString2(data, "currency", "vcoinName");
         String code = this.safeCurrencyCode(currencyId);
         Object account = this.account();
-        Helpers.addElementToObject(account, "free", this.safeString2(data, "balanceAmount", "availableBalance"));
-        Helpers.addElementToObject(account, "used", this.safeString2(data, "frozenBalance", "frozenAmount"));
+        ((Map<String, Object>)account).put("free", this.safeString2(data, "balanceAmount", "availableBalance"));
+        ((Map<String, Object>)account).put("used", this.safeString2(data, "frozenBalance", "frozenAmount"));
         if (!java.util.Objects.equals(code, null))
         {
             Helpers.addElementToObject(Helpers.GetValue(this.balance, type), code, account);

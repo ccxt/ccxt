@@ -137,7 +137,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             // we store an awaitable to the url
             // so that multiple calls don't asynchronously
             // fetch different urls and overwrite each other
-            Helpers.addElementToObject(urls, connectId, this.spawnWithResult("negotiateHelper", privateChannel, connectId, parameters));
+            ((Map<String, Object>)urls).put((String)connectId, this.spawnWithResult("negotiateHelper", privateChannel, connectId, parameters));
             Helpers.addElementToObject(this.options, "urls", urls);
             future = Helpers.GetValue(urls, connectId);
             return ((io.github.ccxt.ws.Future)future).getFuture().join();
@@ -822,7 +822,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             client.resolve(ticker, messageHash);
             // watchTickers
             Map<String, Object> allTickers = new HashMap<String, Object>() {{}};
-            Helpers.addElementToObject(allTickers, ((String)symbol), ticker);
+            ((Map<String, Object>)allTickers).put((String)((String)symbol), ticker);
             client.resolve(allTickers, "tickers");
         } else
         {
@@ -2121,7 +2121,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
         if (java.util.Objects.equals(type, "snapshot"))
         {
             Object parsed = this.parseOrderBook(data, symbol, timestamp, "b", "a", 0, 1);
-            Helpers.addElementToObject(parsed, "nonce", this.safeInteger(data, "O"));
+            ((Map<String, Object>)parsed).put("nonce", this.safeInteger(data, "O"));
             Helpers.callDynamically(orderbook, "reset", new Object[]{parsed});
             Helpers.addElementToObject(this.orderbooks, symbol, orderbook);
         } else
@@ -3312,9 +3312,9 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
         {
             used = Precise.stringAdd(used, isolatedPosMargin);
         }
-        Helpers.addElementToObject(account, "free", this.safeString2(data, "available", "availableBalance"));
-        Helpers.addElementToObject(account, "used", used);
-        Helpers.addElementToObject(account, "total", this.safeString(data, "total"));
+        ((Map<String, Object>)account).put("free", this.safeString2(data, "available", "availableBalance"));
+        ((Map<String, Object>)account).put("used", used);
+        ((Map<String, Object>)account).put("total", this.safeString(data, "total"));
         if ((!java.util.Objects.equals(uniformType, null)) && (!java.util.Objects.equals(code, null)))
         {
             Helpers.addElementToObject(Helpers.GetValue(this.balance, uniformType), code, account);
@@ -3354,9 +3354,9 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
         Helpers.addElementToObject(Helpers.GetValue(this.balance, type), "timestamp", timestamp);
         Helpers.addElementToObject(Helpers.GetValue(this.balance, type), "datetime", this.iso8601(timestamp));
         Object account = this.account();
-        Helpers.addElementToObject(account, "free", this.safeString(data, "a"));
-        Helpers.addElementToObject(account, "used", this.safeString(data, "h"));
-        Helpers.addElementToObject(account, "total", this.safeString(data, "b"));
+        ((Map<String, Object>)account).put("free", this.safeString(data, "a"));
+        ((Map<String, Object>)account).put("used", this.safeString(data, "h"));
+        ((Map<String, Object>)account).put("total", this.safeString(data, "b"));
         if ((!java.util.Objects.equals(type, null)) && (!java.util.Objects.equals(code, null)))
         {
             Helpers.addElementToObject(Helpers.GetValue(this.balance, type), code, account);

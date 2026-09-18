@@ -537,7 +537,7 @@ public class Revolutx extends RevolutxApi
                 {
                     continue;
                 }
-                Helpers.addElementToObject(result, code, parsed);
+                ((Map<String, Object>)result).put((String)code, parsed);
             }
             return result;
         });
@@ -668,7 +668,7 @@ public class Revolutx extends RevolutxApi
                 {
                     continue;
                 }
-                Helpers.addElementToObject(result, symbol, ticker);
+                ((Map<String, Object>)result).put((String)symbol, ticker);
             }
             if (!java.util.Objects.equals(symbols, null))
             {
@@ -678,7 +678,7 @@ public class Revolutx extends RevolutxApi
                     Object s = Helpers.GetValue(symbols, i);
                     if (((Map<?, ?>)result).containsKey(s))
                     {
-                        Helpers.addElementToObject(filtered, s, Helpers.GetValue(result, s));
+                        ((Map<String, Object>)filtered).put((String)s, Helpers.GetValue(result, s));
                     }
                 }
                 return filtered;
@@ -1020,7 +1020,7 @@ public class Revolutx extends RevolutxApi
                     continue;
                 }
                 Object account = this.account();
-                Helpers.addElementToObject(account, "free", this.safeString(balance, "available"));
+                ((Map<String, Object>)account).put("free", this.safeString(balance, "available"));
                 String reserved = this.safeString(balance, "reserved");
                 String staked = this.safeString(balance, "staked");
                 String used = reserved;
@@ -1028,9 +1028,9 @@ public class Revolutx extends RevolutxApi
                 {
                     used = (((java.util.Objects.equals(reserved, null)))) ? staked : Precise.stringAdd(reserved, staked);
                 }
-                Helpers.addElementToObject(account, "used", used);
-                Helpers.addElementToObject(account, "total", this.safeString(balance, "total"));
-                Helpers.addElementToObject(result, code, account);
+                ((Map<String, Object>)account).put("used", used);
+                ((Map<String, Object>)account).put("total", this.safeString(balance, "total"));
+                ((Map<String, Object>)result).put((String)code, account);
             }
             return this.safeBalance(result);
         }).thenApply(Balances::new);

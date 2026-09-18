@@ -157,7 +157,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
                 //        "channel": "auth"
                 //    }
                 //
-                Helpers.addElementToObject(client.subscriptions, messageHash, future);
+                ((Map)client.subscriptions).put((String)messageHash, future);
             }
             return future;
         });
@@ -1282,7 +1282,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
                 }
                 if (!java.util.Objects.equals(symbol, null))
                 {
-                    Helpers.addElementToObject(newTickers, symbol, ticker);
+                    ((Map<String, Object>)newTickers).put((String)symbol, ticker);
                 }
             }
         }
@@ -1464,11 +1464,11 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
             String currencyId = this.safeString(balance, "currency");
             String code = this.safeCurrencyCode(currencyId);
             Object newAccount = this.account();
-            Helpers.addElementToObject(newAccount, "free", this.safeString(balance, "available"));
-            Helpers.addElementToObject(newAccount, "used", this.safeString(balance, "hold"));
+            ((Map<String, Object>)newAccount).put("free", this.safeString(balance, "available"));
+            ((Map<String, Object>)newAccount).put("used", this.safeString(balance, "hold"));
             if (!java.util.Objects.equals(code, null))
             {
-                Helpers.addElementToObject(result, code, newAccount);
+                ((Map<String, Object>)result).put((String)code, newAccount);
             }
         }
         return this.safeBalance(result);

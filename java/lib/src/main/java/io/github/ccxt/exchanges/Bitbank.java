@@ -694,7 +694,7 @@ public class Bitbank extends BitbankApi
                 String marketId = this.safeString(pair, "name");
                 Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
                 Object symbol = ((Map<String, Object>)market).get("symbol");
-                Helpers.addElementToObject(result, symbol, new HashMap<String, Object>() {{
+                ((Map<String, Object>)result).put((String)symbol, new HashMap<String, Object>() {{
         put( "info", pair );
         put( "symbol", symbol );
         put( "maker", Bitbank.this.safeNumber(pair, "maker_fee_rate_quote") );
@@ -808,12 +808,12 @@ public class Bitbank extends BitbankApi
             String currencyId = this.safeString(balance, "asset");
             String code = this.safeCurrencyCode(currencyId);
             Object account = this.account();
-            Helpers.addElementToObject(account, "free", this.safeString(balance, "free_amount"));
-            Helpers.addElementToObject(account, "used", this.safeString(balance, "locked_amount"));
-            Helpers.addElementToObject(account, "total", this.safeString(balance, "onhand_amount"));
+            ((Map<String, Object>)account).put("free", this.safeString(balance, "free_amount"));
+            ((Map<String, Object>)account).put("used", this.safeString(balance, "locked_amount"));
+            ((Map<String, Object>)account).put("total", this.safeString(balance, "onhand_amount"));
             if (!java.util.Objects.equals(code, null))
             {
-                Helpers.addElementToObject(result, code, account);
+                ((Map<String, Object>)result).put((String)code, account);
             }
         }
         return this.safeBalance(result);

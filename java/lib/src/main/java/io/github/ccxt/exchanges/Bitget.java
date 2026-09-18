@@ -4463,7 +4463,7 @@ public class Bitget extends BitgetApi
             withdraw = (((java.util.Objects.equals(withdraw, null)))) ? withdrawable : (Helpers.isTrue(withdraw) || Helpers.isTrue(withdrawable));
             deposit = (((java.util.Objects.equals(deposit, null)))) ? rechargeable : (Helpers.isTrue(deposit) || Helpers.isTrue(rechargeable));
             final Object finalNetwork = network;
-            Helpers.addElementToObject(networks, network, new HashMap<String, Object>() {{
+            ((Map<String, Object>)networks).put((String)network, new HashMap<String, Object>() {{
     put( "info", chain );
     put( "id", networkId );
     put( "network", finalNetwork );
@@ -4963,17 +4963,17 @@ final Object finalMinNotional = minNotional;
             //
             Object data = this.safeValue(response, "data", new HashMap<String, Object>() {{}});
             Object result = this.parseTransaction(data, currency);
-            Helpers.addElementToObject(result, "type", "withdrawal");
+            ((Map<String, Object>)result).put("type", "withdrawal");
             Object withdrawOptions = this.safeValue(this.options, "withdraw", new HashMap<String, Object>() {{}});
             Object fillResponseFromRequest = this.safeBool(withdrawOptions, "fillResponseFromRequest", true);
             if (java.util.Objects.equals(fillResponseFromRequest, true))
             {
-                Helpers.addElementToObject(result, "currency", code);
-                Helpers.addElementToObject(result, "amount", amount);
-                Helpers.addElementToObject(result, "tag", tag);
-                Helpers.addElementToObject(result, "address", address);
-                Helpers.addElementToObject(result, "addressTo", address);
-                Helpers.addElementToObject(result, "network", networkCode);
+                ((Map<String, Object>)result).put("currency", code);
+                ((Map<String, Object>)result).put("amount", amount);
+                ((Map<String, Object>)result).put("tag", tag);
+                ((Map<String, Object>)result).put("address", address);
+                ((Map<String, Object>)result).put("addressTo", address);
+                ((Map<String, Object>)result).put("network", networkCode);
             }
             return result;
         }).thenApply(Transaction::new);
@@ -6517,7 +6517,7 @@ final Object finalMinNotional = minNotional;
                     {
                         continue;
                     }
-                    Helpers.addElementToObject(utaResult, entrySymbol, this.parseTradingFee(entry, entryMarket));
+                    ((Map<String, Object>)utaResult).put((String)entrySymbol, this.parseTradingFee(entry, entryMarket));
                 }
                 return utaResult;
             }
@@ -6624,7 +6624,7 @@ final Object finalMinNotional = minNotional;
                 String symbol = this.safeSymbol(marketId, null, null, marketType);
                 Map<String, Object> market = (Map<String, Object>) this.market(symbol);
                 Object fee = this.parseTradingFee(entry, market);
-                Helpers.addElementToObject(result, symbol, fee);
+                ((Map<String, Object>)result).put((String)symbol, fee);
             }
             return result;
         }).thenApply(TradingFees::new);
@@ -7123,13 +7123,13 @@ final Object finalMinNotional = minNotional;
             Object account = this.account();
             String currencyId = this.safeString(entry, "coin");
             String code = this.safeCurrencyCode(currencyId);
-            Helpers.addElementToObject(account, "debt", this.safeString(entry, "debt"));
-            Helpers.addElementToObject(account, "used", this.safeString2(entry, "locked", "frozen"));
-            Helpers.addElementToObject(account, "free", this.safeString(entry, "available"));
-            Helpers.addElementToObject(account, "total", this.safeString2(entry, "equity", "balance"));
+            ((Map<String, Object>)account).put("debt", this.safeString(entry, "debt"));
+            ((Map<String, Object>)account).put("used", this.safeString2(entry, "locked", "frozen"));
+            ((Map<String, Object>)account).put("free", this.safeString(entry, "available"));
+            ((Map<String, Object>)account).put("total", this.safeString2(entry, "equity", "balance"));
             if (!java.util.Objects.equals(code, null))
             {
-                Helpers.addElementToObject(result, code, account);
+                ((Map<String, Object>)result).put((String)code, account);
             }
         }
         return this.safeBalance(result);
@@ -7197,9 +7197,9 @@ final Object finalMinNotional = minNotional;
             if (!java.util.Objects.equals(borrow, null))
             {
                 String interest = this.safeString(entry, "interest");
-                Helpers.addElementToObject(account, "free", this.safeString(entry, "transferable"));
-                Helpers.addElementToObject(account, "total", this.safeString(entry, "totalAmount"));
-                Helpers.addElementToObject(account, "debt", Precise.stringAdd(borrow, interest));
+                ((Map<String, Object>)account).put("free", this.safeString(entry, "transferable"));
+                ((Map<String, Object>)account).put("total", this.safeString(entry, "totalAmount"));
+                ((Map<String, Object>)account).put("debt", Precise.stringAdd(borrow, interest));
             } else
             {
                 // Use transferable instead of available for swap and margin https://github.com/ccxt/ccxt/pull/19127
@@ -7207,19 +7207,19 @@ final Object finalMinNotional = minNotional;
                 String contractAccountFree = this.safeString(entry, "maxTransferOut");
                 if (!java.util.Objects.equals(contractAccountFree, null))
                 {
-                    Helpers.addElementToObject(account, "free", contractAccountFree);
-                    Helpers.addElementToObject(account, "total", this.safeString(entry, "accountEquity"));
+                    ((Map<String, Object>)account).put("free", contractAccountFree);
+                    ((Map<String, Object>)account).put("total", this.safeString(entry, "accountEquity"));
                 } else
                 {
-                    Helpers.addElementToObject(account, "free", spotAccountFree);
+                    ((Map<String, Object>)account).put("free", spotAccountFree);
                     String frozen = this.safeString(entry, "frozen");
                     String locked = this.safeString(entry, "locked");
-                    Helpers.addElementToObject(account, "used", Precise.stringAdd(frozen, locked));
+                    ((Map<String, Object>)account).put("used", Precise.stringAdd(frozen, locked));
                 }
             }
             if (!java.util.Objects.equals(code, null))
             {
-                Helpers.addElementToObject(result, code, account);
+                ((Map<String, Object>)result).put((String)code, account);
             }
         }
         return this.safeBalance(result);
@@ -14511,7 +14511,7 @@ final Object finalMinNotional = minNotional;
                 if (!java.util.Objects.equals(code, null))
                 {
                     final Object finalCode = code;
-                    Helpers.addElementToObject(result, code, new HashMap<String, Object>() {{
+                    ((Map<String, Object>)result).put((String)code, new HashMap<String, Object>() {{
         put( "info", entry );
         put( "id", id );
         put( "code", finalCode );
