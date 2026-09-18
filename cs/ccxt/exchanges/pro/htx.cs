@@ -1797,7 +1797,7 @@ public partial class htx : ccxt.htx
         if (isV5Linear)
         {
             IDictionary<string, object> v5Market = null;
-            if ((!isEqual(symbols, null)) && ((symbols?.Count ?? 0 == 1)))
+            if ((!isEqual(symbols, null)) && (((symbols?.Count ?? 0) == 1)))
             {
                 v5Market = market;
             }

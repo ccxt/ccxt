@@ -4769,9 +4769,17 @@ class NewTranspiler {
                 continue;
             }
             out += region.substring (cursor, at);
-            out += (match[1] !== undefined)
+            const replacement = (match[1] !== undefined)
                 ? (nonNull.has (name) ? name + '.Count' : name + '?.Count ?? 0')
                 : name + '.' + match[3] + '()';
+            // `??` binds looser than every binary operator, so an operand position needs the
+            // grouping: `((getArrayLength (symbols) == 1))` -> `((symbols?.Count ?? 0) == 1)`
+            // (unparenthesised it is `symbols?.Count ?? (0 == 1)`, CS0019). Every other emitted
+            // site ends at `;`, `,` or `)` -- census: 424 sites, 0 with an operator after.
+            const following = region.substring (at + match[0].length).replace (/^\s+/, '').charAt (0);
+            out += (following !== '' && '=<>!&|+-*/%^?:'.indexOf (following) !== -1)
+                ? '(' + replacement + ')'
+                : replacement;
             cursor = at + match[0].length;
         }
         if (cursor === 0) {
