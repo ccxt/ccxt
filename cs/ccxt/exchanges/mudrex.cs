@@ -400,7 +400,7 @@ public partial class mudrex : Exchange
         if (!isEqual(until, null))
         {
             parameters = this.omit(parameters, "until");
-            endTime = this.parseToInt(divide(until, 1000));
+            endTime = this.parseToInt((until / 1000));
         } else if (isGreaterThan(endTime, now))
         {
             endTime = now;

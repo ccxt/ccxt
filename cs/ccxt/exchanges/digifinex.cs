@@ -1872,7 +1872,7 @@ public partial class digifinex : Exchange
                 {
                     if (!isEqual(until, null))
                     {
-                        Int64? endByUntil = this.parseToInt(divide(until, 1000));
+                        Int64? endByUntil = this.parseToInt((until / 1000));
                         if (!isEqual(limit, null))
                         {
                             object endByLimit = this.sum(startTime, multiply(limit, duration));

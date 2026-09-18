@@ -3961,7 +3961,7 @@ public partial class htx : Exchange
         IList<object> untilparametersVariable = (IList<object>)this.handleParamInteger(parameters, "until");
         until = (Int64?)((IList<object>)untilparametersVariable)[0];
         parameters = ((IList<object>)untilparametersVariable)[1];
-        Int64? untilSeconds = ((bool) (!isEqual(until, null))) ? this.parseToInt(divide(until, 1000)) : null;
+        Int64? untilSeconds = ((bool) (!isEqual(until, null))) ? this.parseToInt((until / 1000)) : null;
         if (isEqual(getValue(market, "contract"), true))
         {
             if (!isEqual(limitVar, null))

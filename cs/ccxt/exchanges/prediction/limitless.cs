@@ -352,9 +352,9 @@ public partial class limitless : PredictionExchange
             List<object> firstData = this.safeList(firstPageResponse, "data", new List<object>() {});
             allRaw = this.arrayConcat(allRaw, firstData);
             List<object> promises = new List<object>() {};
-            double cappedPages = Math.Ceiling(Convert.ToDouble(divide(maxMarkets, pageSize)));
+            double cappedPages = Math.Ceiling(Convert.ToDouble((maxMarkets / pageSize)));
             Int64? knownTotal = ((bool) (!isEqual(totalMarketsCount, null))) ? totalMarketsCount : 0;
-            double allPages = Math.Ceiling(Convert.ToDouble(divide(knownTotal, pageSize)));
+            double allPages = Math.Ceiling(Convert.ToDouble((knownTotal / pageSize)));
             object totalPages = mathMin(allPages, cappedPages);
             for (int i = 2; isLessThanOrEqual(i, totalPages); postFixIncrement(ref i))
             {
@@ -1686,7 +1686,7 @@ public partial class limitless : PredictionExchange
             {
                 throw new ExchangeError ((string)(this.id + " method() missing pTs")) ;
             }
-            object bucket = multiply(this.parseToInt(divide(pTs, ms)), ms);
+            object bucket = (this.parseToInt((pTs / ms)) * ms);
             string key = ((object)bucket).ToString();
             if (!(inOp(candles, key)))
             {

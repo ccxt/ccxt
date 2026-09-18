@@ -1527,7 +1527,7 @@ public partial class kalshi : PredictionExchange
         object timestamp = endTimestamp;
         if (!isEqual(endTimestamp, null))
         {
-            timestamp = subtract(endTimestamp, multiply(durationSeconds, 1000));
+            timestamp = subtract(endTimestamp, (durationSeconds * 1000));
         }
         return new List<object>() {timestamp, this.safeNumber(price, "open_dollars", previous), this.safeNumber(price, "high_dollars", previous), this.safeNumber(price, "low_dollars", previous), this.safeNumber(price, "close_dollars", previous), this.safeNumber(ohlcv, "volume_fp", 0)};
     }
@@ -1592,7 +1592,7 @@ public partial class kalshi : PredictionExchange
             price = priceDollars;
         } else if (!isEqual(priceCents, null))
         {
-            price = divide(priceCents, 100);
+            price = (priceCents / 100);
         }
         double? amountFp = this.safeNumber2(trade, "count_fp", "size_fp");
         double? amount = this.safeNumber(trade, "count", amountFp);
@@ -1735,7 +1735,7 @@ public partial class kalshi : PredictionExchange
                 double? noCents = this.safeNumber(fill, "no_price");
                 if (!isEqual(noCents, null))
                 {
-                    price = divide(noCents, 100);
+                    price = (noCents / 100);
                 }
             }
         } else
@@ -1746,7 +1746,7 @@ public partial class kalshi : PredictionExchange
                 double? yesCents = this.safeNumber(fill, "yes_price");
                 if (!isEqual(yesCents, null))
                 {
-                    price = divide(yesCents, 100);
+                    price = (yesCents / 100);
                 }
             }
         }
@@ -1820,7 +1820,7 @@ public partial class kalshi : PredictionExchange
         object total = null;
         if (!isEqual(balanceCents, null))
         {
-            total = divide(balanceCents, 100);
+            total = (balanceCents / 100);
         }
         ((IDictionary<string,object>)result)["USD"] = new Dictionary<string, object>() {
             { "free", total },
@@ -1970,7 +1970,7 @@ public partial class kalshi : PredictionExchange
             double? revenueCents = this.safeNumber(settlement, "revenue");
             if (!isEqual(revenueCents, null))
             {
-                payout = divide(revenueCents, 100);
+                payout = (revenueCents / 100);
             }
         }
         string costKey = ((bool) (heldYes)) ? "yes_total_cost" : "no_total_cost";
@@ -1981,7 +1981,7 @@ public partial class kalshi : PredictionExchange
             double? costCents = this.safeNumber(settlement, costKey);
             if (!isEqual(costCents, null))
             {
-                cost = divide(costCents, 100);
+                cost = (costCents / 100);
             }
         }
         object pnl = null;
@@ -2233,7 +2233,7 @@ public partial class kalshi : PredictionExchange
             double? priceCents = this.safeNumber(order, centsKey);
             if (!isEqual(priceCents, null))
             {
-                price = divide(priceCents, 100);
+                price = (priceCents / 100);
             }
         }
         // V2 counts are fixed-point (*_count_fp); legacy used count / filled_count

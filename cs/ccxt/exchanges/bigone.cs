@@ -1083,7 +1083,7 @@ public partial class bigone : Exchange
         {
             throw new ExchangeError ((string)(this.id + " fetchTime() missing timestamp")) ;
         }
-        return ccxt.BaseExchange.ToInt64Value(this.parseToInt(divide(timestamp, 1000000)));
+        return ccxt.BaseExchange.ToInt64Value(this.parseToInt((timestamp / 1000000)));
     }
 
     /**
@@ -2127,7 +2127,7 @@ public partial class bigone : Exchange
 
     public override Int64 nonce()
     {
-        object exchangeTimeCorrection = multiply(this.safeInteger(this.options, "exchangeMillisecondsCorrection", 0), 1000000);
+        object exchangeTimeCorrection = (this.safeInteger(this.options, "exchangeMillisecondsCorrection", 0) * 1000000);
         return ((Int64)((object)(this.sum((this.microseconds() * 1000), exchangeTimeCorrection)))!);
     }
 

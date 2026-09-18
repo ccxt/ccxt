@@ -781,7 +781,7 @@ public partial class btcturk : Exchange
             { "resolution", this.safeValue(this.timeframes, timeframeVar, timeframeVar) },
         };
         Int64? until = this.safeInteger(parameters, "until", this.milliseconds());
-        ((IDictionary<string,object>)request)["to"] = this.parseToInt((divide(until, 1000)));
+        ((IDictionary<string,object>)request)["to"] = this.parseToInt(((until / 1000)));
         if (!isEqual(since, null))
         {
             ((IDictionary<string,object>)request)["from"] = this.parseToInt(divide(since, 1000));

@@ -1519,7 +1519,7 @@ public partial class coinbaseexchange : Exchange
             }
             if ((until == null))
             {
-                object parsedTimeframeMilliseconds = multiply(parsedTimeframe, 1000);
+                object parsedTimeframeMilliseconds = (parsedTimeframe * 1000);
                 if (isTrue(this.isRoundNumber(mod(since, parsedTimeframeMilliseconds))))
                 {
                     ((IDictionary<string,object>)request)["end"] = this.iso8601(this.sum(multiply((subtract(limitVar, 1)), parsedTimeframeMilliseconds), since));

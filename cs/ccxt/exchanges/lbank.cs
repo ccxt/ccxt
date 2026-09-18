@@ -1581,7 +1581,7 @@ public partial class lbank : Exchange
         string? intervalString = null;
         if (!isEqual(positionFeeTime, null))
         {
-            Int64? interval = this.parseToInt(divide(divide(positionFeeTime, 60), 60));
+            Int64? interval = this.parseToInt(((positionFeeTime / 60) / 60));
             intervalString = (((object)interval).ToString() + "h");
         }
         return new Dictionary<string, object>() {

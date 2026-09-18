@@ -1709,12 +1709,12 @@ public partial class phemex : Exchange
                 } else
                 {
                     // when 'to' is defined sinceVar is mandatory
-                    sinceVar = subtract(Math.Round(Convert.ToDouble(divide(until, 1000))), (multiply(maxLimit, candleDuration)));
+                    sinceVar = subtract(Math.Round(Convert.ToDouble((until / 1000))), (multiply(maxLimit, candleDuration)));
                     ((IDictionary<string,object>)request)["from"] = sinceVar;
                 }
                 if (!isEqual(until, null))
                 {
-                    ((IDictionary<string,object>)request)["to"] = Math.Round(Convert.ToDouble(divide(until, 1000)));
+                    ((IDictionary<string,object>)request)["to"] = Math.Round(Convert.ToDouble((until / 1000)));
                 } else
                 {
                     // when sinceVar is defined 'to' is mandatory
@@ -5914,7 +5914,7 @@ public partial class phemex : Exchange
         //        volumeRq: '3388.5600312'
         //    }
         //
-        object timestamp = divide(this.safeInteger(interest, "timestamp"), 1000000);
+        object timestamp = (this.safeInteger(interest, "timestamp") / 1000000);
         string? id = this.safeString(interest, "symbol");
         return this.safeOpenInterest(new Dictionary<string, object>() {
             { "info", interest },

@@ -1466,7 +1466,7 @@ public partial class bitstamp : Exchange
         {
             throw new ExchangeError ((string)(this.id + " fetchOrderBook() missing microtimestamp")) ;
         }
-        Int64? timestamp = this.parseToInt(divide(microtimestamp, 1000));
+        Int64? timestamp = this.parseToInt((microtimestamp / 1000));
         Dictionary<string, object> orderbook = ((Dictionary<string, object>)this.parseOrderBook(response, getValue(market, "symbol"), timestamp));
         ((IDictionary<string,object>)orderbook)["nonce"] = microtimestamp;
         return ccxt.BaseExchange.ToOrderBook(orderbook);
