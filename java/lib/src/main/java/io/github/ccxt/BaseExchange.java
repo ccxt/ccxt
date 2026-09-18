@@ -5836,7 +5836,7 @@ public Object describe()
         // createOrder
         if (Helpers.inOp(featuresObj, "createOrder"))
         {
-            Object value = this.safeDict(Helpers.GetValue(featuresObj, "createOrder"), "attachedStopLossTakeProfit");
+            Map<String, Object> value = (Map<String, Object>) this.safeDict(Helpers.GetValue(featuresObj, "createOrder"), "attachedStopLossTakeProfit");
             Helpers.addElementToObject(Helpers.GetValue(featuresObj, "createOrder"), "stopLoss", value);
             Helpers.addElementToObject(Helpers.GetValue(featuresObj, "createOrder"), "takeProfit", value);
             if (java.util.Objects.equals(marketType, "spot"))
@@ -5973,7 +5973,7 @@ public Object describe()
         {
             return defaultValue;  // unsupported paramName, check "exchange.features" for details');
         }
-        Object dictionary = this.safeDict(methodDict, parentKey);
+        Map<String, Object> dictionary = (Map<String, Object>) this.safeDict(methodDict, parentKey);
         if (java.util.Objects.equals(dictionary, null))
         {
             // if the value is not dictionary but a scalar value (or undefined), return as is
@@ -6077,7 +6077,7 @@ public Object describe()
             Helpers.addElementToObject(fee, "cost", this.safeNumber(fee, "cost"));
         }
         Long timestamp = this.safeInteger(entry, "timestamp");
-        Object info = this.safeDict(entry, "info", new HashMap<String, Object>() {{}});
+        Map<String, Object> info = (Map<String, Object>) this.safeDict(entry, "info", new HashMap<String, Object>() {{}});
         final Object finalDirection = direction;
         final Object finalCurrency = currency;
         final Object finalAmount = amount;
@@ -6106,7 +6106,7 @@ public Object describe()
     public Object safeCurrencyStructure(Object currency)
     {
         // derive data from networks: deposit, withdraw, active, fee, limits, precision
-        Object networks = this.safeDict(currency, "networks", new HashMap<String, Object>() {{}});
+        Map<String, Object> networks = (Map<String, Object>) this.safeDict(currency, "networks", new HashMap<String, Object>() {{}});
         Object keys = Helpers.objectKeys(networks);
         Object length = ((List<?>)keys).size();
         if (!Helpers.isEqual(length, 0))
@@ -6142,15 +6142,15 @@ public Object describe()
                     ((Map<String, Object>)currency).put("precision", BaseExchange.this.parseNumber(precision));
                 }
                 // limits
-                Object limits = this.safeDict(network, "limits");
-                Object limitsMain = this.safeDict(currency, "limits");
+                Map<String, Object> limits = (Map<String, Object>) this.safeDict(network, "limits");
+                Map<String, Object> limitsMain = (Map<String, Object>) this.safeDict(currency, "limits");
                 if (java.util.Objects.equals(limitsMain, null))
                 {
                     ((Map<String, Object>)currency).put("limits", new HashMap<String, Object>() {{}});
                 }
                 // deposits
-                Object limitsDeposit = this.safeDict(limits, "deposit");
-                Object limitsDepositMain = this.safeDict(limitsMain, "deposit");
+                Map<String, Object> limitsDeposit = (Map<String, Object>) this.safeDict(limits, "deposit");
+                Map<String, Object> limitsDepositMain = (Map<String, Object>) this.safeDict(limitsMain, "deposit");
                 if (java.util.Objects.equals(limitsDepositMain, null))
                 {
                     Helpers.addElementToObject(Helpers.GetValue(currency, "limits"), "deposit", new HashMap<String, Object>() {{}});
@@ -6170,8 +6170,8 @@ public Object describe()
                     Helpers.addElementToObject(Helpers.GetValue(Helpers.GetValue(currency, "limits"), "deposit"), "max", this.parseNumber(limitsDepositMax));
                 }
                 // withdrawals
-                Object limitsWithdraw = this.safeDict(limits, "withdraw");
-                Object limitsWithdrawMain = this.safeDict(limitsMain, "withdraw");
+                Map<String, Object> limitsWithdraw = (Map<String, Object>) this.safeDict(limits, "withdraw");
+                Map<String, Object> limitsWithdrawMain = (Map<String, Object>) this.safeDict(limitsMain, "withdraw");
                 if (java.util.Objects.equals(limitsWithdrawMain, null))
                 {
                     Helpers.addElementToObject(Helpers.GetValue(currency, "limits"), "withdraw", new HashMap<String, Object>() {{}});
@@ -6387,7 +6387,7 @@ public Object describe()
             {
                 Object market = Helpers.GetValue(values, i);
                 Object defaultCurrencyPrecision = (((Helpers.isEqual(this.precisionMode, DECIMAL_PLACES)))) ? 8 : this.parseNumber("1e-8");
-                Object marketPrecision = this.safeDict(market, "precision", new HashMap<String, Object>() {{}});
+                Map<String, Object> marketPrecision = (Map<String, Object>) this.safeDict(market, "precision", new HashMap<String, Object>() {{}});
                 if (((Map<?, ?>)market).containsKey("base"))
                 {
                     Map<String, Object> currency = (Map<String, Object>) this.safeCurrencyStructure(new HashMap<String, Object>() {{
@@ -6805,7 +6805,7 @@ public Object describe()
             Helpers.addElementToObject(entry, "amount", this.safeNumber(entry, "amount"));
             Helpers.addElementToObject(entry, "price", this.safeNumber(entry, "price"));
             Helpers.addElementToObject(entry, "cost", this.safeNumber(entry, "cost"));
-            Object tradeFee = this.safeDict(entry, "fee", new HashMap<String, Object>() {{}});
+            Map<String, Object> tradeFee = (Map<String, Object>) this.safeDict(entry, "fee", new HashMap<String, Object>() {{}});
             Helpers.addElementToObject(tradeFee, "cost", this.safeNumber(tradeFee, "cost"));
             if (Helpers.inOp(tradeFee, "rate"))
             {
@@ -7420,7 +7420,7 @@ public Object describe()
                 Object precision = 18;
                 if (!java.util.Objects.equals(market, null) && Helpers.isTrue(this.isTickPrecision()))
                 {
-                    Object marketPrecision = this.safeDict(market, "precision");
+                    Map<String, Object> marketPrecision = (Map<String, Object>) this.safeDict(market, "precision");
                     String precisionPrice = this.safeString(marketPrecision, "price");
                     if (!java.util.Objects.equals(precisionPrice, null))
                     {
@@ -7961,9 +7961,9 @@ public Object describe()
     {
         Object withdrawEnabled = this.safeBool(network, "withdraw");
         Object depositEnabled = this.safeBool(network, "deposit");
-        Object limits = this.safeDict(network, "limits");
-        Object withdraw = this.safeDict(limits, "withdraw");
-        Object deposit = this.safeDict(limits, "deposit");
+        Map<String, Object> limits = (Map<String, Object>) this.safeDict(network, "limits");
+        Map<String, Object> withdraw = (Map<String, Object>) this.safeDict(limits, "withdraw");
+        Map<String, Object> deposit = (Map<String, Object>) this.safeDict(limits, "deposit");
         Object isEnabled = withdrawEnabled;
         if (java.util.Objects.equals(withdrawEnabled, true))
         {
@@ -8022,7 +8022,7 @@ public Object describe()
         {
             return null;
         }
-        Object replacements = this.safeDict(this.options, "defaultNetworkCodeReplacements", new HashMap<String, Object>() {{}});
+        Map<String, Object> replacements = (Map<String, Object>) this.safeDict(this.options, "defaultNetworkCodeReplacements", new HashMap<String, Object>() {{}});
         Object keys = Helpers.objectKeys(replacements);
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
@@ -8070,7 +8070,7 @@ public Object describe()
         {
             return null;
         }
-        Object networkIdsByCodes = this.safeDict(this.options, "networks", new HashMap<String, Object>() {{}});
+        Map<String, Object> networkIdsByCodes = (Map<String, Object>) this.safeDict(this.options, "networks", new HashMap<String, Object>() {{}});
         // try the preferred form first, fall back to its alternative (e.g. when only 'ETH' or only 'ERC20' is defined)
         Object chainPair = this.prioritizedNetworkAliases(networkCode, currencyCode, false);
         Object preferredChain = (((java.util.Objects.equals(chainPair, null)))) ? networkCode : Helpers.GetValue(chainPair, 0);
@@ -8091,14 +8091,14 @@ public Object describe()
         }
         for (var i = 0; i < ((List<?>)currenciesToCheck).size(); i++)
         {
-            Object networks = this.safeDict(Helpers.GetValue(currenciesToCheck, i), "networks", new HashMap<String, Object>() {{}});
+            Map<String, Object> networks = (Map<String, Object>) this.safeDict(Helpers.GetValue(currenciesToCheck, i), "networks", new HashMap<String, Object>() {{}});
             if (Helpers.inOp(networks, networkCode))
             {
                 return this.safeString(Helpers.GetValue(networks, networkCode), "id");
             }
         }
         // before returning the original input, try to match if it's backward-maintained networkCode
-        Object oldCodes = this.safeDict(this.options, "backwardSupportedNetworkCodes", new HashMap<String, Object>() {{}});
+        Map<String, Object> oldCodes = (Map<String, Object>) this.safeDict(this.options, "backwardSupportedNetworkCodes", new HashMap<String, Object>() {{}});
         if (Helpers.inOp(oldCodes, networkCode))
         {
             return this.networkCodeToId(Helpers.GetValue(oldCodes, networkCode), currencyCode);
@@ -8123,7 +8123,7 @@ public Object describe()
         {
             return null;
         }
-        Object networkCodesByIds = this.safeDict(this.options, "networksById", new HashMap<String, Object>() {{}});
+        Map<String, Object> networkCodesByIds = (Map<String, Object>) this.safeDict(this.options, "networksById", new HashMap<String, Object>() {{}});
         String networkCode = this.safeString(networkCodesByIds, networkId, networkId);
         Object chainPair = this.prioritizedNetworkAliases(networkCode, currencyCode, true);
         if (java.util.Objects.equals(chainPair, null))
@@ -8136,7 +8136,7 @@ public Object describe()
         // it disambiguates them — trust the direct id→code inversion instead of guessing
         if (java.util.Objects.equals(currencyCode, null))
         {
-            Object networkIdsByCodes = this.safeDict(this.options, "networks", new HashMap<String, Object>() {{}});
+            Map<String, Object> networkIdsByCodes = (Map<String, Object>) this.safeDict(this.options, "networks", new HashMap<String, Object>() {{}});
             if ((Helpers.inOp(networkIdsByCodes, preferredChain)) && (Helpers.inOp(networkIdsByCodes, alternativeChain)))
             {
                 return networkCode;
@@ -8159,7 +8159,7 @@ public Object describe()
     public Object defaultNetworkCode(Object currencyCode)
     {
         Object defaultNetworkCode = null;
-        Object defaultNetworks = this.safeDict(this.options, "defaultNetworks", new HashMap<String, Object>() {{}});
+        Map<String, Object> defaultNetworks = (Map<String, Object>) this.safeDict(this.options, "defaultNetworks", new HashMap<String, Object>() {{}});
         if (Helpers.inOp(defaultNetworks, currencyCode))
         {
             // if currency had set its network in "defaultNetworks", use it
@@ -8570,10 +8570,10 @@ public Object describe()
         {
             return code;
         }
-        Object currency = this.safeDict(this.currencies, code);
+        Map<String, Object> currency = (Map<String, Object>) this.safeDict(this.currencies, code);
         if (java.util.Objects.equals(currency, null))
         {
-            currency = this.safeCurrency(code);
+            currency = (Map<String, Object>) this.safeCurrency(code);
         }
         if (!java.util.Objects.equals(currency, null))
         {
@@ -8962,7 +8962,7 @@ public Object describe()
         Integer i_count = 6;
         Object tradesLength = ((List<?>)trades).size();
         Object oldest = Helpers.mathMin(tradesLength, limit);
-        Object options = this.safeDict(this.options, "buildOHLCVC", new HashMap<String, Object>() {{}});
+        Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "buildOHLCVC", new HashMap<String, Object>() {{}});
         Object skipZeroPrices = this.safeBool(options, "skipZeroPrices", true);
         for (var i = 0; Helpers.isLessThan(i, oldest); i++)
         {
@@ -10485,8 +10485,8 @@ public Object describe()
         Object precision = this.safeValue(currency, "precision");
         if (!java.util.Objects.equals(networkCode, null))
         {
-            Object networks = this.safeDict(currency, "networks", new HashMap<String, Object>() {{}});
-            Object networkItem = this.safeDict(networks, networkCode, new HashMap<String, Object>() {{}});
+            Map<String, Object> networks = (Map<String, Object>) this.safeDict(currency, "networks", new HashMap<String, Object>() {{}});
+            Map<String, Object> networkItem = (Map<String, Object>) this.safeDict(networks, networkCode, new HashMap<String, Object>() {{}});
             precision = this.safeValue(networkItem, "precision", precision);
         }
         if (java.util.Objects.equals(precision, null))
@@ -11388,7 +11388,7 @@ public Object describe()
          * @param {string} account key for account name in this.options['accountsByType']
          * @returns the exchange specific account name or the isolated margin id for transfers
          */
-        Object accountsByType = this.safeDict(this.options, "accountsByType", new HashMap<String, Object>() {{}});
+        Map<String, Object> accountsByType = (Map<String, Object>) this.safeDict(this.options, "accountsByType", new HashMap<String, Object>() {{}});
         Object lowercaseAccount = ((String)account).toLowerCase();
         if (Helpers.inOp(accountsByType, lowercaseAccount))
         {
@@ -12057,14 +12057,14 @@ public Object describe()
                     {
                         result = this.arrayConcat(result, response);
                     }
-                    Object last = this.safeDict(response, Helpers.subtract(responseLength, 1));
+                    Map<String, Object> last = (Map<String, Object>) this.safeDict(response, Helpers.subtract(responseLength, 1));
                     // cursorValue = this.safeValue (last['info'], cursorReceived);
                     cursorValue = null; // search for the cursor
                     for (var j = 0; Helpers.isLessThan(j, responseLength); j++)
                     {
                         Object index = Helpers.subtract(Helpers.subtract(responseLength, j), 1);
-                        Object entry = this.safeDict(response, index);
-                        Object info = this.safeDict(entry, "info");
+                        Map<String, Object> entry = (Map<String, Object>) this.safeDict(response, index);
+                        Map<String, Object> info = (Map<String, Object>) this.safeDict(entry, "info");
                         Object cursor = (((java.util.Objects.equals(cursorReceived, null)))) ? null : this.safeValue(info, cursorReceived);
                         if (!java.util.Objects.equals(cursor, null))
                         {

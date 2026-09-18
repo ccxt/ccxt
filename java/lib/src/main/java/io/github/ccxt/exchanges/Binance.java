@@ -4797,7 +4797,7 @@ public class Binance extends BinanceApi
             {
                 throw new ExchangeError((this.id + " parseCurrenciesCustom() could not resolve parsed")) ;
             }
-            Object marginEntry = this.safeDict(marginablesById, ((Map<String, Object>)parsed).get("id"));
+            Map<String, Object> marginEntry = (Map<String, Object>) this.safeDict(marginablesById, ((Map<String, Object>)parsed).get("id"));
             if (java.util.Objects.equals(parsed, null))
             {
                 throw new ExchangeError((this.id + " parseCurrenciesCustom() could not resolve parsed")) ;
@@ -5032,7 +5032,7 @@ public class Binance extends BinanceApi
             List<Object> promisesRaw = new ArrayList<Object>(Arrays.asList());
             Object rawFetchMarkets = null;
             List<Object> defaultTypes = new ArrayList<Object>(Arrays.asList("spot", "linear", "inverse"));
-            Object fetchMarketsOptions = this.safeDict(this.options, "fetchMarkets");
+            Map<String, Object> fetchMarketsOptions = (Map<String, Object>) this.safeDict(this.options, "fetchMarkets");
             if (!java.util.Objects.equals(fetchMarketsOptions, null))
             {
                 rawFetchMarkets = this.safeList(fetchMarketsOptions, "types", defaultTypes);
@@ -5587,7 +5587,7 @@ public class Binance extends BinanceApi
         }
         if (((Map<?, ?>)filtersByType).containsKey("PRICE_FILTER"))
         {
-            Object filter = this.safeDict(filtersByType, "PRICE_FILTER", new HashMap<String, Object>() {{}});
+            Map<String, Object> filter = (Map<String, Object>) this.safeDict(filtersByType, "PRICE_FILTER", new HashMap<String, Object>() {{}});
             // PRICE_FILTER reports zero values for maxPrice
             // since they updated filter types in November 2018
             // https://github.com/ccxt/ccxt/issues/4286
@@ -5600,7 +5600,7 @@ public class Binance extends BinanceApi
         }
         if (((Map<?, ?>)filtersByType).containsKey("LOT_SIZE"))
         {
-            Object filter = this.safeDict(filtersByType, "LOT_SIZE", new HashMap<String, Object>() {{}});
+            Map<String, Object> filter = (Map<String, Object>) this.safeDict(filtersByType, "LOT_SIZE", new HashMap<String, Object>() {{}});
             Helpers.addElementToObject(Helpers.GetValue(entry, "precision"), "amount", this.safeNumber(filter, "stepSize"));
             Helpers.addElementToObject(Helpers.GetValue(entry, "limits"), "amount", new HashMap<String, Object>() {{
     put( "min", Binance.this.safeNumber(filter, "minQty") );
@@ -5609,7 +5609,7 @@ public class Binance extends BinanceApi
         }
         if (((Map<?, ?>)filtersByType).containsKey("MARKET_LOT_SIZE"))
         {
-            Object filter = this.safeDict(filtersByType, "MARKET_LOT_SIZE", new HashMap<String, Object>() {{}});
+            Map<String, Object> filter = (Map<String, Object>) this.safeDict(filtersByType, "MARKET_LOT_SIZE", new HashMap<String, Object>() {{}});
             Helpers.addElementToObject(Helpers.GetValue(entry, "limits"), "market", new HashMap<String, Object>() {{
     put( "min", Binance.this.safeNumber(filter, "minQty") );
     put( "max", Binance.this.safeNumber(filter, "maxQty") );
@@ -5712,8 +5712,8 @@ public class Binance extends BinanceApi
             for (var i = 0; i < ((List<?>)assets).size(); i++)
             {
                 Object asset = Helpers.GetValue(assets, i);
-                Object base = this.safeDict(asset, "baseAsset", new HashMap<String, Object>() {{}});
-                Object quote = this.safeDict(asset, "quoteAsset", new HashMap<String, Object>() {{}});
+                Map<String, Object> base = (Map<String, Object>) this.safeDict(asset, "baseAsset", new HashMap<String, Object>() {{}});
+                Map<String, Object> quote = (Map<String, Object>) this.safeDict(asset, "quoteAsset", new HashMap<String, Object>() {{}});
                 String baseCode = this.safeCurrencyCode(this.safeString(base, "asset"));
                 String quoteCode = this.safeCurrencyCode(this.safeString(quote, "asset"));
                 if (!java.util.Objects.equals(baseCode, null))
@@ -6503,7 +6503,7 @@ public class Binance extends BinanceApi
             }
             if (Helpers.isTrue(Helpers.isArray(response)))
             {
-                Object firstTicker = this.safeDict(response, 0, new HashMap<String, Object>() {{}});
+                Map<String, Object> firstTicker = (Map<String, Object>) this.safeDict(response, 0, new HashMap<String, Object>() {{}});
                 return this.parseTicker(firstTicker, market);
             }
             if (java.util.Objects.equals(response, null))
@@ -7724,7 +7724,7 @@ public class Binance extends BinanceApi
             //         }
             //     }
             //
-            Object data = this.safeDict(response, "newOrderResponse", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "newOrderResponse", new HashMap<String, Object>() {{}});
             return this.parseOrder(data, market);
         });
 
@@ -7800,7 +7800,7 @@ public class Binance extends BinanceApi
         }
         if (java.util.Objects.equals(clientOrderId, null))
         {
-            Object broker = this.safeDict(this.options, "broker");
+            Map<String, Object> broker = (Map<String, Object>) this.safeDict(this.options, "broker");
             if (!java.util.Objects.equals(broker, null))
             {
                 String brokerId = this.safeString(broker, "spot");
@@ -8960,7 +8960,7 @@ public class Binance extends BinanceApi
                 String side = this.safeString(rawOrder, "side");
                 Object amount = this.safeValue(rawOrder, "amount");
                 Object price = this.safeValue(rawOrder, "price");
-                Object orderParams = this.safeDict(rawOrder, "params", new HashMap<String, Object>() {{}});
+                Map<String, Object> orderParams = (Map<String, Object>) this.safeDict(rawOrder, "params", new HashMap<String, Object>() {{}});
                 Object orderRequest = this.createOrderRequest(marketId, type, side, amount, price, orderParams);
                 ((List<Object>)ordersRequests).add(orderRequest);
             }
@@ -9368,7 +9368,7 @@ public class Binance extends BinanceApi
         }
         if (java.util.Objects.equals(clientOrderId, null))
         {
-            Object broker = this.safeDict(this.options, "broker", new HashMap<String, Object>() {{}});
+            Map<String, Object> broker = (Map<String, Object>) this.safeDict(this.options, "broker", new HashMap<String, Object>() {{}});
             String defaultId = (((java.util.Objects.equals(((Map<String, Object>)market).get("contract"), true)))) ? "x-xcKtGhcu" : "x-TKT5PX2F";
             String idMarketType = "spot";
             if (java.util.Objects.equals(((Map<String, Object>)market).get("contract"), true))
@@ -11923,7 +11923,7 @@ public class Binance extends BinanceApi
             Object currency = null;
             Object response = null;
             Map<String, Object> request = new HashMap<String, Object>() {{}};
-            Object legalMoney = this.safeDict(this.options, "legalMoney", new HashMap<String, Object>() {{}});
+            Map<String, Object> legalMoney = (Map<String, Object>) this.safeDict(this.options, "legalMoney", new HashMap<String, Object>() {{}});
             Object fiatOnly = this.safeBool(parameters, "fiat", false);
             parameters = this.omit(parameters, "fiatOnly");
             Long until = this.safeInteger(parameters, "until");
@@ -12023,7 +12023,7 @@ public class Binance extends BinanceApi
             {
                 return (this.fetchPaginatedCallDynamic("fetchWithdrawals", code, since, limit, parameters)).join();
             }
-            Object legalMoney = this.safeDict(this.options, "legalMoney", new HashMap<String, Object>() {{}});
+            Map<String, Object> legalMoney = (Map<String, Object>) this.safeDict(this.options, "legalMoney", new HashMap<String, Object>() {{}});
             Object fiatOnly = this.safeBool(parameters, "fiat", false);
             parameters = this.omit(parameters, "fiatOnly");
             Map<String, Object> request = new HashMap<String, Object>() {{}};
@@ -12124,7 +12124,7 @@ public class Binance extends BinanceApi
                 put( "Refund Failed", "failed" );
             }} );
         }};
-        Object statuses = this.safeDict(statusesByType, type, new HashMap<String, Object>() {{}});
+        Map<String, Object> statuses = (Map<String, Object>) this.safeDict(statusesByType, type, new HashMap<String, Object>() {{}});
         return this.safeString(statuses, status, status);
     }
 
@@ -12227,7 +12227,7 @@ public class Binance extends BinanceApi
             {
                 type = (((java.util.Objects.equals(txType, "0")))) ? "deposit" : "withdrawal";
             }
-            Object legalMoneyCurrenciesById = this.safeDict(this.options, "legalMoneyCurrenciesById");
+            Map<String, Object> legalMoneyCurrenciesById = (Map<String, Object>) this.safeDict(this.options, "legalMoneyCurrenciesById");
             code = this.safeString(legalMoneyCurrenciesById, code, code);
         }
         Object status = this.parseTransactionStatusByType(this.safeString(transaction, "status"), type);
@@ -12366,7 +12366,7 @@ public class Binance extends BinanceApi
         String type = this.safeString(transfer, "type");
         Object fromAccount = null;
         Object toAccount = null;
-        Object accountsById = this.safeDict(this.options, "accountsById", new HashMap<String, Object>() {{}});
+        Map<String, Object> accountsById = (Map<String, Object>) this.safeDict(this.options, "accountsById", new HashMap<String, Object>() {{}});
         if (!java.util.Objects.equals(type, null))
         {
             Object parts = Helpers.split(type, "_");
@@ -12378,8 +12378,8 @@ public class Binance extends BinanceApi
         Long walletType = this.safeInteger(transfer, "walletType");
         if (!java.util.Objects.equals(walletType, null))
         {
-            Object payer = this.safeDict(transfer, "payerInfo", new HashMap<String, Object>() {{}});
-            Object receiver = this.safeDict(transfer, "receiverInfo", new HashMap<String, Object>() {{}});
+            Map<String, Object> payer = (Map<String, Object>) this.safeDict(transfer, "payerInfo", new HashMap<String, Object>() {{}});
+            Map<String, Object> receiver = (Map<String, Object>) this.safeDict(transfer, "receiverInfo", new HashMap<String, Object>() {{}});
             fromAccount = this.safeString(payer, "accountId");
             toAccount = this.safeString(receiver, "accountId");
         }
@@ -12490,7 +12490,7 @@ public class Binance extends BinanceApi
                         throw new ArgumentsRequired(((this.id + " transfer () requires params[\"symbol\"] when toAccount is ") + toAccount)) ;
                     }
                 }
-                Object accountsById = this.safeDict(this.options, "accountsById", new HashMap<String, Object>() {{}});
+                Map<String, Object> accountsById = (Map<String, Object>) this.safeDict(this.options, "accountsById", new HashMap<String, Object>() {{}});
                 Boolean fromIsolated = !(Helpers.inOp(accountsById, fromId));
                 Boolean toIsolated = !(Helpers.inOp(accountsById, toId));
                 if (Helpers.isTrue(fromIsolated) && (java.util.Objects.equals(market, null)))
@@ -12611,7 +12611,7 @@ public class Binance extends BinanceApi
                 String defaultTo = (((java.util.Objects.equals(fromAccount, "future")))) ? "spot" : "future";
                 String toAccount = this.safeString(parameters, "toAccount", defaultTo);
                 String type = this.safeString(parameters, "type");
-                Object accountsByType = this.safeDict(this.options, "accountsByType", new HashMap<String, Object>() {{}});
+                Map<String, Object> accountsByType = (Map<String, Object>) this.safeDict(this.options, "accountsByType", new HashMap<String, Object>() {{}});
                 String fromId = this.safeString(accountsByType, fromAccount);
                 String toId = this.safeString(accountsByType, toAccount);
                 if (java.util.Objects.equals(type, null))
@@ -13933,7 +13933,7 @@ public class Binance extends BinanceApi
             contractsStringAbs = Precise.stringDiv(Precise.stringAdd(contractsString, "0.5"), "1", 0);
         }
         Object contracts = this.parseNumber(contractsStringAbs);
-        Object leverageBrackets = this.safeDict(this.options, "leverageBrackets", new HashMap<String, Object>() {{}});
+        Map<String, Object> leverageBrackets = (Map<String, Object>) this.safeDict(this.options, "leverageBrackets", new HashMap<String, Object>() {{}});
         Object leverageBracket = this.safeList(leverageBrackets, symbol, new ArrayList<Object>(Arrays.asList()));
         Object maintenanceMarginPercentageString = null;
         for (var i = 0; i < ((List<?>)leverageBracket).size(); i++)
@@ -14178,7 +14178,7 @@ public class Binance extends BinanceApi
         market = this.safeMarket(marketId, market, null, "contract");
         String symbol = this.safeString(market, "symbol");
         String isolatedMarginString = this.safeString(position, "isolatedMargin");
-        Object leverageBrackets = this.safeDict(this.options, "leverageBrackets", new HashMap<String, Object>() {{}});
+        Map<String, Object> leverageBrackets = (Map<String, Object>) this.safeDict(this.options, "leverageBrackets", new HashMap<String, Object>() {{}});
         Object leverageBracket = this.safeList(leverageBrackets, symbol, new ArrayList<Object>(Arrays.asList()));
         String notionalString = this.safeString2(position, "notional", "notionalValue");
         String notionalStringAbs = Precise.stringAbs(notionalString);
@@ -14222,7 +14222,7 @@ public class Binance extends BinanceApi
         if (java.util.Objects.equals(marginMode, "cross"))
         {
             // calculate collateral
-            Object precision = this.safeDict(market, "precision", new HashMap<String, Object>() {{}});
+            Map<String, Object> precision = (Map<String, Object>) this.safeDict(market, "precision", new HashMap<String, Object>() {{}});
             String basePrecisionValue = this.safeString(precision, "base");
             String quotePrecisionValue = this.safeString2(precision, "quote", "price");
             Boolean precisionIsUndefined = (java.util.Objects.equals(basePrecisionValue, null)) && (java.util.Objects.equals(quotePrecisionValue, null));
@@ -14370,7 +14370,7 @@ public class Binance extends BinanceApi
             }
             // by default cache the leverage bracket
             // it contains useful stuff like the maintenance margin and initial margin for positions
-            Object leverageBrackets = this.safeDict(this.options, "leverageBrackets");
+            Map<String, Object> leverageBrackets = (Map<String, Object>) this.safeDict(this.options, "leverageBrackets");
             if ((java.util.Objects.equals(leverageBrackets, null)) || Helpers.isTrue((reload)))
             {
                 String defaultType = this.safeString(this.options, "defaultType", "future");
@@ -14810,7 +14810,7 @@ final Object finalMarket = market;
             if (java.util.Objects.equals(defaultMethod, null))
             {
                 // check if .options['fetchPositions'] dict exist at all
-                Object options = this.safeDict(this.options, "fetchPositions");
+                Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "fetchPositions");
                 if (java.util.Objects.equals(options, null))
                 {
                     // if undefined, for backward compatibility, check if it is a string
@@ -16099,12 +16099,12 @@ final Object finalMarket = market;
         }
         Object networkCode = null;
         Map<String, Object> currency = (Map<String, Object>) this.currency(currencyCode);
-        Object networks = this.safeDict(currency, "networks", new HashMap<String, Object>() {{}});
+        Map<String, Object> networks = (Map<String, Object>) this.safeDict(currency, "networks", new HashMap<String, Object>() {{}});
         Object networkCodes = Helpers.objectKeys(networks);
         for (var i = 0; i < ((List<?>)networkCodes).size(); i++)
         {
             Object currentNetworkCode = Helpers.GetValue(networkCodes, i);
-            Object info = this.safeDict(Helpers.GetValue(networks, currentNetworkCode), "info", new HashMap<String, Object>() {{}});
+            Map<String, Object> info = (Map<String, Object>) this.safeDict(Helpers.GetValue(networks, currentNetworkCode), "info", new HashMap<String, Object>() {{}});
             String siteUrl = this.safeString(info, "contractAddressUrl");
             // check if url matches the field's value
             Object baseDomain = this.getBaseDomainFromUrl(siteUrl);
@@ -16196,7 +16196,7 @@ final Object finalMarket = market;
                     Boolean isSpotOrMargin = (Helpers.isGreaterThan(Helpers.getIndexOf(api, "sapi"), Helpers.opNeg(1)) || java.util.Objects.equals(api, "private"));
                     String marketType = ((Helpers.isTrue(isSpotOrMargin))) ? "spot" : "future";
                     Object defaultId = ((Helpers.isTrue((!Helpers.isTrue(isSpotOrMargin))))) ? "x-xcKtGhcu" : "x-TKT5PX2F";
-                    Object broker = this.safeDict(this.options, "broker", new HashMap<String, Object>() {{}});
+                    Map<String, Object> broker = (Map<String, Object>) this.safeDict(this.options, "broker", new HashMap<String, Object>() {{}});
                     String brokerId = this.safeString(broker, marketType, defaultId);
                     ((Map<String, Object>)parameters).put("newClientOrderId", Helpers.add(brokerId, this.uuid22()));
                 }
@@ -16218,7 +16218,7 @@ final Object finalMarket = market;
                         if (java.util.Objects.equals(newClientOrderId, null))
                         {
                             String defaultId = "x-xcKtGhcu"; // batchOrders can not be spot or margin
-                            Object broker = this.safeDict(this.options, "broker", new HashMap<String, Object>() {{}});
+                            Map<String, Object> broker = (Map<String, Object>) this.safeDict(this.options, "broker", new HashMap<String, Object>() {{}});
                             String brokerId = this.safeString(broker, "future", defaultId);
                             newClientOrderId = Helpers.add(brokerId, this.uuid22());
                             Helpers.addElementToObject(batchOrder, "newClientOrderId", newClientOrderId);
@@ -16352,7 +16352,7 @@ final Object finalMarket = market;
         }
         if (!java.util.Objects.equals(marketType, null))
         {
-            Object exceptionsForMarketType = this.safeDict(this.exceptions, marketType, new HashMap<String, Object>() {{}});
+            Map<String, Object> exceptionsForMarketType = (Map<String, Object>) this.safeDict(this.exceptions, marketType, new HashMap<String, Object>() {{}});
             return this.safeDict(exceptionsForMarketType, exactOrBroad, new HashMap<String, Object>() {{}});
         }
         return new HashMap<String, Object>() {{}};
@@ -16703,7 +16703,7 @@ final Object finalMarket = market;
             //         },
             //     ]
             //
-            Object rate = this.safeDict(response, 0);
+            Map<String, Object> rate = (Map<String, Object>) this.safeDict(response, 0);
             return this.parseBorrowRate(rate);
         }).thenApply(CrossBorrowRate::new);
 
@@ -16900,8 +16900,8 @@ final Object finalMarket = market;
         String marketId = this.safeString(info, "symbol");
         market = this.safeMarket(marketId, market, null, "spot");
         Object data = this.safeList(info, "data");
-        Object baseInfo = this.safeDict(data, 0);
-        Object quoteInfo = this.safeDict(data, 1);
+        Map<String, Object> baseInfo = (Map<String, Object>) this.safeDict(data, 0);
+        Map<String, Object> quoteInfo = (Map<String, Object>) this.safeDict(data, 1);
         final Object finalMarket = market;
         return new HashMap<String, Object>() {{
             put( "info", info );
@@ -16951,7 +16951,7 @@ final Object finalMarket = market;
             //         "success": true
             //     }
             //
-            Object data = this.safeDict(response, "data");
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data");
             String giftcardCode = this.safeString(data, "code");
             String id = this.safeString(data, "referenceNo");
             return new HashMap<String, Object>() {{
@@ -18306,7 +18306,7 @@ final Object finalMarket = market;
             //         }
             //     ]
             //
-            Object chain = this.safeDict(response, 0, new HashMap<String, Object>() {{}});
+            Map<String, Object> chain = (Map<String, Object>) this.safeDict(response, 0, new HashMap<String, Object>() {{}});
             return this.parseOption(chain, null, market);
         }).thenApply(Option::new);
 
@@ -19187,7 +19187,7 @@ final Object finalMarket = market;
         //     }
         //
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-        Object adlQuantile = this.safeDict(info, "adlQuantile", new HashMap<String, Object>() {{}});
+        Map<String, Object> adlQuantile = (Map<String, Object>) this.safeDict(info, "adlQuantile", new HashMap<String, Object>() {{}});
         Double longNum = this.safeNumber(adlQuantile, "LONG");
         Double shortNum = this.safeNumber(adlQuantile, "SHORT");
         Double both = this.safeNumber(adlQuantile, "BOTH");

@@ -3775,7 +3775,7 @@ public class Bitget extends BitgetApi
         return BaseExchange.supplyAsync(() -> {
 
             Object types = null;
-            Object fetchMarketsOptions = this.safeDict(this.options, "fetchMarkets");
+            Map<String, Object> fetchMarketsOptions = (Map<String, Object>) this.safeDict(this.options, "fetchMarkets");
             List<Object> defaultMarkets = new ArrayList<Object>(Arrays.asList("spot", "swap"));
             if (!java.util.Objects.equals(fetchMarketsOptions, null))
             {
@@ -3816,9 +3816,9 @@ public class Bitget extends BitgetApi
             Helpers.addElementToObject(this.options, "isolatedMarginPairsData", new ArrayList<Object>(Arrays.asList()));
             for (var i = 0; i < ((List<?>)results).size(); i++)
             {
-                Object res = this.safeDict(results, i);
+                Map<String, Object> res = (Map<String, Object>) this.safeDict(results, i);
                 Object data = this.safeList(res, "data", new ArrayList<Object>(Arrays.asList()));
-                Object firstData = this.safeDict(data, 0, new HashMap<String, Object>() {{}});
+                Map<String, Object> firstData = (Map<String, Object>) this.safeDict(data, 0, new HashMap<String, Object>() {{}});
                 Object isBorrowable = this.safeBool(firstData, "isBorrowable");
                 if (Helpers.isTrue(fetchMargins) && !java.util.Objects.equals(isBorrowable, null))
                 {
@@ -3830,7 +3830,7 @@ public class Bitget extends BitgetApi
                     List<Object> isolatedKeys = new ArrayList<Object>(Arrays.asList());
                     for (var j = 0; j < ((List<?>)data).size(); j++)
                     {
-                        Object entry = this.safeDict(data, j, new HashMap<String, Object>() {{}});
+                        Map<String, Object> entry = (Map<String, Object>) this.safeDict(data, j, new HashMap<String, Object>() {{}});
                         String entrySymbol = this.safeString(entry, "symbol");
                         Object entryBorrowable = this.safeBool(entry, "isBorrowable", true);
                         if ((java.util.Objects.equals(entryBorrowable, true)) && Helpers.isTrue(this.safeBool(entry, "isCrossBorrowable", true)))
@@ -4111,7 +4111,7 @@ public class Bitget extends BitgetApi
             Object markets = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)results).size(); i++)
             {
-                Object res = this.safeDict(results, i);
+                Map<String, Object> res = (Map<String, Object>) this.safeDict(results, i);
                 Object data = this.safeList(res, "data", new ArrayList<Object>(Arrays.asList()));
                 markets = this.arrayConcat(markets, data);
             }
@@ -5313,7 +5313,7 @@ final Object finalMinNotional = minNotional;
             //         }
             //     }
             //
-            Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.parseDepositAddress(data, currency);
         }).thenApply(DepositAddress::new);
 
@@ -6386,7 +6386,7 @@ final Object finalMinNotional = minNotional;
                 //         }
                 //     }
                 //
-                Object utaData = this.safeDict(utaResponse, "data", new HashMap<String, Object>() {{}});
+                Map<String, Object> utaData = (Map<String, Object>) this.safeDict(utaResponse, "data", new HashMap<String, Object>() {{}});
                 return this.parseTradingFee(utaData, market);
             }
             Object marginMode = null;
@@ -6748,10 +6748,10 @@ final Object finalMinNotional = minNotional;
             // - https://www.bitget.com/api-doc/spot/market/Get-Candle-Data#request-parameters
             // - https://www.bitget.com/api-doc/contract/market/Get-Candle-Data#description
             String key = (((java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true)))) ? "spot" : "swap";
-            Object ohlcOptions = this.safeDict(((Map<String, Object>)this.options).get("fetchOHLCV"), key, new HashMap<String, Object>() {{}});
-            Object maxLimitPerTimeframe = this.safeDict(ohlcOptions, "maxLimitPerTimeframe", new HashMap<String, Object>() {{}});
+            Map<String, Object> ohlcOptions = (Map<String, Object>) this.safeDict(((Map<String, Object>)this.options).get("fetchOHLCV"), key, new HashMap<String, Object>() {{}});
+            Map<String, Object> maxLimitPerTimeframe = (Map<String, Object>) this.safeDict(ohlcOptions, "maxLimitPerTimeframe", new HashMap<String, Object>() {{}});
             Object maxLimitForThisTimeframe = this.safeInteger(maxLimitPerTimeframe, timeframe, limit);
-            Object recentEndpointDaysMap = this.safeDict(((Map<String, Object>)this.options).get("fetchOHLCV"), "maxRecentDaysPerTimeframe", new HashMap<String, Object>() {{}});
+            Map<String, Object> recentEndpointDaysMap = (Map<String, Object>) this.safeDict(((Map<String, Object>)this.options).get("fetchOHLCV"), "maxRecentDaysPerTimeframe", new HashMap<String, Object>() {{}});
             Object recentEndpointAvailableDays = this.safeInteger(recentEndpointDaysMap, timeframe);
             Object recentEndpointBoundaryTs = Helpers.subtract(now, Helpers.multiply((Helpers.subtract(recentEndpointAvailableDays, 1)), msInDay));
             if (Helpers.isTrue(limitDefined))
@@ -6966,7 +6966,7 @@ final Object finalMinNotional = minNotional;
                 } else
                 {
                     response = (this.privateUtaGetV3AccountAssets(this.extend(request, parameters))).join();
-                    Object results = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+                    Map<String, Object> results = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
                     assets = this.safeList(results, "assets", new ArrayList<Object>(Arrays.asList()));
                 }
                 return this.parseUtaBalance(assets);
@@ -7501,7 +7501,7 @@ final Object finalMinNotional = minNotional;
         Boolean uta = !java.util.Objects.equals(this.safeString(order, "category"), null);
         if (Helpers.isTrue(uta))
         {
-            Object feeResult = this.safeDict(feeDetail, 0, new HashMap<String, Object>() {{}});
+            Map<String, Object> feeResult = (Map<String, Object>) this.safeDict(feeDetail, 0, new HashMap<String, Object>() {{}});
             String utaFee = this.safeString(feeResult, "fee");
             final Object finalMarket_2 = market;
             fee = new HashMap<String, Object>() {{
@@ -7784,7 +7784,7 @@ final Object finalMinNotional = minNotional;
             //         }
             //     }
             //
-            Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.parseOrder(data, market);
         }).thenApply(Order::new);
 
@@ -8772,7 +8772,7 @@ final Object finalMinNotional = minNotional;
             //         }
             //     }
             //
-            Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.parseOrder(data, market);
         }).thenApply(Order::new);
 
@@ -9249,7 +9249,7 @@ final Object finalMinNotional = minNotional;
                     //     }
                     //
                     Long timestamp = this.safeInteger(response, "requestTime");
-                    Object responseData = this.safeDict(response, "data");
+                    Map<String, Object> responseData = (Map<String, Object>) this.safeDict(response, "data");
                     String marketId = this.safeString(responseData, "symbol");
                     final Object finalResponse = response;
                     return new ArrayList<Object>(Arrays.asList(this.safeOrder(new HashMap<String, Object>() {{
@@ -9270,7 +9270,7 @@ final Object finalMinNotional = minNotional;
                     response = (this.privateMixPostV2MixOrderBatchCancelOrders(this.extend(request, parameters))).join();
                 }
             }
-            Object data = this.safeDict(response, "data");
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data");
             Object resultList = this.safeListN(data, new ArrayList<Object>(Arrays.asList("resultList", "successList", "list")));
             Object failureList = this.safeList2(data, "failure", "failureList");
             Object responseList = null;
@@ -9465,7 +9465,7 @@ final Object finalMinNotional = minNotional;
             {
                 response = Helpers.parseJson(response);
             }
-            Object data = this.safeDict(response, "data");
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data");
             if ((!java.util.Objects.equals(data, null)))
             {
                 if (!Helpers.isTrue(Helpers.isArray(data)))
@@ -9479,7 +9479,7 @@ final Object finalMinNotional = minNotional;
             {
                 throw new OrderNotFound(((((this.id + " fetchOrder() could not find order id ") + id) + " in ") + this.json(response))) ;
             }
-            Object first = this.safeDict(dataList, 0, new HashMap<String, Object>() {{}});
+            Map<String, Object> first = (Map<String, Object>) this.safeDict(dataList, 0, new HashMap<String, Object>() {{}});
             return this.parseOrder(first, market);
         }).thenApply(Order::new);
 
@@ -10544,7 +10544,7 @@ final Object finalMinNotional = minNotional;
             //         }
             //     }
             //
-            Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             Object orders = this.safeList(data, "list", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(orders, market, since, limit);
         });
@@ -11152,7 +11152,7 @@ final Object finalMinNotional = minNotional;
                 //         }
                 //     }
                 //
-                Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+                Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
                 result = this.safeList(data, "list", new ArrayList<Object>(Arrays.asList()));
             } else
             {
@@ -11191,7 +11191,7 @@ final Object finalMinNotional = minNotional;
                 //
                 result = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             }
-            Object first = this.safeDict(result, 0, new HashMap<String, Object>() {{}});
+            Map<String, Object> first = (Map<String, Object>) this.safeDict(result, 0, new HashMap<String, Object>() {{}});
             return this.parsePosition(first, market);
         }).thenApply(Position::new);
 
@@ -11411,7 +11411,7 @@ final Object finalMinNotional = minNotional;
             Object position = new ArrayList<Object>(Arrays.asList());
             if ((java.util.Objects.equals(uta, true)) || Helpers.isTrue(isHistory))
             {
-                Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+                Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
                 position = this.safeList(data, "list", new ArrayList<Object>(Arrays.asList()));
             } else
             {
@@ -11740,7 +11740,7 @@ final Object finalMinNotional = minNotional;
                 //         }
                 //     }
                 //
-                Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+                Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
                 result = this.safeList(data, "resultList", new ArrayList<Object>(Arrays.asList()));
             } else
             {
@@ -12429,7 +12429,7 @@ final Object finalMinNotional = minNotional;
             //         }
             //     }
             //
-            Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.parseLeverage(data, market);
         }).thenApply(Leverage::new);
 
@@ -12689,7 +12689,7 @@ final Object finalMinNotional = minNotional;
                 ((Map<String, Object>)request).put("productType", productType);
                 response = (this.publicMixGetV2MixMarketOpenInterest(this.extend(request, parameters))).join();
             }
-            Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.parseOpenInterest(data, market);
         }).thenApply(OpenInterest::new);
 
@@ -12885,7 +12885,7 @@ final Object finalMinNotional = minNotional;
             //         }
             //     }
             //
-            Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             ((Map<String, Object>)data).put("ts", this.safeInteger(response, "requestTime"));
             return this.parseTransfer(data, currency);
         }).thenApply(TransferEntry::new);
@@ -13575,7 +13575,7 @@ final Object finalMinNotional = minNotional;
             //
             Long timestamp = this.safeInteger(response, "requestTime");
             Object data = this.safeValue(response, "data", new ArrayList<Object>(Arrays.asList()));
-            Object first = this.safeDict(data, 0, new HashMap<String, Object>() {{}});
+            Map<String, Object> first = (Map<String, Object>) this.safeDict(data, 0, new HashMap<String, Object>() {{}});
             ((Map<String, Object>)first).put("timestamp", timestamp);
             return this.parseIsolatedBorrowRate(first, market);
         }).thenApply(IsolatedBorrowRate::new);
@@ -14116,7 +14116,7 @@ final Object finalMinNotional = minNotional;
             //         }
             //     }
             //
-            Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.parseMarginMode(data, market);
         }).thenApply(MarginMode::new);
 
@@ -14202,7 +14202,7 @@ final Object finalMinNotional = minNotional;
             {
                 response = (this.privateMixGetV2MixPositionHistoryPosition(this.extend(request, parameters))).join();
             }
-            Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             Object responseList = this.safeList(data, "list", new ArrayList<Object>(Arrays.asList()));
             Object positions = this.parsePositions(responseList, symbols, parameters);
             return this.filterBySinceLimit(positions, since, limit);
@@ -14254,7 +14254,7 @@ final Object finalMinNotional = minNotional;
             //         }
             //     }
             //
-            Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             String fromCurrencyId = this.safeString(data, "fromCoin", fromCode);
             Map<String, Object> fromCurrency = (Map<String, Object>) this.currency(fromCurrencyId);
             String toCurrencyId = this.safeString(data, "toCoin", toCode);
@@ -14324,7 +14324,7 @@ final Object finalMinNotional = minNotional;
             //         }
             //     }
             //
-            Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             String toCurrencyId = this.safeString(data, "toCoin", toCode);
             Map<String, Object> toCurrency = (Map<String, Object>) this.currency(toCurrencyId);
             return this.parseConversion(data, null, toCurrency);
@@ -14402,7 +14402,7 @@ final Object finalMinNotional = minNotional;
             //         }
             //     }
             //
-            Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             Object dataList = this.safeList(data, "dataList", new ArrayList<Object>(Arrays.asList()));
             return this.parseConversions(dataList, code, "fromCoin", "toCoin", since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Conversion::new).collect(Collectors.toList()));
@@ -14589,7 +14589,7 @@ final Object finalMinNotional = minNotional;
                 response = (this.publicMixGetV2MixMarketFundingTime(this.extend(request, parameters))).join();
             }
             Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            Object first = this.safeDict(data, 0, new HashMap<String, Object>() {{}});
+            Map<String, Object> first = (Map<String, Object>) this.safeDict(data, 0, new HashMap<String, Object>() {{}});
             return this.parseFundingRate(first, market);
         }).thenApply(FundingRate::new);
 
