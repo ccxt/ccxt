@@ -822,7 +822,7 @@ impl LatokenCore {
         //         }
         //     ]
         //
-        if is_true(&self.safe_bool_k(self.options.clone(), "adjustForTimeDifference", &[Value::Bool(false)])) {
+        if matches!(self.safe_bool_k(self.options.clone(), "adjustForTimeDifference", &[Value::Bool(false)]), Value::Bool(true)) {
             self.load_time_difference(&[]).await;
         }
         let mut currencies: Value = self.safe_dict_k(self.options.clone(), "cachedCurrencies", &[Value::Map({

@@ -2340,7 +2340,7 @@ impl NadoCore {
     pub fn handle_position(&mut self, mut client: Value, mut message: Value) {
         let mut marketId: Value = self.safe_string_k(message.clone(), "product_id", &[]);
         let mut market: Value = self.safe_market(&[marketId.clone()]);
-        if !is_true(&self.safe_bool_k(market.clone(), "contract", &[Value::Bool(false)])) {
+        if !matches!(self.safe_bool_k(market.clone(), "contract", &[Value::Bool(false)]), Value::Bool(true)) {
             return;
         }
         let mut position: Value = self.parse_ws_position(message.clone(), &[market.clone()]);

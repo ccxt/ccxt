@@ -6952,7 +6952,7 @@ impl BinanceCore {
 });
         }
         // demotrading does not support sapi endpoints
-        if is_true(&self.safe_bool_k(self.options.clone(), "enableDemoTrading", &[Value::Bool(false)])) {
+        if matches!(self.safe_bool_k(self.options.clone(), "enableDemoTrading", &[Value::Bool(false)]), Value::Bool(true)) {
             return Value::Map({
     let mut m = indexmap::IndexMap::new();
     m

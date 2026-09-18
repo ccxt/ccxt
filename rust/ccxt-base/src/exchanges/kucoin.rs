@@ -4682,7 +4682,7 @@ impl KucoinCore {
             // uta spot sends a ratio under this name and uta swap sends a percentage.
             // An unresolved market has no `spot` key at all, so read it the way okx
             // does and leave the value alone rather than scaling on a guess.
-            if is_true(&self.safe_bool_k(market.clone(), "spot", &[Value::Bool(false)])) {
+            if matches!(self.safe_bool_k(market.clone(), "spot", &[Value::Bool(false)]), Value::Bool(true)) {
                 percentage = crate::precise::Precise::stringMul(&percentage, &Value::Str("100".to_string()));
             }
         }

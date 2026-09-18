@@ -4359,7 +4359,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             });
             return self.watch(url.clone(), Value::Str("centrifugoConnected".to_string()), &[connectMsg.clone(), Value::Str("connect".to_string())]).await;
         }
-        if is_true(&self.safe_bool_k(self.options.clone(), "wsConnected", &[Value::Bool(false)])) {
+        if matches!(self.safe_bool_k(self.options.clone(), "wsConnected", &[Value::Bool(false)]), Value::Bool(true)) {
             return Value::Null;
         }
         return crate::exchange_stubs::ws_await_flight(&client.future(&[Value::Str("centrifugoConnected".to_string())])).await;

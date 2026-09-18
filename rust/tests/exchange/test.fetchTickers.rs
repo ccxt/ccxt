@@ -13,7 +13,7 @@ pub async fn testFetchTickers(mut exchange: Value, mut skippedProperties: Value,
     // prediction venues list thousands of outcome markets, so fetching ALL tickers (no-arg)
     // is impractical and the "every active market has a ticker" check doesn't apply — test
     // fetchTickers by the outcome handle instead
-    if is_true(&exchange.safe_bool(get_value(&exchange, &Value::Str("has".to_string())), Value::Str("prediction".to_string()), &[Value::Bool(false)])) {
+    if matches!(exchange.safe_bool(get_value(&exchange, &Value::Str("has".to_string())), Value::Str("prediction".to_string()), &[Value::Bool(false)]), Value::Bool(true)) {
         let mut predictionResult: Value = fetchTickersHelperTest(exchange.clone(), skippedProperties.clone(), Value::List(vec![symbol.clone()]), &[]).await;
         return Value::List(vec![predictionResult.clone()]);
     }

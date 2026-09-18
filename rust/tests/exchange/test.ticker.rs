@@ -14,7 +14,7 @@ pub fn testTicker(mut exchange: Value, mut skippedProperties: Value, mut method:
     // books where bid==ask and a stale `last` far from the median are normal — skip the
     // crypto-oriented price-relationship checks for them. the PredictionTicker type also
     // omits vwap/previousClose entirely, so their presence must not be asserted
-    if is_true(&exchange.safe_bool(get_value(&exchange, &Value::Str("has".to_string())), Value::Str("prediction".to_string()), &[Value::Bool(false)])) {
+    if matches!(exchange.safe_bool(get_value(&exchange, &Value::Str("has".to_string())), Value::Str("prediction".to_string()), &[Value::Bool(false)]), Value::Bool(true)) {
         skippedProperties = exchange.extend(Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), Value::Bool(true));

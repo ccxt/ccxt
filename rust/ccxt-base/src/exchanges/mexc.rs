@@ -3032,7 +3032,7 @@ impl MexcCore {
                 }
             }
         }
-        if (id == Value::Null) && is_true(&self.safe_bool_k(self.options.clone(), "useCcxtTradeId", &[Value::Bool(true)])) {
+        if (id == Value::Null) && matches!(self.safe_bool_k(self.options.clone(), "useCcxtTradeId", &[Value::Bool(true)]), Value::Bool(true)) {
             id = self.create_ccxt_trade_id(&[timestamp.clone(), side.clone(), amountString.clone(), priceString.clone(), takerOrMaker.clone()]);
         }
         return self.safe_trade(Value::Map({

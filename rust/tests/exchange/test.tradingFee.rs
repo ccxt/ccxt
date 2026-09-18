@@ -11,7 +11,7 @@ use super::*;
 
 pub fn testTradingFee(mut exchange: Value, mut skippedProperties: Value, mut method: Value, mut symbol: Value, mut entry: Value) {
     // prediction-market fee structures are keyed by an outcome handle, not a `symbol`
-    if is_true(&exchange.safe_bool(get_value(&exchange, &Value::Str("has".to_string())), Value::Str("prediction".to_string()), &[Value::Bool(false)])) {
+    if matches!(exchange.safe_bool(get_value(&exchange, &Value::Str("has".to_string())), Value::Str("prediction".to_string()), &[Value::Bool(false)]), Value::Bool(true)) {
         skippedProperties = exchange.extend(Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), Value::Bool(true));

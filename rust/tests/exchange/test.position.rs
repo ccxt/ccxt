@@ -13,7 +13,7 @@ pub fn testPosition(mut exchange: Value, mut skippedProperties: Value, mut metho
     // a prediction position is a simple outcome-share holding keyed by an outcome handle (not a
     // `symbol`), with no opened-at timestamp and none of the derivatives semantics — skip the
     // leverage / margin / mark-price / liquidation / pnl fields that don't apply
-    if is_true(&exchange.safe_bool(get_value(&exchange, &Value::Str("has".to_string())), Value::Str("prediction".to_string()), &[Value::Bool(false)])) {
+    if matches!(exchange.safe_bool(get_value(&exchange, &Value::Str("has".to_string())), Value::Str("prediction".to_string()), &[Value::Bool(false)]), Value::Bool(true)) {
         skippedProperties = exchange.extend(Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), Value::Bool(true));

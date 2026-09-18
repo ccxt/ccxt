@@ -5846,7 +5846,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 })]);
                     let mut entrySymbol: Value = self.safe_string_k(entry.clone(), "symbol", &[]);
                     let mut entryBorrowable: Value = self.safe_bool_k(entry.clone(), "isBorrowable", &[Value::Bool(true)]);
-                    if is_true(&(Value::Bool(entryBorrowable.as_bool() == Some(true)))) && is_true(&self.safe_bool_k(entry.clone(), "isCrossBorrowable", &[Value::Bool(true)])) {
+                    if is_true(&(Value::Bool(entryBorrowable.as_bool() == Some(true)))) && matches!(self.safe_bool_k(entry.clone(), "isCrossBorrowable", &[Value::Bool(true)]), Value::Bool(true)) {
                         append_to_array(&mut crossKeys, entrySymbol.clone());
                     }
                     let mut isolatedBase: Value = self.safe_bool_k(entry.clone(), "isIsolatedBaseBorrowable", &[Value::Bool(true)]);
