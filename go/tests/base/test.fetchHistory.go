@@ -44,7 +44,7 @@ func testFetchHistoryBaseBody(ch chan any) any {
 		}()
 
 	}
-	assert(ccxt.IsEqual(ccxt.GetArrayLength((exchange.GetFetchCache())), 1), "fetchHistoryCache should be an array with 1 element")
+	assert((ccxt.GetArrayLength((exchange.GetFetchCache())) == 1), "fetchHistoryCache should be an array with 1 element")
 
 	{
 		func() (ret_ any) {
@@ -68,7 +68,7 @@ func testFetchHistoryBaseBody(ch chan any) any {
 		}()
 
 	}
-	assert(ccxt.IsEqual(ccxt.GetArrayLength((exchange.GetFetchCache())), 2), "fetchHistoryCache should be an array with 2 elements")
+	assert((ccxt.GetArrayLength((exchange.GetFetchCache())) == 2), "fetchHistoryCache should be an array with 2 elements")
 
 	{
 		func() (ret_ any) {
@@ -92,7 +92,7 @@ func testFetchHistoryBaseBody(ch chan any) any {
 		}()
 
 	}
-	assert(ccxt.IsEqual(ccxt.GetArrayLength((exchange.GetFetchCache())), 2), "fetchHistoryCache should be an array with 2 elements")
+	assert((ccxt.GetArrayLength((exchange.GetFetchCache())) == 2), "fetchHistoryCache should be an array with 2 elements")
 	assert(ccxt.IsLessThan(ccxt.Add(1, 1), 3), "sample assertion")
 	return nil
 }

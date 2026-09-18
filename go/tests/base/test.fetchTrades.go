@@ -30,7 +30,7 @@ func testFetchTradesBody(ch chan any, exchange ccxt.ICoreExchange, skippedProper
 	// test if both sides are being returned
 	//
 	var minTradesForBothSidesCheck int = 99
-	if IsTrue(!IsTrue((InOp(skippedProperties, "requireBothSides"))) && IsTrue(IsGreaterThan(GetArrayLength(trades), minTradesForBothSidesCheck))) {
+	if !(InOp(skippedProperties, "requireBothSides")) && IsGreaterThan(GetArrayLength(trades), minTradesForBothSidesCheck) {
 		//
 		//  Check whether both "buy" and "sell" are returned from trades, when there are enough trades
 		//  for a one-sided result to be an implausible coincidence (see minTradesForBothSidesCheck)
@@ -40,10 +40,10 @@ func testFetchTradesBody(ch chan any, exchange ccxt.ICoreExchange, skippedProper
 		Assert((InOp(grouped, "buy")), msg)
 		Assert((InOp(grouped, "sell")), msg)
 	}
-	if !IsTrue((InOp(skippedProperties, "timestampSort"))) {
+	if !(InOp(skippedProperties, "timestampSort")) {
 		AssertTimestampOrder(exchange, method, symbol, trades)
 	}
-	if IsTrue(!IsTrue((InOp(skippedProperties, "side"))) && !IsTrue((InOp(skippedProperties, "sideSequence")))) {
+	if !(InOp(skippedProperties, "side")) && !(InOp(skippedProperties, "sideSequence")) {
 
 		retRes378 := (<-HelperTestFetchTradesSideSequenceAsync(exchange, skippedProperties, symbol, method, trades))
 		PanicOnError(retRes378)
@@ -86,12 +86,12 @@ func helperTestFetchTradesSideSequenceBody(ch chan any, exchange ccxt.ICoreExcha
 		var isSamePrice bool = ccxt.Precise.StringEq(price, lastPrice)
 		var isSameSide bool = IsEqual(side, lastSide)
 		// we are only interested in trades that have: same timestamp, same side, but different(!) price
-		if IsTrue(IsTrue(IsTrue(isSameTs) && IsTrue(isSameSide)) && !IsTrue(isSamePrice)) {
+		if isSameTs && isSameSide && !isSamePrice {
 			var priceIncreasing bool = ccxt.Precise.StringGt(price, lastPrice)
 			var priceDecreasing bool = ccxt.Precise.StringLt(price, lastPrice)
-			if IsTrue(priceIncreasing) {
+			if priceIncreasing {
 				Assert(IsEqual(side, "buy"), Add("Price is increasing, but side is not `buy`, either implementation needs fix or exchange returns unsorted trades, so add \"sideSequence\" skip", LogTemplate(exchange, method, trade)))
-			} else if IsTrue(priceDecreasing) {
+			} else if priceDecreasing {
 				Assert(IsEqual(side, "sell"), Add("Price is decreasing, but side is not `sell`, either implementation needs fix or exchange returns unsorted trades, so add \"sideSequence\" skip", LogTemplate(exchange, method, trade)))
 			}
 		}

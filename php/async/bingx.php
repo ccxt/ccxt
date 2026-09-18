@@ -1844,11 +1844,19 @@ class bingx extends Exchange {
         //         "markPrice": "16884.5",
         //         "indexPrice": "16886.9",
         //         "lastFundingRate": "0.0001",
-        //         "nextFundingTime": 1672041600000
+        //         "nextFundingTime": 1672041600000,
+        //         "fundingIntervalHours": 8,
+        //         "updateTime": 1672012800000
         //     }
         //
         $marketId = $this->safe_string($contract, 'symbol');
         $nextFundingTimestamp = $this->safe_integer($contract, 'nextFundingTime');
+        $timestamp = $this->safe_integer($contract, 'updateTime');
+        $interval = $this->safe_string($contract, 'fundingIntervalHours');
+        $intervalString = null;
+        if ($interval !== null) {
+            $intervalString = $interval . 'h';
+        }
         return array(
             'info' => $contract,
             'symbol' => $this->safe_symbol($marketId, $market, '-', 'swap'),
@@ -1856,8 +1864,8 @@ class bingx extends Exchange {
             'indexPrice' => $this->safe_number($contract, 'indexPrice'),
             'interestRate' => null,
             'estimatedSettlePrice' => null,
-            'timestamp' => null,
-            'datetime' => null,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
             'fundingRate' => $this->safe_number($contract, 'lastFundingRate'),
             'fundingTimestamp' => null,
             'fundingDatetime' => null,
@@ -1867,7 +1875,7 @@ class bingx extends Exchange {
             'previousFundingRate' => null,
             'previousFundingTimestamp' => null,
             'previousFundingDatetime' => null,
-            'interval' => null,
+            'interval' => $intervalString,
         );
     }
 

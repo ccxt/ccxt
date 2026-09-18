@@ -397,7 +397,7 @@ public partial class coincheck : Exchange
         //
         List<object> exchangeStatuses = this.safeList(response, "exchange_status", new List<object>() {});
         string status = "ok";
-        object updated = null;
+        Int64? updated = null;
         for (int i = 0; isLessThan(i, getArrayLength(exchangeStatuses)); postFixIncrement(ref i))
         {
             object exchangeStatus = getValue(exchangeStatuses, i);
@@ -470,7 +470,7 @@ public partial class coincheck : Exchange
         return ccxt.BaseExchange.ToOrderList(result);
     }
 
-    public override object parseOrder(object order, object market = null)
+    public override Dictionary<string, object> parseOrder(object order, object market = null)
     {
         //
         // fetchOpenOrders
@@ -545,7 +545,7 @@ public partial class coincheck : Exchange
         return ccxt.BaseExchange.ToOrderBook(this.parseOrderBook(response, getValue(market, "symbol")));
     }
 
-    public override object parseTicker(object ticker, object market = null)
+    public override Dictionary<string, object> parseTicker(object ticker, object market = null)
     {
         //
         // {
@@ -559,7 +559,7 @@ public partial class coincheck : Exchange
         // }
         //
         string? symbol = this.safeSymbol(null, market);
-        object timestamp = this.safeTimestamp(ticker, "timestamp");
+        Int64? timestamp = this.safeTimestamp(ticker, "timestamp");
         string? last = this.safeString(ticker, "last");
         return this.safeTicker(new Dictionary<string, object>() {
             { "symbol", symbol },
@@ -624,7 +624,7 @@ public partial class coincheck : Exchange
         return ccxt.BaseExchange.ToTicker(this.parseTicker(ticker, market));
     }
 
-    public override object parseTrade(object trade, object market = null)
+    public override Dictionary<string, object> parseTrade(object trade, object market = null)
     {
         //
         // fetchTrades (public)
@@ -839,7 +839,7 @@ public partial class coincheck : Exchange
         //
         object fees = this.safeValue(response, "exchange_fees", new Dictionary<string, object>() {});
         Dictionary<string, object> result = new Dictionary<string, object>() {};
-        object symbols = this.symbols;
+        List<object> symbols = this.symbols;
         if (isTrue(isEqual(symbols, null)))
         {
             return ccxt.BaseExchange.ToTradingFees(result);

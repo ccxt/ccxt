@@ -2427,7 +2427,7 @@ class phemex extends Exchange {
             );
         }
         $timeInForce = $this->parse_time_in_force($this->safe_string($order, 'timeInForce'));
-        $triggerPrice = $this->parse_number($this->omit_zero($this->from_ep($this->safe_string($order, 'stopPxEp'))));
+        $triggerPrice = $this->parse_number($this->omit_zero($this->from_ep($this->safe_string($order, 'stopPxEp'), $market)));
         $postOnly = ($timeInForce === 'PO');
         return $this->safe_order(array(
             'info' => $order,
@@ -3200,6 +3200,14 @@ class phemex extends Exchange {
             $order = $this->safe_dict($data, 0, array());
         } elseif ($market['spot'] === true) {
             $rows = $this->safe_list($data, 'rows', array());
+            $numRows = count($rows);
+            if ($numRows < 1) {
+                if ($clientOrderId !== null) {
+                    throw new OrderNotFound($this->id . ' fetchOrder() ' . $symbol . ' $order with $clientOrderId ' . $clientOrderId . ' not found');
+                } else {
+                    throw new OrderNotFound($this->id . ' fetchOrder() ' . $symbol . ' $order with $id ' . $id . ' not found');
+                }
+            }
             $order = $this->safe_dict($rows, 0, array());
         }
         return $this->parse_order($order, $market);

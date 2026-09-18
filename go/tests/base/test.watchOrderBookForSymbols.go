@@ -21,7 +21,7 @@ func testWatchOrderBookForSymbolsBody(ch chan any, exchange ccxt.ICoreExchange, 
 	var currentTime any = exchange.Milliseconds()
 	var deadline any = Add(currentTime, 15000)
 	var idle bool = false
-	for IsTrue((IsLessThan(currentTime, deadline))) && !IsTrue(idle) {
+	for (IsLessThan(currentTime, deadline)) && !idle {
 		var response any = nil
 		var succeeded bool = true
 		var startTime any = exchange.Milliseconds()
@@ -36,7 +36,7 @@ func testWatchOrderBookForSymbolsBody(ch chan any, exchange ccxt.ICoreExchange, 
 						ret_ = func() any {
 							// catch block:
 							// interim workaround for InvalidNonce raised by the c# runtime
-							if IsTrue(!IsTrue(IsTemporaryFailure(e)) && !IsTrue((IsInstance(e, InvalidNonce)))) {
+							if !EvalTruthy(IsTemporaryFailure(e)) && !(IsInstance(e, InvalidNonce)) {
 								panic(e)
 							}
 							succeeded = false
@@ -53,11 +53,11 @@ func testWatchOrderBookForSymbolsBody(ch chan any, exchange ccxt.ICoreExchange, 
 
 		}
 		currentTime = exchange.Milliseconds()
-		if IsTrue(IsTrue((IsEqual(succeeded, true))) && IsTrue((!IsEqual(response, nil)))) {
+		if (succeeded == true) && (!IsEqual(response, nil)) {
 			TestOrderBook(exchange, skippedProperties, method, response, nil)
 			AssertInArray(exchange, skippedProperties, method, response, "symbol", symbols)
 			var elapsed any = Subtract(currentTime, startTime)
-			if IsTrue(IsGreaterThan(elapsed, maxIdleTime)) {
+			if IsGreaterThan(elapsed, maxIdleTime) {
 				idle = true
 			}
 		}

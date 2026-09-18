@@ -20,7 +20,7 @@ func testWatchTradesForSymbolsBody(ch chan any, exchange ccxt.ICoreExchange, ski
 	var maxIdleTime int = 5000
 	var idle bool = false
 	var returnedSymbols any = []any{}
-	for IsTrue((IsLessThan(now, ends))) && !IsTrue(idle) {
+	for (IsLessThan(now, ends)) && !idle {
 		var response any = nil
 		var success bool = true
 		var startTime any = exchange.Milliseconds()
@@ -34,7 +34,7 @@ func testWatchTradesForSymbolsBody(ch chan any, exchange ccxt.ICoreExchange, ski
 						}
 						ret_ = func() any {
 							// catch block:
-							if !IsTrue(IsTemporaryFailure(e)) {
+							if !EvalTruthy(IsTemporaryFailure(e)) {
 								panic(e)
 							}
 							success = false
@@ -52,7 +52,7 @@ func testWatchTradesForSymbolsBody(ch chan any, exchange ccxt.ICoreExchange, ski
 		}
 		now = exchange.Milliseconds()
 		var elapsedMs any = Subtract(now, startTime)
-		if IsTrue(IsTrue((IsEqual(success, true))) && IsTrue((!IsEqual(response, nil)))) {
+		if (success == true) && (!IsEqual(response, nil)) {
 			Assert(IsArray(response), Add(Add(logText, "must return an array. "), exchange.Json(response)))
 			for i := 0; IsLessThan(i, GetArrayLength(response)); i++ {
 				var trade any = GetValue(response, i)
@@ -60,16 +60,16 @@ func testWatchTradesForSymbolsBody(ch chan any, exchange ccxt.ICoreExchange, ski
 				Assert(!IsEqual(symbol, nil), Add(Add(logText, "returned a trade without a symbol "), exchange.Json(trade)))
 				TestTrade(exchange, skippedProperties, method, trade, symbol, now, true)
 				AssertInArray(exchange, skippedProperties, method, trade, "symbol", symbols)
-				if !IsTrue(exchange.InArray(symbol, returnedSymbols)) {
+				if !EvalTruthy(exchange.InArray(symbol, returnedSymbols)) {
 					AppendToArray(&returnedSymbols, symbol)
 				}
 			}
-			if IsTrue(IsGreaterThan(elapsedMs, maxIdleTime)) {
+			if IsGreaterThan(elapsedMs, maxIdleTime) {
 				idle = true
 			}
 		}
 	}
-	Assert(IsEqual(GetArrayLength(returnedSymbols), GetArrayLength(symbols)), Add(Add(logText, "only received part of symbols: "), exchange.Json(returnedSymbols)))
+	Assert((GetArrayLength(returnedSymbols) == GetArrayLength(symbols)), Add(Add(logText, "only received part of symbols: "), exchange.Json(returnedSymbols)))
 
 	ch <- true
 	return nil

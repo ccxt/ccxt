@@ -29,7 +29,7 @@ func testWatchBalanceBody(ch chan any, exchange ccxt.ICoreExchange, skippedPrope
 						}
 						ret_ = func() any {
 							// catch block:
-							if !IsTrue(IsTemporaryFailure(e)) {
+							if !EvalTruthy(IsTemporaryFailure(e)) {
 								panic(e)
 							}
 							now = exchange.Milliseconds()
@@ -47,7 +47,7 @@ func testWatchBalanceBody(ch chan any, exchange ccxt.ICoreExchange, skippedPrope
 			}()
 
 		}
-		if IsTrue(IsEqual(success, false)) {
+		if success == false {
 			continue
 		}
 		TestBalance(exchange, skippedProperties, method, response)

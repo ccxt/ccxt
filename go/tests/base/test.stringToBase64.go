@@ -12,5 +12,5 @@ func TestStringToBase64() {
 		"id": "sampleexchange",
 	}, map[string]any{}, exchange)
 	// todo: add single & double quotes in transpilable manner
-	Assert(ccxt.IsEqual(exchange.StringToBase64("hello world 123!@#$%^&*()\"-+)S"), "aGVsbG8gd29ybGQgMTIzIUAjJCVeJiooKSItKylT"))
+	Assert((exchange.StringToBase64("hello world 123!@#$%^&*()\"-+)S") == "aGVsbG8gd29ybGQgMTIzIUAjJCVeJiooKSItKylT"))
 }

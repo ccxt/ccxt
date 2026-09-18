@@ -977,7 +977,7 @@ public partial class extended : Exchange
             string? marketId = this.safeString(marketData, "name");
             Dictionary<string, object> market = this.safeMarket(marketId);
             IDictionary<string, object> stats = this.safeDict(marketData, "marketStats", new Dictionary<string, object>() {});
-            object ticker = this.parseTicker(stats, market);
+            Dictionary<string, object> ticker = this.parseTicker(stats, market);
             object symbol = getValue(ticker, "symbol");
             if (isTrue(!isEqual(symbol, null)))
             {
@@ -987,7 +987,7 @@ public partial class extended : Exchange
         return ccxt.BaseExchange.ToTickers(this.filterByArrayTickers(tickers, "symbol", symbols));
     }
 
-    public override object parseTicker(object ticker, object market = null)
+    public override Dictionary<string, object> parseTicker(object ticker, object market = null)
     {
         //
         //     {
@@ -1093,7 +1093,7 @@ public partial class extended : Exchange
         //
         IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         Int64 timestamp = this.milliseconds();
-        object orderbook = this.parseOrderBook(data, getValue(market, "symbol"), timestamp, "bid", "ask", "price", "qty");
+        Dictionary<string, object> orderbook = ((Dictionary<string, object>)this.parseOrderBook(data, getValue(market, "symbol"), timestamp, "bid", "ask", "price", "qty"));
         if (isTrue(!isEqual(limit, null)))
         {
             ((IDictionary<string,object>)orderbook)["bids"] = this.arraySlice(getValue(orderbook, "bids"), 0, limit);
@@ -1349,7 +1349,7 @@ public partial class extended : Exchange
         return this.filterBySymbolSinceLimit(result, symbol, since, limit);
     }
 
-    public override object parseTrade(object trade, object market = null)
+    public override Dictionary<string, object> parseTrade(object trade, object market = null)
     {
         //
         // fetchTrades
@@ -1434,7 +1434,7 @@ public partial class extended : Exchange
      */
     public async override Task<List<ccxt.OHLCV>> FetchOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object timeframeVar = timeframe;
+        string timeframeVar = timeframe;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -1627,7 +1627,7 @@ public partial class extended : Exchange
      */
     public async override Task<List<ccxt.OpenInterest>> FetchOpenInterestHistory(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object timeframeVar = timeframe;
+        string timeframeVar = timeframe;
         object sinceVar = since;
         object limitVar = limit;
         timeframeVar ??= "1h";
@@ -2731,7 +2731,7 @@ public partial class extended : Exchange
         return ccxt.BaseExchange.ToPositionList(this.filterBySinceLimit(positions, since, limit, "timestamp"));
     }
 
-    public override object parsePosition(object position, object market = null)
+    public override Dictionary<string, object> parsePosition(object position, object market = null)
     {
         //
         //     {
@@ -3243,8 +3243,8 @@ public partial class extended : Exchange
      */
     public async override Task<ccxt.Order> EditOrder(string id, string symbol, string type, string side, double? amount = null, double? price = null, object parameters = null)
     {
-        object amountVar = amount;
-        object priceVar = price;
+        double? amountVar = amount;
+        double? priceVar = price;
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(id, null)))
         {
@@ -3505,7 +3505,7 @@ public partial class extended : Exchange
             market = this.market(symbol);
         }
         Dictionary<string, object> response = null;
-        object order = null;
+        IDictionary<string, object> order = null;
         string? clientOrderId = this.safeString2(parameters, "clientOrderId", "client_id");
         parameters = this.omit(parameters, new List<object>() {"clientOrderId", "client_id"});
         if (isTrue(!isEqual(clientOrderId, null)))
@@ -3728,7 +3728,7 @@ public partial class extended : Exchange
         return this.safeString(statuses, ((string)status), status);
     }
 
-    public override object parseOrder(object order, object market = null)
+    public override Dictionary<string, object> parseOrder(object order, object market = null)
     {
         //
         //     {
@@ -3833,7 +3833,7 @@ public partial class extended : Exchange
         return value;
     }
 
-    public virtual object getExtendedDecimalToBase16(object value)
+    public virtual string? getExtendedDecimalToBase16(object value)
     {
         object decimalString = "";
         if (isTrue((value is string)))
@@ -3855,7 +3855,7 @@ public partial class extended : Exchange
         {
             return "0";
         }
-        return result;
+        return ((string?)((object)(result)));
     }
 
     public virtual object getExtendedSignatureHex(object signature)

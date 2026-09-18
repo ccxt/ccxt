@@ -15,7 +15,7 @@ public class TestFetchBorrowInterest extends BaseTest {
     public CompletableFuture<Object> testFetchBorrowInterest(BaseExchange exchange, Object skippedProperties, Object code, Object symbol)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
         String method = "fetchBorrowInterest";
         Object borrowInterest = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchBorrowInterest", new Object[]{code, symbol})).join();

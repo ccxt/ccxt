@@ -1317,6 +1317,7 @@ class okx(ccxt.async_support.okx):
             if symbol is not None:
                 del self.orderbooks[symbol]
             client.reject(error, messageHash)
+            return orderbook
         timestamp = self.safe_integer(message, 'ts')
         orderbook['nonce'] = seqId
         orderbook['timestamp'] = timestamp
@@ -1432,7 +1433,9 @@ class okx(ccxt.async_support.okx):
                 orderbook = self.order_book({}, limit)
                 self.orderbooks[symbol] = orderbook
                 orderbook['symbol'] = symbol
-                self.handle_order_book_message(client, update, orderbook, messageHash)
+                self.handle_order_book_message(client, update, orderbook, messageHash, market)
+                if not (messageHash in client.subscriptions):
+                    break
                 client.resolve(orderbook, messageHash)
         elif action == 'update':
             if symbol in self.orderbooks:
@@ -1440,6 +1443,10 @@ class okx(ccxt.async_support.okx):
                 for i in range(0, len(data)):
                     update = data[i]
                     self.handle_order_book_message(client, update, orderbook, messageHash, market)
+                    if not (messageHash in client.subscriptions):
+                        # a nonce gap rejected the future and always cleared the subscription entry, while the book
+                        # removal alone is skipped for a frame lacking an instrument id - stop replaying leftover rows
+                        break
                     client.resolve(orderbook, messageHash)
         elif (channel == 'books5') or (channel == 'bbo-tbt'):
             # watchBidsAsks reuses bbo-tbt with bidask:: hashes; only reset the

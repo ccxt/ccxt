@@ -13,7 +13,9 @@ using list = List<object>;
 public partial class BaseExchange
 {
 
-    public object base16ToBinary(object str2)
+    // every return path hands back ConvertHexStringToByteArray's byte[] (the two stubs above
+    // are comments only), so the declared type names the box the value already has
+    public byte[] base16ToBinary(object str2)
     {
         // return (string)str; // stub
         // return Convert.FromHexString((string)str);

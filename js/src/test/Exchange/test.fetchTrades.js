@@ -59,6 +59,7 @@ async function helperTestFetchTradesSideSequence(exchange, skippedProperties, sy
     let lastTs = undefined;
     let lastPrice = undefined;
     let lastSide = undefined;
+    let lastTrade = undefined;
     for (let i = 0; i < trades.length; i++) {
         const trade = trades[i];
         const ts = trade['timestamp'];
@@ -70,18 +71,20 @@ async function helperTestFetchTradesSideSequence(exchange, skippedProperties, sy
         const isSameSide = side === lastSide;
         // we are only interested in trades that have: same timestamp, same side, but different(!) price
         if (isSameTs && isSameSide && !isSamePrice) {
+            const pair = { 'previous': lastTrade, 'current': trade };
             const priceIncreasing = Precise.stringGt(price, lastPrice);
             const priceDecreasing = Precise.stringLt(price, lastPrice);
             if (priceIncreasing) {
-                assert(side === 'buy', 'Price is increasing, but side is not `buy`, either implementation needs fix or exchange returns unsorted trades, so add "sideSequence" skip' + testSharedMethods.logTemplate(exchange, method, trade));
+                assert(side === 'buy', 'Price is increasing, but side is not `buy`, either implementation needs fix or exchange returns unsorted trades, so add "sideSequence" skip' + testSharedMethods.logTemplate(exchange, method, pair));
             }
             else if (priceDecreasing) {
-                assert(side === 'sell', 'Price is decreasing, but side is not `sell`, either implementation needs fix or exchange returns unsorted trades, so add "sideSequence" skip' + testSharedMethods.logTemplate(exchange, method, trade));
+                assert(side === 'sell', 'Price is decreasing, but side is not `sell`, either implementation needs fix or exchange returns unsorted trades, so add "sideSequence" skip' + testSharedMethods.logTemplate(exchange, method, pair));
             }
         }
         lastPrice = price;
         lastTs = ts;
         lastSide = side;
+        lastTrade = trade;
     }
     return true;
 }

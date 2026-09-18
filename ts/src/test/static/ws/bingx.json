@@ -343,6 +343,220 @@
         ],
         "watchTicker": [
             {
+                "description": "inverse ticker uses coin volume",
+                "input": [
+                    "BTC/USD:BTC"
+                ],
+                "url": "wss://open-api-cswap-ws.bingx.com/market",
+                "messages": [
+                    {
+                        "code": 0,
+                        "dataType": "BTC-USD@ticker",
+                        "data": {
+                            "s": "BTC-USD",
+                            "c": "50000",
+                            "o": "50000",
+                            "h": "51000",
+                            "l": "49000",
+                            "p": "0",
+                            "C": "1699071702130",
+                            "v": "1000",
+                            "m": "2",
+                            "q": "100000"
+                        }
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "id": "offline-coinm-ticker",
+                        "dataType": "BTC-USD@ticker",
+                        "reqType": "sub"
+                    }
+                ],
+                "parsedResponses": [
+                    {
+                        "symbol": "BTC/USD:BTC",
+                        "timestamp": 1699071702130,
+                        "datetime": "2023-11-04T04:21:42.130Z",
+                        "high": 51000,
+                        "low": 49000,
+                        "bid": null,
+                        "bidVolume": null,
+                        "ask": null,
+                        "askVolume": null,
+                        "vwap": 50000,
+                        "open": 50000,
+                        "close": 50000,
+                        "last": 50000,
+                        "previousClose": null,
+                        "change": 0,
+                        "percentage": 0,
+                        "average": 50000,
+                        "baseVolume": 2,
+                        "quoteVolume": 100000,
+                        "info": {
+                            "s": "BTC-USD",
+                            "c": "50000",
+                            "o": "50000",
+                            "h": "51000",
+                            "l": "49000",
+                            "p": "0",
+                            "C": "1699071702130",
+                            "v": "1000",
+                            "m": "2",
+                            "q": "100000"
+                        },
+                        "indexPrice": null,
+                        "markPrice": null
+                    }
+                ],
+                "sentSkipKeys": [
+                    "id"
+                ]
+            },
+            {
+                "description": "inverse ticker does not substitute contracts for missing coin volume",
+                "input": [
+                    "BTC/USD:BTC"
+                ],
+                "url": "wss://open-api-cswap-ws.bingx.com/market",
+                "messages": [
+                    {
+                        "code": 0,
+                        "dataType": "BTC-USD@ticker",
+                        "data": {
+                            "s": "BTC-USD",
+                            "c": "50000",
+                            "o": "50000",
+                            "h": "51000",
+                            "l": "49000",
+                            "p": "0",
+                            "C": "1699071702130",
+                            "v": "1000",
+                            "q": "100000"
+                        }
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "id": "offline-coinm-ticker",
+                        "dataType": "BTC-USD@ticker",
+                        "reqType": "sub"
+                    }
+                ],
+                "parsedResponses": [
+                    {
+                        "symbol": "BTC/USD:BTC",
+                        "timestamp": 1699071702130,
+                        "datetime": "2023-11-04T04:21:42.130Z",
+                        "high": 51000,
+                        "low": 49000,
+                        "bid": null,
+                        "bidVolume": null,
+                        "ask": null,
+                        "askVolume": null,
+                        "vwap": null,
+                        "open": 50000,
+                        "close": 50000,
+                        "last": 50000,
+                        "previousClose": null,
+                        "change": 0,
+                        "percentage": 0,
+                        "average": 50000,
+                        "baseVolume": null,
+                        "quoteVolume": 100000,
+                        "info": {
+                            "s": "BTC-USD",
+                            "c": "50000",
+                            "o": "50000",
+                            "h": "51000",
+                            "l": "49000",
+                            "p": "0",
+                            "C": "1699071702130",
+                            "v": "1000",
+                            "q": "100000"
+                        },
+                        "indexPrice": null,
+                        "markPrice": null
+                    }
+                ],
+                "sentSkipKeys": [
+                    "id"
+                ]
+            },
+            {
+                "description": "inverse ticker preserves zero coin volume",
+                "input": [
+                    "BTC/USD:BTC"
+                ],
+                "url": "wss://open-api-cswap-ws.bingx.com/market",
+                "messages": [
+                    {
+                        "code": 0,
+                        "dataType": "BTC-USD@ticker",
+                        "data": {
+                            "s": "BTC-USD",
+                            "c": "50000",
+                            "o": "50000",
+                            "h": "51000",
+                            "l": "49000",
+                            "p": "0",
+                            "C": "1699071702130",
+                            "v": "0",
+                            "m": "0",
+                            "q": "0"
+                        }
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "id": "offline-coinm-ticker",
+                        "dataType": "BTC-USD@ticker",
+                        "reqType": "sub"
+                    }
+                ],
+                "parsedResponses": [
+                    {
+                        "symbol": "BTC/USD:BTC",
+                        "timestamp": 1699071702130,
+                        "datetime": "2023-11-04T04:21:42.130Z",
+                        "high": 51000,
+                        "low": 49000,
+                        "bid": null,
+                        "bidVolume": null,
+                        "ask": null,
+                        "askVolume": null,
+                        "vwap": null,
+                        "open": 50000,
+                        "close": 50000,
+                        "last": 50000,
+                        "previousClose": null,
+                        "change": 0,
+                        "percentage": 0,
+                        "average": 50000,
+                        "baseVolume": 0,
+                        "quoteVolume": 0,
+                        "info": {
+                            "s": "BTC-USD",
+                            "c": "50000",
+                            "o": "50000",
+                            "h": "51000",
+                            "l": "49000",
+                            "p": "0",
+                            "C": "1699071702130",
+                            "v": "0",
+                            "m": "0",
+                            "q": "0"
+                        },
+                        "indexPrice": null,
+                        "markPrice": null
+                    }
+                ],
+                "sentSkipKeys": [
+                    "id"
+                ]
+            },
+            {
                 "description": "linear swap ticker",
                 "input": [
                     "BTC/USDT:USDT"
