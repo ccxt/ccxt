@@ -6051,9 +6051,9 @@ public partial class coinex : Exchange
             }, query);
             query = this.keysort(query);
             string urlencoded = this.rawencode(query);
-            object signature = this.hash(this.encode(add(add(urlencoded, "&secret_key="), this.secret)), sha256);
+            string signature = ((string)this.hash(this.encode(add(add(urlencoded, "&secret_key="), this.secret)), sha256));
             headers = new Dictionary<string, object>() {
-                { "Authorization", ((string)signature).ToLower() },
+                { "Authorization", signature.ToLower() },
                 { "AccessId", this.apiKey },
             };
             if ((isEqual(method, "GET")) || (isEqual(method, "PUT")))
@@ -6081,9 +6081,9 @@ public partial class coinex : Exchange
                 }, query);
                 query = this.keysort(query);
                 string urlencoded = this.rawencode(query);
-                object signature = this.hash(this.encode(add(add(urlencoded, "&secret_key="), this.secret)), md5);
+                string signature = ((string)this.hash(this.encode(add(add(urlencoded, "&secret_key="), this.secret)), md5));
                 headers = new Dictionary<string, object>() {
-                    { "Authorization", ((string)signature).ToUpper() },
+                    { "Authorization", signature.ToUpper() },
                     { "Content-Type", "application/json" },
                 };
                 if ((isEqual(method, "GET")) || (isEqual(method, "DELETE")) || (isEqual(method, "PUT")))
@@ -6108,7 +6108,7 @@ public partial class coinex : Exchange
                     preparedString = add(preparedString, add("?", urlencoded));
                 }
                 preparedString = add(preparedString, add(nonce, this.secret));
-                object signature = this.hash(this.encode(preparedString), sha256);
+                string signature = ((string)this.hash(this.encode(preparedString), sha256));
                 headers = new Dictionary<string, object>() {
                     { "Content-Type", "application/json" },
                     { "Accept", "application/json" },

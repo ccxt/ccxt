@@ -1156,6 +1156,22 @@ Object.assign (CSHARP_COLLECTION_RETURN_METHODS_BY_DECLARATION, {
     'parseSettlements': 'List<object>',
 });
 
+// Sync generated per-venue helpers whose declarations do NOT all box the same type: the
+// `signHash` of aster / derive / limitless / modetrade / paradex / woofipro builds the
+// `0x` + r + s + v hex string, while dydx / hyperliquid / polymarket / opinion build the
+// { r, s, v } row; their `signMessage` hands the signHash result straight back. A name-keyed
+// table cannot express that (one venue's `string` would break the other's Dictionary return),
+// so each declaration is proven on its own return paths exactly like the collection
+// by-declaration table, and a declaration whose every return already prints a statically
+// `string` expression is retyped `string`: the call site's local then takes the type from the
+// signature, no cast. The proof is the strict one in stringReturnExpressionProves — every
+// other declaration (the { r, s, v } venues, and the base-class stub that owns the virtual
+// slot) keeps the printer's `object` and every call site stays object.
+export const CSHARP_STRING_RETURN_METHODS_BY_DECLARATION = {
+    'signMessage': 'string',
+    'signHash': 'string',
+};
+
 // the mapped collection type for a method declaration, or undefined to leave the printer's
 // own decision (async methods and every other name)
 function collectionReturnType (csharp, node, own) {
@@ -1177,7 +1193,14 @@ function collectionReturnType (csharp, node, own) {
     // mapped box are retyped, so a venue whose helper returns the pair keeps `object` (its
     // callers' locals stay `object` too — both sides read the same proof, see callReturnType)
     const perDeclaration = CSHARP_COLLECTION_RETURN_METHODS_BY_DECLARATION[name];
-    return (perDeclaration === undefined) ? undefined : declarationCollectionReturnType (csharp, node, perDeclaration);
+    if (perDeclaration !== undefined) {
+        return declarationCollectionReturnType (csharp, node, perDeclaration);
+    }
+    // the scalar twin (CSHARP_STRING_RETURN_METHODS_BY_DECLARATION): the same per-declaration
+    // return-path proof, mapped to `string` — only the declarations whose every return already
+    // prints a statically-`string` expression are retyped (stringReturnExpressionProves)
+    const perDeclarationString = CSHARP_STRING_RETURN_METHODS_BY_DECLARATION[name];
+    return (perDeclarationString === undefined) ? undefined : declarationCollectionReturnType (csharp, node, perDeclarationString);
 }
 
 // true when the return expression already prints as the mapped type, so the boundary cast
@@ -1257,9 +1280,15 @@ function unwrapPassthroughExpression (node) {
 
 // true only when the printed value of a return expression ALREADY has the mapped static type:
 // an object/array literal, a call whose own type is the mapped one (extend/deepExtend, a
-// table-listed name, a proven peer), or a local this module declares the mapped type for
+// table-listed name, a proven peer), or a local this module declares the mapped type for.
+// The `string` mapping (CSHARP_STRING_RETURN_METHODS_BY_DECLARATION) has its own predicate: a
+// scalar spelling must not consume the collection arms below (a string literal is NOT a
+// Dictionary, an array literal is not a string).
 function collectionReturnExpressionProves (csharp, expression, mapped) {
     let node = unwrapPassthroughExpression (expression);
+    if (mapped === 'string') {
+        return stringReturnExpressionProves (csharp, node);
+    }
     switch (node?.kind) {
     case ts.SyntaxKind.ObjectLiteralExpression:
         return mapped === 'Dictionary<string, object>';
@@ -1275,6 +1304,47 @@ function collectionReturnExpressionProves (csharp, expression, mapped) {
     return false;
 }
 
+// true only when the PRINTED C# of a return expression is already statically a non-null
+// `string` — the declaration can then be retyped to `string` with no boundary cast (and every
+// call site's local takes the type straight from the retyped signature):
+//   - a string literal / template literal;
+//   - `.padStart` / `.padEnd` — ast-transpiler prints them as `(x as String).PadLeft /
+//     PadRight (…)`, and `string.PadLeft` returns a non-null string (a null receiver throws
+//     inside the call, exactly as the untyped expression does today);
+//   - a read of a local this module declares `string` (pacifica's `signatureBase58` — see
+//     localIdentifierType, the same resolution the conditional arms use);
+//   - anything this module's own value classifier proves statically `string`: an `add (...)`
+//     chain whose LEFT operand is provably a string (both string add overloads return a
+//     non-null string), the hand-written `string hmac (...)`, `this.intToBase16 (...)`, a
+//     `this.<name> (...)` call whose own declaration proves through the same table
+//     (callReturnType -> boundCollectionReturnType, the signHash recursion), and the
+//     printer's own table through the csharpTypeOfInitializer fallback.
+// A `string?` proof is deliberately NOT accepted: a nullable read could hand back null, which
+// a `string` return type may not (CS8603 under the csproj's TreatWarningsAsErrors).
+function stringReturnExpressionProves (csharp, node) {
+    if (node?.kind === ts.SyntaxKind.StringLiteral || node?.kind === ts.SyntaxKind.NoSubstitutionTemplateLiteral) {
+        return true;
+    }
+    if (node?.kind === ts.SyntaxKind.CallExpression) {
+        const callee = node.expression;
+        if (callee?.kind === ts.SyntaxKind.PropertyAccessExpression
+                && (callee.name?.escapedText === 'padStart' || callee.name?.escapedText === 'padEnd')) {
+            return true;
+        }
+    }
+    if (node?.kind === ts.SyntaxKind.BinaryExpression && node.operatorToken.kind === ts.SyntaxKind.PlusToken) {
+        // `a + b` prints `add (a, b)`: with a provably-string LEFT operand the call binds one of
+        // the two `string` add overloads (both a non-null concatenation), so the whole chain is
+        // a string — the same left-recursive shape isProvablyStringOperand uses, extended with
+        // the padStart/PadEnd arm above (hibachi's signMessage returns such a chain)
+        return stringReturnExpressionProves (csharp, node.left);
+    }
+    if (node?.kind === ts.SyntaxKind.Identifier) {
+        return localIdentifierType (csharp, node) === 'string';
+    }
+    return csharpTypeOfValue (csharp, node) === 'string';
+}
+
 // the C# type of a whole call expression as the generated signature names it: the two
 // collection tables (a per-declaration peer through the declaration it binds), else the
 // printer's own answer for the hand-written base signatures (`this.extend`, ...)
@@ -1288,6 +1358,10 @@ function callCollectionReturnType (csharp, call) {
         const perDeclaration = CSHARP_COLLECTION_RETURN_METHODS_BY_DECLARATION[name];
         if (perDeclaration !== undefined) {
             return boundCollectionReturnType (csharp, call, name, perDeclaration);
+        }
+        const perDeclarationString = CSHARP_STRING_RETURN_METHODS_BY_DECLARATION[name];
+        if (perDeclarationString !== undefined) {
+            return boundCollectionReturnType (csharp, call, name, perDeclarationString);
         }
     }
     return (typeof csharp.csharpTypeOfInitializer === 'function') ? csharp.csharpTypeOfInitializer (call) : undefined;
@@ -1398,9 +1472,16 @@ function boundCollectionReturnType (csharp, call, name, mapped) {
 
 // the per-declaration table names this declaration AND proves — the return-statements wrapper
 // skips the boundary cast on exactly these, because the proof already covers every return path
+// (and every proven path prints a statically-mapped expression, so the retyped signature needs
+// no cast either)
 function byDeclarationCollectionReturnIsProven (csharp, declaration) {
-    const mapped = CSHARP_COLLECTION_RETURN_METHODS_BY_DECLARATION[declaration?.name?.escapedText];
-    return mapped !== undefined && declarationCollectionReturnType (csharp, declaration, mapped) === mapped;
+    const name = declaration?.name?.escapedText;
+    const mapped = CSHARP_COLLECTION_RETURN_METHODS_BY_DECLARATION[name];
+    if (mapped !== undefined) {
+        return declarationCollectionReturnType (csharp, declaration, mapped) === mapped;
+    }
+    const mappedString = CSHARP_STRING_RETURN_METHODS_BY_DECLARATION[name];
+    return mappedString !== undefined && declarationCollectionReturnType (csharp, declaration, mappedString) === mappedString;
 }
 
 // wrap printFunctionType / printReturnStatement on a Transpiler's C# printer. Idempotent.
@@ -1592,6 +1673,24 @@ export const CSHARP_LOCAL_THIS_RETURN_TYPES = {
     // Nethereum's Eip712TypedDataSigner.EncodeTypedDataRaw (vendored, `public byte[]`)
     'base16ToBinary': 'byte[]',
     'ethEncodeStructuredData': 'byte[]',
+    // Exchange.Encode.cs — the hand-written signatures are already concrete, so the printed
+    // call's own C# type IS the declaration (no cast): base64ToBinary / binaryConcat /
+    // base58ToBinary are declared `byte[]` (`Base64ToBinary` returns Convert.FromBase64String,
+    // binaryConcat the List<byte> builder's ToArray — an empty array for zero parts, never
+    // null — and Base58.Decode), binaryToBase58 the `string` Base58.Encode result.
+    'base64ToBinary': 'byte[]',
+    'binaryConcat': 'byte[]',
+    'base58ToBinary': 'byte[]',
+    'binaryToBase58': 'string',
+    // Exchange.ETH.cs — `public string ethGetAddressFromPrivateKey (object privateKey)`
+    'ethGetAddressFromPrivateKey': 'string',
+    // Exchange.cs — `public int randNumber (int size)` (an int.Parse of the digit string)
+    'randNumber': 'int',
+    // Exchange.cs — retyped object -> List<object> in this PR: the body builds one
+    // `List<object>` of one-char strings on its only path (the List<string> box was never
+    // load-bearing: every consumer reads elements through getValue / getArrayLength /
+    // `(string)` element casts, all of which take the IList<object> shape)
+    'stringToCharsArray': 'List<object>',
     // Exchange.Crypto.cs (hmac mirrors the printer's own CSHARP_THIS_RETURN_TYPES entry;
     // jwt builds `header.payload.signature` and returns non-null)
     'hmac': 'string',
@@ -2454,6 +2553,11 @@ const CSHARP_LOCAL_WS_MEMBER_TYPES = {
     // static type IS the property's declared type, so the local names the box it already has;
     // no other class in cs/ccxt/** declares or hides the member (census over cs/ccxt/**/*.cs).
     'walletAddress': 'string',
+    // not a ws field, same proof shape: Exchange.Options.cs declares `public string secret
+    // { get; set; }`, so the read's C# static type is the property's own type — a settable
+    // property that can hold null at runtime, hence the nullable spelling (the same one
+    // CSHARP_LOCAL_THIS_ARM_MEMBER_TYPES carries for the ternary arms)
+    'secret': 'string?',
 };
 
 // `let x: <alias> = undefined` -> nullable C# type (the null initialiser forces `?`)
@@ -4242,6 +4346,13 @@ function callReturnType (csharp, initializer) {
         const perDeclaration = CSHARP_COLLECTION_RETURN_METHODS_BY_DECLARATION[methodName];
         if (perDeclaration !== undefined) {
             return boundCollectionReturnType (csharp, initializer, methodName, perDeclaration);
+        }
+        // the scalar twin: `this.signMessage (...)` / `this.signHash (...)` in a file whose
+        // bound declaration proves `string` — the retyped signature makes the call statically
+        // a string, so the local is declared `string` with no cast
+        const perDeclarationString = CSHARP_STRING_RETURN_METHODS_BY_DECLARATION[methodName];
+        if (perDeclarationString !== undefined) {
+            return boundCollectionReturnType (csharp, initializer, methodName, perDeclarationString);
         }
         // `this.safeIntegerProduct2 (obj, k1, k2, mult)` / `safeIntegerProductN (obj, keys, mult)`:
         // the hand-written ARITY overloads (Exchange.SafeMethods.cs) are exactly Int64? — they
@@ -6820,6 +6931,44 @@ function marketRowBoolReadType (csharp, initializer) {
     return (key !== undefined && MARKET_ROW_BOOL_KEYS.includes (key)) ? 'bool' : undefined;
 }
 
+// `this.hash (request, algorithm, "hex" | "base64" | "binary")` — Exchange.Crypto.cs#Hash
+// (digest2 ??= "hex") hands back `binaryToHex (signature)` / Exchange.BinaryToBase64 (signature),
+// a string, for every digest but "binary", which returns the signature byte[] itself. The
+// hand-written C# signature stays `object` — a digest VARIABLE could be either box (and the
+// base file's own comment forbids narrowing it) — so the declaration names the box its own
+// digest literal proves, behind the exact cast back:
+//   `object x = this.hash (…)`              -> the parameter default null resolves to "hex"
+//   `object x = this.hash (…, sha256)`      -> "hex"
+//   `object x = this.hash (…, sha256, "hex" | "base64")` -> string
+//   `object x = this.hash (…, sha256, "binary")`         -> byte[]
+// A non-literal digest argument (or any other argument count) proves nothing and keeps `object`.
+// Census (2026-09-18, every `this.hash (` call in cs/ccxt/**): 41 digest-carrying calls, all
+// literal "hex" (29) / "binary" (12), plus 20 two-argument calls — no variable digest anywhere.
+function hashDigestLiteralType (initializer) {
+    if (initializer?.kind !== ts.SyntaxKind.CallExpression) {
+        return undefined;
+    }
+    const callee = initializer.expression;
+    if (callee?.kind !== ts.SyntaxKind.PropertyAccessExpression || callee.expression?.kind !== ts.SyntaxKind.ThisKeyword || callee.name?.escapedText !== 'hash') {
+        return undefined;
+    }
+    const args = initializer.arguments ?? [];
+    if (args.length < 2 || args.length > 3) {
+        return undefined;
+    }
+    if (args.length === 2) {
+        return 'string'; // the C# parameter default (null) resolves to "hex"
+    }
+    const digest = args[2];
+    if (digest.kind !== ts.SyntaxKind.StringLiteral) {
+        return undefined;
+    }
+    if (digest.text === 'hex' || digest.text === 'base64') {
+        return 'string';
+    }
+    return (digest.text === 'binary') ? 'byte[]' : undefined;
+}
+
 // ---- U20: `add` chains over market-row / symbol leaves --------------------------------
 //
 // `const symbol = base + '/' + quote` prints `object symbol = add(add(bs, "/"), quote)`.
@@ -7919,6 +8068,12 @@ function csharpLocalTypeOf (csharp, declaration, context) {
             const chain = addChainStringBoxType (csharp, declaration, ctx);
             csharpType = chain.type;
             cast = chain.cast;
+        } else if (hashDigestLiteralType (declaration.initializer) !== undefined) {
+            // `const x = this.hash (…, sha256, "hex" | "binary")`: the DIGEST LITERAL names the
+            // box Exchange.Crypto.cs#Hash hands back (see hashDigestLiteralType), so the
+            // declaration carries the exact cast back the `object` signature does not emit
+            csharpType = hashDigestLiteralType (declaration.initializer);
+            cast = csharpType;
         } else if (urlsDescribeStringProducer (declaration.initializer)) {
             // `const x = this.urls['api']['ws']`: the describe() literal spells that leaf as a
             // string, so the getValue chain's box is a string or null — same cast as above

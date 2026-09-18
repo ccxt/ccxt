@@ -550,7 +550,7 @@ public partial class btcturk : Exchange
         //
         string? marketId = this.safeString(ticker, "pair");
         market = this.safeMarket(marketId, market);
-        string? symbol = ((string)getValue(market, "symbol"));
+        object symbol = getValue(market, "symbol");
         Int64? timestamp = this.safeInteger(ticker, "timestamp");
         string? last = this.safeString(ticker, "last");
         return this.safeTicker(new Dictionary<string, object>() {
@@ -614,7 +614,7 @@ public partial class btcturk : Exchange
         {
             await this.loadMarkets();
         }
-        Dictionary<string, object> tickers = ccxt.BaseExchange.FromTickers(await this.FetchTickers(new List<object>() {symbol}, parameters));
+        object tickers = ccxt.BaseExchange.FromTickers(await this.FetchTickers(new List<object>() {symbol}, parameters));
         return ccxt.BaseExchange.ToTicker(this.safeValue(tickers, symbol));
     }
 
@@ -1194,8 +1194,8 @@ public partial class btcturk : Exchange
         {
             this.checkRequiredCredentials();
             string nonce = this.nonce().ToString();
-            object secret = this.base64ToBinary(this.secret);
-            string? auth = add(this.apiKey, nonce);
+            byte[] secret = this.base64ToBinary(this.secret);
+            object auth = add(this.apiKey, nonce);
             headers = new Dictionary<string, object>() {
                 { "X-PCK", this.apiKey },
                 { "X-Stamp", nonce },

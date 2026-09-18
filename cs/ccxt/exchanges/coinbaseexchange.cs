@@ -2523,7 +2523,7 @@ public partial class coinbaseexchange : Exchange
                 }
             }
             object what = add(add(add(nonce, method), request), payload);
-            object secret = null;
+            byte[]? secret = null;
             try
             {
                 secret = this.base64ToBinary(this.secret);

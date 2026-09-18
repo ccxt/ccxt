@@ -5895,7 +5895,7 @@ public partial class coinbase : Exchange
         }
         if (isTrue(useEddsa))
         {
-            object byteArray = this.base64ToBinary(this.secret);
+            byte[] byteArray = this.base64ToBinary(this.secret);
             object seed = this.arraySlice(byteArray, 0, 32);
             return jwt(request, seed, sha256, false, new Dictionary<string, object>() {
                 { "kid", this.apiKey },

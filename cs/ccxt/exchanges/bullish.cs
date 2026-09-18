@@ -3377,7 +3377,7 @@ public partial class bullish : Exchange
             {
                 body = this.json(parameters);
                 string payload = add(add(add(add(add(timestamp, nonce), method), "/trading-api/"), path), body);
-                object digest = this.hash(this.encode(payload), sha256, "hex");
+                string digest = ((string)this.hash(this.encode(payload), sha256, "hex"));
                 string signature = this.hmac(this.encode(digest), this.encode(this.secret), sha256, "hex");
                 headers = new Dictionary<string, object>() {
                     { "BX-TIMESTAMP", timestamp },

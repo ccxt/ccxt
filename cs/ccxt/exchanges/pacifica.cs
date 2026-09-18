@@ -3839,7 +3839,7 @@ public partial class pacifica : Exchange
         Dictionary<string, object> subSigPayload = new Dictionary<string, object>() {
             { "account", originAddress },
         };
-        object subaccountSignature = this.signMessage(subaccountSignatureHeader, subSigPayload, subAccountPrivateKey);
+        string subaccountSignature = this.signMessage(subaccountSignatureHeader, subSigPayload, subAccountPrivateKey);
         Dictionary<string, object> mainSignatureHeader = new Dictionary<string, object>() {
             { "timestamp", timestamp },
             { "expiry_window", expiryWindow },
@@ -3848,7 +3848,7 @@ public partial class pacifica : Exchange
         Dictionary<string, object> mainSigPayload = new Dictionary<string, object>() {
             { "signature", subaccountSignature },
         };
-        object main_signature = this.signMessage(mainSignatureHeader, mainSigPayload, this.privateKey);
+        string main_signature = this.signMessage(mainSignatureHeader, mainSigPayload, this.privateKey);
         finalHeaders["main_account"] = originAddress;
         finalHeaders["subaccount"] = subAccountAddress;
         finalHeaders["sub_signature"] = subaccountSignature;
@@ -4082,15 +4082,15 @@ public partial class pacifica : Exchange
         return this.json(sorted);
     }
 
-    public virtual object signMessage(object header, object payload, object privateKey)
+    public virtual string signMessage(object header, object payload, object privateKey)
     {
         string? message = this.prepareMessage(header, payload);
         string? messageBytes = this.encode(message);
-        object secretBytes = this.base58ToBinary(privateKey);
+        byte[] secretBytes = this.base58ToBinary(privateKey);
         object seed = this.arraySlice(secretBytes, 0, 32);
         string signatureBase64 = eddsa(messageBytes, seed, ed25519);
-        object signatureBinary = this.base64ToBinary(signatureBase64);
-        object signatureBase58 = this.binaryToBase58(signatureBinary);
+        byte[] signatureBinary = this.base64ToBinary(signatureBase64);
+        string signatureBase58 = this.binaryToBase58(signatureBinary);
         return signatureBase58;
     }
 
@@ -4128,7 +4128,7 @@ public partial class pacifica : Exchange
             { "expiry_window", expiryWindow },
             { "type", operationType },
         };
-        object signature = this.signMessage(signatureHeader, sigPayload, this.privateKey);
+        string signature = this.signMessage(signatureHeader, sigPayload, this.privateKey);
         Dictionary<string, object> finalHeaders = new Dictionary<string, object>() {};
         object agentAddress = null;
         IList<object> agentAddressparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "postActionRequest", "agentAddress");

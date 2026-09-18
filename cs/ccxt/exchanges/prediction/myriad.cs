@@ -425,12 +425,12 @@ public partial class myriad : PredictionExchange
         parameters ??= new Dictionary<string, object>();
         if (getIndexOf(id, ":") < 0)
         {
-            Dictionary<string, object> rawQuestion = ccxt.BaseExchange.FromDict(await this.FetchRawQuestionById(id, parameters));
+            object rawQuestion = ccxt.BaseExchange.FromDict(await this.FetchRawQuestionById(id, parameters));
             Dictionary<string, object> orderBookEvent = this.parseEvent(rawQuestion);
             this.indexEventOutcomes(orderBookEvent);
             return ccxt.BaseExchange.ToPredictionEvent(orderBookEvent);
         }
-        Dictionary<string, object> response = ccxt.BaseExchange.FromDict(await this.FetchRawMarketById(id, parameters));
+        object response = ccxt.BaseExchange.FromDict(await this.FetchRawMarketById(id, parameters));
         object market = this.parseMyriadMarket(response);
         Dictionary<string, object> eventVar = this.parseMarketToEvent(response, market);
         this.indexEventOutcomes(eventVar);
@@ -852,7 +852,7 @@ public partial class myriad : PredictionExchange
         string? accessList = this.rlpEncodeList(new List<object>() {});
         List<object> fields = new List<object> {this.rlpEncodeBytes(this.intToRlpHex(this.safeInteger(tx, "chainId"))), this.rlpEncodeBytes(this.hexToRlpBytes(this.safeString(tx, "nonce"))), this.rlpEncodeBytes(this.hexToRlpBytes(this.safeString(tx, "maxPriorityFeePerGas"))), this.rlpEncodeBytes(this.hexToRlpBytes(this.safeString(tx, "maxFeePerGas"))), this.rlpEncodeBytes(this.hexToRlpBytes(this.safeString(tx, "gasLimit"))), this.rlpEncodeBytes(this.remove0xPrefix(this.safeString(tx, "to"))), this.rlpEncodeBytes(this.hexToRlpBytes(this.safeString(tx, "value", "0x0"))), this.rlpEncodeBytes(this.remove0xPrefix(this.safeString(tx, "data", "0x"))), accessList};
         string payload = add("02", this.rlpEncodeList(fields));
-        object hashHex = this.hash(this.base16ToBinary(payload), keccak, "hex");
+        string hashHex = ((string)this.hash(this.base16ToBinary(payload), keccak, "hex"));
         Dictionary<string, object> signature = ecdsa(hashHex, this.remove0xPrefix(privateKey), secp256k1, null);
         string? rHex = this.safeString(signature, "r");
         string? sHex = this.safeString(signature, "s");
@@ -1161,7 +1161,7 @@ public partial class myriad : PredictionExchange
             double? amount = this.safeNumber(o, "amount");
             double? price = this.safeNumber(o, "price");
             IDictionary<string, object> orderParams = this.safeDict(o, "params", new Dictionary<string, object>() {});
-            Dictionary<string, object> placed = ccxt.BaseExchange.FromPredictionOrder(await this.CreateOrderbookOrder(((string)outcome),type,side,ccxt.BaseExchange.ToDoubleArgRequired(amount),ccxt.BaseExchange.ToDoubleArg(price), this.extend(orderParams, parameters)));
+            object placed = ccxt.BaseExchange.FromPredictionOrder(await this.CreateOrderbookOrder(((string)outcome),type,side,ccxt.BaseExchange.ToDoubleArgRequired(amount),ccxt.BaseExchange.ToDoubleArg(price), this.extend(orderParams, parameters)));
             ((IList<object>)result).Add(placed);
         }
         return ccxt.BaseExchange.ToPredictionOrderList(result);
@@ -1321,10 +1321,10 @@ public partial class myriad : PredictionExchange
             { "verifyingContract", exchangeAddress },
         };
         byte[] encoded = this.ethEncodeStructuredData(domain, types, message);
-        object digest = this.hash(encoded, keccak, "hex");
+        string digest = ((string)this.hash(encoded, keccak, "hex"));
         Dictionary<string, object> signature = ecdsa(digest, this.remove0xPrefix(this.privateKey), secp256k1, null);
-        string? rRaw = ((string)GetValue(signature, "r"));
-        string? sRaw = ((string)GetValue(signature, "s"));
+        object rRaw = GetValue(signature, "r");
+        object sRaw = GetValue(signature, "s");
         object r = (rRaw as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0"));
         object s = (sRaw as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0"));
         object v = this.sum(27, GetValue(signature, "v"));
@@ -1544,10 +1544,10 @@ public partial class myriad : PredictionExchange
         if ((outcome == null))
         {
             // the REST order has no top-level networkId; order book lives on the default network
-            string? networkId = this.safeString2(order, "networkId", "network_id", this.safeString(this.options, "defaultNetworkId", "56"));
+            object networkId = this.safeString2(order, "networkId", "network_id", this.safeString(this.options, "defaultNetworkId", "56"));
             string? marketId = this.safeString(inner, "marketId");
             string? outcomeId = this.safeString(inner, "outcomeId");
-            string? composite = null;
+            object composite = null;
             if (((networkId != null)) && ((marketId != null)) && ((outcomeId != null)))
             {
                 composite = add(add(add(add(networkId, ":"), marketId), "/"), outcomeId);
@@ -1594,10 +1594,10 @@ public partial class myriad : PredictionExchange
      */
     public virtual object parseAmmEventToOrder(object trade, object market = null)
     {
-        string? networkId = this.safeString(trade, "networkId");
+        object networkId = this.safeString(trade, "networkId");
         string? marketId = this.safeString(trade, "marketId");
         string? rawOutcomeId = this.safeString(trade, "outcomeId");
-        string? composite = null;
+        object composite = null;
         if (((networkId != null)) && ((marketId != null)) && ((rawOutcomeId != null)))
         {
             composite = add(add(add(add(networkId, ":"), marketId), "/"), rawOutcomeId);
@@ -2200,12 +2200,12 @@ public partial class myriad : PredictionExchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "status", "filled" },
         };
-        List<object> orders = ccxt.BaseExchange.FromPredictionOrderList(await this.FetchOrders(((string)outcome),ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), this.extend(request, parameters)));
+        object orders = ccxt.BaseExchange.FromPredictionOrderList(await this.FetchOrders(((string)outcome),ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), this.extend(request, parameters)));
         List<object> trades = new List<object>() {};
-        int ordersLength = orders?.Count ?? 0;
+        int ordersLength = getArrayLength(orders);
         for (int i = 0; isLessThan(i, ordersLength); postFixIncrement(ref i))
         {
-            IDictionary<string, object> order = ((IDictionary<string, object>)getValue(orders, i));
+            object order = getValue(orders, i);
             ((IList<object>)trades).Add(this.orderToTrade(order));
         }
         return ccxt.BaseExchange.ToPredictionTradeList(this.filterByValueSinceLimit(trades, "outcome", outcome, since, limit, "timestamp", true));
@@ -2294,13 +2294,13 @@ public partial class myriad : PredictionExchange
     public virtual string? hexToDecimalString(object hexValue)
     {
         // portable hex -> decimal string (avoids convertToBigInt, which is not uniform across languages)
-        string stripped = this.remove0xPrefix(hexValue);
-        if (((stripped == null)) || (stripped == ""))
+        object stripped = this.remove0xPrefix(hexValue);
+        if (((stripped == null)) || (isEqual(stripped, "")))
         {
             return null;
         }
-        object chars = this.stringToCharsArray(stripped.ToLower());
-        int n = getArrayLength(chars);
+        List<object> chars = this.stringToCharsArray(((string)stripped).ToLower());
+        int n = chars?.Count ?? 0;
         string digits = "0123456789abcdef";
         string? result = "0";
         for (int i = 0; isLessThan(i, n); postFixIncrement(ref i))
@@ -3417,11 +3417,11 @@ public partial class myriad : PredictionExchange
         {
             if (getIndexOf(eventId, ":") > -1)
             {
-                Dictionary<string, object> rawMarket = ccxt.BaseExchange.FromDict(await this.FetchRawMarketById(eventId, rest));
+                object rawMarket = ccxt.BaseExchange.FromDict(await this.FetchRawMarketById(eventId, rest));
                 rawMarkets = new List<object>() {rawMarket};
             } else
             {
-                Dictionary<string, object> rawQuestion = ccxt.BaseExchange.FromDict(await this.FetchRawQuestionById(eventId, rest));
+                object rawQuestion = ccxt.BaseExchange.FromDict(await this.FetchRawQuestionById(eventId, rest));
                 rawQuestions = new List<object>() {rawQuestion};
             }
         } else
@@ -3772,7 +3772,7 @@ public partial class myriad : PredictionExchange
     public async virtual Task seedOrderBook(object outcome, object sym, object limit = null)
     {
         // the order book channel streams deltas only, so seed the live book from the REST snapshot
-        Dictionary<string, object> snapshot = ccxt.BaseExchange.FromPredictionOrderBook(await this.FetchOrderBook(((string)outcome),ccxt.BaseExchange.ToInt64Arg(limit)));
+        object snapshot = ccxt.BaseExchange.FromPredictionOrderBook(await this.FetchOrderBook(((string)outcome),ccxt.BaseExchange.ToInt64Arg(limit)));
         ccxt.pro.OrderBook orderbook = this.orderBook(new Dictionary<string, object>() {});
         (orderbook as IOrderBook).reset(snapshot);
         ((IDictionary<string,object>)this.orderbooks)[(string)((string)sym)] = orderbook;
@@ -3935,7 +3935,7 @@ public partial class myriad : PredictionExchange
             Int64? tradesLimit = this.safeInteger(this.options, "tradesLimit", 1000);
             ((IDictionary<string,object>)this.trades)[(string)sym] = new ArrayCache(tradesLimit);
         }
-        ccxt.pro.ArrayCache stored = ((ccxt.pro.ArrayCache)getValue(this.trades, sym));
+        object stored = getValue(this.trades, sym);
         callDynamically(stored, "append", new object[] {trade});
         callDynamically(client, "resolve", new object[] {stored, add("trades::", sym)});
         // also surface the wallet's own fills (taker or maker leg) with their real execution prices
@@ -4090,7 +4090,7 @@ public partial class myriad : PredictionExchange
         // Myriad has no OHLCV websocket channel, so build candles from the live trade stream
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
-        List<object> trades = ccxt.BaseExchange.FromTradeList(await this.WatchTrades(((string)outcome),ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), parameters));
+        object trades = ccxt.BaseExchange.FromTradeList(await this.WatchTrades(((string)outcome),ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), parameters));
         List<object> ohlcvc = this.buildOHLCVC(((object)trades),timeframeVar, 0, 2147483647);
         List<object> result = new List<object>() {};
         int ohlcvcLength = ohlcvc?.Count ?? 0;
@@ -4286,9 +4286,9 @@ public partial class myriad : PredictionExchange
 
     public async virtual Task seedPositionBalances(object trader)
     {
-        List<object> positions = ccxt.BaseExchange.FromPredictionPositionList(await this.FetchPositions(null, new Dictionary<string, object>() { { "address", trader }, }));
+        object positions = ccxt.BaseExchange.FromPredictionPositionList(await this.FetchPositions(null, new Dictionary<string, object>() { { "address", trader }, }));
         Dictionary<string, object> balances = new Dictionary<string, object>() {};
-        int positionsLength = positions?.Count ?? 0;
+        int positionsLength = getArrayLength(positions);
         for (int i = 0; isLessThan(i, positionsLength); postFixIncrement(ref i))
         {
             object p = getValue(positions, i);
@@ -4308,7 +4308,7 @@ public partial class myriad : PredictionExchange
             Int64? limit = this.safeInteger(this.options, "positionsLimit", 1000);
             this.positions = new ArrayCacheByOutcomeById(limit);
         }
-        string? networkId = this.safeString(data, "networkId");
+        object networkId = this.safeString(data, "networkId");
         string? marketId = this.safeString(data, "marketId");
         string? outcomeId = this.safeString(data, "outcome");
         string? sym = this.marketOutcomeToSymbol(networkId, marketId, outcomeId);
@@ -4324,7 +4324,7 @@ public partial class myriad : PredictionExchange
         }
         string? deltaShares = Precise.stringDiv(deltaStr, "1000000000000000000");
         double? contracts = null;
-        string? posId = null;
+        object posId = null;
         if (((networkId != null)) && ((marketId != null)) && ((outcomeId != null)))
         {
             posId = add(add(add(add(networkId, ":"), marketId), "/"), outcomeId);
@@ -4365,7 +4365,7 @@ public partial class myriad : PredictionExchange
         // the orders/positions channels are keyed by the lowercase trader address (Centrifugo channels
         // are case-sensitive); lowercase here so the channel matches regardless of the address checksum.
         // check length too: an unset walletAddress is an empty string (not undefined) in some languages
-        string address = this.walletAddress;
+        object address = this.walletAddress;
         bool hasWallet = ((address != null)) && (((string)this.walletAddress).Length > 0);
         if (!hasWallet)
         {
@@ -4375,7 +4375,7 @@ public partial class myriad : PredictionExchange
             }
             address = this.ethGetAddressFromPrivateKey(this.privateKey);
         }
-        return address.ToLower();
+        return ((string)address).ToLower();
     }
 
     public override object handleErrors(object code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)

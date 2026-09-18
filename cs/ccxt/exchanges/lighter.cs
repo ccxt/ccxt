@@ -773,11 +773,11 @@ public partial class lighter : Exchange
         object binaryMessageLength = this.binaryLength(binaryMessage);
         byte[] x19 = this.base16ToBinary("19");
         byte[] newline = this.base16ToBinary("0a");
-        object prefix = this.binaryConcat(x19, this.encode("Ethereum Signed Message:"), newline, this.encode(this.numberToString(binaryMessageLength)));
+        byte[] prefix = this.binaryConcat(x19, this.encode("Ethereum Signed Message:"), newline, this.encode(this.numberToString(binaryMessageLength)));
         return add("0x", this.hash(this.binaryConcat(prefix, binaryMessage), keccak, "hex"));
     }
 
-    public virtual object signHash(object hash, object privateKey)
+    public virtual string signHash(object hash, object privateKey)
     {
         this.checkRequiredCredentials();
         Dictionary<string, object> signature = ecdsa(slice(hash, -64, null), slice(privateKey, -64, null), secp256k1, null);
@@ -790,7 +790,7 @@ public partial class lighter : Exchange
     public virtual string? signL1AndPrepareTxInfo(object txInfo, object message, object privateKey)
     {
         object hashMessage = this.hashMessage(message);
-        object signature = this.signHash(hashMessage, privateKey);
+        string signature = this.signHash(hashMessage, privateKey);
         object decTxInfo = this.parseJson(txInfo);
         ((IDictionary<string,object>)decTxInfo)["L1Sig"] = signature;
         return this.json(decTxInfo);
@@ -1016,7 +1016,7 @@ public partial class lighter : Exchange
         string? amountScale = this.pow("10", GetValue(marketInfo, "size_decimals"));
         string? priceScale = this.pow("10", GetValue(marketInfo, "price_decimals"));
         string? triggerPriceStr = "0"; // default is 0
-        object defaultClientOrderId = this.randNumber(9); // c# only support int32 2147483647.
+        int defaultClientOrderId = this.randNumber(9); // c# only support int32 2147483647.
         Int64? clientOrderId = this.safeInteger2(parameters, "client_order_index", "clientOrderId", defaultClientOrderId);
         parameters = this.omit(parameters, new List<object>() {"reduceOnly", "reduce_only", "timeInForce", "postOnly", "nonce", "apiKeyIndex", "stopPrice", "triggerPrice", "stopLossPrice", "takeProfitPrice", "client_order_index", "clientOrderId"});
         if (isConditional)

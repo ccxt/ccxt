@@ -2222,8 +2222,8 @@ public partial class aster : Exchange
         string? marketId = this.safeString(contract, "symbol");
         Int64? nextFundingTimestamp = this.safeInteger(contract, "nextFundingTime");
         Int64? timestamp = this.safeInteger(contract, "time");
-        string? interval = this.safeString(contract, "fundingIntervalHours");
-        string? intervalString = null;
+        object interval = this.safeString(contract, "fundingIntervalHours");
+        object intervalString = null;
         if ((interval != null))
         {
             intervalString = add(interval, "h");
@@ -3141,7 +3141,7 @@ public partial class aster : Exchange
         }
         for (int i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
         {
-            IDictionary<string, object> rawOrder = ((IDictionary<string, object>)getValue(orders, i));
+            object rawOrder = getValue(orders, i);
             string? marketId = this.safeString(rawOrder, "symbol");
             Dictionary<string, object> currentMarket = this.market(marketId);
             ((IList<object>)orderSymbols).Add(GetValue(currentMarket, "symbol"));
@@ -4114,7 +4114,7 @@ public partial class aster : Exchange
         double? unrealizedPnl = this.parseNumber(unrealizedPnlString);
         string? liquidationPriceString = this.omitZero(this.safeString(position, "liquidationPrice"));
         double? liquidationPrice = this.parseNumber(liquidationPriceString);
-        string? collateralString = null;
+        object collateralString = null;
         string? marginMode = this.safeString(position, "marginType");
         if ((marginMode == null) && (isolatedMarginString != null))
         {
@@ -4413,7 +4413,7 @@ public partial class aster : Exchange
         market = this.safeMarket(marketId, market, null, "contract");
         string? symbol = this.safeString(market, "symbol");
         string? leverageString = this.safeString(position, "leverage");
-        Int64? leverage = ((Int64?)(((leverageString != null)) ? parseInt(leverageString) : null));
+        object leverage = ((leverageString != null)) ? parseInt(leverageString) : null;
         string? initialMarginString = this.safeString(position, "initialMargin");
         double? initialMargin = this.parseNumber(initialMarginString);
         string? initialMarginPercentageString = null;
@@ -4690,7 +4690,7 @@ public partial class aster : Exchange
         return add("0x", this.hash(message, keccak, "hex"));
     }
 
-    public virtual object signMessage(object message, object privateKey)
+    public virtual string signMessage(object message, object privateKey)
     {
         return this.signHash(this.keccakMessage(message), slice(privateKey, -64, null));
     }
@@ -4742,7 +4742,7 @@ public partial class aster : Exchange
             { "aster chain", "Mainnet" },
         };
         byte[] msg = this.ethEncodeStructuredData(domain, messageTypes, request);
-        object signature = this.signMessage(msg, this.privateKey);
+        string signature = this.signMessage(msg, this.privateKey);
         return signature;
     }
 
@@ -4762,10 +4762,10 @@ public partial class aster : Exchange
      */
     public async override Task<ccxt.Transaction> Withdraw(string code, double amount, string address, string tag = null, object parameters = null)
     {
-        string tagVar = tag;
+        object tagVar = tag;
         parameters ??= new Dictionary<string, object>();
         IList<object> tagparametersVariable = (IList<object>)this.handleWithdrawTagAndParams(tagVar, parameters);
-        tagVar = (string)tagparametersVariable[0];
+        tagVar = tagparametersVariable[0];
         parameters = tagparametersVariable[1];
         this.checkAddress(address);
         await this.loadMarketsAndSignIn();
@@ -4918,16 +4918,16 @@ public partial class aster : Exchange
         object binaryMessageLength = this.binaryLength(binaryMessage);
         byte[] x19 = this.base16ToBinary("19");
         byte[] newline = this.base16ToBinary("0a");
-        object prefix = this.binaryConcat(x19, this.encode("Ethereum Signed Message:"), newline, this.encode(this.numberToString(binaryMessageLength)));
+        byte[] prefix = this.binaryConcat(x19, this.encode("Ethereum Signed Message:"), newline, this.encode(this.numberToString(binaryMessageLength)));
         return add("0x", this.hash(this.binaryConcat(prefix, binaryMessage), keccak, "hex"));
     }
 
-    public virtual object signHash(object hash, object privateKey)
+    public virtual string signHash(object hash, object privateKey)
     {
         this.checkRequiredCredentials();
         Dictionary<string, object> signature = ecdsa(slice(hash, -64, null), slice(privateKey, -64, null), secp256k1, null);
-        string? r = ((string)GetValue(signature, "r"));
-        string? s = ((string)GetValue(signature, "s"));
+        object r = GetValue(signature, "r");
+        object s = GetValue(signature, "s");
         string v = this.intToBase16(this.sum(27, GetValue(signature, "v")));
         return add(add(add("0x", (r as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0"))), (s as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0"))), v);
     }
@@ -4952,7 +4952,7 @@ public partial class aster : Exchange
             string? zeroAddress = this.safeString(this.options, "zeroAddress", "0x0000000000000000000000000000000000000000");
             Int64? v3ChainId = this.safeInteger(this.options, "v3ChainId", 1666);
             string? walletAddress = this.safeString(this.options, "cachedWalletAddress");
-            object privateKeyHash = this.hash(this.encode(this.privateKey), keccak, "hex");
+            string privateKeyHash = ((string)this.hash(this.encode(this.privateKey), keccak, "hex"));
             string? cachedPrivateKeyHash = this.safeString(this.options, "privateKeyHashForCachedWalletAddress");
             if (((walletAddress == null)) || (!isEqual(cachedPrivateKeyHash, privateKeyHash)))
             {
@@ -5022,7 +5022,7 @@ public partial class aster : Exchange
                 };
             }
             byte[] encodedMessage = this.ethEncodeStructuredData(domain, messageTypes, paramsToEncode);
-            object signature = this.signMessage(encodedMessage, this.privateKey);
+            string signature = this.signMessage(encodedMessage, this.privateKey);
             object queryString = add(add(add(paramString, "&"), "signature="), signature);
             if (isEqual(method, "GET"))
             {

@@ -111,7 +111,7 @@ public partial class PredictionExchange : BaseExchange
         }
         List<object> extraScopeParams = this.safeList(this.options, "eventScopeParams", new List<object>() {});
         int extraScopeParamsLength = extraScopeParams.Count;
-        string extraNames = "";
+        object extraNames = "";
         for (int i = 0; isLessThan(i, extraScopeParamsLength); postFixIncrement(ref i))
         {
             object scopeKey = getValue(extraScopeParams, i);
@@ -288,15 +288,15 @@ public partial class PredictionExchange : BaseExchange
         // plain concatenation would create ("us open" vs "household")
         string lower = ((string)tag).ToLower();
         string allowed = "abcdefghijklmnopqrstuvwxyz0123456789";
-        object chars = this.stringToCharsArray(lower);
-        string s = "";
+        List<object> chars = this.stringToCharsArray(lower);
+        object s = "";
         bool pendingSep = false;
-        for (int i = 0; isLessThan(i, getArrayLength(chars)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, chars?.Count ?? 0); postFixIncrement(ref i))
         {
             string? ch = ((string)getValue(chars, i));
             if (getIndexOf(allowed, ch) >= 0)
             {
-                if (pendingSep && (s != ""))
+                if (pendingSep && (!isEqual(s, "")))
                 {
                     s = add(s, " ");
                 }
@@ -307,7 +307,7 @@ public partial class PredictionExchange : BaseExchange
                 pendingSep = true;
             }
         }
-        return s;
+        return ((string?)((object)(s)));
     }
 
     public virtual object filterEventsByTags(object events, object tags = null)
@@ -452,7 +452,7 @@ public partial class PredictionExchange : BaseExchange
         {
             return this.events;
         }
-        List<object> events = ccxt.BaseExchange.FromPredictionEventList(await this.FetchEvents(parameters));
+        object events = ccxt.BaseExchange.FromPredictionEventList(await this.FetchEvents(parameters));
         return this.setEvents(events);
     }
 
@@ -587,10 +587,10 @@ public partial class PredictionExchange : BaseExchange
         List<object> stopWords = new List<object>() {"will", "the", "a", "an", "after", "before", "in", "at", "by", "of", "there", "be", "to", "or", "and", "for", "on", "its", "that", "this", "from", "with", "as", "is", "are", "was", "were", "?", "how", "many", "who", "what", "when", "where", "which", "much"};
         string lower = (isEqual(slug, null)) ? "" : ((string)slug).ToLower();
         string allowed = "abcdefghijklmnopqrstuvwxyz0123456789";
-        object chars = this.stringToCharsArray(lower);
-        string s = "";
+        List<object> chars = this.stringToCharsArray(lower);
+        object s = "";
         bool lastDash = true; // start true to drop leading separators
-        for (int i = 0; isLessThan(i, getArrayLength(chars)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, chars?.Count ?? 0); postFixIncrement(ref i))
         {
             string? ch = ((string)getValue(chars, i));
             if (getIndexOf(allowed, ch) >= 0)
@@ -610,10 +610,10 @@ public partial class PredictionExchange : BaseExchange
             string? replacementValue = this.safeString(replacements, replacementKey);
             if ((replacementValue != null))
             {
-                s = s.Replace((string)replacementKey, (string)replacementValue);
+                s = ((string)s).Replace((string)replacementKey, (string)replacementValue);
             }
         }
-        List<object> rawParts = s.Split(new [] {"-"}, StringSplitOptions.None).ToList<object>();
+        List<object> rawParts = ((string)s).Split(new [] {"-"}, StringSplitOptions.None).ToList<object>();
         List<object> parts = new List<object>() {};
         for (int i = 0; isLessThan(i, rawParts.Count); postFixIncrement(ref i))
         {
@@ -661,15 +661,15 @@ public partial class PredictionExchange : BaseExchange
         }
         string upper = ((string)outcome).ToUpper();
         string allowed = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-        object chars = this.stringToCharsArray(upper);
-        string label = "";
+        List<object> chars = this.stringToCharsArray(upper);
+        object label = "";
         bool pendingSep = false;
-        for (int i = 0; isLessThan(i, getArrayLength(chars)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, chars?.Count ?? 0); postFixIncrement(ref i))
         {
             string? ch = ((string)getValue(chars, i));
             if (getIndexOf(allowed, ch) >= 0)
             {
-                if (pendingSep && (label != ""))
+                if (pendingSep && (!isEqual(label, "")))
                 {
                     label = add(label, "_");
                 }
@@ -680,7 +680,7 @@ public partial class PredictionExchange : BaseExchange
                 pendingSep = true;
             }
         }
-        if (label == "")
+        if (isEqual(label, ""))
         {
             // a label with no alphanumerics at all (unrealistic, but keep the :LABEL contract)
             label = upper;
@@ -976,8 +976,8 @@ public partial class PredictionExchange : BaseExchange
                 continue;
             }
             bool wordHasLetters = false;
-            object chars = this.stringToCharsArray(word);
-            for (int ci = 0; isLessThan(ci, getArrayLength(chars)); postFixIncrement(ref ci))
+            List<object> chars = this.stringToCharsArray(word);
+            for (int ci = 0; isLessThan(ci, chars?.Count ?? 0); postFixIncrement(ref ci))
             {
                 if (getIndexOf(letters, getValue(chars, ci)) >= 0)
                 {
@@ -1509,7 +1509,7 @@ public partial class PredictionExchange : BaseExchange
             }
             for (int i = 0; isLessThan(i, tradesLength); postFixIncrement(ref i))
             {
-                IDictionary<string, object> trade = ((IDictionary<string, object>)getValue(trades, i));
+                object trade = getValue(trades, i);
                 string? tradeAmount = this.safeString(trade, "amount");
                 if ((tradeAmount != null))
                 {
@@ -1877,7 +1877,7 @@ public partial class PredictionExchange : BaseExchange
      * @param {object} [params] extra fields to merge into every parsed position
      * @returns {object[]} a list of prediction [position structures](https://docs.ccxt.com/#/?id=position-structure)
      */
-    public virtual List<object> parsePredictionPositions(object positions, object parameters = null)
+    public virtual object parsePredictionPositions(object positions, object parameters = null)
     {
         // prediction-market analogue of the base parsePositions, which resolves its `symbols`
         // argument through marketSymbols() and would throw BadSymbol on outcome handles.
@@ -1904,7 +1904,7 @@ public partial class PredictionExchange : BaseExchange
     public virtual object filterByOutcomesSinceLimit(object array, object outcomes = null, object since = null, object limit = null, object tail = null)
     {
         tail ??= false;
-        IList<object> result = ((IList<object>)this.filterByArray(array, "outcome", outcomes, false));
+        object result = this.filterByArray(array, "outcome", outcomes, false);
         return this.filterBySinceLimit(result, since, limit, "timestamp", tail);
     }
 
@@ -1958,7 +1958,7 @@ public partial class PredictionExchange : BaseExchange
             return "";
         }
         // left-pads a 20-byte address to a 32-byte ABI word (24 leading zero bytes)
-        string stripped = this.remove0xPrefix(address);
+        object stripped = this.remove0xPrefix(address);
         return add("000000000000000000000000", stripped);
     }
 
@@ -2030,7 +2030,7 @@ public partial class PredictionExchange : BaseExchange
         {
             return "";
         }
-        string? h = this.remove0xPrefix(hexValue);
+        object h = this.remove0xPrefix(hexValue);
         object start = 0;
         int total = getArrayLength(h);
         while ((isLessThan(start, total)) && (isEqual(slice(h, start, add(start, 1)), "0")))
@@ -2038,12 +2038,12 @@ public partial class PredictionExchange : BaseExchange
             start = add(start, 1);
         }
         h = slice(h, start, null);
-        if (h == "")
+        if (isEqual(h, ""))
         {
             return "";
         }
         h = this.padHexToEven(h);
-        return h;
+        return ((string?)((object)(h)));
     }
 
     // eslint-disable-next-line no-unused-vars

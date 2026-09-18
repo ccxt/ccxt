@@ -8642,7 +8642,7 @@ public partial class gate : Exchange
                 body = this.json(query);
             }
             object bodyPayload = (isEqual(body, null)) ? "" : body;
-            object bodySignature = this.hash(this.encode(bodyPayload), sha512);
+            string bodySignature = ((string)this.hash(this.encode(bodyPayload), sha512));
             Int64 nonce = this.nonce();
             Int64? timestamp = this.parseToInt(divide(nonce, 1000));
             string timestampString = ((object)timestamp).ToString();

@@ -2721,7 +2721,7 @@ public partial class upbit : Exchange
             }
             if ((auth != null))
             {
-                object hash = this.hash(this.encode(auth), sha512);
+                string hash = ((string)this.hash(this.encode(auth), sha512));
                 request["query_hash"] = hash;
                 request["query_hash_alg"] = "SHA512";
             }

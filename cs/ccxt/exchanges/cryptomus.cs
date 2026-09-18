@@ -582,7 +582,7 @@ public partial class cryptomus : Exchange
         //
         string? marketId = this.safeString(ticker, "currency_pair");
         market = this.safeMarket(marketId, market);
-        string? symbol = ((string)getValue(market, "symbol"));
+        object symbol = getValue(market, "symbol");
         string? last = this.safeString(ticker, "last_price");
         return this.safeTicker(new Dictionary<string, object>() {
             { "symbol", symbol },
@@ -837,20 +837,20 @@ public partial class cryptomus : Exchange
         bool sideBuy = isEqual(side, "buy");
         string? amountToString = this.numberToString(amount);
         string? priceToString = this.numberToString(price);
-        string? cost = null;
+        object cost = null;
         IList<object> costparametersVariable = (IList<object>)this.handleParamString(parameters, "cost");
-        cost = (string)costparametersVariable[0];
+        cost = costparametersVariable[0];
         parameters = costparametersVariable[1];
         Dictionary<string, object> response = null;
         if (isEqual(type, "market"))
         {
             if (sideBuy)
             {
-                bool? createMarketBuyOrderRequiresPrice = true;
+                object createMarketBuyOrderRequiresPrice = true;
                 IList<object> createMarketBuyOrderRequiresPriceparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "createOrder", "createMarketBuyOrderRequiresPrice", true);
-                createMarketBuyOrderRequiresPrice = (bool?)createMarketBuyOrderRequiresPriceparametersVariable[0];
+                createMarketBuyOrderRequiresPrice = createMarketBuyOrderRequiresPriceparametersVariable[0];
                 parameters = createMarketBuyOrderRequiresPriceparametersVariable[1];
-                if (createMarketBuyOrderRequiresPrice == true)
+                if (isTrue(createMarketBuyOrderRequiresPrice))
                 {
                     if ((isEqual(price, null)) && ((cost == null)))
                     {
@@ -861,7 +861,7 @@ public partial class cryptomus : Exchange
                     }
                 } else
                 {
-                    cost = ((cost != null) && cost != "") ? cost : amountToString;
+                    cost = ((cost != null) && !isEqual(cost, "")) ? cost : amountToString;
                 }
                 request["value"] = cost;
             } else
@@ -1326,7 +1326,7 @@ public partial class cryptomus : Exchange
             }
             string jsonParamsBase64 = this.stringToBase64(jsonParams);
             string stringToSign = add(jsonParamsBase64, this.secret);
-            object signature = this.hash(this.encode(stringToSign), md5);
+            string signature = ((string)this.hash(this.encode(stringToSign), md5));
             ((IDictionary<string,object>)headers)["sign"] = signature;
         } else
         {

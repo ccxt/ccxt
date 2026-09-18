@@ -3112,7 +3112,7 @@ public partial class modetrade : Exchange
         return add("0x", this.hash(message, keccak, "hex"));
     }
 
-    public virtual object signHash(object hash, object privateKey)
+    public virtual string signHash(object hash, object privateKey)
     {
         Dictionary<string, object> signature = ecdsa(slice(hash, -64, null), slice(privateKey, -64, null), secp256k1, null);
         string? r = ((string)GetValue(signature, "r"));
@@ -3121,7 +3121,7 @@ public partial class modetrade : Exchange
         return add(add(add("0x", (r as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0"))), (s as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0"))), v);
     }
 
-    public virtual object signMessage(object message, object privateKey)
+    public virtual string signMessage(object message, object privateKey)
     {
         return this.signHash(this.hashMessage(message), slice(privateKey, -64, null));
     }
@@ -3207,7 +3207,7 @@ public partial class modetrade : Exchange
             { "timestamp", nonce },
         };
         byte[] msg = this.ethEncodeStructuredData(domain, messageTypes, withdrawRequest);
-        object signature = this.signMessage(msg, this.privateKey);
+        string signature = this.signMessage(msg, this.privateKey);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "signature", signature },
             { "userAddress", address },
