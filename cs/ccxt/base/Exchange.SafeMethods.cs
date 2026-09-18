@@ -41,11 +41,14 @@ public partial class BaseExchange
 
     ////////////////////////////////////////////////////////
 
-    public object safeTimestampN(object obj, List<object> keys, object defaultValue = null)
+    // Int64? : all three value paths compute Convert.ToInt64 (...) (an Int64 box), and the
+    // fallback hands back the caller's default — the only non-null default in the tree is
+    // woo's `this.safeInteger (...)`, an Int64? box
+    public Int64? safeTimestampN(object obj, List<object> keys, object defaultValue = null)
     {
         var result = safeValueN(obj, keys, defaultValue);
         if (result == null)
-            return defaultValue;
+            return (defaultValue == null) ? (Int64?)null : Convert.ToInt64(defaultValue, CultureInfo.InvariantCulture);
         if (result is string && ((string)result).IndexOf(".") > -1)
         {
             return Convert.ToInt64(Convert.ToDouble(result, CultureInfo.InvariantCulture) * 1000);
@@ -62,12 +65,12 @@ public partial class BaseExchange
         return Convert.ToInt64(result, CultureInfo.InvariantCulture.NumberFormat) * 1000;
     }
 
-    public object safeTimestamp(object obj, object key, object defaultValue = null)
+    public Int64? safeTimestamp(object obj, object key, object defaultValue = null)
     {
         return safeTimestampN(obj, new List<object> { key }, defaultValue);
     }
 
-    public object safeTimestamp2(object obj, object key1, object key2, object defaultValue = null)
+    public Int64? safeTimestamp2(object obj, object key1, object key2, object defaultValue = null)
     {
         return safeTimestampN(obj, new List<object> { key1, key2 }, defaultValue);
     }

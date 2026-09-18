@@ -14,7 +14,7 @@ func testFetchPositionsBody(ch chan any, exchange ccxt.ICoreExchange, skippedPro
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var method string = "fetchPositions"
-	var now any = exchange.Milliseconds()
+	var now int64 = exchange.Milliseconds()
 	// without symbol
 
 	positions := (<-exchange.(ccxt.IFetchPositions).FetchPositionsAsync())

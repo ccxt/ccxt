@@ -17,7 +17,7 @@ public class TestFetchPositions extends BaseTest {
     public CompletableFuture<Object> testFetchPositions(BaseExchange exchange, Object skippedProperties, Object symbol)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
         String method = "fetchPositions";
         Object now = exchange.milliseconds();

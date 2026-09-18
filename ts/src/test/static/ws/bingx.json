@@ -3,7 +3,1115 @@
     "skipKeys": [],
     "options": {},
     "methods": {
+        "watchMyTrades": [
+            {
+                "description": "linear swap final execution uses last fill instead of order or cumulative values",
+                "input": [
+                    "LTC/USDT:USDT"
+                ],
+                "url": "wss://open-api-swap.bingx.com/swap-market?listenKey=test-listen-key",
+                "options": {
+                    "listenKey": "test-listen-key",
+                    "lastAuthenticatedTime": 9999999999999
+                },
+                "messages": [
+                    {
+                        "e": "ORDER_TRADE_UPDATE",
+                        "E": 1720000000001,
+                        "o": {
+                            "s": "LTC-USDT",
+                            "c": "offline-last-fill",
+                            "i": "230000000000000001",
+                            "S": "BUY",
+                            "o": "LIMIT",
+                            "q": "5",
+                            "p": "100",
+                            "ap": "98",
+                            "x": "TRADE",
+                            "X": "FILLED",
+                            "l": "2",
+                            "z": "5",
+                            "L": "105",
+                            "N": "USDT",
+                            "n": "-0.21",
+                            "T": 1720000000000,
+                            "t": "9007199254741003",
+                            "m": false,
+                            "ps": "LONG",
+                            "rp": "0"
+                        }
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "id": "9007199254741003",
+                        "info": {
+                            "s": "LTC-USDT",
+                            "c": "offline-last-fill",
+                            "i": "230000000000000001",
+                            "S": "BUY",
+                            "o": "LIMIT",
+                            "q": "5",
+                            "p": "100",
+                            "ap": "98",
+                            "x": "TRADE",
+                            "X": "FILLED",
+                            "l": "2",
+                            "z": "5",
+                            "L": "105",
+                            "N": "USDT",
+                            "n": "-0.21",
+                            "T": 1720000000000,
+                            "t": "9007199254741003",
+                            "m": false,
+                            "ps": "LONG",
+                            "rp": "0"
+                        },
+                        "timestamp": 1720000000000,
+                        "datetime": "2024-07-03T09:46:40.000Z",
+                        "symbol": "LTC/USDT:USDT",
+                        "order": "230000000000000001",
+                        "type": "limit",
+                        "side": "buy",
+                        "takerOrMaker": "taker",
+                        "price": 105,
+                        "amount": 2,
+                        "cost": 210,
+                        "fee": {
+                            "cost": 0.21,
+                            "currency": "USDT"
+                        },
+                        "fees": [
+                            {
+                                "cost": 0.21,
+                                "currency": "USDT"
+                            }
+                        ]
+                    }
+                ]
+            },
+            {
+                "description": "linear swap market execution uses numeric last fill fields with zero order price",
+                "input": [
+                    "LTC/USDT:USDT"
+                ],
+                "url": "wss://open-api-swap.bingx.com/swap-market?listenKey=test-listen-key",
+                "options": {
+                    "listenKey": "test-listen-key",
+                    "lastAuthenticatedTime": 9999999999999
+                },
+                "messages": [
+                    {
+                        "e": "ORDER_TRADE_UPDATE",
+                        "E": 1720000000001,
+                        "o": {
+                            "s": "LTC-USDT",
+                            "c": "offline-last-fill",
+                            "i": "230000000000000001",
+                            "S": "BUY",
+                            "o": "MARKET",
+                            "q": 0,
+                            "p": 0,
+                            "ap": 90,
+                            "x": "TRADE",
+                            "X": "FILLED",
+                            "l": 1,
+                            "z": 1,
+                            "L": 90,
+                            "N": "USDT",
+                            "n": "-0.21",
+                            "T": 1720000000000,
+                            "t": "9007199254741004",
+                            "m": false,
+                            "ps": "LONG",
+                            "rp": "0"
+                        }
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "id": "9007199254741004",
+                        "info": {
+                            "s": "LTC-USDT",
+                            "c": "offline-last-fill",
+                            "i": "230000000000000001",
+                            "S": "BUY",
+                            "o": "MARKET",
+                            "q": 0,
+                            "p": 0,
+                            "ap": 90,
+                            "x": "TRADE",
+                            "X": "FILLED",
+                            "l": 1,
+                            "z": 1,
+                            "L": 90,
+                            "N": "USDT",
+                            "n": "-0.21",
+                            "T": 1720000000000,
+                            "t": "9007199254741004",
+                            "m": false,
+                            "ps": "LONG",
+                            "rp": "0"
+                        },
+                        "timestamp": 1720000000000,
+                        "datetime": "2024-07-03T09:46:40.000Z",
+                        "symbol": "LTC/USDT:USDT",
+                        "order": "230000000000000001",
+                        "type": "market",
+                        "side": "buy",
+                        "takerOrMaker": "taker",
+                        "price": 90,
+                        "amount": 1,
+                        "cost": 90,
+                        "fee": {
+                            "cost": 0.21,
+                            "currency": "USDT"
+                        },
+                        "fees": [
+                            {
+                                "cost": 0.21,
+                                "currency": "USDT"
+                            }
+                        ]
+                    }
+                ]
+            },
+            {
+                "description": "linear swap legacy execution without last fill fields preserves parsing",
+                "input": [
+                    "LTC/USDT:USDT"
+                ],
+                "url": "wss://open-api-swap.bingx.com/swap-market?listenKey=test-listen-key",
+                "options": {
+                    "listenKey": "test-listen-key",
+                    "lastAuthenticatedTime": 9999999999999
+                },
+                "messages": [
+                    {
+                        "e": "ORDER_TRADE_UPDATE",
+                        "E": 1720000000001,
+                        "o": {
+                            "s": "LTC-USDT",
+                            "c": "offline-last-fill",
+                            "i": "230000000000000001",
+                            "S": "BUY",
+                            "o": "LIMIT",
+                            "q": "0.10000000",
+                            "p": "64.35010000",
+                            "ap": "64.36000000",
+                            "x": "TRADE",
+                            "X": "FILLED",
+                            "z": "0.10000000",
+                            "N": "USDT",
+                            "n": "-0.21",
+                            "T": 1720000000000,
+                            "t": "9007199254741005",
+                            "m": false,
+                            "ps": "LONG",
+                            "rp": "0"
+                        }
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "id": "9007199254741005",
+                        "info": {
+                            "s": "LTC-USDT",
+                            "c": "offline-last-fill",
+                            "i": "230000000000000001",
+                            "S": "BUY",
+                            "o": "LIMIT",
+                            "q": "0.10000000",
+                            "p": "64.35010000",
+                            "ap": "64.36000000",
+                            "x": "TRADE",
+                            "X": "FILLED",
+                            "z": "0.10000000",
+                            "N": "USDT",
+                            "n": "-0.21",
+                            "T": 1720000000000,
+                            "t": "9007199254741005",
+                            "m": false,
+                            "ps": "LONG",
+                            "rp": "0"
+                        },
+                        "timestamp": 1720000000000,
+                        "datetime": "2024-07-03T09:46:40.000Z",
+                        "symbol": "LTC/USDT:USDT",
+                        "order": "230000000000000001",
+                        "type": "limit",
+                        "side": "buy",
+                        "takerOrMaker": "taker",
+                        "price": 64.3501,
+                        "amount": 0.1,
+                        "cost": 6.43501,
+                        "fee": {
+                            "cost": 0.21,
+                            "currency": "USDT"
+                        },
+                        "fees": [
+                            {
+                                "cost": 0.21,
+                                "currency": "USDT"
+                            }
+                        ]
+                    }
+                ]
+            },
+            {
+                "description": "spot partial execution uses last fill fields",
+                "input": [
+                    "BTC/USDT"
+                ],
+                "url": "wss://open-api-ws.bingx.com/market?listenKey=test-listen-key",
+                "options": {
+                    "listenKey": "test-listen-key",
+                    "lastAuthenticatedTime": 9999999999999
+                },
+                "messages": [
+                    {
+                        "code": 0,
+                        "dataType": "spot.executionReport",
+                        "data": {
+                            "e": "executionReport",
+                            "E": 1720000000010,
+                            "s": "BTC-USDT",
+                            "S": "BUY",
+                            "o": "LIMIT",
+                            "q": "0.0005",
+                            "p": "60000",
+                            "x": "TRADE",
+                            "X": "PARTIALLY_FILLED",
+                            "i": "1702245001712369664",
+                            "l": "0.0001",
+                            "z": "0.0003",
+                            "L": "59000",
+                            "n": "-0.0000001",
+                            "N": "BTC",
+                            "T": 1720000000000,
+                            "t": "101",
+                            "O": 1719999999000,
+                            "Z": "17.9",
+                            "Y": "5.9",
+                            "Q": "0",
+                            "m": false
+                        }
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "id": "fixture-id",
+                        "reqType": "sub",
+                        "dataType": "spot.executionReport"
+                    }
+                ],
+                "sentSkipKeys": [
+                    "id"
+                ],
+                "parsedResponse": [
+                    {
+                        "id": "101",
+                        "info": {
+                            "e": "executionReport",
+                            "E": 1720000000010,
+                            "s": "BTC-USDT",
+                            "S": "BUY",
+                            "o": "LIMIT",
+                            "q": "0.0005",
+                            "p": "60000",
+                            "x": "TRADE",
+                            "X": "PARTIALLY_FILLED",
+                            "i": "1702245001712369664",
+                            "l": "0.0001",
+                            "z": "0.0003",
+                            "L": "59000",
+                            "n": "-0.0000001",
+                            "N": "BTC",
+                            "T": 1720000000000,
+                            "t": "101",
+                            "O": 1719999999000,
+                            "Z": "17.9",
+                            "Y": "5.9",
+                            "Q": "0",
+                            "m": false
+                        },
+                        "timestamp": 1720000000000,
+                        "datetime": "2024-07-03T09:46:40.000Z",
+                        "symbol": "BTC/USDT",
+                        "order": "1702245001712369664",
+                        "type": "limit",
+                        "side": "buy",
+                        "takerOrMaker": "taker",
+                        "price": 59000,
+                        "amount": 0.0001,
+                        "cost": 5.9,
+                        "fee": {
+                            "cost": 1e-7,
+                            "currency": "BTC"
+                        },
+                        "fees": [
+                            {
+                                "cost": 1e-7,
+                                "currency": "BTC"
+                            }
+                        ]
+                    }
+                ]
+            },
+            {
+                "description": "spot final execution excludes earlier fills",
+                "input": [
+                    "BTC/USDT"
+                ],
+                "url": "wss://open-api-ws.bingx.com/market?listenKey=test-listen-key",
+                "options": {
+                    "listenKey": "test-listen-key",
+                    "lastAuthenticatedTime": 9999999999999
+                },
+                "messages": [
+                    {
+                        "code": 0,
+                        "dataType": "spot.executionReport",
+                        "data": {
+                            "e": "executionReport",
+                            "E": 1720000000010,
+                            "s": "BTC-USDT",
+                            "S": "BUY",
+                            "o": "LIMIT",
+                            "q": "0.0005",
+                            "p": "60000",
+                            "x": "TRADE",
+                            "X": "FILLED",
+                            "i": "1702245001712369664",
+                            "l": "0.0002",
+                            "z": "0.0005",
+                            "L": "58000",
+                            "n": "-0.0000001",
+                            "N": "BTC",
+                            "T": 1720000000000,
+                            "t": "102",
+                            "O": 1719999999000,
+                            "Z": "29.5",
+                            "Y": "11.6",
+                            "Q": "0",
+                            "m": false
+                        }
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "id": "fixture-id",
+                        "reqType": "sub",
+                        "dataType": "spot.executionReport"
+                    }
+                ],
+                "sentSkipKeys": [
+                    "id"
+                ],
+                "parsedResponse": [
+                    {
+                        "id": "102",
+                        "info": {
+                            "e": "executionReport",
+                            "E": 1720000000010,
+                            "s": "BTC-USDT",
+                            "S": "BUY",
+                            "o": "LIMIT",
+                            "q": "0.0005",
+                            "p": "60000",
+                            "x": "TRADE",
+                            "X": "FILLED",
+                            "i": "1702245001712369664",
+                            "l": "0.0002",
+                            "z": "0.0005",
+                            "L": "58000",
+                            "n": "-0.0000001",
+                            "N": "BTC",
+                            "T": 1720000000000,
+                            "t": "102",
+                            "O": 1719999999000,
+                            "Z": "29.5",
+                            "Y": "11.6",
+                            "Q": "0",
+                            "m": false
+                        },
+                        "timestamp": 1720000000000,
+                        "datetime": "2024-07-03T09:46:40.000Z",
+                        "symbol": "BTC/USDT",
+                        "order": "1702245001712369664",
+                        "type": "limit",
+                        "side": "buy",
+                        "takerOrMaker": "taker",
+                        "price": 58000,
+                        "amount": 0.0002,
+                        "cost": 11.6,
+                        "fee": {
+                            "cost": 1e-7,
+                            "currency": "BTC"
+                        },
+                        "fees": [
+                            {
+                                "cost": 1e-7,
+                                "currency": "BTC"
+                            }
+                        ]
+                    }
+                ]
+            },
+            {
+                "description": "spot market execution with zero original quantity",
+                "input": [
+                    "BTC/USDT"
+                ],
+                "url": "wss://open-api-ws.bingx.com/market?listenKey=test-listen-key",
+                "options": {
+                    "listenKey": "test-listen-key",
+                    "lastAuthenticatedTime": 9999999999999
+                },
+                "messages": [
+                    {
+                        "code": 0,
+                        "dataType": "spot.executionReport",
+                        "data": {
+                            "e": "executionReport",
+                            "E": 1720000000010,
+                            "s": "BTC-USDT",
+                            "S": "BUY",
+                            "o": "MARKET",
+                            "q": 0,
+                            "p": "60000",
+                            "x": "TRADE",
+                            "X": "FILLED",
+                            "i": "1702245001712369664",
+                            "l": 0.0002,
+                            "z": 0.0002,
+                            "L": 59000,
+                            "n": "-0.0000001",
+                            "N": "BTC",
+                            "T": 1720000000000,
+                            "t": "103",
+                            "O": 1719999999000,
+                            "Z": 11.8,
+                            "Y": 11.8,
+                            "Q": "0",
+                            "m": false
+                        }
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "id": "fixture-id",
+                        "reqType": "sub",
+                        "dataType": "spot.executionReport"
+                    }
+                ],
+                "sentSkipKeys": [
+                    "id"
+                ],
+                "parsedResponse": [
+                    {
+                        "id": "103",
+                        "info": {
+                            "e": "executionReport",
+                            "E": 1720000000010,
+                            "s": "BTC-USDT",
+                            "S": "BUY",
+                            "o": "MARKET",
+                            "q": 0,
+                            "p": "60000",
+                            "x": "TRADE",
+                            "X": "FILLED",
+                            "i": "1702245001712369664",
+                            "l": 0.0002,
+                            "z": 0.0002,
+                            "L": 59000,
+                            "n": "-0.0000001",
+                            "N": "BTC",
+                            "T": 1720000000000,
+                            "t": "103",
+                            "O": 1719999999000,
+                            "Z": 11.8,
+                            "Y": 11.8,
+                            "Q": "0",
+                            "m": false
+                        },
+                        "timestamp": 1720000000000,
+                        "datetime": "2024-07-03T09:46:40.000Z",
+                        "symbol": "BTC/USDT",
+                        "order": "1702245001712369664",
+                        "type": "market",
+                        "side": "buy",
+                        "takerOrMaker": "taker",
+                        "price": 59000,
+                        "amount": 0.0002,
+                        "cost": 11.8,
+                        "fee": {
+                            "cost": 1e-7,
+                            "currency": "BTC"
+                        },
+                        "fees": [
+                            {
+                                "cost": 1e-7,
+                                "currency": "BTC"
+                            }
+                        ]
+                    }
+                ]
+            }
+        ],
+        "watchOrders": [
+            {
+                "description": "spot partial order uses cumulative quote amount instead of limit price or last fill",
+                "input": [
+                    "LTC/USDT",
+                    null,
+                    null,
+                    {
+                        "type": "spot"
+                    }
+                ],
+                "url": "wss://open-api-ws.bingx.com/market?listenKey=offline-spot-order-cost",
+                "options": {
+                    "listenKey": "offline-spot-order-cost",
+                    "lastAuthenticatedTime": 9999999999999
+                },
+                "messages": [
+                    {
+                        "code": 0,
+                        "dataType": "spot.executionReport",
+                        "data": {
+                            "e": "executionReport",
+                            "E": 1720000000020,
+                            "s": "LTC-USDT",
+                            "S": "BUY",
+                            "o": "LIMIT",
+                            "q": "5",
+                            "p": "110",
+                            "x": "TRADE",
+                            "X": "PARTIALLY_FILLED",
+                            "i": "230000000000000001",
+                            "l": "2",
+                            "z": "3",
+                            "L": "96",
+                            "n": "0",
+                            "N": "USDT",
+                            "T": 1720000000020,
+                            "t": "102",
+                            "Z": "282",
+                            "Y": "192"
+                        }
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "e": "executionReport",
+                            "E": 1720000000020,
+                            "s": "LTC-USDT",
+                            "S": "BUY",
+                            "o": "LIMIT",
+                            "q": "5",
+                            "p": "110",
+                            "x": "TRADE",
+                            "X": "PARTIALLY_FILLED",
+                            "i": "230000000000000001",
+                            "l": "2",
+                            "z": "3",
+                            "L": "96",
+                            "n": "0",
+                            "N": "USDT",
+                            "T": 1720000000020,
+                            "t": "102",
+                            "Z": "282",
+                            "Y": "192"
+                        },
+                        "id": "230000000000000001",
+                        "clientOrderId": null,
+                        "symbol": "LTC/USDT",
+                        "timestamp": 1720000000020,
+                        "datetime": "2024-07-03T09:46:40.020Z",
+                        "lastTradeTimestamp": 1720000000020,
+                        "lastUpdateTimestamp": null,
+                        "type": "limit",
+                        "timeInForce": null,
+                        "postOnly": null,
+                        "side": "buy",
+                        "price": 110,
+                        "triggerPrice": null,
+                        "stopLossPrice": null,
+                        "takeProfitPrice": null,
+                        "average": 94,
+                        "cost": 282,
+                        "amount": 5,
+                        "filled": 3,
+                        "remaining": 2,
+                        "status": "open",
+                        "fee": {
+                            "currency": "USDT",
+                            "cost": "0"
+                        },
+                        "trades": [],
+                        "reduceOnly": null,
+                        "fees": [
+                            {
+                                "currency": "USDT",
+                                "cost": 0
+                            }
+                        ],
+                        "stopPrice": null
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "id": "offline-id",
+                        "reqType": "sub",
+                        "dataType": "spot.executionReport"
+                    }
+                ],
+                "sentSkipKeys": [
+                    "id"
+                ]
+            },
+            {
+                "description": "spot canceled order preserves numeric cumulative quote amount with no last fill",
+                "input": [
+                    "LTC/USDT",
+                    null,
+                    null,
+                    {
+                        "type": "spot"
+                    }
+                ],
+                "url": "wss://open-api-ws.bingx.com/market?listenKey=offline-spot-order-cost",
+                "options": {
+                    "listenKey": "offline-spot-order-cost",
+                    "lastAuthenticatedTime": 9999999999999
+                },
+                "messages": [
+                    {
+                        "code": 0,
+                        "dataType": "spot.executionReport",
+                        "data": {
+                            "e": "executionReport",
+                            "E": 1720000000020,
+                            "s": "LTC-USDT",
+                            "S": "BUY",
+                            "o": "LIMIT",
+                            "q": "5",
+                            "p": "110",
+                            "x": "CANCELED",
+                            "X": "CANCELED",
+                            "i": "230000000000000001",
+                            "l": "0",
+                            "z": 3,
+                            "L": "0",
+                            "n": "0",
+                            "N": "USDT",
+                            "T": 1720000000020,
+                            "t": "-1",
+                            "Z": 282,
+                            "Y": "0"
+                        }
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "e": "executionReport",
+                            "E": 1720000000020,
+                            "s": "LTC-USDT",
+                            "S": "BUY",
+                            "o": "LIMIT",
+                            "q": "5",
+                            "p": "110",
+                            "x": "CANCELED",
+                            "X": "CANCELED",
+                            "i": "230000000000000001",
+                            "l": "0",
+                            "z": 3,
+                            "L": "0",
+                            "n": "0",
+                            "N": "USDT",
+                            "T": 1720000000020,
+                            "t": "-1",
+                            "Z": 282,
+                            "Y": "0"
+                        },
+                        "id": "230000000000000001",
+                        "clientOrderId": null,
+                        "symbol": "LTC/USDT",
+                        "timestamp": 1720000000020,
+                        "datetime": "2024-07-03T09:46:40.020Z",
+                        "lastTradeTimestamp": 1720000000020,
+                        "lastUpdateTimestamp": null,
+                        "type": "limit",
+                        "timeInForce": null,
+                        "postOnly": null,
+                        "side": "buy",
+                        "price": 110,
+                        "triggerPrice": null,
+                        "stopLossPrice": null,
+                        "takeProfitPrice": null,
+                        "average": 94,
+                        "cost": 282,
+                        "amount": 5,
+                        "filled": 3,
+                        "remaining": 2,
+                        "status": "canceled",
+                        "fee": {
+                            "currency": "USDT",
+                            "cost": "0"
+                        },
+                        "trades": [],
+                        "reduceOnly": null,
+                        "fees": [
+                            {
+                                "currency": "USDT",
+                                "cost": 0
+                            }
+                        ],
+                        "stopPrice": null
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "id": "offline-id",
+                        "reqType": "sub",
+                        "dataType": "spot.executionReport"
+                    }
+                ],
+                "sentSkipKeys": [
+                    "id"
+                ]
+            },
+            {
+                "description": "spot filled market order derives price and average from cumulative quote amount",
+                "input": [
+                    "LTC/USDT",
+                    null,
+                    null,
+                    {
+                        "type": "spot"
+                    }
+                ],
+                "url": "wss://open-api-ws.bingx.com/market?listenKey=offline-spot-order-cost",
+                "options": {
+                    "listenKey": "offline-spot-order-cost",
+                    "lastAuthenticatedTime": 9999999999999
+                },
+                "messages": [
+                    {
+                        "code": 0,
+                        "dataType": "spot.executionReport",
+                        "data": {
+                            "e": "executionReport",
+                            "E": 1720000000020,
+                            "s": "LTC-USDT",
+                            "S": "BUY",
+                            "o": "MARKET",
+                            "q": "5",
+                            "p": "0",
+                            "x": "TRADE",
+                            "X": "FILLED",
+                            "i": "230000000000000001",
+                            "l": "2",
+                            "z": "5",
+                            "L": "104",
+                            "n": "0",
+                            "N": "USDT",
+                            "T": 1720000000020,
+                            "t": "103",
+                            "Z": "490",
+                            "Y": "208"
+                        }
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "e": "executionReport",
+                            "E": 1720000000020,
+                            "s": "LTC-USDT",
+                            "S": "BUY",
+                            "o": "MARKET",
+                            "q": "5",
+                            "p": "0",
+                            "x": "TRADE",
+                            "X": "FILLED",
+                            "i": "230000000000000001",
+                            "l": "2",
+                            "z": "5",
+                            "L": "104",
+                            "n": "0",
+                            "N": "USDT",
+                            "T": 1720000000020,
+                            "t": "103",
+                            "Z": "490",
+                            "Y": "208"
+                        },
+                        "id": "230000000000000001",
+                        "clientOrderId": null,
+                        "symbol": "LTC/USDT",
+                        "timestamp": 1720000000020,
+                        "datetime": "2024-07-03T09:46:40.020Z",
+                        "lastTradeTimestamp": 1720000000020,
+                        "lastUpdateTimestamp": null,
+                        "type": "market",
+                        "timeInForce": "IOC",
+                        "postOnly": null,
+                        "side": "buy",
+                        "price": 98,
+                        "triggerPrice": null,
+                        "stopLossPrice": null,
+                        "takeProfitPrice": null,
+                        "average": 98,
+                        "cost": 490,
+                        "amount": 5,
+                        "filled": 5,
+                        "remaining": 0,
+                        "status": "closed",
+                        "fee": {
+                            "currency": "USDT",
+                            "cost": "0"
+                        },
+                        "trades": [],
+                        "reduceOnly": null,
+                        "fees": [
+                            {
+                                "currency": "USDT",
+                                "cost": 0
+                            }
+                        ],
+                        "stopPrice": null
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "id": "offline-id",
+                        "reqType": "sub",
+                        "dataType": "spot.executionReport"
+                    }
+                ],
+                "sentSkipKeys": [
+                    "id"
+                ]
+            }
+        ],
         "watchTicker": [
+            {
+                "description": "inverse ticker uses coin volume",
+                "input": [
+                    "BTC/USD:BTC"
+                ],
+                "url": "wss://open-api-cswap-ws.bingx.com/market",
+                "messages": [
+                    {
+                        "code": 0,
+                        "dataType": "BTC-USD@ticker",
+                        "data": {
+                            "s": "BTC-USD",
+                            "c": "50000",
+                            "o": "50000",
+                            "h": "51000",
+                            "l": "49000",
+                            "p": "0",
+                            "C": "1699071702130",
+                            "v": "1000",
+                            "m": "2",
+                            "q": "100000"
+                        }
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "id": "offline-coinm-ticker",
+                        "dataType": "BTC-USD@ticker",
+                        "reqType": "sub"
+                    }
+                ],
+                "parsedResponses": [
+                    {
+                        "symbol": "BTC/USD:BTC",
+                        "timestamp": 1699071702130,
+                        "datetime": "2023-11-04T04:21:42.130Z",
+                        "high": 51000,
+                        "low": 49000,
+                        "bid": null,
+                        "bidVolume": null,
+                        "ask": null,
+                        "askVolume": null,
+                        "vwap": 50000,
+                        "open": 50000,
+                        "close": 50000,
+                        "last": 50000,
+                        "previousClose": null,
+                        "change": 0,
+                        "percentage": 0,
+                        "average": 50000,
+                        "baseVolume": 2,
+                        "quoteVolume": 100000,
+                        "info": {
+                            "s": "BTC-USD",
+                            "c": "50000",
+                            "o": "50000",
+                            "h": "51000",
+                            "l": "49000",
+                            "p": "0",
+                            "C": "1699071702130",
+                            "v": "1000",
+                            "m": "2",
+                            "q": "100000"
+                        },
+                        "indexPrice": null,
+                        "markPrice": null
+                    }
+                ],
+                "sentSkipKeys": [
+                    "id"
+                ]
+            },
+            {
+                "description": "inverse ticker does not substitute contracts for missing coin volume",
+                "input": [
+                    "BTC/USD:BTC"
+                ],
+                "url": "wss://open-api-cswap-ws.bingx.com/market",
+                "messages": [
+                    {
+                        "code": 0,
+                        "dataType": "BTC-USD@ticker",
+                        "data": {
+                            "s": "BTC-USD",
+                            "c": "50000",
+                            "o": "50000",
+                            "h": "51000",
+                            "l": "49000",
+                            "p": "0",
+                            "C": "1699071702130",
+                            "v": "1000",
+                            "q": "100000"
+                        }
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "id": "offline-coinm-ticker",
+                        "dataType": "BTC-USD@ticker",
+                        "reqType": "sub"
+                    }
+                ],
+                "parsedResponses": [
+                    {
+                        "symbol": "BTC/USD:BTC",
+                        "timestamp": 1699071702130,
+                        "datetime": "2023-11-04T04:21:42.130Z",
+                        "high": 51000,
+                        "low": 49000,
+                        "bid": null,
+                        "bidVolume": null,
+                        "ask": null,
+                        "askVolume": null,
+                        "vwap": null,
+                        "open": 50000,
+                        "close": 50000,
+                        "last": 50000,
+                        "previousClose": null,
+                        "change": 0,
+                        "percentage": 0,
+                        "average": 50000,
+                        "baseVolume": null,
+                        "quoteVolume": 100000,
+                        "info": {
+                            "s": "BTC-USD",
+                            "c": "50000",
+                            "o": "50000",
+                            "h": "51000",
+                            "l": "49000",
+                            "p": "0",
+                            "C": "1699071702130",
+                            "v": "1000",
+                            "q": "100000"
+                        },
+                        "indexPrice": null,
+                        "markPrice": null
+                    }
+                ],
+                "sentSkipKeys": [
+                    "id"
+                ]
+            },
+            {
+                "description": "inverse ticker preserves zero coin volume",
+                "input": [
+                    "BTC/USD:BTC"
+                ],
+                "url": "wss://open-api-cswap-ws.bingx.com/market",
+                "messages": [
+                    {
+                        "code": 0,
+                        "dataType": "BTC-USD@ticker",
+                        "data": {
+                            "s": "BTC-USD",
+                            "c": "50000",
+                            "o": "50000",
+                            "h": "51000",
+                            "l": "49000",
+                            "p": "0",
+                            "C": "1699071702130",
+                            "v": "0",
+                            "m": "0",
+                            "q": "0"
+                        }
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "id": "offline-coinm-ticker",
+                        "dataType": "BTC-USD@ticker",
+                        "reqType": "sub"
+                    }
+                ],
+                "parsedResponses": [
+                    {
+                        "symbol": "BTC/USD:BTC",
+                        "timestamp": 1699071702130,
+                        "datetime": "2023-11-04T04:21:42.130Z",
+                        "high": 51000,
+                        "low": 49000,
+                        "bid": null,
+                        "bidVolume": null,
+                        "ask": null,
+                        "askVolume": null,
+                        "vwap": null,
+                        "open": 50000,
+                        "close": 50000,
+                        "last": 50000,
+                        "previousClose": null,
+                        "change": 0,
+                        "percentage": 0,
+                        "average": 50000,
+                        "baseVolume": 0,
+                        "quoteVolume": 0,
+                        "info": {
+                            "s": "BTC-USD",
+                            "c": "50000",
+                            "o": "50000",
+                            "h": "51000",
+                            "l": "49000",
+                            "p": "0",
+                            "C": "1699071702130",
+                            "v": "0",
+                            "m": "0",
+                            "q": "0"
+                        },
+                        "indexPrice": null,
+                        "markPrice": null
+                    }
+                ],
+                "sentSkipKeys": [
+                    "id"
+                ]
+            },
             {
                 "description": "linear swap ticker",
                 "input": [
@@ -498,308 +1606,6 @@
                 ],
                 "sentSkipKeys": [
                     "id"
-                ]
-            }
-        ],
-        "watchMyTrades": [
-            {
-                "description": "spot partial execution uses last fill fields",
-                "input": [
-                    "BTC/USDT"
-                ],
-                "url": "wss://open-api-ws.bingx.com/market?listenKey=test-listen-key",
-                "options": {
-                    "listenKey": "test-listen-key",
-                    "lastAuthenticatedTime": 9999999999999
-                },
-                "messages": [
-                    {
-                        "code": 0,
-                        "dataType": "spot.executionReport",
-                        "data": {
-                            "e": "executionReport",
-                            "E": 1720000000010,
-                            "s": "BTC-USDT",
-                            "S": "BUY",
-                            "o": "LIMIT",
-                            "q": "0.0005",
-                            "p": "60000",
-                            "x": "TRADE",
-                            "X": "PARTIALLY_FILLED",
-                            "i": "1702245001712369664",
-                            "l": "0.0001",
-                            "z": "0.0003",
-                            "L": "59000",
-                            "n": "-0.0000001",
-                            "N": "BTC",
-                            "T": 1720000000000,
-                            "t": "101",
-                            "O": 1719999999000,
-                            "Z": "17.9",
-                            "Y": "5.9",
-                            "Q": "0",
-                            "m": false
-                        }
-                    }
-                ],
-                "sentMessages": [
-                    {
-                        "id": "fixture-id",
-                        "reqType": "sub",
-                        "dataType": "spot.executionReport"
-                    }
-                ],
-                "sentSkipKeys": [
-                    "id"
-                ],
-                "parsedResponse": [
-                    {
-                        "id": "101",
-                        "info": {
-                            "e": "executionReport",
-                            "E": 1720000000010,
-                            "s": "BTC-USDT",
-                            "S": "BUY",
-                            "o": "LIMIT",
-                            "q": "0.0005",
-                            "p": "60000",
-                            "x": "TRADE",
-                            "X": "PARTIALLY_FILLED",
-                            "i": "1702245001712369664",
-                            "l": "0.0001",
-                            "z": "0.0003",
-                            "L": "59000",
-                            "n": "-0.0000001",
-                            "N": "BTC",
-                            "T": 1720000000000,
-                            "t": "101",
-                            "O": 1719999999000,
-                            "Z": "17.9",
-                            "Y": "5.9",
-                            "Q": "0",
-                            "m": false
-                        },
-                        "timestamp": 1720000000000,
-                        "datetime": "2024-07-03T09:46:40.000Z",
-                        "symbol": "BTC/USDT",
-                        "order": "1702245001712369664",
-                        "type": "limit",
-                        "side": "buy",
-                        "takerOrMaker": "taker",
-                        "price": 59000,
-                        "amount": 0.0001,
-                        "cost": 5.9,
-                        "fee": {
-                            "cost": 1e-7,
-                            "currency": "BTC"
-                        },
-                        "fees": [
-                            {
-                                "cost": 1e-7,
-                                "currency": "BTC"
-                            }
-                        ]
-                    }
-                ]
-            },
-            {
-                "description": "spot final execution excludes earlier fills",
-                "input": [
-                    "BTC/USDT"
-                ],
-                "url": "wss://open-api-ws.bingx.com/market?listenKey=test-listen-key",
-                "options": {
-                    "listenKey": "test-listen-key",
-                    "lastAuthenticatedTime": 9999999999999
-                },
-                "messages": [
-                    {
-                        "code": 0,
-                        "dataType": "spot.executionReport",
-                        "data": {
-                            "e": "executionReport",
-                            "E": 1720000000010,
-                            "s": "BTC-USDT",
-                            "S": "BUY",
-                            "o": "LIMIT",
-                            "q": "0.0005",
-                            "p": "60000",
-                            "x": "TRADE",
-                            "X": "FILLED",
-                            "i": "1702245001712369664",
-                            "l": "0.0002",
-                            "z": "0.0005",
-                            "L": "58000",
-                            "n": "-0.0000001",
-                            "N": "BTC",
-                            "T": 1720000000000,
-                            "t": "102",
-                            "O": 1719999999000,
-                            "Z": "29.5",
-                            "Y": "11.6",
-                            "Q": "0",
-                            "m": false
-                        }
-                    }
-                ],
-                "sentMessages": [
-                    {
-                        "id": "fixture-id",
-                        "reqType": "sub",
-                        "dataType": "spot.executionReport"
-                    }
-                ],
-                "sentSkipKeys": [
-                    "id"
-                ],
-                "parsedResponse": [
-                    {
-                        "id": "102",
-                        "info": {
-                            "e": "executionReport",
-                            "E": 1720000000010,
-                            "s": "BTC-USDT",
-                            "S": "BUY",
-                            "o": "LIMIT",
-                            "q": "0.0005",
-                            "p": "60000",
-                            "x": "TRADE",
-                            "X": "FILLED",
-                            "i": "1702245001712369664",
-                            "l": "0.0002",
-                            "z": "0.0005",
-                            "L": "58000",
-                            "n": "-0.0000001",
-                            "N": "BTC",
-                            "T": 1720000000000,
-                            "t": "102",
-                            "O": 1719999999000,
-                            "Z": "29.5",
-                            "Y": "11.6",
-                            "Q": "0",
-                            "m": false
-                        },
-                        "timestamp": 1720000000000,
-                        "datetime": "2024-07-03T09:46:40.000Z",
-                        "symbol": "BTC/USDT",
-                        "order": "1702245001712369664",
-                        "type": "limit",
-                        "side": "buy",
-                        "takerOrMaker": "taker",
-                        "price": 58000,
-                        "amount": 0.0002,
-                        "cost": 11.6,
-                        "fee": {
-                            "cost": 1e-7,
-                            "currency": "BTC"
-                        },
-                        "fees": [
-                            {
-                                "cost": 1e-7,
-                                "currency": "BTC"
-                            }
-                        ]
-                    }
-                ]
-            },
-            {
-                "description": "spot market execution with zero original quantity",
-                "input": [
-                    "BTC/USDT"
-                ],
-                "url": "wss://open-api-ws.bingx.com/market?listenKey=test-listen-key",
-                "options": {
-                    "listenKey": "test-listen-key",
-                    "lastAuthenticatedTime": 9999999999999
-                },
-                "messages": [
-                    {
-                        "code": 0,
-                        "dataType": "spot.executionReport",
-                        "data": {
-                            "e": "executionReport",
-                            "E": 1720000000010,
-                            "s": "BTC-USDT",
-                            "S": "BUY",
-                            "o": "MARKET",
-                            "q": 0,
-                            "p": "60000",
-                            "x": "TRADE",
-                            "X": "FILLED",
-                            "i": "1702245001712369664",
-                            "l": 0.0002,
-                            "z": 0.0002,
-                            "L": 59000,
-                            "n": "-0.0000001",
-                            "N": "BTC",
-                            "T": 1720000000000,
-                            "t": "103",
-                            "O": 1719999999000,
-                            "Z": 11.8,
-                            "Y": 11.8,
-                            "Q": "0",
-                            "m": false
-                        }
-                    }
-                ],
-                "sentMessages": [
-                    {
-                        "id": "fixture-id",
-                        "reqType": "sub",
-                        "dataType": "spot.executionReport"
-                    }
-                ],
-                "sentSkipKeys": [
-                    "id"
-                ],
-                "parsedResponse": [
-                    {
-                        "id": "103",
-                        "info": {
-                            "e": "executionReport",
-                            "E": 1720000000010,
-                            "s": "BTC-USDT",
-                            "S": "BUY",
-                            "o": "MARKET",
-                            "q": 0,
-                            "p": "60000",
-                            "x": "TRADE",
-                            "X": "FILLED",
-                            "i": "1702245001712369664",
-                            "l": 0.0002,
-                            "z": 0.0002,
-                            "L": 59000,
-                            "n": "-0.0000001",
-                            "N": "BTC",
-                            "T": 1720000000000,
-                            "t": "103",
-                            "O": 1719999999000,
-                            "Z": 11.8,
-                            "Y": 11.8,
-                            "Q": "0",
-                            "m": false
-                        },
-                        "timestamp": 1720000000000,
-                        "datetime": "2024-07-03T09:46:40.000Z",
-                        "symbol": "BTC/USDT",
-                        "order": "1702245001712369664",
-                        "type": "market",
-                        "side": "buy",
-                        "takerOrMaker": "taker",
-                        "price": 59000,
-                        "amount": 0.0002,
-                        "cost": 11.8,
-                        "fee": {
-                            "cost": 1e-7,
-                            "currency": "BTC"
-                        },
-                        "fees": [
-                            {
-                                "cost": 1e-7,
-                                "currency": "BTC"
-                            }
-                        ]
-                    }
                 ]
             }
         ],

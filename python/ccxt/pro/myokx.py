@@ -11,7 +11,7 @@ class myokx(okx):
     def describe(self) -> object:
         return self.deep_extend(super(myokx, self).describe(), {
             'id': 'myokx',
-            'name': 'MyOKX(EEA)',
+            'name': 'MyOKX (EEA)',
             'hostname': 'eea.okx.com',
             'urls': {
                 'api': {

@@ -698,7 +698,7 @@ class ndax(Exchange, ImplicitAPI):
                     nonce = max(nonce, newNonce)
             bidask = self.parse_order_book_bid_ask(level, priceKey, amountKey)
             levelSide = self.safe_integer(level, 9)
-            side = asksKey if (levelSide is not None and levelSide is not None and levelSide != 0) else bidsKey
+            side = asksKey if (levelSide is not None and levelSide != 0) else bidsKey
             result[side].append(bidask)
         result['bids'] = self.sort_by(result['bids'], 0, True)
         result['asks'] = self.sort_by(result['asks'], 0)

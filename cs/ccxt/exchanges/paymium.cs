@@ -273,7 +273,7 @@ public partial class paymium : Exchange
         return ccxt.BaseExchange.ToOrderBook(this.parseOrderBook(response, getValue(market, "symbol"), null, "bids", "asks", "price", "amount"));
     }
 
-    public override object parseTicker(object ticker, object market = null)
+    public override Dictionary<string, object> parseTicker(object ticker, object market = null)
     {
         //
         // {
@@ -294,7 +294,7 @@ public partial class paymium : Exchange
         // }
         //
         string? symbol = this.safeSymbol(null, market);
-        object timestamp = this.safeTimestamp(ticker, "at");
+        Int64? timestamp = this.safeTimestamp(ticker, "at");
         string? vwap = this.safeString(ticker, "vwap");
         string? baseVolume = this.safeString(ticker, "volume");
         string? quoteVolume = Precise.stringMul(baseVolume, vwap);
@@ -365,9 +365,9 @@ public partial class paymium : Exchange
         return ccxt.BaseExchange.ToTicker(this.parseTicker(ticker, market));
     }
 
-    public override object parseTrade(object trade, object market = null)
+    public override Dictionary<string, object> parseTrade(object trade, object market = null)
     {
-        object timestamp = this.safeTimestamp(trade, "created_at_int");
+        Int64? timestamp = this.safeTimestamp(trade, "created_at_int");
         string? id = this.safeString(trade, "uuid");
         market = this.safeMarket(null, market);
         string? side = this.safeString(trade, "side");

@@ -1044,7 +1044,7 @@ public partial class coinsph : Exchange
             for (int i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
             {
                 Dictionary<string, object> market = this.market(getValue(symbols, i));
-                object id = getValue(market, "id");
+                string? id = ((string)getValue(market, "id"));
                 ((IList<object>)ids).Add(id);
             }
             ((IDictionary<string,object>)request)["symbols"] = ids;
@@ -1105,7 +1105,7 @@ public partial class coinsph : Exchange
         return ccxt.BaseExchange.ToTicker(this.parseTicker(ticker, market));
     }
 
-    public override object parseTicker(object ticker, object market = null)
+    public override Dictionary<string, object> parseTicker(object ticker, object market = null)
     {
         //
         // publicGetOpenapiQuoteV1Ticker24hr
@@ -1224,7 +1224,7 @@ public partial class coinsph : Exchange
         //         ]
         //     }
         //
-        object orderbook = this.parseOrderBook(response, symbol);
+        Dictionary<string, object> orderbook = ((Dictionary<string, object>)this.parseOrderBook(response, symbol));
         ((IDictionary<string,object>)orderbook)["nonce"] = this.safeInteger(response, "lastUpdateId");
         return ccxt.BaseExchange.ToOrderBook(orderbook);
     }
@@ -1244,7 +1244,7 @@ public partial class coinsph : Exchange
      */
     public async override Task<List<ccxt.OHLCV>> FetchOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object timeframeVar = timeframe;
+        string timeframeVar = timeframe;
         object limitVar = limit;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
@@ -1427,7 +1427,7 @@ public partial class coinsph : Exchange
         return await this.FetchMyTrades(((string)symbol),ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), this.extend(request, parameters));
     }
 
-    public override object parseTrade(object trade, object market = null)
+    public override Dictionary<string, object> parseTrade(object trade, object market = null)
     {
         //
         // fetchTrades
@@ -1881,7 +1881,7 @@ public partial class coinsph : Exchange
         return ccxt.BaseExchange.ToOrderList(this.parseOrders(response, market));
     }
 
-    public override object parseOrder(object order, object market = null)
+    public override Dictionary<string, object> parseOrder(object order, object market = null)
     {
         //
         // createOrder POST /openapi/v1/order

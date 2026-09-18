@@ -4881,7 +4881,7 @@ class htx(Exchange, ImplicitAPI):
                 quoteAmount = self.amount_to_precision(symbol, cost)
             elif createMarketBuyOrderRequiresPrice:
                 if price is None:
-                    raise InvalidOrder(self.id + ' createOrder() requires the price argument for market buy orders to calculate the total cost to spend(amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to False and pass the cost to spend in the amount argument')
+                    raise InvalidOrder(self.id + ' createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to False and pass the cost to spend in the amount argument')
                 else:
                     # despite that cost = amount * price is in quote currency and should have quote precision
                     # the exchange API requires the cost supplied in 'amount' to be of base precision
@@ -5132,7 +5132,7 @@ class htx(Exchange, ImplicitAPI):
             elif market['inverse'] is True:
                 offset = self.safe_string(params, 'offset')
                 if offset is None:
-                    raise ArgumentsRequired(self.id + ' createOrder() requires an extra parameter params["offset"] to be set to "open" or "close" when placing orders in inverse markets')
+                    raise ArgumentsRequired(self.id + ' createOrder () requires an extra parameter params["offset"] to be set to "open" or "close" when placing orders in inverse markets')
                 if market['swap'] is True:
                     if isTrigger:
                         response = await self.contractPrivatePostSwapApiV1SwapTriggerOrder(contractRequest)
@@ -5295,7 +5295,7 @@ class htx(Exchange, ImplicitAPI):
                     marginMode = currentMarginMode
                 else:
                     if marginMode != currentMarginMode:
-                        raise BadRequest(self.id + ' createOrders() requires all orders to have the same margin mode(isolated or cross)')
+                        raise BadRequest(self.id + ' createOrders() requires all orders to have the same margin mode (isolated or cross)')
             market = self.market(symbol)
             orderRequest = None
             if market['spot'] is True:
@@ -6470,7 +6470,7 @@ class htx(Exchange, ImplicitAPI):
         fromSpot = fromAccountId == 'pro'
         toSpot = toAccountId == 'pro'
         if fromSpot and toSpot:
-            raise BadRequest(self.id + ' transfer() cannot make a transfer between ' + fromAccount + ' and ' + toAccount)
+            raise BadRequest(self.id + ' transfer () cannot make a transfer between ' + fromAccount + ' and ' + toAccount)
         fromOrToFuturesAccount = (fromAccountId == 'futures') or (toAccountId == 'futures')
         response = None
         if fromOrToFuturesAccount:
@@ -9146,7 +9146,7 @@ class htx(Exchange, ImplicitAPI):
             self.check_required_argument('closePosition', side, 'side')
             amount = self.safe_string_2(params, 'volume', 'amount')
             if amount is None:
-                raise ArgumentsRequired(self.id + ' closePosition() requires an extra argument params["amount"] for inverse markets')
+                raise ArgumentsRequired(self.id + ' closePosition () requires an extra argument params["amount"] for inverse markets')
             request['volume'] = self.amount_to_precision(symbol, amount)
             request['direction'] = side
             params = self.omit(params, ['volume', 'amount'])

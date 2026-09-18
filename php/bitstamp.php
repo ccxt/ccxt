@@ -2489,14 +2489,16 @@ class bitstamp extends Exchange {
         //         "next_funding_time": "1644406050"
         //     }
         //
+        // the websocket funding_rate channel additionally carries mark_price and index_price
+        //
         $currentTime = $this->safe_integer_product($fundingRate, 'timestamp', 1000);
         $nextFundingRateTimestamp = $this->safe_integer_product($fundingRate, 'next_funding_time', 1000);
         $marketId = $this->safe_string($fundingRate, 'market');
         return array(
             'info' => $fundingRate,
             'symbol' => $this->safe_symbol($marketId, $market),
-            'markPrice' => null,
-            'indexPrice' => null,
+            'markPrice' => $this->safe_number($fundingRate, 'mark_price'),
+            'indexPrice' => $this->safe_number($fundingRate, 'index_price'),
             'interestRate' => null,
             'estimatedSettlePrice' => null,
             'timestamp' => $currentTime,

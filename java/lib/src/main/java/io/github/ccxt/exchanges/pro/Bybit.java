@@ -5,6 +5,7 @@ package io.github.ccxt.exchanges.pro;
 import io.github.ccxt.base.Precise;
 import io.github.ccxt.errors.*;
 import io.github.ccxt.Helpers;
+import io.github.ccxt.BaseExchange;
 import io.github.ccxt.ws.*;
 import io.github.ccxt.Client;
 import io.github.ccxt.types.Balances;
@@ -207,7 +208,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
     public CompletableFuture<Object> getUrlByMarketType(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object isPrivate = Helpers.getArg(optionalArgs, 1, false);
@@ -314,7 +315,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
     public CompletableFuture<Order> createOrderWs(String symbol, Object type, Object side, Object amount, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object price = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
@@ -368,7 +369,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
     public CompletableFuture<Order> editOrderWs(String id, String symbol, Object type, Object side, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object amount = Helpers.getArg(optionalArgs, 0, null);
             Object price = Helpers.getArg(optionalArgs, 1, null);
@@ -411,7 +412,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
     public CompletableFuture<Order> cancelOrderWs(String id, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
@@ -458,7 +459,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
     public CompletableFuture<Ticker> watchTicker(String symbol2, Object... optionalArgs)
     {
         final Object symbol3 = symbol2;
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
@@ -496,7 +497,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
     public CompletableFuture<Tickers> watchTickers(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
@@ -543,7 +544,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
     public CompletableFuture<Object> unWatchTickers(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
@@ -585,7 +586,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
     public CompletableFuture<Object> unWatchTicker(String symbol, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             return (this.unWatchTickers(new ArrayList<Object>(Arrays.asList(symbol)), parameters)).join();
@@ -757,7 +758,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
     public CompletableFuture<Tickers> watchBidsAsks(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
@@ -824,7 +825,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
     public CompletableFuture<List<OHLCV>> watchOHLCV(String symbol, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object timeframe = Helpers.getArg(optionalArgs, 0, "1m");
             Object since = Helpers.getArg(optionalArgs, 1, null);
@@ -852,7 +853,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
     public CompletableFuture<Object> watchOHLCVForSymbols(Object symbolsAndTimeframes, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object since = Helpers.getArg(optionalArgs, 0, null);
             Object limit = Helpers.getArg(optionalArgs, 1, null);
@@ -904,7 +905,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
     public CompletableFuture<Object> unWatchOHLCVForSymbols(Object symbolsAndTimeframes, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
@@ -951,7 +952,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
     public CompletableFuture<Object> unWatchOHLCV(String symbol, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object timeframe = Helpers.getArg(optionalArgs, 0, "1m");
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
@@ -1057,7 +1058,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
     public CompletableFuture<OrderBook> watchOrderBook(String symbol, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object limit = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
@@ -1079,7 +1080,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
     public CompletableFuture<OrderBook> watchOrderBookForSymbols(Object symbols2, Object... optionalArgs)
     {
         final Object symbols3 = symbols2;
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
             Object symbols = symbols3;
             Object limit = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
@@ -1146,7 +1147,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
     public CompletableFuture<Object> unWatchOrderBookForSymbols(Object symbols2, Object... optionalArgs)
     {
         final Object symbols3 = symbols2;
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
             Object symbols = symbols3;
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
@@ -1197,7 +1198,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
     public CompletableFuture<Object> unWatchOrderBook(Object symbol, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             return (this.unWatchOrderBookForSymbols(new ArrayList<Object>(Arrays.asList(symbol)), parameters)).join();
@@ -1311,7 +1312,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
     public CompletableFuture<List<Trade>> watchTrades(String symbol, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object since = Helpers.getArg(optionalArgs, 0, null);
             Object limit = Helpers.getArg(optionalArgs, 1, null);
@@ -1335,7 +1336,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
     public CompletableFuture<List<Trade>> watchTradesForSymbols(Object symbols2, Object... optionalArgs)
     {
         final Object symbols3 = symbols2;
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
             Object symbols = symbols3;
             Object since = Helpers.getArg(optionalArgs, 0, null);
             Object limit = Helpers.getArg(optionalArgs, 1, null);
@@ -1387,7 +1388,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
     public CompletableFuture<Object> unWatchTradesForSymbols(Object symbols2, Object... optionalArgs)
     {
         final Object symbols3 = symbols2;
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
             Object symbols = symbols3;
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
@@ -1426,7 +1427,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
     public CompletableFuture<Object> unWatchTrades(String symbol, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             return (this.unWatchTradesForSymbols(new ArrayList<Object>(Arrays.asList(symbol)), parameters)).join();
@@ -1589,7 +1590,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
     public CompletableFuture<List<Trade>> watchMyTrades(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
@@ -1647,7 +1648,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
     public CompletableFuture<Object> unWatchMyTrades(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
@@ -1857,7 +1858,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
     public CompletableFuture<List<Position>> watchPositions(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
@@ -1924,7 +1925,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
     public CompletableFuture<Object> loadPositionsSnapshot(Client client, Object messageHash2)
     {
         final Object messageHash3 = messageHash2;
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
             Object messageHash = messageHash3;
             // as only one ws channel gives positions for all types, for snapshot must load all positions
             List<Object> fetchFunctions = new ArrayList<Object>(Arrays.asList(this.fetchPositions(null, (Object) new HashMap<String, Object>() {{
@@ -2057,7 +2058,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
     public CompletableFuture<Object> unWatchPositions(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
@@ -2095,7 +2096,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
     public CompletableFuture<List<Liquidation>> watchLiquidations(String symbol2, Object... optionalArgs)
     {
         final Object symbol3 = symbol2;
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
             Object since = Helpers.getArg(optionalArgs, 0, null);
             Object limit = Helpers.getArg(optionalArgs, 1, null);
@@ -2246,7 +2247,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
     public CompletableFuture<List<Order>> watchOrders(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
@@ -2294,7 +2295,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
     public CompletableFuture<Object> unWatchOrders(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
@@ -2487,7 +2488,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
     public CompletableFuture<Balances> watchBalance(Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
@@ -2833,16 +2834,67 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
     public CompletableFuture<Object> watchTopics(Object url, Object messageHashes, Object topics, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "op", "subscribe" );
-                put( "req_id", Bybit.this.requestId() );
-                put( "args", topics );
-            }};
-            Map<String, Object> message = this.extend(request, parameters);
-            return (this.watchMultiple(url, messageHashes, message, messageHashes, null)).join();
+            Client client = this.client(url);
+            List<Object> newTopics = new ArrayList<Object>(Arrays.asList());
+            Object topicsLength = Helpers.getArrayLength(topics);
+            Object messageHashesLength = Helpers.getArrayLength(messageHashes);
+            if (Helpers.isTrue(Helpers.isEqual(topicsLength, messageHashesLength)))
+            {
+                for (var i = 0; Helpers.isLessThan(i, topicsLength); i++)
+                {
+                    Object messageHash = Helpers.GetValue(messageHashes, i);
+                    if (!Helpers.isTrue((Helpers.inOp(client.subscriptions, messageHash))))
+                    {
+                        ((List<Object>)newTopics).add(Helpers.GetValue(topics, i));
+                    }
+                }
+            } else
+            {
+                // watchOrders spot: two topics, one hash. Collect topics already
+                // recorded on any subscription so a later call with a new hash
+                // does not resend already-subscribed topics.
+                Map<String, Object> subscribedTopics = new HashMap<String, Object>() {{}};
+                Object subscriptionHashes = Helpers.objectKeys(client.subscriptions);
+                for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(subscriptionHashes)); i++)
+                {
+                    Object existing = this.safeDict(client.subscriptions, Helpers.GetValue(subscriptionHashes, i), new HashMap<String, Object>() {{}});
+                    Object recordedTopics = this.safeList(existing, "topics", new ArrayList<Object>(Arrays.asList()));
+                    Object recordedLength = Helpers.getArrayLength(recordedTopics);
+                    for (var j = 0; Helpers.isLessThan(j, recordedLength); j++)
+                    {
+                        Helpers.addElementToObject(subscribedTopics, Helpers.GetValue(recordedTopics, j), true);
+                    }
+                }
+                for (var i = 0; Helpers.isLessThan(i, topicsLength); i++)
+                {
+                    Object topic = Helpers.GetValue(topics, i);
+                    if (!Helpers.isTrue((Helpers.inOp(subscribedTopics, topic))))
+                    {
+                        ((List<Object>)newTopics).add(topic);
+                    }
+                }
+            }
+            Object message = null;
+            Object subscription = null;
+            Object newTopicsLength = Helpers.getArrayLength(newTopics);
+            if (Helpers.isTrue(Helpers.isGreaterThan(newTopicsLength, 0)))
+            {
+                Object reqId = this.requestId();
+                Map<String, Object> request = new HashMap<String, Object>() {{
+                    put( "op", "subscribe" );
+                    put( "req_id", reqId );
+                    put( "args", newTopics );
+                }};
+                message = this.extend(request, parameters);
+                subscription = new HashMap<String, Object>() {{
+                    put( "id", reqId );
+                    put( "topics", newTopics );
+                }};
+            }
+            return (this.watchMultiple(url, messageHashes, message, messageHashes, subscription)).join();
         });
 
     }
@@ -2850,7 +2902,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
     public CompletableFuture<Object> unWatchTopics(Object url, Object topic, Object symbols, Object messageHashes, Object subMessageHashes, Object topics, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             Object subExtension = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
@@ -2876,7 +2928,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
     public CompletableFuture<Object> authenticate(Object url, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             this.checkRequiredCredentials();
@@ -2976,33 +3028,57 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
             return false;
         } catch(Exception error)
         {
-            String messageHash = this.safeString2(message, "req_id", "reqId");
-            if (Helpers.isTrue(!Helpers.isEqual(messageHash, null)))
+            String reqId = this.safeString2(message, "req_id", "reqId");
+            Boolean foundSubscription = false;
+            if (Helpers.isTrue(!Helpers.isEqual(reqId, null)))
             {
-                client.reject(error, messageHash);
-            } else if (Helpers.isTrue(Helpers.isInstance(error, AuthenticationError.class)))
-            {
-                String authenticatedHash = "authenticated";
-                client.reject(error, authenticatedHash);
-                if (Helpers.isTrue(Helpers.inOp(client.subscriptions, authenticatedHash)))
+                Object keys = Helpers.objectKeys(client.subscriptions);
+                for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
                 {
-                    ((Map<String,Object>)client.subscriptions).remove((String)authenticatedHash);
+                    Object messageHash = Helpers.GetValue(keys, i);
+                    if (!Helpers.isTrue((Helpers.inOp(client.subscriptions, messageHash))))
+                    {
+                        continue;
+                    }
+                    Object subscription = this.safeDict(client.subscriptions, messageHash);
+                    String subId = this.safeString(subscription, "id");
+                    if (Helpers.isTrue(Helpers.isEqual(reqId, subId)))
+                    {
+                        foundSubscription = true;
+                        ((Map<String,Object>)client.subscriptions).remove((String)messageHash);
+                        client.reject(error, messageHash);
+                    }
                 }
-                String op = this.safeString(message, "op");
-                if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(op, null))) && Helpers.isTrue((!Helpers.isEqual(op, "auth")))))
-                {
-                    // an operation response that carries no reqId, e.g. bybit
-                    // omits it on some permission rejections of trade ops,
-                    // would leave the awaiting future pending forever, and
-                    // since nothing on this client can proceed without
-                    // authentication, reject everything pending, mirroring the
-                    // behavior of unattributable non auth errors, see
-                    // https://github.com/ccxt/ccxt/issues/29361
-                    client.reject(error);
-                }
-            } else
+            }
+            if (!Helpers.isTrue(foundSubscription))
             {
-                client.reject(error, messageHash);
+                if (Helpers.isTrue(!Helpers.isEqual(reqId, null)))
+                {
+                    client.reject(error, reqId);
+                } else if (Helpers.isTrue(Helpers.isInstance(error, AuthenticationError.class)))
+                {
+                    String authenticatedHash = "authenticated";
+                    client.reject(error, authenticatedHash);
+                    if (Helpers.isTrue(Helpers.inOp(client.subscriptions, authenticatedHash)))
+                    {
+                        ((Map<String,Object>)client.subscriptions).remove((String)authenticatedHash);
+                    }
+                    String op = this.safeString(message, "op");
+                    if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(op, null))) && Helpers.isTrue((!Helpers.isEqual(op, "auth")))))
+                    {
+                        // an operation response that carries no reqId, e.g. bybit
+                        // omits it on some permission rejections of trade ops,
+                        // would leave the awaiting future pending forever, and
+                        // since nothing on this client can proceed without
+                        // authentication, reject everything pending, mirroring the
+                        // behavior of unattributable non auth errors, see
+                        // https://github.com/ccxt/ccxt/issues/29361
+                        client.reject(error);
+                    }
+                } else
+                {
+                    client.reject(error, reqId);
+                }
             }
             return true;
         }

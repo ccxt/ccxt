@@ -20,13 +20,13 @@ func testWatchOrderBookBody(ch chan any, exchange ccxt.ICoreExchange, skippedPro
 	// a validated book is already a pass, so keep sampling only while updates
 	// keep arriving quickly and stop once the book goes quiet.
 	var maxIdleTime int = 5000
-	var now any = exchange.Milliseconds()
+	var now int64 = exchange.Milliseconds()
 	var ends any = Add(now, 15000)
 	var idle bool = false
-	for IsTrue((IsLessThan(now, ends))) && !IsTrue(idle) {
+	for (IsLessThan(now, ends)) && !idle {
 		var response any = nil
 		var success bool = true
-		var startTime any = exchange.Milliseconds()
+		var startTime int64 = exchange.Milliseconds()
 
 		{
 			func() (ret_ any) {
@@ -37,7 +37,7 @@ func testWatchOrderBookBody(ch chan any, exchange ccxt.ICoreExchange, skippedPro
 						}
 						ret_ = func() any {
 							// catch block:
-							if IsTrue(!IsTrue(IsTemporaryFailure(e)) && !IsTrue((IsInstance(e, InvalidNonce)))) {
+							if !EvalTruthy(IsTemporaryFailure(e)) && !(IsInstance(e, InvalidNonce)) {
 								panic(e)
 							}
 							success = false
@@ -56,10 +56,10 @@ func testWatchOrderBookBody(ch chan any, exchange ccxt.ICoreExchange, skippedPro
 		// refresh the deadline on every path, otherwise a stream of temporary
 		// failures would loop forever
 		now = exchange.Milliseconds()
-		if IsTrue(IsTrue((IsEqual(success, true))) && IsTrue((!IsEqual(response, nil)))) {
+		if (success == true) && (!IsEqual(response, nil)) {
 			TestOrderBook(exchange, skippedProperties, method, response, symbol)
-			var elapsed any = Subtract(now, startTime)
-			if IsTrue(IsGreaterThan(elapsed, maxIdleTime)) {
+			var elapsed int64 = Subtract(now, startTime).(int64)
+			if IsGreaterThan(elapsed, maxIdleTime) {
 				// this market updates slower than the remaining test window, so
 				// awaiting another delta would only end in a harness timeout
 				idle = true

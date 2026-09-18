@@ -291,6 +291,7 @@ create a trade order
 | price | <code>float</code> | No | the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.triggerPrice | <code>float</code> | No | The price at which a trigger order is triggered at |
+| params.timeInForce | <code>string</code> | No | 'GTC' or 'IOC', the venue supports only these two for crypto orders, defaults to 'GTC' |
 | params.cost | <code>float</code> | No | *market orders only* the cost of the order in units of the quote currency |
 
 
@@ -459,7 +460,7 @@ edit a trade order
 | price | <code>float</code> | No | the price for the order, in units of the quote currency, ignored in market orders |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.triggerPrice | <code>string</code> | No | the price to trigger a stop order |
-| params.timeInForce | <code>string</code> | No | for crypto trading either 'gtc' or 'ioc' can be used |
+| params.timeInForce | <code>string</code> | No | 'GTC' or 'IOC', the venue supports only these two for crypto orders, defaults to 'GTC' |
 | params.clientOrderId | <code>string</code> | No | a unique identifier for the order, automatically generated if not sent |
 
 
@@ -613,9 +614,15 @@ alpaca.fetchWithdrawals (code?, since?, limit?, params?)
 query for balance and get the amount of funds available for trading or funds locked in orders
 
 **Kind**: instance method of [<code>alpaca</code>](#alpaca)  
-**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/?id=balance-structure)
+**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/?id=balance-structure). note that `info` is
+the composite `{ account, positions }` wrapper of both raw venue payloads, not the bare account payload it was
+before crypto positions were included — read `info['account']['cash']` where `info['cash']` used to be read
 
-**See**: https://docs.alpaca.markets/reference/getaccount-1  
+**See**
+
+- https://docs.alpaca.markets/reference/getaccount-1
+- https://docs.alpaca.markets/reference/getallopenpositions
+
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |

@@ -833,13 +833,13 @@ public partial class bitmex : Exchange
         });
     }
 
-    public virtual object convertFromRealAmount(object code, object amount)
+    public virtual double? convertFromRealAmount(object code, object amount)
     {
         Dictionary<string, object> currency = this.currency(((string)code));
         string? precision = this.safeString(currency, "precision");
         string? amountString = this.numberToString(amount);
         string? finalAmount = Precise.stringDiv(amountString, precision);
-        return this.parseNumber(finalAmount);
+        return ((double?)((object)(this.parseNumber(finalAmount))));
     }
 
     public virtual object convertToRealAmount(string code, object amount)
@@ -2032,7 +2032,7 @@ public partial class bitmex : Exchange
         IList<object> rawTickers = this.toArray(response);
         for (int i = 0; isLessThan(i, getArrayLength(rawTickers)); postFixIncrement(ref i))
         {
-            object ticker = this.parseTicker(getValue(rawTickers, i));
+            Dictionary<string, object> ticker = this.parseTicker(getValue(rawTickers, i));
             string? symbol = this.safeString(ticker, "symbol");
             if (isTrue(!isEqual(symbol, null)))
             {
@@ -2042,7 +2042,7 @@ public partial class bitmex : Exchange
         return ccxt.BaseExchange.ToTickers(this.filterByArrayTickers(result, "symbol", symbols));
     }
 
-    public override object parseTicker(object ticker, object market = null)
+    public override Dictionary<string, object> parseTicker(object ticker, object market = null)
     {
         // see response sample under "fetchMarkets" because same endpoint is being used here
         string? marketId = this.safeString(ticker, "symbol");
@@ -2115,7 +2115,7 @@ public partial class bitmex : Exchange
      */
     public async override Task<List<ccxt.OHLCV>> FetchOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object timeframeVar = timeframe;
+        string timeframeVar = timeframe;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -2193,7 +2193,7 @@ public partial class bitmex : Exchange
         return ccxt.BaseExchange.ToOHLCVList(result);
     }
 
-    public override object parseTrade(object trade, object market = null)
+    public override Dictionary<string, object> parseTrade(object trade, object market = null)
     {
         //
         // fetchTrades (public)
@@ -2339,7 +2339,7 @@ public partial class bitmex : Exchange
         return this.safeString(timeInForces, timeInForce, timeInForce);
     }
 
-    public override object parseOrder(object order, object market = null)
+    public override Dictionary<string, object> parseOrder(object order, object market = null)
     {
         //
         //     {
@@ -3053,7 +3053,7 @@ public partial class bitmex : Exchange
         return ccxt.BaseExchange.ToPositionList(this.filterByArrayPositions(results, "symbol", symbols, false));
     }
 
-    public override object parsePosition(object position, object market = null)
+    public override Dictionary<string, object> parsePosition(object position, object market = null)
     {
         //
         //     {
@@ -3229,10 +3229,10 @@ public partial class bitmex : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> currency = this.currency(((string)code));
-        object qty = this.convertFromRealAmount(code, amount);
-        object networkCode = null;
+        double? qty = this.convertFromRealAmount(code, amount);
+        string? networkCode = null;
         IList<object> networkCodeparametersVariable = (IList<object>)this.handleNetworkCodeAndParams(parameters);
-        networkCode = ((IList<object>)networkCodeparametersVariable)[0];
+        networkCode = (string)((IList<object>)networkCodeparametersVariable)[0];
         parameters = ((IList<object>)networkCodeparametersVariable)[1];
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "currency", getValue(currency, "id") },
@@ -3483,7 +3483,7 @@ public partial class bitmex : Exchange
      */
     public async override Task<Dictionary<string, object>> SetMarginMode(string marginMode, string symbol = null, object parameters = null)
     {
-        object marginModeVar = marginMode;
+        string marginModeVar = marginMode;
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
         {
@@ -3528,9 +3528,9 @@ public partial class bitmex : Exchange
         {
             await this.loadMarkets();
         }
-        object networkCode = null;
+        string? networkCode = null;
         IList<object> networkCodeparametersVariable = (IList<object>)this.handleNetworkCodeAndParams(parameters);
-        networkCode = ((IList<object>)networkCodeparametersVariable)[0];
+        networkCode = (string)((IList<object>)networkCodeparametersVariable)[0];
         parameters = ((IList<object>)networkCodeparametersVariable)[1];
         if (isTrue(isEqual(networkCode, null)))
         {

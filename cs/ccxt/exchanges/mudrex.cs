@@ -359,7 +359,7 @@ public partial class mudrex : Exchange
      */
     public async override Task<List<ccxt.OHLCV>> FetchOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object timeframeVar = timeframe;
+        string timeframeVar = timeframe;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -445,7 +445,7 @@ public partial class mudrex : Exchange
      */
     public async override Task<List<ccxt.OHLCV>> FetchMarkOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object timeframeVar = timeframe;
+        string timeframeVar = timeframe;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
         return await this.FetchOHLCV(((string)symbol),((string)timeframeVar),ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), this.extend(parameters, new Dictionary<string, object>() {
@@ -509,7 +509,7 @@ public partial class mudrex : Exchange
                 continue;
             }
             Dictionary<string, object> m = this.safeMarket(sym);
-            object symbol = getValue(m, "symbol");
+            string? symbol = ((string)getValue(m, "symbol"));
             if (isTrue(isTrue(!isEqual(symbols, null)) && !isTrue(this.inArray(symbol, symbols))))
             {
                 continue;
@@ -519,7 +519,7 @@ public partial class mudrex : Exchange
         return ccxt.BaseExchange.ToTickers(this.filterByArrayTickers(resultTickers, "symbol", symbols));
     }
 
-    public override object parseTicker(object ticker, object market = null)
+    public override Dictionary<string, object> parseTicker(object ticker, object market = null)
     {
         string? ms = this.safeString(ticker, "symbol");
         market = this.safeMarket(ms, market);
@@ -702,9 +702,9 @@ public partial class mudrex : Exchange
         {
             await this.loadMarkets();
         }
-        object type = null;
+        string? type = null;
         IList<object> typeparametersVariable = (IList<object>)this.handleMarketTypeAndParams("fetchBalance", null, parameters, "swap");
-        type = ((IList<object>)typeparametersVariable)[0];
+        type = (string)((IList<object>)typeparametersVariable)[0];
         parameters = ((IList<object>)typeparametersVariable)[1];
         string? requested = this.safeStringN(parameters, new List<object>() {"trade_currency", "tradeCurrency", "currency"});
         parameters = this.omit(parameters, new List<object>() {"trade_currency", "tradeCurrency", "currency"});
@@ -919,7 +919,7 @@ public partial class mudrex : Exchange
             { "order_type", getValue(request, "order_type") },
             { "trigger_type", getValue(request, "trigger_type") },
         });
-        object order = this.parseOrder(merged, market);
+        Dictionary<string, object> order = this.parseOrder(merged, market);
         ((IDictionary<string,object>)order)["info"] = data;
         return ccxt.BaseExchange.ToOrder(order);
     }
@@ -984,7 +984,7 @@ public partial class mudrex : Exchange
         return this.safeString(statuses, status, status);
     }
 
-    public override object parseOrder(object order, object market = null)
+    public override Dictionary<string, object> parseOrder(object order, object market = null)
     {
         string? oms = this.safeString(order, "symbol");
         market = this.safeMarket(oms, market);
@@ -1249,7 +1249,7 @@ public partial class mudrex : Exchange
             object p = getValue(rows, i);
             string? symRaw = this.safeString(p, "symbol");
             Dictionary<string, object> m = this.safeMarket(symRaw);
-            object pos = this.parsePosition(p, m);
+            Dictionary<string, object> pos = this.parsePosition(p, m);
             ((IList<object>)outPos).Add(pos);
         }
         return ccxt.BaseExchange.ToPositionList(this.filterByArrayPositions(outPos, "symbol", symbols, false));
@@ -1307,7 +1307,7 @@ public partial class mudrex : Exchange
         return ccxt.BaseExchange.ToPositionList(this.filterBySinceLimit(positions, since, limit));
     }
 
-    public override object parsePosition(object position, object market = null)
+    public override Dictionary<string, object> parsePosition(object position, object market = null)
     {
         market = this.safeMarket(null, market);
         string? ms = this.safeString(position, "symbol");
@@ -1336,7 +1336,7 @@ public partial class mudrex : Exchange
             notional = this.parseNumber(Precise.stringMul(Precise.stringMul(quantityString, entryPriceString), contractSizeString));
         }
         string? initialMargin = this.safeString(position, "initial_margin");
-        return new Dictionary<string, object>() {
+        return ((Dictionary<string, object>)((object)(new Dictionary<string, object>() {
             { "info", position },
             { "id", this.safeString(position, "id") },
             { "symbol", symbol },
@@ -1362,7 +1362,7 @@ public partial class mudrex : Exchange
             { "liquidationPrice", this.safeNumber(position, "liquidation_price") },
             { "marginMode", "isolated" },
             { "percentage", null },
-        };
+        })));
     }
 
     /**
@@ -1574,7 +1574,7 @@ public partial class mudrex : Exchange
         {
             object entry = getValue(allRows, i);
             string? feeType = this.safeString(entry, "fee_type");
-            object pairKey = add(add(add(add(this.safeString(entry, "symbol", ""), ":"), this.safeString(entry, "created_at", "")), ":"), this.safeString(entry, "transaction_amount", ""));
+            string pairKey = add(add(add(add(this.safeString(entry, "symbol", ""), ":"), this.safeString(entry, "created_at", "")), ":"), this.safeString(entry, "transaction_amount", ""));
             if (isTrue(isEqual(feeType, "TRANSACTION")))
             {
                 ((IList<object>)transactions).Add(entry);
@@ -1612,7 +1612,7 @@ public partial class mudrex : Exchange
         return ccxt.BaseExchange.ToTradeList(this.parseTrades(rows, market, since, limit));
     }
 
-    public override object parseTrade(object trade, object market = null)
+    public override Dictionary<string, object> parseTrade(object trade, object market = null)
     {
         //
         //     {

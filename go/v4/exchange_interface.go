@@ -178,25 +178,25 @@ type ICoreExchange interface {
 	GetOptions() *sync.Map
 	GetCurrencies() *sync.Map
 	GetMarkets() *sync.Map
-	CheckRequiredCredentials(optionalArgs ...any) any
+	CheckRequiredCredentials(optionalArgs ...any) bool
 	Sleep(milliseconds any) <-chan bool
 	Json(object any) any
 	FilterBy(aa any, key any, value any) []any
 	IndexBy(array any, key any) map[string]any
 	CreateOrderAsync(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <-chan any
 	Sum(args ...any) any
-	NumberToString(num any) any
+	NumberToString(num any) *string
 	ParseToNumeric(value any) any
 	LoadMarketsAsync(params ...any) <-chan any
 	SetMarkets(markets any, optionalArgs ...any) any
 	SafeDict(dictionary any, key any, defaultValue ...any) any
-	IsDictionary(dictionary any) any
+	IsDictionary(dictionary any) bool
 	InArray(needle any, haystack any) bool
 	DeepExtend(objs ...any) map[string]any
-	ParseToInt(value any) any
+	ParseToInt(value any) int64
 	SafeValue(value any, key any, defaultValue ...any) any
-	SafeBool(value any, key any, defaultValue ...any) any
-	SafeString(obj any, key any, defaultValue ...any) any
+	SafeBool(value any, key any, defaultValue ...any) *bool
+	SafeString(obj any, key any, defaultValue ...any) *string
 	Describe() any
 	SetSandboxMode(enable any)
 	FeatureValue(symbol any, optionalArgs ...any) any
@@ -227,6 +227,7 @@ type ICoreExchange interface {
 	FetchConvertTradeAsync(id any, optionalArgs ...any) <-chan any
 	FetchConvertTradeHistoryAsync(optionalArgs ...any) <-chan any
 	SetFetchResponse(fetchResponse any)
+	SetFetchResponseByUrl(responsesByUrl any)
 	Init(params map[string]any)
 	FetchDepositsAsync(optionalArgs ...any) <-chan any
 	Milliseconds() int64
@@ -241,8 +242,8 @@ type ICoreExchange interface {
 	FetchMarketLeverageTiersAsync(symbol any, optionalArgs ...any) <-chan any
 	FetchOrdersAsync(optionalArgs ...any) <-chan any
 	SafeCurrency(currencyId any, optionalArgs ...any) any
-	Parse8601(datetime2 any) any
-	Iso8601(ts2 any) any
+	Parse8601(datetime2 any) *int64
+	Iso8601(ts2 any) *string
 	FetchPositionAsync(symbol any, optionalArgs ...any) <-chan any
 	FetchClosedOrdersAsync(optionalArgs ...any) <-chan any
 	FetchTransactionsAsync(optionalArgs ...any) <-chan any
@@ -251,7 +252,7 @@ type ICoreExchange interface {
 	FetchTradingFeeAsync(symbol any, optionalArgs ...any) <-chan any
 	FetchTradingFeesAsync(optionalArgs ...any) <-chan any
 	FetchLedgerAsync(optionalArgs ...any) <-chan any
-	ArrayConcat(aa, bb any) any
+	ArrayConcat(aa, bb any) []any
 	FetchAccountsAsync(optionalArgs ...any) <-chan any
 	FetchBorrowInterestAsync(optionalArgs ...any) <-chan any
 	FetchLiquidationsAsync(symbol any, optionalArgs ...any) <-chan any
@@ -271,42 +272,42 @@ type ICoreExchange interface {
 	Extend(aa any, bb ...any) map[string]any
 	SafeValue2(obj any, key any, key2 any, defaultValue ...any) any
 	GroupBy(trades any, key2 any) map[string]any
-	DecimalToPrecision(value any, roundingMode any, numPrecisionDigits any, args ...any) any
+	DecimalToPrecision(value any, roundingMode any, numPrecisionDigits any, args ...any) string
 	NetworkCodeToId(networkCode any, optionalArgs ...any) any
 	NetworkIdToCode(optionalArgs ...any) any
 	SafeValueN(obj any, keys any, defaultValue ...any) any
 	SafeDict2(dictionary any, key1 any, key2 any, optionalArgs ...any) any
-	SafeString2(obj any, key any, key2 any, defaultValue ...any) any
-	SafeStringUpper2(obj any, key any, key2 any, defaultValue ...any) any
-	SafeInteger2(obj any, key any, key2 any, defaultValue ...any) any
-	SafeIntegerN(obj any, keys []any, defaultValue ...any) any
-	SafeIntegerProductN(obj any, keys []any, multiplier any, defaultValue ...any) any
-	SafeFloat2(obj any, key any, key2 any, defaultValue ...any) any
-	SafeFloat(obj any, key any, defaultValue ...any) any
-	SafeStringLowerN(obj any, keys []any, defaultValue ...any) any
-	SafeStringUpperN(obj any, keys []any, defaultValue ...any) any
-	SafeInteger(obj any, key any, defaultValue ...any) any
-	SafeStringUpper(obj any, key any, defaultValue ...any) any
-	SafeStringLower(obj any, key any, defaultValue ...any) any
-	SafeStringLower2(obj any, key any, key2 any, defaultValue ...any) any
-	SafeFloatN(obj any, keys []any, defaultValue ...any) any
-	SafeStringN(obj any, keys2 any, defaultValue ...any) any
+	SafeString2(obj any, key any, key2 any, defaultValue ...any) *string
+	SafeStringUpper2(obj any, key any, key2 any, defaultValue ...any) *string
+	SafeInteger2(obj any, key any, key2 any, defaultValue ...any) *int64
+	SafeIntegerN(obj any, keys []any, defaultValue ...any) *int64
+	SafeIntegerProductN(obj any, keys []any, multiplier any, defaultValue ...any) *int64
+	SafeFloat2(obj any, key any, key2 any, defaultValue ...any) *float64
+	SafeFloat(obj any, key any, defaultValue ...any) *float64
+	SafeStringLowerN(obj any, keys []any, defaultValue ...any) *string
+	SafeStringUpperN(obj any, keys []any, defaultValue ...any) *string
+	SafeInteger(obj any, key any, defaultValue ...any) *int64
+	SafeStringUpper(obj any, key any, defaultValue ...any) *string
+	SafeStringLower(obj any, key any, defaultValue ...any) *string
+	SafeStringLower2(obj any, key any, key2 any, defaultValue ...any) *string
+	SafeFloatN(obj any, keys []any, defaultValue ...any) *float64
+	SafeStringN(obj any, keys2 any, defaultValue ...any) *string
 	SafeIntegerOmitZero(obj any, key any, optionalArgs ...any) any
-	SafeIntegerProduct(obj any, key any, multiplier any, defaultValue ...any) any
-	SafeIntegerProduct2(obj any, key1, key2 any, multiplier any, defaultValue ...any) any
-	SafeBoolN(dictionaryOrList any, keys any, optionalArgs ...any) any
-	SafeBool2(dictionary any, key1 any, key2 any, optionalArgs ...any) any
-	SafeNumber(obj any, key any, optionalArgs ...any) any
-	SafeNumber2(dictionary any, key1 any, key2 any, optionalArgs ...any) any
-	SafeNumberOmitZero(obj any, key any, optionalArgs ...any) any
+	SafeIntegerProduct(obj any, key any, multiplier any, defaultValue ...any) *int64
+	SafeIntegerProduct2(obj any, key1, key2 any, multiplier any, defaultValue ...any) *int64
+	SafeBoolN(dictionaryOrList any, keys any, optionalArgs ...any) *bool
+	SafeBool2(dictionary any, key1 any, key2 any, optionalArgs ...any) *bool
+	SafeNumber(obj any, key any, optionalArgs ...any) *float64
+	SafeNumber2(dictionary any, key1 any, key2 any, optionalArgs ...any) *float64
+	SafeNumberOmitZero(obj any, key any, optionalArgs ...any) *float64
 	IsEmptyString(obj any) any
 	SafeDictN(dictionaryOrList any, keys any, optionalArgs ...any) any
 	SafeListN(dictionaryOrList any, keys any, optionalArgs ...any) any
 	SafeList(dictionaryOrList any, key any, optionalArgs ...any) any
-	SafeTimestamp(obj any, key any, defaultValue ...any) any
-	SafeNumberN(obj any, arr any, optionalArgs ...any) any
-	SafeTimestamp2(obj any, key1, key2 any, defaultValue ...any) any
-	SafeTimestampN(obj any, keys []any, defaultValue ...any) any
+	SafeTimestamp(obj any, key any, defaultValue ...any) *int64
+	SafeNumberN(obj any, arr any, optionalArgs ...any) *float64
+	SafeTimestamp2(obj any, key1, key2 any, defaultValue ...any) *int64
+	SafeTimestampN(obj any, keys []any, defaultValue ...any) *int64
 	SafeList2(dictionaryOrList any, key1 any, key2 any, optionalArgs ...any) any
 	Omit(a any, parameters ...any) any
 	CheckProxyUrlSettings(optionalArgs ...any) any
@@ -315,7 +316,7 @@ type ICoreExchange interface {
 	SetProperty(obj any, property any, defaultValue any)
 	Capitalize(value any) string
 	GetProperty(obj any, property any, defaultValue ...any) any
-	ExceptionMessage(exc any, includeStack ...any) any
+	ExceptionMessage(exc any, includeStack ...any) string
 	SetProxyUrl(proxyUrl any)
 	SetSocksProxy(proxyUrl any)
 	SignInAsync(optionalArgs ...any) <-chan any
@@ -438,7 +439,7 @@ type IDerivedExchange interface {
 	SetSandboxMode(enabled any)
 	Market(symbol any) any
 	ParseConversion(conversion any, optionalArgs ...any) any
-	SafeCurrencyCode(currencyId any, optionalArgs ...any) any
+	SafeCurrencyCode(currencyId any, optionalArgs ...any) *string
 	HandleErrors(statusCode any, statusText any, url any, method any, responseHeaders any, responseBody any, response any, requestHeaders any, requestBody any) any
 	HandleMessage(client any, message any)
 	OnError(client any, err any)

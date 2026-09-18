@@ -43,7 +43,7 @@ public partial class paradex : ccxt.paradex
 
     public virtual object requestId()
     {
-        object requestId = this.sum(this.safeInteger(this.options, "requestId", 0), 1);
+        Int64 requestId = ((Int64)this.sum(this.safeInteger(this.options, "requestId", 0), 1));
         ((IDictionary<string,object>)this.options)["requestId"] = requestId;
         return requestId;
     }
@@ -51,7 +51,7 @@ public partial class paradex : ccxt.paradex
     public async virtual Task<object> authenticate(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object url = getValue(getValue(this.urls, "api"), "ws");
+        string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
         var client = this.client(url);
         string messageHash = "authenticated";
         var future = client.reusableFuture("authenticated");
@@ -85,7 +85,7 @@ public partial class paradex : ccxt.paradex
         if (isTrue(!isEqual(result, null)))
         {
             // client.resolve (true, messageHash);
-            Future future = ((Future)this.safeValue((client as WebSocketClient).futures, "authenticated"));
+            var future = this.safeValue((client as WebSocketClient).futures, "authenticated");
             if (isTrue(!isEqual(future, null)))
             {
                 (future as Future).resolve(true);
@@ -121,7 +121,7 @@ public partial class paradex : ccxt.paradex
         {
             messageHash = add(messageHash, "ALL");
         }
-        object url = getValue(getValue(this.urls, "api"), "ws");
+        string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "jsonrpc", "2.0" },
             { "method", "subscribe" },
@@ -159,7 +159,7 @@ public partial class paradex : ccxt.paradex
         //
         IDictionary<string, object> parameters = this.safeDict(message, "params", new Dictionary<string, object>() {});
         IDictionary<string, object> data = this.safeDict(parameters, "data", new Dictionary<string, object>() {});
-        object parsedTrade = this.parseTrade(data);
+        Dictionary<string, object> parsedTrade = this.parseTrade(data);
         object symbol = getValue(parsedTrade, "symbol");
         string? messageHash = this.safeString(parameters, "channel");
         object stored = this.safeValue(this.trades, symbol);
@@ -192,7 +192,7 @@ public partial class paradex : ccxt.paradex
         }
         Dictionary<string, object> market = this.market(symbol);
         string messageHash = add(add("order_book.", getValue(market, "id")), ".snapshot@15@100ms");
-        object url = getValue(getValue(this.urls, "api"), "ws");
+        string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "jsonrpc", "2.0" },
             { "method", "subscribe" },
@@ -240,7 +240,7 @@ public partial class paradex : ccxt.paradex
         string? marketId = this.safeString(data, "market");
         Dictionary<string, object> market = this.safeMarket(marketId);
         Int64? timestamp = this.safeInteger(data, "last_updated_at");
-        object symbol = getValue(market, "symbol");
+        string? symbol = ((string)getValue(market, "symbol"));
         if (!isTrue((inOp(this.orderbooks, symbol))))
         {
             ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook();
@@ -265,7 +265,7 @@ public partial class paradex : ccxt.paradex
             }
         }
         ccxt.pro.IOrderBook orderbook = this.getOrderBook(this.orderbooks, symbol);
-        object snapshot = this.parseOrderBook(orderbookData, symbol, timestamp, "bids", "asks");
+        Dictionary<string, object> snapshot = ((Dictionary<string, object>)this.parseOrderBook(orderbookData, symbol, timestamp, "bids", "asks"));
         ((IDictionary<string,object>)snapshot)["nonce"] = this.safeInteger(data, "seq_no");
         (orderbook as IOrderBook).reset(snapshot);
         string? messageHash = this.safeString(parameters, "channel");
@@ -291,7 +291,7 @@ public partial class paradex : ccxt.paradex
         }
         symbolVar = this.symbol(symbolVar);
         string channel = "markets_summary";
-        object url = getValue(getValue(this.urls, "api"), "ws");
+        string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "jsonrpc", "2.0" },
             { "method", "subscribe" },
@@ -299,7 +299,7 @@ public partial class paradex : ccxt.paradex
                 { "channel", channel },
             } },
         };
-        object messageHash = add(add(channel, "."), symbolVar);
+        string messageHash = add(add(channel, "."), symbolVar);
         return ccxt.BaseExchange.ToTicker(await this.watch(url, messageHash, this.deepExtend(request, parameters), messageHash));
     }
 
@@ -321,7 +321,7 @@ public partial class paradex : ccxt.paradex
         }
         symbols = this.marketSymbols(symbols);
         string channel = "markets_summary";
-        object url = getValue(getValue(this.urls, "api"), "ws");
+        string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "jsonrpc", "2.0" },
             { "method", "subscribe" },
@@ -334,7 +334,7 @@ public partial class paradex : ccxt.paradex
         {
             for (int i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
             {
-                object messageHash = add(add(channel, "."), getValue(symbols, i));
+                string messageHash = add(add(channel, "."), getValue(symbols, i));
                 ((IList<object>)messageHashes).Add(messageHash);
             }
         } else
@@ -384,7 +384,7 @@ public partial class paradex : ccxt.paradex
         {
             channel = add(channel, "ALL");
         }
-        object url = getValue(getValue(this.urls, "api"), "ws");
+        string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "jsonrpc", "2.0" },
             { "method", "subscribe" },
@@ -431,7 +431,7 @@ public partial class paradex : ccxt.paradex
         //
         IDictionary<string, object> parameters = this.safeDict(message, "params", new Dictionary<string, object>() {});
         IDictionary<string, object> data = this.safeDict(parameters, "data", new Dictionary<string, object>() {});
-        object parsed = this.parseOrder(data);
+        Dictionary<string, object> parsed = this.parseOrder(data);
         string? symbol = this.safeString(parsed, "symbol");
         if (isTrue(isEqual(this.orders, null)))
         {
@@ -443,7 +443,7 @@ public partial class paradex : ccxt.paradex
         callDynamically(client as WebSocketClient, "resolve", new object[] {this.orders, messageHash});
         if (isTrue(!isEqual(symbol, null)))
         {
-            object symbolMessageHash = add(add(messageHash, ":"), symbol);
+            string symbolMessageHash = add(add(messageHash, ":"), symbol);
             callDynamically(client as WebSocketClient, "resolve", new object[] {this.orders, symbolMessageHash});
         }
     }
@@ -478,10 +478,10 @@ public partial class paradex : ccxt.paradex
         IDictionary<string, object> data = this.safeDict(parameters, "data", new Dictionary<string, object>() {});
         string? marketId = this.safeString(data, "symbol");
         Dictionary<string, object> market = this.safeMarket(marketId);
-        object symbol = getValue(market, "symbol");
+        string? symbol = ((string)getValue(market, "symbol"));
         object channel = this.safeString(parameters, "channel");
         object messageHash = add(add(channel, "."), symbol);
-        object ticker = this.parseTicker(data, market);
+        Dictionary<string, object> ticker = this.parseTicker(data, market);
         ((IDictionary<string,object>)this.tickers)[(string)symbol] = ticker;
         callDynamically(client as WebSocketClient, "resolve", new object[] {ticker, channel});
         callDynamically(client as WebSocketClient, "resolve", new object[] {ticker, messageHash});
@@ -507,7 +507,7 @@ public partial class paradex : ccxt.paradex
         }
         symbolVar = this.symbol(symbolVar);
         string channel = "funding_data";
-        object url = getValue(getValue(this.urls, "api"), "ws");
+        string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "jsonrpc", "2.0" },
             { "method", "subscribe" },
@@ -515,7 +515,7 @@ public partial class paradex : ccxt.paradex
                 { "channel", channel },
             } },
         };
-        object messageHash = add(add(channel, "."), symbolVar);
+        string messageHash = add(add(channel, "."), symbolVar);
         return ccxt.BaseExchange.ToFundingRate(await this.watch(url, messageHash, this.deepExtend(request, parameters), messageHash));
     }
 
@@ -537,7 +537,7 @@ public partial class paradex : ccxt.paradex
         }
         symbols = this.marketSymbols(symbols);
         string channel = "funding_data";
-        object url = getValue(getValue(this.urls, "api"), "ws");
+        string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "jsonrpc", "2.0" },
             { "method", "subscribe" },
@@ -553,7 +553,7 @@ public partial class paradex : ccxt.paradex
             {
                 for (int i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
                 {
-                    object messageHash = add(add(channel, "."), getValue(symbols, i));
+                    string messageHash = add(add(channel, "."), getValue(symbols, i));
                     ((IList<object>)messageHashes).Add(messageHash);
                 }
             } else

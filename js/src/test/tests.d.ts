@@ -96,6 +96,7 @@ declare class testMainClass {
     testOkx(): Promise<boolean>;
     testCryptocom(): Promise<boolean>;
     testBybit(): Promise<boolean>;
+    testBithumb(): Promise<boolean>;
     testKucoin(): Promise<boolean>;
     testKucoinfutures(): Promise<boolean>;
     testBitget(): Promise<boolean>;

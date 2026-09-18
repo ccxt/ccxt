@@ -287,7 +287,11 @@ class bingx extends \ccxt\async\bingx {
         $marketType = $isSwap ? 'swap' : 'spot';
         $market = $this->safe_market($marketId, null, null, $marketType);
         $symbol = $market['symbol'];
-        $ticker = $this->parse_ws_ticker($data, $market);
+        // the Coin-M stream is a distinct endpoint, so it identifies an inverse
+        // ticker even when the market id could not be resolved
+        $inverseUrl = $this->safe_string($this->urls['api']['ws'], 'inverse');
+        $isInverse = ($inverseUrl !== null) && (mb_strpos($client->url, $inverseUrl) === 0);
+        $ticker = $this->parse_ws_ticker($data, $market, $isInverse);
         $this->tickers[$symbol] = $ticker;
         $client->resolve($ticker, $this->get_message_hash('ticker', $symbol));
         if ($this->safe_string($message, 'dataType') === 'all@ticker') {
@@ -295,7 +299,7 @@ class bingx extends \ccxt\async\bingx {
         }
     }
 
-    public function parse_ws_ticker(mixed $message, ?array $market = null) {
+    public function parse_ws_ticker(mixed $message, ?array $market = null, ?bool $isInverse = null) {
         //
         //     {
         //         "e": "24hTicker",
@@ -322,6 +326,11 @@ class bingx extends \ccxt\async\bingx {
         $marketId = $this->safe_string($message, 's');
         $market = $this->safe_market($marketId, $market);
         $close = $this->safe_string($message, 'c');
+        // Coin-M m is coin volume; v is contracts and q is already USD turnover.
+        // prefer the caller's stream-derived flag so an unresolved market id on
+        // the Coin-M endpoint does not silently fall back to the contract count
+        $inverse = ($isInverse === null) ? ($market['inverse'] === true) : $isInverse;
+        $baseVolumeKey = $inverse ? 'm' : 'v';
         return $this->safe_ticker(array(
             'symbol' => $market['symbol'],
             'timestamp' => $timestamp,
@@ -340,7 +349,7 @@ class bingx extends \ccxt\async\bingx {
             'change' => $this->safe_string($message, 'p'),
             'percentage' => null,
             'average' => null,
-            'baseVolume' => $this->safe_string($message, 'v'),
+            'baseVolume' => $this->safe_string($message, $baseVolumeKey),
             'quoteVolume' => $this->safe_string($message, 'q'),
             'info' => $message,
         ), $market);

@@ -178,6 +178,7 @@ impl crate::exchange_generated::ExchangeBase for DeepcoinCore {
                 "handle_message" => { self.handle_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
                 "handle_pong" => self.handle_pong(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "handle_taker_or_maker" => self.handle_taker_or_maker(args.get(0).cloned().unwrap_or(crate::Value::Null)),
+                "order_book_suffix" => self.order_book_suffix(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args.get(2..).unwrap_or(&[]).to_vec()[..]),
                 "parse_position_side" => self.parse_position_side(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_trade_side" => self.parse_trade_side(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_ws_margin_mode" => self.parse_ws_margin_mode(args.get(0).cloned().unwrap_or(crate::Value::Null)),
@@ -234,6 +235,7 @@ impl DeepcoinCore {
             "handle_ticker" => { self.handle_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_trades" => { self.handle_trades(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_un_subscription" => { self.handle_un_subscription(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "order_book_suffix" => self.order_book_suffix(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args.get(2..).unwrap_or(&[]).to_vec()[..]),
             "parse_position_side" => self.parse_position_side(args.get(0).cloned().unwrap_or(crate::Value::Null)),
             "parse_trade_side" => self.parse_trade_side(args.get(0).cloned().unwrap_or(crate::Value::Null)),
             "parse_ws_margin_mode" => self.parse_ws_margin_mode(args.get(0).cloned().unwrap_or(crate::Value::Null)),
@@ -1089,6 +1091,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return.
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.aggregation] price aggregation level of the book, e.g. '0.1' or '0.0001', defaults to the market's price tick size
  * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
     pub async fn watch_order_book(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
@@ -1102,7 +1105,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         let mut market: Value = self.market(symbol.clone());
         let mut messageHash: Value = add(&add(&Value::Str("orderbook".to_string()), &Value::Str("::".to_string())), &get_value(&market, &Value::Str("symbol".to_string())));
-        let mut suffix: Value = Value::Str("_0.1".to_string());
+        let mut suffix: Value = Value::Null;
+        { let __destr_tmp = self.order_book_suffix(market.clone(), Value::Str("watchOrderBook".to_string()), &[params.clone()]); suffix = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         let mut orderbook: Value = self.watch_public(market.clone(), messageHash.clone(), Value::Str("25".to_string()), &[params.clone(), suffix.clone()]).await;
         return orderbook.limit();
 
@@ -1116,6 +1120,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
  * @see https://www.deepcoin.com/docs/publicWS/25LevelIncrementalMarketData
  * @param {string} symbol unified array of symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.aggregation] price aggregation level the book was subscribed with, defaults to the market's price tick size
  * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
     pub async fn un_watch_order_book(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
@@ -1128,13 +1133,49 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         let mut market: Value = self.market(symbol.clone());
         let mut messageHash: Value = add(&add(&Value::Str("orderbook".to_string()), &Value::Str("::".to_string())), &get_value(&market, &Value::Str("symbol".to_string())));
-        let mut suffix: Value = Value::Str("_0.1".to_string());
+        let mut suffix: Value = Value::Null;
+        { let __destr_tmp = self.order_book_suffix(market.clone(), Value::Str("unWatchOrderBook".to_string()), &[params.clone()]); suffix = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         let mut subscription: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("topic".to_string(), Value::Str("orderbook".to_string()));
             m
         });
         return self.un_watch_public(market.clone(), messageHash.clone(), Value::Str("25".to_string()), &[params.clone(), subscription.clone(), suffix.clone()]).await;
+
+    Value::Null
+}
+
+    pub fn order_book_suffix(&self, mut market: Value, mut methodName: Value, optional_args: &[Value]) -> Value {
+        let mut params = get_arg(optional_args, 0, Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}));
+        // the 25-level book is published per price-aggregation level and the
+        // level is part of the FilterValue ('DeepCoin_BTC/USDT_0.1'). the
+        // venue only serves the levels that exist for that market, from the
+        // tick size up to a few coarser steps: subscribing to a level the
+        // market does not have is answered with 'orderbook does not exist:
+        // XRP/USDT_0.1, no available orderbook data' and nothing is
+        // streamed. a fixed '_0.1' therefore only worked for markets whose
+        // tick happens to be 0.1 or finer by a step or two (23 of the first
+        // 120 spot markets, 52 of 120 swaps in a live probe); the tick size
+        // itself was accepted on 116 and 117 of them, and the handful whose
+        // tick was rejected accepted the next coarser level
+        let mut symbol: Value = self.safe_string_k(market.clone(), "symbol", &[]);
+        let mut aggregation: Value = Value::Null;
+        { let __destr_tmp = self.handle_option_and_params(params.clone(), methodName.clone(), Value::Str("aggregation".to_string()), &[]); aggregation = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
+        if is_equal(&aggregation, &Value::Null) {
+            let mut precision: Value = self.safe_dict_k(market.clone(), "precision", &[Value::Map({
+                let mut m = indexmap::IndexMap::new();
+                m
+            })]);
+            let mut tickSize: Value = self.safe_number_k(precision.clone(), "price", &[]);
+            if is_equal(&tickSize, &Value::Null) {
+                panic!("{}", crate::exchange_errors::bad_request(add(&add(&add(&add(&add(&self.id, &Value::Str(" ".to_string())), &methodName), &Value::Str("() requires a params[\"aggregation\"] price level for ".to_string())), &symbol), &Value::Str(" because the market has no price precision".to_string()))));
+            }
+            aggregation = self.number_to_string(tickSize.clone());
+        }
+        return Value::List(vec![add(&Value::Str("_".to_string()), &aggregation), params.clone()]);
 
     Value::Null
 }
@@ -1210,8 +1251,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_301: bool = true;
-            while { if !__for_first_301 { i = add(&i, &Value::Int(1)); } __for_first_301 = false; is_less_than(&i, &get_array_length(&entries)) } {
+            let mut __for_first_307: bool = true;
+            while { if !__for_first_307 { i = add(&i, &Value::Int(1)); } __for_first_307 = false; is_less_than(&i, &get_array_length(&entries)) } {
             let mut entry: Value = get_value(&entries, &i);
             let mut entry: Value = get_value(&entries, &i);
             let mut entryData: Value = self.safe_dict_k(entry.clone(), "d", &[Value::Map({
@@ -1236,8 +1277,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut cachedMessages: Value = get_value(&orderbook, &Value::Str("cache".to_string()));
         {
                         let mut j: Value = Value::Int(0);
-            let mut __for_first_302: bool = true;
-            while { if !__for_first_302 { j = add(&j, &Value::Int(1)); } __for_first_302 = false; is_less_than(&j, &get_array_length(&cachedMessages)) } {
+            let mut __for_first_308: bool = true;
+            while { if !__for_first_308 { j = add(&j, &Value::Int(1)); } __for_first_308 = false; is_less_than(&j, &get_array_length(&cachedMessages)) } {
             let mut cachedMessage: Value = get_value(&cachedMessages, &j);
             let mut cachedMessage: Value = get_value(&cachedMessages, &j);
             self.handle_order_book_message(client.clone(), cachedMessage.clone(), orderbook.clone());
@@ -1581,8 +1622,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if !is_equal(&symbols, &Value::Null) {
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_303: bool = true;
-                while { if !__for_first_303 { i = add(&i, &Value::Int(1)); } __for_first_303 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+                let mut __for_first_309: bool = true;
+                while { if !__for_first_309 { i = add(&i, &Value::Int(1)); } __for_first_309 = false; is_less_than(&i, &get_array_length(&symbols)) } {
                 let mut symbol: Value = get_value(&symbols, &i);
                 let mut symbol: Value = get_value(&symbols, &i);
                 let mut symbolMessageHash: Value = add(&add(&messageHash, &Value::Str("::".to_string())), &symbol);

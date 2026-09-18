@@ -742,7 +742,7 @@ class bingx extends Exchange {
                         'untilDays' => 7,
                         'trigger' => false,
                         'trailing' => false,
-                        'symbolRequired' => true,
+                        'symbolRequired' => false,
                     ),
                     'fetchClosedOrders' => array(
                         'marginMode' => false,
@@ -752,7 +752,7 @@ class bingx extends Exchange {
                         'untilDays' => 7,
                         'trigger' => false,
                         'trailing' => false,
-                        'symbolRequired' => true,
+                        'symbolRequired' => false,
                     ),
                     'fetchOHLCV' => array(
                         'limit' => 1440,
@@ -760,6 +760,7 @@ class bingx extends Exchange {
                 ),
                 'defaultForInverse' => array(
                     'extends' => 'defaultForLinear',
+                    'sandbox' => false,
                     'createOrders' => null,
                     'fetchOHLCV' => array(
                         'limit' => 1000,
@@ -774,6 +775,7 @@ class bingx extends Exchange {
                 //
                 'spot' => array(
                     'extends' => 'defaultForLinear',
+                    'sandbox' => false,
                     'fetchCurrencies' => array(
                         'private' => true,
                     ),
@@ -799,18 +801,6 @@ class bingx extends Exchange {
                     ),
                     'inverse' => array(
                         'extends' => 'defaultForInverse',
-                    ),
-                ),
-                'defaultForFuture' => array(
-                    'extends' => 'defaultForLinear',
-                    'fetchOrders' => null,
-                ),
-                'future' => array(
-                    'linear' => array(
-                        'extends' => 'defaultForFuture',
-                    ),
-                    'inverse' => array(
-                        'extends' => 'defaultForFuture',
                     ),
                 ),
             ),
@@ -1575,6 +1565,16 @@ class bingx extends Exchange {
             // safeTrade applies contractSize when calculating inverse cost.
             $amount = $this->safe_string($trade, 'volume');
         }
+        $price = $this->safe_string_n($trade, array( 'price', 'p', 'tradePrice' ));
+        if (($market !== null) && ($market['linear'] === true) && ($this->safe_string($trade, 'x') === 'TRADE')) {
+            $lastAmount = $this->safe_string($trade, 'l');
+            $lastPrice = $this->safe_string($trade, 'L');
+            if (($lastAmount !== null) && ($lastPrice !== null)) {
+                // Linear WS l/L describe the last fill, not the original order's q/p.
+                $amount = $lastAmount;
+                $price = $lastPrice;
+            }
+        }
         return $this->safe_trade(array(
             'id' => $this->safe_string_2($trade, 'id', 't'),
             'info' => $trade,
@@ -1585,7 +1585,7 @@ class bingx extends Exchange {
             'type' => $this->safe_string_lower($trade, 'o'),
             'side' => $this->parse_order_side($side),
             'takerOrMaker' => $takeOrMaker,
-            'price' => $this->safe_string_n($trade, array( 'price', 'p', 'tradePrice' )),
+            'price' => $price,
             'amount' => $amount,
             'cost' => $cost,
             'fee' => array(
@@ -1798,11 +1798,19 @@ class bingx extends Exchange {
         //         "markPrice": "16884.5",
         //         "indexPrice": "16886.9",
         //         "lastFundingRate": "0.0001",
-        //         "nextFundingTime": 1672041600000
+        //         "nextFundingTime": 1672041600000,
+        //         "fundingIntervalHours": 8,
+        //         "updateTime": 1672012800000
         //     }
         //
         $marketId = $this->safe_string($contract, 'symbol');
         $nextFundingTimestamp = $this->safe_integer($contract, 'nextFundingTime');
+        $timestamp = $this->safe_integer($contract, 'updateTime');
+        $interval = $this->safe_string($contract, 'fundingIntervalHours');
+        $intervalString = null;
+        if ($interval !== null) {
+            $intervalString = $interval . 'h';
+        }
         return array(
             'info' => $contract,
             'symbol' => $this->safe_symbol($marketId, $market, '-', 'swap'),
@@ -1810,8 +1818,8 @@ class bingx extends Exchange {
             'indexPrice' => $this->safe_number($contract, 'indexPrice'),
             'interestRate' => null,
             'estimatedSettlePrice' => null,
-            'timestamp' => null,
-            'datetime' => null,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
             'fundingRate' => $this->safe_number($contract, 'lastFundingRate'),
             'fundingTimestamp' => null,
             'fundingDatetime' => null,
@@ -1821,7 +1829,7 @@ class bingx extends Exchange {
             'previousFundingRate' => null,
             'previousFundingTimestamp' => null,
             'previousFundingDatetime' => null,
-            'interval' => null,
+            'interval' => $intervalString,
         );
     }
 
@@ -3382,7 +3390,7 @@ class bingx extends Exchange {
          * @param {float} [$params->takeProfit.triggerPrice] take profit trigger $price
          * @param {array} [$params->stopLoss] *$stopLoss object in $params* containing the triggerPrice at which the attached stop loss order will be triggered
          * @param {float} [$params->stopLoss.triggerPrice] stop loss trigger $price
-         * @param {boolean} [$params->test] *swap only* whether to use the $test endpoint or not, default is false
+         * @param {boolean} [$params->test] *linear swap only* whether to use the $test endpoint or not, default is false
          * @param {string} [$params->positionSide] *contracts only* "BOTH" for one way mode, "LONG" for buy $side of hedged mode, "SHORT" for sell $side of hedged mode
          * @param {boolean} [$params->hedged] *swap only* whether the order is in hedged mode or one way mode
          * @param {bool} [$params->closePosition] *swap only* true to close the entire position with a TP/SL order, in which case the quantity is not sent
@@ -3393,6 +3401,9 @@ class bingx extends Exchange {
         }
         $market = $this->market($symbol);
         $test = $this->safe_bool($params, 'test', false);
+        if ($test && (($market['swap'] !== true) || ($market['inverse'] === true))) {
+            throw new NotSupported($this->id . ' createOrder() only supports $test orders for linear swap markets');
+        }
         $params = $this->omit($params, 'test');
         $request = $this->create_order_request($symbol, $type, $side, $amount, $price, $params);
         if ($market['swap'] === true) {
@@ -4004,7 +4015,8 @@ class bingx extends Exchange {
             'stopLossPrice' => $stopLossPrice,
             'takeProfitPrice' => $takeProfitPrice,
             'average' => $this->safe_string_2($order, 'avgPrice', 'ap'),
-            'cost' => $this->safe_string($order, 'cummulativeQuoteQty'),
+            // Spot WS: Z is cumulative quote amount; Y is last-fill quote amount.
+            'cost' => $this->safe_string_2($order, 'cummulativeQuoteQty', 'Z'),
             'amount' => $this->safe_string_n($order, array( 'origQty', 'q', 'quantity', 'totalAmount' )),
             'filled' => $this->safe_string_2($order, 'executedQty', 'z'),
             'remaining' => null,
@@ -4709,7 +4721,7 @@ class bingx extends Exchange {
          * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/All%20Orders
          * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Query%20Order%20history (returns less fields than above)
          *
-         * @param {string} $symbol unified $market $symbol of the $market $orders were made in
+         * @param {string} [$symbol] unified $market $symbol of the $market $orders were made in
          * @param {int} [$since] the earliest time in ms to fetch $orders for
          * @param {int} [$limit] the maximum number of order structures to retrieve
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -4991,7 +5003,7 @@ class bingx extends Exchange {
          * @see https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Trades%20Endpoints/User's%20History%20Orders
          * @see https://bingx-api.github.io/docs/#/standard/contract-interface.html#Historical%20order
          *
-         * @param {string} $symbol unified market $symbol of the closed $orders
+         * @param {string} [$symbol] unified market $symbol of the closed $orders
          * @param {int} [$since] timestamp in ms of the earliest order
          * @param {int} [$limit] the max number of closed $orders to return
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -5015,7 +5027,7 @@ class bingx extends Exchange {
          * @see https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Trades%20Endpoints/User's%20History%20Orders
          * @see https://bingx-api.github.io/docs/#/standard/contract-interface.html#Historical%20order
          *
-         * @param {string} $symbol unified market $symbol of the canceled $orders
+         * @param {string} [$symbol] unified market $symbol of the canceled $orders
          * @param {int} [$since] timestamp in ms of the earliest order
          * @param {int} [$limit] the max number of canceled $orders to return
          * @param {array} [$params] extra parameters specific to the exchange API endpoint

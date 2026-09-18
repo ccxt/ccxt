@@ -4523,7 +4523,7 @@ class RustTranspilerBuilder {
         // `testFetchTickersAmounts` → `fetchTickersAmountsTest`. The
         // pre-rename `test*` prefix is also kept for legacy helpers and any
         // tests we haven't synced yet.
-        const pattern = /(?:\bself\.[a-zA-Z_][a-zA-Z0-9_]*|\bexchange\d*\.[a-zA-Z_][a-zA-Z0-9_]*|\brsa|\beddsa|\becdsa|\bjwt|\btotp|\bhelper[A-Z][a-zA-Z0-9_]*|\bprecise[A-Z][a-zA-Z0-9_]*|\btest[A-Z][a-zA-Z0-9_]*|\b[a-z][a-zA-Z0-9_]*(?:Helper(?:Test)?|Test)|\bassert[A-Z][a-zA-Z0-9_]*|\b(?:equals|deepEqual|assert|dump|callMethod|callMethodSync|callExchangeMethodDynamically|callExchangeMethodDynamicallySync|getExchangeProp|setExchangeProp|setFetchResponse|initExchange|close|jsonStringify|jsonParse|exceptionMessage|convertAscii|isNullValue|ioFileExists|ioFileRead|ioDirRead|setupWsMockTransport|getWsSentMessages|injectWsMessage|wsClientHasPendingFutures|markWsTestCompleted|isWsTestCompleted|rejectPendingWsFutures|preloadWsMessages|wsHasQueuedMessages))\(/;
+        const pattern = /(?:\bself\.[a-zA-Z_][a-zA-Z0-9_]*|\bexchange\d*\.[a-zA-Z_][a-zA-Z0-9_]*|\brsa|\beddsa|\becdsa|\bjwt|\btotp|\bhelper[A-Z][a-zA-Z0-9_]*|\bprecise[A-Z][a-zA-Z0-9_]*|\btest[A-Z][a-zA-Z0-9_]*|\b[a-z][a-zA-Z0-9_]*(?:Helper(?:Test)?|Test)|\bassert[A-Z][a-zA-Z0-9_]*|\b(?:equals|deepEqual|assert|dump|callMethod|callMethodSync|callExchangeMethodDynamically|callExchangeMethodDynamicallySync|getExchangeProp|setExchangeProp|setFetchResponse|setFetchResponseByUrl|initExchange|close|jsonStringify|jsonParse|exceptionMessage|convertAscii|isNullValue|ioFileExists|ioFileRead|ioDirRead|setupWsMockTransport|getWsSentMessages|injectWsMessage|wsClientHasPendingFutures|markWsTestCompleted|isWsTestCompleted|rejectPendingWsFutures|preloadWsMessages|wsHasQueuedMessages))\(/;
         while (i < content.length) {
             const rest = content.slice(i);
             const m = rest.match(pattern);
@@ -8334,6 +8334,32 @@ impl std::ops::DerefMut for ${coreName} {
         return out;
     }
 
+    // Names of every `async function NAME (...)` free function in a TS test
+    // source. The AST drops `async` and the body-scan passes only re-add it
+    // when the body itself awaits, so an async helper with no inner await
+    // (test.fetchTrades' helperTestFetchTradesSideSequence) is emitted as a
+    // sync `fn` while its caller keeps the `.await` -> E0277 `Value` is not
+    // a future.
+    detectFreeAsyncFns(tsSrc: string): Set<string> {
+        const out = new Set<string>();
+        const re = /\basync\s+function\s+([a-zA-Z_][a-zA-Z0-9_]*)\s*\(/g;
+        let m: RegExpExecArray | null;
+        while ((m = re.exec(tsSrc)) !== null) out.add(m[1]);
+        return out;
+    }
+
+    // Mark the given free functions `async fn` when the emitted signature
+    // lost the keyword; the declaration is left alone if already async.
+    markFreeFnsAsync(content: string, names: Set<string>): string {
+        for (const name of names) {
+            content = content.replace(
+                new RegExp(`(^|\\n)(\\s*)((?:pub\\s+)?)fn\\s+${name}\\s*\\(`),
+                (_full, before, indent, pub_) => `${before}${indent}${pub_}async fn ${name}(`,
+            );
+        }
+        return content;
+    }
+
     // Scans a TS source for `function NAME (p1, p2, ..., pK = default, ...)`
     // declarations and returns a map of `NAME → firstDefaultParamIdx`.
     // Used in test-file transpilation: the AST drops defaults from the
@@ -8648,6 +8674,7 @@ impl std::ops::DerefMut for ${coreName} {
                     const tsSrc = fs.readFileSync(tsFile, 'utf8');
                     const defaultArgFns = this.detectFreeFnDefaultArgs(tsSrc);
                     let content = this.runExchangeTestPipeline(result.content ?? '', asyncMethods);
+                    content = this.markFreeFnsAsync(content, this.detectFreeAsyncFns(tsSrc));
                     if (defaultArgFns.size > 0) {
                         content = this.foldDefaultArgsIntoOptional(content, defaultArgFns);
                     }
@@ -9048,6 +9075,10 @@ impl std::ops::DerefMut for ${coreName} {
             content = content.replace(
                 /\bsetFetchResponse\(\s*exchange\.clone\(\)/g,
                 'setFetchResponse(&mut exchange',
+            );
+            content = content.replace(
+                /\bsetFetchResponseByUrl\(\s*exchange\.clone\(\)/g,
+                'setFetchResponseByUrl(&mut exchange',
             );
             // Static-WS-test parsedResponse case: `Promise.all([watch, inject])`.
             // The transpiler leaves `callExchangeMethodDynamically(...)` (the

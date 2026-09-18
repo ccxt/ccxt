@@ -1728,7 +1728,7 @@ class BaseExchange {
 
     public function load_lighter_library_helper($path, $chainId, $privateKey, $apiKeyIndex, $accountIndex, $createClient = false) {
         if ($path == null || $path == '') {
-            throw new ExchangeError($this->id . ' load_lighter_library() requires a path to the lighter library. You can find it here https://github.com/elliottech/lighter-python/tree/main/lighter/signers. Please download the appropriate library for your system and provide the path to it.\nExample: exchange.options["libraryPath"] = "path/to/lighter-signer-linux-arm64.so"');
+            throw new ExchangeError($this->id . ' load_lighter_library() requires a path to the lighter library. The binaries this version of ccxt is built against are in the ccxt repository under "ts/src/test/static/binaries", they can also be downloaded here https://github.com/elliottech/lighter-python/tree/main/lighter/signers. Please download the appropriate library for your system and provide the path to it, the binary has to match your ccxt version.\nExample: exchange.options["libraryPath"] = "path/to/lighter-signer-linux-arm64.so"');
         }
         $lighterSigner = Signer::getInstance($path);
 
@@ -1746,14 +1746,38 @@ class BaseExchange {
 
     public function lighter_create_client($signer, $chainId, $privateKey, $apiKeyIndex, $accountIndex) {
         $url = $this->implode_hostname($this->urls['api']['public']);
-        $signer->createClient(
+        $error = $signer->createClient(
             $url,
             $privateKey,
             $chainId,
             $apiKeyIndex,
             $accountIndex
         );
+        $this->check_lighter_signer_error('lighter_create_client', array( 'err' => $error ), array(
+            'api_key_index' => $apiKeyIndex,
+            'account_index' => $accountIndex,
+        ));
         return $signer;
+    }
+
+    public function check_lighter_signer_error($method, $result, $request = null) {
+        $error = (is_array($result) && array_key_exists('err', $result)) ? $result['err'] : null;
+        if (($error === null) || ($error === '')) {
+            return;
+        }
+        $message = $method . '() failed with error: ' . $error;
+        // the native signer keeps one client per (apiKeyIndex, accountIndex) pair, so this
+        // particular error means it was called with indices it has no client for. When the
+        // indices it reports are not the ones ccxt passed, the signer binary is not the one
+        // this version of ccxt binds against and the arguments are landing in the wrong slots
+        if (mb_strpos($error, 'client is not created for') !== false) {
+            $passed = '';
+            if ($request !== null) {
+                $passed = ' ccxt signed this request with apiKeyIndex: ' . $this->safe_string($request, 'api_key_index') . ' accountIndex: ' . $this->safe_string($request, 'account_index') . '.';
+            }
+            $message .= '.' . $passed . ' If those indices are not the ones reported above then the signer library set in options["libraryPath"] is not the one this version of ccxt binds against. The signer has to match this version of ccxt: use the binaries ccxt is tested against, in the ccxt repository under "ts/src/test/static/binaries", or upgrade ccxt if your binary is newer than it.';
+        }
+        throw new ExchangeError($message);
     }
 
     public function load_lighter_library($path, $chainId, $privateKey, $apiKeyIndex, $accountIndex, $createClient = false) {
@@ -1783,11 +1807,14 @@ class BaseExchange {
             $this->safe_integer($request, 'integrator_account_index', 0),
             $this->safe_integer($request, 'integrator_taker_fee', 0),
             $this->safe_integer($request, 'integrator_maker_fee', 0),
+            $this->safe_integer($request, 'self_trade_behavior_mode', 0), // SelfTradeBehaviorExpireMaker
+            $this->safe_integer($request, 'self_trade_equality_mode', 0), // SelfTradeEqualityAccountIndex
             true, // skip nonce
             $request['nonce'],
             $request['api_key_index'],
             $request['account_index']
         );
+        $this->check_lighter_signer_error('lighter_sign_create_grouped_orders', $result, $request);
         return [$result['txType'], $result['txInfo']];
     }
 
@@ -1806,11 +1833,14 @@ class BaseExchange {
             $this->safe_integer($request, 'integrator_account_index', 0),
             $this->safe_integer($request, 'integrator_taker_fee', 0),
             $this->safe_integer($request, 'integrator_maker_fee', 0),
+            $this->safe_integer($request, 'self_trade_behavior_mode', 0), // SelfTradeBehaviorExpireMaker
+            $this->safe_integer($request, 'self_trade_equality_mode', 0), // SelfTradeEqualityAccountIndex
             true, // skip nonce
             $request['nonce'],
             $request['api_key_index'],
             $request['account_index']
         );
+        $this->check_lighter_signer_error('lighter_sign_create_order', $result, $request);
         return [$result['txType'], $result['txInfo']];
     }
 
@@ -1823,6 +1853,7 @@ class BaseExchange {
             $request['api_key_index'],
             $request['account_index']
         );
+        $this->check_lighter_signer_error('lighter_sign_cancel_order', $result, $request);
         return [$result['txType'], $result['txInfo']];
     }
 
@@ -1836,6 +1867,7 @@ class BaseExchange {
             $request['api_key_index'],
             $request['account_index']
         );
+        $this->check_lighter_signer_error('lighter_sign_withdraw', $result, $request);
         return [$result['txType'], $result['txInfo']];
     }
 
@@ -1846,6 +1878,7 @@ class BaseExchange {
             $request['api_key_index'],
             $request['account_index']
         );
+        $this->check_lighter_signer_error('lighter_sign_create_sub_account', $result, $request);
         return [$result['txType'], $result['txInfo']];
     }
 
@@ -1853,11 +1886,13 @@ class BaseExchange {
         $result = $signer->signCancelAllOrders(
             $request['time_in_force'],
             $request['time'],
+            $this->safe_integer($request, 'cancel_all_market_index', 255), // NilMarketIndex, every market
             true, // skip nonce
             $request['nonce'],
             $request['api_key_index'],
             $request['account_index']
         );
+        $this->check_lighter_signer_error('lighter_sign_cancel_all_orders', $result, $request);
         return [$result['txType'], $result['txInfo']];
     }
 
@@ -1871,11 +1906,15 @@ class BaseExchange {
             $this->safe_integer($request, 'integrator_account_index', 0),
             $this->safe_integer($request, 'integrator_taker_fee', 0),
             $this->safe_integer($request, 'integrator_maker_fee', 0),
+            $this->safe_integer($request, 'self_trade_behavior_mode', 0), // SelfTradeBehaviorExpireMaker
+            $this->safe_integer($request, 'self_trade_equality_mode', 0), // SelfTradeEqualityAccountIndex
             true, // skip nonce
             $request['nonce'],
+            $this->safe_integer($request, 'order_version', 0), // NilOrderVersion
             $request['api_key_index'],
             $request['account_index']
         );
+        $this->check_lighter_signer_error('lighter_sign_modify_order', $result, $request);
         return [$result['txType'], $result['txInfo']];
     }
 
@@ -1893,6 +1932,7 @@ class BaseExchange {
             $request['api_key_index'],
             $request['account_index']
         );
+        $this->check_lighter_signer_error('lighter_sign_transfer', $result, $request);
         return [$result['txType'], $result['txInfo']];
     }
 
@@ -1906,6 +1946,7 @@ class BaseExchange {
             $request['api_key_index'],
             $request['account_index']
         );
+        $this->check_lighter_signer_error('lighter_sign_update_leverage', $result, $request);
         return [$result['txType'], $result['txInfo']];
     }
 
@@ -1915,7 +1956,9 @@ class BaseExchange {
             $request['api_key_index'],
             $request['account_index']
         );
-        return $result;
+        $this->check_lighter_signer_error('lighter_create_auth_token', $result, $request);
+        // createAuthToken() returns array( 'str' => token, 'err' => error ), callers expect the token
+        return $result['str'];
     }
 
     public function lighter_sign_update_margin($signer, $request) {
@@ -1928,6 +1971,7 @@ class BaseExchange {
             $request['api_key_index'],
             $request['account_index']
         );
+        $this->check_lighter_signer_error('lighter_sign_update_margin', $result, $request);
         return [$result['txType'], $result['txInfo']];
     }
 
@@ -1944,11 +1988,13 @@ class BaseExchange {
             $request['api_key_index'],
             $request['account_index'],
         );
+        $this->check_lighter_signer_error('lighter_sign_approve_integrator', $result, $request);
         return [$result['txType'], $result['txInfo'], $result['messageToSign']];
     }
 
     public function lighter_generate_api_key($signer) {
         $result = $signer->generateAPIKey();
+        $this->check_lighter_signer_error('lighter_generate_api_key', $result, null);
         return [$result['privateKey'], $result['publicKey']];
     }
 
@@ -1960,6 +2006,7 @@ class BaseExchange {
             $request['api_key_index'],
             $request['account_index'],
         );
+        $this->check_lighter_signer_error('lighter_sign_change_pubkey', $result, $request);
         return [$result['txType'], $result['txInfo'], $result['messageToSign']];
     }
 
@@ -2304,9 +2351,9 @@ class BaseExchange {
     }
 
     public function precision_from_string($str) {
-        // support string formats like '1e-4'
+        // support string formats like '1e-4' and signed mantissas like '-8e-8'
         if (stripos($str, 'e') > -1) {
-            $numStr = preg_replace('/\d\.?\d*[eE]/', '', $str);
+            $numStr = preg_replace('/^[-+]?\d\.?\d*[eE]/', '', $str);
             return ((int)$numStr) * -1;
         }
         // support integer formats (without dot) like '1', '10' etc [Note: bug in decimalToPrecision, so this should not be used atm]

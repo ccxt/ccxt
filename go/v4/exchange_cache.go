@@ -57,11 +57,13 @@ func cacheKeyOf(m map[string]any, field string) string {
 // The bool reports whether the row actually carries one, so a genuine timestamp
 // of 0 is not confused with "no timestamp".
 func cacheTimestampOf(item any) (int64, bool) {
-	arr, ok := item.([]any)
+	arr, ok := derefScalar(item).([]any)
 	if !ok || len(arr) == 0 {
 		return 0, false
 	}
-	switch v := arr[0].(type) {
+	// a pointer-carried timestamp must key the row, otherwise every candle
+	// looks keyless and only the newest one survives
+	switch v := derefScalar(arr[0]).(type) {
 	case int:
 		return int64(v), true
 	case int32:
@@ -211,14 +213,21 @@ func (c *ArrayCache) Append(item any) {
 			c.Hashmap[symbol] = byId
 		}
 		if old, exists := byId[id]; exists {
-			// overwrite in-place (mirror JS behaviour where the reference is
-			// kept alive).  Shallow copy for now.
+			// merge copy-on-write: never mutate the stored map in place. Previously
+			// returned items (via ToArray -> WatchOrders etc.) share these map
+			// references and are read by user goroutines without holding c.Mu, so an
+			// in-place write here is a fatal "concurrent map read and map write"
 			if om, ok := old.(map[string]any); ok {
 				if nm, ok := item.(map[string]any); ok {
-					for k, v := range nm {
-						om[k] = v
+					merged := make(map[string]any, len(om)+len(nm))
+					for k, v := range om {
+						merged[k] = v
 					}
-					item = om // keep the original reference in the array
+					for k, v := range nm {
+						merged[k] = v
+					}
+					byId[id] = merged
+					item = merged // the array slot is replaced below
 				}
 			}
 			shouldAppend = false
@@ -324,6 +333,10 @@ func (c *ArrayCache) GetLimit(symbol any, limit any) any {
 	// return len(c.ToArray())
 	var newUpdatesValue any = nil
 
+	// a typed nil pointer is not == nil, so both arguments must be normalized
+	// or an absent symbol/limit reads as present and truncates the result
+	symbol = derefScalar(symbol)
+	limit = derefScalar(limit)
 	if symbol == nil {
 		newUpdatesValue = c.allNewUpdates
 		c.clearAllUpdates = true
@@ -608,13 +621,20 @@ func (c *ArrayCacheBySymbolBySide) Append(item any) {
 
 	bySide := c.Hashmap[symbol]
 
-	if _, exists := bySide[side]; exists {
-		if om, ok := bySide[side].(map[string]any); ok {
+	if old, exists := bySide[side]; exists {
+		// merge copy-on-write, same reasoning as ArrayCache.Append: previously
+		// returned items share these map references and are read without c.Mu
+		if om, ok := old.(map[string]any); ok {
 			if nm, ok := item.(map[string]any); ok {
-				for k, v := range nm {
-					om[k] = v
+				merged := make(map[string]any, len(om)+len(nm))
+				for k, v := range om {
+					merged[k] = v
 				}
-				item = om
+				for k, v := range nm {
+					merged[k] = v
+				}
+				bySide[side] = merged
+				item = merged // the array slot is replaced below
 			}
 		}
 		shouldAppend = false
