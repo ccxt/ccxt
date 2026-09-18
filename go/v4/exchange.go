@@ -728,6 +728,7 @@ func (this *BaseExchange) ParseNumber(v any, a ...any) any {
 }
 
 func (this *BaseExchange) ValueIsDefined(v any) bool {
+	v = derefScalar(v) // a typed pointer is judged by the value it carries; typed nil is undefined
 	if v == nil {
 		return false
 	}
@@ -1166,6 +1167,7 @@ func (this *BaseExchange) RandomBytes(length any) string {
 }
 
 func (this *BaseExchange) IsJsonEncodedObject(str any) bool {
+	str = derefScalar(str)
 	// Attempt to assert the input to a string type
 	str2, ok := str.(string)
 	if !ok {
@@ -1180,6 +1182,7 @@ func (this *BaseExchange) IsJsonEncodedObject(str any) bool {
 }
 
 func (this *BaseExchange) StringToCharsArray(value any) []string {
+	value = derefScalar(value)
 	// Attempt to assert the input to a string type
 	str, ok := value.(string)
 	if !ok {

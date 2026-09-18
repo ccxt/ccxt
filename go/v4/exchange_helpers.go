@@ -2171,6 +2171,7 @@ func ParseFloat(input any) any {
 }
 
 func ParseJSON(input any) any {
+	input = derefScalar(input) // generated callers pass *string from the typed Safe* accessors
 	jsonString, ok := input.(string)
 	if !ok {
 		return nil

@@ -151,6 +151,7 @@ func float64ToString(val float64) string {
 }
 
 func (this *BaseExchange) NumberToString2(x any) string {
+	x = derefScalar(x)
 	switch v := x.(type) {
 	case nil:
 		return ""
