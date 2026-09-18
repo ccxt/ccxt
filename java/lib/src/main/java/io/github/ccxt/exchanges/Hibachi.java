@@ -1629,7 +1629,7 @@ public class Hibachi extends HibachiApi
             Object r = Helpers.GetValue(signature, "r");
             Object s = Helpers.GetValue(signature, "s");
             String v = this.intToBase16(Helpers.GetValue(signature, "v"));
-            return Helpers.add(Helpers.add(Helpers.padStart(((String)r), ((Number)64).intValue(), "0".charAt(0)), Helpers.padStart(((String)s), ((Number)64).intValue(), "0".charAt(0))), Helpers.padStart(v, ((Number)2).intValue(), ((String)"0").charAt(0)));
+            return Helpers.add(Helpers.add((((String)r).length() >= 64 ? ((String)r).substring(((String)r).length() - 64) : String.format("%" + (64 - ((String)r).length()) + "s", "").replace(' ', '0') + ((String)r)), (((String)s).length() >= 64 ? ((String)s).substring(((String)s).length() - 64) : String.format("%" + (64 - ((String)s).length()) + "s", "").replace(' ', '0') + ((String)s))), Helpers.padStart(v, ((Number)2).intValue(), ((String)"0").charAt(0)));
         }
     }
 

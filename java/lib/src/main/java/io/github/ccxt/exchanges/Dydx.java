@@ -1496,8 +1496,8 @@ public class Dydx extends DydxApi
         Object r = Helpers.GetValue(signature, "r");
         Object s = Helpers.GetValue(signature, "s");
         return new HashMap<String, Object>() {{
-            put( "r", Helpers.padStart(((String)r), ((Number)64).intValue(), "0".charAt(0)) );
-            put( "s", Helpers.padStart(((String)s), ((Number)64).intValue(), "0".charAt(0)) );
+            put( "r", (((String)r).length() >= 64 ? ((String)r).substring(((String)r).length() - 64) : String.format("%" + (64 - ((String)r).length()) + "s", "").replace(' ', '0') + ((String)r)) );
+            put( "s", (((String)s).length() >= 64 ? ((String)s).substring(((String)s).length() - 64) : String.format("%" + (64 - ((String)s).length()) + "s", "").replace(' ', '0') + ((String)s)) );
             put( "v", Dydx.this.sum(27, Helpers.GetValue(signature, "v")) );
         }};
     }

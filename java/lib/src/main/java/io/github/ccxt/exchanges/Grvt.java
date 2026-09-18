@@ -4011,7 +4011,7 @@ public class Grvt extends GrvtApi
 
     public Object formatSignatureRS(Object value)
     {
-        Object padded = Helpers.padStart(((String)value), ((Number)64).intValue(), "0".charAt(0));
+        Object padded = (((String)value).length() >= 64 ? ((String)value).substring(((String)value).length() - 64) : String.format("%" + (64 - ((String)value).length()) + "s", "").replace(' ', '0') + ((String)value));
         if (Helpers.isTrue(((String)padded).startsWith("0x")))
         {
             return padded;

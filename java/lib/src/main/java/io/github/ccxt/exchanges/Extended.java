@@ -929,7 +929,7 @@ public class Extended extends ExtendedApi
             put( "active", isActive );
             put( "deposit", true );
             put( "withdraw", true );
-            put( "precision", Helpers.mathPow(Double.parseDouble(Helpers.toString(10)), Double.parseDouble(Helpers.toString(Helpers.multiply(finalPrecision, Helpers.opNeg(1))))) );
+            put( "precision", Helpers.mathPow(Double.parseDouble(String.valueOf(10)), Double.parseDouble(Helpers.toString(Helpers.multiply(finalPrecision, Helpers.opNeg(1))))) );
             put( "type", "other" );
             put( "margin", Extended.this.safeBool(currency, "canBeUsedAsCollateral") );
             put( "info", currency );
