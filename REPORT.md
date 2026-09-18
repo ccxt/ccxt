@@ -81,13 +81,16 @@ Gates run locally:
 
 ## Farm
 
-`ccxt-farm build --targets cs --wait` from the committed worktree:
+`ccxt-farm build --targets cs --wait` from this worktree:
 
 ```
 HEAD f3134d57df572b61c6f6f22182c3b6936a90ce62 job=658 exit=0 branch_update=unchanged generator=404e9daa7f0ab58d085ed04aaa61a19546dfeda2
+HEAD 77ba675d5ac807533f7ff1a8e433222047041b0d job=665 exit=0 branch_update=unchanged generator=404e9daa7f0ab58d085ed04aaa61a19546dfeda2   (REPORT-only tip)
 ```
 
-`branch_update=unchanged` is the farm's own repo-wide `--force` transpile reproducing this tree
+Both exit=0 (`ccxt-farm status <sha>` is the evidence); the REPORT-only revision this file is
+committed in was re-gated the same way — the code commit's job (658, the build-input sha) and the
+delivered tip's job are both `exit=0` with `branch_update=unchanged`, and `branch_update=unchanged` is the farm's own repo-wide `--force` transpile reproducing this tree
 byte-for-byte, i.e. the committed `cs/` tree is the generator's fixed point (the local scoped regen
 did not miss a file).
 
