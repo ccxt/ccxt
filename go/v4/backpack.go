@@ -1973,9 +1973,9 @@ func (this *Backpack) withdrawBody(ch chan any, code any, amount any, address an
 		retRes153712 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes153712)
 	}
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 	var request map[string]any = map[string]any{
-		"symbol":   GetValue(currency, "id"),
+		"symbol":   currency["id"],
 		"quantity": this.NumberToString(amount),
 		"address":  address,
 	}
@@ -1985,7 +1985,7 @@ func (this *Backpack) withdrawBody(ch chan any, code any, amount any, address an
 	networkCodequeryVariable := this.HandleNetworkCodeAndParams(params)
 	networkCode := GetValue(networkCodequeryVariable, 0)
 	query := GetValue(networkCodequeryVariable, 1)
-	var networkId any = this.NetworkCodeToId(networkCode, GetValue(currency, "code"))
+	var networkId any = this.NetworkCodeToId(networkCode, currency["code"])
 	if networkId == nil {
 		panic(BadRequest(this.Id + " withdraw() requires a network parameter"))
 	}
@@ -2162,9 +2162,9 @@ func (this *Backpack) fetchDepositAddressBody(ch chan any, code any, optionalArg
 	if networkCode == nil {
 		panic(ArgumentsRequired(this.Id + " fetchDepositAddress() requires a network parameter, see https://docs.ccxt.com/?id=network-codes"))
 	}
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 	var request map[string]any = map[string]any{
-		"blockchain": this.NetworkCodeToId(networkCode, GetValue(currency, "code")),
+		"blockchain": this.NetworkCodeToId(networkCode, currency["code"]),
 	}
 
 	response := (<-this.PrivateGetWapiV1CapitalDepositAddress(this.Extend(request, params)))

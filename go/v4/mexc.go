@@ -5833,9 +5833,9 @@ func (this *Mexc) fetchDepositAddressesByNetworkBody(ch chan any, code any, opti
 		retRes485612 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes485612)
 	}
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 	var request map[string]any = map[string]any{
-		"coin": GetValue(currency, "id"),
+		"coin": currency["id"],
 	}
 	var networkCode *string = this.SafeString(params, "network")
 	var networkId any = nil
@@ -5905,9 +5905,9 @@ func (this *Mexc) createDepositAddressBody(ch chan any, code any, optionalArgs .
 		retRes490812 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes490812)
 	}
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 	var request map[string]any = map[string]any{
-		"coin": GetValue(currency, "id"),
+		"coin": currency["id"],
 	}
 	var networkCode *string = this.SafeString(params, "network")
 	if networkCode == nil {
@@ -6762,7 +6762,7 @@ func (this *Mexc) transferBody(ch chan any, code any, amount any, fromAccount an
 		retRes560812 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes560812)
 	}
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 	var accounts map[string]any = map[string]any{
 		"spot":   "SPOT",
 		"swap":   "FUTURES",
@@ -6779,7 +6779,7 @@ func (this *Mexc) transferBody(ch chan any, code any, amount any, fromAccount an
 		panic(ExchangeError(this.Id + " toAccount must be one of " + Join(keys, ", ")))
 	}
 	var request map[string]any = map[string]any{
-		"asset":           GetValue(currency, "id"),
+		"asset":           currency["id"],
 		"amount":          amount,
 		"fromAccountType": fromId,
 		"toAccountType":   toId,
@@ -6951,7 +6951,7 @@ func (this *Mexc) withdrawBody(ch chan any, code any, amount any, address any, o
 		retRes576612 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes576612)
 	}
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 	tagparamsVariable := this.HandleWithdrawTagAndParams(tag, params)
 	tag = GetValue(tagparamsVariable, 0)
 	params = GetValue(tagparamsVariable, 1)
@@ -6959,7 +6959,7 @@ func (this *Mexc) withdrawBody(ch chan any, code any, amount any, address any, o
 	if internal != nil && *internal == true {
 		params = this.Omit(params, "internal")
 		var requestForInternal map[string]any = map[string]any{
-			"asset":     GetValue(currency, "id"),
+			"asset":     currency["id"],
 			"amount":    amount,
 			"toAccount": address,
 		}
@@ -6982,10 +6982,10 @@ func (this *Mexc) withdrawBody(ch chan any, code any, amount any, address any, o
 	var networks map[string]any = SafeMapTyped(this.Options, "networks")
 	var network any = DerefScalar(this.SafeString2(params, "network", "netWork")) // this line allows the user to specify either ERC20 or ETH
 	network = DerefScalar(this.SafeString(networks, network, network))            // handle ETH > ERC-20 alias
-	network = this.NetworkCodeToId(network, GetValue(currency, "code"))
+	network = this.NetworkCodeToId(network, currency["code"])
 	this.CheckAddress(address)
 	var request map[string]any = map[string]any{
-		"coin":    GetValue(currency, "id"),
+		"coin":    currency["id"],
 		"address": address,
 		"amount":  amount,
 	}
@@ -7162,7 +7162,7 @@ func (this *Mexc) ParseTransactionFees(response any, optionalArgs ...any) any {
 	for i := 0; i < GetArrayLength(response); i++ {
 		var entry any = GetValue(response, i)
 		var currencyId *string = this.SafeString(entry, "coin")
-		var currency any = this.SafeCurrency(currencyId)
+		var currency map[string]any = this.SafeCurrency(currencyId).(map[string]any)
 		var code *string = this.SafeString(currency, "code")
 		if (IsEqual(codes, nil)) || (this.InArray(code, codes)) {
 			AddElementToObject(withdrawFees, code, this.ParseTransactionFee(entry, currency))

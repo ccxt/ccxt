@@ -3486,14 +3486,14 @@ func (this *Woo) fetchDepositAddressBody(ch chan any, code any, optionalArgs ...
 		retRes286612 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes286612)
 	}
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 	var networkCode any = nil
 	networkCodeparamsVariable := this.HandleNetworkCodeAndParams(params)
 	networkCode = GetValue(networkCodeparamsVariable, 0)
 	params = GetValue(networkCodeparamsVariable, 1)
 	var request map[string]any = map[string]any{
-		"token":   GetValue(currency, "id"),
-		"network": this.NetworkCodeToId(networkCode, GetValue(currency, "code")),
+		"token":   currency["id"],
+		"network": this.NetworkCodeToId(networkCode, currency["code"]),
 	}
 
 	response := (<-this.V3PrivateGetAssetWalletDeposit(this.Extend(request, params)))
@@ -3962,9 +3962,9 @@ func (this *Woo) transferBody(ch chan any, code any, amount any, fromAccount any
 		retRes321412 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes321412)
 	}
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 	var request map[string]any = map[string]any{
-		"token":  GetValue(currency, "id"),
+		"token":  currency["id"],
 		"amount": this.ParseToNumeric(amount),
 		"from": map[string]any{
 			"applicationId": fromAccount,
@@ -3984,7 +3984,7 @@ func (this *Woo) transferBody(ch chan any, code any, amount any, fromAccount any
 	//
 	var data any = this.SafeDict(response, "data", map[string]any{})
 	AddElementToObject(data, "timestamp", this.SafeInteger(response, "timestamp"))
-	AddElementToObject(data, "token", GetValue(currency, "id"))
+	AddElementToObject(data, "token", currency["id"])
 	AddElementToObject(data, "status", "ok")
 	var transfer any = this.ParseTransfer(data, currency)
 	var transferOptions map[string]any = SafeMapTyped(this.Options, "transfer")
@@ -4183,7 +4183,7 @@ func (this *Woo) withdrawBody(ch chan any, code any, amount any, address any, op
 		PanicOnError(retRes339012)
 	}
 	this.CheckAddress(address)
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 	var request map[string]any = map[string]any{
 		"amount":  amount,
 		"address": address,
@@ -4196,8 +4196,8 @@ func (this *Woo) withdrawBody(ch chan any, code any, amount any, address any, op
 		panic(ArgumentsRequired(Add(this.Id+" withdraw() requires a network parameter for ", code)))
 	}
 	params = this.Omit(params, "network")
-	request["token"] = GetValue(currency, "id")
-	request["network"] = this.NetworkCodeToId(network, GetValue(currency, "code"))
+	request["token"] = currency["id"]
+	request["network"] = this.NetworkCodeToId(network, currency["code"])
 
 	response := (<-this.V3PrivatePostAssetWalletWithdraw(this.Extend(request, params)))
 	PanicOnError(response)
@@ -4257,9 +4257,9 @@ func (this *Woo) repayMarginBody(ch chan any, code any, amount any, optionalArgs
 		market = this.Market(symbol)
 		symbol = GetValue(market, "symbol")
 	}
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 	var request map[string]any = map[string]any{
-		"token":  GetValue(currency, "id"),
+		"token":  currency["id"],
 		"amount": this.CurrencyToPrecision(code, amount),
 	}
 
@@ -5427,9 +5427,9 @@ func (this *Woo) fetchConvertQuoteBody(ch chan any, fromCode any, toCode any, op
 	//
 	var data any = this.SafeDict(response, "data", map[string]any{})
 	var fromCurrencyId *string = this.SafeString(data, "sellToken", fromCode)
-	var fromCurrency any = this.Currency(fromCurrencyId)
+	var fromCurrency map[string]any = this.Currency(fromCurrencyId).(map[string]any)
 	var toCurrencyId *string = this.SafeString(data, "buyToken", toCode)
-	var toCurrency any = this.Currency(toCurrencyId)
+	var toCurrency map[string]any = this.Currency(toCurrencyId).(map[string]any)
 
 	ch <- this.ParseConversion(data, fromCurrency, toCurrency)
 	return nil
@@ -5877,8 +5877,8 @@ func (this *Woo) ParseADLRank(info any, optionalArgs ...any) any {
 	}
 }
 func (this *Woo) DefaultNetworkCodeForCurrency(code any) any {
-	var currencyItem any = this.Currency(code)
-	var networks any = GetValue(currencyItem, "networks")
+	var currencyItem map[string]any = this.Currency(code).(map[string]any)
+	var networks any = currencyItem["networks"]
 	var networkKeys []string = ObjectKeys(networks)
 	for i := 0; i < len(networkKeys); i++ {
 		var network string = GetValue(networkKeys, i).(string)

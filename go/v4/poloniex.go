@@ -3505,7 +3505,7 @@ func (this *Poloniex) PrepareRequestForDepositAddress(code any, optionalArgs ...
 	if !(InOp(this.Currencies, code)) {
 		panic(BadSymbol(Add(Add(this.Id+" fetchDepositAddress(): can not recognize ", code), " currency, you might try using unified currency-code and add provide specific \"network\" parameter, like: fetchDepositAddress(\"USDT\", { \"network\": \"TRC20\" })")))
 	}
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 	var networkCode any = nil
 	networkCodeparamsVariable := this.HandleNetworkCodeAndParams(params)
 	networkCode = GetValue(networkCodeparamsVariable, 0)
@@ -3519,7 +3519,7 @@ func (this *Poloniex) PrepareRequestForDepositAddress(code any, optionalArgs ...
 		if networkCode == nil {
 			return nil
 		}
-		return this.SafeDict(GetValue(currency, "networks"), networkCode)
+		return this.SafeDict(currency["networks"], networkCode)
 	}()
 	if !IsEqual(networkEntry, nil) {
 		exchangeNetworkId = GetValue(networkEntry, "id")
@@ -3579,13 +3579,13 @@ func (this *Poloniex) transferBody(ch chan any, code any, amount any, fromAccoun
 
 	retRes28148 := (<-this.LoadMarketsAsync())
 	PanicOnError(retRes28148)
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 	var accountsByType any = this.SafeValue(this.Options, "accountsByType", map[string]any{})
 	var fromId *string = this.SafeString(accountsByType, fromAccount, fromAccount)
 	var toId *string = this.SafeString(accountsByType, toAccount, fromAccount)
 	var request map[string]any = map[string]any{
 		"amount":      this.CurrencyToPrecision(code, amount),
-		"currency":    GetValue(currency, "id"),
+		"currency":    currency["id"],
 		"fromAccount": fromId,
 		"toAccount":   toId,
 	}
@@ -3650,9 +3650,9 @@ func (this *Poloniex) withdrawBody(ch chan any, code any, amount any, address an
 	tag = GetValue(tagparamsVariable, 0)
 	params = GetValue(tagparamsVariable, 1)
 	this.CheckAddress(address)
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 	var request map[string]any = map[string]any{
-		"coin":    GetValue(currency, "id"),
+		"coin":    currency["id"],
 		"amount":  this.CurrencyToPrecision(code, amount),
 		"address": address,
 	}
@@ -3980,7 +3980,7 @@ func (this *Poloniex) ParseDepositWithdrawFees(response any, optionalArgs ...any
 		var code *string = this.SafeCurrencyCode(currencyId)
 		var feeInfo any = GetValue(response, currencyId)
 		if (code != nil) && ((IsEqual(codes, nil)) || (this.InArray(code, codes))) {
-			var currency any = this.Currency(code)
+			var currency map[string]any = this.Currency(code).(map[string]any)
 			AddElementToObject(depositWithdrawFees, code, this.ParseDepositWithdrawFee(feeInfo, currency))
 			var childChains any = this.SafeValue(feeInfo, "childChains")
 			var chainsLength int = GetArrayLength(childChains)
@@ -3988,7 +3988,7 @@ func (this *Poloniex) ParseDepositWithdrawFees(response any, optionalArgs ...any
 				for j := 0; j < GetArrayLength(childChains); j++ {
 					var networkId any = GetValue(childChains, j)
 					networkId = Replace(networkId, code, "")
-					var networkCode any = this.NetworkIdToCode(networkId, GetValue(currency, "code"))
+					var networkCode any = this.NetworkIdToCode(networkId, currency["code"])
 					var networkInfo any = this.SafeValue(response, networkId)
 					var networkObject map[string]any = map[string]any{}
 					var withdrawFee *float64 = this.SafeNumber(networkInfo, "withdrawalFee")

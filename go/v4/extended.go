@@ -2166,7 +2166,7 @@ func (this *Extended) ParseLedgerEntry(item any, optionalArgs ...any) any {
 	var timestamp *int64 = this.SafeInteger(item, "time")
 	var assetId *string = this.SafeString(item, "asset")
 	var code any = this.GetExtendedCurrencyCodeById(assetId, currency)
-	var ledgerCurrency any = this.SafeCurrency(code, currency)
+	var ledgerCurrency map[string]any = this.SafeCurrency(code, currency).(map[string]any)
 	var amountString *string = this.SafeString(item, "amount")
 	var direction any = nil
 	if amountString != nil {
@@ -2407,7 +2407,7 @@ func (this *Extended) withdrawBody(ch chan any, code any, amount any, address an
 
 	retRes18288 := (<-this.LoadMarketsAsync())
 	PanicOnError(retRes18288)
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 	var chainId *string = this.SafeStringUpper2(params, "chainId", "network", "STRK")
 	if chainId == nil || *chainId != "STRK" {
 		panic(BadRequest(this.Id + " withdraw() only supports Starknet withdrawals with chainId STRK"))
@@ -2425,7 +2425,7 @@ func (this *Extended) withdrawBody(ch chan any, code any, amount any, address an
 		"accountId":  accountId,
 		"amount":     amountString,
 		"chainId":    chainId,
-		"asset":      GetValue(currency, "id"),
+		"asset":      currency["id"],
 		"settlement": settlement,
 	}
 	params = this.Omit(params, []any{"chainId", "network", "settlementExpiration", "nonce", "recipient", "positionId", "l2Vault", "collateralId", "resolution"})
@@ -2454,7 +2454,7 @@ func (this *Extended) withdrawBody(ch chan any, code any, amount any, address an
 		"tagTo":       tag,
 		"type":        "withdrawal",
 		"amount":      this.ParseNumber(amountString),
-		"currency":    GetValue(currency, "code"),
+		"currency":    currency["code"],
 		"status":      "pending",
 		"updated":     now,
 		"fee":         nil,
@@ -2568,7 +2568,7 @@ func (this *Extended) transferBody(ch chan any, code any, amount any, fromAccoun
 
 	retRes19438 := (<-this.LoadMarketsAsync())
 	PanicOnError(retRes19438)
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 
 	account := (<-this.FetchExtendedAccountAsync())
 	PanicOnError(account)
@@ -2589,7 +2589,7 @@ func (this *Extended) transferBody(ch chan any, code any, amount any, fromAccoun
 		"fromAccount":      fromAccount,
 		"toAccount":        toAccount,
 		"amount":           amountString,
-		"transferredAsset": GetValue(currency, "id"),
+		"transferredAsset": currency["id"],
 		"settlement":       settlement,
 	}
 	params = this.Omit(params, []any{"fromVault", "senderPositionId", "fromL2Key", "senderPublicKey", "toVault", "receiverPositionId", "toL2Key", "receiverPublicKey", "settlementExpiration", "nonce", "assetId", "collateralId", "resolution"})
@@ -2623,7 +2623,7 @@ func (this *Extended) transferBody(ch chan any, code any, amount any, fromAccoun
 		"id":          this.SafeString(data, "id"),
 		"timestamp":   now,
 		"datetime":    this.Iso8601(now),
-		"currency":    GetValue(currency, "code"),
+		"currency":    currency["code"],
 		"amount":      this.ParseNumber(amountString),
 		"fromAccount": fromAccount,
 		"toAccount":   toAccount,

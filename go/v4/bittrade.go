@@ -2781,11 +2781,11 @@ func (this *Bittrade) withdrawBody(ch chan any, code any, amount any, address an
 		PanicOnError(retRes206712)
 	}
 	this.CheckAddress(address)
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 	var request map[string]any = map[string]any{
 		"address":  address,
 		"amount":   amount,
-		"currency": ToLower(GetValue(currency, "id")),
+		"currency": ToLower(currency["id"]),
 	}
 	if tag != nil {
 		request["addr-tag"] = tag // only for XRP?
@@ -2796,9 +2796,9 @@ func (this *Bittrade) withdrawBody(ch chan any, code any, amount any, address an
 	if network != nil {
 		// possible chains - usdterc20, trc20usdt, hrc20usdt, usdt, algousdt
 		if network != nil && *network == "erc20" {
-			request["chain"] = Add(GetValue(currency, "id"), network)
+			request["chain"] = Add(currency["id"], network)
 		} else {
-			request["chain"] = Add(network, GetValue(currency, "id"))
+			request["chain"] = Add(network, currency["id"])
 		}
 		params = this.Omit(params, "network")
 	}

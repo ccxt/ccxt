@@ -1562,7 +1562,7 @@ func (this *Bitvavo) transferBody(ch chan any, code any, amount any, fromAccount
 		retRes127912 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes127912)
 	}
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 	var subaccountId any = DerefScalar(this.SafeString(params, "subaccountId"))
 	params = this.Omit(params, "subaccountId")
 	var direction string
@@ -1587,7 +1587,7 @@ func (this *Bitvavo) transferBody(ch chan any, code any, amount any, fromAccount
 	var request map[string]any = map[string]any{
 		"subaccountId": subaccountId,
 		"direction":    direction,
-		"symbol":       GetValue(currency, "id"),
+		"symbol":       currency["id"],
 		"amount":       this.CurrencyToPrecision(code, amount),
 	}
 
@@ -1809,9 +1809,9 @@ func (this *Bitvavo) fetchDepositAddressBody(ch chan any, code any, optionalArgs
 		retRes147112 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes147112)
 	}
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 	var request map[string]any = map[string]any{
-		"symbol": GetValue(currency, "id"),
+		"symbol": currency["id"],
 	}
 
 	response := (<-this.PrivateGetDeposit(this.Extend(request, params)))
@@ -2940,9 +2940,9 @@ func (this *Bitvavo) WithdrawRequest(code any, amount any, address any, optional
 	_ = tag
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 	var request map[string]any = map[string]any{
-		"symbol":  GetValue(currency, "id"),
+		"symbol":  currency["id"],
 		"amount":  this.CurrencyToPrecision(code, amount),
 		"address": address,
 	}
@@ -2985,7 +2985,7 @@ func (this *Bitvavo) withdrawBody(ch chan any, code any, amount any, address any
 		retRes238312 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes238312)
 	}
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 	var request any = this.WithdrawRequest(code, amount, address, tag, params)
 
 	response := (<-this.PrivatePostWithdrawal(request))

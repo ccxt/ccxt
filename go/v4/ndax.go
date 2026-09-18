@@ -2875,11 +2875,11 @@ func (this *Ndax) fetchDepositAddressBody(ch chan any, code any, optionalArgs ..
 	var defaultAccountId *int64 = this.SafeInteger2(this.Options, "accountId", "AccountId", this.ParseToInt(GetValue(GetValue(this.Accounts, 0), "id")))
 	var accountId *int64 = this.SafeInteger2(params, "accountId", "AccountId", defaultAccountId)
 	params = this.Omit(params, []any{"accountId", "AccountId"})
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 	var request map[string]any = map[string]any{
 		"omsId":          omsId,
 		"AccountId":      accountId,
-		"ProductId":      GetValue(currency, "id"),
+		"ProductId":      currency["id"],
 		"GenerateNewKey": false,
 	}
 
@@ -3344,11 +3344,11 @@ func (this *Ndax) withdrawBody(ch chan any, code any, amount any, address any, o
 	var defaultAccountId *int64 = this.SafeInteger2(this.Options, "accountId", "AccountId", this.ParseToInt(GetValue(GetValue(this.Accounts, 0), "id")))
 	var accountId *int64 = this.SafeInteger2(params, "accountId", "AccountId", defaultAccountId)
 	params = this.Omit(params, []any{"accountId", "AccountId"})
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 	var withdrawTemplateTypesRequest map[string]any = map[string]any{
 		"omsId":     omsId,
 		"AccountId": accountId,
-		"ProductId": GetValue(currency, "id"),
+		"ProductId": currency["id"],
 	}
 
 	withdrawTemplateTypesResponse := (<-this.PrivateGetGetWithdrawTemplateTypes(withdrawTemplateTypesRequest))
@@ -3368,13 +3368,13 @@ func (this *Ndax) withdrawBody(ch chan any, code any, amount any, address any, o
 	var templateTypes any = this.SafeValue(withdrawTemplateTypesResponse, "TemplateTypes", []any{})
 	var firstTemplateType any = this.SafeValue(templateTypes, 0)
 	if IsEqual(firstTemplateType, nil) {
-		panic(ExchangeError(Add(this.Id+" withdraw() could not find a withdraw template type for ", GetValue(currency, "code"))))
+		panic(ExchangeError(Add(this.Id+" withdraw() could not find a withdraw template type for ", currency["code"])))
 	}
 	var templateName *string = this.SafeString(firstTemplateType, "TemplateName")
 	var withdrawTemplateRequest map[string]any = map[string]any{
 		"omsId":             omsId,
 		"AccountId":         accountId,
-		"ProductId":         GetValue(currency, "id"),
+		"ProductId":         currency["id"],
 		"TemplateType":      templateName,
 		"AccountProviderId": GetValue(firstTemplateType, "AccountProviderId"),
 	}
@@ -3391,7 +3391,7 @@ func (this *Ndax) withdrawBody(ch chan any, code any, amount any, address any, o
 	//
 	var template *string = this.SafeString(withdrawTemplateResponse, "Template")
 	if template == nil {
-		panic(ExchangeError(Add(this.Id+" withdraw() could not find a withdraw template for ", GetValue(currency, "code"))))
+		panic(ExchangeError(Add(this.Id+" withdraw() could not find a withdraw template for ", currency["code"])))
 	}
 	var withdrawTemplate any = JsonParse(template)
 	AddElementToObject(withdrawTemplate, "ExternalAddress", address)
@@ -3403,7 +3403,7 @@ func (this *Ndax) withdrawBody(ch chan any, code any, amount any, address any, o
 	var withdrawPayload map[string]any = map[string]any{
 		"omsId":        omsId,
 		"AccountId":    accountId,
-		"ProductId":    GetValue(currency, "id"),
+		"ProductId":    currency["id"],
 		"TemplateForm": this.Json(withdrawTemplate),
 		"TemplateType": templateName,
 	}

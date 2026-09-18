@@ -7412,7 +7412,7 @@ func (this *BaseExchange) ParseDepositWithdrawFees(response any, optionalArgs ..
 				return this.SafeString(dictionary, currencyIdKey)
 			}()
 		}
-		var currency any = this.SafeCurrency(currencyId)
+		var currency map[string]any = this.SafeCurrency(currencyId).(map[string]any)
 		var code *string = this.SafeString(currency, "code")
 		if (IsEqual(codes, nil)) || (this.InArray(code, codes)) {
 			AddElementToObject(depositWithdrawFees, code, this.DerivedExchange.ParseDepositWithdrawFee(dictionary, currency))
@@ -8386,7 +8386,7 @@ func (this *BaseExchange) ParseOptionChain(response any, optionalArgs ...any) an
 			}
 			return this.SafeString(info, currencyKey)
 		}()
-		var currency any = this.SafeCurrency(currencyId)
+		var currency map[string]any = this.SafeCurrency(currencyId).(map[string]any)
 		var marketId any = func() any {
 			if symbolKey == nil {
 				return nil

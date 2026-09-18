@@ -1018,6 +1018,97 @@ function installCcxtGoArithmeticUnbox (goTranspiler) {
 }
 
 
+// ---------------------------------------------------------------------------------------------
+// `var currency map[string]any = this.Currency (code)` / `this.SafeCurrency (id)`
+//
+// The two currency accessors of exchange_generated.go hand back the currency dict a
+// fetchCurrencies / safeCurrencyStructure builds, so their box holds a Go map[string]any on
+// EVERY path: currency() panics when the code is unknown, safeCurrency() falls back to the
+// structure dict, and both dict sources (Currencies / Currencies_by_id) are only ever written
+// through mapToSafeMap(deepExtend(..)), indexBy(.., 'code') and indexBySafe(.., 'id') — the
+// indexer stores an element only when it IS a map, so a currency entry is never a *sync.Map, a
+// slice or a scalar. Unlike SafeDict*/SafeList* there is no absent value to carry (neither
+// accessor returns undefined), so the declaration can name the map — and the emitted call,
+// whose Go signature is still `any`, is unboxed at the declaration (see
+// ccxtGoUnboxCurrencyDeclaration) exactly like the arithmetic family.
+const CCXT_GO_CURRENCY_LOCAL_TYPE = 'map[string]any';
+
+const CCXT_GO_CURRENCY_CALLEES = [ 'this.Currency', 'this.SafeCurrency' ];
+
+// the callee of one whole printed call, or undefined
+function ccxtGoWholePrintedCallee (goTranspiler, printedValue) {
+    let value = (printedValue ?? '').trim ();
+    while (value.startsWith ('(') && goTranspiler.isWholePrintedCall (value, 0)) {
+        value = value.substring (1, value.length - 1).trim ();
+    }
+    const open = value.indexOf ('(');
+    if (open <= 0 || !goTranspiler.isWholePrintedCall (value, open)) {
+        return undefined;
+    }
+    const callee = value.substring (0, open);
+    return /^[A-Za-z_][\w.]*$/.test (callee) ? callee : undefined;
+}
+
+// the map type of a DECLARATION initialised by one of the currency accessors. Declarations
+// only: a later `currency = this.Currency (..)` write reaches this hook as a BinaryExpression
+// operand, and typing THAT would need the unbox at every write. The printer's own later-writes
+// scan runs this hook too, so a declaration whose local is re-assigned stays `any` — fail
+// closed, because that write would then have to carry the unbox as well.
+function ccxtGoTypeOfCurrencyInitializer (goTranspiler, initializer, printedValue) {
+    if (initializer?.kind !== ts.SyntaxKind.CallExpression) {
+        return undefined;
+    }
+    if (initializer.parent?.kind !== ts.SyntaxKind.VariableDeclaration) {
+        return undefined;
+    }
+    const callee = ccxtGoWholePrintedCallee (goTranspiler, printedValue);
+    if ((callee === undefined) || (CCXT_GO_CURRENCY_CALLEES.indexOf (callee) < 0)) {
+        return undefined;
+    }
+    if (!typeNameIsUsable (goTranspiler, initializer, CCXT_GO_CURRENCY_LOCAL_TYPE)) {
+        return undefined;
+    }
+    return CCXT_GO_CURRENCY_LOCAL_TYPE;
+}
+
+// The declaration names a map while the accessor's emitted Go signature is `any`, so the call
+// has to be unboxed for the declaration to compile. Fires only on the exact shape the
+// classifier above typed (a whole `this.Currency (..)` / `this.SafeCurrency (..)` call), and
+// never twice: an already-unboxed tail fails the trailing-text check.
+export function ccxtGoUnboxCurrencyDeclaration (goTranspiler, printed) {
+    if (typeof printed !== 'string') {
+        return printed;
+    }
+    const match = /^([\s\S]*?\bvar [A-Za-z0-9_]+ map\[string\]any = )((?:ccxt\.)?(?:this\.)?(?:Currency|SafeCurrency)\([^\n]*)$/.exec (printed);
+    if (match === null) {
+        return printed;
+    }
+    const tail = match[2];
+    const open = tail.indexOf ('(');
+    const close = ccxtGoPrintedCallEnd (tail, open);
+    if (close < 0) {
+        return printed;
+    }
+    const rest = tail.substring (close);
+    if (!/^\s*(;?\s*(\/\/[^\n]*)?)$/.test (rest)) {
+        return printed;
+    }
+    return match[1] + tail.substring (0, close) + '.(' + CCXT_GO_CURRENCY_LOCAL_TYPE + ')' + rest;
+}
+
+function installCcxtGoCurrencyUnbox (goTranspiler) {
+    if (typeof goTranspiler.printVariableDeclarationList !== 'function' || goTranspiler.__ccxtGoCurrencyUnboxInstalled) {
+        return;
+    }
+    const upstream = goTranspiler.printVariableDeclarationList;
+    goTranspiler.printVariableDeclarationList = function (node, identation) {
+        const printed = upstream.call (this, node, identation);
+        return ccxtGoUnboxCurrencyDeclaration (this, printed);
+    };
+    goTranspiler.__ccxtGoCurrencyUnboxInstalled = true;
+}
+
+
 // Fields of the hand-written `BaseExchange` (go/v4/exchange.go) whose Go type is a
 // native string-keyed map of `any`. `this.<field>["k"]` is then the same read as
 // `GetValue(this.<field>, "k")`: a missing key gives the `any` nil in both cases,
@@ -2227,6 +2318,10 @@ export function installCcxtGoLocalTypes (goTranspiler) {
         const wsTree = goSourceIsWsTree (initializer);
         const goType = ccxtGoTypeOfPrintedCall (this, printedValue, wsTree, initializer);
         if (goType === undefined) {
+            const currencyType = ccxtGoTypeOfCurrencyInitializer (this, initializer, printedValue);
+            if (currencyType !== undefined) {
+                return currencyType;
+            }
             return ccxtGoTypeOfCopiedLocal (this, initializer, printedValue);
         }
         if (!typeNameIsUsable (this, initializer, goType)) {
@@ -2262,6 +2357,8 @@ export function installCcxtGoLocalTypes (goTranspiler) {
     // the arithmetic type names a type Go will not unbox implicitly: the emitted
     // declaration needs the `.(int64)` the new declared type forces
     installCcxtGoArithmeticUnbox (goTranspiler);
+    // same for the currency dict the accessors box in `any`
+    installCcxtGoCurrencyUnbox (goTranspiler);
 }
 
 // ------------------------- U01: nil-declared later-write join (string) -------------------------

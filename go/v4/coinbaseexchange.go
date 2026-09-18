@@ -2297,9 +2297,9 @@ func (this *Coinbaseexchange) withdrawBody(ch chan any, code any, amount any, ad
 		retRes173812 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes173812)
 	}
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 	var request map[string]any = map[string]any{
-		"currency": GetValue(currency, "id"),
+		"currency": currency["id"],
 		"amount":   amount,
 	}
 	var response any = nil
@@ -2452,7 +2452,7 @@ func (this *Coinbaseexchange) fetchLedgerBody(ch chan any, optionalArgs ...any) 
 
 	retRes18678 := (<-this.LoadAccountsAsync())
 	PanicOnError(retRes18678)
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 	var accountsByCurrencyCode map[string]any = this.IndexBy(this.Accounts, "code")
 	var account any = this.SafeValue(accountsByCurrencyCode, code)
 	if IsEqual(account, nil) {
@@ -2816,7 +2816,7 @@ func (this *Coinbaseexchange) createDepositAddressBody(ch chan any, code any, op
 		retRes215412 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes215412)
 	}
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 	var accounts any = this.SafeValue(this.Options, "coinbaseAccounts")
 	if IsEqual(accounts, nil) {
 
@@ -2825,7 +2825,7 @@ func (this *Coinbaseexchange) createDepositAddressBody(ch chan any, code any, op
 		AddElementToObject(this.Options, "coinbaseAccounts", accounts) // cache it
 		AddElementToObject(this.Options, "coinbaseAccountsByCurrencyId", this.IndexBy(accounts, "currency"))
 	}
-	var currencyId any = GetValue(currency, "id")
+	var currencyId any = currency["id"]
 	var account any = this.SafeValue(GetValue(this.Options, "coinbaseAccountsByCurrencyId"), currencyId)
 	if IsEqual(account, nil) {
 		panic(InvalidAddress(Add(Add(Add(Add(this.Id+" createDepositAddress() could not find currency code ", code), " with id = "), currencyId), " in this.options['coinbaseAccountsByCurrencyId']")))

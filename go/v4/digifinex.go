@@ -3605,9 +3605,9 @@ func (this *Digifinex) fetchDepositAddressBody(ch chan any, code any, optionalAr
 		retRes285412 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes285412)
 	}
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 	var request map[string]any = map[string]any{
-		"currency": GetValue(currency, "id"),
+		"currency": currency["id"],
 	}
 
 	response := (<-this.PrivateSpotGetDepositAddress(this.Extend(request, params)))
@@ -3626,7 +3626,7 @@ func (this *Digifinex) fetchDepositAddressBody(ch chan any, code any, optionalAr
 	//     }
 	//
 	var data any = this.SafeValue(response, "data", []any{})
-	var addresses any = this.ParseDepositAddresses(data, []any{GetValue(currency, "code")})
+	var addresses any = this.ParseDepositAddresses(data, []any{currency["code"]})
 	var address any = this.SafeValue(addresses, code)
 	if IsEqual(address, nil) {
 		panic(InvalidAddress(Add(Add(this.Id+" fetchDepositAddress() did not return an address for ", code), " - create the deposit address in the user settings on the exchange website first.")))
@@ -3940,8 +3940,8 @@ func (this *Digifinex) transferBody(ch chan any, code any, amount any, fromAccou
 		retRes311412 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes311412)
 	}
-	var currency any = this.Currency(code)
-	var currencyId any = GetValue(currency, "id")
+	var currency map[string]any = this.Currency(code).(map[string]any)
+	var currencyId any = currency["id"]
 	var accountsByType any = this.SafeValue(this.Options, "accountsByType", map[string]any{})
 	var fromId *string = this.SafeString(accountsByType, fromAccount, fromAccount)
 	var toId *string = this.SafeString(accountsByType, toAccount, toAccount)
@@ -4029,11 +4029,11 @@ func (this *Digifinex) withdrawBody(ch chan any, code any, amount any, address a
 		retRes317712 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes317712)
 	}
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 	var request map[string]any = map[string]any{
 		"address":  address,
 		"amount":   this.CurrencyToPrecision(code, amount),
-		"currency": GetValue(currency, "id"),
+		"currency": currency["id"],
 	}
 	if tag != nil {
 		request["memo"] = tag
@@ -4204,7 +4204,7 @@ func (this *Digifinex) fetchCrossBorrowRateBody(ch chan any, code any, optionalA
 			result = entry
 		}
 	}
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 
 	ch <- this.ParseBorrowRate(result, currency)
 	return nil
@@ -5438,7 +5438,7 @@ func (this *Digifinex) ParseDepositWithdrawFees(response any, optionalArgs ...an
 	var depositWithdrawCodes []string = ObjectKeys(depositWithdrawFees)
 	for i := 0; i < len(depositWithdrawCodes); i++ {
 		var code string = GetValue(depositWithdrawCodes, i).(string)
-		var currency any = this.Currency(code)
+		var currency map[string]any = this.Currency(code).(map[string]any)
 		depositWithdrawFees[code] = this.AssignDefaultDepositWithdrawFees(depositWithdrawFees[code], currency)
 	}
 	return depositWithdrawFees

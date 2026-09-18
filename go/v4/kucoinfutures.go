@@ -100,7 +100,7 @@ func (this *Kucoinfutures) transferBody(ch chan any, code any, amount any, fromA
 		retRes7312 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes7312)
 	}
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 	var amountToPrecision any = this.CurrencyToPrecision(code, amount)
 	var request map[string]any = map[string]any{
 		"currency": this.SafeString(currency, "id"),

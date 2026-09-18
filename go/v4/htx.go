@@ -8113,9 +8113,9 @@ func (this *Htx) fetchDepositAddressesByNetworkBody(ch chan any, code any, optio
 		retRes641412 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes641412)
 	}
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 	var request map[string]any = map[string]any{
-		"currency": GetValue(currency, "id"),
+		"currency": currency["id"],
 	}
 
 	response := (<-this.SpotPrivateGetV2AccountDepositAddress(this.Extend(request, params)))
@@ -8134,7 +8134,7 @@ func (this *Htx) fetchDepositAddressesByNetworkBody(ch chan any, code any, optio
 	//     }
 	//
 	var data any = this.SafeValue(response, "data", []any{})
-	var parsed any = this.ParseDepositAddresses(data, []any{GetValue(currency, "code")}, false)
+	var parsed any = this.ParseDepositAddresses(data, []any{currency["code"]}, false)
 
 	ch <- this.IndexBy(parsed, "network")
 	return nil
@@ -8164,14 +8164,14 @@ func (this *Htx) fetchDepositAddressBody(ch chan any, code any, optionalArgs ...
 		retRes645012 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes645012)
 	}
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 	networkCodeparamsOmitedVariable := this.HandleNetworkCodeAndParams(params)
 	networkCode := GetValue(networkCodeparamsOmitedVariable, 0)
 	paramsOmited := GetValue(networkCodeparamsOmitedVariable, 1)
 
 	indexedAddresses := (<-this.FetchDepositAddressesByNetworkAsync(code, paramsOmited))
 	PanicOnError(indexedAddresses)
-	var selectedNetworkCode any = this.SelectNetworkCodeFromUnifiedNetworks(GetValue(currency, "code"), networkCode, indexedAddresses)
+	var selectedNetworkCode any = this.SelectNetworkCodeFromUnifiedNetworks(currency["code"], networkCode, indexedAddresses)
 
 	ch <- this.SafeValue(indexedAddresses, selectedNetworkCode)
 	return nil
@@ -8195,9 +8195,9 @@ func (this *Htx) fetchWithdrawAddressesBody(ch chan any, code any, optionalArgs 
 		retRes646112 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes646112)
 	}
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 	var request map[string]any = map[string]any{
-		"currency": GetValue(currency, "id"),
+		"currency": currency["id"],
 	}
 
 	response := (<-this.SpotPrivateGetV2AccountWithdrawAddress(this.Extend(request, params)))
@@ -8217,7 +8217,7 @@ func (this *Htx) fetchWithdrawAddressesBody(ch chan any, code any, optionalArgs 
 	//     }
 	//
 	var data any = this.SafeValue(response, "data", []any{})
-	var allAddresses any = this.ParseDepositAddresses(data, []any{GetValue(currency, "code")}, false)
+	var allAddresses any = this.ParseDepositAddresses(data, []any{currency["code"]}, false)
 	var addresses any = []any{}
 	for i := 0; i < GetArrayLength(allAddresses); i++ {
 		var address any = GetValue(allAddresses, i)
@@ -8554,10 +8554,10 @@ func (this *Htx) withdrawBody(ch chan any, code any, amount any, address any, op
 		PanicOnError(retRes676112)
 	}
 	this.CheckAddress(address)
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 	var request map[string]any = map[string]any{
 		"address":  address,
-		"currency": ToLower(GetValue(currency, "id")),
+		"currency": ToLower(currency["id"]),
 	}
 	if tag != nil {
 		request["addr-tag"] = tag // only for XRP?
@@ -8582,7 +8582,7 @@ func (this *Htx) withdrawBody(ch chan any, code any, amount any, address any, op
 			currencies := (<-this.FetchCurrenciesAsync())
 			PanicOnError(currencies)
 			this.Currencies = this.MapToSafeMap(this.DeepExtend(this.Currencies, currencies))
-			var targetNetwork any = this.SafeValue(GetValue(currency, "networks"), networkCode, map[string]any{})
+			var targetNetwork any = this.SafeValue(currency["networks"], networkCode, map[string]any{})
 			fee = this.SafeNumber(targetNetwork, "fee")
 			if fee == nil {
 				panic(ArgumentsRequired(this.Id + " withdraw() function can not find withdraw fee for chosen network. You need to re-load markets with \"exchange.loadMarkets(true)\", or provide the \"fee\" parameter"))
@@ -8716,13 +8716,13 @@ func (this *Htx) transferBody(ch chan any, code any, amount any, fromAccount any
 		retRes690412 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes690412)
 	}
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 	var transferAmount any = this.CurrencyToPrecision(code, amount)
 	if transferAmount == nil {
 		transferAmount = "0"
 	}
 	var request map[string]any = map[string]any{
-		"currency": GetValue(currency, "id"),
+		"currency": currency["id"],
 		"amount":   ParseFloat(transferAmount),
 	}
 	var subType any = nil
@@ -9386,8 +9386,8 @@ func (this *Htx) fetchBorrowInterestBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError(response)
 	} else {
 		if code != nil {
-			var currency any = this.Currency(code)
-			request["currency"] = GetValue(currency, "id")
+			var currency map[string]any = this.Currency(code).(map[string]any)
+			request["currency"] = currency["id"]
 		}
 
 		response = (<-this.PrivateGetCrossMarginLoanOrders(this.Extend(request, params)))
@@ -10956,10 +10956,10 @@ func (this *Htx) borrowIsolatedMarginBody(ch chan any, symbol any, code any, amo
 		retRes904312 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes904312)
 	}
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{
-		"currency": GetValue(currency, "id"),
+		"currency": currency["id"],
 		"amount":   this.CurrencyToPrecision(code, amount),
 		"symbol":   GetValue(market, "id"),
 	}
@@ -11008,9 +11008,9 @@ func (this *Htx) borrowCrossMarginBody(ch chan any, code any, amount any, option
 		retRes908012 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes908012)
 	}
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 	var request map[string]any = map[string]any{
-		"currency": GetValue(currency, "id"),
+		"currency": currency["id"],
 		"amount":   this.CurrencyToPrecision(code, amount),
 	}
 
@@ -11058,12 +11058,12 @@ func (this *Htx) repayIsolatedMarginBody(ch chan any, symbol any, code any, amou
 		retRes911512 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes911512)
 	}
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 
 	accountId := (<-this.FetchAccountIdByTypeAsync("spot", "isolated", symbol, params))
 	PanicOnError(accountId)
 	var request map[string]any = map[string]any{
-		"currency":  GetValue(currency, "id"),
+		"currency":  currency["id"],
 		"amount":    this.CurrencyToPrecision(code, amount),
 		"accountId": accountId,
 	}
@@ -11117,12 +11117,12 @@ func (this *Htx) repayCrossMarginBody(ch chan any, code any, amount any, optiona
 		retRes915712 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes915712)
 	}
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 
 	accountId := (<-this.FetchAccountIdByTypeAsync("spot", "cross", nil, params))
 	PanicOnError(accountId)
 	var request map[string]any = map[string]any{
-		"currency":  GetValue(currency, "id"),
+		"currency":  currency["id"],
 		"amount":    this.CurrencyToPrecision(code, amount),
 		"accountId": accountId,
 	}

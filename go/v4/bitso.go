@@ -431,7 +431,7 @@ func (this *Bitso) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	//     }
 	//
 	var payload any = this.SafeValue(response, "payload", []any{})
-	var currency any = this.SafeCurrency(code)
+	var currency map[string]any = this.SafeCurrency(code).(map[string]any)
 
 	ch <- this.ParseLedger(payload, currency, since, limit)
 	return nil
@@ -1969,9 +1969,9 @@ func (this *Bitso) fetchDepositAddressBody(ch chan any, code any, optionalArgs .
 		retRes155512 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes155512)
 	}
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 	var request map[string]any = map[string]any{
-		"fund_currency": GetValue(currency, "id"),
+		"fund_currency": currency["id"],
 	}
 
 	response := (<-this.PrivateGetFundingDestination(this.Extend(request, params)))
@@ -2316,7 +2316,7 @@ func (this *Bitso) withdrawBody(ch chan any, code any, amount any, address any, 
 		"BCH": "Bcash",
 		"LTC": "Litecoin",
 	}
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 	var method any = func() any {
 		if InOp(methods, code) {
 			return GetValue(methods, code)

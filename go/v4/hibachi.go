@@ -2445,7 +2445,7 @@ func (this *Hibachi) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 		retRes194712 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes194712)
 	}
-	var currency any = this.Currency("USDT")
+	var currency map[string]any = this.Currency("USDT").(map[string]any)
 	var request map[string]any = map[string]any{
 		"accountId": this.GetAccountId(),
 	}
@@ -2642,7 +2642,7 @@ func (this *Hibachi) fetchDepositsWithdrawalsBody(ch chan any, optionalArgs ...a
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	var currency any = this.SafeCurrency(code)
+	var currency map[string]any = this.SafeCurrency(code).(map[string]any)
 	var request map[string]any = map[string]any{
 		"accountId": this.GetAccountId(),
 	}

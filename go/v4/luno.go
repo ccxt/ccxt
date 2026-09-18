@@ -1980,9 +1980,9 @@ func (this *Luno) createDepositAddressBody(ch chan any, code any, optionalArgs .
 		retRes157312 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes157312)
 	}
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 	var request map[string]any = map[string]any{
-		"asset": GetValue(currency, "id"),
+		"asset": currency["id"],
 	}
 
 	response := (<-this.PrivatePostFundingAddress(this.Extend(request, params)))
@@ -2038,9 +2038,9 @@ func (this *Luno) fetchDepositAddressBody(ch chan any, code any, optionalArgs ..
 		retRes161612 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes161612)
 	}
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 	var request map[string]any = map[string]any{
-		"asset": GetValue(currency, "id"),
+		"asset": currency["id"],
 	}
 
 	response := (<-this.PrivateGetFundingAddress(this.Extend(request, params)))
@@ -2130,9 +2130,9 @@ func (this *Luno) fetchDepositWithdrawFeeBody(ch chan any, code any, optionalArg
 
 	retRes16938 := (<-this.LoadMarketsAsync())
 	PanicOnError(retRes16938)
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 	var request map[string]any = map[string]any{
-		"currency": GetValue(currency, "id"),
+		"currency": currency["id"],
 	}
 
 	response := (<-this.PrivateGetSendFee(this.Extend(request, params)))

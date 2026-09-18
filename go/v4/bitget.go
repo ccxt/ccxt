@@ -4531,8 +4531,8 @@ func (this *Bitget) fetchMarketLeverageTiersBody(ch chan any, symbol any, option
 			panic(ArgumentsRequired(this.Id + " fetchMarketLeverageTiers() requires a code argument"))
 		}
 		params = this.Omit(params, "code")
-		var currency any = this.Currency(code)
-		request["coin"] = GetValue(currency, "id")
+		var currency map[string]any = this.Currency(code).(map[string]any)
+		request["coin"] = currency["id"]
 
 		response = (<-this.PrivateMarginGetV2MarginCrossedTierData(this.Extend(request, params)))
 		PanicOnError(response)
@@ -4888,10 +4888,10 @@ func (this *Bitget) withdrawBody(ch chan any, code any, amount any, address any,
 	utaparamsVariable := (<-this.HandleUTAAndParamsAsync(params, "withdraw", false))
 	uta = GetValue(utaparamsVariable, 0)
 	params = GetValue(utaparamsVariable, 1)
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 	var networkId any = this.NetworkCodeToId(networkCode, code)
 	var request map[string]any = map[string]any{
-		"coin":         GetValue(currency, "id"),
+		"coin":         currency["id"],
 		"address":      address,
 		"chain":        networkId,
 		"size":         this.CurrencyToPrecision(code, amount, networkCode),
@@ -5243,9 +5243,9 @@ func (this *Bitget) fetchDepositAddressBody(ch chan any, code any, optionalArgs 
 	networkCodeparamsVariable := this.HandleNetworkCodeAndParams(params)
 	networkCode = GetValue(networkCodeparamsVariable, 0)
 	params = GetValue(networkCodeparamsVariable, 1)
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 	var request map[string]any = map[string]any{
-		"coin": GetValue(currency, "id"),
+		"coin": currency["id"],
 	}
 	if networkCode != nil {
 		request["chain"] = this.NetworkCodeToId(networkCode, code)
@@ -12872,9 +12872,9 @@ func (this *Bitget) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 	params = this.Omit(params, "fromAccount")
 	var accountsByType any = this.SafeValue(this.Options, "accountsByType", map[string]any{})
 	typeVar = DerefScalar(this.SafeString(accountsByType, fromAccount))
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 	var request any = map[string]any{
-		"coin":     GetValue(currency, "id"),
+		"coin":     currency["id"],
 		"fromType": typeVar,
 	}
 	if !IsEqual(since, nil) {
@@ -12951,7 +12951,7 @@ func (this *Bitget) transferBody(ch chan any, code any, amount any, fromAccount 
 	utaparamsVariable := (<-this.HandleUTAAndParamsAsync(params, "transfer", false))
 	uta = GetValue(utaparamsVariable, 0)
 	params = GetValue(utaparamsVariable, 1)
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 	var accountsByType any = this.SafeValue(this.Options, "accountsByType", map[string]any{})
 	var fromType *string = this.SafeString(accountsByType, fromAccount)
 	var toType *string = this.SafeString(accountsByType, toAccount)
@@ -12959,7 +12959,7 @@ func (this *Bitget) transferBody(ch chan any, code any, amount any, fromAccount 
 		"fromType": fromType,
 		"toType":   toType,
 		"amount":   amount,
-		"coin":     GetValue(currency, "id"),
+		"coin":     currency["id"],
 	}
 	var symbol *string = this.SafeString(params, "symbol")
 	params = this.Omit(params, "symbol")
@@ -13201,9 +13201,9 @@ func (this *Bitget) borrowCrossMarginBody(ch chan any, code any, amount any, opt
 		retRes1021412 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes1021412)
 	}
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 	var request map[string]any = map[string]any{
-		"coin":         GetValue(currency, "id"),
+		"coin":         currency["id"],
 		"borrowAmount": this.CurrencyToPrecision(code, amount),
 	}
 
@@ -13253,10 +13253,10 @@ func (this *Bitget) borrowIsolatedMarginBody(ch chan any, symbol any, code any, 
 		retRes1025112 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes1025112)
 	}
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{
-		"coin":         GetValue(currency, "id"),
+		"coin":         currency["id"],
 		"borrowAmount": this.CurrencyToPrecision(code, amount),
 		"symbol":       GetValue(market, "id"),
 	}
@@ -13308,10 +13308,10 @@ func (this *Bitget) repayIsolatedMarginBody(ch chan any, symbol any, code any, a
 		retRes1029112 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes1029112)
 	}
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{
-		"coin":        GetValue(currency, "id"),
+		"coin":        currency["id"],
 		"repayAmount": this.CurrencyToPrecision(code, amount),
 		"symbol":      GetValue(market, "id"),
 	}
@@ -13363,9 +13363,9 @@ func (this *Bitget) repayCrossMarginBody(ch chan any, code any, amount any, opti
 		retRes1033112 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes1033112)
 	}
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 	var request map[string]any = map[string]any{
-		"coin":        GetValue(currency, "id"),
+		"coin":        currency["id"],
 		"repayAmount": this.CurrencyToPrecision(code, amount),
 	}
 
@@ -13806,9 +13806,9 @@ func (this *Bitget) fetchCrossBorrowRateBody(ch chan any, code any, optionalArgs
 		retRes1070412 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes1070412)
 	}
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 	var request map[string]any = map[string]any{
-		"coin": GetValue(currency, "id"),
+		"coin": currency["id"],
 	}
 	var uta any = nil
 	var response any = nil
@@ -14452,9 +14452,9 @@ func (this *Bitget) fetchConvertQuoteBody(ch chan any, fromCode any, toCode any,
 	//
 	var data any = this.SafeDict(response, "data", map[string]any{})
 	var fromCurrencyId *string = this.SafeString(data, "fromCoin", fromCode)
-	var fromCurrency any = this.Currency(fromCurrencyId)
+	var fromCurrency map[string]any = this.Currency(fromCurrencyId).(map[string]any)
 	var toCurrencyId *string = this.SafeString(data, "toCoin", toCode)
-	var toCurrency any = this.Currency(toCurrencyId)
+	var toCurrency map[string]any = this.Currency(toCurrencyId).(map[string]any)
 
 	ch <- this.ParseConversion(data, fromCurrency, toCurrency)
 	return nil
@@ -14526,7 +14526,7 @@ func (this *Bitget) createConvertTradeBody(ch chan any, id any, fromCode any, to
 	//
 	var data any = this.SafeDict(response, "data", map[string]any{})
 	var toCurrencyId *string = this.SafeString(data, "toCoin", toCode)
-	var toCurrency any = this.Currency(toCurrencyId)
+	var toCurrency map[string]any = this.Currency(toCurrencyId).(map[string]any)
 
 	ch <- this.ParseConversion(data, nil, toCurrency)
 	return nil

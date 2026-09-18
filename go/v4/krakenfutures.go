@@ -4182,7 +4182,7 @@ func (this *Krakenfutures) transferBody(ch chan any, code any, amount any, fromA
 		retRes350412 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes350412)
 	}
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 	if IsEqual(fromAccount, "spot") {
 		panic(BadRequest(this.Id + " transfer does not yet support transfers from spot"))
 	}
@@ -4194,14 +4194,14 @@ func (this *Krakenfutures) transferBody(ch chan any, code any, amount any, fromA
 		if !IsEqual(this.ParseAccount(fromAccount), "cash") {
 			panic(BadRequest(Add(Add(Add(this.Id+" transfer cannot transfer from ", fromAccount), " to "), toAccount)))
 		}
-		request["currency"] = GetValue(currency, "id")
+		request["currency"] = currency["id"]
 
 		response = (<-this.PrivatePostWithdrawal(this.Extend(request, params)))
 		PanicOnError(response)
 	} else {
 		request["fromAccount"] = this.ParseAccount(fromAccount)
 		request["toAccount"] = this.ParseAccount(toAccount)
-		request["unit"] = GetValue(currency, "id")
+		request["unit"] = currency["id"]
 
 		response = (<-this.PrivatePostTransfer(this.Extend(request, params)))
 		PanicOnError(response)

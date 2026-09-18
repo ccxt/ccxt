@@ -1384,9 +1384,9 @@ func (this *Indodax) fetchTransactionFeeBody(ch chan any, code any, optionalArgs
 		retRes111212 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes111212)
 	}
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 	var request map[string]any = map[string]any{
-		"currency": GetValue(currency, "id"),
+		"currency": currency["id"],
 	}
 
 	response := (<-this.PrivatePostWithdrawFee(this.Extend(request, params)))
@@ -1434,9 +1434,9 @@ func (this *Indodax) fetchDepositWithdrawFeeBody(ch chan any, code any, optional
 
 	retRes11488 := (<-this.LoadMarketsAsync())
 	PanicOnError(retRes11488)
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 	var request map[string]any = map[string]any{
-		"currency": GetValue(currency, "id"),
+		"currency": currency["id"],
 	}
 
 	response := (<-this.PrivatePostWithdrawFee(this.Extend(request, params)))
@@ -1620,7 +1620,7 @@ func (this *Indodax) withdrawBody(ch chan any, code any, amount any, address any
 		retRes129312 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes129312)
 	}
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 	// Custom string you need to provide to identify each withdrawal.
 	// Will be passed to callback URL (assigned via website to the API key)
 	// so your system can identify the request and confirm it.
@@ -1629,7 +1629,7 @@ func (this *Indodax) withdrawBody(ch chan any, code any, amount any, address any
 	// Alternatively:
 	// let requestId = this.uuid ();
 	var request map[string]any = map[string]any{
-		"currency":         GetValue(currency, "id"),
+		"currency":         currency["id"],
 		"withdraw_amount":  amount,
 		"withdraw_address": address,
 		"request_id":       ToString(requestId),

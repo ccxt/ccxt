@@ -2125,7 +2125,7 @@ func (this *Cex) transferBetweenMainAndSubAccountBody(ch chan any, code any, amo
 		retRes166512 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes166512)
 	}
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 	var fromMain bool = (IsEqual(fromAccount, ""))
 	var targetAccount any = func() any {
 		if fromMain {
@@ -2135,7 +2135,7 @@ func (this *Cex) transferBetweenMainAndSubAccountBody(ch chan any, code any, amo
 	}()
 	var guid *string = this.SafeString(params, "guid", this.Uuid())
 	var request map[string]any = map[string]any{
-		"currency":   GetValue(currency, "id"),
+		"currency":   currency["id"],
 		"amount":     this.CurrencyToPrecision(code, amount),
 		"accountId":  targetAccount,
 		"clientTxId": guid,
@@ -2183,9 +2183,9 @@ func (this *Cex) transferBetweenSubAccountsBody(ch chan any, code any, amount an
 		retRes170212 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes170212)
 	}
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 	var request map[string]any = map[string]any{
-		"currency":      GetValue(currency, "id"),
+		"currency":      currency["id"],
 		"amount":        this.CurrencyToPrecision(code, amount),
 		"fromAccountId": fromAccount,
 		"toAccountId":   toAccount,
@@ -2282,11 +2282,11 @@ func (this *Cex) fetchDepositAddressBody(ch chan any, code any, optionalArgs ...
 	networkCodeparamsVariable := this.HandleNetworkCodeAndParams(params)
 	networkCode = GetValue(networkCodeparamsVariable, 0)
 	params = GetValue(networkCodeparamsVariable, 1)
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 	var request map[string]any = map[string]any{
 		"accountId":  accountId,
-		"currency":   GetValue(currency, "id"),
-		"blockchain": this.NetworkCodeToId(networkCode, GetValue(currency, "code")),
+		"currency":   currency["id"],
+		"blockchain": this.NetworkCodeToId(networkCode, currency["code"]),
 	}
 
 	response := (<-this.PrivatePostGetDepositAddress(this.Extend(request, params)))

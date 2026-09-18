@@ -5359,12 +5359,12 @@ func (this *Coinbase) withdrawBody(ch chan any, code any, amount any, address an
 		retRes425012 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes425012)
 	}
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 	var request map[string]any = map[string]any{
 		"type":     "send",
 		"to":       address,
 		"amount":   this.NumberToString(amount),
-		"currency": GetValue(currency, "id"),
+		"currency": currency["id"],
 	}
 	var accountId any = DerefScalar(this.SafeString2(params, "account_id", "accountId"))
 	params = this.Omit(params, []any{"account_id", "accountId"})
@@ -5470,9 +5470,9 @@ func (this *Coinbase) fetchDepositAddressesByNetworkBody(ch chan any, code any, 
 		retRes434412 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes434412)
 	}
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 	var request any = nil
-	requestparamsVariable := (<-this.PrepareAccountRequestWithCurrencyCodeAsync(GetValue(currency, "code"), nil, params))
+	requestparamsVariable := (<-this.PrepareAccountRequestWithCurrencyCodeAsync(currency["code"], nil, params))
 	request = GetValue(requestparamsVariable, 0)
 	params = GetValue(requestparamsVariable, 1)
 
@@ -6115,11 +6115,11 @@ func (this *Coinbase) transferBody(ch chan any, code any, amount any, fromAccoun
 
 	retRes48528 := (<-this.LoadMarketsAsync())
 	PanicOnError(retRes48528)
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 	var request map[string]any = map[string]any{
 		"funds": map[string]any{
 			"value":    this.CurrencyToPrecision(code, amount),
-			"currency": GetValue(currency, "id"),
+			"currency": currency["id"],
 		},
 		"source_portfolio_uuid": fromAccount,
 		"target_portfolio_uuid": toAccount,

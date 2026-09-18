@@ -5304,10 +5304,10 @@ func (this *Aster) withdrawBody(ch chan any, code any, amount any, address any, 
 
 	retRes41548 := (<-this.LoadMarketsAndSignInAsync())
 	PanicOnError(retRes41548)
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 	var nonce any = this.Milliseconds() * 1000
 	var request map[string]any = map[string]any{
-		"asset":     GetValue(currency, "id"),
+		"asset":     currency["id"],
 		"receiver":  address,
 		"userNonce": ToString(nonce),
 	}
@@ -5398,9 +5398,9 @@ func (this *Aster) transferBody(ch chan any, code any, amount any, fromAccount a
 
 	retRes42328 := (<-this.LoadMarketsAndSignInAsync())
 	PanicOnError(retRes42328)
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 	var request map[string]any = map[string]any{
-		"asset":  GetValue(currency, "id"),
+		"asset":  currency["id"],
 		"amount": this.CurrencyToPrecision(code, amount),
 	}
 	var typeVar any = nil

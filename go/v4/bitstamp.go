@@ -3740,10 +3740,10 @@ func (this *Bitstamp) transferBody(ch chan any, code any, amount any, fromAccoun
 		retRes267412 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes267412)
 	}
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 	var request map[string]any = map[string]any{
 		"amount":   this.ParseToNumeric(this.CurrencyToPrecision(code, amount)),
-		"currency": ToUpper(GetValue(currency, "id")),
+		"currency": ToUpper(currency["id"]),
 	}
 	var response any = nil
 	if IsEqual(fromAccount, "main") {

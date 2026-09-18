@@ -2178,7 +2178,7 @@ func (this *Latoken) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 		retRes171612 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes171612)
 	}
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 
 	response := (<-this.PrivateGetAuthTransfer(params))
 	PanicOnError(response)
@@ -2248,9 +2248,9 @@ func (this *Latoken) transferBody(ch chan any, code any, amount any, fromAccount
 		retRes177112 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes177112)
 	}
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 	var request map[string]any = map[string]any{
-		"currency":  GetValue(currency, "id"),
+		"currency":  currency["id"],
 		"recipient": toAccount,
 		"value":     this.CurrencyToPrecision(code, amount),
 	}

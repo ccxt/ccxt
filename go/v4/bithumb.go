@@ -785,7 +785,7 @@ func (this *Bithumb) ParseBalance(response any) any {
 		for i := 0; i < len(codes); i++ {
 			var code string = GetValue(codes, i).(string)
 			var account any = this.Account()
-			var currency any = this.Currency(code)
+			var currency map[string]any = this.Currency(code).(map[string]any)
 			var lowerCurrencyId *string = this.SafeStringLower(currency, "id")
 			AddElementToObject(account, "total", this.SafeString(balances, Add("total_", lowerCurrencyId)))
 			AddElementToObject(account, "used", this.SafeString(balances, Add("in_use_", lowerCurrencyId)))
@@ -3138,7 +3138,7 @@ func (this *Bithumb) withdrawBody(ch chan any, code any, amount any, address any
 	this.CheckAddress(address)
 	var network *string = this.SafeString2(params, "network", "net_type")
 	params = this.Omit(params, "network")
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 	var request map[string]any = map[string]any{}
 	var response any = nil
 	var destinationRequest any = nil
@@ -3172,7 +3172,7 @@ func (this *Bithumb) withdrawBody(ch chan any, code any, amount any, address any
 				panic(ArgumentsRequired(Add(Add(this.Id+" ", code), " withdraw() requires a network parameter")))
 			}
 			request["address"] = address
-			request["currency"] = GetValue(currency, "id")
+			request["currency"] = currency["id"]
 			request["net_type"] = network
 			request["amount"] = this.NumberToString(amount)
 			if destinationRequest != nil {
@@ -3187,7 +3187,7 @@ func (this *Bithumb) withdrawBody(ch chan any, code any, amount any, address any
 		}
 	} else {
 		request["address"] = address
-		request["currency"] = GetValue(currency, "id")
+		request["currency"] = currency["id"]
 		request["units"] = amount
 		if network != nil {
 			request["net_type"] = network
@@ -3396,9 +3396,9 @@ func (this *Bithumb) fetchWithdrawalBody(ch chan any, id any, optionalArgs ...an
 	if code == nil {
 		panic(ArgumentsRequired(this.Id + " fetchWithdrawal() requires a code argument"))
 	}
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 	var request map[string]any = map[string]any{
-		"currency": GetValue(currency, "id"),
+		"currency": currency["id"],
 	}
 	if id != nil {
 		request["uuid"] = id
@@ -3553,9 +3553,9 @@ func (this *Bithumb) fetchDepositBody(ch chan any, id any, optionalArgs ...any) 
 	if code == nil {
 		panic(ArgumentsRequired(this.Id + " fetchDeposit() requires a code argument"))
 	}
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 	var request map[string]any = map[string]any{
-		"currency": GetValue(currency, "id"),
+		"currency": currency["id"],
 	}
 	if id != nil {
 		request["uuid"] = id
@@ -3704,9 +3704,9 @@ func (this *Bithumb) createDepositAddressBody(ch chan any, code any, optionalArg
 	if !IsEqual(generation, 2) {
 		panic(BadRequest(this.Id + " createDepositAddress() is only supported for the generation 2 API"))
 	}
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 	var request map[string]any = map[string]any{
-		"currency": GetValue(currency, "id"),
+		"currency": currency["id"],
 	}
 	var network *string = this.SafeString2(params, "network", "net_type")
 	params = this.Omit(params, "network")
@@ -3763,9 +3763,9 @@ func (this *Bithumb) fetchDepositAddressBody(ch chan any, code any, optionalArgs
 	if !IsEqual(generation, 2) {
 		panic(BadRequest(this.Id + " fetchDepositAddress() is only supported for the generation 2 API"))
 	}
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 	var request map[string]any = map[string]any{
-		"currency": GetValue(currency, "id"),
+		"currency": currency["id"],
 	}
 	var network *string = this.SafeString2(params, "network", "net_type")
 	params = this.Omit(params, "network")
