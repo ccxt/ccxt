@@ -2314,7 +2314,7 @@ public class TestMain extends BaseTest
             // so one shared 'httpResponse' cannot cover two differently-shaped endpoints
             Object responsesByUrl = exchange.safeDict(data, "httpResponseByUrl");
             var mockedExchange = exchange;
-            if (Helpers.isTrue(!Helpers.isEqual(responsesByUrl, null)))
+            if (!java.util.Objects.equals(responsesByUrl, null))
             {
                 mockedExchange = setFetchResponseByUrl(exchange, responsesByUrl);
             } else

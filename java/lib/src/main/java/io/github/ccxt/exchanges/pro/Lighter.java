@@ -264,11 +264,11 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public CompletableFuture<OrderBook> watchOrderBook(String symbol, Object... optionalArgs)
+    public CompletableFuture<OrderBook> watchOrderBook(String symbol2, Object... optionalArgs)
     {
-
+        final Object symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
-
+            Object symbol = symbol3;
             Object limit = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
             Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(this.markets, null))
@@ -276,6 +276,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            symbol = ((Map<String, Object>)market).get("symbol");
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "channel", Helpers.add("order_book/", ((Map<String, Object>)market).get("id")) );
             }};
@@ -295,21 +296,23 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public CompletableFuture<Object> unWatchOrderBook(Object symbol, Object... optionalArgs)
+    public CompletableFuture<Object> unWatchOrderBook(Object symbol2, Object... optionalArgs)
     {
-
+        final Object symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
-
+            Object symbol = symbol3;
             Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            symbol = ((Map<String, Object>)market).get("symbol");
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "channel", Helpers.add("order_book/", ((Map<String, Object>)market).get("id")) );
             }};
-            Object messageHash = this.getMessageHash("unsubscribe", symbol);
+            Object subMessageHash = this.getMessageHash("orderbook", symbol);
+            String messageHash = ("unsubscribe:" + subMessageHash);
             return (this.unsubscribe(messageHash, this.extend(request, parameters))).join();
         });
 
@@ -403,17 +406,18 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public CompletableFuture<Ticker> watchTicker(String symbol, Object... optionalArgs)
+    public CompletableFuture<Ticker> watchTicker(String symbol2, Object... optionalArgs)
     {
-
+        final Object symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
-
+            Object symbol = symbol3;
             Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            symbol = ((Map<String, Object>)market).get("symbol");
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "channel", Helpers.add("market_stats/", ((Map<String, Object>)market).get("id")) );
             }};
@@ -432,21 +436,23 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public CompletableFuture<Object> unWatchTicker(String symbol, Object... optionalArgs)
+    public CompletableFuture<Object> unWatchTicker(String symbol2, Object... optionalArgs)
     {
-
+        final Object symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
-
+            Object symbol = symbol3;
             Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            symbol = ((Map<String, Object>)market).get("symbol");
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "channel", Helpers.add("market_stats/", ((Map<String, Object>)market).get("id")) );
             }};
-            Object messageHash = this.getMessageHash("unsubscribe", symbol);
+            Object subMessageHash = this.getMessageHash("ticker", symbol);
+            String messageHash = ("unsubscribe:" + subMessageHash);
             return (this.unsubscribe(messageHash, this.extend(request, parameters))).join();
         });
 
@@ -529,7 +535,8 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "channel", "market_stats/all" );
             }};
-            Object messageHash = this.getMessageHash("unsubscribe");
+            Object subMessageHash = this.getMessageHash("ticker");
+            String messageHash = ("unsubscribe:" + subMessageHash);
             return (this.unsubscribe(messageHash, this.extend(request, parameters))).join();
         });
 
@@ -796,7 +803,8 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "channel", Helpers.add("trade/", ((Map<String, Object>)market).get("id")) );
             }};
-            Object messageHash = this.getMessageHash("unsubscribe", symbol);
+            Object subMessageHash = this.getMessageHash("trade", ((Map<String, Object>)market).get("symbol"));
+            String messageHash = ("unsubscribe:" + subMessageHash);
             return (this.unsubscribe(messageHash, this.extend(request, parameters))).join();
         });
 
@@ -1030,9 +1038,10 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
      * @name lighter#unWatchMyTrades
      * @description unsubscribe from the account trades channel
      * @see https://apidocs.lighter.xyz/docs/websocket-reference#account-all-trades
-     * @param {string} [symbol] unified market symbol
+     * @param {string} [symbol] not supported by lighter.unWatchMyTrades, the account trades channel covers every market
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+     * @param {string} [params.accountIndex] account index
+     * @returns {any} status of the unwatch request
      */
     public CompletableFuture<Object> unWatchMyTrades(Object... optionalArgs)
     {
@@ -1041,21 +1050,19 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
 
             Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
             Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            if (!java.util.Objects.equals(symbol, null))
+            {
+                throw new NotSupported((this.id + " unWatchMyTrades() does not support a symbol argument, the account trades channel covers every market, unWatch from all markets only")) ;
+            }
             Object accountIndex = null;
             List<Object> accountIndexparametersVariable = (List<Object>) (this.handleAccountIndex(parameters, "unWatchMyTrades", "accountIndex", "account_index")).join();
             accountIndex = ((List<Object>) accountIndexparametersVariable).get(0);
             parameters = ((List<Object>) accountIndexparametersVariable).get(1);
-            Object messageHash = this.getMessageHash("unsubscribe", "myTrades");
-            if (!java.util.Objects.equals(symbol, null))
-            {
-                (this.loadMarkets()).join();
-                Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-                symbol = ((Map<String, Object>)market).get("symbol");
-                messageHash = this.getMessageHash("unsubscribe", symbol);
-            }
+            Object subMessageHash = this.getMessageHash("myTrades");
+            String messageHash = ("unsubscribe:" + subMessageHash);
             final Object finalAccountIndex = accountIndex;
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "channel", Helpers.add("account_all_trades/", finalAccountIndex) );
+                put( "channel", Helpers.add("account_all_trades/", Lighter.this.numberToString(finalAccountIndex)) );
             }};
             return (this.unsubscribe(messageHash, this.extend(request, parameters))).join();
         });
@@ -1427,21 +1434,22 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
                 (this.loadMarkets()).join();
             }
             Object accountIndex = null;
-            List<Object> accountIndexparametersVariable = (List<Object>) (this.handleAccountIndex(parameters, "watchOrders", "accountIndex", "account_index")).join();
+            List<Object> accountIndexparametersVariable = (List<Object>) (this.handleAccountIndex(parameters, "unWatchOrders", "accountIndex", "account_index")).join();
             accountIndex = ((List<Object>) accountIndexparametersVariable).get(0);
             parameters = ((List<Object>) accountIndexparametersVariable).get(1);
-            Object messageHash = null;
+            Object subMessageHash = null;
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (!java.util.Objects.equals(symbol, null))
             {
                 Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-                messageHash = this.getMessageHash("orders", ((Map<String, Object>)market).get("symbol"));
+                subMessageHash = this.getMessageHash("orders", ((Map<String, Object>)market).get("symbol"));
                 ((Map<String, Object>)request).put("channel", Helpers.add((Helpers.add("account_orders/", ((Map<String, Object>)market).get("id")) + "/"), this.numberToString(accountIndex)));
             } else
             {
-                messageHash = this.getMessageHash("orders");
+                subMessageHash = this.getMessageHash("orders");
                 ((Map<String, Object>)request).put("channel", Helpers.add("account_all_orders/", this.numberToString(accountIndex)));
             }
+            String messageHash = ("unsubscribe:" + subMessageHash);
             return (this.unsubscribe(messageHash, this.extend(request, parameters))).join();
         });
 
@@ -1731,6 +1739,11 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
             this.handleWsSendtxApi(client, message);
             return;
         }
+        if (java.util.Objects.equals(type, "unsubscribed"))
+        {
+            this.handleUnSubscription(client, message);
+            return;
+        }
         String channel = this.safeString(message, "channel", "");
         if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(channel, "order_book:"), 0))
         {
@@ -1786,33 +1799,152 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
         //         "type": "connected"
         //     }
         //
+        return message;
+    }
+
+    public void handleUnSubscription(Client client, Object message)
+    {
+        //
         //     {
         //         "type": "unsubscribed",
         //         "channel": "order_book:0"
         //     }
         //
-        String type = this.safeString(message, "type", "");
-        String id = this.safeString(message, "session_id");
-        Map<String, Object> subscriptionsById = this.indexBy(client.subscriptions, "id");
-        Object subscription = this.safeDict(subscriptionsById, id, new HashMap<String, Object>() {{}});
-        if (java.util.Objects.equals(type, "unsubscribed"))
+        // the venue keys every ack by the channel name plus one id segment, whatever the
+        // subscribe arity was: "account_orders/{marketId}/{accountIndex}" acks and errors as
+        // "account_orders:{marketId}", so parts[1] is the market id on every family below
+        //
+        String channel = this.safeString(message, "channel", "");
+        Object parts = Helpers.split(channel, ":");
+        String name = this.safeString(parts, 0, "");
+        String channelId = this.safeString(parts, 1);
+        if (java.util.Objects.equals(name, "order_book"))
         {
-            this.handleUnSubscription(client, subscription);
+            this.handleOrderBookUnSubscription(client, channelId);
+        } else if (java.util.Objects.equals(name, "market_stats"))
+        {
+            this.handleTickerUnSubscription(client, channelId);
+        } else if (java.util.Objects.equals(name, "trade"))
+        {
+            this.handleTradesUnSubscription(client, channelId);
+        } else if (java.util.Objects.equals(name, "account_all_trades"))
+        {
+            this.handleMyTradesUnSubscription(client);
+        } else if (java.util.Objects.equals(name, "account_orders"))
+        {
+            this.handleOrdersUnSubscription(client, channelId);
+        } else if (java.util.Objects.equals(name, "account_all_orders"))
+        {
+            this.handleAllOrdersUnSubscription(client);
         }
-        return message;
     }
 
-    public void handleUnSubscription(Client client, Object subscription)
+    public void handleOrderBookUnSubscription(Client client, Object marketId)
     {
-        Object messageHashes = this.safeList(subscription, "messageHashes", new ArrayList<Object>(Arrays.asList()));
-        Object subMessageHashes = this.safeList(subscription, "subMessageHashes", new ArrayList<Object>(Arrays.asList()));
-        for (var i = 0; i < ((List<?>)messageHashes).size(); i++)
+        String symbol = this.safeSymbol(marketId);
+        Object subMessageHash = this.getMessageHash("orderbook", symbol);
+        String messageHash = ("unsubscribe:" + subMessageHash);
+        this.cleanUnsubscription(client, subMessageHash, messageHash);
+        if (((Map<?, ?>)this.orderbooks).containsKey(symbol))
         {
-            Object unsubHash = Helpers.GetValue(messageHashes, i);
-            Object subHash = Helpers.GetValue(subMessageHashes, i);
-            this.cleanUnsubscription(client, subHash, unsubHash);
+            ((Map<String,Object>)this.orderbooks).remove((String)symbol);
         }
-        this.cleanCache(subscription);
+    }
+
+    public void handleTickerUnSubscription(Client client, Object marketId)
+    {
+        if (java.util.Objects.equals(marketId, "all"))
+        {
+            // a ticker hash is served by the one wire channel that created its subscription
+            // record, so sweep by owner instead of by name prefix: a ticker::<symbol> hash
+            // owned by a live market_stats/<marketId> channel must survive this ack. deleting
+            // it here would make the next watchTicker re-subscribe a channel the venue still
+            // considers subscribed, and its "30003 Already Subscribed" frame carries no id,
+            // so handleErrorMessage rejects every future on the socket
+            Object subscriptionHashes = Helpers.objectKeys(client.subscriptions);
+            for (var i = 0; i < ((List<?>)subscriptionHashes).size(); i++)
+            {
+                Object subscriptionHash = Helpers.GetValue(subscriptionHashes, i);
+                if (Helpers.isTrue(((String)subscriptionHash).startsWith("ticker")))
+                {
+                    Object subscription = this.safeDict(client.subscriptions, subscriptionHash);
+                    Object subscriptionParams = this.safeDict(subscription, "params");
+                    String subscribedChannel = this.safeString(subscriptionParams, "channel");
+                    if (java.util.Objects.equals(subscribedChannel, "market_stats/all"))
+                    {
+                        ((Map<String,Object>)client.subscriptions).remove((String)subscriptionHash);
+                        if (((Map<?, ?>)client.futures).containsKey(subscriptionHash))
+                        {
+                            var error = new UnsubscribeError(((this.id + " ") + subscriptionHash));
+                            client.reject(error, subscriptionHash);
+                        }
+                    }
+                }
+            }
+            Object allMessageHash = ("unsubscribe:" + this.getMessageHash("ticker"));
+            if (((Map<?, ?>)client.subscriptions).containsKey(allMessageHash))
+            {
+                ((Map<String,Object>)client.subscriptions).remove((String)allMessageHash);
+            }
+            client.resolve(true, allMessageHash);
+            Map<String, Object> tickersStructure = new HashMap<String, Object>() {{
+                put( "topic", "ticker" );
+            }};
+            this.cleanCache(tickersStructure);
+            return;
+        }
+        String symbol = this.safeSymbol(marketId);
+        Object subMessageHash = this.getMessageHash("ticker", symbol);
+        String messageHash = ("unsubscribe:" + subMessageHash);
+        this.cleanUnsubscription(client, subMessageHash, messageHash);
+        if (((Map<?, ?>)this.tickers).containsKey(symbol))
+        {
+            ((Map<String,Object>)this.tickers).remove((String)symbol);
+        }
+    }
+
+    public void handleTradesUnSubscription(Client client, Object marketId)
+    {
+        String symbol = this.safeSymbol(marketId);
+        Object subMessageHash = this.getMessageHash("trade", symbol);
+        String messageHash = ("unsubscribe:" + subMessageHash);
+        this.cleanUnsubscription(client, subMessageHash, messageHash);
+        if (((Map<?, ?>)this.trades).containsKey(symbol))
+        {
+            ((Map<String,Object>)this.trades).remove((String)symbol);
+        }
+    }
+
+    public void handleMyTradesUnSubscription(Client client)
+    {
+        // one account-wide channel feeds the plural hash and every per-symbol hash
+        String messageHash = ("unsubscribe:" + this.getMessageHash("myTrades"));
+        this.cleanUnsubscription(client, "myTrades", messageHash, true);
+        Map<String, Object> myTradesStructure = new HashMap<String, Object>() {{
+            put( "topic", "myTrades" );
+        }};
+        this.cleanCache(myTradesStructure);
+    }
+
+    public void handleOrdersUnSubscription(Client client, Object marketId)
+    {
+        String symbol = this.safeSymbol(marketId);
+        Object subMessageHash = this.getMessageHash("orders", symbol);
+        String messageHash = ("unsubscribe:" + subMessageHash);
+        this.cleanUnsubscription(client, subMessageHash, messageHash);
+    }
+
+    public void handleAllOrdersUnSubscription(Client client)
+    {
+        // only the plural hash is awaited on this channel, per-symbol order hashes
+        // belong to the account_orders/<marketId> channels and stay untouched here
+        Object subMessageHash = this.getMessageHash("orders");
+        String messageHash = ("unsubscribe:" + subMessageHash);
+        this.cleanUnsubscription(client, subMessageHash, messageHash);
+        Map<String, Object> ordersStructure = new HashMap<String, Object>() {{
+            put( "topic", "orders" );
+        }};
+        this.cleanCache(ordersStructure);
     }
 
     public void handlePing(Client client, Object message)
