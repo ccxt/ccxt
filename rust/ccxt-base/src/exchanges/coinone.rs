@@ -1018,7 +1018,7 @@ impl CoinoneCore {
             m
         });
         if (limit != Value::Null) {
-            add_element_to_object(&mut request, &Value::Str("size".to_string()), limit.clone()); // only support 5, 10, 15, 16
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("size".to_string(), limit.clone()); } // only support 5, 10, 15, 16
         }
         let __ws_arg_0 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.v2_public_get_orderbook_quote_currency_target_currency(&[__ws_arg_0]).await;
@@ -1081,8 +1081,8 @@ impl CoinoneCore {
         if (symbols != Value::Null) {
             let mut first: Value = self.safe_string(symbols.clone(), Value::Int(0), &[]);
             market = self.market(first.clone());
-            add_element_to_object(&mut request, &Value::Str("quote_currency".to_string()), market.as_map().and_then(|__m| __m.get("quote")).cloned().unwrap_or(Value::Null));
-            add_element_to_object(&mut request, &Value::Str("target_currency".to_string()), market.as_map().and_then(|__m| __m.get("base")).cloned().unwrap_or(Value::Null));
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("quote_currency".to_string(), market.as_map().and_then(|__m| __m.get("quote")).cloned().unwrap_or(Value::Null)); }
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("target_currency".to_string(), market.as_map().and_then(|__m| __m.get("base")).cloned().unwrap_or(Value::Null)); }
             let __ws_arg_1 = self.extend(request.clone(), &[params.clone()]);
             response = self.v2_public_get_ticker_new_quote_currency_target_currency(&[__ws_arg_1]).await;
         }  else {
@@ -1361,7 +1361,7 @@ impl CoinoneCore {
             m
         });
         if (limit != Value::Null) {
-            add_element_to_object(&mut request, &Value::Str("size".to_string()), crate::runtime::Math::min(&limit, &Value::Int(200)));
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("size".to_string(), crate::runtime::Math::min(&limit, &Value::Int(200))); }
         }
         let __ws_arg_4 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.v2_public_get_trades_quote_currency_target_currency(&[__ws_arg_4]).await;

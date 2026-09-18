@@ -770,7 +770,7 @@ impl PaymiumCore {
             m
         });
         if (type_var.as_str() != Some("market")) {
-            add_element_to_object(&mut request, &Value::Str("price".to_string()), price.clone());
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("price".to_string(), price.clone()); }
         }
         let __ws_arg_4 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_post_user_orders(&[__ws_arg_4]).await;

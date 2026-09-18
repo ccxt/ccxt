@@ -86,7 +86,7 @@ export export // The ast printer's numeric-comparison emission (`printNativeNume
 // a local narrowed to `f64` by `narrowFloatLocals` below.
 const RUST_FLOAT_NAN_UNWRAP = '.as_f64().unwrap_or(f64::NAN)';
 
-export export class RustTranspilerBuilder {
+export export export class RustTranspilerBuilder {
 
     transpiler!: Transpiler;
 
@@ -4869,6 +4869,107 @@ export export class RustTranspilerBuilder {
     }
 
     /**
+     * `fn` item headers of `content` (offset of the header line, its text and
+     * the offset where its body region starts). Generated code has no nested
+     * `fn` items, so the region between one header and the next is exactly one
+     * fn body — used to attribute a call site to the fn it sits in.
+     */
+    fnItemHeaders(content: string): Array<{ start: number; end: number; header: string }> {
+        const headers: Array<{ start: number; end: number; header: string }> = [];
+        const re = /^[ \t]*(?:pub(?:\s*\([^)]*\))?\s+)?(?:async\s+)?fn\s+[A-Za-z_][A-Za-z0-9_]*\s*[(<]/gm;
+        let m: RegExpExecArray | null;
+        while ((m = re.exec(content)) !== null) {
+            const nl = content.indexOf('\n', m.index);
+            headers.push({ start: m.index, end: -1, header: content.slice(m.index, nl < 0 ? content.length : nl) });
+        }
+        for (let i = 0; i < headers.length; i++) {
+            headers[i].end = i + 1 < headers.length ? headers[i + 1].start : content.length;
+        }
+        return headers;
+    }
+
+    /**
+     * `add_element_to_object(&mut request, &Value::Str("k".to_string()), v)`
+     * → `if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("k".to_string(), v); }`
+     * when `request` is a fresh object-literal dict local: exactly one
+     * `let mut request: Value = Value::Map({…})` declaration in the enclosing
+     * fn, no `request = …` reassignment and no `"__…"` key literal in that fn.
+     *
+     * `Value::Map(…)` builds a new dict, so such a local can never carry the
+     * runtime tag keys (`__book_id` / `__cache_backref` / `__ws_subs_url` /
+     * `__ws_sub_ref` — inserted only into dicts the runtime itself builds),
+     * which makes the helper's four write-through branches provably dead. The
+     * `if let` reproduces the helper's `_ => {}` arm for a non-Dict receiver.
+     * A computed key keeps the helper (`stringify_simple` semantics).
+     */
+    nativeRequestDictInserts(content: string): string {
+        const call = 'add_element_to_object(';
+        const spans = this.fnItemHeaders(content);
+        const verdict = new Map<number, boolean>();
+        const fnAllowsNativeInsert = (span: { start: number; end: number; header: string }): boolean => {
+            const cached = verdict.get(span.start);
+            if (cached !== undefined) return cached;
+            const body = content.slice(span.start, span.end);
+            const ok = !/\bfn\s+\w+\s*\([^)]*\brequest\b/.test(span.header)
+                && (body.match(/^\s*let\s+mut\s+request\s*:\s*Value\s*=\s*Value::Map\(/gm) ?? []).length === 1
+                && !/(^|[^.\w])request\s*=(?!=)/m.test(body.replace(/"(?:[^"\\]|\\.)*"/g, '""'))
+                && !body.includes('"__');
+            verdict.set(span.start, ok);
+            return ok;
+        };
+
+        let out = '';
+        let i = 0;
+        while (i < content.length) {
+            const at = content.indexOf(call, i);
+            if (at < 0) { out += content.slice(i); break; }
+            out += content.slice(i, at);
+            // Paren-balanced walk to the closing `)` of this call.
+            const openParen = at + call.length - 1;
+            let depth = 1;
+            let j = openParen + 1;
+            let inStr = false;
+            let escape = false;
+            while (j < content.length && depth > 0) {
+                const c = content[j];
+                if (escape) { escape = false; j++; continue; }
+                if (c === '\\' && inStr) { escape = true; j++; continue; }
+                if (c === '"') { inStr = !inStr; j++; continue; }
+                if (!inStr) {
+                    if (c === '(') depth++;
+                    else if (c === ')') depth--;
+                }
+                if (depth === 0) break;
+                j++;
+            }
+            if (depth !== 0) { out += content.slice(at); break; }
+            const args = this.splitArgs(content.slice(openParen + 1, j));
+            const keyMatch = args && args.length === 3 && args[0].trim() === '&mut request'
+                ? args[1].trim().match(/^&Value::Str\("((?:[^"\\]|\\.)*)"\.to_string\(\)\)$/)
+                : null;
+            const value = args ? args[2].trim() : '';
+            if (!keyMatch || /\brequest\b/.test(value)) {
+                out += content.slice(at, j + 1);
+                i = j + 1;
+                continue;
+            }
+            const span = spans.find(sp => sp.start <= at && at < sp.end);
+            if (!span || !fnAllowsNativeInsert(span)) {
+                out += content.slice(at, j + 1);
+                i = j + 1;
+                continue;
+            }
+            let end = j + 1;
+            let k = end;
+            while (k < content.length && (content[k] === ' ' || content[k] === '\t')) k++;
+            if (content[k] === ';') end = k + 1;
+            out += `if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("${keyMatch[1]}".to_string(), ${value}); }`;
+            i = end;
+        }
+        return out;
+    }
+
+    /**
      * Fix the "mutating-a-clone" bug for nested-key writes on `self.<field>`.
      *
      * TS source like `this.options['k1'][k2] = v` is emitted as
@@ -7495,6 +7596,8 @@ impl std::ops::DerefMut for ${coreName} {
                 // extend/omit/market/parse_number when the local is dead
                 // afterwards (those callees take the Value by value).
                 rustContent = this.dropDeadLastUseArgClones(rustContent);
+                // Last: element writes into a fresh dict local go native.
+                rustContent = this.nativeRequestDictInserts(rustContent);
             } catch (e: any) {
                 const detail = (e && (e.stack || e.message)) ? (e.stack || e.message) : String(e);
                 throw new Error(
@@ -8195,6 +8298,7 @@ impl std::ops::DerefMut for ${coreName} {
         finalFile = this.narrowFloatLocals(finalFile);
         finalFile = this.collapseNumericBoxAccessors(finalFile);
         finalFile = this.dropRedundantIsTrue(finalFile);
+        finalFile = this.nativeRequestDictInserts(finalFile);
 
         // Since the prediction merge, `Exchange.ts` declares TWO classes:
         //   `export class BaseExchange { ... }`  (holds the transpile marker)

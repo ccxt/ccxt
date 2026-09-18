@@ -1443,7 +1443,7 @@ impl BigoneCore {
         if isSpot {
             if (symbols != Value::Null) {
                 let mut ids: Value = self.market_ids(&[symbols.clone()]);
-                add_element_to_object(&mut request, &Value::Str("pair_names".to_string()), join(&ids, &Value::Str(",".to_string())));
+                if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("pair_names".to_string(), join(&ids, &Value::Str(",".to_string()))); }
             }
             let __ws_arg_1 = self.extend(request, &[params.clone()]);
             let mut response: Value = self.public_get_asset_pairs_tickers(&[__ws_arg_1]).await;
@@ -1895,12 +1895,12 @@ impl BigoneCore {
             let mut duration: Value = self.parse_timeframe(timeframe.clone());
             let mut endByLimit: Value = self.sum(&[since.clone(), (match (&((match (&(limit), &(duration)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })]);
             if untilIsDefined {
-                add_element_to_object(&mut request, &Value::Str("time".to_string()), self.iso8601(crate::runtime::Math::min(&endByLimit, &(match (&(until), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }))));
+                if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("time".to_string(), self.iso8601(crate::runtime::Math::min(&endByLimit, &(match (&(until), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null })))); }
             }  else {
-                add_element_to_object(&mut request, &Value::Str("time".to_string()), self.iso8601(endByLimit.clone()));
+                if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("time".to_string(), self.iso8601(endByLimit.clone())); }
             }
         }  else if untilIsDefined {
-            add_element_to_object(&mut request, &Value::Str("time".to_string()), self.iso8601((match (&(until), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null })));
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("time".to_string(), self.iso8601((match (&(until), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }))); }
         }
         params = self.omit(params.clone(), Value::Str("until".to_string()), &[]);
         let __ws_arg_5 = self.extend(request, &[params.clone()]);
@@ -2163,17 +2163,17 @@ impl BigoneCore {
             m
         });
         if isLimit || is_true(&(Value::Bool(uppercaseType.as_str() == Some("STOP_LIMIT")))) {
-            add_element_to_object(&mut request, &Value::Str("price".to_string()), self.price_to_precision(symbol.clone(), price.clone()));
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("price".to_string(), self.price_to_precision(symbol.clone(), price.clone())); }
             if isLimit {
                 let mut timeInForce: Value = self.safe_string_k(params.clone(), "timeInForce", &[]);
                 if (timeInForce.as_str() == Some("IOC")) {
-                    add_element_to_object(&mut request, &Value::Str("immediate_or_cancel".to_string()), Value::Bool(true));
+                    if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("immediate_or_cancel".to_string(), Value::Bool(true)); }
                 }
                 if (postOnly.as_bool() == Some(true)) {
-                    add_element_to_object(&mut request, &Value::Str("post_only".to_string()), Value::Bool(true));
+                    if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("post_only".to_string(), Value::Bool(true)); }
                 }
             }
-            add_element_to_object(&mut request, &Value::Str("amount".to_string()), self.amount_to_precision(symbol.clone(), amount.clone()));
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("amount".to_string(), self.amount_to_precision(symbol.clone(), amount.clone())); }
         }  else {
             if isBuy {
                 let mut createMarketBuyOrderRequiresPrice: Value = Value::Null;
@@ -2188,28 +2188,28 @@ impl BigoneCore {
                         let mut priceString: Value = self.number_to_string(price.clone());
                         let mut quoteAmount: Value = self.parse_to_numeric(crate::precise::Precise::stringMul(&amountString, &priceString));
                         let mut costRequest: Value = (if is_true(&(Value::Bool(cost != Value::Null))) { cost.clone() } else { quoteAmount.clone() });
-                        add_element_to_object(&mut request, &Value::Str("amount".to_string()), self.cost_to_precision(symbol.clone(), costRequest.clone()));
+                        if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("amount".to_string(), self.cost_to_precision(symbol.clone(), costRequest.clone())); }
                     }
                 }  else {
-                    add_element_to_object(&mut request, &Value::Str("amount".to_string()), self.cost_to_precision(symbol.clone(), amount.clone()));
+                    if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("amount".to_string(), self.cost_to_precision(symbol.clone(), amount.clone())); }
                 }
             }  else {
-                add_element_to_object(&mut request, &Value::Str("amount".to_string()), self.amount_to_precision(symbol.clone(), amount.clone()));
+                if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("amount".to_string(), self.amount_to_precision(symbol.clone(), amount.clone())); }
             }
         }
         if (triggerPrice != Value::Null) {
-            add_element_to_object(&mut request, &Value::Str("stop_price".to_string()), self.price_to_precision(symbol.clone(), triggerPrice.clone()));
-            add_element_to_object(&mut request, &Value::Str("operator".to_string()), (if isBuy { Value::Str("GTE".to_string()) } else { Value::Str("LTE".to_string()) }));
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("stop_price".to_string(), self.price_to_precision(symbol.clone(), triggerPrice.clone())); }
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("operator".to_string(), (if isBuy { Value::Str("GTE".to_string()) } else { Value::Str("LTE".to_string()) })); }
             if isLimit {
                 uppercaseType = Value::Str("STOP_LIMIT".to_string());
             }  else if (uppercaseType.as_str() == Some("MARKET")) {
                 uppercaseType = Value::Str("STOP_MARKET".to_string());
             }
         }
-        add_element_to_object(&mut request, &Value::Str("type".to_string()), uppercaseType.clone());
+        if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("type".to_string(), uppercaseType.clone()); }
         let mut clientOrderId: Value = self.safe_string_k(params.clone(), "clientOrderId", &[]);
         if (clientOrderId != Value::Null) {
-            add_element_to_object(&mut request, &Value::Str("client_order_id".to_string()), clientOrderId.clone());
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("client_order_id".to_string(), clientOrderId.clone()); }
         }
         params = self.omit(params.clone(), Value::List(vec![Value::Str("stop_price".to_string()), Value::Str("stopPrice".to_string()), Value::Str("triggerPrice".to_string()), Value::Str("timeInForce".to_string()), Value::Str("clientOrderId".to_string())]), &[]);
         let __ws_arg_6 = self.extend(request.clone(), &[params.clone()]);
@@ -2431,7 +2431,7 @@ impl BigoneCore {
             m
         });
         if (limit != Value::Null) {
-            add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone()); // default 20, max 200
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("limit".to_string(), limit.clone()); } // default 20, max 200
         }
         let __ws_arg_10 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_get_orders(&[__ws_arg_10]).await;
@@ -2493,7 +2493,7 @@ impl BigoneCore {
             m
         });
         if (limit != Value::Null) {
-            add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone()); // default 20, max 200
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("limit".to_string(), limit.clone()); } // default 20, max 200
         }
         let __ws_arg_11 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_get_trades(&[__ws_arg_11]).await;
@@ -2880,10 +2880,10 @@ impl BigoneCore {
         let mut currency: Value = Value::Null;
         if (code != Value::Null) {
             currency = self.currency(code.clone());
-            add_element_to_object(&mut request, &Value::Str("asset_symbol".to_string()), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("asset_symbol".to_string(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
         }
         if (limit != Value::Null) {
-            add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone()); // default 50
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("limit".to_string(), limit.clone()); } // default 50
         }
         let __ws_arg_15 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_get_deposits(&[__ws_arg_15]).await;
@@ -2943,10 +2943,10 @@ impl BigoneCore {
         let mut currency: Value = Value::Null;
         if (code != Value::Null) {
             currency = self.currency(code.clone());
-            add_element_to_object(&mut request, &Value::Str("asset_symbol".to_string()), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("asset_symbol".to_string(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
         }
         if (limit != Value::Null) {
-            add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone()); // default 50
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("limit".to_string(), limit.clone()); } // default 50
         }
         let __ws_arg_16 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_get_withdrawals(&[__ws_arg_16]).await;
@@ -3107,12 +3107,12 @@ impl BigoneCore {
             m
         });
         if (tag != Value::Null) {
-            add_element_to_object(&mut request, &Value::Str("memo".to_string()), tag.clone());
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("memo".to_string(), tag.clone()); }
         }
         let mut networkCode: Value = Value::Null;
         { let __destr_tmp = self.handle_network_code_and_params(params.clone()); networkCode = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         if (networkCode != Value::Null) {
-            add_element_to_object(&mut request, &Value::Str("gateway_name".to_string()), self.network_code_to_id(networkCode.clone(), &[currency.as_map().and_then(|__m| __m.get("code")).cloned().unwrap_or(Value::Null)]));
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("gateway_name".to_string(), self.network_code_to_id(networkCode.clone(), &[currency.as_map().and_then(|__m| __m.get("code")).cloned().unwrap_or(Value::Null)])); }
         }
         // requires write permission on the wallet
         let __ws_arg_18 = self.extend(request, &[params.clone()]);

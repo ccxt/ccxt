@@ -783,10 +783,10 @@ impl MyriadCore {
             m
         });
         if partsLength.as_f64().unwrap_or(f64::NAN) > Value::Int(1).as_f64().unwrap_or(f64::NAN) {
-            add_element_to_object(&mut request, &Value::Str("network_id".to_string()), self.safe_string(parts.clone(), Value::Int(0), &[]));
-            add_element_to_object(&mut request, &Value::Str("id".to_string()), self.safe_string(parts.clone(), Value::Int(1), &[]));
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("network_id".to_string(), self.safe_string(parts.clone(), Value::Int(0), &[])); }
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("id".to_string(), self.safe_string(parts.clone(), Value::Int(1), &[])); }
         }  else {
-            add_element_to_object(&mut request, &Value::Str("id".to_string()), id.clone());
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("id".to_string(), id.clone()); }
         }
         let __ws_arg_2 = self.extend(request, &[params.clone()]);
         return self.myriad_public_get_markets_id(&[__ws_arg_2]).await;
@@ -947,7 +947,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m
             });
             if (state != Value::Null) {
-                add_element_to_object(&mut request, &Value::Str("state".to_string()), state.clone());
+                if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("state".to_string(), state.clone()); }
             }
             let __ws_arg_6 = self.extend(request, &[rest.clone()]);
             let mut response: Value = self.myriad_public_get_questions(&[__ws_arg_6]).await;
@@ -1159,9 +1159,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             m
         });
         if (sideStr.as_str() == Some("buy")) {
-            add_element_to_object(&mut request, &Value::Str("value".to_string()), amount.clone());
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("value".to_string(), amount.clone()); }
         }  else {
-            add_element_to_object(&mut request, &Value::Str("shares".to_string()), amount.clone());
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("shares".to_string(), amount.clone()); }
         }
         let mut rest: Value = self.omit(params, Value::List(vec![Value::Str("slippage".to_string())]), &[]);
         let __ws_arg_8 = self.extend(request, &[rest.clone()]);
@@ -2171,15 +2171,15 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-            add_element_to_object(&mut request, &Value::Str("market_id".to_string()), self.safe_string_k(info.clone(), "marketId", &[]));
-            add_element_to_object(&mut request, &Value::Str("network_id".to_string()), self.safe_string_k(info.clone(), "networkId", &[]));
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("market_id".to_string(), self.safe_string_k(info.clone(), "marketId", &[])); }
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("network_id".to_string(), self.safe_string_k(info.clone(), "networkId", &[])); }
             rowOutcomeId = self.safe_string_k(info.clone(), "outcomeId", &[]);
         }
         if (since != Value::Null) {
-            add_element_to_object(&mut request, &Value::Str("since".to_string()), self.parse_to_int((match ((since).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })));
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("since".to_string(), self.parse_to_int((match ((since).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }))); }
         }
         if (limit != Value::Null) {
-            add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone());
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("limit".to_string(), limit.clone()); }
         }
         params = self.omit(params.clone(), Value::List(vec![Value::Str("trader".to_string()), Value::Str("address".to_string()), Value::Str("status".to_string())]), &[]);
         let __ws_arg_14 = self.extend(request, &[params.clone()]);
@@ -2576,9 +2576,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut trader: Value = self.safe_string_k(params.clone(), "trader", &[]);
         if (trader == Value::Null) {
             if (self.privateKey.clone() != Value::Null) {
-                add_element_to_object(&mut request, &Value::Str("trader".to_string()), self.eth_get_address_from_private_key(self.privateKey.clone(), &[]));
+                if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("trader".to_string(), self.eth_get_address_from_private_key(self.privateKey.clone(), &[])); }
             }  else if (self.walletAddress.clone() != Value::Null) {
-                add_element_to_object(&mut request, &Value::Str("trader".to_string()), self.walletAddress.clone());
+                if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("trader".to_string(), self.walletAddress.clone()); }
             }
         }
         let mut requestedTradingModel: Value = self.safe_string_lower2(params.clone(), Value::Str("tradingModel".to_string()), Value::Str("trading_model".to_string()), &[]);
@@ -3983,7 +3983,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             m
         });
         if (limit != Value::Null) {
-            add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone());
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("limit".to_string(), limit.clone()); }
         }
         let __ws_arg_31 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.myriad_public_get_markets_id_events(&[__ws_arg_31]).await;

@@ -541,11 +541,11 @@ impl MexcCore {
         if isSpot {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" watchTickers does not support spot markets".to_string()))));
         }  else {
-            add_element_to_object(&mut request, &Value::Str("method".to_string()), Value::Str("sub.tickers".to_string()));
-            add_element_to_object(&mut request, &Value::Str("params".to_string()), Value::Map({
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("method".to_string(), Value::Str("sub.tickers".to_string())); }
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("params".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-}));
+})); }
             append_to_array(&mut messageHashes, Value::Str("ticker".to_string()));
         }
         let __ws_arg_0 = self.extend(request, &[params.clone()]);
@@ -2288,11 +2288,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if isSpot {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" watchTickers does not support spot markets".to_string()))));
         }  else {
-            add_element_to_object(&mut request, &Value::Str("method".to_string()), Value::Str("unsub.tickers".to_string()));
-            add_element_to_object(&mut request, &Value::Str("params".to_string()), Value::Map({
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("method".to_string(), Value::Str("unsub.tickers".to_string())); }
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("params".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-}));
+})); }
             append_to_array(&mut messageHashes, Value::Str("unsubscribe:ticker".to_string()));
         }
         let mut client: Value = self.client(&[url.clone()]);
