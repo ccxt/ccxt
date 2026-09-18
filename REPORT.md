@@ -150,9 +150,12 @@ files=0 pairs=0 unexpected=0
 ## Farm (dotnet is farm-only)
 
 ```
-ccxt-farm build --targets cs --wait   -> FARM_JOB_LINE
-ccxt-farm status <sha>                -> FARM_STATUS_LINE
-ccxt-farm log <job> --step buildCS    -> FARM_LOG_LINE
+ccxt-farm build --targets cs --wait   -> farm: job 812 admitted on slot 0 (targets=cs)
+HEAD 0b66f8ce4365cddb019035e89336793fa7280de7 job=812 exit=0 branch_update=unchanged
+                                       generator=404e9daa7f0ab58d085ed04aaa61a19546dfeda2
+ccxt-farm status 812                  -> {"state": "succeeded", "exit_code": 0, "branch_update": "unchanged",
+                                          "failing_step": "", "failing_files": []}
+ccxt-farm log 812 --step buildCS      -> Build succeeded.  0 Warning(s)  0 Error(s)
 ```
 
 `branch_update=unchanged` on the farm's own forced transpile is the fixed-point proof: the committed tree
