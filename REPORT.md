@@ -79,11 +79,14 @@ and the farm's forced transpile reported `branch_update=unchanged`.
 
 ## Farm
 
-- sha `7d9c8c43ee80b6c40be2b8727a707fab68bbe27c` (the only commit on the branch)
+- code sha `7d9c8c43ee80b6c40be2b8727a707fab68bbe27c` (the only commit that touches build input)
 - `ccxt-farm build --targets cs --wait` -> `HEAD 7d9c8c43ee8 job=668 exit=0 branch_update=unchanged
   generator=404e9daa7f0ab58d085ed04aaa61a19546dfeda2`
 - `ccxt-farm status 668`: `state=succeeded exit_code=0 targets=cs`; `buildCS` log:
   `Build succeeded. 0 Warning(s) 0 Error(s)` (ccxt + cli + tests).
+- REPORT-only tip `a3e064a3b0494a5ff59b5acfed2ca14404937ca5` re-gated for completeness -> `job=675
+  exit=0 branch_update=unchanged generator=404e9daa...` (`buildCS`: 0 Warning(s) 0 Error(s)). The
+  later REPORT commits change no build input, so 7d9c8c4 stays the farm-green code sha.
 
 ## Rejected sub-cases (each with the reason)
 
