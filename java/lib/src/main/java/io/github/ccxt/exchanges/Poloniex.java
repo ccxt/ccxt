@@ -3223,7 +3223,7 @@ public class Poloniex extends PoloniexApi
             List<Object> bidsResult = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < Helpers.getArrayLength(asks); i++)
             {
-                if (Helpers.isLessThan((Helpers.mod(i, 2)), 1))
+                if (Helpers.isLessThan(((((double) i) % ((double) 2))), 1))
                 {
                     Double price = this.safeNumber(asks, i);
                     Double amount = this.safeNumber(asks, this.sum(i, 1));
@@ -3232,7 +3232,7 @@ public class Poloniex extends PoloniexApi
             }
             for (var i = 0; i < Helpers.getArrayLength(bids); i++)
             {
-                if (Helpers.isLessThan((Helpers.mod(i, 2)), 1))
+                if (Helpers.isLessThan(((((double) i) % ((double) 2))), 1))
                 {
                     Double price = this.safeNumber(bids, i);
                     Double amount = this.safeNumber(bids, this.sum(i, 1));
