@@ -1876,11 +1876,11 @@ public partial class BaseExchange
         {
             if ((direction == null))
             {
-                if (isTrue(Precise.stringGt(before, after)))
+                if (Precise.stringGt(before, after))
                 {
                     direction = "out";
                 }
-                if (isTrue(Precise.stringGt(after, before)))
+                if (Precise.stringGt(after, before))
                 {
                     direction = "in";
                 }
@@ -1939,14 +1939,14 @@ public partial class BaseExchange
                 // find lowest fee (which is more desired)
                 string? fee = this.safeString(network, "fee");
                 string? feeMain = this.safeString(currency, "fee");
-                if ((feeMain == null) || isTrue(Precise.stringLt(fee, feeMain)))
+                if ((feeMain == null) || Precise.stringLt(fee, feeMain))
                 {
                     ((IDictionary<string,object>)currency)["fee"] = this.parseNumber(fee);
                 }
                 // find lowest precision (which is more desired)
                 string? precision = this.safeString(network, "precision");
                 string? precisionMain = this.safeString(currency, "precision");
-                if ((precisionMain == null) || isTrue(Precise.stringGt(precision, precisionMain)))
+                if ((precisionMain == null) || Precise.stringGt(precision, precisionMain))
                 {
                     ((IDictionary<string,object>)currency)["precision"] = this.parseNumber(precision);
                 }
@@ -1969,12 +1969,12 @@ public partial class BaseExchange
                 string? limitsDepositMinMain = this.safeString(limitsDepositMain, "min");
                 string? limitsDepositMaxMain = this.safeString(limitsDepositMain, "max");
                 // find min
-                if ((limitsDepositMinMain == null) || isTrue(Precise.stringLt(limitsDepositMin, limitsDepositMinMain)))
+                if ((limitsDepositMinMain == null) || Precise.stringLt(limitsDepositMin, limitsDepositMinMain))
                 {
                     ((IDictionary<string,object>)getValue(getValue(currency, "limits"), "deposit"))["min"] = this.parseNumber(limitsDepositMin);
                 }
                 // find max
-                if ((limitsDepositMaxMain == null) || isTrue(Precise.stringGt(limitsDepositMax, limitsDepositMaxMain)))
+                if ((limitsDepositMaxMain == null) || Precise.stringGt(limitsDepositMax, limitsDepositMaxMain))
                 {
                     ((IDictionary<string,object>)getValue(getValue(currency, "limits"), "deposit"))["max"] = this.parseNumber(limitsDepositMax);
                 }
@@ -1990,12 +1990,12 @@ public partial class BaseExchange
                 string? limitsWithdrawMinMain = this.safeString(limitsWithdrawMain, "min");
                 string? limitsWithdrawMaxMain = this.safeString(limitsWithdrawMain, "max");
                 // find min
-                if ((limitsWithdrawMinMain == null) || isTrue(Precise.stringLt(limitsWithdrawMin, limitsWithdrawMinMain)))
+                if ((limitsWithdrawMinMain == null) || Precise.stringLt(limitsWithdrawMin, limitsWithdrawMinMain))
                 {
                     ((IDictionary<string,object>)getValue(getValue(currency, "limits"), "withdraw"))["min"] = this.parseNumber(limitsWithdrawMin);
                 }
                 // find max
-                if ((limitsWithdrawMaxMain == null) || isTrue(Precise.stringGt(limitsWithdrawMax, limitsWithdrawMaxMain)))
+                if ((limitsWithdrawMaxMain == null) || Precise.stringGt(limitsWithdrawMax, limitsWithdrawMaxMain))
                 {
                     ((IDictionary<string,object>)getValue(getValue(currency, "limits"), "withdraw"))["max"] = this.parseNumber(limitsWithdrawMax);
                 }
@@ -2558,7 +2558,7 @@ public partial class BaseExchange
         // price = cost / (filled * contract size)
         if ((average == null))
         {
-            if (((filled != null)) && ((cost != null)) && isTrue(Precise.stringGt(filled, "0")))
+            if (((filled != null)) && ((cost != null)) && Precise.stringGt(filled, "0"))
             {
                 string? filledTimesContractSize = Precise.stringMul(filled, contractSize);
                 if ((inverse == true))
@@ -2599,7 +2599,7 @@ public partial class BaseExchange
         }
         // support for market orders
         object orderType = this.safeValue(order, "type");
-        bool emptyPrice = ((price == null)) || isTrue(Precise.stringEquals(price, "0"));
+        bool emptyPrice = ((price == null)) || Precise.stringEquals(price, "0");
         if (emptyPrice && (isEqual(orderType, "market")))
         {
             price = average;
@@ -3192,7 +3192,7 @@ public partial class BaseExchange
             if ((average == null) && (close != null))
             {
                 int precision = 18;
-                if (!isEqual(market, null) && isTrue(this.isTickPrecision()))
+                if (!isEqual(market, null) && this.isTickPrecision())
                 {
                     IDictionary<string, object> marketPrecision = this.safeDict(market, "precision");
                     string? precisionPrice = this.safeString(marketPrecision, "price");
@@ -5849,7 +5849,7 @@ public partial class BaseExchange
         {
             return null;
         }
-        if (isTrue(Precise.stringGe(precision, "0")))
+        if (Precise.stringGe(precision, "0"))
         {
             return this.parsePrecision(precision);
         } else

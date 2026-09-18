@@ -3627,7 +3627,7 @@ public partial class bitget : Exchange
         {
             return new List<object>() {uta, parameters};
         }
-        if (isTrue(this.checkRequiredCredentials(false)))
+        if (this.checkRequiredCredentials(false))
         {
             // use the api to determine if the account is uta or not
             bool accountIsUTa = false;
@@ -11227,7 +11227,7 @@ public partial class bitget : Exchange
         double? liquidationPrice = this.parseNumber(this.omitZero(this.safeString(position, "liquidationPrice")));
         string calcTakerFeeRate = "0.0006";
         string calcTakerFeeMult = "0.9994";
-        if ((isEqual(liquidationPrice, null)) && (isEqual(marginMode, "isolated")) && isTrue(Precise.stringGt(baseAmount, "0")))
+        if ((isEqual(liquidationPrice, null)) && (isEqual(marginMode, "isolated")) && Precise.stringGt(baseAmount, "0"))
         {
             string? signedMargin = Precise.stringDiv(rawCollateral, baseAmount);
             string? signedMmp = maintenanceMarginPercentage;

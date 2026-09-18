@@ -4636,10 +4636,10 @@ public partial class binance : Exchange
         subType = ((IList<object>)subTypeparametersVariable)[0];
         parameters = ((IList<object>)subTypeparametersVariable)[1];
         Dictionary<string, object> response = null;
-        if (isTrue(this.isLinear(type, subType)))
+        if (this.isLinear(type, subType))
         {
             response = await this.fapiPublicGetTime(query);
-        } else if (isTrue(this.isInverse(type, subType)))
+        } else if (this.isInverse(type, subType))
         {
             response = await this.dapiPublicGetTime(query);
         } else
@@ -4670,7 +4670,7 @@ public partial class binance : Exchange
         // while fetchCurrencies is a public API method by design
         // therefore we check the keys here
         // and fallback to generating the currencies from the markets
-        if (!isTrue(this.checkRequiredCredentials(false)))
+        if (!this.checkRequiredCredentials(false))
         {
             return new Dictionary<string, object>() {};
         }
@@ -4982,7 +4982,7 @@ public partial class binance : Exchange
             if (isEqual(marketType, "spot"))
             {
                 ((IList<object>)promisesRaw).Add(this.publicGetExchangeInfo(parameters));
-                if (((fetchMargins == true)) && isTrue(this.checkRequiredCredentials(false)) && ((isDemoEnv != true)))
+                if (((fetchMargins == true)) && this.checkRequiredCredentials(false) && ((isDemoEnv != true)))
                 {
                     ((IList<object>)promisesRaw).Add(this.sapiGetMarginAllPairs(parameters));
                     ((IList<object>)promisesRaw).Add(this.sapiGetMarginIsolatedAllPairs(parameters));
@@ -5728,16 +5728,16 @@ public partial class binance : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         if (isTrue(isPortfolioMargin) || (isEqual(type, "papi")))
         {
-            if (isTrue(this.isLinear(type, subType)))
+            if (this.isLinear(type, subType))
             {
                 type = "linear";
-            } else if (isTrue(this.isInverse(type, subType)))
+            } else if (this.isInverse(type, subType))
             {
                 type = "inverse";
             }
             isPortfolioMargin = true;
             response = await this.papiGetBalance(this.extend(request, query));
-        } else if (isTrue(this.isLinear(type, subType)))
+        } else if (this.isLinear(type, subType))
         {
             type = "linear";
             object useV2 = null;
@@ -5752,7 +5752,7 @@ public partial class binance : Exchange
             {
                 response = await this.fapiPrivateV2GetAccount(parameters);
             }
-        } else if (isTrue(this.isInverse(type, subType)))
+        } else if (this.isInverse(type, subType))
         {
             type = "inverse";
             response = await this.dapiPrivateGetAccount(this.extend(request, query));
@@ -6419,7 +6419,7 @@ public partial class binance : Exchange
         subType = ((IList<object>)subTypeparametersVariable)[0];
         parameters = ((IList<object>)subTypeparametersVariable)[1];
         Dictionary<string, object> request = new Dictionary<string, object>() {};
-        if ((!isEqual(symbols, null)) && (isTrue(this.isLinear(type, subType)) || isTrue(this.isInverse(type, subType))))
+        if ((!isEqual(symbols, null)) && (this.isLinear(type, subType) || this.isInverse(type, subType)))
         {
             int symbolsLength = getArrayLength(symbols);
             if ((symbolsLength == 1))
@@ -6431,10 +6431,10 @@ public partial class binance : Exchange
         if (isEqual(type, "option"))
         {
             response = await this.eapiPublicGetTicker(parameters);
-        } else if (isTrue(this.isLinear(type, subType)))
+        } else if (this.isLinear(type, subType))
         {
             response = await this.fapiPublicGetTickerBookTicker(this.extend(request, parameters));
-        } else if (isTrue(this.isInverse(type, subType)))
+        } else if (this.isInverse(type, subType))
         {
             response = await this.dapiPublicGetTickerBookTicker(this.extend(request, parameters));
         } else if (isEqual(type, "spot"))
@@ -6485,10 +6485,10 @@ public partial class binance : Exchange
         subType = ((IList<object>)subTypeparametersVariable)[0];
         parameters = ((IList<object>)subTypeparametersVariable)[1];
         object response = null;
-        if (isTrue(this.isLinear(type, subType)))
+        if (this.isLinear(type, subType))
         {
             response = await this.fapiPublicV2GetTickerPrice(parameters);
-        } else if (isTrue(this.isInverse(type, subType)))
+        } else if (this.isInverse(type, subType))
         {
             response = await this.dapiPublicGetTickerPrice(parameters);
         } else if (isEqual(type, "spot"))
@@ -6576,10 +6576,10 @@ public partial class binance : Exchange
         subType = ((IList<object>)subTypeparametersVariable)[0];
         parameters = ((IList<object>)subTypeparametersVariable)[1];
         object response = null;
-        if (isTrue(this.isLinear(type, subType)))
+        if (this.isLinear(type, subType))
         {
             response = await this.fapiPublicGetTicker24hr(parameters);
-        } else if (isTrue(this.isInverse(type, subType)))
+        } else if (this.isInverse(type, subType))
         {
             response = await this.dapiPublicGetTicker24hr(parameters);
         } else if (isEqual(type, "spot"))
@@ -6663,10 +6663,10 @@ public partial class binance : Exchange
         if (isEqual(getValue(market, "option"), true))
         {
             response = await this.eapiPublicGetMark(this.extend(request, parameters));
-        } else if (isTrue(this.isLinear(type, subType)))
+        } else if (this.isLinear(type, subType))
         {
             response = await this.fapiPublicGetPremiumIndex(this.extend(request, parameters));
-        } else if (isTrue(this.isInverse(type, subType)))
+        } else if (this.isInverse(type, subType))
         {
             response = await this.dapiPublicGetPremiumIndex(this.extend(request, parameters));
         } else
@@ -6717,10 +6717,10 @@ public partial class binance : Exchange
         if (isEqual(type, "option"))
         {
             response = await this.eapiPublicGetMark(parameters);
-        } else if (isTrue(this.isLinear(type, subType)))
+        } else if (this.isLinear(type, subType))
         {
             response = await this.fapiPublicGetPremiumIndex(parameters);
-        } else if (isTrue(this.isInverse(type, subType)))
+        } else if (this.isInverse(type, subType))
         {
             response = await this.dapiPublicGetPremiumIndex(parameters);
         } else
@@ -8628,7 +8628,7 @@ public partial class binance : Exchange
             Int64? timestampValue = this.safeIntegerN(order, new List<object>() {"updateTime", "transactTime", "updatedAt"});
             if (isEqual(status, "open"))
             {
-                if (isTrue(Precise.stringGt(filled, "0")))
+                if (Precise.stringGt(filled, "0"))
                 {
                     lastTradeTimestamp = timestampValue;
                 }
@@ -10132,7 +10132,7 @@ public partial class binance : Exchange
                 ((IDictionary<string,object>)request)["limit"] = limit;
             }
             response = await this.eapiPrivateGetOpenOrders(this.extend(request, parameters));
-        } else if (isTrue(this.isLinear(type, subType)))
+        } else if (this.isLinear(type, subType))
         {
             if (isTrue(isPortfolioMargin))
             {
@@ -10153,7 +10153,7 @@ public partial class binance : Exchange
                     response = await this.fapiPrivateGetOpenOrders(this.extend(request, parameters));
                 }
             }
-        } else if (isTrue(this.isInverse(type, subType)))
+        } else if (this.isInverse(type, subType))
         {
             if (isTrue(isPortfolioMargin))
             {
@@ -13140,10 +13140,10 @@ public partial class binance : Exchange
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
         object response = null;
-        if (isTrue(this.isLinear(type, subType)))
+        if (this.isLinear(type, subType))
         {
             response = await this.fapiPublicGetFundingRate(this.extend(request, parameters));
-        } else if (isTrue(this.isInverse(type, subType)))
+        } else if (this.isInverse(type, subType))
         {
             response = await this.dapiPublicGetFundingRate(this.extend(request, parameters));
         } else
@@ -13206,10 +13206,10 @@ public partial class binance : Exchange
         parameters = ((IList<object>)subTypeparametersVariable)[1];
         object query = this.omit(parameters, "type");
         object response = null;
-        if (isTrue(this.isLinear(type, subType)))
+        if (this.isLinear(type, subType))
         {
             response = await this.fapiPublicGetPremiumIndex(query);
-        } else if (isTrue(this.isInverse(type, subType)))
+        } else if (this.isInverse(type, subType))
         {
             response = await this.dapiPublicGetPremiumIndex(query);
         } else
@@ -13465,7 +13465,7 @@ public partial class binance : Exchange
         for (int i = 0; i < leverageBracket.Count; postFixIncrement(ref i))
         {
             object bracket = getValue(leverageBracket, i);
-            if (isTrue(Precise.stringLt(notionalStringAbs, getValue(bracket, 0))))
+            if (Precise.stringLt(notionalStringAbs, getValue(bracket, 0)))
             {
                 break;
             }
@@ -13483,7 +13483,7 @@ public partial class binance : Exchange
         if (isEqual(isolated, null))
         {
             string? isolatedMarginRaw = this.safeString(position, "isolatedMargin");
-            isolated = !isTrue(Precise.stringEq(isolatedMarginRaw, "0"));
+            isolated = !Precise.stringEq(isolatedMarginRaw, "0");
         }
         string? marginMode = null;
         string? collateralString = null;
@@ -13507,12 +13507,12 @@ public partial class binance : Exchange
         double? liquidationPrice = null;
         object contractSize = this.safeValue(market, "contractSize");
         string? contractSizeString = this.numberToString(contractSize);
-        if (isTrue(Precise.stringEquals(notionalString, "0")))
+        if (Precise.stringEquals(notionalString, "0"))
         {
             entryPrice = null;
         } else
         {
-            side = ((bool) isTrue(Precise.stringLt(notionalString, "0"))) ? "short" : "long";
+            side = ((bool) Precise.stringLt(notionalString, "0")) ? "short" : "long";
             marginRatio = this.parseNumber(Precise.stringDiv(Precise.stringAdd(Precise.stringDiv(maintenanceMarginString, collateralString), "5e-5"), "1", 4));
             percentage = this.parseNumber(Precise.stringMul(Precise.stringDiv(unrealizedPnlString, initialMarginString, 4), "100"));
             if (usdm)
@@ -13702,7 +13702,7 @@ public partial class binance : Exchange
         for (int i = 0; i < leverageBracket.Count; postFixIncrement(ref i))
         {
             object bracket = getValue(leverageBracket, i);
-            if (isTrue(Precise.stringLt(notionalStringAbs, getValue(bracket, 0))))
+            if (Precise.stringLt(notionalStringAbs, getValue(bracket, 0)))
             {
                 break;
             }
@@ -13719,13 +13719,13 @@ public partial class binance : Exchange
         string? marginMode = this.safeString(position, "marginType");
         if ((marginMode == null) && (isolatedMarginString != null))
         {
-            marginMode = ((bool) isTrue(Precise.stringEq(isolatedMarginString, "0"))) ? "cross" : "isolated";
+            marginMode = ((bool) Precise.stringEq(isolatedMarginString, "0")) ? "cross" : "isolated";
         }
         string? side = null;
-        if (isTrue(Precise.stringGt(notionalString, "0")))
+        if (Precise.stringGt(notionalString, "0"))
         {
             side = "long";
-        } else if (isTrue(Precise.stringLt(notionalString, "0")))
+        } else if (Precise.stringLt(notionalString, "0"))
         {
             side = "short";
         }
@@ -13828,7 +13828,7 @@ public partial class binance : Exchange
         }
         double? marginRatio = null;
         double? percentage = null;
-        if (!isTrue(Precise.stringEquals(collateralString, "0")))
+        if (!Precise.stringEquals(collateralString, "0"))
         {
             marginRatio = this.parseNumber(Precise.stringDiv(Precise.stringAdd(Precise.stringDiv(maintenanceMarginString, collateralString), "5e-5"), "1", 4));
             percentage = this.parseNumber(Precise.stringMul(Precise.stringDiv(unrealizedPnlString, initialMarginString, 4), "100"));
@@ -13890,7 +13890,7 @@ public partial class binance : Exchange
             isPortfolioMargin = ((IList<object>)isPortfolioMarginparametersVariable)[0];
             parameters = ((IList<object>)isPortfolioMarginparametersVariable)[1];
             List<object> response = null;
-            if (isTrue(this.isLinear(type, subType)))
+            if (this.isLinear(type, subType))
             {
                 if (isTrue(isPortfolioMargin))
                 {
@@ -13899,7 +13899,7 @@ public partial class binance : Exchange
                 {
                     response = await this.fapiPrivateGetLeverageBracket(query);
                 }
-            } else if (isTrue(this.isInverse(type, subType)))
+            } else if (this.isInverse(type, subType))
             {
                 if (isTrue(isPortfolioMargin))
                 {
@@ -13972,7 +13972,7 @@ public partial class binance : Exchange
         isPortfolioMargin = ((IList<object>)isPortfolioMarginparametersVariable)[0];
         parameters = ((IList<object>)isPortfolioMarginparametersVariable)[1];
         object response = null;
-        if (isTrue(this.isLinear(type, subType)))
+        if (this.isLinear(type, subType))
         {
             if (isTrue(isPortfolioMargin))
             {
@@ -13981,7 +13981,7 @@ public partial class binance : Exchange
             {
                 response = await this.fapiPrivateGetLeverageBracket(parameters);
             }
-        } else if (isTrue(this.isInverse(type, subType)))
+        } else if (this.isInverse(type, subType))
         {
             if (isTrue(isPortfolioMargin))
             {
@@ -14358,7 +14358,7 @@ public partial class binance : Exchange
         isPortfolioMargin = ((IList<object>)isPortfolioMarginparametersVariable)[0];
         parameters = ((IList<object>)isPortfolioMarginparametersVariable)[1];
         Dictionary<string, object> response = null;
-        if (isTrue(this.isLinear(type, subType)))
+        if (this.isLinear(type, subType))
         {
             if (isTrue(isPortfolioMargin))
             {
@@ -14377,7 +14377,7 @@ public partial class binance : Exchange
                     response = await this.fapiPrivateV2GetAccount(parameters);
                 }
             }
-        } else if (isTrue(this.isInverse(type, subType)))
+        } else if (this.isInverse(type, subType))
         {
             if (isTrue(isPortfolioMargin))
             {
@@ -14445,7 +14445,7 @@ public partial class binance : Exchange
         parameters = ((IList<object>)isPortfolioMarginparametersVariable)[1];
         parameters = this.omit(parameters, "type");
         List<object> response = null;
-        if (isTrue(this.isLinear(type, subType)))
+        if (this.isLinear(type, subType))
         {
             if (isTrue(isPortfolioMargin))
             {
@@ -14465,7 +14465,7 @@ public partial class binance : Exchange
                     response = await this.fapiPrivateV2GetPositionRisk(parameters);
                 }
             }
-        } else if (isTrue(this.isInverse(type, subType)))
+        } else if (this.isInverse(type, subType))
         {
             if (isTrue(isPortfolioMargin))
             {
@@ -14569,7 +14569,7 @@ public partial class binance : Exchange
         {
             object rawPosition = getValue(positions, i);
             string? entryPriceString = this.safeString(rawPosition, "entryPrice");
-            if (isTrue(Precise.stringGt(entryPriceString, "0")))
+            if (Precise.stringGt(entryPriceString, "0"))
             {
                 ((IList<object>)result).Add(this.parsePositionRisk(rawPosition));
             }
@@ -14638,7 +14638,7 @@ public partial class binance : Exchange
         string? type = this.safeString(parameters, "type", defaultType);
         parameters = this.omit(parameters, "type");
         object response = null;
-        if (isTrue(this.isLinear(type, subType)))
+        if (this.isLinear(type, subType))
         {
             if (isTrue(isPortfolioMargin))
             {
@@ -14647,7 +14647,7 @@ public partial class binance : Exchange
             {
                 response = await this.fapiPrivateGetIncome(this.extend(request, parameters));
             }
-        } else if (isTrue(this.isInverse(type, subType)))
+        } else if (this.isInverse(type, subType))
         {
             if (isTrue(isPortfolioMargin))
             {
@@ -14869,7 +14869,7 @@ public partial class binance : Exchange
             { "dualSidePosition", dualSidePosition },
         };
         Dictionary<string, object> response = null;
-        if (isTrue(this.isInverse(type, subType)))
+        if (this.isInverse(type, subType))
         {
             if (isTrue(isPortfolioMargin))
             {
@@ -14878,7 +14878,7 @@ public partial class binance : Exchange
             {
                 response = await this.dapiPrivatePostPositionSideDual(this.extend(request, parameters));
             }
-        } else if (isTrue(this.isLinear(type, subType)))
+        } else if (this.isLinear(type, subType))
         {
             if (isTrue(isPortfolioMargin))
             {
@@ -14939,7 +14939,7 @@ public partial class binance : Exchange
         isPortfolioMargin = ((IList<object>)isPortfolioMarginparametersVariable)[0];
         parameters = ((IList<object>)isPortfolioMarginparametersVariable)[1];
         object response = null;
-        if (isTrue(this.isLinear(type, subType)))
+        if (this.isLinear(type, subType))
         {
             if (isTrue(isPortfolioMargin))
             {
@@ -14948,7 +14948,7 @@ public partial class binance : Exchange
             {
                 response = await this.fapiPrivateGetSymbolConfig(parameters);
             }
-        } else if (isTrue(this.isInverse(type, subType)))
+        } else if (this.isInverse(type, subType))
         {
             if (isTrue(isPortfolioMargin))
             {
@@ -15342,7 +15342,7 @@ public partial class binance : Exchange
             }
             ((IDictionary<string,object>)request)["currency"] = getValue(currency, "id");
             response = await this.eapiPrivateGetBill(this.extend(request, parameters));
-        } else if (isTrue(this.isLinear(type, subType)))
+        } else if (this.isLinear(type, subType))
         {
             if (isTrue(isPortfolioMargin))
             {
@@ -15351,7 +15351,7 @@ public partial class binance : Exchange
             {
                 response = await this.fapiPrivateGetIncome(this.extend(request, parameters));
             }
-        } else if (isTrue(this.isInverse(type, subType)))
+        } else if (this.isInverse(type, subType))
         {
             if (isTrue(isPortfolioMargin))
             {
@@ -15423,7 +15423,7 @@ public partial class binance : Exchange
         //
         string? amount = this.safeString2(item, "amount", "income");
         string? direction = null;
-        if (isTrue(Precise.stringLe(amount, "0")))
+        if (Precise.stringLe(amount, "0"))
         {
             direction = "out";
             amount = Precise.stringMul("-1", amount);
@@ -15807,7 +15807,7 @@ public partial class binance : Exchange
         {
             // https://github.com/ccxt/ccxt/issues/6501
             // https://github.com/ccxt/ccxt/issues/7742
-            if (((error == "200")) || isTrue(Precise.stringEquals(error, "0")))
+            if (((error == "200")) || Precise.stringEquals(error, "0"))
             {
                 return null;
             }
@@ -18068,10 +18068,10 @@ public partial class binance : Exchange
         subType = ((IList<object>)subTypeparametersVariable)[0];
         parameters = ((IList<object>)subTypeparametersVariable)[1];
         object response = null;
-        if (isTrue(this.isLinear(type, subType)))
+        if (this.isLinear(type, subType))
         {
             response = await this.fapiPublicGetFundingInfo(parameters);
-        } else if (isTrue(this.isInverse(type, subType)))
+        } else if (this.isInverse(type, subType))
         {
             response = await this.dapiPublicGetFundingInfo(parameters);
         } else
