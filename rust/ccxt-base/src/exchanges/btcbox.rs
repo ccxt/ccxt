@@ -1265,7 +1265,7 @@ impl BtcboxCore {
     m
 }));
         let mut response: Value = self.fetch2(path.clone(), &[api.clone(), method.clone(), params.clone(), headers.clone(), body.clone(), config.clone()]).await;
-        if is_string(&response) {
+        if matches!(&response, Value::Str(_)) {
             // sometimes the exchange returns whitespace prepended to json
             response = self.strip(response.clone(), &[]);
             if !is_true(&self.is_json_encoded_object(&[response.clone()])) {

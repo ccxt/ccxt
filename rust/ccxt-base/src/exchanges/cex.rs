@@ -2573,7 +2573,7 @@ impl CexCore {
                     url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".to_string()), self.urlencode(query.clone(), &[])))));
                 }
             }  else {
-                body = self.json(query.clone());
+                body = json_stringify(&query);
                 headers = Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("Content-Type".to_string(), Value::Str("application/json".to_string()));
@@ -2583,7 +2583,7 @@ impl CexCore {
         }  else {
             self.check_required_credentials(&[]);
             let mut seconds: Value = to_string_val(&self.seconds());
-            body = self.json(query.clone());
+            body = json_stringify(&query);
             let mut auth: Value = Value::Str(format!("{}{}", add(&path, &seconds), body));
             let mut signature: Value = self.hmac(self.encode(auth.clone()), self.encode(self.secret.clone()), Value::Str("sha256".to_string()), &[Value::Str("base64".to_string())]);
             headers = Value::Map({

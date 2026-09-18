@@ -30,7 +30,7 @@ pub async fn testWatchLiquidationsForSymbols(mut exchange: Value, mut skippedPro
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
             response = crate::live_dispatch::dispatch(&mut exchange, "watch_liquidations_for_symbols", vec![Value::from(vec![symbol.clone()])]).await;
             now = date_now();
-            let mut isArray: Value = Value::Bool(is_array(&response));
+            let mut isArray: Value = Value::Bool(matches!(&response, Value::Arr(_)));
             assert!(ccxt::runtime::is_true(&(isArray.clone())));
             let mut m3: Value = (Value::Str(format!("{}{}", add(&Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", get_value(&exchange, &Value::Str("id".to_string())), Value::Str(" ".to_string()))), method)), Value::Str("() returned ".to_string()))), &Value::Int(response.len() as i64)), Value::Str(" liquidations".to_string()))));
             println_val(&m3);

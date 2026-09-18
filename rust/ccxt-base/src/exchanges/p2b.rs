@@ -1770,7 +1770,7 @@ impl P2bCore {
         if (api.as_str() == Some("private")) {
             add_element_to_object(&mut params, &Value::Str("request".to_string()), add(&Value::Str("/api/v2/".to_string()), &path));
             add_element_to_object(&mut params, &Value::Str("nonce".to_string()), to_string_val(&self.nonce()));
-            let mut payload: Value = self.string_to_base64(self.json(params.clone()), &[]); // Body json encoded in base64
+            let mut payload: Value = self.string_to_base64(json_stringify(&params), &[]); // Body json encoded in base64
             headers = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("Content-Type".to_string(), Value::Str("application/json".to_string()));
@@ -1779,7 +1779,7 @@ impl P2bCore {
                     m.insert("X-TXC-SIGNATURE".to_string(), self.hmac(self.encode(payload.clone()), self.encode(self.secret.clone()), Value::Str("sha512".to_string()), &[]));
                 m
             });
-            body = self.json(params.clone());
+            body = json_stringify(&params);
         }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();

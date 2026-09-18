@@ -2010,7 +2010,7 @@ impl LighterCore {
             if (error != Value::Null) {
                 let mut code: Value = self.safe_string_k(error.clone(), "code", &[]);
                 let mut errorMessage: Value = self.safe_string_k(error.clone(), "message", &[]);
-                let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), self.json(message.clone())));
+                let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), json_stringify(&message)));
                 self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), code.clone(), feedback.clone());
                 self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), errorMessage.clone(), feedback.clone());
                 panic!("{}", crate::exchange_errors::exchange_error(feedback));

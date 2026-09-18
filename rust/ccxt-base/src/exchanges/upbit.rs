@@ -2999,7 +2999,7 @@ impl UpbitCore {
             let mut hasQuery: Value = Value::Int(object_keys(&query).len() as i64);
             let mut auth: Value = Value::Null;
             if is_true(&(Value::Bool(method.as_str() != Some("GET")))) && is_true(&(Value::Bool(method.as_str() != Some("DELETE")))) {
-                body = self.json(params.clone());
+                body = json_stringify(&params);
                 add_element_to_object(&mut headers, &Value::Str("Content-Type".to_string()), Value::Str("application/json".to_string()));
             }
             if is_true(&(Value::Bool(hasQuery != Value::Null))) && is_true(&(Value::Bool(hasQuery.as_f64() != Some(0.0)))) {

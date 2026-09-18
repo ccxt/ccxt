@@ -1012,7 +1012,7 @@ impl ModetradeCore {
             let mut future: Value = self.safe_value(get_value(&client, &Value::Str("futures".to_string())), Value::Str("authenticated".to_string()), &[]);
             future.resolve(&[Value::Bool(true)]);
         }  else {
-            let mut error = Value::from(crate::exchange_errors::authentication_error(self.json(message.clone())));
+            let mut error = Value::from(crate::exchange_errors::authentication_error(json_stringify(&message)));
             client.reject(&[Value::from(error.clone()), messageHash.clone()]);
             // allows further authentication attempts
             if is_true(&Value::Bool(in_op(&get_value(&client, &Value::Str("subscriptions".to_string())), &messageHash))) {
@@ -1357,7 +1357,7 @@ impl ModetradeCore {
         //
         let mut topic: Value = self.safe_string_k(message.clone(), "topic", &[]);
         let mut data: Value = self.safe_value_k(message.clone(), "data", &[]);
-        if is_true(&Value::Bool(is_array(&data))) {
+        if is_true(&Value::Bool(matches!(&data, Value::Arr(_)))) {
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_500: bool = true;
@@ -1816,7 +1816,7 @@ impl ModetradeCore {
         let mut errorMessage: Value = self.safe_string_k(message.clone(), "errorMsg", &[]);
         let _try_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
             if (errorMessage != Value::Null) {
-                let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), self.json(message.clone())));
+                let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), json_stringify(&message)));
                 self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), errorMessage.clone(), feedback.clone());
             }
             return Value::Bool(false);

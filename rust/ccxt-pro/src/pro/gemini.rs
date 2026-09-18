@@ -1209,7 +1209,7 @@ impl GeminiCore {
 }
 
     pub fn handle_error(&self, mut client: Value, mut message: Value) {
-        panic!("{}", crate::exchange_errors::exchange_error(self.json(message.clone())));
+        panic!("{}", crate::exchange_errors::exchange_error(json_stringify(&message)));
 }
 
     pub fn handle_message(&mut self, mut client: Value, mut message: Value) {
@@ -1248,7 +1248,7 @@ impl GeminiCore {
         //         }
         //     ]
         //
-        let mut isArray: bool = is_array(&message);
+        let mut isArray: bool = matches!(&message, Value::Arr(_));
         if isArray {
             self.handle_order(client.clone(), message.clone());
             return;
@@ -1344,7 +1344,7 @@ impl GeminiCore {
                 m.insert("nonce".to_string(), self.nonce());
             m
         });
-        let mut b64: Value = self.string_to_base64(self.json(payload.clone()), &[]);
+        let mut b64: Value = self.string_to_base64(json_stringify(&payload), &[]);
         let mut signature: Value = self.hmac(self.encode(b64.clone()), self.encode(self.secret.clone()), Value::Str("sha384".to_string()), &[Value::Str("hex".to_string())]);
         let mut defaultOptions: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();

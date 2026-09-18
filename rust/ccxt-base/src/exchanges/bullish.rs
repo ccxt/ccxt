@@ -1904,7 +1904,7 @@ impl BullishCore {
                 }
              #[allow(unreachable_code)] { Value::Null }})).await;
 match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { return __try_ok; } return Value::Null; } Err(_try_err) => { let e: Value = panic_to_value(_try_err); 
-                if is_instance(&e, &Value::Str("RateLimitExceeded".to_string())) {
+                if matches!(&e, Value::Str(__s) if __s.contains("[RateLimitExceeded]")) {
                     panic!("{}", e);
                 }
                 errors = (match (&(errors), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
@@ -3748,7 +3748,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                     m
                 });
             }  else if (method.as_str() == Some("POST")) {
-                body = self.json(params.clone());
+                body = json_stringify(&params);
                 let mut payload: Value = Value::Str(format!("{}{}", add(&Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", timestamp, nonce)), method)), Value::Str("/trading-api/".to_string()))), &path), body));
                 let mut digest: Value = self.hash(self.encode(payload.clone()), Value::Str("sha256".to_string()), &[Value::Str("hex".to_string())]);
                 let mut signature: Value = self.hmac(self.encode(digest.clone()), self.encode(self.secret.clone()), Value::Str("sha256".to_string()), &[Value::Str("hex".to_string())]);

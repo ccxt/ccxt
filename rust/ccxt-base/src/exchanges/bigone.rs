@@ -2655,7 +2655,7 @@ impl BigoneCore {
                 }
             }  else if (method.as_str() == Some("POST")) {
                 add_element_to_object(&mut headers, &Value::Str("Content-Type".to_string()), Value::Str("application/json".to_string()));
-                body = self.json(query.clone());
+                body = json_stringify(&query);
             }
         }
         add_element_to_object(&mut headers, &Value::Str("User-Agent".to_string()), Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("ccxt/".to_string()), self.id.clone())), Value::Str("-".to_string()))), self.version.clone())));

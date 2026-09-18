@@ -5211,7 +5211,7 @@ impl DeltaCore {
                     url = Value::Str(format!("{}{}", url, queryString));
                 }
             }  else {
-                body = self.json(query.clone());
+                body = json_stringify(&query);
                 auth = add(&auth, &body);
                 add_element_to_object(&mut headers, &Value::Str("Content-Type".to_string()), Value::Str("application/json".to_string()));
             }

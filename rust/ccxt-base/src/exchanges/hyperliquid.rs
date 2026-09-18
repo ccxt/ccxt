@@ -2148,7 +2148,7 @@ impl HyperliquidCore {
         //     ]
         //
         let mut candles: Value = Value::List(vec![]);
-        if is_true(&Value::Bool(is_array(&response))) {
+        if is_true(&Value::Bool(matches!(&response, Value::Arr(_)))) {
             candles = response.clone();
         }
         return self.parse_ohlc_vs(candles.clone(), &[market.clone(), timeframe.clone(), originalSince.clone(), limit.clone(), useTail.clone()]);
@@ -2234,7 +2234,7 @@ impl HyperliquidCore {
         //     ]
         //
         let mut fills: Value = Value::List(vec![]);
-        if is_true(&Value::Bool(is_array(&response))) {
+        if is_true(&Value::Bool(matches!(&response, Value::Arr(_)))) {
             fills = response.clone();
         }
         return self.parse_trades(fills.clone(), &[market.clone(), since.clone(), limit.clone()]);
@@ -2737,12 +2737,12 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
                 let __ws_arg_17 = self.extend(request, &[params.clone()]);
                 let mut rawResponse: Value = self.public_post_info(&[__ws_arg_17]).await;
-                if is_string(&rawResponse) {
+                if matches!(&rawResponse, Value::Str(_)) {
                     response = rawResponse.clone();
                 }
              #[allow(unreachable_code)] { Value::Null }})).await;
 if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
-                if is_instance(&e, &Value::Str("InvalidProxySettings".to_string())) {
+                if matches!(&e, Value::Str(__s) if __s.contains("[InvalidProxySettings]")) {
                     panic!("{}", e);
                 }
                 response = Value::Null; // ignore this error and assume unified margin is not enabled
@@ -3593,7 +3593,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         });
         let mut baseId: Value = self.parse_to_numeric(market.as_map().and_then(|__m| __m.get("baseId")).cloned().unwrap_or(Value::Null));
         if (clientOrderId != Value::Null) {
-            if !is_true(&Value::Bool(is_array(&clientOrderId))) {
+            if !is_true(&Value::Bool(matches!(&clientOrderId, Value::Arr(_)))) {
                 clientOrderId = Value::List(vec![clientOrderId.clone()]);
             }
             add_element_to_object(&mut cancelAction, &Value::Str("type".to_string()), Value::Str("cancelByCloid".to_string()));
@@ -4158,7 +4158,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //
         let mut result: Value = Value::List(vec![]);
         let mut fundings: Value = Value::List(vec![]);
-        if is_true(&Value::Bool(is_array(&response))) {
+        if is_true(&Value::Bool(matches!(&response, Value::Arr(_)))) {
             fundings = response.clone();
         }
         {
@@ -4259,7 +4259,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //
         let mut orderWithStatus: Value = Value::List(vec![]);
         let mut rawOrders: Value = Value::List(vec![]);
-        if is_true(&Value::Bool(is_array(&response))) {
+        if is_true(&Value::Bool(matches!(&response, Value::Arr(_)))) {
             rawOrders = response.clone();
         }
         {
@@ -4438,7 +4438,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             m
         });
         let mut historicalOrders: Value = Value::List(vec![]);
-        if is_true(&Value::Bool(is_array(&response))) {
+        if is_true(&Value::Bool(matches!(&response, Value::Arr(_)))) {
             historicalOrders = response.clone();
         }
         {
@@ -4843,7 +4843,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //     ]
         //
         let mut myFills: Value = Value::List(vec![]);
-        if is_true(&Value::Bool(is_array(&response))) {
+        if is_true(&Value::Bool(matches!(&response, Value::Arr(_)))) {
             myFills = response.clone();
         }
         return self.parse_trades(myFills.clone(), &[market.clone(), since.clone(), limit.clone()]);
@@ -6009,7 +6009,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         // ]
         //
         let mut depositLedger: Value = Value::List(vec![]);
-        if is_true(&Value::Bool(is_array(&response))) {
+        if is_true(&Value::Bool(matches!(&response, Value::Arr(_)))) {
             depositLedger = response.clone();
         }
         let mut records: Value = self.extract_type_from_delta(&[depositLedger.clone()]);
@@ -6099,7 +6099,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         // ]
         //
         let mut withdrawalLedger: Value = Value::List(vec![]);
-        if is_true(&Value::Bool(is_array(&response))) {
+        if is_true(&Value::Bool(matches!(&response, Value::Arr(_)))) {
             withdrawalLedger = response.clone();
         }
         let mut records: Value = self.extract_type_from_delta(&[withdrawalLedger.clone()]);
@@ -6549,7 +6549,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     m.insert("Content-Type".to_string(), Value::Str("application/json".to_string()));
                 m
             });
-            body = self.json(params.clone());
+            body = json_stringify(&params);
         }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();

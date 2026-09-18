@@ -1479,7 +1479,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
 }
 
     pub fn handle_message(&mut self, mut client: Value, mut message: Value) {
-        if is_string(&message) {
+        if matches!(&message, Value::Str(_)) {
             let mut content: Value = to_lower(&message);
             if (content.as_str() == Some("pong")) {
                 self.handle_pong(client.clone(), message.clone());

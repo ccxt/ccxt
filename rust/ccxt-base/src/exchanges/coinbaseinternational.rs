@@ -2231,7 +2231,7 @@ impl CoinbaseinternationalCore {
             m
         });
         let mut rows: Value = Value::List(vec![]);
-        if is_true(&Value::Bool(is_array(&instruments))) {
+        if is_true(&Value::Bool(matches!(&instruments, Value::Arr(_)))) {
             rows = instruments.clone();
         }
         {
@@ -3107,7 +3107,7 @@ impl CoinbaseinternationalCore {
             let mut payload: Value = Value::Str("".to_string());
             if (method.as_str() != Some("GET")) {
                 if Value::Int(object_keys(&query).len() as i64).as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN) {
-                    body = self.json(query.clone());
+                    body = json_stringify(&query);
                     payload = body.clone();
                 }
             }

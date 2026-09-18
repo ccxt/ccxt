@@ -869,7 +869,7 @@ impl KalshiCore {
 if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 // an unknown ticker returns 'not_found', which handleErrors maps to BadSymbol —
                 // fall through to the search-driven base resolution; let network failures propagate
-                if !(is_instance(&e, &Value::Str("BadSymbol".to_string()))) {
+                if !(matches!(&e, Value::Str(__s) if __s.contains("[BadSymbol]"))) {
                     panic!("{}", e);
                 }
                 response = Value::Null;
@@ -909,7 +909,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     // an unknown series is a plain miss — the free-text fallback below still runs;
                     // let network failures propagate
-                    if !(is_instance(&e, &Value::Str("BadSymbol".to_string()))) {
+                    if !(matches!(&e, Value::Str(__s) if __s.contains("[BadSymbol]"))) {
                         panic!("{}", e);
                     }
                 }
@@ -3286,7 +3286,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 append_to_array(&mut rawEvents, fullEvent.clone());
              #[allow(unreachable_code)] { Value::Null }})).await;
 if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
-                if !(is_instance(&e, &Value::Str("BadSymbol".to_string()))) {
+                if !(matches!(&e, Value::Str(__s) if __s.contains("[BadSymbol]"))) {
                     panic!("{}", e);
                 }
             }
@@ -3724,8 +3724,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 }));
         let mut headers = get_arg(optional_args, 3, Value::Null);
         let mut body = get_arg(optional_args, 4, Value::Null);
-        let mut apiGroup: Value = (if is_string(&api) { api.clone() } else { get_value(&api, &Value::Int(0)) });
-        let mut access: Value = (if is_string(&api) { Value::Str("public".to_string()) } else { get_value(&api, &Value::Int(1)) });
+        let mut apiGroup: Value = (if matches!(&api, Value::Str(_)) { api.clone() } else { get_value(&api, &Value::Int(0)) });
+        let mut access: Value = (if matches!(&api, Value::Str(_)) { Value::Str("public".to_string()) } else { get_value(&api, &Value::Int(1)) });
         let mut baseUrls: Value = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null);
         let mut baseUrl: Value = self.safe_string(baseUrls.clone(), apiGroup.clone(), &[baseUrls.as_map().and_then(|__m| __m.get("kalshi")).cloned().unwrap_or(Value::Null)]);
         let mut implodedPath: Value = self.implode_params(path.clone(), params.clone());
@@ -3768,7 +3768,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             })]);
             if (method.as_str() != Some("GET")) && is_true(&(Value::Bool(querystring.as_str() != Some("")))) {
                 // kalshi expects a JSON body; the signature covers only timestamp+method+path
-                body = self.json(query.clone());
+                body = json_stringify(&query);
             }
         }
         return Value::Map({

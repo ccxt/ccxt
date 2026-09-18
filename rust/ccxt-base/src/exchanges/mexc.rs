@@ -2231,14 +2231,14 @@ impl MexcCore {
             //
             let mut keys: Value = object_keys(&response);
             let mut length: Value = Value::Int(keys.len() as i64);
-            status = (if is_true(&(length.as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN))) { self.json(response.clone()) } else { Value::Str("ok".to_string()) });
+            status = (if is_true(&(length.as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN))) { json_stringify(&response) } else { Value::Str("ok".to_string()) });
         }  else if (marketType.as_str() == Some("swap")) {
             response = self.contract_public_get_ping(&[query.clone()]).await;
             //
             //     {"success":true,"code":"0","data":"1648124374985"}
             //
             let mut success: bool = self.safe_bool_k(response.clone(), "success", &[]).as_bool() == Some(true);
-            status = (if success { Value::Str("ok".to_string()) } else { self.json(response.clone()) });
+            status = (if success { Value::Str("ok".to_string()) } else { json_stringify(&response) });
             updated = self.safe_integer_k(response.clone(), "data", &[]);
         }
         return Value::Map({
@@ -3968,7 +3968,7 @@ impl MexcCore {
         }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("batchOrders".to_string(), self.json(ordersRequests.clone()));
+                m.insert("batchOrders".to_string(), json_stringify(&ordersRequests));
             m
         });
         let mut response: Value = self.spot_private_post_batch_orders(&[request.clone()]).await;
@@ -4864,7 +4864,7 @@ impl MexcCore {
 }), &[]);
         }
         let mut id: Value = Value::Null;
-        if is_string(&order) {
+        if matches!(&order, Value::Str(_)) {
             id = order.clone();
         }  else {
             id = self.safe_string2(order.clone(), Value::Str("orderId".to_string()), Value::Str("id".to_string()), &[]);
@@ -7741,7 +7741,7 @@ impl MexcCore {
                             m.insert("recvWindow".to_string(), self.safe_integer_k(self.options.clone(), "recvWindow", &[Value::Int(5000)]));
                         m
                     });
-                    body = self.json(params.clone());
+                    body = json_stringify(&params);
                 }  else {
                     add_element_to_object(&mut urlParams, &Value::Str("timestamp".to_string()), self.nonce());
                     add_element_to_object(&mut urlParams, &Value::Str("recvWindow".to_string()), self.safe_integer_k(self.options.clone(), "recvWindow", &[Value::Int(5000)]));
@@ -7790,7 +7790,7 @@ impl MexcCore {
                     m
                 });
                 if (method.as_str() == Some("POST")) {
-                    auth = self.json(params.clone());
+                    auth = json_stringify(&params);
                     body = auth.clone();
                 }  else {
                     params = self.keysort(params.clone(), &[]);

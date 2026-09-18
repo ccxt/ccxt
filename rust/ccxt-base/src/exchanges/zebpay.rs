@@ -2761,7 +2761,7 @@ impl ZebpayCore {
                 url = add(&url, &Value::Str(format!("{}{}", Value::Str("?".to_string()), queryString)));
             }  else {
                 // For POST/PUT: Convert body to JSON and sign the stringified payload
-                body = self.json(params.clone());
+                body = json_stringify(&params);
                 signature = self.hmac(self.encode(body.clone()), self.encode(self.secret.clone()), Value::Str("sha256".to_string()), &[Value::Str("hex".to_string())]);
             }
             headers = Value::Map({

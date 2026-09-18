@@ -2617,7 +2617,7 @@ impl BitvavoCore {
             // we resolve the future here permanently so authentication only happens once
             client.resolve(&[message.clone(), messageHash.clone()]);
         }  else {
-            let mut error = Value::from(crate::exchange_errors::authentication_error(self.json(message.clone())));
+            let mut error = Value::from(crate::exchange_errors::authentication_error(json_stringify(&message)));
             client.reject(&[Value::from(error.clone()), messageHash.clone()]);
             // allows further authentication attempts
             if (in_op(&get_value(&client, &Value::Str("subscriptions".to_string())), &messageHash)) {

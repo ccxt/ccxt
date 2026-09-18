@@ -1653,7 +1653,7 @@ impl ToobitCore {
         let mut cache: Value = get_value(&self.positions, &accountType);
         // handleMessage's fallback dispatches one item at a time
         let mut rawPositions: Value = message.clone();
-        if !is_true(&Value::Bool(is_array(&message))) {
+        if !is_true(&Value::Bool(matches!(&message, Value::Arr(_)))) {
             rawPositions = Value::List(vec![message.clone()]);
         }
         let mut newPositions: Value = Value::List(vec![]);

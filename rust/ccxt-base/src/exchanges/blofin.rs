@@ -2020,7 +2020,7 @@ impl BlofinCore {
 
     pub fn parse_balance_by_type(&self, mut response: Value) -> Value {
         let mut data: Value = self.safe_list_k(response.clone(), "data", &[]);
-        if is_true(&(Value::Bool(data != Value::Null))) && is_true(&Value::Bool(is_array(&data))) {
+        if is_true(&(Value::Bool(data != Value::Null))) && is_true(&Value::Bool(matches!(&data, Value::Arr(_)))) {
             return self.parse_funding_balance(response.clone());
         }  else {
             return self.parse_balance(response.clone());
@@ -3328,7 +3328,7 @@ impl BlofinCore {
          * @param {string[]|string} ids order ids
          * @returns {string[]} list of order ids
          */
-        if is_string(&ids) {
+        if matches!(&ids, Value::Str(_)) {
             return split(&ids, &Value::Str(",".to_string()));
         }  else {
             return ids;
@@ -4423,7 +4423,7 @@ impl BlofinCore {
                 }
             }  else {
                 if !is_true(&self.is_empty(query.clone())) {
-                    body = self.json(query.clone());
+                    body = json_stringify(&query);
                     sign_body = body.clone();
                 }
                 add_element_to_object(&mut headers, &Value::Str("Content-Type".to_string()), Value::Str("application/json".to_string()));

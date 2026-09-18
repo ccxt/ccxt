@@ -3374,7 +3374,7 @@ impl DydxCore {
                 url = add(&url, &Value::Str(format!("{}{}", Value::Str("?".to_string()), self.urlencode(params.clone(), &[]))));
             }
         }  else {
-            body = self.json(params.clone());
+            body = json_stringify(&params);
             headers = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("Content-type".to_string(), Value::Str("application/json".to_string()));
@@ -3412,7 +3412,7 @@ impl DydxCore {
         if is_true(&(Value::Bool(errorCode != Value::Null))) && is_true(&(Value::Bool(errorCode.as_str() != Some("")))) {
             let mut errorCodeNum: Value = self.parse_to_numeric(errorCode.clone());
             if errorCodeNum.as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN) {
-                let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), self.json(response.clone())));
+                let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), json_stringify(&response)));
                 self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), errorCode.clone(), feedback.clone());
                 self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), body.clone(), feedback.clone());
                 panic!("{}", crate::exchange_errors::exchange_error(feedback));

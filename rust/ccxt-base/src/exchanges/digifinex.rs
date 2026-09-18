@@ -2674,7 +2674,7 @@ impl DigifinexCore {
         }  else {
             add_element_to_object(&mut request, &Value::Str("market".to_string()), (if is_true(&(Value::Bool(marginMode != Value::Null))) { Value::Str("margin".to_string()) } else { Value::Str("spot".to_string()) }));
             add_element_to_object(&mut request, &Value::Str("symbol".to_string()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
-            add_element_to_object(&mut request, &Value::Str("list".to_string()), self.json(ordersRequests.clone()));
+            add_element_to_object(&mut request, &Value::Str("list".to_string()), json_stringify(&ordersRequests));
             response = self.private_spot_post_market_order_batch_new(&[request.clone()]).await;
         }
         //
@@ -4893,7 +4893,7 @@ impl DigifinexCore {
         let mut marketType: Value = Value::Null;
         if (symbols != Value::Null) {
             let mut symbol: Value = Value::Null;
-            if is_true(&Value::Bool(is_array(&symbols))) {
+            if is_true(&Value::Bool(matches!(&symbols, Value::Arr(_)))) {
                 let mut symbolsLength: Value = Value::Int(symbols.len() as i64);
                 if symbolsLength.as_f64().unwrap_or(f64::NAN) > Value::Int(1).as_f64().unwrap_or(f64::NAN) {
                     panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" fetchPositions() symbols argument cannot contain more than 1 symbol".to_string()))));

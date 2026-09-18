@@ -3169,7 +3169,7 @@ impl BitvavoCore {
             let mut payload: Value = Value::Str("".to_string());
             if !getOrDelete {
                 if Value::Int(object_keys(&query).len() as i64).as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN) {
-                    body = self.json(query.clone());
+                    body = json_stringify(&query);
                     payload = body.clone();
                 }
             }

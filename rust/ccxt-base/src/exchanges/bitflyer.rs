@@ -1734,7 +1734,7 @@ impl BitflyerCore {
             let mut auth: Value = join(&content, &Value::Str("".to_string()));
             if ((object_keys(&params).len() as i64) as f64) > ((0i64) as f64) {
                 if (method.as_str() != Some("GET")) {
-                    body = self.json(params.clone());
+                    body = json_stringify(&params);
                     auth = Value::Str(format!("{}{}", auth, body));
                 }
             }

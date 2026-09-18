@@ -2897,7 +2897,7 @@ impl PhemexCore {
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         let mut orderId: Value = Value::Null;
         let mut takerOrMaker: Value = Value::Null;
-        if is_true(&Value::Bool(is_array(&trade))) {
+        if is_true(&Value::Bool(matches!(&trade, Value::Arr(_)))) {
             let mut tradeLength: Value = Value::Int(trade.len() as i64);
             timestamp = self.safe_integer_product(trade.clone(), Value::Int(0), Value::Float(0.000001), &[]);
             if tradeLength.as_f64().unwrap_or(f64::NAN) > Value::Int(4).as_f64().unwrap_or(f64::NAN) {
@@ -2906,7 +2906,7 @@ impl PhemexCore {
             side = self.safe_string_lower(trade.clone(), (match (&(tradeLength), &(Value::Int(3))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }), &[]);
             priceString = self.safe_string(trade.clone(), (match (&(tradeLength), &(Value::Int(2))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }), &[]);
             amountString = self.safe_string(trade.clone(), (match (&(tradeLength), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }), &[]);
-            if is_number(&get_value(&trade, &(match (&(tradeLength), &(Value::Int(2))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }))) {
+            if matches!(&get_value(&trade, &(match (&(tradeLength), &(Value::Int(2))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null })), Value::Int(_) | Value::Float(_)) {
                 priceString = self.from_ep(priceString.clone(), &[market.clone()]);
                 amountString = self.from_ev(amountString.clone(), &[market.clone()]);
             }
@@ -4279,7 +4279,7 @@ impl PhemexCore {
             m
         })]);
         let mut order: Value = data.clone();
-        if is_true(&Value::Bool(is_array(&data))) {
+        if is_true(&Value::Bool(matches!(&data, Value::Arr(_)))) {
             let mut numOrders: Value = Value::Int(data.len() as i64);
             if numOrders.as_f64().unwrap_or(f64::NAN) < Value::Int(1).as_f64().unwrap_or(f64::NAN) {
                 if (clientOrderId != Value::Null) {
@@ -4421,7 +4421,7 @@ impl PhemexCore {
             }
          #[allow(unreachable_code)] { Value::Null }})).await;
 if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
-            if is_instance(&e, &Value::Str("OrderNotFound".to_string())) {
+            if matches!(&e, Value::Str(__s) if __s.contains("[OrderNotFound]")) {
                 return Value::List(vec![]);
             }
             panic!("{}", e);
@@ -4430,7 +4430,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        if is_true(&Value::Bool(is_array(&data))) {
+        if is_true(&Value::Bool(matches!(&data, Value::Arr(_)))) {
             return self.parse_orders(data.clone(), &[market.clone(), since.clone(), limit.clone()]);
         }  else {
             let mut rows: Value = self.safe_list_k(data.clone(), "rows", &[Value::List(vec![])]);
@@ -4535,7 +4535,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        if is_true(&Value::Bool(is_array(&data))) {
+        if is_true(&Value::Bool(matches!(&data, Value::Arr(_)))) {
             return self.parse_orders(data.clone(), &[market.clone(), since.clone(), limit.clone()]);
         }  else {
             let mut rows: Value = self.safe_list_k(data.clone(), "rows", &[Value::List(vec![])]);
@@ -6107,7 +6107,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                         if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("clOrdID".to_string(), Value::Str(format!("{}{}", id, self.uuid16(&[])))); }
                     }
                 }
-                payload = self.json(params.clone());
+                payload = json_stringify(&params);
                 body = payload.clone();
                 add_element_to_object(&mut headers, &Value::Str("Content-Type".to_string()), Value::Str("application/json".to_string()));
             }

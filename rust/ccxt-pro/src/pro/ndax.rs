@@ -294,7 +294,7 @@ impl NdaxCore {
                 m.insert("m".to_string(), Value::Int(0));
                 m.insert("i".to_string(), requestId.clone());
                 m.insert("n".to_string(), name.clone());
-                m.insert("o".to_string(), self.json(payload.clone()));
+                m.insert("o".to_string(), json_stringify(&payload));
             m
         });
         let mut message: Value = self.extend(request, &[params.clone()]);
@@ -384,7 +384,7 @@ impl NdaxCore {
                 m.insert("m".to_string(), Value::Int(0));
                 m.insert("i".to_string(), requestId.clone());
                 m.insert("n".to_string(), name.clone());
-                m.insert("o".to_string(), self.json(payload.clone()));
+                m.insert("o".to_string(), json_stringify(&payload));
             m
         });
         let mut message: Value = self.extend(request, &[params.clone()]);
@@ -501,7 +501,7 @@ impl NdaxCore {
                 m.insert("m".to_string(), Value::Int(0));
                 m.insert("i".to_string(), requestId.clone());
                 m.insert("n".to_string(), name.clone());
-                m.insert("o".to_string(), self.json(payload.clone()));
+                m.insert("o".to_string(), json_stringify(&payload));
             m
         });
         let mut message: Value = self.extend(request, &[params.clone()]);
@@ -681,7 +681,7 @@ impl NdaxCore {
                 m.insert("m".to_string(), Value::Int(0));
                 m.insert("i".to_string(), requestId.clone());
                 m.insert("n".to_string(), name.clone());
-                m.insert("o".to_string(), self.json(payload.clone()));
+                m.insert("o".to_string(), json_stringify(&payload));
             m
         });
         let mut subscription: Value = Value::Map({

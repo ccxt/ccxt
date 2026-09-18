@@ -7749,7 +7749,7 @@ impl XtCore {
             if is_true(&(Value::Bool(method.as_str() == Some("PUT")))) && is_true(&(Value::Bool(endpoint.as_str() == Some("spot")))) {
                 isUndefinedBody = false;
             }
-            body = (if isUndefinedBody { Value::Null } else { self.json(body.clone()) });
+            body = (if isUndefinedBody { Value::Null } else { json_stringify(&body) });
             let mut payloadString: Value = Value::Null;
             if is_true(&(Value::Bool(endpoint.as_str() == Some("spot")))) || is_true(&(Value::Bool(endpoint.as_str() == Some("user")))) {
                 payloadString = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("xt-validate-algorithms=HmacSHA256&xt-validate-appkey=".to_string()), self.apiKey.clone())), Value::Str("&xt-validate-recvwindow=".to_string()))), recvWindow)), Value::Str("&xt-validate-t".to_string()))), Value::Str("imestamp=".to_string()))), timestamp));

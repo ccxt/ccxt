@@ -3923,7 +3923,7 @@ impl BitrueCore {
                             m.insert("recvWindow".to_string(), recvWindow.clone());
                         m
                     }), &[params.clone()]);
-                    body = self.json(query.clone());
+                    body = json_stringify(&query);
                     signMessage = Value::Str(format!("{}{}", signMessage, body));
                     let mut signature: Value = self.hmac(self.encode(signMessage.clone()), self.encode(self.secret.clone()), Value::Str("sha256".to_string()), &[]);
                     headers = Value::Map({

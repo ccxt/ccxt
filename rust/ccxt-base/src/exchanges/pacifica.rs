@@ -4821,7 +4821,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             add_element_to_object(&mut headers, &Value::Str("Accept".to_string()), Value::Str("*/*".to_string()));
         }
         if (method.as_str() == Some("POST")) {
-            body = self.json(params.clone());
+            body = json_stringify(&params);
         }
         if (self.handle_option(Value::Str("sign".to_string()), Value::Str("apiKey".to_string()), &[]) != Value::Null) {
             add_element_to_object(&mut headers, &Value::Str("PF-API-KEY".to_string()), self.options.as_map().and_then(|__m| __m.get("apiKey")).cloned().unwrap_or(Value::Null));
@@ -4875,7 +4875,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             }
             }
             return result;
-        }  else if is_true(&Value::Bool(is_array(&value))) {
+        }  else if is_true(&Value::Bool(matches!(&value, Value::Arr(_)))) {
             let mut result: Value = Value::List(vec![]);
             {
                                 let mut i: Value = Value::Int(0);
@@ -4902,7 +4902,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             m
         })]);
         let mut sorted: Value = self.sort_json_keys(data.clone());
-        return self.json(sorted.clone());
+        return json_stringify(&sorted);
 
     Value::Null
 }

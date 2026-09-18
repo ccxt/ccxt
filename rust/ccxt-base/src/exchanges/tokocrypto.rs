@@ -1755,7 +1755,7 @@ impl TokocryptoCore {
         // result omits the native markets instead of raising for them, unlike
         // the single symbol fetchTicker
         let mut response: Value = self.binance_get_ticker24hr(&[params.clone()]).await;
-        if !is_true(&Value::Bool(is_array(&response))) {
+        if !is_true(&Value::Bool(matches!(&response, Value::Arr(_)))) {
             return self.parse_tickers(Value::List(vec![response.clone()]), &[symbols.clone()]);
         }
         return self.parse_tickers(response.clone(), &[symbols.clone()]);
@@ -1827,7 +1827,7 @@ impl TokocryptoCore {
         });
         let __ws_arg_5 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.binance_get_ticker24hr(&[__ws_arg_5]).await;
-        if is_true(&Value::Bool(is_array(&response))) {
+        if is_true(&Value::Bool(matches!(&response, Value::Arr(_)))) {
             let mut firstTicker: Value = self.safe_dict(response.clone(), Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1964,7 +1964,7 @@ impl TokocryptoCore {
         //     }
         //
         let mut data: Value = Value::List(vec![]);
-        if is_true(&Value::Bool(is_array(&response))) {
+        if is_true(&Value::Bool(matches!(&response, Value::Arr(_)))) {
             data = response.clone();
         }  else {
             let mut dataList: Value = self.safe_list_k(response.clone(), "data", &[]);

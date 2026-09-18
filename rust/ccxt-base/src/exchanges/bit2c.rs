@@ -804,14 +804,14 @@ impl Bit2cCore {
             //         {"date":1651786701,"price":128084.03,"amount":0.0015614749161156156626239821,"isBid":true,"tid":1261022},
             //     ]
             //
-            if is_string(&response) {
+            if matches!(&response, Value::Str(_)) {
                 panic!("{}", crate::exchange_errors::exchange_error(response));
             }
             responseList = self.to_array(response.clone());
         }  else {
             let __ws_arg_3 = self.extend(request, &[params.clone()]);
             let mut response: Value = self.public_get_exchanges_pair_lasttrades(&[__ws_arg_3]).await;
-            if is_string(&response) {
+            if matches!(&response, Value::Str(_)) {
                 panic!("{}", crate::exchange_errors::exchange_error(response));
             }
             responseList = self.to_array(response.clone());

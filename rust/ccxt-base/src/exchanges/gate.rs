@@ -6040,7 +6040,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //          "l": "40783.94"         // Lowest price
         //     }
         //
-        if is_true(&Value::Bool(is_array(&ohlcv))) {
+        if is_true(&Value::Bool(matches!(&ohlcv, Value::Arr(_)))) {
             return Value::List(vec![self.safe_timestamp(ohlcv.clone(), Value::Int(0), &[]), self.safe_number(ohlcv.clone(), Value::Int(5), &[]), self.safe_number(ohlcv.clone(), Value::Int(3), &[]), self.safe_number(ohlcv.clone(), Value::Int(4), &[]), self.safe_number(ohlcv.clone(), Value::Int(2), &[]), self.safe_number(ohlcv.clone(), Value::Int(6), &[])]);
         }  else {
             return Value::List(vec![self.safe_timestamp(ohlcv.clone(), Value::Str("t".to_string()), &[]), self.safe_number_k(ohlcv.clone(), "o", &[]), self.safe_number_k(ohlcv.clone(), "h", &[]), self.safe_number_k(ohlcv.clone(), "l", &[]), self.safe_number_k(ohlcv.clone(), "c", &[]), self.safe_number_k(ohlcv, "v", &[])]);
@@ -9158,7 +9158,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //         }
         //     ]
         //
-        if !is_true(&Value::Bool(is_array(&info))) {
+        if !is_true(&Value::Bool(matches!(&info, Value::Arr(_)))) {
             return self.parse_emulated_leverage_tiers(info.clone(), &[market.clone()]);
         }
         let mut minNotional: Value = Value::Int(0);
@@ -9549,7 +9549,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             }
             params = newParams.clone();
             query = newParams.clone();
-        }  else if is_true(&Value::Bool(is_array(&params))) {
+        }  else if is_true(&Value::Bool(matches!(&params, Value::Arr(_)))) {
             // endpoints like createOrders use an array instead of an object
             // so we infer the settle from one of the elements
             // they have to be all the same so relying on the first one is fine
@@ -9597,7 +9597,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     url = add(&url, &Value::Str(format!("{}{}", Value::Str("?".to_string()), queryString)));
                 }
                 if (method.as_str() == Some("PATCH")) {
-                    body = self.json(query.clone());
+                    body = json_stringify(&query);
                 }
             }  else {
                 let mut urlQueryParams: Value = self.safe_dict_k(query.clone(), "query", &[Value::Map({
@@ -9609,7 +9609,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     url = add(&url, &Value::Str(format!("{}{}", Value::Str("?".to_string()), queryString)));
                 }
                 query = self.omit(query.clone(), Value::Str("query".to_string()), &[]);
-                body = self.json(query.clone());
+                body = json_stringify(&query);
             }
             let mut bodyPayload: Value = (if is_true(&(Value::Bool(body == Value::Null))) { Value::Str("".to_string()) } else { body.clone() });
             let mut bodySignature: Value = self.hash(self.encode(bodyPayload.clone()), Value::Str("sha512".to_string()), &[]);

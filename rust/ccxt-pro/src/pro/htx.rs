@@ -3052,8 +3052,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             if (subscription != Value::Null) {
                 let mut errorCode: Value = self.safe_string_k(message.clone(), "err-code", &[]);
                 let _try_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-                    self.throw_exactly_matched_exception(crate::value::get_value_k(&self.exceptions.as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "exact"), errorCode.clone(), self.json(message.clone()));
-                    panic!("{}", crate::exchange_errors::exchange_error(self.json(message.clone())));
+                    self.throw_exactly_matched_exception(crate::value::get_value_k(&self.exceptions.as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "exact"), errorCode.clone(), json_stringify(&message));
+                    panic!("{}", crate::exchange_errors::exchange_error(json_stringify(&message)));
                  #[allow(unreachable_code)] { Value::Null }}));
 if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     let mut messageHash: Value = self.safe_string_k(subscription.clone(), "messageHash", &[]);
@@ -3077,7 +3077,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         let mut code: Value = self.safe_string2(message.clone(), Value::Str("code".to_string()), Value::Str("err-code".to_string()), &[]);
         if (code != Value::Null) && is_true(&(Value::Bool(is_true(&(Value::Bool(code.as_str() != Some("200")))) && is_true(&(Value::Bool(code.as_str() != Some("0"))))))) {
-            let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), self.json(message.clone())));
+            let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), json_stringify(&message)));
             let _try_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
                 self.throw_exactly_matched_exception(crate::value::get_value_k(&self.exceptions.as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "exact"), code.clone(), feedback.clone());
                 panic!("{}", crate::exchange_errors::exchange_error(feedback));
@@ -3291,7 +3291,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             if (data != Value::Null) {
                 let mut contractCode: Value = self.safe_string_k(message.clone(), "contract_code", &[]);
                 let mut market: Value = (if is_true(&(Value::Bool(contractCode != Value::Null))) { self.safe_market(&[contractCode.clone()]) } else { Value::Null });
-                if is_true(&Value::Bool(is_array(&data))) {
+                if is_true(&Value::Bool(matches!(&data, Value::Arr(_)))) {
                     {
                                                 let mut i: Value = Value::Int(0);
                         let mut __for_first_409: bool = true;

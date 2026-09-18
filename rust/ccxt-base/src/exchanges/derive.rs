@@ -3911,7 +3911,7 @@ impl DeriveCore {
         let mut error: Value = self.safe_dict_k(response.clone(), "error", &[]);
         if (error != Value::Null) {
             let mut errorCode: Value = self.safe_string_k(error.clone(), "code", &[]);
-            let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), self.json(response.clone())));
+            let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), json_stringify(&response)));
             self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), body.clone(), feedback.clone());
             self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), errorCode.clone(), feedback.clone());
             panic!("{}", crate::exchange_errors::exchange_error(feedback));
@@ -3944,7 +3944,7 @@ impl DeriveCore {
                 add_element_to_object(&mut headers, &Value::Str("X-LyraTimestamp".to_string()), now.clone());
                 add_element_to_object(&mut headers, &Value::Str("X-LyraSignature".to_string()), signature.clone());
             }
-            body = self.json(params.clone());
+            body = json_stringify(&params);
         }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();

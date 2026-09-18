@@ -4867,7 +4867,7 @@ impl CoinexCore {
         let mut market: Value = Value::Null;
         if (symbols != Value::Null) {
             let mut symbol: Value = Value::Null;
-            if is_true(&Value::Bool(is_array(&symbols))) {
+            if is_true(&Value::Bool(matches!(&symbols, Value::Arr(_)))) {
                 let mut symbolsLength: Value = Value::Int(symbols.len() as i64);
                 if symbolsLength.as_f64().unwrap_or(f64::NAN) > Value::Int(1).as_f64().unwrap_or(f64::NAN) {
                     panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" fetchPositions() symbols argument cannot contain more than 1 symbol".to_string()))));
@@ -7373,7 +7373,7 @@ impl CoinexCore {
                 if is_true(&(Value::Bool(method.as_str() == Some("GET")))) || is_true(&(Value::Bool(method.as_str() == Some("DELETE")))) || is_true(&(Value::Bool(method.as_str() == Some("PUT")))) {
                     url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".to_string()), urlencoded))));
                 }  else {
-                    body = self.json(query.clone());
+                    body = json_stringify(&query);
                 }
             }  else if (version.as_str() == Some("v2")) {
                 self.check_required_credentials(&[]);
@@ -7381,7 +7381,7 @@ impl CoinexCore {
                 let mut urlencoded: Value = self.rawencode(query.clone(), &[]);
                 let mut preparedString: Value = add(&Value::Str(format!("{}{}", add(&Value::Str(format!("{}{}", method, Value::Str("/".to_string()))), &version), Value::Str("/".to_string()))), &path);
                 if (method.as_str() == Some("POST")) {
-                    body = self.json(query.clone());
+                    body = json_stringify(&query);
                     preparedString = Value::Str(format!("{}{}", preparedString, body));
                 }  else if (urlencoded.as_str() != Some("")) {
                     preparedString = Value::Str(format!("{}{}", preparedString, Value::Str(format!("{}{}", Value::Str("?".to_string()), urlencoded))));

@@ -3600,7 +3600,7 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
             let mut m = indexmap::IndexMap::new();
             m
         });
-        if is_true(&Value::Bool(is_array(&message))) {
+        if is_true(&Value::Bool(matches!(&message, Value::Arr(_)))) {
             rawTickers = message.clone();
         }  else {
             append_to_array(&mut rawTickers, message.clone());
@@ -4326,7 +4326,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         //
         let mut messageHash: Value = self.safe_string_k(message.clone(), "id", &[]);
         let mut rawBalance: Value = Value::Null;
-        if is_true(&Value::Bool(is_array(&crate::value::get_value_k(&message, "result")))) {
+        if is_true(&Value::Bool(matches!(&crate::value::get_value_k(&message, "result"), Value::Arr(_)))) {
             // account.balance
             rawBalance = self.safe_list_k(message.clone(), "result", &[Value::List(vec![])]);
         }  else {
@@ -4686,7 +4686,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
             let mut delta: Value = self.safe_string_k(message.clone(), "d", &[]);
             if is_true(&(Value::Bool(accountType != Value::Null))) && is_true(&(Value::Bool(code != Value::Null))) && is_true(&(Value::Bool(in_op(&get_value(&self.balance, &accountType), &code)))) {
                 let mut previousValue: Value = crate::value::get_value_k(&get_value(&get_value(&self.balance, &accountType), &code), "free");
-                if !is_string(&previousValue) {
+                if !matches!(&previousValue, Value::Str(_)) {
                     previousValue = self.number_to_string(previousValue.clone());
                 }
                 add_element_to_object(&mut account, &Value::Str("free".to_string()), crate::precise::Precise::stringAdd(&previousValue, &delta));
@@ -6034,7 +6034,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         }
         if is_true(&(Value::Bool(e.as_deref() == Some("ORDER_TRADE_UPDATE")))) || is_true(&(Value::Bool(e.as_deref() == Some("ALGO_UPDATE")))) {
             let mut oField: Value = self.safe_value_k(message.clone(), "o", &[]);
-            if is_true(&Value::Bool(is_array(&oField))) {
+            if is_true(&Value::Bool(matches!(&oField, Value::Arr(_)))) {
                 // eOptions format: o is an array of orders with nested fi fills
                 self.handle_options_order_update(client.clone(), message.clone());
                 return;
@@ -7095,11 +7095,10 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         let mut msg: Value = self.safe_string_k(error.clone(), "msg", &[]);
         let mut codeValue: Value = (if is_true(&(Value::Bool(code == Value::Null))) { Value::Int(0) } else { code.clone() });
         let _try_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-            let __ws_arg_36 = self.json(error.clone());
             self.handle_errors(codeValue.clone(), msg.clone(), get_value(&client, &Value::Str("url".to_string())), Value::Str("".to_string()), Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
-            }), __ws_arg_36, error.clone(), Value::Map({
+            }), json_stringify(&error), error.clone(), Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
             }), Value::Map({
@@ -7229,7 +7228,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             m
         });
         let mut event: Value = self.safe_string_k(message.clone(), "e", &[]);
-        if is_true(&Value::Bool(is_array(&message))) {
+        if is_true(&Value::Bool(matches!(&message, Value::Arr(_)))) {
             let mut arrayMessage: Value = message.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
             event = Value::Str(format!("{}{}", self.safe_string_k(arrayMessage.clone(), "e", &[]), Value::Str("@arr".to_string())));
         }

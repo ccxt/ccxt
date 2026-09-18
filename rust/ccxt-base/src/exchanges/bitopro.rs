@@ -2302,7 +2302,7 @@ impl BitoproCore {
         if (api.as_str() == Some("private")) {
             self.check_required_credentials(&[]);
             if (method.as_str() == Some("POST")) || (method.as_str() == Some("PUT")) {
-                body = self.json(params.clone());
+                body = json_stringify(&params);
                 let mut payload: Value = self.string_to_base64(body.clone(), &[]);
                 let mut signature: Value = self.hmac(self.encode(payload.clone()), self.encode(self.secret.clone()), Value::Str("sha384".to_string()), &[]);
                 add_element_to_object(&mut headers, &Value::Str("X-BITOPRO-APIKEY".to_string()), self.apiKey.clone());
@@ -2318,7 +2318,7 @@ impl BitoproCore {
                         m.insert("nonce".to_string(), nonce.clone());
                     m
                 });
-                let mut data: Value = self.json(rawData.clone());
+                let mut data: Value = json_stringify(&rawData);
                 let mut payload: Value = self.string_to_base64(data.clone(), &[]);
                 let mut signature: Value = self.hmac(self.encode(payload.clone()), self.encode(self.secret.clone()), Value::Str("sha384".to_string()), &[]);
                 add_element_to_object(&mut headers, &Value::Str("X-BITOPRO-APIKEY".to_string()), self.apiKey.clone());
