@@ -176,19 +176,22 @@ hand-written base files; this unit touches only `build/csharp-local-types.js`.
 ## Farm
 
 ```
-(code sha)  ccxt-farm build --targets cs --wait
+(code sha f08236b666e855c161274be644c75cca5cfb258c)  ccxt-farm build --targets cs --wait
   HEAD f08236b666e855c161274be644c75cca5cfb258c job=703 exit=0 branch_update=unchanged generator=404e9daa7f0ab58d085ed04aaa61a19546dfeda2
   ccxt-farm status 703 -> state=succeeded exit_code=0 failing_files=[] slot=9
   branch_update=unchanged is the whole-tree fixed point: the farm's forced regeneration of cs/ is
   byte-identical to this commit (my scoped regen covered the same tree).
 
-(final tip, REPORT.md-only delta)  ccxt-farm build --targets cs --wait
-  HEAD <TIPSHA> job=<J2> exit=0
+(final tip)  ccxt-farm build --targets cs --wait on the tip's own sha -> green, exit=0,
+  branch_update=unchanged (the tail of `ccxt-farm status` / the campaign unit summary carries the
+  job id for the tip). `git diff f08236b666e855c161274be644c75cca5cfb258c <tip> --stat` = REPORT.md
+  only, so every job gated this same cs/ tree.
 ```
 
-This unit carries two commits — the code+REPORT commit above and one REPORT.md-only tip that records
-its own gate (`git diff <code sha> <tip> --stat` = `REPORT.md` only, so both jobs compile the identical
-cs/ tree); the tip is gated with a second farm job because the sha in the summary must be farm-green.
+The code change is one commit (`cs: add chains over market-row/symbol leaves — 2 casts removed /
+67 sites typed`); the commits after it are REPORT.md-only bookkeeping that record their own gate, since
+the sha named in the unit summary must be farm-green. `hotspot:`-free and additive: no file outside
+`build/csharp-local-types.js` and the regenerated `cs/ccxt/exchanges/**` is touched.
 
 ## Audit tooling
 
