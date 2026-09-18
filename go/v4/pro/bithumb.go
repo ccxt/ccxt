@@ -404,7 +404,43 @@ func (this *Bithumb) ParseWsTicker(ticker any, optionalArgs ...any) any {
 	}
 	var date *string = this.SafeString(ticker, "date", "")
 	var time *string = this.SafeString(ticker, "time", "")
-	var kstDatetime any = ccxt.Slice(date, 0, 4) + "-" + ccxt.Slice(date, 4, 6) + "-" + ccxt.Slice(date, 6, 8) + "T" + ccxt.Slice(time, 0, 2) + ":" + ccxt.Slice(time, 2, 4) + ":" + ccxt.Slice(time, 4, 6)
+	var kstDatetime any = func() string {
+		if date == nil {
+			return ""
+		}
+		str := *date
+		return str[0:min(4, len(str))]
+	}() + "-" + func() string {
+		if date == nil {
+			return ""
+		}
+		str := *date
+		return str[4:min(6, len(str))]
+	}() + "-" + func() string {
+		if date == nil {
+			return ""
+		}
+		str := *date
+		return str[6:min(8, len(str))]
+	}() + "T" + func() string {
+		if time == nil {
+			return ""
+		}
+		str := *time
+		return str[0:min(2, len(str))]
+	}() + ":" + func() string {
+		if time == nil {
+			return ""
+		}
+		str := *time
+		return str[2:min(4, len(str))]
+	}() + ":" + func() string {
+		if time == nil {
+			return ""
+		}
+		str := *time
+		return str[4:min(6, len(str))]
+	}()
 	// date/time are the exchange's local KST wall-clock, not UTC — shift -9h like parseWsTrade
 	var timestamp any = ccxt.DerefScalar(this.Parse8601(kstDatetime))
 	if !ccxt.IsEqual(timestamp, nil) {
@@ -559,7 +595,13 @@ func (this *Bithumb) HandleOrderBook(client any, message any) {
 		if timestampStr == nil {
 			return
 		}
-		var legacyTimestamp int64 = this.ParseToInt(ccxt.Slice(timestampStr, 0, 13))
+		var legacyTimestamp int64 = this.ParseToInt(func() string {
+			if timestampStr == nil {
+				return ""
+			}
+			str := *timestampStr
+			return str[0:min(13, len(str))]
+		}())
 		if !(ccxt.InOp(this.Orderbooks, legacySymbol)) {
 			var ob ccxt.OrderBookInterface = this.OrderBook()
 			ccxt.AddElementToObject(ob, "symbol", legacySymbol)
@@ -606,7 +648,13 @@ func (this *Bithumb) HandleOrderBook(client any, message any) {
 	var gen2TimestampStr *string = this.SafeString2(message, "timestamp", "datetime")
 	var timestamp any = nil
 	if gen2TimestampStr != nil {
-		timestamp = this.ParseToInt(ccxt.Slice(gen2TimestampStr, 0, 13))
+		timestamp = this.ParseToInt(func() string {
+			if gen2TimestampStr == nil {
+				return ""
+			}
+			str := *gen2TimestampStr
+			return str[0:min(13, len(str))]
+		}())
 	}
 	if ccxt.IsEqual(timestamp, nil) {
 		timestamp = this.Milliseconds()

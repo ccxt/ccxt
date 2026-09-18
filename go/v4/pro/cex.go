@@ -193,7 +193,7 @@ func (this *Cex) watchTradesBody(ch chan any, symbol any, optionalArgs ...any) a
 			if subscriptionKey == subscriptionHash {
 				continue
 			}
-			subscriptionKey = ccxt.Slice(subscriptionKey, 0, 3)
+			subscriptionKey = subscriptionKey[0:min(3, len(subscriptionKey))]
 			if subscriptionKey == "old" {
 				panic(ccxt.ExchangeError(this.Id + " watchTrades() only supports watching one symbol at a time."))
 			}

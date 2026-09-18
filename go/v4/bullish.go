@@ -1020,7 +1020,13 @@ func (this *Bullish) ParseMarket(market any) any {
 			expiryDatetime = DerefScalar(this.SafeString(market, "expiryDatetime"))
 			var idParts []string = Split(id, "-")
 			var datePart *string = this.SafeString(idParts, 2)
-			var dateYmd string = Slice(datePart, 2, nil)
+			var dateYmd string = func() string {
+				if datePart == nil {
+					return ""
+				}
+				str := *datePart
+				return str[2:]
+			}()
 			symbol = Add(symbol, "-"+dateYmd)
 			if typeVar != nil && *typeVar == "future" {
 				future = true

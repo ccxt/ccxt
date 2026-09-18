@@ -1458,11 +1458,35 @@ func (this *Gemini) ParseTicker(ticker any, optionalArgs ...any) any {
 	if (marketId != nil) && (market == nil) {
 		var idLength int64 = Subtract(GetLength(marketId), 0).(int64)
 		if idLength == 7 {
-			baseId = Slice(marketId, 0, 4)
-			quoteId = Slice(marketId, 4, 7)
+			baseId = func() string {
+				if marketId == nil {
+					return ""
+				}
+				str := *marketId
+				return str[0:min(4, len(str))]
+			}()
+			quoteId = func() string {
+				if marketId == nil {
+					return ""
+				}
+				str := *marketId
+				return str[4:min(7, len(str))]
+			}()
 		} else {
-			baseId = Slice(marketId, 0, 3)
-			quoteId = Slice(marketId, 3, 6)
+			baseId = func() string {
+				if marketId == nil {
+					return ""
+				}
+				str := *marketId
+				return str[0:min(3, len(str))]
+			}()
+			quoteId = func() string {
+				if marketId == nil {
+					return ""
+				}
+				str := *marketId
+				return str[3:min(6, len(str))]
+			}()
 		}
 		base = this.SafeCurrencyCode(baseId)
 		quote = this.SafeCurrencyCode(quoteId)

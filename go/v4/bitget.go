@@ -3940,9 +3940,21 @@ func (this *Bitget) fetchDefaultMarketsBody(ch chan any, params any) any {
 				var expiryParts []string = Split(expiryDatetime, "-")
 				var yearPart *string = this.SafeString(expiryParts, 0, "")
 				var dayPart *string = this.SafeString(expiryParts, 2, "")
-				var year string = Slice(yearPart, 2, 4)
+				var year string = func() string {
+					if yearPart == nil {
+						return ""
+					}
+					str := *yearPart
+					return str[2:min(4, len(str))]
+				}()
 				var month *string = this.SafeString(expiryParts, 1)
-				var day string = Slice(dayPart, 0, 2)
+				var day string = func() string {
+					if dayPart == nil {
+						return ""
+					}
+					str := *dayPart
+					return str[0:min(2, len(str))]
+				}()
 				var expiryString any = Add(Add(year, month), day)
 				typeVar = "future"
 				future = true
@@ -4219,9 +4231,21 @@ func (this *Bitget) fetchUtaMarketsBody(ch chan any, params any) any {
 				var expiryParts []string = Split(expiryDatetime, "-")
 				var yearPart *string = this.SafeString(expiryParts, 0, "")
 				var dayPart *string = this.SafeString(expiryParts, 2, "")
-				var year string = Slice(yearPart, 2, 4)
+				var year string = func() string {
+					if yearPart == nil {
+						return ""
+					}
+					str := *yearPart
+					return str[2:min(4, len(str))]
+				}()
 				var month *string = this.SafeString(expiryParts, 1)
-				var day string = Slice(dayPart, 0, 2)
+				var day string = func() string {
+					if dayPart == nil {
+						return ""
+					}
+					str := *dayPart
+					return str[0:min(2, len(str))]
+				}()
 				var expiryString any = Add(Add(year, month), day)
 				typeVar = "future"
 				future = true

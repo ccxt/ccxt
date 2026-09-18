@@ -674,7 +674,13 @@ func (this *Mudrex) ParseMarket(asset any) any {
 	var ms *string = this.SafeString(asset, "symbol")
 	var base any = ms
 	if (ms != nil) && EndsWith(ms, "USDT") {
-		base = Slice(ms, 0, OpNeg(4))
+		base = func() string {
+			if ms == nil {
+				return ""
+			}
+			str := *ms
+			return str[0:len(str) - 4]
+		}()
 	}
 	var quote string = "USDT"
 	var settle string = "USDT"

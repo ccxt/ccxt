@@ -1336,7 +1336,7 @@ func (this *Opinion) createOrderBody(ch chan any, outcome any, typeVar any, side
 		"side":            ccxt.ToString(sideInt),
 		"signatureType":   ccxt.ToString(signatureType),
 		"signature":       signature,
-		"sign":            ccxt.Slice(signatureNo0x, 0, 64),
+		"sign":            signatureNo0x[0:min(64, len(signatureNo0x))],
 		"contractAddress": "",
 		"currencyAddress": quoteTokenAddress,
 		"topicId":         topicId,
