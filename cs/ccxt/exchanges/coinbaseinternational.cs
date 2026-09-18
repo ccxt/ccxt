@@ -1678,7 +1678,7 @@ public partial class coinbaseinternational : Exchange
         string? quoteId = this.safeString(market, "quote_asset_name");
         string? typeId = this.safeString(market, "type"); // 'SPOT', 'PERP'
         bool isSpot = (typeId == "SPOT");
-        object fees = this.fees;
+        IDictionary<string, object> fees = ((IDictionary<string, object>)this.fees);
         object symbol = add(add(baseId, "/"), quoteId);
         string? settleId = null;
         if (!isSpot)
@@ -1712,8 +1712,8 @@ public partial class coinbaseinternational : Exchange
             { "contract", !isSpot },
             { "linear", isLinear },
             { "inverse", isInverse },
-            { "taker", getValue(getValue(fees, "trading"), "taker") },
-            { "maker", getValue(getValue(fees, "trading"), "maker") },
+            { "taker", getValue(GetValue(fees, "trading"), "taker") },
+            { "maker", getValue(GetValue(fees, "trading"), "maker") },
             { "contractSize", isSpot ? null : 1 },
             { "expiry", null },
             { "expiryDatetime", null },

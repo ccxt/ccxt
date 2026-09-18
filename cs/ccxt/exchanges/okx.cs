@@ -3047,8 +3047,8 @@ public partial class okx : Exchange
                 type = "fiat";
             }
             List<object> idParts = networkId.Split(new [] {"-"}, StringSplitOptions.None).ToList<object>();
-            object parts = this.arraySlice(idParts, 1);
-            string chainPart = String.Join("-", ((IList<object>)parts).ToArray());
+            List<object> parts = ((List<object>)this.arraySlice(idParts, 1));
+            string chainPart = String.Join("-", parts.ToArray());
             string? networkCode = this.networkIdToCode(chainPart, code);
             if ((networkCode != null))
             {
@@ -7292,8 +7292,8 @@ public partial class okx : Exchange
         if ((chain != null))
         {
             List<object> chainParts = chain.Split(new [] {"-"}, StringSplitOptions.None).ToList<object>();
-            object networkParts = this.arraySlice(chainParts, 1);
-            string networkId = String.Join("-", ((IList<object>)networkParts).ToArray());
+            List<object> networkParts = ((List<object>)this.arraySlice(chainParts, 1));
+            string networkId = String.Join("-", networkParts.ToArray());
             if ((networkId != null))
             {
                 network = this.networkIdToCode(networkId, code);

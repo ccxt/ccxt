@@ -1177,7 +1177,7 @@ public partial class alpaca : Exchange
         if (isEqual(symbolsVar, null))
         {
             // every listed market is a crypto market because fetchMarkets requests asset_class=crypto, so default to all of them
-            object allSymbols = this.sort(this.symbols); // symbol iteration order differs per language
+            List<string> allSymbols = this.sort(this.symbols); // symbol iteration order differs per language
             symbolsVar = allSymbols;
         }
         symbolsVar = this.marketSymbols(symbolsVar);

@@ -761,8 +761,8 @@ public partial class kalshi : PredictionExchange
         int eventPartsLength = eventParts.Count;
         if (isGreaterThan(eventPartsLength, 1))
         {
-            object seriesParts = this.arraySlice(eventParts, 0, subtract(eventPartsLength, 1));
-            seriesTicker = String.Join("-", ((IList<object>)seriesParts).ToArray());
+            List<object> seriesParts = ((List<object>)this.arraySlice(eventParts, 0, subtract(eventPartsLength, 1)));
+            seriesTicker = String.Join("-", seriesParts.ToArray());
         }
         // market symbol (no outcome suffix)
         object subtitleOrTicker = ((subtitle != null)) ? subtitle : ticker;

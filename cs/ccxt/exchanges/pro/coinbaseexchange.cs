@@ -574,42 +574,42 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
         //     "side": "buy",
         //     "order_type": "limit"
         // }
-        object parsed = base.parseTrade(trade);
+        Dictionary<string, object> parsed = base.parseTrade(trade);
         string? feeRate = null;
         bool isMaker = false;
         if (inOp(trade, "maker_fee_rate"))
         {
             isMaker = true;
-            ((IDictionary<string,object>)parsed)["takerOrMaker"] = "maker";
+            parsed["takerOrMaker"] = "maker";
             feeRate = this.safeString(trade, "maker_fee_rate");
         } else
         {
-            ((IDictionary<string,object>)parsed)["takerOrMaker"] = "taker";
+            parsed["takerOrMaker"] = "taker";
             feeRate = this.safeString(trade, "taker_fee_rate");
             // side always represents the maker side of the trade
             // so if we're taker, we invert it
-            object currentSide = getValue(parsed, "side");
-            ((IDictionary<string,object>)parsed)["side"] = this.safeString(new Dictionary<string, object>() {
+            object currentSide = GetValue(parsed, "side");
+            parsed["side"] = this.safeString(new Dictionary<string, object>() {
                 { "buy", "sell" },
                 { "sell", "buy" },
             }, currentSide, currentSide);
         }
         string idKey = isMaker ? "maker_order_id" : "taker_order_id";
-        ((IDictionary<string,object>)parsed)["order"] = this.safeString(trade, idKey);
-        market = this.market(getValue(parsed, "symbol"));
+        parsed["order"] = this.safeString(trade, idKey);
+        market = this.market(GetValue(parsed, "symbol"));
         object feeCurrency = getValue(market, "quote");
         string? feeCost = null;
-        if ((!isEqual(getValue(parsed, "cost"), null)) && ((feeRate != null)))
+        if ((!isEqual(GetValue(parsed, "cost"), null)) && ((feeRate != null)))
         {
             string? cost = this.safeString(parsed, "cost");
             feeCost = Precise.stringMul(cost, feeRate);
         }
-        ((IDictionary<string,object>)parsed)["fee"] = new Dictionary<string, object>() {
+        parsed["fee"] = new Dictionary<string, object>() {
             { "rate", this.parseNumber(feeRate) },
             { "cost", this.parseNumber(feeCost) },
             { "currency", feeCurrency },
         };
-        return ((Dictionary<string, object>)((object)(parsed)));
+        return parsed;
     }
 
     public virtual string? parseWsOrderStatus(string? status)
@@ -938,7 +938,7 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
         string? type = this.safeString(ticker, "type");
         if ((type == null))
         {
-            return ((Dictionary<string, object>)((object)(base.parseTicker(ticker, market))));
+            return base.parseTicker(ticker, market);
         }
         string? marketId = this.safeString(ticker, "product_id");
         string? symbol = this.safeSymbol(marketId, market, "-");

@@ -1404,7 +1404,7 @@ public partial class apex : Exchange
     {
         if (isEqual(market, null) && !isEqual(marketId, null))
         {
-            object marketsMap = this.markets;
+            IDictionary<string, object> marketsMap = ((IDictionary<string, object>)this.markets);
             object marketsById = this.markets_by_id;
             if (((marketsMap != null)) && (inOp(marketsMap, marketId)))
             {

@@ -536,7 +536,7 @@ public partial class bitvavo : Exchange
     public override IList<object> parseMarkets(object markets)
     {
         List<object> result = new List<object>() {};
-        object fees = this.fees;
+        IDictionary<string, object> fees = ((IDictionary<string, object>)this.fees);
         for (int i = 0; isLessThan(i, getArrayLength(markets)); postFixIncrement(ref i))
         {
             object market = getValue(markets, i);
@@ -570,8 +570,8 @@ public partial class bitvavo : Exchange
                 { "expiryDatetime", null },
                 { "strike", null },
                 { "optionType", null },
-                { "taker", getValue(getValue(fees, "trading"), "taker") },
-                { "maker", getValue(getValue(fees, "trading"), "maker") },
+                { "taker", getValue(GetValue(fees, "trading"), "taker") },
+                { "maker", getValue(GetValue(fees, "trading"), "maker") },
                 { "precision", new Dictionary<string, object>() {
                     { "amount", this.parseNumber(this.parsePrecision(this.safeString(market, "quantityDecimals"))) },
                     { "price", this.safeNumber(market, "tickSize") },

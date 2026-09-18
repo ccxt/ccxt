@@ -6487,8 +6487,8 @@ public partial class bingx : Exchange
         // const sortedParams = this.keysort (params);
         object copied = this.clone(parameters);
         List<object> rawKeys = new List<object>(((IDictionary<string,object>)parameters).Keys);
-        object keys = this.sort(rawKeys);
-        for (int i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
+        List<string> keys = this.sort(rawKeys);
+        for (int i = 0; isLessThan(i, keys?.Count ?? 0); postFixIncrement(ref i))
         {
             object key = getValue(keys, i);
             object value = getValue(parameters, key);
@@ -7069,10 +7069,10 @@ public partial class bingx : Exchange
     {
         // const sortedParams = this.keysort (params);
         List<object> rawKeys = new List<object>(((IDictionary<string,object>)parameters).Keys);
-        object keys = this.sort(rawKeys);
+        List<string> keys = this.sort(rawKeys);
         string? adjustedValue = null;
         object result = null;
-        for (int i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, keys?.Count ?? 0); postFixIncrement(ref i))
         {
             object key = getValue(keys, i);
             object value = getValue(parameters, key);

@@ -1442,7 +1442,7 @@ public partial class coinex : Exchange
         for (int i = 0; isLessThan(i, markets.Count); postFixIncrement(ref i))
         {
             object entry = getValue(markets, i);
-            object fees = this.fees;
+            IDictionary<string, object> fees = ((IDictionary<string, object>)this.fees);
             List<object> leverages = this.safeList(entry, "leverage", new List<object>() {});
             string? subType = this.safeString(entry, "contract_type");
             bool linear = (subType == "linear");
@@ -1475,8 +1475,8 @@ public partial class coinex : Exchange
                 { "contract", true },
                 { "linear", linear },
                 { "inverse", inverse },
-                { "taker", getValue(getValue(fees, "trading"), "taker") },
-                { "maker", getValue(getValue(fees, "trading"), "maker") },
+                { "taker", getValue(GetValue(fees, "trading"), "taker") },
+                { "maker", getValue(GetValue(fees, "trading"), "maker") },
                 { "contractSize", this.parseNumber("1") },
                 { "expiry", null },
                 { "expiryDatetime", null },
