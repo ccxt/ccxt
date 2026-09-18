@@ -1637,7 +1637,7 @@ public partial class kraken : Exchange
         string? type = null;
         string? price = null;
         string? amount = null;
-        object id = null;
+        string? id = null;
         string? orderId = null;
         Dictionary<string, object> fee = null;
         object symbol = null;
@@ -1655,7 +1655,7 @@ public partial class kraken : Exchange
             }
         } else if ((trade is string))
         {
-            id = trade;
+            id = ((string)trade);
         } else if (inOp(trade, "ordertxid"))
         {
             string? marketId = this.safeString(trade, "pair");

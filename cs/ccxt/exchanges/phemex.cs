@@ -2220,7 +2220,7 @@ public partial class phemex : Exchange
         //
         object priceString = null;
         object amountString = null;
-        object timestamp = null;
+        Int64? timestamp = null;
         string? id = null;
         string? side = null;
         object costString = null;

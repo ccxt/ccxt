@@ -10492,7 +10492,7 @@ public partial class bybit : Exchange
             await this.loadMarkets();
         }
         IDictionary<string, object> market = null;
-        object symbol = null;
+        string? symbol = null;
         if (!isEqual(symbols, null))
         {
             market = this.market(getValue(symbols, 0));
@@ -10500,7 +10500,7 @@ public partial class bybit : Exchange
             {
                 throw new NotSupported (add(this.id, " fetchLeverageTiers() is not supported for spot market")) ;
             }
-            symbol = GetValue(market, "symbol");
+            symbol = ((string)GetValue(market, "symbol"));
         }
         object data = await this.getLeverageTiersPaginated(symbol, this.extend(new Dictionary<string, object>() {
             { "paginate", true },

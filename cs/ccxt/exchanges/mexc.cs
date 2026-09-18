@@ -4057,10 +4057,10 @@ public partial class mexc : Exchange
                 { "clientOrderId", this.safeString(order, "newClientOrderId") },
             });
         }
-        object id = null;
+        string? id = null;
         if ((order is string))
         {
-            id = order;
+            id = ((string)order);
         } else
         {
             id = this.safeString2(order, "orderId", "id");

@@ -4423,7 +4423,7 @@ export function csharpLocalIsSafeToRetype (csharp, scope, declaration, varName, 
             if (parent.left === n) {
                 if (op === ts.SyntaxKind.EqualsToken) {
                     // RHS may be another already-typed local / a ternary over such locals (context)
-                    const written = csharpTypeOfValue (csharp, parent.right, context);
+                    const written = csharpTypeOfValue (csharp, parent.right, context) ?? u17WriteValueType (csharp, declaration, parent.right);
                     if (!assignable (csharpType, written)) {
                         // `x = x + r` / `x = this.omit (x, keys)`: the value reads this very
                         // local, so its type can only be proven against the declaration being
@@ -5655,7 +5655,7 @@ export function csharpLocalDeclaration (csharp, declaration, context) {
     // (the writes then decide the box); a scalar annotation keeps the printer's `object`
     const noInitAnnotation = annotationType (declaration);
     if (declaration.initializer === undefined && !(declaration.type !== undefined
-            && (noInitAnnotation === undefined || COLLECTION_LOCAL_TYPES.includes (noInitAnnotation)))) {
+            && (noInitAnnotation === undefined || COLLECTION_LOCAL_TYPES.includes (noInitAnnotation) || u17FamilyName (declaration) !== undefined))) {
         return undefined;
     }
     if (classifyInProgress.has (declaration)) {
@@ -5789,7 +5789,7 @@ function csharpLocalTypeOf (csharp, declaration, context) {
     // the join's starting type) is then resolved by the null-declared join below
     const noInitGateAnnotation = annotationType (declaration);
     if (csharpType === undefined && declaration.initializer === undefined && declaration.type !== undefined
-            && (noInitGateAnnotation === undefined || COLLECTION_LOCAL_TYPES.includes (noInitGateAnnotation))) {
+            && (noInitGateAnnotation === undefined || COLLECTION_LOCAL_TYPES.includes (noInitGateAnnotation) || u17FamilyName (declaration) !== undefined)) {
         csharpType = 'null';
     }
     // a safeString* call with a proven non-null string default is a proven non-null string
@@ -6197,6 +6197,152 @@ function installDestructuredCasts (csharp) {
 }
 
 // ---------------------------------------------------------------------------------------------
+// cs90 U17 — the null-init string/numeric locals of the roster's name lists plus the two write
+// shapes the join cannot name (`symbol = market['symbol']`, `typeof x === 'string'` copies) and
+// the no-initialiser scalar-annotation shard. Keyed on the declaration's own NAME throughout.
+const U17_STRING_NAMES = new Set ([ 'symbol', 'url', 'channel', 'channelName', 'id', 'tag', 'settle', 'settleId', 'timeInForce' ]);
+const U17_NUMERIC_NAMES = new Set ([ 'until', 'timestamp', 'since', 'limit' ]);
+
+// the U17 family name of a declaration, or undefined (`marketType` is U13's, `currency`/`base`/
+// `quote`/`bs` are U18's: the roster's name split is what keeps the units apart)
+function u17FamilyName (declaration) {
+    const name = declaration?.name?.escapedText;
+    if (typeof name !== 'string') {
+        return undefined;
+    }
+    return (U17_STRING_NAMES.has (name) || U17_NUMERIC_NAMES.has (name)) ? name : undefined;
+}
+
+function isU17NullInitString (declaration) {
+    return u17FamilyName (declaration) !== undefined && U17_STRING_NAMES.has (declaration.name.escapedText) && isNullInit (declaration);
+}
+
+// `x = market['symbol']` as a write: the audited key table (MARKET_ROW_STRING_KEYS) plus the
+// same proven-row receiver scan the declaration shard uses — the box is that string or nothing.
+function u17RowReadWriteType (csharp, declaration, node) {
+    if (!isU17NullInitString (declaration)) {
+        return undefined;
+    }
+    return (marketRowStringReadType (csharp, node) === 'string') ? 'string' : undefined;
+}
+
+// `typeof x === 'string'` prints `(x is string)`, so a copy inside that branch assigns that very
+// string box; C# does not narrow the CONVERSION (CS0266), so the write takes the identity
+// `(string)` cast — the guard on the same identifier is what makes it safe.
+function u17TypeofStringGuardName (condition) {
+    if (condition?.kind !== ts.SyntaxKind.BinaryExpression) {
+        return undefined;
+    }
+    const op = condition.operatorToken?.kind;
+    if (op !== ts.SyntaxKind.EqualsEqualsEqualsToken && op !== ts.SyntaxKind.EqualsEqualsToken) {
+        return undefined;
+    }
+    const typeofOf = (n) => ((n?.kind === ts.SyntaxKind.TypeOfExpression) ? n.expression?.escapedText : undefined);
+    const literalOf = (n) => ((n?.kind === ts.SyntaxKind.StringLiteral) ? n.text : undefined);
+    const subject = typeofOf (condition.left) ?? typeofOf (condition.right);
+    const literal = literalOf (condition.left) ?? literalOf (condition.right);
+    return (literal === 'string') ? subject : undefined;
+}
+
+// the identifier a `typeof <id> === 'string'` then-branch narrows, or undefined
+function u17NarrowedCopyNodeName (node) {
+    let current = node?.parent;
+    while (current !== undefined && current.kind !== ts.SyntaxKind.FunctionLikeDeclaration) {
+        if (current.kind === ts.SyntaxKind.IfStatement && current.thenStatement !== undefined
+                && current.thenStatement.getStart () <= node.getStart () && node.getEnd () <= current.thenStatement.getEnd ()) {
+            const name = u17TypeofStringGuardName (current.expression);
+            if (name !== undefined) {
+                return name;
+            }
+        }
+        current = current.parent;
+    }
+    return undefined;
+}
+
+function u17NarrowedCopyWriteType (declaration, node) {
+    if (!isU17NullInitString (declaration) || node?.kind !== ts.SyntaxKind.Identifier) {
+        return undefined;
+    }
+    return (u17NarrowedCopyNodeName (node) === node.escapedText) ? 'string' : undefined;
+}
+
+// the two write shapes this family proves on top of csharpTypeOfValue (see the two comments)
+function u17WriteValueType (csharp, declaration, node) {
+    return u17RowReadWriteType (csharp, declaration, node) ?? u17NarrowedCopyWriteType (declaration, node);
+}
+
+// the write-time record of a retyped U17 local (`scope -> Map<printed name, declaration>`), read
+// by the cast below; the declaration NODE keeps a shadowed same-name binding from taking the cast.
+const u17RowReadWriteTargets = new WeakMap ();
+
+function recordU17RowReadWriteTarget (scope, printedName, csharpType, declaration) {
+    if (scope === undefined || csharpType !== 'string?' || !isU17NullInitString (declaration)) {
+        return;
+    }
+    let targets = u17RowReadWriteTargets.get (scope);
+    if (targets === undefined) {
+        targets = new Map ();
+        u17RowReadWriteTargets.set (scope, targets);
+    }
+    targets.set (printedName, declaration);
+}
+
+// the RHS of a write into a U17 local this module already declared `string?` whose printed value
+// is object: the proven market-row read or the `(x is string)`-guarded copy — the cast names the
+// box the guard / key census proves, so it cannot throw where the untyped line did not.
+function u17WriteNeedsCast (csharp, node) {
+    if (node?.kind !== ts.SyntaxKind.ElementAccessExpression && node?.kind !== ts.SyntaxKind.Identifier) {
+        return false;
+    }
+    const parent = node.parent;
+    if (parent?.kind !== ts.SyntaxKind.BinaryExpression || parent.operatorToken.kind !== ts.SyntaxKind.EqualsToken || parent.right !== node) {
+        return false;
+    }
+    const target = parent.left;
+    if (target?.kind !== ts.SyntaxKind.Identifier) {
+        return false;
+    }
+    const scope = (typeof csharp.csharpEnclosingFunction === 'function') ? csharp.csharpEnclosingFunction (node) : enclosingFunction (node);
+    const targets = u17RowReadWriteTargets.get (scope);
+    const declaration = (targets === undefined) ? undefined : targets.get (target.escapedText);
+    if (declaration === undefined || resolveReference (csharp, target) !== declaration) {
+        return false;
+    }
+    if (node.kind === ts.SyntaxKind.ElementAccessExpression) {
+        return marketRowStringReadType (csharp, node) === 'string';
+    }
+    return u17NarrowedCopyNodeName (node) === node.escapedText;
+}
+
+// cast-back for the two shapes above, chained on top of every other printElementAccessExpression /
+// printIdentifier override (nothing else is touched). Idempotent.
+function installU17RowReadWriteCasts (csharp) {
+    if (typeof csharp.printElementAccessExpression !== 'function' || csharp._u17RowReadCastsPatched) {
+        return;
+    }
+    const upstreamElement = csharp.printElementAccessExpression.bind (csharp);
+    csharp.printElementAccessExpression = (node, identation) => {
+        const printed = upstreamElement (node, identation);
+        if (typeof printed !== 'string' || !u17WriteNeedsCast (csharp, node)) {
+            return printed;
+        }
+        return '((string)' + printed + ')';
+    };
+    if (typeof csharp.printIdentifier === 'function') {
+        const upstreamIdentifier = csharp.printIdentifier.bind (csharp);
+        csharp.printIdentifier = (node) => {
+            const printed = upstreamIdentifier (node);
+            if (typeof printed !== 'string' || !u17WriteNeedsCast (csharp, node)) {
+                return printed;
+            }
+            return '((string)' + printed + ')';
+        };
+    }
+    csharp._u17RowReadCastsPatched = true;
+}
+
+// ---------------------------------------------------------------------------------------------
 // A `(string)IDENT` cast the printer wraps around a BARE IDENTIFIER in one of the three
 // positions below is an identity cast once the emitted declaration of that identifier already
 // is `string`: referenceDeclaredType() names the declaration's final C# type (this module's
@@ -6390,6 +6536,11 @@ function typeFromValueOrWrites (csharp, scope, declaration, varName, initial, co
             continue;
         }
         let written = csharpTypeOfValue (csharp, parent.right, context);
+        if (written === undefined) {
+            // U17: a MARKET ROW read by an audited string key, or a `typeof x === 'string'`
+            // narrowed copy (see u17RowReadWriteType / u17NarrowedCopyWriteType)
+            written = u17WriteValueType (csharp, declaration, parent.right);
+        }
         if (written === undefined && type === 'string' && !sawNull) {
             // `x = x + r` accumulator write (see the self-concat section above): the
             // read of x inside the value has no C# type until this declaration decides
@@ -7039,6 +7190,8 @@ export function installCsharpLocalTypes (transpiler) {
         }
         // the destructuring print (a later statement in the same function) casts back to this
         recordDestructuredWriteType (enclosingFunction (declaration), printedName, info.type);
+        // U17: a later `x = market['symbol']` write of this local needs the same cast back
+        recordU17RowReadWriteTarget (enclosingFunction (declaration), printedName, info.type, declaration);
         return iden + info.type + ' ' + printedName + ' = ' + value;
     };
     // `[a, b] = this.handleM (...)` — same holder, printed by the binary-expression path
@@ -7064,6 +7217,7 @@ export function installCsharpLocalTypes (transpiler) {
     // S22: the declared-type record has to wrap the rewrite above — it reads the line this
     // module actually emits, not the printer's `object ... = ` it replaced
     installCsharpDictionaryIndexWriteCastElision (csharp);
+    installU17RowReadWriteCasts (csharp);
 }
 
 // `((string)x).Split/.ToUpper/.ToLower/.Replace/.Trim/.Length` — ast-transpiler's printer
