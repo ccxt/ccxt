@@ -1,0 +1,82 @@
+{
+    "exchange": "zex",
+    "skipKeys": [
+        "signature",
+        "timestamp",
+        "nonce",
+        "user_id"
+    ],
+    "outputType": "json",
+    "options": {
+        "userId": 1001,
+        "privateKey": "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80"
+    },
+    "methods": {
+        "fetchMarkets": [
+            {
+                "description": "fetchMarkets",
+                "method": "fetchMarkets",
+                "url": "https://api-testnet.zex.finance/v1/exchangeInfo",
+                "input": [],
+                "output": null
+            }
+        ],
+        "fetchOrderBook": [
+            {
+                "description": "BTC/USDT default limit",
+                "method": "fetchOrderBook",
+                "url": "https://api-testnet.zex.finance/v1/depth?symbol=BTC-USDT",
+                "input": [
+                    "BTC/USDT"
+                ],
+                "output": null
+            },
+            {
+                "description": "BTC/USDT with limit",
+                "method": "fetchOrderBook",
+                "url": "https://api-testnet.zex.finance/v1/depth?symbol=BTC-USDT&limit=50",
+                "input": [
+                    "BTC/USDT",
+                    50
+                ],
+                "output": null
+            }
+        ],
+        "fetchTicker": [
+            {
+                "description": "BTC/USDT ticker",
+                "method": "fetchTicker",
+                "url": "https://api-testnet.zex.finance/v1/ticker?symbol=BTC-USDT",
+                "input": [
+                    "BTC/USDT"
+                ],
+                "output": null
+            }
+        ],
+        "fetchTickers": [
+            {
+                "description": "all tickers",
+                "method": "fetchTickers",
+                "url": "https://api-testnet.zex.finance/v1/ticker",
+                "input": [],
+                "output": null
+            }
+        ],
+        "createOrder": [
+            {
+                "description": "BTC/USDT limit buy",
+                "method": "createOrder",
+                "url": "https://api-testnet.zex.finance/v1/order",
+                "input": [
+                    "BTC/USDT",
+                    "limit",
+                    "buy",
+                    0.001,
+                    1000,
+                    { "nonce": 1 }
+                ],
+                "output": "{\"operation\":\"buy\",\"base_token\":\"BTC\",\"quote_token\":\"USDT\",\"amount\":\"0.001\",\"price\":\"1000.0\",\"user_id\":1001,\"nonce\":1,\"timestamp\":0,\"signature_type\":\"secp256k1\",\"signature\":\"\"}"
+            }
+        ]
+    }
+}
