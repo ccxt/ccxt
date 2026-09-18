@@ -153,7 +153,7 @@ public partial class poloniex : ccxt.poloniex
             { "event", "subscribe" },
             { "channel", new List<object>() {name} },
         };
-        object marketIds = new List<object>() {};
+        IList<object> marketIds = new List<object>() {};
         if (isTrue(this.isEmpty(symbols)))
         {
             ((IList<object>)marketIds).Add("all");
