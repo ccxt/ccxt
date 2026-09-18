@@ -273,7 +273,7 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
             {
                 throw new NotSupported((((this.id + " watchOHLCV does not support") + timeframe) + " candle.")) ;
             }
-            Object timeFrameOHLCV = ("candle." + timeframe);
+            String timeFrameOHLCV = ("candle." + timeframe);
             return (this.watchPublicMultiple(new ArrayList<Object>(Arrays.asList(symbol)), timeFrameOHLCV)).join();
         }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
 

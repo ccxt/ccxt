@@ -26,13 +26,13 @@ public class TestWatchLiquidationsForSymbols extends BaseTest {
         List<Object> skippedExchanges = new ArrayList<Object>(Arrays.asList());
         if (Helpers.isTrue(exchange.inArray(exchange.id, skippedExchanges)))
         {
-            Object m1 = ((((exchange.id + " ") + method) + "() test skipped"));
+            String m1 = ((((exchange.id + " ") + method) + "() test skipped"));
             System.out.println(m1);
             return false;
         }
         if (java.util.Objects.equals(Helpers.GetValue(exchange.has, method), null) || java.util.Objects.equals(Helpers.GetValue(exchange.has, method), false))
         {
-            Object m2 = ((((exchange.id + " does not support ") + method) + "() method"));
+            String m2 = ((((exchange.id + " does not support ") + method) + "() method"));
             System.out.println(m2);
             return false;
         }
@@ -47,7 +47,7 @@ public class TestWatchLiquidationsForSymbols extends BaseTest {
                 now = System.currentTimeMillis();
                 Object isArray = (response instanceof List);
                 Assert(isArray, "response must be an array");
-                Object m3 = ((Helpers.add((((exchange.id + " ") + method) + "() returned "), ((List<?>)response).size()) + " liquidations"));
+                String m3 = ((Helpers.add((((exchange.id + " ") + method) + "() returned "), ((List<?>)response).size()) + " liquidations"));
                 System.out.println(m3);
                 // log.noLocate (asTable (response))
                 for (var i = 0; i < ((List<?>)response).size(); i++)

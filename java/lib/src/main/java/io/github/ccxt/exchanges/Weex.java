@@ -4059,12 +4059,12 @@ public class Weex extends WeexApi
             // some endpoints could return an empty string if there is no error
             return;
         }
-        Object feedback = ((this.id + " ") + this.json(order));
+        String feedback = ((this.id + " ") + this.json(order));
         this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), errorMessage, feedback);
         this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), errorCode, feedback);
         this.throwBroadlyMatchedException(((Map<String, Object>)this.exceptions).get("broad"), errorMessage, feedback);
         this.throwBroadlyMatchedException(((Map<String, Object>)this.exceptions).get("broad"), errorCode, feedback);
-        throw new InvalidOrder((String)feedback) ;
+        throw new InvalidOrder(feedback) ;
     }
 
     /**
@@ -5514,7 +5514,7 @@ public class Weex extends WeexApi
         if (!java.util.Objects.equals(message, null))
         {
             String errorCode = this.safeString(response, "code");
-            Object feedback = ((this.id + " ") + body);
+            String feedback = ((this.id + " ") + body);
             this.throwBroadlyMatchedException(((Map<String, Object>)this.exceptions).get("broad"), message, feedback);
             this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), errorCode, feedback);
             this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), message, feedback);

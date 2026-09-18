@@ -23,7 +23,7 @@ public class TestWatchTradesForSymbols extends BaseTest {
         return BaseExchange.supplyAsync(() -> {
 
         String method = "watchTradesForSymbols";
-        Object logText = (((((exchange.id + " ") + method) + " [symbols: ") + exchange.json(symbols)) + "] ");
+        String logText = (((((exchange.id + " ") + method) + " [symbols: ") + exchange.json(symbols)) + "] ");
         Object now = exchange.milliseconds();
         Object ends = Helpers.add(now, 30000);
         Integer maxIdleTime = 5000;

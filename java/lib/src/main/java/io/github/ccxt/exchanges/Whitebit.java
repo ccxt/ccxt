@@ -5404,7 +5404,7 @@ public class Whitebit extends WhitebitApi
             Boolean hasErrorStatus = !java.util.Objects.equals(status, null) && !java.util.Objects.equals(status, "200") && !java.util.Objects.equals(errors, null);
             if (Boolean.TRUE.equals(hasErrorStatus) || !java.util.Objects.equals(codeNew, null))
             {
-                Object feedback = ((this.id + " ") + body);
+                String feedback = ((this.id + " ") + body);
                 Object errorInfo = message;
                 if (Boolean.TRUE.equals(hasErrorStatus))
                 {
@@ -5424,7 +5424,7 @@ public class Whitebit extends WhitebitApi
                 }
                 this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), errorInfo, feedback);
                 this.throwBroadlyMatchedException(((Map<String, Object>)this.exceptions).get("broad"), body, feedback);
-                throw new ExchangeError((String)feedback) ;
+                throw new ExchangeError(feedback) ;
             }
             // {"success":false,"message":{"limit":["limit must be less than or equal to 100"]},"result":null}
             Boolean success = (Boolean) this.safeBool(response, "success", true);
@@ -5441,10 +5441,10 @@ public class Whitebit extends WhitebitApi
                     Object errorMessageLength = ((List<?>)errorMessageArray).size();
                     errorInfo = (((Helpers.isGreaterThan(errorMessageLength, 0)))) ? (errorMessageArray == null || 0 >= ((List<?>)errorMessageArray).size() ? null : ((List<?>)errorMessageArray).get(0)) : body;
                 }
-                Object feedback = ((this.id + " ") + body);
+                String feedback = ((this.id + " ") + body);
                 this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), errorInfo, feedback);
                 this.throwBroadlyMatchedException(((Map<String, Object>)this.exceptions).get("broad"), body, feedback);
-                throw new ExchangeError((String)feedback) ;
+                throw new ExchangeError(feedback) ;
             }
         }
         return null;

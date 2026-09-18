@@ -1215,7 +1215,7 @@ public class Blofin extends BlofinApi
         }
         if (Boolean.TRUE.equals(isSpot))
         {
-            Object spotSymbol = ((((Map<String, Object>)market).get("base") + "/") + ((Map<String, Object>)market).get("quote"));
+            String spotSymbol = ((((Map<String, Object>)market).get("base") + "/") + ((Map<String, Object>)market).get("quote"));
             Object cost = this.parseNumber(Precise.stringMul(price, amount));
             final Object finalFeeCost_2 = feeCost;
             final Object finalFeeCurrency_2 = feeCurrency;
@@ -3961,13 +3961,13 @@ public class Blofin extends BlofinApi
         //
         String code = this.safeString(response, "code");
         String message = this.safeString(response, "msg");
-        Object feedback = ((this.id + " ") + body);
+        String feedback = ((this.id + " ") + body);
         if (!java.util.Objects.equals(code, null) && !java.util.Objects.equals(code, "0"))
         {
             this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), message, feedback);
             this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), code, feedback);
             this.throwBroadlyMatchedException(((Map<String, Object>)this.exceptions).get("broad"), message, feedback);
-            throw new ExchangeError((String)feedback) ;
+            throw new ExchangeError(feedback) ;
         }
         //
         //  {

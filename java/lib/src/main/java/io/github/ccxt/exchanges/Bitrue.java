@@ -3922,9 +3922,9 @@ public class Bitrue extends BitrueApi
             {
                 throw new DDoSProtection(((this.id + " temporary banned: ") + body)) ;
             }
-            Object feedback = ((this.id + " ") + body);
+            String feedback = ((this.id + " ") + body);
             this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), error, feedback);
-            throw new ExchangeError((String)feedback) ;
+            throw new ExchangeError(feedback) ;
         }
         if (!java.util.Objects.equals(success, true))
         {

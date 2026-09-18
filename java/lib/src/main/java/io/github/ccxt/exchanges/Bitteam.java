@@ -2753,7 +2753,7 @@ public class Bitteam extends BitteamApi
             {
                 url = (url + ("?" + query));
             }
-            Object auth = ((this.apiKey + ":") + this.secret);
+            String auth = ((this.apiKey + ":") + this.secret);
             Object auth64 = this.stringToBase64(auth);
             String signature = ("Basic " + auth64);
             headers = new HashMap<String, Object>() {{
@@ -2799,12 +2799,12 @@ public class Bitteam extends BitteamApi
                     throw new BadSymbol((Helpers.add((this.id + " symbolId "), symbolId) + " not found")) ;
                 }
             }
-            Object feedback = ((this.id + " ") + body);
+            String feedback = ((this.id + " ") + body);
             String message = this.safeString(response, "message");
             String responseCode = this.safeString(response, "code");
             this.throwBroadlyMatchedException(((Map<String, Object>)this.exceptions).get("broad"), message, feedback);
             this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), responseCode, feedback);
-            throw new ExchangeError((String)feedback) ;
+            throw new ExchangeError(feedback) ;
         }
         return null;
     }

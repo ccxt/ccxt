@@ -10878,9 +10878,9 @@ final Object finalI = i;
         String label = this.safeString(response, "label");
         if (!java.util.Objects.equals(label, null))
         {
-            Object feedback = ((this.id + " ") + body);
+            String feedback = ((this.id + " ") + body);
             this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), label, feedback);
-            throw new ExchangeError((String)feedback) ;
+            throw new ExchangeError(feedback) ;
         }
         return null;
     }

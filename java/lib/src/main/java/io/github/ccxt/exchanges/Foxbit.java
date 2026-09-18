@@ -2514,7 +2514,7 @@ public class Foxbit extends FoxbitApi
         Object body = optionalArgs != null && optionalArgs.length > 4 ? optionalArgs[4] : null;
         Object version = Helpers.GetValue(api, 0);
         Object urlPath = Helpers.GetValue(api, 1);
-        Object fullPath = ((Helpers.add("/rest/", version) + "/") + this.implodeParams(path, parameters));
+        String fullPath = ((Helpers.add("/rest/", version) + "/") + this.implodeParams(path, parameters));
         if (java.util.Objects.equals(version, "status"))
         {
             fullPath = "/status";
@@ -2603,11 +2603,11 @@ public class Foxbit extends FoxbitApi
         }
         if (!java.util.Objects.equals(error, null))
         {
-            Object feedback = ((Helpers.add((this.id + " "), message) + " details: ") + detailsString);
+            String feedback = ((Helpers.add((this.id + " "), message) + " details: ") + detailsString);
             this.throwBroadlyMatchedException(((Map<String, Object>)this.exceptions).get("broad"), message, feedback);
             this.throwBroadlyMatchedException(((Map<String, Object>)this.exceptions).get("broad"), detailsString, feedback);
             this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), code, feedback);
-            throw new ExchangeError((String)feedback) ;
+            throw new ExchangeError(feedback) ;
         }
         return null;
     }

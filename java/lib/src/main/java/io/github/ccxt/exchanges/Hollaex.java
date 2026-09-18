@@ -2498,7 +2498,7 @@ public class Hollaex extends HollaexApi
             //
             //  { "message":"Error 1001 - POST ONLY order can not be of type market" }
             //
-            Object feedback = ((this.id + " ") + body);
+            String feedback = ((this.id + " ") + body);
             String message = this.safeString(response, "message");
             this.throwBroadlyMatchedException(((Map<String, Object>)this.exceptions).get("broad"), message, feedback);
             Object status = String.valueOf(code);

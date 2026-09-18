@@ -525,7 +525,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
             Object ticker = this.parseWsTicker(Helpers.GetValue(data, marketId), market);
             Helpers.addElementToObject(this.tickers, symbol, ticker);
             ((List<Object>)result).add(ticker);
-            Object messageHash = ((topic + "::") + symbol);
+            String messageHash = ((topic + "::") + symbol);
             client.resolve(ticker, messageHash);
         }
         client.resolve(result, topic);
@@ -669,7 +669,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
             Object ticker = this.parseWsBidAsk(Helpers.GetValue(data, marketId), market);
             Helpers.addElementToObject(this.bidsasks, symbol, ticker);
             ((List<Object>)result).add(ticker);
-            Object messageHash = ((topic + "::") + symbol);
+            String messageHash = ((topic + "::") + symbol);
             client.resolve(ticker, messageHash);
         }
         client.resolve(result, topic);
@@ -872,7 +872,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
             Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
             Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
             String period = this.safeString(this.timeframes, timeframe, timeframe);
-            Object name = ("candles/" + period);
+            String name = ("candles/" + period);
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "params", new HashMap<String, Object>() {{

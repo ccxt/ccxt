@@ -1887,9 +1887,9 @@ public class Indodax extends IndodaxApi
                 return null;
             }
         }
-        Object feedback = ((this.id + " ") + body);
+        String feedback = ((this.id + " ") + body);
         this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), error, feedback);
         this.throwBroadlyMatchedException(((Map<String, Object>)this.exceptions).get("broad"), error, feedback);
-        throw new ExchangeError((String)feedback) ;
+        throw new ExchangeError(feedback) ;
     }
 }

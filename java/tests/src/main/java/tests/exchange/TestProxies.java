@@ -43,7 +43,7 @@ public class TestProxies extends BaseTest {
         exchange.proxyUrl = (("http://" + proxyServerIp) + ":8090/proxy_url.php?caller=https://ccxt.com&url=");
         String encodedColon = "%3A";
         String encodedSlash = "%2F";
-        Object ipCheckUrl = (((("https" + encodedColon) + encodedSlash) + encodedSlash) + "api.ipify.org");
+        String ipCheckUrl = (((("https" + encodedColon) + encodedSlash) + encodedSlash) + "api.ipify.org");
         Object response = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetch", new Object[]{ipCheckUrl})).join();
         Assert(java.util.Objects.equals(response, proxyServerIp), (((Helpers.add((((exchange.id + " ") + method) + " test failed. Returned response is "), response) + " while it should be \"") + proxyServerIp) + "\""));
         // reset the instance property

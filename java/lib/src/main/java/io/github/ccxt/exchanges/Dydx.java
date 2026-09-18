@@ -1800,9 +1800,9 @@ public class Dydx extends DydxApi
     public String createOrderIdFromParts(Object address, Object subAccountNumber, Object clientOrderId, Object orderFlags, Object clobPairId)
     {
         String nameSp = this.safeString(this.options, "namespace", "0f9da948-a6fb-4c45-9edc-4685c3f3317d");
-        Object prefixAddress = ((address + "-") + String.valueOf(subAccountNumber));
+        String prefixAddress = ((address + "-") + String.valueOf(subAccountNumber));
         String prefix = this.uuid5(nameSp, prefixAddress);
-        Object orderInfo = ((((((prefix + "-") + this.numberToString(clientOrderId)) + "-") + this.numberToString(clobPairId)) + "-") + this.numberToString(orderFlags));
+        String orderInfo = ((((((prefix + "-") + this.numberToString(clientOrderId)) + "-") + this.numberToString(clobPairId)) + "-") + this.numberToString(orderFlags));
         return this.uuid5(nameSp, orderInfo);
     }
 
@@ -3156,10 +3156,10 @@ public class Dydx extends DydxApi
             Object errorCodeNum = this.parseToNumeric(errorCode);
             if (Helpers.isGreaterThan(errorCodeNum, 0))
             {
-                Object feedback = ((this.id + " ") + this.json(response));
+                String feedback = ((this.id + " ") + this.json(response));
                 this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), errorCode, feedback);
                 this.throwBroadlyMatchedException(((Map<String, Object>)this.exceptions).get("broad"), body, feedback);
-                throw new ExchangeError((String)feedback) ;
+                throw new ExchangeError(feedback) ;
             }
         }
         return null;

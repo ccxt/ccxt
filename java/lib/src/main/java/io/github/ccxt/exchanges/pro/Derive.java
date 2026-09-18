@@ -125,7 +125,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
                 limit = 10;
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            Object topic = ((Helpers.add("orderbook.", ((Map<String, Object>)market).get("id")) + ".10.") + this.numberToString(limit));
+            String topic = ((Helpers.add("orderbook.", ((Map<String, Object>)market).get("id")) + ".10.") + this.numberToString(limit));
             Object request = new HashMap<String, Object>() {{
                 put( "method", "subscribe" );
                 put( "params", new HashMap<String, Object>() {{
@@ -202,7 +202,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            Object topic = (Helpers.add("ticker_slim.", ((Map<String, Object>)market).get("id")) + ".100"); // the venue deprecated the fat ticker channel in favor of ticker_slim
+            String topic = (Helpers.add("ticker_slim.", ((Map<String, Object>)market).get("id")) + ".100"); // the venue deprecated the fat ticker channel in favor of ticker_slim
             Object request = new HashMap<String, Object>() {{
                 put( "method", "subscribe" );
                 put( "params", new HashMap<String, Object>() {{
@@ -353,7 +353,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
                 limit = 10;
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            Object topic = ((Helpers.add("orderbook.", ((Map<String, Object>)market).get("id")) + ".10.") + this.numberToString(limit));
+            String topic = ((Helpers.add("orderbook.", ((Map<String, Object>)market).get("id")) + ".10.") + this.numberToString(limit));
             String messageHash = ("unwatch" + topic);
             Object request = new HashMap<String, Object>() {{
                 put( "method", "unsubscribe" );
@@ -389,7 +389,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             String topic = Helpers.add("trades.", ((Map<String, Object>)market).get("id"));
-            Object messageHah = ("unwatch" + topic);
+            String messageHah = ("unwatch" + topic);
             Object request = new HashMap<String, Object>() {{
                 put( "method", "unsubscribe" );
                 put( "params", new HashMap<String, Object>() {{
@@ -869,9 +869,9 @@ public class Derive extends io.github.ccxt.exchanges.Derive
         {
             if (!java.util.Objects.equals(errorCode, null))
             {
-                Object feedback = ((this.id + " ") + this.json(message));
+                String feedback = ((this.id + " ") + this.json(message));
                 this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), errorCode, feedback);
-                throw new ExchangeError((String)feedback) ;
+                throw new ExchangeError(feedback) ;
             }
             return false;
         } catch(Exception error)

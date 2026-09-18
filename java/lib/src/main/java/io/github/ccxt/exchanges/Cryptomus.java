@@ -1473,19 +1473,19 @@ public class Cryptomus extends CryptomusApi
         if (Helpers.inOp(response, "code"))
         {
             String code = this.safeString(response, "code");
-            Object feedback = ((this.id + " ") + body);
+            String feedback = ((this.id + " ") + body);
             this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), code, feedback);
-            throw new ExchangeError((String)feedback) ;
+            throw new ExchangeError(feedback) ;
         } else if (Helpers.inOp(response, "message"))
         {
             //
             //      {"message":"Minimum amount 15 USDT","state":1}
             //
             String message = this.safeString(response, "message");
-            Object feedback = ((this.id + " ") + body);
+            String feedback = ((this.id + " ") + body);
             this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), message, feedback);
             this.throwBroadlyMatchedException(((Map<String, Object>)this.exceptions).get("broad"), message, feedback);
-            throw new ExchangeError((String)feedback) ;
+            throw new ExchangeError(feedback) ;
         }
         return null;
     }

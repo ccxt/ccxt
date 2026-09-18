@@ -6787,10 +6787,10 @@ final Object finalI = i;
         String message = this.safeString(error, "msg");
         if ((!java.util.Objects.equals(errorCode, null)) && (!java.util.Objects.equals(errorCode, "0")))
         {
-            Object feedback = ((this.id + " ") + body);
+            String feedback = ((this.id + " ") + body);
             this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), errorCode, feedback);
             this.throwBroadlyMatchedException(((Map<String, Object>)this.exceptions).get("broad"), message, feedback);
-            throw new ExchangeError((String)feedback) ;
+            throw new ExchangeError(feedback) ;
         }
         return null;
     }

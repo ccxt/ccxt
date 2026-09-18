@@ -1321,7 +1321,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
             if (!java.util.Objects.equals(error, null))
             {
                 String code = this.safeString(message, "code");
-                Object feedback = ((this.id + " ") + this.json(message));
+                String feedback = ((this.id + " ") + this.json(message));
                 this.throwExactlyMatchedException(Helpers.GetValue(((Map<String, Object>)this.exceptions).get("ws"), "exact"), code, feedback);
             }
         } catch(Exception e)

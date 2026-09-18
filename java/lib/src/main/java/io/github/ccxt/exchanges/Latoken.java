@@ -2259,7 +2259,7 @@ public class Latoken extends LatokenApi
         Object parameters = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}};
         Object headers = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : null;
         Object body = optionalArgs != null && optionalArgs.length > 4 ? optionalArgs[4] : null;
-        Object request = ((Helpers.add("/", this.version) + "/") + this.implodeParams(path, parameters));
+        String request = ((Helpers.add("/", this.version) + "/") + this.implodeParams(path, parameters));
         Object requestString = request;
         Object query = this.omit(parameters, this.extractParams(path));
         Object urlencodedQuery = this.urlencode(query);
@@ -2311,7 +2311,7 @@ public class Latoken extends LatokenApi
         // {"result":false,"message":"Internal error","error":"For input string: \"NaN\"","status":"FAILURE"}
         //
         String message = this.safeString(response, "message");
-        Object feedback = ((this.id + " ") + body);
+        String feedback = ((this.id + " ") + body);
         if (!java.util.Objects.equals(message, null))
         {
             this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), message, feedback);
@@ -2323,7 +2323,7 @@ public class Latoken extends LatokenApi
         {
             this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), error, feedback);
             this.throwBroadlyMatchedException(((Map<String, Object>)this.exceptions).get("broad"), body, feedback);
-            throw new ExchangeError((String)feedback) ;
+            throw new ExchangeError(feedback) ;
         }
         return null;
     }

@@ -2304,7 +2304,7 @@ public class Bigone extends BigoneApi
         Object body = optionalArgs != null && optionalArgs.length > 4 ? optionalArgs[4] : null;
         Object query = this.omit(parameters, this.extractParams(path));
         String baseUrl = (String) this.implodeHostname(Helpers.GetValue(((Map<String, Object>)this.urls).get("api"), api));
-        Object url = ((baseUrl + "/") + this.implodeParams(path, parameters));
+        String url = ((baseUrl + "/") + this.implodeParams(path, parameters));
         headers = new HashMap<String, Object>() {{}};
         if (java.util.Objects.equals(api, "public") || java.util.Objects.equals(api, "webExchange") || java.util.Objects.equals(api, "contractPublic"))
         {
@@ -2817,11 +2817,11 @@ public class Bigone extends BigoneApi
         String message = this.safeString(response, "message");
         if ((!java.util.Objects.equals(code, "0")) && (!java.util.Objects.equals(code, null)))
         {
-            Object feedback = ((this.id + " ") + body);
+            String feedback = ((this.id + " ") + body);
             this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), message, feedback);
             this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), code, feedback);
             this.throwBroadlyMatchedException(((Map<String, Object>)this.exceptions).get("broad"), message, feedback);
-            throw new ExchangeError((String)feedback) ;
+            throw new ExchangeError(feedback) ;
         }
         return null;
     }

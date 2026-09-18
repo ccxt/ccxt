@@ -1070,7 +1070,7 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
         Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, null, null, defaultType);
         Object symbol = ((Map<String, Object>)market).get("symbol");
         String name = "orderbook";
-        Object messageHash = ((name + ":") + symbol);
+        String messageHash = ((name + ":") + symbol);
         Long timestamp = this.safeInteger(depth, "updated_at");
         io.github.ccxt.ws.WsOrderBook currentOrderBook = (io.github.ccxt.ws.WsOrderBook) this.safeValue(this.orderbooks, symbol);
         Boolean fullOrderBook = (Boolean) this.safeBool(data, "is_full", false);
@@ -1632,10 +1632,10 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
         Boolean isErrorCode = (!java.util.Objects.equals(errorCode, null)) && (!java.util.Objects.equals(errorCode, "0"));
         if (Helpers.isTrue(isErrorCode) || Helpers.isTrue(isErrorMessage))
         {
-            Object feedback = ((this.id + " ") + body);
+            String feedback = ((this.id + " ") + body);
             this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), errorCode, feedback);
             this.throwBroadlyMatchedException(((Map<String, Object>)this.exceptions).get("broad"), message, feedback);
-            throw new ExchangeError((String)feedback) ;
+            throw new ExchangeError(feedback) ;
         }
         return null;
     }

@@ -122,7 +122,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
             if (java.util.Objects.equals(future, null))
             {
                 String accessPath = "/ws";
-                Object requestString = ((("GET\n" + accessPath) + "\nsignTimestamp=") + timestamp);
+                String requestString = ((("GET\n" + accessPath) + "\nsignTimestamp=") + timestamp);
                 Object signature = this.hmac(this.encode(requestString), this.encode(this.secret), sha256(), "base64");
                 Map<String, Object> request = new HashMap<String, Object>() {{
                     put( "event", "subscribe" );
@@ -1363,7 +1363,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
             Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
             Object symbol = ((Map<String, Object>)market).get("symbol");
             String name = "book_lv2";
-            Object messageHash = ((name + "::") + symbol);
+            String messageHash = ((name + "::") + symbol);
             Object subscription = this.safeValue(client.subscriptions, messageHash, new HashMap<String, Object>() {{}});
             Long limit = this.safeInteger(subscription, "limit");
             Long timestamp = this.safeInteger(item, "ts");
@@ -1594,10 +1594,10 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
             {
                 String error = this.safeString(first, "message");
                 String code = this.safeString(first, "code");
-                Object feedback = ((this.id + " ") + this.json(message));
+                String feedback = ((this.id + " ") + this.json(message));
                 this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), code, feedback);
                 this.throwBroadlyMatchedException(((Map<String, Object>)this.exceptions).get("broad"), error, feedback);
-                throw new ExchangeError((String)feedback) ;
+                throw new ExchangeError(feedback) ;
             } catch(Exception e)
             {
                 if (Helpers.isInstance(e, AuthenticationError.class))

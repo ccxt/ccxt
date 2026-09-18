@@ -961,7 +961,7 @@ public class Extended extends io.github.ccxt.exchanges.Extended
             Object query = this.urlencode(this.extend(new HashMap<String, Object>() {{
                 put( "interval", interval );
             }}, parameters));
-            Object url = ((((Helpers.add(Helpers.add(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "/candles/"), ((Map<String, Object>)market).get("id")) + "/") + candleType) + "?") + query);
+            String url = ((((Helpers.add(Helpers.add(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "/candles/"), ((Map<String, Object>)market).get("id")) + "/") + candleType) + "?") + query);
             final Object finalSymbol = symbol;
             final Object finalCandleType = candleType;
             final Object finalLimit = limit;
@@ -1061,12 +1061,12 @@ public class Extended extends io.github.ccxt.exchanges.Extended
         {
             return false;
         }
-        Object feedback = ((this.id + " ") + this.json(message));
+        String feedback = ((this.id + " ") + this.json(message));
         String errorCode = this.safeString(error, "code");
         this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), errorCode, feedback);
         String errorMessage = this.safeString(error, "message");
         this.throwBroadlyMatchedException(((Map<String, Object>)this.exceptions).get("broad"), errorMessage, feedback);
-        throw new ExchangeError((String)feedback) ;
+        throw new ExchangeError(feedback) ;
     }
 
     public void handleMessage(Client client, Object message)

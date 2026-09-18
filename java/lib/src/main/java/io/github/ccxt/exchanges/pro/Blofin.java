@@ -637,7 +637,7 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
             {
                 throw new NotSupported((this.id + " watchBalance() is not supported for spot markets yet")) ;
             }
-            Object messageHash = (marketType + ":balance");
+            String messageHash = (marketType + ":balance");
             Map<String, Object> sub = new HashMap<String, Object>() {{
                 put( "channel", "account" );
             }};
@@ -664,7 +664,7 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
             Helpers.addElementToObject(this.balance, marketType, new HashMap<String, Object>() {{}});
         }
         Helpers.addElementToObject(this.balance, marketType, this.parseWsBalance(message));
-        Object messageHash = (marketType + ":balance");
+        String messageHash = (marketType + ":balance");
         client.resolve(Helpers.GetValue(this.balance, marketType), messageHash);
     }
 
@@ -1083,7 +1083,7 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
             String messageHash = "authenticate_hash";
             Object timestamp = String.valueOf(milliseconds);
             String nonce = ("n_" + timestamp);
-            Object auth = (((("/users/self/verify" + "GET") + timestamp) + "") + nonce);
+            String auth = (((("/users/self/verify" + "GET") + timestamp) + "") + nonce);
             Object signature = this.stringToBase64(this.hmac(this.encode(auth), this.encode(this.secret), sha256()));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "op", "login" );

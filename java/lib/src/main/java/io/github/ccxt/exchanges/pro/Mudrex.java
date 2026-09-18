@@ -194,7 +194,7 @@ public class Mudrex extends io.github.ccxt.exchanges.Mudrex
             }
             Object streamBaseId = (((!java.util.Objects.equals(((Map<String, Object>)market).get("baseId"), null)))) ? ((Map<String, Object>)market).get("baseId") : "";
             Object streamQuoteId = (((!java.util.Objects.equals(((Map<String, Object>)market).get("quoteId"), null)))) ? ((Map<String, Object>)market).get("quoteId") : "";
-            Object stream = (((Helpers.add((prefix + "@"), interval) + "@") + ((String)streamBaseId).toLowerCase()) + ((String)streamQuoteId).toLowerCase());
+            String stream = (((Helpers.add((prefix + "@"), interval) + "@") + ((String)streamBaseId).toLowerCase()) + ((String)streamQuoteId).toLowerCase());
             Object messageHash = stream;
             Object url = ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
             this.setBrokerHeaders();

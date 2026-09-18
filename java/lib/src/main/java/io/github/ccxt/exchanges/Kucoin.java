@@ -14208,13 +14208,13 @@ final Object finalMarket = market;
         //
         String errorCode = this.safeString(response, "code");
         String message = this.safeString2(response, "msg", "data", "");
-        Object feedback = ((this.id + " ") + body);
+        String feedback = ((this.id + " ") + body);
         this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), message, feedback);
         this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), errorCode, feedback);
         this.throwBroadlyMatchedException(((Map<String, Object>)this.exceptions).get("broad"), body, feedback);
         if (!java.util.Objects.equals(errorCode, "200000") && !java.util.Objects.equals(errorCode, "200"))
         {
-            throw new ExchangeError((String)feedback) ;
+            throw new ExchangeError(feedback) ;
         }
         return null;
     }

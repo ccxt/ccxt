@@ -1293,7 +1293,7 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
                     put( "interval", timeframe );
                 }} );
             }};
-            Object subMessageHash = ((("candles:" + timeframe) + ":") + symbol);
+            String subMessageHash = ((("candles:" + timeframe) + ":") + symbol);
             String messagehash = ("unsubscribe:" + subMessageHash);
             Map<String, Object> message = this.extend(request, parameters);
             return (this.watch(url, messagehash, message, messagehash, null)).join();
@@ -1511,7 +1511,7 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
             Object symbol = Helpers.GetValue(keys, i);
-            Object innerMessageHash = ((messageHash + ":") + symbol);
+            String innerMessageHash = ((messageHash + ":") + symbol);
             client.resolve(stored, innerMessageHash);
         }
         client.resolve(stored, messageHash);
@@ -1593,7 +1593,7 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
         {
             return;
         }
-        Object subMessageHash = ((("candles:" + timeframe) + ":") + symbol);
+        String subMessageHash = ((("candles:" + timeframe) + ":") + symbol);
         String messageHash = ("unsubscribe:" + subMessageHash);
         this.cleanUnsubscription(client, subMessageHash, messageHash);
         if ((!java.util.Objects.equals(symbol, null)) && (((Map<?, ?>)this.ohlcvs).containsKey(symbol)))

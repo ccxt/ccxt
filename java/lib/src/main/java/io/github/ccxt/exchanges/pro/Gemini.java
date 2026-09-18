@@ -660,13 +660,13 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
             for (var i = 0; i < ((List<?>)symbols).size(); i++)
             {
                 Object symbol = Helpers.GetValue(symbols, i);
-                Object messageHash = ((itemHashName + ":") + symbol);
+                String messageHash = ((itemHashName + ":") + symbol);
                 ((List<Object>)messageHashes).add(messageHash);
                 Map<String, Object> market = (Map<String, Object>) this.market(symbol);
                 ((List<Object>)marketIds).add(((Map<String, Object>)market).get("id"));
             }
             Object queryStr = String.join(",", (List<String>)marketIds);
-            Object url = (Helpers.add(Helpers.add(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "/v1/multimarketdata?symbols="), queryStr) + "&heartbeat=true&");
+            String url = (Helpers.add(Helpers.add(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "/v1/multimarketdata?symbols="), queryStr) + "&heartbeat=true&");
             if (java.util.Objects.equals(itemHashName, "orderbook"))
             {
                 url = (url + "trades=false&bids=true&offers=true");

@@ -227,7 +227,7 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
             {
                 (this.authenticate()).join();
             }
-            Object channel = ((Helpers.add("ticker.", ((Map<String, Object>)market).get("id")) + ".") + interval);
+            String channel = ((Helpers.add("ticker.", ((Map<String, Object>)market).get("id")) + ".") + interval);
             final Object finalInterval = interval;
             Map<String, Object> message = new HashMap<String, Object>() {{
                 put( "jsonrpc", "2.0" );
@@ -889,7 +889,7 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
             String interval = this.safeString(parameters, "interval", "raw");
             String kind = this.safeString(parameters, "kind", "any");
             parameters = this.omit(parameters, "interval", "currency", "kind");
-            Object channel = ((((("user.orders." + kind) + ".") + currency) + ".") + interval);
+            String channel = ((((("user.orders." + kind) + ".") + currency) + ".") + interval);
             Map<String, Object> message = new HashMap<String, Object>() {{
                 put( "jsonrpc", "2.0" );
                 put( "method", "private/subscribe" );
@@ -1158,7 +1158,7 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
                 put( "id", Deribit.this.requestId() );
             }};
             Map<String, Object> extendedRequest = this.deepExtend(request, parameters);
-            Object maxMessageByteLimit = (32768L - 1L); // 'Message Too Big: limit 32768B'
+            Long maxMessageByteLimit = (32768L - 1L); // 'Message Too Big: limit 32768B'
             Object jsonedText = this.json(extendedRequest);
             if (Helpers.isGreaterThanOrEqual(((String)jsonedText).length(), maxMessageByteLimit))
             {

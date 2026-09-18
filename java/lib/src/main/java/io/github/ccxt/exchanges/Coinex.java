@@ -3443,10 +3443,10 @@ public class Coinex extends CoinexApi
                 String message = this.safeString(entry, "message", "");
                 if ((!java.util.Objects.equals(code, "0")) || ((!java.util.Objects.equals(message, "Success")) && (!java.util.Objects.equals(message, "Succeeded")) && (!java.util.Objects.equals(message.toLowerCase(), "ok")) && (java.util.Objects.equals(data, null))))
                 {
-                    Object feedback = ((this.id + " ") + message);
+                    String feedback = ((this.id + " ") + message);
                     this.throwBroadlyMatchedException(((Map<String, Object>)this.exceptions).get("broad"), message, feedback);
                     this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), code, feedback);
-                    throw new ExchangeError((String)feedback) ;
+                    throw new ExchangeError(feedback) ;
                 }
                 Map<String, Object> item = (Map<String, Object>) this.safeDict(entry, "data", new HashMap<String, Object>() {{}});
                 Object order = this.parseOrder(item);
@@ -6609,10 +6609,10 @@ final Object finalI = i;
         String message = this.safeString(response, "message", "");
         if ((!java.util.Objects.equals(code, "0")) || ((!java.util.Objects.equals(message, "Success")) && (!java.util.Objects.equals(message, "Succeeded")) && (!java.util.Objects.equals(message.toLowerCase(), "ok")) && (java.util.Objects.equals(data, null))))
         {
-            Object feedback = ((this.id + " ") + message);
+            String feedback = ((this.id + " ") + message);
             this.throwBroadlyMatchedException(((Map<String, Object>)this.exceptions).get("broad"), message, feedback);
             this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), code, feedback);
-            throw new ExchangeError((String)feedback) ;
+            throw new ExchangeError(feedback) ;
         }
         return null;
     }

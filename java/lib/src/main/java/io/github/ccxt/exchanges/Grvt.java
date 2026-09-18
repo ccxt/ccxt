@@ -4149,24 +4149,24 @@ public class Grvt extends GrvtApi
             String errorCode = this.safeString(response, "code");
             if (!java.util.Objects.equals(errorCode, null))
             {
-                Object feedback = ((this.id + " ") + body);
+                String feedback = ((this.id + " ") + body);
                 this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), errorCode, feedback);
-                throw new ExchangeError((String)feedback) ;
+                throw new ExchangeError(feedback) ;
             } else
             {
                 String message = this.safeString(response, "message");
                 if (!java.util.Objects.equals(message, null))
                 {
-                    Object feedback = ((this.id + " ") + body);
+                    String feedback = ((this.id + " ") + body);
                     this.throwBroadlyMatchedException(((Map<String, Object>)this.exceptions).get("broad"), message, feedback);
-                    throw new ExchangeError((String)feedback) ;
+                    throw new ExchangeError(feedback) ;
                 } else
                 {
                     String status = this.safeString(response, "status");
                     if (!java.util.Objects.equals(status, null) && !java.util.Objects.equals(status, "success"))
                     {
-                        Object feedback = ((this.id + " ") + body);
-                        throw new ExchangeError((String)feedback) ;
+                        String feedback = ((this.id + " ") + body);
+                        throw new ExchangeError(feedback) ;
                     }
                 }
             }

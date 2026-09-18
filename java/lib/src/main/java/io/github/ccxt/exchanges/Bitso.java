@@ -2250,7 +2250,7 @@ public class Bitso extends BitsoApi
                 put( "address", address );
                 put( "destination_tag", finalTag );
             }};
-            Object classMethod = (Helpers.add("privatePost", method) + "Withdrawal");
+            String classMethod = (Helpers.add("privatePost", method) + "Withdrawal");
             Object response = ((CompletableFuture<Object>)Helpers.callDynamically(this, classMethod, new Object[] { this.extend(request, parameters) })).join();
             //
             //     {
@@ -2378,7 +2378,7 @@ public class Bitso extends BitsoApi
         Object parameters = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}};
         Object headers = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : null;
         Object body = optionalArgs != null && optionalArgs.length > 4 ? optionalArgs[4] : null;
-        Object endpoint = ((Helpers.add("/", this.version) + "/") + this.implodeParams(path, parameters));
+        String endpoint = ((Helpers.add("/", this.version) + "/") + this.implodeParams(path, parameters));
         Object query = this.omit(parameters, this.extractParams(path));
         if (java.util.Objects.equals(method, "GET") || java.util.Objects.equals(method, "DELETE"))
         {
@@ -2444,15 +2444,15 @@ public class Bitso extends BitsoApi
             }
             if (!java.util.Objects.equals(success, true))
             {
-                Object feedback = ((this.id + " ") + this.json(response));
+                String feedback = ((this.id + " ") + this.json(response));
                 Object error = this.safeValue(response, "error");
                 if (java.util.Objects.equals(error, null))
                 {
-                    throw new ExchangeError((String)feedback) ;
+                    throw new ExchangeError(feedback) ;
                 }
                 String code = this.safeString(error, "code");
                 this.throwExactlyMatchedException(this.exceptions, code, feedback);
-                throw new ExchangeError((String)feedback) ;
+                throw new ExchangeError(feedback) ;
             }
         }
         return null;

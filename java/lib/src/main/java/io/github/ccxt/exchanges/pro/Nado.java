@@ -2410,11 +2410,11 @@ public class Nado extends io.github.ccxt.exchanges.Nado
         String id = this.safeString(message, "id");
         if (!java.util.Objects.equals(id, null))
         {
-            Object executeHash = ("execute:" + id);
+            String executeHash = ("execute:" + id);
             Object executeSubscription = this.safeValue(client.subscriptions, executeHash);
             if (!java.util.Objects.equals(executeSubscription, null))
             {
-                ((Map<String,Object>)client.subscriptions).remove((String)executeHash);
+                ((Map<String,Object>)client.subscriptions).remove(executeHash);
                 client.reject(feedback, executeHash);
                 return true;
             }

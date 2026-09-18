@@ -166,7 +166,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
             Helpers.addElementToObject(this.options, "unSubscriptionPending", true);
             Object market = null;
             Object watchMessageHash = name;
-            Object unWatchMessageHash = ("unsubscribe:" + name);
+            String unWatchMessageHash = ("unsubscribe:" + name);
             Object productIds = new ArrayList<Object>(Arrays.asList());
             if ((symbol instanceof List))
             {

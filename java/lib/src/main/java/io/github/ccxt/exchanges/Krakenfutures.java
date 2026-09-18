@@ -4375,14 +4375,14 @@ final Object finalI = i;
         {
             return null;
         }
-        Object feedback = ((this.id + " ") + body);
+        String feedback = ((this.id + " ") + body);
         this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), message, feedback);
         this.throwBroadlyMatchedException(((Map<String, Object>)this.exceptions).get("broad"), message, feedback);
         if (Helpers.isEqual(code, 400))
         {
-            throw new BadRequest((String)feedback) ;
+            throw new BadRequest(feedback) ;
         }
-        throw new ExchangeError((String)feedback) ;
+        throw new ExchangeError(feedback) ;
     }
 
     public Object sign(Object path, Object... optionalArgs)

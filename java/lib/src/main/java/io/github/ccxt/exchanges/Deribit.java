@@ -4128,7 +4128,7 @@ public class Deribit extends DeribitApi
             }
             Object duration = Helpers.multiply(this.parseTimeframe(eachItemDuration), 1000);
             Object time = this.milliseconds();
-            Object month = ((((30L * 24L) * 60L) * 60L) * 1000L);
+            Long month = ((((30L * 24L) * 60L) * 60L) * 1000L);
             if (java.util.Objects.equals(since, null))
             {
                 since = Helpers.subtract(time, month);
@@ -4916,8 +4916,8 @@ public class Deribit extends DeribitApi
             {
                 request = (request + ("?" + this.urlencode(parameters)));
             }
-            Object requestData = (((((method + "\n") + request) + "\n") + requestBody) + "\n"); // eslint-disable-line quotes
-            Object auth = ((((timestamp + "\n") + nonce) + "\n") + requestData); // eslint-disable-line quotes
+            String requestData = (((((method + "\n") + request) + "\n") + requestBody) + "\n"); // eslint-disable-line quotes
+            String auth = ((((timestamp + "\n") + nonce) + "\n") + requestData); // eslint-disable-line quotes
             Object signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256());
             final Object finalTimestamp = timestamp;
             headers = new HashMap<String, Object>() {{
@@ -4959,9 +4959,9 @@ public class Deribit extends DeribitApi
         if (!java.util.Objects.equals(error, null))
         {
             String errorCode = this.safeString(error, "code");
-            Object feedback = ((this.id + " ") + body);
+            String feedback = ((this.id + " ") + body);
             this.throwExactlyMatchedException(this.exceptions, errorCode, feedback);
-            throw new ExchangeError((String)feedback) ;
+            throw new ExchangeError(feedback) ;
         }
         return null;
     }

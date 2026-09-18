@@ -1158,7 +1158,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
             for (var i = 0; i < ((List<?>)keys).size(); i++)
             {
                 Object symbol = Helpers.GetValue(keys, i);
-                Object symbolMessageHash = ((messageHash + ":") + symbol);
+                String symbolMessageHash = ((messageHash + ":") + symbol);
                 client.resolve(this.orders, symbolMessageHash);
             }
         }

@@ -4380,7 +4380,7 @@ public class Paradex extends ParadexApi
             version = "v2";
             path = Helpers.replace(((String)path), "v2/", "");
         }
-        Object url = ((this.implodeHostname(Helpers.GetValue(((Map<String, Object>)this.urls).get("api"), ((String)version))) + "/") + this.implodeParams(path, parameters));
+        String url = ((this.implodeHostname(Helpers.GetValue(((Map<String, Object>)this.urls).get("api"), ((String)version))) + "/") + this.implodeParams(path, parameters));
         Object query = this.omit(parameters, this.extractParams(path));
         if (java.util.Objects.equals(api, "public"))
         {
@@ -4453,10 +4453,10 @@ public class Paradex extends ParadexApi
         String errorCode = this.safeString(response, "error");
         if (!java.util.Objects.equals(errorCode, null))
         {
-            Object feedback = ((this.id + " ") + body);
+            String feedback = ((this.id + " ") + body);
             this.throwBroadlyMatchedException(((Map<String, Object>)this.exceptions).get("broad"), body, feedback);
             this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), errorCode, feedback);
-            throw new ExchangeError((String)feedback) ;
+            throw new ExchangeError(feedback) ;
         }
         return null;
     }

@@ -485,7 +485,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             }
             Object market = this.market(symbol);
             String interval = this.safeString(this.timeframes, timeframe, timeframe);
-            Object subMessageHash = ((Helpers.add("market.", ((Map<String, Object>)market).get("id")) + ".kline.") + interval);
+            String subMessageHash = ((Helpers.add("market.", ((Map<String, Object>)market).get("id")) + ".kline.") + interval);
             Object topic = "ohlcv";
             ((Map<String, Object>)parameters).put("symbolsAndTimeframes", new ArrayList<Object>(Arrays.asList(new ArrayList<Object>(Arrays.asList(((Map<String, Object>)market).get("symbol"), timeframe)))));
             return (this.unsubscribePublic(market, subMessageHash, topic, parameters)).join();
@@ -1514,7 +1514,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
         client.resolve(this.orders, messageHash);
         if ((java.util.Objects.equals(messageHash, "orders")) && (!java.util.Objects.equals(marketId, null)))
         {
-            Object specificMessageHash = ((messageHash + ".") + marketId.toLowerCase());
+            String specificMessageHash = ((messageHash + ".") + marketId.toLowerCase());
             client.resolve(this.orders, specificMessageHash);
         }
         // when we make a global subscription (for contracts only) our message hash can't have a symbol/currency attached
@@ -2869,11 +2869,11 @@ public class Htx extends io.github.ccxt.exchanges.Htx
         String code = this.safeString2(message, "code", "err-code");
         if (!java.util.Objects.equals(code, null) && ((!java.util.Objects.equals(code, "200")) && (!java.util.Objects.equals(code, "0"))))
         {
-            Object feedback = ((this.id + " ") + this.json(message));
+            String feedback = ((this.id + " ") + this.json(message));
             try
             {
                 this.throwExactlyMatchedException(Helpers.GetValue(((Map<String, Object>)this.exceptions).get("ws"), "exact"), code, feedback);
-                throw new ExchangeError((String)feedback) ;
+                throw new ExchangeError(feedback) ;
             } catch(Exception e)
             {
                 if (Helpers.isInstance(e, AuthenticationError.class))
@@ -3124,7 +3124,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
                 client.resolve(this.myTrades, messageHash);
                 if ((java.util.Objects.equals(messageHash, "trade")) && (!java.util.Objects.equals(contractCode, null)))
                 {
-                    Object specificMessageHash = ((messageHash + ".") + contractCode.toLowerCase());
+                    String specificMessageHash = ((messageHash + ".") + contractCode.toLowerCase());
                     client.resolve(this.myTrades, specificMessageHash);
                 }
             } else
@@ -3144,7 +3144,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
                 }
                 // messageHash here is the orders one, so
                 // we have to recreate the trades messageHash = orderMessageHash + ':' + 'trade'
-                Object tradesHash = ((messageHash + ":") + "trade");
+                String tradesHash = ((messageHash + ":") + "trade");
                 client.resolve(this.myTrades, tradesHash);
                 // when we make an global order sub we have to send the channel like this
                 // ch = orders_cross.* and we store messageHash = 'orders_cross'
@@ -3154,7 +3154,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
                 Object genericOrderHash = Helpers.replace(messageHash, (String)Helpers.add(".", ((Map<String, Object>)market).get("lowercaseId")), (String)"");
                 String lowerCaseBaseId = this.safeStringLower(market, "baseId");
                 genericOrderHash = Helpers.replace(((String)genericOrderHash), Helpers.add(".", lowerCaseBaseId), "");
-                Object genericTradesHash = ((genericOrderHash + ":") + "trade");
+                String genericTradesHash = ((genericOrderHash + ":") + "trade");
                 client.resolve(this.myTrades, genericTradesHash);
             }
         }

@@ -4501,7 +4501,7 @@ final Object finalId = id;
         {
             if (!(response instanceof String))
             {
-                Object message = ((this.id + " ") + body);
+                String message = ((this.id + " ") + body);
                 if (Helpers.inOp(response, "error"))
                 {
                     Object numErrors = Helpers.getArrayLength(Helpers.GetValue(response, "error"));
@@ -4513,7 +4513,7 @@ final Object finalId = id;
                             this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), error, message);
                             this.throwBroadlyMatchedException(((Map<String, Object>)this.exceptions).get("broad"), error, message);
                         }
-                        throw new ExchangeError((String)message) ;
+                        throw new ExchangeError(message) ;
                     }
                 }
                 // handleCreateOrdersErrors:
@@ -4531,7 +4531,7 @@ final Object finalId = id;
                             {
                                 this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), error, message);
                                 this.throwBroadlyMatchedException(((Map<String, Object>)this.exceptions).get("broad"), error, message);
-                                throw new ExchangeError((String)message) ;
+                                throw new ExchangeError(message) ;
                             }
                         }
                     }

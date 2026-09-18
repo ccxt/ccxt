@@ -861,7 +861,7 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
         Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
         Object symbol = ((Map<String, Object>)market).get("symbol");
         String messageHash = "orders";
-        Object symbolMessageHash = ((messageHash + "::") + symbol);
+        String symbolMessageHash = ((messageHash + "::") + symbol);
         if (java.util.Objects.equals(this.orders, null))
         {
             Long limit = this.safeInteger(this.options, "ordersLimit", 1000);
@@ -1045,7 +1045,7 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
         Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
         Object symbol = ((Map<String, Object>)market).get("symbol");
         String messageHash = "positions";
-        Object symbolMessageHash = ((messageHash + "::") + symbol);
+        String symbolMessageHash = ((messageHash + "::") + symbol);
         if (java.util.Objects.equals(this.positions, null))
         {
             this.positions = new ArrayCache.ArrayCacheBySymbolBySide();
@@ -1322,11 +1322,11 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
         //
         String code = this.safeString(message, "code");
         String msg = this.safeString(message, "msg");
-        Object feedback = ((this.id + " ") + this.json(message));
+        String feedback = ((this.id + " ") + this.json(message));
         this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), msg, feedback);
         this.throwBroadlyMatchedException(((Map<String, Object>)this.exceptions).get("broad"), msg, feedback);
         this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), code, feedback);
-        throw new ExchangeError((String)feedback) ;
+        throw new ExchangeError(feedback) ;
     }
 
     public void handleMessage(Client client, Object message)

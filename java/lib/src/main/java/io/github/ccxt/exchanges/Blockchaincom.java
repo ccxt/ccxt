@@ -1633,7 +1633,7 @@ public class Blockchaincom extends BlockchaincomApi
         String errorMessage = this.safeString(response, "error");
         if (!java.util.Objects.equals(code, null))
         {
-            Object feedback = ((this.id + " ") + this.json(response));
+            String feedback = ((this.id + " ") + this.json(response));
             this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), errorCode, feedback);
             this.throwBroadlyMatchedException(((Map<String, Object>)this.exceptions).get("broad"), errorMessage, feedback);
         }

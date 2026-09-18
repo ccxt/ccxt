@@ -3195,13 +3195,13 @@ public class Tokocrypto extends TokocryptoApi
             {
                 throw new DDoSProtection(((this.id + " ") + body)) ;
             }
-            Object feedback = ((this.id + " ") + body);
+            String feedback = ((this.id + " ") + body);
             if (java.util.Objects.equals(message, "No need to change margin type."))
             {
-                throw new MarginModeAlreadySet((String)feedback) ;
+                throw new MarginModeAlreadySet(feedback) ;
             }
             this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), error, feedback);
-            throw new ExchangeError((String)feedback) ;
+            throw new ExchangeError(feedback) ;
         }
         if (!java.util.Objects.equals(success, true))
         {

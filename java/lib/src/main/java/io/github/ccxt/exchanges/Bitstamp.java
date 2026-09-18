@@ -3847,14 +3847,14 @@ public class Bitstamp extends BitstampApi
             {
                 throw new AuthenticationError((this.id + " invalid signature, use the uid for the main account if you have subaccounts")) ;
             }
-            Object feedback = ((this.id + " ") + body);
+            String feedback = ((this.id + " ") + body);
             for (var i = 0; i < ((List<?>)errors).size(); i++)
             {
                 Object value = Helpers.GetValue(errors, i);
                 this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), value, feedback);
                 this.throwBroadlyMatchedException(((Map<String, Object>)this.exceptions).get("broad"), value, feedback);
             }
-            throw new ExchangeError((String)feedback) ;
+            throw new ExchangeError(feedback) ;
         }
         return null;
     }

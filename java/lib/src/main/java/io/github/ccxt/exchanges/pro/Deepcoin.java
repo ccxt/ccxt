@@ -690,7 +690,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
             Map<String, Object> timeframes = (Map<String, Object>) this.safeDict(this.options, "timeframes", new HashMap<String, Object>() {{}});
             String interval = this.safeString(timeframes, timeframe, timeframe);
             String messageHash = (((("ohlcv" + "::") + symbol) + "::") + timeframe);
-            Object suffix = ("_" + interval);
+            String suffix = ("_" + interval);
             Object ohlcv = (this.watchPublic(market, messageHash, "11", parameters, suffix)).join();
             if (this.newUpdates)
             {
@@ -727,7 +727,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
             Map<String, Object> timeframes = (Map<String, Object>) this.safeDict(this.options, "timeframes", new HashMap<String, Object>() {{}});
             String interval = this.safeString(timeframes, timeframe, timeframe);
             String messageHash = (((("ohlcv" + "::") + symbol) + "::") + timeframe);
-            Object suffix = ("_" + interval);
+            String suffix = ("_" + interval);
             final Object finalSymbol = symbol;
             Object subscription = new HashMap<String, Object>() {{
                 put( "topic", "ohlcv" );
@@ -1127,7 +1127,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
         Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, null, "/");
         String symbol = this.safeSymbol(marketId, market);
         String messageHash = "myTrades";
-        Object symbolMessageHash = ((messageHash + "::") + symbol);
+        String symbolMessageHash = ((messageHash + "::") + symbol);
         if ((((Map<?, ?>)client.futures).containsKey(messageHash)) || (((Map<?, ?>)client.futures).containsKey(symbolMessageHash)))
         {
             if (java.util.Objects.equals(this.myTrades, null))
@@ -1222,7 +1222,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
         Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, null, "/");
         String symbol = this.safeSymbol(marketId, market);
         String messageHash = "orders";
-        Object symbolMessageHash = ((messageHash + "::") + symbol);
+        String symbolMessageHash = ((messageHash + "::") + symbol);
         if ((((Map<?, ?>)client.futures).containsKey(messageHash)) || (((Map<?, ?>)client.futures).containsKey(symbolMessageHash)))
         {
             if (java.util.Objects.equals(this.orders, null))
@@ -1337,7 +1337,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
                 for (var i = 0; i < ((List<?>)symbols).size(); i++)
                 {
                     Object symbol = Helpers.GetValue(symbols, i);
-                    Object symbolMessageHash = ((messageHash + "::") + symbol);
+                    String symbolMessageHash = ((messageHash + "::") + symbol);
                     ((List<Object>)messageHashes).add(symbolMessageHash);
                 }
             } else
@@ -1387,7 +1387,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
         Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, null, "/");
         String symbol = this.safeSymbol(marketId, market);
         String messageHash = "positions";
-        Object symbolMessageHash = ((messageHash + "::") + symbol);
+        String symbolMessageHash = ((messageHash + "::") + symbol);
         if ((((Map<?, ?>)client.futures).containsKey(messageHash)) || (((Map<?, ?>)client.futures).containsKey(symbolMessageHash)))
         {
             if (java.util.Objects.equals(this.positions, null))
@@ -1591,12 +1591,12 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
         Map<String, Object> subscriptionsById = this.indexBy(client.subscriptions, "id");
         Map<String, Object> subscription = (Map<String, Object>) this.safeDict(subscriptionsById, requestId, new HashMap<String, Object>() {{}});
         String messageHash = this.safeString(subscription, "subHash");
-        Object feedback = ((this.id + " ") + this.json(message));
+        String feedback = ((this.id + " ") + this.json(message));
         try
         {
             this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), messageText, feedback);
             this.throwBroadlyMatchedException(((Map<String, Object>)this.exceptions).get("broad"), messageText, feedback);
-            throw new ExchangeError((String)feedback) ;
+            throw new ExchangeError(feedback) ;
         } catch(Exception e)
         {
             client.reject(e, messageHash);

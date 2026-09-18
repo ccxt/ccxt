@@ -4302,7 +4302,7 @@ public class Woo extends WooApi
         String errorCode = this.safeString(response, "code");
         if (!java.util.Objects.equals(success, true))
         {
-            Object feedback = ((this.id + " ") + this.json(response));
+            String feedback = ((this.id + " ") + this.json(response));
             this.throwBroadlyMatchedException(((Map<String, Object>)this.exceptions).get("broad"), body, feedback);
             this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), errorCode, feedback);
         }

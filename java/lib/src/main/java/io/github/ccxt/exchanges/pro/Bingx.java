@@ -702,7 +702,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
             }
             Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "watchOrderBook", new HashMap<String, Object>() {{}});
             Long depth = this.safeInteger(options, "depth", 100);
-            Object subscriptionHash = ((Helpers.add(((Map<String, Object>)market).get("id"), "@") + "depth") + this.numberToString(depth));
+            String subscriptionHash = ((Helpers.add(((Map<String, Object>)market).get("id"), "@") + "depth") + this.numberToString(depth));
             Object messageHash = this.getMessageHash("orderbook", ((Map<String, Object>)market).get("symbol"));
             Object uuid = this.uuid();
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -763,7 +763,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
             Object market = this.market(symbol);
             Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "watchOrderBook", new HashMap<String, Object>() {{}});
             Long depth = this.safeInteger(options, "depth", 100);
-            Object subMessageHash = ((Helpers.add(((Map<String, Object>)market).get("id"), "@") + "depth") + this.numberToString(depth));
+            String subMessageHash = ((Helpers.add(((Map<String, Object>)market).get("id"), "@") + "depth") + this.numberToString(depth));
             String messageHash = ("unsubscribe::" + subMessageHash);
             Object topic = "orderbook";
             Object methodName = "unWatchOrderBook";
@@ -1745,7 +1745,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
         {
             if (!java.util.Objects.equals(code, null))
             {
-                Object feedback = ((this.id + " ") + this.json(message));
+                String feedback = ((this.id + " ") + this.json(message));
                 this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), code, feedback);
             }
         } catch(Exception e)
@@ -1783,7 +1783,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
                     {
                         continue;
                     }
-                    Object url = ((baseUrl + "?listenKey=") + listenKey);
+                    String url = ((baseUrl + "?listenKey=") + listenKey);
                     Client client = this.client(url);
                     List<Object> messageHashes = Helpers.objectKeys(client.futures);
                     for (var j = 0; j < ((List<?>)messageHashes).size(); j++)
