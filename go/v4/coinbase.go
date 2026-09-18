@@ -2312,8 +2312,8 @@ func (this *Coinbase) ParseContractMarket(market any, feeTier any) any {
 	}
 	var takerFeeRate *float64 = this.SafeNumber(feeTier, "taker_fee_rate")
 	var makerFeeRate *float64 = this.SafeNumber(feeTier, "maker_fee_rate")
-	var taker any = Ternary(((takerFeeRate != nil) && (takerFeeRate != nil) && (takerFeeRate == nil || *takerFeeRate != 0)), takerFeeRate, this.ParseNumber("0.06"))
-	var maker any = Ternary(((makerFeeRate != nil) && (makerFeeRate != nil) && (makerFeeRate == nil || *makerFeeRate != 0)), makerFeeRate, this.ParseNumber("0.04"))
+	var taker any = Ternary(((takerFeeRate != nil) && (takerFeeRate == nil || *takerFeeRate != 0)), takerFeeRate, this.ParseNumber("0.06"))
+	var maker any = Ternary(((makerFeeRate != nil) && (makerFeeRate == nil || *makerFeeRate != 0)), makerFeeRate, this.ParseNumber("0.04"))
 	return this.SafeMarketStructure(map[string]any{
 		"id":             id,
 		"symbol":         symbol,

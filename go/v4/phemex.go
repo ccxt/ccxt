@@ -2838,7 +2838,7 @@ func (this *Phemex) ParseSpotOrder(order any, optionalArgs ...any) any {
 		}
 	}
 	var timeInForce *string = this.ParseTimeInForce(this.SafeString(order, "timeInForce"))
-	var triggerPrice any = this.ParseNumber(this.OmitZero(this.FromEp(this.SafeString(order, "stopPxEp"))))
+	var triggerPrice any = this.ParseNumber(this.OmitZero(this.FromEp(this.SafeString(order, "stopPxEp"), market)))
 	var postOnly bool = (timeInForce != nil && *timeInForce == "PO")
 	return this.SafeOrder(map[string]any{
 		"info":               order,
@@ -3674,6 +3674,14 @@ func (this *Phemex) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any
 		order = this.SafeDict(data, 0, map[string]any{})
 	} else if IsEqual(GetValue(market, "spot"), true) {
 		var rows any = this.SafeList(data, "rows", []any{})
+		var numRows int = GetArrayLength(rows)
+		if IsLessThan(numRows, 1) {
+			if clientOrderId != nil {
+				panic(OrderNotFound(Add(Add(Add(Add(Add(this.Id, " fetchOrder() "), symbol), " order with clientOrderId "), clientOrderId), " not found")))
+			} else {
+				panic(OrderNotFound(Add(Add(Add(Add(Add(this.Id, " fetchOrder() "), symbol), " order with id "), id), " not found")))
+			}
+		}
 		order = this.SafeDict(rows, 0, map[string]any{})
 	}
 
@@ -3713,8 +3721,8 @@ func (this *Phemex) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	}
 	if IsEqual(this.Markets, nil) {
 
-		retRes324612 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes324612)
+		retRes325412 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes325412)
 	}
 	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{
@@ -3781,16 +3789,16 @@ func (this *Phemex) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if IsEqual(this.Markets, nil) {
 
-		retRes328712 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes328712)
+		retRes329512 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes329512)
 	}
 	if IsEqual(symbol, nil) {
 		panic(ArgumentsRequired(Add(this.Id, " fetchOpenOrders() requires a symbol argument")))
 	}
 	if IsEqual(this.Markets, nil) {
 
-		retRes329312 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes329312)
+		retRes330112 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes330112)
 	}
 	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{
@@ -3885,8 +3893,8 @@ func (this *Phemex) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any 
 	_ = params
 	if IsEqual(this.Markets, nil) {
 
-		retRes334012 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes334012)
+		retRes334812 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes334812)
 	}
 	var market any = nil
 	if !IsEqual(symbol, nil) {
@@ -3997,8 +4005,8 @@ func (this *Phemex) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if IsEqual(this.Markets, nil) {
 
-		retRes342612 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes342612)
+		retRes343412 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes343412)
 	}
 	var market any = nil
 	if !IsEqual(symbol, nil) {
@@ -4178,8 +4186,8 @@ func (this *Phemex) fetchDepositAddressBody(ch chan any, code any, optionalArgs 
 	_ = params
 	if IsEqual(this.Markets, nil) {
 
-		retRes358612 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes358612)
+		retRes359412 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes359412)
 	}
 	var currency any = this.Currency(code)
 	var request map[string]any = map[string]any{
@@ -4257,8 +4265,8 @@ func (this *Phemex) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if IsEqual(this.Markets, nil) {
 
-		retRes364412 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes364412)
+		retRes365212 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes365212)
 	}
 	var currency any = nil
 	if !IsEqual(code, nil) {
@@ -4321,8 +4329,8 @@ func (this *Phemex) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if IsEqual(this.Markets, nil) {
 
-		retRes368712 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes368712)
+		retRes369512 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes369512)
 	}
 	var currency any = nil
 	if !IsEqual(code, nil) {
@@ -4524,8 +4532,8 @@ func (this *Phemex) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if IsEqual(this.Markets, nil) {
 
-		retRes387312 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes387312)
+		retRes388112 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes388112)
 	}
 	symbols = this.MarketSymbols(symbols)
 	var subType any = nil
@@ -4694,8 +4702,8 @@ func (this *Phemex) fetchPositionHistoryBody(ch chan any, symbol any, optionalAr
 	_ = params
 	if IsEqual(this.Markets, nil) {
 
-		retRes401412 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes401412)
+		retRes402212 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes402212)
 	}
 	var market any = this.Market(symbol)
 	symbol = GetValue(market, "symbol")
@@ -4951,8 +4959,8 @@ func (this *Phemex) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) an
 	}
 	if IsEqual(this.Markets, nil) {
 
-		retRes424912 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes424912)
+		retRes425712 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes425712)
 	}
 	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{
@@ -5058,8 +5066,8 @@ func (this *Phemex) fetchFundingRateBody(ch chan any, symbol any, optionalArgs .
 	_ = params
 	if IsEqual(this.Markets, nil) {
 
-		retRes433812 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes433812)
+		retRes434612 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes434612)
 	}
 	var market any = this.Market(symbol)
 	if !IsEqual(GetValue(market, "swap"), true) {
@@ -5197,8 +5205,8 @@ func (this *Phemex) setMarginBody(ch chan any, symbol any, amount any, optionalA
 	_ = params
 	if IsEqual(this.Markets, nil) {
 
-		retRes445912 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes445912)
+		retRes446712 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes446712)
 	}
 	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{
@@ -5281,8 +5289,8 @@ func (this *Phemex) setMarginModeBody(ch chan any, marginMode any, optionalArgs 
 	}
 	if IsEqual(this.Markets, nil) {
 
-		retRes452612 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes452612)
+		retRes453412 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes453412)
 	}
 	var market any = this.Market(symbol)
 	if !IsEqual(GetValue(market, "swap"), true) {
@@ -5303,9 +5311,9 @@ func (this *Phemex) setMarginModeBody(ch chan any, marginMode any, optionalArgs 
 		}
 		AddElementToObject(request, "leverageRr", Ternary(isCross, Precise.StringNeg(Precise.StringAbs(currentLeverage)), Precise.StringAbs(currentLeverage)))
 
-		retRes454619 := (<-this.PrivatePutGPositionsLeverage(this.Extend(request, params)))
-		PanicOnError(retRes454619)
-		ch <- retRes454619
+		retRes455419 := (<-this.PrivatePutGPositionsLeverage(this.Extend(request, params)))
+		PanicOnError(retRes455419)
+		ch <- retRes455419
 		return nil
 	}
 	var leverage any = DerefScalar(this.SafeInteger(params, "leverage"))
@@ -5317,9 +5325,9 @@ func (this *Phemex) setMarginModeBody(ch chan any, marginMode any, optionalArgs 
 	}
 	AddElementToObject(request, "leverage", leverage)
 
-	retRes455615 := (<-this.PrivatePutPositionsLeverage(this.Extend(request, params)))
-	PanicOnError(retRes455615)
-	ch <- retRes455615
+	retRes456415 := (<-this.PrivatePutPositionsLeverage(this.Extend(request, params)))
+	PanicOnError(retRes456415)
+	ch <- retRes456415
 	return nil
 }
 
@@ -5348,8 +5356,8 @@ func (this *Phemex) setPositionModeBody(ch chan any, hedged any, optionalArgs ..
 	this.CheckRequiredArgument("setPositionMode", symbol, "symbol")
 	if IsEqual(this.Markets, nil) {
 
-		retRes457212 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes457212)
+		retRes458012 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes458012)
 	}
 	var market any = this.Market(symbol)
 	if !IsEqual(GetValue(market, "settle"), "USDT") {
@@ -5364,9 +5372,9 @@ func (this *Phemex) setPositionModeBody(ch chan any, hedged any, optionalArgs ..
 		AddElementToObject(request, "targetPosMode", "OneWay")
 	}
 
-	retRes458615 := (<-this.PrivatePutGPositionsSwitchPosModeSync(this.Extend(request, params)))
-	PanicOnError(retRes458615)
-	ch <- retRes458615
+	retRes459415 := (<-this.PrivatePutGPositionsSwitchPosModeSync(this.Extend(request, params)))
+	PanicOnError(retRes459415)
+	ch <- retRes459415
 	return nil
 }
 
@@ -5392,8 +5400,8 @@ func (this *Phemex) fetchLeverageTiersBody(ch chan any, optionalArgs ...any) any
 	_ = params
 	if IsEqual(this.Markets, nil) {
 
-		retRes459912 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes459912)
+		retRes460712 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes460712)
 	}
 	if !IsEqual(symbols, nil) {
 		var first any = this.SafeValue(symbols, 0)
@@ -5621,8 +5629,8 @@ func (this *Phemex) setLeverageBody(ch chan any, leverage any, optionalArgs ...a
 	}
 	if IsEqual(this.Markets, nil) {
 
-		retRes479612 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes479612)
+		retRes480412 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes480412)
 	}
 	var isHedged *bool = this.SafeBool(params, "hedged", false)
 	var longLeverageRr *int64 = this.SafeInteger(params, "longLeverageRr")
@@ -5681,8 +5689,8 @@ func (this *Phemex) transferBody(ch chan any, code any, amount any, fromAccount 
 	_ = params
 	if IsEqual(this.Markets, nil) {
 
-		retRes483912 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes483912)
+		retRes484712 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes484712)
 	}
 	var currency any = this.Currency(code)
 	var accountsByType any = this.SafeValue(this.Options, "accountsByType", map[string]any{})
@@ -5791,8 +5799,8 @@ func (this *Phemex) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if IsEqual(this.Markets, nil) {
 
-		retRes492612 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes492612)
+		retRes493412 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes493412)
 	}
 	if IsEqual(code, nil) {
 		panic(ArgumentsRequired(Add(this.Id, " fetchTransfers() requires a code argument")))
@@ -5937,8 +5945,8 @@ func (this *Phemex) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any
 	}
 	if IsEqual(this.Markets, nil) {
 
-		retRes505112 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes505112)
+		retRes505912 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes505912)
 	}
 	var market any = this.Market(symbol)
 	var isUsdtSettled bool = IsEqual(GetValue(market, "settle"), "USDT") || IsEqual(GetValue(market, "settle"), "USDC")
@@ -5951,9 +5959,9 @@ func (this *Phemex) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any
 	params = GetValue(paginateparamsVariable, 1)
 	if EvalTruthy(paginate) {
 
-		retRes506119 := (<-this.FetchPaginatedCallDeterministicAsync("fetchFundingRateHistory", symbol, since, limit, "8h", params, 100))
-		PanicOnError(retRes506119)
-		ch <- retRes506119
+		retRes506919 := (<-this.FetchPaginatedCallDeterministicAsync("fetchFundingRateHistory", symbol, since, limit, "8h", params, 100))
+		PanicOnError(retRes506919)
+		ch <- retRes506919
 		return nil
 	}
 	var customSymbol any = nil
@@ -6050,8 +6058,8 @@ func (this *Phemex) withdrawBody(ch chan any, code any, amount any, address any,
 	params = GetValue(tagparamsVariable, 1)
 	if IsEqual(this.Markets, nil) {
 
-		retRes513512 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes513512)
+		retRes514312 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes514312)
 	}
 	this.CheckAddress(address)
 	var currency any = this.Currency(code)
@@ -6137,8 +6145,8 @@ func (this *Phemex) fetchOpenInterestBody(ch chan any, symbol any, optionalArgs 
 	_ = params
 	if IsEqual(this.Markets, nil) {
 
-		retRes520512 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes520512)
+		retRes521312 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes521312)
 	}
 	var market any = this.Market(symbol)
 	if !IsEqual(GetValue(market, "contract"), true) {
@@ -6235,8 +6243,8 @@ func (this *Phemex) fetchConvertQuoteBody(ch chan any, fromCode any, toCode any,
 	_ = params
 	if IsEqual(this.Markets, nil) {
 
-		retRes528512 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes528512)
+		retRes529312 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes529312)
 	}
 	var fromCurrency any = this.Currency(fromCode)
 	var toCurrency any = this.Currency(toCode)
@@ -6299,8 +6307,8 @@ func (this *Phemex) createConvertTradeBody(ch chan any, id any, fromCode any, to
 	_ = params
 	if IsEqual(this.Markets, nil) {
 
-		retRes533212 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes533212)
+		retRes534012 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes534012)
 	}
 	var fromCurrency any = this.Currency(fromCode)
 	var toCurrency any = this.Currency(toCode)
@@ -6373,8 +6381,8 @@ func (this *Phemex) fetchConvertTradeHistoryBody(ch chan any, optionalArgs ...an
 	_ = params
 	if IsEqual(this.Markets, nil) {
 
-		retRes538512 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes538512)
+		retRes539312 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes539312)
 	}
 	var request any = map[string]any{}
 	if !IsEqual(code, nil) {
@@ -6525,8 +6533,8 @@ func (this *Phemex) fetchPositionsADLRankBody(ch chan any, optionalArgs ...any) 
 	_ = params
 	if IsEqual(this.Markets, nil) {
 
-		retRes551512 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes551512)
+		retRes552312 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes552312)
 	}
 	symbols = this.MarketSymbols(symbols, nil, true, true, true)
 	var subType any = nil

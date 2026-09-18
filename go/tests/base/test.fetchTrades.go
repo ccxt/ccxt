@@ -76,6 +76,7 @@ func helperTestFetchTradesSideSequenceBody(ch chan any, exchange ccxt.ICoreExcha
 	var lastTs any = nil
 	var lastPrice any = nil
 	var lastSide any = nil
+	var lastTrade any = nil
 	for i := 0; IsLessThan(i, GetArrayLength(trades)); i++ {
 		var trade any = GetValue(trades, i)
 		var ts any = GetValue(trade, "timestamp")
@@ -87,17 +88,22 @@ func helperTestFetchTradesSideSequenceBody(ch chan any, exchange ccxt.ICoreExcha
 		var isSameSide bool = IsEqual(side, lastSide)
 		// we are only interested in trades that have: same timestamp, same side, but different(!) price
 		if isSameTs && isSameSide && !isSamePrice {
+			var pair map[string]any = map[string]any{
+				"previous": lastTrade,
+				"current":  trade,
+			}
 			var priceIncreasing bool = ccxt.Precise.StringGt(price, lastPrice)
 			var priceDecreasing bool = ccxt.Precise.StringLt(price, lastPrice)
 			if priceIncreasing {
-				Assert(IsEqual(side, "buy"), Add("Price is increasing, but side is not `buy`, either implementation needs fix or exchange returns unsorted trades, so add \"sideSequence\" skip", LogTemplate(exchange, method, trade)))
+				Assert(IsEqual(side, "buy"), Add("Price is increasing, but side is not `buy`, either implementation needs fix or exchange returns unsorted trades, so add \"sideSequence\" skip", LogTemplate(exchange, method, pair)))
 			} else if priceDecreasing {
-				Assert(IsEqual(side, "sell"), Add("Price is decreasing, but side is not `sell`, either implementation needs fix or exchange returns unsorted trades, so add \"sideSequence\" skip", LogTemplate(exchange, method, trade)))
+				Assert(IsEqual(side, "sell"), Add("Price is decreasing, but side is not `sell`, either implementation needs fix or exchange returns unsorted trades, so add \"sideSequence\" skip", LogTemplate(exchange, method, pair)))
 			}
 		}
 		lastPrice = price
 		lastTs = ts
 		lastSide = side
+		lastTrade = trade
 	}
 
 	ch <- true
