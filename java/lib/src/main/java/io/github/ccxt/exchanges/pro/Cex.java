@@ -139,7 +139,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", data );
         }};
-        Object currencyIds = Helpers.objectKeys(freeBalance);
+        Object currencyIds = new ArrayList<Object>(((Map<String, Object>)freeBalance).keySet());
         for (var i = 0; i < ((List<?>)currencyIds).size(); i++)
         {
             Object currencyId = Helpers.GetValue(currencyIds, i);

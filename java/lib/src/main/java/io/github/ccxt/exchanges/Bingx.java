@@ -6052,7 +6052,7 @@ public class Bingx extends BingxApi
                     return this.safeDict(addressStructures, defaultNetworkForCurrency);
                 } else
                 {
-                    Object keys = Helpers.objectKeys(addressStructures);
+                    Object keys = new ArrayList<Object>(((Map<String, Object>)addressStructures).keySet());
                     String key = this.safeString(keys, 0);
                     return this.safeDict(addressStructures, key);
                 }
@@ -6757,7 +6757,7 @@ public class Bingx extends BingxApi
         //
         Object currency = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Object networks = this.safeDict(fee, "networks", new HashMap<String, Object>() {{}});
-        Object networkCodes = Helpers.objectKeys(networks);
+        Object networkCodes = new ArrayList<Object>(((Map<String, Object>)networks).keySet());
         Object networksLength = ((List<?>)networkCodes).size();
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", networks );
@@ -6819,7 +6819,7 @@ public class Bingx extends BingxApi
             }
             Object response = (this.fetchCurrencies((Object)(parameters))).join();
             Map<String, Object> depositWithdrawFees = new HashMap<String, Object>() {{}};
-            Object responseCodes = Helpers.objectKeys(response);
+            Object responseCodes = new ArrayList<Object>(((Map<String, Object>)response).keySet());
             for (var i = 0; i < ((List<?>)responseCodes).size(); i++)
             {
                 Object code = Helpers.GetValue(responseCodes, i);
@@ -7741,7 +7741,7 @@ final Object finalMarket = market;
         parameters = this.keysort(parameters);
         if (java.util.Objects.equals(access, "public"))
         {
-            if (((List<?>)Helpers.objectKeys(parameters)).size() > 0)
+            if (((List<?>)new ArrayList<Object>(((Map<String, Object>)parameters).keySet())).size() > 0)
             {
                 url = (url + ("?" + this.urlencode(parameters)));
             }

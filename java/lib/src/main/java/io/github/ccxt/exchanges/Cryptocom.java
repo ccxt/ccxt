@@ -2822,7 +2822,7 @@ public class Cryptocom extends CryptocomApi
             {
                 return Helpers.GetValue(depositAddresses, network);
             }
-            Object keys = Helpers.objectKeys(depositAddresses);
+            Object keys = new ArrayList<Object>(((Map<String, Object>)depositAddresses).keySet());
             return Helpers.GetValue(depositAddresses, Helpers.GetValue(keys, 0));
         }).thenApply(DepositAddress::new);
 

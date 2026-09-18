@@ -449,7 +449,7 @@ public class Extended extends io.github.ccxt.exchanges.Extended
             Helpers.addElementToObject(symbols, symbol, true);
             Helpers.callDynamically(stored, "append", new Object[]{trade});
         }
-        Object keys = Helpers.objectKeys(symbols);
+        Object keys = new ArrayList<Object>(((Map<String, Object>)symbols).keySet());
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
             String messageHash = ("myTrades:" + Helpers.GetValue(keys, i));
@@ -630,7 +630,7 @@ public class Extended extends io.github.ccxt.exchanges.Extended
             Helpers.addElementToObject(symbols, symbol, true);
             Helpers.callDynamically(orders, "append", new Object[]{order});
         }
-        Object keys = Helpers.objectKeys(symbols);
+        Object keys = new ArrayList<Object>(((Map<String, Object>)symbols).keySet());
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
             String messageHash = ("orders:" + Helpers.GetValue(keys, i));

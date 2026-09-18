@@ -330,7 +330,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
         Object snapshot = this.safeDict(message, "snapshot");
         Object data = this.safeDict2(message, "snapshot", "update", new HashMap<String, Object>() {{}});
         String type = (((!java.util.Objects.equals(snapshot, null) && !java.util.Objects.equals(snapshot, null)))) ? "snapshot" : "update";
-        Object marketIds = Helpers.objectKeys(data);
+        Object marketIds = new ArrayList<Object>(((Map<String, Object>)data).keySet());
         for (var i = 0; i < ((List<?>)marketIds).size(); i++)
         {
             Object marketId = Helpers.GetValue(marketIds, i);
@@ -514,7 +514,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
         //    }
         //
         Object data = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
-        Object marketIds = Helpers.objectKeys(data);
+        Object marketIds = new ArrayList<Object>(((Map<String, Object>)data).keySet());
         List<Object> result = new ArrayList<Object>(Arrays.asList());
         String topic = "tickers";
         for (var i = 0; i < ((List<?>)marketIds).size(); i++)
@@ -658,7 +658,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
         //     }
         //
         Object data = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
-        Object marketIds = Helpers.objectKeys(data);
+        Object marketIds = new ArrayList<Object>(((Map<String, Object>)data).keySet());
         List<Object> result = new ArrayList<Object>(Arrays.asList());
         String topic = "bidask";
         for (var i = 0; i < ((List<?>)marketIds).size(); i++)
@@ -778,7 +778,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
         //    }
         //
         Object data = this.safeDict2(message, "snapshot", "update", new HashMap<String, Object>() {{}});
-        Object marketIds = Helpers.objectKeys(data);
+        Object marketIds = new ArrayList<Object>(((Map<String, Object>)data).keySet());
         for (var i = 0; i < ((List<?>)marketIds).size(); i++)
         {
             Object marketId = Helpers.GetValue(marketIds, i);
@@ -929,7 +929,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
         //    }
         //
         Object data = this.safeDict2(message, "snapshot", "update", new HashMap<String, Object>() {{}});
-        Object marketIds = Helpers.objectKeys(data);
+        Object marketIds = new ArrayList<Object>(((Map<String, Object>)data).keySet());
         String channel = this.safeString(message, "ch", "");
         Object splitChannel = Helpers.split(channel, "/");
         String period = this.safeString(splitChannel, 1);

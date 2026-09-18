@@ -238,7 +238,7 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
                 Helpers.addElementToObject(updates, symbol, true);
             }
         }
-        Object symbols = Helpers.objectKeys(updates);
+        Object symbols = new ArrayList<Object>(((Map<String, Object>)updates).keySet());
         for (var i = 0; i < ((List<?>)symbols).size(); i++)
         {
             Object symbol = Helpers.GetValue(symbols, i);
@@ -405,7 +405,7 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
             }
         }
         String name = "SubscribeTicker";
-        Object marketIds = Helpers.objectKeys(updates);
+        Object marketIds = new ArrayList<Object>(((Map<String, Object>)updates).keySet());
         for (var i = 0; i < ((List<?>)marketIds).size(); i++)
         {
             Object marketId = Helpers.GetValue(marketIds, i);

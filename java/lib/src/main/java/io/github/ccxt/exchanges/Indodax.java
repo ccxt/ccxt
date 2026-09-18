@@ -521,7 +521,7 @@ public class Indodax extends IndodaxApi
             put( "timestamp", timestamp );
             put( "datetime", Indodax.this.iso8601(timestamp) );
         }};
-        Object currencyIds = Helpers.objectKeys(free);
+        Object currencyIds = new ArrayList<Object>(((Map<String, Object>)free).keySet());
         for (var i = 0; i < ((List<?>)currencyIds).size(); i++)
         {
             Object currencyId = Helpers.GetValue(currencyIds, i);
@@ -748,7 +748,7 @@ public class Indodax extends IndodaxApi
             //
             Map<String, Object> response = (this.publicGetApiTickerAll(parameters)).join();
             Object tickers = this.safeDict(response, "tickers", new HashMap<String, Object>() {{}});
-            Object keys = Helpers.objectKeys(tickers);
+            Object keys = new ArrayList<Object>(((Map<String, Object>)tickers).keySet());
             Map<String, Object> parsedTickers = new HashMap<String, Object>() {{}};
             for (var i = 0; i < ((List<?>)keys).size(); i++)
             {
@@ -1503,13 +1503,13 @@ public class Indodax extends IndodaxApi
             Object currency = null;
             if (java.util.Objects.equals(code, null))
             {
-                Object keys = Helpers.objectKeys(withdraw);
+                Object keys = new ArrayList<Object>(((Map<String, Object>)withdraw).keySet());
                 for (var i = 0; i < ((List<?>)keys).size(); i++)
                 {
                     Object key = Helpers.GetValue(keys, i);
                     transactions = this.arrayConcat(transactions, Helpers.GetValue(withdraw, key));
                 }
-                keys = Helpers.objectKeys(deposit);
+                keys = new ArrayList<Object>(((Map<String, Object>)deposit).keySet());
                 for (var i = 0; i < ((List<?>)keys).size(); i++)
                 {
                     Object key = Helpers.GetValue(keys, i);
@@ -1744,7 +1744,7 @@ public class Indodax extends IndodaxApi
             Object data = this.safeDict(response, "return");
             Object addresses = this.safeDict(data, "address", new HashMap<String, Object>() {{}});
             Object networks = this.safeDict(data, "network", new HashMap<String, Object>() {{}});
-            Object addressKeys = Helpers.objectKeys(addresses);
+            Object addressKeys = new ArrayList<Object>(((Map<String, Object>)addresses).keySet());
             Object result = new HashMap<String, Object>() {{
                 put( "info", data );
             }};

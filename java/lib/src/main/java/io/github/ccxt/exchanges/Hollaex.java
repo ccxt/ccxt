@@ -444,7 +444,7 @@ public class Hollaex extends HollaexApi
             //     }
             //
             Object pairs = this.safeDict(response, "pairs", new HashMap<String, Object>() {{}});
-            Object keys = Helpers.objectKeys(pairs);
+            Object keys = new ArrayList<Object>(((Map<String, Object>)pairs).keySet());
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)keys).size(); i++)
             {
@@ -607,7 +607,7 @@ public class Hollaex extends HollaexApi
         String type = (((java.util.Objects.equals(rawType, "blockchain")))) ? "crypto" : "other";
         Object rawNetworks = this.safeDict(rawCurrency, "withdrawal_fees", new HashMap<String, Object>() {{}});
         Map<String, Object> networks = new HashMap<String, Object>() {{}};
-        Object networkIds = Helpers.objectKeys(rawNetworks);
+        Object networkIds = new ArrayList<Object>(((Map<String, Object>)rawNetworks).keySet());
         for (var j = 0; j < ((List<?>)networkIds).size(); j++)
         {
             Object networkId = Helpers.GetValue(networkIds, j);
@@ -684,7 +684,7 @@ public class Hollaex extends HollaexApi
             }
             Map<String, Object> response = (this.publicGetOrderbooks(parameters)).join();
             Map<String, Object> result = new HashMap<String, Object>() {{}};
-            Object marketIds = Helpers.objectKeys(response);
+            Object marketIds = new ArrayList<Object>(((Map<String, Object>)response).keySet());
             for (var i = 0; i < ((List<?>)marketIds).size(); i++)
             {
                 Object marketId = Helpers.GetValue(marketIds, i);
@@ -1194,7 +1194,7 @@ public class Hollaex extends HollaexApi
         {
             throw new ExchangeError((this.id + " currencies not loaded")) ;
         }
-        Object currencyIds = Helpers.objectKeys(currenciesById);
+        Object currencyIds = new ArrayList<Object>(((Map<String, Object>)currenciesById).keySet());
         for (var i = 0; i < ((List<?>)currencyIds).size(); i++)
         {
             Object currencyId = Helpers.GetValue(currencyIds, i);

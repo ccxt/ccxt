@@ -3683,7 +3683,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
         String messageHash = ("position:" + symbol);
         Object data = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         Object newPosition = this.parsePosition(data);
-        Object keys = Helpers.objectKeys(newPosition);
+        Object keys = new ArrayList<Object>(((Map<String, Object>)newPosition).keySet());
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
             Object key = Helpers.GetValue(keys, i);
@@ -3734,7 +3734,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
         Object cache = this.positions;
         Object currentPosition = this.getCurrentPosition(symbol);
         Object newPosition = this.parseWsUtaPosition(data);
-        Object keys = Helpers.objectKeys(newPosition);
+        Object keys = new ArrayList<Object>(((Map<String, Object>)newPosition).keySet());
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
             Object key = Helpers.GetValue(keys, i);

@@ -1499,7 +1499,7 @@ public class Woofipro extends io.github.ccxt.exchanges.Woofipro
         //
         Object data = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         Object balances = this.safeDict(data, "balances", new HashMap<String, Object>() {{}});
-        Object keys = Helpers.objectKeys(balances);
+        Object keys = new ArrayList<Object>(((Map<String, Object>)balances).keySet());
         Long ts = this.safeInteger(message, "ts");
         Helpers.addElementToObject(this.balance, "info", data);
         Helpers.addElementToObject(this.balance, "timestamp", ts);

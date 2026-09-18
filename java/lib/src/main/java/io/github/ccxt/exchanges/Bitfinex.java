@@ -1306,7 +1306,7 @@ public class Bitfinex extends BitfinexApi
             String accountType = this.safeString(accountsByType, requestedType, requestedType);
             if (java.util.Objects.equals(accountType, null))
             {
-                Object keys = Helpers.objectKeys(accountsByType);
+                Object keys = new ArrayList<Object>(((Map<String, Object>)accountsByType).keySet());
                 throw new ExchangeError(((this.id + " fetchBalance() type parameter must be one of ") + String.join(", ", (List<String>)keys))) ;
             }
             Boolean isDerivative = java.util.Objects.equals(requestedType, "derivatives");
@@ -1375,13 +1375,13 @@ public class Bitfinex extends BitfinexApi
             String fromId = this.safeString(accountsByType, fromAccount);
             if (java.util.Objects.equals(fromId, null))
             {
-                Object keys = Helpers.objectKeys(accountsByType);
+                Object keys = new ArrayList<Object>(((Map<String, Object>)accountsByType).keySet());
                 throw new ArgumentsRequired(((this.id + " transfer() fromAccount must be one of ") + String.join(", ", (List<String>)keys))) ;
             }
             String toId = this.safeString(accountsByType, toAccount);
             if (java.util.Objects.equals(toId, null))
             {
-                Object keys = Helpers.objectKeys(accountsByType);
+                Object keys = new ArrayList<Object>(((Map<String, Object>)accountsByType).keySet());
                 throw new ArgumentsRequired(((this.id + " transfer() toAccount must be one of ") + String.join(", ", (List<String>)keys))) ;
             }
             Map<String, Object> currency = (Map<String, Object>) this.currency(code);

@@ -3560,7 +3560,7 @@ public class Krakenfutures extends KrakenfuturesApi
         Boolean isCash = (java.util.Objects.equals(accountType, "cashAccount"));
         Object balances = this.safeDict2(response, "balances", "currencies", new HashMap<String, Object>() {{}});
         Map<String, Object> result = new HashMap<String, Object>() {{}};
-        Object currencyIds = Helpers.objectKeys(balances);
+        Object currencyIds = new ArrayList<Object>(((Map<String, Object>)balances).keySet());
         for (var i = 0; i < ((List<?>)currencyIds).size(); i++)
         {
             Object currencyId = Helpers.GetValue(currencyIds, i);

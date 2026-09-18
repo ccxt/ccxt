@@ -1094,7 +1094,7 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
             put( "private-my_orders", "handleOrders");
             put( "private-my_trades", "handleMyTrades");
         }};
-        Object keys = Helpers.objectKeys(methods);
+        Object keys = new ArrayList<Object>(((Map<String, Object>)methods).keySet());
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
             Object key = Helpers.GetValue(keys, i);

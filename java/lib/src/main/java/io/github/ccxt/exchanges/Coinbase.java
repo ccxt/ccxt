@@ -1747,7 +1747,7 @@ public class Coinbase extends CoinbaseApi
             Object data = this.safeList(currencies, "data", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> dataById = this.indexBy(data, "id");
             Object rates = this.safeDict(this.safeDict(exchangeRates, "data", new HashMap<String, Object>() {{}}), "rates", new HashMap<String, Object>() {{}});
-            Object baseIds = Helpers.objectKeys(rates);
+            Object baseIds = new ArrayList<Object>(((Map<String, Object>)rates).keySet());
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)baseIds).size(); i++)
             {
@@ -2404,7 +2404,7 @@ public class Coinbase extends CoinbaseApi
             Object cryptoData = this.safeList(cryptoResponse, "data", new ArrayList<Object>(Arrays.asList()));
             Object ratesData = this.safeDict(ratesResponse, "data", new HashMap<String, Object>() {{}});
             Object rates = this.safeDict(ratesData, "rates", new HashMap<String, Object>() {{}});
-            Object ratesIds = Helpers.objectKeys(rates);
+            Object ratesIds = new ArrayList<Object>(((Map<String, Object>)rates).keySet());
             List<Object> currencies = (List<Object>) this.arrayConcat(fiatData, cryptoData);
             Map<String, Object> result = new HashMap<String, Object>() {{}};
             Map<String, Object> networks = new HashMap<String, Object>() {{}};
@@ -2548,7 +2548,7 @@ public class Coinbase extends CoinbaseApi
             Object rates = this.safeDict(data, "rates", new HashMap<String, Object>() {{}});
             String quoteId = this.safeString(data, "currency");
             Map<String, Object> result = new HashMap<String, Object>() {{}};
-            Object baseIds = Helpers.objectKeys(rates);
+            Object baseIds = new ArrayList<Object>(((Map<String, Object>)rates).keySet());
             String delimiter = "-";
             for (var i = 0; i < ((List<?>)baseIds).size(); i++)
             {

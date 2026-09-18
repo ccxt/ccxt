@@ -457,7 +457,7 @@ public class Cex extends CexApi
         Object currencyPrecision = this.parseNumber(this.parsePrecision(this.safeString(rawCurrency, "precision")));
         Map<String, Object> networks = new HashMap<String, Object>() {{}};
         Object rawNetworks = this.safeDict(rawCurrency, "blockchains", new HashMap<String, Object>() {{}});
-        Object keys = Helpers.objectKeys(rawNetworks);
+        Object keys = new ArrayList<Object>(((Map<String, Object>)rawNetworks).keySet());
         for (var j = 0; j < ((List<?>)keys).size(); j++)
         {
             Object networkId = Helpers.GetValue(keys, j);

@@ -5298,7 +5298,7 @@ public class Bybit extends BybitApi
         String status = this.parseOrderStatus(rawStatus);
         Object fee = null;
         Object cumFeeDetail = this.safeDict(order, "cumFeeDetail", new HashMap<String, Object>() {{}});
-        Object feeCoins = Helpers.objectKeys(cumFeeDetail);
+        Object feeCoins = new ArrayList<Object>(((Map<String, Object>)cumFeeDetail).keySet());
         String feeCoinId = this.safeString(feeCoins, 0);
         if (!java.util.Objects.equals(feeCoinId, null))
         {
@@ -11164,7 +11164,7 @@ public class Bybit extends BybitApi
         Object idKey = (((java.util.Objects.equals(marketIdKey, null)))) ? "symbol" : marketIdKey;
         Object filteredResults = this.filterByArray(response, idKey, marketIds, false);
         Map<String, Object> grouped = this.groupBy(filteredResults, idKey);
-        Object keys = Helpers.objectKeys(grouped);
+        Object keys = new ArrayList<Object>(((Map<String, Object>)grouped).keySet());
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
             Object marketId = Helpers.GetValue(keys, i);

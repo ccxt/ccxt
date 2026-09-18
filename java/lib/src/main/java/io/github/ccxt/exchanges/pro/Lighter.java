@@ -375,7 +375,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
         String channel = this.safeString(message, "channel");
         if (java.util.Objects.equals(channel, "market_stats:all"))
         {
-            Object marketIds = Helpers.objectKeys(data);
+            Object marketIds = new ArrayList<Object>(((Map<String, Object>)data).keySet());
             for (var i = 0; i < ((List<?>)marketIds).size(); i++)
             {
                 Object marketId = Helpers.GetValue(marketIds, i);
@@ -946,7 +946,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
         Object parts = Helpers.split(channel, ":");
         String accountIndex = (String) Helpers.GetValue(parts, 1);
         Object data = this.safeDict(message, "trades", new HashMap<String, Object>() {{}});
-        Object marketIds = Helpers.objectKeys(data);
+        Object marketIds = new ArrayList<Object>(((Map<String, Object>)data).keySet());
         Object idsLength = ((List<?>)marketIds).size();
         if (Helpers.isEqual(idsLength, 0))
         {
@@ -1331,7 +1331,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
         if (java.util.Objects.equals(type, "spot"))
         {
             Object assets = this.safeDict(message, "assets", new HashMap<String, Object>() {{}});
-            Object assetIds = Helpers.objectKeys(assets);
+            Object assetIds = new ArrayList<Object>(((Map<String, Object>)assets).keySet());
             for (var i = 0; i < ((List<?>)assetIds).size(); i++)
             {
                 Object assetId = Helpers.GetValue(assetIds, i);
@@ -1635,7 +1635,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
         //    }
         //
         Object data = this.safeDict(message, "orders", new HashMap<String, Object>() {{}});
-        Object marketIds = Helpers.objectKeys(data);
+        Object marketIds = new ArrayList<Object>(((Map<String, Object>)data).keySet());
         Object idsLength = ((List<?>)marketIds).size();
         if (Helpers.isEqual(idsLength, 0))
         {

@@ -674,7 +674,7 @@ public class Apex extends ApexApi
                 }
             }
         }
-        Object networkKeys = Helpers.objectKeys(networks);
+        Object networkKeys = new ArrayList<Object>(((Map<String, Object>)networks).keySet());
         Object networksLength = ((List<?>)networkKeys).size();
         Boolean emptyChains = Helpers.isEqual(networksLength, 0); // non-functional coins
         Object valueForEmpty = ((Helpers.isTrue(emptyChains))) ? false : null;

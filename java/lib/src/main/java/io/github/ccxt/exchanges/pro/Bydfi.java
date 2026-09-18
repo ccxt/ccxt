@@ -355,7 +355,7 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
         Client client = this.client(url);
         Object subscriptions = client.subscriptions;
         List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
-        Object keys = Helpers.objectKeys(subscriptions);
+        Object keys = new ArrayList<Object>(((Map<String, Object>)subscriptions).keySet());
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
             Object key = Helpers.GetValue(keys, i);

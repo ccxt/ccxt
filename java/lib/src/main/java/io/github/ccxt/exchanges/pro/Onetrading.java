@@ -1245,7 +1245,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
                 Helpers.addElementToObject(Helpers.GetValue(subscription, marketId), timeframe, true);
             }
             List<Object> properties = new ArrayList<Object>(Arrays.asList());
-            Object marketIds = Helpers.objectKeys(subscription);
+            Object marketIds = new ArrayList<Object>(((Map<String, Object>)subscription).keySet());
             for (var i = 0; i < ((List<?>)marketIds).size(); i++)
             {
                 Object marketIdtimeframes = Helpers.objectKeys(Helpers.GetValue(subscription, Helpers.GetValue(marketIds, i)));
@@ -1492,7 +1492,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
                 {
                     return new ArrayList<Object>(Arrays.asList());
                 }
-                marketIds = Helpers.objectKeys(marketsById);
+                marketIds = new ArrayList<Object>(((Map<String, Object>)marketsById).keySet());
             } else
             {
                 marketIds = this.marketIds(symbols);
@@ -1527,7 +1527,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
                 Helpers.addElementToObject(subscription, marketId, true);
             }
             Helpers.addElementToObject(request, "type", type);
-            Helpers.addElementToObject(Helpers.GetValue(Helpers.GetValue(request, "channels"), 0), "instrument_codes", Helpers.objectKeys(subscription));
+            Helpers.addElementToObject(Helpers.GetValue(Helpers.GetValue(request, "channels"), 0), "instrument_codes", new ArrayList<Object>(((Map<String, Object>)subscription).keySet()));
             return (this.watch(url, messageHash, this.deepExtend(request, parameters), subscriptionHash, subscription)).join();
         });
 

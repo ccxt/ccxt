@@ -1557,7 +1557,7 @@ public class P2b extends P2bApi
         parameters = this.omit(parameters, this.extractParams(path));
         if (java.util.Objects.equals(method, "GET"))
         {
-            if (((List<?>)Helpers.objectKeys(parameters)).size() > 0)
+            if (((List<?>)new ArrayList<Object>(((Map<String, Object>)parameters).keySet())).size() > 0)
             {
                 url = (url + ("?" + this.urlencode(parameters)));
             }

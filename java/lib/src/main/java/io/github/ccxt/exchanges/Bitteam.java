@@ -774,7 +774,7 @@ public class Bitteam extends BitteamApi
         Object statuses = this.safeValue(statusesResponse, numericId, new HashMap<String, Object>() {{}});
         Object deposit = this.safeValue(statuses, "depositStatus");
         Object withdraw = this.safeValue(statuses, "withdrawStatus");
-        Object networkIds = Helpers.objectKeys(feesByNetworkId);
+        Object networkIds = new ArrayList<Object>(((Map<String, Object>)feesByNetworkId).keySet());
         Map<String, Object> networks = new HashMap<String, Object>() {{}};
         Object networkPrecision = this.parseNumber(this.parsePrecision(this.safeString(currency, "decimals")));
         String typeRaw = this.safeString(currency, "type");

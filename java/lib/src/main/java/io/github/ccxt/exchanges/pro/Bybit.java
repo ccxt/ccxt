@@ -1834,7 +1834,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
             Helpers.addElementToObject(symbols, symbol, true);
             Helpers.callDynamically(trades, "append", new Object[]{parsed});
         }
-        Object keys = Helpers.objectKeys(symbols);
+        Object keys = new ArrayList<Object>(((Map<String, Object>)symbols).keySet());
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
             String currentMessageHash = ("myTrades:" + Helpers.GetValue(keys, i));
@@ -2468,7 +2468,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
             Helpers.addElementToObject(symbols, symbol, true);
             Helpers.callDynamically(orders, "append", new Object[]{parsed});
         }
-        Object symbolsArray = Helpers.objectKeys(symbols);
+        Object symbolsArray = new ArrayList<Object>(((Map<String, Object>)symbols).keySet());
         for (var i = 0; i < ((List<?>)symbolsArray).size(); i++)
         {
             String currentMessageHash = ("orders:" + Helpers.GetValue(symbolsArray, i));
@@ -3153,7 +3153,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
             this.handleOrderBook(client, message);
             return;
         }
-        Object keys = Helpers.objectKeys(methods);
+        Object keys = new ArrayList<Object>(((Map<String, Object>)methods).keySet());
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
             Object key = Helpers.GetValue(keys, i);

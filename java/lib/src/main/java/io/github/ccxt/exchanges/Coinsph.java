@@ -2759,7 +2759,7 @@ public class Coinsph extends CoinsphApi
     {
         Object query = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
         Object encodedArrayParams = "";
-        Object keys = Helpers.objectKeys(query);
+        Object keys = new ArrayList<Object>(((Map<String, Object>)query).keySet());
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
             Object key = Helpers.GetValue(keys, i);

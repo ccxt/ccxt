@@ -2380,7 +2380,7 @@ public class Nado extends NadoApi
             //         }
             //     }
             //
-            Object tickers = Helpers.objectKeys(response);
+            Object tickers = new ArrayList<Object>(((Map<String, Object>)response).keySet());
             List<Object> rates = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)tickers).size(); i++)
             {
@@ -2488,7 +2488,7 @@ public class Nado extends NadoApi
             //         }
             //     }
             //
-            Object tickers = Helpers.objectKeys(response);
+            Object tickers = new ArrayList<Object>(((Map<String, Object>)response).keySet());
             List<Object> interests = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)tickers).size(); i++)
             {

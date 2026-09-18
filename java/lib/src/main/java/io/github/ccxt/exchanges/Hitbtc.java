@@ -909,7 +909,7 @@ public class Hitbtc extends HitbtcApi
             //     }
             //
             List<Object> result = new ArrayList<Object>(Arrays.asList());
-            Object ids = Helpers.objectKeys(response);
+            Object ids = new ArrayList<Object>(((Map<String, Object>)response).keySet());
             for (var i = 0; i < ((List<?>)ids).size(); i++)
             {
                 Object id = Helpers.GetValue(ids, i);
@@ -1306,7 +1306,7 @@ public class Hitbtc extends HitbtcApi
                 response = (this.privateGetFuturesBalance(parameters)).join();
             } else
             {
-                Object keys = Helpers.objectKeys(accountsByType);
+                Object keys = new ArrayList<Object>(((Map<String, Object>)accountsByType).keySet());
                 throw new BadRequest(((this.id + " fetchBalance() type parameter must be one of ") + String.join(", ", (List<String>)keys))) ;
             }
             //
@@ -1412,7 +1412,7 @@ public class Hitbtc extends HitbtcApi
             //     }
             //
             Map<String, Object> result = new HashMap<String, Object>() {{}};
-            Object keys = Helpers.objectKeys(response);
+            Object keys = new ArrayList<Object>(((Map<String, Object>)response).keySet());
             for (var i = 0; i < ((List<?>)keys).size(); i++)
             {
                 Object marketId = Helpers.GetValue(keys, i);
@@ -1514,7 +1514,7 @@ public class Hitbtc extends HitbtcApi
             }
             Map<String, Object> response = (this.publicGetPublicTrades(this.extend(request, parameters))).join();
             Object trades = new ArrayList<Object>(Arrays.asList());
-            Object marketIds = Helpers.objectKeys(response);
+            Object marketIds = new ArrayList<Object>(((Map<String, Object>)response).keySet());
             for (var i = 0; i < ((List<?>)marketIds).size(); i++)
             {
                 Object marketId = Helpers.GetValue(marketIds, i);
@@ -2000,7 +2000,7 @@ public class Hitbtc extends HitbtcApi
             }
             Map<String, Object> response = (this.publicGetPublicOrderbook(this.extend(request, parameters))).join();
             Map<String, Object> result = new HashMap<String, Object>() {{}};
-            Object marketIds = Helpers.objectKeys(response);
+            Object marketIds = new ArrayList<Object>(((Map<String, Object>)response).keySet());
             for (var i = 0; i < ((List<?>)marketIds).size(); i++)
             {
                 Object marketId = Helpers.GetValue(marketIds, i);
@@ -3379,7 +3379,7 @@ public class Hitbtc extends HitbtcApi
             }
             if ((java.util.Objects.equals(fromNetwork, null)) || (java.util.Objects.equals(toNetwork, null)))
             {
-                Object keys = Helpers.objectKeys(networks);
+                Object keys = new ArrayList<Object>(((Map<String, Object>)networks).keySet());
                 throw new ArgumentsRequired(((this.id + " convertCurrencyNetwork() requires a fromNetwork parameter and a toNetwork parameter, supported networks are ") + String.join(", ", (List<String>)keys))) ;
             }
             final Object finalFromNetwork = fromNetwork;
@@ -3519,7 +3519,7 @@ public class Hitbtc extends HitbtcApi
             //         }
             //     }
             //
-            Object marketIds = Helpers.objectKeys(response);
+            Object marketIds = new ArrayList<Object>(((Map<String, Object>)response).keySet());
             Map<String, Object> fundingRates = new HashMap<String, Object>() {{}};
             for (var i = 0; i < ((List<?>)marketIds).size(); i++)
             {
@@ -3608,7 +3608,7 @@ public class Hitbtc extends HitbtcApi
             //        ...
             //    }
             //
-            Object contracts = Helpers.objectKeys(response);
+            Object contracts = new ArrayList<Object>(((Map<String, Object>)response).keySet());
             List<Object> rates = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)contracts).size(); i++)
             {
@@ -3993,7 +3993,7 @@ public class Hitbtc extends HitbtcApi
             //     }
             //
             List<Object> results = new ArrayList<Object>(Arrays.asList());
-            Object markets = Helpers.objectKeys(response);
+            Object markets = new ArrayList<Object>(((Map<String, Object>)response).keySet());
             for (var i = 0; i < ((List<?>)markets).size(); i++)
             {
                 Object marketId = Helpers.GetValue(markets, i);

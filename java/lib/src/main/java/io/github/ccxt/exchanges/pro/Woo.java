@@ -1721,7 +1721,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
         //
         Object data = this.safeValue(message, "data", new HashMap<String, Object>() {{}});
         Object rawPositions = this.safeDict(data, "positions", new HashMap<String, Object>() {{}});
-        Object postitionsIds = Helpers.objectKeys(rawPositions);
+        Object postitionsIds = new ArrayList<Object>(((Map<String, Object>)rawPositions).keySet());
         if (java.util.Objects.equals(this.positions, null))
         {
             this.positions = new ArrayCache.ArrayCacheBySymbolBySide();

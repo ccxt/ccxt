@@ -2097,7 +2097,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
         //
         Long timestamp = this.safeInteger(message, "time");
         Object bbos = this.safeDict(message, "bbos", new HashMap<String, Object>() {{}});
-        Object marketIds = Helpers.objectKeys(bbos);
+        Object marketIds = new ArrayList<Object>(((Map<String, Object>)bbos).keySet());
         Map<String, Object> result = new HashMap<String, Object>() {{}};
         for (var i = 0; i < ((List<?>)marketIds).size(); i++)
         {
@@ -2127,7 +2127,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
     public void handleAllBidsAsks(Client client, Object message)
     {
         Object tickers = this.parseWsAllBidsAsks(message);
-        Object symbols = Helpers.objectKeys(tickers);
+        Object symbols = new ArrayList<Object>(((Map<String, Object>)tickers).keySet());
         for (var i = 0; i < ((List<?>)symbols).size(); i++)
         {
             Object symbol = Helpers.GetValue(symbols, i);

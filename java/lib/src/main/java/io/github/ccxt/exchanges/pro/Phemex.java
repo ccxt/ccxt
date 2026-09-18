@@ -1121,7 +1121,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
                 Helpers.addElementToObject(marketIds, symbol, true);
             }
         }
-        Object keys = Helpers.objectKeys(marketIds);
+        Object keys = new ArrayList<Object>(((Map<String, Object>)marketIds).keySet());
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
             Object market = Helpers.GetValue(keys, i);
@@ -1409,7 +1409,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
             }
             Helpers.addElementToObject(marketIds, symbol, true);
         }
-        Object keys = Helpers.objectKeys(marketIds);
+        Object keys = new ArrayList<Object>(((Map<String, Object>)marketIds).keySet());
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
             Object currentMessageHash = (("orders" + ":") + Helpers.GetValue(keys, i));

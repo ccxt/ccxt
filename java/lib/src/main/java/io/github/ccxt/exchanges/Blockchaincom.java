@@ -370,7 +370,7 @@ public class Blockchaincom extends BlockchaincomApi
             //
             Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             Map<String, Object> markets = (this.publicGetSymbols(parameters)).join();
-            Object marketIds = Helpers.objectKeys(markets);
+            Object marketIds = new ArrayList<Object>(((Map<String, Object>)markets).keySet());
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)marketIds).size(); i++)
             {

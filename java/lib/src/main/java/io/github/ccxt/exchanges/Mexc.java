@@ -1413,7 +1413,7 @@ public class Mexc extends MexcApi
                 //
                 //     {}
                 //
-                Object keys = Helpers.objectKeys(response);
+                Object keys = new ArrayList<Object>(((Map<String, Object>)response).keySet());
                 Object length = ((List<?>)keys).size();
                 status = (((Helpers.isGreaterThan(length, 0)))) ? this.json(response) : "ok";
             } else if (java.util.Objects.equals(marketType, "swap"))
@@ -5815,7 +5815,7 @@ final Object finalRiskIncrVol = riskIncrVol;
                     result = this.safeDict(addressStructures, defaultNetworkForCurrency);
                 } else
                 {
-                    Object keys = Helpers.objectKeys(addressStructures);
+                    Object keys = new ArrayList<Object>(((Map<String, Object>)addressStructures).keySet());
                     String key = this.safeString(keys, 0);
                     result = this.safeDict(addressStructures, key);
                 }
@@ -6555,12 +6555,12 @@ final Object finalRiskIncrVol = riskIncrVol;
             String toId = this.safeString(accounts, toAccount, toAccount);
             if (java.util.Objects.equals(fromId, null))
             {
-                Object keys = Helpers.objectKeys(accounts);
+                Object keys = new ArrayList<Object>(((Map<String, Object>)accounts).keySet());
                 throw new ExchangeError(((this.id + " fromAccount must be one of ") + String.join(", ", (List<String>)keys))) ;
             }
             if (java.util.Objects.equals(toId, null))
             {
-                Object keys = Helpers.objectKeys(accounts);
+                Object keys = new ArrayList<Object>(((Map<String, Object>)accounts).keySet());
                 throw new ExchangeError(((this.id + " toAccount must be one of ") + String.join(", ", (List<String>)keys))) ;
             }
             final Object finalFromId = fromId;
@@ -7391,7 +7391,7 @@ final Object finalRiskIncrVol = riskIncrVol;
                 }
             }
             Object paramsEncoded = "";
-            if (((List<?>)Helpers.objectKeys(urlParams)).size() > 0)
+            if (((List<?>)new ArrayList<Object>(((Map<String, Object>)urlParams).keySet())).size() > 0)
             {
                 paramsEncoded = this.urlencode(urlParams);
                 url = (url + ("?" + paramsEncoded));

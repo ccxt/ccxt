@@ -9126,7 +9126,7 @@ final Object finalI = i;
             } else
             {
                 Object urlQueryParams = this.safeDict(query, "query", new HashMap<String, Object>() {{}});
-                if (((List<?>)Helpers.objectKeys(urlQueryParams)).size() > 0)
+                if (((List<?>)new ArrayList<Object>(((Map<String, Object>)urlQueryParams).keySet())).size() > 0)
                 {
                     queryString = this.urlencode(urlQueryParams);
                     url = Helpers.add(url, ("?" + queryString));

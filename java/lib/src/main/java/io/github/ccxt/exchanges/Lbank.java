@@ -1602,7 +1602,7 @@ public class Lbank extends LbankApi
         {
             Object used = this.safeValue(data, "freeze", new HashMap<String, Object>() {{}});
             Object free = this.safeDict(data, "free", new HashMap<String, Object>() {{}});
-            Object currencies = Helpers.objectKeys(free);
+            Object currencies = new ArrayList<Object>(((Map<String, Object>)free).keySet());
             for (var i = 0; i < ((List<?>)currencies).size(); i++)
             {
                 Object currencyId = Helpers.GetValue(currencies, i);

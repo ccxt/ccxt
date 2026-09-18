@@ -1581,7 +1581,7 @@ public class Woo extends WooApi
             Object tokenNetworkRows = this.safeList(tokenNetworkResponse, "rows", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> networksById = this.groupBy(tokenNetworkRows, "token");
             Map<String, Object> tokensById = this.groupBy(tokenRows, "balance_token");
-            Object currencyIds = Helpers.objectKeys(tokensById);
+            Object currencyIds = new ArrayList<Object>(((Map<String, Object>)tokensById).keySet());
             for (var i = 0; i < ((List<?>)currencyIds).size(); i++)
             {
                 Object id = Helpers.GetValue(currencyIds, i);
@@ -1608,7 +1608,7 @@ public class Woo extends WooApi
         String code = this.safeCurrencyCode(currencyId);
         Map<String, Object> tokensByNetworkId = this.indexBy(((Map<String, Object>)rawCurrency).get("_tokens_by_id"), "network");
         Map<String, Object> chainsByNetworkId = this.indexBy(((Map<String, Object>)rawCurrency).get("_networks_by_id"), "network");
-        Object keys = Helpers.objectKeys(chainsByNetworkId);
+        Object keys = new ArrayList<Object>(((Map<String, Object>)chainsByNetworkId).keySet());
         Map<String, Object> resultingNetworks = new HashMap<String, Object>() {{}};
         for (var j = 0; j < ((List<?>)keys).size(); j++)
         {
@@ -4201,14 +4201,14 @@ public class Woo extends WooApi
         if (java.util.Objects.equals(access, "public"))
         {
             url = (url + ((access + "/") + pathWithParams));
-            if (((List<?>)Helpers.objectKeys(parameters)).size() > 0)
+            if (((List<?>)new ArrayList<Object>(((Map<String, Object>)parameters).keySet())).size() > 0)
             {
                 url = (url + ("?" + this.urlencode(parameters)));
             }
         } else if (java.util.Objects.equals(access, "pub"))
         {
             url = Helpers.add(url, pathWithParams);
-            if (((List<?>)Helpers.objectKeys(parameters)).size() > 0)
+            if (((List<?>)new ArrayList<Object>(((Map<String, Object>)parameters).keySet())).size() > 0)
             {
                 url = (url + ("?" + this.urlencode(parameters)));
             }
@@ -4251,7 +4251,7 @@ public class Woo extends WooApi
                     ((Map<String, Object>)headers).put("content-type", "application/json");
                 } else
                 {
-                    if (((List<?>)Helpers.objectKeys(parameters)).size() > 0)
+                    if (((List<?>)new ArrayList<Object>(((Map<String, Object>)parameters).keySet())).size() > 0)
                     {
                         Object query = this.urlencode(parameters);
                         url = (url + ("?" + query));
@@ -4266,7 +4266,7 @@ public class Woo extends WooApi
                     body = auth;
                 } else
                 {
-                    if (((List<?>)Helpers.objectKeys(parameters)).size() > 0)
+                    if (((List<?>)new ArrayList<Object>(((Map<String, Object>)parameters).keySet())).size() > 0)
                     {
                         url = (url + ("?" + auth));
                     }
@@ -5681,7 +5681,7 @@ public class Woo extends WooApi
     {
         Map<String, Object> currencyItem = (Map<String, Object>) this.currency(code);
         Object networks = ((Map<String, Object>)currencyItem).get("networks");
-        Object networkKeys = Helpers.objectKeys(networks);
+        Object networkKeys = new ArrayList<Object>(((Map<String, Object>)networks).keySet());
         for (var i = 0; i < ((List<?>)networkKeys).size(); i++)
         {
             Object network = Helpers.GetValue(networkKeys, i);

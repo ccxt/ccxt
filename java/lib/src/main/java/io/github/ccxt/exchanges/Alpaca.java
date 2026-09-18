@@ -1313,7 +1313,7 @@ public class Alpaca extends AlpacaApi
             //
             List<Object> results = new ArrayList<Object>(Arrays.asList());
             Object snapshots = this.safeDict(response, "snapshots", new HashMap<String, Object>() {{}});
-            Object marketIds = Helpers.objectKeys(snapshots);
+            Object marketIds = new ArrayList<Object>(((Map<String, Object>)snapshots).keySet());
             for (var i = 0; i < ((List<?>)marketIds).size(); i++)
             {
                 Object marketId = Helpers.GetValue(marketIds, i);

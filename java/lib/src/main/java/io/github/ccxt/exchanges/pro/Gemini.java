@@ -318,7 +318,7 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
                 Helpers.callDynamically(stored, "append", new Object[]{trade});
                 Helpers.addElementToObject(storesForSymbols, symbol, stored);
             }
-            Object symbols = Helpers.objectKeys(storesForSymbols);
+            Object symbols = new ArrayList<Object>(((Map<String, Object>)storesForSymbols).keySet());
             for (var i = 0; i < ((List<?>)symbols).size(); i++)
             {
                 Object symbol = Helpers.GetValue(symbols, i);

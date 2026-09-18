@@ -1154,7 +1154,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
         if (Helpers.isGreaterThan(length, 0))
         {
             client.resolve(this.orders, messageHash);
-            Object keys = Helpers.objectKeys(symbols);
+            Object keys = new ArrayList<Object>(((Map<String, Object>)symbols).keySet());
             for (var i = 0; i < ((List<?>)keys).size(); i++)
             {
                 Object symbol = Helpers.GetValue(keys, i);
@@ -1729,7 +1729,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
         if (!java.util.Objects.equals(flexFutures, null))
         {
             Object flexFutureCurrencies = this.safeDict(flexFutures, "currencies", new HashMap<String, Object>() {{}});
-            Object flexFuturesKeys = Helpers.objectKeys(flexFutureCurrencies); // multi-collateral margin account
+            Object flexFuturesKeys = new ArrayList<Object>(((Map<String, Object>)flexFutureCurrencies).keySet()); // multi-collateral margin account
             Map<String, Object> flexFuturesResult = new HashMap<String, Object>() {{
                 put( "info", message );
                 put( "timestamp", timestamp );
@@ -1802,7 +1802,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
             }
             Helpers.callDynamically(stored, "append", new Object[]{parsedTrade});
         }
-        Object tradeSymbolKeys = Helpers.objectKeys(tradeSymbols);
+        Object tradeSymbolKeys = new ArrayList<Object>(((Map<String, Object>)tradeSymbols).keySet());
         for (var i = 0; i < ((List<?>)tradeSymbolKeys).size(); i++)
         {
             Object symbol = Helpers.GetValue(tradeSymbolKeys, i);

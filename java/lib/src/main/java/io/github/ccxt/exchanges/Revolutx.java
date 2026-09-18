@@ -426,7 +426,7 @@ public class Revolutx extends RevolutxApi
             //     }
             //
             Object markets = this.safeDict(response, "data", response);
-            Object keys = Helpers.objectKeys(markets);
+            Object keys = new ArrayList<Object>(((Map<String, Object>)markets).keySet());
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)keys).size(); i++)
             {
@@ -522,7 +522,7 @@ public class Revolutx extends RevolutxApi
             //     }
             //
             Object currencies = this.safeDict(response, "data", response);
-            Object keys = Helpers.objectKeys(currencies);
+            Object keys = new ArrayList<Object>(((Map<String, Object>)currencies).keySet());
             Map<String, Object> result = new HashMap<String, Object>() {{}};
             for (var i = 0; i < ((List<?>)keys).size(); i++)
             {

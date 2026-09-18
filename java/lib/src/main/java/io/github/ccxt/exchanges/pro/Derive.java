@@ -476,7 +476,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
         Object status = this.safeDict(result, "status");
         if (!java.util.Objects.equals(status, null))
         {
-            Object topics = Helpers.objectKeys(status);
+            Object topics = new ArrayList<Object>(((Map<String, Object>)status).keySet());
             for (var i = 0; i < ((List<?>)topics).size(); i++)
             {
                 Object topic = Helpers.GetValue(topics, i);

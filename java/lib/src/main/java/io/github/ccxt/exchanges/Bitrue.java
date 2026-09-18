@@ -789,7 +789,7 @@ public class Bitrue extends BitrueApi
             //
             //     {}
             //
-            Object keys = Helpers.objectKeys(response);
+            Object keys = new ArrayList<Object>(((Map<String, Object>)response).keySet());
             Object keysLength = ((List<?>)keys).size();
             String formattedStatus = (((Helpers.isGreaterThan(keysLength, 0)))) ? "maintenance" : "ok";
             return new HashMap<String, Object>() {{

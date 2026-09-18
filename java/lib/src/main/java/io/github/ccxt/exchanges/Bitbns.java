@@ -656,7 +656,7 @@ public class Bitbns extends BitbnsApi
             put( "datetime", Bitbns.this.iso8601(timestamp) );
         }};
         Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-        Object keys = Helpers.objectKeys(data);
+        Object keys = new ArrayList<Object>(((Map<String, Object>)data).keySet());
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
             Object key = Helpers.GetValue(keys, i);

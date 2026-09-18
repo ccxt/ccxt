@@ -911,7 +911,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
             Helpers.addElementToObject(symbols, ((String)symbol), true);
             Helpers.callDynamically(trades, "append", new Object[]{parsed});
         }
-        Object keys = Helpers.objectKeys(symbols);
+        Object keys = new ArrayList<Object>(((Map<String, Object>)symbols).keySet());
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
             String currentMessageHash = ("myTrades:" + Helpers.GetValue(keys, i));
@@ -967,7 +967,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
             Helpers.addElementToObject(symbols, ((String)symbol), true);
             Helpers.callDynamically(orders, "append", new Object[]{parsed});
         }
-        Object symbolsArray = Helpers.objectKeys(symbols);
+        Object symbolsArray = new ArrayList<Object>(((Map<String, Object>)symbols).keySet());
         for (var i = 0; i < ((List<?>)symbolsArray).size(); i++)
         {
             String currentMessageHash = ("orders:" + Helpers.GetValue(symbolsArray, i));
@@ -1267,7 +1267,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
             Helpers.callDynamically(this, exacMethod, new Object[] {client, message});
             return;
         }
-        Object keys = Helpers.objectKeys(methods);
+        Object keys = new ArrayList<Object>(((Map<String, Object>)methods).keySet());
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
             Object key = Helpers.GetValue(keys, i);

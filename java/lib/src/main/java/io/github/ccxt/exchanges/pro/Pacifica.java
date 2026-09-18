@@ -977,7 +977,7 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
             }
             Helpers.callDynamically(trades, "append", new Object[]{parsed});
         }
-        Object keys = Helpers.objectKeys(symbols);
+        Object keys = new ArrayList<Object>(((Map<String, Object>)symbols).keySet());
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
             String currentMessageHash = ("myTrades:" + Helpers.GetValue(keys, i));
@@ -1507,7 +1507,7 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
                 Helpers.addElementToObject(marketSymbols, symbol, true);
             }
         }
-        Object keys = Helpers.objectKeys(marketSymbols);
+        Object keys = new ArrayList<Object>(((Map<String, Object>)marketSymbols).keySet());
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
             Object symbol = Helpers.GetValue(keys, i);
@@ -1719,7 +1719,7 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
             this.handleWsPost(client, message);
             return;
         }
-        Object keys = Helpers.objectKeys(methods);
+        Object keys = new ArrayList<Object>(((Map<String, Object>)methods).keySet());
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
             Object key = Helpers.GetValue(keys, i);

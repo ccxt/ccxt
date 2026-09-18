@@ -1009,7 +1009,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
         List<Object> request = new ArrayList<Object>(Arrays.asList(new HashMap<String, Object>() {{
     put( "ticket", "ccxt" );
 }}));
-        Object keys = Helpers.objectKeys(subscriptions);
+        Object keys = new ArrayList<Object>(((Map<String, Object>)subscriptions).keySet());
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
             ((List<Object>)request).add(Helpers.GetValue(subscriptions, Helpers.GetValue(keys, i)));

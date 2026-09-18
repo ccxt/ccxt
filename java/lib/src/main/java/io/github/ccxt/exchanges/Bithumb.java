@@ -694,7 +694,7 @@ public class Bithumb extends BithumbApi
             } else
             {
                 Object quoteCurrencies = this.safeDict(this.options, "quoteCurrencies", new HashMap<String, Object>() {{}});
-                Object quotes = Helpers.objectKeys(quoteCurrencies);
+                Object quotes = new ArrayList<Object>(((Map<String, Object>)quoteCurrencies).keySet());
                 List<Object> promises = new ArrayList<Object>(Arrays.asList());
                 for (var i = 0; i < ((List<?>)quotes).size(); i++)
                 {
@@ -709,7 +709,7 @@ public class Bithumb extends BithumbApi
                     Object response = Helpers.GetValue(results, i);
                     Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
                     Object extension = this.safeDict(quoteCurrencies, quote, new HashMap<String, Object>() {{}});
-                    Object currencyIds = Helpers.objectKeys(data);
+                    Object currencyIds = new ArrayList<Object>(((Map<String, Object>)data).keySet());
                     for (var j = 0; j < ((List<?>)currencyIds).size(); j++)
                     {
                         Object currencyId = Helpers.GetValue(currencyIds, j);
@@ -1319,7 +1319,7 @@ public class Bithumb extends BithumbApi
             } else
             {
                 Object quoteCurrencies = this.safeDict(this.options, "quoteCurrencies", new HashMap<String, Object>() {{}});
-                Object quotes = Helpers.objectKeys(quoteCurrencies);
+                Object quotes = new ArrayList<Object>(((Map<String, Object>)quoteCurrencies).keySet());
                 if (!java.util.Objects.equals(symbols, null))
                 {
                     Map<String, Object> requiredQuotes = new HashMap<String, Object>() {{}};
@@ -1333,7 +1333,7 @@ public class Bithumb extends BithumbApi
                             Helpers.addElementToObject(requiredQuotes, quoteId, true);
                         }
                     }
-                    Object requiredQuoteIds = Helpers.objectKeys(requiredQuotes);
+                    Object requiredQuoteIds = new ArrayList<Object>(((Map<String, Object>)requiredQuotes).keySet());
                     String populatedQuotes = this.safeString(requiredQuoteIds, 0);
                     if (!java.util.Objects.equals(populatedQuotes, null))
                     {
@@ -3908,7 +3908,7 @@ public class Bithumb extends BithumbApi
 
     public Object urlencodeWithArrayBrackets(Object query)
     {
-        Object keys = Helpers.objectKeys(query);
+        Object keys = new ArrayList<Object>(((Map<String, Object>)query).keySet());
         Object result = "";
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {

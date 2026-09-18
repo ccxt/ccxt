@@ -305,7 +305,7 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
             // coinex throws a closes the websocket when subscribing over 1422 currencies, therefore we filter out inactive currencies
             List<Object> activeCurrencies = this.filterBy(this.currencies_by_id, "active", true);
             Map<String, Object> activeCurrenciesById = this.indexBy(activeCurrencies, "id");
-            Object currencies = Helpers.objectKeys(activeCurrenciesById);
+            Object currencies = new ArrayList<Object>(((Map<String, Object>)activeCurrenciesById).keySet());
             if (java.util.Objects.equals(currencies, null))
             {
                 currencies = new ArrayList<Object>(Arrays.asList());

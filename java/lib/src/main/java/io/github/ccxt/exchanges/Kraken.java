@@ -773,7 +773,7 @@ public class Kraken extends KrakenApi
             //
             Object markets = this.safeDict(assetsResponse, "result", new HashMap<String, Object>() {{}});
             Object cachedCurrencies = this.safeDict(this.options, "cachedCurrencies", new HashMap<String, Object>() {{}});
-            Object keys = Helpers.objectKeys(markets);
+            Object keys = new ArrayList<Object>(((Map<String, Object>)markets).keySet());
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)keys).size(); i++)
             {
@@ -1347,7 +1347,7 @@ public class Kraken extends KrakenApi
             }
             Map<String, Object> response = (this.publicGetTicker(this.extend(request, parameters))).join();
             Object tickers = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            Object ids = Helpers.objectKeys(tickers);
+            Object ids = new ArrayList<Object>(((Map<String, Object>)tickers).keySet());
             Map<String, Object> result = new HashMap<String, Object>() {{}};
             for (var i = 0; i < ((List<?>)ids).size(); i++)
             {
@@ -1618,7 +1618,7 @@ public class Kraken extends KrakenApi
             //                                                "balance": "0.0000051000"           },
             Object result = this.safeValue(response, "result", new HashMap<String, Object>() {{}});
             Object ledger = this.safeDict(result, "ledger", new HashMap<String, Object>() {{}});
-            Object keys = Helpers.objectKeys(ledger);
+            Object keys = new ArrayList<Object>(((Map<String, Object>)ledger).keySet());
             List<Object> items = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)keys).size(); i++)
             {
@@ -1660,7 +1660,7 @@ public class Kraken extends KrakenApi
             //                                          "fee": "0.0050000000",
             //                                      "balance": "0.0000051000"           } } }
             Object result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            Object keys = Helpers.objectKeys(result);
+            Object keys = new ArrayList<Object>(((Map<String, Object>)result).keySet());
             List<Object> items = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)keys).size(); i++)
             {
@@ -1940,7 +1940,7 @@ public class Kraken extends KrakenApi
             put( "timestamp", null );
             put( "datetime", null );
         }};
-        Object currencyIds = Helpers.objectKeys(balances);
+        Object currencyIds = new ArrayList<Object>(((Map<String, Object>)balances).keySet());
         for (var i = 0; i < ((List<?>)currencyIds).size(); i++)
         {
             Object currencyId = Helpers.GetValue(currencyIds, i);
@@ -3065,7 +3065,7 @@ final Object finalId = id;
             }}, parameters))).join();
             Object result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             List<Object> orders = new ArrayList<Object>(Arrays.asList());
-            Object orderIds = Helpers.objectKeys(result);
+            Object orderIds = new ArrayList<Object>(((Map<String, Object>)result).keySet());
             for (var i = 0; i < ((List<?>)orderIds).size(); i++)
             {
                 Object id = Helpers.GetValue(orderIds, i);
@@ -3149,7 +3149,7 @@ final Object finalId = id;
             //
             Object tradesResult = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             Object trades = this.safeDict(tradesResult, "trades", new HashMap<String, Object>() {{}});
-            Object ids = Helpers.objectKeys(trades);
+            Object ids = new ArrayList<Object>(((Map<String, Object>)trades).keySet());
             for (var i = 0; i < ((List<?>)ids).size(); i++)
             {
                 Helpers.addElementToObject(Helpers.GetValue(trades, Helpers.GetValue(ids, i)), "id", Helpers.GetValue(ids, i));
@@ -3434,7 +3434,7 @@ final Object finalId = id;
             Object result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             Object open = this.safeDict(result, "open", new HashMap<String, Object>() {{}});
             List<Object> orders = new ArrayList<Object>(Arrays.asList());
-            Object orderIds = Helpers.objectKeys(open);
+            Object orderIds = new ArrayList<Object>(((Map<String, Object>)open).keySet());
             for (var i = 0; i < ((List<?>)orderIds).size(); i++)
             {
                 Object id = Helpers.GetValue(orderIds, i);
@@ -3543,7 +3543,7 @@ final Object finalId = id;
             Object result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             Object closed = this.safeDict(result, "closed", new HashMap<String, Object>() {{}});
             List<Object> orders = new ArrayList<Object>(Arrays.asList());
-            Object orderIds = Helpers.objectKeys(closed);
+            Object orderIds = new ArrayList<Object>(((Map<String, Object>)closed).keySet());
             for (var i = 0; i < ((List<?>)orderIds).size(); i++)
             {
                 Object id = Helpers.GetValue(orderIds, i);

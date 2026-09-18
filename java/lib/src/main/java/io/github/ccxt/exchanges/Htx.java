@@ -2523,7 +2523,7 @@ public class Htx extends HtxApi
             parameters = ((List<Object>) typesparametersVariable).get(1);
             Object allMarkets = new ArrayList<Object>(Arrays.asList());
             Object promises = new ArrayList<Object>(Arrays.asList());
-            Object keys = Helpers.objectKeys(types);
+            Object keys = new ArrayList<Object>(((Map<String, Object>)types).keySet());
             for (var i = 0; i < ((List<?>)keys).size(); i++)
             {
                 Object key = Helpers.GetValue(keys, i);
@@ -4888,7 +4888,7 @@ public class Htx extends HtxApi
                                 Helpers.addElementToObject(subResult, code, this.parseMarginBalanceHelper(balance, code, subResult));
                             }
                         }
-                        Object subCodes = Helpers.objectKeys(subResult);
+                        Object subCodes = new ArrayList<Object>(((Map<String, Object>)subResult).keySet());
                         for (var j = 0; j < ((List<?>)subCodes).size(); j++)
                         {
                             Object subCode = Helpers.GetValue(subCodes, j);
@@ -9528,7 +9528,7 @@ public class Htx extends HtxApi
                 }
             } else
             {
-                if ((!java.util.Objects.equals(query, null)) && (((List<?>)Helpers.objectKeys(query)).size() > 0))
+                if ((!java.util.Objects.equals(query, null)) && (((List<?>)new ArrayList<Object>(((Map<String, Object>)query).keySet())).size() > 0))
                 {
                     url = (url + ("?" + this.urlencode(query)));
                 }
@@ -9558,7 +9558,7 @@ public class Htx extends HtxApi
             url = Helpers.add(url, this.implodeParams(path, parameters));
             if (java.util.Objects.equals(access, "public"))
             {
-                if ((!java.util.Objects.equals(query, null)) && (((List<?>)Helpers.objectKeys(query)).size() > 0))
+                if ((!java.util.Objects.equals(query, null)) && (((List<?>)new ArrayList<Object>(((Map<String, Object>)query).keySet())).size() > 0))
                 {
                     url = (url + ("?" + this.urlencode(query)));
                 }

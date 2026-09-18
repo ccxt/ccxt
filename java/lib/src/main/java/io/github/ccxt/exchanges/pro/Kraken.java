@@ -1497,7 +1497,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
             }
             String name = "myTrades";
             client.resolve(this.myTrades, name);
-            Object keys = Helpers.objectKeys(symbols);
+            Object keys = new ArrayList<Object>(((Map<String, Object>)symbols).keySet());
             for (var i = 0; i < ((List<?>)keys).size(); i++)
             {
                 Object messageHash = ((name + ":") + Helpers.GetValue(keys, i));
@@ -1670,7 +1670,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
             }
             String name = "orders";
             client.resolve(this.orders, name);
-            Object keys = Helpers.objectKeys(symbols);
+            Object keys = new ArrayList<Object>(((Map<String, Object>)symbols).keySet());
             for (var i = 0; i < ((List<?>)keys).size(); i++)
             {
                 Object messageHash = ((name + ":") + Helpers.GetValue(keys, i));

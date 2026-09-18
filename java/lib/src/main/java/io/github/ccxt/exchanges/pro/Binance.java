@@ -3437,7 +3437,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             Object url = Helpers.GetValue(Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "ws-api"), marketType);
             Client client = this.client(url);
             Object subscriptions = client.subscriptions;
-            Object subscriptionsKeys = Helpers.objectKeys(subscriptions);
+            Object subscriptionsKeys = new ArrayList<Object>(((Map<String, Object>)subscriptions).keySet());
             Object accountType = this.getAccountTypeFromSubscriptions(subscriptionsKeys);
             if (java.util.Objects.equals(accountType, marketType))
             {
@@ -3494,7 +3494,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         //
         String messageHash = this.safeString(message, "id");
         Object subscriptions = client.subscriptions;
-        Object subscriptionsKeys = Helpers.objectKeys(subscriptions);
+        Object subscriptionsKeys = new ArrayList<Object>(((Map<String, Object>)subscriptions).keySet());
         Object accountType = this.getAccountTypeFromSubscriptions(subscriptionsKeys);
         Object result = this.safeDict(message, "result", new HashMap<String, Object>() {{}});
         Long subscriptionId = this.safeInteger(result, "subscriptionId");
@@ -3931,7 +3931,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             {
                 Client client = (Client)Helpers.GetValue(clients, i);
                 Object clientSubscriptions = this.safeDict(client, "subscriptions", new HashMap<String, Object>() {{}});
-                Object subscriptionKeys = Helpers.objectKeys(clientSubscriptions);
+                Object subscriptionKeys = new ArrayList<Object>(((Map<String, Object>)clientSubscriptions).keySet());
                 for (var j = 0; j < ((List<?>)subscriptionKeys).size(); j++)
                 {
                     Object subscribeType = Helpers.GetValue(subscriptionKeys, j);
@@ -4422,7 +4422,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         String wallet = this.safeString(this.options, "wallet", "wb"); // cw for cross wallet
         // each account is connected to a different endpoint
         Object subscriptions = client.subscriptions;
-        Object subscriptionsKeys = Helpers.objectKeys(subscriptions);
+        Object subscriptionsKeys = new ArrayList<Object>(((Map<String, Object>)subscriptions).keySet());
         Object accountType = this.getAccountTypeFromSubscriptions(subscriptionsKeys);
         Object messageHash = (accountType + ":balance");
         if (java.util.Objects.equals(Helpers.GetValue(this.balance, accountType), null))
@@ -6968,7 +6968,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         //
         String eventVar = this.safeString(message, "e");
         Object subscriptions = client.subscriptions;
-        Object subscriptionsKeys = Helpers.objectKeys(subscriptions);
+        Object subscriptionsKeys = new ArrayList<Object>(((Map<String, Object>)subscriptions).keySet());
         Object accountType = this.getAccountTypeFromSubscriptions(subscriptionsKeys);
         if (java.util.Objects.equals(eventVar, "eventStreamTerminated"))
         {

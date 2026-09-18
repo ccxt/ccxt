@@ -3840,7 +3840,7 @@ public class Modetrade extends ModetradeApi
         if (java.util.Objects.equals(access, "public"))
         {
             url = Helpers.add(url, pathWithParams);
-            if (((List<?>)Helpers.objectKeys(parameters)).size() > 0)
+            if (((List<?>)new ArrayList<Object>(((Map<String, Object>)parameters).keySet())).size() > 0)
             {
                 url = (url + ("?" + this.urlencode(parameters)));
             }
@@ -3892,7 +3892,7 @@ public class Modetrade extends ModetradeApi
                 ((Map<String, Object>)headers).put("content-type", "application/json");
             } else
             {
-                if (((List<?>)Helpers.objectKeys(parameters)).size() > 0)
+                if (((List<?>)new ArrayList<Object>(((Map<String, Object>)parameters).keySet())).size() > 0)
                 {
                     url = (url + ("?" + this.urlencode(parameters)));
                     auth = (auth + ("?" + this.rawencode(parameters)));

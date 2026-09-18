@@ -1043,7 +1043,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
                 }
             } else
             {
-                Object keys = Helpers.objectKeys(balanceDict);
+                Object keys = new ArrayList<Object>(((Map<String, Object>)balanceDict).keySet());
                 for (var j = 0; j < ((List<?>)keys).size(); j++)
                 {
                     Object currencyId = Helpers.GetValue(keys, j);
@@ -1153,7 +1153,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
                 {
                     // resubscribe
                     Object marketIdsNew = new ArrayList<Object>(Arrays.asList());
-                    marketIdsNew = Helpers.objectKeys(subscription);
+                    marketIdsNew = new ArrayList<Object>(((Map<String, Object>)subscription).keySet());
                     if (Helpers.isTrue(isNested))
                     {
                         marketIdsNew = new ArrayList<Object>(Arrays.asList(marketIdsNew));

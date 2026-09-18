@@ -5252,7 +5252,7 @@ final Object finalI = i;
                 }
             }
         }
-        Object depositWithdrawCodes = Helpers.objectKeys(depositWithdrawFees);
+        Object depositWithdrawCodes = new ArrayList<Object>(((Map<String, Object>)depositWithdrawFees).keySet());
         for (var i = 0; i < ((List<?>)depositWithdrawCodes).size(); i++)
         {
             Object code = Helpers.GetValue(depositWithdrawCodes, i);
