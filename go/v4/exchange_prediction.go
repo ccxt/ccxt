@@ -450,7 +450,7 @@ func (this *PredictionExchange) Outcome(outcomeSymbol any) any {
 	if outcomeSymbol == nil {
 		panic(ArgumentsRequired(this.Id + " outcome() requires an outcomeSymbol argument"))
 	}
-	if (IsEqual(this.Outcomes, nil)) || EvalTruthy(this.IsEmpty(this.Outcomes)) {
+	if (IsEqual(this.Outcomes, nil)) || this.IsEmpty(this.Outcomes) {
 		panic(ExchangeError(this.Id + " outcomes not loaded - call loadOutcomes () or an outcome-addressed method first"))
 	}
 	if InOp(this.Outcomes, outcomeSymbol) {
@@ -767,7 +767,7 @@ func (this *PredictionExchange) loadOutcomesBody(ch chan any, optionalArgs ...an
 			}
 		}
 		var missingLength int = GetArrayLength(missing)
-		var wasWarm bool = (!IsEqual(this.Outcomes, nil)) && !EvalTruthy(this.IsEmpty(this.Outcomes))
+		var wasWarm bool = (!IsEqual(this.Outcomes, nil)) && !this.IsEmpty(this.Outcomes)
 		var loadAll *bool = this.SafeBool(this.Options, "loadAllOutcomes", false)
 		if (missingLength > 0) && (loadAll != nil && *loadAll == true) && !wasWarm && !EvalTruthy(reload) {
 
@@ -791,7 +791,7 @@ func (this *PredictionExchange) loadOutcomesBody(ch chan any, optionalArgs ...an
 		ch <- this.Outcomes
 		return nil
 	}
-	if !EvalTruthy(reload) && (!IsEqual(this.Outcomes, nil)) && !EvalTruthy(this.IsEmpty(this.Outcomes)) {
+	if !EvalTruthy(reload) && (!IsEqual(this.Outcomes, nil)) && !this.IsEmpty(this.Outcomes) {
 
 		ch <- this.Outcomes
 		return nil
@@ -856,11 +856,11 @@ func (this *PredictionExchange) loadOutcomeBody(ch chan any, outcomeSymbol any, 
 			ch <- this.SafeOutcome(outcomeSymbol)
 			return nil
 		}
-		var wasWarm bool = (!IsEqual(this.Outcomes, nil)) && !EvalTruthy(this.IsEmpty(this.Outcomes))
+		var wasWarm bool = (!IsEqual(this.Outcomes, nil)) && !this.IsEmpty(this.Outcomes)
 		// if markets are already loaded (offline-injected, or loaded by loadMarkets/fetchEvents)
 		// but the outcome cache is cold, index them for free before hitting the network — this
 		// makes cold-cache resolution consistent across languages regardless of loadAllOutcomes
-		if !wasWarm && (!IsEqual(this.Markets, nil)) && !EvalTruthy(this.IsEmpty(this.Markets)) {
+		if !wasWarm && (!IsEqual(this.Markets, nil)) && !this.IsEmpty(this.Markets) {
 			this.PopulateOutcomes()
 			if EvalTruthy(this.HasOutcome(outcomeSymbol)) {
 

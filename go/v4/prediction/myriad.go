@@ -4964,7 +4964,7 @@ func (this *Myriad) watchPositionsBody(ch chan any, optionalArgs ...any) any {
 
 	positions := (<-this.Watch(url, messageHash, subscribeMsg, channel))
 	ccxt.PanicOnError(positions)
-	if ccxt.EvalTruthy(this.NewUpdates) {
+	if this.NewUpdates {
 
 		ch <- positions
 		return nil

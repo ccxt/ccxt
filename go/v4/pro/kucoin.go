@@ -731,7 +731,7 @@ func (this *Kucoin) watchTickersBody(ch chan any, optionalArgs ...any) any {
 
 		tickers = (<-this.SubscribeAsync(url, messageHash, allTopic, params))
 		ccxt.PanicOnError(tickers)
-		if ccxt.EvalTruthy(this.NewUpdates) {
+		if this.NewUpdates {
 
 			ch <- tickers
 			return nil
@@ -742,7 +742,7 @@ func (this *Kucoin) watchTickersBody(ch chan any, optionalArgs ...any) any {
 
 		tickers = (<-this.SubscribeMultipleAsync(url, messageHashes, symbolsTopic, topics, params))
 		ccxt.PanicOnError(tickers)
-		if ccxt.EvalTruthy(this.NewUpdates) {
+		if this.NewUpdates {
 			var newDict map[string]any = map[string]any{}
 			ccxt.AddElementToObject(newDict, ccxt.GetValue(tickers, "symbol"), tickers)
 
@@ -835,7 +835,7 @@ func (this *Kucoin) watchUtaTickersBody(ch chan any, optionalArgs ...any) any {
 
 	tickers := (<-this.SubscribePublicMultipleUtaAsync(messageHashes, "ticker", symbols, params))
 	ccxt.PanicOnError(tickers)
-	if ccxt.EvalTruthy(this.NewUpdates) {
+	if this.NewUpdates {
 
 		ch <- tickers
 		return nil
@@ -1090,7 +1090,7 @@ func (this *Kucoin) watchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 
 	ticker := (<-this.WatchMultiHelperAsync("watchBidsAsks", channelName, isFuturesMethod, symbols, params))
 	ccxt.PanicOnError(ticker)
-	if ccxt.EvalTruthy(this.NewUpdates) {
+	if this.NewUpdates {
 		var tickers map[string]any = map[string]any{}
 		ccxt.AddElementToObject(tickers, ccxt.GetValue(ticker, "symbol"), ticker)
 
@@ -1295,7 +1295,7 @@ func (this *Kucoin) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 		ohlcv = (<-this.SubscribeAsync(url, messageHash, topic, params))
 		ccxt.PanicOnError(ohlcv)
 	}
-	if ccxt.EvalTruthy(this.NewUpdates) {
+	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(ohlcv).GetLimit(symbol, limit)
 	}
 
@@ -1536,7 +1536,7 @@ func (this *Kucoin) watchTradesBody(ch chan any, symbol any, optionalArgs ...any
 
 		trades := (<-this.SubscribePublicUtaAsync(messageHash, channel, symbol, params))
 		ccxt.PanicOnError(trades)
-		if ccxt.EvalTruthy(this.NewUpdates) {
+		if this.NewUpdates {
 			var first any = this.SafeValue(trades, 0)
 			var tradeSymbol *string = this.SafeString(first, "symbol")
 			limit = ccxt.ToGetsLimit(trades).GetLimit(tradeSymbol, limit)
@@ -1610,7 +1610,7 @@ func (this *Kucoin) watchTradesForSymbolsBody(ch chan any, symbols any, optional
 
 	trades := (<-this.SubscribeMultipleAsync(url, messageHashes, topic, subscriptionHashes, params))
 	ccxt.PanicOnError(trades)
-	if ccxt.EvalTruthy(this.NewUpdates) {
+	if this.NewUpdates {
 		var first any = this.SafeValue(trades, 0)
 		var tradeSymbol *string = this.SafeString(first, "symbol")
 		limit = ccxt.ToGetsLimit(trades).GetLimit(tradeSymbol, limit)
@@ -2595,7 +2595,7 @@ func (this *Kucoin) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 		orders = (<-this.SubscribeAsync(url, messageHash, topic, this.Extend(request, params)))
 		ccxt.PanicOnError(orders)
 	}
-	if ccxt.EvalTruthy(this.NewUpdates) {
+	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(orders).GetLimit(symbol, limit)
 	}
 
@@ -3063,7 +3063,7 @@ func (this *Kucoin) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		trades = (<-this.SubscribeAsync(url, messageHash, topic, this.Extend(request, params)))
 		ccxt.PanicOnError(trades)
 	}
-	if ccxt.EvalTruthy(this.NewUpdates) {
+	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(trades).GetLimit(symbol, limit)
 	}
 
@@ -3667,7 +3667,7 @@ func (this *Kucoin) watchPositionsBody(ch chan any, optionalArgs ...any) any {
 
 	newPositions := (<-this.SubscribePrivateUtaAsync(messageHashes, channel, channel, nil, params))
 	ccxt.PanicOnError(newPositions)
-	if ccxt.EvalTruthy(this.NewUpdates) {
+	if this.NewUpdates {
 
 		ch <- newPositions
 		return nil
@@ -3686,7 +3686,7 @@ func (this *Kucoin) GetCurrentPosition(symbol any) any {
 	return this.SafeValue(values, 0)
 }
 func (this *Kucoin) SetPositionsCache(client any, uta any) {
-	if !ccxt.EvalTruthy((this.IsEmpty(this.Positions))) {
+	if !(this.IsEmpty(this.Positions)) {
 		return
 	}
 	var fetchPositionsSnapshot any = this.HandleOption("watchPositions", "fetchPositionsSnapshot", false)

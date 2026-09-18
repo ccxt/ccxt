@@ -14679,7 +14679,7 @@ func (this *Kucoin) Sign(path any, optionalArgs ...any) any {
 	}()
 	var url any = GetValue(GetValue(this.Urls, "api"), api)
 	var tradeType *string = this.SafeString(query, "tradeType")
-	if !EvalTruthy(this.IsEmpty(query)) {
+	if !this.IsEmpty(query) {
 		if ((IsEqual(method, "GET")) || (IsEqual(method, "DELETE"))) && (!IsEqual(path, "orders/multi-cancel")) {
 			endpoint = Add(endpoint, "?"+this.Rawencode(query))
 		} else {
