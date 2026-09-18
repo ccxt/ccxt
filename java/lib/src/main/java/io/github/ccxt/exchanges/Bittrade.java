@@ -1213,7 +1213,7 @@ public class Bittrade extends BittradeApi
         String type = this.safeString(trade, "type");
         if (!java.util.Objects.equals(type, null))
         {
-            Object typeParts = Helpers.split(type, "-");
+            List<Object> typeParts = (List<Object>) Helpers.split(type, "-");
             side = (String) Helpers.GetValue(typeParts, 0);
             type = (String) Helpers.GetValue(typeParts, 1);
         }
@@ -1994,7 +1994,7 @@ public class Bittrade extends BittradeApi
         String status = null;
         if (((Map<?, ?>)order).containsKey("type"))
         {
-            Object orderType = Helpers.split(((Map<String, Object>)order).get("type"), "-");
+            List<Object> orderType = (List<Object>) Helpers.split(((Map<String, Object>)order).get("type"), "-");
             side = Helpers.GetValue(orderType, 0);
             type = Helpers.GetValue(orderType, 1);
             status = this.parseOrderStatus(this.safeString(order, "state"));

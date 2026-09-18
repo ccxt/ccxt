@@ -2523,7 +2523,7 @@ public class Htx extends HtxApi
             parameters = ((List<Object>) typesparametersVariable).get(1);
             Object allMarkets = new ArrayList<Object>(Arrays.asList());
             Object promises = new ArrayList<Object>(Arrays.asList());
-            Object keys = Helpers.objectKeys(types);
+            List<Object> keys = Helpers.objectKeys(types);
             for (var i = 0; i < ((List<?>)keys).size(); i++)
             {
                 Object key = Helpers.GetValue(keys, i);
@@ -2726,7 +2726,7 @@ public class Htx extends HtxApi
                         {
                             throw new ExchangeError((this.id + " method() missing id")) ;
                         }
-                        Object parts = Helpers.split(id, "-");
+                        List<Object> parts = (List<Object>) Helpers.split(id, "-");
                         baseId = this.safeStringLower(market, "symbol");
                         quoteId = this.safeStringLower(parts, 1);
                         settleId = ((Helpers.isTrue(inverse))) ? baseId : quoteId;
@@ -2745,7 +2745,7 @@ public class Htx extends HtxApi
                             {
                                 throw new ExchangeError((this.id + " method() missing pair")) ;
                             }
-                            Object parts = Helpers.split(pair, "-");
+                            List<Object> parts = (List<Object>) Helpers.split(pair, "-");
                             quoteId = this.safeStringLower(parts, 1);
                             settleId = quoteId;
                         }
@@ -3624,7 +3624,7 @@ public class Htx extends HtxApi
         String type = this.safeString(trade, "type");
         if ((!java.util.Objects.equals(type, null)) && (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(type, "-"), 0)))
         {
-            Object typeParts = Helpers.split(type, "-");
+            List<Object> typeParts = (List<Object>) Helpers.split(type, "-");
             side = (String) Helpers.GetValue(typeParts, 0);
             type = (String) Helpers.GetValue(typeParts, 1);
         }
@@ -4574,7 +4574,7 @@ public class Htx extends HtxApi
         // here network-id is provided as a pair of currency & chain (i.e. trc20usdt)
         Object networkId = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Object currencyCode = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-        Object keys = Helpers.objectKeys(((Map<String, Object>)this.options).get("networkNamesByChainIds"));
+        List<Object> keys = Helpers.objectKeys(((Map<String, Object>)this.options).get("networkNamesByChainIds"));
         Object keysLength = ((List<?>)keys).size();
         if (Helpers.isEqual(keysLength, 0))
         {
@@ -4595,7 +4595,7 @@ public class Htx extends HtxApi
         {
             return super.networkCodeToId(networkCode);
         }
-        Object keys = Helpers.objectKeys(((Map<String, Object>)this.options).get("networkChainIdsByNames"));
+        List<Object> keys = Helpers.objectKeys(((Map<String, Object>)this.options).get("networkChainIdsByNames"));
         Object keysLength = ((List<?>)keys).size();
         if (Helpers.isEqual(keysLength, 0))
         {
@@ -4888,7 +4888,7 @@ public class Htx extends HtxApi
                                 Helpers.addElementToObject(subResult, code, this.parseMarginBalanceHelper(balance, code, subResult));
                             }
                         }
-                        Object subCodes = Helpers.objectKeys(subResult);
+                        List<Object> subCodes = Helpers.objectKeys(subResult);
                         for (var j = 0; j < ((List<?>)subCodes).size(); j++)
                         {
                             Object subCode = Helpers.GetValue(subCodes, j);
@@ -6378,7 +6378,7 @@ public class Htx extends HtxApi
             {
                 if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(rawType, "-"), 0))
                 {
-                    Object orderType = Helpers.split(rawType, "-");
+                    List<Object> orderType = (List<Object>) Helpers.split(rawType, "-");
                     side = (String) Helpers.GetValue(orderType, 0);
                     type = Helpers.GetValue(orderType, 1);
                 } else if (java.util.Objects.equals(type, null))

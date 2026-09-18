@@ -1726,7 +1726,7 @@ public class Digifinex extends DigifinexApi
             {
                 throw new ExchangeError((this.id + " parseTrade() returned no side")) ;
             }
-            Object parts = Helpers.split(side, "_");
+            List<Object> parts = (List<Object>) Helpers.split(side, "_");
             side = this.safeString(parts, 0);
             type = this.safeString(parts, 1);
             if (java.util.Objects.equals(type, null))
@@ -2754,7 +2754,7 @@ public class Digifinex extends DigifinexApi
             lastTradeTimestamp = this.safeTimestamp(order, "finished_date");
             if (!java.util.Objects.equals(side, null))
             {
-                Object parts = Helpers.split(side, "_");
+                List<Object> parts = (List<Object>) Helpers.split(side, "_");
                 Object numParts = ((List<?>)parts).size();
                 if (Helpers.isGreaterThan(numParts, 1))
                 {
@@ -5252,7 +5252,7 @@ final Object finalI = i;
                 }
             }
         }
-        Object depositWithdrawCodes = Helpers.objectKeys(depositWithdrawFees);
+        List<Object> depositWithdrawCodes = Helpers.objectKeys(depositWithdrawFees);
         for (var i = 0; i < ((List<?>)depositWithdrawCodes).size(); i++)
         {
             Object code = Helpers.GetValue(depositWithdrawCodes, i);

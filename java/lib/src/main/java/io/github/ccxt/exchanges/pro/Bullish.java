@@ -574,7 +574,7 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
             }
             String messageHash = "orders";
             client.resolve(orders, messageHash);
-            Object keys = Helpers.objectKeys(symbols);
+            List<Object> keys = Helpers.objectKeys(symbols);
             for (var i = 0; i < ((List<?>)keys).size(); i++)
             {
                 Object hashSymbol = Helpers.GetValue(keys, i);
@@ -707,7 +707,7 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
             }
             String messageHash = "myTrades";
             client.resolve(trades, messageHash);
-            Object keys = Helpers.objectKeys(symbols);
+            List<Object> keys = Helpers.objectKeys(symbols);
             for (var i = 0; i < ((List<?>)keys).size(); i++)
             {
                 Object hashSymbol = Helpers.GetValue(keys, i);
@@ -906,9 +906,9 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
         for (var i = 0; i < ((List<?>)messageHashes).size(); i++)
         {
             Object messageHash = Helpers.GetValue(messageHashes, i);
-            Object parts = Helpers.split(messageHash, "::");
+            List<Object> parts = (List<Object>) Helpers.split(messageHash, "::");
             String symbolsString = (String) Helpers.GetValue(parts, 1);
-            Object symbols = Helpers.split(symbolsString, ",");
+            List<Object> symbols = (List<Object>) Helpers.split(symbolsString, ",");
             Object symbolPositions = this.filterByArray(newPositions, "symbol", symbols, false);
             if (!Helpers.isTrue(this.isEmpty(symbolPositions)))
             {

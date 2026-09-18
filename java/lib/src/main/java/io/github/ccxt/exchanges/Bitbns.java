@@ -656,11 +656,11 @@ public class Bitbns extends BitbnsApi
             put( "datetime", Bitbns.this.iso8601(timestamp) );
         }};
         Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-        Object keys = Helpers.objectKeys(data);
+        List<Object> keys = Helpers.objectKeys(data);
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
             Object key = Helpers.GetValue(keys, i);
-            Object parts = Helpers.split(key, "availableorder");
+            List<Object> parts = (List<Object>) Helpers.split(key, "availableorder");
             Object numParts = ((List<?>)parts).size();
             if (Helpers.isGreaterThan(numParts, 1))
             {

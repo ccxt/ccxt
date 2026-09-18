@@ -237,7 +237,7 @@ public class Paymium extends PaymiumApi
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", response );
         }};
-        Object currencies = Helpers.objectKeys(this.currencies);
+        List<Object> currencies = Helpers.objectKeys(this.currencies);
         for (var i = 0; i < ((List<?>)currencies).size(); i++)
         {
             Object code = Helpers.GetValue(currencies, i);

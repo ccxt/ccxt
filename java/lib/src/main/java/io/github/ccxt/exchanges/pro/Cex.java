@@ -139,7 +139,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", data );
         }};
-        Object currencyIds = Helpers.objectKeys(freeBalance);
+        List<Object> currencyIds = Helpers.objectKeys(freeBalance);
         for (var i = 0; i < ((List<?>)currencyIds).size(); i++)
         {
             Object currencyId = Helpers.GetValue(currencyIds, i);
@@ -194,7 +194,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
             Client client = (Client)this.safeValue(this.clients, url);
             if (!java.util.Objects.equals(client, null))
             {
-                Object subscriptionKeys = Helpers.objectKeys(client.subscriptions);
+                List<Object> subscriptionKeys = Helpers.objectKeys(client.subscriptions);
                 for (var i = 0; i < ((List<?>)subscriptionKeys).size(); i++)
                 {
                     Object subscriptionKey = Helpers.GetValue(subscriptionKeys, i);
@@ -1214,7 +1214,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
 
     public Object pairToSymbol(Object pair)
     {
-        Object parts = Helpers.split(pair, ":");
+        List<Object> parts = (List<Object>) Helpers.split(pair, ":");
         String baseId = this.safeString(parts, 0);
         String quoteId = this.safeString(parts, 1);
         String base = this.safeCurrencyCode(baseId);
@@ -1344,7 +1344,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
         {
             return;
         }
-        Object parts = Helpers.split(pair, ":");
+        List<Object> parts = (List<Object>) Helpers.split(pair, ":");
         String baseId = this.safeString(parts, 0);
         String quoteId = this.safeString(parts, 1);
         String base = this.safeCurrencyCode(baseId);

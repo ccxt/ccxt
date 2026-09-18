@@ -725,7 +725,7 @@ public class Lbank extends LbankApi
             {
                 Object market = Helpers.GetValue(data, i);
                 String marketId = this.safeString(market, "symbol");
-                Object parts = Helpers.split(marketId, "_");
+                List<Object> parts = (List<Object>) Helpers.split(marketId, "_");
                 String baseId = (String) Helpers.GetValue(parts, 0);
                 String quoteId = (String) Helpers.GetValue(parts, 1);
                 String base = this.safeCurrencyCode(baseId);
@@ -1285,7 +1285,7 @@ public class Lbank extends LbankApi
         String takerOrMaker = null;
         if (!java.util.Objects.equals(side, null))
         {
-            Object parts = Helpers.split(side, "_");
+            List<Object> parts = (List<Object>) Helpers.split(side, "_");
             side = this.safeString(parts, 0);
             String typePart = this.safeString(parts, 1);
             type = "limit";
@@ -1602,7 +1602,7 @@ public class Lbank extends LbankApi
         {
             Object used = this.safeValue(data, "freeze", new HashMap<String, Object>() {{}});
             Object free = this.safeDict(data, "free", new HashMap<String, Object>() {{}});
-            Object currencies = Helpers.objectKeys(free);
+            List<Object> currencies = Helpers.objectKeys(free);
             for (var i = 0; i < ((List<?>)currencies).size(); i++)
             {
                 Object currencyId = Helpers.GetValue(currencies, i);
@@ -2221,7 +2221,7 @@ public class Lbank extends LbankApi
         Boolean postOnly = false;
         String type = "limit";
         String rawType = this.safeString2(order, "type", "tradeType"); // buy, sell, buy_market, sell_market, buy_maker,sell_maker,buy_ioc,sell_ioc, buy_fok, sell_fok
-        Object parts = Helpers.split(rawType, "_");
+        List<Object> parts = (List<Object>) Helpers.split(rawType, "_");
         String side = this.safeString(parts, 0);
         String typePart = this.safeString(parts, 1); // market, maker, ioc, fok or undefined (limit)
         if (java.util.Objects.equals(typePart, "market"))

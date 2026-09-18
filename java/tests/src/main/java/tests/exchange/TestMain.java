@@ -150,8 +150,8 @@ public class TestMain extends BaseTest
     {
         if (!java.util.Objects.equals(methodArgv, null))
         {
-            Object testFileNames = Helpers.objectKeys(this.testFiles);
-            Object possibleMethodNames = Helpers.split(methodArgv, ","); // i.e. `test.ts binance fetchBalance,fetchDeposits`
+            List<Object> testFileNames = Helpers.objectKeys(this.testFiles);
+            List<Object> possibleMethodNames = (List<Object>) Helpers.split(methodArgv, ","); // i.e. `test.ts binance fetchBalance,fetchDeposits`
             if (Helpers.isGreaterThanOrEqual(Helpers.getArrayLength(possibleMethodNames), 1))
             {
                 for (var i = 0; i < ((List<?>)testFileNames).size(); i++)
@@ -176,7 +176,7 @@ public class TestMain extends BaseTest
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object properties = Helpers.objectKeys(exchange.has);
+            List<Object> properties = Helpers.objectKeys(exchange.has);
             ((List<Object>)properties).add("loadMarkets");
             ((List<Object>)properties).add("afterConstruct");
             if (Helpers.isTrue(isSync()))
@@ -195,7 +195,7 @@ public class TestMain extends BaseTest
     {
         Object exchangeId = exchange.id;
         Object reqCreds = getExchangeProp(exchange, ("re" + "quiredCredentials")); // dont glue the r-e-q-u-i-r-e phrase, because leads to messed up transpilation
-        Object objkeys = Helpers.objectKeys(reqCreds);
+        List<Object> objkeys = Helpers.objectKeys(reqCreds);
         for (var i = 0; i < ((List<?>)objkeys).size(); i++)
         {
             Object credential = Helpers.GetValue(objkeys, i);
@@ -235,7 +235,7 @@ public class TestMain extends BaseTest
         Object exchangeSettings = exchange.safeValue(allSettings, exchangeId, new HashMap<String, Object>() {{}});
         if (!java.util.Objects.equals(exchangeSettings, null))
         {
-            Object settingKeys = Helpers.objectKeys(exchangeSettings);
+            List<Object> settingKeys = Helpers.objectKeys(exchangeSettings);
             for (var i = 0; i < ((List<?>)settingKeys).size(); i++)
             {
                 Object key = Helpers.GetValue(settingKeys, i);
@@ -409,7 +409,7 @@ public class TestMain extends BaseTest
             put( "depositWithdraw", new ArrayList<Object>(Arrays.asList("fetchDepositsWithdrawals", "fetchDeposits", "fetchWithdrawals")) );
             put( "depositWithdrawFee", new ArrayList<Object>(Arrays.asList("fetchDepositWithdrawFee", "fetchDepositWithdrawFees")) );
         }};
-        Object objectNames = Helpers.objectKeys(objectSkips);
+        List<Object> objectNames = Helpers.objectKeys(objectSkips);
         for (var i = 0; i < ((List<?>)objectNames).size(); i++)
         {
             Object objectName = Helpers.GetValue(objectNames, i);
@@ -640,7 +640,7 @@ public class TestMain extends BaseTest
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object testNames = Helpers.objectKeys(tests);
+            List<Object> testNames = Helpers.objectKeys(tests);
             List<Object> promises = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)testNames).size(); i++)
             {
@@ -746,7 +746,7 @@ public class TestMain extends BaseTest
         Object spot = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : true;
         Map<String, Object> res = new HashMap<String, Object>() {{}};
         Object markets = exchange.markets;
-        Object keys = Helpers.objectKeys(markets);
+        List<Object> keys = Helpers.objectKeys(markets);
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
             Object key = Helpers.GetValue(keys, i);
@@ -779,7 +779,7 @@ public class TestMain extends BaseTest
                 String currentCode = (String) Helpers.GetValue(codes, i);
                 Object marketsArrayForCurrentCode = exchange.filterBy(currentTypeMarkets, "base", currentCode);
                 Object indexedMkts = exchange.indexBy(marketsArrayForCurrentCode, "symbol");
-                Object symbolsArrayForCurrentCode = Helpers.objectKeys(indexedMkts);
+                List<Object> symbolsArrayForCurrentCode = Helpers.objectKeys(indexedMkts);
                 Object symbolsLength = ((List<?>)symbolsArrayForCurrentCode).size();
                 if (Helpers.isGreaterThan(symbolsLength, 0))
                 {
@@ -890,7 +890,7 @@ public class TestMain extends BaseTest
             String quote = exchange.safeString(defaultMarket, "quote");
             String settle = exchange.safeString(defaultMarket, "settle");
             List<Object> candidates = new ArrayList<Object>(Arrays.asList());
-            Object tickerSymbols = Helpers.objectKeys(tickers);
+            List<Object> tickerSymbols = Helpers.objectKeys(tickers);
             for (var i = 0; i < ((List<?>)tickerSymbols).size(); i++)
             {
                 Object tickerSymbol = Helpers.GetValue(tickerSymbols, i);
@@ -1066,7 +1066,7 @@ public class TestMain extends BaseTest
                 // validate the pin against the live listing - venues can rotate ids/handles
                 // (hyperliquid re-assigns outcome ids), which would strand a stale pin
                 Boolean pinFound = false;
-                Object pinnedKeys = Helpers.objectKeys(exchange.markets);
+                List<Object> pinnedKeys = Helpers.objectKeys(exchange.markets);
                 for (var i = 0; i < ((List<?>)pinnedKeys).size(); i++)
                 {
                     Object pinnedMarket = Helpers.GetValue(exchange.markets, Helpers.GetValue(pinnedKeys, i));
@@ -1092,7 +1092,7 @@ public class TestMain extends BaseTest
             }
             if (java.util.Objects.equals(outcomeSymbol, null))
             {
-                Object marketKeys = Helpers.objectKeys(exchange.markets);
+                List<Object> marketKeys = Helpers.objectKeys(exchange.markets);
                 for (var i = 0; i < ((List<?>)marketKeys).size(); i++)
                 {
                     Object market = Helpers.GetValue(exchange.markets, Helpers.GetValue(marketKeys, i));
@@ -1145,7 +1145,7 @@ public class TestMain extends BaseTest
                     {
                         // derive one from the selected outcome handle (the market words with
                         // separators as spaces) so the scoped contract holds even without a pin
-                        Object handleParts = Helpers.split(outcomeSymbol, ":");
+                        List<Object> handleParts = (List<Object>) Helpers.split(outcomeSymbol, ":");
                         String marketPart = (String) Helpers.GetValue(handleParts, 0);
                         Object lowerPart = marketPart.toLowerCase();
                         Object dedashed = (lowerPart == null ? null : ((String)lowerPart).replace("-", " "));
@@ -1618,7 +1618,7 @@ public class TestMain extends BaseTest
             Object ticker = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchTicker", new Object[]{"BTC/USDT"})).join();
             Object info = Helpers.GetValue(ticker, "info");
             Object headers = Helpers.GetValue(info, "responseHeaders");
-            Object headersKeys = Helpers.objectKeys(headers);
+            List<Object> headersKeys = Helpers.objectKeys(headers);
             Assert(((List<?>)headersKeys).size() > 0, "Response headers should not be empty");
             Object headerValues = Helpers.objectValues(headers);
             Assert(((List<?>)headerValues).size() > 0, "Response headers values should not be empty");
@@ -1792,7 +1792,7 @@ public class TestMain extends BaseTest
         {
             return null;
         }
-        Object urlParts = Helpers.split(url, "/");
+        List<Object> urlParts = (List<Object>) Helpers.split(url, "/");
         Object res = "";
         for (var i = 0; i < ((List<?>)urlParts).size(); i++)
         {
@@ -1802,7 +1802,7 @@ public class TestMain extends BaseTest
                 if (Helpers.isGreaterThan(Helpers.getIndexOf(current, "?"), Helpers.opNeg(1)))
                 {
                     // handle urls like this: /v1/account/accounts?AccessK
-                    Object currentParts = Helpers.split(current, "?");
+                    List<Object> currentParts = (List<Object>) Helpers.split(current, "?");
                     res = (res + "/");
                     res = Helpers.add(res, Helpers.GetValue(currentParts, 0));
                     break;
@@ -1817,11 +1817,11 @@ public class TestMain extends BaseTest
     public Object urlencodedToDict(Object url)
     {
         Map<String, Object> result = new HashMap<String, Object>() {{}};
-        Object parts = Helpers.split(url, "&");
+        List<Object> parts = (List<Object>) Helpers.split(url, "&");
         for (var i = 0; i < ((List<?>)parts).size(); i++)
         {
             String part = (String) Helpers.GetValue(parts, i);
-            Object keyValue = Helpers.split(part, "=");
+            List<Object> keyValue = (List<Object>) Helpers.split(part, "=");
             Object keysLength = ((List<?>)keyValue).size();
             if (!Helpers.isEqual(keysLength, 2))
             {
@@ -1889,7 +1889,7 @@ public class TestMain extends BaseTest
         }
         if (Helpers.isTrue(exchange.isDictionary(value)))
         {
-            Object keys = Helpers.objectKeys(value);
+            List<Object> keys = Helpers.objectKeys(value);
             for (var i = 0; i < ((List<?>)keys).size(); i++)
             {
                 if (!Helpers.isTrue(this.isVacantValue(exchange, Helpers.GetValue(value, Helpers.GetValue(keys, i)))))
@@ -1906,7 +1906,7 @@ public class TestMain extends BaseTest
     {
         // count the keys of `target`, skipping those the other side does not have at
         // all and which carry no data here (see isVacantValue)
-        Object keys = Helpers.objectKeys(target);
+        List<Object> keys = Helpers.objectKeys(target);
         Object count = 0;
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
@@ -1953,8 +1953,8 @@ public class TestMain extends BaseTest
         }
         if (Helpers.isTrue(Helpers.isTrue(exchange.isDictionary(storedOutput)) && Helpers.isTrue(exchange.isDictionary(newOutput))))
         {
-            Object storedOutputKeys = Helpers.objectKeys(storedOutput);
-            Object newOutputKeys = Helpers.objectKeys(newOutput);
+            List<Object> storedOutputKeys = Helpers.objectKeys(storedOutput);
+            List<Object> newOutputKeys = Helpers.objectKeys(newOutput);
             Object storedKeysLength = ((List<?>)storedOutputKeys).size();
             Object newKeysLength = ((List<?>)newOutputKeys).size();
             if (java.util.Objects.equals(this.lang, "C#"))
@@ -2169,8 +2169,8 @@ public class TestMain extends BaseTest
         {
             if ((!java.util.Objects.equals(storedUrl, null)) && (!java.util.Objects.equals(requestUrl, null)))
             {
-                Object storedUrlParts = Helpers.split(storedUrl, "?");
-                Object newUrlParts = Helpers.split(requestUrl, "?");
+                List<Object> storedUrlParts = (List<Object>) Helpers.split(storedUrl, "?");
+                List<Object> newUrlParts = (List<Object>) Helpers.split(requestUrl, "?");
                 Object storedUrlQuery = exchange.safeValue(storedUrlParts, 1);
                 Object newUrlQuery = exchange.safeValue(newUrlParts, 1);
                 if ((java.util.Objects.equals(storedUrlQuery, null)) && (java.util.Objects.equals(newUrlQuery, null)))
@@ -2283,7 +2283,7 @@ public class TestMain extends BaseTest
                 if (!java.util.Objects.equals(storedHeaders, null))
                 {
                     Object sentHeaders = (((!java.util.Objects.equals(exchange.last_request_headers, null)))) ? exchange.last_request_headers : new HashMap<String, Object>() {{}};
-                    Object storedHeaderKeys = Helpers.objectKeys(storedHeaders);
+                    List<Object> storedHeaderKeys = Helpers.objectKeys(storedHeaders);
                     for (var i = 0; i < ((List<?>)storedHeaderKeys).size(); i++)
                     {
                         Object headerKey = Helpers.GetValue(storedHeaderKeys, i);
@@ -2522,7 +2522,7 @@ public class TestMain extends BaseTest
             Object testName = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
             Object globalOptions = ((java.util.Objects.equals(Helpers.GetValue(exchangeData, "options"), null))) ? new HashMap<String, Object>() {{}} : Helpers.GetValue(exchangeData, "options");
             Object methods = ((java.util.Objects.equals(Helpers.GetValue(exchangeData, "methods"), null))) ? new HashMap<String, Object>() {{}} : Helpers.GetValue(exchangeData, "methods");
-            Object methodsNames = Helpers.objectKeys(methods);
+            List<Object> methodsNames = Helpers.objectKeys(methods);
             for (var i = 0; i < ((List<?>)methodsNames).size(); i++)
             {
                 Object method = Helpers.GetValue(methodsNames, i);
@@ -2768,7 +2768,7 @@ public class TestMain extends BaseTest
             // exchange.options = exchange.deepExtend (exchange.options, globalOptions); // custom options to be used in the tests
             exchange.extendExchangeOptions(globalOptions);
             Object methods = exchange.safeValue(exchangeData, "methods", new HashMap<String, Object>() {{}});
-            Object methodsNames = Helpers.objectKeys(methods);
+            List<Object> methodsNames = Helpers.objectKeys(methods);
             for (var i = 0; i < ((List<?>)methodsNames).size(); i++)
             {
                 Object method = Helpers.GetValue(methodsNames, i);
@@ -2867,7 +2867,7 @@ public class TestMain extends BaseTest
             Object options = exchange.safeValue(exchangeData, "options", new HashMap<String, Object>() {{}});
             // exchange.options = exchange.deepExtend (exchange.options, options); // custom options to be used in the tests
             exchange.extendExchangeOptions(options);
-            Object methodsNames = Helpers.objectKeys(methods);
+            List<Object> methodsNames = Helpers.objectKeys(methods);
             for (var i = 0; i < ((List<?>)methodsNames).size(); i++)
             {
                 Object method = Helpers.GetValue(methodsNames, i);
@@ -2939,7 +2939,7 @@ public class TestMain extends BaseTest
         }
         Object sum = 0;
         Object methods = Helpers.GetValue(exchangeData, "methods");
-        Object methodsNames = Helpers.objectKeys(methods);
+        List<Object> methodsNames = Helpers.objectKeys(methods);
         for (var i = 0; i < ((List<?>)methodsNames).size(); i++)
         {
             Object method = Helpers.GetValue(methodsNames, i);
@@ -3032,7 +3032,7 @@ public class TestMain extends BaseTest
             {
                 return true;
             }
-            Object exchanges = Helpers.objectKeys(staticData);
+            List<Object> exchanges = Helpers.objectKeys(staticData);
             Exchange exchange = ((Exchange)initExchange("Exchange", new HashMap<String, Object>() {{}})); // tmp to do the calculations until we have the ast-transpiler transpiling this code
             List<Object> promises = new ArrayList<Object>(Arrays.asList());
             Object sum = 0;

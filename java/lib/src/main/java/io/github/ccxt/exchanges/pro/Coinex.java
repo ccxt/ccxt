@@ -195,11 +195,11 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
         for (var i = 0; i < ((List<?>)messageHashes).size(); i++)
         {
             Object messageHash = Helpers.GetValue(messageHashes, i);
-            Object parts = Helpers.split(messageHash, "::");
+            List<Object> parts = (List<Object>) Helpers.split(messageHash, "::");
             String symbolsString = (String) Helpers.GetValue(parts, 1);
-            Object symbols = Helpers.split(symbolsString, ",");
+            List<Object> symbols = (List<Object>) Helpers.split(symbolsString, ",");
             Object tickers = this.filterByArray(newTickers, "symbol", symbols);
-            Object tickersSymbols = Helpers.objectKeys(tickers);
+            List<Object> tickersSymbols = Helpers.objectKeys(tickers);
             Object numTickers = ((List<?>)tickersSymbols).size();
             if (Helpers.isGreaterThan(numTickers, 0))
             {
@@ -305,7 +305,7 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
             // coinex throws a closes the websocket when subscribing over 1422 currencies, therefore we filter out inactive currencies
             List<Object> activeCurrencies = this.filterBy(this.currencies_by_id, "active", true);
             Map<String, Object> activeCurrenciesById = this.indexBy(activeCurrencies, "id");
-            Object currencies = Helpers.objectKeys(activeCurrenciesById);
+            List<Object> currencies = Helpers.objectKeys(activeCurrenciesById);
             if (java.util.Objects.equals(currencies, null))
             {
                 currencies = new ArrayList<Object>(Arrays.asList());

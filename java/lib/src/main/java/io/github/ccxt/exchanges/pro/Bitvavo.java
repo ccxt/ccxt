@@ -648,7 +648,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
                 ((List<Object>)messageHashes).add(((Helpers.add((("multi:" + name) + "@"), ((Map<String, Object>)market).get("id")) + "_") + interval));
             }
             List<Object> channels = new ArrayList<Object>(Arrays.asList());
-            Object intervals = Helpers.objectKeys(marketIdsByInterval);
+            List<Object> intervals = Helpers.objectKeys(marketIdsByInterval);
             for (var i = 0; i < ((List<?>)intervals).size(); i++)
             {
                 Object interval = Helpers.GetValue(intervals, i);
@@ -740,7 +740,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
                 ((List<Object>)subMessageHashes).add(((Helpers.add((("multi:" + name) + "@"), ((Map<String, Object>)market).get("id")) + "_") + interval));
             }
             Object channels = new ArrayList<Object>(Arrays.asList());
-            Object intervals = Helpers.objectKeys(marketIdsByInterval);
+            List<Object> intervals = Helpers.objectKeys(marketIdsByInterval);
             for (var i = 0; i < ((List<?>)intervals).size(); i++)
             {
                 Object interval = Helpers.GetValue(intervals, i);
@@ -1180,7 +1180,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
         //
         // the confirmation carries the remaining subscriptions without identifying
         // which unsubscribe request it belongs to, so settle every pending unsubscription
-        Object keys = Helpers.objectKeys(client.subscriptions);
+        List<Object> keys = Helpers.objectKeys(client.subscriptions);
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
             Object key = Helpers.GetValue(keys, i);
@@ -2223,7 +2223,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
         Map<String, Object> methods = new HashMap<String, Object>() {{
             put( "book", "handleOrderBookSubscriptions");
         }};
-        Object names = Helpers.objectKeys(subscriptions);
+        List<Object> names = Helpers.objectKeys(subscriptions);
         for (var i = 0; i < ((List<?>)names).size(); i++)
         {
             Object name = Helpers.GetValue(names, i);

@@ -543,7 +543,7 @@ public class Extended extends ExtendedApi
         {
             return null;
         }
-        Object keys = Helpers.objectKeys(input);
+        List<Object> keys = Helpers.objectKeys(input);
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
             Object key = Helpers.GetValue(keys, i);

@@ -1675,7 +1675,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
             {
                 Object url = Helpers.add(Helpers.add(Helpers.GetValue(Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "private"), type), "/"), listenKey);
                 Client client = this.client(url);
-                Object messageHashes = Helpers.objectKeys(client.futures);
+                List<Object> messageHashes = Helpers.objectKeys(client.futures);
                 for (var i = 0; i < ((List<?>)messageHashes).size(); i++)
                 {
                     Object messageHash = Helpers.GetValue(messageHashes, i);

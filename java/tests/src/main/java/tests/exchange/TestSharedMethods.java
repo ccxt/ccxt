@@ -107,7 +107,7 @@ public class TestSharedMethods extends BaseTest {
         } else
         {
             Assert(exchange.isDictionary(entry), ("entry is not a dict" + logText));
-            Object keys = Helpers.objectKeys(format);
+            List<Object> keys = Helpers.objectKeys(format);
             for (var i = 0; i < ((List<?>)keys).size(); i++)
             {
                 Object key = Helpers.GetValue(keys, i);

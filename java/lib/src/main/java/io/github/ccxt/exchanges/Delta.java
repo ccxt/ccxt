@@ -463,8 +463,8 @@ public class Delta extends DeltaApi
     {
         // support expired option contracts
         String quote = "USDT";
-        Object optionParts = Helpers.split(symbol, "-");
-        Object symbolBase = Helpers.split(symbol, "/");
+        List<Object> optionParts = (List<Object>) Helpers.split(symbol, "-");
+        List<Object> symbolBase = (List<Object>) Helpers.split(symbol, "/");
         String base = null;
         Object expiry = null;
         String optionType = null;
@@ -817,7 +817,7 @@ public class Delta extends DeltaApi
         {
             return null;
         }
-        Object keys = Helpers.objectKeys(input);
+        List<Object> keys = Helpers.objectKeys(input);
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
             Object key = Helpers.GetValue(keys, i);

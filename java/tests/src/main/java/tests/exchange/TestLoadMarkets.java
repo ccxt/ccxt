@@ -26,7 +26,7 @@ public class TestLoadMarkets extends BaseTest {
         Assert(Helpers.isArray(exchange.symbols), ".symbols is not an array");
         Object symbolsLength = ((List<?>)exchange.symbols).size();
         Assert(!java.util.Objects.equals(exchange.markets, null), ".markets is undefined");
-        Object marketKeys = Helpers.objectKeys(exchange.markets);
+        List<Object> marketKeys = Helpers.objectKeys(exchange.markets);
         Object marketKeysLength = ((List<?>)marketKeys).size();
         Assert(Helpers.isGreaterThan(symbolsLength, 0), ".symbols count <= 0 (less than or equal to zero)");
         Assert(Helpers.isGreaterThan(marketKeysLength, 0), ".markets objects keys length <= 0 (less than or equal to zero)");

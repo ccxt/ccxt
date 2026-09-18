@@ -1772,7 +1772,7 @@ public class Backpack extends BackpackApi
         //         }
         //     }
         //
-        Object balanceKeys = Helpers.objectKeys(response);
+        List<Object> balanceKeys = Helpers.objectKeys(response);
         Map<String, Object> result = new HashMap<String, Object>() {{}};
         for (var i = 0; i < ((List<?>)balanceKeys).size(); i++)
         {

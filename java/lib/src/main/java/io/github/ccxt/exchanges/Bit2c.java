@@ -371,7 +371,7 @@ public class Bit2c extends Bit2cApi
             put( "timestamp", null );
             put( "datetime", null );
         }};
-        Object codes = Helpers.objectKeys(this.currencies);
+        List<Object> codes = Helpers.objectKeys(this.currencies);
         for (var i = 0; i < ((List<?>)codes).size(); i++)
         {
             Object code = Helpers.GetValue(codes, i);
@@ -682,7 +682,7 @@ public class Bit2c extends Bit2cApi
             //     }
             //
             Object fees = this.safeDict(response, "Fees", new HashMap<String, Object>() {{}});
-            Object keys = Helpers.objectKeys(fees);
+            List<Object> keys = Helpers.objectKeys(fees);
             Map<String, Object> result = new HashMap<String, Object>() {{}};
             for (var i = 0; i < ((List<?>)keys).size(); i++)
             {
@@ -1102,7 +1102,7 @@ public class Bit2c extends Bit2cApi
     public Object removeCommaFromValue(Object str)
     {
         Object newString = "";
-        Object strParts = Helpers.split(str, ",");
+        List<Object> strParts = (List<Object>) Helpers.split(str, ",");
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(strParts)); i++)
         {
             newString = Helpers.add(newString, Helpers.GetValue(strParts, i));
@@ -1161,7 +1161,7 @@ public class Bit2c extends Bit2cApi
             price = this.safeString(trade, "price");
             price = this.removeCommaFromValue(price);
             amount = this.safeString(trade, "firstAmount");
-            Object reference_parts = Helpers.split(reference, "|"); // reference contains 'pair|orderId_by_taker|orderId_by_maker'
+            List<Object> reference_parts = (List<Object>) Helpers.split(reference, "|"); // reference contains 'pair|orderId_by_taker|orderId_by_maker'
             String marketId = this.safeString(trade, "pair");
             market = this.safeMarket(marketId, market);
             market = this.safeMarket(Helpers.GetValue(reference_parts, 0), market);

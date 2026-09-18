@@ -600,7 +600,7 @@ public class Coinmate extends CoinmateApi
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", response );
         }};
-        Object currencyIds = Helpers.objectKeys(balances);
+        List<Object> currencyIds = Helpers.objectKeys(balances);
         for (var i = 0; i < ((List<?>)currencyIds).size(); i++)
         {
             Object currencyId = Helpers.GetValue(currencyIds, i);
@@ -762,7 +762,7 @@ public class Coinmate extends CoinmateApi
             //     }
             //
             Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            Object keys = Helpers.objectKeys(data);
+            List<Object> keys = Helpers.objectKeys(data);
             Map<String, Object> result = new HashMap<String, Object>() {{}};
             for (var i = 0; i < ((List<?>)keys).size(); i++)
             {

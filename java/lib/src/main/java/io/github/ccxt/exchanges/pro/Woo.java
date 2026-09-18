@@ -1721,7 +1721,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
         //
         Object data = this.safeValue(message, "data", new HashMap<String, Object>() {{}});
         Object rawPositions = this.safeDict(data, "positions", new HashMap<String, Object>() {{}});
-        Object postitionsIds = Helpers.objectKeys(rawPositions);
+        List<Object> postitionsIds = Helpers.objectKeys(rawPositions);
         if (java.util.Objects.equals(this.positions, null))
         {
             this.positions = new ArrayCache.ArrayCacheBySymbolBySide();
@@ -1804,7 +1804,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
         //
         Object data = this.safeValue(message, "data");
         Object balances = this.safeValue(data, "balances");
-        Object keys = Helpers.objectKeys(balances);
+        List<Object> keys = Helpers.objectKeys(balances);
         Long ts = this.safeInteger(message, "ts");
         Helpers.addElementToObject(this.balance, "info", data);
         Helpers.addElementToObject(this.balance, "timestamp", ts);
@@ -1996,7 +1996,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
                 Helpers.callDynamically(this, method, new Object[] {client, message});
                 return;
             }
-            Object splitTopic = Helpers.split(topic, "@");
+            List<Object> splitTopic = (List<Object>) Helpers.split(topic, "@");
             Object splitLength = ((List<?>)splitTopic).size();
             if (Helpers.isEqual(splitLength, 2))
             {
@@ -2011,7 +2011,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
                     Helpers.callDynamically(this, method, new Object[] {client, message});
                     return;
                 }
-                Object splitName = Helpers.split(name, "_");
+                List<Object> splitName = (List<Object>) Helpers.split(name, "_");
                 Object splitNameLength = ((List<?>)splitTopic).size();
                 if (Helpers.isEqual(splitNameLength, 2))
                 {

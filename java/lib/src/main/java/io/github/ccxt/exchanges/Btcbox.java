@@ -295,12 +295,12 @@ public class Btcbox extends BtcboxApi
             var response2 = ((List<Object>) response1response2Variable).get(1);
             //
             Object result2Data = this.safeDict(response2, "data", new HashMap<String, Object>() {{}});
-            Object marketIds = Helpers.objectKeys(response1);
+            List<Object> marketIds = Helpers.objectKeys(response1);
             List<Object> markets = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)marketIds).size(); i++)
             {
                 Object marketId = Helpers.GetValue(marketIds, i);
-                Object symbolParts = Helpers.split(marketId, "_");
+                List<Object> symbolParts = (List<Object>) Helpers.split(marketId, "_");
                 String baseCurr = this.safeString(symbolParts, 0, "");
                 String quote = this.safeString(symbolParts, 1, "");
                 Object quoteId = quote.toLowerCase();
@@ -435,7 +435,7 @@ public class Btcbox extends BtcboxApi
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", response );
         }};
-        Object codes = Helpers.objectKeys(this.currencies);
+        List<Object> codes = Helpers.objectKeys(this.currencies);
         for (var i = 0; i < ((List<?>)codes).size(); i++)
         {
             Object code = Helpers.GetValue(codes, i);

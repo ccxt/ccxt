@@ -537,7 +537,7 @@ public class Bitmex extends io.github.ccxt.exchanges.Bitmex
         }
         client.resolve(newLiquidations, "liquidations");
         Map<String, Object> liquidationsBySymbol = this.indexBy(newLiquidations, "symbol");
-        Object symbols = Helpers.objectKeys(liquidationsBySymbol);
+        List<Object> symbols = Helpers.objectKeys(liquidationsBySymbol);
         for (var i = 0; i < ((List<?>)symbols).size(); i++)
         {
             Object symbol = Helpers.GetValue(symbols, i);
@@ -746,7 +746,7 @@ public class Bitmex extends io.github.ccxt.exchanges.Bitmex
         String table = "trade";
         Object data = this.safeValue(message, "data", new ArrayList<Object>(Arrays.asList()));
         Map<String, Object> dataByMarketIds = this.groupBy(data, "symbol");
-        Object marketIds = Helpers.objectKeys(dataByMarketIds);
+        List<Object> marketIds = Helpers.objectKeys(dataByMarketIds);
         for (var i = 0; i < ((List<?>)marketIds).size(); i++)
         {
             Object marketId = Helpers.GetValue(marketIds, i);
@@ -1059,7 +1059,7 @@ public class Bitmex extends io.github.ccxt.exchanges.Bitmex
                 // the ArrayCacheBySymbolBySide index (see issue #29001).
                 String symbol = this.safeString(position, "symbol");
                 Object cachedBySide = this.safeDict(((io.github.ccxt.ws.ArrayCache)cache).hashmap, symbol, new HashMap<String, Object>() {{}});
-                Object cachedSides = Helpers.objectKeys(cachedBySide);
+                List<Object> cachedSides = Helpers.objectKeys(cachedBySide);
                 Object sidesLength = ((List<?>)cachedSides).size();
                 if (Helpers.isEqual(sidesLength, 1))
                 {
@@ -1078,9 +1078,9 @@ public class Bitmex extends io.github.ccxt.exchanges.Bitmex
         for (var i = 0; i < ((List<?>)messageHashes).size(); i++)
         {
             Object messageHash = Helpers.GetValue(messageHashes, i);
-            Object parts = Helpers.split(messageHash, "::");
+            List<Object> parts = (List<Object>) Helpers.split(messageHash, "::");
             String symbolsString = (String) Helpers.GetValue(parts, 1);
-            Object symbols = Helpers.split(symbolsString, ",");
+            List<Object> symbols = (List<Object>) Helpers.split(symbolsString, ",");
             Object positions = this.filterByArray(newPositions, "symbol", symbols, false);
             if (!Helpers.isTrue(this.isEmpty(positions)))
             {
@@ -1318,7 +1318,7 @@ public class Bitmex extends io.github.ccxt.exchanges.Bitmex
                 Helpers.addElementToObject(symbols, ((String)symbol), true);
             }
             client.resolve(this.orders, messageHash);
-            Object keys = Helpers.objectKeys(symbols);
+            List<Object> keys = Helpers.objectKeys(symbols);
             for (var i = 0; i < ((List<?>)keys).size(); i++)
             {
                 Object symbol = Helpers.GetValue(keys, i);
@@ -1458,7 +1458,7 @@ public class Bitmex extends io.github.ccxt.exchanges.Bitmex
         {
             client.resolve(stored, messageHash);
         }
-        Object keys = Helpers.objectKeys(symbols);
+        List<Object> keys = Helpers.objectKeys(symbols);
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
             client.resolve(stored, Helpers.add(Helpers.add(messageHash, ":"), Helpers.GetValue(keys, i)));
@@ -1734,7 +1734,7 @@ public class Bitmex extends io.github.ccxt.exchanges.Bitmex
             Helpers.callDynamically(stored, "append", new Object[]{result});
             Helpers.addElementToObject(results, messageHash, stored);
         }
-        Object messageHashes = Helpers.objectKeys(results);
+        List<Object> messageHashes = Helpers.objectKeys(results);
         for (var i = 0; i < ((List<?>)messageHashes).size(); i++)
         {
             Object messageHash = Helpers.GetValue(messageHashes, i);
@@ -1884,7 +1884,7 @@ public class Bitmex extends io.github.ccxt.exchanges.Bitmex
                 Helpers.addElementToObject(orderbook, "timestamp", this.parse8601(datetime));
                 Helpers.addElementToObject(orderbook, "datetime", datetime);
             }
-            Object marketIds = Helpers.objectKeys(numUpdatesByMarketId);
+            List<Object> marketIds = Helpers.objectKeys(numUpdatesByMarketId);
             for (var i = 0; i < ((List<?>)marketIds).size(); i++)
             {
                 Object marketId = Helpers.GetValue(marketIds, i);

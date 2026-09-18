@@ -1009,7 +1009,7 @@ public class Coinbase extends CoinbaseApi
         String currencyId = this.safeString(currency, "code", currencyIdV3);
         String typeV3 = this.safeString(account, "name");
         String typeV2 = this.safeString(account, "type");
-        Object parts = Helpers.split(typeV3, " ");
+        List<Object> parts = (List<Object>) Helpers.split(typeV3, " ");
         final Object finalActive = active;
         return new HashMap<String, Object>() {{
             put( "id", Coinbase.this.safeString2(account, "id", "uuid") );
@@ -1747,7 +1747,7 @@ public class Coinbase extends CoinbaseApi
             Object data = this.safeList(currencies, "data", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> dataById = this.indexBy(data, "id");
             Object rates = this.safeDict(this.safeDict(exchangeRates, "data", new HashMap<String, Object>() {{}}), "rates", new HashMap<String, Object>() {{}});
-            Object baseIds = Helpers.objectKeys(rates);
+            List<Object> baseIds = Helpers.objectKeys(rates);
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)baseIds).size(); i++)
             {
@@ -2404,7 +2404,7 @@ public class Coinbase extends CoinbaseApi
             Object cryptoData = this.safeList(cryptoResponse, "data", new ArrayList<Object>(Arrays.asList()));
             Object ratesData = this.safeDict(ratesResponse, "data", new HashMap<String, Object>() {{}});
             Object rates = this.safeDict(ratesData, "rates", new HashMap<String, Object>() {{}});
-            Object ratesIds = Helpers.objectKeys(rates);
+            List<Object> ratesIds = Helpers.objectKeys(rates);
             List<Object> currencies = (List<Object>) this.arrayConcat(fiatData, cryptoData);
             Map<String, Object> result = new HashMap<String, Object>() {{}};
             Map<String, Object> networks = new HashMap<String, Object>() {{}};
@@ -2548,7 +2548,7 @@ public class Coinbase extends CoinbaseApi
             Object rates = this.safeDict(data, "rates", new HashMap<String, Object>() {{}});
             String quoteId = this.safeString(data, "currency");
             Map<String, Object> result = new HashMap<String, Object>() {{}};
-            Object baseIds = Helpers.objectKeys(rates);
+            List<Object> baseIds = Helpers.objectKeys(rates);
             String delimiter = "-";
             for (var i = 0; i < ((List<?>)baseIds).size(); i++)
             {
@@ -3490,7 +3490,7 @@ public class Coinbase extends CoinbaseApi
         Object accountId = null;
         if (!java.util.Objects.equals(path, null))
         {
-            Object parts = Helpers.split(path, "/");
+            List<Object> parts = (List<Object>) Helpers.split(path, "/");
             Object numParts = ((List<?>)parts).size();
             if (Helpers.isGreaterThan(numParts, 3))
             {
@@ -5359,7 +5359,7 @@ public class Coinbase extends CoinbaseApi
         String currencyId = null;
         if (!java.util.Objects.equals(addressLabel, null))
         {
-            Object splitAddressLabel = Helpers.split(addressLabel, " ");
+            List<Object> splitAddressLabel = (List<Object>) Helpers.split(addressLabel, " ");
             currencyId = this.safeString(splitAddressLabel, 0);
         } else
         {

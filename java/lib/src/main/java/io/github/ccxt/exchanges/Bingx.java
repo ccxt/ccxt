@@ -1532,7 +1532,7 @@ public class Bingx extends BingxApi
     public Object parseMarket(Object market)
     {
         Object id = this.safeString(market, "symbol");
-        Object symbolParts = Helpers.split(id, "-");
+        List<Object> symbolParts = (List<Object>) Helpers.split(id, "-");
         String baseId = (String) Helpers.GetValue(symbolParts, 0);
         String quoteId = (String) Helpers.GetValue(symbolParts, 1);
         String base = this.safeCurrencyCode(baseId);
@@ -6052,7 +6052,7 @@ public class Bingx extends BingxApi
                     return this.safeDict(addressStructures, defaultNetworkForCurrency);
                 } else
                 {
-                    Object keys = Helpers.objectKeys(addressStructures);
+                    List<Object> keys = Helpers.objectKeys(addressStructures);
                     String key = this.safeString(keys, 0);
                     return this.safeDict(addressStructures, key);
                 }
@@ -6757,7 +6757,7 @@ public class Bingx extends BingxApi
         //
         Object currency = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Object networks = this.safeDict(fee, "networks", new HashMap<String, Object>() {{}});
-        Object networkCodes = Helpers.objectKeys(networks);
+        List<Object> networkCodes = Helpers.objectKeys(networks);
         Object networksLength = ((List<?>)networkCodes).size();
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", networks );
@@ -6819,7 +6819,7 @@ public class Bingx extends BingxApi
             }
             Object response = (this.fetchCurrencies((Object)(parameters))).join();
             Map<String, Object> depositWithdrawFees = new HashMap<String, Object>() {{}};
-            Object responseCodes = Helpers.objectKeys(response);
+            List<Object> responseCodes = Helpers.objectKeys(response);
             for (var i = 0; i < ((List<?>)responseCodes).size(); i++)
             {
                 Object code = Helpers.GetValue(responseCodes, i);
@@ -6911,7 +6911,7 @@ public class Bingx extends BingxApi
     {
         // const sortedParams = this.keysort (params);
         Object copied = this.clone(parameters);
-        Object rawKeys = Helpers.objectKeys(parameters);
+        List<Object> rawKeys = Helpers.objectKeys(parameters);
         Object keys = this.sort(rawKeys);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
         {
@@ -7551,7 +7551,7 @@ public class Bingx extends BingxApi
     public Object customEncode(Object parameters)
     {
         // const sortedParams = this.keysort (params);
-        Object rawKeys = Helpers.objectKeys(parameters);
+        List<Object> rawKeys = Helpers.objectKeys(parameters);
         Object keys = this.sort(rawKeys);
         Object adjustedValue = null;
         Object result = null;
@@ -7675,7 +7675,7 @@ public class Bingx extends BingxApi
         {
             Object tier = this.safeDict(info, i);
             Object tierString = this.safeString(tier, "tier");
-            Object tierParts = Helpers.split(tierString, " ");
+            List<Object> tierParts = (List<Object>) Helpers.split(tierString, " ");
             String marketId = this.safeString(tier, "symbol");
             market = this.safeMarket(marketId, market, null, "swap");
 final Object finalMarket = market;

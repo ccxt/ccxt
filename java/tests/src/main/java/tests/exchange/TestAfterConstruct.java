@@ -53,7 +53,7 @@ public class TestAfterConstruct extends BaseTest {
             Assert(((Map<?, ?>)exchange.options).containsKey("networksById"), "exchange.options[\"networksById\"] is not set");
             Assert(exchange.isDictionary(((Map<String, Object>)exchange.options).get("networksById")), "exchange.options[\"networksById\"] is not a dict");
             //
-            Object networkCodes = Helpers.objectKeys(((Map<String, Object>)exchange.options).get("networks"));
+            List<Object> networkCodes = Helpers.objectKeys(((Map<String, Object>)exchange.options).get("networks"));
             // 3) ensure that the same network-id is not assigned to multiple networkCodes
             List<Object> collectedNetworkIds = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)networkCodes).size(); i++)

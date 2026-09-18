@@ -758,7 +758,7 @@ public class Woofipro extends io.github.ccxt.exchanges.Woofipro
                 Object secret = this.secret;
                 if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(secret, "ed25519:"), 0))
                 {
-                    Object parts = Helpers.split(secret, "ed25519:");
+                    List<Object> parts = (List<Object>) Helpers.split(secret, "ed25519:");
                     secret = Helpers.GetValue(parts, 1);
                 }
                 Object signature = eddsa(this.encode(auth), this.base58ToBinary(secret), ed25519());
@@ -1499,7 +1499,7 @@ public class Woofipro extends io.github.ccxt.exchanges.Woofipro
         //
         Object data = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         Object balances = this.safeDict(data, "balances", new HashMap<String, Object>() {{}});
-        Object keys = Helpers.objectKeys(balances);
+        List<Object> keys = Helpers.objectKeys(balances);
         Long ts = this.safeInteger(message, "ts");
         Helpers.addElementToObject(this.balance, "info", data);
         Helpers.addElementToObject(this.balance, "timestamp", ts);
@@ -1607,7 +1607,7 @@ public class Woofipro extends io.github.ccxt.exchanges.Woofipro
                 Helpers.callDynamically(this, method, new Object[] {client, message});
                 return;
             }
-            Object splitTopic = Helpers.split(topic, "@");
+            List<Object> splitTopic = (List<Object>) Helpers.split(topic, "@");
             Object splitLength = ((List<?>)splitTopic).size();
             if (Helpers.isEqual(splitLength, 2))
             {
@@ -1622,7 +1622,7 @@ public class Woofipro extends io.github.ccxt.exchanges.Woofipro
                     Helpers.callDynamically(this, method, new Object[] {client, message});
                     return;
                 }
-                Object splitName = Helpers.split(name, "_");
+                List<Object> splitName = (List<Object>) Helpers.split(name, "_");
                 Object splitNameLength = ((List<?>)splitTopic).size();
                 if (Helpers.isEqual(splitNameLength, 2))
                 {

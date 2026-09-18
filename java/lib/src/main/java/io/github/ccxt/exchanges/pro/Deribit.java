@@ -530,7 +530,7 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
         //
         Object parameters = this.safeDict(message, "params", new HashMap<String, Object>() {{}});
         String channel = this.safeString(parameters, "channel", "");
-        Object parts = Helpers.split(channel, ".");
+        List<Object> parts = (List<Object>) Helpers.split(channel, ".");
         String marketId = this.safeString(parts, 1);
         String interval = this.safeString(parts, 2);
         String symbol = this.safeSymbol(marketId);
@@ -779,7 +779,7 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
         Object parameters = this.safeValue(message, "params", new HashMap<String, Object>() {{}});
         Object data = this.safeValue(parameters, "data", new HashMap<String, Object>() {{}});
         String channel = this.safeString(parameters, "channel");
-        Object parts = Helpers.split(channel, ".");
+        List<Object> parts = (List<Object>) Helpers.split(channel, ".");
         Object descriptor = "";
         Object partsLength = ((List<?>)parts).size();
         Boolean isDetailed = Helpers.isEqual(partsLength, 5);
@@ -1062,7 +1062,7 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
         //
         Object parameters = this.safeDict(message, "params", new HashMap<String, Object>() {{}});
         String channel = this.safeString(parameters, "channel", "");
-        Object parts = Helpers.split(channel, ".");
+        List<Object> parts = (List<Object>) Helpers.split(channel, ".");
         String marketId = this.safeString(parts, 2);
         String rawTimeframe = this.safeString(parts, 3);
         Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
@@ -1239,7 +1239,7 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
         String channel = this.safeString(parameters, "channel");
         if (!java.util.Objects.equals(channel, null))
         {
-            Object parts = Helpers.split(channel, ".");
+            List<Object> parts = (List<Object>) Helpers.split(channel, ".");
             String channelId = this.safeString(parts, 0);
             Map<String, Object> userHandlers = new HashMap<String, Object>() {{
                 put( "trades", "handleMyTrades");

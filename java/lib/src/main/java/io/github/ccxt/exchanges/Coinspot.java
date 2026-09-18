@@ -618,7 +618,7 @@ public class Coinspot extends CoinspotApi
             for (var i = 0; i < ((List<?>)balances).size(); i++)
             {
                 Object currencies = Helpers.GetValue(balances, i);
-                Object currencyIds = Helpers.objectKeys(currencies);
+                List<Object> currencyIds = Helpers.objectKeys(currencies);
                 for (var j = 0; j < ((List<?>)currencyIds).size(); j++)
                 {
                     Object currencyId = Helpers.GetValue(currencyIds, j);
@@ -634,7 +634,7 @@ public class Coinspot extends CoinspotApi
             }
         } else
         {
-            Object currencyIds = Helpers.objectKeys(balances);
+            List<Object> currencyIds = Helpers.objectKeys(balances);
             for (var i = 0; i < ((List<?>)currencyIds).size(); i++)
             {
                 Object currencyId = Helpers.GetValue(currencyIds, i);
@@ -849,7 +849,7 @@ public class Coinspot extends CoinspotApi
             //
             Map<String, Object> result = new HashMap<String, Object>() {{}};
             Object prices = this.safeDict(response, "prices", new HashMap<String, Object>() {{}});
-            Object ids = Helpers.objectKeys(prices);
+            List<Object> ids = Helpers.objectKeys(prices);
             for (var i = 0; i < ((List<?>)ids).size(); i++)
             {
                 Object id = Helpers.GetValue(ids, i);

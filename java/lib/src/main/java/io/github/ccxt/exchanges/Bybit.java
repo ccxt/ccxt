@@ -2465,8 +2465,8 @@ public class Bybit extends BybitApi
         // support expired option contracts
         String quote = null;
         String settle = null;
-        Object optionParts = Helpers.split(symbol, "-");
-        Object symbolBase = Helpers.split(symbol, "/");
+        List<Object> optionParts = (List<Object>) Helpers.split(symbol, "-");
+        List<Object> symbolBase = (List<Object>) Helpers.split(symbol, "/");
         String base = null;
         Object expiry = null;
         if (Helpers.isGreaterThan(Helpers.getIndexOf(symbol, "/"), Helpers.opNeg(1)))
@@ -2478,7 +2478,7 @@ public class Bybit extends BybitApi
             {
                 throw new ExchangeError((this.id + " createExpiredOptionMarket() missing symbolQuoteAndSettle")) ;
             }
-            Object splitQuote = Helpers.split(symbolQuoteAndSettle, ":");
+            List<Object> splitQuote = (List<Object>) Helpers.split(symbolQuoteAndSettle, ":");
             String quoteAndSettle = this.safeString(splitQuote, 0);
             quote = quoteAndSettle;
             settle = quoteAndSettle;
@@ -3417,7 +3417,7 @@ public class Bybit extends BybitApi
                 {
                     throw new ExchangeError((this.id + " method() missing id")) ;
                 }
-                Object splitId = Helpers.split(id, "-");
+                List<Object> splitId = (List<Object>) Helpers.split(id, "-");
                 String strike = this.safeString(splitId, 2);
                 String optionLetter = this.safeString(splitId, 3);
                 Boolean isActive = (java.util.Objects.equals(status, "Trading"));
@@ -5298,7 +5298,7 @@ public class Bybit extends BybitApi
         String status = this.parseOrderStatus(rawStatus);
         Object fee = null;
         Object cumFeeDetail = this.safeDict(order, "cumFeeDetail", new HashMap<String, Object>() {{}});
-        Object feeCoins = Helpers.objectKeys(cumFeeDetail);
+        List<Object> feeCoins = Helpers.objectKeys(cumFeeDetail);
         String feeCoinId = this.safeString(feeCoins, 0);
         if (!java.util.Objects.equals(feeCoinId, null))
         {
@@ -11164,7 +11164,7 @@ public class Bybit extends BybitApi
         Object idKey = (((java.util.Objects.equals(marketIdKey, null)))) ? "symbol" : marketIdKey;
         Object filteredResults = this.filterByArray(response, idKey, marketIds, false);
         Map<String, Object> grouped = this.groupBy(filteredResults, idKey);
-        Object keys = Helpers.objectKeys(grouped);
+        List<Object> keys = Helpers.objectKeys(grouped);
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
             Object marketId = Helpers.GetValue(keys, i);

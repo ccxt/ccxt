@@ -1183,7 +1183,7 @@ public class Luno extends LunoApi
             Map<String, Object> response = (this.publicGetTickers(parameters)).join();
             Object rawTickers = this.safeList(response, "tickers", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> tickers = this.indexBy(rawTickers, "pair");
-            Object ids = Helpers.objectKeys(tickers);
+            List<Object> ids = Helpers.objectKeys(tickers);
             Map<String, Object> result = new HashMap<String, Object>() {{}};
             for (var i = 0; i < ((List<?>)ids).size(); i++)
             {
@@ -1799,7 +1799,7 @@ public class Luno extends LunoApi
 
     public Object parseLedgerComment(Object comment)
     {
-        Object words = Helpers.split(comment, " ");
+        List<Object> words = (List<Object>) Helpers.split(comment, " ");
         Map<String, Object> types = new HashMap<String, Object>() {{
             put( "Withdrawal", "fee" );
             put( "Trading", "fee" );

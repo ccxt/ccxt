@@ -1508,7 +1508,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             Helpers.callDynamically(trades, "append", new Object[]{parsed});
         }
         String messageHash = "myTrades";
-        Object symbolKeys = Helpers.objectKeys(symbols);
+        List<Object> symbolKeys = Helpers.objectKeys(symbols);
         Object market = this.getMarketFromSymbols(symbolKeys);
         if (java.util.Objects.equals(((Map<String, Object>)market).get("contract"), true))
         {
@@ -1760,7 +1760,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             }
         }
         String messageHash = "orders";
-        Object symbolKeys = Helpers.objectKeys(symbols);
+        List<Object> symbolKeys = Helpers.objectKeys(symbols);
         Object market = this.getMarketFromSymbols(symbolKeys);
         if (java.util.Objects.equals(((Map<String, Object>)market).get("contract"), true))
         {
@@ -2313,9 +2313,9 @@ public class Weex extends io.github.ccxt.exchanges.Weex
         for (var i = 0; i < ((List<?>)messageHashes).size(); i++)
         {
             Object messageHash = Helpers.GetValue(messageHashes, i);
-            Object parts = Helpers.split(messageHash, "::");
+            List<Object> parts = (List<Object>) Helpers.split(messageHash, "::");
             String symbolsString = (String) Helpers.GetValue(parts, 1);
-            Object symbols = Helpers.split(symbolsString, ",");
+            List<Object> symbols = (List<Object>) Helpers.split(symbolsString, ",");
             Object positions = this.filterByArray(newPositions, "symbol", symbols, false);
             if (!Helpers.isTrue(this.isEmpty(positions)))
             {

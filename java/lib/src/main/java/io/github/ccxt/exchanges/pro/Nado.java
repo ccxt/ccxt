@@ -2097,7 +2097,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
         //
         Long timestamp = this.safeInteger(message, "time");
         Object bbos = this.safeDict(message, "bbos", new HashMap<String, Object>() {{}});
-        Object marketIds = Helpers.objectKeys(bbos);
+        List<Object> marketIds = Helpers.objectKeys(bbos);
         Map<String, Object> result = new HashMap<String, Object>() {{}};
         for (var i = 0; i < ((List<?>)marketIds).size(); i++)
         {
@@ -2127,7 +2127,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
     public void handleAllBidsAsks(Client client, Object message)
     {
         Object tickers = this.parseWsAllBidsAsks(message);
-        Object symbols = Helpers.objectKeys(tickers);
+        List<Object> symbols = Helpers.objectKeys(tickers);
         for (var i = 0; i < ((List<?>)symbols).size(); i++)
         {
             Object symbol = Helpers.GetValue(symbols, i);
@@ -2173,7 +2173,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
         String lastMaxTimestamp = this.safeString(message, "last_max_timestamp");
         if ((!java.util.Objects.equals(maxTimestamp, null)) && (!java.util.Objects.equals(lastMaxTimestamp, null)) && (!java.util.Objects.equals(maxTimestamp, lastMaxTimestamp)))
         {
-            Object subscriptions = Helpers.objectKeys(client.subscriptions);
+            List<Object> subscriptions = Helpers.objectKeys(client.subscriptions);
             for (var i = 0; i < ((List<?>)subscriptions).size(); i++)
             {
                 Object subscriptionHash = Helpers.GetValue(subscriptions, i);
@@ -2275,7 +2275,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
             client.resolve(message, unsubscribeHash);
             return;
         }
-        Object subscriptions = Helpers.objectKeys(client.subscriptions);
+        List<Object> subscriptions = Helpers.objectKeys(client.subscriptions);
         for (var i = 0; i < ((List<?>)subscriptions).size(); i++)
         {
             Object unsubscribeHash = Helpers.GetValue(subscriptions, i);
@@ -2318,7 +2318,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
             }
         } else if (Helpers.isEqual(Helpers.getIndexOf(messageHash, "ohlcv:"), 0))
         {
-            Object parts = Helpers.split(messageHash, ":");
+            List<Object> parts = (List<Object>) Helpers.split(messageHash, ":");
             String timeframe = this.safeString(parts, 1);
             String symbol = this.safeString(parts, 2);
             if ((!java.util.Objects.equals(symbol, null)) && (!java.util.Objects.equals(timeframe, null)) && (((Map<?, ?>)this.ohlcvs).containsKey(symbol)) && (((Map<?, ?>)Helpers.GetValue(this.ohlcvs, symbol)).containsKey(timeframe)))
@@ -2334,7 +2334,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
             }
         } else if (java.util.Objects.equals(messageHash, "ticker"))
         {
-            Object symbols = Helpers.objectKeys(this.tickers);
+            List<Object> symbols = Helpers.objectKeys(this.tickers);
             for (var i = 0; i < ((List<?>)symbols).size(); i++)
             {
                 ((Map<String,Object>)this.tickers).remove((String)Helpers.GetValue(symbols, i));
@@ -2348,7 +2348,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
             }
         } else if (java.util.Objects.equals(messageHash, "bidask"))
         {
-            Object symbols = Helpers.objectKeys(this.bidsasks);
+            List<Object> symbols = Helpers.objectKeys(this.bidsasks);
             for (var i = 0; i < ((List<?>)symbols).size(); i++)
             {
                 ((Map<String,Object>)this.bidsasks).remove((String)Helpers.GetValue(symbols, i));

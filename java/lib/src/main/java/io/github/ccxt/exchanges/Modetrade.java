@@ -878,7 +878,7 @@ public class Modetrade extends ModetradeApi
         //   }
         //
         String marketId = this.safeString(market, "symbol", "");
-        Object parts = Helpers.split(marketId, "_");
+        List<Object> parts = (List<Object>) Helpers.split(marketId, "_");
         String marketType = "swap";
         String baseId = this.safeString(parts, 1);
         String quoteId = this.safeString(parts, 2);
@@ -3906,7 +3906,7 @@ public class Modetrade extends ModetradeApi
             Object secret = this.secret;
             if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(secret, "ed25519:"), 0))
             {
-                Object parts = Helpers.split(secret, "ed25519:");
+                List<Object> parts = (List<Object>) Helpers.split(secret, "ed25519:");
                 secret = Helpers.GetValue(parts, 1);
             }
             Object signature = eddsa(this.encode(auth), this.base58ToBinary(secret), ed25519());

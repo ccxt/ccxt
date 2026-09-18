@@ -1192,7 +1192,7 @@ public class Hashkey extends HashkeyApi
         Boolean isSpot = true;
         Boolean isSwap = false;
         Object suffix = "";
-        Object parts = Helpers.split(marketId, "-");
+        List<Object> parts = (List<Object>) Helpers.split(marketId, "-");
         String secondPart = this.safeString(parts, 1);
         if (java.util.Objects.equals(secondPart, "PERPETUAL"))
         {
@@ -4140,7 +4140,7 @@ public class Hashkey extends HashkeyApi
 
     public Object parseOrderSideAndReduceOnly(Object unparsed)
     {
-        Object parts = Helpers.split(unparsed, "_");
+        List<Object> parts = (List<Object>) Helpers.split(unparsed, "_");
         Object side = Helpers.GetValue(parts, 0);
         Object reduceOnly = null;
         String secondPart = this.safeString(parts, 1);

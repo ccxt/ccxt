@@ -770,7 +770,7 @@ public class Alpaca extends AlpacaApi
         {
             throw new ExchangeError((this.id + " parseMarket() missing marketId")) ;
         }
-        Object parts = Helpers.split(marketId, "/");
+        List<Object> parts = (List<Object>) Helpers.split(marketId, "/");
         String assetClass = this.safeString(asset, "class");
         String baseId = this.safeString(parts, 0);
         String quoteId = this.safeString(parts, 1);
@@ -1313,7 +1313,7 @@ public class Alpaca extends AlpacaApi
             //
             List<Object> results = new ArrayList<Object>(Arrays.asList());
             Object snapshots = this.safeDict(response, "snapshots", new HashMap<String, Object>() {{}});
-            Object marketIds = Helpers.objectKeys(snapshots);
+            List<Object> marketIds = Helpers.objectKeys(snapshots);
             for (var i = 0; i < ((List<?>)marketIds).size(); i++)
             {
                 Object marketId = Helpers.GetValue(marketIds, i);
@@ -2755,7 +2755,7 @@ public class Alpaca extends AlpacaApi
             Object baseId = null;
             if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(positionSymbol, "/"), 0))
             {
-                Object parts = Helpers.split(positionSymbol, "/");
+                List<Object> parts = (List<Object>) Helpers.split(positionSymbol, "/");
                 baseId = this.safeString(parts, 0);
             } else
             {

@@ -459,7 +459,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
         //     }
         //
         String channel = this.safeString(message, "channel");
-        Object parts = Helpers.split(channel, "_");
+        List<Object> parts = (List<Object>) Helpers.split(channel, "_");
         String channelKind = this.safeString(parts, 1);
         Boolean isFutures = (java.util.Objects.equals(channelKind, "e"));
         Object market = null;
@@ -504,7 +504,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
         {
             return null;
         }
-        Object symbols = Helpers.objectKeys(markets);
+        List<Object> symbols = Helpers.objectKeys(markets);
         for (var i = 0; i < ((List<?>)symbols).size(); i++)
         {
             Object candidate = Helpers.GetValue(markets, Helpers.GetValue(symbols, i));
@@ -627,7 +627,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
         //     }
         //
         String channel = this.safeString(message, "channel");
-        Object parts = Helpers.split(channel, "_");
+        List<Object> parts = (List<Object>) Helpers.split(channel, "_");
         String wsBaseQuote = this.safeStringLower(parts, 2);
         Object market = this.findSwapMarketByWsBaseQuote(((String)wsBaseQuote));
         if (java.util.Objects.equals(market, null))
@@ -766,7 +766,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
         //     }
         //
         String channel = this.safeString(message, "channel");
-        Object parts = Helpers.split(channel, "_");
+        List<Object> parts = (List<Object>) Helpers.split(channel, "_");
         String wsBaseQuote = this.safeStringLower(parts, 2);
         Object market = this.findSwapMarketByWsBaseQuote(((String)wsBaseQuote));
         if (java.util.Objects.equals(market, null))
@@ -876,7 +876,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
         //     }
         //
         String channel = this.safeString(message, "channel");
-        Object parts = Helpers.split(channel, "_");
+        List<Object> parts = (List<Object>) Helpers.split(channel, "_");
         String wsBaseQuote = this.safeStringLower(parts, 2);
         Object market = this.findSwapMarketByWsBaseQuote(((String)wsBaseQuote));
         if (java.util.Objects.equals(market, null))

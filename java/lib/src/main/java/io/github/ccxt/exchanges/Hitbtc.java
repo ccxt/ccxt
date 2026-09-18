@@ -909,7 +909,7 @@ public class Hitbtc extends HitbtcApi
             //     }
             //
             List<Object> result = new ArrayList<Object>(Arrays.asList());
-            Object ids = Helpers.objectKeys(response);
+            List<Object> ids = Helpers.objectKeys(response);
             for (var i = 0; i < ((List<?>)ids).size(); i++)
             {
                 Object id = Helpers.GetValue(ids, i);
@@ -1412,7 +1412,7 @@ public class Hitbtc extends HitbtcApi
             //     }
             //
             Map<String, Object> result = new HashMap<String, Object>() {{}};
-            Object keys = Helpers.objectKeys(response);
+            List<Object> keys = Helpers.objectKeys(response);
             for (var i = 0; i < ((List<?>)keys).size(); i++)
             {
                 Object marketId = Helpers.GetValue(keys, i);
@@ -1514,7 +1514,7 @@ public class Hitbtc extends HitbtcApi
             }
             Map<String, Object> response = (this.publicGetPublicTrades(this.extend(request, parameters))).join();
             Object trades = new ArrayList<Object>(Arrays.asList());
-            Object marketIds = Helpers.objectKeys(response);
+            List<Object> marketIds = Helpers.objectKeys(response);
             for (var i = 0; i < ((List<?>)marketIds).size(); i++)
             {
                 Object marketId = Helpers.GetValue(marketIds, i);
@@ -2000,7 +2000,7 @@ public class Hitbtc extends HitbtcApi
             }
             Map<String, Object> response = (this.publicGetPublicOrderbook(this.extend(request, parameters))).join();
             Map<String, Object> result = new HashMap<String, Object>() {{}};
-            Object marketIds = Helpers.objectKeys(response);
+            List<Object> marketIds = Helpers.objectKeys(response);
             for (var i = 0; i < ((List<?>)marketIds).size(); i++)
             {
                 Object marketId = Helpers.GetValue(marketIds, i);
@@ -3519,7 +3519,7 @@ public class Hitbtc extends HitbtcApi
             //         }
             //     }
             //
-            Object marketIds = Helpers.objectKeys(response);
+            List<Object> marketIds = Helpers.objectKeys(response);
             Map<String, Object> fundingRates = new HashMap<String, Object>() {{}};
             for (var i = 0; i < ((List<?>)marketIds).size(); i++)
             {
@@ -3608,7 +3608,7 @@ public class Hitbtc extends HitbtcApi
             //        ...
             //    }
             //
-            Object contracts = Helpers.objectKeys(response);
+            List<Object> contracts = Helpers.objectKeys(response);
             List<Object> rates = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)contracts).size(); i++)
             {
@@ -3993,7 +3993,7 @@ public class Hitbtc extends HitbtcApi
             //     }
             //
             List<Object> results = new ArrayList<Object>(Arrays.asList());
-            Object markets = Helpers.objectKeys(response);
+            List<Object> markets = Helpers.objectKeys(response);
             for (var i = 0; i < ((List<?>)markets).size(); i++)
             {
                 Object marketId = Helpers.GetValue(markets, i);
@@ -4704,7 +4704,7 @@ public class Hitbtc extends HitbtcApi
         Object implodedPath = this.implodeParams(path, parameters);
         Object url = Helpers.add(Helpers.add(Helpers.GetValue(((Map<String, Object>)this.urls).get("api"), api), "/"), implodedPath);
         String getRequest = null;
-        Object keys = Helpers.objectKeys(query);
+        List<Object> keys = Helpers.objectKeys(query);
         Object queryLength = ((List<?>)keys).size();
         headers = new HashMap<String, Object>() {{
             put( "Content-Type", "application/json" );

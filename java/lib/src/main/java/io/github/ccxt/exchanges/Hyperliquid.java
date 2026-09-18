@@ -409,7 +409,7 @@ public class Hyperliquid extends HyperliquidApi
         }
         if ((!java.util.Objects.equals(symbol, null)) && !(((Map<?, ?>)this.markets).containsKey(symbol)))
         {
-            Object symbolParts = Helpers.split(symbol, "/");
+            List<Object> symbolParts = (List<Object>) Helpers.split(symbol, "/");
             String baseName = this.safeString(symbolParts, 0);
             Object spotCurrencyMapping = this.safeDict(this.options, "spotCurrencyMapping", new HashMap<String, Object>() {{}});
             if (((Map<?, ?>)spotCurrencyMapping).containsKey(baseName))
@@ -570,7 +570,7 @@ public class Hyperliquid extends HyperliquidApi
             Boolean isWrapped = Helpers.isTrue(fullName.startsWith(((String)"Unit "))) && Helpers.isTrue(name.startsWith(((String)"U")));
             if (Helpers.isTrue(isWrapped))
             {
-                Object parts = Helpers.split(name, "U");
+                List<Object> parts = (List<Object>) Helpers.split(name, "U");
                 Object nameWithoutU = "";
                 for (var j = 0; j < ((List<?>)parts).size(); j++)
                 {
@@ -879,7 +879,7 @@ public class Hyperliquid extends HyperliquidApi
         {
             return 0;
         }
-        Object priceSplitted = Helpers.split(priceStr, ".");
+        List<Object> priceSplitted = (List<Object>) Helpers.split(priceStr, ".");
         if (Helpers.isTrue(Precise.stringEq(priceStr, "0")))
         {
             // Significant digits is always 5 in this case
@@ -3707,7 +3707,7 @@ final Object finalClientOrderId = clientOrderId;
     public String getDexFromHip3Symbol(Object market)
     {
         String baseName = this.safeString(market, "baseName", "");
-        Object part = Helpers.split(baseName, ":");
+        List<Object> part = (List<Object>) Helpers.split(baseName, ":");
         Object partsLength = ((List<?>)part).size();
         if (Helpers.isGreaterThan(partsLength, 1))
         {

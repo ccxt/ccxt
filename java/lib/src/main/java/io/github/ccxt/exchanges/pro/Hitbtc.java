@@ -209,7 +209,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
             }
             (this.authenticate()).join();
             Object url = Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "private");
-            Object splitName = Helpers.split(name, "_subscribe");
+            List<Object> splitName = (List<Object>) Helpers.split(name, "_subscribe");
             String messageHash = this.safeString(splitName, 0, "");
             if (!java.util.Objects.equals(symbol, null))
             {
@@ -330,7 +330,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
         Object snapshot = this.safeDict(message, "snapshot");
         Object data = this.safeDict2(message, "snapshot", "update", new HashMap<String, Object>() {{}});
         String type = (((!java.util.Objects.equals(snapshot, null) && !java.util.Objects.equals(snapshot, null)))) ? "snapshot" : "update";
-        Object marketIds = Helpers.objectKeys(data);
+        List<Object> marketIds = Helpers.objectKeys(data);
         for (var i = 0; i < ((List<?>)marketIds).size(); i++)
         {
             Object marketId = Helpers.GetValue(marketIds, i);
@@ -514,7 +514,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
         //    }
         //
         Object data = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
-        Object marketIds = Helpers.objectKeys(data);
+        List<Object> marketIds = Helpers.objectKeys(data);
         List<Object> result = new ArrayList<Object>(Arrays.asList());
         String topic = "tickers";
         for (var i = 0; i < ((List<?>)marketIds).size(); i++)
@@ -658,7 +658,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
         //     }
         //
         Object data = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
-        Object marketIds = Helpers.objectKeys(data);
+        List<Object> marketIds = Helpers.objectKeys(data);
         List<Object> result = new ArrayList<Object>(Arrays.asList());
         String topic = "bidask";
         for (var i = 0; i < ((List<?>)marketIds).size(); i++)
@@ -778,7 +778,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
         //    }
         //
         Object data = this.safeDict2(message, "snapshot", "update", new HashMap<String, Object>() {{}});
-        Object marketIds = Helpers.objectKeys(data);
+        List<Object> marketIds = Helpers.objectKeys(data);
         for (var i = 0; i < ((List<?>)marketIds).size(); i++)
         {
             Object marketId = Helpers.GetValue(marketIds, i);
@@ -929,9 +929,9 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
         //    }
         //
         Object data = this.safeDict2(message, "snapshot", "update", new HashMap<String, Object>() {{}});
-        Object marketIds = Helpers.objectKeys(data);
+        List<Object> marketIds = Helpers.objectKeys(data);
         String channel = this.safeString(message, "ch", "");
-        Object splitChannel = Helpers.split(channel, "/");
+        List<Object> splitChannel = (List<Object>) Helpers.split(channel, "/");
         String period = this.safeString(splitChannel, 1);
         Object timeframe = this.findTimeframe(period);
         if (java.util.Objects.equals(timeframe, null))
@@ -1122,7 +1122,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
         }
         String marketId = this.safeStringLower2(order, "instrument", "symbol");
         String method = this.safeString(message, "method", "");
-        Object splitMethod = Helpers.split(method, "_order");
+        List<Object> splitMethod = (List<Object>) Helpers.split(method, "_order");
         String messageHash = this.safeString(splitMethod, 0);
         String symbol = this.safeSymbol(marketId);
         Object parsed = this.parseOrder(order);
@@ -1612,7 +1612,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
         String channel = this.safeString2(message, "ch", "method");
         if (!java.util.Objects.equals(channel, null))
         {
-            Object splitChannel = Helpers.split(channel, "/");
+            List<Object> splitChannel = (List<Object>) Helpers.split(channel, "/");
             channel = this.safeString(splitChannel, 0);
             if (java.util.Objects.equals(channel, "orderbook"))
             {

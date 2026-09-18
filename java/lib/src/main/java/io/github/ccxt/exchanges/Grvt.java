@@ -2802,7 +2802,7 @@ public class Grvt extends GrvtApi
             Object precisionValueStr = String.valueOf(precisionValue);
             Object sizeMultiplier = Helpers.mathPow(Double.parseDouble(Helpers.toString(bigInt10)), Double.parseDouble(Helpers.toString(this.convertToBigIntCustom(precisionValueStr))));
             Object size = Helpers.GetValue(leg, "size");
-            Object sizeParts = Helpers.split(size, ".");
+            List<Object> sizeParts = (List<Object>) Helpers.split(size, ".");
             String sizeDec = this.safeString(sizeParts, 1, "");
             Object sizeDecLength = Helpers.add(sizeDec.length(), 0); // php tr
             Object sizeDecLengthStr = String.valueOf(sizeDecLength);
@@ -2816,7 +2816,7 @@ public class Grvt extends GrvtApi
             if (!java.util.Objects.equals(this.omitZero(limitPrice), null))
             {
                 Object price = Helpers.GetValue(leg, "limit_price");
-                Object limitParts = Helpers.split(price, ".");
+                List<Object> limitParts = (List<Object>) Helpers.split(price, ".");
                 String limitDec = this.safeString(limitParts, 1, "");
                 Object limitDecLength = Helpers.add(limitDec.length(), 0); // php tr
                 Object limitDecLengthStr = String.valueOf(limitDecLength);
@@ -4080,7 +4080,7 @@ public class Grvt extends GrvtApi
             }};
             // an empty params dict must serialize as an empty json object, not an empty json array,
             // php json_encode would produce [] here which the venue rejects with the same 1003 error
-            Object paramsKeys = Helpers.objectKeys(parameters);
+            List<Object> paramsKeys = Helpers.objectKeys(parameters);
             Object paramsKeysLength = ((List<?>)paramsKeys).size();
             if (Helpers.isEqual(paramsKeysLength, 0))
             {

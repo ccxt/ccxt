@@ -909,7 +909,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
         //     { id: 0, code: 0, msg: "spot@public.increase.depth.v3.api@BTCUSDT" }
         //
         String msg = this.safeString(message, "msg", "");
-        Object parts = Helpers.split(msg, "@");
+        List<Object> parts = (List<Object>) Helpers.split(msg, "@");
         String marketId = this.safeString(parts, 2);
         String symbol = this.safeSymbol(marketId);
         Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook(new HashMap<String, Object>() {{}}));
@@ -2272,7 +2272,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
                 if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(symbol, "unsubscribe"), 0))
                 {
                     // unWatchTickers
-                    Object symbols = Helpers.objectKeys(this.tickers);
+                    List<Object> symbols = Helpers.objectKeys(this.tickers);
                     for (var j = 0; j < ((List<?>)symbols).size(); j++)
                     {
                         ((Map<String,Object>)this.tickers).remove((String)Helpers.GetValue(symbols, j));
@@ -2290,7 +2290,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
                 }
             } else if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(messageHash, "candles"), 0))
             {
-                Object splitHashes = Helpers.split(messageHash, ":");
+                List<Object> splitHashes = (List<Object>) Helpers.split(messageHash, ":");
                 String symbol = this.safeString(splitHashes, 2);
                 Object splitHashesLength = ((List<?>)splitHashes).size(); // hoisted - inline .length within conditionals becomes strlen for php, fatal on arrays
                 if (Helpers.isGreaterThan(splitHashesLength, 4))
@@ -2431,7 +2431,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
             this.handlePong(client, message);
         } else if (Helpers.isGreaterThan(Helpers.getIndexOf(msg, "@"), Helpers.opNeg(1)))
         {
-            Object parts = Helpers.split(msg, "@");
+            List<Object> parts = (List<Object>) Helpers.split(msg, "@");
             String channel = this.safeString(parts, 1);
             Map<String, Object> methods = new HashMap<String, Object>() {{
                 put( "public.increase.depth.v3.api", "handleOrderBookSubscription");
@@ -2466,7 +2466,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
         //    }
         // }
         String channel = this.safeString(message, "channel", "");
-        Object channelParts = Helpers.split(channel, "@");
+        List<Object> channelParts = (List<Object>) Helpers.split(channel, "@");
         String channelId = this.safeString(channelParts, 1);
         if (java.util.Objects.equals(channelId, "public.kline.v3.api.pb"))
         {
@@ -2522,7 +2522,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
             channel = this.safeString(message, "channel");
         } else
         {
-            Object parts = Helpers.split(c, "@");
+            List<Object> parts = (List<Object>) Helpers.split(c, "@");
             channel = this.safeString(parts, 1, "");
         }
         Map<String, Object> methods = new HashMap<String, Object>() {{

@@ -294,7 +294,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
         {
             // the slim payload uses short keys and does not carry the instrument name,
             // so the symbol is recovered from the channel: ticker_slim.BTC-PERP.100
-            Object parts = Helpers.split(topic, ".");
+            List<Object> parts = (List<Object>) Helpers.split(topic, ".");
             String marketId = this.safeString(parts, 1);
             Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
             Object stats = this.safeDict(data, "stats", new HashMap<String, Object>() {{}});
@@ -425,7 +425,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
 
     public void handleOrderBookUnSubscription(Client client, Object topic)
     {
-        Object parsedTopic = Helpers.split(topic, ".");
+        List<Object> parsedTopic = (List<Object>) Helpers.split(topic, ".");
         String marketId = this.safeString(parsedTopic, 1);
         Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
         Object symbol = ((Map<String, Object>)market).get("symbol");
@@ -444,7 +444,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
 
     public void handleTradesUnSubscription(Client client, Object topic)
     {
-        Object parsedTopic = Helpers.split(topic, ".");
+        List<Object> parsedTopic = (List<Object>) Helpers.split(topic, ".");
         String marketId = this.safeString(parsedTopic, 1);
         Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
         Object symbol = ((Map<String, Object>)market).get("symbol");
@@ -476,7 +476,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
         Object status = this.safeDict(result, "status");
         if (!java.util.Objects.equals(status, null))
         {
-            Object topics = Helpers.objectKeys(status);
+            List<Object> topics = Helpers.objectKeys(status);
             for (var i = 0; i < ((List<?>)topics).size(); i++)
             {
                 Object topic = Helpers.GetValue(topics, i);
@@ -545,7 +545,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
         Object parameters = this.safeDict(message, "params");
         Object data = this.safeDict(parameters, "data", new HashMap<String, Object>() {{}});
         Object topic = this.safeValue(parameters, "channel");
-        Object parsedTopic = Helpers.split(topic, ".");
+        List<Object> parsedTopic = (List<Object>) Helpers.split(topic, ".");
         String marketId = this.safeString(parsedTopic, 1);
         Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
         Object symbol = ((Map<String, Object>)market).get("symbol");
@@ -913,7 +913,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
             String channel = this.safeString(parameters, "channel");
             if (!java.util.Objects.equals(channel, null))
             {
-                Object parsedChannel = Helpers.split(channel, ".");
+                List<Object> parsedChannel = (List<Object>) Helpers.split(channel, ".");
                 if ((Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(channel, "orders"), 0)) || Helpers.isGreaterThan(Helpers.getIndexOf(channel, "trades"), 0))
                 {
                     eventVar = this.safeString(parsedChannel, 1);

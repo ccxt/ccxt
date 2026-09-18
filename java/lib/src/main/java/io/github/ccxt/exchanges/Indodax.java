@@ -521,7 +521,7 @@ public class Indodax extends IndodaxApi
             put( "timestamp", timestamp );
             put( "datetime", Indodax.this.iso8601(timestamp) );
         }};
-        Object currencyIds = Helpers.objectKeys(free);
+        List<Object> currencyIds = Helpers.objectKeys(free);
         for (var i = 0; i < ((List<?>)currencyIds).size(); i++)
         {
             Object currencyId = Helpers.GetValue(currencyIds, i);
@@ -748,7 +748,7 @@ public class Indodax extends IndodaxApi
             //
             Map<String, Object> response = (this.publicGetApiTickerAll(parameters)).join();
             Object tickers = this.safeDict(response, "tickers", new HashMap<String, Object>() {{}});
-            Object keys = Helpers.objectKeys(tickers);
+            List<Object> keys = Helpers.objectKeys(tickers);
             Map<String, Object> parsedTickers = new HashMap<String, Object>() {{}};
             for (var i = 0; i < ((List<?>)keys).size(); i++)
             {
@@ -1107,7 +1107,7 @@ public class Indodax extends IndodaxApi
                 return this.parseOrders(rawOrders, market, since, limit);
             }
             // { success: 1, return: { orders: { marketid: [ ... objects ] }}} if all orders are fetched
-            Object marketIds = Helpers.objectKeys(rawOrders);
+            List<Object> marketIds = Helpers.objectKeys(rawOrders);
             Object exchangeOrders = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)marketIds).size(); i++)
             {
@@ -1744,7 +1744,7 @@ public class Indodax extends IndodaxApi
             Object data = this.safeDict(response, "return");
             Object addresses = this.safeDict(data, "address", new HashMap<String, Object>() {{}});
             Object networks = this.safeDict(data, "network", new HashMap<String, Object>() {{}});
-            Object addressKeys = Helpers.objectKeys(addresses);
+            List<Object> addressKeys = Helpers.objectKeys(addresses);
             Object result = new HashMap<String, Object>() {{
                 put( "info", data );
             }};
@@ -1771,7 +1771,7 @@ public class Indodax extends IndodaxApi
                             {
                                 throw new ExchangeError((this.id + " fetchDepositAddresses() missing networkId")) ;
                             }
-                            Object networkIds = Helpers.split(networkId, ",");
+                            List<Object> networkIds = (List<Object>) Helpers.split(networkId, ",");
                             for (var j = 0; j < ((List<?>)networkIds).size(); j++)
                             {
                                 Object _netIdTmp = this.networkIdToCode(Helpers.GetValue(networkIds, j), code);

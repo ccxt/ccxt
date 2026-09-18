@@ -835,13 +835,13 @@ public class Gemini extends GeminiApi
             Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             Object data = (this.fetchWebEndpoint("fetchMarkets", "webGetRestApi", false, "<h1 id=\"symbols-and-minimums\">Symbols and minimums</h1>")).join();
             Object error = (this.id + " fetchMarketsFromWeb() the API doc HTML markup has changed, breaking the parser of order limits and precision info for markets.");
-            Object tables = Helpers.split(data, "tbody>");
+            List<Object> tables = (List<Object>) Helpers.split(data, "tbody>");
             Object numTables = Helpers.getArrayLength(tables);
             if (Helpers.isLessThan(numTables, 2))
             {
                 throw new NotSupported((String)error) ;
             }
-            Object rows = Helpers.split(Helpers.GetValue(tables, 1), "\n<tr>\n"); // eslint-disable-line quotes
+            List<Object> rows = (List<Object>) Helpers.split(Helpers.GetValue(tables, 1), "\n<tr>\n"); // eslint-disable-line quotes
             Object numRows = Helpers.getArrayLength(rows);
             if (Helpers.isLessThan(numRows, 2))
             {
@@ -852,7 +852,7 @@ public class Gemini extends GeminiApi
             for (var i = 1; Helpers.isLessThan(i, numRows); i++)
             {
                 String row = (String) Helpers.GetValue(rows, i);
-                Object cells = Helpers.split(row, "</td>\n"); // eslint-disable-line quotes
+                List<Object> cells = (List<Object>) Helpers.split(row, "</td>\n"); // eslint-disable-line quotes
                 Object numCells = Helpers.getArrayLength(cells);
                 if (Helpers.isLessThan(numCells, 5))
                 {
@@ -869,14 +869,14 @@ public class Gemini extends GeminiApi
                 marketId = Helpers.replace(((String)marketId), "*", "");
                 // const base = this.safeCurrencyCode (baseId);
                 Object minAmountString = Helpers.replace(((String)Helpers.GetValue(cells, 1)), "<td>", "");
-                Object minAmountParts = Helpers.split(minAmountString, " ");
+                List<Object> minAmountParts = (List<Object>) Helpers.split(minAmountString, " ");
                 Double minAmount = this.safeNumber(minAmountParts, 0);
                 Object amountPrecisionString = Helpers.replace(((String)Helpers.GetValue(cells, 2)), "<td>", "");
-                Object amountPrecisionParts = Helpers.split(amountPrecisionString, " ");
+                List<Object> amountPrecisionParts = (List<Object>) Helpers.split(amountPrecisionString, " ");
                 Object idLength = Helpers.subtract(Helpers.getArrayLength(marketId), 0);
                 Object startingIndex = Helpers.subtract(idLength, 3);
                 Object pricePrecisionString = Helpers.replace(((String)Helpers.GetValue(cells, 3)), "<td>", "");
-                Object pricePrecisionParts = Helpers.split(pricePrecisionString, " ");
+                List<Object> pricePrecisionParts = (List<Object>) Helpers.split(pricePrecisionString, " ");
                 String quoteId = this.safeStringLower(pricePrecisionParts, 1, Helpers.slice(marketId, startingIndex, idLength));
                 String baseId = this.safeStringLower(amountPrecisionParts, 1, Helpers.replace(((String)marketId), quoteId, ""));
                 String base = this.safeCurrencyCode(baseId);

@@ -1252,7 +1252,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
 
     public Object formatNumber(Object data)
     {
-        Object parts = Helpers.split(data, ".");
+        List<Object> parts = (List<Object>) Helpers.split(data, ".");
         String integer = this.safeString(parts, 0);
         String decimals = this.safeString(parts, 1, "");
         Object joinedResult = Helpers.add(integer, decimals);
@@ -1497,7 +1497,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
             }
             String name = "myTrades";
             client.resolve(this.myTrades, name);
-            Object keys = Helpers.objectKeys(symbols);
+            List<Object> keys = Helpers.objectKeys(symbols);
             for (var i = 0; i < ((List<?>)keys).size(); i++)
             {
                 Object messageHash = ((name + ":") + Helpers.GetValue(keys, i));
@@ -1670,7 +1670,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
             }
             String name = "orders";
             client.resolve(this.orders, name);
-            Object keys = Helpers.objectKeys(symbols);
+            List<Object> keys = Helpers.objectKeys(symbols);
             for (var i = 0; i < ((List<?>)keys).size(); i++)
             {
                 Object messageHash = ((name + ":") + Helpers.GetValue(keys, i));

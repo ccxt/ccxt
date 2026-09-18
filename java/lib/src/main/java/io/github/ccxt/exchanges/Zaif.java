@@ -432,7 +432,7 @@ public class Zaif extends ZaifApi
             put( "datetime", null );
         }};
         Object funds = this.safeDict(balances, "funds", new HashMap<String, Object>() {{}});
-        Object currencyIds = Helpers.objectKeys(funds);
+        List<Object> currencyIds = Helpers.objectKeys(funds);
         for (var i = 0; i < ((List<?>)currencyIds).size(); i++)
         {
             Object currencyId = Helpers.GetValue(currencyIds, i);

@@ -646,7 +646,7 @@ public class Coinone extends CoinoneApi
             put( "info", response );
         }};
         Object balances = this.omit(response, new ArrayList<Object>(Arrays.asList("errorCode", "result", "normalWallets")));
-        Object currencyIds = Helpers.objectKeys(balances);
+        List<Object> currencyIds = Helpers.objectKeys(balances);
         for (var i = 0; i < ((List<?>)currencyIds).size(); i++)
         {
             Object currencyId = Helpers.GetValue(currencyIds, i);
@@ -1557,7 +1557,7 @@ public class Coinone extends CoinoneApi
             //     }
             //
             Object walletAddress = this.safeDict(response, "walletAddress", new HashMap<String, Object>() {{}});
-            Object keys = Helpers.objectKeys(walletAddress);
+            List<Object> keys = Helpers.objectKeys(walletAddress);
             Object result = new HashMap<String, Object>() {{}};
             for (var i = 0; i < ((List<?>)keys).size(); i++)
             {
@@ -1567,7 +1567,7 @@ public class Coinone extends CoinoneApi
                 {
                     continue;
                 }
-                Object parts = Helpers.split(key, "_");
+                List<Object> parts = (List<Object>) Helpers.split(key, "_");
                 Object currencyId = this.safeValue(parts, 0);
                 Object secondPart = this.safeValue(parts, 1);
                 String code = this.safeCurrencyCode(currencyId);

@@ -1091,7 +1091,7 @@ public class Woo extends WooApi
     public Object parseMarket(Object market)
     {
         String marketId = this.safeString(market, "symbol", "");
-        Object parts = Helpers.split(marketId, "_");
+        List<Object> parts = (List<Object>) Helpers.split(marketId, "_");
         String first = this.safeString(parts, 0);
         String marketType = null;
         Boolean spot = false;
@@ -1581,7 +1581,7 @@ public class Woo extends WooApi
             Object tokenNetworkRows = this.safeList(tokenNetworkResponse, "rows", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> networksById = this.groupBy(tokenNetworkRows, "token");
             Map<String, Object> tokensById = this.groupBy(tokenRows, "balance_token");
-            Object currencyIds = Helpers.objectKeys(tokensById);
+            List<Object> currencyIds = Helpers.objectKeys(tokensById);
             for (var i = 0; i < ((List<?>)currencyIds).size(); i++)
             {
                 Object id = Helpers.GetValue(currencyIds, i);
@@ -1608,7 +1608,7 @@ public class Woo extends WooApi
         String code = this.safeCurrencyCode(currencyId);
         Map<String, Object> tokensByNetworkId = this.indexBy(((Map<String, Object>)rawCurrency).get("_tokens_by_id"), "network");
         Map<String, Object> chainsByNetworkId = this.indexBy(((Map<String, Object>)rawCurrency).get("_networks_by_id"), "network");
-        Object keys = Helpers.objectKeys(chainsByNetworkId);
+        List<Object> keys = Helpers.objectKeys(chainsByNetworkId);
         Map<String, Object> resultingNetworks = new HashMap<String, Object>() {{}};
         for (var j = 0; j < ((List<?>)keys).size(); j++)
         {
@@ -3463,7 +3463,7 @@ public class Woo extends WooApi
         Object networkEntry = (((java.util.Objects.equals(networkCode, null)))) ? null : this.safeDict(Helpers.GetValue(currency, "networks"), networkCode);
         if (java.util.Objects.equals(networkEntry, null))
         {
-            Object supportedNetworks = Helpers.objectKeys(Helpers.GetValue(currency, "networks"));
+            List<Object> supportedNetworks = Helpers.objectKeys(Helpers.GetValue(currency, "networks"));
             throw new BadRequest(((this.id + "  can not determine a network code, please provide unified \"network\" param, one from the following: ") + this.json(supportedNetworks))) ;
         }
         String currentyNetworkId = this.safeString(networkEntry, "currencyNetworkId");
@@ -3665,7 +3665,7 @@ public class Woo extends WooApi
             return currency;
         } else
         {
-            Object parts = Helpers.split(networkizedCode, "_");
+            List<Object> parts = (List<Object>) Helpers.split(networkizedCode, "_");
             Object partsLength = Helpers.getArrayLength(parts);
             String firstPart = this.safeString(parts, 0);
             String currencyId = this.safeString(parts, 1, firstPart);
@@ -5681,7 +5681,7 @@ public class Woo extends WooApi
     {
         Map<String, Object> currencyItem = (Map<String, Object>) this.currency(code);
         Object networks = ((Map<String, Object>)currencyItem).get("networks");
-        Object networkKeys = Helpers.objectKeys(networks);
+        List<Object> networkKeys = Helpers.objectKeys(networks);
         for (var i = 0; i < ((List<?>)networkKeys).size(); i++)
         {
             Object network = Helpers.GetValue(networkKeys, i);

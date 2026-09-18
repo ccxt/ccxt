@@ -989,7 +989,7 @@ public class P2b extends P2bApi
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", response );
         }};
-        Object keys = Helpers.objectKeys(response);
+        List<Object> keys = Helpers.objectKeys(response);
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
             Object currencyId = Helpers.GetValue(keys, i);
@@ -1461,7 +1461,7 @@ public class P2b extends P2bApi
             //
             Object result = this.safeValue(response, "result");
             Object orders = new ArrayList<Object>(Arrays.asList());
-            Object keys = Helpers.objectKeys(result);
+            List<Object> keys = Helpers.objectKeys(result);
             for (var i = 0; i < ((List<?>)keys).size(); i++)
             {
                 Object marketId = Helpers.GetValue(keys, i);

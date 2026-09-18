@@ -405,7 +405,7 @@ public class Bitflyer extends BitflyerApi
             {
                 Object market = Helpers.GetValue(markets, i);
                 String id = this.safeString(market, "product_code");
-                Object currencies = Helpers.split(id, "_");
+                List<Object> currencies = (List<Object>) Helpers.split(id, "_");
                 String marketType = this.safeString(market, "market_type");
                 Boolean swap = (java.util.Objects.equals(marketType, "FX"));
                 Boolean future = (java.util.Objects.equals(marketType, "Futures"));
@@ -439,11 +439,11 @@ public class Bitflyer extends BitflyerApi
                         expiry = this.parseExpiryDate(expiryDate);
                     } else
                     {
-                        Object splitAlias = Helpers.split(alias, "_");
+                        List<Object> splitAlias = (List<Object>) Helpers.split(alias, "_");
                         String currencyIds = this.safeString(splitAlias, 0);
                         baseId = Helpers.slice(currencyIds, 0, Helpers.opNeg(3));
                         quoteId = Helpers.slice(currencyIds, Helpers.opNeg(3), null);
-                        Object splitId = Helpers.split(id, currencyIds);
+                        List<Object> splitId = (List<Object>) Helpers.split(id, currencyIds);
                         String expiryDate = this.safeString(splitId, 1);
                         expiry = this.parseExpiryDate(expiryDate);
                     }
