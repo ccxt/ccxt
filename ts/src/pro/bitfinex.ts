@@ -235,7 +235,7 @@ export default class bitfinex extends bitfinexRest {
         //       ]
         //   ]
         //
-        const data = this.safeValue (message, 1, []);
+        const data = this.safeList (message, 1, []);
         let ohlcvs: any[] = [];
         const first = this.safeValue (data, 0);
         if (Array.isArray (first)) {

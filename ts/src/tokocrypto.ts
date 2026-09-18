@@ -2028,7 +2028,7 @@ export default class tokocrypto extends Exchange {
         //     }
         //
         const data = this.safeDict (response, 'data', {});
-        const list = this.safeValue (data, 'list', []);
+        const list = this.safeList (data, 'list', []);
         const rawOrder = this.safeDict (list, 0, {});
         return this.parseOrder (rawOrder);
     }

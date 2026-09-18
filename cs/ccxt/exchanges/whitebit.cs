@@ -3856,7 +3856,7 @@ public partial class whitebit : Exchange
         //         "total": 300                                                                                             // total number of  transactions, use this for calculating ‘limit’ and ‘offset'
         //     }
         //
-        List<object> records = ((List<object>)this.safeValue(response, "records", new List<object>() {}));
+        List<object> records = this.safeList(response, "records", new List<object>() {});
         IDictionary<string, object> first = this.safeDict(records, 0, new Dictionary<string, object>() {});
         return ccxt.BaseExchange.ToTransaction(this.parseTransaction(first, currency));
     }
@@ -4800,7 +4800,7 @@ public partial class whitebit : Exchange
 
     public virtual bool isFiat(string? currency)
     {
-        object fiatCurrencies = this.safeValue(this.options, "fiatCurrencies", new List<object>() {});
+        List<object> fiatCurrencies = this.safeList(this.options, "fiatCurrencies", new List<object>() {});
         return this.inArray(currency, fiatCurrencies);
     }
 

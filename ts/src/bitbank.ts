@@ -306,7 +306,7 @@ export default class bitbank extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data');
-        const pairs = this.safeValue (data, 'pairs', []);
+        const pairs = this.safeList (data, 'pairs', []);
         return this.parseMarkets (pairs);
     }
 
@@ -645,7 +645,7 @@ export default class bitbank extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', {});
-        const candlestick = this.safeValue (data, 'candlestick', []);
+        const candlestick = this.safeList (data, 'candlestick', []);
         const first = this.safeValue (candlestick, 0, {});
         const ohlcv = this.safeList (first, 'ohlcv', []);
         return this.parseOHLCVs (ohlcv, market, timeframe, since, limit);
@@ -981,7 +981,7 @@ export default class bitbank extends Exchange {
         const response = await this.privateGetUserWithdrawalAccount (this.extend (request, params));
         const data = this.safeValue (response, 'data', {});
         // Not sure about this if there could be more than one account...
-        const accounts = this.safeValue (data, 'accounts', []);
+        const accounts = this.safeList (data, 'accounts', []);
         const firstAccount = this.safeValue (accounts, 0, {});
         const address = this.safeString (firstAccount, 'address');
         return {

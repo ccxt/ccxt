@@ -223,7 +223,7 @@ public partial class whitebit : ccxt.whitebit
         //     "id":null
         //  }
         //
-        List<object> parameters = ((List<object>)this.safeValue(message, "params", new List<object>() {}));
+        List<object> parameters = this.safeList(message, "params", new List<object>() {});
         object isSnapshot = this.safeValue(parameters, 0);
         string? marketId = this.safeString(parameters, 2);
         Dictionary<string, object> market = this.safeMarket(marketId);
@@ -244,8 +244,8 @@ public partial class whitebit : ccxt.whitebit
             (orderbook as IOrderBook).reset(snapshot);
         } else
         {
-            object asks = this.safeValue(data, "asks", new List<object>() {});
-            object bids = this.safeValue(data, "bids", new List<object>() {});
+            List<object> asks = this.safeList(data, "asks", new List<object>() {});
+            List<object> bids = this.safeList(data, "bids", new List<object>() {});
             this.handleDeltas(getValue(orderbook, "asks"), asks);
             this.handleDeltas(getValue(orderbook, "bids"), bids);
         }
@@ -351,7 +351,7 @@ public partial class whitebit : ccxt.whitebit
         //       "id": null
         //   }
         //
-        List<object> tickers = ((List<object>)this.safeValue(message, "params", new List<object>() {}));
+        List<object> tickers = this.safeList(message, "params", new List<object>() {});
         string? marketId = this.safeString(tickers, 0);
         Dictionary<string, object> market = this.safeMarket(marketId);
         string? symbol = ((string)GetValue(market, "symbol"));
@@ -442,7 +442,7 @@ public partial class whitebit : ccxt.whitebit
         //        ]
         //    }
         //
-        List<object> parameters = ((List<object>)this.safeValue(message, "params", new List<object>() {}));
+        List<object> parameters = this.safeList(message, "params", new List<object>() {});
         string? marketId = this.safeString(parameters, 0);
         Dictionary<string, object> market = this.safeMarket(marketId);
         string? symbol = ((string)GetValue(market, "symbol"));
@@ -670,7 +670,7 @@ public partial class whitebit : ccxt.whitebit
         //     "id": null
         // }
         //
-        List<object> parameters = ((List<object>)this.safeValue(message, "params", new List<object>() {}));
+        List<object> parameters = this.safeList(message, "params", new List<object>() {});
         object data = this.safeValue(parameters, 1);
         if (isEqual(this.orders, null))
         {

@@ -829,7 +829,7 @@ public partial class digifinex : Exchange
         //         ]
         //     }
         //
-        object spotData = this.safeValue(spotMarkets, "symbol_list", new List<object>() {});
+        List<object> spotData = this.safeList(spotMarkets, "symbol_list", new List<object>() {});
         object swapData = this.safeValue(swapMarkets, "data", new List<object>() {});
         List<object> response = this.arrayConcat(spotData, swapData);
         List<object> result = new List<object>() {};
@@ -1408,7 +1408,7 @@ public partial class digifinex : Exchange
         //     }
         //
         Int64? date = this.safeInteger(response, "date");
-        object tickers = this.safeValue(response, "ticker", new List<object>() {});
+        List<object> tickers = this.safeList(response, "ticker", new List<object>() {});
         object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
         object firstTicker = this.safeValue(tickers, 0, new Dictionary<string, object>() {});
         object result = null;
@@ -3331,7 +3331,7 @@ public partial class digifinex : Exchange
         //         "code":200
         //     }
         //
-        object data = this.safeValue(response, "data", new List<object>() {});
+        List<object> data = this.safeList(response, "data", new List<object>() {});
         object addresses = this.parseDepositAddresses(data, new List<object>() {GetValue(currency, "code")});
         object address = this.safeValue(addresses, code);
         if ((address == null))

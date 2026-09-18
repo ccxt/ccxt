@@ -432,7 +432,7 @@ export default class ndax extends ndaxRest {
         //         0,   // 9 Side
         //     ],
         //
-        const firstBidAsk = this.safeValue (payload, 0, []);
+        const firstBidAsk = this.safeList (payload, 0, []);
         const marketId = this.safeString (firstBidAsk, 7);
         if (marketId === undefined) {
             return;

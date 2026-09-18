@@ -1167,7 +1167,7 @@ public partial class coinbaseexchange : Exchange
         for (int i = 0; isLessThan(i, marketIds.Count); postFixIncrement(ref i))
         {
             string? marketId = ((string)getValue(marketIds, i));
-            object entry = this.safeValue(response, marketId, new List<object>() {});
+            List<object> entry = this.safeList(response, marketId, new List<object>() {});
             object first = this.safeValue(entry, 0, new List<object>() {});
             Dictionary<string, object> market = this.safeMarket(marketId, null, delimiter);
             string? symbol = ((string)GetValue(market, "symbol"));

@@ -746,7 +746,7 @@ public partial class bit2c : Exchange
         };
         Dictionary<string, object> response = await this.privateGetOrderMyOrders(this.extend(request, parameters));
         object orders = this.safeValue(response, GetValue(market, "id"), new Dictionary<string, object>() {});
-        object asks = this.safeValue(orders, "ask", new List<object>() {});
+        List<object> asks = this.safeList(orders, "ask", new List<object>() {});
         List<object> bids = this.safeList(orders, "bid", new List<object>() {});
         return ccxt.BaseExchange.ToOrderList(this.parseOrders(this.arrayConcat(asks, bids), market, since, limit));
     }

@@ -752,8 +752,8 @@ export default class htx extends htxRest {
         const spotConditon = (market['spot'] === true) && (prevSeqNum === orderbook['nonce']);
         const nonSpotCondition = (market['contract'] === true) && (version !== undefined) && (version - 1 === orderbook['nonce']);
         if ((spotConditon === true) || (nonSpotCondition === true)) {
-            const asks = this.safeValue (tick, 'asks', []);
-            const bids = this.safeValue (tick, 'bids', []);
+            const asks = this.safeList (tick, 'asks', []);
+            const bids = this.safeList (tick, 'bids', []);
             this.handleDeltas (orderbook['asks'], asks);
             this.handleDeltas (orderbook['bids'], bids);
             orderbook['nonce'] = (spotConditon === true) ? seqNum : version;

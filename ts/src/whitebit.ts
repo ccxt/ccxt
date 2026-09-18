@@ -3319,7 +3319,7 @@ export default class whitebit extends Exchange {
         //         "total": 300                                                                                             // total number of  transactions, use this for calculating ‘limit’ and ‘offset'
         //     }
         //
-        const records = this.safeValue (response, 'records', []);
+        const records = this.safeList (response, 'records', []);
         const first = this.safeDict (records, 0, {});
         return this.parseTransaction (first, currency);
     }
@@ -4197,7 +4197,7 @@ export default class whitebit extends Exchange {
     }
 
     isFiat (currency: string): boolean {
-        const fiatCurrencies = this.safeValue (this.options, 'fiatCurrencies', []);
+        const fiatCurrencies = this.safeList (this.options, 'fiatCurrencies', []);
         return this.inArray (currency, fiatCurrencies);
     }
 

@@ -358,7 +358,7 @@ public partial class bitbank : Exchange
         //     }
         //
         IDictionary<string, object> data = ((IDictionary<string, object>)this.safeValue(response, "data"));
-        List<object> pairs = ((List<object>)this.safeValue(data, "pairs", new List<object>() {}));
+        List<object> pairs = this.safeList(data, "pairs", new List<object>() {});
         return ccxt.BaseExchange.ToMarketInterfaceList(this.parseMarkets(pairs));
     }
 
@@ -717,7 +717,7 @@ public partial class bitbank : Exchange
         //     }
         //
         IDictionary<string, object> data = ((IDictionary<string, object>)this.safeValue(response, "data", new Dictionary<string, object>() {}));
-        object candlestick = this.safeValue(data, "candlestick", new List<object>() {});
+        List<object> candlestick = this.safeList(data, "candlestick", new List<object>() {});
         object first = this.safeValue(candlestick, 0, new Dictionary<string, object>() {});
         List<object> ohlcv = this.safeList(first, "ohlcv", new List<object>() {});
         return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(ohlcv, market,timeframeVar, sinceVar, limitVar));
@@ -1085,7 +1085,7 @@ public partial class bitbank : Exchange
         Dictionary<string, object> response = await this.privateGetUserWithdrawalAccount(this.extend(request, parameters));
         IDictionary<string, object> data = ((IDictionary<string, object>)this.safeValue(response, "data", new Dictionary<string, object>() {}));
         // Not sure about this if there could be more than one account...
-        object accounts = this.safeValue(data, "accounts", new List<object>() {});
+        List<object> accounts = this.safeList(data, "accounts", new List<object>() {});
         object firstAccount = this.safeValue(accounts, 0, new Dictionary<string, object>() {});
         string? address = this.safeString(firstAccount, "address");
         return ccxt.BaseExchange.ToDepositAddress(new Dictionary<string, object>() {             { "info", response },             { "currency", GetValue(currency, "code") },             { "network", null },             { "address", address },             { "tag", null },         });

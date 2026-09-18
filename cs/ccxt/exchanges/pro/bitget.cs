@@ -406,7 +406,7 @@ public partial class bitget : ccxt.bitget
         //     }
         //
         IDictionary<string, object> arg = ((IDictionary<string, object>)this.safeValue(message, "arg", new Dictionary<string, object>() {}));
-        List<object> data = ((List<object>)this.safeValue(message, "data", new List<object>() {}));
+        List<object> data = this.safeList(message, "data", new List<object>() {});
         object ticker = this.safeValue(data, 0, new Dictionary<string, object>() {});
         Int64? utaTimestamp = this.safeInteger(message, "ts");
         Int64? timestamp = this.safeInteger(ticker, "ts", utaTimestamp);
@@ -516,7 +516,7 @@ public partial class bitget : ccxt.bitget
     public virtual Dictionary<string, object> parseWsBidAsk(object message, IDictionary<string, object> market = null)
     {
         IDictionary<string, object> arg = ((IDictionary<string, object>)this.safeValue(message, "arg", new Dictionary<string, object>() {}));
-        List<object> data = ((List<object>)this.safeValue(message, "data", new List<object>() {}));
+        List<object> data = this.safeList(message, "data", new List<object>() {});
         object ticker = this.safeValue(data, 0, new Dictionary<string, object>() {});
         Int64? utaTimestamp = this.safeInteger(message, "ts");
         Int64? timestamp = this.safeInteger(ticker, "ts", utaTimestamp);
@@ -2196,7 +2196,7 @@ public partial class bitget : ccxt.bitget
         Int64? timestamp = this.safeInteger2(order, "cTime", "createdTime");
         string? symbol = ((string)getValue(market, "symbol"));
         string? rawStatus = this.safeString2(order, "status", "orderStatus");
-        object orderFee = this.safeValue(order, "feeDetail", new List<object>() {});
+        List<object> orderFee = this.safeList(order, "feeDetail", new List<object>() {});
         object fee = this.safeValue(orderFee, 0);
         string? feeAmount = this.safeString(fee, "fee");
         Dictionary<string, object> feeObject = null;

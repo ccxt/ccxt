@@ -454,7 +454,7 @@ export default class bitteam extends Exchange {
         //     }
         //
         const result = this.safeValue (response, 'result', {});
-        const markets = this.safeValue (result, 'pairs', []);
+        const markets = this.safeList (result, 'pairs', []);
         return this.parseMarkets (markets);
     }
 
@@ -2381,7 +2381,7 @@ export default class bitteam extends Exchange {
         const timestamp = this.safeInteger (transaction, 'timestamp');
         let networkId = this.safeString (transaction, 'blockChain');
         if (networkId === undefined) {
-            const links = this.safeValue (currencyObject, 'links', []);
+            const links = this.safeList (currencyObject, 'links', []);
             const blockChain = this.safeValue (links, 0, {});
             networkId = this.safeString (blockChain, 'blockChain');
         }

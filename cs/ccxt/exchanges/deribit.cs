@@ -3989,7 +3989,7 @@ public partial class deribit : Exchange
         //
         object result = this.safeValue(response, "result", new Dictionary<string, object>() {});
         string? cursor = this.safeString(result, "continuation");
-        List<object> settlements = ((List<object>)this.safeValue(result, "settlements", new List<object>() {}));
+        List<object> settlements = this.safeList(result, "settlements", new List<object>() {});
         object settlementsWithCursor = this.addPaginationCursorToResult(cursor, settlements);
         return ccxt.BaseExchange.ToLiquidationList(this.parseLiquidations(settlementsWithCursor, market, since, limit));
     }

@@ -3906,7 +3906,7 @@ public partial class hitbtc : Exchange
         //         "positions": null
         //     }
         //
-        object currencies = this.safeValue(data, "currencies", new List<object>() {});
+        List<object> currencies = this.safeList(data, "currencies", new List<object>() {});
         object currencyInfo = this.safeValue(currencies, 0);
         string? datetime = this.safeString(data, "updated_at");
         return new Dictionary<string, object>() {

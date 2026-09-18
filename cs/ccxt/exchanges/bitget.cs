@@ -3845,7 +3845,7 @@ public partial class bitget : Exchange
             string? baseId = this.safeString(market, "baseCoin");
             string? quote = this.safeCurrencyCode(quoteId);
             object bs = this.safeCurrencyCode(baseId);
-            object supportMarginCoins = this.safeValue(market, "supportMarginCoins", new List<object>() {});
+            List<object> supportMarginCoins = this.safeList(market, "supportMarginCoins", new List<object>() {});
             string? settleId = null;
             if (this.inArray(baseId, supportMarginCoins))
             {
@@ -8219,7 +8219,7 @@ public partial class bitget : Exchange
         //
         object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
         object failure = this.safeValue(data, "failureList", new List<object>() {});
-        List<object> orderInfo = ((List<object>)this.safeValue(data, "successList", new List<object>() {}));
+        List<object> orderInfo = this.safeList(data, "successList", new List<object>() {});
         List<object> both = this.arrayConcat(orderInfo, failure);
         return ccxt.BaseExchange.ToOrderList(this.parseOrders(both, market));
     }
@@ -8690,7 +8690,7 @@ public partial class bitget : Exchange
         object order = new Dictionary<string, object>() {};
         if (isContractTriggerEndpoint)
         {
-            List<object> orderInfo = ((List<object>)this.safeValue(data, "successList", new List<object>() {}));
+            List<object> orderInfo = this.safeList(data, "successList", new List<object>() {});
             order = this.safeDict(orderInfo, 0, new Dictionary<string, object>() {});
         } else
         {
@@ -13040,7 +13040,7 @@ public partial class bitget : Exchange
         //     }
         //
         Int64? timestamp = this.safeInteger(response, "requestTime");
-        object data = this.safeValue(response, "data", new List<object>() {});
+        List<object> data = this.safeList(response, "data", new List<object>() {});
         IDictionary<string, object> first = this.safeDict(data, 0, new Dictionary<string, object>() {});
         first["timestamp"] = timestamp;
         return ccxt.BaseExchange.ToIsolatedBorrowRate(this.parseIsolatedBorrowRate(first, market));
@@ -13173,7 +13173,7 @@ public partial class bitget : Exchange
             //         ]
             //     }
             //
-            object data = this.safeValue(response, "data", new List<object>() {});
+            List<object> data = this.safeList(response, "data", new List<object>() {});
             result = this.safeDict(data, 0, new Dictionary<string, object>() {});
         }
         Int64? timestamp = this.safeInteger(response, "requestTime");

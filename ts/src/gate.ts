@@ -2413,7 +2413,7 @@ export default class gate extends Exchange {
             'currency': currency['id'],
         };
         const response = await this.privateWalletGetDepositAddress (this.extend (request, params));
-        const chains = this.safeValue (response, 'multichain_addresses', []);
+        const chains = this.safeList (response, 'multichain_addresses', []);
         const currencyId = this.safeString (response, 'currency');
         currency = this.safeCurrency (currencyId, currency);
         const parsed = this.parseDepositAddresses (chains, undefined, false);

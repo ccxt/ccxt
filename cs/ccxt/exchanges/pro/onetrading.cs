@@ -410,7 +410,7 @@ public partial class onetrading : ccxt.onetrading
             (orderbook as IOrderBook).reset(snapshot);
         } else if (type == "ORDER_BOOK_UPDATE")
         {
-            object changes = this.safeValue(message, "changes", new List<object>() {});
+            List<object> changes = this.safeList(message, "changes", new List<object>() {});
             this.handleDeltas(orderbook, changes);
         } else
         {

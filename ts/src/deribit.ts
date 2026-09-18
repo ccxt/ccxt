@@ -3487,7 +3487,7 @@ export default class deribit extends Exchange {
         //
         const result = this.safeValue (response, 'result', {});
         const cursor = this.safeString (result, 'continuation');
-        const settlements = this.safeValue (result, 'settlements', []);
+        const settlements = this.safeList (result, 'settlements', []);
         const settlementsWithCursor = this.addPaginationCursorToResult (cursor, settlements);
         return this.parseLiquidations (settlementsWithCursor, market, since, limit);
     }

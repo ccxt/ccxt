@@ -1371,7 +1371,7 @@ public partial class indodax : Exchange
         } else
         {
             currency = this.currency(code);
-            object withdraws = this.safeValue(withdraw, GetValue(currency, "id"), new List<object>() {});
+            List<object> withdraws = this.safeList(withdraw, GetValue(currency, "id"), new List<object>() {});
             object deposits = this.safeValue(deposit, GetValue(currency, "id"), new List<object>() {});
             transactions = this.arrayConcat(withdraws, deposits);
         }

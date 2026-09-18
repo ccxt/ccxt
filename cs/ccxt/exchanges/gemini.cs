@@ -1774,7 +1774,7 @@ public partial class gemini : Exchange
         string? id = this.safeString(order, "order_id");
         string? side = this.safeStringLower(order, "side");
         string? clientOrderId = this.safeString(order, "client_order_id");
-        object optionsArray = this.safeValue(order, "options", new List<object>() {});
+        List<object> optionsArray = this.safeList(order, "options", new List<object>() {});
         string? option = this.safeString(optionsArray, 0);
         string timeInForce = "GTC";
         bool postOnly = false;

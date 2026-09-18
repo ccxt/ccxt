@@ -403,7 +403,7 @@ export default class bitso extends Exchange {
         //     }
         const operation = this.safeString (item, 'operation');
         const type = this.parseLedgerEntryType (operation);
-        const balanceUpdates = this.safeValue (item, 'balance_updates', []);
+        const balanceUpdates = this.safeList (item, 'balance_updates', []);
         const firstBalance = this.safeValue (balanceUpdates, 0, {});
         let direction: Str = undefined;
         let fee: NullableDict = undefined;
@@ -1491,7 +1491,7 @@ export default class bitso extends Exchange {
         //         }]
         //     }
         //
-        const transactions = this.safeValue (response, 'payload', []);
+        const transactions = this.safeList (response, 'payload', []);
         const first = this.safeDict (transactions, 0, {});
         return this.parseTransaction (first);
     }
@@ -1877,7 +1877,7 @@ export default class bitso extends Exchange {
         //         ]
         //     }
         //
-        const payload = this.safeValue (response, 'payload', []);
+        const payload = this.safeList (response, 'payload', []);
         const first = this.safeDict (payload, 0);
         return this.parseTransaction (first as Dict, currency);
     }

@@ -460,7 +460,7 @@ public partial class ndax : ccxt.ndax
         //         0,   // 9 Side
         //     ],
         //
-        object firstBidAsk = this.safeValue(payload, 0, new List<object>() {});
+        List<object> firstBidAsk = this.safeList(payload, 0, new List<object>() {});
         string? marketId = this.safeString(firstBidAsk, 7);
         if ((marketId == null))
         {

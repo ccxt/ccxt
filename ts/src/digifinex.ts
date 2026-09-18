@@ -651,7 +651,7 @@ export default class digifinex extends Exchange {
         //         ]
         //     }
         //
-        const spotData = this.safeValue (spotMarkets, 'symbol_list', []);
+        const spotData = this.safeList (spotMarkets, 'symbol_list', []);
         const swapData = this.safeValue (swapMarkets, 'data', []);
         const response = this.arrayConcat (spotData, swapData);
         const result: List = [];
@@ -1180,7 +1180,7 @@ export default class digifinex extends Exchange {
         //     }
         //
         const date = this.safeInteger (response, 'date');
-        const tickers = this.safeValue (response, 'ticker', []);
+        const tickers = this.safeList (response, 'ticker', []);
         const data = this.safeValue (response, 'data', {});
         const firstTicker = this.safeValue (tickers, 0, {});
         let result: Dict | undefined = undefined;
@@ -2872,7 +2872,7 @@ export default class digifinex extends Exchange {
         //         "code":200
         //     }
         //
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         const addresses = this.parseDepositAddresses (data, [ currency['code'] ]);
         const address = this.safeValue (addresses, code);
         if (address === undefined) {

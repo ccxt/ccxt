@@ -1039,7 +1039,7 @@ public partial class kraken : ccxt.kraken
         IDictionary<string, object> first = this.safeDict(data, 0, new Dictionary<string, object>() {});
         string symbol = ((string)this.safeString(first, "symbol"));
         List<object> a = this.safeList(first, "asks", new List<object>() {});
-        object b = this.safeValue(first, "bids", new List<object>() {});
+        List<object> b = this.safeList(first, "bids", new List<object>() {});
         Int64? c = this.safeInteger(first, "checksum");
         string? messageHash = this.getMessageHash("orderbook", null, symbol);
         ccxt.pro.IOrderBook? orderbook = null;
