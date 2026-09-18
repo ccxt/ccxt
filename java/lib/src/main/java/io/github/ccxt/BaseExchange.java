@@ -8880,7 +8880,7 @@ public Object describe()
                         {
                             if (Helpers.isTrue(this.verbose))
                             {
-                                Object index = Helpers.add(i, 1);
+                                Object index = (((long) i) + 1L);
                                 this.log((((((("Request failed with the error: " + String.valueOf(e)) + ", retrying ") + String.valueOf(index)) + " of ") + String.valueOf(retries)) + "..."));
                             }
                             if ((!java.util.Objects.equals(retryDelay, null)) && (!Helpers.isEqual(retryDelay, 0)))

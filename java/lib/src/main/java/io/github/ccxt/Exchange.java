@@ -1111,7 +1111,7 @@ public CompletableFuture<Order> closePosition(Object symbol, Object... optionalA
                     return orderBook;
                 } catch(Exception e)
                 {
-                    if (Helpers.isEqual((Helpers.add(i, 1)), fetchSnapshotMaxRetries))
+                    if (Helpers.isEqual(((((long) i) + 1L)), fetchSnapshotMaxRetries))
                     {
                         throw (e instanceof RuntimeException ? (RuntimeException)e : new RuntimeException(e));
                     }
