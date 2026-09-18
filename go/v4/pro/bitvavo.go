@@ -677,7 +677,13 @@ func (this *Bitvavo) watchOHLCVForSymbolsBody(ch chan any, symbolsAndTimeframes 
 		var market any = this.Market(ccxt.GetValue(symbolAndTimeframe, 0))
 		var timeframeString any = ccxt.GetValue(symbolAndTimeframe, 1)
 		var interval *string = this.SafeString(this.Timeframes, timeframeString, timeframeString)
-		if !(ccxt.InOp(marketIdsByInterval, interval)) {
+		if !(func() bool {
+			if interval == nil {
+				return false
+			}
+			_, ok := marketIdsByInterval[*interval]
+			return ok
+		}()) {
 			ccxt.AddElementToObject(marketIdsByInterval, interval, []any{})
 		}
 		var intervalIds any = func() any {
@@ -779,7 +785,13 @@ func (this *Bitvavo) unWatchOHLCVForSymbolsBody(ch chan any, symbolsAndTimeframe
 		var market any = this.Market(ccxt.GetValue(symbolAndTimeframe, 0))
 		var timeframeString any = ccxt.GetValue(symbolAndTimeframe, 1)
 		var interval *string = this.SafeString(this.Timeframes, timeframeString, timeframeString)
-		if !(ccxt.InOp(marketIdsByInterval, interval)) {
+		if !(func() bool {
+			if interval == nil {
+				return false
+			}
+			_, ok := marketIdsByInterval[*interval]
+			return ok
+		}()) {
 			ccxt.AddElementToObject(marketIdsByInterval, interval, []any{})
 		}
 		var intervalIds any = func() any {

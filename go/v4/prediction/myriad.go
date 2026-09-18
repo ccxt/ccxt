@@ -668,7 +668,13 @@ func (this *Myriad) fetchRawQuestionsBySearchBody(ch chan any, queries any, opti
 		for j := 0; j < ccxt.GetArrayLength(found); j++ {
 			var raw any = ccxt.GetValue(found, j)
 			var questionId *string = this.SafeString(raw, "id")
-			if (questionId != nil) && !(ccxt.InOp(seen, questionId)) {
+			if (questionId != nil) && !(func() bool {
+				if questionId == nil {
+					return false
+				}
+				_, ok := seen[*questionId]
+				return ok
+			}()) {
 				ccxt.AddElementToObject(seen, questionId, true)
 				rawQuestions = append(rawQuestions, raw)
 			}
@@ -737,7 +743,13 @@ func (this *Myriad) fetchRawQuestionsListBody(ch chan any, optionalArgs ...any) 
 		for i := 0; i < rawQuestionsLength; i++ {
 			var rawQuestion any = ccxt.GetValue(rawQuestions, i)
 			var questionId *string = this.SafeString(rawQuestion, "id")
-			if (questionId != nil) && (ccxt.InOp(seen, questionId)) {
+			if (questionId != nil) && (func() bool {
+				if questionId == nil {
+					return false
+				}
+				_, ok := seen[*questionId]
+				return ok
+			}()) {
 				continue
 			}
 			if questionId != nil {
@@ -4026,7 +4038,13 @@ func (this *Myriad) fetchEventsBody(ch chan any, optionalArgs ...any) any {
 			var m any = this.SafeDict(evMarkets, j, map[string]any{})
 			var marketHandle *string = this.SafeString(m, "market")
 			if marketHandle != nil {
-				if ccxt.InOp(seenMarketHandles, marketHandle) {
+				if func() bool {
+					if marketHandle == nil {
+						return false
+					}
+					_, ok := seenMarketHandles[*marketHandle]
+					return ok
+				}() {
 					continue
 				}
 				ccxt.AddElementToObject(seenMarketHandles, marketHandle, true)
@@ -4047,7 +4065,13 @@ func (this *Myriad) fetchEventsBody(ch chan any, optionalArgs ...any) any {
 		var raw any = ccxt.GetValue(rawMarkets, i)
 		var m any = this.ParseMyriadMarket(raw)
 		var marketHandle *string = this.SafeString(m, "market")
-		if (marketHandle != nil) && (ccxt.InOp(seenMarketHandles, marketHandle)) {
+		if (marketHandle != nil) && (func() bool {
+			if marketHandle == nil {
+				return false
+			}
+			_, ok := seenMarketHandles[*marketHandle]
+			return ok
+		}()) {
 			ccxt.AddElementToObject(this.Markets, marketHandle, m)
 			continue
 		}

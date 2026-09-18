@@ -1122,7 +1122,13 @@ func (this *Pacifica) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 		AddElementToObject(account, "total", this.SafeString(balance, "amount"))
 		AddElementToObject(account, "free", this.SafeString(balance, "available_to_withdraw"))
 		// skip a spot USDC entry so it can't clobber the perp-collateral account above
-		if (code != nil) && !(InOp(result, code)) {
+		if (code != nil) && !(func() bool {
+			if code == nil {
+				return false
+			}
+			_, ok := result[*code]
+			return ok
+		}()) {
 			AddElementToObject(result, code, account)
 		}
 	}

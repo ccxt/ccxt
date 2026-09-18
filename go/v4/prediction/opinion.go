@@ -215,7 +215,13 @@ func (this *Opinion) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 					ccxt.AppendToArray(&flatMarkets, ccxt.GetValue(childMarkets, ci))
 				}
 				var eventKey *string = this.SafeString(event, "event")
-				if (eventKey != nil) && (eventKey == nil || *eventKey != "") && !(ccxt.InOp(seenEvents, eventKey)) {
+				if (eventKey != nil) && (eventKey == nil || *eventKey != "") && !(func() bool {
+					if eventKey == nil {
+						return false
+					}
+					_, ok := seenEvents[*eventKey]
+					return ok
+				}()) {
 					ccxt.AddElementToObject(seenEvents, eventKey, true)
 					ccxt.AppendToArray(&eventsList, event)
 				}
@@ -1956,7 +1962,13 @@ func (this *Opinion) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 		var position any = ccxt.GetValue(parsed, i)
 		var info map[string]any = ccxt.SafeMapTyped(position, "info")
 		var tokenId *string = this.SafeString(info, "tokenId")
-		if (tokenId != nil) && (ccxt.InOp(wantedTokenIds, tokenId)) {
+		if (tokenId != nil) && (func() bool {
+			if tokenId == nil {
+				return false
+			}
+			_, ok := wantedTokenIds[*tokenId]
+			return ok
+		}()) {
 			ccxt.AppendToArray(&filtered, position)
 		}
 	}

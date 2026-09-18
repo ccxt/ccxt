@@ -2585,7 +2585,13 @@ func (this *Coinbase) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any 
 	for i := 0; i < len(ratesIds); i++ {
 		var currencyId string = GetValue(ratesIds, i).(string)
 		var code *string = this.SafeCurrencyCode(currencyId)
-		if (code == nil) || !(InOp(result, code)) {
+		if (code == nil) || !(func() bool {
+			if code == nil {
+				return false
+			}
+			_, ok := result[*code]
+			return ok
+		}()) {
 			if code != nil {
 				AddElementToObject(result, code, this.SafeCurrencyStructure(map[string]any{
 					"info":     map[string]any{},

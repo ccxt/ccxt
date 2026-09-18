@@ -2857,7 +2857,13 @@ func (this *Alpaca) ParseBalance(response any) any {
 			continue
 		}
 		var positionCode *string = this.SafeCurrencyCode(baseId)
-		if (positionCode != nil) && !(InOp(result, positionCode)) {
+		if (positionCode != nil) && !(func() bool {
+			if positionCode == nil {
+				return false
+			}
+			_, ok := result[*positionCode]
+			return ok
+		}()) {
 			var positionAccount any = this.Account()
 			AddElementToObject(positionAccount, "free", this.SafeString(position, "qty_available"))
 			AddElementToObject(positionAccount, "total", this.SafeString(position, "qty"))

@@ -9446,7 +9446,13 @@ func (this *Okx) ParseBorrowRateHistories(response any, codes any, since any, li
 		var item any = GetValue(response, i)
 		var code *string = this.SafeCurrencyCode(this.SafeString(item, "ccy"))
 		if (code != nil) && (IsEqual(codes, nil) || this.InArray(code, codes)) {
-			if !(InOp(borrowRateHistories, code)) {
+			if !(func() bool {
+				if code == nil {
+					return false
+				}
+				_, ok := borrowRateHistories[*code]
+				return ok
+			}()) {
 				AddElementToObject(borrowRateHistories, code, []any{})
 			}
 			var borrowRateStructure any = this.ParseBorrowRate(item)
