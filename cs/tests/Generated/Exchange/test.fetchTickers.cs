@@ -19,7 +19,7 @@ public partial class testMainClass : BaseTest
         }
         object withoutSymbol = fetchTickersHelperTest(exchange, skippedProperties, null);
         object withSymbol = fetchTickersHelperTest(exchange, skippedProperties, new List<object>() {symbol});
-        object results = await promiseAll(new List<object>() {withoutSymbol, withSymbol});
+        List<object> results = await promiseAll(new List<object>() {withoutSymbol, withSymbol});
         fetchTickersAmountsTest(exchange, skippedProperties, getValue(results, 0));
         return results;
     }

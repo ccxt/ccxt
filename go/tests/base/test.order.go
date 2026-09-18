@@ -54,7 +54,7 @@ func TestOrder(exchange ccxt.ICoreExchange, skippedProperties any, method any, e
 	AssertGreaterOrEqual(exchange, skippedProperties, method, entry, "amount", exchange.SafeString(entry, "remaining"))
 	AssertGreaterOrEqual(exchange, skippedProperties, method, entry, "amount", exchange.SafeString(entry, "filled"))
 	if !(InOp(skippedProperties, "trades")) {
-		var skippedNew any = exchange.DeepExtend(skippedProperties, map[string]any{
+		var skippedNew map[string]any = exchange.DeepExtend(skippedProperties, map[string]any{
 			"timestamp": true,
 			"datetime":  true,
 			"side":      true,

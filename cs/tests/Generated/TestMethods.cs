@@ -606,7 +606,7 @@ public partial class testMainClass
         }
         // todo - not yet ready in other langs too
         // promises.push (testThrottle ());
-        object results = await promiseAll(promises);
+        List<object> results = await promiseAll(promises);
         // now count which test-methods retuned `false` from "testSafe" and dump that info below
         List<object> failedMethods = new List<object>() {};
         for (int i = 0; i < testNames.Count; postFixIncrement(ref i))
@@ -2356,7 +2356,7 @@ public partial class testMainClass
                 // was replayed — live structures like orderbooks keep updating
                 // after the first resolution, so serialize only at the end
                 List<object> promises = new List<object> {callExchangeMethodDynamically(exchange, method, input), this.injectWsMessages(exchange, url, messages)};
-                object results = await promiseAll(promises);
+                List<object> results = await promiseAll(promises);
                 object unifiedResult = jsonParse(jsonStringify(getValue(results, 0)));
                 this.assertStaticResponseOutput(exchange, skipKeys, unifiedResult, getValue(data, "parsedResponse"));
                 this.assertWsSentMessages(exchange, url, data);

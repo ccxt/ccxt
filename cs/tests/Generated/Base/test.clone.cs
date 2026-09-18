@@ -57,7 +57,7 @@ public partial class BaseTest
                 { "other2", "y" },
             };
             // deepExtend
-            object deepExtended = exchange.deepExtend(obj1, obj2);
+            Dictionary<string, object> deepExtended = exchange.deepExtend(obj1, obj2);
             Dictionary<string, object> compareTo = new Dictionary<string, object>() {
                 { "a", 2 },
                 { "b", new List<object>() {3, 4} },

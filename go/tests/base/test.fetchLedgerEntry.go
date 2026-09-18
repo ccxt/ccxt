@@ -26,7 +26,7 @@ func testFetchLedgerEntryBody(ch chan any, exchange ccxt.ICoreExchange, skippedP
 
 			item := (<-exchange.FetchLedgerEntryAsync(id))
 			PanicOnError(item)
-			var now any = exchange.Milliseconds()
+			var now int64 = exchange.Milliseconds()
 			TestLedgerEntry(exchange, skippedProperties, method, item, code, now)
 		}
 	}
