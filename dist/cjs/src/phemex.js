@@ -485,8 +485,8 @@ class phemex extends phemex$1["default"] {
                     '11028': errors.BadSymbol, // TE_CURRENCY_INVALID Invalid currency ID or name
                     '11029': errors.ExchangeError, // TE_ACTION_INVALID Unrecognized request type
                     '11030': errors.ExchangeError, // TE_ACTION_BY_INVALID
-                    '11031': errors.DDoSProtection, // TE_SO_NUM_EXCEEDS Number of total conditional orders exceeds the max limit
-                    '11032': errors.DDoSProtection, // TE_AO_NUM_EXCEEDS Number of total active orders exceeds the max limit
+                    '11031': errors.InvalidOrder, // TE_SO_NUM_EXCEEDS Number of total conditional orders exceeds the max limit
+                    '11032': errors.InvalidOrder, // TE_AO_NUM_EXCEEDS Number of total active orders exceeds the max limit
                     '11033': errors.DuplicateOrderId, // TE_ORDER_ID_DUPLICATE Duplicated order ID
                     '11034': errors.InvalidOrder, // TE_SIDE_INVALID Invalid side
                     '11035': errors.InvalidOrder, // TE_ORD_TYPE_INVALID Invalid OrderType

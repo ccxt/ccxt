@@ -73,6 +73,13 @@ jobs:
           printf 'Cargo target: %s\n' "$rust_target"
       - name: Setup Node.js
         uses: actions/setup-node@v3
+        with:
+          node-version: '22'
+      - name: Select native Rust regression tests
+        id: native-tests
+        run: |
+          node --test build/tests/test.rust-native-tests.mjs
+          node build/utils/rust-native-tests.mjs >> "$GITHUB_OUTPUT"
       - name: Install npm dependencies
         run: npm ci --include=dev
       - name: Determine modified files
@@ -119,10 +126,15 @@ jobs:
           : "${CARGO_TARGET_DIR:?Resolve Cargo target directory must run first}"
           cargo build --manifest-path rust/Cargo.toml -p ccxt_tests --bin ti-rust
           cp "$CARGO_TARGET_DIR/debug/ti-rust" rust/tests.bin
-      - name: Cargo test
+      - name: Native Rust regression tests
+        # Scoped generation already refreshes the base and prediction cores.
+        # Selecting native tests must not independently force every venue to transpile.
+        if: (github.ref == 'refs/heads/master' && (env.important_modified == 'true' || steps.native-tests.outputs.enabled == 'true')) || (github.event_name == 'pull_request' && steps.native-tests.outputs.enabled == 'true')
+        timeout-minutes: 15
+        run: cargo test --jobs 2 --manifest-path rust/ccxt-base/Cargo.toml --features transpiled-base
+      - name: Cargo test gate
         if: github.ref == 'refs/heads/master' && env.important_modified == 'true'
         run: |
-          cargo test --jobs 2 --manifest-path rust/ccxt-base/Cargo.toml --features transpiled-base
           cargo test --jobs 2 --manifest-path rust/Cargo.toml -p ccxt_tests --bin ti-rust cargo_test_gate
       - name: Run Base Tests
         if: env.important_modified == 'true'

@@ -883,7 +883,7 @@ public partial class paradex : Exchange
         if (isTrue(isOption))
         {
             string optionTypeSuffix = ((bool) isTrue((isEqual(optionType, "CALL")))) ? "C" : "P";
-            object deliveryValue = ((bool) isTrue((isEqual(expiry, 0)))) ? "" : add(this.yymmdd(expiry), "-");
+            string deliveryValue = ((bool) isTrue((isEqual(expiry, 0)))) ? "" : add(this.yymmdd(expiry), "-");
             symbol = add(add(add(add(add(symbol, "-"), deliveryValue), strikePrice), "-"), optionTypeSuffix);
             makerFee = this.parseNumber("0.0003");
         } else
@@ -1092,7 +1092,7 @@ public partial class paradex : Exchange
      */
     public async override Task<List<ccxt.OHLCV>> FetchOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object timeframeVar = timeframe;
+        string timeframeVar = timeframe;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1261,7 +1261,7 @@ public partial class paradex : Exchange
         return ccxt.BaseExchange.ToTicker(this.parseTicker(ticker, market));
     }
 
-    public override object parseTicker(object ticker, object market = null)
+    public override Dictionary<string, object> parseTicker(object ticker, object market = null)
     {
         //
         //     {
@@ -1483,7 +1483,7 @@ public partial class paradex : Exchange
             ((IDictionary<string,object>)request)["depth"] = limit;
         }
         Int64? timestamp = this.safeInteger(response, "last_updated_at");
-        object orderbook = this.parseOrderBook(response, getValue(market, "symbol"), timestamp);
+        Dictionary<string, object> orderbook = ((Dictionary<string, object>)this.parseOrderBook(response, getValue(market, "symbol"), timestamp));
         ((IDictionary<string,object>)orderbook)["nonce"] = this.safeInteger(response, "seq_no");
         return ccxt.BaseExchange.ToOrderBook(orderbook);
     }
@@ -1557,7 +1557,7 @@ public partial class paradex : Exchange
         return ccxt.BaseExchange.ToTradeList(this.parseTrades(trades, market, since, limit));
     }
 
-    public override object parseTrade(object trade, object market = null)
+    public override Dictionary<string, object> parseTrade(object trade, object market = null)
     {
         //
         // fetchTrades (public)
@@ -1714,7 +1714,7 @@ public partial class paradex : Exchange
 
     public virtual object signHash(object hash, object privateKey)
     {
-        object signature = ecdsa(slice(hash, -64, null), slice(privateKey, -64, null), secp256k1, null);
+        Dictionary<string, object> signature = ecdsa(slice(hash, -64, null), slice(privateKey, -64, null), secp256k1, null);
         object r = getValue(signature, "r");
         object s = getValue(signature, "s");
         string v = this.intToBase16(this.sum(27, getValue(signature, "v")));
@@ -1726,7 +1726,7 @@ public partial class paradex : Exchange
         return this.signHash(this.hashMessage(message), slice(privateKey, -64, null));
     }
 
-    public async virtual Task<object> getSystemConfig()
+    public async virtual Task<IDictionary<string, object>> getSystemConfig()
     {
         IDictionary<string, object> cachedConfig = this.safeDict(this.options, "systemConfig");
         if (isTrue(!isEqual(cachedConfig, null)))
@@ -1769,7 +1769,7 @@ public partial class paradex : Exchange
     public async virtual Task<object> prepareParadexDomain(object l1 = null)
     {
         l1 ??= false;
-        object systemConfig = await this.getSystemConfig();
+        IDictionary<string, object> systemConfig = await this.getSystemConfig();
         if (isTrue(isEqual(l1, true)))
         {
             Dictionary<string, object> l1D = new Dictionary<string, object>() {
@@ -1795,7 +1795,7 @@ public partial class paradex : Exchange
             return cachedAccount;
         }
         this.checkRequiredCredentials();
-        object systemConfig = await this.getSystemConfig();
+        IDictionary<string, object> systemConfig = await this.getSystemConfig();
         object domain = await this.prepareParadexDomain(true);
         Dictionary<string, object> messageTypes = new Dictionary<string, object>() {
             { "Constant", new List<object>() {new Dictionary<string, object>() {
@@ -1806,7 +1806,7 @@ public partial class paradex : Exchange
         Dictionary<string, object> message = new Dictionary<string, object>() {
             { "action", "STARK Key" },
         };
-        object msg = this.ethEncodeStructuredData(domain, messageTypes, message);
+        byte[] msg = this.ethEncodeStructuredData(domain, messageTypes, message);
         object signature = this.signMessage(msg, this.privateKey);
         object account = this.retrieveStarkAccount(signature, getValue(systemConfig, "paraclear_account_hash"), getValue(systemConfig, "paraclear_account_proxy_hash"));
         ((IDictionary<string,object>)this.options)["paradexAccount"] = account;
@@ -1900,7 +1900,7 @@ public partial class paradex : Exchange
         return token;
     }
 
-    public override object parseOrder(object order, object market = null)
+    public override Dictionary<string, object> parseOrder(object order, object market = null)
     {
         //
         // {
@@ -2035,7 +2035,7 @@ public partial class paradex : Exchange
         return Precise.stringMul(num, "100000000");
     }
 
-    public virtual object createOrderRequest(object symbol, object type, object side, object amount, object price = null, object parameters = null)
+    public virtual Dictionary<string, object> createOrderRequest(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(type, null)))
@@ -2267,7 +2267,7 @@ public partial class paradex : Exchange
         //     "type": "MARKET"
         // }
         //
-        object order = this.parseOrder(response, market);
+        Dictionary<string, object> order = this.parseOrder(response, market);
         return ccxt.BaseExchange.ToOrder(order);
     }
 
@@ -2997,7 +2997,7 @@ public partial class paradex : Exchange
         return ccxt.BaseExchange.ToPositionList(this.parsePositions(data, symbols));
     }
 
-    public override object parsePosition(object position, object market = null)
+    public override Dictionary<string, object> parsePosition(object position, object market = null)
     {
         //
         //     {
@@ -4020,7 +4020,7 @@ public partial class paradex : Exchange
             version = "v2";
             path = ((string)path).Replace((string)"v2/", (string)"");
         }
-        object url = add(add(this.implodeHostname(getValue(getValue(this.urls, "api"), ((string)version))), "/"), this.implodeParams(path, parameters));
+        string url = add(add(this.implodeHostname(getValue(getValue(this.urls, "api"), ((string)version))), "/"), this.implodeParams(path, parameters));
         object query = this.omit(parameters, this.extractParams(path));
         if (isTrue(isEqual(api, "public")))
         {

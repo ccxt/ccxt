@@ -1251,8 +1251,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_302: bool = true;
-            while { if !__for_first_302 { i = add(&i, &Value::Int(1)); } __for_first_302 = false; is_less_than(&i, &get_array_length(&entries)) } {
+            let mut __for_first_307: bool = true;
+            while { if !__for_first_307 { i = add(&i, &Value::Int(1)); } __for_first_307 = false; is_less_than(&i, &get_array_length(&entries)) } {
             let mut entry: Value = get_value(&entries, &i);
             let mut entry: Value = get_value(&entries, &i);
             let mut entryData: Value = self.safe_dict_k(entry.clone(), "d", &[Value::Map({
@@ -1277,8 +1277,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut cachedMessages: Value = get_value(&orderbook, &Value::Str("cache".to_string()));
         {
                         let mut j: Value = Value::Int(0);
-            let mut __for_first_303: bool = true;
-            while { if !__for_first_303 { j = add(&j, &Value::Int(1)); } __for_first_303 = false; is_less_than(&j, &get_array_length(&cachedMessages)) } {
+            let mut __for_first_308: bool = true;
+            while { if !__for_first_308 { j = add(&j, &Value::Int(1)); } __for_first_308 = false; is_less_than(&j, &get_array_length(&cachedMessages)) } {
             let mut cachedMessage: Value = get_value(&cachedMessages, &j);
             let mut cachedMessage: Value = get_value(&cachedMessages, &j);
             self.handle_order_book_message(client.clone(), cachedMessage.clone(), orderbook.clone());
@@ -1622,8 +1622,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if !is_equal(&symbols, &Value::Null) {
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_304: bool = true;
-                while { if !__for_first_304 { i = add(&i, &Value::Int(1)); } __for_first_304 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+                let mut __for_first_309: bool = true;
+                while { if !__for_first_309 { i = add(&i, &Value::Int(1)); } __for_first_309 = false; is_less_than(&i, &get_array_length(&symbols)) } {
                 let mut symbol: Value = get_value(&symbols, &i);
                 let mut symbol: Value = get_value(&symbols, &i);
                 let mut symbolMessageHash: Value = add(&add(&messageHash, &Value::Str("::".to_string())), &symbol);

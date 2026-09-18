@@ -12,7 +12,7 @@ AuthenticationError, NotSupported, InvalidProxySettings, ExchangeNotAvailable, O
 // shared
 getCliArgValue, 
 //
-getRootDir, isSync, dump, jsonParse, jsonStringify, convertAscii, ioFileExists, ioFileRead, ioDirRead, callMethod, callMethodSync, callExchangeMethodDynamically, callExchangeMethodDynamicallySync, getRootException, exceptionMessage, exitScript, getExchangeProp, setExchangeProp, initExchange, getTestFilesSync, getTestFiles, setFetchResponse, setupWsMockTransport, injectWsMessage, rejectPendingWsFutures, wsClientHasPendingFutures, markWsTestCompleted, isWsTestCompleted, getWsSentMessages, isNullValue, close, getEnvVars, getLang, getExt, isWindows, isLinux, isAmd64, } from './tests.helpers.js';
+getRootDir, isSync, dump, jsonParse, jsonStringify, convertAscii, ioFileExists, ioFileRead, ioDirRead, callMethod, callMethodSync, callExchangeMethodDynamically, callExchangeMethodDynamicallySync, getRootException, exceptionMessage, exitScript, getExchangeProp, setExchangeProp, initExchange, getTestFilesSync, getTestFiles, setFetchResponse, setFetchResponseByUrl, setupWsMockTransport, injectWsMessage, rejectPendingWsFutures, wsClientHasPendingFutures, markWsTestCompleted, isWsTestCompleted, getWsSentMessages, isNullValue, close, getEnvVars, getLang, getExt, isWindows, isLinux, isAmd64, } from './tests.helpers.js';
 class testMainClass {
     constructor() {
         this.idTests = false;
@@ -1924,7 +1924,17 @@ class testMainClass {
     }
     async testResponseStatically(exchange, method, skipKeys, data) {
         const expectedResult = exchange.safeValue(data, 'parsedResponse');
-        const mockedExchange = setFetchResponse(exchange, data['httpResponse']);
+        // 'httpResponseByUrl' serves a body per url fragment for methods that call several
+        // endpoints; the typed ports narrow each body to the shape its api leaf declares,
+        // so one shared 'httpResponse' cannot cover two differently-shaped endpoints
+        const responsesByUrl = exchange.safeDict(data, 'httpResponseByUrl');
+        let mockedExchange = exchange;
+        if (responsesByUrl !== undefined) {
+            mockedExchange = setFetchResponseByUrl(exchange, responsesByUrl);
+        }
+        else {
+            mockedExchange = setFetchResponse(exchange, data['httpResponse']);
+        }
         if (this.info) {
             dump('[INFO] STATIC RESPONSE TEST:', method, ':', data['description']);
         }
@@ -2123,6 +2133,10 @@ class testMainClass {
                 }
                 const isDisabledPhp = exchange.safeString(result, 'disabledPHP');
                 if ((isDisabledPhp !== undefined) && (this.lang === 'PHP')) {
+                    continue;
+                }
+                const isDisabledRust = exchange.safeString(result, 'disabledRS');
+                if ((isDisabledRust !== undefined) && (this.lang === 'RUST')) {
                     continue;
                 }
                 exchange.extendExchangeOptions(globalOptions);
@@ -2594,7 +2608,8 @@ class testMainClass {
             this.testBackpack(),
             this.testToobit(),
             this.testWeex(),
-            this.testFoxbit()
+            this.testFoxbit(),
+            this.testBithumb()
         ];
         await Promise.all(promises);
         const successMessage = '[' + this.lang + '][TEST_SUCCESS] brokerId tests passed.';
@@ -2747,6 +2762,42 @@ class testMainClass {
             reqHeaders = (exchange.last_request_headers !== undefined && exchange.last_request_headers !== null) ? exchange.last_request_headers : {};
         }
         assert(reqHeaders['Referer'] === id, 'bybit - id: ' + id + ' not in headers.');
+        if (!isSync()) {
+            await close(exchange);
+        }
+        return true;
+    }
+    async testBithumb() {
+        const exchange = this.initOfflineExchange('bithumb');
+        const id = 'CCXT';
+        let reqHeaders = {};
+        try {
+            // default path: generation 2, the versioned (jwt-signed) endpoints
+            await exchange.createOrder('BTC/KRW', 'limit', 'buy', 1, 20000);
+        }
+        catch (e) {
+            // we expect an error here, we're only interested in the headers
+            reqHeaders = (exchange.last_request_headers !== undefined && exchange.last_request_headers !== null) ? exchange.last_request_headers : {};
+        }
+        assert(reqHeaders['OPEN-API-PARTNER'] === id, 'bithumb - id: ' + id + ' not in headers (v2 endpoints).');
+        reqHeaders = {};
+        try {
+            // legacy path: generation 1, the hmac-signed endpoints
+            await exchange.createOrder('BTC/KRW', 'limit', 'buy', 1, 20000, { 'generation': 1 });
+        }
+        catch (e) {
+            reqHeaders = (exchange.last_request_headers !== undefined && exchange.last_request_headers !== null) ? exchange.last_request_headers : {};
+        }
+        assert(reqHeaders['OPEN-API-PARTNER'] === id, 'bithumb - id: ' + id + ' not in headers (legacy endpoints).');
+        reqHeaders = {};
+        try {
+            // public endpoints carry the partner header as well
+            await exchange.fetchTicker('BTC/KRW');
+        }
+        catch (e) {
+            reqHeaders = (exchange.last_request_headers !== undefined && exchange.last_request_headers !== null) ? exchange.last_request_headers : {};
+        }
+        assert(reqHeaders['OPEN-API-PARTNER'] === id, 'bithumb - id: ' + id + ' not in headers (public endpoints).');
         if (!isSync()) {
             await close(exchange);
         }

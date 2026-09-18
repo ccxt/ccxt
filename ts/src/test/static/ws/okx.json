@@ -2117,6 +2117,7 @@
             },
             {
                 "description": "nonce gap stops the replay: one reject, no resolve of the rejected hash",
+                "disabledRS": "the rust harness re-watches while mock frames remain, so the rejected hash reaches a fresh watch future (InvalidNonce) that no other language observes",
                 "input": [
                     "BTC/USDT:USDT"
                 ],

@@ -107,10 +107,12 @@ func FloorDiv(value int64, divisor int64) int64 {
 }
 
 func (this *BaseExchange) RoundTimeframe(timeframe any, timestamp any, direction ...any) any {
+	timeframe = derefScalar(timeframe)
+	timestamp = derefScalar(timestamp)
 	// Default direction is ROUND_DOWN
 	roundDirection := ROUND_DOWN
 	if len(direction) > 0 {
-		if dir, ok := direction[0].(int); ok {
+		if dir, ok := derefScalar(direction[0]).(int); ok {
 			roundDirection = dir
 		}
 	}

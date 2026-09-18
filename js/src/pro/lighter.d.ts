@@ -158,9 +158,10 @@ export default class lighter extends lighterRest {
      * @name lighter#unWatchMyTrades
      * @description unsubscribe from the account trades channel
      * @see https://apidocs.lighter.xyz/docs/websocket-reference#account-all-trades
-     * @param {string} [symbol] unified market symbol
+     * @param {string} [symbol] not supported by lighter.unWatchMyTrades, the account trades channel covers every market
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+     * @param {string} [params.accountIndex] account index
+     * @returns {any} status of the unwatch request
      */
     unWatchMyTrades(symbol?: Str, params?: {}): Promise<any>;
     parseWsLiquidation(liquidation: any, market?: Market): Liquidation | undefined;
@@ -262,7 +263,13 @@ export default class lighter extends lighterRest {
     handleErrorMessage(client: Client, message: any): boolean;
     handleMessage(client: Client, message: any): void;
     handleSubscriptionStatus(client: Client, message: any): any;
-    handleUnSubscription(client: Client, subscription: Dict): void;
+    handleUnSubscription(client: Client, message: any): void;
+    handleOrderBookUnSubscription(client: Client, marketId: Str): void;
+    handleTickerUnSubscription(client: Client, marketId: Str): void;
+    handleTradesUnSubscription(client: Client, marketId: Str): void;
+    handleMyTradesUnSubscription(client: Client): void;
+    handleOrdersUnSubscription(client: Client, marketId: Str): void;
+    handleAllOrdersUnSubscription(client: Client): void;
     handlePing(client: Client, message: any): void;
     pong(client: Client, message: any): Promise<void>;
 }

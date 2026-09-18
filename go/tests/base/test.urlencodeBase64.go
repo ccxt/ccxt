@@ -38,6 +38,6 @@ func TestUrlencodeBase64() {
 	//
 	// add binary tests
 	//
-	var binaryData any = exchange.Base16ToBinary("191919191919")
+	var binaryData []byte = exchange.Base16ToBinary("191919191919")
 	Assert((ccxt.IsEqual(exchange.UrlencodeBase64(binaryData), "GRkZGRkZ")))
 }

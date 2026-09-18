@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from tests_helpers import AuthenticationError, NotSupported, InvalidProxySettings, ExchangeNotAvailable, OperationFailed, OnMaintenance, get_cli_arg_value, get_root_dir, is_sync, dump, json_parse, json_stringify, convert_ascii, io_file_exists, io_file_read, io_dir_read, call_method, call_method_sync, call_exchange_method_dynamically, call_exchange_method_dynamically_sync, get_root_exception, exception_message, exit_script, get_exchange_prop, set_exchange_prop, init_exchange, get_test_files_sync, get_test_files, set_fetch_response, setup_ws_mock_transport, inject_ws_message, reject_pending_ws_futures, ws_client_has_pending_futures, mark_ws_test_completed, is_ws_test_completed, get_ws_sent_messages, is_null_value, close, get_env_vars, get_lang, get_ext, is_windows, is_linux, is_amd64  # noqa: F401
+from tests_helpers import AuthenticationError, NotSupported, InvalidProxySettings, ExchangeNotAvailable, OperationFailed, OnMaintenance, get_cli_arg_value, get_root_dir, is_sync, dump, json_parse, json_stringify, convert_ascii, io_file_exists, io_file_read, io_dir_read, call_method, call_method_sync, call_exchange_method_dynamically, call_exchange_method_dynamically_sync, get_root_exception, exception_message, exit_script, get_exchange_prop, set_exchange_prop, init_exchange, get_test_files_sync, get_test_files, set_fetch_response, set_fetch_response_by_url, setup_ws_mock_transport, inject_ws_message, reject_pending_ws_futures, ws_client_has_pending_futures, mark_ws_test_completed, is_ws_test_completed, get_ws_sent_messages, is_null_value, close, get_env_vars, get_lang, get_ext, is_windows, is_linux, is_amd64  # noqa: F401
 
 class testMainClass:
     id_tests = False
@@ -1520,7 +1520,15 @@ class testMainClass:
 
     def test_response_statically(self, exchange, method, skip_keys, data):
         expected_result = exchange.safe_value(data, 'parsedResponse')
-        mocked_exchange = set_fetch_response(exchange, data['httpResponse'])
+        # 'httpResponseByUrl' serves a body per url fragment for methods that call several
+        # endpoints; the typed ports narrow each body to the shape its api leaf declares,
+        # so one shared 'httpResponse' cannot cover two differently-shaped endpoints
+        responses_by_url = exchange.safe_dict(data, 'httpResponseByUrl')
+        mocked_exchange = exchange
+        if responses_by_url is not None:
+            mocked_exchange = set_fetch_response_by_url(exchange, responses_by_url)
+        else:
+            mocked_exchange = set_fetch_response(exchange, data['httpResponse'])
         if self.info:
             dump('[INFO] STATIC RESPONSE TEST:', method, ':', data['description'])
         try:
@@ -1683,6 +1691,9 @@ class testMainClass:
                     continue
                 is_disabled_php = exchange.safe_string(result, 'disabledPHP')
                 if (is_disabled_php is not None) and (self.lang == 'PHP'):
+                    continue
+                is_disabled_rust = exchange.safe_string(result, 'disabledRS')
+                if (is_disabled_rust is not None) and (self.lang == 'RUST'):
                     continue
                 exchange.extend_exchange_options(global_options)
                 test_exchange_options = exchange.safe_value(result, 'options', {})
@@ -2033,7 +2044,7 @@ class testMainClass:
         #  -----------------------------------------------------------------------------
         #  --- Init of brokerId tests functions-----------------------------------------
         #  -----------------------------------------------------------------------------
-        promises = [self.test_binance(), self.test_okx(), self.test_cryptocom(), self.test_bybit(), self.test_kucoin(), self.test_kucoinfutures(), self.test_bitget(), self.test_mexc(), self.test_htx(), self.test_woo(), self.test_coinex(), self.test_bingx(), self.test_phemex(), self.test_blofin(), self.test_coinbaseinternational(), self.test_coinbase_advanced(), self.test_woofi_pro(), self.test_xt(), self.test_paradex(), self.test_hashkey(), self.test_cryptomus(), self.test_derive(), self.test_mode_trade(), self.test_backpack(), self.test_toobit(), self.test_weex(), self.test_foxbit()]
+        promises = [self.test_binance(), self.test_okx(), self.test_cryptocom(), self.test_bybit(), self.test_kucoin(), self.test_kucoinfutures(), self.test_bitget(), self.test_mexc(), self.test_htx(), self.test_woo(), self.test_coinex(), self.test_bingx(), self.test_phemex(), self.test_blofin(), self.test_coinbaseinternational(), self.test_coinbase_advanced(), self.test_woofi_pro(), self.test_xt(), self.test_paradex(), self.test_hashkey(), self.test_cryptomus(), self.test_derive(), self.test_mode_trade(), self.test_backpack(), self.test_toobit(), self.test_weex(), self.test_foxbit(), self.test_bithumb()]
         (promises)
         success_message = '[' + self.lang + '][TEST_SUCCESS] brokerId tests passed.'
         dump('[INFO]' + success_message)
@@ -2162,6 +2173,37 @@ class testMainClass:
             # we expect an error here, we're only interested in the headers
             req_headers = exchange.last_request_headers if (exchange.last_request_headers is not None and exchange.last_request_headers is not None) else {}
         assert req_headers['Referer'] == id, 'bybit - id: ' + id + ' not in headers.'
+        if not is_sync():
+            close(exchange)
+        return True
+
+    def test_bithumb(self):
+        exchange = self.init_offline_exchange('bithumb')
+        id = 'CCXT'
+        req_headers = {}
+        try:
+            # default path: generation 2, the versioned (jwt-signed) endpoints
+            exchange.create_order('BTC/KRW', 'limit', 'buy', 1, 20000)
+        except Exception as e:
+            # we expect an error here, we're only interested in the headers
+            req_headers = exchange.last_request_headers if (exchange.last_request_headers is not None and exchange.last_request_headers is not None) else {}
+        assert req_headers['OPEN-API-PARTNER'] == id, 'bithumb - id: ' + id + ' not in headers (v2 endpoints).'
+        req_headers = {}
+        try:
+            # legacy path: generation 1, the hmac-signed endpoints
+            exchange.create_order('BTC/KRW', 'limit', 'buy', 1, 20000, {
+                'generation': 1,
+            })
+        except Exception as e:
+            req_headers = exchange.last_request_headers if (exchange.last_request_headers is not None and exchange.last_request_headers is not None) else {}
+        assert req_headers['OPEN-API-PARTNER'] == id, 'bithumb - id: ' + id + ' not in headers (legacy endpoints).'
+        req_headers = {}
+        try:
+            # public endpoints carry the partner header as well
+            exchange.fetch_ticker('BTC/KRW')
+        except Exception as e:
+            req_headers = exchange.last_request_headers if (exchange.last_request_headers is not None and exchange.last_request_headers is not None) else {}
+        assert req_headers['OPEN-API-PARTNER'] == id, 'bithumb - id: ' + id + ' not in headers (public endpoints).'
         if not is_sync():
             close(exchange)
         return True

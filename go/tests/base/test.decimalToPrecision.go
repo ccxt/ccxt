@@ -13,6 +13,7 @@ func TestDecimalToPrecision() {
 	}, map[string]any{}, exchange)
 	// ----------------------------------------------------------------------------
 	// Truncate To N Digits After Dot
+
 	Assert((ccxt.IsEqual(exchange.DecimalToPrecision("12.3456000", ccxt.TRUNCATE, 100, ccxt.DECIMAL_PLACES), "12.3456")))
 	Assert((ccxt.IsEqual(exchange.DecimalToPrecision("12.3456", ccxt.TRUNCATE, 100, ccxt.DECIMAL_PLACES), "12.3456")))
 	Assert((ccxt.IsEqual(exchange.DecimalToPrecision("12.3456", ccxt.TRUNCATE, 4, ccxt.DECIMAL_PLACES), "12.3456")))
@@ -23,6 +24,7 @@ func TestDecimalToPrecision() {
 	// ['12.3456',    ccxt.TRUNCATE,  -1, ccxt.DECIMAL_PLACES,  '10'],   // not yet supported
 	// ['123.456',    ccxt.TRUNCATE,  -2, ccxt.DECIMAL_PLACES,  '120'],  // not yet supported
 	// ['123.456',    ccxt.TRUNCATE,  -3, ccxt.DECIMAL_PLACES,  '100'],  // not yet supported
+
 	Assert((ccxt.IsEqual(exchange.DecimalToPrecision("0.0000001", ccxt.TRUNCATE, 8, ccxt.DECIMAL_PLACES), "0.0000001")))
 	Assert((ccxt.IsEqual(exchange.DecimalToPrecision("0.00000001", ccxt.TRUNCATE, 8, ccxt.DECIMAL_PLACES), "0.00000001")))
 	Assert((ccxt.IsEqual(exchange.DecimalToPrecision("0.000000000", ccxt.TRUNCATE, 9, ccxt.DECIMAL_PLACES, ccxt.PAD_WITH_ZERO), "0.000000000")))
@@ -37,6 +39,7 @@ func TestDecimalToPrecision() {
 	Assert((ccxt.IsEqual(exchange.DecimalToPrecision("-0.9", ccxt.TRUNCATE, 0, ccxt.DECIMAL_PLACES), "0")))
 	// ----------------------------------------------------------------------------
 	// Truncate To N Significant Digits
+
 	Assert((ccxt.IsEqual(exchange.DecimalToPrecision("0.000123456700", ccxt.TRUNCATE, 100, ccxt.SIGNIFICANT_DIGITS), "0.0001234567")))
 	Assert((ccxt.IsEqual(exchange.DecimalToPrecision("0.0001234567", ccxt.TRUNCATE, 100, ccxt.SIGNIFICANT_DIGITS), "0.0001234567")))
 	Assert((ccxt.IsEqual(exchange.DecimalToPrecision("0.0001234567", ccxt.TRUNCATE, 7, ccxt.SIGNIFICANT_DIGITS), "0.0001234567")))
@@ -63,6 +66,7 @@ func TestDecimalToPrecision() {
 	Assert((ccxt.IsEqual(exchange.DecimalToPrecision("1234.69", ccxt.TRUNCATE, 0, ccxt.SIGNIFICANT_DIGITS, ccxt.PAD_WITH_ZERO), "0")))
 	// ----------------------------------------------------------------------------
 	// Round To N Digits After Dot
+
 	Assert((ccxt.IsEqual(exchange.DecimalToPrecision("12.3456000", ccxt.ROUND, 100, ccxt.DECIMAL_PLACES), "12.3456")))
 	Assert((ccxt.IsEqual(exchange.DecimalToPrecision("12.3456", ccxt.ROUND, 100, ccxt.DECIMAL_PLACES), "12.3456")))
 	Assert((ccxt.IsEqual(exchange.DecimalToPrecision("12.3456", ccxt.ROUND, 4, ccxt.DECIMAL_PLACES), "12.3456")))
@@ -95,6 +99,7 @@ func TestDecimalToPrecision() {
 	Assert((ccxt.IsEqual(exchange.DecimalToPrecision("-99.999", ccxt.ROUND, 2, ccxt.DECIMAL_PLACES, ccxt.PAD_WITH_ZERO), "-100.00")))
 	// ----------------------------------------------------------------------------
 	// Round To N Significant Digits
+
 	Assert((ccxt.IsEqual(exchange.DecimalToPrecision("0.000123456700", ccxt.ROUND, 100, ccxt.SIGNIFICANT_DIGITS), "0.0001234567")))
 	Assert((ccxt.IsEqual(exchange.DecimalToPrecision("0.0001234567", ccxt.ROUND, 100, ccxt.SIGNIFICANT_DIGITS), "0.0001234567")))
 	Assert((ccxt.IsEqual(exchange.DecimalToPrecision("0.0001234567", ccxt.ROUND, 7, ccxt.SIGNIFICANT_DIGITS), "0.0001234567")))
@@ -130,6 +135,7 @@ func TestDecimalToPrecision() {
 	Assert((ccxt.IsEqual(exchange.DecimalToPrecision("1115.5", ccxt.ROUND, 5, ccxt.SIGNIFICANT_DIGITS), "1115.5")))
 	// ----------------------------------------------------------------------------
 	// Round To Tick Size
+
 	Assert((ccxt.IsEqual(exchange.DecimalToPrecision("0.000123456700", ccxt.ROUND, 0.00012, ccxt.TICK_SIZE), "0.00012")))
 	Assert((ccxt.IsEqual(exchange.DecimalToPrecision("0.0001234567", ccxt.ROUND, 0.00013, ccxt.TICK_SIZE), "0.00013")))
 	Assert((ccxt.IsEqual(exchange.DecimalToPrecision("0.0001234567", ccxt.TRUNCATE, 0.00013, ccxt.TICK_SIZE), "0")))
@@ -175,10 +181,12 @@ func TestDecimalToPrecision() {
 	Assert((ccxt.IsEqual(exchange.DecimalToPrecision("0.000123456789", ccxt.TRUNCATE, 1e-8, ccxt.TICK_SIZE), "0.00012345")))
 	// ----------------------------------------------------------------------------
 	// Negative Numbers
+
 	Assert((ccxt.IsEqual(exchange.DecimalToPrecision("-0.123456", ccxt.TRUNCATE, 5, ccxt.DECIMAL_PLACES), "-0.12345")))
 	Assert((ccxt.IsEqual(exchange.DecimalToPrecision("-0.123456", ccxt.ROUND, 5, ccxt.DECIMAL_PLACES), "-0.12346")))
 	// ----------------------------------------------------------------------------
 	// without dot / trailing dot
+
 	Assert((ccxt.IsEqual(exchange.DecimalToPrecision("123", ccxt.TRUNCATE, 0), "123")))
 	Assert((ccxt.IsEqual(exchange.DecimalToPrecision("123", ccxt.TRUNCATE, 5, ccxt.DECIMAL_PLACES), "123")))
 	Assert((ccxt.IsEqual(exchange.DecimalToPrecision("123", ccxt.TRUNCATE, 5, ccxt.DECIMAL_PLACES, ccxt.PAD_WITH_ZERO), "123.00000")))
@@ -188,6 +196,7 @@ func TestDecimalToPrecision() {
 	Assert((ccxt.IsEqual(exchange.DecimalToPrecision("0.", ccxt.TRUNCATE, 5, ccxt.DECIMAL_PLACES, ccxt.PAD_WITH_ZERO), "0.00000")))
 	// ----------------------------------------------------------------------------
 	// rounding for equidistant digits
+
 	Assert((ccxt.IsEqual(exchange.DecimalToPrecision("1.44", ccxt.ROUND, 1, ccxt.DECIMAL_PLACES), "1.4")))
 	Assert((ccxt.IsEqual(exchange.DecimalToPrecision("1.45", ccxt.ROUND, 1, ccxt.DECIMAL_PLACES), "1.5")))
 	Assert((ccxt.IsEqual(exchange.DecimalToPrecision("1.45", ccxt.ROUND, 0, ccxt.DECIMAL_PLACES), "1"))) // not 2
@@ -195,6 +204,7 @@ func TestDecimalToPrecision() {
 	// negative precision only implemented so far in python
 	// pretty useless for decimal applications as anything |x| < 5 === 0
 	// ccxt.NO_PADDING and ccxt.PAD_WITH_ZERO are ignored
+
 	Assert((ccxt.IsEqual(exchange.DecimalToPrecision("5", ccxt.ROUND, ccxt.OpNeg(1), ccxt.DECIMAL_PLACES), "10")))
 	Assert((ccxt.IsEqual(exchange.DecimalToPrecision("4.999", ccxt.ROUND, ccxt.OpNeg(1), ccxt.DECIMAL_PLACES), "0")))
 	Assert((ccxt.IsEqual(exchange.DecimalToPrecision("0.0431531423", ccxt.ROUND, ccxt.OpNeg(1), ccxt.DECIMAL_PLACES), "0")))

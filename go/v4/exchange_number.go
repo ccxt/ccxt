@@ -31,12 +31,16 @@ var precisionConstants = map[string]int{
 	"PAD_WITH_ZERO":      PAD_WITH_ZERO,
 }
 
-func (this *BaseExchange) NumberToString(x any) any {
+// NumberToString mirrors the TS `numberToString` contract: a string, or nil when the
+// input has no string form (TS reads that as undefined). It returns the pointer shape so
+// a generated local can be declared `*string` instead of `any` — every consumer is
+// pointer-aware (derefScalar at the shim entries, IsEqual for the boxes that stay `any`).
+func (this *BaseExchange) NumberToString(x any) *string {
 	res := NumberToString(x)
 	if res == "" {
 		return nil
 	}
-	return res
+	return &res
 }
 
 // zeroPad lets us append runs of '0' without allocating via strings.Repeat.
@@ -147,6 +151,7 @@ func float64ToString(val float64) string {
 }
 
 func (this *BaseExchange) NumberToString2(x any) string {
+	x = derefScalar(x)
 	switch v := x.(type) {
 	case nil:
 		return ""
@@ -287,7 +292,7 @@ func roundToDecimalPlaces(num float64, decimalPlaces int) float64 {
 	return math.Round(num*shift) / shift
 }
 
-func (this *BaseExchange) DecimalToPrecision(value any, roundingMode any, numPrecisionDigits any, args ...any) any {
+func (this *BaseExchange) DecimalToPrecision(value any, roundingMode any, numPrecisionDigits any, args ...any) string {
 	countingMode := GetArg(args, 0, nil)
 	paddingMode := GetArg(args, 1, nil)
 	return this._decimalToPrecision(value, roundingMode, numPrecisionDigits, countingMode, paddingMode)

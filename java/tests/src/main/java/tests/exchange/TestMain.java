@@ -2309,7 +2309,18 @@ public class TestMain extends BaseTest
         return BaseExchange.supplyAsync(() -> {
 
             Object expectedResult = exchange.safeValue(data, "parsedResponse");
-            var mockedExchange = setFetchResponse(exchange, Helpers.GetValue(data, "httpResponse"));
+            // 'httpResponseByUrl' serves a body per url fragment for methods that call several
+            // endpoints; the typed ports narrow each body to the shape its api leaf declares,
+            // so one shared 'httpResponse' cannot cover two differently-shaped endpoints
+            Object responsesByUrl = exchange.safeDict(data, "httpResponseByUrl");
+            var mockedExchange = exchange;
+            if (Helpers.isTrue(!Helpers.isEqual(responsesByUrl, null)))
+            {
+                mockedExchange = setFetchResponseByUrl(exchange, responsesByUrl);
+            } else
+            {
+                mockedExchange = setFetchResponse(exchange, Helpers.GetValue(data, "httpResponse"));
+            }
             if (Helpers.isTrue(this.info))
             {
                 dump("[INFO] STATIC RESPONSE TEST:", method, ":", Helpers.GetValue(data, "description"));
@@ -2555,6 +2566,11 @@ public class TestMain extends BaseTest
                     }
                     String isDisabledPhp = exchange.safeString(result, "disabledPHP");
                     if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(isDisabledPhp, null))) && Helpers.isTrue((Helpers.isEqual(this.lang, "PHP")))))
+                    {
+                        continue;
+                    }
+                    String isDisabledRust = exchange.safeString(result, "disabledRS");
+                    if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(isDisabledRust, null))) && Helpers.isTrue((Helpers.isEqual(this.lang, "RUST")))))
                     {
                         continue;
                     }
@@ -3128,7 +3144,7 @@ public class TestMain extends BaseTest
             //  -----------------------------------------------------------------------------
             //  --- Init of brokerId tests functions-----------------------------------------
             //  -----------------------------------------------------------------------------
-            List<Object> promises = new ArrayList<Object>(Arrays.asList(this.testBinance(), this.testOkx(), this.testCryptocom(), this.testBybit(), this.testKucoin(), this.testKucoinfutures(), this.testBitget(), this.testMexc(), this.testHtx(), this.testWoo(), this.testCoinex(), this.testBingx(), this.testPhemex(), this.testBlofin(), this.testCoinbaseinternational(), this.testCoinbaseAdvanced(), this.testWoofiPro(), this.testXT(), this.testParadex(), this.testHashkey(), this.testCryptomus(), this.testDerive(), this.testModeTrade(), this.testBackpack(), this.testToobit(), this.testWeex(), this.testFoxbit()));
+            List<Object> promises = new ArrayList<Object>(Arrays.asList(this.testBinance(), this.testOkx(), this.testCryptocom(), this.testBybit(), this.testKucoin(), this.testKucoinfutures(), this.testBitget(), this.testMexc(), this.testHtx(), this.testWoo(), this.testCoinex(), this.testBingx(), this.testPhemex(), this.testBlofin(), this.testCoinbaseinternational(), this.testCoinbaseAdvanced(), this.testWoofiPro(), this.testXT(), this.testParadex(), this.testHashkey(), this.testCryptomus(), this.testDerive(), this.testModeTrade(), this.testBackpack(), this.testToobit(), this.testWeex(), this.testFoxbit(), this.testBithumb()));
             (Helpers.promiseAll(promises)).join();
             Object successMessage = Helpers.add(Helpers.add("[", this.lang), "][TEST_SUCCESS] brokerId tests passed.");
             dump(Helpers.add("[INFO]", successMessage));
@@ -3320,6 +3336,55 @@ public class TestMain extends BaseTest
                 reqHeaders = ((Helpers.isTrue((Helpers.isTrue(!Helpers.isEqual(exchange.last_request_headers, null)) && Helpers.isTrue(!Helpers.isEqual(exchange.last_request_headers, null)))))) ? exchange.last_request_headers : new HashMap<String, Object>() {{}};
             }
             Assert(Helpers.isEqual(Helpers.GetValue(reqHeaders, "Referer"), id), Helpers.add(Helpers.add("bybit - id: ", id), " not in headers."));
+            if (!Helpers.isTrue(isSync()))
+            {
+                (close(exchange)).join();
+            }
+            return true;
+        });
+
+    }
+
+    public CompletableFuture<Object> testBithumb()
+    {
+
+        return BaseExchange.supplyAsync(() -> {
+
+            Exchange exchange = ((Exchange)this.initOfflineExchange("bithumb"));
+            String id = "CCXT";
+            Object reqHeaders = new HashMap<String, Object>() {{}};
+            try
+            {
+                // default path: generation 2, the versioned (jwt-signed) endpoints
+                ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "createOrder", new Object[]{"BTC/KRW", "limit", "buy", 1, 20000})).join();
+            } catch(Exception e)
+            {
+                // we expect an error here, we're only interested in the headers
+                reqHeaders = ((Helpers.isTrue((Helpers.isTrue(!Helpers.isEqual(exchange.last_request_headers, null)) && Helpers.isTrue(!Helpers.isEqual(exchange.last_request_headers, null)))))) ? exchange.last_request_headers : new HashMap<String, Object>() {{}};
+            }
+            Assert(Helpers.isEqual(Helpers.GetValue(reqHeaders, "OPEN-API-PARTNER"), id), Helpers.add(Helpers.add("bithumb - id: ", id), " not in headers (v2 endpoints)."));
+            reqHeaders = new HashMap<String, Object>() {{}};
+            try
+            {
+                // legacy path: generation 1, the hmac-signed endpoints
+                ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "createOrder", new Object[]{"BTC/KRW", "limit", "buy", 1, 20000, new HashMap<String, Object>() {{
+                    put( "generation", 1 );
+                }}})).join();
+            } catch(Exception e)
+            {
+                reqHeaders = ((Helpers.isTrue((Helpers.isTrue(!Helpers.isEqual(exchange.last_request_headers, null)) && Helpers.isTrue(!Helpers.isEqual(exchange.last_request_headers, null)))))) ? exchange.last_request_headers : new HashMap<String, Object>() {{}};
+            }
+            Assert(Helpers.isEqual(Helpers.GetValue(reqHeaders, "OPEN-API-PARTNER"), id), Helpers.add(Helpers.add("bithumb - id: ", id), " not in headers (legacy endpoints)."));
+            reqHeaders = new HashMap<String, Object>() {{}};
+            try
+            {
+                // public endpoints carry the partner header as well
+                ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchTicker", new Object[]{"BTC/KRW"})).join();
+            } catch(Exception e)
+            {
+                reqHeaders = ((Helpers.isTrue((Helpers.isTrue(!Helpers.isEqual(exchange.last_request_headers, null)) && Helpers.isTrue(!Helpers.isEqual(exchange.last_request_headers, null)))))) ? exchange.last_request_headers : new HashMap<String, Object>() {{}};
+            }
+            Assert(Helpers.isEqual(Helpers.GetValue(reqHeaders, "OPEN-API-PARTNER"), id), Helpers.add(Helpers.add("bithumb - id: ", id), " not in headers (public endpoints)."));
             if (!Helpers.isTrue(isSync()))
             {
                 (close(exchange)).join();

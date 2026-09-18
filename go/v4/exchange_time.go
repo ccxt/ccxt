@@ -142,9 +142,14 @@ func Iso8601(ts2 any) any {
 	return date.Format("2006-01-02T15:04:05.000Z")
 }
 
-// iso8601 is a wrapper for Iso8601.
-func (this *BaseExchange) Iso8601(ts any) any {
-	return Iso8601(ts)
+// iso8601 is a wrapper for Iso8601. The generated locals that receive it are declared
+// `*string`: nil is the TS `undefined` the helper returns for an absent timestamp.
+func (this *BaseExchange) Iso8601(ts any) *string {
+	res := Iso8601(ts)
+	if str, ok := res.(string); ok {
+		return &str
+	}
+	return nil
 }
 
 // // ymdhms converts a timestamp to a formatted date string "yyyy-MM-dd HH:mm:ss".
@@ -162,6 +167,7 @@ func (this *BaseExchange) Iso8601(ts any) any {
 // }
 
 func (this *BaseExchange) Ymdhms(ts any, args ...any) string {
+	ts = derefScalar(ts) // generated callers may pass *int64 (e.g. from Parse8601); typed nil is absent
 	infix := GetArg(args, 0, nil)
 	if infix == nil {
 		infix = " "
@@ -176,6 +182,7 @@ func (this *BaseExchange) Ymdhms(ts any, args ...any) string {
 
 // yyyymmdd converts a timestamp to a formatted date string "yyyy-MM-dd".
 func (this *BaseExchange) Yyyymmdd(ts any, args ...any) string {
+	ts = derefScalar(ts) // generated callers may pass *int64 (e.g. from Parse8601); typed nil is absent
 	infix := GetArg(args, 0, nil)
 	if infix == nil {
 		infix = "-"
@@ -190,6 +197,7 @@ func (this *BaseExchange) Yyyymmdd(ts any, args ...any) string {
 
 // yymmdd converts a timestamp to a formatted date string "yy-MM-dd".
 func (this *BaseExchange) Yymmdd(ts any, args ...any) string {
+	ts = derefScalar(ts) // generated callers may pass *int64 (e.g. from Parse8601); typed nil is absent
 	infix := GetArg(args, 0, nil)
 	if infix == nil {
 		infix = ""
@@ -204,6 +212,7 @@ func (this *BaseExchange) Yymmdd(ts any, args ...any) string {
 
 // ymd converts a timestamp to a formatted date string "yyyy-MM-dd".
 func (this *BaseExchange) Ymd(ts any, args ...any) string {
+	ts = derefScalar(ts) // generated callers may pass *int64 (e.g. from Parse8601); typed nil is absent
 	infix := GetArg(args, 1, nil)
 	if infix == nil {
 		infix = "-"
@@ -230,7 +239,11 @@ var parse8601Layouts = []string{
 	"2006-01-02 15:04:05.999999999",       // 2024-07-17 16:00:43.928
 }
 
-func (this *BaseExchange) Parse8601(datetime2 any) any {
+// Parse8601 follows the TS contract (milliseconds, or undefined when the string is not a
+// timestamp), so it hands back a `*int64`: a nil pointer is the absent value, and a
+// present zero stays distinguishable. Generated locals are declared `*int64` and every
+// shim that receives the value unwraps it via derefScalar.
+func (this *BaseExchange) Parse8601(datetime2 any) *int64 {
 	// SafeString yields *string, so normalise before the kind check
 	datetime2 = derefScalar(datetime2)
 	if datetime2 == nil || reflect.TypeOf(datetime2).Kind() != reflect.String {
@@ -241,7 +254,8 @@ func (this *BaseExchange) Parse8601(datetime2 any) any {
 	// were UTC and came out eight hours early. Matching a layout that carries the zone keeps it.
 	for _, layout := range parse8601Layouts {
 		if t, err := time.Parse(layout, datetime); err == nil {
-			return t.UTC().UnixNano() / int64(time.Millisecond)
+			milliseconds := t.UTC().UnixNano() / int64(time.Millisecond)
+			return &milliseconds
 		}
 	}
 	return nil // Return nil if all parsing attempts fail

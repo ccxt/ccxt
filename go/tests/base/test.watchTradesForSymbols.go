@@ -15,7 +15,7 @@ func testWatchTradesForSymbolsBody(ch chan any, exchange ccxt.ICoreExchange, ski
 	defer ReturnPanicError(ch)
 	var method string = "watchTradesForSymbols"
 	var logText any = Add(Add(Add(Add(Add(exchange.GetId(), " "), method), " [symbols: "), exchange.Json(symbols)), "] ")
-	var now any = exchange.Milliseconds()
+	var now int64 = exchange.Milliseconds()
 	var ends any = Add(now, 30000)
 	var maxIdleTime int = 5000
 	var idle bool = false
@@ -23,7 +23,7 @@ func testWatchTradesForSymbolsBody(ch chan any, exchange ccxt.ICoreExchange, ski
 	for (IsLessThan(now, ends)) && !idle {
 		var response any = nil
 		var success bool = true
-		var startTime any = exchange.Milliseconds()
+		var startTime int64 = exchange.Milliseconds()
 
 		{
 			func() (ret_ any) {
@@ -51,7 +51,7 @@ func testWatchTradesForSymbolsBody(ch chan any, exchange ccxt.ICoreExchange, ski
 
 		}
 		now = exchange.Milliseconds()
-		var elapsedMs any = Subtract(now, startTime)
+		var elapsedMs int64 = Subtract(now, startTime).(int64)
 		if (success == true) && (!IsEqual(response, nil)) {
 			Assert(IsArray(response), Add(Add(logText, "must return an array. "), exchange.Json(response)))
 			for i := 0; IsLessThan(i, GetArrayLength(response)); i++ {

@@ -2919,7 +2919,7 @@ class grvt(Exchange, ImplicitAPI):
             'clientOrderId': self.safe_string(metadata, 'client_order_id'),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'lastTradeTimeStamp': None,
+            'lastTradeTimestamp': None,
             'lastUpdateTimestamp': self.safe_integer_product(stateObj, 'update_time', 0.000001),
             'status': self.parse_order_status(self.safe_string(stateObj, 'status')),
             'symbol': self.safe_string(market, 'symbol'),

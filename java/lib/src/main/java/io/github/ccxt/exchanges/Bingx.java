@@ -2123,10 +2123,23 @@ public class Bingx extends BingxApi
             // safeTrade applies contractSize when calculating inverse cost.
             amount = this.safeString(trade, "volume");
         }
+        String price = this.safeStringN(trade, new ArrayList<Object>(Arrays.asList("price", "p", "tradePrice")));
+        if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(market, null))) && Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "linear"), true)))) && Helpers.isTrue((Helpers.isEqual(this.safeString(trade, "x"), "TRADE")))))
+        {
+            String lastAmount = this.safeString(trade, "l");
+            String lastPrice = this.safeString(trade, "L");
+            if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(lastAmount, null))) && Helpers.isTrue((!Helpers.isEqual(lastPrice, null)))))
+            {
+                // Linear WS l/L describe the last fill, not the original order's q/p.
+                amount = lastAmount;
+                price = lastPrice;
+            }
+        }
         final Object finalTime = time;
         final Object finalMarket = market;
         final Object finalSide = side;
         final Object finalTakeOrMaker = takeOrMaker;
+        final Object finalPrice = price;
         final Object finalAmount = amount;
         return this.safeTrade(new HashMap<String, Object>() {{
             put( "id", Bingx.this.safeString2(trade, "id", "t") );
@@ -2138,7 +2151,7 @@ public class Bingx extends BingxApi
             put( "type", Bingx.this.safeStringLower(trade, "o") );
             put( "side", Bingx.this.parseOrderSide(finalSide) );
             put( "takerOrMaker", finalTakeOrMaker );
-            put( "price", Bingx.this.safeStringN(trade, new ArrayList<Object>(Arrays.asList("price", "p", "tradePrice"))) );
+            put( "price", finalPrice );
             put( "amount", finalAmount );
             put( "cost", cost );
             put( "fee", new HashMap<String, Object>() {{

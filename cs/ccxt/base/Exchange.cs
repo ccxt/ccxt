@@ -160,6 +160,27 @@ public partial class BaseExchange
     public async virtual Task<object> fetch(object url2, object method2 = null, object headers2 = null, object body2 = null)
     {
 
+        if (fetchResponseByUrl != null)
+        {
+            var mockUrl = Convert.ToString(url2);
+            var byUrl = fetchResponseByUrl as dict;
+            object firstBody = null;
+            var isFirst = true;
+            foreach (var entry in byUrl)
+            {
+                if (isFirst)
+                {
+                    firstBody = entry.Value;
+                    isFirst = false;
+                }
+                if (mockUrl.Contains(entry.Key))
+                {
+                    return entry.Value;
+                }
+            }
+            return firstBody;
+        }
+
         if (fetchResponse != null)
         {
             return fetchResponse;

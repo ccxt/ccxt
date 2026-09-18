@@ -14,7 +14,7 @@ func testWatchPositionsBody(ch chan any, exchange ccxt.ICoreExchange, skippedPro
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var method string = "watchPositions"
-	var now any = exchange.Milliseconds()
+	var now int64 = exchange.Milliseconds()
 	var ends any = Add(now, 15000)
 	for IsLessThan(now, ends) {
 		var response any = nil
