@@ -4,6 +4,7 @@ import errors from "../js/src/base/errors.js"
 import { basename, join, resolve } from 'path'
 import { createFolderRecursively, replaceInFile, overwriteFile, checkCreateFolder } from './fsLocal.js'
 import { setupCsharpPrinter } from './csharp-worker.js'
+import { MARKET_ROW_STRING_KEYS } from './csharp-local-types.js'
 import { writeOverloadStrippedFile, removeOverloadStrippedFile, restoreParamsBagInitializers } from './stripOverloads.js'
 import { platform } from 'process'
 import os from 'os'
@@ -1200,6 +1201,30 @@ const CORE_ARG_SHADOW_NEW_CALLEES = [
 const CORE_ARG_SHADOW_CALLEE_ONLY_POSITIONS: Record<string, number[]> = {
     'add': [ 1 ],
 };
+
+// cs90 U24: the shadow copies of the string core args the roster assigns to this unit
+// (`symbol`, `timeframe`, `since`, `currency`, `tag` -- U23 owns `limit`). A copy is typed with
+// the parameter's own type when every use is an identity. Two WRITES below become identities
+// once the unboxing cast the typed declaration implies sits in the line, and this unit emits it:
+//
+//   * `symbolVar = GetValue (market, "symbol")` -- a market row read by a string key. The
+//     classifier already emits the same cast for the read form (`string? symbol =
+//     ((string)GetValue (market, "symbol"));`, see MARKET_ROW_STRING_KEYS in
+//     build/csharp-local-types.js), so the cast names the box the row already holds and a null
+//     value unboxes to null through it. The receiver must be a local this body binds ONLY from
+//     `this.market / this.safeMarket / this.safeMarketStructure` (or the `null` init).
+//   * `tagVar = tagparametersVariable[0]` -- element 0 of `handleWithdrawTagAndParams`, a
+//     string-or-null on every return path of the hand-written helper (Exchange.BaseMethods.cs),
+//     reached through the `IList<object>` local the body binds from that one call.
+//
+// Keyed by the SOURCE parameter name, so a sibling unit's copy keeps the rules it had.
+const CORE_ARG_SHADOW_OWNED_SOURCES = [ 'symbol', 'timeframe', 'since', 'currency', 'tag' ];
+
+const CORE_ARG_SHADOW_MARKET_ROW_READ_RE = /^(?:this\.)?(?:GetValue|getValue)\s*\(\s*([A-Za-z_]\w*)\s*,\s*"([^"]+)"\s*\)$/;
+const CORE_ARG_SHADOW_MARKET_ROW_BIND_RE = /^\s*(?:I?Dictionary<string, object>\s+)?([A-Za-z_]\w*)\s*=\s*(?:this\.)?(?:market|safeMarket|safeMarketStructure)\s*\(/;
+const CORE_ARG_SHADOW_ELEMENT0_READ_RE = /^([A-Za-z_]\w*)\[\s*0\s*\]$/;
+const CORE_ARG_SHADOW_STRING_ELEMENT0_HELPERS = [ 'handleWithdrawTagAndParams' ];
+const CORE_ARG_SHADOW_STRING_ELEMENT0_BIND_RE = /^\s*IList<object>\s+([A-Za-z_]\w*)\s*=\s*\(IList<object>\)\s*(?:this\.)?(?:handleWithdrawTagAndParams)\s*\(/;
 
 // cs-strict S01: the `code` core-arg. CORE_STRING_ARGS narrows the positions `code` is passed to,
 // and castCoreArgCallSites wraps every argument at those call sites -- including the ones that
@@ -3025,11 +3050,87 @@ class NewTranspiler {
         return '';
     }
 
+    // U24: the locals this body binds ONLY from `producer` (a `null` init is allowed), i.e. every
+    // assignment of the name in the body is the producer or null. The name is what the producer
+    // regex captures in group 1.
+    coreArgShadowProducerLocals (bodyLines: string[], producer: RegExp): string[] {
+        const names: string[] = [];
+        for (const line of bodyLines) {
+            const m = producer.exec (line);
+            if (m !== null && names.indexOf (m[1]) === -1) {
+                names.push (m[1]);
+            }
+        }
+        const out: string[] = [];
+        for (const name of names) {
+            if (this.coreArgShadowOnlyBinds (bodyLines, name, producer)) {
+                out.push (name);
+            }
+        }
+        return out;
+    }
+
+    coreArgShadowOnlyBinds (bodyLines: string[], name: string, producer: RegExp): boolean {
+        const target = new RegExp ('^\\s*(?:I?Dictionary<string, object>\\s+|IList<object>\\s+)?' + name + '\\s*=\\s*(.*)$');
+        let seen = false;
+        for (const line of bodyLines) {
+            const m = target.exec (line);
+            if (m === null) {
+                continue;
+            }
+            const rhs = m[1].trim ();
+            if (rhs === 'null' || rhs === 'null;') {
+                continue;
+            }
+            if (producer.test (line)) {
+                seen = true;
+                continue;
+            }
+            return false;
+        }
+        return seen;
+    }
+
+    // U24: the cast an owned source's copy needs when it is written from `rhs`, or null when
+    // `rhs` is not one of the two proven string producers. See CORE_ARG_SHADOW_OWNED_SOURCES
+    // for the proof of each shape.
+    coreArgShadowWriteCastType (rhs: string, targetType: string, marketRows: string[], holders: string[]): string | null {
+        if (targetType !== 'string') {
+            return null;
+        }
+        const row = CORE_ARG_SHADOW_MARKET_ROW_READ_RE.exec (rhs);
+        if (row !== null && MARKET_ROW_STRING_KEYS.indexOf (row[2]) !== -1 && marketRows.indexOf (row[1]) !== -1) {
+            return 'string';
+        }
+        const element = CORE_ARG_SHADOW_ELEMENT0_READ_RE.exec (rhs);
+        if (element !== null && holders.indexOf (element[1]) !== -1) {
+            return 'string';
+        }
+        return null;
+    }
+
+    // U24: the `alias = <producer>;` write with the `((T)…)` cast its typed declaration needs, or
+    // null when the raw line does not carry the shape the analysis proved (a trailing comment, a
+    // different print). The caller keeps the declaration `object` on a null.
+    coreArgShadowCastWrite (line: string, alias: string, targetType: string, bodyLines: string[]): string | null {
+        const m = new RegExp ('^(\\s*)' + alias + '\\s*=\\s*([^;]+?)\\s*;\\s*$').exec (line);
+        if (m === null) {
+            return null;
+        }
+        const cast = this.coreArgShadowWriteCastType (m[2].trim (), targetType,
+            this.coreArgShadowProducerLocals (bodyLines, CORE_ARG_SHADOW_MARKET_ROW_BIND_RE),
+            this.coreArgShadowProducerLocals (bodyLines, CORE_ARG_SHADOW_STRING_ELEMENT0_BIND_RE));
+        return cast === null ? null : m[1] + alias + ' = ((' + cast + ')' + m[2].trim () + ');';
+    }
+
     // True when the shadow `alias` (copy of the narrowed parameter, targetType its type) is used
     // only in the proven ways above and is read at least once (a write-only local is CS0219).
     // `newRules` is false for a `timeframe` copy: that shadow belongs to campaign unit S04
     // (contested sites go to the lower unit number), so only the rules already on the base fire.
-    coreArgShadowIsProvable (bodyLines: string[], alias: string, targetType: string, methodReturnType: string, skipLine = -1, newRules = true): boolean {
+    // `castCasts` (U24) enables the write forms above and collects the line index of every write
+    // that needs the `((T)…)` cast the typed declaration implies; the caller re-inserts it and
+    // only then retypes the declaration.
+    coreArgShadowIsProvable (bodyLines: string[], alias: string, targetType: string, methodReturnType: string, skipLine = -1, newRules = true, castCasts?: number[]): boolean {
         if (CORE_ARG_SHADOW_TYPES.indexOf (targetType) === -1) {
             return false;
         }
@@ -3067,6 +3168,11 @@ class NewTranspiler {
             lines.push (line);
         }
         let reads = 0;
+        // U24: the receivers the write forms below are proven through (only when the caller asks
+        // for the casts -- an owned source's copy)
+        const castWrites = castCasts !== undefined;
+        const marketRows = castWrites ? this.coreArgShadowProducerLocals (lines, CORE_ARG_SHADOW_MARKET_ROW_BIND_RE) : [];
+        const stringHolders = castWrites ? this.coreArgShadowProducerLocals (lines, CORE_ARG_SHADOW_STRING_ELEMENT0_BIND_RE) : [];
         for (let k = 0; k < lines.length; k++) {
             if (k === skipLine) {
                 continue;
@@ -3075,6 +3181,13 @@ class NewTranspiler {
             for (const at of this.coreArgShadowOccurrences (line, alias)) {
                 const kind = this.coreArgShadowUseKind (line, at, alias, targetType, methodReturnType, dictInits[k], newRules);
                 if (kind === '') {
+                    if (castWrites && line.slice (0, at).trim () === '') {
+                        const post = /^\s*=\s*([^;]+?)\s*;\s*$/.exec (line.slice (at + alias.length));
+                        if (post !== null && this.coreArgShadowWriteCastType (post[1].trim (), targetType, marketRows, stringHolders) !== null) {
+                            castCasts.push (k);
+                            continue;
+                        }
+                    }
                     return false;
                 }
                 if (kind === 'read') {
@@ -3516,9 +3629,31 @@ class NewTranspiler {
                 if (type === undefined || type === 'object' || CORE_ARG_SHADOW_TYPES.indexOf (type) === -1) {
                     continue;
                 }
-                if (this.coreArgShadowIsProvable (bodyLines, alias, type, returnType, k, source !== 'timeframe')) {
-                    bodyLines[k] = dindent + type + ' ' + alias + ' = ' + source + ';';
-                    changed = true;
+                // cs90 U24: the extended (callee / RHS) rules were withheld only from the
+                // `timeframe` copy (the S04 ownership gate, a lower-numbered unit in the previous
+                // round); this unit owns that copy now, so every source gets them. `castCasts` is
+                // offered only for the sources this unit owns, so a sibling copy (`limit` -- U23)
+                // keeps its write forms untyped.
+                const owned = CORE_ARG_SHADOW_OWNED_SOURCES.indexOf (source) !== -1;
+                const casts: number[] = [];
+                if (this.coreArgShadowIsProvable (bodyLines, alias, type, returnType, k, true, owned ? casts : undefined)) {
+                    const rewrites: Array<[ number, string ]> = [];
+                    let ok = true;
+                    for (const li of casts) {
+                        const rewritten = this.coreArgShadowCastWrite (bodyLines[li], alias, type, bodyLines);
+                        if (rewritten === null) {
+                            ok = false;
+                            break;
+                        }
+                        rewrites.push ([ li, rewritten ]);
+                    }
+                    if (ok && rewrites.length === casts.length) {
+                        bodyLines[k] = dindent + type + ' ' + alias + ' = ' + source + ';';
+                        for (const [ li, rewritten ] of rewrites) {
+                            bodyLines[li] = rewritten;
+                        }
+                        changed = true;
+                    }
                 }
             }
             if (changed) {

@@ -881,7 +881,7 @@ public partial class kraken : ccxt.kraken
      */
     public async override Task<List<ccxt.OHLCV>> WatchOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object symbolVar = symbol;
+        string symbolVar = symbol;
         string timeframeVar = timeframe;
         object limitVar = limit;
         timeframeVar ??= "1m";
@@ -889,7 +889,7 @@ public partial class kraken : ccxt.kraken
         await this.loadMarkets();
         string name = "ohlc";
         Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = GetValue(market, "symbol");
+        symbolVar = ((string)GetValue(market, "symbol"));
         object url = getValue(getValue(getValue(this.urls, "api"), "ws"), "publicV2");
         Int64 requestId = ((Int64)this.requestId());
         string? messageHash = this.getMessageHash("ohlcv", null, symbolVar);

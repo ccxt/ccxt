@@ -412,14 +412,14 @@ public partial class apex : ccxt.apex
      */
     public async override Task<ccxt.Ticker> WatchTicker(string symbol, object parameters = null)
     {
-        object symbolVar = symbol;
+        string symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
         {
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = GetValue(market, "symbol");
+        symbolVar = ((string)GetValue(market, "symbol"));
         string? url = this.getWsPublicUrl();
         string messageHash = add("ticker:", symbolVar);
         string topic = add(add("instrumentInfo", ".H."), getValue(market, "id2"));

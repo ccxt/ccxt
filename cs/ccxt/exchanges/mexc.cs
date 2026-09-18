@@ -6254,7 +6254,7 @@ public partial class mexc : Exchange
      */
     public async override Task<ccxt.Transaction> Withdraw(string code, double amount, string address, string tag = null, object parameters = null)
     {
-        object tagVar = tag;
+        string tagVar = tag;
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
         {
@@ -6262,7 +6262,7 @@ public partial class mexc : Exchange
         }
         Dictionary<string, object> currency = this.currency(code);
         IList<object> tagparametersVariable = (IList<object>)this.handleWithdrawTagAndParams(tagVar, parameters);
-        tagVar = tagparametersVariable[0];
+        tagVar = ((string)tagparametersVariable[0]);
         parameters = tagparametersVariable[1];
         bool? intern = this.safeBool(parameters, "internal", false);
         if ((intern == true))

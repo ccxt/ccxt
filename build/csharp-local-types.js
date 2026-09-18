@@ -5044,7 +5044,7 @@ function elementAccessElementType (csharp, initializer, context) {
 // `string?` therefore needs the `(string)` cast back, exactly like elementAccessElementType.
 // The key set, the receiver proof and the value census are in the header (MARKET_ROW_*
 // section). Keys outside the set (booleans / numerics / dicts) keep the local `object`.
-const MARKET_ROW_STRING_KEYS = [ 'symbol', 'id', 'base', 'quote', 'baseId', 'quoteId', 'settle', 'settleId', 'lowercaseId', 'type' ];
+export const MARKET_ROW_STRING_KEYS = [ 'symbol', 'id', 'base', 'quote', 'baseId', 'quoteId', 'settle', 'settleId', 'lowercaseId', 'type' ];
 
 // `market['swap']` — the BOOL keys of a market row: every market-row writer in ts/src (the 157
 // 'symbol'+'base'+'quote' literals plus the skeleton) stores a boolean or nothing at these six
