@@ -4114,7 +4114,7 @@ public partial class aster : Exchange
         double? unrealizedPnl = this.parseNumber(unrealizedPnlString);
         string? liquidationPriceString = this.omitZero(this.safeString(position, "liquidationPrice"));
         double? liquidationPrice = this.parseNumber(liquidationPriceString);
-        object collateralString = null;
+        string? collateralString = null;
         string? marginMode = this.safeString(position, "marginType");
         if ((marginMode == null) && (isolatedMarginString != null))
         {
@@ -4413,7 +4413,7 @@ public partial class aster : Exchange
         market = this.safeMarket(marketId, market, null, "contract");
         string? symbol = this.safeString(market, "symbol");
         string? leverageString = this.safeString(position, "leverage");
-        object leverage = ((leverageString != null)) ? parseInt(leverageString) : null;
+        Int64? leverage = ((Int64?)(((leverageString != null)) ? parseInt(leverageString) : null));
         string? initialMarginString = this.safeString(position, "initialMargin");
         double? initialMargin = this.parseNumber(initialMarginString);
         string? initialMarginPercentageString = null;

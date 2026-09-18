@@ -5312,7 +5312,7 @@ public partial class binance : Exchange
         string? contractType = this.safeString(market, "contractType");
         bool contract = (inOp(market, "contractType"));
         Int64? expiry = this.safeInteger2(market, "deliveryDate", "expiryDate");
-        object settleId = this.safeString(market, "marginAsset");
+        string? settleId = this.safeString(market, "marginAsset");
         if ((contractType == "PERPETUAL") || (isEqual(expiry, 4133404800000)))
         {
             expiry = null;
@@ -13423,7 +13423,7 @@ public partial class binance : Exchange
         market = this.safeMarket(marketId, market, null, "contract");
         string? symbol = this.safeString(market, "symbol");
         string? leverageString = this.omitZero(this.safeString(position, "leverage")); // portfolio-margin accounts may return leverage "0", see #29244
-        object leverage = ((leverageString != null)) ? parseInt(leverageString) : null;
+        Int64? leverage = ((Int64?)(((leverageString != null)) ? parseInt(leverageString) : null));
         string? initialMarginString = this.safeString(position, "initialMargin");
         double? initialMargin = this.parseNumber(initialMarginString);
         string? initialMarginPercentageString = null;
@@ -13715,7 +13715,7 @@ public partial class binance : Exchange
         double? unrealizedPnl = this.parseNumber(unrealizedPnlString);
         string? liquidationPriceString = this.omitZero(this.safeString(position, "liquidationPrice"));
         double? liquidationPrice = this.parseNumber(liquidationPriceString);
-        object collateralString = null;
+        string? collateralString = null;
         string? marginMode = this.safeString(position, "marginType");
         if ((marginMode == null) && (isolatedMarginString != null))
         {

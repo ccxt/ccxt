@@ -2529,7 +2529,7 @@ public partial class kraken : Exchange
                 ((IDictionary<string,object>)request)["reduce_only"] = "true"; // not using boolean in this case, because the urlencodedNested transforms it into 'True' string
             }
         }
-        object close = this.safeDict(parameters, "close");
+        IDictionary<string, object> close = this.safeDict(parameters, "close");
         if ((close != null))
         {
             close = this.extend(new Dictionary<string, object>() {}, close);
@@ -2537,12 +2537,12 @@ public partial class kraken : Exchange
             object closePrice = this.safeValue(close, "price");
             if ((closePrice != null))
             {
-                ((IDictionary<string,object>)close)["price"] = this.priceToPrecision(symbol, closePrice);
+                close["price"] = this.priceToPrecision(symbol, closePrice);
             }
             object closePrice2 = this.safeValue(close, "price2"); // stopPrice
             if ((closePrice2 != null))
             {
-                ((IDictionary<string,object>)close)["price2"] = this.priceToPrecision(symbol, closePrice2);
+                close["price2"] = this.priceToPrecision(symbol, closePrice2);
             }
             ((IDictionary<string,object>)request)["close"] = close;
         }

@@ -503,8 +503,8 @@ public partial class zebpay : Exchange
         string? minWithdrawFeeString = null;
         string? minWithdrawString = null;
         string? minDepositString = null;
-        object deposit = false;
-        object withdraw = false;
+        bool deposit = false;
+        bool withdraw = false;
         for (int j = 0; isLessThan(j, chains.Count); postFixIncrement(ref j))
         {
             object chain = getValue(chains, j);
@@ -558,7 +558,7 @@ public partial class zebpay : Exchange
             { "code", code },
             { "id", currencyId },
             { "name", name },
-            { "active", isTrue(deposit) && isTrue(withdraw) },
+            { "active", deposit && withdraw },
             { "deposit", deposit },
             { "withdraw", withdraw },
             { "fee", this.parseNumber(minWithdrawFeeString) },

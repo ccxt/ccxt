@@ -195,6 +195,21 @@
 //     The arm is the only place such a read is resolved: a bare `x = typedLocal`, an
 //     argument, a `this.<member>` read outside an arm, and a later-writes scan of a
 //     non-ternary value all still see `object`.
+//   - `x = c ? D : x` / `x = c ? x : D` write joins (the "default when unset" idiom): exactly
+//     one arm reads the very local the accumulator is deciding, so that read has no C# type
+//     until the declaration is fixed — the write's contribution is the OTHER arm's proven type
+//     (selfTernaryWriteType), and the running type is joined with it like any other write
+//     (a box the declaration cannot hold keeps it `object`; a box that already fits by an
+//     implicit conversion — Dictionary into its IDictionary declaration — cannot move it at all).
+//     ARMS+WRITE ONLY: the value must be the right side of a plain assignment to that local.
+//   - `this.omitZero (<string box>)` in an ARM: the hand-written `string? omitZero (string?)`
+//     overload binds, so the call's own C# type IS `string?` — the same proof the whole-
+//     initialiser path already applies (omitZeroStringProducer), extended to the arm position
+//   - `c ? parseInt (v) : null` (parseIntTernaryCastType): the hand-written `object parseInt
+//     (object)` boxes an Int64 or null on every path, so the declaration names `Int64?` behind
+//     a boundary cast on the whole conditional (`((Int64?)(c ? parseInt (v) : null))`) — the one
+//     cast-carrying producer whose printed value is a conditional, hence the extra paren pair
+//     the install hook emits when info.castWhole is set
 //   - the printer's `((string)add (a, b))` wrap (S07): a throw argument / a startsWith /
 //     endsWith / replace argument / a `delete` key whose expression is a `+` chain with a
 //     provably string LEFT operand. add(string, *) binds and returns `string`
@@ -4280,6 +4295,15 @@ function conditionalArmType (csharp, node, context) {
     if (direct !== undefined) {
         return direct;
     }
+    // `this.omitZero (<string box>)` as an arm: the hand-written `string? omitZero (string?)`
+    // overload (Exchange.Generic.cs) binds for an argument whose C# static type is a string box,
+    // so the call's own C# type IS `string?` — the same proof the whole-initialiser path applies
+    // (omitZeroStringProducer), extended to the arm position. The sibling overloads (object /
+    // Int64 / double) mean only a proven string argument qualifies; everything else keeps
+    // `object` exactly as before.
+    if (omitZeroStringProducer (csharp, node, context)) {
+        return 'string?';
+    }
     let arm = node;
     while (arm?.kind === ts.SyntaxKind.ParenthesizedExpression) {
         arm = arm.expression;
@@ -4901,7 +4925,11 @@ export function csharpLocalIsSafeToRetype (csharp, scope, declaration, varName, 
                         // stringAccumulatorWriteType)
                         const selfStringWrite = (csharpType === 'string') && isStringLiteralInit (declaration) && (stringAccumulatorWriteType (csharp, context, declaration, parent.right) === 'string');
                         const selfOmit = (csharpType === 'Dictionary<string, object>') && (selfOmitWriteType (csharp, context, declaration, parent.right) === 'Dictionary<string, object>');
-                        if (!selfConcat && !selfStringWrite && !selfOmit) {
+                        // `x = c ? D : x`: the self arm's type IS this declaration, so only the
+                        // other arm has to be storable in it (selfTernaryWriteType)
+                        const selfTernaryType = selfTernaryWriteType (csharp, context, declaration, parent.right);
+                        const selfTernary = (selfTernaryType !== undefined) && assignable (csharpType, selfTernaryType);
+                        if (!selfConcat && !selfStringWrite && !selfOmit && !selfTernary) {
                             return false;
                         }
                     }
@@ -7228,6 +7256,70 @@ function selfOmitWriteType (csharp, context, declaration, value) {
     return isSelfRead (csharp, read, declaration) ? 'Dictionary<string, object>' : undefined;
 }
 
+// `x = c ? D : x` / `x = c ? x : D` — the "default when unset" idiom. Exactly one arm reads
+// the very local the accumulator is deciding (isSelfRead), so that read has no C# type until
+// the declaration is fixed: the write's contribution is the OTHER arm's proven type
+// (conditionalArmType — literals, typed locals, `this.<base member>` reads, calls the return
+// tables name). The self arm's own type IS the declaration being decided, so the caller's
+// join fixes the spelling exactly like any other write — a box the running type cannot hold
+// keeps the local `object` (joinTypes / assignable). ARMS ONLY and this RHS shape only:
+// nothing else in the module consults this, so a `c ? D : x` outside an assignment's right
+// side, and every non-conditional value, are untouched.
+function selfTernaryWriteType (csharp, context, declaration, value) {
+    if (declaration?.kind !== ts.SyntaxKind.VariableDeclaration) {
+        return undefined; // a parameter's C# signature is retyped after printing (typeCoreArgs)
+    }
+    let node = value;
+    while (node?.kind === ts.SyntaxKind.ParenthesizedExpression) {
+        node = node.expression;
+    }
+    if (node?.kind !== ts.SyntaxKind.ConditionalExpression) {
+        return undefined;
+    }
+    const selfTrue = isSelfRead (csharp, node.whenTrue, declaration);
+    const selfFalse = isSelfRead (csharp, node.whenFalse, declaration);
+    if (selfTrue === selfFalse) {
+        return undefined; // both arms read this local, or neither does
+    }
+    return conditionalArmType (csharp, selfTrue ? node.whenFalse : node.whenTrue, context);
+}
+
+// `c ? parseInt (v) : null` / `null : parseInt (v)`: the arms' own C# types are `object` (the
+// hand-written `public static object parseInt (object a)` in Exchange.TranspileHelpers.cs) and
+// null, so the conditional has no nameable C# type — but its BOX is exact on every path, so the
+// declaration names `Int64?` behind one boundary cast on the whole expression
+// (`((Int64?)(...))`), the same shape the other cast-carrying producers emit. Exact because
+// parseInt has a single value path: `parsedValue = (Convert.ToInt64 (Math.Floor
+// (Convert.ToDouble (a))))` — an Int64 box — inside a try, and null when the conversion throws;
+// no Int32 / double / string return path exists (read off the hand-written body, not the TS
+// annotation). EVERY arm must be null-ish or a parseInt call: any other arm can hold an
+// arbitrary box, and naming it would make the cast the deliverable's own risk.
+function parseIntTernaryCastType (initializer) {
+    let node = initializer;
+    while (node?.kind === ts.SyntaxKind.ParenthesizedExpression) {
+        node = node.expression;
+    }
+    if (node?.kind !== ts.SyntaxKind.ConditionalExpression) {
+        return undefined;
+    }
+    let sawParseInt = false;
+    for (const raw of [ node.whenTrue, node.whenFalse ]) {
+        let arm = raw;
+        while (arm?.kind === ts.SyntaxKind.ParenthesizedExpression) {
+            arm = arm.expression;
+        }
+        if (arm?.kind === ts.SyntaxKind.NullKeyword || (arm?.kind === ts.SyntaxKind.Identifier && arm.escapedText === 'undefined')) {
+            continue;
+        }
+        if (arm?.kind === ts.SyntaxKind.CallExpression && arm.expression?.kind === ts.SyntaxKind.Identifier && arm.expression.escapedText === 'parseInt') {
+            sawParseInt = true;
+            continue;
+        }
+        return undefined;
+    }
+    return sawParseInt ? 'Int64?' : undefined;
+}
+
 // `const x = this.omitZero (v)` — printed `this.omitZero (v)`. The hand-written C# helper
 // (cs/ccxt/base/Exchange.Generic.cs) returns null for a double / Int64 / numeric-string ZERO
 // and hands every other box straight back, so for an argument whose C# static type is string
@@ -7387,6 +7479,7 @@ function csharpLocalTypeOf (csharp, declaration, context) {
     const ctx = context ?? { scope, stack: new Set (), depth: 0 };
     let csharpType = csharpTypeOfValue (csharp, declaration.initializer, ctx);
     let cast;
+    let castWhole;
     let joinedFallback;
     // `object rows = this.safeList (response, 'data') as any;` — the receiver copy of a proven
     // list producer (U03): see asAnySafeListReceiverCopy. The named type replaces the
@@ -7526,6 +7619,14 @@ function csharpLocalTypeOf (csharp, declaration, context) {
             // `(Int64?)` cast names exactly that box (see safeIntegerProduct2CallCastType)
             csharpType = 'Int64?';
             cast = 'Int64?';
+        } else if (parseIntTernaryCastType (declaration.initializer) !== undefined) {
+            // `const x = c ? parseInt (v) : undefined`: the conditional's box is the parseInt box
+            // (Int64 or null, see parseIntTernaryCastType), so the declaration names it behind the
+            // boundary cast on the whole expression — a cast binds its own operand first, so the
+            // printed `((cond)) ? A : B` needs the extra paren pair (castWhole)
+            csharpType = 'Int64?';
+            cast = 'Int64?';
+            castWhole = true;
         } else {
             // `const x = this.safeValue (cache.hashmap, key[, {}])`: the read of an
             // ArrayCache bucket map, exact per arrayCacheHashmapReadType
@@ -7657,7 +7758,7 @@ function csharpLocalTypeOf (csharp, declaration, context) {
     if (!safe) {
         return undefined;
     }
-    return { type: csharpType, cast, safeValueTwinShape, stripObjectBox };
+    return { type: csharpType, cast, castWhole, safeValueTwinShape, stripObjectBox };
 }
 
 // the declared type only (kept for callers that do not rewrite the value)
@@ -8512,6 +8613,22 @@ function typeFromValueOrWrites (csharp, scope, declaration, varName, initial, co
             written = selfOmitWriteType (csharp, context, declaration, parent.right);
         }
         if (written === undefined) {
+            // `x = c ? D : x` — the default-if-unset ternary write: the value reads this very
+            // local, so the write's contribution is the OTHER arm's type (selfTernaryWriteType);
+            // the running type is joined with it exactly like any other write. When that arm's box
+            // ALREADY fits the running declaration by an implicit, box-identical conversion
+            // (assignable — Dictionary into its IDictionary declaration, a List into its IList
+            // one), the write cannot move the declaration at all: the ternary is target-typed to
+            // the local's own type, exactly like the `object` declaration it replaces.
+            const selfTernaryArm = selfTernaryWriteType (csharp, context, declaration, parent.right);
+            if (selfTernaryArm !== undefined) {
+                if (type !== undefined && assignable (type, selfTernaryArm)) {
+                    continue;
+                }
+                written = selfTernaryArm;
+            }
+        }
+        if (written === undefined) {
             return undefined;
         }
         if (written === 'null') {
@@ -9166,7 +9283,11 @@ export function installCsharpLocalTypes (transpiler) {
             }
             // the printer prints a bare `getValue (recv, key)`; the named element type only
             // compiles once the box is cast back
-            value = '((' + info.cast + ')' + value + ')';
+            value = (info.castWhole === true)
+                // a conditional / binary value: a cast binds its own operand first, so the whole
+                // expression needs its own paren pair (`((T)(cond ? A : B))`)
+                ? '((' + info.cast + ')(' + value + '))'
+                : '((' + info.cast + ')' + value + ')';
         }
         // the destructuring print (a later statement in the same function) casts back to this
         recordDestructuredWriteType (enclosingFunction (declaration), printedName, info.type);

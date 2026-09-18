@@ -7327,7 +7327,7 @@ public partial class kucoin : Exchange
         // bool
         object isActive = this.safeValue(order, "isActive");
         bool? cancelExist = this.safeBool(order, "cancelExist", false);
-        object status = null;
+        string? status = null;
         if ((isActive != null))
         {
             status = (isEqual(isActive, true)) ? "open" : "closed";
@@ -10265,7 +10265,7 @@ public partial class kucoin : Exchange
         }
         Dictionary<string, object> fee = null;
         string? feeCostString = this.safeString(item, "fee");
-        object feeCost = ((feeCostString == null)) ? null : this.omitZero(feeCostString);
+        string? feeCost = ((feeCostString == null)) ? null : this.omitZero(feeCostString);
         string? feeCurrency = null;
         if ((feeCost != null))
         {

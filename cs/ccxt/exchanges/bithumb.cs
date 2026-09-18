@@ -1921,7 +1921,7 @@ public partial class bithumb : Exchange
             {
                 typeRequest = "price";
                 // for market buy it requires the amount of quote currency to spend
-                object cost = this.safeString(parameters, "cost");
+                string? cost = this.safeString(parameters, "cost");
                 parameters = this.omit(parameters, "cost");
                 bool? createMarketBuyOrderRequiresPrice = true;
                 IList<object> createMarketBuyOrderRequiresPriceparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "createOrder", "createMarketBuyOrderRequiresPrice", true);
