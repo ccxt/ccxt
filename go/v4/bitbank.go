@@ -1537,6 +1537,7 @@ func (this *Bitbank) Init(userConfig map[string]any) {
 }
 
 // typed methods
+
 /**
  * @method
  * @name bitbank#fetchMarkets

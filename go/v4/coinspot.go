@@ -1263,6 +1263,7 @@ func (this *Coinspot) Init(userConfig map[string]any) {
 }
 
 // typed methods
+
 /**
  * @method
  * @name coinspot#fetchBalance

@@ -2088,6 +2088,7 @@ func (this *Bitmex) Init(userConfig map[string]any) {
 }
 
 // typed methods
+
 /**
  * @method
  * @name bitmex#watchTicker

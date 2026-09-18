@@ -4100,6 +4100,7 @@ func (this *Deepcoin) Init(userConfig map[string]any) {
 }
 
 // typed methods
+
 /**
  * @method
  * @name deepcoin#fetchMarkets

@@ -2976,6 +2976,7 @@ func (this *Coinbaseexchange) Init(userConfig map[string]any) {
 }
 
 // typed methods
+
 /**
  * @method
  * @name coinbaseexchange#fetchCurrencies

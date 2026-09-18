@@ -2880,6 +2880,7 @@ func (this *Alpaca) Init(userConfig map[string]any) {
 }
 
 // typed methods
+
 /**
  * @method
  * @name alpaca#fetchTime

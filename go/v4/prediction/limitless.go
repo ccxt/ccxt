@@ -4040,6 +4040,7 @@ func (this *Limitless) Init(userConfig map[string]any) {
 }
 
 // typed methods
+
 /**
  * @method
  * @name limitless#fetchMarkets

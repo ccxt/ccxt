@@ -2081,6 +2081,7 @@ func (this *Cryptocom) Init(userConfig map[string]any) {
 }
 
 // typed methods
+
 /**
  * @method
  * @name cryptocom#watchOrderBook

@@ -1327,6 +1327,7 @@ func (this *Bithumb) Init(userConfig map[string]any) {
 }
 
 // typed methods
+
 /**
  * @method
  * @name bithumb#watchTicker

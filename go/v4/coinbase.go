@@ -6967,6 +6967,7 @@ func (this *Coinbase) Init(userConfig map[string]any) {
 }
 
 // typed methods
+
 /**
  * @method
  * @name coinbase#fetchTime

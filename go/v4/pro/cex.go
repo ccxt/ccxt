@@ -1927,6 +1927,7 @@ func (this *Cex) Init(userConfig map[string]any) {
 }
 
 // typed methods
+
 /**
  * @method
  * @name cex#watchBalance

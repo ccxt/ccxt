@@ -7762,6 +7762,7 @@ func (this *Mexc) Init(userConfig map[string]any) {
 }
 
 // typed methods
+
 /**
  * @method
  * @name mexc#fetchStatus

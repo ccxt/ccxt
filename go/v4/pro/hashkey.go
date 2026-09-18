@@ -1211,6 +1211,7 @@ func (this *Hashkey) Init(userConfig map[string]any) {
 }
 
 // typed methods
+
 /**
  * @method
  * @name hashkey#watchOHLCV

@@ -1954,6 +1954,7 @@ func (this *Indodax) Init(userConfig map[string]any) {
 }
 
 // typed methods
+
 /**
  * @method
  * @name indodax#fetchTime

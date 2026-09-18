@@ -2633,6 +2633,7 @@ func (this *Hollaex) Init(userConfig map[string]any) {
 }
 
 // typed methods
+
 /**
  * @method
  * @name hollaex#fetchMarkets

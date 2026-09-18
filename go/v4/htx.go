@@ -12051,6 +12051,7 @@ func (this *Htx) Init(userConfig map[string]any) {
 }
 
 // typed methods
+
 /**
  * @method
  * @name htx#fetchStatus

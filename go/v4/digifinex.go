@@ -5835,6 +5835,7 @@ func (this *Digifinex) Init(userConfig map[string]any) {
 }
 
 // typed methods
+
 /**
  * @method
  * @name digifinex#fetchCurrencies

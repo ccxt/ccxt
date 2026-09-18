@@ -1400,6 +1400,7 @@ func (this *Btcturk) Init(userConfig map[string]any) {
 }
 
 // typed methods
+
 /**
  * @method
  * @name btcturk#fetchMarkets

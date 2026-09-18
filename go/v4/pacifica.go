@@ -4781,6 +4781,7 @@ func (this *Pacifica) Init(userConfig map[string]any) {
 }
 
 // typed methods
+
 /**
  * @method
  * @name pacifica#fetchMarkets

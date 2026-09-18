@@ -7552,6 +7552,7 @@ func (this *Xt) Init(userConfig map[string]any) {
 }
 
 // typed methods
+
 /**
  * @method
  * @name xt#fetchTime

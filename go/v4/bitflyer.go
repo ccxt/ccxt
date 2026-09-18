@@ -1723,6 +1723,7 @@ func (this *Bitflyer) Init(userConfig map[string]any) {
 }
 
 // typed methods
+
 /**
  * @method
  * @name bitflyer#fetchMarkets

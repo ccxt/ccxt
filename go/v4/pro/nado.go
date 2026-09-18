@@ -2660,6 +2660,7 @@ func (this *Nado) Init(userConfig map[string]any) {
 }
 
 // typed methods
+
 /**
  * @method
  * @name nado#watchTrades

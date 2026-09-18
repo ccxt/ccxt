@@ -1386,6 +1386,7 @@ func (this *Deribit) Init(userConfig map[string]any) {
 }
 
 // typed methods
+
 /**
  * @method
  * @name deribit#watchBalance

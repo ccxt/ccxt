@@ -1732,6 +1732,7 @@ func (this *Coinone) Init(userConfig map[string]any) {
 }
 
 // typed methods
+
 /**
  * @method
  * @name coinone#fetchCurrencies

@@ -3102,6 +3102,7 @@ func (this *Hibachi) Init(userConfig map[string]any) {
 }
 
 // typed methods
+
 /**
  * @method
  * @name hibachi#fetchMarkets

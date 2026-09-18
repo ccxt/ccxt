@@ -2025,6 +2025,7 @@ func (this *Mudrex) Init(userConfig map[string]any) {
 }
 
 // typed methods
+
 /**
  * @method
  * @name mudrex#fetchOHLCV

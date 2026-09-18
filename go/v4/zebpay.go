@@ -2645,6 +2645,7 @@ func (this *Zebpay) Init(userConfig map[string]any) {
 }
 
 // typed methods
+
 /**
  * @method
  * @name zebpay#fetchStatus

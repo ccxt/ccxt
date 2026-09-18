@@ -3597,6 +3597,7 @@ func (this *Kalshi) Init(userConfig map[string]any) {
 }
 
 // typed methods
+
 /**
  * @method
  * @name kalshi#fetchMarkets

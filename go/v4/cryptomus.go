@@ -1516,6 +1516,7 @@ func (this *Cryptomus) Init(userConfig map[string]any) {
 }
 
 // typed methods
+
 /**
  * @method
  * @name cryptomus#fetchMarkets

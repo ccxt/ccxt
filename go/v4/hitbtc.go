@@ -4928,6 +4928,7 @@ func (this *Hitbtc) Init(userConfig map[string]any) {
 }
 
 // typed methods
+
 /**
  * @method
  * @name hitbtc#fetchMarkets

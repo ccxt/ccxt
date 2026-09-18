@@ -1393,6 +1393,7 @@ func (this *Mercado) Init(userConfig map[string]any) {
 }
 
 // typed methods
+
 /**
  * @method
  * @name mercado#fetchMarkets

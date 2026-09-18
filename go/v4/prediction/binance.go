@@ -2453,6 +2453,7 @@ func (this *Binance) Init(userConfig map[string]any) {
 }
 
 // typed methods
+
 /**
  * @method
  * @name binance#fetchMarkets

@@ -5103,18 +5103,16 @@ func (this *Aster) ParseAccountPosition(position any, optionalArgs ...any) any {
 	}
 }
 
-/*
-*
-  - @method
-  - @name aster#fetchAccountPositions
-  - @ignore
-  - @description fetch account positions
-
-https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#position-information-v3-user_data
-  - @param {string[]} [symbols] list of unified market symbols
-  - @param {object} [params] extra parameters specific to the exchange API endpoint
-  - @returns {object} data on account positions
-*/
+/**
+ * @method
+ * @name aster#fetchAccountPositions
+ * @ignore
+ * @description fetch account positions
+ * @see https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#position-information-v3-user_data
+ * @param {string[]} [symbols] list of unified market symbols
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} data on account positions
+ */
 func (this *Aster) FetchAccountPositionsAsync(optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchAccountPositionsBody(ch, optionalArgs...)
@@ -5783,6 +5781,7 @@ func (this *Aster) Init(userConfig map[string]any) {
 }
 
 // typed methods
+
 /**
  * @method
  * @name aster#fetchCurrencies
@@ -6695,18 +6694,16 @@ func (this *Aster) FetchPositions(options ...FetchPositionsOptions) ([]Position,
 	return NewPositionArray(res), nil
 }
 
-/*
-*
-  - @method
-  - @name aster#fetchAccountPositions
-  - @ignore
-  - @description fetch account positions
-
-https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#position-information-v3-user_data
-  - @param {string[]} [symbols] list of unified market symbols
-  - @param {object} [params] extra parameters specific to the exchange API endpoint
-  - @returns {object} data on account positions
-*/
+/**
+ * @method
+ * @name aster#fetchAccountPositions
+ * @ignore
+ * @description fetch account positions
+ * @see https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#position-information-v3-user_data
+ * @param {string[]} [symbols] list of unified market symbols
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} data on account positions
+ */
 func (this *Aster) FetchAccountPositions(options ...FetchAccountPositionsOptions) ([]Position, error) {
 
 	opts := FetchAccountPositionsOptionsStruct{}

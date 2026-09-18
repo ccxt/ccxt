@@ -3189,6 +3189,7 @@ func (this *Coinbaseinternational) Init(userConfig map[string]any) {
 }
 
 // typed methods
+
 /**
  * @method
  * @name coinbaseinternational#fetchAccounts

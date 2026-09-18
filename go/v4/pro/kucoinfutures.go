@@ -155,6 +155,7 @@ func (this *Kucoinfutures) Init(userConfig map[string]any) {
 }
 
 // typed methods
+
 /**
  * @method
  * @name kucoinfutures#fetchBidsAsks

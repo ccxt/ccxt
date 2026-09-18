@@ -1160,6 +1160,7 @@ func (this *Zaif) Init(userConfig map[string]any) {
 }
 
 // typed methods
+
 /**
  * @method
  * @name zaif#fetchMarkets

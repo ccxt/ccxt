@@ -5174,6 +5174,7 @@ func (this *Myriad) Init(userConfig map[string]any) {
 }
 
 // typed methods
+
 /**
  * @method
  * @name myriad#fetchMarkets

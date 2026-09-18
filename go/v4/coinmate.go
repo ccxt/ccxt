@@ -1765,6 +1765,7 @@ func (this *Coinmate) Init(userConfig map[string]any) {
 }
 
 // typed methods
+
 /**
  * @method
  * @name coinmate#fetchTime

@@ -4821,6 +4821,7 @@ func (this *Poloniex) Init(userConfig map[string]any) {
 }
 
 // typed methods
+
 /**
  * @method
  * @name poloniex#fetchOHLCV

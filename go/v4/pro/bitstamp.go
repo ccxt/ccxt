@@ -1299,6 +1299,7 @@ func (this *Bitstamp) Init(userConfig map[string]any) {
 }
 
 // typed methods
+
 /**
  * @method
  * @name bitstamp#watchOrderBook

@@ -2963,6 +2963,7 @@ func (this *Opinion) Init(userConfig map[string]any) {
 }
 
 // typed methods
+
 /**
  * @method
  * @name opinion#fetchMarkets

@@ -2057,6 +2057,7 @@ func (this *Krakenfutures) Init(userConfig map[string]any) {
 }
 
 // typed methods
+
 /**
  * @method
  * @name krakenfutures#watchOrderBookForSymbols

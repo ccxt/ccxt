@@ -1836,6 +1836,7 @@ func (this *Backpack) Init(userConfig map[string]any) {
 }
 
 // typed methods
+
 /**
  * @method
  * @name backpack#watchTicker

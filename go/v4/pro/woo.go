@@ -2200,6 +2200,7 @@ func (this *Woo) Init(userConfig map[string]any) {
 }
 
 // typed methods
+
 /**
  * @method
  * @name woo#watchOrderBook

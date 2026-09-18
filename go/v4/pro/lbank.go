@@ -1296,6 +1296,7 @@ func (this *Lbank) Init(userConfig map[string]any) {
 }
 
 // typed methods
+
 /**
  * @method
  * @name lbank#fetchOHLCVWs

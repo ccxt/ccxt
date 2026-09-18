@@ -4649,6 +4649,7 @@ func (this *Extended) Init(userConfig map[string]any) {
 }
 
 // typed methods
+
 /**
  * @method
  * @name extended#fetchMarkets

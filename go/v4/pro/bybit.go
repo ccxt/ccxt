@@ -3460,6 +3460,7 @@ func (this *Bybit) Init(userConfig map[string]any) {
 }
 
 // typed methods
+
 /**
  * @method
  * @name bybit#createOrderWs
