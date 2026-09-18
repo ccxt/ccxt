@@ -4357,7 +4357,7 @@ public class Binance extends BinanceApi
         final Object finalOptionType = optionType;
         return new HashMap<String, Object>() {{
             put( "id", Helpers.add((Helpers.add((Helpers.add(Helpers.add(finalBase, "-"), expiry) + "-"), strikeAsString) + "-"), finalOptionType) );
-            put( "symbol", Helpers.add((Helpers.add((Helpers.add((((Helpers.add(Helpers.add(finalBase, "/"), settle) + ":") + settle) + "-"), expiry) + "-"), strikeAsString) + "-"), finalOptionType) );
+            put( "symbol", Helpers.add((Helpers.add((Helpers.add(((((Helpers.add(finalBase, "/") + settle) + ":") + settle) + "-"), expiry) + "-"), strikeAsString) + "-"), finalOptionType) );
             put( "base", finalBase );
             put( "quote", settle );
             put( "baseId", finalBase );
@@ -7806,7 +7806,7 @@ public class Binance extends BinanceApi
                 String brokerId = this.safeString(broker, "spot");
                 if (!java.util.Objects.equals(brokerId, null))
                 {
-                    ((Map<String, Object>)request).put("newClientOrderId", Helpers.add(brokerId, this.uuid22()));
+                    ((Map<String, Object>)request).put("newClientOrderId", (brokerId + this.uuid22()));
                 }
             }
         } else
@@ -9377,7 +9377,7 @@ public class Binance extends BinanceApi
                 idMarketType = ((Helpers.isTrue(isLinearSwap))) ? "swap" : "inverse";
             }
             String brokerId = this.safeString(broker, idMarketType, defaultId);
-            Helpers.addElementToObject(request, clientOrderIdRequest, Helpers.add(brokerId, this.uuid22()));
+            Helpers.addElementToObject(request, clientOrderIdRequest, (brokerId + this.uuid22()));
         } else
         {
             Helpers.addElementToObject(request, clientOrderIdRequest, clientOrderId);
@@ -15619,7 +15619,7 @@ final Object finalMarket = market;
             if (!java.util.Objects.equals(symbol, null))
             {
                 symbol = this.safeString(market, "symbol");
-                ((Map<String, Object>)request).put("underlying", Helpers.add(this.safeString(market, "baseId", ""), this.safeString(market, "quoteId", "")));
+                ((Map<String, Object>)request).put("underlying", (this.safeString(market, "baseId", "") + this.safeString(market, "quoteId", "")));
             }
             if (!java.util.Objects.equals(since, null))
             {
@@ -16198,7 +16198,7 @@ final Object finalMarket = market;
                     Object defaultId = ((Helpers.isTrue((!Helpers.isTrue(isSpotOrMargin))))) ? "x-xcKtGhcu" : "x-TKT5PX2F";
                     Object broker = this.safeDict(this.options, "broker", new HashMap<String, Object>() {{}});
                     String brokerId = this.safeString(broker, marketType, defaultId);
-                    ((Map<String, Object>)parameters).put("newClientOrderId", Helpers.add(brokerId, this.uuid22()));
+                    ((Map<String, Object>)parameters).put("newClientOrderId", (brokerId + this.uuid22()));
                 }
             }
             Object query = null;
@@ -16220,7 +16220,7 @@ final Object finalMarket = market;
                             String defaultId = "x-xcKtGhcu"; // batchOrders can not be spot or margin
                             Object broker = this.safeDict(this.options, "broker", new HashMap<String, Object>() {{}});
                             String brokerId = this.safeString(broker, "future", defaultId);
-                            newClientOrderId = Helpers.add(brokerId, this.uuid22());
+                            newClientOrderId = (brokerId + this.uuid22());
                             Helpers.addElementToObject(batchOrder, "newClientOrderId", newClientOrderId);
                         }
                         ((List<Object>)checkedBatchOrders).add(batchOrder);

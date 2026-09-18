@@ -14728,7 +14728,7 @@ final Object finalMinNotional = minNotional;
         Object endpoint = Helpers.GetValue(api, 1);
         Object pathPart = "/api";
         String request = ("/" + this.implodeParams(path, parameters));
-        Object payload = Helpers.add(pathPart, request);
+        Object payload = (pathPart + request);
         Object url = Helpers.add(this.implodeHostname(Helpers.GetValue(((Map<String, Object>)this.urls).get("api"), endpoint)), payload);
         Object query = this.omit(parameters, this.extractParams(path));
         if (!Helpers.isTrue(signed) && (java.util.Objects.equals(method, "GET")))
