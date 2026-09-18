@@ -5669,6 +5669,44 @@ export function csharpLocalDeclaration (csharp, declaration, context) {
     }
 }
 
+// ===== the `as any` receiver copies of the safeList* producers =====
+//
+// `const rows = this.safeList (response, 'data') as any` is the only TS shape whose C#
+// declaration names no type: the assertion is compile-time-only, the printer wraps the
+// operand in its `((object)…)` box (printAsExpression) and dropRedundantObjectBoxCasts
+// strips that identity box back for an `object n = …` target, so the local's runtime box is
+// exactly safeList*'s own return — List<object>, or the caller's default (null for the
+// two-argument form). Naming the box moves no value, and the identity box goes with the
+// retype (stripObjectBox below).
+//
+// Census (ts/src): 2 sites (btse fetchTrades / fetchPositions). fetchTrades is rejected —
+// a later `rows = response` writes the local the method declares `object` (`let response:
+// NullableDict = undefined`), which can box a Dictionary — and fetchPositions is accepted
+// (its response IS the implicit API's List<object>). Every other `as any` in the tree
+// (pro-luno's safeString read, the prediction market/orderbook template values) is not a
+// safeList* call and keeps its `object`.
+const SAFE_LIST_PRODUCER_CALLS = [ 'safeList', 'safeList2', 'safeListN' ];
+
+function asAnySafeListReceiverCopy (initializer) {
+    if (initializer?.kind !== ts.SyntaxKind.AsExpression || initializer.type?.kind !== ts.SyntaxKind.AnyKeyword) {
+        return undefined;
+    }
+    const inner = initializer.expression;
+    if (inner?.kind !== ts.SyntaxKind.CallExpression) {
+        return undefined;
+    }
+    const callee = inner.expression;
+    if (callee?.kind !== ts.SyntaxKind.PropertyAccessExpression || callee.expression?.kind !== ts.SyntaxKind.ThisKeyword) {
+        return undefined;
+    }
+    const name = callee.name?.escapedText;
+    if ((typeof name !== 'string') || !SAFE_LIST_PRODUCER_CALLS.includes (name)) {
+        return undefined;
+    }
+    // own-key lookup only: `map['toString']` would hand back Object.prototype.toString
+    return Object.prototype.hasOwnProperty.call (CSHARP_LOCAL_THIS_RETURN_TYPES, name) ? CSHARP_LOCAL_THIS_RETURN_TYPES[name] : undefined;
+}
+
 function csharpLocalTypeOf (csharp, declaration, context) {
     const sourceName = declaration.name.escapedText;
     const scope = context?.scope ?? ((typeof csharp.csharpEnclosingFunction === 'function') ? csharp.csharpEnclosingFunction (declaration) : enclosingFunction (declaration));
@@ -5676,6 +5714,16 @@ function csharpLocalTypeOf (csharp, declaration, context) {
     let csharpType = csharpTypeOfValue (csharp, declaration.initializer, ctx);
     let cast;
     let joinedFallback;
+    // `object rows = this.safeList (response, 'data') as any;` — the receiver copy of a proven
+    // list producer (U03): see asAnySafeListReceiverCopy. The named type replaces the
+    // printer's own `((object)…)` box, so the wrapper drops that identity wrapper
+    // (stripObjectBox). Every later write is still checked by csharpLocalIsSafeToRetype.
+    const asAnyReceiverCopy = asAnySafeListReceiverCopy (declaration.initializer);
+    let stripObjectBox;
+    if (csharpType === undefined && asAnyReceiverCopy !== undefined) {
+        csharpType = asAnyReceiverCopy;
+        stripObjectBox = true;
+    }
     // `this.safeValue (recv, 'key')` with a same-file dict / list twin: the box the file
     // itself proves (see the family comment); the use-shape veto runs after the retype scan
     let safeValueTwin = (csharpType === undefined) ? safeValueTwinCastType (declaration.initializer) : undefined;
@@ -5872,7 +5920,7 @@ function csharpLocalTypeOf (csharp, declaration, context) {
     if (!safe) {
         return undefined;
     }
-    return { type: csharpType, cast, safeValueTwinShape };
+    return { type: csharpType, cast, safeValueTwinShape, stripObjectBox };
 }
 
 // the declared type only (kept for callers that do not rewrite the value)
@@ -7025,6 +7073,15 @@ export function installCsharpLocalTypes (transpiler) {
             return printed;
         }
         let value = printed.slice (prefix.length);
+        // the printer's own `((object)…)` box around an `as any` operand is an identity upcast
+        // (printAsExpression); the named type IS that operand's box, so the box goes with the
+        // retype (the `as any` safeList* receiver copies — see asAnySafeListReceiverCopy)
+        if (info.stripObjectBox === true) {
+            const boxed = /^\(\(object\)(.*)\)$/s.exec (value.trimEnd ());
+            if (boxed !== null) {
+                value = boxed[1];
+            }
+        }
         if (info.cast !== undefined) {
             // a call whose printed argument list spans lines (a dict-literal argument) would put
             // the cast's closing paren on a second line; that family keeps `object` there, so

@@ -3626,7 +3626,7 @@ public partial class btse : Exchange
         //
         // the response is a bare array of position rows
         //
-        object rows = this.safeList(response, "data");
+        List<object> rows = this.safeList(response, "data");
         if ((rows == null))
         {
             rows = response;
