@@ -30,7 +30,7 @@ public partial class testMainClass : BaseTest
         testSharedMethods.assertGreaterOrEqual(exchange, skippedProperties, method, entry, "1", low);
         testSharedMethods.assertLessOrEqual(exchange, skippedProperties, method, entry, "4", high);
         testSharedMethods.assertGreaterOrEqual(exchange, skippedProperties, method, entry, "4", low);
-        assert((isEqual(symbol, null)) || ((symbol is string)), add((add("symbol ", symbol) + " is incorrect"), logText)); // todo: check with standard symbol check
+        assert(((symbol == null)) || ((symbol is string)), add((add("symbol ", symbol) + " is incorrect"), logText)); // todo: check with standard symbol check
     }
 
 }

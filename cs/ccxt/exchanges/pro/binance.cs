@@ -235,7 +235,7 @@ public partial class binance : ccxt.binance
             object normalizedIndex = mod(streamIndex, streamLimit);
             ((IDictionary<string,object>)this.options)["streamIndex"] = streamIndex;
             stream = this.numberToString(normalizedIndex);
-            if (!isEqual(subscriptionHash, null))
+            if ((subscriptionHash != null))
             {
                 ((IDictionary<string,object>)getValue(this.options, "streamBySubscriptionsHash"))[(string)subscriptionHash] = stream;
             }
@@ -328,11 +328,11 @@ public partial class binance : ccxt.binance
 
     public virtual object getStockUnifiedSymbol(object stockSymbol, object quote = null)
     {
-        if (isEqual(stockSymbol, null))
+        if ((stockSymbol == null))
         {
             return null;
         }
-        object safeQuote = ((bool) (isEqual(quote, null))) ? "USDC" : quote;
+        object safeQuote = ((bool) ((quote == null))) ? "USDC" : quote;
         string? parsed = this.safeSymbol(stockSymbol, null, "/", "spot");
         if (((parsed != null)) && (getIndexOf(parsed, "/") >= 0))
         {
@@ -401,7 +401,7 @@ public partial class binance : ccxt.binance
     public async override Task<List<ccxt.Liquidation>> WatchLiquidationsForSymbols(object symbols, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -508,7 +508,7 @@ public partial class binance : ccxt.binance
         Dictionary<string, object> market = this.safeMarket(marketId, null, "", "contract");
         string? symbol = ((string)getValue(market, "symbol"));
         Dictionary<string, object> liquidation = ((Dictionary<string, object>)this.parseWsLiquidation(rawLiquidation, market));
-        if (isEqual(this.liquidations, null))
+        if ((this.liquidations == null))
         {
             Int64? limit = this.safeInteger(this.options, "liquidationsLimit", 1000);
             this.liquidations = new ArrayCache(limit);
@@ -645,7 +645,7 @@ public partial class binance : ccxt.binance
     public async override Task<List<ccxt.Liquidation>> WatchMyLiquidationsForSymbols(object symbols, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -799,7 +799,7 @@ public partial class binance : ccxt.binance
     public async override Task<ccxt.pro.IOrderBook> WatchOrderBookForSymbols(object symbols, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -815,7 +815,7 @@ public partial class binance : ccxt.binance
         }
         string name = "depth";
         string streamHash = "multipleOrderbook";
-        if (!isEqual(symbols, null))
+        if ((symbols != null))
         {
             int symbolsLength = getArrayLength(symbols);
             if (symbolsLength > 200)
@@ -890,7 +890,7 @@ public partial class binance : ccxt.binance
     public async override Task<object> unWatchOrderBookForSymbols(object symbols, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -906,7 +906,7 @@ public partial class binance : ccxt.binance
         }
         string name = "depth";
         string streamHash = "multipleOrderbook";
-        if (!isEqual(symbols, null))
+        if ((symbols != null))
         {
             streamHash = streamHash + ("::" + String.Join(",", ((IList<object>)symbols).ToArray()));
         }
@@ -978,7 +978,7 @@ public partial class binance : ccxt.binance
     public async override Task<ccxt.OrderBook> FetchOrderBookWs(string symbol, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -1366,13 +1366,13 @@ public partial class binance : ccxt.binance
     {
         object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
         symbols = this.marketSymbols(symbols, null, false, true, true);
         string streamHash = "multipleTrades";
-        if (!isEqual(symbols, null))
+        if ((symbols != null))
         {
             int symbolsLength = getArrayLength(symbols);
             if (symbolsLength > 200)
@@ -1466,13 +1466,13 @@ public partial class binance : ccxt.binance
     public async override Task<object> unWatchTradesForSymbols(object symbols, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
         symbols = this.marketSymbols(symbols, null, false, true, true);
         string streamHash = "multipleTrades";
-        if (!isEqual(symbols, null))
+        if ((symbols != null))
         {
             int symbolsLength = getArrayLength(symbols);
             if (symbolsLength > 200)
@@ -1722,7 +1722,7 @@ public partial class binance : ccxt.binance
         }
         string? marketId = this.safeString(trade, "s");
         string fallbackType = ((bool) (inOp(trade, "ps"))) ? "contract" : "spot";
-        object marketType = ((bool) (!isEqual(market, null))) ? getValue(market, "type") : fallbackType;
+        object marketType = ((bool) ((market != null))) ? getValue(market, "type") : fallbackType;
         string? symbol = this.safeSymbol(marketId, market, null, marketType);
         string? side = this.safeStringLower(trade, "S");
         string? takerOrMaker = null;
@@ -1811,7 +1811,7 @@ public partial class binance : ccxt.binance
         string timeframeVar = timeframe;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -1853,7 +1853,7 @@ public partial class binance : ccxt.binance
     public async override Task<Dictionary<string, Dictionary<string, List<ccxt.OHLCV>>>> WatchOHLCVForSymbols(object symbolsAndTimeframes, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -1981,7 +1981,7 @@ public partial class binance : ccxt.binance
     public async override Task<object> unWatchOHLCVForSymbols(object symbolsAndTimeframes, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -2074,7 +2074,7 @@ public partial class binance : ccxt.binance
         string timeframeVar = timeframe;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -2164,7 +2164,7 @@ public partial class binance : ccxt.binance
     public async override Task<ccxt.Ticker> FetchTickerWs(string symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -2223,7 +2223,7 @@ public partial class binance : ccxt.binance
         string timeframeVar = timeframe;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -2331,7 +2331,7 @@ public partial class binance : ccxt.binance
     {
         string symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -2354,7 +2354,7 @@ public partial class binance : ccxt.binance
     {
         string symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -2416,7 +2416,7 @@ public partial class binance : ccxt.binance
         parameters = ((IList<object>)stockparametersVariable)[1];
         if (isTrue(stock))
         {
-            if (isEqual(symbols, null))
+            if ((symbols == null))
             {
                 throw new ArgumentsRequired ((string)(this.id + " watchTickers() with stock stream requires symbols")) ;
             }
@@ -2488,7 +2488,7 @@ public partial class binance : ccxt.binance
         IList<object> channelNameparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "watchMarkPrices", "name", "markPrice");
         channelName = ((IList<object>)channelNameparametersVariable)[0];
         parameters = ((IList<object>)channelNameparametersVariable)[1];
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -2562,7 +2562,7 @@ public partial class binance : ccxt.binance
     public async override Task<ccxt.Tickers> WatchBidsAsks(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -2572,7 +2572,7 @@ public partial class binance : ccxt.binance
         parameters = ((IList<object>)stockparametersVariable)[1];
         if (isTrue(stock))
         {
-            if (isEqual(symbols, null))
+            if ((symbols == null))
             {
                 throw new ArgumentsRequired ((string)(this.id + " watchBidsAsks() with stock stream requires symbols")) ;
             }
@@ -2605,7 +2605,7 @@ public partial class binance : ccxt.binance
     {
         parameters ??= new Dictionary<string, object>();
         isUnsubscribe ??= false;
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -2615,8 +2615,8 @@ public partial class binance : ccxt.binance
         bool? use1sFreq = this.safeBool(parameters, "use1sFreq", true);
         IDictionary<string, object> firstMarket = null;
         object marketType = null;
-        bool symbolsDefined = (!isEqual(symbols, null));
-        if (!isEqual(symbols, null))
+        bool symbolsDefined = ((symbols != null));
+        if ((symbols != null))
         {
             firstMarket = this.market(getValue(symbols, 0));
         }
@@ -2676,7 +2676,7 @@ public partial class binance : ccxt.binance
         {
             unifiedPrefix = "ticker";
         }
-        if (!isEqual(symbols, null))
+        if ((symbols != null))
         {
             Dictionary<string, object> seenUnderlyings = new Dictionary<string, object>() {};
             for (int i = 0; i < getArrayLength(symbols); postFixIncrement(ref i))
@@ -2768,7 +2768,7 @@ public partial class binance : ccxt.binance
             }
         }
         object streamHash = channelName;
-        if (!isEqual(symbols, null))
+        if ((symbols != null))
         {
             streamHash = add(add(channelName, "::"), String.Join(",", ((IList<object>)symbols).ToArray()));
         }
@@ -3722,7 +3722,7 @@ public partial class binance : ccxt.binance
     public async override Task<ccxt.Balances> FetchBalanceWs(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -3860,14 +3860,14 @@ public partial class binance : ccxt.binance
     public async override Task<List<ccxt.Position>> FetchPositionsWs(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
         Dictionary<string, object> payload = new Dictionary<string, object>() {};
         IDictionary<string, object> market = null;
         symbols = this.marketSymbols(symbols, "swap", true, true, true);
-        if (!isEqual(symbols, null))
+        if ((symbols != null))
         {
             int symbolsLength = getArrayLength(symbols);
             if ((symbolsLength == 1))
@@ -3877,7 +3877,7 @@ public partial class binance : ccxt.binance
             }
         }
         object type = this.getMarketType("fetchPositionsWs", market, parameters);
-        if (isEqual(symbols, null) && (isEqual(type, "spot")))
+        if ((symbols == null) && (isEqual(type, "spot")))
         {
             // when symbols aren't provide
             // we shouldn't rely on the defaultType
@@ -3969,7 +3969,7 @@ public partial class binance : ccxt.binance
     public async override Task<ccxt.Balances> WatchBalance(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -4249,7 +4249,7 @@ public partial class binance : ccxt.binance
     public async override Task<ccxt.Order> CreateOrderWs(string symbol, string type, string side, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -4430,7 +4430,7 @@ public partial class binance : ccxt.binance
     public async override Task<ccxt.Order> EditOrderWs(string id, string symbol, string type, string side, object amount = null, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -4600,11 +4600,11 @@ public partial class binance : ccxt.binance
     public async override Task<ccxt.Order> CancelOrderWs(string id, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
-        if (isEqual(symbol, null))
+        if ((symbol == null))
         {
             throw new BadRequest ((string)(this.id + " cancelOrderWs requires a symbol")) ;
         }
@@ -4671,11 +4671,11 @@ public partial class binance : ccxt.binance
     public async override Task<List<ccxt.Order>> CancelAllOrdersWs(string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(symbol, null))
+        if ((symbol == null))
         {
             throw new ArgumentsRequired ((string)(this.id + " cancelAllOrdersWs() requires a symbol argument")) ;
         }
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -4722,11 +4722,11 @@ public partial class binance : ccxt.binance
     public async override Task<ccxt.Order> FetchOrderWs(string id, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
-        if (isEqual(symbol, null))
+        if ((symbol == null))
         {
             throw new BadRequest ((string)(this.id + " cancelOrderWs requires a symbol")) ;
         }
@@ -4784,11 +4784,11 @@ public partial class binance : ccxt.binance
     public async override Task<List<ccxt.Order>> FetchOrdersWs(string symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
-        if (isEqual(symbol, null))
+        if ((symbol == null))
         {
             throw new BadRequest ((string)(this.id + " fetchOrdersWs requires a symbol")) ;
         }
@@ -4862,7 +4862,7 @@ public partial class binance : ccxt.binance
     public async override Task<List<ccxt.Order>> FetchOpenOrdersWs(string symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -4882,7 +4882,7 @@ public partial class binance : ccxt.binance
         Dictionary<string, object> payload = new Dictionary<string, object>() {
             { "returnRateLimits", returnRateLimits },
         };
-        if (!isEqual(symbol, null))
+        if ((symbol != null))
         {
             ((IDictionary<string,object>)payload)["symbol"] = this.marketId(symbol);
         }
@@ -4921,7 +4921,7 @@ public partial class binance : ccxt.binance
         object symbolVar = symbol;
         object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -4946,7 +4946,7 @@ public partial class binance : ccxt.binance
             object stockStreamName = add(stockListenKey, "@orderReport");
             Int64 stockRequestId = ((Int64)this.requestId(stockUrl));
             string stockMessageHash = "orders";
-            if (!isEqual(symbolVar, null))
+            if ((symbolVar != null))
             {
                 stockMessageHash = ("orders:" + this.symbol(symbolVar));
             }
@@ -4968,7 +4968,7 @@ public partial class binance : ccxt.binance
         }
         string messageHash = "orders";
         IDictionary<string, object> market = null;
-        if (!isEqual(symbolVar, null))
+        if ((symbolVar != null))
         {
             market = this.market(symbolVar);
             symbolVar = getValue(market, "symbol");
@@ -5615,7 +5615,7 @@ public partial class binance : ccxt.binance
     public async override Task<List<ccxt.Position>> WatchPositions(object symbols = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -5625,7 +5625,7 @@ public partial class binance : ccxt.binance
         if (!isTrue(this.isEmpty(symbols)))
         {
             market = this.getMarketFromSymbols(symbols);
-            if (isEqual(symbols, null))
+            if ((symbols == null))
             {
                 throw new ArgumentsRequired ((string)(this.id + " watchPositions() symbols is required")) ;
             }
@@ -5697,7 +5697,7 @@ public partial class binance : ccxt.binance
         {
             return;
         }
-        if (isEqual(this.positions, null))
+        if ((this.positions == null))
         {
             this.positions = new Dictionary<string, object>() {};
         }
@@ -5784,7 +5784,7 @@ public partial class binance : ccxt.binance
         IDictionary<string, object> subscriptions = ((WebSocketClient)client).subscriptions;
         List<object> subscriptionsKeys = new List<object>(((IDictionary<string,object>)subscriptions).Keys);
         object accountType = this.getAccountTypeFromSubscriptions(subscriptionsKeys);
-        if (isEqual(this.positions, null))
+        if ((this.positions == null))
         {
             this.positions = new Dictionary<string, object>() {};
         }
@@ -5950,11 +5950,11 @@ public partial class binance : ccxt.binance
     public async override Task<List<ccxt.Trade>> FetchMyTradesWs(string symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
-        if (isEqual(symbol, null))
+        if ((symbol == null))
         {
             throw new BadRequest ((string)(this.id + " fetchMyTradesWs requires a symbol")) ;
         }
@@ -6017,7 +6017,7 @@ public partial class binance : ccxt.binance
     public async override Task<List<ccxt.Trade>> FetchTradesWs(string symbol, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -6123,13 +6123,13 @@ public partial class binance : ccxt.binance
         object symbolVar = symbol;
         object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
         object type = null;
         IDictionary<string, object> market = null;
-        if (!isEqual(symbolVar, null))
+        if ((symbolVar != null))
         {
             Dictionary<string, object> marketResolved = this.market(symbolVar);
             market = marketResolved;
@@ -6141,7 +6141,7 @@ public partial class binance : ccxt.binance
         subType = ((IList<object>)typesubTypeparametersVariable)[1];
         parameters = ((IList<object>)typesubTypeparametersVariable)[2];
         string messageHash = "myTrades";
-        if ((!isEqual(symbolVar, null)) && ((market != null)))
+        if (((symbolVar != null)) && ((market != null)))
         {
             symbolVar = this.symbol(symbolVar);
             messageHash = messageHash + add(":", symbolVar);
@@ -6278,7 +6278,7 @@ public partial class binance : ccxt.binance
                     }
                 }
             }
-            if (isEqual(this.myTrades, null))
+            if ((this.myTrades == null))
             {
                 Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);
                 this.myTrades = new ArrayCacheBySymbolById(limit);
@@ -6298,7 +6298,7 @@ public partial class binance : ccxt.binance
         string? orderId = this.safeString(parsed, "id");
         if ((symbol != null))
         {
-            if (isEqual(this.orders, null))
+            if ((this.orders == null))
             {
                 Int64? limit = this.safeInteger(this.options, "ordersLimit", 1000);
                 this.orders = new ArrayCacheBySymbolById(limit);
@@ -6393,7 +6393,7 @@ public partial class binance : ccxt.binance
         ((IDictionary<string,object>)this.balance)[(string)accountType] = this.safeBalance(getValue(this.balance, accountType));
         (client as WebSocketClient).resolve(getValue(this.balance, accountType), (accountType + ":balance"));
         // --- positions ---
-        if (isEqual(this.positions, null))
+        if ((this.positions == null))
         {
             this.positions = new Dictionary<string, object>() {};
         }

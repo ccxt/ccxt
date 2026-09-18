@@ -289,7 +289,7 @@ public partial class opinion : PredictionExchange
         string? marketId = this.safeString(raw, "marketId");
         string? slug = this.safeString(raw, "slug");
         object effectiveEventSlug = eventSlug;
-        if ((!isEqual(eventSlug, null)) && ((slug != null)) && ((getIndexOf(slug, eventSlug) == 0)))
+        if (((eventSlug != null)) && ((slug != null)) && ((getIndexOf(slug, eventSlug) == 0)))
         {
             effectiveEventSlug = null;
         }
@@ -490,7 +490,7 @@ public partial class opinion : PredictionExchange
         }
         int rawEventsLength = getArrayLength(rawEvents);
         List<object> parsedEvents = new List<object>() {};
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             this.markets = this.createSafeDictionary();
         }
@@ -785,7 +785,7 @@ public partial class opinion : PredictionExchange
     public async override Task<ccxt.PredictionTickers> FetchTickers(object outcomes = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(outcomes, null))
+        if ((outcomes == null))
         {
             throw new ArgumentsRequired ((string)(this.id + " fetchTickers() requires an outcomes argument — the venue has no all-tickers endpoint; pass the outcome handles or token ids to fetch (discover them via fetchEvents ())")) ;
         }
@@ -951,7 +951,7 @@ public partial class opinion : PredictionExchange
      */
     public async virtual Task<object> loadQuoteToken(object quoteTokenAddress)
     {
-        if (isEqual(quoteTokenAddress, null))
+        if ((quoteTokenAddress == null))
         {
             throw new ArgumentsRequired ((string)(this.id + " loadQuoteToken() requires a quoteTokenAddress")) ;
         }
@@ -1341,7 +1341,7 @@ public partial class opinion : PredictionExchange
         await this.loadApiKey();
         object outcomeObj = null;
         Dictionary<string, object> request = new Dictionary<string, object>() {};
-        if (!isEqual(outcome, null))
+        if ((outcome != null))
         {
             outcomeObj = await this.loadOutcome(outcome);
             IDictionary<string, object> info = this.safeDict(outcomeObj, "info", new Dictionary<string, object>() {});
@@ -1368,7 +1368,7 @@ public partial class opinion : PredictionExchange
         parameters ??= new Dictionary<string, object>();
         await this.loadApiKey();
         object outcomeObj = null;
-        if (!isEqual(outcome, null))
+        if ((outcome != null))
         {
             outcomeObj = await this.loadOutcome(outcome);
         }
@@ -1436,7 +1436,7 @@ public partial class opinion : PredictionExchange
     public async override Task<List<ccxt.PredictionTrade>> FetchMyTrades(string outcome = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.walletAddress, null))
+        if ((this.walletAddress == null))
         {
             throw new ArgumentsRequired ((string)(this.id + " fetchMyTrades() requires a walletAddress")) ;
         }
@@ -1445,7 +1445,7 @@ public partial class opinion : PredictionExchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "walletAddress", this.walletAddress },
         };
-        if (!isEqual(outcome, null))
+        if ((outcome != null))
         {
             outcomeObj = await this.loadOutcome(outcome);
             IDictionary<string, object> info = this.safeDict(outcomeObj, "info", new Dictionary<string, object>() {});
@@ -1503,7 +1503,7 @@ public partial class opinion : PredictionExchange
         {
             throw new ExchangeError ((string)((this.id + " loadTradeMarket() could not parse market ") + idStr)) ;
         }
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             this.markets = this.createSafeDictionary();
         }
@@ -1618,13 +1618,13 @@ public partial class opinion : PredictionExchange
     public async override Task<List<ccxt.PredictionPosition>> FetchPositions(object outcomes = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.walletAddress, null))
+        if ((this.walletAddress == null))
         {
             throw new ArgumentsRequired ((string)(this.id + " fetchPositions() requires a walletAddress")) ;
         }
         await this.loadApiKey();
         int outcomesLength = 0;
-        if (!isEqual(outcomes, null))
+        if ((outcomes != null))
         {
             outcomesLength = getArrayLength(outcomes);
             await this.loadOutcomes(outcomes);
@@ -1642,7 +1642,7 @@ public partial class opinion : PredictionExchange
         }
         Dictionary<string, object> wantedTokenIds = new Dictionary<string, object>() {};
         // copy to a plain list so the strict null checks see one shape
-        object outcomesList = ((bool) (isEqual(outcomes, null))) ? new List<object>() {} : outcomes;
+        object outcomesList = ((bool) ((outcomes == null))) ? new List<object>() {} : outcomes;
         for (int i = 0; i < getArrayLength(outcomesList); postFixIncrement(ref i))
         {
             IDictionary<string, object> outcomeObj = this.outcome(getValue(outcomesList, i));
@@ -1824,7 +1824,7 @@ public partial class opinion : PredictionExchange
         {
             return optionsKey;
         }
-        if ((isEqual(this.walletAddress, null)) || (isEqual(this.privateKey, null)))
+        if (((this.walletAddress == null)) || ((this.privateKey == null)))
         {
             throw new AuthenticationError ((string)(this.id + " private endpoints require an apiKey, or a walletAddress and privateKey to self-issue one")) ;
         }
@@ -1945,7 +1945,7 @@ public partial class opinion : PredictionExchange
      */
     public virtual object opinionOutcomeByMarketIdSide(object marketId, object outcomeSide)
     {
-        if ((isEqual(marketId, null)) || (isEqual(this.markets, null)))
+        if ((isEqual(marketId, null)) || ((this.markets == null)))
         {
             return null;
         }
@@ -2172,7 +2172,7 @@ public partial class opinion : PredictionExchange
             { "cost", this.safeNumber(message, "amount") },
             { "fee", null },
         }, outcomeObj);
-        if (isEqual(this.trades, null))
+        if ((this.trades == null))
         {
             this.trades = this.createSafeDictionary();
         }
@@ -2200,7 +2200,7 @@ public partial class opinion : PredictionExchange
     public async override Task<List<ccxt.Order>> WatchOrders(string outcome = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(outcome, null))
+        if ((outcome == null))
         {
             throw new ArgumentsRequired ((string)(this.id + " watchOrders() requires an outcome (the order update channel is per-market)")) ;
         }
@@ -2302,7 +2302,7 @@ public partial class opinion : PredictionExchange
             { "fee", null },
             { "trades", new List<object>() {} },
         }, outcomeObj);
-        if (isEqual(this.orders, null))
+        if ((this.orders == null))
         {
             Int64? limit = this.safeInteger(this.options, "ordersLimit", 1000);
             this.orders = new ArrayCacheByOutcomeById(limit);
@@ -2326,7 +2326,7 @@ public partial class opinion : PredictionExchange
     public async override Task<List<ccxt.Trade>> WatchMyTrades(string outcome = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(outcome, null))
+        if ((outcome == null))
         {
             throw new ArgumentsRequired ((string)(this.id + " watchMyTrades() requires an outcome (the trade record channel is per-market)")) ;
         }
@@ -2388,7 +2388,7 @@ public partial class opinion : PredictionExchange
                 { "currency", "USDT" },
             } },
         }, outcomeObj);
-        if (isEqual(this.myTrades, null))
+        if ((this.myTrades == null))
         {
             Int64? myTradesLimit = this.safeInteger(this.options, "myTradesLimit", 1000);
             this.myTrades = new ArrayCacheByOutcomeById(myTradesLimit);
@@ -2400,7 +2400,7 @@ public partial class opinion : PredictionExchange
 
     public override object handleErrors(object code, object reason, object url, object method, object headers, object body, object response, object requestHeaders, object requestBody)
     {
-        if (isEqual(response, null))
+        if ((response == null))
         {
             return null;
         }
@@ -2440,7 +2440,7 @@ public partial class opinion : PredictionExchange
         object baseUrl = this.safeString(baseUrls, apiGroup, ((string)getValue(baseUrls, "opinion")));
         object url = add(add(baseUrl, "/"), this.implodeParams(path, parameters));
         object query = this.omit(parameters, this.extractParams(path));
-        object existingHeaders = ((bool) (!isEqual(headers, null))) ? headers : new Dictionary<string, object>() {};
+        object existingHeaders = ((bool) ((headers != null))) ? headers : new Dictionary<string, object>() {};
         headers = this.extend(new Dictionary<string, object>() {
             { "Accept", "application/json" },
             { "Content-Type", "application/json" },
@@ -2450,7 +2450,7 @@ public partial class opinion : PredictionExchange
             if (isEqual(path, "auth/api-key"))
             {
                 // wallet-signature scheme: no apiKey involved, the signature itself is the credential
-                if ((isEqual(this.walletAddress, null)) || (isEqual(this.privateKey, null)))
+                if (((this.walletAddress == null)) || ((this.privateKey == null)))
                 {
                     throw new ArgumentsRequired ((string)(add((this.id + " "), path) + " requires a walletAddress and privateKey")) ;
                 }

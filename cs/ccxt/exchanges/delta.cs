@@ -496,8 +496,8 @@ public partial class delta : Exchange
 
     public override Dictionary<string, object> safeMarket(object marketId = null, object market = null, object delimiter = null, object marketType = null)
     {
-        bool isOption = (!isEqual(marketId, null)) && ((((string)marketId).EndsWith(((string)"-C"))) || (((string)marketId).EndsWith(((string)"-P"))) || (((string)marketId).StartsWith(((string)"C-"))) || (((string)marketId).StartsWith(((string)"P-"))));
-        if (isOption && ((isEqual(this.markets_by_id, null)) || !(inOp(this.markets_by_id, marketId))))
+        bool isOption = ((marketId != null)) && ((((string)marketId).EndsWith(((string)"-C"))) || (((string)marketId).EndsWith(((string)"-P"))) || (((string)marketId).StartsWith(((string)"C-"))) || (((string)marketId).StartsWith(((string)"P-"))));
+        if (isOption && (((this.markets_by_id == null)) || !(inOp(this.markets_by_id, marketId))))
         {
             // handle expired option contracts
             return ((Dictionary<string, object>)((object)(this.createExpiredOptionMarket(marketId))));
@@ -739,7 +739,7 @@ public partial class delta : Exchange
     public virtual object indexByStringifiedNumericId(object input)
     {
         Dictionary<string, object> result = new Dictionary<string, object>() {};
-        if (isEqual(input, null))
+        if ((input == null))
         {
             return null;
         }
@@ -2116,7 +2116,7 @@ public partial class delta : Exchange
         string? marketId = this.safeString(order, "product_id");
         IDictionary<string, object> marketsByNumericId = this.safeDict(this.options, "marketsByNumericId", new Dictionary<string, object>() {});
         market = this.safeValue(marketsByNumericId, marketId, market);
-        object symbol = ((bool) (isEqual(market, null))) ? marketId : getValue(market, "symbol");
+        object symbol = ((bool) ((market == null))) ? marketId : getValue(market, "symbol");
         string? status = this.parseOrderStatus(this.safeString(order, "state"));
         string? side = this.safeString(order, "side");
         string? type = this.safeString(order, "order_type");
@@ -2133,7 +2133,7 @@ public partial class delta : Exchange
         if ((feeCostString != null))
         {
             string? feeCurrencyCode = null;
-            if (!isEqual(market, null))
+            if ((market != null))
             {
                 IDictionary<string, object> settlingAsset = this.safeDict(getValue(market, "info"), "settling_asset", new Dictionary<string, object>() {});
                 string? feeCurrencyId = this.safeString(settlingAsset, "symbol");
@@ -2320,7 +2320,7 @@ public partial class delta : Exchange
     public async override Task<ccxt.Order> CancelOrder(string id, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(symbol, null))
+        if ((symbol == null))
         {
             throw new ArgumentsRequired ((string)(this.id + " cancelOrder() requires a symbol argument")) ;
         }
@@ -2383,7 +2383,7 @@ public partial class delta : Exchange
     public async override Task<List<ccxt.Order>> CancelAllOrders(string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(symbol, null))
+        if ((symbol == null))
         {
             throw new ArgumentsRequired ((string)(this.id + " cancelAllOrders() requires a symbol argument")) ;
         }
@@ -2419,7 +2419,7 @@ public partial class delta : Exchange
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         IDictionary<string, object> market = null;
-        if (!isEqual(symbol, null))
+        if ((symbol != null))
         {
             market = this.market(symbol);
         }
@@ -2504,7 +2504,7 @@ public partial class delta : Exchange
         await this.loadMarkets();
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         IDictionary<string, object> market = null;
-        if (!isEqual(symbol, null))
+        if ((symbol != null))
         {
             market = this.market(symbol);
             ((IDictionary<string,object>)request)["product_ids"] = getValue(market, "numericId"); // accepts a comma-separated list of ids
@@ -2569,7 +2569,7 @@ public partial class delta : Exchange
         await this.loadMarkets();
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         IDictionary<string, object> market = null;
-        if (!isEqual(symbol, null))
+        if ((symbol != null))
         {
             market = this.market(symbol);
             ((IDictionary<string,object>)request)["product_ids"] = getValue(market, "numericId"); // accepts a comma-separated list of ids
@@ -2649,7 +2649,7 @@ public partial class delta : Exchange
         await this.loadMarkets();
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         IDictionary<string, object> currency = null;
-        if (!isEqual(code, null))
+        if ((code != null))
         {
             currency = this.currency(((string)code));
             ((IDictionary<string,object>)request)["asset_id"] = getValue(currency, "numericId");
@@ -2733,7 +2733,7 @@ public partial class delta : Exchange
         string? currencyId = this.safeString(item, "asset_id");
         IDictionary<string, object> currenciesByNumericId = this.safeDict(this.options, "currenciesByNumericId");
         currency = this.safeValue(currenciesByNumericId, currencyId, currency);
-        object code = ((bool) (isEqual(currency, null))) ? null : getValue(currency, "code");
+        object code = ((bool) ((currency == null))) ? null : getValue(currency, "code");
         string? amount = this.safeString(item, "amount");
         Int64? timestamp = this.parse8601(this.safeString(item, "created_at"));
         string? after = this.safeString(item, "balance");
@@ -3359,7 +3359,7 @@ public partial class delta : Exchange
     public async override Task<Dictionary<string, object>> SetLeverage(object leverage, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(symbol, null))
+        if ((symbol == null))
         {
             throw new ArgumentsRequired ((string)(this.id + " setLeverage() requires a symbol argument")) ;
         }
@@ -3399,7 +3399,7 @@ public partial class delta : Exchange
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         IDictionary<string, object> market = null;
-        if (!isEqual(symbol, null))
+        if ((symbol != null))
         {
             market = this.market(symbol);
         }
@@ -3743,7 +3743,7 @@ public partial class delta : Exchange
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         IDictionary<string, object> market = null;
-        if (!isEqual(symbol, null))
+        if ((symbol != null))
         {
             market = this.market(symbol);
         }
@@ -3818,7 +3818,7 @@ public partial class delta : Exchange
     public override object parseMarginMode(object marginMode, object market = null)
     {
         object symbol = null;
-        if (!isEqual(market, null))
+        if ((market != null))
         {
             symbol = getValue(market, "symbol");
         }
@@ -4423,7 +4423,7 @@ public partial class delta : Exchange
 
     public override object handleErrors(object code, object reason, object url, object method, object headers, object body, object response, object requestHeaders, object requestBody)
     {
-        if (isEqual(response, null))
+        if ((response == null))
         {
             return null;
         }

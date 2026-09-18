@@ -266,7 +266,7 @@ public partial class deepcoin : ccxt.deepcoin
     public async override Task<ccxt.Ticker> WatchTicker(string symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -287,7 +287,7 @@ public partial class deepcoin : ccxt.deepcoin
     public async override Task<object> unWatchTicker(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -421,7 +421,7 @@ public partial class deepcoin : ccxt.deepcoin
     {
         object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -447,7 +447,7 @@ public partial class deepcoin : ccxt.deepcoin
     public async override Task<object> unWatchTrades(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -603,7 +603,7 @@ public partial class deepcoin : ccxt.deepcoin
         object limitVar = limit;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -636,7 +636,7 @@ public partial class deepcoin : ccxt.deepcoin
         object timeframeVar = timeframe;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -737,7 +737,7 @@ public partial class deepcoin : ccxt.deepcoin
     public async override Task<ccxt.pro.IOrderBook> WatchOrderBook(string symbol, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -764,7 +764,7 @@ public partial class deepcoin : ccxt.deepcoin
     public async override Task<object> unWatchOrderBook(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -968,11 +968,11 @@ public partial class deepcoin : ccxt.deepcoin
         object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         string messageHash = "myTrades";
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
-        if (!isEqual(symbolVar, null))
+        if ((symbolVar != null))
         {
             symbolVar = this.symbol(symbolVar);
             messageHash = messageHash + add("::", symbolVar);
@@ -1027,7 +1027,7 @@ public partial class deepcoin : ccxt.deepcoin
         string symbolMessageHash = ((messageHash + "::") + symbol);
         if ((inOp(client.futures, messageHash)) || (inOp(client.futures, symbolMessageHash)))
         {
-            if (isEqual(this.myTrades, null))
+            if ((this.myTrades == null))
             {
                 Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);
                 this.myTrades = new ArrayCacheBySymbolById(limit);
@@ -1057,11 +1057,11 @@ public partial class deepcoin : ccxt.deepcoin
         object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         string messageHash = "orders";
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
-        if (!isEqual(symbolVar, null))
+        if ((symbolVar != null))
         {
             symbolVar = this.symbol(symbolVar);
             messageHash = messageHash + add("::", symbolVar);
@@ -1116,7 +1116,7 @@ public partial class deepcoin : ccxt.deepcoin
         string symbolMessageHash = ((messageHash + "::") + symbol);
         if ((inOp(client.futures, messageHash)) || (inOp(client.futures, symbolMessageHash)))
         {
-            if (isEqual(this.orders, null))
+            if ((this.orders == null))
             {
                 Int64? limit = this.safeInteger(this.options, "ordersLimit", 1000);
                 this.orders = new ArrayCacheBySymbolById(limit);
@@ -1208,7 +1208,7 @@ public partial class deepcoin : ccxt.deepcoin
     public async override Task<List<ccxt.Position>> WatchPositions(object symbols = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -1216,7 +1216,7 @@ public partial class deepcoin : ccxt.deepcoin
         symbols = this.marketSymbols(symbols);
         string messageHash = "positions";
         List<object> messageHashes = new List<object>() {};
-        if (!isEqual(symbols, null))
+        if ((symbols != null))
         {
             for (int i = 0; i < getArrayLength(symbols); postFixIncrement(ref i))
             {
@@ -1272,7 +1272,7 @@ public partial class deepcoin : ccxt.deepcoin
         string symbolMessageHash = ((messageHash + "::") + symbol);
         if ((inOp(client.futures, messageHash)) || (inOp(client.futures, symbolMessageHash)))
         {
-            if (isEqual(this.positions, null))
+            if ((this.positions == null))
             {
                 this.positions = new ArrayCacheBySymbolBySide();
             }
@@ -1337,7 +1337,7 @@ public partial class deepcoin : ccxt.deepcoin
 
     public virtual object parsePositionSide(object direction)
     {
-        if (isEqual(direction, null))
+        if ((direction == null))
         {
             return direction;
         }
@@ -1350,7 +1350,7 @@ public partial class deepcoin : ccxt.deepcoin
 
     public virtual object parseWsMarginMode(object marginMode)
     {
-        if (isEqual(marginMode, null))
+        if ((marginMode == null))
         {
             return marginMode;
         }

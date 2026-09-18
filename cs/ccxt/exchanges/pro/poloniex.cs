@@ -159,7 +159,7 @@ public partial class poloniex : ccxt.poloniex
             ((IList<object>)marketIds).Add("all");
         } else
         {
-            if (isEqual(symbols, null))
+            if ((symbols == null))
             {
                 throw new ArgumentsRequired ((string)(this.id + " subscribe() symbols is required")) ;
             }
@@ -221,14 +221,14 @@ public partial class poloniex : ccxt.poloniex
     public async override Task<ccxt.Order> CreateOrderWs(string symbol, string type, string side, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
         await this.authenticate();
         Dictionary<string, object> market = this.market(symbol);
         string uppercaseType = ((string)type).ToUpper();
-        if (isEqual(side, null))
+        if ((side == null))
         {
             throw new ArgumentsRequired ((string)(this.id + " createOrderWs() side is required")) ;
         }
@@ -324,7 +324,7 @@ public partial class poloniex : ccxt.poloniex
     public async override Task<List<ccxt.Order>> CancelOrdersWs(object ids, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -347,7 +347,7 @@ public partial class poloniex : ccxt.poloniex
     public async override Task<List<ccxt.Order>> CancelAllOrdersWs(string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -398,7 +398,7 @@ public partial class poloniex : ccxt.poloniex
         object limitVar = limit;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -429,7 +429,7 @@ public partial class poloniex : ccxt.poloniex
     {
         string symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -450,7 +450,7 @@ public partial class poloniex : ccxt.poloniex
     public async override Task<ccxt.Tickers> WatchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -496,7 +496,7 @@ public partial class poloniex : ccxt.poloniex
     {
         object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -511,7 +511,7 @@ public partial class poloniex : ccxt.poloniex
         };
         Dictionary<string, object> request = this.extend(subscribe, parameters);
         List<object> messageHashes = new List<object>() {};
-        if (!isEqual(symbols, null))
+        if ((symbols != null))
         {
             for (int i = 0; i < getArrayLength(symbols); postFixIncrement(ref i))
             {
@@ -541,7 +541,7 @@ public partial class poloniex : ccxt.poloniex
     public async override Task<ccxt.pro.IOrderBook> WatchOrderBook(string symbol, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -570,17 +570,17 @@ public partial class poloniex : ccxt.poloniex
         string symbolVar = symbol;
         object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
         string name = "orders";
         await this.authenticate();
-        if (!isEqual(symbolVar, null))
+        if ((symbolVar != null))
         {
             symbolVar = this.symbol(symbolVar);
         }
-        List<object> symbols = ((bool) (isEqual(symbolVar, null))) ? null : new List<object>() {symbolVar};
+        List<object> symbols = ((bool) ((symbolVar == null))) ? null : new List<object>() {symbolVar};
         object orders = await this.subscribe(name, name, true, symbols, parameters);
         if (isTrue(this.newUpdates))
         {
@@ -605,18 +605,18 @@ public partial class poloniex : ccxt.poloniex
         string symbolVar = symbol;
         object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
         string name = "orders";
         string messageHash = "myTrades";
         await this.authenticate();
-        if (!isEqual(symbolVar, null))
+        if ((symbolVar != null))
         {
             symbolVar = this.symbol(symbolVar);
         }
-        List<object> symbols = ((bool) (isEqual(symbolVar, null))) ? null : new List<object>() {symbolVar};
+        List<object> symbols = ((bool) ((symbolVar == null))) ? null : new List<object>() {symbolVar};
         object trades = await this.subscribe(name, messageHash, true, symbols, parameters);
         if (isTrue(this.newUpdates))
         {
@@ -636,7 +636,7 @@ public partial class poloniex : ccxt.poloniex
     public async override Task<ccxt.Balances> WatchBalance(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -1351,7 +1351,7 @@ public partial class poloniex : ccxt.poloniex
         // emulated using the orders' stream
         string messageHash = "myTrades";
         object symbol = getValue(parsedTrade, "symbol");
-        if (isEqual(this.myTrades, null))
+        if ((this.myTrades == null))
         {
             Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);
             this.myTrades = new ArrayCacheBySymbolById(limit);

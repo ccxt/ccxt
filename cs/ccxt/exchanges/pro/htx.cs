@@ -154,7 +154,7 @@ public partial class htx : ccxt.htx
     {
         object symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -186,7 +186,7 @@ public partial class htx : ccxt.htx
     public async override Task<object> unWatchTicker(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -278,7 +278,7 @@ public partial class htx : ccxt.htx
         object symbolVar = symbol;
         object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -308,7 +308,7 @@ public partial class htx : ccxt.htx
     public async override Task<object> unWatchTrades(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -392,7 +392,7 @@ public partial class htx : ccxt.htx
         object limitVar = limit;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -427,7 +427,7 @@ public partial class htx : ccxt.htx
         string timeframeVar = timeframe;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -502,7 +502,7 @@ public partial class htx : ccxt.htx
         object symbolVar = symbol;
         object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -557,7 +557,7 @@ public partial class htx : ccxt.htx
     public async override Task<object> unWatchOrderBook(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -962,7 +962,7 @@ public partial class htx : ccxt.htx
         object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         this.checkRequiredCredentials();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -973,7 +973,7 @@ public partial class htx : ccxt.htx
         object channel = null;
         object trades = null;
         string? subType = null;
-        if (!isEqual(symbolVar, null))
+        if ((symbolVar != null))
         {
             market = this.market(symbolVar);
             symbolVar = getValue(market, "symbol");
@@ -1042,11 +1042,11 @@ public partial class htx : ccxt.htx
         orderType = this.safeString(parameters, "orderType", orderType);
         parameters = this.omit(parameters, "orderType");
         string? marketCode = null;
-        if ((!isEqual(market, null)) && (!isEqual(getValue(market, "lowercaseId"), null)))
+        if (((market != null)) && (!isEqual(getValue(market, "lowercaseId"), null)))
         {
             marketCode = ((string)getValue(market, "lowercaseId")).ToLower();
         }
-        object baseId = ((bool) (!isEqual(market, null))) ? getValue(market, "baseId") : null;
+        object baseId = ((bool) ((market != null))) ? getValue(market, "baseId") : null;
         object prefix = orderType;
         messageHash = prefix;
         if (isEqual(subType, "linear"))
@@ -1092,7 +1092,7 @@ public partial class htx : ccxt.htx
     public virtual List<object> getV5LinearChannelAndMessageHash(object topic, object market = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object contractCode = ((bool) (!isEqual(market, null))) ? getValue(market, "id") : this.safeString(parameters, "contract_code", "*");
+        object contractCode = ((bool) ((market != null))) ? getValue(market, "id") : this.safeString(parameters, "contract_code", "*");
         object channel = topic;
         object messageHash = topic;
         if (((contractCode != null)) && (!isEqual(contractCode, "*")))
@@ -1123,7 +1123,7 @@ public partial class htx : ccxt.htx
         object symbolVar = symbol;
         object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -1131,7 +1131,7 @@ public partial class htx : ccxt.htx
         string? subType = null;
         IDictionary<string, object> market = null;
         object suffix = "*"; // wildcard
-        if (!isEqual(symbolVar, null))
+        if ((symbolVar != null))
         {
             market = this.market(symbolVar);
             symbolVar = getValue(market, "symbol");
@@ -1416,7 +1416,7 @@ public partial class htx : ccxt.htx
                 this.handleMyTrade(client as WebSocketClient, tradesObject, extendTradeParams);
             }
         }
-        if (isEqual(this.orders, null))
+        if ((this.orders == null))
         {
             Int64? limit = this.safeInteger(this.options, "ordersLimit", 1000);
             this.orders = new ArrayCacheBySymbolById(limit);
@@ -1751,13 +1751,13 @@ public partial class htx : ccxt.htx
     public async override Task<List<ccxt.Position>> WatchPositions(object symbols = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
         object market = null;
         object messageHash = "";
-        if ((!isTrue(this.isEmpty(symbols))) && (!isEqual(symbols, null)))
+        if ((!isTrue(this.isEmpty(symbols))) && ((symbols != null)))
         {
             market = this.getMarketFromSymbols(symbols);
             messageHash = ("::" + String.Join(",", ((IList<object>)symbols).ToArray()));
@@ -1797,7 +1797,7 @@ public partial class htx : ccxt.htx
         if (isV5Linear)
         {
             object v5Market = null;
-            if ((!isEqual(symbols, null)) && ((getArrayLength(symbols) == 1)))
+            if (((symbols != null)) && ((getArrayLength(symbols) == 1)))
             {
                 v5Market = market;
             }
@@ -1901,7 +1901,7 @@ public partial class htx : ccxt.htx
         string url = client.url;
         string? topic = this.safeString(message, "topic", "");
         string defaultMarginMode = ((bool) ((topic == "positions_cross"))) ? "cross" : "isolated";
-        if (isEqual(this.positions, null))
+        if ((this.positions == null))
         {
             this.positions = new Dictionary<string, object>() {};
         }
@@ -1994,7 +1994,7 @@ public partial class htx : ccxt.htx
         parameters = ((IList<object>)subTypeparametersVariable)[1];
         object isUnifiedAccount = this.safeValue2(parameters, "isUnifiedAccount", "unified", false);
         parameters = this.omit(parameters, new List<object>() {"isUnifiedAccount", "unified"});
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -2967,7 +2967,7 @@ public partial class htx : ccxt.htx
         //     }
         //
         extendParams ??= new Dictionary<string, object>();
-        if (isEqual(this.myTrades, null))
+        if ((this.myTrades == null))
         {
             Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);
             this.myTrades = new ArrayCacheBySymbolById(limit);
@@ -3200,7 +3200,7 @@ public partial class htx : ccxt.htx
             { "symbol", symbol },
             { "params", parameters },
         };
-        if (!isEqual(method, null))
+        if ((method != null))
         {
             ((IDictionary<string,object>)subscription)["method"] = method;
         }
@@ -3217,7 +3217,7 @@ public partial class htx : ccxt.htx
         };
         string messageHash = add("unsubscribe::", subMessageHash);
         bool isFeed = (isEqual(topic, "orderbook"));
-        if (isEqual(market, null))
+        if ((market == null))
         {
             throw new ArgumentsRequired ((string)(this.id + " unsubscribePublic() market is required")) ;
         }

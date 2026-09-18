@@ -123,7 +123,7 @@ public partial class bingx : ccxt.bingx
             { "reqType", "unsub" },
         };
         List<object> symbols = new List<object>() {};
-        if (!isEqual(market, null))
+        if ((market != null))
         {
             ((IList<object>)symbols).Add(getValue(market, "symbol"));
         }
@@ -158,7 +158,7 @@ public partial class bingx : ccxt.bingx
     public async override Task<ccxt.Ticker> WatchTicker(string symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -211,7 +211,7 @@ public partial class bingx : ccxt.bingx
     public async override Task<object> unWatchTicker(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -378,14 +378,14 @@ public partial class bingx : ccxt.bingx
     public virtual object getMessageHash(object unifiedChannel, object symbol = null, object extra = null)
     {
         object hash = unifiedChannel;
-        if (!isEqual(symbol, null))
+        if ((symbol != null))
         {
             hash = add(hash, add("::", symbol));
         } else
         {
             hash = add(hash, "s"); // tickers, orderbooks, ohlcvs, etc ...
         }
-        if (!isEqual(extra, null))
+        if ((extra != null))
         {
             hash = add(hash, add("::", extra));
         }
@@ -410,7 +410,7 @@ public partial class bingx : ccxt.bingx
         object symbolVar = symbol;
         object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -477,7 +477,7 @@ public partial class bingx : ccxt.bingx
     public async override Task<object> unWatchTrades(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -618,7 +618,7 @@ public partial class bingx : ccxt.bingx
     public async override Task<ccxt.pro.IOrderBook> WatchOrderBook(string symbol, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -688,7 +688,7 @@ public partial class bingx : ccxt.bingx
     public async override Task<object> unWatchOrderBook(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -991,7 +991,7 @@ public partial class bingx : ccxt.bingx
         object limitVar = limit;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -1062,7 +1062,7 @@ public partial class bingx : ccxt.bingx
         string timeframeVar = timeframe;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -1097,7 +1097,7 @@ public partial class bingx : ccxt.bingx
         object symbolVar = symbol;
         object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -1105,7 +1105,7 @@ public partial class bingx : ccxt.bingx
         string? type = null;
         object subType = null;
         IDictionary<string, object> market = null;
-        if (!isEqual(symbolVar, null))
+        if ((symbolVar != null))
         {
             market = this.market(symbolVar);
             symbolVar = getValue(market, "symbol");
@@ -1177,7 +1177,7 @@ public partial class bingx : ccxt.bingx
         object symbolVar = symbol;
         object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -1185,7 +1185,7 @@ public partial class bingx : ccxt.bingx
         string? type = null;
         object subType = null;
         IDictionary<string, object> market = null;
-        if (!isEqual(symbolVar, null))
+        if ((symbolVar != null))
         {
             market = this.market(symbolVar);
             symbolVar = getValue(market, "symbol");
@@ -1252,7 +1252,7 @@ public partial class bingx : ccxt.bingx
     public async override Task<ccxt.Balances> WatchBalance(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -1365,7 +1365,7 @@ public partial class bingx : ccxt.bingx
     public async override Task<List<ccxt.Position>> WatchPositions(object symbols = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -1373,7 +1373,7 @@ public partial class bingx : ccxt.bingx
         object market = null;
         string messageHash = "";
         symbols = this.marketSymbols(symbols);
-        if ((!isEqual(symbols, null)) && !isTrue(this.isEmpty(symbols)))
+        if (((symbols != null)) && !isTrue(this.isEmpty(symbols)))
         {
             market = this.getMarketFromSymbols(symbols);
             messageHash = ("::" + String.Join(",", ((IList<object>)symbols).ToArray()));
@@ -1413,7 +1413,7 @@ public partial class bingx : ccxt.bingx
             { "unsubscribe", false },
             { "id", uuid },
         };
-        if (isTrue(fetchPositionsSnapshot) && isTrue(awaitPositionsSnapshot) && isEqual(this.positions, null))
+        if (isTrue(fetchPositionsSnapshot) && isTrue(awaitPositionsSnapshot) && (this.positions == null))
         {
             object snapshot = await client.future(add(type, ":fetchPositionsSnapshot"));
             return ccxt.BaseExchange.ToPositionList(this.filterBySymbolsSinceLimit(snapshot, symbols, since, limit, true));
@@ -1428,7 +1428,7 @@ public partial class bingx : ccxt.bingx
 
     public virtual void setPositionsCache(WebSocketClient client, object type, object symbols = null)
     {
-        if (!isEqual(this.positions, null))
+        if ((this.positions != null))
         {
             return;
         }
@@ -1554,7 +1554,7 @@ public partial class bingx : ccxt.bingx
         //         }
         //     }
         //
-        if (isEqual(this.positions, null))
+        if ((this.positions == null))
         {
             this.positions = new ArrayCacheBySymbolBySide();
         }
@@ -1829,7 +1829,7 @@ public partial class bingx : ccxt.bingx
         //
         bool isSpot = (inOp(message, "dataType"));
         object data = this.safeValue2(message, "data", "o", new Dictionary<string, object>() {});
-        if (isEqual(this.orders, null))
+        if ((this.orders == null))
         {
             Int64? limit = this.safeInteger(this.options, "ordersLimit", 1000);
             this.orders = new ArrayCacheBySymbolById(limit);

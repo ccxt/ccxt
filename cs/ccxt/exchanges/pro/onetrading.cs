@@ -148,7 +148,7 @@ public partial class onetrading : ccxt.onetrading
     {
         object symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -178,12 +178,12 @@ public partial class onetrading : ccxt.onetrading
     public async override Task<ccxt.Tickers> WatchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
         symbols = this.marketSymbols(symbols);
-        if (isEqual(symbols, null))
+        if ((symbols == null))
         {
             symbols = new List<object>() {};
         }
@@ -288,12 +288,12 @@ public partial class onetrading : ccxt.onetrading
         object symbolVar = symbol;
         object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
         string messageHash = "myTrades";
-        if (!isEqual(symbolVar, null))
+        if ((symbolVar != null))
         {
             Dictionary<string, object> market = this.market(symbolVar);
             symbolVar = getValue(market, "symbol");
@@ -339,7 +339,7 @@ public partial class onetrading : ccxt.onetrading
     {
         object symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -475,12 +475,12 @@ public partial class onetrading : ccxt.onetrading
         object symbolVar = symbol;
         object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
         string messageHash = "orders";
-        if (!isEqual(symbolVar, null))
+        if ((symbolVar != null))
         {
             Dictionary<string, object> market = this.market(symbolVar);
             symbolVar = getValue(market, "symbol");
@@ -558,7 +558,7 @@ public partial class onetrading : ccxt.onetrading
         //         "time": "2022-07-21T12:50:10.093000Z"
         //     }
         //
-        if (isEqual(this.orders, null))
+        if ((this.orders == null))
         {
             Int64? limit = this.safeInteger(this.options, "ordersLimit", 1000);
             this.orders = new ArrayCacheBySymbolById(limit);
@@ -755,12 +755,12 @@ public partial class onetrading : ccxt.onetrading
         //     }
         //
         //
-        if (isEqual(this.orders, null))
+        if ((this.orders == null))
         {
             Int64? limit = this.safeInteger(this.options, "ordersLimit", 1000);
             this.orders = new ArrayCacheBySymbolById(limit);
         }
-        if (isEqual(this.myTrades, null))
+        if ((this.myTrades == null))
         {
             Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);
             this.myTrades = new ArrayCacheBySymbolById(limit);
@@ -1014,12 +1014,12 @@ public partial class onetrading : ccxt.onetrading
         //         "time": "2022-06-29T05:18:51.760338Z"
         //     }
         //
-        if (isEqual(this.orders, null))
+        if ((this.orders == null))
         {
             Int64? limit = this.safeInteger(this.options, "ordersLimit", 1000);
             this.orders = new ArrayCacheBySymbolById(limit);
         }
-        if (isEqual(this.myTrades, null))
+        if ((this.myTrades == null))
         {
             Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);
             this.myTrades = new ArrayCacheBySymbolById(limit);
@@ -1131,7 +1131,7 @@ public partial class onetrading : ccxt.onetrading
         object limitVar = limit;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -1175,7 +1175,7 @@ public partial class onetrading : ccxt.onetrading
                 ((IDictionary<string,object>)subscription)[(string)marketId] = new Dictionary<string, object>() {};
             }
         }
-        if (((marketId != null)) && (!isEqual(timeframeVar, null)))
+        if (((marketId != null)) && ((timeframeVar != null)))
         {
             ((IDictionary<string,object>)getValue(subscription, marketId))[(string)timeframeVar] = true;
         }
@@ -1270,11 +1270,11 @@ public partial class onetrading : ccxt.onetrading
 
     public override string? findTimeframe(object timeframe, object timeframes = null)
     {
-        if (isEqual(timeframes, null))
+        if ((timeframes == null))
         {
             timeframes = this.timeframes;
         }
-        if (isEqual(timeframes, null))
+        if ((timeframes == null))
         {
             throw new ArgumentsRequired ((string)(this.id + " findTimeframe() timeframes is required")) ;
         }

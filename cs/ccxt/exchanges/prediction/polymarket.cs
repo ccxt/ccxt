@@ -1208,7 +1208,7 @@ public partial class polymarket : PredictionExchange
             int rawMarketsLength = getArrayLength(rawMarkets);
             if (rawMarketsLength > 0)
             {
-                if (isEqual(this.markets, null))
+                if ((this.markets == null))
                 {
                     this.markets = this.createSafeDictionary();
                 }
@@ -1263,7 +1263,7 @@ public partial class polymarket : PredictionExchange
         int tokenIdsLength = getArrayLength(tokenIds);
         if (tokenIdsLength > 0)
         {
-            if (isEqual(this.markets, null))
+            if ((this.markets == null))
             {
                 this.markets = this.createSafeDictionary();
             }
@@ -1397,7 +1397,7 @@ public partial class polymarket : PredictionExchange
     public async override Task<ccxt.PredictionTickers> FetchTickers(object outcomes = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(outcomes, null))
+        if ((outcomes == null))
         {
             throw new ArgumentsRequired ((string)(this.id + " fetchTickers() requires an outcomes argument — the venue has no all-tickers endpoint; pass the outcome handles or token ids to fetch (discover them via fetchEvents ())")) ;
         }
@@ -1552,7 +1552,7 @@ public partial class polymarket : PredictionExchange
         string? outcome = this.safeOutcomeSymbol(null, market);
         Int64? timestamp = this.safeInteger(bookData, "timestamp", this.milliseconds());
         double? quoteVolume = null;
-        if (!isEqual(market, null))
+        if ((market != null))
         {
             quoteVolume = this.safeNumber2(getValue(market, "info"), "volume24hr", "volume");
         }
@@ -1949,7 +1949,7 @@ public partial class polymarket : PredictionExchange
         await this.loadApiCredentials();
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         object outcomeObj = null;
-        if (!isEqual(outcome, null))
+        if ((outcome != null))
         {
             outcomeObj = await this.loadOutcome(outcome);
             ((IDictionary<string,object>)request)["asset_id"] = getValue(outcomeObj, "outcomeId");
@@ -2023,7 +2023,7 @@ public partial class polymarket : PredictionExchange
         string? rawSide = this.safeStringLower(trade, "side");
         string? side = ((bool) ((rawSide == "buy") || (rawSide == "sell"))) ? rawSide : null;
         string? assetId = this.safeString2(trade, "asset", "asset_id");
-        object mkt = ((bool) (!isEqual(market, null))) ? market : this.safeOutcome(assetId);
+        object mkt = ((bool) ((market != null))) ? market : this.safeOutcome(assetId);
         string? outcome = this.safeOutcomeSymbol(null, mkt);
         string? rawTakerOrMaker = this.safeStringLower(trade, "trader_side");
         string? takerOrMaker = ((bool) ((rawTakerOrMaker == "taker") || (rawTakerOrMaker == "maker"))) ? rawTakerOrMaker : null;
@@ -2121,14 +2121,14 @@ public partial class polymarket : PredictionExchange
     {
         parameters ??= new Dictionary<string, object>();
         int outcomesLength = 0;
-        if (!isEqual(outcomes, null))
+        if ((outcomes != null))
         {
             outcomesLength = getArrayLength(outcomes);
             await this.loadOutcomes(outcomes);
         }
         // no bulk warm-up on the unfiltered path: the positions request is self-contained and
         // labels resolve cache-only via safeOutcome (raw token ids when the cache is cold)
-        if (isEqual(this.walletAddress, null))
+        if ((this.walletAddress == null))
         {
             throw new ArgumentsRequired ((string)(this.id + " walletAddress is required to fetchPositions")) ;
         }
@@ -2145,7 +2145,7 @@ public partial class polymarket : PredictionExchange
             return ccxt.BaseExchange.ToPredictionPositionList(parsed);
         }
         Dictionary<string, object> wantedIds = new Dictionary<string, object>() {};
-        if (isEqual(outcomes, null))
+        if ((outcomes == null))
         {
             throw new ExchangeError ((string)(this.id + " fetchPositions() missing outcomes")) ;
         }
@@ -2255,7 +2255,7 @@ public partial class polymarket : PredictionExchange
         await this.loadApiCredentials();
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         object outcomeObj = null;
-        if (!isEqual(outcome, null))
+        if ((outcome != null))
         {
             outcomeObj = await this.loadOutcome(outcome);
             ((IDictionary<string,object>)request)["asset_id"] = getValue(outcomeObj, "outcomeId");
@@ -2927,7 +2927,7 @@ public partial class polymarket : PredictionExchange
         parameters ??= new Dictionary<string, object>();
         await this.loadApiCredentials();
         Dictionary<string, object> response = null;
-        if (!isEqual(outcome, null))
+        if ((outcome != null))
         {
             // scope to a single outcome token via DELETE /cancel-market-orders { asset_id }
             IDictionary<string, object> outcomeObj = ((IDictionary<string, object>)await this.loadOutcome(outcome));
@@ -3009,11 +3009,11 @@ public partial class polymarket : PredictionExchange
             rawEvents = ccxt.BaseExchange.FromDictList(await this.FetchRawEventsList(rest));
         }
         // Parse and merge into class-level caches
-        if (isEqual(this.events, null))
+        if ((this.events == null))
         {
             this.events = new Dictionary<string, object>() {};
         }
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             this.markets = this.createSafeDictionary();
         }
@@ -3249,7 +3249,7 @@ public partial class polymarket : PredictionExchange
         // the CLOB api returns { "error": "..." } (and createOrder variants use "errorMsg");
         // map the known messages so callers can distinguish a dead book or a rejected order
         // from a transport outage (the base otherwise maps a bare 404 to a retryable error)
-        if (isEqual(response, null))
+        if ((response == null))
         {
             return null;
         }
@@ -3332,7 +3332,7 @@ public partial class polymarket : PredictionExchange
                 body = this.json(query);
             }
         }
-        object headerDefaults = ((bool) (!isEqual(headers, null))) ? headers : new Dictionary<string, object>() {};
+        object headerDefaults = ((bool) ((headers != null))) ? headers : new Dictionary<string, object>() {};
         headers = this.extend(new Dictionary<string, object>() {
             { "Accept", "application/json" },
             { "Content-Type", "application/json" },
@@ -3348,7 +3348,7 @@ public partial class polymarket : PredictionExchange
             if (isL1Auth)
             {
                 // L1 (private-key / EIP-712) auth used to create or derive the L2 api credentials
-                if (isEqual(this.privateKey, null))
+                if ((this.privateKey == null))
                 {
                     throw new ArgumentsRequired ((string)(add((this.id + " "), path) + " requires a privateKey")) ;
                 }
@@ -3372,13 +3372,13 @@ public partial class polymarket : PredictionExchange
                 string? secret = this.safeString(this.options, "l2Secret", this.secret);
                 string? passphrase = this.safeString(this.options, "l2Passphrase", this.password);
                 // POLY_ADDRESS is the api-key owner = the signer EOA (derived from the privateKey when present)
-                object address = ((bool) (!isEqual(this.privateKey, null))) ? this.ethChecksumAddress(this.ethGetAddressFromPrivateKey(this.privateKey)) : this.walletAddress;
+                object address = ((bool) ((this.privateKey != null))) ? this.ethChecksumAddress(this.ethGetAddressFromPrivateKey(this.privateKey)) : this.walletAddress;
                 string timestamp = ((object)this.seconds()).ToString();
                 // the L2 HMAC signs only the request path (no query string), matching
                 // @polymarket/clob-client — query params are sent separately, not signed
                 string requestPath = ("/" + this.implodeParams(path, parameters));
                 object auth = add(add(timestamp, method), requestPath);
-                if (!isEqual(body, null))
+                if ((body != null))
                 {
                     auth = add(auth, body);
                 }
@@ -3580,7 +3580,7 @@ public partial class polymarket : PredictionExchange
         // the order signer / L2 POLY_ADDRESS is always the EOA behind the privateKey, so the L2 api key MUST
         // belong to that same EOA — derive it from the privateKey rather than trusting externally supplied
         // creds that may have been issued to a different wallet
-        if (!isEqual(this.privateKey, null))
+        if ((this.privateKey != null))
         {
             string? alreadyDerived = this.safeString(this.options, "l2ApiKey");
             if ((alreadyDerived == null))
@@ -3589,9 +3589,9 @@ public partial class polymarket : PredictionExchange
             }
             return;
         }
-        object apiKey = ((bool) (!isEqual(this.apiKey, null))) ? this.apiKey : this.safeString(this.options, "l2ApiKey");
-        object secret = ((bool) (!isEqual(this.secret, null))) ? this.secret : this.safeString(this.options, "l2Secret");
-        object passphrase = ((bool) (!isEqual(this.password, null))) ? this.password : this.safeString(this.options, "l2Passphrase");
+        object apiKey = ((bool) ((this.apiKey != null))) ? this.apiKey : this.safeString(this.options, "l2ApiKey");
+        object secret = ((bool) ((this.secret != null))) ? this.secret : this.safeString(this.options, "l2Secret");
+        object passphrase = ((bool) ((this.password != null))) ? this.password : this.safeString(this.options, "l2Passphrase");
         bool hasL2 = ((apiKey != null)) && ((secret != null)) && ((passphrase != null));
         if (hasL2)
         {
@@ -3754,7 +3754,7 @@ public partial class polymarket : PredictionExchange
             { "cost", null },
             { "fee", null },
         }, market);
-        if (isEqual(this.trades, null))
+        if ((this.trades == null))
         {
             this.trades = new Dictionary<string, object>() {};
         }
@@ -3845,14 +3845,14 @@ public partial class polymarket : PredictionExchange
             { "assets_ids", new List<object>() {tokenId} },
             { "type", "market" },
         };
-        if (isEqual(outcomeVar, null))
+        if ((outcomeVar == null))
         {
             throw new ExchangeError ((string)(this.id + " watchTicker() missing outcome")) ;
         }
         if (!(inOp(this.orderbooks, outcomeVar)))
         {
             ccxt.pro.OrderBook seededBook = this.orderBook(new Dictionary<string, object>() {});
-            if (!isEqual(outcomeVar, null))
+            if ((outcomeVar != null))
             {
                 ((IDictionary<string,object>)this.orderbooks)[(string)outcomeVar] = seededBook;
             }
@@ -3919,7 +3919,7 @@ public partial class polymarket : PredictionExchange
         parameters ??= new Dictionary<string, object>();
         await this.loadApiCredentials();
         string messageHash = "orders";
-        if (!isEqual(outcomeVar, null))
+        if ((outcomeVar != null))
         {
             IDictionary<string, object> outcomeObj = ((IDictionary<string, object>)await this.loadOutcome(outcomeVar));
             outcomeVar = this.safeString(outcomeObj, "outcome");
@@ -3951,7 +3951,7 @@ public partial class polymarket : PredictionExchange
         parameters ??= new Dictionary<string, object>();
         await this.loadApiCredentials();
         string messageHash = "myTrades";
-        if (!isEqual(outcomeVar, null))
+        if ((outcomeVar != null))
         {
             IDictionary<string, object> outcomeObj = ((IDictionary<string, object>)await this.loadOutcome(outcomeVar));
             outcomeVar = this.safeString(outcomeObj, "outcome");
@@ -3969,9 +3969,9 @@ public partial class polymarket : PredictionExchange
     {
         // the user channel authenticates inside the subscribe frame, not via HMAC headers
         parameters ??= new Dictionary<string, object>();
-        object apiKey = ((bool) (!isEqual(this.apiKey, null))) ? this.apiKey : this.safeString(this.options, "l2ApiKey");
-        object secret = ((bool) (!isEqual(this.secret, null))) ? this.secret : this.safeString(this.options, "l2Secret");
-        object passphrase = ((bool) (!isEqual(this.password, null))) ? this.password : this.safeString(this.options, "l2Passphrase");
+        object apiKey = ((bool) ((this.apiKey != null))) ? this.apiKey : this.safeString(this.options, "l2ApiKey");
+        object secret = ((bool) ((this.secret != null))) ? this.secret : this.safeString(this.options, "l2Secret");
+        object passphrase = ((bool) ((this.password != null))) ? this.password : this.safeString(this.options, "l2Passphrase");
         Dictionary<string, object> auth = new Dictionary<string, object>() {
             { "apiKey", apiKey },
             { "secret", secret },
@@ -3990,7 +3990,7 @@ public partial class polymarket : PredictionExchange
 
     public virtual void handleOrder(WebSocketClient client, object eventVar)
     {
-        if (isEqual(this.orders, null))
+        if ((this.orders == null))
         {
             Int64? limit = this.safeInteger(this.options, "ordersLimit", 1000);
             this.orders = new ArrayCacheByOutcomeById(limit);
@@ -4008,7 +4008,7 @@ public partial class polymarket : PredictionExchange
 
     public virtual void handleMyTrade(WebSocketClient client, object eventVar)
     {
-        if (isEqual(this.myTrades, null))
+        if ((this.myTrades == null))
         {
             Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);
             this.myTrades = new ArrayCacheByOutcomeById(limit);
@@ -4026,7 +4026,7 @@ public partial class polymarket : PredictionExchange
 
     public virtual string? tokenIdToSymbol(object tokenId)
     {
-        if ((isEqual(tokenId, null)) || (isEqual(tokenId, "")))
+        if (((tokenId == null)) || (isEqual(tokenId, "")))
         {
             return null;
         }
@@ -4045,7 +4045,7 @@ public partial class polymarket : PredictionExchange
 
     public virtual object parsePolyTimestamp(object raw)
     {
-        if (isEqual(raw, null))
+        if ((raw == null))
         {
             return this.milliseconds();
         }

@@ -162,7 +162,7 @@ public partial class bydfi : ccxt.bydfi
     public async override Task<ccxt.Ticker> WatchTicker(string symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -201,7 +201,7 @@ public partial class bydfi : ccxt.bydfi
     public async override Task<ccxt.Tickers> WatchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -210,7 +210,7 @@ public partial class bydfi : ccxt.bydfi
         string messageHash = "ticker::";
         List<object> channels = new List<object>() {};
         string channel = "@ticker";
-        if (isEqual(symbols, null))
+        if ((symbols == null))
         {
             ((IList<object>)messageHashes).Add((messageHash + "all"));
             ((IList<object>)channels).Add("!ticker@arr");
@@ -249,7 +249,7 @@ public partial class bydfi : ccxt.bydfi
         Dictionary<string, object> subscription = new Dictionary<string, object>() {
             { "topic", "ticker" },
         };
-        if (isEqual(symbols, null))
+        if ((symbols == null))
         {
             // all tickers and tickers for specific symbols are different channels
             // we need to unsubscribe from all ticker channels
@@ -536,7 +536,7 @@ public partial class bydfi : ccxt.bydfi
     public async override Task<ccxt.pro.IOrderBook> WatchOrderBookForSymbols(object symbols, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -580,7 +580,7 @@ public partial class bydfi : ccxt.bydfi
     public async override Task<object> unWatchOrderBookForSymbols(object symbols, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -658,7 +658,7 @@ public partial class bydfi : ccxt.bydfi
     {
         parameters ??= new Dictionary<string, object>();
         List<object> symbols = null;
-        if (!isEqual(symbol, null))
+        if ((symbol != null))
         {
             symbols = new List<object>() {symbol};
         }
@@ -680,13 +680,13 @@ public partial class bydfi : ccxt.bydfi
     {
         object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
         symbols = this.marketSymbols(symbols, null, true);
         List<object> messageHashes = new List<object>() {};
-        if (isEqual(symbols, null))
+        if ((symbols == null))
         {
             ((IList<object>)messageHashes).Add("orders");
         } else
@@ -743,7 +743,7 @@ public partial class bydfi : ccxt.bydfi
         string? symbol = ((string)getValue(market, "symbol"));
         string messageHash = "orders";
         string symbolMessageHash = ((messageHash + "::") + symbol);
-        if (isEqual(this.orders, null))
+        if ((this.orders == null))
         {
             Int64? limit = this.safeInteger(this.options, "ordersLimit", 1000);
             this.orders = new ArrayCacheBySymbolById(limit);
@@ -838,14 +838,14 @@ public partial class bydfi : ccxt.bydfi
     public async override Task<List<ccxt.Position>> WatchPositions(object symbols = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
         symbols = this.marketSymbols(symbols, null, true);
         List<object> messageHashes = new List<object>() {};
         string messageHash = "positions";
-        if (isEqual(symbols, null))
+        if ((symbols == null))
         {
             ((IList<object>)messageHashes).Add(messageHash);
         } else
@@ -914,7 +914,7 @@ public partial class bydfi : ccxt.bydfi
         string? symbol = ((string)getValue(market, "symbol"));
         string messageHash = "positions";
         string symbolMessageHash = ((messageHash + "::") + symbol);
-        if (isEqual(this.positions, null))
+        if ((this.positions == null))
         {
             this.positions = new ArrayCacheBySymbolBySide();
         }
@@ -1004,7 +1004,7 @@ public partial class bydfi : ccxt.bydfi
     public async override Task<ccxt.Balances> WatchBalance(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }

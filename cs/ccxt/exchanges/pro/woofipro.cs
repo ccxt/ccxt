@@ -79,7 +79,7 @@ public partial class woofipro : ccxt.woofipro
     {
         // the default id
         object id = "OqdphuyCtYWxwzhxyLLjOWNdFP7sQt8RPWzmb5xY";
-        if (!isEqual(this.accountId, null) && !isEqual(this.accountId, ""))
+        if ((this.accountId != null) && !isEqual(this.accountId, ""))
         {
             id = this.accountId;
         }
@@ -105,7 +105,7 @@ public partial class woofipro : ccxt.woofipro
     public async override Task<ccxt.pro.IOrderBook> WatchOrderBook(string symbol, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -173,7 +173,7 @@ public partial class woofipro : ccxt.woofipro
     {
         object symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -270,7 +270,7 @@ public partial class woofipro : ccxt.woofipro
     public async override Task<ccxt.Tickers> WatchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -336,7 +336,7 @@ public partial class woofipro : ccxt.woofipro
     public async override Task<ccxt.Tickers> WatchBidsAsks(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -423,7 +423,7 @@ public partial class woofipro : ccxt.woofipro
         object limitVar = limit;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -507,7 +507,7 @@ public partial class woofipro : ccxt.woofipro
         object symbolVar = symbol;
         object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -747,7 +747,7 @@ public partial class woofipro : ccxt.woofipro
         object symbolVar = symbol;
         object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -755,7 +755,7 @@ public partial class woofipro : ccxt.woofipro
         string topic = ((bool) ((trigger == true))) ? "algoexecutionreport" : "executionreport";
         parameters = this.omit(parameters, new List<object>() {"stop", "trigger"});
         string messageHash = topic;
-        if (!isEqual(symbolVar, null))
+        if ((symbolVar != null))
         {
             Dictionary<string, object> market = this.market(symbolVar);
             symbolVar = getValue(market, "symbol");
@@ -792,7 +792,7 @@ public partial class woofipro : ccxt.woofipro
         object symbolVar = symbol;
         object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -800,7 +800,7 @@ public partial class woofipro : ccxt.woofipro
         string topic = ((bool) ((trigger == true))) ? "algoexecutionreport" : "executionreport";
         parameters = this.omit(parameters, "stop");
         string messageHash = "myTrades";
-        if (!isEqual(symbolVar, null))
+        if ((symbolVar != null))
         {
             Dictionary<string, object> market = this.market(symbolVar);
             symbolVar = getValue(market, "symbol");
@@ -1007,7 +1007,7 @@ public partial class woofipro : ccxt.woofipro
         string? orderId = this.safeString(parsed, "id");
         if ((symbol != null))
         {
-            if (isEqual(this.orders, null))
+            if ((this.orders == null))
             {
                 Int64? limit = this.safeInteger(this.options, "ordersLimit", 1000);
                 this.orders = new ArrayCacheBySymbolById(limit);
@@ -1100,7 +1100,7 @@ public partial class woofipro : ccxt.woofipro
     public async override Task<List<ccxt.Position>> WatchPositions(object symbols = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -1108,13 +1108,13 @@ public partial class woofipro : ccxt.woofipro
         symbols = this.marketSymbols(symbols);
         if (!isTrue(this.isEmpty(symbols)))
         {
-            if (isEqual(symbols, null))
+            if ((symbols == null))
             {
                 throw new ArgumentsRequired ((string)(this.id + " watchPositions() symbols is required")) ;
             }
             for (int i = 0; i < getArrayLength(symbols); postFixIncrement(ref i))
             {
-                if (isEqual(symbols, null))
+                if ((symbols == null))
                 {
                     throw new ArgumentsRequired ((string)(this.id + " watchPositions() symbols is required")) ;
                 }
@@ -1130,7 +1130,7 @@ public partial class woofipro : ccxt.woofipro
         this.setPositionsCache(client as WebSocketClient, symbols);
         object fetchPositionsSnapshot = this.handleOption("watchPositions", "fetchPositionsSnapshot", true);
         object awaitPositionsSnapshot = this.handleOption("watchPositions", "awaitPositionsSnapshot", true);
-        if ((isEqual(fetchPositionsSnapshot, true)) && (isEqual(awaitPositionsSnapshot, true)) && (isEqual(this.positions, null)))
+        if ((isEqual(fetchPositionsSnapshot, true)) && (isEqual(awaitPositionsSnapshot, true)) && ((this.positions == null)))
         {
             object snapshot = await client.future("fetchPositionsSnapshot");
             return ccxt.BaseExchange.ToPositionList(this.filterBySymbolsSinceLimit(snapshot, symbols, since, limit, true));
@@ -1223,7 +1223,7 @@ public partial class woofipro : ccxt.woofipro
         //
         IDictionary<string, object> data = this.safeDict(message, "data", new Dictionary<string, object>() {});
         List<object> rawPositions = this.safeList(data, "positions", new List<object>() {});
-        if (isEqual(this.positions, null))
+        if ((this.positions == null))
         {
             this.positions = new ArrayCacheBySymbolBySide();
         }
@@ -1330,7 +1330,7 @@ public partial class woofipro : ccxt.woofipro
     public async override Task<ccxt.Balances> WatchBalance(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }

@@ -75,7 +75,7 @@ public partial class hyperliquid : ccxt.hyperliquid
     public async override Task<List<ccxt.Order>> CreateOrdersWs(object orders, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -114,7 +114,7 @@ public partial class hyperliquid : ccxt.hyperliquid
     public async override Task<ccxt.Order> CreateOrderWs(string symbol, string type, string side, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -155,7 +155,7 @@ public partial class hyperliquid : ccxt.hyperliquid
     public async override Task<ccxt.Order> EditOrderWs(string id, string symbol, string type, string side, object amount = null, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -194,7 +194,7 @@ public partial class hyperliquid : ccxt.hyperliquid
     {
         parameters ??= new Dictionary<string, object>();
         this.checkRequiredCredentials();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -252,7 +252,7 @@ public partial class hyperliquid : ccxt.hyperliquid
     {
         object symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -284,7 +284,7 @@ public partial class hyperliquid : ccxt.hyperliquid
     public async override Task<object> unWatchOrderBook(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -369,7 +369,7 @@ public partial class hyperliquid : ccxt.hyperliquid
     {
         object symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -403,7 +403,7 @@ public partial class hyperliquid : ccxt.hyperliquid
     public async override Task<object> unWatchTicker(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -435,7 +435,7 @@ public partial class hyperliquid : ccxt.hyperliquid
     public async override Task<ccxt.Tickers> WatchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -486,7 +486,7 @@ public partial class hyperliquid : ccxt.hyperliquid
     public async override Task<object> unWatchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -524,12 +524,12 @@ public partial class hyperliquid : ccxt.hyperliquid
         List<object> userAddressResult = this.handlePublicAddress("watchMyTrades", parameters);
         userAddress = this.safeString(userAddressResult, 0);
         parameters = this.safeDict(userAddressResult, 1, parameters);
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
         string messageHash = "myTrades";
-        if (!isEqual(symbolVar, null))
+        if ((symbolVar != null))
         {
             symbolVar = this.symbol(symbolVar);
             messageHash = messageHash + add(":", symbolVar);
@@ -569,11 +569,11 @@ public partial class hyperliquid : ccxt.hyperliquid
     public async override Task<object> unWatchMyTrades(object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
-        if (!isEqual(symbol, null))
+        if ((symbol != null))
         {
             throw new NotSupported ((string)(this.id + " unWatchMyTrades does not support a symbol argument, unWatch from all markets only")) ;
         }
@@ -711,7 +711,7 @@ public partial class hyperliquid : ccxt.hyperliquid
         //     }
         //
         IDictionary<string, object> entry = this.safeDict(message, "data", new Dictionary<string, object>() {});
-        if (isEqual(this.myTrades, null))
+        if ((this.myTrades == null))
         {
             Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);
             this.myTrades = new ArrayCacheBySymbolById(limit);
@@ -759,7 +759,7 @@ public partial class hyperliquid : ccxt.hyperliquid
         object symbolVar = symbol;
         object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -795,7 +795,7 @@ public partial class hyperliquid : ccxt.hyperliquid
     public async override Task<object> unWatchTrades(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -949,7 +949,7 @@ public partial class hyperliquid : ccxt.hyperliquid
         object limitVar = limit;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -989,7 +989,7 @@ public partial class hyperliquid : ccxt.hyperliquid
         object timeframeVar = timeframe;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -1081,7 +1081,7 @@ public partial class hyperliquid : ccxt.hyperliquid
     public async override Task<ccxt.Balances> WatchBalance(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -1138,7 +1138,7 @@ public partial class hyperliquid : ccxt.hyperliquid
     public async virtual Task<object> unWatchBalance(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -1224,7 +1224,7 @@ public partial class hyperliquid : ccxt.hyperliquid
         //     }
         // }
         //
-        if (isEqual(this.balance, null))
+        if ((this.balance == null))
         {
             this.balance = new Dictionary<string, object>() {};
         }
@@ -1313,13 +1313,13 @@ public partial class hyperliquid : ccxt.hyperliquid
             ((IDictionary<string,object>)account)["used"] = this.safeString(balance, "hold");
             ((IDictionary<string,object>)account)["total"] = this.safeString(balance, "total");
         }
-        if (!isEqual(accountType, null))
+        if ((accountType != null))
         {
             if (isEqual(this.safeValue(this.balance, accountType), null))
             {
                 ((IDictionary<string,object>)this.balance)[(string)accountType] = new Dictionary<string, object>() {};
             }
-            if ((!isEqual(accountType, null)) && ((code != null)))
+            if (((accountType != null)) && ((code != null)))
             {
                 ((IDictionary<string,object>)getValue(this.balance, accountType))[(string)code] = account;
             }
@@ -1347,7 +1347,7 @@ public partial class hyperliquid : ccxt.hyperliquid
     public async override Task<List<ccxt.Position>> WatchPositions(object symbols = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -1357,7 +1357,7 @@ public partial class hyperliquid : ccxt.hyperliquid
         parameters = this.safeDict(userAddressResult, 1, parameters);
         string topic = "clearinghouseState";
         string messageHash = (topic + "::positions");
-        if ((!isEqual(symbols, null)) && !isTrue(this.isEmpty(symbols)))
+        if (((symbols != null)) && !isTrue(this.isEmpty(symbols)))
         {
             symbols = this.marketSymbols(symbols);
             messageHash = messageHash + ("::" + String.Join(",", ((IList<object>)symbols).ToArray()));
@@ -1390,7 +1390,7 @@ public partial class hyperliquid : ccxt.hyperliquid
 
     public virtual void setPositionsCache(WebSocketClient client, object symbols = null)
     {
-        if (!isEqual(this.positions, null))
+        if ((this.positions != null))
         {
             return;
         }
@@ -1399,7 +1399,7 @@ public partial class hyperliquid : ccxt.hyperliquid
 
     public virtual void handlePositions(WebSocketClient client, object message)
     {
-        if (isEqual(this.positions, null))
+        if ((this.positions == null))
         {
             this.positions = new ArrayCacheBySymbolBySide();
         }
@@ -1448,11 +1448,11 @@ public partial class hyperliquid : ccxt.hyperliquid
     public async override Task<object> unWatchPositions(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
-        if ((!isEqual(symbols, null)) && !isTrue(this.isEmpty(symbols)))
+        if (((symbols != null)) && !isTrue(this.isEmpty(symbols)))
         {
             throw new NotSupported ((string)(this.id + " unWatchPositions() does not support a symbol parameter, you must unwatch all orders")) ;
         }
@@ -1490,7 +1490,7 @@ public partial class hyperliquid : ccxt.hyperliquid
         object symbolVar = symbol;
         object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -1500,7 +1500,7 @@ public partial class hyperliquid : ccxt.hyperliquid
         parameters = this.safeDict(userAddressResult, 1, parameters);
         IDictionary<string, object> market = null;
         object messageHash = "order";
-        if (!isEqual(symbolVar, null))
+        if ((symbolVar != null))
         {
             market = this.market(symbolVar);
             symbolVar = getValue(market, "symbol");
@@ -1547,11 +1547,11 @@ public partial class hyperliquid : ccxt.hyperliquid
     public async override Task<object> unWatchOrders(object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
-        if (!isEqual(symbol, null))
+        if ((symbol != null))
         {
             throw new NotSupported ((string)(this.id + " unWatchOrders() does not support a symbol argument, unWatch from all markets only")) ;
         }
@@ -1595,7 +1595,7 @@ public partial class hyperliquid : ccxt.hyperliquid
         //     }
         //
         List<object> data = this.safeList(message, "data", new List<object>() {});
-        if (isEqual(this.orders, null))
+        if ((this.orders == null))
         {
             Int64? limit = this.safeInteger(this.options, "ordersLimit", 1000);
             this.orders = new ArrayCacheBySymbolById(limit);

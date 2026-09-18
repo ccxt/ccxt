@@ -111,7 +111,7 @@ public partial class aster : ccxt.aster
         object symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
         ((IDictionary<string,object>)parameters)["callerMethodName"] = "watchTicker";
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -158,12 +158,12 @@ public partial class aster : ccxt.aster
     public async override Task<ccxt.Tickers> WatchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
         symbols = this.marketSymbols(symbols, null, true, true, true);
-        if (isEqual(symbols, null))
+        if ((symbols == null))
         {
             symbols = new List<object>() {};
         }
@@ -218,12 +218,12 @@ public partial class aster : ccxt.aster
     public async override Task<object> unWatchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
         symbols = this.marketSymbols(symbols, null, true, true, true);
-        if (isEqual(symbols, null))
+        if ((symbols == null))
         {
             symbols = new List<object>() {};
         }
@@ -272,7 +272,7 @@ public partial class aster : ccxt.aster
         object symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
         ((IDictionary<string,object>)parameters)["callerMethodName"] = "watchMarkPrice";
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -313,12 +313,12 @@ public partial class aster : ccxt.aster
     public async override Task<ccxt.Tickers> WatchMarkPrices(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
         symbols = this.marketSymbols(symbols, null, true, true, true);
-        if (isEqual(symbols, null))
+        if ((symbols == null))
         {
             symbols = new List<object>() {};
         }
@@ -374,12 +374,12 @@ public partial class aster : ccxt.aster
     public async override Task<object> unWatchMarkPrices(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
         symbols = this.marketSymbols(symbols, null, true, true, true);
-        if (isEqual(symbols, null))
+        if ((symbols == null))
         {
             symbols = new List<object>() {};
         }
@@ -517,12 +517,12 @@ public partial class aster : ccxt.aster
     public async override Task<ccxt.Tickers> WatchBidsAsks(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
         symbols = this.marketSymbols(symbols, null, true, true, true);
-        if (isEqual(symbols, null))
+        if ((symbols == null))
         {
             symbols = new List<object>() {};
         }
@@ -572,12 +572,12 @@ public partial class aster : ccxt.aster
     public async override Task<object> unWatchBidsAsks(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
         symbols = this.marketSymbols(symbols, null, true, true, true);
-        if (isEqual(symbols, null))
+        if ((symbols == null))
         {
             symbols = new List<object>() {};
         }
@@ -637,7 +637,7 @@ public partial class aster : ccxt.aster
     public virtual object parseWsBidAsk(object message, object market = null)
     {
         Int64? timestamp = this.safeInteger(message, "T");
-        object bidAskSymbol = ((bool) (!isEqual(market, null))) ? getValue(market, "symbol") : null;
+        object bidAskSymbol = ((bool) ((market != null))) ? getValue(market, "symbol") : null;
         return this.safeTicker(new Dictionary<string, object>() {
             { "symbol", bidAskSymbol },
             { "timestamp", timestamp },
@@ -705,7 +705,7 @@ public partial class aster : ccxt.aster
     {
         object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -761,7 +761,7 @@ public partial class aster : ccxt.aster
     public async override Task<object> unWatchTradesForSymbols(object symbols, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -946,7 +946,7 @@ public partial class aster : ccxt.aster
             }
         }
         string? marketId = this.safeString(trade, "s");
-        object defaultType = ((bool) (isEqual(market, null))) ? this.safeString(this.options, "defaultType", "spot") : getValue(market, "type");
+        object defaultType = ((bool) ((market == null))) ? this.safeString(this.options, "defaultType", "spot") : getValue(market, "type");
         string? symbol = this.safeSymbol(marketId, market, null, defaultType);
         string? side = this.safeStringLower(trade, "S");
         string? takerOrMaker = null;
@@ -1045,7 +1045,7 @@ public partial class aster : ccxt.aster
     {
         object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -1100,7 +1100,7 @@ public partial class aster : ccxt.aster
     public async override Task<object> unWatchOrderBookForSymbols(object symbols, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -1203,7 +1203,7 @@ public partial class aster : ccxt.aster
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
         ((IDictionary<string,object>)parameters)["callerMethodName"] = "watchOHLCV";
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -1247,7 +1247,7 @@ public partial class aster : ccxt.aster
     public async override Task<Dictionary<string, Dictionary<string, List<ccxt.OHLCV>>>> WatchOHLCVForSymbols(object symbolsAndTimeframes, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -1312,7 +1312,7 @@ public partial class aster : ccxt.aster
     public async override Task<object> unWatchOHLCVForSymbols(object symbolsAndTimeframes, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -1547,7 +1547,7 @@ public partial class aster : ccxt.aster
     public async override Task<ccxt.Balances> WatchBalance(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -1709,7 +1709,7 @@ public partial class aster : ccxt.aster
     public async override Task<List<ccxt.Position>> WatchPositions(object symbols = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -1721,7 +1721,7 @@ public partial class aster : ccxt.aster
         List<object> messageHashes = new List<object>() {};
         string messageHash = "positions";
         symbols = this.marketSymbols(symbols, "swap", true, true);
-        if (isEqual(symbols, null))
+        if ((symbols == null))
         {
             ((IList<object>)messageHashes).Add(messageHash);
         } else
@@ -1750,7 +1750,7 @@ public partial class aster : ccxt.aster
 
     public virtual void setPositionsCache(WebSocketClient client)
     {
-        if (!isEqual(this.positions, null))
+        if ((this.positions != null))
         {
             return;
         }
@@ -1826,7 +1826,7 @@ public partial class aster : ccxt.aster
         //     }
         //
         string messageHash = "positions";
-        if (isEqual(this.positions, null))
+        if ((this.positions == null))
         {
             this.positions = new ArrayCacheBySymbolBySide();
         }
@@ -1936,12 +1936,12 @@ public partial class aster : ccxt.aster
         object symbolVar = symbol;
         object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
         IDictionary<string, object> market = null;
-        if (!isEqual(symbolVar, null))
+        if ((symbolVar != null))
         {
             market = this.market(symbolVar);
             symbolVar = getValue(market, "symbol");
@@ -1985,12 +1985,12 @@ public partial class aster : ccxt.aster
         object symbolVar = symbol;
         object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
         IDictionary<string, object> market = null;
-        if (!isEqual(symbolVar, null))
+        if ((symbolVar != null))
         {
             market = this.market(symbolVar);
             symbolVar = getValue(market, "symbol");
@@ -2101,7 +2101,7 @@ public partial class aster : ccxt.aster
                     }
                 }
             }
-            if (isEqual(this.myTrades, null))
+            if ((this.myTrades == null))
             {
                 Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);
                 this.myTrades = new ArrayCacheBySymbolById(limit);
@@ -2192,7 +2192,7 @@ public partial class aster : ccxt.aster
         //
         string messageHash = "orders";
         Dictionary<string, object> market = this.getMarketFromOrder(client as WebSocketClient, message);
-        if (isEqual(this.orders, null))
+        if ((this.orders == null))
         {
             Int64? limit = this.safeInteger(this.options, "ordersLimit", 1000);
             this.orders = new ArrayCacheBySymbolById(limit);

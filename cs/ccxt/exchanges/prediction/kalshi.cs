@@ -510,7 +510,7 @@ public partial class kalshi : PredictionExchange
             {
                 IDictionary<string, object> rawMarket = this.safeDict(response, "market", response);
                 Dictionary<string, object> parsed = this.parseMarket(rawMarket);
-                if (isEqual(this.markets, null))
+                if ((this.markets == null))
                 {
                     this.markets = this.createSafeDictionary();
                 }
@@ -590,7 +590,7 @@ public partial class kalshi : PredictionExchange
                 ((IList<object>)tickers).Add(baseTicker);
             }
         }
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             this.markets = this.createSafeDictionary();
         }
@@ -643,7 +643,7 @@ public partial class kalshi : PredictionExchange
         // errors (e.g. not_found -> BadSymbol) so callers can distinguish them from a transport
         // outage (the base otherwise maps a bare 404 to the exchange-not-available error). unmapped codes fall
         // through to the base http-status handling.
-        if ((isEqual(response, null)) || (isEqual(response, null)))
+        if (((response == null)) || ((response == null)))
         {
             return null;
         }
@@ -1107,7 +1107,7 @@ public partial class kalshi : PredictionExchange
         //
         object marketAny = market;
         object outcomeObj = this.safeOutcome(this.safeString(marketAny, "outcome"), marketAny);
-        string? outcomeLabel = ((bool) (!isEqual(market, null) && !isEqual(market, null))) ? this.safeString(market, "label", this.safeString(getValue(market, "info"), "outcomeLabel", "YES")) : "YES";
+        string? outcomeLabel = ((bool) ((market != null) && (market != null))) ? this.safeString(market, "label", this.safeString(getValue(market, "info"), "outcomeLabel", "YES")) : "YES";
         bool isNo = (((string)outcomeLabel).ToUpper() == "NO");
         Int64 now = this.milliseconds();
         string? outcome = this.safeString(outcomeObj, "outcome");
@@ -1189,7 +1189,7 @@ public partial class kalshi : PredictionExchange
     public async override Task<ccxt.PredictionTickers> FetchTickers(object outcomes = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(outcomes, null))
+        if ((outcomes == null))
         {
             throw new ArgumentsRequired ((string)(this.id + " fetchTickers() requires an outcomes argument — the venue has no all-tickers endpoint; pass the outcome handles to fetch (discover them via fetchEvents ())")) ;
         }
@@ -1653,13 +1653,13 @@ public partial class kalshi : PredictionExchange
     public async override Task<List<ccxt.PredictionTrade>> FetchMyTrades(string outcome = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (!isEqual(outcome, null))
+        if ((outcome != null))
         {
             await this.loadOutcome(outcome);
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         IDictionary<string, object> outcomeObj = null;
-        if (!isEqual(outcome, null))
+        if ((outcome != null))
         {
             // the ticker filter narrows to the market; a market has both legs, so the
             // wanted-leg filter below still drops the opposite-leg fills
@@ -1683,7 +1683,7 @@ public partial class kalshi : PredictionExchange
             ((IList<object>)trades).Add(this.parseMyTrade(getValue(fills, i), outcomeObj));
         }
         string? wantedOutcome = null;
-        if (!isEqual(outcome, null))
+        if ((outcome != null))
         {
             wantedOutcome = this.safeString(this.outcome(outcome), "outcome");
         }
@@ -1843,7 +1843,7 @@ public partial class kalshi : PredictionExchange
     {
         parameters ??= new Dictionary<string, object>();
         int outcomesLength = 0;
-        if (!isEqual(outcomes, null))
+        if ((outcomes != null))
         {
             outcomesLength = getArrayLength(outcomes);
         }
@@ -1863,7 +1863,7 @@ public partial class kalshi : PredictionExchange
             return ccxt.BaseExchange.ToPredictionPositionList(parsed);
         }
         Dictionary<string, object> wantedTickers = new Dictionary<string, object>() {};
-        if (isEqual(outcomes, null))
+        if ((outcomes == null))
         {
             throw new ExchangeError ((string)(this.id + " fetchPositions() missing outcomes")) ;
         }
@@ -1905,7 +1905,7 @@ public partial class kalshi : PredictionExchange
     public async override Task<List<ccxt.PredictionSettlement>> FetchSettlements(string outcome = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (!isEqual(outcome, null))
+        if ((outcome != null))
         {
             await this.loadOutcome(outcome);
         }
@@ -1923,7 +1923,7 @@ public partial class kalshi : PredictionExchange
             ((IList<object>)parsed).Add(this.parseSettlement(getValue(rawSettlements, i)));
         }
         string? wantedOutcome = null;
-        if (!isEqual(outcome, null))
+        if ((outcome != null))
         {
             wantedOutcome = this.safeString(this.outcome(outcome), "outcome");
         }
@@ -2076,7 +2076,7 @@ public partial class kalshi : PredictionExchange
     public async override Task<List<ccxt.PredictionOrder>> FetchOpenOrders(string outcome = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (!isEqual(outcome, null))
+        if ((outcome != null))
         {
             await this.loadOutcome(outcome);
         }
@@ -2084,7 +2084,7 @@ public partial class kalshi : PredictionExchange
             { "status", "resting" },
         };
         IDictionary<string, object> outcomeObj = null;
-        if (!isEqual(outcome, null))
+        if ((outcome != null))
         {
             outcomeObj = this.outcome(outcome);
             if ((outcomeObj == null))
@@ -2112,14 +2112,14 @@ public partial class kalshi : PredictionExchange
     public async override Task<List<ccxt.PredictionOrder>> FetchOrders(string outcome = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (!isEqual(outcome, null))
+        if ((outcome != null))
         {
             await this.loadOutcome(outcome);
         }
         // no status filter — the endpoint returns every order; pass params.status to narrow
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         IDictionary<string, object> outcomeObj = null;
-        if (!isEqual(outcome, null))
+        if ((outcome != null))
         {
             outcomeObj = this.outcome(outcome);
             if ((outcomeObj == null))
@@ -2178,7 +2178,7 @@ public partial class kalshi : PredictionExchange
         // outcome is only a labelling hint here — the request needs just the id, and
         // parsePredictionOrder resolves identity cache-only, so don't force a full market scan
         parameters ??= new Dictionary<string, object>();
-        if (!isEqual(outcome, null))
+        if ((outcome != null))
         {
             await this.loadOutcome(outcome);
         }
@@ -2452,7 +2452,7 @@ public partial class kalshi : PredictionExchange
     {
         parameters ??= new Dictionary<string, object>();
         object outcomeObj = null;
-        if (!isEqual(outcome, null))
+        if ((outcome != null))
         {
             outcomeObj = await this.loadOutcome(outcome);
         }
@@ -2487,7 +2487,7 @@ public partial class kalshi : PredictionExchange
     public async virtual Task<List<ccxt.PredictionOrder>> CancelAllOrders(string outcome = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (!isEqual(outcome, null))
+        if ((outcome != null))
         {
             await this.loadOutcome(outcome);
         }
@@ -2497,7 +2497,7 @@ public partial class kalshi : PredictionExchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "status", "resting" },
         };
-        if (!isEqual(outcome, null))
+        if ((outcome != null))
         {
             IDictionary<string, object> outcomeObj = this.outcome(outcome);
             ((IDictionary<string,object>)request)["ticker"] = this.safeString(getValue(outcomeObj, "info"), "ticker");
@@ -2575,7 +2575,7 @@ public partial class kalshi : PredictionExchange
         }
         // anything beyond the unified keys is forwarded verbatim to the events endpoint (kalshi filters)
         object rest = this.omit(parameters, new List<object>() {"status", "limit", "maxPages", "sort", "searchIn", "eventId", "slug", "tags", "category", "series_ticker"});
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             this.markets = this.createSafeDictionary();
         }
@@ -3077,7 +3077,7 @@ public partial class kalshi : PredictionExchange
         {
             url = add(url, ("?" + querystring));
         }
-        object existingHeaders = ((bool) (!isEqual(headers, null))) ? headers : new Dictionary<string, object>() {};
+        object existingHeaders = ((bool) ((headers != null))) ? headers : new Dictionary<string, object>() {};
         headers = this.extend(new Dictionary<string, object>() {
             { "Accept", "application/json" },
             { "Content-Type", "application/json" },

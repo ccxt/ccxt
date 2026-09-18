@@ -177,7 +177,7 @@ public partial class deribit : ccxt.deribit
     public async override Task<ccxt.Ticker> WatchTicker(string symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -185,7 +185,7 @@ public partial class deribit : ccxt.deribit
         string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
         string? interval = this.safeString(parameters, "interval", "100ms");
         parameters = this.omit(parameters, "interval");
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -219,7 +219,7 @@ public partial class deribit : ccxt.deribit
     public async override Task<ccxt.Tickers> WatchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -227,7 +227,7 @@ public partial class deribit : ccxt.deribit
         string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
         string? interval = this.safeString(parameters, "interval", "100ms");
         parameters = this.omit(parameters, "interval");
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -313,7 +313,7 @@ public partial class deribit : ccxt.deribit
     public async override Task<ccxt.Tickers> WatchBidsAsks(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -507,7 +507,7 @@ public partial class deribit : ccxt.deribit
         string symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
         await this.authenticate(parameters);
-        if (!isEqual(symbolVar, null))
+        if ((symbolVar != null))
         {
             await this.loadMarkets();
             symbolVar = this.symbol(symbolVar);
@@ -789,12 +789,12 @@ public partial class deribit : ccxt.deribit
         string symbolVar = symbol;
         object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
         await this.authenticate(parameters);
-        if (!isEqual(symbolVar, null))
+        if ((symbolVar != null))
         {
             symbolVar = this.symbol(symbolVar);
         }
@@ -857,7 +857,7 @@ public partial class deribit : ccxt.deribit
         //         }
         //     }
         //
-        if (isEqual(this.orders, null))
+        if ((this.orders == null))
         {
             Int64? limit = this.safeInteger(this.options, "ordersLimit", 1000);
             this.orders = new ArrayCacheBySymbolById(limit);
@@ -900,7 +900,7 @@ public partial class deribit : ccxt.deribit
         string timeframeVar = timeframe;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -1006,7 +1006,7 @@ public partial class deribit : ccxt.deribit
     public async virtual Task<object> watchMultipleWrapper(object channelName, object channelDescriptor, object symbolsArray = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -1016,13 +1016,13 @@ public partial class deribit : ccxt.deribit
         bool isOHLCV = (isEqual(channelName, "chart.trades"));
         object symbols = ((bool) isOHLCV) ? this.getListFromObjectValues(symbolsArray, 0) : symbolsArray;
         this.marketSymbols(symbols, null, false);
-        if (isEqual(symbolsArray, null))
+        if ((symbolsArray == null))
         {
             throw new ArgumentsRequired ((string)(this.id + " watchMultipleWrapper() symbolsArray is required")) ;
         }
         for (int i = 0; isLessThan(i, getArrayLength(symbolsArray)); postFixIncrement(ref i))
         {
-            if (isEqual(symbolsArray, null))
+            if ((symbolsArray == null))
             {
                 throw new ArgumentsRequired ((string)(this.id + " watchMultipleWrapper() symbolsArray is required")) ;
             }

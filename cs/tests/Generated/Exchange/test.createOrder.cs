@@ -182,7 +182,7 @@ public partial class testMainClass : BaseTest
         object logPrefix = testSharedMethods.logTemplate(exchange, "createOrder", new List<object>() {symbol});
         string usedMethod = "";
         object cancelResult = null;
-        if ((!isEqual(getValue(exchange.has, "cancelOrder"), null)) && (!isEqual(getValue(exchange.has, "cancelOrder"), false)) && (!isEqual(orderId, null)))
+        if ((!isEqual(getValue(exchange.has, "cancelOrder"), null)) && (!isEqual(getValue(exchange.has, "cancelOrder"), false)) && ((orderId != null)))
         {
             usedMethod = "cancelOrder";
             cancelResult = await invokeExchangeDynamically(exchange, "cancelOrder", orderId, symbol);

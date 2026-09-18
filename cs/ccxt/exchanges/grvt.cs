@@ -720,8 +720,8 @@ public partial class grvt : Exchange
 
     public virtual bool usesPrivateKey()
     {
-        bool privateKeyDefined = !isEqual(this.privateKey, null) && !isEqual(this.privateKey, "");
-        bool apiKeyDefined = !isEqual(this.apiKey, null) && !isEqual(this.apiKey, "");
+        bool privateKeyDefined = (this.privateKey != null) && !isEqual(this.privateKey, "");
+        bool apiKeyDefined = (this.apiKey != null) && !isEqual(this.apiKey, "");
         if (privateKeyDefined && apiKeyDefined)
         {
             throw new ExchangeError ((string)"You should provide either \"privateKey\" or \"apikey & secret\"") ;
@@ -746,7 +746,7 @@ public partial class grvt : Exchange
         //     await this.signInWithApiKey (params);
         // }
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.privateKey, null) || isEqual(this.privateKey, ""))
+        if ((this.privateKey == null) || isEqual(this.privateKey, ""))
         {
             throw new PermissionDenied ((string)"Private key is required for this operation. If you used joined GRVT through email registration instead of Web3 wallet, then read: https://github.com/ccxt/ccxt/wiki/FAQ#how-to-use-the-grvt-exchange-in-ccxt") ;
         }
@@ -1117,7 +1117,7 @@ public partial class grvt : Exchange
     public async override Task<ccxt.Ticker> FetchTicker(string symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -1236,7 +1236,7 @@ public partial class grvt : Exchange
     {
         object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -1289,7 +1289,7 @@ public partial class grvt : Exchange
     public async override Task<List<ccxt.Trade>> FetchTrades(string symbol, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -1442,7 +1442,7 @@ public partial class grvt : Exchange
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
         int maxLimit = 1000;
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -1536,11 +1536,11 @@ public partial class grvt : Exchange
     public async override Task<List<ccxt.FundingRateHistory>> FetchFundingRateHistory(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(symbol, null))
+        if ((symbol == null))
         {
             throw new ArgumentsRequired ((string)(this.id + " fetchFundingRateHistory() requires a symbol argument")) ;
         }
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -1745,7 +1745,7 @@ public partial class grvt : Exchange
         await this.loadMarketsAndSignIn();
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         IDictionary<string, object> currency = null;
-        if (!isEqual(code, null))
+        if ((code != null))
         {
             currency = this.currency(((string)code));
             ((IDictionary<string,object>)request)["currency"] = new List<object>() {getValue(currency, "code")};
@@ -1809,7 +1809,7 @@ public partial class grvt : Exchange
         await this.loadMarketsAndSignIn();
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         IDictionary<string, object> currency = null;
-        if (isEqual(code, null))
+        if ((code == null))
         {
             ((IDictionary<string,object>)request)["currency"] = null;
         } else
@@ -2038,7 +2038,7 @@ public partial class grvt : Exchange
     public async override Task<List<ccxt.TransferEntry>> FetchTransfers(string code = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(code, null))
+        if ((code == null))
         {
             throw new ArgumentsRequired ((string)(this.id + " fetchTransfers() requires a code argument")) ;
         }
@@ -2694,7 +2694,7 @@ public partial class grvt : Exchange
             { "sub_account_id", this.getSubAccountId(parameters) },
         };
         IDictionary<string, object> market = null;
-        if (!isEqual(symbol, null))
+        if ((symbol != null))
         {
             market = this.market(symbol);
             ((IDictionary<string,object>)request)["base"] = new List<object>() {};
@@ -2765,7 +2765,7 @@ public partial class grvt : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "sub_account_id", this.getSubAccountId(parameters) },
         };
-        if (!isEqual(symbols, null))
+        if ((symbols != null))
         {
             symbols = this.marketSymbols(symbols);
             ((IDictionary<string,object>)request)["base"] = new List<object>() {};
@@ -2916,7 +2916,7 @@ public partial class grvt : Exchange
     public async override Task<Dictionary<string, object>> SetLeverage(object leverage, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(symbol, null))
+        if ((symbol == null))
         {
             throw new ArgumentsRequired ((string)(this.id + " setLeverage() requires a symbol argument")) ;
         }
@@ -3049,7 +3049,7 @@ public partial class grvt : Exchange
             { "sub_account_id", this.getSubAccountId(parameters) },
         };
         IDictionary<string, object> market = null;
-        if (!isEqual(symbol, null))
+        if ((symbol != null))
         {
             market = this.market(symbol);
             ((IDictionary<string,object>)request)["base"] = new List<object>() {};
@@ -3136,7 +3136,7 @@ public partial class grvt : Exchange
             { "sub_account_id", subAccountId },
         };
         IDictionary<string, object> market = null;
-        if (!isEqual(symbol, null))
+        if ((symbol != null))
         {
             market = this.market(symbol);
             ((IDictionary<string,object>)request)["base"] = new List<object>() {};
@@ -3583,7 +3583,7 @@ public partial class grvt : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "sub_account_id", this.getSubAccountId(parameters) },
         };
-        if (!isEqual(symbol, null))
+        if ((symbol != null))
         {
             Dictionary<string, object> market = this.market(symbol);
             ((IDictionary<string,object>)request)["base"] = new List<object>() {};
@@ -3668,7 +3668,7 @@ public partial class grvt : Exchange
         {
             object amountMultiplier = this.convertToBigIntCustom("1000000");
             object amountInt = multiply(getValue(request, "num_tokens"), amountMultiplier);
-            if (isEqual(currencyObj, null))
+            if ((currencyObj == null))
             {
                 throw new ExchangeError ((string)(this.id + " createSignedRequest() missing currencyObj")) ;
             }
@@ -3685,7 +3685,7 @@ public partial class grvt : Exchange
         } else if (isEqual(structureType, "EIP712_WITHDRAWAL_TYPE"))
         {
             object amountMultiplier = this.convertToBigIntCustom("1000000");
-            if (isEqual(currencyObj, null))
+            if ((currencyObj == null))
             {
                 throw new ExchangeError ((string)(this.id + " createSignedRequest() missing currencyObj")) ;
             }
@@ -3730,7 +3730,7 @@ public partial class grvt : Exchange
         ((IDictionary<string,object>)getValue(request, "signature"))["r"] = this.formatSignatureRS(getValue(signature, "r"));
         ((IDictionary<string,object>)getValue(request, "signature"))["s"] = this.formatSignatureRS(getValue(signature, "s"));
         ((IDictionary<string,object>)getValue(request, "signature"))["v"] = this.sum(27, getValue(signature, "v"));
-        ((IDictionary<string,object>)getValue(request, "signature"))["signer"] = ((bool) (isEqual(signerAddress, null))) ? this.ethGetAddressFromPrivateKey(add("0x", privateKeyWithoutZero)) : signerAddress;
+        ((IDictionary<string,object>)getValue(request, "signature"))["signer"] = ((bool) ((signerAddress == null))) ? this.ethGetAddressFromPrivateKey(add("0x", privateKeyWithoutZero)) : signerAddress;
         return request;
     }
 

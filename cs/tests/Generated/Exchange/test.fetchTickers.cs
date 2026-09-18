@@ -31,7 +31,7 @@ public partial class testMainClass : BaseTest
         testSharedMethods.assertDictionaryResponse(exchange, method, response, exchange.json(argSymbols));
         List<object> values = new List<object>(((IDictionary<string,object>)response).Values);
         object checkedSymbol = null;
-        if (!isEqual(argSymbols, null) && (getArrayLength(argSymbols) == 1))
+        if ((argSymbols != null) && (getArrayLength(argSymbols) == 1))
         {
             checkedSymbol = getValue(argSymbols, 0);
         }

@@ -182,7 +182,7 @@ public partial class bybit : ccxt.bybit
         isPrivate ??= false;
         parameters ??= new Dictionary<string, object>();
         string accessibility = ((bool) isTrue(isPrivate)) ? "private" : "public";
-        if (isEqual(method, null))
+        if ((method == null))
         {
             method = "";
         }
@@ -191,7 +191,7 @@ public partial class bybit : ccxt.bybit
         object type = null;
         IDictionary<string, object> market = null;
         object url = getValue(getValue(this.urls, "api"), "ws");
-        if (!isEqual(symbol, null))
+        if ((symbol != null))
         {
             market = this.market(symbol);
             isUsdcSettled = isEqual(getValue(market, "settle"), "USDC");
@@ -280,7 +280,7 @@ public partial class bybit : ccxt.bybit
     public async override Task<ccxt.Order> CreateOrderWs(string symbol, string type, string side, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -328,7 +328,7 @@ public partial class bybit : ccxt.bybit
     public async override Task<ccxt.Order> EditOrderWs(string id, string symbol, string type, string side, object amount = null, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -364,11 +364,11 @@ public partial class bybit : ccxt.bybit
     public async override Task<ccxt.Order> CancelOrderWs(string id, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
-        if (isEqual(symbol, null))
+        if ((symbol == null))
         {
             throw new ArgumentsRequired ((string)(this.id + " cancelOrderWs() requires a symbol argument")) ;
         }
@@ -406,7 +406,7 @@ public partial class bybit : ccxt.bybit
     {
         object symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -439,7 +439,7 @@ public partial class bybit : ccxt.bybit
     public async override Task<ccxt.Tickers> WatchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -480,7 +480,7 @@ public partial class bybit : ccxt.bybit
     public async override Task<object> unWatchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -683,7 +683,7 @@ public partial class bybit : ccxt.bybit
     public async override Task<ccxt.Tickers> WatchBidsAsks(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -765,7 +765,7 @@ public partial class bybit : ccxt.bybit
     public async override Task<Dictionary<string, Dictionary<string, List<ccxt.OHLCV>>>> WatchOHLCVForSymbols(object symbolsAndTimeframes, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -810,7 +810,7 @@ public partial class bybit : ccxt.bybit
     public async override Task<object> unWatchOHLCVForSymbols(object symbolsAndTimeframes, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -970,7 +970,7 @@ public partial class bybit : ccxt.bybit
     {
         object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -1031,7 +1031,7 @@ public partial class bybit : ccxt.bybit
     public async override Task<object> unWatchOrderBookForSymbols(object symbols, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -1204,7 +1204,7 @@ public partial class bybit : ccxt.bybit
     {
         object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -1249,7 +1249,7 @@ public partial class bybit : ccxt.bybit
     public async override Task<object> unWatchTradesForSymbols(object symbols, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -1368,7 +1368,7 @@ public partial class bybit : ccxt.bybit
         string? id = this.safeStringN(trade, new List<object>() {"i", "T", "v"});
         bool isContract = (inOp(trade, "BT"));
         object marketType = ((bool) isContract) ? "contract" : "spot";
-        if (!isEqual(market, null))
+        if ((market != null))
         {
             marketType = getValue(market, "type");
         }
@@ -1442,11 +1442,11 @@ public partial class bybit : ccxt.bybit
         parameters ??= new Dictionary<string, object>();
         string method = "watchMyTrades";
         string messageHash = "myTrades";
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
-        if (!isEqual(symbolVar, null))
+        if ((symbolVar != null))
         {
             symbolVar = this.symbol(symbolVar);
             messageHash = messageHash + add(":", symbolVar);
@@ -1493,11 +1493,11 @@ public partial class bybit : ccxt.bybit
         string method = "watchMyTrades";
         string messageHash = "unsubscribe:myTrades";
         string subHash = "myTrades";
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
-        if (!isEqual(symbol, null))
+        if ((symbol != null))
         {
             throw new NotSupported ((string)(this.id + " unWatchMyTrades() does not support a symbol parameter, you must unwatch all my trades")) ;
         }
@@ -1614,7 +1614,7 @@ public partial class bybit : ccxt.bybit
         {
             data = this.safeList(data, "result", new List<object>() {});
         }
-        if (isEqual(this.myTrades, null))
+        if ((this.myTrades == null))
         {
             Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);
             this.myTrades = new ArrayCacheBySymbolById(limit);
@@ -1694,13 +1694,13 @@ public partial class bybit : ccxt.bybit
     public async override Task<List<ccxt.Position>> WatchPositions(object symbols = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
         string method = "watchPositions";
         string messageHash = "";
-        if ((!isEqual(symbols, null)) && !isTrue(this.isEmpty(symbols)))
+        if (((symbols != null)) && !isTrue(this.isEmpty(symbols)))
         {
             symbols = this.marketSymbols(symbols);
             messageHash = ("::" + String.Join(",", ((IList<object>)symbols).ToArray()));
@@ -1730,7 +1730,7 @@ public partial class bybit : ccxt.bybit
 
     public virtual void setPositionsCache(WebSocketClient client, object symbols = null)
     {
-        if (!isEqual(this.positions, null))
+        if ((this.positions != null))
         {
             return;
         }
@@ -1821,7 +1821,7 @@ public partial class bybit : ccxt.bybit
         //
         // each account is connected to a different endpoint
         // and has exactly one subscriptionhash which is the account type
-        if (isEqual(this.positions, null))
+        if ((this.positions == null))
         {
             this.positions = new ArrayCacheBySymbolBySide();
         }
@@ -1879,14 +1879,14 @@ public partial class bybit : ccxt.bybit
     public async override Task<object> unWatchPositions(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
         string method = "watchPositions";
         string messageHash = "unsubscribe:positions";
         string subHash = "positions";
-        if ((!isEqual(symbols, null)) && !isTrue(this.isEmpty(symbols)))
+        if (((symbols != null)) && !isTrue(this.isEmpty(symbols)))
         {
             throw new NotSupported ((string)(this.id + " unWatchPositions() does not support a symbol parameter, you must unwatch all orders")) ;
         }
@@ -1912,7 +1912,7 @@ public partial class bybit : ccxt.bybit
     {
         object symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -1975,7 +1975,7 @@ public partial class bybit : ccxt.bybit
                 Dictionary<string, object> market = this.safeMarket(marketId, null, "", "contract");
                 string? symbol = ((string)getValue(market, "symbol"));
                 Dictionary<string, object> liquidation = ((Dictionary<string, object>)this.parseWsLiquidation(rawLiquidation, market));
-                if (isEqual(this.liquidations, null))
+                if ((this.liquidations == null))
                 {
                     Int64? limit = this.safeInteger(this.options, "liquidationsLimit", 1000);
                     this.liquidations = new ArrayCache(limit);
@@ -1992,7 +1992,7 @@ public partial class bybit : ccxt.bybit
             Dictionary<string, object> market = this.safeMarket(marketId, null, "", "contract");
             string? symbol = ((string)getValue(market, "symbol"));
             Dictionary<string, object> liquidation = ((Dictionary<string, object>)this.parseWsLiquidation(rawLiquidation, market));
-            if (isEqual(this.liquidations, null))
+            if ((this.liquidations == null))
             {
                 Int64? limit = this.safeInteger(this.options, "liquidationsLimit", 1000);
                 this.liquidations = new ArrayCache(limit);
@@ -2056,13 +2056,13 @@ public partial class bybit : ccxt.bybit
         object symbolVar = symbol;
         object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
         string method = "watchOrders";
         string messageHash = "orders";
-        if (!isEqual(symbolVar, null))
+        if ((symbolVar != null))
         {
             symbolVar = this.symbol(symbolVar);
             messageHash = messageHash + add(":", symbolVar);
@@ -2096,14 +2096,14 @@ public partial class bybit : ccxt.bybit
     public async override Task<object> unWatchOrders(object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
         string method = "watchOrders";
         string messageHash = "unsubscribe:orders";
         string subHash = "orders";
-        if (!isEqual(symbol, null))
+        if ((symbol != null))
         {
             throw new NotSupported ((string)(this.id + " unWatchOrders() does not support a symbol parameter, you must unwatch all orders")) ;
         }
@@ -2231,7 +2231,7 @@ public partial class bybit : ccxt.bybit
         //         ]
         //     }
         //
-        if (isEqual(this.orders, null))
+        if ((this.orders == null))
         {
             Int64? limit = this.safeInteger(this.options, "ordersLimit", 1000);
             this.orders = new ArrayCacheBySymbolById(limit);
@@ -2283,7 +2283,7 @@ public partial class bybit : ccxt.bybit
     public async override Task<ccxt.Balances> WatchBalance(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -2493,7 +2493,7 @@ public partial class bybit : ccxt.bybit
         //         ]
         //     }
         //
-        if (isEqual(this.balance, null))
+        if ((this.balance == null))
         {
             this.balance = new Dictionary<string, object>() {};
         }
@@ -2601,13 +2601,13 @@ public partial class bybit : ccxt.bybit
         // against the equity, which includes the unrealized pnl, so the equity
         // is the consistent total, the spot rows fall back to the wallet balance
         ((IDictionary<string,object>)account)["total"] = this.safeString2(balance, "equity", "walletBalance");
-        if (!isEqual(accountType, null))
+        if ((accountType != null))
         {
             if (isEqual(this.safeValue(this.balance, accountType), null))
             {
                 ((IDictionary<string,object>)this.balance)[(string)accountType] = new Dictionary<string, object>() {};
             }
-            if ((!isEqual(accountType, null)) && ((code != null)))
+            if (((accountType != null)) && ((code != null)))
             {
                 ((IDictionary<string,object>)getValue(this.balance, accountType))[(string)code] = account;
             }

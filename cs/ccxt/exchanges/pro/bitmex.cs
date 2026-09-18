@@ -65,7 +65,7 @@ public partial class bitmex : ccxt.bitmex
     {
         string symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -86,7 +86,7 @@ public partial class bitmex : ccxt.bitmex
     public async override Task<ccxt.Tickers> WatchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -95,7 +95,7 @@ public partial class bitmex : ccxt.bitmex
         string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
         List<object> messageHashes = new List<object>() {};
         List<object> rawSubscriptions = new List<object>() {};
-        if (!isEqual(symbols, null))
+        if ((symbols != null))
         {
             for (int i = 0; i < getArrayLength(symbols); postFixIncrement(ref i))
             {
@@ -406,7 +406,7 @@ public partial class bitmex : ccxt.bitmex
     public async override Task<List<ccxt.Liquidation>> WatchLiquidationsForSymbols(object symbols, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -470,7 +470,7 @@ public partial class bitmex : ccxt.bitmex
         //
         List<object> rawLiquidations = this.safeList(message, "data", new List<object>() {});
         List<object> newLiquidations = new List<object>() {};
-        if (isEqual(this.liquidations, null))
+        if ((this.liquidations == null))
         {
             Int64? limit = this.safeInteger(this.options, "liquidationsLimit", 1000);
             this.liquidations = new ArrayCache(limit);
@@ -504,7 +504,7 @@ public partial class bitmex : ccxt.bitmex
     public async override Task<ccxt.Balances> WatchBalance(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -787,7 +787,7 @@ public partial class bitmex : ccxt.bitmex
     public async override Task<List<ccxt.Position>> WatchPositions(object symbols = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -962,7 +962,7 @@ public partial class bitmex : ccxt.bitmex
         //        ]
         //    }
         //
-        if (isEqual(this.positions, null))
+        if ((this.positions == null))
         {
             this.positions = new ArrayCacheBySymbolBySide();
         }
@@ -1029,7 +1029,7 @@ public partial class bitmex : ccxt.bitmex
         object symbolVar = symbol;
         object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -1037,7 +1037,7 @@ public partial class bitmex : ccxt.bitmex
         string name = "order";
         string subscriptionHash = name;
         string messageHash = name;
-        if (!isEqual(symbolVar, null))
+        if ((symbolVar != null))
         {
             symbolVar = this.symbol(symbolVar);
             messageHash = messageHash + add(":", symbolVar);
@@ -1212,7 +1212,7 @@ public partial class bitmex : ccxt.bitmex
         int dataLength = data.Count;
         if (dataLength > 0)
         {
-            if (isEqual(this.orders, null))
+            if ((this.orders == null))
             {
                 Int64? limit = this.safeInteger(this.options, "ordersLimit", 1000);
                 this.orders = new ArrayCacheBySymbolById(limit);
@@ -1260,7 +1260,7 @@ public partial class bitmex : ccxt.bitmex
         object symbolVar = symbol;
         object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -1268,7 +1268,7 @@ public partial class bitmex : ccxt.bitmex
         string name = "execution";
         string subscriptionHash = name;
         string messageHash = name;
-        if (!isEqual(symbolVar, null))
+        if ((symbolVar != null))
         {
             symbolVar = this.symbol(symbolVar);
             messageHash = messageHash + add(":", symbolVar);
@@ -1350,7 +1350,7 @@ public partial class bitmex : ccxt.bitmex
         Dictionary<string, object> dataByExecType = this.groupBy(data, "execType");
         object rawTrades = this.safeValue(dataByExecType, "Trade", new List<object>() {});
         IList<object> trades = this.parseTrades(rawTrades);
-        if (isEqual(this.myTrades, null))
+        if ((this.myTrades == null))
         {
             Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);
             this.myTrades = new ArrayCacheBySymbolById(limit);
@@ -1419,7 +1419,7 @@ public partial class bitmex : ccxt.bitmex
         {
             throw new ExchangeError ((string)(this.id + " watchOrderBookForSymbols limit argument must be undefined (L2), 25 (L2) or 10 (L3)")) ;
         }
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -1459,7 +1459,7 @@ public partial class bitmex : ccxt.bitmex
     {
         object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -1510,7 +1510,7 @@ public partial class bitmex : ccxt.bitmex
         object limitVar = limit;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -1634,7 +1634,7 @@ public partial class bitmex : ccxt.bitmex
     public async virtual Task<object> watchHeartbeat(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }

@@ -423,7 +423,7 @@ public partial class binance : PredictionExchange
         string? eventId = this.safeString(parameters, "eventId");
         string? l1Category = this.safeString(parameters, "l1Category");
         string? l2Category = this.safeString(parameters, "l2Category");
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             this.markets = this.createSafeDictionary();
         }
@@ -953,7 +953,7 @@ public partial class binance : PredictionExchange
     public async override Task<ccxt.PredictionTickers> FetchTickers(object outcomes = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(outcomes, null))
+        if ((outcomes == null))
         {
             throw new ArgumentsRequired ((string)(this.id + " fetchTickers() requires an outcomes argument — the venue has no all-tickers endpoint; pass the outcome handles to fetch (discover them via fetchEvents ())")) ;
         }
@@ -1108,7 +1108,7 @@ public partial class binance : PredictionExchange
         // }
         //
         string? status = this.parseOrderStatus(this.safeString(order, "status"));
-        if (isEqual(outcomeObj, null))
+        if ((outcomeObj == null))
         {
             string? marketId = this.safeString(order, "marketId");
             string? outcome = this.safeStringUpper(order, "outcome");
@@ -1158,7 +1158,7 @@ public partial class binance : PredictionExchange
             { "OPENING", "open" },
             { "FILLED", "closed" },
         };
-        if (isEqual(status, null))
+        if ((status == null))
         {
             return null;
         }
@@ -1211,7 +1211,7 @@ public partial class binance : PredictionExchange
             ((IDictionary<string,object>)request)["offset"] = offSet;
         }
         IDictionary<string, object> outcomeObj = null;
-        if (!isEqual(outcome, null))
+        if ((outcome != null))
         {
             await this.loadOutcome(outcome);
             outcomeObj = this.outcome(outcome);
@@ -1304,7 +1304,7 @@ public partial class binance : PredictionExchange
             ((IDictionary<string,object>)request)["offset"] = offSet;
         }
         IDictionary<string, object> outcomeObj = null;
-        if (!isEqual(outcome, null))
+        if ((outcome != null))
         {
             await this.loadOutcome(outcome);
             outcomeObj = this.outcome(outcome);
@@ -1381,7 +1381,7 @@ public partial class binance : PredictionExchange
         parameters ??= new Dictionary<string, object>();
         await this.loadOutcomes();
         Dictionary<string, object> requestedOutcomeSymbols = new Dictionary<string, object>() {};
-        if (!isEqual(outcomes, null))
+        if ((outcomes != null))
         {
             for (int i = 0; i < getArrayLength(outcomes); postFixIncrement(ref i))
             {
@@ -1447,7 +1447,7 @@ public partial class binance : PredictionExchange
         //
         List<object> data = this.safeList(response, "positions", new List<object>() {});
         object positions = this.parsePredictionPositions(data);
-        if (isEqual(outcomes, null))
+        if ((outcomes == null))
         {
             return ccxt.BaseExchange.ToPredictionPositionList(positions);
         }
@@ -1479,7 +1479,7 @@ public partial class binance : PredictionExchange
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         IDictionary<string, object> outcomeObj = null;
-        if (!isEqual(outcome, null))
+        if ((outcome != null))
         {
             await this.loadOutcome(outcome);
             outcomeObj = this.outcome(outcome);
@@ -1508,7 +1508,7 @@ public partial class binance : PredictionExchange
      */
     public override object parsePredictionPosition(object position, object outcomeObj = null)
     {
-        if (isEqual(outcomeObj, null))
+        if ((outcomeObj == null))
         {
             string? marketId = this.safeString(position, "marketId");
             string? outcome = this.safeStringUpper(position, "outcomeName");
@@ -1596,7 +1596,7 @@ public partial class binance : PredictionExchange
             ((IDictionary<string,object>)request)["offset"] = offSet;
         }
         IDictionary<string, object> outcomeObj = null;
-        if (!isEqual(outcome, null))
+        if ((outcome != null))
         {
             await this.loadOutcome(outcome);
             outcomeObj = this.outcome(outcome);
@@ -1696,7 +1696,7 @@ public partial class binance : PredictionExchange
         //     "networkFee": "0.000001"
         // }
         //
-        if (isEqual(outcomeObj, null))
+        if ((outcomeObj == null))
         {
             string? marketId = this.safeString(trade, "marketId");
             string? outcome = this.safeStringUpper(trade, "outcome");
@@ -2032,7 +2032,7 @@ public partial class binance : PredictionExchange
     {
         parameters ??= new Dictionary<string, object>();
         IDictionary<string, object> outcomeObj = null;
-        if (!isEqual(outcome, null))
+        if ((outcome != null))
         {
             await this.loadOutcome(outcome);
             outcomeObj = this.outcome(outcome);
@@ -2106,7 +2106,7 @@ public partial class binance : PredictionExchange
 
     public override object handleErrors(object code, object reason, object url, object method, object headers, object body, object response, object requestHeaders, object requestBody)
     {
-        if (isEqual(response, null))
+        if ((response == null))
         {
             return null;
         }

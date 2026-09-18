@@ -79,7 +79,7 @@ public partial class bithumb : ccxt.bithumb
     public async override Task<ccxt.Ticker> WatchTicker(string symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -127,7 +127,7 @@ public partial class bithumb : ccxt.bithumb
     public async override Task<ccxt.Tickers> WatchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -137,12 +137,12 @@ public partial class bithumb : ccxt.bithumb
         parameters = ((IList<object>)generationparametersVariable)[1];
         bool isGenerationTwo = (isEqual(generation, 2));
         symbols = this.marketSymbols(symbols, null, false, true, true);
-        int symbolsLength = ((bool) (isEqual(symbols, null))) ? 0 : getArrayLength(symbols);
+        int symbolsLength = ((bool) ((symbols == null))) ? 0 : getArrayLength(symbols);
         if (isGenerationTwo && (isEqual(symbolsLength, 0)))
         {
             throw new ArgumentsRequired ((string)(this.id + " watchTickers() requires symbols for the generation 2 API")) ;
         }
-        if (isEqual(symbols, null))
+        if ((symbols == null))
         {
             symbols = this.symbols;
         }
@@ -408,7 +408,7 @@ public partial class bithumb : ccxt.bithumb
     {
         object symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -615,7 +615,7 @@ public partial class bithumb : ccxt.bithumb
         object symbolVar = symbol;
         object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -859,7 +859,7 @@ public partial class bithumb : ccxt.bithumb
     public async override Task<ccxt.Balances> WatchBalance(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -900,7 +900,7 @@ public partial class bithumb : ccxt.bithumb
         //
         string messageHash = "myAsset";
         List<object> assets = this.safeList(message, "assets", new List<object>() {});
-        if (isEqual(this.balance, null))
+        if ((this.balance == null))
         {
             this.balance = new Dictionary<string, object>() {};
         }
@@ -1000,7 +1000,7 @@ public partial class bithumb : ccxt.bithumb
         object symbolVar = symbol;
         object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -1020,7 +1020,7 @@ public partial class bithumb : ccxt.bithumb
             { "type", messageHash },
             { "codes", codes },
         });
-        if (!isEqual(symbolVar, null))
+        if ((symbolVar != null))
         {
             Dictionary<string, object> market = this.market(symbolVar);
             symbolVar = getValue(market, "symbol");
@@ -1064,7 +1064,7 @@ public partial class bithumb : ccxt.bithumb
         Dictionary<string, object> parsed = ((Dictionary<string, object>)this.parseWsOrder(message));
         string? symbol = this.safeString(parsed, "symbol");
         // const orderId = this.safeString (parsed, 'id');
-        if (isEqual(this.orders, null))
+        if ((this.orders == null))
         {
             Int64? limit = this.safeInteger(this.options, "ordersLimit", 1000);
             this.orders = new ArrayCacheBySymbolById(limit);

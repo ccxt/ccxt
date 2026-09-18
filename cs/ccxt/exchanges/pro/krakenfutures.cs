@@ -121,7 +121,7 @@ public partial class krakenfutures : ccxt.krakenfutures
     public async virtual Task<object> subscribePublic(object name, object symbols, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -132,7 +132,7 @@ public partial class krakenfutures : ccxt.krakenfutures
         };
         List<object> marketIds = new List<object>() {};
         object messageHash = name;
-        if (isEqual(symbols, null))
+        if ((symbols == null))
         {
             symbols = new List<object>() {};
         }
@@ -164,7 +164,7 @@ public partial class krakenfutures : ccxt.krakenfutures
     public async virtual Task<object> subscribePrivate(object name, object messageHash, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -194,7 +194,7 @@ public partial class krakenfutures : ccxt.krakenfutures
     {
         string symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -215,7 +215,7 @@ public partial class krakenfutures : ccxt.krakenfutures
     public async override Task<ccxt.Tickers> WatchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -324,13 +324,13 @@ public partial class krakenfutures : ccxt.krakenfutures
     public async override Task<List<ccxt.Position>> WatchPositions(object symbols = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
         string messageHash = "";
         symbols = this.marketSymbols(symbols);
-        if ((!isEqual(symbols, null)) && !isTrue(this.isEmpty(symbols)))
+        if (((symbols != null)) && !isTrue(this.isEmpty(symbols)))
         {
             messageHash = ("::" + String.Join(",", ((IList<object>)symbols).ToArray()));
         }
@@ -371,7 +371,7 @@ public partial class krakenfutures : ccxt.krakenfutures
         //        timestamp: 1698608414910
         //    }
         //
-        if (isEqual(this.positions, null))
+        if ((this.positions == null))
         {
             // krakenfutures positions carry no id (parseWsPosition always sets
             // 'id': undefined), so key by symbol + side instead of by-id, see
@@ -489,7 +489,7 @@ public partial class krakenfutures : ccxt.krakenfutures
     {
         object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -514,7 +514,7 @@ public partial class krakenfutures : ccxt.krakenfutures
                 messageHash = "orders:verbose";
             }
         }
-        if (!isEqual(symbol, null))
+        if ((symbol != null))
         {
             Dictionary<string, object> market = this.market(symbol);
             messageHash = messageHash + add(":", getValue(market, "symbol"));
@@ -542,13 +542,13 @@ public partial class krakenfutures : ccxt.krakenfutures
     {
         object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
         string name = "fills";
         string messageHash = "myTrades";
-        if (!isEqual(symbol, null))
+        if ((symbol != null))
         {
             Dictionary<string, object> market = this.market(symbol);
             messageHash = messageHash + add(":", getValue(market, "symbol"));
@@ -573,7 +573,7 @@ public partial class krakenfutures : ccxt.krakenfutures
     public async override Task<ccxt.Balances> WatchBalance(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -1740,7 +1740,7 @@ public partial class krakenfutures : ccxt.krakenfutures
     public async virtual Task<object> watchMultiHelper(object unifiedName, object channelName, object symbols = null, object subscriptionArgs = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -1782,7 +1782,7 @@ public partial class krakenfutures : ccxt.krakenfutures
     {
         // unifiedElementName can be : orderbook, trade, ticker, bidask ...
         // subChannelName only applies to channel that needs specific variation (i.e. depth_50, depth_100..) to be selected
-        bool withSymbol = !isEqual(symbol, null);
+        bool withSymbol = (symbol != null);
         object messageHash = unifiedElementName;
         if (!withSymbol)
         {
@@ -1791,7 +1791,7 @@ public partial class krakenfutures : ccxt.krakenfutures
         {
             messageHash = add(messageHash, add(":", symbol));
         }
-        if (!isEqual(subChannelName, null))
+        if ((subChannelName != null))
         {
             messageHash = add(messageHash, add("#", subChannelName));
         }

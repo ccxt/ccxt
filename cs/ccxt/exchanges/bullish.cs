@@ -1080,7 +1080,7 @@ public partial class bullish : Exchange
     public async override Task<ccxt.OrderBook> FetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -1129,7 +1129,7 @@ public partial class bullish : Exchange
     public async override Task<List<ccxt.Trade>> FetchTrades(string symbol, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -1195,7 +1195,7 @@ public partial class bullish : Exchange
             { "tradingAccountId", tradingAccountId },
         };
         IDictionary<string, object> market = null;
-        if (!isEqual(symbol, null))
+        if ((symbol != null))
         {
             market = this.market(symbol);
             ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
@@ -1262,7 +1262,7 @@ public partial class bullish : Exchange
     public async override Task<List<ccxt.Trade>> FetchOrderTrades(string id, string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -1384,7 +1384,7 @@ public partial class bullish : Exchange
     public async override Task<ccxt.Ticker> FetchTicker(string symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -1566,7 +1566,7 @@ public partial class bullish : Exchange
         string timeframeVar = timeframe;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -1644,11 +1644,11 @@ public partial class bullish : Exchange
     public async override Task<List<ccxt.FundingRateHistory>> FetchFundingRateHistory(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(symbol, null))
+        if ((symbol == null))
         {
             throw new ArgumentsRequired ((string)(this.id + " fetchFundingRateHistory() requires a symbol argument")) ;
         }
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -1739,7 +1739,7 @@ public partial class bullish : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "tradingAccountId", tradingAccountId },
         };
-        if (!isEqual(symbol, null))
+        if ((symbol != null))
         {
             market = this.market(symbol);
             ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
@@ -1970,7 +1970,7 @@ public partial class bullish : Exchange
         await promiseAll(new List<object> {this.loadMarkets(), this.handleToken()});
         object tradingAccountId = await this.loadAccount(parameters);
         IDictionary<string, object> market = null;
-        if (!isEqual(symbol, null))
+        if ((symbol != null))
         {
             market = this.market(symbol);
         }
@@ -2117,7 +2117,7 @@ public partial class bullish : Exchange
         {
             ((IDictionary<string,object>)request)["orderId"] = id;
         }
-        if (!isEqual(type, null))
+        if ((type != null))
         {
             ((IDictionary<string,object>)request)["type"] = ((string)type).ToUpper();
         }
@@ -2156,7 +2156,7 @@ public partial class bullish : Exchange
         parameters ??= new Dictionary<string, object>();
         await promiseAll(new List<object> {this.loadMarkets(), this.handleToken()});
         object tradingAccountId = await this.loadAccount(parameters);
-        if (isEqual(symbol, null))
+        if ((symbol == null))
         {
             throw new ArgumentsRequired ((string)(this.id + " cancelOrder() requires a symbol argument")) ;
         }
@@ -2198,7 +2198,7 @@ public partial class bullish : Exchange
             { "tradingAccountId", tradingAccountId },
         };
         IDictionary<string, object> market = null;
-        if (!isEqual(symbol, null))
+        if ((symbol != null))
         {
             market = this.market(symbol);
             ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
@@ -2270,7 +2270,7 @@ public partial class bullish : Exchange
         //     }
         //
         string? marketId = this.safeString(order, "symbol");
-        if (isEqual(market, null))
+        if ((market == null))
         {
             market = this.safeMarket(marketId);
         }
@@ -2414,7 +2414,7 @@ public partial class bullish : Exchange
         //
         List<object> data = this.safeList(response, "data", new List<object>() {});
         IDictionary<string, object> currency = null;
-        if (!isEqual(code, null))
+        if ((code != null))
         {
             currency = this.currency(((string)code));
         }
@@ -3013,7 +3013,7 @@ public partial class bullish : Exchange
             { "tradingAccountId", tradingAccountId },
         };
         IDictionary<string, object> currency = null;
-        if (!isEqual(code, null))
+        if ((code != null))
         {
             currency = this.currency(((string)code));
             ((IDictionary<string,object>)request)["assetSymbol"] = getValue(currency, "id");
@@ -3248,7 +3248,7 @@ public partial class bullish : Exchange
     public async override Task<ccxt.OpenInterest> FetchOpenInterest(string symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -3394,7 +3394,7 @@ public partial class bullish : Exchange
             }
             if (isEqual(path, "v1/users/hmac/login"))
             {
-                headers = ((bool) (isEqual(headers, null))) ? new Dictionary<string, object>() {} : headers;
+                headers = ((bool) ((headers == null))) ? new Dictionary<string, object>() {} : headers;
                 ((IDictionary<string,object>)headers)["BX-PUBLIC-KEY"] = this.apiKey;
             } else
             {
@@ -3403,7 +3403,7 @@ public partial class bullish : Exchange
                 {
                     throw new AuthenticationError ((string)(this.id + " requires a token, please call signIn() first")) ;
                 }
-                headers = ((bool) (isEqual(headers, null))) ? new Dictionary<string, object>() {} : headers;
+                headers = ((bool) ((headers == null))) ? new Dictionary<string, object>() {} : headers;
                 ((IDictionary<string,object>)headers)["Authorization"] = add("Bearer ", token);
             }
         }
@@ -3467,7 +3467,7 @@ public partial class bullish : Exchange
 
     public override object handleErrors(object httpCode, object reason, object url, object method, object headers, object body, object response, object requestHeaders, object requestBody)
     {
-        if (isEqual(response, null))
+        if ((response == null))
         {
             return null;  // fallback to default error handler
         }

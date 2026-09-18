@@ -62,14 +62,14 @@ public partial class lighter : ccxt.lighter
     public virtual object getMessageHash(object unifiedChannel, object symbol = null, object extra = null)
     {
         object hash = unifiedChannel;
-        if (!isEqual(symbol, null))
+        if ((symbol != null))
         {
             hash = add(hash, add("::", symbol));
         } else
         {
             hash = add(hash, "s"); // tickers, orderbooks, ohlcvs ...
         }
-        if (!isEqual(extra, null))
+        if ((extra != null))
         {
             hash = add(hash, add("::", extra));
         }
@@ -220,7 +220,7 @@ public partial class lighter : ccxt.lighter
     {
         object symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -246,7 +246,7 @@ public partial class lighter : ccxt.lighter
     public async override Task<object> unWatchOrderBook(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -352,7 +352,7 @@ public partial class lighter : ccxt.lighter
     {
         object symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -377,7 +377,7 @@ public partial class lighter : ccxt.lighter
     public async override Task<object> unWatchTicker(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -404,7 +404,7 @@ public partial class lighter : ccxt.lighter
     public async override Task<ccxt.Tickers> WatchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -414,11 +414,11 @@ public partial class lighter : ccxt.lighter
         };
         List<object> messageHashes = new List<object>() {};
         int symbolsLength = 0;
-        if (!isEqual(symbols, null))
+        if ((symbols != null))
         {
             symbolsLength = getArrayLength(symbols);
         }
-        if ((isEqual(symbols, null)) || (isEqual(symbolsLength, 0)))
+        if (((symbols == null)) || (isEqual(symbolsLength, 0)))
         {
             ((IList<object>)messageHashes).Add(this.getMessageHash("ticker"));
         } else
@@ -451,7 +451,7 @@ public partial class lighter : ccxt.lighter
     public async override Task<object> unWatchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -658,7 +658,7 @@ public partial class lighter : ccxt.lighter
     public async override Task<List<ccxt.Trade>> WatchTrades(string symbol, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -683,7 +683,7 @@ public partial class lighter : ccxt.lighter
     public async override Task<object> unWatchTrades(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -833,7 +833,7 @@ public partial class lighter : ccxt.lighter
         {
             return ((bool)((object)(false))!);  // nothing to process
         }
-        if (isEqual(this.myTrades, null))
+        if ((this.myTrades == null))
         {
             Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);
             this.myTrades = new ArrayCache(limit);
@@ -881,7 +881,7 @@ public partial class lighter : ccxt.lighter
         object symbolVar = symbol;
         object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -890,7 +890,7 @@ public partial class lighter : ccxt.lighter
         accountIndex = ((IList<object>)accountIndexparametersVariable)[0];
         parameters = ((IList<object>)accountIndexparametersVariable)[1];
         object messageHash = this.getMessageHash("myTrades");
-        if (!isEqual(symbolVar, null))
+        if ((symbolVar != null))
         {
             Dictionary<string, object> market = this.market(symbolVar);
             symbolVar = getValue(market, "symbol");
@@ -920,7 +920,7 @@ public partial class lighter : ccxt.lighter
     public async override Task<object> unWatchMyTrades(object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (!isEqual(symbol, null))
+        if ((symbol != null))
         {
             throw new NotSupported ((string)(this.id + " unWatchMyTrades() does not support a symbol argument, the account trades channel covers every market, unWatch from all markets only")) ;
         }
@@ -974,7 +974,7 @@ public partial class lighter : ccxt.lighter
         string? price = this.safeString(liquidation, "price");
         string? baseValue = Precise.stringMul(contracts, contractSize);
         string? quoteValue = Precise.stringMul(baseValue, price);
-        if (isEqual(market, null))
+        if ((market == null))
         {
             return null;
         }
@@ -1068,7 +1068,7 @@ public partial class lighter : ccxt.lighter
     public async override Task<List<ccxt.Liquidation>> WatchLiquidations(string symbol, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -1092,7 +1092,7 @@ public partial class lighter : ccxt.lighter
     public async override Task<ccxt.Balances> WatchBalance(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -1231,7 +1231,7 @@ public partial class lighter : ccxt.lighter
     {
         object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -1241,7 +1241,7 @@ public partial class lighter : ccxt.lighter
         parameters = ((IList<object>)accountIndexparametersVariable)[1];
         object messageHash = null;
         Dictionary<string, object> request = new Dictionary<string, object>() {};
-        if (!isEqual(symbol, null))
+        if ((symbol != null))
         {
             Dictionary<string, object> market = this.market(symbol);
             messageHash = this.getMessageHash("orders", getValue(market, "symbol"));
@@ -1271,7 +1271,7 @@ public partial class lighter : ccxt.lighter
     public async override Task<object> unWatchOrders(object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -1281,7 +1281,7 @@ public partial class lighter : ccxt.lighter
         parameters = ((IList<object>)accountIndexparametersVariable)[1];
         object subMessageHash = null;
         Dictionary<string, object> request = new Dictionary<string, object>() {};
-        if (!isEqual(symbol, null))
+        if ((symbol != null))
         {
             Dictionary<string, object> market = this.market(symbol);
             subMessageHash = this.getMessageHash("orders", getValue(market, "symbol"));
@@ -1463,7 +1463,7 @@ public partial class lighter : ccxt.lighter
         {
             return ((bool)((object)(false))!);  // nothing to process
         }
-        if (isEqual(this.orders, null))
+        if ((this.orders == null))
         {
             Int64? limit = this.safeInteger(this.options, "ordersLimit", 1000);
             this.orders = new ArrayCache(limit);

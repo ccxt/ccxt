@@ -66,7 +66,7 @@ public partial class lbank : ccxt.lbank
     {
         // the spot ws rejects futures ids and lbank's contract ws protocol is not published,
         // see https://github.com/ccxt/ccxt/issues/26864
-        if ((!isEqual(market, null)) && (isEqual(getValue(market, "contract"), true)))
+        if (((market != null)) && (isEqual(getValue(market, "contract"), true)))
         {
             throw new NotSupported ((string)(add((add((this.id + " "), methodName) + "() does not support "), getValue(market, "type")) + " markets yet")) ;
         }
@@ -89,7 +89,7 @@ public partial class lbank : ccxt.lbank
         string timeframeVar = timeframe;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -137,7 +137,7 @@ public partial class lbank : ccxt.lbank
         object limitVar = limit;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -271,7 +271,7 @@ public partial class lbank : ccxt.lbank
     public async override Task<ccxt.Ticker> FetchTickerWs(string symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -301,7 +301,7 @@ public partial class lbank : ccxt.lbank
     public async override Task<ccxt.Ticker> WatchTicker(string symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -417,7 +417,7 @@ public partial class lbank : ccxt.lbank
     public async override Task<List<ccxt.Trade>> FetchTradesWs(string symbol, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -454,7 +454,7 @@ public partial class lbank : ccxt.lbank
     public async override Task<List<ccxt.Trade>> WatchTrades(string symbol, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -588,7 +588,7 @@ public partial class lbank : ccxt.lbank
     {
         string symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -596,7 +596,7 @@ public partial class lbank : ccxt.lbank
         string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
         string? messageHash = null;
         string pair = "all";
-        if (isEqual(symbolVar, null))
+        if ((symbolVar == null))
         {
             messageHash = "orders:all";
         } else
@@ -640,7 +640,7 @@ public partial class lbank : ccxt.lbank
         string? marketId = this.safeString(message, "pair");
         string? symbol = this.safeSymbol(marketId, null, "_");
         object myOrders = this.orders;
-        if (isEqual(this.orders, null))
+        if ((this.orders == null))
         {
             Int64? limit = this.safeInteger(this.options, "ordersLimit", 1000);
             myOrders = new ArrayCacheBySymbolById(limit);
@@ -767,7 +767,7 @@ public partial class lbank : ccxt.lbank
     public async override Task<ccxt.Balances> WatchBalance(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -833,7 +833,7 @@ public partial class lbank : ccxt.lbank
     public async override Task<ccxt.OrderBook> FetchOrderBookWs(string symbol, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -870,7 +870,7 @@ public partial class lbank : ccxt.lbank
     {
         object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }

@@ -1346,7 +1346,7 @@ public partial class poloniex : Exchange
         await this.loadMarkets();
         IDictionary<string, object> market = null;
         Dictionary<string, object> request = new Dictionary<string, object>() {};
-        if (!isEqual(symbols, null))
+        if ((symbols != null))
         {
             symbols = this.marketSymbols(symbols, null, true, true, false);
             int symbolsLength = getArrayLength(symbols);
@@ -1795,7 +1795,7 @@ public partial class poloniex : Exchange
             return ccxt.BaseExchange.ToTradeList(await this.fetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, parameters));
         }
         IDictionary<string, object> market = null;
-        if (!isEqual(symbol, null))
+        if ((symbol != null))
         {
             market = this.market(symbol);
         }
@@ -1815,7 +1815,7 @@ public partial class poloniex : Exchange
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
-        if (isContract && !isEqual(symbol, null))
+        if (isContract && (symbol != null))
         {
             ((IDictionary<string,object>)request)["symbol"] = this.safeString(market, "id");
         }
@@ -2127,7 +2127,7 @@ public partial class poloniex : Exchange
         await this.loadMarkets();
         IDictionary<string, object> market = null;
         Dictionary<string, object> request = new Dictionary<string, object>() {};
-        if (!isEqual(symbol, null))
+        if ((symbol != null))
         {
             market = this.market(symbol);
             ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
@@ -2241,7 +2241,7 @@ public partial class poloniex : Exchange
         await this.loadMarkets();
         IDictionary<string, object> market = null;
         Dictionary<string, object> request = new Dictionary<string, object>() {};
-        if (!isEqual(symbol, null))
+        if ((symbol != null))
         {
             market = this.market(symbol);
             ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
@@ -2540,7 +2540,7 @@ public partial class poloniex : Exchange
         //
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        if (isEqual(symbol, null))
+        if ((symbol == null))
         {
             throw new ArgumentsRequired ((string)(this.id + " cancelOrder() requires a symbol argument")) ;
         }
@@ -2611,7 +2611,7 @@ public partial class poloniex : Exchange
             { "symbols", new List<object>() {} },
         };
         IDictionary<string, object> market = null;
-        if (!isEqual(symbol, null))
+        if ((symbol != null))
         {
             market = this.market(symbol);
             ((IDictionary<string,object>)request)["symbols"] = new List<object>() {getValue(market, "id")};
@@ -2692,7 +2692,7 @@ public partial class poloniex : Exchange
             { "id", idVar },
         };
         IDictionary<string, object> market = null;
-        if (!isEqual(symbol, null))
+        if ((symbol != null))
         {
             market = this.market(symbol);
             ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
@@ -3152,7 +3152,7 @@ public partial class poloniex : Exchange
         }
         string? tag = null;
         this.checkAddress(address);
-        if (!isEqual(networkEntry, null))
+        if ((networkEntry != null))
         {
             string? depositAddress = this.safeString(getValue(networkEntry, "info"), "depositAddress");
             if ((depositAddress != null))
@@ -3260,7 +3260,7 @@ public partial class poloniex : Exchange
             throw new ArgumentsRequired ((string)(add((this.id + " withdraw requires a network parameter for "), code) + ".")) ;
         }
         ((IDictionary<string,object>)request)["network"] = this.networkCodeToId(networkCode, code);
-        if (!isEqual(tagVar, null))
+        if ((tagVar != null))
         {
             ((IDictionary<string,object>)request)["paymentId"] = tagVar;
         }
@@ -3378,7 +3378,7 @@ public partial class poloniex : Exchange
         await this.loadMarkets();
         object response = ccxt.BaseExchange.FromDict(await this.FetchTransactionsHelper(code, since, limit, parameters));
         IDictionary<string, object> currency = null;
-        if (!isEqual(code, null))
+        if ((code != null))
         {
             currency = this.currency(((string)code));
         }
@@ -3406,7 +3406,7 @@ public partial class poloniex : Exchange
         parameters ??= new Dictionary<string, object>();
         object response = ccxt.BaseExchange.FromDict(await this.FetchTransactionsHelper(code, since, limit, parameters));
         IDictionary<string, object> currency = null;
-        if (!isEqual(code, null))
+        if ((code != null))
         {
             currency = this.currency(((string)code));
         }
@@ -3501,7 +3501,7 @@ public partial class poloniex : Exchange
             string? currencyId = ((string)getValue(responseKeys, i));
             string? code = this.safeCurrencyCode(currencyId);
             object feeInfo = getValue(response, currencyId);
-            if (((code != null)) && ((isEqual(codes, null)) || (this.inArray(code, codes))))
+            if (((code != null)) && (((codes == null)) || (this.inArray(code, codes))))
             {
                 Dictionary<string, object> currency = this.currency(((string)code));
                 ((IDictionary<string,object>)depositWithdrawFees)[(string)code] = this.parseDepositWithdrawFee(feeInfo, currency);
@@ -3582,7 +3582,7 @@ public partial class poloniex : Exchange
         parameters ??= new Dictionary<string, object>();
         object response = ccxt.BaseExchange.FromDict(await this.FetchTransactionsHelper(code, since, limit, parameters));
         IDictionary<string, object> currency = null;
-        if (!isEqual(code, null))
+        if ((code != null))
         {
             currency = this.currency(((string)code));
         }
@@ -3706,7 +3706,7 @@ public partial class poloniex : Exchange
     public async override Task<Dictionary<string, object>> SetLeverage(object leverage, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(symbol, null))
+        if ((symbol == null))
         {
             throw new ArgumentsRequired ((string)(this.id + " setLeverage() requires a symbol argument")) ;
         }
@@ -4190,7 +4190,7 @@ public partial class poloniex : Exchange
 
     public override object handleErrors(object code, object reason, object url, object method, object headers, object body, object response, object requestHeaders, object requestBody)
     {
-        if (isEqual(response, null))
+        if ((response == null))
         {
             return null;
         }

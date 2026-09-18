@@ -127,7 +127,7 @@ public partial class testMainClass
 
     public virtual void checkIfSpecificTestIsChosen(object methodArgv)
     {
-        if (!isEqual(methodArgv, null))
+        if ((methodArgv != null))
         {
             List<object> testFileNames = new List<object>(((IDictionary<string,object>)this.testFiles).Keys);
             List<object> possibleMethodNames = ((string)methodArgv).Split(new [] {((string)",")}, StringSplitOptions.None).ToList<object>(); // i.e. `test.ts binance fetchBalance,fetchDeposits`
@@ -674,7 +674,7 @@ public partial class testMainClass
 
     public virtual object getExchangeCode(BaseExchange exchange, object codes = null)
     {
-        if (isEqual(codes, null))
+        if ((codes == null))
         {
             codes = new List<object>() {"BTC", "ETH", "XRP", "LTC", "BCH", "EOS", "BNB", "BSV", "USDT"};
         }
@@ -890,7 +890,7 @@ public partial class testMainClass
         // `has` values can be true, false, undefined or 'emulated', so only false/undefined mean unsupported
         bool hasSpot = (!isEqual(getValue(exchange.has, "spot"), null)) && (!isEqual(getValue(exchange.has, "spot"), false));
         bool hasSwap = (!isEqual(getValue(exchange.has, "swap"), null)) && (!isEqual(getValue(exchange.has, "swap"), false));
-        if (!isEqual(providedSymbol, null))
+        if ((providedSymbol != null))
         {
             object market = exchange.market(providedSymbol);
             if (isEqual(getValue(market, "spot"), true))
@@ -1355,7 +1355,7 @@ public partial class testMainClass
 
     public async virtual Task<object> cancelPredictionOrder(BaseExchange exchange, object orderId, object outcome)
     {
-        if (isEqual(orderId, null))
+        if ((orderId == null))
         {
             return true;
         }
@@ -1610,7 +1610,7 @@ public partial class testMainClass
         object calculatedString = jsonStringify(calculatedOutput);
         object storedString = jsonStringify(storedOutput);
         object errorMessage = message;
-        if (!isEqual(key, null))
+        if ((key != null))
         {
             errorMessage = (add("[", key) + "]");
         }
@@ -1651,7 +1651,7 @@ public partial class testMainClass
     public virtual object loadStaticData(object folder, object targetExchange = null)
     {
         Dictionary<string, object> result = new Dictionary<string, object>() {};
-        if (!isEqual(targetExchange, null) && !isEqual(targetExchange, ""))
+        if ((targetExchange != null) && !isEqual(targetExchange, ""))
         {
             // read a single exchange
             object path = add(add(folder, targetExchange), ".json");
@@ -1684,7 +1684,7 @@ public partial class testMainClass
 
     public virtual object removeHostnamefromUrl(object url)
     {
-        if (isEqual(url, null))
+        if ((url == null))
         {
             return null;
         }
@@ -1740,7 +1740,7 @@ public partial class testMainClass
     // computed float zero would not be treated as empty and would mismatch a stored null (#30082)
     public virtual object isEmptyOutputValue(BaseExchange exchange, object value)
     {
-        if ((isEqual(value, null)) || (isEqual(value, false)) || (isEqual(value, "")))
+        if (((value == null)) || (isEqual(value, false)) || (isEqual(value, "")))
         {
             return true;
         }
@@ -1888,7 +1888,7 @@ public partial class testMainClass
                 // top-level wrapper.
                 this.assertNewAndStoredOutputInner(exchange, skipKeys, newValue, storedValue, strictTypeCheck, key);
             }
-        } else if ((!isEqual(storedOutput, null)) && (!isEqual(newOutput, null)) && ((storedOutput is IList<object>) || (storedOutput.GetType().IsGenericType && storedOutput.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))) && (((newOutput is IList<object>) || (newOutput.GetType().IsGenericType && newOutput.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
+        } else if (((storedOutput != null)) && ((newOutput != null)) && ((storedOutput is IList<object>) || (storedOutput.GetType().IsGenericType && storedOutput.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))) && (((newOutput is IList<object>) || (newOutput.GetType().IsGenericType && newOutput.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
         {
             int storedArrayLength = getArrayLength(storedOutput);
             int newArrayLength = getArrayLength(newOutput);
@@ -2034,7 +2034,7 @@ public partial class testMainClass
     public virtual object varToString(object obj = null)
     {
         object newString = null;
-        if (isEqual(obj, null))
+        if ((obj == null))
         {
             newString = "undefined";
         } else if (isTrue(isNullValue(obj)))
@@ -2058,9 +2058,9 @@ public partial class testMainClass
         }
         // body (aka storedOutput and newOutput) is not defined and information is in the url
         // example: "https://open-api.bingx.com/openApi/spot/v1/trade/order?quoteOrderQty=5&side=BUY&symbol=LTC-USDT&timestamp=1698777135343&type=MARKET&signature=d55a7e4f7f9dbe56c4004c9f3ab340869d3cb004e2f0b5b861e5fbd1762fd9a0
-        if ((isEqual(storedOutput, null)) && (isEqual(newOutput, null)))
+        if (((storedOutput == null)) && ((newOutput == null)))
         {
-            if ((!isEqual(storedUrl, null)) && (!isEqual(requestUrl, null)))
+            if (((storedUrl != null)) && ((requestUrl != null)))
             {
                 List<object> storedUrlParts = ((string)storedUrl).Split(new [] {((string)"?")}, StringSplitOptions.None).ToList<object>();
                 List<object> newUrlParts = ((string)requestUrl).Split(new [] {((string)"?")}, StringSplitOptions.None).ToList<object>();
@@ -2078,7 +2078,7 @@ public partial class testMainClass
                 return true;
             }
         }
-        if (isEqual(type, "json") && (!isEqual(storedOutput, null)) && (!isEqual(newOutput, null)))
+        if (isEqual(type, "json") && ((storedOutput != null)) && ((newOutput != null)))
         {
             if ((storedOutput is string))
             {
@@ -2088,7 +2088,7 @@ public partial class testMainClass
             {
                 newOutput = jsonParse(newOutput);
             }
-        } else if (isEqual(type, "urlencoded") && (!isEqual(storedOutput, null)) && (!isEqual(newOutput, null)))
+        } else if (isEqual(type, "urlencoded") && ((storedOutput != null)) && ((newOutput != null)))
         {
             storedOutput = this.urlencodedToDict(storedOutput);
             newOutput = this.urlencodedToDict(newOutput);
@@ -2116,7 +2116,7 @@ public partial class testMainClass
     public virtual object sanitizeDataInput(object input)
     {
         // remove nulls and replace with unefined instead
-        if (isEqual(input, null))
+        if ((input == null))
         {
             return null;
         }
@@ -2395,7 +2395,7 @@ public partial class testMainClass
             {
                 object result = getValue(results, j);
                 object description = getValue(result, "description");
-                if ((!isEqual(testName, null)) && (!isEqual(testName, description)))
+                if (((testName != null)) && (!isEqual(testName, description)))
                 {
                     continue;
                 }
@@ -2635,7 +2635,7 @@ public partial class testMainClass
                 // exchange.options = exchange.deepExtend (oldExchangeOptions, testExchangeOptions); // custom options to be used in the tests
                 exchange.extendExchangeOptions(exchange.deepExtend(oldExchangeOptions, testExchangeOptions));
                 object description = exchange.safeValue(result, "description");
-                if ((!isEqual(testName, null)) && (!isEqual(testName, description)))
+                if (((testName != null)) && (!isEqual(testName, description)))
                 {
                     continue;
                 }
@@ -2743,7 +2743,7 @@ public partial class testMainClass
                 {
                     continue;
                 }
-                if ((!isEqual(testName, null)) && (!isEqual(testName, description)))
+                if (((testName != null)) && (!isEqual(testName, description)))
                 {
                     continue;
                 }
@@ -2778,7 +2778,7 @@ public partial class testMainClass
 
     public virtual object getNumberOfTestsFromExchange(BaseExchange exchange, object exchangeData, object testName = null)
     {
-        if (!isEqual(testName, null))
+        if ((testName != null))
         {
             return 1;
         }
@@ -2869,11 +2869,11 @@ public partial class testMainClass
         Exchange exchange = ((Exchange)initExchange("Exchange", new Dictionary<string, object>() {})); // tmp to do the calculations until we have the ast-transpiler transpiling this code
         List<object> promises = new List<object>() {};
         object sum = 0;
-        if (!isEqual(targetExchange, null) && !isEqual(targetExchange, ""))
+        if ((targetExchange != null) && !isEqual(targetExchange, ""))
         {
             dump(add("[INFO:MAIN] Exchange to test: ", targetExchange));
         }
-        if (!isEqual(testName, null) && !isEqual(testName, ""))
+        if ((testName != null) && !isEqual(testName, ""))
         {
             dump(add("[INFO:MAIN] Testing only: ", testName));
         }

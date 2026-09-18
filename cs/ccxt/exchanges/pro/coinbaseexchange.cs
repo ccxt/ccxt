@@ -60,14 +60,14 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
     public async virtual Task<object> subscribe(object name, object symbol = null, object messageHashStart = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
         IDictionary<string, object> market = null;
         object messageHash = messageHashStart;
         List<object> productIds = new List<object>() {};
-        if (!isEqual(symbol, null))
+        if ((symbol != null))
         {
             market = this.market(symbol);
             messageHash = add(messageHash, add(":", getValue(market, "id")));
@@ -92,7 +92,7 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
     {
         symbols ??= new List<object>();
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -149,11 +149,11 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
     public async override Task<ccxt.Tickers> WatchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
-        if (isEqual(symbols, null))
+        if ((symbols == null))
         {
             throw new ArgumentsRequired ((string)(this.id + " watchTickers() symbols is required")) ;
         }
@@ -189,7 +189,7 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
         object symbolVar = symbol;
         object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -222,7 +222,7 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
         {
             throw new BadRequest ((string)(this.id + " watchTradesForSymbols() requires a non-empty array of symbols")) ;
         }
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -253,11 +253,11 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
         object symbolVar = symbol;
         object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(symbolVar, null))
+        if ((symbolVar == null))
         {
             throw new ArgumentsRequired ((string)(this.id + " watchMyTrades() requires a symbol argument")) ;
         }
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -288,7 +288,7 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
         object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         symbols = this.marketSymbols(symbols, null, false);
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -319,7 +319,7 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
     {
         object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -352,11 +352,11 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
         object symbolVar = symbol;
         object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(symbolVar, null))
+        if ((symbolVar == null))
         {
             throw new BadSymbol ((string)(this.id + " watchMyTrades requires a symbol")) ;
         }
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -390,7 +390,7 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
             throw new BadRequest ((string)(this.id + " watchOrderBookForSymbols() requires a non-empty array of symbols")) ;
         }
         string name = "level2";
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -434,7 +434,7 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
         object symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
         string name = "level2";
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }

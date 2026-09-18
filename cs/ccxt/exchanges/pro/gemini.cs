@@ -50,7 +50,7 @@ public partial class gemini : ccxt.gemini
     {
         object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -258,7 +258,7 @@ public partial class gemini : ccxt.gemini
 
     public virtual void handleTradesForMultidata(WebSocketClient client, object trades, object timestamp)
     {
-        if (!isEqual(trades, null))
+        if ((trades != null))
         {
             Int64? tradesLimit = this.safeInteger(this.options, "tradesLimit", 1000);
             Dictionary<string, object> storesForSymbols = new Dictionary<string, object>() {};
@@ -308,7 +308,7 @@ public partial class gemini : ccxt.gemini
         object limitVar = limit;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -408,7 +408,7 @@ public partial class gemini : ccxt.gemini
     public async override Task<ccxt.pro.IOrderBook> WatchOrderBook(string symbol, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -574,11 +574,11 @@ public partial class gemini : ccxt.gemini
     public async virtual Task<object> helperForWatchMultipleConstruct(object itemHashName, object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
-        if (isEqual(symbols, null))
+        if ((symbols == null))
         {
             throw new NotSupported ((string)(this.id + " watchMultiple requires at least one symbol")) ;
         }
@@ -726,7 +726,7 @@ public partial class gemini : ccxt.gemini
         object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         object url = add(getValue(getValue(this.urls, "api"), "ws"), "/v1/order/events?eventTypeFilter=initial&eventTypeFilter=accepted&eventTypeFilter=rejected&eventTypeFilter=fill&eventTypeFilter=cancelled&eventTypeFilter=booked");
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -734,7 +734,7 @@ public partial class gemini : ccxt.gemini
             { "url", url },
         };
         await this.authenticate(authParams);
-        if (!isEqual(symbolVar, null))
+        if ((symbolVar != null))
         {
             Dictionary<string, object> market = this.market(symbolVar);
             symbolVar = getValue(market, "symbol");
@@ -804,7 +804,7 @@ public partial class gemini : ccxt.gemini
         //     ]
         //
         string messageHash = "orders";
-        if (isEqual(this.orders, null))
+        if ((this.orders == null))
         {
             Int64? limit = this.safeInteger(this.options, "ordersLimit", 1000);
             this.orders = new ArrayCacheBySymbolById(limit);
@@ -1035,7 +1035,7 @@ public partial class gemini : ccxt.gemini
         {
             return;
         }
-        if ((!isEqual(this.clients, null)) && (inOp(this.clients, url)))
+        if (((this.clients != null)) && (inOp(this.clients, url)))
         {
             return;
         }

@@ -495,16 +495,16 @@ public partial class lighter : Exchange
         IList<object> libraryPathparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "loadAccount", "libraryPath");
         libraryPath = ((IList<object>)libraryPathparametersVariable)[0];
         parameters = ((IList<object>)libraryPathparametersVariable)[1];
-        bool lighterPrivateKeyIsSet = (!isEqual(privateKey, null)) && (!isEqual(privateKey, ""));
-        if (lighterPrivateKeyIsSet && ((libraryPath != null)) && (!isEqual(apiKeyIndex, null)) && (!isEqual(accountIndex, null)))
+        bool lighterPrivateKeyIsSet = ((privateKey != null)) && (!isEqual(privateKey, ""));
+        if (lighterPrivateKeyIsSet && ((libraryPath != null)) && ((apiKeyIndex != null)) && ((accountIndex != null)))
         {
             // load lighter library, and create lighter client
             signer = await this.loadLighterLibrary(libraryPath, chainId, privateKey, this.parseToInt(apiKeyIndex), this.parseToInt(accountIndex), true);
             ((IDictionary<string,object>)getValue(getValue(getValue(this.options, "auths"), accountIndex), apiKeyIndex))["signer"] = signer;
             return signer;
         }
-        bool privateKeyIsSet = (!isEqual(this.privateKey, null)) && (!isEqual(this.privateKey, ""));
-        if (privateKeyIsSet && (!isEqual(apiKeyIndex, null)) && (!isEqual(accountIndex, null)))
+        bool privateKeyIsSet = ((this.privateKey != null)) && (!isEqual(this.privateKey, ""));
+        if (privateKeyIsSet && ((apiKeyIndex != null)) && ((accountIndex != null)))
         {
             if (((string)this.privateKey).Length > 66)
             {
@@ -621,7 +621,7 @@ public partial class lighter : Exchange
         if (isEqual(accountIndex, null))
         {
             object walletAddress = this.walletAddress;
-            if (!isEqual(this.privateKey, null))
+            if ((this.privateKey != null))
             {
                 if (((string)this.privateKey).Length > 66)
                 {
@@ -904,11 +904,11 @@ public partial class lighter : Exchange
     public virtual object createOrderRequest(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(type, null))
+        if ((type == null))
         {
             throw new ArgumentsRequired ((string)(this.id + " requires a type argument")) ;
         }
-        if (isEqual(side, null))
+        if ((side == null))
         {
             throw new ArgumentsRequired ((string)(this.id + " requires a side argument")) ;
         }
@@ -1107,7 +1107,7 @@ public partial class lighter : Exchange
     public async virtual Task<Int64> FetchNonce(object accountIndex, object apiKeyIndex, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if ((isEqual(accountIndex, null)) || (isEqual(apiKeyIndex, null)))
+        if (((accountIndex == null)) || ((apiKeyIndex == null)))
         {
             throw new ArgumentsRequired ((string)(this.id + " fetchNonce() requires accountIndex and apiKeyIndex.")) ;
         }
@@ -1139,7 +1139,7 @@ public partial class lighter : Exchange
     public async virtual Task<object> signAndCreateOrder(object method, object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -1261,7 +1261,7 @@ public partial class lighter : Exchange
     public async override Task<ccxt.Order> EditOrder(string id, string symbol, string type, string side, double? amount = null, double? price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -1632,11 +1632,11 @@ public partial class lighter : Exchange
     public async override Task<ccxt.OrderBook> FetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(symbol, null))
+        if ((symbol == null))
         {
             throw new ArgumentsRequired ((string)(this.id + " fetchOrderBook() requires a symbol argument")) ;
         }
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -1794,11 +1794,11 @@ public partial class lighter : Exchange
     public async override Task<ccxt.Ticker> FetchTicker(string symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(symbol, null))
+        if ((symbol == null))
         {
             throw new ArgumentsRequired ((string)(this.id + " fetchTicker() requires a symbol argument")) ;
         }
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -1870,7 +1870,7 @@ public partial class lighter : Exchange
     public async override Task<ccxt.Tickers> FetchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -1921,11 +1921,11 @@ public partial class lighter : Exchange
         string timeframeVar = timeframe;
         timeframeVar ??= "1h";
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(symbol, null))
+        if ((symbol == null))
         {
             throw new ArgumentsRequired ((string)(this.id + " fetchOHLCV() requires a symbol argument")) ;
         }
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -2040,7 +2040,7 @@ public partial class lighter : Exchange
     public async override Task<ccxt.FundingRates> FetchFundingRates(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -2085,7 +2085,7 @@ public partial class lighter : Exchange
     public async override Task<ccxt.Balances> FetchBalance(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -2214,7 +2214,7 @@ public partial class lighter : Exchange
     public async override Task<List<ccxt.Position>> FetchPositions(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -2375,7 +2375,7 @@ public partial class lighter : Exchange
     public async override Task<List<ccxt.Account>> FetchAccounts(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -2474,11 +2474,11 @@ public partial class lighter : Exchange
     public async override Task<List<ccxt.Order>> FetchOpenOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(symbol, null))
+        if ((symbol == null))
         {
             throw new ArgumentsRequired ((string)(this.id + " fetchOpenOrders() requires a symbol argument")) ;
         }
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -2560,11 +2560,11 @@ public partial class lighter : Exchange
     public async override Task<List<ccxt.Order>> FetchClosedOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(symbol, null))
+        if ((symbol == null))
         {
             throw new ArgumentsRequired ((string)(this.id + " fetchClosedOrders() requires a symbol argument")) ;
         }
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -2802,7 +2802,7 @@ public partial class lighter : Exchange
 
     public virtual string? parseOrderTypeInteger(object typeInteger)
     {
-        if (isEqual(typeInteger, null))
+        if ((typeInteger == null))
         {
             return null;
         }
@@ -2860,7 +2860,7 @@ public partial class lighter : Exchange
     {
         object amountVar = amount;
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -2934,7 +2934,7 @@ public partial class lighter : Exchange
     public async override Task<List<ccxt.TransferEntry>> FetchTransfers(string code = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -2961,7 +2961,7 @@ public partial class lighter : Exchange
         string strApiKeyIndex = ((string)this.numberToString(apiKeyIndex));
         await this.loadAccount(getValue(this.options, "chainId"), this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, parameters);
         IDictionary<string, object> currency = null;
-        if (!isEqual(code, null))
+        if ((code != null))
         {
             currency = this.currency(((string)code));
         }
@@ -3053,7 +3053,7 @@ public partial class lighter : Exchange
     public async override Task<List<ccxt.Transaction>> FetchDeposits(string code = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -3089,7 +3089,7 @@ public partial class lighter : Exchange
         string strApiKeyIndex = ((string)this.numberToString(apiKeyIndex));
         await this.loadAccount(getValue(this.options, "chainId"), this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, parameters);
         IDictionary<string, object> currency = null;
-        if (!isEqual(code, null))
+        if ((code != null))
         {
             currency = this.currency(((string)code));
             ((IDictionary<string,object>)request)["coin"] = getValue(currency, "id");
@@ -3149,7 +3149,7 @@ public partial class lighter : Exchange
         var accountIndexparametersVariable = await this.handleAccountIndex(parameters, "fetchWithdrawals", "accountIndex", "account_index");
         accountIndex = ((IList<object>)accountIndexparametersVariable)[0];
         parameters = ((IList<object>)accountIndexparametersVariable)[1];
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -3164,7 +3164,7 @@ public partial class lighter : Exchange
         string strApiKeyIndex = ((string)this.numberToString(apiKeyIndex));
         await this.loadAccount(getValue(this.options, "chainId"), this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, parameters);
         IDictionary<string, object> currency = null;
-        if (!isEqual(code, null))
+        if ((code != null))
         {
             currency = this.currency(((string)code));
             ((IDictionary<string,object>)request)["coin"] = getValue(currency, "id");
@@ -3283,7 +3283,7 @@ public partial class lighter : Exchange
     {
         object amountVar = amount;
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -3348,7 +3348,7 @@ public partial class lighter : Exchange
     public async override Task<List<ccxt.Trade>> FetchMyTrades(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -3389,7 +3389,7 @@ public partial class lighter : Exchange
             ((IDictionary<string,object>)request)["from"] = until;
         }
         IDictionary<string, object> market = null;
-        if (!isEqual(symbol, null))
+        if ((symbol != null))
         {
             market = this.market(symbol);
             ((IDictionary<string,object>)request)["market_id"] = getValue(market, "id");
@@ -3527,7 +3527,7 @@ public partial class lighter : Exchange
     public async override Task<Dictionary<string, object>> SetLeverage(object leverage, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(symbol, null))
+        if ((symbol == null))
         {
             throw new ArgumentsRequired ((string)(this.id + " setLeverage() requires a symbol argument")) ;
         }
@@ -3557,7 +3557,7 @@ public partial class lighter : Exchange
     public async override Task<Dictionary<string, object>> SetMarginMode(string marginMode, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(marginMode, null))
+        if ((marginMode == null))
         {
             throw new ArgumentsRequired ((string)(this.id + " setMarginMode() requires an marginMode parameter")) ;
         }
@@ -3575,7 +3575,7 @@ public partial class lighter : Exchange
     public async virtual Task<object> modifyLeverageAndMarginMode(object leverage, object marginMode, object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -3587,7 +3587,7 @@ public partial class lighter : Exchange
         IList<object> apiKeyIndexparametersVariable = (IList<object>)this.handleApiKeyIndex(parameters, "modifyLeverageAndMarginMode", "apiKeyIndex", "api_key_index");
         apiKeyIndex = ((IList<object>)apiKeyIndexparametersVariable)[0];
         parameters = ((IList<object>)apiKeyIndexparametersVariable)[1];
-        if (isEqual(symbol, null))
+        if ((symbol == null))
         {
             throw new ArgumentsRequired ((string)(this.id + " modifyLeverageAndMarginMode() requires a symbol argument")) ;
         }
@@ -3621,11 +3621,11 @@ public partial class lighter : Exchange
     public async virtual Task<object> signAndCancelOrder(object method, object id, object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
-        if (isEqual(symbol, null))
+        if ((symbol == null))
         {
             throw new ArgumentsRequired ((string)(add((this.id + " "), method) + " requires a symbol argument")) ;
         }
@@ -3653,7 +3653,7 @@ public partial class lighter : Exchange
         if ((clientOrderId != null))
         {
             ((IDictionary<string,object>)signRaw)["order_index"] = this.parseToInt(clientOrderId);
-        } else if (!isEqual(id, null))
+        } else if ((id != null))
         {
             ((IDictionary<string,object>)signRaw)["order_index"] = this.parseToInt(id);
         } else
@@ -3695,7 +3695,7 @@ public partial class lighter : Exchange
     public async virtual Task<object> signAndCancelAllOrders(object method, object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -3759,7 +3759,7 @@ public partial class lighter : Exchange
     public async override Task<Dictionary<string, object>> CancelAllOrdersAfter(object timeout, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -3847,7 +3847,7 @@ public partial class lighter : Exchange
     public async override Task<ccxt.MarginModification> SetMargin(string symbol, double amount, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -3864,7 +3864,7 @@ public partial class lighter : Exchange
         {
             throw new ArgumentsRequired ((string)(this.id + " setMargin() requires a direction parameter either 1 (increase margin) or 0 (decrease margin)")) ;
         }
-        if (isEqual(symbol, null))
+        if ((symbol == null))
         {
             throw new ArgumentsRequired ((string)(this.id + " setMargin() requires a symbol argument")) ;
         }
@@ -3955,7 +3955,7 @@ public partial class lighter : Exchange
 
     public override object handleErrors(object httpCode, object reason, object url, object method, object headers, object body, object response, object requestHeaders, object requestBody)
     {
-        if ((isEqual(response, null)) || (isEqual(response, null)))
+        if (((response == null)) || ((response == null)))
         {
             return null;  // fallback to default error handler
         }

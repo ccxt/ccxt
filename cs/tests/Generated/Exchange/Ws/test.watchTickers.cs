@@ -37,7 +37,7 @@ public partial class testMainClass : BaseTest
                 // to "all tickers" itself, and it requires symbols to be set
                 // so, in such case, if it's arguments-required exception, we don't
                 // mark tests as failed, but just skip them
-                if (isTrue((e is ArgumentsRequired)) && (isEqual(argSymbols, null) || (getArrayLength(argSymbols) == 0)))
+                if (isTrue((e is ArgumentsRequired)) && ((argSymbols == null) || (getArrayLength(argSymbols) == 0)))
                 {
                     // todo: provide random symbols to try
                     // return;
@@ -59,7 +59,7 @@ public partial class testMainClass : BaseTest
                 assert(exchange.isDictionary(response), add(add(add(add(add(add(exchange.id, " "), method), " "), exchange.json(argSymbols)), " must return a dictionary. "), exchange.json(response)));
                 List<object> values = new List<object>(((IDictionary<string,object>)response).Values);
                 object checkedSymbol = null;
-                if (!isEqual(argSymbols, null) && (getArrayLength(argSymbols) == 1))
+                if ((argSymbols != null) && (getArrayLength(argSymbols) == 1))
                 {
                     checkedSymbol = getValue(argSymbols, 0);
                 }

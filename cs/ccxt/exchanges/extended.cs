@@ -496,7 +496,7 @@ public partial class extended : Exchange
     public virtual object indexByStringifiedNumericId(object input)
     {
         Dictionary<string, object> result = new Dictionary<string, object>() {};
-        if (isEqual(input, null))
+        if ((input == null))
         {
             return null;
         }
@@ -941,7 +941,7 @@ public partial class extended : Exchange
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols);
         Dictionary<string, object> request = new Dictionary<string, object>() {};
-        if (!isEqual(symbols, null))
+        if ((symbols != null))
         {
             List<object> marketIds = new List<object>() {};
             for (int i = 0; i < getArrayLength(symbols); postFixIncrement(ref i))
@@ -1168,7 +1168,7 @@ public partial class extended : Exchange
         }
         IDictionary<string, object> market = null;
         Dictionary<string, object> request = new Dictionary<string, object>() {};
-        if (!isEqual(symbol, null))
+        if ((symbol != null))
         {
             market = this.market(symbol);
             ((IDictionary<string,object>)request)["market"] = getValue(market, "id");
@@ -1249,7 +1249,7 @@ public partial class extended : Exchange
         }
         IDictionary<string, object> market = null;
         Dictionary<string, object> request = new Dictionary<string, object>() {};
-        if (!isEqual(symbol, null))
+        if ((symbol != null))
         {
             market = this.market(symbol);
             ((IDictionary<string,object>)request)["market"] = getValue(market, "id");
@@ -1345,7 +1345,7 @@ public partial class extended : Exchange
         {
             ((IList<object>)result).Add(this.parseFundingHistory(getValue(histories, i), market));
         }
-        object symbol = ((bool) (isEqual(market, null))) ? null : getValue(market, "symbol");
+        object symbol = ((bool) ((market == null))) ? null : getValue(market, "symbol");
         return this.filterBySymbolSinceLimit(result, symbol, since, limit);
     }
 
@@ -1392,7 +1392,7 @@ public partial class extended : Exchange
         string? feeCost = this.safeString(trade, "fee");
         Dictionary<string, object> fee = ((bool) ((feeCost == null))) ? null : new Dictionary<string, object>() {
     { "cost", feeCost },
-    { "currency", ((bool) (isEqual(market, null))) ? null : getValue(market, "settle") },
+    { "currency", ((bool) ((market == null))) ? null : getValue(market, "settle") },
 };
         bool? isTaker = this.safeBool(trade, "isTaker");
         string? takerOrMaker = null;
@@ -1522,7 +1522,7 @@ public partial class extended : Exchange
         object sinceVar = since;
         object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(symbolVar, null))
+        if ((symbolVar == null))
         {
             throw new ArgumentsRequired ((string)(this.id + " fetchFundingRateHistory() requires a symbol argument")) ;
         }
@@ -1878,7 +1878,7 @@ public partial class extended : Exchange
             return ccxt.BaseExchange.ToLedgerEntryList(await this.fetchPaginatedCallCursor("fetchLedger", code, since, limit, parameters, "cursor", "cursor", null, 50));
         }
         IDictionary<string, object> currency = null;
-        if (!isEqual(code, null))
+        if ((code != null))
         {
             currency = this.currency(((string)code));
         }
@@ -1985,7 +1985,7 @@ public partial class extended : Exchange
             return ccxt.BaseExchange.ToTransactionList(await this.fetchPaginatedCallCursor("fetchTransactions", code, since, limit, parameters, "cursor", "cursor", null, 50));
         }
         IDictionary<string, object> currency = null;
-        if (!isEqual(code, null))
+        if ((code != null))
         {
             currency = this.currency(((string)code));
         }
@@ -2153,7 +2153,7 @@ public partial class extended : Exchange
             return ccxt.BaseExchange.ToTransferEntryList(await this.fetchPaginatedCallCursor("fetchTransfers", code, since, limit, parameters, "cursor", "cursor", null, 50));
         }
         IDictionary<string, object> currency = null;
-        if (!isEqual(code, null))
+        if ((code != null))
         {
             currency = this.currency(((string)code));
         }
@@ -2208,7 +2208,7 @@ public partial class extended : Exchange
         Dictionary<string, object> currency = this.currency(((string)code));
         object account = ccxt.BaseExchange.FromDict(await this.FetchExtendedAccount());
         string? currentAccountId = this.safeString(account, "accountId", "");
-        if (isEqual(fromAccountVar, null))
+        if ((fromAccountVar == null))
         {
             fromAccountVar = currentAccountId;
         } else if (!isEqual(fromAccountVar, currentAccountId))
@@ -2217,7 +2217,7 @@ public partial class extended : Exchange
         }
         string? toVault = this.safeString2(parameters, "toVault", "receiverPositionId");
         string? toL2Key = this.safeString2(parameters, "toL2Key", "receiverPublicKey");
-        if ((isEqual(toAccount, null)) || ((toVault == null)) || ((toL2Key == null)))
+        if (((toAccount == null)) || ((toVault == null)) || ((toL2Key == null)))
         {
             throw new ArgumentsRequired ((string)(this.id + " transfer() requires a toAccount argument and params[\"toVault\"] and params[\"toL2Key\"]")) ;
         }
@@ -2292,7 +2292,7 @@ public partial class extended : Exchange
 
     public virtual object getExtendedCurrencyCodeById(object assetId, object currency = null)
     {
-        if (isEqual(assetId, null))
+        if ((assetId == null))
         {
             return this.safeString(currency, "code");
         }
@@ -2302,7 +2302,7 @@ public partial class extended : Exchange
         {
             return this.safeString(currencyByNumericId, "code");
         }
-        if (!isEqual(currency, null))
+        if ((currency != null))
         {
             return getValue(currency, "code");
         }
@@ -2539,7 +2539,7 @@ public partial class extended : Exchange
     public async override Task<Dictionary<string, object>> SetLeverage(object leverage, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(symbol, null))
+        if ((symbol == null))
         {
             throw new ArgumentsRequired ((string)(this.id + " setLeverage() requires a symbol argument")) ;
         }
@@ -2594,7 +2594,7 @@ public partial class extended : Exchange
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         Dictionary<string, object> request = new Dictionary<string, object>() {};
-        if (!isEqual(symbols, null))
+        if ((symbols != null))
         {
             IList<object> marketIds = this.marketIds(symbols);
             ((IDictionary<string,object>)request)["market"] = marketIds;
@@ -2679,7 +2679,7 @@ public partial class extended : Exchange
             return ccxt.BaseExchange.ToPositionList(await this.fetchPaginatedCallCursor("fetchPositionsHistory", symbols, since, limit, parameters, "cursor", "cursor", null, 10000));
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {};
-        if (!isEqual(symbols, null))
+        if ((symbols != null))
         {
             IList<object> marketIds = this.marketIds(symbols);
             ((IDictionary<string,object>)request)["market"] = marketIds;
@@ -2944,11 +2944,11 @@ public partial class extended : Exchange
     public async virtual Task<Dictionary<string, object>> CreateExtendedOrderRequest(object symbol, object type, object side, double amount, double? price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(type, null))
+        if ((type == null))
         {
             throw new ArgumentsRequired ((string)(this.id + " requires a type argument")) ;
         }
-        if (isEqual(side, null))
+        if ((side == null))
         {
             throw new ArgumentsRequired ((string)(this.id + " requires a side argument")) ;
         }
@@ -3246,7 +3246,7 @@ public partial class extended : Exchange
         double? amountVar = amount;
         double? priceVar = price;
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(id, null))
+        if ((id == null))
         {
             throw new ArgumentsRequired ((string)(this.id + " editOrder() requires an id argument")) ;
         }
@@ -3338,7 +3338,7 @@ public partial class extended : Exchange
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         IDictionary<string, object> market = null;
-        if (!isEqual(symbol, null))
+        if ((symbol != null))
         {
             market = this.market(symbol);
         }
@@ -3353,7 +3353,7 @@ public partial class extended : Exchange
             response = await this.v1PrivateDeleteUserOrder(this.extend(request, parameters));
         } else
         {
-            if (isEqual(id, null))
+            if ((id == null))
             {
                 throw new ArgumentsRequired ((string)(this.id + " cancelOrder() requires an id argument")) ;
             }
@@ -3392,7 +3392,7 @@ public partial class extended : Exchange
         string? clientOrderId = this.safeString2(parameters, "clientOrderId", "client_id");
         parameters = this.omit(parameters, new List<object>() {"clientOrderIds", "client_order_ids", "clientOrderId", "client_id", "externalOrderIds", "external_order_ids", "orderIds", "order_ids", "markets", "cancelAll", "cancel_all"});
         Dictionary<string, object> request = new Dictionary<string, object>() {};
-        bool hasOrderIds = !isEqual(ids, null);
+        bool hasOrderIds = (ids != null);
         if (hasOrderIds)
         {
             int idsLength = getArrayLength(ids);
@@ -3445,7 +3445,7 @@ public partial class extended : Exchange
             { "cancelAll", true },
         };
         IDictionary<string, object> market = null;
-        if (!isEqual(symbol, null))
+        if ((symbol != null))
         {
             market = this.market(symbol);
             ((IDictionary<string,object>)request)["markets"] = new List<object>() {getValue(market, "id")};
@@ -3500,7 +3500,7 @@ public partial class extended : Exchange
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         IDictionary<string, object> market = null;
-        if (!isEqual(symbol, null))
+        if ((symbol != null))
         {
             market = this.market(symbol);
         }
@@ -3518,7 +3518,7 @@ public partial class extended : Exchange
             order = this.safeDict(data, 0, new Dictionary<string, object>() {});
         } else
         {
-            if (isEqual(id, null))
+            if ((id == null))
             {
                 throw new ArgumentsRequired ((string)(this.id + " fetchOrder() requires an id argument")) ;
             }
@@ -3548,7 +3548,7 @@ public partial class extended : Exchange
         await this.loadMarkets();
         IDictionary<string, object> market = null;
         Dictionary<string, object> request = new Dictionary<string, object>() {};
-        if (!isEqual(symbol, null))
+        if ((symbol != null))
         {
             market = this.market(symbol);
             ((IDictionary<string,object>)request)["market"] = getValue(market, "id");
@@ -3612,7 +3612,7 @@ public partial class extended : Exchange
         }
         IDictionary<string, object> market = null;
         Dictionary<string, object> request = new Dictionary<string, object>() {};
-        if (!isEqual(symbol, null))
+        if ((symbol != null))
         {
             market = this.market(symbol);
             ((IDictionary<string,object>)request)["market"] = getValue(market, "id");
@@ -3785,7 +3785,7 @@ public partial class extended : Exchange
         IDictionary<string, object> stopLoss = this.safeDict(order, "stopLoss", new Dictionary<string, object>() {});
         Dictionary<string, object> fee = new Dictionary<string, object>() {
             { "cost", feeCost },
-            { "currency", ((bool) (isEqual(market, null))) ? null : getValue(market, "settle") },
+            { "currency", ((bool) ((market == null))) ? null : getValue(market, "settle") },
         };
         return this.safeOrder(new Dictionary<string, object>() {
             { "info", order },
@@ -3926,7 +3926,7 @@ public partial class extended : Exchange
 
     public override object handleErrors(object httpCode, object reason, object url, object method, object headers, object body, object response, object requestHeaders, object requestBody)
     {
-        if (isEqual(response, null))
+        if ((response == null))
         {
             return null;  // fallback to default error handler
         }
@@ -3960,7 +3960,7 @@ public partial class extended : Exchange
         if ((accessibility == "private"))
         {
             // this.checkRequiredCredentials ();
-            if (isEqual(this.apiKey, null))
+            if ((this.apiKey == null))
             {
                 throw new AuthenticationError ((string)(this.id + " sign() requires an apiKey for private endpoints")) ;
             }
