@@ -207,7 +207,7 @@ public partial class gate : ccxt.gate
         object request = this.createOrdersRequest(orders, parameters);
         object firstOrder = getValue(orders, 0);
         Dictionary<string, object> market = this.market(getValue(firstOrder, "symbol"));
-        if (!isEqual(getValue(market, "swap"), true))
+        if (((getValue(market, "swap") as bool?) != true))
         {
             throw new NotSupported ((string)(this.id + " createOrdersWs is not supported for swap markets")) ;
         }
@@ -426,7 +426,7 @@ public partial class gate : ccxt.gate
         {
             market = this.market(symbolVar);
             symbolVar = getValue(market, "symbol");
-            if (!isEqual(getValue(market, "swap"), true))
+            if (((getValue(market, "swap") as bool?) != true))
             {
                 throw new NotSupported ((string)(this.id + " fetchOrdersByStatusWs is only supported by swap markets. Use rest API for other markets")) ;
             }
@@ -473,7 +473,7 @@ public partial class gate : ccxt.gate
         string? marketId = ((string)getValue(market, "id"));
         object url = this.getUrlByMarket(market);
         bool isEuUrl = isGreaterThanOrEqual(getIndexOf(url, "gateeu"), 0);
-        bool isNonEuSpot = (isEqual(getValue(market, "spot"), true)) && !isEuUrl;
+        bool isNonEuSpot = (((getValue(market, "spot") as bool?) == true)) && !isEuUrl;
         string intervalDefault = ((bool) isNonEuSpot) ? "50" : "100ms";
         IList<object> intervalqueryVariable = (IList<object>)this.handleOptionAndParams(parameters, "watchOrderBook", "interval", intervalDefault);
         var interval = ((IList<object>) intervalqueryVariable)[0];
@@ -482,7 +482,7 @@ public partial class gate : ccxt.gate
         string messageHash = add(("orderbook" + ":"), symbolVar);
         if (isEqual(limitVar, null))
         {
-            limitVar = ((bool) (isEqual(getValue(market, "spot"), true))) ? 50 : 100; // max 100 atm
+            limitVar = ((bool) (((getValue(market, "spot") as bool?) == true))) ? 50 : 100; // max 100 atm
             if (isEqual(messageType, "options"))
             {
                 limitVar = 50; // max 50 for options
@@ -494,7 +494,7 @@ public partial class gate : ccxt.gate
         {
             channel = "spot.order_book_update";
             payload = new List<object>() {marketId, interval};
-        } else if (isEqual(getValue(market, "spot"), true))
+        } else if (((getValue(market, "spot") as bool?) == true))
         {
             channel = "spot.obu";
             object finalInterval = interval;
@@ -538,7 +538,7 @@ public partial class gate : ccxt.gate
         symbol = getValue(market, "symbol");
         string? marketId = ((string)getValue(market, "id"));
         bool isEuUrl = isGreaterThanOrEqual(getIndexOf(url, "gateeu"), 0);
-        bool isNonEuSpot = (isEqual(getValue(market, "spot"), true)) && !isEuUrl;
+        bool isNonEuSpot = (((getValue(market, "spot") as bool?) == true)) && !isEuUrl;
         string intervalDefault = ((bool) isNonEuSpot) ? "50" : "100ms";
         object interval = intervalDefault;
         IList<object> intervalparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "watchOrderBook", "interval", interval);
@@ -548,7 +548,7 @@ public partial class gate : ccxt.gate
         object limit = this.safeInteger(parameters, "limit");
         if (isEqual(limit, null))
         {
-            limit = ((bool) (isEqual(getValue(market, "spot"), true))) ? 50 : 100; // max 100 atm
+            limit = ((bool) (((getValue(market, "spot") as bool?) == true))) ? 50 : 100; // max 100 atm
             if (isEqual(messageType, "options"))
             {
                 limit = 50; // max 50 for options
@@ -560,7 +560,7 @@ public partial class gate : ccxt.gate
         {
             channel = "spot.order_book_update";
             payload = new List<object>() {marketId, interval};
-        } else if (isEqual(getValue(market, "spot"), true))
+        } else if (((getValue(market, "spot") as bool?) == true))
         {
             channel = "spot.obu";
             object finalInterval = interval;

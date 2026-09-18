@@ -75,14 +75,14 @@ public partial class testMainClass : BaseTest
         // temp todo: skip inactive markets for now, as they sometimes have weird values and causing issues:
         if (!(inOp(skippedProperties, "checkInactiveMarkets")))
         {
-            if ((market != null) && isEqual(getValue(market, "active"), false))
+            if ((market != null) && ((getValue(market, "active") as bool?) == false))
             {
                 return;
             }
         }
         if (inOp(skippedProperties, "skipNonActiveMarkets"))
         {
-            if ((market == null) || (!isEqual(getValue(market, "active"), true)))
+            if ((market == null) || (((getValue(market, "active") as bool?) != true)))
             {
                 return;
             }

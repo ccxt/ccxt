@@ -3591,7 +3591,7 @@ public partial class okx : Exchange
             { "instId", getValue(market, "id") },
         };
         Dictionary<string, object> response = null;
-        if (isEqual(getValue(market, "option"), true))
+        if (((getValue(market, "option") as bool?) == true))
         {
             response = await this.publicGetPublicOptionTrades(this.extend(request, parameters));
         } else
@@ -4015,10 +4015,10 @@ public partial class okx : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "instType", this.convertToInstrumentType(getValue(market, "type")) },
         };
-        if (isEqual(getValue(market, "spot"), true))
+        if (((getValue(market, "spot") as bool?) == true))
         {
             ((IDictionary<string,object>)request)["instId"] = getValue(market, "id");
-        } else if ((isEqual(getValue(market, "swap"), true)) || (isEqual(getValue(market, "future"), true)) || (isEqual(getValue(market, "option"), true)))
+        } else if ((((getValue(market, "swap") as bool?) == true)) || (((getValue(market, "future") as bool?) == true)) || (((getValue(market, "option") as bool?) == true)))
         {
             ((IDictionary<string,object>)request)["uly"] = add(add(getValue(market, "baseId"), "-"), getValue(market, "quoteId"));
         } else
@@ -4201,7 +4201,7 @@ public partial class okx : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        if (!isEqual(getValue(market, "spot"), true))
+        if (((getValue(market, "spot") as bool?) != true))
         {
             throw new NotSupported ((string)(this.id + " createMarketBuyOrderWithCost() supports spot markets only")) ;
         }
@@ -4230,7 +4230,7 @@ public partial class okx : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        if (!isEqual(getValue(market, "spot"), true))
+        if (((getValue(market, "spot") as bool?) != true))
         {
             throw new NotSupported ((string)(this.id + " createMarketSellOrderWithCost() supports spot markets only")) ;
         }
@@ -4312,7 +4312,7 @@ public partial class okx : Exchange
             ((IDictionary<string,object>)request)["tdMode"] = tradeMode;
         } else if (isEqual(contract, true))
         {
-            if ((isEqual(getValue(market, "swap"), true)) || (isEqual(getValue(market, "future"), true)))
+            if ((((getValue(market, "swap") as bool?) == true)) || (((getValue(market, "future") as bool?) == true)))
             {
                 object positionSide = null;
                 IList<object> positionSideparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "createOrder", "positionSide");
@@ -8280,7 +8280,7 @@ public partial class okx : Exchange
         IDictionary<string, object> marketInfo = this.safeDict(market, "info", new Dictionary<string, object>() {});
         string? ruleType = this.safeString(marketInfo, "ruleType");
         bool isExtendedPerpetual = ((ruleType == "xperp")); // long-dated futures that still pay funding, e.g. ETH-USD_UM_XPERP-310404
-        if ((!isEqual(getValue(market, "swap"), true)) && !isExtendedPerpetual)
+        if ((((getValue(market, "swap") as bool?) != true)) && !isExtendedPerpetual)
         {
             throw new ExchangeError ((string)(this.id + " fetchFundingRate() is only valid for swap markets or XPERP futures")) ;
         }
@@ -8334,7 +8334,7 @@ public partial class okx : Exchange
                 IDictionary<string, object> marketInfo = this.safeDict(market, "info", new Dictionary<string, object>() {});
                 string? ruleType = this.safeString(marketInfo, "ruleType");
                 bool isExtendedPerpetual = ((ruleType == "xperp")); // long-dated futures that still pay funding, e.g. ETH-USD_UM_XPERP-310404
-                if ((!isEqual(getValue(market, "swap"), true)) && !isExtendedPerpetual)
+                if ((((getValue(market, "swap") as bool?) != true)) && !isExtendedPerpetual)
                 {
                     throw new BadRequest ((string)(add((this.id + " fetchFundingRates() symbols must be swap markets or XPERP futures, "), getValue(symbols, i)) + " is not")) ;
                 }
@@ -8394,9 +8394,9 @@ public partial class okx : Exchange
         {
             market = this.market(symbol);
             symbol = getValue(market, "symbol");
-            if (isEqual(getValue(market, "contract"), true))
+            if (((getValue(market, "contract") as bool?) == true))
             {
-                if (isEqual(getValue(market, "linear"), true))
+                if (((getValue(market, "linear") as bool?) == true))
                 {
                     ((IDictionary<string,object>)request)["ctType"] = "linear";
                     ((IDictionary<string,object>)request)["ccy"] = getValue(market, "quoteId");
@@ -9026,7 +9026,7 @@ public partial class okx : Exchange
         string? amount = Precise.stringAbs(amountRaw);
         string? marketId = this.safeString(data, "instId");
         Dictionary<string, object> responseMarket = this.safeMarket(marketId, market);
-        object code = ((bool) (isEqual(getValue(responseMarket, "inverse"), true))) ? getValue(responseMarket, "base") : getValue(responseMarket, "quote");
+        object code = ((bool) (((getValue(responseMarket, "inverse") as bool?) == true))) ? getValue(responseMarket, "base") : getValue(responseMarket, "quote");
         Int64? timestamp = this.safeInteger(data, "ts");
         return new Dictionary<string, object>() {
             { "info", data },
@@ -9092,7 +9092,7 @@ public partial class okx : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        string? type = ((bool) (isEqual(getValue(market, "spot"), true))) ? "MARGIN" : this.convertToInstrumentType(getValue(market, "type"));
+        string? type = ((bool) (((getValue(market, "spot") as bool?) == true))) ? "MARGIN" : this.convertToInstrumentType(getValue(market, "type"));
         string? uly = this.safeString(getValue(market, "info"), "uly");
         if (((uly == null)) || ((uly == "")))
         {
@@ -9424,7 +9424,7 @@ public partial class okx : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        if (!isEqual(getValue(market, "contract"), true))
+        if (((getValue(market, "contract") as bool?) != true))
         {
             throw new BadRequest ((string)(this.id + " fetchOpenInterest() supports contract markets only")) ;
         }

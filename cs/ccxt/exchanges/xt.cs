@@ -1880,7 +1880,7 @@ public partial class xt : Exchange
         }
         if (!isEqual(limitVar, null))
         {
-            if (isEqual(getValue(market, "spot"), true))
+            if (((getValue(market, "spot") as bool?) == true))
             {
                 limitVar = mathMin(limitVar, 1000); // spot max limitVar
             } else
@@ -1899,10 +1899,10 @@ public partial class xt : Exchange
             ((IDictionary<string,object>)request)["endTime"] = until;
         }
         Dictionary<string, object> response = null;
-        if (isEqual(getValue(market, "linear"), true))
+        if (((getValue(market, "linear") as bool?) == true))
         {
             response = await this.publicLinearGetFutureMarketV1PublicQKline(this.extend(request, parameters));
-        } else if (isEqual(getValue(market, "inverse"), true))
+        } else if (((getValue(market, "inverse") as bool?) == true))
         {
             response = await this.publicInverseGetFutureMarketV1PublicQKline(this.extend(request, parameters));
         } else
@@ -2011,7 +2011,7 @@ public partial class xt : Exchange
             { "symbol", getValue(market, "id") },
         };
         Dictionary<string, object> response = null;
-        if (isEqual(getValue(market, "spot"), true))
+        if (((getValue(market, "spot") as bool?) == true))
         {
             if (!isEqual(limit, null))
             {
@@ -2027,10 +2027,10 @@ public partial class xt : Exchange
             {
                 ((IDictionary<string,object>)request)["level"] = 50;
             }
-            if (isEqual(getValue(market, "linear"), true))
+            if (((getValue(market, "linear") as bool?) == true))
             {
                 response = await this.publicLinearGetFutureMarketV1PublicQDepth(this.extend(request, parameters));
-            } else if (isEqual(getValue(market, "inverse"), true))
+            } else if (((getValue(market, "inverse") as bool?) == true))
             {
                 response = await this.publicInverseGetFutureMarketV1PublicQDepth(this.extend(request, parameters));
             }
@@ -2083,7 +2083,7 @@ public partial class xt : Exchange
         //
         IDictionary<string, object> orderBook = this.safeDict(response, "result", new Dictionary<string, object>() {});
         Int64? timestamp = this.safeInteger2(orderBook, "timestamp", "t");
-        if (isEqual(getValue(market, "spot"), true))
+        if (((getValue(market, "spot") as bool?) == true))
         {
             Dictionary<string, object> ob = ((Dictionary<string, object>)this.parseOrderBook(orderBook, symbol, timestamp));
             ((IDictionary<string,object>)ob)["nonce"] = this.safeInteger(orderBook, "lastUpdateId");
@@ -2116,10 +2116,10 @@ public partial class xt : Exchange
             { "symbol", getValue(market, "id") },
         };
         Dictionary<string, object> response = null;
-        if (isEqual(getValue(market, "linear"), true))
+        if (((getValue(market, "linear") as bool?) == true))
         {
             response = await this.publicLinearGetFutureMarketV1PublicQAggTicker(this.extend(request, parameters));
-        } else if (isEqual(getValue(market, "inverse"), true))
+        } else if (((getValue(market, "inverse") as bool?) == true))
         {
             response = await this.publicInverseGetFutureMarketV1PublicQAggTicker(this.extend(request, parameters));
         } else
@@ -2173,7 +2173,7 @@ public partial class xt : Exchange
         //     }
         //
         object ticker = this.safeValue(response, "result");
-        if (isEqual(getValue(market, "spot"), true))
+        if (((getValue(market, "spot") as bool?) == true))
         {
             return ccxt.BaseExchange.ToTicker(this.parseTicker(getValue(ticker, 0), market));
         }
@@ -2498,7 +2498,7 @@ public partial class xt : Exchange
             { "symbol", getValue(market, "id") },
         };
         Dictionary<string, object> response = null;
-        if (isEqual(getValue(market, "spot"), true))
+        if (((getValue(market, "spot") as bool?) == true))
         {
             if (!isEqual(limit, null))
             {
@@ -2511,10 +2511,10 @@ public partial class xt : Exchange
             {
                 ((IDictionary<string,object>)request)["num"] = mathMin(limit, 1000);
             }
-            if (isEqual(getValue(market, "linear"), true))
+            if (((getValue(market, "linear") as bool?) == true))
             {
                 response = await this.publicLinearGetFutureMarketV1PublicQDeal(this.extend(request, parameters));
-            } else if (isEqual(getValue(market, "inverse"), true))
+            } else if (((getValue(market, "inverse") as bool?) == true))
             {
                 response = await this.publicInverseGetFutureMarketV1PublicQDeal(this.extend(request, parameters));
             }
@@ -3041,7 +3041,7 @@ public partial class xt : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        if (!isEqual(getValue(market, "spot"), true))
+        if (((getValue(market, "spot") as bool?) != true))
         {
             throw new NotSupported ((string)(this.id + " createMarketBuyOrderWithCost() supports spot orders only")) ;
         }
@@ -3087,7 +3087,7 @@ public partial class xt : Exchange
         }
         Dictionary<string, object> market = this.market(symbolVar);
         symbolVar = getValue(market, "symbol");
-        if (isEqual(getValue(market, "spot"), true))
+        if (((getValue(market, "spot") as bool?) == true))
         {
             bool isTrailing = (inOp(parameters, "trailingPercent")) || (inOp(parameters, "trailingAmount")) || (inOp(parameters, "trailingTriggerPrice"));
             if (isTrailing)
@@ -3235,7 +3235,7 @@ public partial class xt : Exchange
         bool isStopLoss = (!isEqual(stopLoss, null));
         bool isTakeProfit = (!isEqual(takeProfit, null));
         bool isTrailing = ((trailingPercent != null)) || ((trailingAmount != null));
-        if (isTrailing && (!isEqual(getValue(market, "swap"), true)))
+        if (isTrailing && (((getValue(market, "swap") as bool?) != true)))
         {
             throw new NotSupported ((string)(this.id + " createOrder() trailing orders are only supported on swap markets")) ;
         }
@@ -3273,10 +3273,10 @@ public partial class xt : Exchange
                 ((IDictionary<string,object>)request)["activationPrice"] = this.priceToPrecision(symbol, trailingTriggerPrice);
             }
             parameters = this.omit(parameters, new List<object>() {"trailingPercent", "trailingAmount", "trailingTriggerPrice"});
-            if (isEqual(getValue(market, "linear"), true))
+            if (((getValue(market, "linear") as bool?) == true))
             {
                 response = await this.privateLinearPostFutureTradeV1EntrustCreateTrack(this.extend(request, parameters));
-            } else if (isEqual(getValue(market, "inverse"), true))
+            } else if (((getValue(market, "inverse") as bool?) == true))
             {
                 response = await this.privateInversePostFutureTradeV1EntrustCreateTrack(this.extend(request, parameters));
             }
@@ -3289,10 +3289,10 @@ public partial class xt : Exchange
             string entrustType = ((bool) (isEqual(type, "market"))) ? "STOP_MARKET" : "STOP";
             ((IDictionary<string,object>)request)["entrustType"] = entrustType;
             parameters = this.omit(parameters, "triggerPrice");
-            if (isEqual(getValue(market, "linear"), true))
+            if (((getValue(market, "linear") as bool?) == true))
             {
                 response = await this.privateLinearPostFutureTradeV1EntrustCreatePlan(this.extend(request, parameters));
-            } else if (isEqual(getValue(market, "inverse"), true))
+            } else if (((getValue(market, "inverse") as bool?) == true))
             {
                 response = await this.privateInversePostFutureTradeV1EntrustCreatePlan(this.extend(request, parameters));
             }
@@ -3306,10 +3306,10 @@ public partial class xt : Exchange
                 ((IDictionary<string,object>)request)["triggerProfitPrice"] = this.priceToPrecision(symbol, takeProfit);
             }
             parameters = this.omit(parameters, new List<object>() {"stopLoss", "takeProfit"});
-            if (isEqual(getValue(market, "linear"), true))
+            if (((getValue(market, "linear") as bool?) == true))
             {
                 response = await this.privateLinearPostFutureTradeV1EntrustCreateProfit(this.extend(request, parameters));
-            } else if (isEqual(getValue(market, "inverse"), true))
+            } else if (((getValue(market, "inverse") as bool?) == true))
             {
                 response = await this.privateInversePostFutureTradeV1EntrustCreateProfit(this.extend(request, parameters));
             }
@@ -3317,10 +3317,10 @@ public partial class xt : Exchange
         {
             ((IDictionary<string,object>)request)["orderSide"] = ((string)side).ToUpper();
             ((IDictionary<string,object>)request)["orderType"] = ((string)type).ToUpper();
-            if (isEqual(getValue(market, "linear"), true))
+            if (((getValue(market, "linear") as bool?) == true))
             {
                 response = await this.privateLinearPostFutureTradeV1OrderCreate(this.extend(request, parameters));
-            } else if (isEqual(getValue(market, "inverse"), true))
+            } else if (((getValue(market, "inverse") as bool?) == true))
             {
                 response = await this.privateInversePostFutureTradeV1OrderCreate(this.extend(request, parameters));
             }
@@ -5221,7 +5221,7 @@ public partial class xt : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        if (!isEqual(getValue(market, "contract"), true))
+        if (((getValue(market, "contract") as bool?) != true))
         {
             throw new NotSupported ((string)(this.id + " setLeverage() supports contract markets only")) ;
         }
@@ -5571,7 +5571,7 @@ public partial class xt : Exchange
             return ccxt.BaseExchange.ToFundingRateHistoryList(await this.fetchPaginatedCallCursor("fetchFundingRateHistory", symbol, since, limit, parameters, "id", "id", 1, 200));
         }
         Dictionary<string, object> market = this.market(symbol);
-        if (!isEqual(getValue(market, "swap"), true))
+        if (((getValue(market, "swap") as bool?) != true))
         {
             throw new NotSupported ((string)(this.id + " fetchFundingRateHistory() supports swap contracts only")) ;
         }
@@ -5670,7 +5670,7 @@ public partial class xt : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        if (!isEqual(getValue(market, "swap"), true))
+        if (((getValue(market, "swap") as bool?) != true))
         {
             throw new NotSupported ((string)(this.id + " fetchFundingRate() supports swap contracts only")) ;
         }
@@ -5760,7 +5760,7 @@ public partial class xt : Exchange
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         Dictionary<string, object> market = this.market(symbol);
-        if (!isEqual(getValue(market, "swap"), true))
+        if (((getValue(market, "swap") as bool?) != true))
         {
             throw new NotSupported ((string)(this.id + " fetchOpenInterest() supports swap contracts only")) ;
         }
@@ -5833,7 +5833,7 @@ public partial class xt : Exchange
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         Dictionary<string, object> market = this.market(symbol);
-        if (!isEqual(getValue(market, "contract"), true))
+        if (((getValue(market, "contract") as bool?) != true))
         {
             throw new NotSupported ((string)(this.id + " fetchTradingFee() supports contract markets only")) ;
         }
@@ -5912,7 +5912,7 @@ public partial class xt : Exchange
             object symbol = getValue(symbols, i);
             Dictionary<string, object> market = this.market(symbol);
             object matchesSubType = ((bool) (isInverse)) ? getValue(market, "inverse") : getValue(market, "linear");
-            if ((isEqual(getValue(market, "contract"), true)) && (isEqual(matchesSubType, true)))
+            if ((((getValue(market, "contract") as bool?) == true)) && (isEqual(matchesSubType, true)))
             {
                 ((IDictionary<string,object>)result)[(string)symbol] = this.parseTradingFee(fee, market);
             }
@@ -5952,7 +5952,7 @@ public partial class xt : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        if (!isEqual(getValue(market, "swap"), true))
+        if (((getValue(market, "swap") as bool?) != true))
         {
             throw new NotSupported ((string)(this.id + " fetchFundingHistory() supports swap contracts only")) ;
         }
@@ -6543,7 +6543,7 @@ public partial class xt : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        if (isEqual(getValue(market, "spot"), true))
+        if (((getValue(market, "spot") as bool?) == true))
         {
             throw new NotSupported ((string)(this.id + " setMarginMode() supports contract markets only")) ;
         }
@@ -6638,7 +6638,7 @@ public partial class xt : Exchange
             ((IDictionary<string,object>)request)["price"] = this.priceToPrecision(symbol, price);
         }
         Dictionary<string, object> response = null;
-        if (isEqual(getValue(market, "swap"), true))
+        if (((getValue(market, "swap") as bool?) == true))
         {
             if (isStopLoss)
             {
@@ -6678,7 +6678,7 @@ public partial class xt : Exchange
             ((IDictionary<string,object>)request)["quantity"] = this.amountToPrecision(symbol, amount);
             response = await this.privateSpotPutOrderOrderId(this.extend(request, parameters));
         }
-        IDictionary<string, object> result = ((bool) (isEqual(getValue(market, "swap"), true))) ? response : this.safeDict(response, "result", new Dictionary<string, object>() {});
+        IDictionary<string, object> result = ((bool) (((getValue(market, "swap") as bool?) == true))) ? response : this.safeDict(response, "result", new Dictionary<string, object>() {});
         return ccxt.BaseExchange.ToOrder(this.parseOrder(result, market));
     }
 

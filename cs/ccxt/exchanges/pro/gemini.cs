@@ -584,7 +584,7 @@ public partial class gemini : ccxt.gemini
         }
         symbols = this.marketSymbols(symbols, null, false, true, true);
         Dictionary<string, object> firstMarket = this.market(getValue(symbols, 0));
-        if ((!isEqual(getValue(firstMarket, "spot"), true)) && (!isEqual(getValue(firstMarket, "linear"), true)))
+        if ((((getValue(firstMarket, "spot") as bool?) != true)) && (((getValue(firstMarket, "linear") as bool?) != true)))
         {
             throw new NotSupported ((string)(this.id + " watchMultiple supports only spot or linear-swap symbols")) ;
         }

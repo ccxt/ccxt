@@ -150,8 +150,8 @@ public partial class BaseTest
             Assert(isEqual(getValue(extUndef, "keep2"), null), "extend: extUndef['keep2'] should be undefined");
             Assert(isEqual(getValue(extUndef, "newKey"), "C"), "extend: extUndef['newKey'] should be added");
             // original must not be touched
-            Assert(isEqual(((IDictionary<string,object>)withValues)["keep1"], "A"), "withValues['keep1'] was mutated");
-            Assert(isEqual(((IDictionary<string,object>)withValues)["keep2"], "B"), "withValues['keep2'] was mutated");
+            Assert(((((IDictionary<string,object>)withValues)["keep1"] as string) == "A"), "withValues['keep1'] was mutated");
+            Assert(((((IDictionary<string,object>)withValues)["keep2"] as string) == "B"), "withValues['keep2'] was mutated");
         }
         public void tbfeCheckExtended(object extended, object hasSub)
         {

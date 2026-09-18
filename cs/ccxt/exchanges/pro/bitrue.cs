@@ -354,7 +354,7 @@ public partial class bitrue : ccxt.bitrue
         object url = null;
         string? channel = null;
         string? cbId = null;
-        if (isEqual(getValue(market, "swap"), true))
+        if (((getValue(market, "swap") as bool?) == true))
         {
             string? baseIdLower = this.safeStringLower(market, "baseId");
             string? quoteIdLower = this.safeStringLower(market, "quoteId");
@@ -498,7 +498,7 @@ public partial class bitrue : ccxt.bitrue
             return null;
         }
         Dictionary<string, object> market = this.market(symbol);
-        if (!isEqual(getValue(market, "contract"), true))
+        if (((getValue(market, "contract") as bool?) != true))
         {
             return rawQuantity;
         }
@@ -528,7 +528,7 @@ public partial class bitrue : ccxt.bitrue
         }
         Dictionary<string, object> market = this.market(symbolVar);
         symbolVar = getValue(market, "symbol");
-        if (!isEqual(getValue(market, "swap"), true))
+        if (((getValue(market, "swap") as bool?) != true))
         {
             throw new NotSupported ((string)(this.id + " watchTrades is only supported for swap markets")) ;
         }
@@ -658,7 +658,7 @@ public partial class bitrue : ccxt.bitrue
         }
         Dictionary<string, object> market = this.market(symbolVar);
         symbolVar = getValue(market, "symbol");
-        if (!isEqual(getValue(market, "swap"), true))
+        if (((getValue(market, "swap") as bool?) != true))
         {
             throw new NotSupported ((string)(this.id + " watchOHLCV is only supported for swap markets")) ;
         }
@@ -776,7 +776,7 @@ public partial class bitrue : ccxt.bitrue
         }
         Dictionary<string, object> market = this.market(symbolVar);
         symbolVar = getValue(market, "symbol");
-        if (!isEqual(getValue(market, "swap"), true))
+        if (((getValue(market, "swap") as bool?) != true))
         {
             throw new NotSupported ((string)(this.id + " watchTicker is only supported for swap markets")) ;
         }

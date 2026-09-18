@@ -2734,7 +2734,7 @@ public partial class okx : ccxt.okx
         }
         await this.authenticate();
         Dictionary<string, object> market = this.market(symbol);
-        if (!isEqual(getValue(market, "type"), "option"))
+        if (((getValue(market, "type") as string) != "option"))
         {
             throw new BadRequest ((string)(this.id + " cancelAllOrdersWs is only applicable to Option in Portfolio Margin mode, and MMP privilege is required.")) ;
         }

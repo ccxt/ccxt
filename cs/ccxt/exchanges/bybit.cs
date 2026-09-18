@@ -3598,7 +3598,7 @@ public partial class bybit : Exchange
                 {
                     throw new BadRequest ((string)(this.id + " fetchTickers can only accept a list of symbols of the same type")) ;
                 }
-                if (isEqual(getValue(market, "option"), true))
+                if (((getValue(market, "option") as bool?) == true))
                 {
                     if ((code != null) && !isEqual(code, getValue(market, "base")))
                     {
@@ -3775,7 +3775,7 @@ public partial class bybit : Exchange
         parameters = ((IList<object>)requestparametersVariable)[1];
         ((IDictionary<string,object>)request)["interval"] = this.safeString(this.timeframes, timeframeVar, timeframeVar);
         object response = null;
-        if (isEqual(getValue(market, "spot"), true))
+        if (((getValue(market, "spot") as bool?) == true))
         {
             ((IDictionary<string,object>)request)["category"] = "spot";
             response = await this.publicGetV5MarketKline(this.extend(request, parameters));
@@ -3783,10 +3783,10 @@ public partial class bybit : Exchange
         {
             string? price = this.safeString(parameters, "price");
             parameters = this.omit(parameters, "price");
-            if (isEqual(getValue(market, "linear"), true))
+            if (((getValue(market, "linear") as bool?) == true))
             {
                 ((IDictionary<string,object>)request)["category"] = "linear";
-            } else if (isEqual(getValue(market, "inverse"), true))
+            } else if (((getValue(market, "inverse") as bool?) == true))
             {
                 ((IDictionary<string,object>)request)["category"] = "inverse";
             } else
@@ -4474,22 +4474,22 @@ public partial class bybit : Exchange
             { "symbol", getValue(market, "id") },
         };
         int defaultLimit = 25;
-        if (isEqual(getValue(market, "spot"), true))
+        if (((getValue(market, "spot") as bool?) == true))
         {
             // limit: [1, 50]. Default: 1
             defaultLimit = 50;
             ((IDictionary<string,object>)request)["category"] = "spot";
         } else
         {
-            if (isEqual(getValue(market, "option"), true))
+            if (((getValue(market, "option") as bool?) == true))
             {
                 // limit: [1, 25]. Default: 1
                 ((IDictionary<string,object>)request)["category"] = "option";
-            } else if (isEqual(getValue(market, "linear"), true))
+            } else if (((getValue(market, "linear") as bool?) == true))
             {
                 // limit: [1, 500]. Default: 25
                 ((IDictionary<string,object>)request)["category"] = "linear";
-            } else if (isEqual(getValue(market, "inverse"), true))
+            } else if (((getValue(market, "inverse") as bool?) == true))
             {
                 // limit: [1, 500]. Default: 25
                 ((IDictionary<string,object>)request)["category"] = "inverse";
@@ -5198,7 +5198,7 @@ public partial class bybit : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        if (!isEqual(getValue(market, "spot"), true))
+        if (((getValue(market, "spot") as bool?) != true))
         {
             throw new NotSupported ((string)(this.id + " createMarketBuyOrderWithCost() supports spot orders only")) ;
         }
@@ -5232,7 +5232,7 @@ public partial class bybit : Exchange
             throw new NotSupported ((string)(this.id + " createMarketSellOrderWithCost() supports UTA accounts only")) ;
         }
         Dictionary<string, object> market = this.market(symbol);
-        if (!isEqual(getValue(market, "spot"), true))
+        if (((getValue(market, "spot") as bool?) != true))
         {
             throw new NotSupported ((string)(this.id + " createMarketSellOrderWithCost() supports spot orders only")) ;
         }
@@ -5294,7 +5294,7 @@ public partial class bybit : Exchange
         Dictionary<string, object> orderRequest = this.createOrderRequest(symbol, type, side, amount, price, parameters, enableUnifiedAccount);
         bool switchToOco = (isStopLossOrder && isTakeProfitOrder) || isTrue(this.safeBool(parameters, "tradingStopEndpoint", false));
         string? defaultMethod = null;
-        if ((isTrailingOrder || ((switchToOco == true))) && (!isEqual(getValue(market, "spot"), true)))
+        if ((isTrailingOrder || ((switchToOco == true))) && (((getValue(market, "spot") as bool?) != true)))
         {
             defaultMethod = "privatePostV5PositionTradingStop";
         } else
@@ -5392,7 +5392,7 @@ public partial class bybit : Exchange
         object priceString = ((bool) (!isEqual(price, null))) ? this.getPrice(symbol, this.numberToString(price)) : null;
         if (endpointIsTradingStop)
         {
-            if (hasStopLoss || hasTakeProfit || isTriggerOrder || (isEqual(getValue(market, "spot"), true)))
+            if (hasStopLoss || hasTakeProfit || isTriggerOrder || (((getValue(market, "spot") as bool?) == true)))
             {
                 throw new InvalidOrder ((string)(this.id + " the API endpoint used only supports contract trailingAmount, stopLossPrice and takeProfitPrice orders")) ;
             }
@@ -5481,7 +5481,7 @@ public partial class bybit : Exchange
             {
                 ((IDictionary<string,object>)request)["timeInForce"] = "IOC";
             }
-            if (isEqual(getValue(market, "spot"), true))
+            if (((getValue(market, "spot") as bool?) == true))
             {
                 // only works for spot market
                 if ((triggerPrice != null))
@@ -5496,7 +5496,7 @@ public partial class bybit : Exchange
             if ((clientOrderId != null))
             {
                 ((IDictionary<string,object>)request)["orderLinkId"] = clientOrderId;
-            } else if (isEqual(getValue(market, "option"), true))
+            } else if (((getValue(market, "option") as bool?) == true))
             {
                 // mandatory field for options
                 ((IDictionary<string,object>)request)["orderLinkId"] = this.uuid16();
@@ -5516,7 +5516,7 @@ public partial class bybit : Exchange
         // if the cost is inferable, let's keep the old logic and ignore marketUnit, to minimize the impact of the changes
         bool isMarketBuyAndCostInferable = ((lowerCaseType == "market")) && (isEqual(side, "buy")) && ((!isEqual(price, null)) || ((cost != null)));
         bool isMarketOrder = (lowerCaseType == "market");
-        if ((isEqual(getValue(market, "spot"), true)) && isMarketOrder && isTrue(isUTA) && !isMarketBuyAndCostInferable)
+        if ((((getValue(market, "spot") as bool?) == true)) && isMarketOrder && isTrue(isUTA) && !isMarketBuyAndCostInferable)
         {
             // UTA account can specify the cost of the order on both sides
             if (((cost != null)) || (!isEqual(price, null)))
@@ -5537,7 +5537,7 @@ public partial class bybit : Exchange
                 ((IDictionary<string,object>)request)["marketUnit"] = "baseCoin";
                 ((IDictionary<string,object>)request)["qty"] = amountString;
             }
-        } else if ((isEqual(getValue(market, "spot"), true)) && isMarketOrder && (isEqual(side, "buy")))
+        } else if ((((getValue(market, "spot") as bool?) == true)) && isMarketOrder && (isEqual(side, "buy")))
         {
             // classic accounts
             // for market buy it requires the amount of quote currency to spend
@@ -5587,7 +5587,7 @@ public partial class bybit : Exchange
         {
             string? triggerDirection = this.safeString(parameters, "triggerDirection");
             parameters = this.omit(parameters, new List<object>() {"triggerPrice", "stopPrice", "triggerDirection"});
-            if (isEqual(getValue(market, "spot"), true))
+            if (((getValue(market, "spot") as bool?) == true))
             {
                 if ((triggerDirection != null))
                 {
@@ -5631,13 +5631,13 @@ public partial class bybit : Exchange
                 } else
                 {
                     // for spot market, we need to add this
-                    if (isEqual(getValue(market, "spot"), true))
+                    if (((getValue(market, "spot") as bool?) == true))
                     {
                         ((IDictionary<string,object>)request)["slOrderType"] = "Market";
                     }
                 }
                 // for spot market, we need to add this
-                if ((isEqual(getValue(market, "spot"), true)) && isMarketOrder)
+                if ((((getValue(market, "spot") as bool?) == true)) && isMarketOrder)
                 {
                     throw new InvalidOrder ((string)(this.id + " createOrder(): attached stopLoss is not supported for spot market orders")) ;
                 }
@@ -5655,19 +5655,19 @@ public partial class bybit : Exchange
                 } else
                 {
                     // for spot market, we need to add this
-                    if (isEqual(getValue(market, "spot"), true))
+                    if (((getValue(market, "spot") as bool?) == true))
                     {
                         ((IDictionary<string,object>)request)["tpOrderType"] = "Market";
                     }
                 }
                 // for spot market, we need to add this
-                if ((isEqual(getValue(market, "spot"), true)) && isMarketOrder)
+                if ((((getValue(market, "spot") as bool?) == true)) && isMarketOrder)
                 {
                     throw new InvalidOrder ((string)(this.id + " createOrder(): attached takeProfit is not supported for spot market orders")) ;
                 }
             }
         }
-        if ((!isEqual(getValue(market, "spot"), true)) && ((hedged == true)))
+        if ((((getValue(market, "spot") as bool?) != true)) && ((hedged == true)))
         {
             if ((reduceOnly == true))
             {
@@ -6028,7 +6028,7 @@ public partial class bybit : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
         };
-        if (isEqual(getValue(market, "spot"), true))
+        if (((getValue(market, "spot") as bool?) == true))
         {
             // only works for spot market
             bool? isTrigger = this.safeBool2(parameters, "stop", "trigger", false);
@@ -6451,7 +6451,7 @@ public partial class bybit : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        if (isEqual(getValue(market, "spot"), true))
+        if (((getValue(market, "spot") as bool?) == true))
         {
             throw new NotSupported ((string)(this.id + " fetchOrder() is not supported for spot markets")) ;
         }
@@ -8560,7 +8560,7 @@ public partial class bybit : Exchange
                 throw new ArgumentsRequired ((string)(this.id + " setMarginMode() requires a symbol parameter for non unified account")) ;
             }
             market = this.market(symbol);
-            bool isUsdcSettled = isEqual(getValue(market, "settle"), "USDC");
+            bool isUsdcSettled = ((getValue(market, "settle") as string) == "USDC");
             if (isUsdcSettled)
             {
                 if (isEqual(marginModeVar, "cross"))
@@ -8669,10 +8669,10 @@ public partial class bybit : Exchange
         };
         ((IDictionary<string,object>)request)["buyLeverage"] = leverageString;
         ((IDictionary<string,object>)request)["sellLeverage"] = leverageString;
-        if (isEqual(getValue(market, "linear"), true))
+        if (((getValue(market, "linear") as bool?) == true))
         {
             ((IDictionary<string,object>)request)["category"] = "linear";
-        } else if (isEqual(getValue(market, "inverse"), true))
+        } else if (((getValue(market, "inverse") as bool?) == true))
         {
             ((IDictionary<string,object>)request)["category"] = "inverse";
         } else
@@ -8759,7 +8759,7 @@ public partial class bybit : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        string subType = ((bool) (isEqual(getValue(market, "linear"), true))) ? "linear" : "inverse";
+        string subType = ((bool) (((getValue(market, "linear") as bool?) == true))) ? "linear" : "inverse";
         string? category = this.safeString(parameters, "category", subType);
         IDictionary<string, object> intervals = this.safeDict(this.options, "intervals");
         string? interval = this.safeString(intervals, timeframeVar); // 5min,15min,30min,1h,4h,1d
@@ -8842,7 +8842,7 @@ public partial class bybit : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        if (!isEqual(getValue(market, "contract"), true))
+        if (((getValue(market, "contract") as bool?) != true))
         {
             throw new BadRequest ((string)(this.id + " fetchOpenInterest() supports contract markets only")) ;
         }
@@ -8853,7 +8853,7 @@ public partial class bybit : Exchange
         {
             throw new BadRequest ((string)(((this.id + " fetchOpenInterest() cannot use the ") + timeframe) + " timeframe")) ;
         }
-        string subType = ((bool) (isEqual(getValue(market, "linear"), true))) ? "linear" : "inverse";
+        string subType = ((bool) (((getValue(market, "linear") as bool?) == true))) ? "linear" : "inverse";
         string? category = this.safeString(parameters, "category", subType);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
@@ -8926,7 +8926,7 @@ public partial class bybit : Exchange
             return ccxt.BaseExchange.ToOpenInterestList(await this.fetchPaginatedCallCursor("fetchOpenInterestHistory", symbol, since, limit, parameters, "nextPageCursor", "cursor", null, 200));
         }
         Dictionary<string, object> market = this.market(symbol);
-        if ((isEqual(getValue(market, "spot"), true)) || (isEqual(getValue(market, "option"), true)))
+        if ((((getValue(market, "spot") as bool?) == true)) || (((getValue(market, "option") as bool?) == true)))
         {
             throw new BadRequest ((string)add((this.id + " fetchOpenInterestHistory() symbol does not support market "), symbol)) ;
         }
@@ -9493,10 +9493,10 @@ public partial class bybit : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
         };
-        if (isEqual(getValue(market, "linear"), true))
+        if (((getValue(market, "linear") as bool?) == true))
         {
             ((IDictionary<string,object>)request)["category"] = "linear";
-        } else if (isEqual(getValue(market, "inverse"), true))
+        } else if (((getValue(market, "inverse") as bool?) == true))
         {
             ((IDictionary<string,object>)request)["category"] = "inverse";
         }
@@ -9548,7 +9548,7 @@ public partial class bybit : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         IDictionary<string, object> market = null;
         market = this.market(symbol);
-        if ((isEqual(getValue(market, "spot"), true)) || (isEqual(getValue(market, "option"), true)))
+        if ((((getValue(market, "spot") as bool?) == true)) || (((getValue(market, "option") as bool?) == true)))
         {
             throw new BadRequest ((string)add((this.id + " fetchMarketLeverageTiers() symbol does not support market "), symbol)) ;
         }
@@ -10496,7 +10496,7 @@ public partial class bybit : Exchange
         if (!isEqual(symbols, null))
         {
             market = this.market(getValue(symbols, 0));
-            if (isEqual(getValue(market, "spot"), true))
+            if (((getValue(market, "spot") as bool?) == true))
             {
                 throw new NotSupported ((string)(this.id + " fetchLeverageTiers() is not supported for spot market")) ;
             }

@@ -745,7 +745,7 @@ public partial class onetrading : Exchange
         {
             object symbol = getValue(symbols, i);
             Dictionary<string, object> market = this.market(symbol);
-            IDictionary<string, object> tierObject = ((bool) (isEqual(getValue(market, "spot"), true))) ? firstSpotTier : firstFuturesTier;
+            IDictionary<string, object> tierObject = ((bool) (((getValue(market, "spot") as bool?) == true))) ? firstSpotTier : firstFuturesTier;
             ((IDictionary<string,object>)result)[(string)symbol] = new Dictionary<string, object>() {
                 { "info", spotFees },
                 { "symbol", symbol },
@@ -817,8 +817,8 @@ public partial class onetrading : Exchange
         {
             object symbol = getValue(symbols, i);
             Dictionary<string, object> market = this.market(symbol);
-            string? makerFee = ((bool) (isEqual(getValue(market, "spot"), true))) ? spotMakerFee : futuresMakerFee;
-            string? takerFee = ((bool) (isEqual(getValue(market, "spot"), true))) ? spotTakerFee : futuresTakerFee;
+            string? makerFee = ((bool) (((getValue(market, "spot") as bool?) == true))) ? spotMakerFee : futuresMakerFee;
+            string? takerFee = ((bool) (((getValue(market, "spot") as bool?) == true))) ? spotTakerFee : futuresTakerFee;
             ((IDictionary<string,object>)result)[(string)symbol] = new Dictionary<string, object>() {
                 { "info", response },
                 { "symbol", symbol },

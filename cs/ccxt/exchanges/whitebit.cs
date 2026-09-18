@@ -1880,7 +1880,7 @@ public partial class whitebit : Exchange
             {
                 object symbol = getValue(symbols, i);
                 Dictionary<string, object> market = this.market(symbol);
-                if (!isEqual(getValue(market, "contract"), true))
+                if (((getValue(market, "contract") as bool?) != true))
                 {
                     onlyContractSymbols = false;
                     break;

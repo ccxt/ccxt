@@ -1603,7 +1603,7 @@ public partial class coinex : Exchange
             { "market", getValue(market, "id") },
         };
         object response = null;
-        if (isEqual(getValue(market, "swap"), true))
+        if (((getValue(market, "swap") as bool?) == true))
         {
             response = await this.v2PublicGetFuturesTicker(this.extend(request, parameters));
         } else
@@ -1804,7 +1804,7 @@ public partial class coinex : Exchange
             { "interval", "0" },
         };
         object response = null;
-        if (isEqual(getValue(market, "swap"), true))
+        if (((getValue(market, "swap") as bool?) == true))
         {
             response = await this.v2PublicGetFuturesDepth(this.extend(request, parameters));
         } else
@@ -1922,7 +1922,7 @@ public partial class coinex : Exchange
             ((IDictionary<string,object>)request)["limit"] = mathMin(limit, 1000);
         }
         object response = null;
-        if (isEqual(getValue(market, "swap"), true))
+        if (((getValue(market, "swap") as bool?) == true))
         {
             response = await this.v2PublicGetFuturesDeals(this.extend(request, parameters));
         } else
@@ -1971,7 +1971,7 @@ public partial class coinex : Exchange
             { "market", getValue(market, "id") },
         };
         object response = null;
-        if (isEqual(getValue(market, "spot"), true))
+        if (((getValue(market, "spot") as bool?) == true))
         {
             response = await this.v2PublicGetSpotMarket(this.extend(request, parameters));
         } else
@@ -2087,7 +2087,7 @@ public partial class coinex : Exchange
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
         object response = null;
-        if (isEqual(getValue(market, "swap"), true))
+        if (((getValue(market, "swap") as bool?) == true))
         {
             response = await this.v2PublicGetFuturesKline(this.extend(request, parameters));
         } else
@@ -2656,7 +2656,7 @@ public partial class coinex : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        if (!isEqual(getValue(market, "spot"), true))
+        if (((getValue(market, "spot") as bool?) != true))
         {
             throw new NotSupported ((string)(this.id + " createMarketBuyOrderWithCost() supports spot orders only")) ;
         }
@@ -2688,7 +2688,7 @@ public partial class coinex : Exchange
         bool? reduceOnly = this.safeBool(parameters, "reduceOnly");
         if ((reduceOnly == true))
         {
-            if (!isEqual(getValue(market, "swap"), true))
+            if (((getValue(market, "swap") as bool?) != true))
             {
                 throw new InvalidOrder ((string)(add((this.id + " createOrder() does not support reduceOnly for "), getValue(market, "type")) + " orders, reduceOnly orders are supported for swap markets only")) ;
             }
@@ -2848,7 +2848,7 @@ public partial class coinex : Exchange
         bool isStopLossOrTakeProfitTrigger = isStopLossTriggerOrder || isTakeProfitTriggerOrder;
         Dictionary<string, object> request = this.createOrderRequest(symbol, type, side, amount, price, parameters);
         Dictionary<string, object> response = null;
-        if (isEqual(getValue(market, "spot"), true))
+        if (((getValue(market, "spot") as bool?) == true))
         {
             if (isTriggerOrder)
             {
@@ -2950,7 +2950,7 @@ public partial class coinex : Exchange
             { "orders", ordersRequests },
         };
         Dictionary<string, object> response = null;
-        if (isEqual(getValue(market, "spot"), true))
+        if (((getValue(market, "spot") as bool?) == true))
         {
             if (isTriggerOrder)
             {
@@ -2997,7 +2997,7 @@ public partial class coinex : Exchange
             }
             IDictionary<string, object> innerData = this.safeDict(entry, "data", new Dictionary<string, object>() {});
             object order = null;
-            if ((isEqual(getValue(market, "spot"), true)) && !isTriggerOrder)
+            if ((((getValue(market, "spot") as bool?) == true)) && !isTriggerOrder)
             {
                 ((IDictionary<string,object>)entry)["status"] = status;
                 order = this.parseOrder(entry, market);
@@ -3055,7 +3055,7 @@ public partial class coinex : Exchange
         {
             ((IDictionary<string,object>)request)["order_ids"] = requestIds;
         }
-        if (isEqual(getValue(market, "spot"), true))
+        if (((getValue(market, "spot") as bool?) == true))
         {
             if ((trigger == true))
             {
@@ -3144,7 +3144,7 @@ public partial class coinex : Exchange
         IList<object> marginModeparametersVariable = (IList<object>)this.handleMarginModeAndParams("editOrder", parameters);
         marginMode = ((IList<object>)marginModeparametersVariable)[0];
         parameters = ((IList<object>)marginModeparametersVariable)[1];
-        if (isEqual(getValue(market, "spot"), true))
+        if (((getValue(market, "spot") as bool?) == true))
         {
             if ((marginMode != null))
             {
@@ -3212,7 +3212,7 @@ public partial class coinex : Exchange
             marginMode = ((IList<object>)marginModeorderParamsVariable)[0];
             orderParams = ((IList<object>)marginModeorderParamsVariable)[1];
             string market_type = "SPOT";
-            if (isEqual(getValue(market, "swap"), true))
+            if (((getValue(market, "swap") as bool?) == true))
             {
                 market_type = "FUTURES";
             } else if ((marginMode != null))
@@ -3241,7 +3241,7 @@ public partial class coinex : Exchange
             { "orders", ordersRequests },
         };
         Dictionary<string, object> response = null;
-        if (isEqual(getValue(firstMarket, "spot"), true))
+        if (((getValue(firstMarket, "spot") as bool?) == true))
         {
             response = await this.v2PrivatePostSpotBatchModifyOrder(this.extend(request, parameters));
         } else
@@ -3410,7 +3410,7 @@ public partial class coinex : Exchange
             { "market", getValue(market, "id") },
         };
         Dictionary<string, object> response = null;
-        if (isEqual(getValue(market, "swap"), true))
+        if (((getValue(market, "swap") as bool?) == true))
         {
             ((IDictionary<string,object>)request)["market_type"] = "FUTURES";
             response = await this.v2PrivatePostFuturesCancelAllOrder(this.extend(request, parameters));
@@ -3460,7 +3460,7 @@ public partial class coinex : Exchange
             { "order_id", this.parseToNumeric(id) },
         };
         Dictionary<string, object> response = null;
-        if (isEqual(getValue(market, "swap"), true))
+        if (((getValue(market, "swap") as bool?) == true))
         {
             response = await this.v2PrivateGetFuturesOrderStatus(this.extend(request, parameters));
         } else
@@ -3782,7 +3782,7 @@ public partial class coinex : Exchange
         request = (Dictionary<string, object>)((IList<object>)requestparametersVariable)[0];
         parameters = ((IList<object>)requestparametersVariable)[1];
         Dictionary<string, object> response = null;
-        if (isEqual(getValue(market, "swap"), true))
+        if (((getValue(market, "swap") as bool?) == true))
         {
             ((IDictionary<string,object>)request)["market_type"] = "FUTURES";
             response = await this.v2PrivateGetFuturesUserDeals(this.extend(request, parameters));
@@ -4079,7 +4079,7 @@ public partial class coinex : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        if (!isEqual(getValue(market, "type"), "swap"))
+        if (((getValue(market, "type") as string) != "swap"))
         {
             throw new BadSymbol ((string)(this.id + " setMarginMode() supports swap contracts only")) ;
         }
@@ -4125,7 +4125,7 @@ public partial class coinex : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        if (!isEqual(getValue(market, "swap"), true))
+        if (((getValue(market, "swap") as bool?) != true))
         {
             throw new BadSymbol ((string)(this.id + " setLeverage() supports swap contracts only")) ;
         }
@@ -4498,7 +4498,7 @@ public partial class coinex : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        if (!isEqual(getValue(market, "swap"), true))
+        if (((getValue(market, "swap") as bool?) != true))
         {
             throw new BadSymbol ((string)(this.id + " fetchFundingRate() supports swap contracts only")) ;
         }
@@ -4623,7 +4623,7 @@ public partial class coinex : Exchange
         {
             object symbol = this.safeValue(symbols, 0);
             market = this.market(symbol);
-            if (!isEqual(getValue(market, "swap"), true))
+            if (((getValue(market, "swap") as bool?) != true))
             {
                 throw new BadSymbol ((string)(this.id + " fetchFundingRates() supports swap contracts only")) ;
             }

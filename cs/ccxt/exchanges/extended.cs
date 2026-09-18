@@ -2956,7 +2956,7 @@ public partial class extended : Exchange
         Dictionary<string, object> market = this.market(symbol);
         string uppercaseType = ((string)type).ToUpper();
         string uppercaseSide = ((string)((string)side)).ToUpper();
-        if ((isEqual(getValue(market, "spot"), true)) && (uppercaseType != "LIMIT"))
+        if ((((getValue(market, "spot") as bool?) == true)) && (uppercaseType != "LIMIT"))
         {
             throw new BadRequest ((string)(this.id + " createOrder() supports limit orders for spot markets only")) ;
         }

@@ -1048,7 +1048,7 @@ public partial class BaseExchange
     public async virtual Task<List<ccxt.Liquidation>> WatchLiquidations(string symbol, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (!isEqual(getValue(this.has, "watchLiquidationsForSymbols"), null) && !isEqual(getValue(this.has, "watchLiquidationsForSymbols"), false))
+        if (!isEqual(getValue(this.has, "watchLiquidationsForSymbols"), null) && ((getValue(this.has, "watchLiquidationsForSymbols") as bool?) != false))
         {
             return await this.WatchLiquidationsForSymbols(new List<object>() {symbol},ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), parameters);
         }
@@ -1064,7 +1064,7 @@ public partial class BaseExchange
     public async virtual Task<List<ccxt.Liquidation>> WatchMyLiquidations(string symbol, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (!isEqual(getValue(this.has, "watchMyLiquidationsForSymbols"), null) && !isEqual(getValue(this.has, "watchMyLiquidationsForSymbols"), false))
+        if (!isEqual(getValue(this.has, "watchMyLiquidationsForSymbols"), null) && ((getValue(this.has, "watchMyLiquidationsForSymbols") as bool?) != false))
         {
             return ccxt.BaseExchange.ToLiquidationList(this.WatchMyLiquidationsForSymbols(new List<object>() {symbol},ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), parameters));
         }
@@ -1146,7 +1146,7 @@ public partial class BaseExchange
     public async virtual Task<ccxt.MarginMode> FetchMarginMode(string symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (!isEqual(getValue(this.has, "fetchMarginModes"), null) && !isEqual(getValue(this.has, "fetchMarginModes"), false))
+        if (!isEqual(getValue(this.has, "fetchMarginModes"), null) && ((getValue(this.has, "fetchMarginModes") as bool?) != false))
         {
             object marginModes = ccxt.BaseExchange.FromMarginModes(await this.FetchMarginModes(new List<object>() {symbol}, parameters));
             return ccxt.BaseExchange.ToMarginMode(this.safeDict(marginModes, symbol));
@@ -1387,7 +1387,7 @@ public partial class BaseExchange
     public async virtual Task<ccxt.Leverage> FetchLeverage(string symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (!isEqual(getValue(this.has, "fetchLeverages"), null) && !isEqual(getValue(this.has, "fetchLeverages"), false))
+        if (!isEqual(getValue(this.has, "fetchLeverages"), null) && ((getValue(this.has, "fetchLeverages") as bool?) != false))
         {
             object leverages = ccxt.BaseExchange.FromLeverages(await this.FetchLeverages(new List<object>() {symbol}, parameters));
             return ccxt.BaseExchange.ToLeverage(this.safeDict(leverages, symbol));
@@ -3277,7 +3277,7 @@ public partial class BaseExchange
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
         string message = "";
-        if (!isEqual(getValue(this.has, "fetchTrades"), null) && !isEqual(getValue(this.has, "fetchTrades"), false))
+        if (!isEqual(getValue(this.has, "fetchTrades"), null) && ((getValue(this.has, "fetchTrades") as bool?) != false))
         {
             message = ". If you want to build OHLCV candles from trade executions data, visit https://github.com/ccxt/ccxt/tree/master/examples/ and see \"build-ohlcv-bars\" file";
         }
@@ -3306,7 +3306,7 @@ public partial class BaseExchange
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
         string message = "";
-        if (!isEqual(getValue(this.has, "fetchTradesWs"), null) && !isEqual(getValue(this.has, "fetchTradesWs"), false))
+        if (!isEqual(getValue(this.has, "fetchTradesWs"), null) && ((getValue(this.has, "fetchTradesWs") as bool?) != false))
         {
             message = ". If you want to build OHLCV candles from trade executions data, visit https://github.com/ccxt/ccxt/tree/master/examples/ and see \"build-ohlcv-bars\" file";
         }
@@ -3573,7 +3573,7 @@ public partial class BaseExchange
                 throw new BadRequest ((string)(add((this.id + " symbols must be of the same type "), type) + ". If the type is incorrect you can change it in options or the params of the request")) ;
             }
             marketType = getValue(market, "type");
-            if (!isEqual(getValue(market, "spot"), true))
+            if (((getValue(market, "spot") as bool?) != true))
             {
                 isLinearSubType = getValue(market, "linear");
             }
@@ -4008,7 +4008,7 @@ public partial class BaseExchange
     {
         reload ??= false;
         parameters ??= new Dictionary<string, object>();
-        if (!isEqual(getValue(this.has, "fetchTradingLimits"), null) && !isEqual(getValue(this.has, "fetchTradingLimits"), false))
+        if (!isEqual(getValue(this.has, "fetchTradingLimits"), null) && ((getValue(this.has, "fetchTradingLimits") as bool?) != false))
         {
             if (isTrue(reload) || !(this.options.ContainsKey("limitsLoaded")))
             {
@@ -4888,7 +4888,7 @@ public partial class BaseExchange
     public async virtual Task<Dictionary<string, object>> FetchTransactionFee(string code, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(getValue(this.has, "fetchTransactionFees"), null) || isEqual(getValue(this.has, "fetchTransactionFees"), false))
+        if (isEqual(getValue(this.has, "fetchTransactionFees"), null) || ((getValue(this.has, "fetchTransactionFees") as bool?) == false))
         {
             throw new NotSupported ((string)(this.id + " fetchTransactionFee() is not supported yet")) ;
         }
@@ -4910,7 +4910,7 @@ public partial class BaseExchange
     public async virtual Task<ccxt.DepositWithdrawFee> FetchDepositWithdrawFee(string code, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(getValue(this.has, "fetchDepositWithdrawFees"), null) || isEqual(getValue(this.has, "fetchDepositWithdrawFees"), false))
+        if (isEqual(getValue(this.has, "fetchDepositWithdrawFees"), null) || ((getValue(this.has, "fetchDepositWithdrawFees") as bool?) == false))
         {
             throw new NotSupported ((string)(this.id + " fetchDepositWithdrawFee() is not supported yet")) ;
         }
@@ -4934,7 +4934,7 @@ public partial class BaseExchange
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        if (isEqual(getValue(this.has, "fetchBorrowRates"), null) || isEqual(getValue(this.has, "fetchBorrowRates"), false))
+        if (isEqual(getValue(this.has, "fetchBorrowRates"), null) || ((getValue(this.has, "fetchBorrowRates") as bool?) == false))
         {
             throw new NotSupported ((string)(this.id + " fetchCrossBorrowRate() is not supported yet")) ;
         }
@@ -4951,7 +4951,7 @@ public partial class BaseExchange
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        if (isEqual(getValue(this.has, "fetchBorrowRates"), null) || isEqual(getValue(this.has, "fetchBorrowRates"), false))
+        if (isEqual(getValue(this.has, "fetchBorrowRates"), null) || ((getValue(this.has, "fetchBorrowRates") as bool?) == false))
         {
             throw new NotSupported ((string)(this.id + " fetchIsolatedBorrowRate() is not supported yet")) ;
         }
@@ -5267,7 +5267,7 @@ public partial class BaseExchange
     {
         object symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
-        if (!isEqual(getValue(this.has, "fetchPositionsADLRank"), null) && !isEqual(getValue(this.has, "fetchPositionsADLRank"), false))
+        if (!isEqual(getValue(this.has, "fetchPositionsADLRank"), null) && ((getValue(this.has, "fetchPositionsADLRank") as bool?) != false))
         {
             await this.loadMarkets();
             Dictionary<string, object> market = this.market(symbolVar);
@@ -5490,7 +5490,7 @@ public partial class BaseExchange
     public async virtual Task<ccxt.DepositAddress> FetchDepositAddress(string code, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (!isEqual(getValue(this.has, "fetchDepositAddresses"), null) && !isEqual(getValue(this.has, "fetchDepositAddresses"), false))
+        if (!isEqual(getValue(this.has, "fetchDepositAddresses"), null) && ((getValue(this.has, "fetchDepositAddresses") as bool?) != false))
         {
             object depositAddresses = ccxt.BaseExchange.FromDepositAddressList(await this.FetchDepositAddresses(new List<object>() {code}, parameters));
             object depositAddress = this.safeValue(depositAddresses, code);
@@ -5501,7 +5501,7 @@ public partial class BaseExchange
             {
                 return ccxt.BaseExchange.ToDepositAddress(depositAddress);
             }
-        } else if (!isEqual(getValue(this.has, "fetchDepositAddressesByNetwork"), null) && !isEqual(getValue(this.has, "fetchDepositAddressesByNetwork"), false))
+        } else if (!isEqual(getValue(this.has, "fetchDepositAddressesByNetwork"), null) && ((getValue(this.has, "fetchDepositAddressesByNetwork") as bool?) != false))
         {
             string? network = this.safeString(parameters, "network");
             parameters = this.omit(parameters, "network");
@@ -5892,10 +5892,10 @@ public partial class BaseExchange
     public async virtual Task<List<ccxt.LeverageTier>> FetchMarketLeverageTiers(string symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (!isEqual(getValue(this.has, "fetchLeverageTiers"), null) && !isEqual(getValue(this.has, "fetchLeverageTiers"), false))
+        if (!isEqual(getValue(this.has, "fetchLeverageTiers"), null) && ((getValue(this.has, "fetchLeverageTiers") as bool?) != false))
         {
             Dictionary<string, object> market = this.market(symbol);
-            if (!isEqual(getValue(market, "contract"), true))
+            if (((getValue(market, "contract") as bool?) != true))
             {
                 throw new BadSymbol ((string)(this.id + " fetchMarketLeverageTiers() supports contract markets only")) ;
             }
@@ -6389,12 +6389,12 @@ public partial class BaseExchange
     {
         object symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
-        if (!isEqual(getValue(this.has, "fetchFundingRates"), null) && !isEqual(getValue(this.has, "fetchFundingRates"), false))
+        if (!isEqual(getValue(this.has, "fetchFundingRates"), null) && ((getValue(this.has, "fetchFundingRates") as bool?) != false))
         {
             await this.loadMarkets();
             Dictionary<string, object> market = this.market(symbolVar);
             symbolVar = getValue(market, "symbol");
-            if (!isEqual(getValue(market, "contract"), true))
+            if (((getValue(market, "contract") as bool?) != true))
             {
                 throw new BadSymbol ((string)(this.id + " fetchFundingRate() supports contract markets only")) ;
             }
@@ -6417,12 +6417,12 @@ public partial class BaseExchange
     {
         object symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
-        if (!isEqual(getValue(this.has, "fetchFundingIntervals"), null) && !isEqual(getValue(this.has, "fetchFundingIntervals"), false))
+        if (!isEqual(getValue(this.has, "fetchFundingIntervals"), null) && ((getValue(this.has, "fetchFundingIntervals") as bool?) != false))
         {
             await this.loadMarkets();
             Dictionary<string, object> market = this.market(symbolVar);
             symbolVar = getValue(market, "symbol");
-            if (!isEqual(getValue(market, "contract"), true))
+            if (((getValue(market, "contract") as bool?) != true))
             {
                 throw new BadSymbol ((string)(this.id + " fetchFundingInterval() supports contract markets only")) ;
             }
@@ -6457,7 +6457,7 @@ public partial class BaseExchange
         */
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
-        if (!isEqual(getValue(this.has, "fetchMarkOHLCV"), null) && !isEqual(getValue(this.has, "fetchMarkOHLCV"), false))
+        if (!isEqual(getValue(this.has, "fetchMarkOHLCV"), null) && ((getValue(this.has, "fetchMarkOHLCV") as bool?) != false))
         {
             Dictionary<string, object> request = new Dictionary<string, object>() {
                 { "price", "mark" },
@@ -6485,7 +6485,7 @@ public partial class BaseExchange
         */
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
-        if (!isEqual(getValue(this.has, "fetchIndexOHLCV"), null) && !isEqual(getValue(this.has, "fetchIndexOHLCV"), false))
+        if (!isEqual(getValue(this.has, "fetchIndexOHLCV"), null) && ((getValue(this.has, "fetchIndexOHLCV") as bool?) != false))
         {
             Dictionary<string, object> request = new Dictionary<string, object>() {
                 { "price", "index" },
@@ -6513,7 +6513,7 @@ public partial class BaseExchange
         */
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
-        if (!isEqual(getValue(this.has, "fetchPremiumIndexOHLCV"), null) && !isEqual(getValue(this.has, "fetchPremiumIndexOHLCV"), false))
+        if (!isEqual(getValue(this.has, "fetchPremiumIndexOHLCV"), null) && ((getValue(this.has, "fetchPremiumIndexOHLCV") as bool?) != false))
         {
             Dictionary<string, object> request = new Dictionary<string, object>() {
                 { "price", "premiumIndex" },
@@ -6782,7 +6782,7 @@ public partial class BaseExchange
         * @returns {object} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
         */
         parameters ??= new Dictionary<string, object>();
-        if (!isEqual(getValue(this.has, "fetchDepositsWithdrawals"), null) && !isEqual(getValue(this.has, "fetchDepositsWithdrawals"), false))
+        if (!isEqual(getValue(this.has, "fetchDepositsWithdrawals"), null) && ((getValue(this.has, "fetchDepositsWithdrawals") as bool?) != false))
         {
             return await this.FetchDepositsWithdrawals(((string)code),ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), parameters);
         } else

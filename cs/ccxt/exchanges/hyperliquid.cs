@@ -1275,7 +1275,7 @@ public partial class hyperliquid : Exchange
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "type", "l2Book" },
-            { "coin", ((bool) (isEqual(getValue(market, "swap"), true))) ? this.safeString(market, "baseName") : getValue(market, "id") },
+            { "coin", ((bool) (((getValue(market, "swap") as bool?) == true))) ? this.safeString(market, "baseName") : getValue(market, "id") },
         };
         object response = await this.publicPostInfo(this.extend(request, parameters));
         //
@@ -1593,7 +1593,7 @@ public partial class hyperliquid : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "type", "candleSnapshot" },
             { "req", new Dictionary<string, object>() {
-                { "coin", ((bool) (isEqual(getValue(market, "swap"), true))) ? this.safeString(market, "baseName") : getValue(market, "id") },
+                { "coin", ((bool) (((getValue(market, "swap") as bool?) == true))) ? this.safeString(market, "baseName") : getValue(market, "id") },
                 { "interval", this.safeString(this.timeframes, timeframeVar, timeframeVar) },
                 { "startTime", sinceVar },
                 { "endTime", until },
@@ -1742,7 +1742,7 @@ public partial class hyperliquid : Exchange
         object integerPart = getValue(((string)((string)priceStr)).Split(new [] {((string)".")}, StringSplitOptions.None).ToList<object>(), 0);
         object significantDigits = mathMax(5, ((string)integerPart).Length);
         string result = this.decimalToPrecision(price, ROUND, significantDigits, SIGNIFICANT_DIGITS, this.paddingMode);
-        object maxDecimals = ((bool) (isEqual(getValue(market, "spot"), true))) ? 8 : 6;
+        object maxDecimals = ((bool) (((getValue(market, "spot") as bool?) == true))) ? 8 : 6;
         object subtractedValue = subtract(maxDecimals, this.precisionFromString(this.safeString(getValue(market, "precision"), "amount")));
         return this.decimalToPrecision(result, ROUND, subtractedValue, DECIMAL_PLACES, this.paddingMode);
     }

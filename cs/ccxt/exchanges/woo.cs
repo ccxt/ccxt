@@ -1581,7 +1581,7 @@ public partial class woo : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        if (!isEqual(getValue(market, "spot"), true))
+        if (((getValue(market, "spot") as bool?) != true))
         {
             throw new NotSupported ((string)(this.id + " createMarketBuyOrderWithCost() supports spot orders only")) ;
         }
@@ -1606,7 +1606,7 @@ public partial class woo : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        if (!isEqual(getValue(market, "spot"), true))
+        if (((getValue(market, "spot") as bool?) != true))
         {
             throw new NotSupported ((string)(this.id + " createMarketSellOrderWithCost() supports spot orders only")) ;
         }
@@ -1770,7 +1770,7 @@ public partial class woo : Exchange
             string? cost = this.safeStringN(parameters, new List<object>() {"cost", "order_amount", "orderAmount"});
             parameters = this.omit(parameters, new List<object>() {"cost", "order_amount", "orderAmount"});
             bool isPriceProvided = !isEqual(price, null);
-            if ((isEqual(getValue(market, "spot"), true)) && (isPriceProvided || ((cost != null))))
+            if ((((getValue(market, "spot") as bool?) == true)) && (isPriceProvided || ((cost != null))))
             {
                 string? quoteAmount = null;
                 if ((cost != null))
@@ -2649,7 +2649,7 @@ public partial class woo : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        if (!isEqual(getValue(market, "swap"), true))
+        if (((getValue(market, "swap") as bool?) != true))
         {
             throw new NotSupported ((string)(this.id + " fetchTicker() supports swap markets only, there is no spot ticker endpoint")) ;
         }
@@ -2722,7 +2722,7 @@ public partial class woo : Exchange
                 // type" apart from a malformed request, marketSymbols still enforces that the
                 // rest of the list matches
                 Dictionary<string, object> firstMarket = this.market(getValue(symbols, 0));
-                if (!isEqual(getValue(firstMarket, "swap"), true))
+                if (((getValue(firstMarket, "swap") as bool?) != true))
                 {
                     throw new NotSupported ((string)(this.id + " fetchTickers() supports swap markets only")) ;
                 }
@@ -4387,10 +4387,10 @@ public partial class woo : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> response = null;
-        if (isEqual(getValue(market, "spot"), true))
+        if (((getValue(market, "spot") as bool?) == true))
         {
             response = await this.v3PrivateGetAccountInfo(parameters);
-        } else if (isEqual(getValue(market, "swap"), true))
+        } else if (((getValue(market, "swap") as bool?) == true))
         {
             Dictionary<string, object> request = new Dictionary<string, object>() {
                 { "symbol", getValue(market, "id") },

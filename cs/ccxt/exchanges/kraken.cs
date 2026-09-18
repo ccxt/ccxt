@@ -1256,7 +1256,7 @@ public partial class kraken : Exchange
             {
                 object symbol = getValue(symbols, i);
                 Dictionary<string, object> market = this.market(symbol);
-                if (isEqual(getValue(market, "active"), true))
+                if (((getValue(market, "active") as bool?) == true))
                 {
                     ((IList<object>)marketIds).Add(getValue(market, "id"));
                 }
@@ -2600,7 +2600,7 @@ public partial class kraken : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        if (!isEqual(getValue(market, "spot"), true))
+        if (((getValue(market, "spot") as bool?) != true))
         {
             throw new NotSupported ((string)(add((this.id + " editOrder() does not support "), getValue(market, "type")) + " orders, only spot orders are accepted")) ;
         }

@@ -566,7 +566,7 @@ public partial class phemex : ccxt.phemex
         Dictionary<string, object> market = this.market(symbolVar);
         symbolVar = getValue(market, "symbol");
         object isSwap = getValue(market, "swap");
-        bool settleIsUSDT = isEqual(getValue(market, "settle"), "USDT");
+        bool settleIsUSDT = ((getValue(market, "settle") as string) == "USDT");
         string name = "spot_market24h";
         if (isEqual(isSwap, true))
         {
@@ -608,7 +608,7 @@ public partial class phemex : ccxt.phemex
         object first = getValue(symbols, 0);
         Dictionary<string, object> market = this.market(first);
         object isSwap = getValue(market, "swap");
-        bool settleIsUSDT = isEqual(getValue(market, "settle"), "USDT");
+        bool settleIsUSDT = ((getValue(market, "settle") as string) == "USDT");
         string name = "spot_market24h";
         if (isEqual(isSwap, true))
         {
@@ -665,7 +665,7 @@ public partial class phemex : ccxt.phemex
         string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
         Int64 requestId = ((Int64)this.requestId());
         object isSwap = getValue(market, "swap");
-        bool settleIsUSDT = isEqual(getValue(market, "settle"), "USDT");
+        bool settleIsUSDT = ((getValue(market, "settle") as string) == "USDT");
         bool isUsdtSwap = (isEqual(isSwap, true)) && settleIsUSDT;
         string name = ((bool) isUsdtSwap) ? "trade_p" : "trade";
         string messageHash = add("trade:", symbolVar);
@@ -710,7 +710,7 @@ public partial class phemex : ccxt.phemex
         string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
         Int64 requestId = ((Int64)this.requestId());
         object isSwap = getValue(market, "swap");
-        bool settleIsUSDT = isEqual(getValue(market, "settle"), "USDT");
+        bool settleIsUSDT = ((getValue(market, "settle") as string) == "USDT");
         bool isUsdtSwap = (isEqual(isSwap, true)) && settleIsUSDT;
         string name = ((bool) isUsdtSwap) ? "orderbook_p" : "orderbook";
         string messageHash = add("orderbook:", symbolVar);
@@ -755,7 +755,7 @@ public partial class phemex : ccxt.phemex
         string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
         Int64 requestId = ((Int64)this.requestId());
         object isSwap = getValue(market, "swap");
-        bool settleIsUSDT = isEqual(getValue(market, "settle"), "USDT");
+        bool settleIsUSDT = ((getValue(market, "settle") as string) == "USDT");
         bool isUsdtSwap = (isEqual(isSwap, true)) && settleIsUSDT;
         string name = ((bool) isUsdtSwap) ? "kline_p" : "kline";
         string messageHash = add((add("kline:", timeframeVar) + ":"), symbolVar);
@@ -896,7 +896,7 @@ public partial class phemex : ccxt.phemex
             market = this.market(symbolVar);
             symbolVar = getValue(market, "symbol");
             messageHash = add(messageHash, getValue(market, "symbol"));
-            if (isEqual(getValue(market, "settle"), "USDT"))
+            if (((getValue(market, "settle") as string) == "USDT"))
             {
                 parameters = this.extend(parameters);
                 ((IDictionary<string,object>)parameters)["settle"] = "USDT";
@@ -1037,7 +1037,7 @@ public partial class phemex : ccxt.phemex
             string? symbol = ((string)getValue(parsed, "symbol"));
             if ((type == null))
             {
-                type = ((bool) (isEqual(getValue(market, "settle"), "USDT"))) ? "perpetual" : getValue(market, "type");
+                type = ((bool) (((getValue(market, "settle") as string) == "USDT"))) ? "perpetual" : getValue(market, "type");
             }
             if ((symbol != null))
             {
@@ -1083,7 +1083,7 @@ public partial class phemex : ccxt.phemex
             market = this.market(symbolVar);
             symbolVar = getValue(market, "symbol");
             messageHash = add(messageHash, getValue(market, "symbol"));
-            if (isEqual(getValue(market, "settle"), "USDT"))
+            if (((getValue(market, "settle") as string) == "USDT"))
             {
                 parameters = this.extend(parameters);
                 ((IDictionary<string,object>)parameters)["settle"] = "USDT";
@@ -1321,7 +1321,7 @@ public partial class phemex : ccxt.phemex
             Dictionary<string, object> market = this.market(symbol);
             if ((type == null))
             {
-                bool isUsdt = isEqual(getValue(market, "settle"), "USDT");
+                bool isUsdt = ((getValue(market, "settle") as string) == "USDT");
                 type = ((bool) isUsdt) ? "perpetual" : getValue(market, "type");
             }
             ((IDictionary<string,object>)marketIds)[(string)symbol] = true;

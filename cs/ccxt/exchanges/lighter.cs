@@ -2880,10 +2880,10 @@ public partial class lighter : Exchange
         string strApiKeyIndex = ((string)this.numberToString(apiKeyIndex));
         object signer = await this.loadAccount(getValue(this.options, "chainId"), this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, parameters);
         Dictionary<string, object> currency = this.currency(((string)code));
-        if (isEqual(getValue(currency, "code"), "USDC"))
+        if (((getValue(currency, "code") as string) == "USDC"))
         {
             amountVar = this.parseToInt(Precise.stringMul(this.pow("10", "6"), this.currencyToPrecision(((string)code), amountVar)));
-        } else if (isEqual(getValue(currency, "code"), "ETH"))
+        } else if (((getValue(currency, "code") as string) == "ETH"))
         {
             amountVar = this.parseToInt(Precise.stringMul(this.pow("10", "8"), this.currencyToPrecision(((string)code), amountVar)));
         } else
@@ -3299,10 +3299,10 @@ public partial class lighter : Exchange
         string strApiKeyIndex = ((string)this.numberToString(apiKeyIndex));
         object signer = await this.loadAccount(getValue(this.options, "chainId"), this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, parameters);
         Dictionary<string, object> currency = this.currency(((string)code));
-        if (isEqual(getValue(currency, "code"), "USDC"))
+        if (((getValue(currency, "code") as string) == "USDC"))
         {
             amountVar = this.parseToInt(Precise.stringMul(this.pow("10", "6"), this.currencyToPrecision(((string)code), amountVar)));
-        } else if (isEqual(getValue(currency, "code"), "ETH"))
+        } else if (((getValue(currency, "code") as string) == "ETH"))
         {
             amountVar = this.parseToInt(Precise.stringMul(this.pow("10", "8"), this.currencyToPrecision(((string)code), amountVar)));
         } else

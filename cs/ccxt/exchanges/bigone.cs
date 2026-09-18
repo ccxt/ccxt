@@ -1105,7 +1105,7 @@ public partial class bigone : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         object response = null;
-        if (isEqual(getValue(market, "contract"), true))
+        if (((getValue(market, "contract") as bool?) == true))
         {
             Dictionary<string, object> request = new Dictionary<string, object>() {
                 { "symbol", getValue(market, "id") },
@@ -1386,7 +1386,7 @@ public partial class bigone : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        if (isEqual(getValue(market, "contract"), true))
+        if (((getValue(market, "contract") as bool?) == true))
         {
             throw new NotSupported ((string)(this.id + " fetchTrades () can only fetch trades for spot markets")) ;
         }
@@ -1458,7 +1458,7 @@ public partial class bigone : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        if (isEqual(getValue(market, "contract"), true))
+        if (((getValue(market, "contract") as bool?) == true))
         {
             throw new NotSupported ((string)(this.id + " fetchOHLCV () can only fetch ohlcvs for spot markets")) ;
         }
@@ -1693,7 +1693,7 @@ public partial class bigone : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        if (!isEqual(getValue(market, "spot"), true))
+        if (((getValue(market, "spot") as bool?) != true))
         {
             throw new NotSupported ((string)(this.id + " createMarketBuyOrderWithCost() supports spot orders only")) ;
         }

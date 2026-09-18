@@ -862,7 +862,7 @@ public partial class bitbns : Exchange
         };
         Dictionary<string, object> response = null;
         string tail = ((bool) ((isTrigger == true))) ? "StopLossOrder" : "Order";
-        string quoteSide = ((bool) (isEqual(getValue(market, "quoteId"), "USDT"))) ? "usdtcancel" : "cancel";
+        string quoteSide = ((bool) (((getValue(market, "quoteId") as string) == "USDT"))) ? "usdtcancel" : "cancel";
         quoteSide = quoteSide + tail;
         ((IDictionary<string,object>)request)["side"] = quoteSide;
         response = await this.v2PostCancel(this.extend(request, parameters));
@@ -959,7 +959,7 @@ public partial class bitbns : Exchange
         Dictionary<string, object> market = this.market(symbol);
         bool? isTrigger = this.safeBool2(parameters, "trigger", "stop");
         parameters = this.omit(parameters, new List<object>() {"trigger", "stop"});
-        string quoteSide = ((bool) (isEqual(getValue(market, "quoteId"), "USDT"))) ? "usdtListOpen" : "listOpen";
+        string quoteSide = ((bool) (((getValue(market, "quoteId") as string) == "USDT"))) ? "usdtListOpen" : "listOpen";
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "uppercaseId") },
             { "page", 0 },

@@ -2085,7 +2085,7 @@ public partial class tokocrypto : Exchange
         {
             triggerPriceIsRequired = true;
             quantityIsRequired = true;
-            if ((isEqual(getValue(market, "linear"), true)) || (isEqual(getValue(market, "inverse"), true)))
+            if ((((getValue(market, "linear") as bool?) == true)) || (((getValue(market, "inverse") as bool?) == true)))
             {
                 priceIsRequired = true;
             }
