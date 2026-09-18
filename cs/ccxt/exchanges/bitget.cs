@@ -4439,17 +4439,17 @@ public partial class bitget : Exchange
                     productType = "MARGIN";
                 }
             }
-            ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
+            ((IDictionary<string,object>)request)["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
             ((IDictionary<string,object>)request)["category"] = productType;
             response = await this.publicUtaGetV3MarketPositionTier(this.extend(request, parameters));
-        } else if ((isEqual(getValue(market, "swap"), true)) || (isEqual(getValue(market, "future"), true)))
+        } else if ((isEqual((market.ContainsKey("swap") ? market["swap"] : null), true)) || (isEqual((market.ContainsKey("future") ? market["future"] : null), true)))
         {
             ((IDictionary<string,object>)request)["productType"] = productType;
-            ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
+            ((IDictionary<string,object>)request)["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
             response = await this.publicMixGetV2MixMarketQueryPositionLever(this.extend(request, parameters));
         } else if (isEqual(marginMode, "isolated"))
         {
-            ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
+            ((IDictionary<string,object>)request)["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
             response = await this.privateMarginGetV2MarginIsolatedTierData(this.extend(request, parameters));
         } else if (isEqual(marginMode, "cross"))
         {
@@ -4464,7 +4464,7 @@ public partial class bitget : Exchange
             response = await this.privateMarginGetV2MarginCrossedTierData(this.extend(request, parameters));
         } else
         {
-            throw new BadRequest ((string)add((this.id + " fetchMarketLeverageTiers() symbol does not support market "), getValue(market, "symbol"))) ;
+            throw new BadRequest ((string)add((this.id + " fetchMarketLeverageTiers() symbol does not support market "), (market.ContainsKey("symbol") ? market["symbol"] : null))) ;
         }
         //
         // swap and future
@@ -5203,7 +5203,7 @@ public partial class bitget : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "symbol", getValue(market, "id") },
+            { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
         if (!isEqual(limit, null))
         {
@@ -5222,7 +5222,7 @@ public partial class bitget : Exchange
         {
             ((IDictionary<string,object>)request)["category"] = productType;
             response = await this.publicUtaGetV3MarketOrderbook(this.extend(request, parameters));
-        } else if (isEqual(getValue(market, "spot"), true))
+        } else if (isEqual((market.ContainsKey("spot") ? market["spot"] : null), true))
         {
             response = await this.publicSpotGetV2SpotMarketOrderbook(this.extend(request, parameters));
         } else
@@ -5259,7 +5259,7 @@ public partial class bitget : Exchange
         string bidsKey = ((bool) (isEqual(uta, true))) ? "b" : "bids";
         string asksKey = ((bool) (isEqual(uta, true))) ? "a" : "asks";
         Int64? timestamp = this.safeInteger(data, "ts");
-        return ccxt.BaseExchange.ToOrderBook(this.parseOrderBook(data, getValue(market, "symbol"), timestamp, bidsKey, asksKey));
+        return ccxt.BaseExchange.ToOrderBook(this.parseOrderBook(data, (market.ContainsKey("symbol") ? market["symbol"] : null), timestamp, bidsKey, asksKey));
     }
 
     public override Dictionary<string, object> parseTicker(object ticker, object market = null)
@@ -5429,7 +5429,7 @@ public partial class bitget : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "symbol", getValue(market, "id") },
+            { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
         string? productType = null;
         IList<object> productTypeparametersVariable = (IList<object>)this.handleProductTypeAndParams(market, parameters);
@@ -5444,7 +5444,7 @@ public partial class bitget : Exchange
         {
             ((IDictionary<string,object>)request)["category"] = productType;
             response = await this.publicUtaGetV3MarketTickers(this.extend(request, parameters));
-        } else if (isEqual(getValue(market, "spot"), true))
+        } else if (isEqual((market.ContainsKey("spot") ? market["spot"] : null), true))
         {
             response = await this.publicSpotGetV2SpotMarketTickers(this.extend(request, parameters));
         } else
@@ -5597,10 +5597,10 @@ public partial class bitget : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "symbol", getValue(market, "id") },
+            { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
         Dictionary<string, object> response = null;
-        if (isEqual(getValue(market, "spot"), true))
+        if (isEqual((market.ContainsKey("spot") ? market["spot"] : null), true))
         {
             throw new NotSupported ((string)(this.id + " fetchMarkPrice() is not supported for spot markets")) ;
         } else
@@ -5995,7 +5995,7 @@ public partial class bitget : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "symbol", getValue(market, "id") },
+            { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
         object uta = null;
         var utaparametersVariable = await this.handleUTAAndParams(parameters, "fetchTrades", false);
@@ -6006,7 +6006,7 @@ public partial class bitget : Exchange
             if (isEqual(uta, true))
             {
                 ((IDictionary<string,object>)request)["limit"] = mathMin(limit, 100);
-            } else if (isEqual(getValue(market, "contract"), true))
+            } else if (isEqual((market.ContainsKey("contract") ? market["contract"] : null), true))
             {
                 ((IDictionary<string,object>)request)["limit"] = mathMin(limit, 1000);
             } else
@@ -6035,7 +6035,7 @@ public partial class bitget : Exchange
             }
             ((IDictionary<string,object>)request)["category"] = productType;
             response = await this.publicUtaGetV3MarketFills(this.extend(request, parameters));
-        } else if (isEqual(getValue(market, "spot"), true))
+        } else if (isEqual((market.ContainsKey("spot") ? market["spot"] : null), true))
         {
             object spotOptions = this.safeValue(options, "spot", new Dictionary<string, object>() {});
             string? defaultSpotMethod = this.safeString(spotOptions, "method", "publicSpotGetV2SpotMarketFillsHistory");
@@ -6156,7 +6156,7 @@ public partial class bitget : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "symbol", getValue(market, "id") },
+            { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
         object uta = null;
         var utaparametersVariable = await this.handleUTAAndParams(parameters, "fetchTradingFee", false);
@@ -6188,7 +6188,7 @@ public partial class bitget : Exchange
         IList<object> marginModeparametersVariable = (IList<object>)this.handleMarginModeAndParams("fetchTradingFee", parameters);
         marginMode = ((IList<object>)marginModeparametersVariable)[0];
         parameters = ((IList<object>)marginModeparametersVariable)[1];
-        if (isEqual(getValue(market, "spot"), true))
+        if (isEqual((market.ContainsKey("spot") ? market["spot"] : null), true))
         {
             if ((marginMode != null))
             {
@@ -6500,7 +6500,7 @@ public partial class bitget : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "symbol", getValue(market, "id") },
+            { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
         string? marketType = null;
         object timeframes = null;
@@ -6515,7 +6515,7 @@ public partial class bitget : Exchange
             ((IDictionary<string,object>)request)["interval"] = this.safeString(timeframes, timeframeVar, timeframeVar);
         } else
         {
-            marketType = ((bool) (isEqual(getValue(market, "spot"), true))) ? "spot" : "swap";
+            marketType = ((bool) (isEqual((market.ContainsKey("spot") ? market["spot"] : null), true))) ? "spot" : "swap";
             timeframes = getValue(timeframesOption, marketType);
             ((IDictionary<string,object>)request)["granularity"] = this.safeString(timeframes, timeframeVar, timeframeVar);
         }
@@ -6530,7 +6530,7 @@ public partial class bitget : Exchange
         // retrievable periods listed here:
         // - https://www.bitget.com/api-doc/spot/market/Get-Candle-Data#request-parameters
         // - https://www.bitget.com/api-doc/contract/market/Get-Candle-Data#description
-        string key = ((bool) (isEqual(getValue(market, "spot"), true))) ? "spot" : "swap";
+        string key = ((bool) (isEqual((market.ContainsKey("spot") ? market["spot"] : null), true))) ? "spot" : "swap";
         IDictionary<string, object> ohlcOptions = this.safeDict(getValue(this.options, "fetchOHLCV"), key, new Dictionary<string, object>() {});
         IDictionary<string, object> maxLimitPerTimeframe = this.safeDict(ohlcOptions, "maxLimitPerTimeframe", new Dictionary<string, object>() {});
         Int64? maxLimitForThisTimeframe = this.safeInteger(maxLimitPerTimeframe, timeframeVar, limitVar);
@@ -6588,7 +6588,7 @@ public partial class bitget : Exchange
             calculatedStartTime = subtract(calculatedEndTime, limitMultipliedDuration);
             ((IDictionary<string,object>)request)["startTime"] = calculatedStartTime;
             // for contract, maximum 90 days allowed between start-end times
-            if (!isEqual(getValue(market, "spot"), true))
+            if (!isEqual((market.ContainsKey("spot") ? market["spot"] : null), true))
             {
                 int maxDistanceDaysForContracts = 90;
                 // only correct if request is larger
@@ -6625,7 +6625,7 @@ public partial class bitget : Exchange
             }
             ((IDictionary<string,object>)request)["category"] = productType;
             response = await this.publicUtaGetV3MarketCandles(this.extend(request, parameters));
-        } else if (isEqual(getValue(market, "spot"), true))
+        } else if (isEqual((market.ContainsKey("spot") ? market["spot"] : null), true))
         {
             // checks if we need history endpoint
             if (historicalEndpointNeeded)
@@ -7402,7 +7402,7 @@ public partial class bitget : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        if (!isEqual(getValue(market, "spot"), true))
+        if (!isEqual((market.ContainsKey("spot") ? market["spot"] : null), true))
         {
             throw new NotSupported ((string)(this.id + " createMarketBuyOrderWithCost() supports spot orders only")) ;
         }
@@ -7494,7 +7494,7 @@ public partial class bitget : Exchange
         } else
         {
             Dictionary<string, object> request = this.createOrderRequest(symbol, type, side, amount, price, parameters);
-            if (isEqual(getValue(market, "spot"), true))
+            if (isEqual((market.ContainsKey("spot") ? market["spot"] : null), true))
             {
                 if (isTriggerOrder)
                 {
@@ -7567,7 +7567,7 @@ public partial class bitget : Exchange
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "category", productType },
-            { "symbol", getValue(market, "id") },
+            { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
             { "qty", this.amountToPrecision(symbol, amount) },
             { "side", side },
         };
@@ -7727,7 +7727,7 @@ public partial class bitget : Exchange
         marginMode = ((IList<object>)marginModeparametersVariable)[0];
         parameters = ((IList<object>)marginModeparametersVariable)[1];
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "symbol", getValue(market, "id") },
+            { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
             { "orderType", type },
         };
         bool? hedged = null;
@@ -7806,7 +7806,7 @@ public partial class bitget : Exchange
         parameters = this.omit(parameters, new List<object>() {"stopPrice", "triggerType", "stopLossPrice", "takeProfitPrice", "stopLoss", "takeProfit", "postOnly", "reduceOnly", "clientOrderId", "trailingPercent", "trailingTriggerPrice"});
         if ((isEqual(marketType, "swap")) || (isEqual(marketType, "future")))
         {
-            ((IDictionary<string,object>)request)["marginCoin"] = getValue(market, "settleId");
+            ((IDictionary<string,object>)request)["marginCoin"] = (market.ContainsKey("settleId") ? market["settleId"] : null);
             ((IDictionary<string,object>)request)["size"] = this.amountToPrecision(symbol, amount);
             string? productType = null;
             IList<object> productTypeparametersVariable = (IList<object>)this.handleProductTypeAndParams(market, parameters);
@@ -8165,11 +8165,11 @@ public partial class bitget : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "symbol", getValue(market, "id") },
+            { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
             { "orderList", ordersRequests },
         };
         Dictionary<string, object> response = null;
-        if ((isEqual(getValue(market, "swap"), true)) || (isEqual(getValue(market, "future"), true)))
+        if ((isEqual((market.ContainsKey("swap") ? market["swap"] : null), true)) || (isEqual((market.ContainsKey("future") ? market["future"] : null), true)))
         {
             if ((marginMode == null))
             {
@@ -8177,7 +8177,7 @@ public partial class bitget : Exchange
             }
             string marginModeRequest = ((bool) (isEqual(marginMode, "cross"))) ? "crossed" : "isolated";
             ((IDictionary<string,object>)request)["marginMode"] = marginModeRequest;
-            ((IDictionary<string,object>)request)["marginCoin"] = getValue(market, "settleId");
+            ((IDictionary<string,object>)request)["marginCoin"] = (market.ContainsKey("settleId") ? market["settleId"] : null);
             string? productType = null;
             IList<object> productTypeparametersVariable = (IList<object>)this.handleProductTypeAndParams(market, parameters);
             productType = (string)((IList<object>)productTypeparametersVariable)[0];
@@ -8356,7 +8356,7 @@ public partial class bitget : Exchange
                 }
                 response = await this.privateUtaPostV3TradeModifyOrder(this.extend(request, parameters));
             }
-        } else if (isEqual(getValue(market, "spot"), true))
+        } else if (isEqual((market.ContainsKey("spot") ? market["spot"] : null), true))
         {
             string? cost = this.safeString(parameters, "cost");
             parameters = this.omit(parameters, "cost");
@@ -8396,16 +8396,16 @@ public partial class bitget : Exchange
                 response = await this.privateSpotPostV2SpotTradeModifyPlanOrder(this.extend(request, parameters));
             } else
             {
-                ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
+                ((IDictionary<string,object>)request)["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
                 response = await this.privateSpotPostV2SpotTradeCancelReplaceOrder(this.extend(request, parameters));
             }
         } else
         {
-            if ((!isEqual(getValue(market, "swap"), true)) && (!isEqual(getValue(market, "future"), true)))
+            if ((!isEqual((market.ContainsKey("swap") ? market["swap"] : null), true)) && (!isEqual((market.ContainsKey("future") ? market["future"] : null), true)))
             {
-                throw new NotSupported ((string)(add((this.id + " editOrder() does not support "), getValue(market, "type")) + " orders")) ;
+                throw new NotSupported ((string)(add((this.id + " editOrder() does not support "), (market.ContainsKey("type") ? market["type"] : null)) + " orders")) ;
             }
-            ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
+            ((IDictionary<string,object>)request)["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
             ((IDictionary<string,object>)request)["productType"] = productType;
             if (!isTakeProfitOrder && !isStopLossOrder)
             {
@@ -8432,7 +8432,7 @@ public partial class bitget : Exchange
                 response = await this.privateMixPostV2MixOrderModifyPlanOrder(this.extend(request, parameters));
             } else if (isTakeProfitOrder || isStopLossOrder)
             {
-                ((IDictionary<string,object>)request)["marginCoin"] = getValue(market, "settleId");
+                ((IDictionary<string,object>)request)["marginCoin"] = (market.ContainsKey("settleId") ? market["settleId"] : null);
                 ((IDictionary<string,object>)request)["size"] = this.amountToPrecision(symbol, amount);
                 if (!isEqual(price, null))
                 {
@@ -8546,16 +8546,16 @@ public partial class bitget : Exchange
         object trailing = this.safeValue(parameters, "trailing");
         object trigger = this.safeValue2(parameters, "stop", "trigger");
         parameters = this.omit(parameters, new List<object>() {"stop", "trigger", "trailing"});
-        if (!((isEqual(getValue(market, "spot"), true)) && (isEqual(trigger, true))))
+        if (!((isEqual((market.ContainsKey("spot") ? market["spot"] : null), true)) && (isEqual(trigger, true))))
         {
-            ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
+            ((IDictionary<string,object>)request)["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
         }
         object uta = null;
         var utaparametersVariable = await this.handleUTAAndParams(parameters, "cancelOrder", false);
         uta = ((IList<object>)utaparametersVariable)[0];
         parameters = ((IList<object>)utaparametersVariable)[1];
         bool isPlanOrder = (isEqual(trigger, true)) || (isEqual(trailing, true));
-        bool isContract = (isEqual(getValue(market, "swap"), true)) || (isEqual(getValue(market, "future"), true));
+        bool isContract = (isEqual((market.ContainsKey("swap") ? market["swap"] : null), true)) || (isEqual((market.ContainsKey("future") ? market["future"] : null), true));
         bool isContractTriggerEndpoint = isContract && isPlanOrder && (!isEqual(uta, true));
         string? clientOrderId = this.safeString2(parameters, "clientOrderId", "clientOid");
         if (isContractTriggerEndpoint)
@@ -8592,7 +8592,7 @@ public partial class bitget : Exchange
             {
                 response = await this.privateUtaPostV3TradeCancelOrder(this.extend(request, parameters));
             }
-        } else if ((isEqual(getValue(market, "swap"), true)) || (isEqual(getValue(market, "future"), true)))
+        } else if ((isEqual((market.ContainsKey("swap") ? market["swap"] : null), true)) || (isEqual((market.ContainsKey("future") ? market["future"] : null), true)))
         {
             string? productType = null;
             IList<object> productTypeparametersVariable = (IList<object>)this.handleProductTypeAndParams(market, parameters);
@@ -8611,7 +8611,7 @@ public partial class bitget : Exchange
             {
                 response = await this.privateMixPostV2MixOrderCancelOrder(this.extend(request, parameters));
             }
-        } else if (isEqual(getValue(market, "spot"), true))
+        } else if (isEqual((market.ContainsKey("spot") ? market["spot"] : null), true))
         {
             if ((marginMode != null))
             {
@@ -8634,7 +8634,7 @@ public partial class bitget : Exchange
             }
         } else
         {
-            throw new NotSupported ((string)(add((this.id + " cancelOrder() does not support "), getValue(market, "type")) + " orders")) ;
+            throw new NotSupported ((string)(add((this.id + " cancelOrder() does not support "), (market.ContainsKey("type") ? market["type"] : null)) + " orders")) ;
         }
         //
         // spot, swap, future and spot margin
@@ -8727,7 +8727,7 @@ public partial class bitget : Exchange
             object individualId = getValue(ids, i);
             Dictionary<string, object> order = new Dictionary<string, object>() {
                 { "orderId", individualId },
-                { "symbol", getValue(market, "id") },
+                { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
                 { "category", productType },
             };
             ((IList<object>)requestList).Add(order);
@@ -8804,9 +8804,9 @@ public partial class bitget : Exchange
             ((IList<object>)orderIdList).Add(orderId);
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "symbol", getValue(market, "id") },
+            { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
-        if ((isEqual(getValue(market, "spot"), true)) && ((marginMode == null)))
+        if ((isEqual((market.ContainsKey("spot") ? market["spot"] : null), true)) && ((marginMode == null)))
         {
             ((IDictionary<string,object>)request)["orderList"] = orderIdList;
         } else
@@ -8814,7 +8814,7 @@ public partial class bitget : Exchange
             ((IDictionary<string,object>)request)["orderIdList"] = orderIdList;
         }
         Dictionary<string, object> response = null;
-        if (isEqual(getValue(market, "spot"), true))
+        if (isEqual((market.ContainsKey("spot") ? market["spot"] : null), true))
         {
             if ((marginMode != null))
             {
@@ -8902,7 +8902,7 @@ public partial class bitget : Exchange
         productType = (string)((IList<object>)productTypeparametersVariable)[0];
         parameters = ((IList<object>)productTypeparametersVariable)[1];
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "symbol", getValue(market, "id") },
+            { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
         bool? trigger = this.safeBool2(parameters, "stop", "trigger");
         parameters = this.omit(parameters, new List<object>() {"stop", "trigger"});
@@ -8922,7 +8922,7 @@ public partial class bitget : Exchange
             }
             ((IDictionary<string,object>)request)["category"] = productType;
             response = await this.privateUtaPostV3TradeCancelSymbolOrder(this.extend(request, parameters));
-        } else if (isEqual(getValue(market, "spot"), true))
+        } else if (isEqual((market.ContainsKey("spot") ? market["spot"] : null), true))
         {
             if ((marginMode != null))
             {
@@ -8932,7 +8932,7 @@ public partial class bitget : Exchange
                 if ((trigger == true))
                 {
                     Dictionary<string, object> stopRequest = new Dictionary<string, object>() {
-                        { "symbolList", new List<object>() {getValue(market, "id")} },
+                        { "symbolList", new List<object>() {(market.ContainsKey("id") ? market["id"] : null)} },
                     };
                     response = await this.privateSpotPostV2SpotTradeBatchCancelPlanOrder(this.extend(stopRequest, parameters));
                 } else
@@ -9023,12 +9023,12 @@ public partial class bitget : Exchange
         if (isEqual(uta, true))
         {
             response = await this.privateUtaGetV3TradeOrderInfo(this.extend(request, parameters));
-        } else if (isEqual(getValue(market, "spot"), true))
+        } else if (isEqual((market.ContainsKey("spot") ? market["spot"] : null), true))
         {
             response = await this.privateSpotGetV2SpotTradeOrderInfo(this.extend(request, parameters));
-        } else if ((isEqual(getValue(market, "swap"), true)) || (isEqual(getValue(market, "future"), true)))
+        } else if ((isEqual((market.ContainsKey("swap") ? market["swap"] : null), true)) || (isEqual((market.ContainsKey("future") ? market["future"] : null), true)))
         {
-            ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
+            ((IDictionary<string,object>)request)["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
             string? productType = null;
             IList<object> productTypeparametersVariable = (IList<object>)this.handleProductTypeAndParams(market, parameters);
             productType = (string)((IList<object>)productTypeparametersVariable)[0];
@@ -9037,7 +9037,7 @@ public partial class bitget : Exchange
             response = await this.privateMixGetV2MixOrderDetail(this.extend(request, parameters));
         } else
         {
-            throw new NotSupported ((string)(add((this.id + " fetchOrder() does not support "), getValue(market, "type")) + " orders")) ;
+            throw new NotSupported ((string)(add((this.id + " fetchOrder() does not support "), (market.ContainsKey("type") ? market["type"] : null)) + " orders")) ;
         }
         //
         // spot
@@ -9218,9 +9218,9 @@ public partial class bitget : Exchange
         if (!isEqual(symbol, null))
         {
             market = this.market(symbol);
-            ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
+            ((IDictionary<string,object>)request)["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
             string? defaultType = this.safeString2(this.options, "fetchOpenOrders", "defaultType", "spot");
-            object marketType = ((bool) (inOp(market, "type"))) ? getValue(market, "type") : defaultType;
+            object marketType = ((bool) (inOp(market, "type"))) ? (market.ContainsKey("type") ? market["type"] : null) : defaultType;
             type = this.safeString(parameters, "type", marketType);
         } else
         {
@@ -9740,7 +9740,7 @@ public partial class bitget : Exchange
         if (!isEqual(symbol, null))
         {
             market = this.market(symbol);
-            ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
+            ((IDictionary<string,object>)request)["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
         }
         string? marketType = null;
         IList<object> marketTypeparametersVariable = (IList<object>)this.handleMarketTypeAndParams("fetchCanceledAndClosedOrders", market, parameters);
@@ -10507,7 +10507,7 @@ public partial class bitget : Exchange
             {
                 cursorReceived = "cursor";
                 cursorSent = "cursor";
-            } else if (isEqual(getValue(market, "spot"), true))
+            } else if (isEqual((market.ContainsKey("spot") ? market["spot"] : null), true))
             {
                 if ((marginMode != null))
                 {
@@ -10527,8 +10527,8 @@ public partial class bitget : Exchange
             response = await this.privateUtaGetV3TradeFills(this.extend(request, parameters));
         } else
         {
-            ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
-            if (isEqual(getValue(market, "spot"), true))
+            ((IDictionary<string,object>)request)["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
+            if (isEqual((market.ContainsKey("spot") ? market["spot"] : null), true))
             {
                 if ((marginMode != null))
                 {
@@ -10693,7 +10693,7 @@ public partial class bitget : Exchange
         {
             List<object> fills = this.safeList(data, "list", new List<object>() {});
             return ccxt.BaseExchange.ToTradeList(this.parseTrades(fills, market, since, limit));
-        } else if (((isEqual(getValue(market, "swap"), true)) || (isEqual(getValue(market, "future"), true))))
+        } else if (((isEqual((market.ContainsKey("swap") ? market["swap"] : null), true)) || (isEqual((market.ContainsKey("future") ? market["future"] : null), true))))
         {
             List<object> fills = this.safeList(data, "fillList", new List<object>() {});
             return ccxt.BaseExchange.ToTradeList(this.parseTrades(fills, market, since, limit));
@@ -10729,7 +10729,7 @@ public partial class bitget : Exchange
         productType = (string)((IList<object>)productTypeparametersVariable)[0];
         parameters = ((IList<object>)productTypeparametersVariable)[1];
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "symbol", getValue(market, "id") },
+            { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
         Dictionary<string, object> response = null;
         object uta = null;
@@ -10783,7 +10783,7 @@ public partial class bitget : Exchange
             result = this.safeList(data, "list", new List<object>() {});
         } else
         {
-            ((IDictionary<string,object>)request)["marginCoin"] = getValue(market, "settleId");
+            ((IDictionary<string,object>)request)["marginCoin"] = (market.ContainsKey("settleId") ? market["settleId"] : null);
             ((IDictionary<string,object>)request)["productType"] = productType;
             response = await this.privateMixGetV2MixPositionSinglePosition(this.extend(request, parameters));
             //
@@ -10895,7 +10895,7 @@ public partial class bitget : Exchange
             string? marginCoin = this.safeString(parameters, "marginCoin", "USDT");
             if ((market != null))
             {
-                marginCoin = ((string)getValue(market, "settleId"));
+                marginCoin = ((string)(market.ContainsKey("settleId") ? market["settleId"] : null));
             } else if (isEqual(productType, "USDT-FUTURES"))
             {
                 marginCoin = "USDT";
@@ -10923,7 +10923,7 @@ public partial class bitget : Exchange
             isHistory = true;
             if ((market != null))
             {
-                ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
+                ((IDictionary<string,object>)request)["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
             }
             ((IDictionary<string,object>)request)["productType"] = productType;
             response = await this.privateMixGetV2MixPositionHistoryPosition(this.extend(request, parameters));
@@ -11309,7 +11309,7 @@ public partial class bitget : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "symbol", getValue(market, "id") },
+            { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
         string? productType = null;
         object uta = null;
@@ -11395,7 +11395,7 @@ public partial class bitget : Exchange
             });
         }
         List<object> sorted = this.sortBy(rates, "timestamp");
-        return ccxt.BaseExchange.ToFundingRateHistoryList(this.filterBySymbolSinceLimit(sorted, getValue(market, "symbol"), since, limit));
+        return ccxt.BaseExchange.ToFundingRateHistoryList(this.filterBySymbolSinceLimit(sorted, (market.ContainsKey("symbol") ? market["symbol"] : null), since, limit));
     }
 
     /**
@@ -11419,7 +11419,7 @@ public partial class bitget : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        if (!isEqual(getValue(market, "swap"), true))
+        if (!isEqual((market.ContainsKey("swap") ? market["swap"] : null), true))
         {
             throw new BadSymbol ((string)(this.id + " fetchFundingRate() supports swap contracts only")) ;
         }
@@ -11428,7 +11428,7 @@ public partial class bitget : Exchange
         productType = (string)((IList<object>)productTypeparametersVariable)[0];
         parameters = ((IList<object>)productTypeparametersVariable)[1];
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "symbol", getValue(market, "id") },
+            { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
         object uta = null;
         Dictionary<string, object> response = null;
@@ -11710,7 +11710,7 @@ public partial class bitget : Exchange
             return ccxt.BaseExchange.ToFundingHistoryList(await this.fetchPaginatedCallCursor("fetchFundingHistory", symbol, since, limit, parameters, "endId", "idLessThan"));
         }
         Dictionary<string, object> market = this.market(symbol);
-        if (!isEqual(getValue(market, "swap"), true))
+        if (!isEqual((market.ContainsKey("swap") ? market["swap"] : null), true))
         {
             throw new BadSymbol ((string)(this.id + " fetchFundingHistory() supports swap contracts only")) ;
         }
@@ -11733,13 +11733,13 @@ public partial class bitget : Exchange
         Dictionary<string, object> response = null;
         if (isEqual(uta, true))
         {
-            ((IDictionary<string,object>)request)["coin"] = getValue(market, "settleId");
+            ((IDictionary<string,object>)request)["coin"] = (market.ContainsKey("settleId") ? market["settleId"] : null);
             ((IDictionary<string,object>)request)["category"] = productType;
             response = await this.privateUtaGetV3AccountFinancialRecords(this.extend(request, parameters));
         } else
         {
-            ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
-            ((IDictionary<string,object>)request)["marginCoin"] = getValue(market, "settleId");
+            ((IDictionary<string,object>)request)["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
+            ((IDictionary<string,object>)request)["marginCoin"] = (market.ContainsKey("settleId") ? market["settleId"] : null);
             ((IDictionary<string,object>)request)["businessType"] = "contract_settle_fee";
             ((IDictionary<string,object>)request)["productType"] = productType;
             response = await this.privateMixGetV2MixAccountBill(this.extend(request, parameters));
@@ -11829,8 +11829,8 @@ public partial class bitget : Exchange
         productType = (string)((IList<object>)productTypeparametersVariable)[0];
         parameters = ((IList<object>)productTypeparametersVariable)[1];
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "symbol", getValue(market, "id") },
-            { "marginCoin", getValue(market, "settleId") },
+            { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
+            { "marginCoin", (market.ContainsKey("settleId") ? market["settleId"] : null) },
             { "amount", this.amountToPrecision(symbol, amount) },
             { "holdSide", holdSide },
             { "productType", productType },
@@ -11947,8 +11947,8 @@ public partial class bitget : Exchange
         productType = (string)((IList<object>)productTypeparametersVariable)[0];
         parameters = ((IList<object>)productTypeparametersVariable)[1];
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "symbol", getValue(market, "id") },
-            { "marginCoin", getValue(market, "settleId") },
+            { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
+            { "marginCoin", (market.ContainsKey("settleId") ? market["settleId"] : null) },
             { "productType", productType },
         };
         Dictionary<string, object> response = await this.privateMixGetV2MixAccountAccount(this.extend(request, parameters));
@@ -12029,7 +12029,7 @@ public partial class bitget : Exchange
         productType = (string)((IList<object>)productTypeparametersVariable)[0];
         parameters = ((IList<object>)productTypeparametersVariable)[1];
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "symbol", getValue(market, "id") },
+            { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
             { "leverage", this.numberToString(leverage) },
         };
         object uta = null;
@@ -12050,12 +12050,12 @@ public partial class bitget : Exchange
                     productType = "MARGIN";
                 }
             }
-            ((IDictionary<string,object>)request)["coin"] = getValue(market, "settleId");
+            ((IDictionary<string,object>)request)["coin"] = (market.ContainsKey("settleId") ? market["settleId"] : null);
             ((IDictionary<string,object>)request)["category"] = productType;
             response = await this.privateUtaPostV3AccountSetLeverage(this.extend(request, parameters));
         } else
         {
-            ((IDictionary<string,object>)request)["marginCoin"] = getValue(market, "settleId");
+            ((IDictionary<string,object>)request)["marginCoin"] = (market.ContainsKey("settleId") ? market["settleId"] : null);
             ((IDictionary<string,object>)request)["productType"] = productType;
             response = await this.privateMixPostV2MixAccountSetLeverage(this.extend(request, parameters));
         }
@@ -12099,8 +12099,8 @@ public partial class bitget : Exchange
         productType = (string)((IList<object>)productTypeparametersVariable)[0];
         parameters = ((IList<object>)productTypeparametersVariable)[1];
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "symbol", getValue(market, "id") },
-            { "marginCoin", getValue(market, "settleId") },
+            { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
+            { "marginCoin", (market.ContainsKey("settleId") ? market["settleId"] : null) },
             { "marginMode", marginModeVar },
             { "productType", productType },
         };
@@ -12190,7 +12190,7 @@ public partial class bitget : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        if (!isEqual(getValue(market, "contract"), true))
+        if (!isEqual((market.ContainsKey("contract") ? market["contract"] : null), true))
         {
             throw new BadRequest ((string)(this.id + " fetchOpenInterest() supports contract markets only")) ;
         }
@@ -12199,7 +12199,7 @@ public partial class bitget : Exchange
         productType = (string)((IList<object>)productTypeparametersVariable)[0];
         parameters = ((IList<object>)productTypeparametersVariable)[1];
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "symbol", getValue(market, "id") },
+            { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
         object uta = null;
         Dictionary<string, object> response = null;
@@ -12375,7 +12375,7 @@ public partial class bitget : Exchange
         if ((symbol != null))
         {
             market = this.market(symbol);
-            ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
+            ((IDictionary<string,object>)request)["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
         }
         Dictionary<string, object> response = null;
         if (isEqual(uta, true))
@@ -12634,7 +12634,7 @@ public partial class bitget : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "coin", getValue(currency, "id") },
             { "borrowAmount", this.currencyToPrecision(((string)code), amount) },
-            { "symbol", getValue(market, "id") },
+            { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
         Dictionary<string, object> response = await this.privateMarginPostV2MarginIsolatedAccountBorrow(this.extend(request, parameters));
         //
@@ -12677,7 +12677,7 @@ public partial class bitget : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "coin", getValue(currency, "id") },
             { "repayAmount", this.currencyToPrecision(((string)code), amount) },
-            { "symbol", getValue(market, "id") },
+            { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
         Dictionary<string, object> response = await this.privateMarginPostV2MarginIsolatedAccountRepay(this.extend(request, parameters));
         //
@@ -12995,7 +12995,7 @@ public partial class bitget : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "symbol", getValue(market, "id") },
+            { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
         Dictionary<string, object> response = await this.privateMarginGetV2MarginIsolatedInterestRateAndLimit(this.extend(request, parameters));
         //
@@ -13417,7 +13417,7 @@ public partial class bitget : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "symbol", getValue(market, "id") },
+            { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
         string? productType = null;
         object uta = null;
@@ -13514,8 +13514,8 @@ public partial class bitget : Exchange
         productType = (string)((IList<object>)productTypeparametersVariable)[0];
         parameters = ((IList<object>)productTypeparametersVariable)[1];
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "symbol", getValue(market, "id") },
-            { "marginCoin", getValue(market, "settleId") },
+            { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
+            { "marginCoin", (market.ContainsKey("settleId") ? market["settleId"] : null) },
             { "productType", productType },
         };
         Dictionary<string, object> response = await this.privateMixGetV2MixAccountAccount(this.extend(request, parameters));
@@ -13595,7 +13595,7 @@ public partial class bitget : Exchange
             if (symbolsLength > 0)
             {
                 market = this.market(getValue(symbols, 0));
-                ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
+                ((IDictionary<string,object>)request)["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
             }
         }
         if (!isEqual(since, null))
@@ -13959,7 +13959,7 @@ public partial class bitget : Exchange
         productType = (string)((IList<object>)productTypeparametersVariable)[0];
         parameters = ((IList<object>)productTypeparametersVariable)[1];
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "symbol", getValue(market, "id") },
+            { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
         Dictionary<string, object> response = null;
         object uta = null;
@@ -14001,14 +14001,14 @@ public partial class bitget : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "symbol", getValue(market, "id") },
+            { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
         if (!isEqual(timeframe, null))
         {
             ((IDictionary<string,object>)request)["period"] = timeframe;
         }
         Dictionary<string, object> response = null;
-        if ((isEqual(getValue(market, "swap"), true)) || (isEqual(getValue(market, "future"), true)))
+        if ((isEqual((market.ContainsKey("swap") ? market["swap"] : null), true)) || (isEqual((market.ContainsKey("future") ? market["future"] : null), true)))
         {
             response = await this.publicMixGetV2MixMarketAccountLongShort(this.extend(request, parameters));
         } else

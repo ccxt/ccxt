@@ -1708,7 +1708,7 @@ public partial class BaseExchange
          * @returns {object} returns feature value
          */
         Dictionary<string, object> market = this.market(symbol);
-        return this.featureValueByType(getValue(market, "type"), getValue(market, "subType"), methodName, paramName, defaultValue);
+        return this.featureValueByType((market.ContainsKey("type") ? market["type"] : null), (market.ContainsKey("subType") ? market["subType"] : null), methodName, paramName, defaultValue);
     }
 
     public virtual object featureValueByType(object marketType, object subType, object methodName = null, object paramName = null, object defaultValue = null)
@@ -2159,10 +2159,10 @@ public partial class BaseExchange
                 { "precision", this.precision },
                 { "limits", this.limits },
             }, getValue(this.fees, "trading"), valueDefined);
-            if (isEqual(getValue(market, "linear"), true))
+            if (isEqual((market.ContainsKey("linear") ? market["linear"] : null), true))
             {
                 ((IDictionary<string,object>)market)["subType"] = "linear";
-            } else if (isEqual(getValue(market, "inverse"), true))
+            } else if (isEqual((market.ContainsKey("inverse") ? market["inverse"] : null), true))
             {
                 ((IDictionary<string,object>)market)["subType"] = "inverse";
             } else
@@ -3556,26 +3556,26 @@ public partial class BaseExchange
             Dictionary<string, object> market = this.market(getValue(symbols, i));
             if (isTrue(sameTypeOnly) && ((marketType != null)))
             {
-                if (!isEqual(getValue(market, "type"), marketType))
+                if (!isEqual((market.ContainsKey("type") ? market["type"] : null), marketType))
                 {
-                    throw new BadRequest ((string)(add((add((this.id + " symbols must be of the same type, either "), marketType) + " or "), getValue(market, "type")) + ".")) ;
+                    throw new BadRequest ((string)(add((add((this.id + " symbols must be of the same type, either "), marketType) + " or "), (market.ContainsKey("type") ? market["type"] : null)) + ".")) ;
                 }
             }
             if (isTrue(sameSubTypeOnly) && (!isEqual(isLinearSubType, null)))
             {
-                if (!isEqual(getValue(market, "linear"), isLinearSubType))
+                if (!isEqual((market.ContainsKey("linear") ? market["linear"] : null), isLinearSubType))
                 {
                     throw new BadRequest ((string)(this.id + " symbols must be of the same subType, either linear or inverse.")) ;
                 }
             }
-            if (!isEqual(type, null) && !isEqual(getValue(market, "type"), type))
+            if (!isEqual(type, null) && !isEqual((market.ContainsKey("type") ? market["type"] : null), type))
             {
                 throw new BadRequest ((string)(add((this.id + " symbols must be of the same type "), type) + ". If the type is incorrect you can change it in options or the params of the request")) ;
             }
-            marketType = getValue(market, "type");
-            if (!isEqual(getValue(market, "spot"), true))
+            marketType = (market.ContainsKey("type") ? market["type"] : null);
+            if (!isEqual((market.ContainsKey("spot") ? market["spot"] : null), true))
             {
-                isLinearSubType = getValue(market, "linear");
+                isLinearSubType = (market.ContainsKey("linear") ? market["linear"] : null);
             }
             string? symbol = this.safeString(market, "symbol", getValue(symbols, i));
             ((IList<object>)result).Add(symbol);
@@ -3978,7 +3978,7 @@ public partial class BaseExchange
                 object item = getValue(response, i);
                 string? id = ((bool) (isEqual(marketIdKey, null))) ? null : this.safeString(item, marketIdKey);
                 Dictionary<string, object> market = this.safeMarket(id, null, null, "swap");
-                string? symbol = ((string)getValue(market, "symbol"));
+                string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
                 bool? contract = this.safeBool(market, "contract", false);
                 if (((contract == true)) && (noSymbols || ((!isEqual(symbols, null)) && this.inArray(symbol, symbols))))
                 {
@@ -3993,7 +3993,7 @@ public partial class BaseExchange
                 string? marketId = ((string)getValue(keys, i));
                 object item = getValue(response, marketId);
                 Dictionary<string, object> market = this.safeMarket(marketId, null, null, "swap");
-                string? symbol = ((string)getValue(market, "symbol"));
+                string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
                 bool? contract = this.safeBool(market, "contract", false);
                 if (((contract == true)) && (noSymbols || ((!isEqual(symbols, null)) && this.inArray(symbol, symbols))))
                 {
@@ -4233,7 +4233,7 @@ public partial class BaseExchange
         Dictionary<string, object> market = this.market(symbol);
         if ((market != null))
         {
-            return getValue(market, "id");
+            return (market.ContainsKey("id") ? market["id"] : null);
         }
         return symbol;
     }
@@ -5271,7 +5271,7 @@ public partial class BaseExchange
         {
             await this.loadMarkets();
             Dictionary<string, object> market = this.market(symbolVar);
-            symbolVar = getValue(market, "symbol");
+            symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
             object ranks = ccxt.BaseExchange.FromADLList(await this.FetchPositionsADLRank(new List<object>() {symbolVar}, parameters));
             IDictionary<string, object> rank = this.safeDict(ranks, 0);
             if ((rank == null))
@@ -5697,7 +5697,7 @@ public partial class BaseExchange
             return null;
         }
         Dictionary<string, object> market = this.market(symbol);
-        return this.decimalToPrecision(cost, TRUNCATE, this.safeString2(getValue(market, "precision"), "cost", "price"), this.precisionMode, this.paddingMode);
+        return this.decimalToPrecision(cost, TRUNCATE, this.safeString2((market.ContainsKey("precision") ? market["precision"] : null), "cost", "price"), this.precisionMode, this.paddingMode);
     }
 
     public virtual string? priceToPrecision(object symbol, object price)
@@ -5707,10 +5707,10 @@ public partial class BaseExchange
             return null;
         }
         Dictionary<string, object> market = this.market(symbol);
-        string result = this.decimalToPrecision(price, ROUND, getValue(getValue(market, "precision"), "price"), this.precisionMode, this.paddingMode);
+        string result = this.decimalToPrecision(price, ROUND, getValue((market.ContainsKey("precision") ? market["precision"] : null), "price"), this.precisionMode, this.paddingMode);
         if (isEqual(result, "0"))
         {
-            throw new InvalidOrder ((string)((add((this.id + " price of "), getValue(market, "symbol")) + " must be greater than minimum price precision of ") + this.numberToString(getValue(getValue(market, "precision"), "price")))) ;
+            throw new InvalidOrder ((string)((add((this.id + " price of "), (market.ContainsKey("symbol") ? market["symbol"] : null)) + " must be greater than minimum price precision of ") + this.numberToString(getValue((market.ContainsKey("precision") ? market["precision"] : null), "price")))) ;
         }
         return result;
     }
@@ -5722,10 +5722,10 @@ public partial class BaseExchange
             return null;
         }
         Dictionary<string, object> market = this.market(symbol);
-        string result = this.decimalToPrecision(amount, TRUNCATE, getValue(getValue(market, "precision"), "amount"), this.precisionMode, this.paddingMode);
+        string result = this.decimalToPrecision(amount, TRUNCATE, getValue((market.ContainsKey("precision") ? market["precision"] : null), "amount"), this.precisionMode, this.paddingMode);
         if (isEqual(result, "0"))
         {
-            throw new InvalidOrder ((string)((add((this.id + " amount of "), getValue(market, "symbol")) + " must be greater than minimum amount precision of ") + this.numberToString(getValue(getValue(market, "precision"), "amount")))) ;
+            throw new InvalidOrder ((string)((add((this.id + " amount of "), (market.ContainsKey("symbol") ? market["symbol"] : null)) + " must be greater than minimum amount precision of ") + this.numberToString(getValue((market.ContainsKey("precision") ? market["precision"] : null), "amount")))) ;
         }
         return result;
     }
@@ -5737,7 +5737,7 @@ public partial class BaseExchange
             return null;
         }
         Dictionary<string, object> market = this.market(symbol);
-        return this.decimalToPrecision(fee, ROUND, getValue(getValue(market, "precision"), "price"), this.precisionMode, this.paddingMode);
+        return this.decimalToPrecision(fee, ROUND, getValue((market.ContainsKey("precision") ? market["precision"] : null), "price"), this.precisionMode, this.paddingMode);
     }
 
     public virtual string? currencyToPrecision(string code, object fee, object networkCode = null)
@@ -5895,7 +5895,7 @@ public partial class BaseExchange
         if (!isEqual(getValue(this.has, "fetchLeverageTiers"), null) && !isEqual(getValue(this.has, "fetchLeverageTiers"), false))
         {
             Dictionary<string, object> market = this.market(symbol);
-            if (!isEqual(getValue(market, "contract"), true))
+            if (!isEqual((market.ContainsKey("contract") ? market["contract"] : null), true))
             {
                 throw new BadSymbol ((string)(this.id + " fetchMarketLeverageTiers() supports contract markets only")) ;
             }
@@ -6393,8 +6393,8 @@ public partial class BaseExchange
         {
             await this.loadMarkets();
             Dictionary<string, object> market = this.market(symbolVar);
-            symbolVar = getValue(market, "symbol");
-            if (!isEqual(getValue(market, "contract"), true))
+            symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
+            if (!isEqual((market.ContainsKey("contract") ? market["contract"] : null), true))
             {
                 throw new BadSymbol ((string)(this.id + " fetchFundingRate() supports contract markets only")) ;
             }
@@ -6421,8 +6421,8 @@ public partial class BaseExchange
         {
             await this.loadMarkets();
             Dictionary<string, object> market = this.market(symbolVar);
-            symbolVar = getValue(market, "symbol");
-            if (!isEqual(getValue(market, "contract"), true))
+            symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
+            if (!isEqual((market.ContainsKey("contract") ? market["contract"] : null), true))
             {
                 throw new BadSymbol ((string)(this.id + " fetchFundingInterval() supports contract markets only")) ;
             }
@@ -6567,7 +6567,7 @@ public partial class BaseExchange
         if ((((markets != null)) && (inOp(markets, account))) || (((marketsById != null)) && (inOp(marketsById, account))))
         {
             Dictionary<string, object> market = this.market(account);
-            return getValue(market, "id");
+            return (market.ContainsKey("id") ? market["id"] : null);
         } else
         {
             return account;
@@ -7453,7 +7453,7 @@ public partial class BaseExchange
             Dictionary<string, object> currency = this.safeCurrency(currencyId);
             string? marketId = ((bool) (isEqual(symbolKey, null))) ? null : this.safeString(info, symbolKey);
             Dictionary<string, object> market = this.safeMarket(marketId, null, null, "option");
-            ((IDictionary<string,object>)optionStructures)[(string)getValue(market, "symbol")] = this.parseOption(info, currency, market);
+            ((IDictionary<string,object>)optionStructures)[(string)(market.ContainsKey("symbol") ? market["symbol"] : null)] = this.parseOption(info, currency, market);
         }
         return ((Dictionary<string, object>)((object)(optionStructures)));
     }
@@ -7470,9 +7470,9 @@ public partial class BaseExchange
             object info = getValue(response, i);
             string? marketId = ((bool) (isEqual(symbolKey, null))) ? null : this.safeString(info, symbolKey);
             Dictionary<string, object> market = this.safeMarket(marketId, null, null, marketType);
-            if ((isEqual(symbols, null)) || this.inArray(getValue(market, "symbol"), symbols))
+            if ((isEqual(symbols, null)) || this.inArray((market.ContainsKey("symbol") ? market["symbol"] : null), symbols))
             {
-                ((IDictionary<string,object>)marginModeStructures)[(string)getValue(market, "symbol")] = this.parseMarginMode(info, market);
+                ((IDictionary<string,object>)marginModeStructures)[(string)(market.ContainsKey("symbol") ? market["symbol"] : null)] = this.parseMarginMode(info, market);
             }
         }
         return ((Dictionary<string, object>)((object)(marginModeStructures)));
@@ -7495,9 +7495,9 @@ public partial class BaseExchange
             object info = getValue(response, i);
             string? marketId = ((bool) (isEqual(symbolKey, null))) ? null : this.safeString(info, symbolKey);
             Dictionary<string, object> market = this.safeMarket(marketId, null, null, marketType);
-            if ((isEqual(symbols, null)) || this.inArray(getValue(market, "symbol"), symbols))
+            if ((isEqual(symbols, null)) || this.inArray((market.ContainsKey("symbol") ? market["symbol"] : null), symbols))
             {
-                ((IDictionary<string,object>)leverageStructures)[(string)getValue(market, "symbol")] = this.parseLeverage(info, market);
+                ((IDictionary<string,object>)leverageStructures)[(string)(market.ContainsKey("symbol") ? market["symbol"] : null)] = this.parseLeverage(info, market);
             }
         }
         return ((Dictionary<string, object>)((object)(leverageStructures)));
@@ -7690,7 +7690,7 @@ public partial class BaseExchange
             object info = getValue(response, i);
             string? marketId = ((bool) (isEqual(symbolKey, null))) ? null : this.safeString(info, symbolKey);
             Dictionary<string, object> market = this.safeMarket(marketId, null, null, marketType);
-            if ((isEqual(symbols, null)) || this.inArray(getValue(market, "symbol"), symbols))
+            if ((isEqual(symbols, null)) || this.inArray((market.ContainsKey("symbol") ? market["symbol"] : null), symbols))
             {
                 ((IList<object>)marginModifications).Add(this.parseMarginModification(info, market));
             }
