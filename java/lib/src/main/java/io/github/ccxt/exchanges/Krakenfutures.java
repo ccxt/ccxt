@@ -2777,7 +2777,7 @@ public class Krakenfutures extends KrakenfuturesApi
         Object orderEvents = this.safeList(order, "orderEvents", new ArrayList<Object>(Arrays.asList()));
         String errorStatus = this.safeString(order, "status");
         Object orderEventsLength = ((List<?>)orderEvents).size();
-        if ((((Map<?, ?>)order).containsKey("orderEvents")) && (!java.util.Objects.equals(errorStatus, null)) && (Helpers.isEqual(orderEventsLength, 0)))
+        if ((((Map<?, ?>)order).containsKey("orderEvents")) && (!java.util.Objects.equals(errorStatus, null)) && (java.util.Objects.equals(orderEventsLength, 0)))
         {
             // creteOrders error response
             return this.safeOrder(new HashMap<String, Object>() {{
@@ -4046,7 +4046,7 @@ public class Krakenfutures extends KrakenfuturesApi
             Object tier = Helpers.GetValue(marginLevels, i);
             String initialMargin = this.safeString(tier, "initialMargin");
             Double minNotional = this.safeNumber2(tier, "numNonContractUnits", "contracts");
-            if (!Helpers.isEqual(i, 0))
+            if ((i != 0))
             {
                 Object tiersLength = ((List<?>)tiers).size();
                 Object previousTier = Helpers.GetValue(tiers, Helpers.subtract(tiersLength, 1));

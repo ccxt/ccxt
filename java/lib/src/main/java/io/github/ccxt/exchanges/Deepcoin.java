@@ -1508,7 +1508,7 @@ public class Deepcoin extends DeepcoinApi
                 throw new ArgumentsRequired((this.id + " fetchDepositAddresses requires a list with one currency code")) ;
             }
             Object length = ((List<?>)codes).size();
-            if (!Helpers.isEqual(length, 1))
+            if (!java.util.Objects.equals(length, 1))
             {
                 throw new NotSupported((this.id + " fetchDepositAddresses requires a list with one currency code")) ;
             }
@@ -2427,7 +2427,7 @@ public class Deepcoin extends DeepcoinApi
             Map<String, Object> response = (this.privateGetDeepcoinTradeOrderByID(this.extend(request, parameters))).join();
             Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             Object length = ((List<?>)data).size();
-            if (Helpers.isEqual(length, 0))
+            if (java.util.Objects.equals(length, 0))
             {
                 throw new OrderNotFound(((this.id + " fetchOpenOrder() could not find order id ") + id)) ;
             }

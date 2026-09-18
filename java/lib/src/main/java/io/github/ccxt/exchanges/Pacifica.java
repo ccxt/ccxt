@@ -1275,7 +1275,7 @@ public class Pacifica extends PacificaApi
     public Object parseAccountSettings(Object settings)
     {
         Object settingsLen = ((List<?>)settings).size();
-        if (Helpers.isEqual(settingsLen, 0))
+        if (java.util.Objects.equals(settingsLen, 0))
         {
             return new HashMap<String, Object>() {{}};
         }

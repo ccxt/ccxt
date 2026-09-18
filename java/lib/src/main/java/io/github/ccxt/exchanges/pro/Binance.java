@@ -4183,7 +4183,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             if (!java.util.Objects.equals(symbols, null))
             {
                 Object symbolsLength = ((List<?>)symbols).size();
-                if (Helpers.isEqual(symbolsLength, 1))
+                if (java.util.Objects.equals(symbolsLength, 1))
                 {
                     market = this.market((symbols == null || 0 >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(0)));
                     ((Map<String, Object>)payload).put("symbol", ((Map<String, Object>)market).get("id"));
@@ -5669,7 +5669,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         String rawStatus = this.safeString(order, "X");
         String status = this.parseOrderStatus(rawStatus);
         String clientOrderId = this.safeString2(order, "C", "caid");
-        if ((java.util.Objects.equals(clientOrderId, null)) || (Helpers.isEqual(clientOrderId.length(), 0)))
+        if ((java.util.Objects.equals(clientOrderId, null)) || ((clientOrderId.length() == 0)))
         {
             clientOrderId = this.safeString(order, "c");
         }

@@ -1435,7 +1435,7 @@ public class Cryptomus extends CryptomusApi
             } else
             {
                 Object query = this.urlencode(parameters);
-                if (!Helpers.isEqual(((String)query).length(), 0))
+                if ((((String)query).length() != 0))
                 {
                     url = (url + ("?" + query));
                 }
@@ -1447,7 +1447,7 @@ public class Cryptomus extends CryptomusApi
         } else
         {
             Object query = this.urlencode(parameters);
-            if (!Helpers.isEqual(((String)query).length(), 0))
+            if ((((String)query).length() != 0))
             {
                 url = (url + ("?" + query));
             }

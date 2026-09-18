@@ -2749,7 +2749,7 @@ public class Bitteam extends BitteamApi
             if (java.util.Objects.equals(method, "POST"))
             {
                 body = this.json(request);
-            } else if (!Helpers.isEqual(((String)query).length(), 0))
+            } else if ((((String)query).length() != 0))
             {
                 url = (url + ("?" + query));
             }
@@ -2760,7 +2760,7 @@ public class Bitteam extends BitteamApi
                 put( "Authorization", signature );
                 put( "Content-Type", "application/json" );
             }};
-        } else if (!Helpers.isEqual(((String)query).length(), 0))
+        } else if ((((String)query).length() != 0))
         {
             url = (url + ("?" + query));
         }

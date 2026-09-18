@@ -3703,7 +3703,7 @@ public class Bydfi extends BydfiApi
         if (java.util.Objects.equals(method, "GET"))
         {
             query = this.urlencode(sortedParams);
-            if (!Helpers.isEqual(((String)query).length(), 0))
+            if ((((String)query).length() != 0))
             {
                 endpoint = (endpoint + ("?" + query));
             }

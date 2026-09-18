@@ -1373,7 +1373,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
         if (java.util.Objects.equals(messageType, "os"))
         {
             Object snapshotLength = ((List<?>)data).size();
-            if (Helpers.isEqual(snapshotLength, 0))
+            if (java.util.Objects.equals(snapshotLength, 0))
             {
                 return;
             }

@@ -182,7 +182,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
                 ((List<Object>)marketIds).add(this.marketId(symbol));
             }
             Object length = ((List<?>)symbols).size();
-            if (Helpers.isEqual(length, 1))
+            if (java.util.Objects.equals(length, 1))
             {
                 Map<String, Object> market = (Map<String, Object>) this.market((marketIds == null || 0 >= ((List<?>)marketIds).size() ? null : ((List<?>)marketIds).get(0)));
                 messageHash = ((messageHash + ":") + ((Map<String, Object>)market).get("symbol"));

@@ -1370,7 +1370,7 @@ public class Btse extends BtseApi
             if (!java.util.Objects.equals(symbols, null))
             {
                 Object length = ((List<?>)symbols).size();
-                if (Helpers.isEqual(length, 1))
+                if (java.util.Objects.equals(length, 1))
                 {
                     String requestedSymbol = this.safeString(symbols, 0);
                     Map<String, Object> market = (Map<String, Object>) this.market(requestedSymbol);
@@ -1443,7 +1443,7 @@ public class Btse extends BtseApi
                 Object tiersList = Helpers.GetValue(result, symbolKey);
                 for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(tiersList)); j++)
                 {
-                    if (Helpers.isEqual(j, 0))
+                    if ((j == 0))
                     {
                         Helpers.addElementToObject(Helpers.GetValue(tiersList, j), "minNotional", 0);
                     } else

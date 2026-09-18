@@ -2434,7 +2434,7 @@ public class Zebpay extends ZebpayApi
         {
             if (java.util.Objects.equals(method, "GET") || java.util.Objects.equals(method, "DELETE"))
             {
-                if ((!java.util.Objects.equals(queryLength, null)) && (!Helpers.isEqual(queryLength, 0)))
+                if ((!java.util.Objects.equals(queryLength, null)) && (!java.util.Objects.equals(queryLength, 0)))
                 {
                     url = Helpers.add(url, ("?" + this.urlencode(query)));
                 }

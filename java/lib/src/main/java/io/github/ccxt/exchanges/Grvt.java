@@ -4082,7 +4082,7 @@ public class Grvt extends GrvtApi
             // php json_encode would produce [] here which the venue rejects with the same 1003 error
             List<Object> paramsKeys = Helpers.objectKeys(parameters);
             Object paramsKeysLength = ((List<?>)paramsKeys).size();
-            if (Helpers.isEqual(paramsKeysLength, 0))
+            if (java.util.Objects.equals(paramsKeysLength, 0))
             {
                 body = "{}";
             } else

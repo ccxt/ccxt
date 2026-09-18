@@ -5913,7 +5913,7 @@ final Object finalPointFee = pointFee;
         List<Object> ordersRequests = new ArrayList<Object>(Arrays.asList());
         List<Object> orderSymbols = new ArrayList<Object>(Arrays.asList());
         Object ordersLength = ((List<?>)orders).size();
-        if (Helpers.isEqual(ordersLength, 0))
+        if (java.util.Objects.equals(ordersLength, 0))
         {
             throw new BadRequest((this.id + " createOrders() requires at least one order")) ;
         }
@@ -6748,11 +6748,11 @@ final Object finalPointFee = pointFee;
             timestampStr = this.safeString2(order, "create_time", "ctime");
             if (!java.util.Objects.equals(timestampStr, null))
             {
-                if (Helpers.isEqual(timestampStr.length(), 10) || Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(timestampStr, "."), 0))
+                if ((timestampStr.length() == 10) || Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(timestampStr, "."), 0))
                 {
                     // ts in seconds, multiply to ms
                     timestampStr = Precise.stringMul(timestampStr, "1000");
-                } else if (Helpers.isEqual(timestampStr.length(), 16))
+                } else if ((timestampStr.length() == 16))
                 {
                     // ts in microseconds, divide to ms
                     timestampStr = Precise.stringDiv(timestampStr, "1000");
@@ -6765,11 +6765,11 @@ final Object finalPointFee = pointFee;
             lastTradeTimestampStr = this.safeString2(order, "update_time", "finish_time");
             if (!java.util.Objects.equals(lastTradeTimestampStr, null))
             {
-                if (Helpers.isEqual(lastTradeTimestampStr.length(), 10) || Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(lastTradeTimestampStr, "."), 0))
+                if ((lastTradeTimestampStr.length() == 10) || Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(lastTradeTimestampStr, "."), 0))
                 {
                     // ts in seconds, multiply to ms
                     lastTradeTimestampStr = Precise.stringMul(lastTradeTimestampStr, "1000");
-                } else if (Helpers.isEqual(lastTradeTimestampStr.length(), 16))
+                } else if ((lastTradeTimestampStr.length() == 16))
                 {
                     // ts in microseconds, divide to ms
                     lastTradeTimestampStr = Precise.stringDiv(lastTradeTimestampStr, "1000");
@@ -10793,7 +10793,7 @@ final Object finalI = i;
             if (!java.util.Objects.equals(symbols, null))
             {
                 Object symbolsLength = ((List<?>)symbols).size();
-                if (Helpers.isEqual(symbolsLength, 1))
+                if (java.util.Objects.equals(symbolsLength, 1))
                 {
                     market = this.market((symbols == null || 0 >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(0)));
                 }

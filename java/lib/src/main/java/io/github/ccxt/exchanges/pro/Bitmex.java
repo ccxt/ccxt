@@ -1061,7 +1061,7 @@ public class Bitmex extends io.github.ccxt.exchanges.Bitmex
                 Map<String, Object> cachedBySide = (Map<String, Object>) this.safeDict(((io.github.ccxt.ws.ArrayCache)cache).hashmap, symbol, new HashMap<String, Object>() {{}});
                 Object cachedSides = Helpers.objectKeys(cachedBySide);
                 Object sidesLength = ((List<?>)cachedSides).size();
-                if (Helpers.isEqual(sidesLength, 1))
+                if (java.util.Objects.equals(sidesLength, 1))
                 {
                     side = (cachedSides == null || 0 >= ((List<?>)cachedSides).size() ? null : ((List<?>)cachedSides).get(0));
                     Helpers.addElementToObject(position, "side", side);

@@ -30,7 +30,7 @@ public class TestLoadMarkets extends BaseTest {
         Object marketKeysLength = ((List<?>)marketKeys).size();
         Assert(Helpers.isGreaterThan(symbolsLength, 0), ".symbols count <= 0 (less than or equal to zero)");
         Assert(Helpers.isGreaterThan(marketKeysLength, 0), ".markets objects keys length <= 0 (less than or equal to zero)");
-        Assert(Helpers.isEqual(symbolsLength, marketKeysLength), "number of .symbols is not equal to the number of .markets");
+        Assert(java.util.Objects.equals(symbolsLength, marketKeysLength), "number of .symbols is not equal to the number of .markets");
         Object marketValues = Helpers.objectValues(markets);
         for (var i = 0; i < ((List<?>)marketValues).size(); i++)
         {

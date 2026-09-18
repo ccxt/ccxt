@@ -37,7 +37,7 @@ public class TestBalance extends BaseTest {
         Object codesLength = ((List<?>)codesTotal).size();
         Object freeLength = ((List<?>)codesFree).size();
         Object usedLength = ((List<?>)codesUsed).size();
-        Assert((Helpers.isEqual(codesLength, freeLength)) || (Helpers.isEqual(codesLength, usedLength)), ("free and total and used codes have different lengths" + logText));
+        Assert((java.util.Objects.equals(codesLength, freeLength)) || (java.util.Objects.equals(codesLength, usedLength)), ("free and total and used codes have different lengths" + logText));
         for (var i = 0; i < ((List<?>)allCodes).size(); i++)
         {
             Object code = Helpers.GetValue(allCodes, i);

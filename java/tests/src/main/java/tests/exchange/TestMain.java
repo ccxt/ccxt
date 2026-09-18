@@ -1823,7 +1823,7 @@ public class TestMain extends BaseTest
             String part = (String) Helpers.GetValue(parts, i);
             List<Object> keyValue = (List<Object>) Helpers.split(part, "=");
             Object keysLength = ((List<?>)keyValue).size();
-            if (!Helpers.isEqual(keysLength, 2))
+            if (!java.util.Objects.equals(keysLength, 2))
             {
                 continue;
             }
@@ -1997,7 +1997,7 @@ public class TestMain extends BaseTest
         {
             Object storedArrayLength = ((List<?>)storedOutput).size();
             Object newArrayLength = ((List<?>)newOutput).size();
-            this.AssertStaticError(Helpers.isEqual(storedArrayLength, newArrayLength), "output length mismatch", storedOutput, newOutput);
+            this.AssertStaticError(java.util.Objects.equals(storedArrayLength, newArrayLength), "output length mismatch", storedOutput, newOutput);
             for (var i = 0; i < ((List<?>)storedOutput).size(); i++)
             {
                 Object storedItem = Helpers.GetValue(storedOutput, i);

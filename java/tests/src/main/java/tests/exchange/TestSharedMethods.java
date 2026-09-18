@@ -64,7 +64,7 @@ public class TestSharedMethods extends BaseTest {
         if ((formatKeyVal instanceof List))
         {
             Object formatLen = ((List<?>)formatKeyVal).size();
-            formatIsEmptyArray = (Helpers.isEqual(formatLen, 0));
+            formatIsEmptyArray = (java.util.Objects.equals(formatLen, 0));
         }
         Boolean same_object = Helpers.isTrue(exchange.isDictionary(entryKeyVal)) && (Helpers.isTrue(exchange.isDictionary(formatKeyVal)) || Boolean.TRUE.equals(formatIsEmptyArray));
         Boolean result = (java.util.Objects.equals(entryKeyVal, null)) || Boolean.TRUE.equals(same_string) || Boolean.TRUE.equals(same_numeric) || Boolean.TRUE.equals(same_boolean) || Boolean.TRUE.equals(same_array) || Boolean.TRUE.equals(same_object);
@@ -87,7 +87,7 @@ public class TestSharedMethods extends BaseTest {
             Assert(Helpers.isArray(entry), ("entry is not an array" + logText));
             Object realLength = ((List<?>)entry).size();
             Object expectedLength = ((List<?>)format).size();
-            Assert(Helpers.isEqual(realLength, expectedLength), (("entry length is not equal to expected length of " + String.valueOf(expectedLength)) + logText));
+            Assert(java.util.Objects.equals(realLength, expectedLength), (("entry length is not equal to expected length of " + String.valueOf(expectedLength)) + logText));
             for (var i = 0; i < ((List<?>)format).size(); i++)
             {
                 Boolean emptyAllowedForThisKey = (java.util.Objects.equals(emptyAllowedFor, null)) || Helpers.isTrue(exchange.inArray(i, emptyAllowedFor));
@@ -738,7 +738,7 @@ public class TestSharedMethods extends BaseTest {
         if ((response instanceof List))
         {
             Object responseLength = ((List<?>)response).size();
-            isEmptyArrayResponse = (Helpers.isEqual(responseLength, 0));
+            isEmptyArrayResponse = (java.util.Objects.equals(responseLength, 0));
         }
         String hintText = "";
         if (!java.util.Objects.equals(hint, null))

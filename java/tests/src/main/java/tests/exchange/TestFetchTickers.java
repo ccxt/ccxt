@@ -49,7 +49,7 @@ public class TestFetchTickers extends BaseTest {
         TestSharedMethods.AssertDictionaryResponse(exchange, method, response, exchange.json(argSymbols));
         Object values = Helpers.objectValues(response);
         Object checkedSymbol = null;
-        if (!java.util.Objects.equals(argSymbols, null) && Helpers.isEqual(((List<?>)argSymbols).size(), 1))
+        if (!java.util.Objects.equals(argSymbols, null) && (((List<?>)argSymbols).size() == 1))
         {
             checkedSymbol = (argSymbols == null || 0 >= ((List<?>)argSymbols).size() ? null : ((List<?>)argSymbols).get(0));
         }

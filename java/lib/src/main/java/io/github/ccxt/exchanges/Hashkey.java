@@ -4403,7 +4403,7 @@ public class Hashkey extends HashkeyApi
             } else
             {
                 Object symbolsLength = ((List<?>)symbols).size();
-                if (!Helpers.isEqual(symbolsLength, 1))
+                if (!java.util.Objects.equals(symbolsLength, 1))
                 {
                     throw new NotSupported((((this.id + " ") + methodName) + "() is supported for a symbol argument with one single market symbol only")) ;
                 }
@@ -5107,7 +5107,7 @@ final Object finalI = i;
         } else
         {
             query = this.urlencode(parameters);
-            if (!Helpers.isEqual(((String)query).length(), 0))
+            if ((((String)query).length() != 0))
             {
                 url = (url + ("?" + query));
             }

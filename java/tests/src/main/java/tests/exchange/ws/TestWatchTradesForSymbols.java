@@ -68,7 +68,7 @@ public class TestWatchTradesForSymbols extends BaseTest {
                 }
             }
         }
-        Assert(Helpers.isEqual(((List<?>)returnedSymbols).size(), ((List<?>)symbols).size()), ((logText + "only received part of symbols: ") + exchange.json(returnedSymbols)));
+        Assert((((List<?>)returnedSymbols).size() == ((List<?>)symbols).size()), ((logText + "only received part of symbols: ") + exchange.json(returnedSymbols)));
         return true;
         });
 

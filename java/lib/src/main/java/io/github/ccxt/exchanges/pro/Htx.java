@@ -1900,7 +1900,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             if (Boolean.TRUE.equals(isV5Linear))
             {
                 Object v5Market = null;
-                if ((!java.util.Objects.equals(symbols, null)) && (Helpers.isEqual(((List<?>)symbols).size(), 1)))
+                if ((!java.util.Objects.equals(symbols, null)) && ((((List<?>)symbols).size() == 1)))
                 {
                     v5Market = market;
                 }
@@ -2387,7 +2387,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
                 return;
             }
             Object dataLength = ((List<?>)data).size();
-            if (Helpers.isEqual(dataLength, 0))
+            if (java.util.Objects.equals(dataLength, 0))
             {
                 return;
             }

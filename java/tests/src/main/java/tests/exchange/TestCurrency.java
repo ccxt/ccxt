@@ -72,7 +72,7 @@ public class TestCurrency extends BaseTest {
         Object networks = exchange.safeDict(entry, "networks", new HashMap<String, Object>() {{}});
         List<Object> networkKeys = Helpers.objectKeys(networks);
         Object networkKeysLength = ((List<?>)networkKeys).size();
-        if (Helpers.isEqual(networkKeysLength, 0) && (Helpers.inOp(skippedProperties, "skipCurrenciesWithoutNetworks")))
+        if (java.util.Objects.equals(networkKeysLength, 0) && (Helpers.inOp(skippedProperties, "skipCurrenciesWithoutNetworks")))
         {
             return;
         }

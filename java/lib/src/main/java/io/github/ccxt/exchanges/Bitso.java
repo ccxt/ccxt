@@ -662,7 +662,7 @@ public class Bitso extends BitsoApi
                     Object makerFee = this.safeNumber(tier, "maker");
                     ((List<Object>)takerFees).add(new ArrayList<Object>(Arrays.asList(volume, takerFee)));
                     ((List<Object>)makerFees).add(new ArrayList<Object>(Arrays.asList(volume, makerFee)));
-                    if (Helpers.isEqual(j, 0))
+                    if ((j == 0))
                     {
                         ((Map<String, Object>)fee).put("taker", takerFee);
                         ((Map<String, Object>)fee).put("maker", makerFee);
@@ -1720,7 +1720,7 @@ public class Bitso extends BitsoApi
             if ((payload instanceof List))
             {
                 Object numOrders = ((List<?>)payload).size();
-                if (Helpers.isEqual(numOrders, 1))
+                if (java.util.Objects.equals(numOrders, 1))
                 {
                     return this.parseOrder((payload == null || 0 >= ((List<?>)payload).size() ? null : ((List<?>)payload).get(0)));
                 }

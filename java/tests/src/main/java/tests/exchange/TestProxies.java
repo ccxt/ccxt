@@ -91,7 +91,7 @@ public class TestProxies extends BaseTest {
         {
             for (var j = 0; j < ((List<?>)possibleOptionsArray).size(); j++)
             {
-                if (!Helpers.isEqual(j, i))
+                if ((j != i))
                 {
                     Object proxyFirst = Helpers.GetValue(possibleOptionsArray, i);
                     String proxySecond = (String) Helpers.GetValue(possibleOptionsArray, j);

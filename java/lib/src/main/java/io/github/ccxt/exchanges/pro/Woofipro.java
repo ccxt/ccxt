@@ -1609,7 +1609,7 @@ public class Woofipro extends io.github.ccxt.exchanges.Woofipro
             }
             Object splitTopic = Helpers.split(topic, "@");
             Object splitLength = ((List<?>)splitTopic).size();
-            if (Helpers.isEqual(splitLength, 2))
+            if (java.util.Objects.equals(splitLength, 2))
             {
                 String name = this.safeString(splitTopic, 1);
                 if (java.util.Objects.equals(name, null))
@@ -1624,7 +1624,7 @@ public class Woofipro extends io.github.ccxt.exchanges.Woofipro
                 }
                 Object splitName = Helpers.split(name, "_");
                 Object splitNameLength = ((List<?>)splitTopic).size();
-                if (Helpers.isEqual(splitNameLength, 2))
+                if (java.util.Objects.equals(splitNameLength, 2))
                 {
                     method = this.safeValue(methods, this.safeString(splitName, 0));
                     if (!java.util.Objects.equals(method, null))

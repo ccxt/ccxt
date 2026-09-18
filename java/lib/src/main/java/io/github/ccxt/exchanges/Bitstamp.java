@@ -1718,7 +1718,7 @@ public class Bitstamp extends BitstampApi
         {
             throw new ExchangeError(((((this.id + " getMarketFromTrade() too many keys: ") + this.json(currencyIds)) + " in the trade: ") + this.json(trade))) ;
         }
-        if (Helpers.isEqual(numCurrencyIds, 2))
+        if (java.util.Objects.equals(numCurrencyIds, 2))
         {
             Object marketId = Helpers.add((currencyIds == null || 0 >= ((List<?>)currencyIds).size() ? null : ((List<?>)currencyIds).get(0)), (currencyIds == null || 1 >= ((List<?>)currencyIds).size() ? null : ((List<?>)currencyIds).get(1)));
             if ((!java.util.Objects.equals(this.markets_by_id, null)) && (((Map<?, ?>)this.markets_by_id).containsKey(marketId)))

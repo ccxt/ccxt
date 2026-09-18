@@ -648,12 +648,12 @@ public class Mudrex extends MudrexApi
                     items = this.safeList(data, "items", new ArrayList<Object>(Arrays.asList()));
                     // hoisted - inline length reads within conditionals become strlen for php, fatal on arrays
                     Object itemsLength = ((List<?>)items).size();
-                    if ((java.util.Objects.equals(itemsLength, null)) || (Helpers.isEqual(itemsLength, 0)))
+                    if ((java.util.Objects.equals(itemsLength, null)) || (java.util.Objects.equals(itemsLength, 0)))
                     {
                         items = this.safeList(data, "results", new ArrayList<Object>(Arrays.asList()));
                         itemsLength = ((List<?>)items).size();
                     }
-                    if ((Helpers.isEqual(itemsLength, 0)) && (Helpers.inOp(data, "symbol")))
+                    if ((java.util.Objects.equals(itemsLength, 0)) && (Helpers.inOp(data, "symbol")))
                     {
                         items = new ArrayList<Object>(Arrays.asList(data));
                     }
@@ -662,7 +662,7 @@ public class Mudrex extends MudrexApi
                     items = this.toArray(data);
                 }
                 Object numItems = ((List<?>)items).size();
-                if ((java.util.Objects.equals(numItems, null)) || (Helpers.isEqual(numItems, 0)))
+                if ((java.util.Objects.equals(numItems, null)) || (java.util.Objects.equals(numItems, 0)))
                 {
                     paging = false;
                     break;

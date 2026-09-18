@@ -1631,7 +1631,7 @@ public class Toobit extends ToobitApi
                     market = this.market(symbol);
                 }
                 Object length = ((List<?>)symbols).size();
-                if ((Helpers.isEqual(length, 1)) && (!java.util.Objects.equals(market, null)))
+                if ((java.util.Objects.equals(length, 1)) && (!java.util.Objects.equals(market, null)))
                 {
                     ((Map<String, Object>)request).put("symbol", ((Map<String, Object>)market).get("id"));
                 }
@@ -1733,7 +1733,7 @@ public class Toobit extends ToobitApi
             if (!java.util.Objects.equals(symbols, null))
             {
                 Object length = ((List<?>)symbols).size();
-                if (Helpers.isEqual(length, 1))
+                if (java.util.Objects.equals(length, 1))
                 {
                     Map<String, Object> market = (Map<String, Object>) this.market((symbols == null || 0 >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(0)));
                     ((Map<String, Object>)request).put("symbol", ((Map<String, Object>)market).get("id"));
@@ -1795,7 +1795,7 @@ public class Toobit extends ToobitApi
             if (!java.util.Objects.equals(symbols, null))
             {
                 Object length = ((List<?>)symbols).size();
-                if (Helpers.isEqual(length, 1))
+                if (java.util.Objects.equals(length, 1))
                 {
                     Map<String, Object> market = (Map<String, Object>) this.market((symbols == null || 0 >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(0)));
                     ((Map<String, Object>)request).put("symbol", ((Map<String, Object>)market).get("id"));
@@ -1877,7 +1877,7 @@ public class Toobit extends ToobitApi
             if (!java.util.Objects.equals(symbols, null))
             {
                 Object length = ((List<?>)symbols).size();
-                if (Helpers.isEqual(length, 1))
+                if (java.util.Objects.equals(length, 1))
                 {
                     Map<String, Object> market = (Map<String, Object>) this.market((symbols == null || 0 >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(0)));
                     ((Map<String, Object>)request).put("symbol", ((Map<String, Object>)market).get("id"));

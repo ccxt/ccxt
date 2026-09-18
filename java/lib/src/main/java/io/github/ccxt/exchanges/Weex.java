@@ -1123,7 +1123,7 @@ public class Weex extends WeexApi
         }
         List<Object> networkKeys = Helpers.objectKeys(networks);
         Object networksLength = ((List<?>)networkKeys).size();
-        Boolean emptyChains = Helpers.isEqual(networksLength, 0); // non-functional coins
+        Boolean emptyChains = java.util.Objects.equals(networksLength, 0); // non-functional coins
         Object valueForEmpty = ((Helpers.isTrue(emptyChains))) ? false : null;
         return this.safeCurrencyStructure(new HashMap<String, Object>() {{
             put( "info", rawCurrency );
@@ -1389,7 +1389,7 @@ public class Weex extends WeexApi
                 symbolsLength = ((List<?>)symbols).size();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
-            if (Helpers.isEqual(symbolsLength, 1))
+            if (java.util.Objects.equals(symbolsLength, 1))
             {
                 ((Map<String, Object>)request).put("symbol", this.safeString(market, "id"));
             }
@@ -2300,7 +2300,7 @@ public class Weex extends WeexApi
                 symbolsLength = ((List<?>)symbols).size();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
-            if (Helpers.isEqual(symbolsLength, 1))
+            if (java.util.Objects.equals(symbolsLength, 1))
             {
                 Object market = this.getMarketFromSymbols(symbols);
                 ((Map<String, Object>)request).put("symbol", this.safeString(market, "id"));

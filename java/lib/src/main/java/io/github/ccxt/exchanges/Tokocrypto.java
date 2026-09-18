@@ -2641,7 +2641,7 @@ public class Tokocrypto extends TokocryptoApi
             Object data = this.safeValue(response, "data", new HashMap<String, Object>() {{}});
             String address = this.safeString(data, "address");
             String tag = this.safeString(data, "addressTag", "");
-            if (Helpers.isEqual(tag.length(), 0))
+            if ((tag.length() == 0))
             {
                 tag = null;
             }

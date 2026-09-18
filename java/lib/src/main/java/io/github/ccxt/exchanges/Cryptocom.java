@@ -2765,7 +2765,7 @@ public class Cryptocom extends CryptocomApi
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             Object addresses = this.safeList(data, "deposit_address_list", new ArrayList<Object>(Arrays.asList()));
             Object addressesLength = ((List<?>)addresses).size();
-            if (Helpers.isEqual(addressesLength, 0))
+            if (java.util.Objects.equals(addressesLength, 0))
             {
                 throw new ExchangeError((this.id + " fetchDepositAddressesByNetwork() generating address...")) ;
             }
@@ -3469,7 +3469,7 @@ public class Cryptocom extends CryptocomApi
     }} );
 }});
                 }
-                if (Helpers.isEqual(networkListLength, 1))
+                if (java.util.Objects.equals(networkListLength, 1))
                 {
                     Helpers.addElementToObject(result.get("withdraw"), "fee", this.safeNumber(networkInfo, "withdrawal_fee"));
                     Helpers.addElementToObject(result.get("withdraw"), "percentage", false);
@@ -4547,7 +4547,7 @@ public class Cryptocom extends CryptocomApi
             // if an array is empty, php will put it in square brackets
             // python and js will put it in curly brackets
             // the code below checks and replaces those brackets in empty requests
-            if (Helpers.isEqual(paramsKeysLength, 0))
+            if (java.util.Objects.equals(paramsKeysLength, 0))
             {
                 String paramsString = "{}";
                 String arrayString = "[]";

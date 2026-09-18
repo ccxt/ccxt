@@ -122,7 +122,7 @@ public class Luno extends io.github.ccxt.exchanges.Luno
         //
         List<Object> rawTrades = (List<Object>) this.safeList(message, "trade_updates", new ArrayList<Object>(Arrays.asList()));
         Object length = ((List<?>)rawTrades).size();
-        if (Helpers.isEqual(length, 0))
+        if (java.util.Objects.equals(length, 0))
         {
             return;
         }

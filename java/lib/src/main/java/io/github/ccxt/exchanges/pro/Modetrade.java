@@ -1606,7 +1606,7 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
             }
             Object splitTopic = Helpers.split(topic, "@");
             Object splitLength = ((List<?>)splitTopic).size();
-            if (Helpers.isEqual(splitLength, 2))
+            if (java.util.Objects.equals(splitLength, 2))
             {
                 String name = this.safeString(splitTopic, 1);
                 if (java.util.Objects.equals(name, null))
@@ -1621,7 +1621,7 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
                 }
                 Object splitName = Helpers.split(name, "_");
                 Object splitNameLength = ((List<?>)splitTopic).size();
-                if (Helpers.isEqual(splitNameLength, 2))
+                if (java.util.Objects.equals(splitNameLength, 2))
                 {
                     String splitNameFirst = this.safeString(splitName, 0);
                     method = (((java.util.Objects.equals(splitNameFirst, null)))) ? null : this.safeValue(methods, splitNameFirst);

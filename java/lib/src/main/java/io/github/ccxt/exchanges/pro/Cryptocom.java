@@ -569,7 +569,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
         }
         Object data = this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
         Object dataLength = ((List<?>)data).size();
-        if (Helpers.isEqual(dataLength, 0))
+        if (java.util.Objects.equals(dataLength, 0))
         {
             return;
         }
