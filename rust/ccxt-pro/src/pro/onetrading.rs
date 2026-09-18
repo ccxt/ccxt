@@ -753,7 +753,7 @@ impl OnetradingCore {
             let mut asks: Value = crate::value::get_value_k(&orderbook, "asks");
             asks.store_array(bidAsk.clone());
         }  else {
-            panic!("{}", crate::exchange_errors::not_supported(Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" watchOrderBook () received unknown change type ".to_string()))), self.json(delta.clone())))));
+            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" watchOrderBook () received unknown change type ".to_string()))), self.json(delta.clone()))));
         }
 }
 
@@ -1470,7 +1470,7 @@ impl OnetradingCore {
         })]);
         let mut timeframeId: Value = self.safe_value(timeframes.clone(), timeframe.clone(), &[]);
         if (timeframeId == Value::Null) {
-            panic!("{}", crate::exchange_errors::not_supported(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" this interval is not supported, please provide one of the supported timeframes".to_string())))));
+            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" this interval is not supported, please provide one of the supported timeframes".to_string()))));
         }
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("ohlcv.".to_string()), symbol)), Value::Str(".".to_string()))), timeframe));
         let mut subscriptionHash: Value = Value::Str("CANDLESTICKS".to_string());
@@ -1623,7 +1623,7 @@ impl OnetradingCore {
             timeframes = self.timeframes.clone();
         }
         if (timeframes == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" findTimeframe() timeframes is required".to_string())))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" findTimeframe() timeframes is required".to_string()))));
         }
         let mut keys: Value = object_keys(&timeframes);
         {
@@ -1655,7 +1655,7 @@ impl OnetradingCore {
 }
 
     pub fn handle_error_message(&self, mut client: Value, mut message: Value) -> Value {
-        panic!("{}", crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), self.json(message.clone())))));
+        panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), self.json(message.clone()))));
 
     Value::Null
 }

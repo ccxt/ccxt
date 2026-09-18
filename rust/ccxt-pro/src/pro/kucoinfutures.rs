@@ -311,7 +311,7 @@ impl KucoinfuturesCore {
             let __ws_arg_2 = self.extend(request.clone(), &[params.clone()]);
             response = self.parent.parent.futures_private_post_transfer_in(&[__ws_arg_2]).await;
         }  else {
-            panic!("{}", crate::exchange_errors::bad_request(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" transfer() only supports transfers between future/swap, spot and funding accounts".to_string())))));
+            panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" transfer() only supports transfers between future/swap, spot and funding accounts".to_string()))));
         }
         let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();

@@ -1310,7 +1310,7 @@ impl DeribitCore {
 }));
         let mut symbolsLength: Value = Value::Int(symbolsAndTimeframes.len() as i64);
         if (symbolsLength.as_f64() == Some(0.0)) || !is_true(&Value::Bool(is_array(&symbolsAndTimeframes.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null)))) {
-            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" watchOHLCVForSymbols() requires a an array of symbols and timeframes, like  [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]".to_string())))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" watchOHLCVForSymbols() requires a an array of symbols and timeframes, like  [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]".to_string()))));
         }
         let mut symboltimeframecandlesVariable = self.watch_multiple_wrapper(Value::Str("chart.trades".to_string()), Value::Null, &[symbolsAndTimeframes.clone(), params.clone()]).await;
         let mut symbol: Value = get_value(&symboltimeframecandlesVariable, &Value::Int(0));
@@ -1408,14 +1408,14 @@ impl DeribitCore {
         let mut symbols: Value = (if isOHLCV { self.get_list_from_object_values(symbolsArray.clone(), Value::Int(0)) } else { symbolsArray.clone() });
         self.market_symbols(&[symbols.clone(), Value::Null, Value::Bool(false)]);
         if (symbolsArray == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" watchMultipleWrapper() symbolsArray is required".to_string())))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" watchMultipleWrapper() symbolsArray is required".to_string()))));
         }
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_319: bool = true;
             while { if !__for_first_319 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_319 = false; is_less_than(&i, &get_array_length(&symbolsArray)) } {
             if (symbolsArray == Value::Null) {
-                panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" watchMultipleWrapper() symbolsArray is required".to_string())))));
+                panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" watchMultipleWrapper() symbolsArray is required".to_string()))));
             }
             let mut current: Value = get_value(&symbolsArray, &i);
             let mut current: Value = get_value(&symbolsArray, &i);
@@ -1449,7 +1449,7 @@ impl DeribitCore {
         let mut maxMessageByteLimit: Value = (match (&(Value::Int(32768)), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }); // 'Message Too Big: limit 32768B'
         let mut jsonedText: Value = self.json(extendedRequest.clone());
         if Value::Int(jsonedText.len() as i64).as_f64().unwrap_or(f64::NAN) >= maxMessageByteLimit.as_f64().unwrap_or(f64::NAN) {
-            panic!("{}", crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" requested subscription length over limit, try to reduce symbols amount".to_string())))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" requested subscription length over limit, try to reduce symbols amount".to_string()))));
         }
         return self.watch_multiple(url.clone(), messageHashes.clone(), &[extendedRequest.clone(), rawSubscriptions.clone()]).await;
 
@@ -1518,7 +1518,7 @@ impl DeribitCore {
         //
         let mut error: Value = self.safe_value_k(message.clone(), "error", &[]);
         if (error != Value::Null) {
-            panic!("{}", crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), self.json(error.clone())))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), self.json(error.clone()))));
         }
         let mut params: Value = self.safe_value_k(message.clone(), "params", &[]);
         let mut channel: Value = self.safe_string_k(params.clone(), "channel", &[]);
@@ -1547,7 +1547,7 @@ impl DeribitCore {
                 self.dispatch_ws_handler(&handler, &[client.clone(), message.clone()]);
                 return;
             }
-            panic!("{}", crate::exchange_errors::not_supported(Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" no handler found for this message ".to_string()))), self.json(message.clone())))));
+            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" no handler found for this message ".to_string()))), self.json(message.clone()))));
         }
         let mut result: Value = self.safe_value_k(message.clone(), "result", &[Value::Map({
             let mut m = indexmap::IndexMap::new();

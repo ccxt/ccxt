@@ -480,7 +480,7 @@ impl NadoCore {
         self.load_markets(&[]).await;
         let mut symbolsLength: Value = Value::Int(symbols.len() as i64);
         if (symbolsLength.as_f64() == Some(0.0)) {
-            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" watchTradesForSymbols() requires a non-empty array of symbols".to_string())))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" watchTradesForSymbols() requires a non-empty array of symbols".to_string()))));
         }
         symbols = self.market_symbols(&[symbols.clone(), Value::Null, Value::Bool(false), Value::Bool(true), Value::Bool(true)]);
         let mut markets: Value = Value::List(vec![]);
@@ -522,7 +522,7 @@ impl NadoCore {
         self.load_markets(&[]).await;
         let mut symbolsLength: Value = Value::Int(symbols.len() as i64);
         if (symbolsLength.as_f64() == Some(0.0)) {
-            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" unWatchTradesForSymbols() requires a non-empty array of symbols".to_string())))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" unWatchTradesForSymbols() requires a non-empty array of symbols".to_string()))));
         }
         symbols = self.market_symbols(&[symbols.clone(), Value::Null, Value::Bool(false), Value::Bool(true), Value::Bool(true)]);
         let mut markets: Value = Value::List(vec![]);
@@ -609,7 +609,7 @@ impl NadoCore {
         self.load_markets(&[]).await;
         let mut symbolsLength: Value = Value::Int(symbols.len() as i64);
         if (symbolsLength.as_f64() == Some(0.0)) {
-            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" watchOrderBookForSymbols() requires a non-empty array of symbols".to_string())))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" watchOrderBookForSymbols() requires a non-empty array of symbols".to_string()))));
         }
         symbols = self.market_symbols(&[symbols.clone(), Value::Null, Value::Bool(false), Value::Bool(true), Value::Bool(true)]);
         let mut markets: Value = Value::List(vec![]);
@@ -653,7 +653,7 @@ impl NadoCore {
         self.load_markets(&[]).await;
         let mut symbolsLength: Value = Value::Int(symbols.len() as i64);
         if (symbolsLength.as_f64() == Some(0.0)) {
-            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" unWatchOrderBookForSymbols() requires a non-empty array of symbols".to_string())))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" unWatchOrderBookForSymbols() requires a non-empty array of symbols".to_string()))));
         }
         symbols = self.market_symbols(&[symbols.clone(), Value::Null, Value::Bool(false), Value::Bool(true), Value::Bool(true)]);
         let mut markets: Value = Value::List(vec![]);
@@ -731,7 +731,7 @@ impl NadoCore {
 }));
         let mut symbolsLength: Value = Value::Int(symbolsAndTimeframes.len() as i64);
         if (symbolsLength.as_f64() == Some(0.0)) || !is_true(&Value::Bool(is_array(&symbolsAndTimeframes.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null)))) {
-            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" watchOHLCVForSymbols() requires a an array of symbols and timeframes, like  [['BTC/USDT0:USDT0', '1m'], ['ETH/USDT0:USDT0', '5m']]".to_string())))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" watchOHLCVForSymbols() requires a an array of symbols and timeframes, like  [['BTC/USDT0:USDT0', '1m'], ['ETH/USDT0:USDT0', '5m']]".to_string()))));
         }
         self.load_markets(&[]).await;
         let mut markets: Value = Value::List(vec![]);
@@ -807,7 +807,7 @@ impl NadoCore {
 }));
         let mut symbolsLength: Value = Value::Int(symbolsAndTimeframes.len() as i64);
         if (symbolsLength.as_f64() == Some(0.0)) || !is_true(&Value::Bool(is_array(&symbolsAndTimeframes.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null)))) {
-            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" unWatchOHLCVForSymbols() requires a an array of symbols and timeframes, like  [['BTC/USDT0:USDT0', '1m'], ['ETH/USDT0:USDT0', '5m']]".to_string())))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" unWatchOHLCVForSymbols() requires a an array of symbols and timeframes, like  [['BTC/USDT0:USDT0', '1m'], ['ETH/USDT0:USDT0', '5m']]".to_string()))));
         }
         self.load_markets(&[]).await;
         let mut markets: Value = Value::List(vec![]);
@@ -1387,7 +1387,7 @@ impl NadoCore {
         }), &[params.clone()]);
         let mut requestIdString: Value = self.safe_string_k(params.clone(), "id", &[]);
         if (requestIdString == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ws execute requires params.id".to_string())))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" ws execute requires params.id".to_string()))));
         }
         let mut request: Value = self.parent.create_order_request(symbol.clone(), type_var.clone(), side.clone(), amount.clone(), &[price.clone(), params.clone()]).await;
         let mut placeOrder: Value = self.safe_dict_k(request.clone(), "place_order", &[Value::Map({
@@ -1395,7 +1395,7 @@ impl NadoCore {
             m
         })]);
         if is_true(&Value::Bool(in_op(&placeOrder, &Value::Str("trigger".to_string())))) {
-            panic!("{}", crate::exchange_errors::not_supported(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrderWs() does not support trigger orders, use createOrder() instead".to_string())))));
+            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" createOrderWs() does not support trigger orders, use createOrder() instead".to_string()))));
         }
         let mut response: Value = self.watch_execute_request(requestIdString.clone(), request.clone()).await;
         let __ws_arg_10 = self.extend(Value::Map({
@@ -1452,7 +1452,7 @@ impl NadoCore {
         }), &[params.clone()]);
         let mut requestIdString: Value = self.safe_string_k(params.clone(), "id", &[]);
         if (requestIdString == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ws execute requires params.id".to_string())))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" ws execute requires params.id".to_string()))));
         }
         let mut request: Value = self.parent.edit_order_request(id.clone(), symbol.clone(), type_var.clone(), side.clone(), &[amount.clone(), price.clone(), params.clone()]).await;
         let mut response: Value = self.watch_execute_request(requestIdString.clone(), request.clone()).await;
@@ -1533,13 +1533,13 @@ impl NadoCore {
 }));
         self.check_required_credentials(&[]);
         if (symbol == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" cancelOrdersWs() requires a symbol argument".to_string())))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" cancelOrdersWs() requires a symbol argument".to_string()))));
         }
         self.load_markets(&[]).await;
         let mut market: Value = self.market(symbol.clone());
         let mut trigger: Value = self.safe_bool2(params.clone(), Value::Str("stop".to_string()), Value::Str("trigger".to_string()), &[]);
         if (trigger.as_bool() == Some(true)) {
-            panic!("{}", crate::exchange_errors::not_supported(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" cancelOrdersWs() does not support trigger orders, use cancelOrders() instead".to_string())))));
+            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" cancelOrdersWs() does not support trigger orders, use cancelOrders() instead".to_string()))));
         }
         let __ws_arg_13 = self.request_id();
         params = self.extend(Value::Map({
@@ -1549,7 +1549,7 @@ impl NadoCore {
         }), &[params.clone()]);
         let mut requestIdString: Value = self.safe_string_k(params.clone(), "id", &[]);
         if (requestIdString == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ws execute requires params.id".to_string())))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" ws execute requires params.id".to_string()))));
         }
         let mut request: Value = self.parent.cancel_orders_request(ids.clone(), &[symbol.clone(), params.clone()]).await;
         let mut response: Value = self.watch_execute_request(requestIdString.clone(), request.clone()).await;
@@ -1613,7 +1613,7 @@ impl NadoCore {
         }
         let mut trigger: Value = self.safe_bool2(params.clone(), Value::Str("stop".to_string()), Value::Str("trigger".to_string()), &[]);
         if (trigger.as_bool() == Some(true)) {
-            panic!("{}", crate::exchange_errors::not_supported(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" cancelAllOrdersWs() does not support trigger orders, use cancelAllOrders() instead".to_string())))));
+            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" cancelAllOrdersWs() does not support trigger orders, use cancelAllOrders() instead".to_string()))));
         }
         let __ws_arg_15 = self.request_id();
         params = self.extend(Value::Map({
@@ -1623,7 +1623,7 @@ impl NadoCore {
         }), &[params.clone()]);
         let mut requestIdString: Value = self.safe_string_k(params.clone(), "id", &[]);
         if (requestIdString == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ws execute requires params.id".to_string())))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" ws execute requires params.id".to_string()))));
         }
         let mut request: Value = self.parent.cancel_all_orders_request(&[symbol.clone(), params.clone()]).await;
         let mut response: Value = self.watch_execute_request(requestIdString.clone(), request.clone()).await;
@@ -1655,7 +1655,7 @@ impl NadoCore {
         // in completion order, not send order — every execute carries a unique
         // request id and its response is correlated by the echoed id
         if (requestIdString == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" watchExecuteRequest() requires requestIdString".to_string())))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" watchExecuteRequest() requires requestIdString".to_string()))));
         }
         let mut url: Value = crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "gateway");
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("execute:".to_string()), requestIdString));
@@ -1811,7 +1811,7 @@ impl NadoCore {
         let mut chainId: Value = self.safe_string_k(contracts.clone(), "chain_id", &[]);
         let mut endpointAddress: Value = self.safe_string_k(contracts.clone(), "endpoint_addr", &[]);
         if (endpointAddress == Value::Null) {
-            panic!("{}", crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" authenticate() requires endpoint_addr from contracts query".to_string())))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" authenticate() requires endpoint_addr from contracts query".to_string()))));
         }
         let mut signature: Value = self.sign_stream_authentication(tx.clone(), chainId.clone(), endpointAddress.clone());
         let mut request: Value = Value::Map({
@@ -2545,7 +2545,7 @@ impl NadoCore {
                 remove(&mut get_value(&client, &Value::Str("subscriptions".to_string())), &messageHash);
             }
             remove(&mut self.orderbooks, &symbol);
-            let mut error = Value::from(crate::exchange_errors::invalid_nonce(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" watchOrderBook received invalid nonce".to_string())))));
+            let mut error = Value::from(crate::exchange_errors::invalid_nonce(format!("{}{}", self.id.clone(), Value::Str(" watchOrderBook received invalid nonce".to_string()))));
             client.reject(&[Value::from(error.clone()), messageHash.clone()]);
             return;
         }
@@ -2744,7 +2744,7 @@ impl NadoCore {
         if is_true(&(Value::Bool(error == Value::Null))) && is_true(&(Value::Bool(status.as_str() != Some("failure")))) {
             return Value::Bool(false);
         }
-        let mut feedback = Value::from(crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), self.json(message.clone())))));
+        let mut feedback = Value::from(crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), self.json(message.clone()))));
         let mut id: Value = self.safe_string_k(message.clone(), "id", &[]);
         if (id != Value::Null) {
             let mut executeHash: Value = Value::Str(format!("{}{}", Value::Str("execute:".to_string()), id));

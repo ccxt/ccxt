@@ -1314,7 +1314,7 @@ impl CoinmateCore {
         let mut method: Value = self.safe_string(methods.clone(), code.clone(), &[]);
         if (method == Value::Null) {
             let mut allowedCurrencies: Value = object_keys(&methods);
-            panic!("{}", crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" withdraw() only allows withdrawing the following currencies: ".to_string()))), join(&allowedCurrencies, &Value::Str(", ".to_string()))))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" withdraw() only allows withdrawing the following currencies: ".to_string()))), join(&allowedCurrencies, &Value::Str(", ".to_string())))));
         }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1346,7 +1346,7 @@ impl CoinmateCore {
         }  else if (method.as_str() == Some("privatePostSolWithdrawal")) {
             response = self.private_post_sol_withdrawal(&[requestParams.clone()]).await;
         }  else {
-            panic!("{}", crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" withdraw() does not support the ".to_string()))), method)), Value::Str(" method".to_string())))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" withdraw() does not support the ".to_string()))), method)), Value::Str(" method".to_string()))));
         }
         //
         //     {
@@ -1650,7 +1650,7 @@ impl CoinmateCore {
     m
 }));
         if (symbol == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchOrders() requires a symbol argument".to_string())))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchOrders() requires a symbol argument".to_string()))));
         }
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
@@ -1846,7 +1846,7 @@ impl CoinmateCore {
         }  else if (method.as_str() == Some("privatePostSellLimit")) {
             response = self.private_post_sell_limit(&[requestParams.clone()]).await;
         }  else {
-            panic!("{}", crate::exchange_errors::invalid_order(Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder() does not support order type ".to_string()))), type_var))));
+            panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder() does not support order type ".to_string()))), type_var)));
         }
         let mut id: Value = self.safe_string_k(response.clone(), "data", &[]);
         return self.safe_order(Value::Map({

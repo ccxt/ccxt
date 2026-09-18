@@ -1397,11 +1397,11 @@ impl CoinspotCore {
             self.load_markets(&[]).await;
         }
         if (side == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires a side argument".to_string())))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires a side argument".to_string()))));
         }
         let mut sideUpper: Value = to_upper(&side);
         if (type_var.as_str() == Some("market")) {
-            panic!("{}", crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder() allows limit orders only".to_string())))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" createOrder() allows limit orders only".to_string()))));
         }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
@@ -1419,7 +1419,7 @@ impl CoinspotCore {
             let __ws_arg_4 = self.extend(request.clone(), &[params.clone()]);
             response = self.private_post_my_sell(&[__ws_arg_4]).await;
         }  else {
-            panic!("{}", crate::exchange_errors::not_supported(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder only support buy/sell side".to_string())))));
+            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" createOrder only support buy/sell side".to_string()))));
         }
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1449,7 +1449,7 @@ impl CoinspotCore {
 }));
         let mut side: Value = self.safe_string_k(params.clone(), "side", &[]);
         if (side.as_str() != Some("buy")) && (side.as_str() != Some("sell")) {
-            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" cancelOrder() requires a side parameter, \"buy\" or \"sell\"".to_string())))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" cancelOrder() requires a side parameter, \"buy\" or \"sell\"".to_string()))));
         }
         params = self.omit(params.clone(), Value::Str("side".to_string()), &[]);
         let mut request: Value = Value::Map({

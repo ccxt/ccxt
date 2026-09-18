@@ -1249,7 +1249,7 @@ impl BinanceCore {
     m
 }));
         if (outcomes == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchTickers() requires an outcomes argument — the venue has no all-tickers endpoint; pass the outcome handles to fetch (discover them via fetchEvents ())".to_string())))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchTickers() requires an outcomes argument — the venue has no all-tickers endpoint; pass the outcome handles to fetch (discover them via fetchEvents ())".to_string()))));
         }
         self.load_outcomes(&[outcomes.clone()]).await;
         let mut responsesByMarketId: Value = Value::Map({
@@ -2159,7 +2159,7 @@ impl BinanceCore {
         }
         }
         if (cachedWallet == Value::Null) {
-            panic!("{}", crate::exchange_errors::not_supported(Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str("fetchWallet could'n find wallet ".to_string()))), walletAddress))));
+            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str("fetchWallet could'n find wallet ".to_string()))), walletAddress)));
         }
         add_element_to_object(&mut self.options, &Value::Str("wallet".to_string()), cachedWallet.clone());
         return cachedWallet;
@@ -2273,7 +2273,7 @@ impl BinanceCore {
         let mut defaultTif: Value = Value::Str("FOK".to_string());
         if (typeUpper.as_str() == Some("LIMIT")) {
             if (price == Value::Null) {
-                panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str("createOrder requires price for limit order".to_string())))));
+                panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str("createOrder requires price for limit order".to_string()))));
             }
             add_element_to_object(&mut commonRequest, &Value::Str("priceLimit".to_string()), self.price_to_precision(marketSymbol.clone(), price.clone()));
             defaultTif = Value::Str("GTC".to_string());
@@ -2288,7 +2288,7 @@ impl BinanceCore {
                     feeRateBps = Value::Str("0".to_string());
                 }  else {
                     if (price == Value::Null) {
-                        panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder requires price for ".to_string()))), side)), Value::Str(" order".to_string())))));
+                        panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder requires price for ".to_string()))), side)), Value::Str(" order".to_string()))));
                     }
                 }
                 let mut feeRate: Value = crate::precise::Precise::stringDiv(&feeRateBps, &Value::Str("10000".to_string()));
@@ -2300,7 +2300,7 @@ impl BinanceCore {
         let mut timeInForce: Value = self.safe_string_upper(params.clone(), Value::Str("timeInForce".to_string()), &[defaultTif.clone()]);
         let mut accountType: Value = self.safe_string_k(params.clone(), "accountType", &[]);
         if (accountType == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder requires accountType (SPOT, FUNDING)".to_string())))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" createOrder requires accountType (SPOT, FUNDING)".to_string()))));
         }
         params = self.omit(params.clone(), Value::List(vec![Value::Str("timeInForce".to_string()), Value::Str("accountType".to_string()), Value::Str("cost".to_string())]), &[]);
         let __ws_arg_14 = self.amount_to_precision(marketSymbol.clone(), amountStr.clone());
@@ -2473,7 +2473,7 @@ impl BinanceCore {
                 failedDetails = add(&Value::Str(format!("{}{}", add(&failedDetails, &failedOrderId), Value::Str(": ".to_string()))), &failedReason);
             }
             }
-            panic!("{}", crate::exchange_errors::order_not_found(Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" cancelOrders() failed for ".to_string()))), failedDetails))));
+            panic!("{}", crate::exchange_errors::order_not_found(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" cancelOrders() failed for ".to_string()))), failedDetails)));
         }
         let mut orders: Value = Value::List(vec![]);
         let mut canceledOrdersLength: Value = Value::Int(canceledOrders.len() as i64);

@@ -971,7 +971,7 @@ impl BlockchaincomCore {
         let mut clientOrderId: Value = self.safe_string2(params.clone(), Value::Str("clientOrderId".to_string()), Value::Str("clOrdId".to_string()), &[self.uuid16(&[])]);
         params = self.omit(params.clone(), Value::List(vec![Value::Str("ordType".to_string()), Value::Str("clientOrderId".to_string()), Value::Str("clOrdId".to_string())]), &[]);
         if (side == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires a side argument".to_string())))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires a side argument".to_string()))));
         }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -986,7 +986,7 @@ impl BlockchaincomCore {
         params = self.omit(params.clone(), Value::List(vec![Value::Str("triggerPrice".to_string()), Value::Str("stopPx".to_string()), Value::Str("stopPrice".to_string())]), &[]);
         if (uppercaseOrderType.as_str() == Some("STOP")) || (uppercaseOrderType.as_str() == Some("STOPLIMIT")) {
             if (triggerPrice == Value::Null) {
-                panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires a stopPx or triggerPrice param for a ".to_string()))), uppercaseOrderType)), Value::Str(" order".to_string())))));
+                panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires a stopPx or triggerPrice param for a ".to_string()))), uppercaseOrderType)), Value::Str(" order".to_string()))));
             }
         }
         if (triggerPrice != Value::Null) {
@@ -1708,7 +1708,7 @@ impl BlockchaincomCore {
         //
         let mut balances: Value = self.safe_value(response.clone(), accountName.clone(), &[]);
         if (balances == Value::Null) {
-            panic!("{}", crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchBalance() could not find the \"".to_string()))), accountName)), Value::Str("\" account".to_string())))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchBalance() could not find the \"".to_string()))), accountName)), Value::Str("\" account".to_string()))));
         }
         let mut result: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1819,7 +1819,7 @@ impl BlockchaincomCore {
         let mut text: Value = self.safe_string_k(response.clone(), "text", &[]);
         if (text != Value::Null) {
             if (text.as_str() == Some("Insufficient Balance")) {
-                panic!("{}", crate::exchange_errors::insufficient_funds(Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), body))));
+                panic!("{}", crate::exchange_errors::insufficient_funds(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), body)));
             }
         }
         let mut errorCode: Value = self.safe_string_k(response.clone(), "status", &[]);

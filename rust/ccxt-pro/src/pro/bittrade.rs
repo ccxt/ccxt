@@ -618,7 +618,7 @@ impl BittradeCore {
     m
 }));
         if is_true(&(Value::Bool(limit != Value::Null))) && is_true(&(Value::Bool(limit.as_f64() != Some(150.0)))) {
-            panic!("{}", crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" watchOrderBook accepts limit = 150 only".to_string())))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" watchOrderBook accepts limit = 150 only".to_string()))));
         }
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;

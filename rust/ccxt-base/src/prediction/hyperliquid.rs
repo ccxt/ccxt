@@ -1283,7 +1283,7 @@ impl HyperliquidCore {
             let mut startOffset: Value = (match (&((match (&(tf), &(candleCount)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })), &(Value::Int(-1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
             startTime = self.sum(&[until.clone(), startOffset.clone()]);
             if (startTime == Value::Null) {
-                panic!("{}", crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchOHLCV() missing startTime".to_string())))));
+                panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" fetchOHLCV() missing startTime".to_string()))));
             }
             if startTime.as_f64().unwrap_or(f64::NAN) < Value::Int(0).as_f64().unwrap_or(f64::NAN) {
                 startTime = Value::Int(0);
@@ -1654,10 +1654,10 @@ impl HyperliquidCore {
 
     pub fn resolve_outcome_input(&self, mut outcomeInput: Value) -> Value {
         if (outcomeInput == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" resolveOutcomeInput() requires an outcome symbol or id".to_string())))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" resolveOutcomeInput() requires an outcome symbol or id".to_string()))));
         }
         if (self.exchange.outcomes.clone() == Value::Null) || (self.exchange.outcomes_by_id.clone() == Value::Null) {
-            panic!("{}", crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" outcomes not loaded".to_string())))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" outcomes not loaded".to_string()))));
         }
         let mut sideHint: Value = self.parse_outcome_input_side_hint(outcomeInput.clone());
         let mut candidates: Value = Value::List(vec![outcomeInput.clone()]);
@@ -1714,7 +1714,7 @@ impl HyperliquidCore {
                 return found;
             }
         }
-        panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" cannot resolve outcome from input: ".to_string()))), outcomeInput)), Value::Str(". Provide an outcome symbol (e.g. MARKET:YES), outcome id (#<encoding>), or market id with side.".to_string())))));
+        panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" cannot resolve outcome from input: ".to_string()))), outcomeInput)), Value::Str(". Provide an outcome symbol (e.g. MARKET:YES), outcome id (#<encoding>), or market id with side.".to_string()))));
 
     Value::Null
 }
@@ -1771,9 +1771,9 @@ impl HyperliquidCore {
         let mut tif: Value = self.capitalize(self.safe_string_lower(params.clone(), Value::Str("timeInForce".to_string()), &[defaultTif.clone()])); // eslint-disable-line
         if (price == Value::Null) {
             if isMarket {
-                panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires a reference price for market orders on outcome markets in between 0 and 1. The exchange uses this reference price together with the configured slippage to derive the execution price.".to_string())))));
+                panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires a reference price for market orders on outcome markets in between 0 and 1. The exchange uses this reference price together with the configured slippage to derive the execution price.".to_string()))));
             }
-            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires a limit price for outcome markets in between 0 and 1.".to_string())))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires a limit price for outcome markets in between 0 and 1.".to_string()))));
         }
         let mut px: Value = Value::Null;
         if isMarket {
@@ -1784,7 +1784,7 @@ impl HyperliquidCore {
             px = self.price_to_precision(marketSymbol.clone(), price.clone());
         }
         if (px == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder() could not determine price".to_string())))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" createOrder() could not determine price".to_string()))));
         }
         let mut sz: Value = self.amount_to_precision(marketSymbol.clone(), amount.clone());
         let mut orderType: Value = Value::Map({
@@ -1951,7 +1951,7 @@ impl HyperliquidCore {
 }));
         self.check_required_credentials(&[]);
         if (outcome == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" cancelOrders() requires an outcome argument".to_string())))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" cancelOrders() requires an outcome argument".to_string()))));
         }
         self.initialize_client().await;
         self.load_outcome(outcome.clone(), &[]).await;
@@ -2038,11 +2038,11 @@ impl HyperliquidCore {
             let mut status: Value = get_value(&statuses, &i);
             let mut error: Value = self.safe_string_k(status.clone(), "error", &[]);
             if (error != Value::Null) {
-                panic!("{}", crate::exchange_errors::order_not_found(Value::Str(format!("{}{}", Value::Str(format!("{}{}", add(&Value::Str(format!("{}{}", self.id.clone(), Value::Str(" cancelOrders() failed for ".to_string()))), &self.safe_string(requestIds.clone(), i.clone(), &[self.safe_string(requestIds.clone(), Value::Int(0), &[])])), Value::Str(": ".to_string()))), error))));
+                panic!("{}", crate::exchange_errors::order_not_found(format!("{}{}", Value::Str(format!("{}{}", add(&Value::Str(format!("{}{}", self.id.clone(), Value::Str(" cancelOrders() failed for ".to_string()))), &self.safe_string(requestIds.clone(), i.clone(), &[self.safe_string(requestIds.clone(), Value::Int(0), &[])])), Value::Str(": ".to_string()))), error)));
             }
             let mut success: bool = is_true(&(Value::Bool(status.as_str() == Some("success")))) || is_true(&(Value::Bool(self.safe_string_k(status.clone(), "status", &[]).as_str() == Some("success"))));
             if !success {
-                panic!("{}", crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" cancelOrders() received an unexpected status: ".to_string()))), self.json(status.clone())))));
+                panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" cancelOrders() received an unexpected status: ".to_string()))), self.json(status.clone()))));
             }
             let mut requestId: Value = self.safe_string(requestIds.clone(), i.clone(), &[self.safe_string(requestIds.clone(), Value::Int(0), &[])]);
             let mut order: Value = Value::Map({
@@ -2617,7 +2617,7 @@ impl HyperliquidCore {
             m
         });
         if (queries == Value::Null) {
-            panic!("{}", crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchEvents() missing queries".to_string())))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" fetchEvents() missing queries".to_string()))));
         }
         let mut lowerQueries: Value = Value::List(vec![]);
         {
@@ -2684,7 +2684,7 @@ impl HyperliquidCore {
                 }
             }
             if (parentSymbol == Value::Null) {
-                panic!("{}", crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchEvents() missing parentSymbol".to_string())))));
+                panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" fetchEvents() missing parentSymbol".to_string()))));
             }
             if !is_true(&(Value::Bool(in_op(&groupMap, &parentSymbol)))) {
                 if (parentSymbol != Value::Null) {
@@ -2818,7 +2818,7 @@ impl HyperliquidCore {
         // Convert precision to decimal places
         let mut decimals: Value = Value::Int(4);
         if (prec == Value::Null) {
-            panic!("{}", crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" amountToPrecision() missing prec".to_string())))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" amountToPrecision() missing prec".to_string()))));
         }
         if prec.as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN) {
             decimals = self.precision_from_string(self.number_to_string(prec.clone()));
@@ -2836,7 +2836,7 @@ impl HyperliquidCore {
 })]), Value::Str("price".to_string()), &[Value::Float(0.0001)]);
         let mut decimals: Value = Value::Int(4);
         if (prec == Value::Null) {
-            panic!("{}", crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" priceToPrecision() missing prec".to_string())))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" priceToPrecision() missing prec".to_string()))));
         }
         if prec.as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN) {
             decimals = self.precision_from_string(self.number_to_string(prec.clone()));
@@ -3074,7 +3074,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (self.walletAddress.clone() != Value::Null) && (self.walletAddress.as_str() != Some("")) {
             return Value::List(vec![self.walletAddress.clone(), params.clone()]);
         }
-        panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), methodName)), Value::Str("() requires a user parameter or walletAddress to be set".to_string())))));
+        panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), methodName)), Value::Str("() requires a user parameter or walletAddress to be set".to_string()))));
 
     Value::Null
 }

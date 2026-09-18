@@ -696,7 +696,7 @@ impl DeriveCore {
         if is_true(&Value::Bool(in_op(&get_value(&client, &Value::Str("subscriptions".to_string())), &topic))) {
             remove(&mut get_value(&client, &Value::Str("subscriptions".to_string())), &topic);
         }
-        let mut error = Value::from(crate::exchange_errors::unsubscribe_error(Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" orderbook ".to_string()))), symbol))));
+        let mut error = Value::from(crate::exchange_errors::unsubscribe_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" orderbook ".to_string()))), symbol)));
         client.reject(&[Value::from(error.clone()), topic.clone()]);
         client.resolve(&[error.clone(), add(&Value::Str("unwatch".to_string()), &topic)]);
 }
@@ -712,7 +712,7 @@ impl DeriveCore {
         if is_true(&Value::Bool(in_op(&get_value(&client, &Value::Str("subscriptions".to_string())), &topic))) {
             remove(&mut get_value(&client, &Value::Str("subscriptions".to_string())), &topic);
         }
-        let mut error = Value::from(crate::exchange_errors::unsubscribe_error(Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" trades ".to_string()))), symbol))));
+        let mut error = Value::from(crate::exchange_errors::unsubscribe_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" trades ".to_string()))), symbol)));
         client.reject(&[Value::from(error.clone()), topic.clone()]);
         client.resolve(&[error.clone(), add(&Value::Str("unwatch".to_string()), &topic)]);
 }

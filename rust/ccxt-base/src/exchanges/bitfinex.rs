@@ -1377,7 +1377,7 @@ impl BitfinexCore {
         if is_true(&Value::Bool(in_op(&self.options.as_map().and_then(|__m| __m.get("currencyNames")).cloned().unwrap_or(Value::Null), &code))) {
             return get_value(&self.options.as_map().and_then(|__m| __m.get("currencyNames")).cloned().unwrap_or(Value::Null), &code);
         }
-        panic!("{}", crate::exchange_errors::not_supported(Value::Str(format!("{}{}", add(&Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), &code), Value::Str(" not supported for withdrawal".to_string())))));
+        panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", add(&Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), &code), Value::Str(" not supported for withdrawal".to_string()))));
 
     Value::Null
 }
@@ -1885,7 +1885,7 @@ impl BitfinexCore {
         let mut accountType: Value = self.safe_string(accountsByType.clone(), requestedType.clone(), &[requestedType.clone()]);
         if (accountType == Value::Null) {
             let mut keys: Value = object_keys(&accountsByType);
-            panic!("{}", crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchBalance() type parameter must be one of ".to_string()))), join(&keys, &Value::Str(", ".to_string()))))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchBalance() type parameter must be one of ".to_string()))), join(&keys, &Value::Str(", ".to_string())))));
         }
         let mut isDerivative: bool = requestedType.as_str() == Some("derivatives");
         let mut query: Value = self.omit(params.clone(), Value::Str("type".to_string()), &[]);
@@ -1957,12 +1957,12 @@ impl BitfinexCore {
         let mut fromId: Value = self.safe_string(accountsByType.clone(), fromAccount.clone(), &[]);
         if (fromId == Value::Null) {
             let mut keys: Value = object_keys(&accountsByType);
-            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" transfer() fromAccount must be one of ".to_string()))), join(&keys, &Value::Str(", ".to_string()))))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" transfer() fromAccount must be one of ".to_string()))), join(&keys, &Value::Str(", ".to_string())))));
         }
         let mut toId: Value = self.safe_string(accountsByType.clone(), toAccount.clone(), &[]);
         if (toId == Value::Null) {
             let mut keys: Value = object_keys(&accountsByType);
-            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" transfer() toAccount must be one of ".to_string()))), join(&keys, &Value::Str(", ".to_string()))))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" transfer() toAccount must be one of ".to_string()))), join(&keys, &Value::Str(", ".to_string())))));
         }
         let mut currency: Value = self.currency(code.clone());
         let mut fromCurrencyId: Value = self.convert_derivatives_id(currency.clone(), fromAccount.clone());
@@ -2006,7 +2006,7 @@ impl BitfinexCore {
             let mut message: Value = self.safe_string(response.clone(), Value::Int(2), &[Value::Str("".to_string())]);
             // same message as in v1
             self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), message.clone(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), message)));
-            panic!("{}", crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), message))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), message)));
         }
         return self.parse_transfer(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2721,10 +2721,10 @@ impl BitfinexCore {
     m
 }));
         if (type_var == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" requires a type argument".to_string())))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" requires a type argument".to_string()))));
         }
         if (side == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" requires a side argument".to_string())))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" requires a side argument".to_string()))));
         }
         /*
          * @method
@@ -2781,10 +2781,10 @@ impl BitfinexCore {
         let mut fok: bool = timeInForce.as_str() == Some("FOK");
         let mut postOnly: bool = is_true(&(Value::Bool(postOnlyParam.as_bool() == Some(true)))) || is_true(&(Value::Bool(timeInForce.as_str() == Some("PO"))));
         if (ioc || fok) && is_true(&(Value::Bool(price == Value::Null))) {
-            panic!("{}", crate::exchange_errors::invalid_order(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires a price argument with IOC and FOK orders".to_string())))));
+            panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires a price argument with IOC and FOK orders".to_string()))));
         }
         if (ioc || fok) && is_true(&(Value::Bool(type_var.as_str() == Some("market")))) {
-            panic!("{}", crate::exchange_errors::invalid_order(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder() does not allow market IOC and FOK orders".to_string())))));
+            panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), Value::Str(" createOrder() does not allow market IOC and FOK orders".to_string()))));
         }
         if is_true(&(Value::Bool(type_var.as_str() != Some("market")))) && is_true(&(Value::Bool(triggerPrice == Value::Null))) {
             add_element_to_object(&mut request, &Value::Str("price".to_string()), self.price_to_precision(symbol.clone(), price.clone()));
@@ -2906,7 +2906,7 @@ impl BitfinexCore {
         if (status.as_str() != Some("SUCCESS")) {
             let mut errorCode: Value = self.safe_string(response.clone(), Value::Int(5), &[]);
             let mut errorText: Value = self.safe_string(response.clone(), Value::Int(7), &[]);
-            panic!("{}", crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", add(&Value::Str(format!("{}{}", add(&Value::Str(format!("{}{}", add(&Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), &status), Value::Str(": ".to_string()))), &errorText), Value::Str(" (#".to_string()))), &errorCode), Value::Str(")".to_string())))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", add(&Value::Str(format!("{}{}", add(&Value::Str(format!("{}{}", add(&Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), &status), Value::Str(": ".to_string()))), &errorText), Value::Str(" (#".to_string()))), &errorCode), Value::Str(")".to_string()))));
         }
         let mut orders: Value = self.safe_list(response.clone(), Value::Int(4), &[Value::List(vec![])]);
         let mut order: Value = self.safe_list(orders.clone(), Value::Int(0), &[]);
@@ -3080,7 +3080,7 @@ impl BitfinexCore {
         if (cid != Value::Null) {
             let mut cidDate: Value = self.safe_value_k(params.clone(), "cidDate", &[]); // client order id date
             if (cidDate == Value::Null) {
-                panic!("{}", crate::exchange_errors::invalid_order(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" canceling an order by clientOrderId ('cid') requires both 'cid' and 'cid_date' ('YYYY-MM-DD')".to_string())))));
+                panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), Value::Str(" canceling an order by clientOrderId ('cid') requires both 'cid' and 'cid_date' ('YYYY-MM-DD')".to_string()))));
             }
             request = Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -3242,7 +3242,7 @@ impl BitfinexCore {
         let mut orders: Value = self.fetch_open_orders(&[symbol.clone(), Value::Null, Value::Null, __ws_arg_10]).await;
         let mut order: Value = self.safe_value(orders.clone(), Value::Int(0), &[]);
         if (order == Value::Null) {
-            panic!("{}", crate::exchange_errors::order_not_found(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" order ".to_string()))), id)), Value::Str(" not found".to_string())))));
+            panic!("{}", crate::exchange_errors::order_not_found(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" order ".to_string()))), id)), Value::Str(" not found".to_string()))));
         }
         return order;
 
@@ -3275,7 +3275,7 @@ impl BitfinexCore {
         let mut orders: Value = self.fetch_closed_orders(&[symbol.clone(), Value::Null, Value::Null, __ws_arg_11]).await;
         let mut order: Value = self.safe_value(orders.clone(), Value::Int(0), &[]);
         if (order == Value::Null) {
-            panic!("{}", crate::exchange_errors::order_not_found(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" order ".to_string()))), id)), Value::Str(" not found".to_string())))));
+            panic!("{}", crate::exchange_errors::order_not_found(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" order ".to_string()))), id)), Value::Str(" not found".to_string()))));
         }
         return order;
 
@@ -3504,7 +3504,7 @@ impl BitfinexCore {
     m
 }));
         if (symbol == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchOrderTrades() requires a symbol argument".to_string())))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchOrderTrades() requires a symbol argument".to_string()))));
         }
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
@@ -3655,7 +3655,7 @@ impl BitfinexCore {
         let mut currencyNetwork: Value = self.safe_value(currencyNetworks.clone(), network.clone(), &[]);
         let mut networkId: Value = self.safe_string_k(currencyNetwork.clone(), "id", &[]);
         if (networkId == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchDepositAddress() could not find a network for '".to_string()))), code)), Value::Str("'. You can specify it by providing the 'network' value inside params".to_string())))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchDepositAddress() could not find a network for '".to_string()))), code)), Value::Str("'. You can specify it by providing the 'network' value inside params".to_string()))));
         }
         let mut wallet: Value = self.safe_string_k(params.clone(), "wallet", &[Value::Str("exchange".to_string())]); // 'exchange', 'margin', 'funding' and also old labels 'exchange', 'trading', 'deposit', respectively
         params = self.omit(params.clone(), Value::Str("network".to_string()), &[Value::Str("wallet".to_string())]);
@@ -4091,7 +4091,7 @@ impl BitfinexCore {
         let mut currencyNetwork: Value = self.safe_value(currencyNetworks.clone(), network.clone(), &[]);
         let mut networkId: Value = self.safe_string_k(currencyNetwork.clone(), "id", &[]);
         if (networkId == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" withdraw() could not find a network for '".to_string()))), code)), Value::Str("'. You can specify it by providing the 'network' value inside params".to_string())))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" withdraw() could not find a network for '".to_string()))), code)), Value::Str("'. You can specify it by providing the 'network' value inside params".to_string()))));
         }
         let mut wallet: Value = self.safe_string_k(params.clone(), "wallet", &[Value::Str("exchange".to_string())]); // 'exchange', 'margin', 'funding' and also old labels 'exchange', 'trading', 'deposit', respectively
         params = self.omit(params.clone(), Value::Str("network".to_string()), &[Value::Str("wallet".to_string())]);
@@ -4378,7 +4378,7 @@ impl BitfinexCore {
                 panic!("{}", crate::exchange_errors::exchange_error(add(&Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), &body)));
             }
         }  else if (response.as_str() == Some("")) {
-            panic!("{}", crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" returned empty response".to_string())))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" returned empty response".to_string()))));
         }
         if (statusCode.as_f64() == Some(429.0)) {
             panic!("{}", crate::exchange_errors::rate_limit_exceeded(add(&Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), &body)));
@@ -4391,7 +4391,7 @@ impl BitfinexCore {
             self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), errorText.clone(), feedback.clone());
             self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), errorCode.clone(), feedback.clone());
             self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), errorText.clone(), feedback.clone());
-            panic!("{}", crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), errorText)), Value::Str(" (#".to_string()))), errorCode)), Value::Str(")".to_string())))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), errorText)), Value::Str(" (#".to_string()))), errorCode)), Value::Str(")".to_string()))));
         }
         return response;
 
@@ -4576,7 +4576,7 @@ impl BitfinexCore {
     m
 }));
         if (symbols == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchFundingRates() requires a symbols argument".to_string())))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchFundingRates() requires a symbols argument".to_string()))));
         }
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
@@ -4616,7 +4616,7 @@ impl BitfinexCore {
     m
 }));
         if (symbol == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchFundingRateHistory() requires a symbol argument".to_string())))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchFundingRateHistory() requires a symbol argument".to_string()))));
         }
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
@@ -5151,7 +5151,7 @@ impl BitfinexCore {
         }
         let mut market: Value = self.market(symbol.clone());
         if (market.as_map().and_then(|__m| __m.get("swap")).cloned().unwrap_or(Value::Null).as_bool() != Some(true)) {
-            panic!("{}", crate::exchange_errors::not_supported(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" setMargin() only support swap markets".to_string())))));
+            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" setMargin() only support swap markets".to_string()))));
         }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -5421,7 +5421,7 @@ impl BitfinexCore {
         if (status.as_str() != Some("SUCCESS")) {
             let mut errorCode: Value = self.safe_string(response.clone(), Value::Int(5), &[]);
             let mut errorText: Value = self.safe_string(response.clone(), Value::Int(7), &[]);
-            panic!("{}", crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", add(&Value::Str(format!("{}{}", add(&Value::Str(format!("{}{}", add(&Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), &status), Value::Str(": ".to_string()))), &errorText), Value::Str(" (#".to_string()))), &errorCode), Value::Str(")".to_string())))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", add(&Value::Str(format!("{}{}", add(&Value::Str(format!("{}{}", add(&Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), &status), Value::Str(": ".to_string()))), &errorText), Value::Str(" (#".to_string()))), &errorCode), Value::Str(")".to_string()))));
         }
         let mut order: Value = self.safe_list(response.clone(), Value::Int(4), &[Value::List(vec![])]);
         let mut newOrder: Value = Value::Map({

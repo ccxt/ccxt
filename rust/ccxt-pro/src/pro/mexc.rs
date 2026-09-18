@@ -539,7 +539,7 @@ impl MexcCore {
             m
         });
         if isSpot {
-            panic!("{}", crate::exchange_errors::not_supported(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" watchTickers does not support spot markets".to_string())))));
+            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" watchTickers does not support spot markets".to_string()))));
         }  else {
             add_element_to_object(&mut request, &Value::Str("method".to_string()), Value::Str("sub.tickers".to_string()));
             add_element_to_object(&mut request, &Value::Str("params".to_string()), Value::Map({
@@ -745,13 +745,13 @@ impl MexcCore {
         symbols = self.market_symbols(&[symbols.clone(), Value::Null, Value::Bool(true), Value::Bool(false), Value::Bool(true)]);
         let mut marketType: Value = Value::Null;
         if (symbols == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" watchBidsAsks required symbols argument".to_string())))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" watchBidsAsks required symbols argument".to_string()))));
         }
         let mut markets: Value = self.require_value(self.markets_for_symbols(&[symbols.clone()]), &[Value::Str("watchBidsAsks() markets is required".to_string())]);
         { let __destr_tmp = self.handle_market_type_and_params(Value::Str("watchBidsAsks".to_string()), &[markets.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null), params.clone()]); marketType = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         let mut isSpot: bool = marketType.as_str() == Some("spot");
         if !isSpot {
-            panic!("{}", crate::exchange_errors::not_supported(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" watchBidsAsks only support spot market".to_string())))));
+            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" watchBidsAsks only support spot market".to_string()))));
         }
         let mut messageHashes: Value = Value::List(vec![]);
         let mut topics: Value = Value::List(vec![]);
@@ -2286,7 +2286,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             m
         });
         if isSpot {
-            panic!("{}", crate::exchange_errors::not_supported(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" watchTickers does not support spot markets".to_string())))));
+            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" watchTickers does not support spot markets".to_string()))));
         }  else {
             add_element_to_object(&mut request, &Value::Str("method".to_string()), Value::Str("unsub.tickers".to_string()));
             add_element_to_object(&mut request, &Value::Str("params".to_string()), Value::Map({
@@ -2324,13 +2324,13 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         symbols = self.market_symbols(&[symbols.clone(), Value::Null, Value::Bool(true), Value::Bool(false), Value::Bool(true)]);
         let mut marketType: Value = Value::Null;
         if (symbols == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" watchBidsAsks required symbols argument".to_string())))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" watchBidsAsks required symbols argument".to_string()))));
         }
         let mut markets: Value = self.require_value(self.markets_for_symbols(&[symbols.clone()]), &[Value::Str("unWatchBidsAsks() markets is required".to_string())]);
         { let __destr_tmp = self.handle_market_type_and_params(Value::Str("watchBidsAsks".to_string()), &[markets.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null), params.clone()]); marketType = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         let mut isSpot: bool = marketType.as_str() == Some("spot");
         if !isSpot {
-            panic!("{}", crate::exchange_errors::not_supported(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" watchBidsAsks only support spot market".to_string())))));
+            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" watchBidsAsks only support spot market".to_string()))));
         }
         let mut messageHashes: Value = Value::List(vec![]);
         let mut topics: Value = Value::List(vec![]);
@@ -2717,7 +2717,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
     pub fn handle_message(&mut self, mut client: Value, mut message: Value) {
         if is_string(&message) {
             if (message.as_str() == Some("Invalid listen key")) {
-                let mut error = Value::from(crate::exchange_errors::authentication_error(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" invalid listen key".to_string())))));
+                let mut error = Value::from(crate::exchange_errors::authentication_error(format!("{}{}", self.id.clone(), Value::Str(" invalid listen key".to_string()))));
                 client.reject(&[Value::from(error.clone())]);
                 return;
             }

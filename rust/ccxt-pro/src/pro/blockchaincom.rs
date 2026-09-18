@@ -460,7 +460,7 @@ impl BlockchaincomCore {
         let mut event: Value = self.safe_string_k(message.clone(), "event", &[]);
         if (event.as_str() == Some("rejected")) {
             let mut jsonMessage: Value = self.json(message.clone());
-            panic!("{}", crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), jsonMessage))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), jsonMessage)));
         }  else if (event.as_str() == Some("updated")) {
             let mut marketId: Value = self.safe_string_k(message.clone(), "symbol", &[]);
             let mut symbol: Value = self.safe_symbol(marketId.clone(), &[Value::Null, Value::Str("-".to_string())]);
@@ -482,7 +482,7 @@ impl BlockchaincomCore {
             stored.append(ohlcv.clone());
             client.resolve(&[stored.clone(), messageHash.clone()]);
         }  else if (event.as_str() != Some("subscribed")) {
-            panic!("{}", crate::exchange_errors::not_supported(Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), self.json(message.clone())))));
+            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), self.json(message.clone()))));
         }
 }
 
@@ -863,7 +863,7 @@ impl BlockchaincomCore {
         if (event.as_str() == Some("subscribed")) {
             return;
         }  else if (event.as_str() == Some("rejected")) {
-            panic!("{}", crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), self.json(message.clone())))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), self.json(message.clone()))));
         }  else if (event.as_str() == Some("snapshot")) {
             let mut orders: Value = self.safe_list_k(message.clone(), "orders", &[Value::List(vec![])]);
             {
@@ -1081,7 +1081,7 @@ impl BlockchaincomCore {
             add_element_to_object(&mut orderbook, &Value::Str("timestamp".to_string()), timestamp.clone());
             add_element_to_object(&mut orderbook, &Value::Str("datetime".to_string()), datetime.clone());
         }  else {
-            panic!("{}", crate::exchange_errors::not_supported(Value::Str(format!("{}{}", add(&Value::Str(format!("{}{}", self.id.clone(), Value::Str(" watchOrderBook() does not support ".to_string()))), &event), Value::Str(" yet".to_string())))));
+            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", add(&Value::Str(format!("{}{}", self.id.clone(), Value::Str(" watchOrderBook() does not support ".to_string()))), &event), Value::Str(" yet".to_string()))));
         }
         client.resolve(&[orderbook.clone(), messageHash.clone()]);
 }
@@ -1120,7 +1120,7 @@ impl BlockchaincomCore {
             self.dispatch_ws_handler(&handler, &[client.clone(), message.clone()]);
             return;
         }
-        panic!("{}", crate::exchange_errors::not_supported(Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" received an unsupported message: ".to_string()))), self.json(message.clone())))));
+        panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" received an unsupported message: ".to_string()))), self.json(message.clone()))));
 }
 
     pub fn handle_authentication_message(&self, mut client: Value, mut message: Value) {
@@ -1134,7 +1134,7 @@ impl BlockchaincomCore {
         //
         let mut event: Value = self.safe_string_k(message.clone(), "event", &[]);
         if (event.as_str() != Some("subscribed")) {
-            panic!("{}", crate::exchange_errors::authentication_error(Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" received an authentication error: ".to_string()))), self.json(message.clone())))));
+            panic!("{}", crate::exchange_errors::authentication_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" received an authentication error: ".to_string()))), self.json(message.clone()))));
         }
         let mut future: Value = self.safe_value(get_value(&client, &Value::Str("futures".to_string())), Value::Str("authenticated".to_string()), &[]);
         if (future != Value::Null) {

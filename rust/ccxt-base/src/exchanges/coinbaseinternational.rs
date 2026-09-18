@@ -853,7 +853,7 @@ impl CoinbaseinternationalCore {
             }
         }
         }
-        panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), methodName)), Value::Str("() requires a portfolio parameter or set the default portfolio with this.options[\"portfolio\"]".to_string())))));
+        panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), methodName)), Value::Str("() requires a portfolio parameter or set the default portfolio with this.options[\"portfolio\"]".to_string()))));
 
     Value::Null
 }
@@ -872,7 +872,7 @@ impl CoinbaseinternationalCore {
             if (network == Value::Null) {
                 // find default network
                 if is_true(&self.is_empty(networks.clone())) {
-                    panic!("{}", crate::exchange_errors::bad_request(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createDepositAddress network not found for currency ".to_string()))), currencyCode)), Value::Str(" please specify networkId in params".to_string())))));
+                    panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createDepositAddress network not found for currency ".to_string()))), currencyCode)), Value::Str(" please specify networkId in params".to_string()))));
                 }
                 let mut defaultNetwork: Value = self.find_default_network(networks.clone());
                 networkId = crate::value::get_value_k(&defaultNetwork, "id");
@@ -960,7 +960,7 @@ impl CoinbaseinternationalCore {
         if (since != Value::Null) {
             add_element_to_object(&mut request, &Value::Str("start".to_string()), self.iso8601(since.clone()));
         }  else {
-            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchOHLCV() requires a since argument".to_string())))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchOHLCV() requires a since argument".to_string()))));
         }
         let mut unitl: Value = self.safe_integer_k(params.clone(), "until", &[]);
         if (unitl != Value::Null) {
@@ -1017,7 +1017,7 @@ impl CoinbaseinternationalCore {
     m
 }));
         if (symbol == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchFundingRateHistory() requires a symbol argument".to_string())))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchFundingRateHistory() requires a symbol argument".to_string()))));
         }
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
@@ -1557,7 +1557,7 @@ impl CoinbaseinternationalCore {
         let mut portfolio: Value = Value::Null;
         { let __destr_tmp = self.handle_portfolio_and_params(Value::Str("setMargin".to_string()), &[params.clone()]).await; portfolio = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         if (symbol != Value::Null) {
-            panic!("{}", crate::exchange_errors::bad_request(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" setMargin() only allows setting margin to full portfolio".to_string())))));
+            panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" setMargin() only allows setting margin to full portfolio".to_string()))));
         }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -2080,7 +2080,7 @@ impl CoinbaseinternationalCore {
         let mut isLinear: Value = (if is_true(&isSpot) { Value::Null } else { (Value::Bool(settleId.as_str() == quoteId.as_str())) });
         let mut isInverse: Value = (if is_true(&isSpot) { Value::Null } else { (Value::Bool(settleId.as_str() != quoteId.as_str())) });
         if (marketId == Value::Null) {
-            panic!("{}", crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" parseMarket() missing marketId".to_string())))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" parseMarket() missing marketId".to_string()))));
         }
         return self.safe_market_structure(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2492,7 +2492,7 @@ impl CoinbaseinternationalCore {
         let mut clientOrderId: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", clientOrderIdprefix, Value::Str("-".to_string()))), self.uuid(&[])));
         clientOrderId = slice(&clientOrderId, &Value::Int(0), &Value::Int(17));
         if (side == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires a side argument".to_string())))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires a side argument".to_string()))));
         }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -2513,7 +2513,7 @@ impl CoinbaseinternationalCore {
         add_element_to_object(&mut request, &Value::Str("type".to_string()), typeId.clone());
         if (type_var.as_str() == Some("limit")) {
             if (price == Value::Null) {
-                panic!("{}", crate::exchange_errors::invalid_order(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires a price parameter for a limit order types".to_string())))));
+                panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires a price parameter for a limit order types".to_string()))));
             }
             add_element_to_object(&mut request, &Value::Str("price".to_string()), price.clone());
         }
@@ -2527,7 +2527,7 @@ impl CoinbaseinternationalCore {
         // market orders must be IOC
         if (typeId.as_str() == Some("MARKET")) {
             if (tif != Value::Null) && (tif.as_str() != Some("IOC")) {
-                panic!("{}", crate::exchange_errors::invalid_order(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder() market orders must have tif set to \"IOC\"".to_string())))));
+                panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), Value::Str(" createOrder() market orders must have tif set to \"IOC\"".to_string()))));
             }
             tif = Value::Str("IOC".to_string());
         }  else {
@@ -2770,7 +2770,7 @@ impl CoinbaseinternationalCore {
         }
         let mut clientOrderId: Value = self.safe_string2(params.clone(), Value::Str("client_order_id".to_string()), Value::Str("clientOrderId".to_string()), &[]);
         if (clientOrderId == Value::Null) {
-            panic!("{}", crate::exchange_errors::bad_request(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" editOrder() requires a clientOrderId parameter".to_string())))));
+            panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" editOrder() requires a clientOrderId parameter".to_string()))));
         }
         add_element_to_object(&mut request, &Value::Str("client_order_id".to_string()), clientOrderId.clone());
         let __ws_arg_17 = self.extend(request.clone(), &[params.clone()]);
@@ -2868,7 +2868,7 @@ impl CoinbaseinternationalCore {
         }
         if (limit != Value::Null) {
             if limit.as_f64().unwrap_or(f64::NAN) > Value::Int(100).as_f64().unwrap_or(f64::NAN) {
-                panic!("{}", crate::exchange_errors::bad_request(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchOpenOrders() maximum limit is 100".to_string())))));
+                panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" fetchOpenOrders() maximum limit is 100".to_string()))));
             }
             add_element_to_object(&mut request, &Value::Str("result_limit".to_string()), limit.clone());
         }
@@ -2962,7 +2962,7 @@ impl CoinbaseinternationalCore {
         });
         if (limit != Value::Null) {
             if limit.as_f64().unwrap_or(f64::NAN) > Value::Int(100).as_f64().unwrap_or(f64::NAN) {
-                panic!("{}", crate::exchange_errors::bad_request(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchMyTrades() maximum limit is 100. Consider setting paginate to true to fetch more trades.".to_string())))));
+                panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" fetchMyTrades() maximum limit is 100. Consider setting paginate to true to fetch more trades.".to_string()))));
             }
             add_element_to_object(&mut request, &Value::Str("result_limit".to_string()), limit.clone());
         }

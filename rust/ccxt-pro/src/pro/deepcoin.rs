@@ -465,7 +465,7 @@ impl DeepcoinCore {
         let mut client: Value = self.client(&[url.clone()]);
         let mut existingSubscription: Value = self.safe_dict(get_value(&client, &Value::Str("subscriptions".to_string())), messageHash.clone(), &[]);
         if (existingSubscription == Value::Null) {
-            panic!("{}", crate::exchange_errors::bad_request(Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" no subscription for ".to_string()))), messageHash))));
+            panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" no subscription for ".to_string()))), messageHash)));
         }
         let mut subId: Value = self.safe_integer_k(existingSubscription.clone(), "id", &[]);
         let mut request: Value = self.create_public_request(market.clone(), subId.clone(), topicID.clone(), &[suffix.clone(), Value::Bool(true)]); // unsubscribe message uses the same id as the original subscribe message
@@ -547,7 +547,7 @@ impl DeepcoinCore {
                 })]);
                 listenKey = self.safe_string_k(data.clone(), "listenkey", &[]);
                 if (listenKey == Value::Null) {
-                    panic!("{}", crate::exchange_errors::authentication_error(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" authenticate() received an empty listenKey".to_string())))));
+                    panic!("{}", crate::exchange_errors::authentication_error(format!("{}{}", self.id.clone(), Value::Str(" authenticate() received an empty listenKey".to_string()))));
                 }
                 listenKeyExpiryTimestamp = self.safe_timestamp(data.clone(), Value::Str("expire_time".to_string()), &[]);
                 add_element_to_object(&mut self.options, &Value::Str("listenKey".to_string()), listenKey.clone());
@@ -1171,7 +1171,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             })]);
             let mut tickSize: Value = self.safe_number_k(precision.clone(), "price", &[]);
             if (tickSize == Value::Null) {
-                panic!("{}", crate::exchange_errors::bad_request(Value::Str(format!("{}{}", add(&Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), methodName)), Value::Str("() requires a params[\"aggregation\"] price level for ".to_string()))), &symbol), Value::Str(" because the market has no price precision".to_string())))));
+                panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", add(&Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), methodName)), Value::Str("() requires a params[\"aggregation\"] price level for ".to_string()))), &symbol), Value::Str(" because the market has no price precision".to_string()))));
             }
             aggregation = self.number_to_string(tickSize.clone());
         }

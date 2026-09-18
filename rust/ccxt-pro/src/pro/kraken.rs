@@ -420,7 +420,7 @@ impl KrakenCore {
         let mut isLimitOrder: bool = ends_with(&type_var, &Value::Str("limit".to_string())); // supporting limit, stop-loss-limit, take-profit-limit, etc
         if isLimitOrder {
             if (price == Value::Null) {
-                panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" limit orders require a price argument".to_string())))));
+                panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" limit orders require a price argument".to_string()))));
             }
             add_element_to_object(get_value_mut(&mut request, &Value::Str("params".to_string())), &Value::Str("limit_price".to_string()), self.parse_to_numeric(self.price_to_precision(symbol.clone(), price.clone())));
         }
@@ -544,7 +544,7 @@ impl KrakenCore {
             }
         }  else if (method.as_str() == Some("editOrderWs")) {
             if isPresetStopLoss || isPresetTakeProfit {
-                panic!("{}", crate::exchange_errors::not_supported(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" editing the stopLoss and takeProfit on existing orders is currently not supported".to_string())))));
+                panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" editing the stopLoss and takeProfit on existing orders is currently not supported".to_string()))));
             }
             if isStopLossPriceOrder || isTakeProfitPriceOrder {
                 if isStopLossPriceOrder {
@@ -722,7 +722,7 @@ impl KrakenCore {
     m
 }));
         if (symbol != Value::Null) {
-            panic!("{}", crate::exchange_errors::not_supported(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" cancelOrdersWs () does not support cancelling orders for a specific symbol.".to_string())))));
+            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" cancelOrdersWs () does not support cancelling orders for a specific symbol.".to_string()))));
         }
         self.load_markets(&[]).await;
         let mut token: Value = self.authenticate(&[]).await;
@@ -764,7 +764,7 @@ impl KrakenCore {
     m
 }));
         if (symbol != Value::Null) {
-            panic!("{}", crate::exchange_errors::not_supported(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" cancelOrderWs () does not support cancelling orders for a specific symbol.".to_string())))));
+            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" cancelOrderWs () does not support cancelling orders for a specific symbol.".to_string()))));
         }
         self.load_markets(&[]).await;
         let mut token: Value = self.authenticate(&[]).await;
@@ -822,7 +822,7 @@ impl KrakenCore {
     m
 }));
         if (symbol != Value::Null) {
-            panic!("{}", crate::exchange_errors::not_supported(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" cancelAllOrdersWs () does not support cancelling orders in a specific market.".to_string())))));
+            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" cancelAllOrdersWs () does not support cancelling orders in a specific market.".to_string()))));
         }
         self.load_markets(&[]).await;
         let mut token: Value = self.authenticate(&[]).await;
@@ -1220,7 +1220,7 @@ impl KrakenCore {
             if is_true(&self.in_array(limit.clone(), Value::List(vec![Value::Int(10), Value::Int(25), Value::Int(100), Value::Int(500), Value::Int(1000)]))) {
                 add_element_to_object(&mut requiredParams, &Value::Str("depth".to_string()), limit.clone()); // default 10, valid options 10, 25, 100, 500, 1000
             }  else {
-                panic!("{}", crate::exchange_errors::not_supported(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" watchOrderBook accepts limit values of 10, 25, 100, 500 and 1000 only".to_string())))));
+                panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" watchOrderBook accepts limit values of 10, 25, 100, 500 and 1000 only".to_string()))));
             }
         }
         let mut orderbook: Value = self.watch_multi_helper(Value::Str("orderbook".to_string()), Value::Str("book".to_string()), &[symbols.clone(), Value::Map({
@@ -1511,7 +1511,7 @@ impl KrakenCore {
             let mut payload: Value = join(&payloadArray, &Value::Str("".to_string()));
             let mut localChecksum: Value = self.crc32(&[payload.clone(), Value::Bool(false)]);
             if (localChecksum.as_f64() != c.as_f64()) {
-                let mut error = Value::from(crate::exchange_errors::checksum_error(Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), self.orderbook_checksum_message(symbol.clone())))));
+                let mut error = Value::from(crate::exchange_errors::checksum_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), self.orderbook_checksum_message(symbol.clone()))));
                 remove(&mut get_value(&client, &Value::Str("subscriptions".to_string())), &messageHash);
                 remove(&mut self.orderbooks, &symbol);
                 client.reject(&[Value::from(error.clone()), messageHash.clone()]);
@@ -1605,7 +1605,7 @@ impl KrakenCore {
                 subscription = self.safe_dict_k(response.clone(), "result", &[]);
                 let mut token: Value = self.safe_string_k(subscription.clone(), "token", &[]);
                 if (token == Value::Null) {
-                    panic!("{}", crate::exchange_errors::authentication_error(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" authenticate() received an empty token".to_string())))));
+                    panic!("{}", crate::exchange_errors::authentication_error(format!("{}{}", self.id.clone(), Value::Str(" authenticate() received an empty token".to_string()))));
                 }
                 add_element_to_object(&mut subscription, &Value::Str("start".to_string()), now.clone());
                 add_element_to_object(&mut get_value(&client, &Value::Str("subscriptions".to_string())), &authenticated, subscription.clone());
@@ -2244,7 +2244,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut broadKey: Value = self.find_broadly_matched_key(broad.clone(), errorMessage.clone());
             let mut exception: Value = Value::Null;
             if (broadKey == Value::Null) {
-                exception = Value::from(crate::exchange_errors::exchange_error(                errorMessage)); // c# requirement to convert the errorMessage to string
+                exception = Value::from(crate::exchange_errors::exchange_error(errorMessage)); // c# requirement to convert the errorMessage to string
             }  else {
                 exception = Value::from(crate::exchange_errors::create_error(&crate::runtime::stringify_param(&(get_value(&broad, &broadKey))), &crate::runtime::stringify_param(&(errorMessage))));
             }

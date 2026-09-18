@@ -1137,7 +1137,7 @@ impl AlpacaCore {
             promise.resolve(&[message.clone()]);
             return;
         }
-        panic!("{}", crate::exchange_errors::authentication_error(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" failed to authenticate.".to_string())))));
+        panic!("{}", crate::exchange_errors::authentication_error(format!("{}{}", self.id.clone(), Value::Str(" failed to authenticate.".to_string()))));
 }
 
     pub fn handle_subscription(&self, mut client: Value, mut message: Value) -> Value {

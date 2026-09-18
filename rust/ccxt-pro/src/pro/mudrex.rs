@@ -398,7 +398,7 @@ impl MudrexCore {
         params = self.omit(params.clone(), Value::Str("price".to_string()), &[]);
         let mut interval: Value = self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]);
         if (interval.as_str() != Some("1s")) && (interval.as_str() != Some("1m")) {
-            panic!("{}", crate::exchange_errors::not_supported(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" watchOHLCV() supports 1s and 1m timeframes only".to_string())))));
+            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" watchOHLCV() supports 1s and 1m timeframes only".to_string()))));
         }
         let mut prefix: Value = Value::Str("kline".to_string());
         if (priceType.as_str() == Some("mark")) {

@@ -963,7 +963,7 @@ impl HyperliquidCore {
         });
         let mut message: Value = self.extend(request.clone(), &[params.clone()]);
         if (userAddress == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" watchMyTrades() requires a user address".to_string())))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" watchMyTrades() requires a user address".to_string()))));
         }
         let mut subscribeHash: Value = Value::Str(format!("{}{}", Value::Str("subscribe:userFills::".to_string()), to_lower(&userAddress)));
         let mut trades: Value = self.watch(url.clone(), messageHash.clone(), &[message.clone(), subscribeHash.clone()]).await;
@@ -995,7 +995,7 @@ impl HyperliquidCore {
             self.load_markets(&[]).await;
         }
         if (symbol != Value::Null) {
-            panic!("{}", crate::exchange_errors::not_supported(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" unWatchMyTrades does not support a symbol argument, unWatch from all markets only".to_string())))));
+            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" unWatchMyTrades does not support a symbol argument, unWatch from all markets only".to_string()))));
         }
         let mut userAddress: Value = Value::Null;
         let mut userAddressResult: Value = self.parent.handle_public_address(Value::Str("unWatchMyTrades".to_string()), params.clone());
@@ -1973,7 +1973,7 @@ impl HyperliquidCore {
             self.load_markets(&[]).await;
         }
         if is_true(&(Value::Bool(symbols != Value::Null))) && !is_true(&self.is_empty(symbols.clone())) {
-            panic!("{}", crate::exchange_errors::not_supported(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" unWatchPositions() does not support a symbol parameter, you must unwatch all orders".to_string())))));
+            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" unWatchPositions() does not support a symbol parameter, you must unwatch all orders".to_string()))));
         }
         let mut messageHash: Value = Value::Str("unsubscribe:clearinghouseState".to_string());
         let mut url: Value = crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "public");
@@ -2052,7 +2052,7 @@ impl HyperliquidCore {
         // future on the connection. address lowercased because the server is case-insensitive.
         // note: orderUpdates payloads carry no user, so resolution/data stays shared across users
         if (userAddress == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" watchOrders() requires a user address".to_string())))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" watchOrders() requires a user address".to_string()))));
         }
         let mut subscribeHash: Value = Value::Str(format!("{}{}", Value::Str("subscribe:orderUpdates::".to_string()), to_lower(&userAddress)));
         let mut orders: Value = self.watch(url.clone(), messageHash.clone(), &[message.clone(), subscribeHash.clone()]).await;
@@ -2084,7 +2084,7 @@ impl HyperliquidCore {
             self.load_markets(&[]).await;
         }
         if (symbol != Value::Null) {
-            panic!("{}", crate::exchange_errors::not_supported(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" unWatchOrders() does not support a symbol argument, unWatch from all markets only".to_string())))));
+            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" unWatchOrders() does not support a symbol argument, unWatch from all markets only".to_string()))));
         }
         let mut messageHash: Value = Value::Str("unsubscribe:order".to_string());
         let mut url: Value = crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "public");
@@ -2207,7 +2207,7 @@ impl HyperliquidCore {
             if get_index_of(&ret_msg, &Value::Str("Already subscribed".to_string())).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN) {
                 return Value::Bool(true);
             }
-            let mut error = Value::from(crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), ret_msg))));
+            let mut error = Value::from(crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), ret_msg)));
             client.reject(&[Value::from(error.clone())]);
             return Value::Bool(true);
         }
@@ -2229,13 +2229,13 @@ impl HyperliquidCore {
         })]);
         let mut status: Value = self.safe_string_k(payload.clone(), "status", &[]);
         if (status != Value::Null) && (status.as_str() != Some("ok")) {
-            let mut error = Value::from(crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), self.json(payload.clone())))));
+            let mut error = Value::from(crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), self.json(payload.clone()))));
             client.reject(&[Value::from(error.clone()), id.clone()]);
             return Value::Bool(true);
         }
         let mut type_var: Value = self.safe_string_k(payload.clone(), "type", &[]);
         if (type_var.as_str() == Some("error")) {
-            let mut error = Value::from(crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), self.json(payload.clone())))));
+            let mut error = Value::from(crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), self.json(payload.clone()))));
             client.reject(&[Value::from(error.clone()), id.clone()]);
             return Value::Bool(true);
         }

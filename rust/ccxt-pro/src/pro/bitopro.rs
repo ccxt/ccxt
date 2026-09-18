@@ -306,7 +306,7 @@ impl BitoproCore {
 }));
         if (limit != Value::Null) {
             if is_true(&(Value::Bool(limit.as_f64() != Some(5.0)))) && is_true(&(Value::Bool(limit.as_f64() != Some(10.0)))) && is_true(&(Value::Bool(limit.as_f64() != Some(20.0)))) && is_true(&(Value::Bool(limit.as_f64() != Some(50.0)))) && is_true(&(Value::Bool(limit.as_f64() != Some(100.0)))) && is_true(&(Value::Bool(limit.as_f64() != Some(500.0)))) && is_true(&(Value::Bool(limit.as_f64() != Some(1000.0)))) {
-                panic!("{}", crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" watchOrderBook limit argument must be undefined, 5, 10, 20, 50, 100, 500 or 1000".to_string())))));
+                panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" watchOrderBook limit argument must be undefined, 5, 10, 20, 50, 100, 500 or 1000".to_string()))));
             }
         }
         if (self.markets.clone() == Value::Null) {

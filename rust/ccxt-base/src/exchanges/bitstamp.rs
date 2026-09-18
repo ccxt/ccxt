@@ -2223,14 +2223,14 @@ impl BitstampCore {
             let mut quote: Value = self.safe_currency_code(quoteId.clone(), &[]);
             let mut description: Value = self.safe_string_k(market.clone(), "description", &[]);
             if (description == Value::Null) {
-                panic!("{}", crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" parseCurrencies() missing description".to_string())))));
+                panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" parseCurrencies() missing description".to_string()))));
             }
             let mut baseDescriptionquoteDescriptionVariable = split(&description, &Value::Str(" / ".to_string()));
             let mut baseDescription: Value = baseDescriptionquoteDescriptionVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
             let mut quoteDescription: Value = baseDescriptionquoteDescriptionVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
             let mut minimumOrder: Value = self.safe_string_k(market.clone(), "minimum_order_value", &[]);
             if (minimumOrder == Value::Null) {
-                panic!("{}", crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" parseCurrencies() missing minimumOrder".to_string())))));
+                panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" parseCurrencies() missing minimumOrder".to_string()))));
             }
             let mut parts: Value = split(&minimumOrder, &Value::Str(" ".to_string()));
             let mut cost: Value = parts.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
@@ -2294,7 +2294,7 @@ impl BitstampCore {
         //
         let mut microtimestamp: Value = self.safe_integer_k(response.clone(), "microtimestamp", &[]);
         if (microtimestamp == Value::Null) {
-            panic!("{}", crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchOrderBook() missing microtimestamp".to_string())))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" fetchOrderBook() missing microtimestamp".to_string()))));
         }
         let mut timestamp: Value = self.parse_to_int((match ((microtimestamp).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }));
         let mut orderbook: Value = self.parse_order_book(response.clone(), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null), &[timestamp.clone()]);
@@ -2455,7 +2455,7 @@ impl BitstampCore {
         let mut currencyIds: Value = object_keys(&trade);
         let mut numCurrencyIds: Value = Value::Int(currencyIds.len() as i64);
         if numCurrencyIds.as_f64().unwrap_or(f64::NAN) > Value::Int(2).as_f64().unwrap_or(f64::NAN) {
-            panic!("{}", crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" getMarketFromTrade() too many keys: ".to_string()))), self.json(currencyIds.clone()))), Value::Str(" in the trade: ".to_string()))), self.json(trade.clone())))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" getMarketFromTrade() too many keys: ".to_string()))), self.json(currencyIds.clone()))), Value::Str(" in the trade: ".to_string()))), self.json(trade.clone()))));
         }
         if (numCurrencyIds.as_f64() == Some(2.0)) {
             let mut marketId: Value = Value::Str(format!("{}{}", currencyIds.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null), currencyIds.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null)));
@@ -4152,7 +4152,7 @@ impl BitstampCore {
     m
 }));
         if is_true(&self.is_fiat(code.clone())) {
-            panic!("{}", crate::exchange_errors::not_supported(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fiat fetchDepositAddress() for ".to_string()))), code)), Value::Str(" is not supported!".to_string())))));
+            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fiat fetchDepositAddress() for ".to_string()))), code)), Value::Str(" is not supported!".to_string()))));
         }
         let mut name: Value = self.get_currency_name(code.clone());
         // the per-currency implicit methods (privatePostBtcAddress etc.) all route
@@ -4273,7 +4273,7 @@ impl BitstampCore {
             let __ws_arg_27 = self.extend(request.clone(), &[params.clone()]);
             response = self.private_post_transfer_to_main(&[__ws_arg_27]).await;
         }  else {
-            panic!("{}", crate::exchange_errors::bad_request(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" transfer() only supports from or to main".to_string())))));
+            panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" transfer() only supports from or to main".to_string()))));
         }
         //
         //    { status: 'ok' }
@@ -4294,7 +4294,7 @@ impl BitstampCore {
         //
         let mut status: Value = self.safe_string_k(transfer.clone(), "status", &[]);
         if (currency == Value::Null) {
-            panic!("{}", crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" parseTransfer() could not resolve currency".to_string())))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" parseTransfer() could not resolve currency".to_string()))));
         }
         let mut result: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -4450,7 +4450,7 @@ impl BitstampCore {
             }
             let mut code: Value = self.safe_string_k(response.clone(), "code", &[]);
             if (code.as_str() == Some("API0005")) {
-                panic!("{}", crate::exchange_errors::authentication_error(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" invalid signature, use the uid for the main account if you have subaccounts".to_string())))));
+                panic!("{}", crate::exchange_errors::authentication_error(format!("{}{}", self.id.clone(), Value::Str(" invalid signature, use the uid for the main account if you have subaccounts".to_string()))));
             }
             let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), body));
             {
