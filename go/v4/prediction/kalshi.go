@@ -1572,7 +1572,7 @@ func (this *Kalshi) fetchOHLCVBody(ch chan any, outcome any, optionalArgs ...any
 		// reject an unsupported timeframe locally instead of silently returning 1-minute candles.
 		// hoist Object.keys(...).join(...) to a local — inline in a throw mangles in PHP
 		var tfKeys []string = ccxt.ObjectKeys(this.Timeframes)
-		var supported string = ccxt.Join(tfKeys, ", ")
+		var supported string = strings.Join(tfKeys, ", ")
 		panic(ccxt.BadRequest(ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add(this.Id+" fetchOHLCV() does not support the ", timeframe), " timeframe (supported: "), supported), ")")))
 	}
 	var request map[string]any = map[string]any{
@@ -3580,7 +3580,7 @@ func (this *Kalshi) Sign(path any, optionalArgs ...any) any {
 		var payload any = ccxt.Add(ccxt.Add(timestamp, method), pathForSigning)
 		// RSA-PSS SHA-256 signature with the private key PEM
 		var keyParts []string = ccxt.Split(this.PrivateKey, "\\n")
-		var cleanPrivateKey string = ccxt.Join(keyParts, "\n")
+		var cleanPrivateKey string = strings.Join(keyParts, "\n")
 		var signature string = ccxt.Rsa(payload, cleanPrivateKey, ccxt.Sha256, "pss")
 		headers = this.Extend(headers, map[string]any{
 			"KALSHI-ACCESS-KEY":       this.ApiKey,

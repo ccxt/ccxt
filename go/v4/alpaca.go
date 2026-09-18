@@ -1364,8 +1364,8 @@ func (this *Alpaca) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 func (this *Alpaca) GenerateClientOrderId(params any) any {
 	var clientOrderIdprefix *string = this.SafeString(this.Options, "clientOrderId")
 	var uuid string = this.Uuid()
-	var parts []string = Split(uuid, "-")
-	var random_id string = Join(parts, "")
+	var parts []string = strings.Split(uuid, "-")
+	var random_id string = strings.Join(parts, "")
 	var defaultClientId any = this.ImplodeParams(clientOrderIdprefix, map[string]any{
 		"id": random_id,
 	})

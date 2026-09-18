@@ -3439,7 +3439,7 @@ func (this *Bybit) HandleUnSubscribe(client any, message any) any {
 		if !(ccxt.InOp(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)) {
 			continue
 		}
-		if ccxt.StartsWith(messageHash, "unsubscribe") {
+		if strings.HasPrefix(messageHash, "unsubscribe") {
 			var subscription any = ccxt.GetValue(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
 			var subId *string = this.SafeString(subscription, "id")
 			if reqId != subId && (reqId == nil || subId == nil || *reqId != *subId) {

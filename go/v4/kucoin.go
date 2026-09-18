@@ -3285,7 +3285,7 @@ func (this *Kucoin) IsFuturesMethod(methodName any, params any) any {
 	var typeVar *string = this.SafeString(accountsByType, requestedType)
 	if typeVar == nil {
 		var keys []string = ObjectKeys(accountsByType)
-		panic(ExchangeError(this.Id + " isFuturesMethod() type must be one of " + Join(keys, ", ")))
+		panic(ExchangeError(this.Id + " isFuturesMethod() type must be one of " + strings.Join(keys, ", ")))
 	}
 	params = this.Omit(params, "type")
 	return (typeVar != nil && *typeVar == "contract") || (typeVar != nil && *typeVar == "future") || (typeVar != nil && *typeVar == "futures") // * (type === 'futures') deprecated, use (type === 'future')

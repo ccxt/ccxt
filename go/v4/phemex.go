@@ -876,7 +876,7 @@ func (this *Phemex) ParseSafeNumber(optionalArgs ...any) any {
 		return value
 	}
 	var parts []string = Split(value, ",")
-	value = Join(parts, "")
+	value = strings.Join(parts, "")
 	parts = Split(value, " ")
 	return this.SafeNumber(parts, 0)
 }

@@ -2752,7 +2752,7 @@ func (this *Myriad) HexToDecimalString(hexValue any) any {
 	if (ccxt.IsEqual(stripped, nil)) || (stripped == "") {
 		return nil
 	}
-	var chars []string = this.StringToCharsArray(ccxt.ToLower(stripped))
+	var chars []string = this.StringToCharsArray(strings.ToLower(stripped))
 	var n int = len(chars)
 	var digits string = "0123456789abcdef"
 	var result any = "0"
@@ -4544,7 +4544,7 @@ func (this *Myriad) WalletAddressOrUndefined() any {
 		return ccxt.ToLower(this.WalletAddress)
 	}
 	if !ccxt.IsEqual(this.PrivateKey, nil) {
-		return ccxt.ToLower(this.EthGetAddressFromPrivateKey(this.PrivateKey))
+		return strings.ToLower(this.EthGetAddressFromPrivateKey(this.PrivateKey))
 	}
 	return nil
 }

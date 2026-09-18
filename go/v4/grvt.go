@@ -4232,7 +4232,7 @@ func (this *Grvt) CreateSignedRequest(request any, structureType any, optionalAr
 }
 func (this *Grvt) FormatSignatureRS(value any) any {
 	var padded string = PadStart(value, 64, "0")
-	if StartsWith(padded, "0x") {
+	if strings.HasPrefix(padded, "0x") {
 		return padded
 	} else {
 		return "0x" + padded

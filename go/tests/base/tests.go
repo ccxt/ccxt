@@ -191,7 +191,7 @@ func (this *testMainClass) CheckIfSpecificTestIsChosen(methodArgv any) {
 				var testFileName string = GetValue(testFileNames, i).(string)
 				for j := 0; j < len(possibleMethodNames); j++ {
 					var methodName string = GetValue(possibleMethodNames, j).(string)
-					methodName = Replace(methodName, "()", "")
+					methodName = strings.Replace(methodName, "()", "", 1)
 					if IsEqual(testFileName, methodName) {
 						AppendToArray(&this.OnlySpecificTests, testFileName)
 					}
@@ -1216,8 +1216,8 @@ func (this *testMainClass) runPredictionTestsBody(ch chan any, exchange ccxt.ICo
 					var handleParts []string = Split(outcomeSymbol, ":")
 					var marketPart any = GetValue(handleParts, 0)
 					var lowerPart string = ToLower(marketPart)
-					var dedashed string = Replace(lowerPart, "-", " ")
-					eventQuery = Replace(dedashed, "_", " ")
+					var dedashed string = strings.ReplaceAll(lowerPart, "-", " ")
+					eventQuery = strings.ReplaceAll(dedashed, "_", " ")
 				}
 				var eventParams map[string]any = map[string]any{}
 				if !IsEqual(eventQuery, nil) {
@@ -1955,7 +1955,7 @@ func (this *testMainClass) RemoveHostnamefromUrl(url any) any {
 			var current string = GetValue(urlParts, i).(string)
 			if IsGreaterThan(strings.Index(current, "?"), -1) {
 				// handle urls like this: /v1/account/accounts?AccessK
-				var currentParts []string = Split(current, "?")
+				var currentParts []string = strings.Split(current, "?")
 				res = Add(res, "/")
 				res = Add(res, GetValue(currentParts, 0))
 				break
@@ -1971,7 +1971,7 @@ func (this *testMainClass) UrlencodedToDict(url any) any {
 	var parts []string = Split(url, "&")
 	for i := 0; i < len(parts); i++ {
 		var part string = GetValue(parts, i).(string)
-		var keyValue []string = Split(part, "=")
+		var keyValue []string = strings.Split(part, "=")
 		var keysLength int = len(keyValue)
 		if keysLength != 2 {
 			continue

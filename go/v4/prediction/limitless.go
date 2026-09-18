@@ -605,7 +605,7 @@ func (this *Limitless) ParseMarket(raw any) any {
 		// limitless's binary yes/no markets). Object.keys iteration order is NOT stable across
 		// languages (Go randomizes map iteration), so map the leg to its canonical index by
 		// label rather than by loop position — otherwise Go/Java flag the wrong winner
-		var labelLower string = ccxt.ToLower(outcomeLabel)
+		var labelLower string = strings.ToLower(outcomeLabel)
 		var legIndex any = i
 		if labelLower == "yes" {
 			legIndex = 0

@@ -9631,7 +9631,7 @@ func (this *Htx) Sign(path any, optionalArgs ...any) any {
 				var sortedQuery map[string]any = this.Keysort(query)
 				request = this.Extend(request, sortedQuery)
 			}
-			var auth any = Replace(this.Urlencode(request, true), "%2c", "%2C") // in c# it manually needs to be uppercased
+			var auth any = strings.Replace(this.Urlencode(request, true), "%2c", "%2C", 1) // in c# it manually needs to be uppercased
 			// unfortunately, PHP demands double quotes for the escaped newline symbol
 			var content2 []any = []any{method, hostname, url, auth}
 			var payload string = Join(content2, "\n") // eslint-disable-line quotes

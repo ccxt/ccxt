@@ -3996,7 +3996,7 @@ func (this *Bithumb) Sign(path any, optionalArgs ...any) any {
 			}, query))
 			// bithumb verifies signatures with PHP http_build_query conventions, spaces must be '+'
 			var bodyParts []string = Split(body, "%20")
-			body = Join(bodyParts, "+")
+			body = strings.Join(bodyParts, "+")
 			var nonce string = ToString(this.Nonce())
 			var auth any = Add(Add(Add(Add(endpoint, "//"+"0"), body), "//"+"0"), nonce) // eslint-disable-line quotes
 			var signature string = this.Hmac(this.Encode(auth), this.Encode(this.Secret), sha512)

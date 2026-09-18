@@ -2057,7 +2057,7 @@ func (this *Cryptocom) HandleUnsubscribe(client any, message any) {
 		if !(ccxt.InOp(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)) {
 			continue
 		}
-		if ccxt.StartsWith(messageHash, "unsubscribe") {
+		if strings.HasPrefix(messageHash, "unsubscribe") {
 			var subscription any = ccxt.GetValue(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
 			var subId *string = this.SafeString(subscription, "id")
 			if id != subId && (id == nil || subId == nil || *id != *subId) {

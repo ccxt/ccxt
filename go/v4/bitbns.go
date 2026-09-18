@@ -666,7 +666,7 @@ func (this *Bitbns) ParseBalance(response any) any {
 	var keys []string = ObjectKeys(data)
 	for i := 0; i < len(keys); i++ {
 		var key string = GetValue(keys, i).(string)
-		var parts []string = Split(key, "availableorder")
+		var parts []string = strings.Split(key, "availableorder")
 		var numParts int = len(parts)
 		if numParts > 1 {
 			var currencyId any = DerefScalar(this.SafeString(parts, 1))
