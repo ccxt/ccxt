@@ -4030,13 +4030,13 @@ func (this *BaseExchange) NetworkCodeToId(networkCode any, optionalArgs ...any) 
 		currenciesToCheck = []any{this.SafeDict(this.Currencies, currencyCode)}
 	}
 	for i := 0; i < GetArrayLength(currenciesToCheck); i++ {
-		var networks any = this.SafeDict(GetValue(currenciesToCheck, i), "networks", map[string]any{})
+		var networks map[string]any = SafeMapTyped(GetValue(currenciesToCheck, i), "networks")
 		if InOp(networks, networkCode) {
 			return this.SafeString(GetValue(networks, networkCode), "id")
 		}
 	}
 	// before returning the original input, try to match if it's backward-maintained networkCode
-	var oldCodes any = this.SafeDict(this.Options, "backwardSupportedNetworkCodes", map[string]any{})
+	var oldCodes map[string]any = SafeMapTyped(this.Options, "backwardSupportedNetworkCodes")
 	if InOp(oldCodes, networkCode) {
 		return this.NetworkCodeToId(GetValue(oldCodes, networkCode), currencyCode)
 	}
@@ -4070,7 +4070,7 @@ func (this *BaseExchange) NetworkIdToCode(optionalArgs ...any) any {
 	// when the exchange explicitly defines both forms in options.networks (e.g. BTC + BRC20),
 	// it disambiguates them — trust the direct id→code inversion instead of guessing
 	if currencyCode == nil {
-		var networkIdsByCodes any = this.SafeDict(this.Options, "networks", map[string]any{})
+		var networkIdsByCodes map[string]any = SafeMapTyped(this.Options, "networks")
 		if (InOp(networkIdsByCodes, preferredChain)) && (InOp(networkIdsByCodes, alternativeChain)) {
 			return networkCode
 		}
@@ -4087,7 +4087,7 @@ func (this *BaseExchange) HandleNetworkCodeAndParams(params any) any {
 }
 func (this *BaseExchange) DefaultNetworkCode(currencyCode any) any {
 	var defaultNetworkCode any = nil
-	var defaultNetworks any = this.SafeDict(this.Options, "defaultNetworks", map[string]any{})
+	var defaultNetworks map[string]any = SafeMapTyped(this.Options, "defaultNetworks")
 	if InOp(defaultNetworks, currencyCode) {
 		// if currency had set its network in "defaultNetworks", use it
 		defaultNetworkCode = GetValue(defaultNetworks, currencyCode)
@@ -7324,10 +7324,10 @@ func (this *BaseExchange) ConvertTypeToAccount(account any) any {
 	 * @param {string} account key for account name in this.options['accountsByType']
 	 * @returns the exchange specific account name or the isolated margin id for transfers
 	 */
-	var accountsByType any = this.SafeDict(this.Options, "accountsByType", map[string]any{})
+	var accountsByType map[string]any = SafeMapTyped(this.Options, "accountsByType")
 	var lowercaseAccount string = ToLower(account)
-	if InOp(accountsByType, lowercaseAccount) {
-		return GetValue(accountsByType, lowercaseAccount)
+	if func() bool { _, ok := accountsByType[lowercaseAccount]; return ok }() {
+		return accountsByType[lowercaseAccount]
 	}
 	var markets any = this.Markets
 	var marketsById any = this.Markets_by_id

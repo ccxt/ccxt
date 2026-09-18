@@ -11894,7 +11894,7 @@ func (this *Binance) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 	var currency any = nil
 	var response any = nil
 	var request map[string]any = map[string]any{}
-	var legalMoney any = this.SafeDict(this.Options, "legalMoney", map[string]any{})
+	var legalMoney map[string]any = SafeMapTyped(this.Options, "legalMoney")
 	var fiatOnly *bool = this.SafeBool(params, "fiat", false)
 	params = this.Omit(params, "fiatOnly")
 	var until *int64 = this.SafeInteger(params, "until")
@@ -11997,7 +11997,7 @@ func (this *Binance) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any 
 		ch <- retRes944319
 		return nil
 	}
-	var legalMoney any = this.SafeDict(this.Options, "legalMoney", map[string]any{})
+	var legalMoney map[string]any = SafeMapTyped(this.Options, "legalMoney")
 	var fiatOnly *bool = this.SafeBool(params, "fiat", false)
 	params = this.Omit(params, "fiatOnly")
 	var request map[string]any = map[string]any{}
@@ -12436,9 +12436,9 @@ func (this *Binance) transferBody(ch chan any, code any, amount any, fromAccount
 				panic(ArgumentsRequired(Add(this.Id+" transfer () requires params[\"symbol\"] when toAccount is ", toAccount)))
 			}
 		}
-		var accountsById any = this.SafeDict(this.Options, "accountsById", map[string]any{})
-		var fromIsolated bool = !(InOp(accountsById, fromId))
-		var toIsolated bool = !(InOp(accountsById, toId))
+		var accountsById map[string]any = SafeMapTyped(this.Options, "accountsById")
+		var fromIsolated bool = !(func() bool { _, ok := accountsById[fromId]; return ok }())
+		var toIsolated bool = !(func() bool { _, ok := accountsById[toId]; return ok }())
 		if fromIsolated && (IsEqual(market, nil)) {
 			isolatedSymbol = fromId // allow user provide symbol as the from/to account
 		}
