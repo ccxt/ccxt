@@ -5583,7 +5583,7 @@ public class Binance extends BinanceApi
         Double stepSize = this.safeNumber(market, "stepSize");
         if (!java.util.Objects.equals(stepSize, null))
         {
-            Helpers.addElementToObject(Helpers.GetValue(entry, "precision"), "amount", stepSize);
+            Helpers.addElementToObject(entry.get("precision"), "amount", stepSize);
         }
         if (((Map<?, ?>)filtersByType).containsKey("PRICE_FILTER"))
         {
@@ -5592,17 +5592,17 @@ public class Binance extends BinanceApi
             // since they updated filter types in November 2018
             // https://github.com/ccxt/ccxt/issues/4286
             // therefore limits['price']['max'] doesn't have any meaningful value except undefined
-            Helpers.addElementToObject(Helpers.GetValue(entry, "limits"), "price", new HashMap<String, Object>() {{
+            Helpers.addElementToObject(entry.get("limits"), "price", new HashMap<String, Object>() {{
     put( "min", Binance.this.safeNumber(filter, "minPrice") );
     put( "max", Binance.this.safeNumber(filter, "maxPrice") );
 }});
-            Helpers.addElementToObject(Helpers.GetValue(entry, "precision"), "price", this.safeNumber(filter, "tickSize"));
+            Helpers.addElementToObject(entry.get("precision"), "price", this.safeNumber(filter, "tickSize"));
         }
         if (((Map<?, ?>)filtersByType).containsKey("LOT_SIZE"))
         {
             Object filter = this.safeDict(filtersByType, "LOT_SIZE", new HashMap<String, Object>() {{}});
-            Helpers.addElementToObject(Helpers.GetValue(entry, "precision"), "amount", this.safeNumber(filter, "stepSize"));
-            Helpers.addElementToObject(Helpers.GetValue(entry, "limits"), "amount", new HashMap<String, Object>() {{
+            Helpers.addElementToObject(entry.get("precision"), "amount", this.safeNumber(filter, "stepSize"));
+            Helpers.addElementToObject(entry.get("limits"), "amount", new HashMap<String, Object>() {{
     put( "min", Binance.this.safeNumber(filter, "minQty") );
     put( "max", Binance.this.safeNumber(filter, "maxQty") );
 }});
@@ -5610,7 +5610,7 @@ public class Binance extends BinanceApi
         if (((Map<?, ?>)filtersByType).containsKey("MARKET_LOT_SIZE"))
         {
             Object filter = this.safeDict(filtersByType, "MARKET_LOT_SIZE", new HashMap<String, Object>() {{}});
-            Helpers.addElementToObject(Helpers.GetValue(entry, "limits"), "market", new HashMap<String, Object>() {{
+            Helpers.addElementToObject(entry.get("limits"), "market", new HashMap<String, Object>() {{
     put( "min", Binance.this.safeNumber(filter, "minQty") );
     put( "max", Binance.this.safeNumber(filter, "maxQty") );
 }});
@@ -5618,8 +5618,8 @@ public class Binance extends BinanceApi
         if ((((Map<?, ?>)filtersByType).containsKey("MIN_NOTIONAL")) || (((Map<?, ?>)filtersByType).containsKey("NOTIONAL")))
         {
             Object filter = this.safeDict2(filtersByType, "MIN_NOTIONAL", "NOTIONAL", new HashMap<String, Object>() {{}});
-            Helpers.addElementToObject(Helpers.GetValue(Helpers.GetValue(entry, "limits"), "cost"), "min", this.safeNumber2(filter, "minNotional", "notional"));
-            Helpers.addElementToObject(Helpers.GetValue(Helpers.GetValue(entry, "limits"), "cost"), "max", this.safeNumber(filter, "maxNotional"));
+            Helpers.addElementToObject(Helpers.GetValue(entry.get("limits"), "cost"), "min", this.safeNumber2(filter, "minNotional", "notional"));
+            Helpers.addElementToObject(Helpers.GetValue(entry.get("limits"), "cost"), "max", this.safeNumber(filter, "maxNotional"));
         }
         return this.safeMarketStructure(entry);
     }

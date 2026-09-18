@@ -1,7 +1,7 @@
 import { Transpiler } from 'ast-transpiler';
 import { getProgramBatch } from './worker-program-batch.js';
 import { patchJavaLocalTypes } from './javaTranspiler.js';
-import { installJavaLocalTypes, installJavaNumericLocalTypes, patchJavaLiteralLocalTypes, patchJavaStringReceiverCasts, patchJavaMapChannelStringCasts, patchJavaConsumerStringCasts } from './java-local-types.js';
+import { installJavaLocalTypes, installJavaNumericLocalTypes, patchJavaLiteralLocalTypes, patchJavaStringReceiverCasts, patchJavaMapChannelStringCasts, patchJavaConsumerStringCasts, installJavaDeclaredLocalTypes } from './java-local-types.js';
 import log from 'ololog'
 
 // task payload posted by javaTranspiler.ts#webworkerTranspile (structured clone)
@@ -48,6 +48,8 @@ export default async ({ transpilerConfig, configKey, file, files, roots }: JavaW
         patchJavaConsumerStringCasts (cachedTranspiler);
         patchJavaMapChannelStringCasts (cachedTranspiler);
         patchJavaStringReceiverCasts (cachedTranspiler);
+        // java-09: last-installed declaration observer (same order as the main thread)
+        installJavaDeclaredLocalTypes (cachedTranspiler);
         cachedConfigKey = key;
     }
     const transpiler = cachedTranspiler;
