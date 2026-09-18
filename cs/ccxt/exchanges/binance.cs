@@ -4966,7 +4966,7 @@ public partial class binance : Exchange
         bool? demoMode = this.safeBool(this.options, "enableDemoTrading", false);
         bool isDemoEnv = ((demoMode == true)) || ((sandboxMode == true));
         List<object> fetchMarkets = new List<object>() {};
-        for (int i = 0; i < getArrayLength(rawFetchMarkets); postFixIncrement(ref i))
+        for (int i = 0; i < (rawFetchMarkets?.Count ?? 0); postFixIncrement(ref i))
         {
             object type = getValue(rawFetchMarkets, i);
             if (isEqual(type, "option") && ((isDemoEnv == true)))
@@ -4976,7 +4976,7 @@ public partial class binance : Exchange
             ((IList<object>)fetchMarkets).Add(type);
         }
         bool? fetchMargins = this.safeBool(this.options, "fetchMargins", false);
-        for (int i = 0; i < getArrayLength(fetchMarkets); postFixIncrement(ref i))
+        for (int i = 0; i < (fetchMarkets?.Count ?? 0); postFixIncrement(ref i))
         {
             object marketType = getValue(fetchMarkets, i);
             if (isEqual(marketType, "spot"))
@@ -5011,7 +5011,7 @@ public partial class binance : Exchange
         List<object> markets = new List<object>() {};
         ((IDictionary<string,object>)this.options)["crossMarginPairsData"] = new List<object>() {};
         ((IDictionary<string,object>)this.options)["isolatedMarginPairsData"] = new List<object>() {};
-        for (int i = 0; i < getArrayLength(results); postFixIncrement(ref i))
+        for (int i = 0; i < (results?.Count ?? 0); postFixIncrement(ref i))
         {
             object res = this.safeValue(results, i);
             if (((fetchMargins == true)) && ((res is IList<object>) || (res.GetType().IsGenericType && res.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
@@ -5278,7 +5278,7 @@ public partial class binance : Exchange
             await this.loadTimeDifference();
         }
         List<object> result = new List<object>() {};
-        for (int i = 0; i < getArrayLength(markets); postFixIncrement(ref i))
+        for (int i = 0; i < (markets?.Count ?? 0); postFixIncrement(ref i))
         {
             ((IList<object>)result).Add(this.parseMarket(getValue(markets, i)));
         }
@@ -11614,7 +11614,7 @@ public partial class binance : Exchange
         {
             responseList = this.toArray(response);
         }
-        for (int i = 0; i < getArrayLength(responseList); postFixIncrement(ref i))
+        for (int i = 0; i < (responseList?.Count ?? 0); postFixIncrement(ref i))
         {
             ((IDictionary<string,object>)getValue(responseList, i))["type"] = "deposit";
         }
@@ -11708,7 +11708,7 @@ public partial class binance : Exchange
         {
             responseList = this.toArray(response);
         }
-        for (int i = 0; i < getArrayLength(responseList); postFixIncrement(ref i))
+        for (int i = 0; i < (responseList?.Count ?? 0); postFixIncrement(ref i))
         {
             ((IDictionary<string,object>)getValue(responseList, i))["type"] = "withdrawal";
         }
@@ -12437,7 +12437,7 @@ public partial class binance : Exchange
         //
         Dictionary<string, object> withdrawFees = new Dictionary<string, object>() {};
         IList<object> coins = this.toArray(response);
-        for (int i = 0; i < getArrayLength(coins); postFixIncrement(ref i))
+        for (int i = 0; i < (coins?.Count ?? 0); postFixIncrement(ref i))
         {
             object entry = getValue(coins, i);
             string? currencyId = this.safeString(entry, "coin");
@@ -12880,7 +12880,7 @@ public partial class binance : Exchange
                 throw new NullResponse ((string)(this.id + " method() returned empty response")) ;
             }
             IList<object> fees = this.toArray(response);
-            for (int i = 0; i < getArrayLength(fees); postFixIncrement(ref i))
+            for (int i = 0; i < (fees?.Count ?? 0); postFixIncrement(ref i))
             {
                 object fee = this.parseTradingFee(getValue(fees, i));
                 object symbol = getValue(fee, "symbol");
@@ -13918,7 +13918,7 @@ public partial class binance : Exchange
                 throw new NullResponse ((string)(this.id + " loadLeverageBrackets() returned empty response")) ;
             }
             IList<object> entries = this.toArray(response);
-            for (int i = 0; i < getArrayLength(entries); postFixIncrement(ref i))
+            for (int i = 0; i < (entries?.Count ?? 0); postFixIncrement(ref i))
             {
                 object entry = getValue(entries, i);
                 string? marketId = this.safeString(entry, "symbol");
@@ -14194,7 +14194,7 @@ public partial class binance : Exchange
         //
         List<object> result = new List<object>() {};
         IList<object> positions = this.toArray(response);
-        for (int i = 0; i < getArrayLength(positions); postFixIncrement(ref i))
+        for (int i = 0; i < (positions?.Count ?? 0); postFixIncrement(ref i))
         {
             ((IList<object>)result).Add(this.parseOptionPosition(getValue(positions, i), market));
         }
@@ -14565,7 +14565,7 @@ public partial class binance : Exchange
             throw new NullResponse ((string)(this.id + " method() returned empty response")) ;
         }
         IList<object> positions = this.toArray(response);
-        for (int i = 0; i < getArrayLength(positions); postFixIncrement(ref i))
+        for (int i = 0; i < (positions?.Count ?? 0); postFixIncrement(ref i))
         {
             object rawPosition = getValue(positions, i);
             string? entryPriceString = this.safeString(rawPosition, "entryPrice");
@@ -17678,7 +17678,7 @@ public partial class binance : Exchange
         //
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         IList<object> assets = this.toArray(response);
-        for (int i = 0; i < getArrayLength(assets); postFixIncrement(ref i))
+        for (int i = 0; i < (assets?.Count ?? 0); postFixIncrement(ref i))
         {
             object entry = getValue(assets, i);
             string? id = this.safeString(entry, "asset");

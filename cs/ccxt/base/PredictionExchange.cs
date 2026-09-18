@@ -348,7 +348,7 @@ public partial class PredictionExchange : BaseExchange
                 if ((tagLabel != null))
                 {
                     string? tagKey = this.normalizeTagKey(tagLabel);
-                    for (int wi = 0; wi < getArrayLength(wanted); postFixIncrement(ref wi))
+                    for (int wi = 0; wi < (wanted?.Count ?? 0); postFixIncrement(ref wi))
                     {
                         if (getIndexOf(tagKey, getValue(wanted, wi)) >= 0)
                         {
@@ -695,7 +695,7 @@ public partial class PredictionExchange : BaseExchange
         // so alias the handle onto a shallow copy per row; the caller's rows stay symbol-free
         IList<object> marketsList = this.toArray(markets);
         List<object> aliased = new List<object>() {};
-        for (int i = 0; i < getArrayLength(marketsList); postFixIncrement(ref i))
+        for (int i = 0; i < (marketsList?.Count ?? 0); postFixIncrement(ref i))
         {
             object row = getValue(marketsList, i);
             Dictionary<string, object> copy = this.extend(new Dictionary<string, object>() {}, row);
@@ -846,7 +846,7 @@ public partial class PredictionExchange : BaseExchange
                     ((IList<object>)missing).Add(getValue(outcomes, i));
                 }
             }
-            int missingLength = getArrayLength(missing);
+            int missingLength = (missing?.Count ?? 0);
             bool wasWarm = (!isEqual(this.outcomes, null)) && !isTrue(this.isEmpty(this.outcomes));
             bool? loadAll = this.safeBool(this.options, "loadAllOutcomes", false);
             if ((missingLength > 0) && ((loadAll == true)) && !wasWarm && !isTrue(reload))
@@ -861,7 +861,7 @@ public partial class PredictionExchange : BaseExchange
                     }
                 }
                 missing = stillMissing;
-                missingLength = getArrayLength(missing);
+                missingLength = (missing?.Count ?? 0);
             }
             if (missingLength > 0)
             {
@@ -996,7 +996,7 @@ public partial class PredictionExchange : BaseExchange
             ((IList<object>)words).Add(word);
             hasLetters = true;
         }
-        int wordsLength = getArrayLength(words);
+        int wordsLength = (words?.Count ?? 0);
         if (((wordsLength == 0)) || !hasLetters)
         {
             // a purely numeric/symbolic handle is an id, not searchable text
@@ -1495,7 +1495,7 @@ public partial class PredictionExchange : BaseExchange
         // parse embedded fills with the OUTCOME-aware parser (parseTrades would drop them on the symbol filter)
         List<object> rawTrades = this.safeList(outcomeOrder, "trades", new List<object>() {});
         IList<object> trades = this.parsePredictionTrades(rawTrades, outcomeObj);
-        int tradesLength = getArrayLength(trades);
+        int tradesLength = (trades?.Count ?? 0);
         List<object> feeList = new List<object>() {};
         if (tradesLength > 0)
         {
@@ -1569,11 +1569,11 @@ public partial class PredictionExchange : BaseExchange
         }
         object fee = this.safeDict(outcomeOrder, "fee");
         // own-line length reads so the regex transpiler emits count() (array), not strlen()
-        int feeListLength = getArrayLength(feeList);
+        int feeListLength = (feeList?.Count ?? 0);
         if (((fee == null)) && (feeListLength > 0))
         {
             List<object> reduced = this.reduceFeesByCurrency(feeList);
-            int reducedLength = getArrayLength(reduced);
+            int reducedLength = (reduced?.Count ?? 0);
             if (reducedLength > 0)
             {
                 fee = getValue(reduced, 0);
@@ -1828,7 +1828,7 @@ public partial class PredictionExchange : BaseExchange
         parameters ??= new Dictionary<string, object>();
         IList<object> rows = this.toArray(trades);
         List<object> results = new List<object>() {};
-        for (int i = 0; i < getArrayLength(rows); postFixIncrement(ref i))
+        for (int i = 0; i < (rows?.Count ?? 0); postFixIncrement(ref i))
         {
             Dictionary<string, object> parsed = this.parsePredictionTrade(getValue(rows, i), outcomeObj);
             Dictionary<string, object> trade = this.extend(parsed, parameters);
@@ -1857,7 +1857,7 @@ public partial class PredictionExchange : BaseExchange
         parameters ??= new Dictionary<string, object>();
         IList<object> rows = this.toArray(orders);
         List<object> results = new List<object>() {};
-        for (int i = 0; i < getArrayLength(rows); postFixIncrement(ref i))
+        for (int i = 0; i < (rows?.Count ?? 0); postFixIncrement(ref i))
         {
             Dictionary<string, object> parsed = this.parsePredictionOrder(getValue(rows, i), outcomeObj);
             Dictionary<string, object> order = this.extend(parsed, parameters);
@@ -1886,7 +1886,7 @@ public partial class PredictionExchange : BaseExchange
         parameters ??= new Dictionary<string, object>();
         IList<object> rows = this.toArray(positions);
         List<object> results = new List<object>() {};
-        for (int i = 0; i < getArrayLength(rows); postFixIncrement(ref i))
+        for (int i = 0; i < (rows?.Count ?? 0); postFixIncrement(ref i))
         {
             object parsed = this.parsePredictionPosition(getValue(rows, i));
             Dictionary<string, object> position = this.extend(parsed, parameters);
