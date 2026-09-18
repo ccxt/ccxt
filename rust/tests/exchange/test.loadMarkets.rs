@@ -13,7 +13,7 @@ pub async fn testLoadMarkets(mut exchange: Value, mut skippedProperties: Value) 
     let mut method: Value = Value::Str("loadMarkets".to_string());
     let mut markets: Value = crate::live_dispatch::dispatch(&mut exchange, "load_markets", vec![]).await;
     assert!(ccxt::runtime::is_true(&(exchange.is_dictionary(get_value(&exchange, &Value::Str("markets".to_string()))))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(is_array(&get_value(&exchange, &Value::Str("symbols".to_string())))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(matches!(&get_value(&exchange, &Value::Str("symbols".to_string())), Value::Arr(_))))));
     let mut symbolsLength: Value = Value::Int(get_value(&exchange, &Value::Str("symbols".to_string())).len() as i64);
     assert!(ccxt::runtime::is_true(&(Value::Bool(get_value(&exchange, &Value::Str("markets".to_string())) != Value::Null))));
     let mut marketKeys: Value = object_keys(&get_value(&exchange, &Value::Str("markets".to_string())));

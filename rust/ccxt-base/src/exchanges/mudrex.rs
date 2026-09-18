@@ -514,7 +514,7 @@ impl MudrexCore {
     m
 });
                 }
-                let mut bodyStr: Value = self.json(query.clone());
+                let mut bodyStr: Value = json_stringify(&query);
                 return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), url.clone());
@@ -541,7 +541,7 @@ impl MudrexCore {
 }
 
     pub fn handle_errors(&self, mut code: Value, mut reason: Value, mut url: Value, mut method: Value, mut headers: Value, mut body: Value, mut response: Value, mut requestHeaders: Value, mut requestBody: Value) -> Value {
-        if (response == Value::Null) || !is_object(&response) {
+        if (response == Value::Null) || !matches!(&response, Value::Dict(_)) {
             return Value::Null;
         }
         let mut success: Value = self.safe_bool_k(response.clone(), "success", &[Value::Bool(true)]);
@@ -551,7 +551,7 @@ impl MudrexCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-            let mut text: Value = self.safe_string_k(first.clone(), "text", &[self.json(response.clone())]);
+            let mut text: Value = self.safe_string_k(first.clone(), "text", &[json_stringify(&response)]);
             let mut errCode: Value = self.safe_string_k(first.clone(), "code", &[]);
             self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), text.clone(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), text)));
             self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), errCode.clone(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), text)));
@@ -768,7 +768,7 @@ impl MudrexCore {
         let __ws_arg_4 = self.extend(request.clone(), &[params.clone()]);
         let mut response: Value = self.private_get_futures(&[__ws_arg_4]).await;
         let mut data: Value = self.safe_value_k(response.clone(), "data", &[Value::List(vec![])]);
-        let mut rows: Value = (if is_true(&Value::Bool(is_array(&data))) { data.clone() } else { self.safe_list_k(data.clone(), "items", &[Value::List(vec![])]) });
+        let mut rows: Value = (if is_true(&Value::Bool(matches!(&data, Value::Arr(_)))) { data.clone() } else { self.safe_list_k(data.clone(), "items", &[Value::List(vec![])]) });
         let mut resultTickers: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -857,7 +857,7 @@ impl MudrexCore {
             let mut response: Value = self.private_get_futures(&[q.clone()]).await;
             let mut data: Value = self.safe_value_k(response.clone(), "data", &[Value::List(vec![])]);
             let mut items: Value = Value::List(vec![]);
-            if is_object(&data) && !is_true(&Value::Bool(is_array(&data))) {
+            if matches!(&data, Value::Dict(_)) && !is_true(&Value::Bool(matches!(&data, Value::Arr(_)))) {
                 items = self.safe_list_k(data.clone(), "items", &[Value::List(vec![])]);
                 // hoisted - inline length reads within conditionals become strlen for php, fatal on arrays
                 let mut itemsLength: Value = Value::Int(items.len() as i64);

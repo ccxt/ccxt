@@ -2181,7 +2181,7 @@ impl KrakenCore {
         let mut orderId: Value = Value::Null;
         let mut fee: Value = Value::Null;
         let mut symbol: Value = Value::Null;
-        if is_true(&Value::Bool(is_array(&trade))) {
+        if is_true(&Value::Bool(matches!(&trade, Value::Arr(_)))) {
             timestamp = self.safe_timestamp(trade.clone(), Value::Int(2), &[]);
             side = (if is_true(&(Value::Bool(trade.as_array().and_then(|__arr| __arr.get(3)).cloned().unwrap_or(Value::Null).as_str() == Some("s")))) { Value::Str("sell".to_string()) } else { Value::Str("buy".to_string()) });
             type_var = (if is_true(&(Value::Bool(trade.as_array().and_then(|__arr| __arr.get(4)).cloned().unwrap_or(Value::Null).as_str() == Some("l")))) { Value::Str("limit".to_string()) } else { Value::Str("market".to_string()) });
@@ -2191,7 +2191,7 @@ impl KrakenCore {
             if tradeLength.as_f64().unwrap_or(f64::NAN) > Value::Int(6).as_f64().unwrap_or(f64::NAN) {
                 id = self.safe_string(trade.clone(), Value::Int(6), &[]); // artificially added as per #1794
             }
-        }  else if is_string(&trade) {
+        }  else if matches!(&trade, Value::Str(_)) {
             id = trade.clone();
         }  else if is_true(&Value::Bool(in_op(&trade, &Value::Str("ordertxid".to_string())))) {
             let mut marketId: Value = self.safe_string_k(trade.clone(), "pair", &[]);
@@ -2902,7 +2902,7 @@ impl KrakenCore {
             while { if !__for_first_847 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_847 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(rawTrades.len() as i64).as_f64().unwrap_or(f64::NAN) } {
             let mut rawTrade: Value = get_value(&rawTrades, &i);
             let mut rawTrade: Value = get_value(&rawTrades, &i);
-            if is_string(&rawTrade) {
+            if matches!(&rawTrade, Value::Str(_)) {
                 append_to_array(&mut trades, self.safe_trade(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), rawTrade.clone());
@@ -3322,7 +3322,7 @@ impl KrakenCore {
                 while { if !__for_first_848 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_848 = false; is_less_than(&i, &get_array_length(&orderTrades)) } {
                 let mut orderTrade: Value = get_value(&orderTrades, &i);
                 let mut orderTrade: Value = get_value(&orderTrades, &i);
-                if is_string(&orderTrade) {
+                if matches!(&orderTrade, Value::Str(_)) {
                     append_to_array(&mut tradeIds, orderTrade.clone());
                 }  else {
                     append_to_array(&mut tradeIds, crate::value::get_value_k(&orderTrade, "id"));
@@ -4294,7 +4294,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //
         let mut rawWithdrawals: Value = Value::Null;
         let mut result: Value = self.safe_value_k(response.clone(), "result", &[]);
-        if !is_true(&Value::Bool(is_array(&result))) {
+        if !is_true(&Value::Bool(matches!(&result, Value::Arr(_)))) {
             rawWithdrawals = self.add_pagination_cursor_to_result(result.clone());
         }  else {
             rawWithdrawals = result.clone();
@@ -4890,7 +4890,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             return Value::Null;
         }
         if (get_value(&body, &Value::Int(0)).as_str() == Some("{")) {
-            if !is_string(&response) {
+            if !matches!(&response, Value::Str(_)) {
                 let mut message: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), body));
                 if is_true(&Value::Bool(in_op(&response, &Value::Str("error".to_string())))) {
                     let mut numErrors: Value = get_array_length(&get_value(&response, &Value::Str("error".to_string())));

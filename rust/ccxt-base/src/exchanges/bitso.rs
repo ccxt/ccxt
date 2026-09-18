@@ -1763,7 +1763,7 @@ impl BitsoCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if !is_true(&Value::Bool(is_array(&ids))) {
+        if !is_true(&Value::Bool(matches!(&ids, Value::Arr(_)))) {
             panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" cancelOrders() ids argument should be an array".to_string())))));
         }
         let mut market: Value = Value::Null;
@@ -1862,7 +1862,7 @@ impl BitsoCore {
         // yWTQGxDMZ0VimZgZ
         //
         let mut id: Value = Value::Null;
-        if is_string(&order) {
+        if matches!(&order, Value::Str(_)) {
             id = order.clone();
         }  else {
             id = self.safe_string_k(order.clone(), "oid", &[]);
@@ -1987,7 +1987,7 @@ impl BitsoCore {
             m
         })]).await;
         let mut payload: Value = self.safe_value_k(response.clone(), "payload", &[]);
-        if is_true(&Value::Bool(is_array(&payload))) {
+        if is_true(&Value::Bool(matches!(&payload, Value::Arr(_)))) {
             let mut numOrders: Value = Value::Int(payload.len() as i64);
             if (numOrders.as_f64() == Some(1.0)) {
                 return self.parse_order(payload.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null), &[]);
@@ -2707,7 +2707,7 @@ impl BitsoCore {
             let mut request: Value = join(&content, &Value::Str("".to_string()));
             if (method.as_str() != Some("GET")) && (method.as_str() != Some("DELETE")) {
                 if Value::Int(object_keys(&query).len() as i64).as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN) {
-                    body = self.json(query.clone());
+                    body = json_stringify(&query);
                     request = add(&request, &body);
                 }
             }
@@ -2740,7 +2740,7 @@ impl BitsoCore {
             //     {"success":false,"error":{"code":104,"message":"Cannot perform request - nonce must be higher than 1520307203724237"}}
             //
             let mut success: Value = self.safe_bool_k(response.clone(), "success", &[Value::Bool(false)]);
-            if is_string(&success) {
+            if matches!(&success, Value::Str(_)) {
                 if is_true(&(Value::Bool(success.as_str() == Some("true")))) || (is_equal(&success, &Value::Str("1".to_string()))) {
                     success = Value::Bool(true);
                 }  else {
@@ -2748,7 +2748,7 @@ impl BitsoCore {
                 }
             }
             if (success.as_bool() != Some(true)) {
-                let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), self.json(response.clone())));
+                let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), json_stringify(&response)));
                 let mut error: Value = self.safe_value_k(response.clone(), "error", &[]);
                 if (error == Value::Null) {
                     panic!("{}", crate::exchange_errors::exchange_error(feedback));

@@ -2994,7 +2994,7 @@ impl CoinsphCore {
             while { if !__for_first_586 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_586 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(keys.len() as i64).as_f64().unwrap_or(f64::NAN) } {
             let mut key: Value = get_value(&keys, &i);
             let mut key: Value = get_value(&keys, &i);
-            if is_true(&Value::Bool(is_array(&get_value(&query, &key)))) {
+            if is_true(&Value::Bool(matches!(&get_value(&query, &key), Value::Arr(_)))) {
                 if (i.as_f64() != Some(0.0)) {
                     encodedArrayParams = Value::Str(format!("{}{}", encodedArrayParams, Value::Str("&".to_string())));
                 }
@@ -3017,7 +3017,7 @@ impl CoinsphCore {
 }
 
     pub fn parse_array_param(&self, mut array: Value, mut key: Value) -> Value {
-        let mut stringifiedArray: Value = self.json(array.clone());
+        let mut stringifiedArray: Value = json_stringify(&array);
         stringifiedArray = replace_str(&stringifiedArray, &Value::Str("[".to_string()), &Value::Str("%5B".to_string()));
         stringifiedArray = replace_str(&stringifiedArray, &Value::Str("]".to_string()), &Value::Str("%5D".to_string()));
         let mut urlEncodedParam: Value = Value::Str(format!("{}{}", add(&key, &Value::Str("=".to_string())), stringifiedArray));

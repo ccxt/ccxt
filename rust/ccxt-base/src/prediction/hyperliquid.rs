@@ -1035,7 +1035,7 @@ impl HyperliquidCore {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        if (!is_string(&response)) && !is_true(&Value::Bool(is_array(&response))) {
+        if is_true(&(!matches!(&response, Value::Str(_)))) && !is_true(&Value::Bool(matches!(&response, Value::Arr(_)))) {
             allMids = response.clone();
         }
         let mut mids: Value = self.safe_dict_k(allMids.clone(), "mids", &[allMids.clone()]);
@@ -1322,7 +1322,7 @@ impl HyperliquidCore {
         //     ]
         //
         let mut candles: Value = Value::List(vec![]);
-        if is_true(&Value::Bool(is_array(&response))) {
+        if is_true(&Value::Bool(matches!(&response, Value::Arr(_)))) {
             candles = response.clone();
         }
         return self.parse_ohlc_vs(candles.clone(), &[market.clone(), timeframe.clone(), since.clone(), limit.clone()]);
@@ -1471,7 +1471,7 @@ impl HyperliquidCore {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        if (!is_string(&midsResponse)) && !is_true(&Value::Bool(is_array(&midsResponse))) {
+        if is_true(&(!matches!(&midsResponse, Value::Str(_)))) && !is_true(&Value::Bool(matches!(&midsResponse, Value::Arr(_)))) {
             allMids = midsResponse.clone();
         }
         let mut mids: Value = self.safe_dict_k(allMids.clone(), "mids", &[allMids.clone()]);
@@ -1972,7 +1972,7 @@ impl HyperliquidCore {
             m
         });
         if (clientOrderId != Value::Null) {
-            let mut cloids: Value = (if is_true(&Value::Bool(is_array(&clientOrderId))) { clientOrderId.clone() } else { Value::List(vec![clientOrderId.clone()]) });
+            let mut cloids: Value = (if is_true(&Value::Bool(matches!(&clientOrderId, Value::Arr(_)))) { clientOrderId.clone() } else { Value::List(vec![clientOrderId.clone()]) });
             add_element_to_object(&mut cancelAction, &Value::Str("type".to_string()), Value::Str("cancelByCloid".to_string()));
             {
                                 let mut i: Value = Value::Int(0);
@@ -2023,7 +2023,7 @@ impl HyperliquidCore {
         let mut outcomeSymbol: Value = self.safe_string_k(outcomeObj.clone(), "outcome", &[outcome.clone()]);
         let mut requestIds: Value = ids.clone();
         if (clientOrderId != Value::Null) {
-            if is_true(&Value::Bool(is_array(&clientOrderId))) {
+            if is_true(&Value::Bool(matches!(&clientOrderId, Value::Arr(_)))) {
                 requestIds = clientOrderId.clone();
             }  else {
                 requestIds = Value::List(vec![clientOrderId.clone()]);
@@ -2042,7 +2042,7 @@ impl HyperliquidCore {
             }
             let mut success: bool = is_true(&(Value::Bool(status.as_str() == Some("success")))) || is_true(&(Value::Bool(self.safe_string_k(status.clone(), "status", &[]).as_str() == Some("success"))));
             if !success {
-                panic!("{}", crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" cancelOrders() received an unexpected status: ".to_string()))), self.json(status.clone())))));
+                panic!("{}", crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" cancelOrders() received an unexpected status: ".to_string()))), json_stringify(&status)))));
             }
             let mut requestId: Value = self.safe_string(requestIds.clone(), i.clone(), &[self.safe_string(requestIds.clone(), Value::Int(0), &[])]);
             let mut order: Value = Value::Map({
@@ -2102,7 +2102,7 @@ impl HyperliquidCore {
         let mut response: Value = self.public_post_info(&[__ws_arg_8]).await;
         let mut ordersWithStatus: Value = Value::List(vec![]);
         let mut rawOrders: Value = Value::List(vec![]);
-        if is_true(&Value::Bool(is_array(&response))) {
+        if is_true(&Value::Bool(matches!(&response, Value::Arr(_)))) {
             rawOrders = response.clone();
         }
         {
@@ -2166,7 +2166,7 @@ impl HyperliquidCore {
             m
         });
         let mut historicalOrders: Value = Value::List(vec![]);
-        if is_true(&Value::Bool(is_array(&response))) {
+        if is_true(&Value::Bool(matches!(&response, Value::Arr(_)))) {
             historicalOrders = response.clone();
         }
         {
@@ -2246,7 +2246,7 @@ impl HyperliquidCore {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        if (!is_string(&response)) && !is_true(&Value::Bool(is_array(&response))) {
+        if is_true(&(!matches!(&response, Value::Str(_)))) && !is_true(&Value::Bool(matches!(&response, Value::Arr(_)))) {
             orderStatus = response.clone();
         }
         let mut orderWrapper: Value = self.safe_dict_k(orderStatus.clone(), "order", &[orderStatus.clone()]);
@@ -2434,9 +2434,9 @@ impl HyperliquidCore {
         let __ws_arg_11 = self.extend(request.clone(), &[params.clone()]);
         let mut response: Value = self.public_post_info(&[__ws_arg_11]).await;
         let mut trades: Value = Value::List(vec![]);
-        if is_true(&Value::Bool(is_array(&response))) {
+        if is_true(&Value::Bool(matches!(&response, Value::Arr(_)))) {
             trades = response.clone();
-        }  else if !is_string(&response) {
+        }  else if !matches!(&response, Value::Str(_)) {
             trades = self.to_array(response.clone());
         }
         return self.parse_prediction_trades(trades.clone(), &[outcomeObj.clone(), since.clone(), limit.clone()]);
@@ -2495,9 +2495,9 @@ impl HyperliquidCore {
         let __ws_arg_12 = self.extend(request.clone(), &[params.clone()]);
         let mut response: Value = self.public_post_info(&[__ws_arg_12]).await;
         let mut fills: Value = Value::List(vec![]);
-        if is_true(&Value::Bool(is_array(&response))) {
+        if is_true(&Value::Bool(matches!(&response, Value::Arr(_)))) {
             fills = response.clone();
-        }  else if !is_string(&response) {
+        }  else if !matches!(&response, Value::Str(_)) {
             fills = self.to_array(response.clone());
         }
         // parse without an outcome fallback — fills span every market the wallet traded, so a
@@ -3102,7 +3102,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 }));
         let mut headers = get_arg(optional_args, 3, Value::Null);
         let mut body = get_arg(optional_args, 4, Value::Null);
-        let mut apiGroup: Value = (if is_true(&Value::Bool(is_array(&api))) { api.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null) } else { api.clone() });
+        let mut apiGroup: Value = (if is_true(&Value::Bool(matches!(&api, Value::Arr(_)))) { api.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null) } else { api.clone() });
         let mut sandboxMode: Value = self.safe_bool_k(self.options.clone(), "sandboxMode", &[Value::Bool(false)]);
         let mut baseUrl: Value = Value::Null;
         if (sandboxMode.as_bool() == Some(true)) {
@@ -3125,7 +3125,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     m.insert("Content-Type".to_string(), Value::Str("application/json".to_string()));
                 m
             });
-            body = self.json(params.clone());
+            body = json_stringify(&params);
         }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();

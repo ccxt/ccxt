@@ -550,7 +550,7 @@ impl BitfinexCore {
         let mut data: Value = self.safe_value(message.clone(), Value::Int(1), &[Value::List(vec![])]);
         let mut ohlcvs: Value = Value::List(vec![]);
         let mut first: Value = self.safe_value(data.clone(), Value::Int(0), &[]);
-        if is_true(&Value::Bool(is_array(&first))) {
+        if is_true(&Value::Bool(matches!(&first, Value::Arr(_)))) {
             // snapshot
             ohlcvs = data.clone();
         }  else {
@@ -1504,7 +1504,7 @@ impl BitfinexCore {
             let mut future: Value = self.safe_value(get_value(&client, &Value::Str("futures".to_string())), messageHash.clone(), &[]);
             future.resolve(&[Value::Bool(true)]);
         }  else {
-            let mut error = Value::from(crate::exchange_errors::authentication_error(self.json(message.clone())));
+            let mut error = Value::from(crate::exchange_errors::authentication_error(json_stringify(&message)));
             client.reject(&[Value::from(error.clone()), messageHash.clone()]);
             // allows further authentication attempts
             if is_true(&Value::Bool(in_op(&get_value(&client, &Value::Str("subscriptions".to_string())), &messageHash))) {
@@ -1772,7 +1772,7 @@ impl BitfinexCore {
         //        }
         //    }
         //
-        if is_true(&Value::Bool(is_array(&message))) {
+        if is_true(&Value::Bool(matches!(&message, Value::Arr(_)))) {
             if (message.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null).as_str() == Some("hb")) {
                 return;
             }

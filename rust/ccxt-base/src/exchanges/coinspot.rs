@@ -911,7 +911,7 @@ impl CoinspotCore {
             m
         });
         let mut balances: Value = self.safe_value2(response.clone(), Value::Str("balance".to_string()), Value::Str("balances".to_string()), &[]);
-        if is_true(&Value::Bool(is_array(&balances))) {
+        if is_true(&Value::Bool(matches!(&balances, Value::Arr(_)))) {
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_588: bool = true;
@@ -1480,7 +1480,7 @@ impl CoinspotCore {
         }
         let mut status: Value = self.safe_string_k(response.clone(), "status", &[]);
         if (status.as_str() == Some("error")) {
-            let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), self.json(response.clone())));
+            let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), json_stringify(&response)));
             panic!("{}", crate::exchange_errors::exchange_error(feedback));
         }
         return Value::Null;
@@ -1497,7 +1497,7 @@ impl CoinspotCore {
 }));
         let mut headers = get_arg(optional_args, 3, Value::Null);
         let mut body = get_arg(optional_args, 4, Value::Null);
-        let mut isVersionedApi: bool = is_array(&api);
+        let mut isVersionedApi: bool = matches!(&api, Value::Arr(_));
         let mut version: Value = (if isVersionedApi { api.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null) } else { Value::Null });
         let mut accessType: Value = (if isVersionedApi { api.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null) } else { api.clone() });
         let mut endpoint: Value = Value::Str(format!("{}{}", Value::Str("/".to_string()), self.implode_params(path.clone(), params.clone())));

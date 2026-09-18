@@ -539,7 +539,7 @@ impl DydxCore {
 }
 
     pub fn handle_delta(&self, mut bookside: Value, mut delta: Value) {
-        if is_true(&Value::Bool(is_array(&delta))) {
+        if is_true(&Value::Bool(matches!(&delta, Value::Arr(_)))) {
             let mut price: Value = self.safe_float(delta.clone(), Value::Int(0), &[]);
             let mut amount: Value = self.safe_float(delta.clone(), Value::Int(1), &[]);
             bookside.store(price.clone(), amount.clone());

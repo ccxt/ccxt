@@ -2727,7 +2727,7 @@ impl BingxCore {
         //    }
         //
         let mut ohlcvs: Value = self.safe_value_k(response.clone(), "data", &[Value::List(vec![])]);
-        if !is_true(&Value::Bool(is_array(&ohlcvs))) {
+        if !is_true(&Value::Bool(matches!(&ohlcvs, Value::Arr(_)))) {
             ohlcvs = Value::List(vec![ohlcvs.clone()]);
         }
         return self.parse_ohlc_vs(ohlcvs.clone(), &[market.clone(), timeframe.clone(), since.clone(), limit.clone()]);
@@ -2770,7 +2770,7 @@ impl BingxCore {
         //        17221.07
         //    ]
         //
-        if is_true(&Value::Bool(is_array(&ohlcv))) {
+        if is_true(&Value::Bool(matches!(&ohlcv, Value::Arr(_)))) {
             return Value::List(vec![self.safe_integer(ohlcv.clone(), Value::Int(0), &[]), self.safe_number(ohlcv.clone(), Value::Int(1), &[]), self.safe_number(ohlcv.clone(), Value::Int(2), &[]), self.safe_number(ohlcv.clone(), Value::Int(3), &[]), self.safe_number(ohlcv.clone(), Value::Int(4), &[]), self.safe_number(ohlcv.clone(), Value::Int(5), &[])]);
         }
         return Value::List(vec![self.safe_integer2(ohlcv.clone(), Value::Str("time".to_string()), Value::Str("closeTime".to_string()), &[]), self.safe_number_k(ohlcv.clone(), "open", &[]), self.safe_number_k(ohlcv.clone(), "high", &[]), self.safe_number_k(ohlcv.clone(), "low", &[]), self.safe_number_k(ohlcv.clone(), "close", &[]), self.safe_number_k(ohlcv.clone(), "volume", &[])]);
@@ -3857,7 +3857,7 @@ impl BingxCore {
             let __ws_arg_19 = self.extend(request.clone(), &[params.clone()]);
             response = self.swap_v2_public_get_quote_premium_index(&[__ws_arg_19]).await;
         }
-        if is_true(&Value::Bool(is_array(&response.as_map().and_then(|__m| __m.get("data")).cloned().unwrap_or(Value::Null)))) {
+        if is_true(&Value::Bool(matches!(&response.as_map().and_then(|__m| __m.get("data")).cloned().unwrap_or(Value::Null), Value::Arr(_)))) {
             return self.parse_ticker(self.safe_dict(response.as_map().and_then(|__m| __m.get("data")).cloned().unwrap_or(Value::Null), Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -4790,7 +4790,7 @@ impl BingxCore {
                         slQuantityRequest = self.parse_to_numeric(self.amount_to_precision(symbol.clone(), slQuantity.clone()));
                     }
                     add_element_to_object(&mut slRequest, &Value::Str("quantity".to_string()), slQuantityRequest.clone());
-                    add_element_to_object(&mut request, &Value::Str("stopLoss".to_string()), self.json(slRequest.clone()));
+                    add_element_to_object(&mut request, &Value::Str("stopLoss".to_string()), json_stringify(&slRequest));
                 }
                 if hasTakeProfit {
                     let mut tkTriggerPrice: Value = self.safe_string2(takeProfitDict.clone(), Value::Str("triggerPrice".to_string()), Value::Str("stopPrice".to_string()), &[]);
@@ -4813,7 +4813,7 @@ impl BingxCore {
                         tkQuantityRequest = self.parse_to_numeric(self.amount_to_precision(symbol.clone(), tkQuantity.clone()));
                     }
                     add_element_to_object(&mut tpRequest, &Value::Str("quantity".to_string()), tkQuantityRequest.clone());
-                    add_element_to_object(&mut request, &Value::Str("takeProfit".to_string()), self.json(tpRequest.clone()));
+                    add_element_to_object(&mut request, &Value::Str("takeProfit".to_string()), json_stringify(&tpRequest));
                 }
             }
             let mut positionSide: Value = Value::Null;
@@ -4973,7 +4973,7 @@ impl BingxCore {
         //         }
         //     }
         //
-        if is_string(&response) {
+        if matches!(&response, Value::Str(_)) {
             // broken api engine : order-ids are too long numbers (i.e. 1742930526912864656)
             // and JSON.parse can not handle them in JS, so we have to use .parseJson
             // however, when order has an attached SL/TP, their value types need extra parsing
@@ -5071,14 +5071,14 @@ impl BingxCore {
             if symbolsLength.as_f64().unwrap_or(f64::NAN) > Value::Int(5).as_f64().unwrap_or(f64::NAN) {
                 panic!("{}", crate::exchange_errors::invalid_order(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrders() can not create more than 5 orders at once for swap markets".to_string())))));
             }
-            add_element_to_object(&mut request, &Value::Str("batchOrders".to_string()), self.json(ordersRequests.clone()));
+            add_element_to_object(&mut request, &Value::Str("batchOrders".to_string()), json_stringify(&ordersRequests));
             response = self.swap_v2_private_post_trade_batch_orders(&[request.clone()]).await;
         }  else {
             let mut sync: Value = self.safe_bool_k(params.clone(), "sync", &[Value::Bool(false)]);
             if (sync.as_bool() == Some(true)) {
                 add_element_to_object(&mut request, &Value::Str("sync".to_string()), Value::Bool(true));
             }
-            add_element_to_object(&mut request, &Value::Str("data".to_string()), self.json(ordersRequests.clone()));
+            add_element_to_object(&mut request, &Value::Str("data".to_string()), json_stringify(&ordersRequests));
             response = self.spot_v1_private_post_trade_batch_orders(&[request.clone()]).await;
         }
         //
@@ -5126,7 +5126,7 @@ impl BingxCore {
         //         }
         //     }
         //
-        if is_string(&response) {
+        if matches!(&response, Value::Str(_)) {
             // broken api engine : order-ids are too long numbers (i.e. 1742930526912864656)
             // and JSON.parse can not handle them in JS, so we have to use .parseJson
             // however, when order has an attached SL/TP, their value types need extra parsing
@@ -5493,9 +5493,9 @@ impl BingxCore {
         if is_true(&(Value::Bool(stopLoss != Value::Null))) && is_true(&(Value::Bool(stopLoss.as_str() != Some("")))) {
             stopLossPrice = self.omit_zero(self.safe_string_k(stopLoss.clone(), "stopLoss", &[]));
         }
-        if is_true(&(Value::Bool(stopLoss != Value::Null))) && (!is_number(&stopLoss)) && is_true(&(Value::Bool(stopLoss.as_str() != Some("")))) {
+        if is_true(&(Value::Bool(stopLoss != Value::Null))) && is_true(&(!matches!(&stopLoss, Value::Int(_) | Value::Float(_)))) && is_true(&(Value::Bool(stopLoss.as_str() != Some("")))) {
             //  stopLoss: '{"stopPrice":50,"workingType":"MARK_PRICE","type":"STOP_MARKET","quantity":1}',
-            if is_string(&stopLoss) {
+            if matches!(&stopLoss, Value::Str(_)) {
                 stopLoss = self.parse_json_value(stopLoss.clone());
             }
             stopLossPrice = self.omit_zero(self.safe_string_k(stopLoss.clone(), "stopPrice", &[]));
@@ -5505,9 +5505,9 @@ impl BingxCore {
         if (takeProfit != Value::Null) && is_true(&(Value::Bool(takeProfit.as_str() != Some("")))) {
             takeProfitPrice = self.omit_zero(self.safe_string_k(takeProfit.clone(), "takeProfit", &[]));
         }
-        if is_true(&(Value::Bool(takeProfit != Value::Null))) && (!is_number(&takeProfit)) && is_true(&(Value::Bool(takeProfit.as_str() != Some("")))) {
+        if is_true(&(Value::Bool(takeProfit != Value::Null))) && is_true(&(!matches!(&takeProfit, Value::Int(_) | Value::Float(_)))) && is_true(&(Value::Bool(takeProfit.as_str() != Some("")))) {
             //  takeProfit: '{"stopPrice":150,"workingType":"MARK_PRICE","type":"TAKE_PROFIT_MARKET","quantity":1}',
-            if is_string(&takeProfit) {
+            if matches!(&takeProfit, Value::Str(_)) {
                 takeProfit = self.parse_json_value(takeProfit.clone());
             }
             takeProfitPrice = self.omit_zero(self.safe_string_k(takeProfit.clone(), "stopPrice", &[]));
@@ -5877,7 +5877,7 @@ impl BingxCore {
             response = self.spot_v1_private_post_trade_cancel_orders(&[__ws_arg_30]).await;
         }  else {
             if areClientOrderIds {
-                add_element_to_object(&mut request, &Value::Str("clientOrderIDList".to_string()), self.json(parsedIds.clone()));
+                add_element_to_object(&mut request, &Value::Str("clientOrderIDList".to_string()), json_stringify(&parsedIds));
             }  else {
                 add_element_to_object(&mut request, &Value::Str("orderIdList".to_string()), parsedIds.clone());
             }
@@ -7606,7 +7606,7 @@ impl BingxCore {
             let mut key: Value = get_value(&keys, &i);
             let mut value: Value = get_value(&params, &key);
             let mut value: Value = get_value(&params, &key);
-            if is_true(&Value::Bool(is_array(&value))) {
+            if is_true(&Value::Bool(matches!(&value, Value::Arr(_)))) {
                 let mut arrStr: Value = Value::Str("[".to_string());
                 {
                                         let mut j: Value = Value::Int(0);
@@ -8261,7 +8261,7 @@ impl BingxCore {
             let mut key: Value = get_value(&keys, &i);
             let mut value: Value = get_value(&params, &key);
             let mut value: Value = get_value(&params, &key);
-            if is_true(&Value::Bool(is_array(&value))) {
+            if is_true(&Value::Bool(matches!(&value, Value::Arr(_)))) {
                 let mut arrStr: Value = Value::Null;
                 {
                                         let mut j: Value = Value::Int(0);
@@ -8269,7 +8269,7 @@ impl BingxCore {
                     while { if !__for_first_303 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_303 = false; j.as_f64().unwrap_or(f64::NAN) < Value::Int(value.len() as i64).as_f64().unwrap_or(f64::NAN) } {
                     let mut arrayElement: Value = get_value(&value, &j);
                     let mut arrayElement: Value = get_value(&value, &j);
-                    let mut isString: bool = is_string(&arrayElement);
+                    let mut isString: bool = matches!(&arrayElement, Value::Str(_));
                     if isString {
                         if j.as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN) {
                             arrStr = add(&arrStr, &Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(",".to_string()), Value::Str("\"".to_string()))), to_string_val(&arrayElement))), Value::Str("\"".to_string()))));
@@ -8464,7 +8464,7 @@ impl BingxCore {
             if isJsonContentType {
                 add_element_to_object(&mut headers, &Value::Str("Content-Type".to_string()), Value::Str("application/json".to_string()));
                 add_element_to_object(&mut params, &Value::Str("signature".to_string()), signature.clone());
-                body = self.json(params.clone());
+                body = json_stringify(&params);
             }  else {
                 let mut query: Value = self.urlencode(parsedParams.clone(), &[Value::Bool(true)]);
                 url = Value::Str(format!("{}{}", url, add(&Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("?".to_string()), query)), Value::Str("&".to_string()))), Value::Str("signature=".to_string()))), &signature)));

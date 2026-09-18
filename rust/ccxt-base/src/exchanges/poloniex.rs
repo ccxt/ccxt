@@ -1449,7 +1449,7 @@ impl PoloniexCore {
         //     ]
         //
         let mut candles: Value = Value::List(vec![]);
-        if is_true(&Value::Bool(is_array(&response))) {
+        if is_true(&Value::Bool(matches!(&response, Value::Arr(_)))) {
             candles = response.clone();
         }
         return self.parse_ohlc_vs(candles.clone(), &[market.clone(), timeframe.clone(), since.clone(), limit.clone()]);
@@ -2507,7 +2507,7 @@ impl PoloniexCore {
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         let mut resultingTrades: Value = self.safe_value_k(order.clone(), "resultingTrades", &[]);
         if (resultingTrades != Value::Null) {
-            if !is_true(&Value::Bool(is_array(&resultingTrades))) {
+            if !is_true(&Value::Bool(matches!(&resultingTrades, Value::Arr(_)))) {
                 resultingTrades = self.safe_value(resultingTrades.clone(), self.safe_string_k(market.clone(), "id", &[marketId.clone()]), &[]);
             }
         }
@@ -3297,7 +3297,7 @@ impl PoloniexCore {
             m
         });
         // for swap
-        if !is_true(&Value::Bool(is_array(&response))) {
+        if !is_true(&Value::Bool(matches!(&response, Value::Arr(_)))) {
             let mut ts: Value = self.safe_integer_k(response.clone(), "uTime", &[]);
             add_element_to_object(&mut result, &Value::Str("timestamp".to_string()), ts.clone());
             add_element_to_object(&mut result, &Value::Str("datetime".to_string()), self.iso8601(ts.clone()));
@@ -3949,7 +3949,7 @@ impl PoloniexCore {
             m
         });
         let mut entries: Value = Value::List(vec![]);
-        if is_true(&Value::Bool(is_array(&response))) {
+        if is_true(&Value::Bool(matches!(&response, Value::Arr(_)))) {
             entries = response.clone();
         }
         {
@@ -4707,7 +4707,7 @@ impl PoloniexCore {
             if is_true(&(Value::Bool(method.as_str() == Some("POST")))) || is_true(&(Value::Bool(method.as_str() == Some("PUT")))) || is_true(&(Value::Bool(method.as_str() == Some("DELETE")))) {
                 auth = Value::Str(format!("{}{}", auth, Value::Str("\n".to_string()))); // eslint-disable-line quotes
                 if Value::Int(object_keys(&query).len() as i64).as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN) {
-                    body = self.json(query.clone());
+                    body = json_stringify(&query);
                     auth = Value::Str(format!("{}{}", auth, Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("requestBody=".to_string()), body)), Value::Str("&".to_string())))));
                 }
                 auth = Value::Str(format!("{}{}", auth, Value::Str(format!("{}{}", Value::Str("signTimestamp=".to_string()), timestamp))));

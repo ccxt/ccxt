@@ -620,7 +620,7 @@ impl ParadexCore {
             m
         });
         let mut messageHashes: Value = Value::List(vec![]);
-        if (symbols != Value::Null) && is_true(&Value::Bool(is_array(&symbols))) {
+        if (symbols != Value::Null) && is_true(&Value::Bool(matches!(&symbols, Value::Arr(_)))) {
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_585: bool = true;
@@ -1002,7 +1002,7 @@ impl ParadexCore {
         }  else {
             let mut errorCode: Value = self.safe_string_k(error.clone(), "code", &[]);
             if (errorCode != Value::Null) {
-                let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), self.json(error.clone())));
+                let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), json_stringify(&error)));
                 self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), Value::Str("-32600".to_string()), feedback.clone());
                 let mut messageString: Value = self.safe_value_k(error.clone(), "message", &[]);
                 if (messageString != Value::Null) {

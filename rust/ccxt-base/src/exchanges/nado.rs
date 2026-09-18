@@ -4096,7 +4096,7 @@ impl NadoCore {
         let mut headers = get_arg(optional_args, 3, Value::Null);
         let mut body = get_arg(optional_args, 4, Value::Null);
         let mut endpoint: Value = get_value(&api, &Value::Int(0));
-        if is_string(&api) {
+        if matches!(&api, Value::Str(_)) {
             endpoint = api.clone();
         }
         let mut url: Value = get_value(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), &endpoint);
@@ -4117,7 +4117,7 @@ impl NadoCore {
             }
         }  else {
             add_element_to_object(&mut headers, &Value::Str("Content-Type".to_string()), Value::Str("application/json".to_string()));
-            body = self.json(query.clone());
+            body = json_stringify(&query);
         }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();

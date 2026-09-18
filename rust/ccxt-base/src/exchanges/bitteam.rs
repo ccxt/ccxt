@@ -1980,7 +1980,7 @@ impl BitteamCore {
         //
         let mut tickers: Value = Value::List(vec![]);
         let mut rawTickers: Value = Value::List(vec![]);
-        if is_true(&Value::Bool(is_array(&response))) {
+        if is_true(&Value::Bool(matches!(&response, Value::Arr(_)))) {
             rawTickers = response.clone();
         }
         {
@@ -2308,7 +2308,7 @@ impl BitteamCore {
         let mut bestAskVolume: Value = Value::Null;
         let mut bids: Value = self.safe_value_k(ticker.clone(), "bids", &[]);
         let mut asks: Value = self.safe_value_k(ticker.clone(), "asks", &[]);
-        if is_true(&(Value::Bool(bids != Value::Null))) && is_true(&(Value::Bool(is_array(&bids)))) && is_true(&(Value::Bool(asks != Value::Null))) && is_true(&(Value::Bool(is_array(&asks)))) {
+        if is_true(&(Value::Bool(bids != Value::Null))) && is_true(&(Value::Bool(matches!(&bids, Value::Arr(_))))) && is_true(&(Value::Bool(asks != Value::Null))) && is_true(&(Value::Bool(matches!(&asks, Value::Arr(_))))) {
             let mut bestBid: Value = self.safe_value(bids.clone(), Value::Int(0), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
@@ -3069,7 +3069,7 @@ impl BitteamCore {
         if (api.as_str() == Some("private")) {
             self.check_required_credentials(&[]);
             if (method.as_str() == Some("POST")) {
-                body = self.json(request.clone());
+                body = json_stringify(&request);
             }  else if (Value::Int(query.len() as i64).as_f64() != Some(0.0)) {
                 url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".to_string()), query))));
             }

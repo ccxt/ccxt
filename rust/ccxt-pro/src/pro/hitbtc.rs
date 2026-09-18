@@ -743,7 +743,7 @@ impl HitbtcCore {
         });
         let mut newTickers: Value = self.subscribe_public(name.clone(), Value::Str("tickers".to_string()), &[symbols.clone(), self.deep_extend(request.clone(), &[params.clone()])]).await;
         if is_true(&self.newUpdates) {
-            if !is_true(&Value::Bool(is_array(&newTickers))) {
+            if !is_true(&Value::Bool(matches!(&newTickers, Value::Arr(_)))) {
                 let mut tickers: Value = Value::Map({
                     let mut m = indexmap::IndexMap::new();
                     m
@@ -925,7 +925,7 @@ impl HitbtcCore {
         });
         let mut newTickers: Value = self.subscribe_public(name.clone(), Value::Str("bidask".to_string()), &[symbols.clone(), self.deep_extend(request.clone(), &[params.clone()])]).await;
         if is_true(&self.newUpdates) {
-            if !is_true(&Value::Bool(is_array(&newTickers))) {
+            if !is_true(&Value::Bool(matches!(&newTickers, Value::Arr(_)))) {
                 let mut tickers: Value = Value::Map({
                     let mut m = indexmap::IndexMap::new();
                     m
@@ -1424,7 +1424,7 @@ impl HitbtcCore {
             self.orders = ArrayCacheBySymbolById::new(limit.clone());
         }
         let mut data: Value = self.safe_value_k(message.clone(), "params", &[Value::List(vec![])]);
-        if is_true(&Value::Bool(is_array(&data))) {
+        if is_true(&Value::Bool(matches!(&data, Value::Arr(_)))) {
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_389: bool = true;
@@ -1884,7 +1884,7 @@ impl HitbtcCore {
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        if is_true(&Value::Bool(is_array(&result))) {
+        if is_true(&Value::Bool(matches!(&result, Value::Arr(_)))) {
             let mut parsedOrders: Value = Value::List(vec![]);
             {
                                 let mut i: Value = Value::Int(0);
@@ -1948,7 +1948,7 @@ impl HitbtcCore {
             if (is_equal(&result, &Value::Bool(true))) && !is_true(&(Value::Bool(in_op(&message, &Value::Str("id".to_string()))))) {
                 self.handle_authenticate(client.clone(), message.clone());
             }
-            if is_true(&Value::Bool(is_array(&result))) {
+            if is_true(&Value::Bool(matches!(&result, Value::Arr(_)))) {
                 // to do improve this, not very reliable right now
                 let mut first: Value = self.safe_dict(result.clone(), Value::Int(0), &[Value::Map({
                     let mut m = indexmap::IndexMap::new();
@@ -1975,7 +1975,7 @@ impl HitbtcCore {
             let mut future: Value = self.safe_value(get_value(&client, &Value::Str("futures".to_string())), messageHash.clone(), &[]);
             future.resolve(&[Value::Bool(true)]);
         }  else {
-            let mut error = Value::from(crate::exchange_errors::authentication_error(Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), self.json(message.clone())))));
+            let mut error = Value::from(crate::exchange_errors::authentication_error(Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), json_stringify(&message)))));
             client.reject(&[Value::from(error.clone()), messageHash.clone()]);
             if is_true(&Value::Bool(in_op(&get_value(&client, &Value::Str("subscriptions".to_string())), &messageHash))) {
                 remove(&mut get_value(&client, &Value::Str("subscriptions".to_string())), &messageHash);

@@ -1352,7 +1352,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             while { if !__for_first_493 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_493 = false; is_less_than(&i, &get_array_length(&bidasks)) } {
             let mut bidask: Value = get_value(&bidasks, &i);
             let mut bidask: Value = get_value(&bidasks, &i);
-            if is_true(&Value::Bool(is_array(&bidask))) {
+            if is_true(&Value::Bool(matches!(&bidask, Value::Arr(_)))) {
                 bookside.store_array(bidask.clone());
             }  else {
                 let mut price: Value = self.safe_float2(bidask.clone(), Value::Str("p".to_string()), Value::Str("price".to_string()), &[]);
@@ -2715,7 +2715,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
 }
 
     pub fn handle_message(&mut self, mut client: Value, mut message: Value) {
-        if is_string(&message) {
+        if matches!(&message, Value::Str(_)) {
             if (message.as_str() == Some("Invalid listen key")) {
                 let mut error = Value::from(crate::exchange_errors::authentication_error(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" invalid listen key".to_string())))));
                 client.reject(&[Value::from(error.clone())]);

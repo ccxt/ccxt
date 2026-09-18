@@ -4266,7 +4266,7 @@ impl DeepcoinCore {
                 m
             });
             if (method.as_str() != Some("GET")) {
-                body = self.json(params.clone());
+                body = json_stringify(&params);
                 add_element_to_object(&mut headers, &Value::Str("Content-Type".to_string()), Value::Str("application/json".to_string()));
                 payload = Value::Str(format!("{}{}", payload, body));
             }

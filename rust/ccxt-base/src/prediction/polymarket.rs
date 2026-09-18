@@ -1406,7 +1406,7 @@ impl PolymarketCore {
         });
         firstPageRequest = self.extend(firstPageRequest.clone(), &[baseRequest.clone()]);
         let mut firstPageResponse: Value = self.gamma_public_get_events(&[firstPageRequest.clone()]).await;
-        let mut firstPageIsArray: bool = is_array(&firstPageResponse);
+        let mut firstPageIsArray: bool = matches!(&firstPageResponse, Value::Arr(_));
         let mut firstPage: Value = (if (firstPageIsArray) { firstPageResponse.clone() } else { Value::List(vec![]) });
         let mut firstPageLength: Value = Value::Int(firstPage.len() as i64);
         let mut allRawEvents: Value = Value::List(vec![]);
@@ -1943,9 +1943,9 @@ impl PolymarketCore {
             let mut booksResponse: Value = responses.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
             let mut midpoints: Value = responses.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
             let mut lastTradesResponse: Value = responses.as_array().and_then(|__arr| __arr.get(2)).cloned().unwrap_or(Value::Null);
-            let mut booksIsArray: bool = is_array(&booksResponse);
+            let mut booksIsArray: bool = matches!(&booksResponse, Value::Arr(_));
             let mut books: Value = (if (booksIsArray) { booksResponse.clone() } else { Value::List(vec![]) });
-            let mut lastTradesIsArray: bool = is_array(&lastTradesResponse);
+            let mut lastTradesIsArray: bool = matches!(&lastTradesResponse, Value::Arr(_));
             let mut lastTrades: Value = (if (lastTradesIsArray) { lastTradesResponse.clone() } else { Value::List(vec![]) });
             let mut lastTradesByTokenId: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -2517,7 +2517,7 @@ impl PolymarketCore {
         add_element_to_object(&mut request, &Value::Str("limit".to_string()), self.safe_integer_k(self.options.clone(), "tradesPageSize", &[Value::Int(500)]));
         let __ws_arg_6 = self.extend(request.clone(), &[params.clone()]);
         let mut response: Value = self.data_public_get_trades(&[__ws_arg_6]).await;
-        let mut rawTrades: Value = (if is_true(&Value::Bool(is_array(&response))) { response.clone() } else { self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]) });
+        let mut rawTrades: Value = (if is_true(&Value::Bool(matches!(&response, Value::Arr(_)))) { response.clone() } else { self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]) });
         let mut filteredTrades: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
@@ -2567,7 +2567,7 @@ impl PolymarketCore {
         }
         let __ws_arg_7 = self.extend(request.clone(), &[params.clone()]);
         let mut response: Value = self.clob_private_get_data_trades(&[__ws_arg_7]).await;
-        let mut rawTrades: Value = (if is_true(&Value::Bool(is_array(&response))) { response.clone() } else { self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]) });
+        let mut rawTrades: Value = (if is_true(&Value::Bool(matches!(&response, Value::Arr(_)))) { response.clone() } else { self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]) });
         return self.parse_prediction_trades(rawTrades.clone(), &[outcomeObj.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -3182,7 +3182,7 @@ impl PolymarketCore {
         }
         let mut response: Value = self.clob_private_post_orders(&[bodies.clone()]).await;
         let mut result: Value = Value::List(vec![]);
-        if is_true(&Value::Bool(is_array(&response))) {
+        if is_true(&Value::Bool(matches!(&response, Value::Arr(_)))) {
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_1400: bool = true;
@@ -3825,7 +3825,7 @@ impl PolymarketCore {
                 add_element_to_object(&mut lookup, &Value::Str("slug".to_string()), requestedSlug.clone());
             }
             let mut response: Value = self.gamma_public_get_events(&[lookup.clone()]).await;
-            let mut responseIsArray: bool = is_array(&response);
+            let mut responseIsArray: bool = matches!(&response, Value::Arr(_));
             rawEvents = (if (responseIsArray) { response.clone() } else { Value::List(vec![]) });
         }  else if queriesLength.as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN) {
             rawEvents = self.fetch_raw_events_by_search(queries.clone(), &[rest.clone()]).await;
@@ -4151,15 +4151,15 @@ impl PolymarketCore {
         let mut headers = get_arg(optional_args, 3, Value::Null);
         let mut body = get_arg(optional_args, 4, Value::Null);
         // api is either a string ('gamma') or array (['gamma', 'public'])
-        let mut apiGroup: Value = (if is_string(&api) { api.clone() } else { get_value(&api, &Value::Int(0)) });
-        let mut access: Value = (if is_string(&api) { Value::Str("public".to_string()) } else { get_value(&api, &Value::Int(1)) });
+        let mut apiGroup: Value = (if matches!(&api, Value::Str(_)) { api.clone() } else { get_value(&api, &Value::Int(0)) });
+        let mut access: Value = (if matches!(&api, Value::Str(_)) { Value::Str("public".to_string()) } else { get_value(&api, &Value::Int(1)) });
         let mut baseUrls: Value = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null);
         let mut baseUrl: Value = self.safe_string(baseUrls.clone(), apiGroup.clone(), &[baseUrls.as_map().and_then(|__m| __m.get("gamma")).cloned().unwrap_or(Value::Null)]);
         let mut url: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", baseUrl, Value::Str("/".to_string()))), self.implode_params(path.clone(), params.clone())));
         // an empty params container must not become a body: in PHP an empty array is
         // indistinguishable from an empty dict, so a bare Array.isArray check would json it to "[]"
         let mut isArrayBody: bool = false;
-        if is_true(&Value::Bool(is_array(&params))) {
+        if is_true(&Value::Bool(matches!(&params, Value::Arr(_)))) {
             let mut paramsList: Value = params.clone();
             let mut paramsListLength: Value = Value::Int(paramsList.len() as i64);
             isArrayBody = paramsListLength.as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN);
@@ -4181,7 +4181,7 @@ impl PolymarketCore {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_1407: bool = true;
                 while { if !__for_first_1407 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1407 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(queryKeys.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-                if is_true(&Value::Bool(is_array(&get_value(&query, &get_value(&queryKeys, &i))))) {
+                if is_true(&Value::Bool(matches!(&get_value(&query, &get_value(&queryKeys, &i)), Value::Arr(_)))) {
                     hasArrayParam = true;
                 }
             }
@@ -4191,12 +4191,12 @@ impl PolymarketCore {
                 url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".to_string()), querystring))));
             }
         }  else if isArrayBody {
-            body = self.json(params.clone());
+            body = json_stringify(&params);
         }  else {
             let mut queryKeys: Value = object_keys(&query);
             let mut queryKeysLength: Value = Value::Int(queryKeys.len() as i64);
             if queryKeysLength.as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN) {
-                body = self.json(query.clone());
+                body = json_stringify(&query);
             }
         }
         let mut headerDefaults: Value = (if is_true(&(Value::Bool(headers != Value::Null))) { headers.clone() } else { Value::Map({
@@ -4520,18 +4520,18 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         // Polymarket keeps the ws alive with text PING/PONG (not protocol ping-pong frames), so the
         // client's onPong never fires; refresh client.lastPong here on the "PONG" reply, otherwise the
         // base keepalive treats the connection as stale and times it out after maxPingPongMisses.
-        if is_string(&message) {
+        if matches!(&message, Value::Str(_)) {
             crate::set_value(&mut client, &Value::Str("lastPong".to_string()), self.milliseconds());
             return;
         }
-        let mut events: Value = (if is_true(&Value::Bool(is_array(&message))) { message.clone() } else { Value::List(vec![message.clone()]) });
+        let mut events: Value = (if is_true(&Value::Bool(matches!(&message, Value::Arr(_)))) { message.clone() } else { Value::List(vec![message.clone()]) });
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1409: bool = true;
             while { if !__for_first_1409 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1409 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(events.len() as i64).as_f64().unwrap_or(f64::NAN) } {
             let mut event: Value = get_value(&events, &i);
             let mut event: Value = get_value(&events, &i);
-            if is_true(&(Value::Bool(event == Value::Null))) || is_true(&(Value::Bool(event == Value::Null))) || (!is_object(&event)) {
+            if is_true(&(Value::Bool(event == Value::Null))) || is_true(&(Value::Bool(event == Value::Null))) || is_true(&(!matches!(&event, Value::Dict(_)))) {
                 continue;
             }
             let mut eventType: Value = self.safe_string_k(event.clone(), "event_type", &[]);

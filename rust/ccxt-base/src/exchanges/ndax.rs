@@ -1626,7 +1626,7 @@ impl NdaxCore {
         //     ]
         //
         let mut candles: Value = Value::List(vec![]);
-        if is_true(&Value::Bool(is_array(&response))) {
+        if is_true(&Value::Bool(matches!(&response, Value::Arr(_)))) {
             candles = response.clone();
         }
         return self.parse_ohlc_vs(candles.clone(), &[market.clone(), timeframe.clone(), since.clone(), limit.clone()]);
@@ -1758,7 +1758,7 @@ impl NdaxCore {
             m
         });
         let mut type_var: Value = Value::Null;
-        if is_true(&Value::Bool(is_array(&trade))) {
+        if is_true(&Value::Bool(matches!(&trade, Value::Arr(_)))) {
             priceString = self.safe_string(trade.clone(), Value::Int(3), &[]);
             amountString = self.safe_string(trade.clone(), Value::Int(2), &[]);
             timestamp = self.safe_integer(trade.clone(), Value::Int(6), &[]);
@@ -2931,7 +2931,7 @@ impl NdaxCore {
         //        ...
         //    ]"
         //
-        if is_string(&response) {
+        if matches!(&response, Value::Str(_)) {
             return self.parse_transactions(json_parse(&response), &[currency.clone(), since.clone(), limit.clone()]);
         }
         return self.parse_transactions(response.clone(), &[currency.clone(), since.clone(), limit.clone()]);
@@ -3259,7 +3259,7 @@ impl NdaxCore {
                 m.insert("omsId".to_string(), omsId.clone());
                 m.insert("AccountId".to_string(), accountId.clone());
                 m.insert("ProductId".to_string(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
-                m.insert("TemplateForm".to_string(), self.json(withdrawTemplate.clone()));
+                m.insert("TemplateForm".to_string(), json_stringify(&withdrawTemplate));
                 m.insert("TemplateType".to_string(), templateName.clone());
             m
         });
@@ -3267,7 +3267,7 @@ impl NdaxCore {
             let mut m = indexmap::IndexMap::new();
                 m.insert("TfaType".to_string(), Value::Str("Google".to_string()));
                 m.insert("TFaCode".to_string(), totp(self.twofa.clone()));
-                m.insert("Payload".to_string(), self.json(withdrawPayload.clone()));
+                m.insert("Payload".to_string(), json_stringify(&withdrawPayload));
             m
         });
         let mut response: Value = self.private_post_create_withdraw_ticket(&[self.deep_extend(withdrawRequest.clone(), &[params.clone()])]).await;
@@ -3340,7 +3340,7 @@ impl NdaxCore {
             }
             if (method.as_str() == Some("POST")) {
                 add_element_to_object(&mut headers, &Value::Str("Content-Type".to_string()), Value::Str("application/json".to_string()));
-                body = self.json(query.clone());
+                body = json_stringify(&query);
             }  else {
                 if Value::Int(object_keys(&query).len() as i64).as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN) {
                     url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".to_string()), self.urlencode(query.clone(), &[])))));

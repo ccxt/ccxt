@@ -1877,11 +1877,10 @@ impl CoinexCore {
         let mut method: Value = self.safe_string_k(message.clone(), "method", &[]);
         let mut error: Value = self.safe_string_k(message.clone(), "message", &[]);
         if (error != Value::Null) {
-            let __ws_arg_6 = self.json(error.clone());
             self.handle_errors(Value::Int(1), Value::Str("".to_string()), get_value(&client, &Value::Str("url".to_string())), method.clone(), Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
-            }), __ws_arg_6, message.clone(), Value::Map({
+            }), json_stringify(&error), message.clone(), Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
             }), Value::Map({
@@ -1958,7 +1957,7 @@ impl CoinexCore {
             let mut future: Value = self.safe_value(get_value(&client, &Value::Str("futures".to_string())), messageHash.clone(), &[]);
             future.resolve(&[Value::Bool(true)]);
         }  else {
-            let mut error = Value::from(crate::exchange_errors::authentication_error(self.json(message.clone())));
+            let mut error = Value::from(crate::exchange_errors::authentication_error(json_stringify(&message)));
             client.reject(&[Value::from(error.clone()), messageHash.clone()]);
             if is_true(&Value::Bool(in_op(&get_value(&client, &Value::Str("subscriptions".to_string())), &messageHash))) {
                 remove(&mut get_value(&client, &Value::Str("subscriptions".to_string())), &messageHash);

@@ -8441,7 +8441,7 @@ impl KucoinCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        if is_true(&Value::Bool(is_array(&responseData))) {
+        if is_true(&Value::Bool(matches!(&responseData, Value::Arr(_)))) {
             responseData = self.safe_value(responseData.clone(), Value::Int(0), &[]);
         }
         return self.parse_order(responseData.clone(), &[market.clone()]);
@@ -15076,7 +15076,7 @@ if let Err(_try_err) = _try_result { let exc: Value = panic_to_value(_try_err);
                 if is_true(&(Value::Bool(endpoint.as_str() == Some("/api/ua/v1/classic/order/place")))) || is_true(&(Value::Bool(endpoint.as_str() == Some("/api/ua/v1/classic/order/place/batch")))) || is_true(&(Value::Bool(endpoint.as_str() == Some("/api/ua/v1/classic/order/cancel")))) || is_true(&(Value::Bool(endpoint.as_str() == Some("/api/ua/v1/classic/order/cancel/batch")))) {
                     endpoint = Value::Str(format!("{}{}", endpoint, add(&Value::Str("?tradeType=".to_string()), &tradeType)));
                 }
-                body = self.json(query.clone());
+                body = json_stringify(&query);
                 endpart = body.clone();
                 add_element_to_object(&mut headers, &Value::Str("Content-Type".to_string()), Value::Str("application/json".to_string()));
             }

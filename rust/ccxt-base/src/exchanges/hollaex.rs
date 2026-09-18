@@ -2664,7 +2664,7 @@ impl HollaexCore {
             if (method.as_str() == Some("POST")) {
                 add_element_to_object(&mut headers, &Value::Str("Content-type".to_string()), Value::Str("application/json".to_string()));
                 if Value::Int(object_keys(&query).len() as i64).as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN) {
-                    body = self.json(query.clone());
+                    body = json_stringify(&query);
                     auth = Value::Str(format!("{}{}", auth, body));
                 }
             }

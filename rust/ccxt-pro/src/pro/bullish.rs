@@ -1206,7 +1206,7 @@ impl BullishCore {
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), self.json(data.clone())));
+        let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), json_stringify(&data)));
         let _try_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
             let mut errorCode: Value = self.safe_string_k(data.clone(), "errorCode", &[]);
             let mut errorCodeName: Value = self.safe_string_k(data.clone(), "errorCodeName", &[]);

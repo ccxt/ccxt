@@ -527,7 +527,7 @@ impl CexCore {
         //  update trade
         //    ['buy', '1665467516704', '98070', "19057.7", "14541220"]
         //
-        if !is_true(&Value::Bool(is_array(&trade))) {
+        if !is_true(&Value::Bool(matches!(&trade, Value::Arr(_)))) {
             trade = split(&trade, &Value::Str(":".to_string()));
         }
         let mut side: Value = self.safe_string(trade.clone(), Value::Int(0), &[]);

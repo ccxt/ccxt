@@ -2385,7 +2385,7 @@ impl OnetradingCore {
                 m
             });
             if (method.as_str() == Some("POST")) {
-                body = self.json(query.clone());
+                body = json_stringify(&query);
                 add_element_to_object(&mut headers, &Value::Str("Content-Type".to_string()), Value::Str("application/json".to_string()));
             }  else {
                 if Value::Int(object_keys(&query).len() as i64).as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN) {

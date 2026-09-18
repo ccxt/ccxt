@@ -62,7 +62,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             success2 = Value::Bool(false);
         }
         if (success2.as_bool() == Some(true)) {
-            assert!(ccxt::runtime::is_true(&(Value::Bool(is_array(&positionsForSymbols)))));
+            assert!(ccxt::runtime::is_true(&(Value::Bool(matches!(&positionsForSymbols, Value::Arr(_))))));
             // max theoretical 4 positions: two for one-way-mode and two for two-way mode
             assert!(ccxt::runtime::is_true(&(Value::Bool(Value::Int(positionsForSymbols.len() as i64).as_f64().unwrap_or(f64::NAN) <= Value::Int(4).as_f64().unwrap_or(f64::NAN)))));
             now = exchange.milliseconds();

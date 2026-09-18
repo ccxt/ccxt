@@ -2020,7 +2020,7 @@ impl ToobitCore {
             response = self.common_get_quote_v1_klines(&[__ws_arg_4]).await;
         }
         let mut candles: Value = Value::List(vec![]);
-        if is_true(&Value::Bool(is_array(&response))) {
+        if is_true(&Value::Bool(matches!(&response, Value::Arr(_)))) {
             candles = response.clone();
         }
         return self.parse_ohlc_vs(candles.clone(), &[market.clone(), timeframe.clone(), since.clone(), limit.clone()]);
@@ -2839,7 +2839,7 @@ impl ToobitCore {
         // response same as in `createOrder`
         let mut status: Value = self.parse_order_status(self.safe_string_k(response.clone(), "status", &[]));
         if (status.as_str() != Some("open")) {
-            panic!("{}", crate::exchange_errors::order_not_found(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" order ".to_string()))), id)), Value::Str(" can not be canceled, ".to_string()))), self.json(response.clone())))));
+            panic!("{}", crate::exchange_errors::order_not_found(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" order ".to_string()))), id)), Value::Str(" can not be canceled, ".to_string()))), json_stringify(&response)))));
         }
         return self.parse_order(response.clone(), &[market.clone()]);
 
@@ -3137,7 +3137,7 @@ impl ToobitCore {
         }
         let mut ordersList: Value = Value::List(vec![]);
         let mut responseList: Value = Value::List(vec![]);
-        if is_true(&Value::Bool(is_array(&response))) {
+        if is_true(&Value::Bool(matches!(&response, Value::Arr(_)))) {
             responseList = response.clone();
         }
         {
@@ -3996,11 +3996,11 @@ impl ToobitCore {
             let mut queryString: Value = Value::Str("".to_string());
             if isPost || isDelete {
                 // everything else except Batch-Orders
-                if !is_true(&Value::Bool(is_array(&params))) {
+                if !is_true(&Value::Bool(matches!(&params, Value::Arr(_)))) {
                     body = self.urlencode(queryExtended.clone(), &[]);
                 }  else {
                     queryString = self.urlencode(extraQuery.clone(), &[]);
-                    body = self.json(query.clone());
+                    body = json_stringify(&query);
                 }
             }  else {
                 queryString = self.urlencode(queryExtended.clone(), &[]);

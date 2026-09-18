@@ -3077,7 +3077,7 @@ impl BtseCore {
         // the normal futures endpoint responds with a single order dict, keep a
         // one element array guard in case a gateway wraps it
         let mut order: Value = response.clone();
-        if is_true(&Value::Bool(is_array(&response))) {
+        if is_true(&Value::Bool(matches!(&response, Value::Arr(_)))) {
             order = self.safe_dict(response.clone(), Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -3156,7 +3156,7 @@ impl BtseCore {
         }
         // accept a bare order dict, a data envelope and a one element array
         let mut order: Value = self.safe_value_k(response.clone(), "data", &[response.clone()]);
-        if is_true(&Value::Bool(is_array(&order))) {
+        if is_true(&Value::Bool(matches!(&order, Value::Arr(_)))) {
             order = self.safe_dict(order.clone(), Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -3740,7 +3740,7 @@ impl BtseCore {
         });
         // the endpoint applies a server side history type filter sent as a
         // json encoded array in the query string, verified live
-        add_element_to_object(&mut request, &Value::Str("historyTypes".to_string()), self.json(typesList.clone()));
+        add_element_to_object(&mut request, &Value::Str("historyTypes".to_string()), json_stringify(&typesList));
         params = self.omit(params.clone(), Value::Str("walletType".to_string()), &[]);
         let mut currency: Value = Value::Null;
         if (code != Value::Null) {
@@ -4725,7 +4725,7 @@ impl BtseCore {
         //     ]
         //
         let mut safeResponse: Value = Value::List(vec![]);
-        if is_true(&Value::Bool(is_array(&response))) {
+        if is_true(&Value::Bool(matches!(&response, Value::Arr(_)))) {
             safeResponse = response.clone();
         }
         let mut result: Value = Value::Map({
@@ -4863,7 +4863,7 @@ impl BtseCore {
             panic!("{}", crate::exchange_errors::exchange_error(feedback));
         }
         let mut rows: Value = Value::List(vec![]);
-        if is_true(&Value::Bool(is_array(&response))) {
+        if is_true(&Value::Bool(matches!(&response, Value::Arr(_)))) {
             rows = response.clone();
         }  else {
             rows = Value::List(vec![response.clone()]);
@@ -4919,7 +4919,7 @@ impl BtseCore {
         if (api.as_str() == Some("private")) {
             self.check_required_credentials(&[]);
             let mut nonce: Value = self.nonce();
-            let mut bodyString: Value = self.json(query.clone());
+            let mut bodyString: Value = json_stringify(&query);
             if is_true(&(Value::Bool(is_true(&(Value::Bool(method.as_str() == Some("GET")))) || is_true(&(Value::Bool(method.as_str() == Some("DELETE"))))))) && !isBodyDelete {
                 bodyString = Value::Str("".to_string());
             }  else {

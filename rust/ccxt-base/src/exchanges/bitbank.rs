@@ -1595,7 +1595,7 @@ impl BitbankCore {
             }
             url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", add(&self.version, &Value::Str("/".to_string())), self.implode_params(path.clone(), params.clone())))));
             if (method.as_str() == Some("POST")) {
-                body = self.json(query.clone());
+                body = json_stringify(&query);
                 auth = add(&auth, &body);
             }  else {
                 auth = Value::Str(format!("{}{}", auth, add(&Value::Str(format!("{}{}", add(&Value::Str("/".to_string()), &self.version), Value::Str("/".to_string()))), &path)));
@@ -1705,7 +1705,7 @@ impl BitbankCore {
             let mut code: Value = self.safe_string_k(data.clone(), "code", &[]);
             let mut message: Value = self.safe_string(errorMessages.clone(), code.clone(), &[Value::Str("Error".to_string())]);
             self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), code.clone(), message.clone());
-            panic!("{}", crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), self.json(response.clone())))));
+            panic!("{}", crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), json_stringify(&response)))));
         }
         return Value::Null;
 

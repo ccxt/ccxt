@@ -1581,7 +1581,7 @@ impl MercadoCore {
         //
         let mut errorMessage: Value = self.safe_value_k(response.clone(), "error_message", &[]);
         if (errorMessage != Value::Null) {
-            panic!("{}", crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), self.json(response.clone())))));
+            panic!("{}", crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), json_stringify(&response)))));
         }
         return Value::Null;
 

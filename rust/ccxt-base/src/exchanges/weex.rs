@@ -1852,7 +1852,7 @@ impl WeexCore {
             let __ws_arg_1 = self.extend(request.clone(), &[params.clone()]);
             response = self.contract_get_capi_v3_market_ticker24hr(&[__ws_arg_1]).await;
         }
-        if !is_true(&Value::Bool(is_array(&response))) {
+        if !is_true(&Value::Bool(matches!(&response, Value::Arr(_)))) {
             response = Value::List(vec![response.clone()]);
         }
         return self.parse_tickers(response.clone(), &[symbols.clone()]);
@@ -1890,7 +1890,7 @@ impl WeexCore {
         }  else {
             response = self.contract_get_capi_v3_market_ticker_book_ticker(&[params.clone()]).await;
         }
-        if !is_true(&Value::Bool(is_array(&response))) {
+        if !is_true(&Value::Bool(matches!(&response, Value::Arr(_)))) {
             response = Value::List(vec![response.clone()]);
         }
         let mut results: Value = Value::List(vec![]);
@@ -4215,7 +4215,7 @@ impl WeexCore {
         if is_true(&(Value::Bool(errorCode.as_str() == Some("")))) && is_true(&(Value::Bool(errorMessage.as_str() == Some("")))) {
             return;
         }
-        let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), self.json(order.clone())));
+        let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), json_stringify(&order)));
         self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), errorMessage.clone(), feedback.clone());
         self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), errorCode.clone(), feedback.clone());
         self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), errorMessage.clone(), feedback.clone());
@@ -5571,7 +5571,7 @@ impl WeexCore {
             let mut timestamp: Value = self.number_to_string(self.nonce());
             let mut payload: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", timestamp, method)), Value::Str("/".to_string()))), endpoint));
             if is_true(&(Value::Bool(method.as_str() == Some("POST")))) || isBatch {
-                body = self.json(query.clone());
+                body = json_stringify(&query);
                 payload = Value::Str(format!("{}{}", payload, body));
             }
             let mut signature: Value = self.hmac(self.encode(payload.clone()), self.encode(self.secret.clone()), Value::Str("sha256".to_string()), &[Value::Str("base64".to_string())]);

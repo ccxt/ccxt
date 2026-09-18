@@ -730,7 +730,7 @@ impl NadoCore {
     m
 }));
         let mut symbolsLength: Value = Value::Int(symbolsAndTimeframes.len() as i64);
-        if (symbolsLength.as_f64() == Some(0.0)) || !is_true(&Value::Bool(is_array(&symbolsAndTimeframes.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null)))) {
+        if (symbolsLength.as_f64() == Some(0.0)) || !is_true(&Value::Bool(matches!(&symbolsAndTimeframes.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null), Value::Arr(_)))) {
             panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" watchOHLCVForSymbols() requires a an array of symbols and timeframes, like  [['BTC/USDT0:USDT0', '1m'], ['ETH/USDT0:USDT0', '5m']]".to_string())))));
         }
         self.load_markets(&[]).await;
@@ -806,7 +806,7 @@ impl NadoCore {
     m
 }));
         let mut symbolsLength: Value = Value::Int(symbolsAndTimeframes.len() as i64);
-        if (symbolsLength.as_f64() == Some(0.0)) || !is_true(&Value::Bool(is_array(&symbolsAndTimeframes.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null)))) {
+        if (symbolsLength.as_f64() == Some(0.0)) || !is_true(&Value::Bool(matches!(&symbolsAndTimeframes.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null), Value::Arr(_)))) {
             panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" unWatchOHLCVForSymbols() requires a an array of symbols and timeframes, like  [['BTC/USDT0:USDT0', '1m'], ['ETH/USDT0:USDT0', '5m']]".to_string())))));
         }
         self.load_markets(&[]).await;
@@ -1685,7 +1685,7 @@ impl NadoCore {
                 m.insert("id".to_string(), self.request_id());
             m
         });
-        let mut subscribeHash: Value = Value::Str(format!("{}{}", Value::Str("subscribe:".to_string()), self.json(request.as_map().and_then(|__m| __m.get("stream")).cloned().unwrap_or(Value::Null))));
+        let mut subscribeHash: Value = Value::Str(format!("{}{}", Value::Str("subscribe:".to_string()), json_stringify(&request.as_map().and_then(|__m| __m.get("stream")).cloned().unwrap_or(Value::Null))));
         let mut subscription: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("streamType".to_string(), streamType.clone());
@@ -1907,7 +1907,7 @@ impl NadoCore {
                 let mut id: Value = self.request_id();
                 let mut requestParams: Value = (if is_true(&(Value::Bool(subscriptionParams == Value::Null))) { params.clone() } else { get_value(&subscriptionParams, &i) });
                 let mut request: Value = self.create_public_subscription_request(Value::Str("subscribe".to_string()), streamType.clone(), &[market.clone(), id.clone(), requestParams.clone()]);
-                let mut subscribeHash: Value = Value::Str(format!("{}{}", Value::Str("subscribe:".to_string()), self.json(request.as_map().and_then(|__m| __m.get("stream")).cloned().unwrap_or(Value::Null))));
+                let mut subscribeHash: Value = Value::Str(format!("{}{}", Value::Str("subscribe:".to_string()), json_stringify(&request.as_map().and_then(|__m| __m.get("stream")).cloned().unwrap_or(Value::Null))));
                 let mut streamSubscription: Value = self.safe_value(get_value(&client, &Value::Str("subscriptions".to_string())), subscribeHash.clone(), &[]);
                 if (streamSubscription == Value::Null) {
                     let mut subscription: Value = Value::Map({
@@ -2744,7 +2744,7 @@ impl NadoCore {
         if is_true(&(Value::Bool(error == Value::Null))) && is_true(&(Value::Bool(status.as_str() != Some("failure")))) {
             return Value::Bool(false);
         }
-        let mut feedback = Value::from(crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), self.json(message.clone())))));
+        let mut feedback = Value::from(crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), json_stringify(&message)))));
         let mut id: Value = self.safe_string_k(message.clone(), "id", &[]);
         if (id != Value::Null) {
             let mut executeHash: Value = Value::Str(format!("{}{}", Value::Str("execute:".to_string()), id));

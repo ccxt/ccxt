@@ -1418,7 +1418,7 @@ impl GrvtCore {
                 let mut authResult: Value = self.safe_dict_k(authResponse.clone(), "result", &[]);
                 let mut ack: Value = self.safe_bool_k(authResult.clone(), "ack", &[]);
                 if (ack.as_bool() != Some(true)) {
-                    panic!("{}", crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", Value::Str("Builder authorization failed, ".to_string()), self.json(authResponse.clone())))));
+                    panic!("{}", crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", Value::Str("Builder authorization failed, ".to_string()), json_stringify(&authResponse)))));
                 }
                 add_element_to_object(&mut self.options, &Value::Str("approvedBuilderFee".to_string()), Value::Bool(true));
              #[allow(unreachable_code)] { Value::Null }})).await;
@@ -2940,7 +2940,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
                 panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" loadAccountInfos(): no sub accounts found, you might need to create an api-key in GRVT website".to_string())))));
             }
             if length.as_f64().unwrap_or(f64::NAN) > Value::Int(1).as_f64().unwrap_or(f64::NAN) {
-                panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" loadAccountInfos(): multiple sub accounts found, please set the exchange.options[\"accountId\"] to your preferred sub_account_id from this list: ".to_string()))), self.json(subAccountIds.clone())))));
+                panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" loadAccountInfos(): multiple sub accounts found, please set the exchange.options[\"accountId\"] to your preferred sub_account_id from this list: ".to_string()))), json_stringify(&subAccountIds)))));
             }
             let mut subAccountId: Value = self.safe_string(subAccountIds.clone(), Value::Int(0), &[]);
             add_element_to_object(&mut self.options, &Value::Str("accountId".to_string()), subAccountId.clone());
@@ -4575,7 +4575,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
             if (paramsKeysLength.as_f64() == Some(0.0)) {
                 body = Value::Str("{}".to_string());
             }  else {
-                body = self.json(params.clone());
+                body = json_stringify(&params);
             }
         }
         let mut isPrivate: Value = Value::Bool(starts_with(&api, &Value::Str("private".to_string())));

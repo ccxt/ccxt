@@ -1678,7 +1678,7 @@ impl CryptomusCore {
                 m
             });
             if (method.as_str() != Some("GET")) {
-                body = self.json(params.clone());
+                body = json_stringify(&params);
                 jsonParams = body.clone();
                 add_element_to_object(&mut headers, &Value::Str("Content-Type".to_string()), Value::Str("application/json".to_string()));
             }  else {

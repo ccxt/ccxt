@@ -3995,7 +3995,7 @@ impl BydfiCore {
                     m
                 });
             }  else {
-                body = self.json(sortedParams.clone());
+                body = json_stringify(&sortedParams);
                 let mut payload: Value = add(&Value::Str(format!("{}{}", self.apiKey.clone(), timestamp)), &body);
                 let mut signature: Value = self.hmac(self.encode(payload.clone()), self.encode(self.secret.clone()), Value::Str("sha256".to_string()), &[Value::Str("hex".to_string())]);
                 headers = Value::Map({

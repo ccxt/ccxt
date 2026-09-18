@@ -3990,7 +3990,7 @@ impl HtxCore {
         let mut markets: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         let mut numMarkets: Value = Value::Int(markets.len() as i64);
         if numMarkets.as_f64().unwrap_or(f64::NAN) < Value::Int(1).as_f64().unwrap_or(f64::NAN) {
-            panic!("{}", crate::exchange_errors::operation_failed(Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchMarkets() returned an empty response: ".to_string()))), self.json(response.clone())))));
+            panic!("{}", crate::exchange_errors::operation_failed(Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchMarkets() returned an empty response: ".to_string()))), json_stringify(&response)))));
         }
         let mut result: Value = Value::List(vec![]);
         {
@@ -4319,7 +4319,7 @@ impl HtxCore {
         let mut ask: Value = Value::Null;
         let mut askVolume: Value = Value::Null;
         if is_true(&Value::Bool(in_op(&ticker, &Value::Str("bid".to_string())))) {
-            if (ticker.as_map().and_then(|__m| __m.get("bid")).cloned().unwrap_or(Value::Null) != Value::Null) && is_true(&Value::Bool(is_array(&ticker.as_map().and_then(|__m| __m.get("bid")).cloned().unwrap_or(Value::Null)))) {
+            if (ticker.as_map().and_then(|__m| __m.get("bid")).cloned().unwrap_or(Value::Null) != Value::Null) && is_true(&Value::Bool(matches!(&ticker.as_map().and_then(|__m| __m.get("bid")).cloned().unwrap_or(Value::Null), Value::Arr(_)))) {
                 bid = self.safe_string(ticker.as_map().and_then(|__m| __m.get("bid")).cloned().unwrap_or(Value::Null), Value::Int(0), &[]);
                 bidVolume = self.safe_string(ticker.as_map().and_then(|__m| __m.get("bid")).cloned().unwrap_or(Value::Null), Value::Int(1), &[]);
             }  else {
@@ -4328,7 +4328,7 @@ impl HtxCore {
             }
         }
         if is_true(&Value::Bool(in_op(&ticker, &Value::Str("ask".to_string())))) {
-            if (ticker.as_map().and_then(|__m| __m.get("ask")).cloned().unwrap_or(Value::Null) != Value::Null) && is_true(&Value::Bool(is_array(&ticker.as_map().and_then(|__m| __m.get("ask")).cloned().unwrap_or(Value::Null)))) {
+            if (ticker.as_map().and_then(|__m| __m.get("ask")).cloned().unwrap_or(Value::Null) != Value::Null) && is_true(&Value::Bool(matches!(&ticker.as_map().and_then(|__m| __m.get("ask")).cloned().unwrap_or(Value::Null), Value::Arr(_)))) {
                 ask = self.safe_string(ticker.as_map().and_then(|__m| __m.get("ask")).cloned().unwrap_or(Value::Null), Value::Int(0), &[]);
                 askVolume = self.safe_string(ticker.as_map().and_then(|__m| __m.get("ask")).cloned().unwrap_or(Value::Null), Value::Int(1), &[]);
             }  else {
@@ -4755,7 +4755,7 @@ impl HtxCore {
         }
         if is_true(&Value::Bool(in_op(&response, &Value::Str("tick".to_string())))) {
             if is_true(&(Value::Bool(response.as_map().and_then(|__m| __m.get("tick")).cloned().unwrap_or(Value::Null) == Value::Null))) || is_true(&(Value::Bool(response.as_map().and_then(|__m| __m.get("tick")).cloned().unwrap_or(Value::Null) == Value::Null))) {
-                panic!("{}", crate::exchange_errors::bad_symbol(Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchOrderBook() returned empty response: ".to_string()))), self.json(response.clone())))));
+                panic!("{}", crate::exchange_errors::bad_symbol(Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchOrderBook() returned empty response: ".to_string()))), json_stringify(&response)))));
             }
             let mut tick: Value = self.safe_value_k(response.clone(), "tick", &[]);
             let mut timestamp: Value = self.safe_integer_k(tick.clone(), "ts", &[self.safe_integer(response.clone(), Value::Str("ts".to_string()), &[])]);
@@ -4763,7 +4763,7 @@ impl HtxCore {
             add_element_to_object(&mut result, &Value::Str("nonce".to_string()), self.safe_integer_k(tick.clone(), "version", &[]));
             return result;
         }
-        panic!("{}", crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchOrderBook() returned unrecognized response: ".to_string()))), self.json(response.clone())))));
+        panic!("{}", crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchOrderBook() returned unrecognized response: ".to_string()))), json_stringify(&response)))));
 
     Value::Null
 }
@@ -5206,7 +5206,7 @@ impl HtxCore {
         //     }
         //
         let mut trades: Value = self.safe_value_k(response.clone(), "data", &[]);
-        if !is_true(&Value::Bool(is_array(&trades))) {
+        if !is_true(&Value::Bool(matches!(&trades, Value::Arr(_)))) {
             trades = self.safe_value_k(trades.clone(), "trades", &[]);
         }
         return self.parse_trades(trades.clone(), &[market.clone(), since.clone(), limit.clone()]);
@@ -6378,7 +6378,7 @@ impl HtxCore {
         //     }
         //
         let mut order: Value = self.safe_value_k(response.clone(), "data", &[]);
-        if is_true(&Value::Bool(is_array(&order))) {
+        if is_true(&Value::Bool(matches!(&order, Value::Arr(_)))) {
             order = self.safe_value(order.clone(), Value::Int(0), &[]);
         }
         return self.parse_order(order.clone(), &[market.clone()]);
@@ -6606,7 +6606,7 @@ impl HtxCore {
             }
         }
         let mut orders: Value = self.safe_value_k(response.clone(), "data", &[]);
-        if !is_true(&Value::Bool(is_array(&orders))) {
+        if !is_true(&Value::Bool(matches!(&orders, Value::Arr(_)))) {
             orders = self.safe_value_k(orders.clone(), "orders", &[Value::List(vec![])]);
         }
         return self.parse_orders(orders.clone(), &[market.clone(), since.clone(), limit.clone()]);
@@ -7231,7 +7231,7 @@ impl HtxCore {
         //     }
         //
         let mut orders: Value = self.safe_value_k(response.clone(), "data", &[]);
-        if !is_true(&Value::Bool(is_array(&orders))) {
+        if !is_true(&Value::Bool(matches!(&orders, Value::Arr(_)))) {
             orders = self.safe_value_k(orders.clone(), "orders", &[Value::List(vec![])]);
         }
         return self.parse_orders(orders.clone(), &[market.clone(), since.clone(), limit.clone()]);
@@ -8387,7 +8387,7 @@ impl HtxCore {
             result = self.safe_value_k(response.clone(), "data", &[Value::List(vec![])]);
         }  else {
             let mut data: Value = self.safe_value_k(response.clone(), "data", &[]);
-            if is_true(&Value::Bool(is_array(&data))) {
+            if is_true(&Value::Bool(matches!(&data, Value::Arr(_)))) {
                 result = data.clone();
             }  else {
                 let mut batchData: Value = self.safe_value_k(response.clone(), "data", &[Value::Map({
@@ -8648,13 +8648,13 @@ impl HtxCore {
             let mut clientOrderIds: Value = self.safe_value2(params.clone(), Value::Str("client-order-id".to_string()), Value::Str("clientOrderId".to_string()), &[]);
             clientOrderIds = self.safe_value2(params.clone(), Value::Str("client-order-ids".to_string()), Value::Str("clientOrderIds".to_string()), &[clientOrderIds.clone()]);
             if (clientOrderIds == Value::Null) {
-                if is_string(&clientOrderIds) {
+                if matches!(&clientOrderIds, Value::Str(_)) {
                     add_element_to_object(&mut request, &Value::Str("order-ids".to_string()), Value::List(vec![ids.clone()]));
                 }  else {
                     add_element_to_object(&mut request, &Value::Str("order-ids".to_string()), ids.clone());
                 }
             }  else {
-                if is_string(&clientOrderIds) {
+                if matches!(&clientOrderIds, Value::Str(_)) {
                     add_element_to_object(&mut request, &Value::Str("client-order-ids".to_string()), Value::List(vec![clientOrderIds.clone()]));
                 }  else {
                     add_element_to_object(&mut request, &Value::Str("client-order-ids".to_string()), clientOrderIds.clone());
@@ -8686,7 +8686,7 @@ impl HtxCore {
                 if (clientOrderIds == Value::Null) {
                     add_element_to_object(&mut request, &Value::Str("order_id".to_string()), ids.clone());
                 }  else {
-                    if is_string(&clientOrderIds) {
+                    if matches!(&clientOrderIds, Value::Str(_)) {
                         add_element_to_object(&mut request, &Value::Str("client_order_id".to_string()), split(&clientOrderIds, &Value::Str(",".to_string())));
                     }  else {
                         add_element_to_object(&mut request, &Value::Str("client_order_id".to_string()), clientOrderIds.clone());
@@ -10428,7 +10428,7 @@ impl HtxCore {
         let mut body = get_arg(optional_args, 4, Value::Null);
         let mut pathString: Value = path.clone();
         let mut url: Value = Value::Str("/".to_string());
-        let mut isArrayParams: bool = is_array(&params);
+        let mut isArrayParams: bool = matches!(&params, Value::Arr(_));
         let mut query: Value = Value::Null;
         if isArrayParams {
             query = Value::Map({
@@ -10438,7 +10438,7 @@ impl HtxCore {
         }  else {
             query = self.omit(params.clone(), self.extract_params(path.clone()), &[]);
         }
-        if is_string(&api) {
+        if matches!(&api, Value::Str(_)) {
             // signing implementation for the old endpoints
             if is_true(&(Value::Bool(api.as_str() == Some("public")))) || is_true(&(Value::Bool(api.as_str() == Some("private")))) {
                 url = add(&url, &self.version);
@@ -10479,7 +10479,7 @@ impl HtxCore {
                     }  else {
                         bodyRequest = query.clone();
                     }
-                    body = self.json(bodyRequest.clone());
+                    body = json_stringify(&bodyRequest);
                     headers = Value::Map({
                         let mut m = indexmap::IndexMap::new();
                             m.insert("Content-Type".to_string(), Value::Str("application/json".to_string()));
@@ -10511,9 +10511,9 @@ impl HtxCore {
             let mut levelTwoNestedPath: Value = self.safe_string(api.clone(), Value::Int(3), &[]);
             let mut hostname: Value = Value::Null;
             let mut hostnames: Value = self.safe_value(self.urls.as_map().and_then(|__m| __m.get("hostnames")).cloned().unwrap_or(Value::Null), type_var.clone(), &[]);
-            if !is_string(&hostnames) {
+            if !matches!(&hostnames, Value::Str(_)) {
                 hostnames = self.safe_value(hostnames.clone(), levelOneNestedPath.clone(), &[]);
-                if (!is_string(&hostnames)) && is_true(&(Value::Bool(levelTwoNestedPath != Value::Null))) {
+                if is_true(&(!matches!(&hostnames, Value::Str(_)))) && is_true(&(Value::Bool(levelTwoNestedPath != Value::Null))) {
                     hostnames = self.safe_value(hostnames.clone(), levelTwoNestedPath.clone(), &[]);
                 }
             }
@@ -10580,7 +10580,7 @@ impl HtxCore {
                     }  else {
                         bodyRequest = query.clone();
                     }
-                    body = self.json(bodyRequest.clone());
+                    body = json_stringify(&bodyRequest);
                     if !isArrayParams && is_true(&(Value::Bool(Value::Int(body.len() as i64).as_f64() == Some(2.0)))) {
                         body = Value::Str("{}".to_string());
                     }

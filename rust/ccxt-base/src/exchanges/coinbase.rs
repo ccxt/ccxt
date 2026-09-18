@@ -7059,7 +7059,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 let mut payload: Value = Value::Str("".to_string());
                 if (method.as_str() != Some("GET")) {
                     if Value::Int(object_keys(&query).len() as i64).as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN) {
-                        body = self.json(query.clone());
+                        body = json_stringify(&query);
                         payload = body.clone();
                     }
                 }  else {
@@ -7126,7 +7126,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 });
                 if (method.as_str() != Some("GET")) {
                     if Value::Int(object_keys(&query).len() as i64).as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN) {
-                        body = self.json(query.clone());
+                        body = json_stringify(&query);
                     }
                 }
             }
@@ -7197,7 +7197,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         let mut errors: Value = self.safe_list_k(response.clone(), "errors", &[]);
         if (errors != Value::Null) {
-            if is_true(&Value::Bool(is_array(&errors))) {
+            if is_true(&Value::Bool(matches!(&errors, Value::Arr(_)))) {
                 let mut numErrors: Value = Value::Int(errors.len() as i64);
                 if numErrors.as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN) {
                     errorCode = self.safe_string(errors.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null), Value::Str("id".to_string()), &[]);
@@ -7212,7 +7212,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         let mut advancedTrade: Value = self.options.as_map().and_then(|__m| __m.get("advanced")).cloned().unwrap_or(Value::Null);
         if !is_true(&(Value::Bool(in_op(&response, &Value::Str("data".to_string()))))) && (!is_equal(&advancedTrade, &Value::Bool(true))) {
-            panic!("{}", crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" failed due to a malformed response ".to_string()))), self.json(response.clone())))));
+            panic!("{}", crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" failed due to a malformed response ".to_string()))), json_stringify(&response)))));
         }
         return Value::Null;
 

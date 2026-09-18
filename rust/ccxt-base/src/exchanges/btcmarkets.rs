@@ -1929,7 +1929,7 @@ impl BtcmarketsCore {
                     request = Value::Str(format!("{}{}", request, Value::Str(format!("{}{}", Value::Str("?".to_string()), self.urlencode(query.clone(), &[])))));
                 }
             }  else {
-                body = self.json(query.clone());
+                body = json_stringify(&query);
                 auth = Value::Str(format!("{}{}", auth, body));
             }
             let mut signature: Value = self.hmac(self.encode(auth.clone()), secret.clone(), Value::Str("sha512".to_string()), &[Value::Str("base64".to_string())]);

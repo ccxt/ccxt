@@ -3177,8 +3177,8 @@ impl ParadexCore {
         }
         let mut clientOrderIds: Value = self.safe_list_n(params.clone(), Value::List(vec![Value::Str("clOrdIDs".to_string()), Value::Str("clientOrderIds".to_string()), Value::Str("client_order_ids".to_string())]), &[]);
         params = self.omit(params.clone(), Value::List(vec![Value::Str("clOrdIDs".to_string()), Value::Str("clientOrderIds".to_string()), Value::Str("client_order_ids".to_string())]), &[]);
-        let mut hasOrderIds: bool = is_true(&(Value::Bool(ids != Value::Null))) && is_true(&(Value::Bool(is_array(&ids))));
-        let mut hasClientOrderIds: bool = is_true(&(Value::Bool(clientOrderIds != Value::Null))) && is_true(&(Value::Bool(is_array(&clientOrderIds))));
+        let mut hasOrderIds: bool = is_true(&(Value::Bool(ids != Value::Null))) && is_true(&(Value::Bool(matches!(&ids, Value::Arr(_)))));
+        let mut hasClientOrderIds: bool = is_true(&(Value::Bool(clientOrderIds != Value::Null))) && is_true(&(Value::Bool(matches!(&clientOrderIds, Value::Arr(_)))));
         if !hasOrderIds && !hasClientOrderIds {
             panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" cancelOrders() requires a non-empty ids argument or a non-empty clientOrderIds parameter".to_string())))));
         }
@@ -4886,17 +4886,17 @@ impl ParadexCore {
                 add_element_to_object(&mut headers, &Value::Str("PARADEX-STARKNET-SIGNATURE".to_string()), crate::value::get_value_k(&query, "signature"));
                 add_element_to_object(&mut headers, &Value::Str("PARADEX-TIMESTAMP".to_string()), to_string_val(&self.nonce()));
                 add_element_to_object(&mut headers, &Value::Str("Content-Type".to_string()), Value::Str("application/json".to_string()));
-                body = self.json(Value::Map({
-                    let mut m = indexmap::IndexMap::new();
-                        m.insert("public_key".to_string(), crate::value::get_value_k(&query, "public_key"));
-                    m
-                }));
+                body = json_stringify(&Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("public_key".to_string(), crate::value::get_value_k(&query, "public_key"));
+    m
+}));
             }  else {
                 let mut token: Value = self.options.as_map().and_then(|__m| __m.get("authToken")).cloned().unwrap_or(Value::Null);
                 add_element_to_object(&mut headers, &Value::Str("Authorization".to_string()), add(&Value::Str("Bearer ".to_string()), &token));
                 if is_true(&(Value::Bool(method.as_str() == Some("POST")))) || is_true(&(Value::Bool(method.as_str() == Some("PUT")))) || is_true(&(Value::Bool(is_true(&(Value::Bool(method.as_str() == Some("DELETE")))) && is_true(&(Value::Bool(path.as_str() == Some("orders/batch"))))))) {
                     add_element_to_object(&mut headers, &Value::Str("Content-Type".to_string()), Value::Str("application/json".to_string()));
-                    body = self.json(query.clone());
+                    body = json_stringify(&query);
                 }  else {
                     url = Value::Str(format!("{}{}", Value::Str(format!("{}{}", url, Value::Str("?".to_string()))), self.urlencode(query.clone(), &[])));
                 }

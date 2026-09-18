@@ -1461,7 +1461,7 @@ impl BybitCore {
             });
             let mut selectedLimits: Value = self.safe_list2(limits.clone(), market.as_map().and_then(|__m| __m.get("type")).cloned().unwrap_or(Value::Null), Value::Str("default".to_string()), &[Value::List(vec![])]);
             if !is_true(&self.in_array(limit.clone(), selectedLimits.clone())) {
-                panic!("{}", crate::exchange_errors::bad_request(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" watchOrderBookForSymbols(): for ".to_string()))), market.as_map().and_then(|__m| __m.get("type")).cloned().unwrap_or(Value::Null))), Value::Str(" markets limit can be one of: ".to_string()))), self.json(selectedLimits.clone())))));
+                panic!("{}", crate::exchange_errors::bad_request(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" watchOrderBookForSymbols(): for ".to_string()))), market.as_map().and_then(|__m| __m.get("type")).cloned().unwrap_or(Value::Null))), Value::Str(" markets limit can be one of: ".to_string()))), json_stringify(&selectedLimits)))));
             }
         }
         let mut topics: Value = Value::List(vec![]);
@@ -2116,7 +2116,7 @@ impl BybitCore {
         let mut spot: bool = topic.as_str() == Some("ticketInfo");
         let mut executionFast: bool = topic.as_str() == Some("execution.fast");
         let mut data: Value = self.safe_value_k(message.clone(), "data", &[Value::List(vec![])]);
-        if !is_true(&Value::Bool(is_array(&data))) {
+        if !is_true(&Value::Bool(matches!(&data, Value::Arr(_)))) {
             data = self.safe_list_k(data.clone(), "result", &[Value::List(vec![])]);
         }
         if is_equal(&self.myTrades, &Value::Null) {
@@ -2138,7 +2138,7 @@ impl BybitCore {
             execTypeOption = self.handle_option(Value::Str("watchMyTrades".to_string()), Value::Str("filterExecTypes".to_string()), &[]);
         }
         let mut execTypes: Value = Value::Null;
-        if is_string(&execTypeOption) {
+        if matches!(&execTypeOption, Value::Str(_)) {
             // a single execution type is accepted as a plain string as well
             execTypes = Value::List(vec![execTypeOption.clone()]);
         }  else {
@@ -2488,7 +2488,7 @@ impl BybitCore {
         //         ]
         //     }
         //
-        if is_true(&Value::Bool(is_array(&crate::value::get_value_k(&message, "data")))) {
+        if is_true(&Value::Bool(matches!(&crate::value::get_value_k(&message, "data"), Value::Arr(_)))) {
             let mut rawLiquidations: Value = self.safe_list_k(message.clone(), "data", &[Value::List(vec![])]);
             {
                                 let mut i: Value = Value::Int(0);
@@ -3365,7 +3365,7 @@ impl BybitCore {
         let mut code: Value = self.safe_string_n(message.clone(), Value::List(vec![Value::Str("code".to_string()), Value::Str("ret_code".to_string()), Value::Str("retCode".to_string())]), &[]);
         let _try_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
             if (code != Value::Null) && (code.as_str() != Some("0")) {
-                let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), self.json(message.clone())));
+                let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), json_stringify(&message)));
                 self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), code.clone(), feedback.clone());
                 let mut msg: Value = self.safe_string2(message.clone(), Value::Str("retMsg".to_string()), Value::Str("ret_msg".to_string()), &[]);
                 self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), msg.clone(), feedback.clone());
@@ -3593,7 +3593,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             let mut future: Value = self.safe_value(get_value(&client, &Value::Str("futures".to_string())), messageHash.clone(), &[]);
             future.resolve(&[Value::Bool(true)]);
         }  else {
-            let mut error = Value::from(crate::exchange_errors::authentication_error(Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), self.json(message.clone())))));
+            let mut error = Value::from(crate::exchange_errors::authentication_error(Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), json_stringify(&message)))));
             client.reject(&[Value::from(error.clone()), messageHash.clone()]);
             if is_true(&Value::Bool(in_op(&get_value(&client, &Value::Str("subscriptions".to_string())), &messageHash))) {
                 remove(&mut get_value(&client, &Value::Str("subscriptions".to_string())), &messageHash);

@@ -50,7 +50,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             assert!(ccxt::runtime::is_true(&(exchange.is_dictionary(symbolObj.clone()))));
             assert!(ccxt::runtime::is_true(&(Value::Bool(in_op(&symbolObj, &chosenTimeframeKey)))));
             let mut ohlcvs: Value = get_value(&symbolObj, &chosenTimeframeKey);
-            assert!(ccxt::runtime::is_true(&(Value::Bool(is_array(&ohlcvs)))));
+            assert!(ccxt::runtime::is_true(&(Value::Bool(matches!(&ohlcvs, Value::Arr(_))))));
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_1486: bool = true;

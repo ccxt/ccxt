@@ -1331,7 +1331,7 @@ impl ExtendedCore {
         if (error == Value::Null) {
             return Value::Bool(false);
         }
-        let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), self.json(message.clone())));
+        let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), json_stringify(&message)));
         let mut errorCode: Value = self.safe_string_k(error.clone(), "code", &[]);
         self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), errorCode.clone(), feedback.clone());
         let mut errorMessage: Value = self.safe_string_k(error.clone(), "message", &[]);
@@ -1347,7 +1347,7 @@ impl ExtendedCore {
         }
         let mut type_var: Value = self.safe_string_k(message.clone(), "type", &[]);
         let mut data: Value = self.safe_value_k(message.clone(), "data", &[]);
-        if is_true(&Value::Bool(is_array(&data))) {
+        if is_true(&Value::Bool(matches!(&data, Value::Arr(_)))) {
             let mut first: Value = self.safe_dict(data.clone(), Value::Int(0), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m

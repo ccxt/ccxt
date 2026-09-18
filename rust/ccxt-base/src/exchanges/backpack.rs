@@ -3320,7 +3320,7 @@ impl BackpackCore {
         let mut body = get_arg(optional_args, 4, Value::Null);
         let mut endpoint: Value = add(&Value::Str("/".to_string()), &path);
         let mut url: Value = get_value(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), &api);
-        let mut sortedParams: Value = (if is_true(&Value::Bool(is_array(&params))) { params.clone() } else { self.keysort(params.clone(), &[]) });
+        let mut sortedParams: Value = (if is_true(&Value::Bool(matches!(&params, Value::Arr(_)))) { params.clone() } else { self.keysort(params.clone(), &[]) });
         if (api.as_str() == Some("private")) {
             self.check_required_credentials(&[]);
             let mut ts: Value = to_string_val(&self.nonce());
@@ -3357,7 +3357,7 @@ impl BackpackCore {
                 m
             });
             if (method.as_str() != Some("GET")) {
-                body = self.json(sortedParams.clone());
+                body = json_stringify(&sortedParams);
                 add_element_to_object(&mut headers, &Value::Str("Content-Type".to_string()), Value::Str("application/json".to_string()));
             }
         }

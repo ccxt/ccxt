@@ -1993,7 +1993,7 @@ impl AlpacaCore {
             self.load_markets(&[]).await;
         }
         let mut response: Value = self.trader_private_delete_v2_orders(&[params.clone()]).await;
-        if is_true(&Value::Bool(is_array(&response))) {
+        if is_true(&Value::Bool(matches!(&response, Value::Arr(_)))) {
             return self.parse_orders(response.clone(), &[]);
         }  else {
             return Value::List(vec![self.safe_order(Value::Map({
@@ -2610,7 +2610,7 @@ impl AlpacaCore {
             //
             let mut filtered: Value = Value::List(vec![]);
             let mut ledger: Value = Value::List(vec![]);
-            if is_true(&Value::Bool(is_array(&activities))) {
+            if is_true(&Value::Bool(matches!(&activities, Value::Arr(_)))) {
                 ledger = activities.clone();
             }
             {
@@ -2650,7 +2650,7 @@ impl AlpacaCore {
         //
         let mut results: Value = Value::List(vec![]);
         let mut transfers: Value = Value::List(vec![]);
-        if is_true(&Value::Bool(is_array(&response))) {
+        if is_true(&Value::Bool(matches!(&response, Value::Arr(_)))) {
             transfers = response.clone();
         }
         {
@@ -3078,7 +3078,7 @@ impl AlpacaCore {
             if is_true(&(Value::Bool(method.as_str() == Some("GET")))) || is_true(&(Value::Bool(method.as_str() == Some("DELETE")))) {
                 endpoint = Value::Str(format!("{}{}", endpoint, Value::Str(format!("{}{}", Value::Str("?".to_string()), self.urlencode(query.clone(), &[])))));
             }  else {
-                body = self.json(query.clone());
+                body = json_stringify(&query);
                 add_element_to_object(&mut headers, &Value::Str("Content-Type".to_string()), Value::Str("application/json".to_string()));
             }
         }

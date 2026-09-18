@@ -2444,7 +2444,7 @@ impl HibachiCore {
         }
         if (method.as_str() == Some("POST")) || (method.as_str() == Some("PUT")) || (method.as_str() == Some("DELETE")) {
             add_element_to_object(&mut headers, &Value::Str("Content-Type".to_string()), Value::Str("application/json".to_string()));
-            body = self.json(params.clone());
+            body = json_stringify(&params);
         }
         if (api.as_str() == Some("private")) {
             self.check_required_credentials(&[]);

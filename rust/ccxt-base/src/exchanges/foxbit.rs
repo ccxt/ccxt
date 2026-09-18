@@ -2761,7 +2761,7 @@ impl FoxbitCore {
             }
         }
         if (method.as_str() == Some("POST")) || (method.as_str() == Some("PUT")) {
-            body = self.json(params.clone());
+            body = json_stringify(&params);
         }
         let mut bodyToSignature: Value = Value::Str("".to_string());
         if (body != Value::Null) {

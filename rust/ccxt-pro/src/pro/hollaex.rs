@@ -669,7 +669,7 @@ impl HollaexCore {
         }
         let mut stored: Value = self.orders.clone();
         let mut rawOrders: Value = Value::Null;
-        if !is_true(&Value::Bool(is_array(&data))) {
+        if !is_true(&Value::Bool(matches!(&data, Value::Arr(_)))) {
             rawOrders = Value::List(vec![data.clone()]);
         }  else {
             rawOrders = data.clone();
@@ -844,7 +844,7 @@ impl HollaexCore {
         let mut error: Value = self.safe_integer_k(message.clone(), "error", &[]);
         let _try_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
             if (error != Value::Null) {
-                let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), self.json(message.clone())));
+                let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), json_stringify(&message)));
                 self.throw_exactly_matched_exception(crate::value::get_value_k(&self.exceptions.as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "exact"), error.clone(), feedback.clone());
             }
          #[allow(unreachable_code)] { Value::Null }}));

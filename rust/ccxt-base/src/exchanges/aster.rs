@@ -4733,7 +4733,7 @@ impl AsterCore {
     m
 }));
         if (symbols != Value::Null) {
-            if !is_true(&Value::Bool(is_array(&symbols))) {
+            if !is_true(&Value::Bool(matches!(&symbols, Value::Arr(_)))) {
                 panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchPositionsRisk() requires an array argument for symbols".to_string())))));
             }
         }
@@ -5081,7 +5081,7 @@ impl AsterCore {
     m
 }));
         if (symbols != Value::Null) {
-            if !is_true(&Value::Bool(is_array(&symbols))) {
+            if !is_true(&Value::Bool(matches!(&symbols, Value::Arr(_)))) {
                 panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchPositions() requires an array argument for symbols".to_string())))));
             }
         }
@@ -5600,8 +5600,8 @@ impl AsterCore {
             let mut key: Value = get_value(&keys, &i);
             let mut value: Value = get_value(&values, &key);
             let mut value: Value = get_value(&values, &key);
-            let mut isObj: bool = is_true(&Value::Bool(is_array(&value))) || is_true(&self.is_dictionary(value.clone()));
-            let mut valueJsonified: Value = (if isObj { self.json(value.clone()) } else { to_string_val(&value) });
+            let mut isObj: bool = is_true(&Value::Bool(matches!(&value, Value::Arr(_)))) || is_true(&self.is_dictionary(value.clone()));
+            let mut valueJsonified: Value = (if isObj { json_stringify(&value) } else { to_string_val(&value) });
             let mut encoded: Value = self.encode_uri_component(valueJsonified.clone());
             encodedString = Value::Str(format!("{}{}", encodedString, Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", key, Value::Str("=".to_string()))), encoded)), Value::Str("&".to_string())))));
         }
@@ -5729,7 +5729,7 @@ impl AsterCore {
                 //
                 let mut codeRes: Value = self.safe_integer_k(authResponse.clone(), "code", &[]);
                 if (codeRes.as_f64() != Some(200.0)) {
-                    panic!("{}", crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", Value::Str("Builder authorization failed, ".to_string()), self.json(authResponse.clone())))));
+                    panic!("{}", crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", Value::Str("Builder authorization failed, ".to_string()), json_stringify(&authResponse)))));
                 }
              #[allow(unreachable_code)] { Value::Null }})).await;
 if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);

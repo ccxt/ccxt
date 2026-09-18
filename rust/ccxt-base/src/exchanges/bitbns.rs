@@ -1819,7 +1819,7 @@ impl BitbnsCore {
             }
         }  else if (method.as_str() == Some("POST")) {
             if Value::Int(object_keys(&query).len() as i64).as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN) {
-                body = self.json(query.clone());
+                body = json_stringify(&query);
             }  else {
                 body = Value::Str("{}".to_string());
             }
@@ -1829,7 +1829,7 @@ impl BitbnsCore {
                     m.insert("body".to_string(), body.clone());
                 m
             });
-            let mut payload: Value = self.string_to_base64(self.json(auth.clone()), &[]);
+            let mut payload: Value = self.string_to_base64(json_stringify(&auth), &[]);
             let mut signature: Value = self.hmac(self.encode(payload.clone()), self.encode(self.secret.clone()), Value::Str("sha512".to_string()), &[]);
             headers = (if is_true(&(Value::Bool(headers == Value::Null))) { Value::Map({
     let mut m = indexmap::IndexMap::new();

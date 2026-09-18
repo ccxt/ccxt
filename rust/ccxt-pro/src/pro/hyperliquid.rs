@@ -2229,13 +2229,13 @@ impl HyperliquidCore {
         })]);
         let mut status: Value = self.safe_string_k(payload.clone(), "status", &[]);
         if (status != Value::Null) && (status.as_str() != Some("ok")) {
-            let mut error = Value::from(crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), self.json(payload.clone())))));
+            let mut error = Value::from(crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), json_stringify(&payload)))));
             client.reject(&[Value::from(error.clone()), id.clone()]);
             return Value::Bool(true);
         }
         let mut type_var: Value = self.safe_string_k(payload.clone(), "type", &[]);
         if (type_var.as_str() == Some("error")) {
-            let mut error = Value::from(crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), self.json(payload.clone())))));
+            let mut error = Value::from(crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), json_stringify(&payload)))));
             client.reject(&[Value::from(error.clone()), id.clone()]);
             return Value::Bool(true);
         }
@@ -2243,7 +2243,7 @@ impl HyperliquidCore {
             self.handle_errors(Value::Int(0), Value::Str("".to_string()), Value::Str("".to_string()), Value::Str("".to_string()), Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
-            }), self.json(payload.clone()), payload.clone(), Value::Map({
+            }), json_stringify(&payload), payload.clone(), Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
             }), Value::Map({

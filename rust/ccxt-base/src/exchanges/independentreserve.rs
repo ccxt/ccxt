@@ -1716,7 +1716,7 @@ impl IndependentreserveCore {
                 add_element_to_object(&mut query, &key, get_value(&params, &key));
             }
             }
-            body = self.json(query.clone());
+            body = json_stringify(&query);
             headers = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("Content-Type".to_string(), Value::Str("application/json".to_string()));

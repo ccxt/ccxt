@@ -1867,7 +1867,7 @@ impl BitmexCore {
         // E.g. self.urlencode({"filter": {"open": True}}, &[]) will return "filter={'open':+True}"
         // Bitmex doesn't like that. Hence resorting to this hack.
         if is_true(&Value::Bool(in_op(&request, &Value::Str("filter".to_string())))) {
-            { let __be_tmp = self.json(crate::value::get_value_k(&request, "filter")); add_element_to_object(&mut request, &Value::Str("filter".to_string()), __be_tmp); };
+            { let __be_tmp = json_stringify(&crate::value::get_value_k(&request, "filter")); add_element_to_object(&mut request, &Value::Str("filter".to_string()), __be_tmp); };
         }
         let mut response: Value = self.private_get_order(&[request.clone()]).await;
         return self.parse_orders(response.clone(), &[market.clone(), since.clone(), limit.clone()]);
@@ -1987,7 +1987,7 @@ impl BitmexCore {
         // E.g. self.urlencode({"filter": {"open": True}}, &[]) will return "filter={'open':+True}"
         // Bitmex doesn't like that. Hence resorting to this hack.
         if is_true(&Value::Bool(in_op(&request, &Value::Str("filter".to_string())))) {
-            { let __be_tmp = self.json(crate::value::get_value_k(&request, "filter")); add_element_to_object(&mut request, &Value::Str("filter".to_string()), __be_tmp); };
+            { let __be_tmp = json_stringify(&crate::value::get_value_k(&request, "filter")); add_element_to_object(&mut request, &Value::Str("filter".to_string()), __be_tmp); };
         }
         let mut response: Value = self.private_get_execution_trade_history(&[request.clone()]).await;
         return self.parse_trades(response.clone(), &[market.clone(), since.clone(), limit.clone()]);
@@ -4530,7 +4530,7 @@ impl BitmexCore {
             add_element_to_object(&mut headers, &Value::Str("api-expires".to_string()), stringExpires.clone());
             if (method.as_str() == Some("POST")) || (method.as_str() == Some("PUT")) || (method.as_str() == Some("DELETE")) {
                 if Value::Int(object_keys(&params).len() as i64).as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN) {
-                    body = self.json(params.clone());
+                    body = json_stringify(&params);
                     auth = Value::Str(format!("{}{}", auth, body));
                 }
             }

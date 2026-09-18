@@ -1073,7 +1073,7 @@ impl BithumbCore {
                     let mut market: Value = get_value(&data, &currencyId);
                     let mut base: Value = self.safe_currency_code(currencyId.clone(), &[]);
                     let mut active: Value = Value::Bool(true);
-                    if is_true(&Value::Bool(is_array(&market))) {
+                    if is_true(&Value::Bool(matches!(&market, Value::Arr(_)))) {
                         let mut numElements: Value = Value::Int(market.len() as i64);
                         if (numElements.as_f64() == Some(0.0)) {
                             active = Value::Bool(false);
@@ -1657,7 +1657,7 @@ impl BithumbCore {
                     expectedMarketId = firstMarketId.clone();
                 }
                 let mut tickers: Value = Value::List(vec![]);
-                if is_true(&Value::Bool(is_array(&response))) {
+                if is_true(&Value::Bool(matches!(&response, Value::Arr(_)))) {
                     tickers = response.clone();
                 }  else if is_true(&self.is_dictionary(response.clone())) {
                     if is_true(&(Value::Bool(in_op(&response, &Value::Str("market".to_string()))))) || is_true(&(Value::Bool(in_op(&response, &Value::Str("trade_date".to_string()))))) || is_true(&(Value::Bool(in_op(&response, &Value::Str("trade_timestamp".to_string()))))) {
@@ -1914,7 +1914,7 @@ impl BithumbCore {
         //     }
         //
         let mut timestamp: Value = Value::Null;
-        if is_true(&Value::Bool(is_array(&ohlcv))) {
+        if is_true(&Value::Bool(matches!(&ohlcv, Value::Arr(_)))) {
             timestamp = self.safe_integer2(ohlcv.clone(), Value::Int(0), Value::Str("timestamp".to_string()), &[]);
         }  else {
             timestamp = self.parse8601(self.safe_string2(ohlcv.clone(), Value::Str("candle_date_time_utc".to_string()), Value::Str("candle_date_time_kst".to_string()), &[]));
@@ -4083,7 +4083,7 @@ impl BithumbCore {
             let mut key: Value = get_value(&keys, &i);
             let mut value: Value = get_value(&query, &key);
             let mut value: Value = get_value(&query, &key);
-            if is_true(&Value::Bool(is_array(&value))) {
+            if is_true(&Value::Bool(matches!(&value, Value::Arr(_)))) {
                 let mut encodedKey: Value = Value::Str(format!("{}{}", self.encode_uri_component(key.clone()), Value::Str("[]".to_string())));
                 {
                                         let mut j: Value = Value::Int(0);
@@ -4093,7 +4093,7 @@ impl BithumbCore {
                     let mut item: Value = get_value(&value, &j);
                     let mut valueString: Value = self.safe_string(value.clone(), j.clone(), &[]);
                     if (valueString == Value::Null) {
-                        valueString = self.json(item.clone());
+                        valueString = json_stringify(&item);
                     }
                     if Value::Int(result.len() as i64).as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN) {
                         result = Value::Str(format!("{}{}", result, Value::Str("&".to_string())));
@@ -4162,7 +4162,7 @@ impl BithumbCore {
                 if is_true(&(Value::Bool(method.as_str() != Some("GET")))) && is_true(&(Value::Bool(method.as_str() != Some("DELETE")))) {
                     add_element_to_object(&mut headers, &Value::Str("Content-Type".to_string()), Value::Str("application/json".to_string()));
                     if hasQuery {
-                        body = self.json(query.clone());
+                        body = json_stringify(&query);
                         auth = self.urlencode_with_array_brackets(query.clone());
                     }
                 }  else if hasQuery {

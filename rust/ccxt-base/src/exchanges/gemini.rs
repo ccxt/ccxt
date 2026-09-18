@@ -1468,7 +1468,7 @@ impl GeminiCore {
         let mut brokenPairs: Value = self.safe_list_k(self.options.clone(), "brokenPairs", &[Value::List(vec![])]);
         let mut marketIds: Value = Value::List(vec![]);
         let mut allMarketIds: Value = Value::List(vec![]);
-        if is_true(&Value::Bool(is_array(&marketIdsRaw))) {
+        if is_true(&Value::Bool(matches!(&marketIdsRaw, Value::Arr(_)))) {
             allMarketIds = marketIdsRaw.clone();
         }
         {
@@ -1584,8 +1584,8 @@ impl GeminiCore {
         let mut contractSize: Value = Value::Null;
         let mut linear: Value = Value::Null;
         let mut inverse: Value = Value::Null;
-        let mut isString: bool = is_string(&response);
-        let mut isArray: bool = is_array(&response);
+        let mut isString: bool = matches!(&response, Value::Str(_));
+        let mut isArray: bool = matches!(&response, Value::Arr(_));
         if !isString && !isArray {
             marketId = self.safe_string_lower(response.clone(), Value::Str("symbol".to_string()), &[]);
             amountPrecision = self.safe_number_k(response.clone(), "tick_size", &[]); // right, exchange has an imperfect naming and this turns out to be an amount-precision
@@ -2709,7 +2709,7 @@ impl GeminiCore {
         //
         let mut result: Value = self.safe_string_k(response.clone(), "result", &[]);
         if (result.as_str() == Some("error")) {
-            panic!("{}", crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" withdraw() failed: ".to_string()))), self.json(response.clone())))));
+            panic!("{}", crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" withdraw() failed: ".to_string()))), json_stringify(&response)))));
         }
         return self.parse_transaction(response.clone(), &[currency.clone()]);
 
@@ -2961,7 +2961,7 @@ impl GeminiCore {
                     m.insert("nonce".to_string(), nonce.clone());
                 m
             }), &[query.clone()]);
-            let mut payload: Value = self.json(request.clone());
+            let mut payload: Value = json_stringify(&request);
             payload = self.string_to_base64(payload.clone(), &[]);
             let mut signature: Value = self.hmac(self.encode(payload.clone()), self.encode(self.secret.clone()), Value::Str("sha384".to_string()), &[]);
             headers = Value::Map({
@@ -2979,7 +2979,7 @@ impl GeminiCore {
         }
         url = add(&get_value(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), &api), &url);
         if is_true(&(Value::Bool(method.as_str() == Some("POST")))) || is_true(&(Value::Bool(method.as_str() == Some("DELETE")))) {
-            body = self.json(query.clone());
+            body = json_stringify(&query);
         }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2995,7 +2995,7 @@ impl GeminiCore {
 
     pub fn handle_errors(&self, mut httpCode: Value, mut reason: Value, mut url: Value, mut method: Value, mut headers: Value, mut body: Value, mut response: Value, mut requestHeaders: Value, mut requestBody: Value) -> Value {
         if (response == Value::Null) {
-            if is_string(&body) {
+            if matches!(&body, Value::Str(_)) {
                 let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), body));
                 self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), body.clone(), feedback.clone());
             }
@@ -3104,7 +3104,7 @@ impl GeminiCore {
         //     ]
         //
         let mut candles: Value = Value::List(vec![]);
-        if is_true(&Value::Bool(is_array(&response))) {
+        if is_true(&Value::Bool(matches!(&response, Value::Arr(_)))) {
             candles = response.clone();
         }
         return self.parse_ohlc_vs(candles.clone(), &[market.clone(), timeframe.clone(), since.clone(), limit.clone()]);

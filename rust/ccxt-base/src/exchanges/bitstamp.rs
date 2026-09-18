@@ -2455,7 +2455,7 @@ impl BitstampCore {
         let mut currencyIds: Value = object_keys(&trade);
         let mut numCurrencyIds: Value = Value::Int(currencyIds.len() as i64);
         if numCurrencyIds.as_f64().unwrap_or(f64::NAN) > Value::Int(2).as_f64().unwrap_or(f64::NAN) {
-            panic!("{}", crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" getMarketFromTrade() too many keys: ".to_string()))), self.json(currencyIds.clone()))), Value::Str(" in the trade: ".to_string()))), self.json(trade.clone())))));
+            panic!("{}", crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" getMarketFromTrade() too many keys: ".to_string()))), json_stringify(&currencyIds))), Value::Str(" in the trade: ".to_string()))), json_stringify(&trade)))));
         }
         if (numCurrencyIds.as_f64() == Some(2.0)) {
             let mut marketId: Value = Value::Str(format!("{}{}", currencyIds.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null), currencyIds.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null)));
@@ -4413,7 +4413,7 @@ impl BitstampCore {
         let mut error: Value = self.safe_value_k(response.clone(), "error", &[]);
         if is_true(&(Value::Bool(status.as_str() == Some("error")))) || is_true(&(Value::Bool(error != Value::Null))) {
             let mut errors: Value = Value::List(vec![]);
-            if is_string(&error) {
+            if matches!(&error, Value::Str(_)) {
                 append_to_array(&mut errors, error.clone());
             }  else if (error != Value::Null) {
                 let mut keys: Value = object_keys(&error);
@@ -4424,7 +4424,7 @@ impl BitstampCore {
                     let mut key: Value = get_value(&keys, &i);
                     let mut key: Value = get_value(&keys, &i);
                     let mut value: Value = self.safe_value(error.clone(), key.clone(), &[]);
-                    if is_true(&Value::Bool(is_array(&value))) {
+                    if is_true(&Value::Bool(matches!(&value, Value::Arr(_)))) {
                         errors = self.array_concat(errors.clone(), value.clone());
                     }  else {
                         append_to_array(&mut errors, value.clone());
@@ -4436,7 +4436,7 @@ impl BitstampCore {
                 let mut m = indexmap::IndexMap::new();
                 m
             })]);
-            if is_string(&reasonInner) {
+            if matches!(&reasonInner, Value::Str(_)) {
                 append_to_array(&mut errors, reasonInner.clone());
             }  else {
                 let mut all: Value = self.safe_list_k(reasonInner.clone(), "__all__", &[Value::List(vec![])]);

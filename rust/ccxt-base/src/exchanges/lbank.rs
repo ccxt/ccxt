@@ -1975,7 +1975,7 @@ impl LbankCore {
             return self.safe_balance(result.clone());
         }
         // from spotPrivatePostSupplementUserInfo
-        let mut isArray: Value = Value::Bool(is_array(&data));
+        let mut isArray: Value = Value::Bool(matches!(&data, Value::Arr(_)));
         if (isArray.as_bool() == Some(true)) {
             {
                                 let mut i: Value = Value::Int(0);
@@ -4255,7 +4255,7 @@ impl LbankCore {
                     m.insert("10701".to_string(), Value::Str("invalid asset code".to_string()));
                     m.insert("10702".to_string(), Value::Str("not allowed deposit".to_string()));
                 m
-            }), errorCode.clone(), &[self.json(response.clone())]);
+            }), errorCode.clone(), &[json_stringify(&response)]);
             let mut ErrorClass: Value = self.safe_value(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("10001".to_string(), Value::Str("BadRequest".to_string()).clone());

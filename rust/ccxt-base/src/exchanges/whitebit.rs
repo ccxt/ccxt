@@ -2522,7 +2522,7 @@ impl WhitebitCore {
                 }
              #[allow(unreachable_code)] { Value::Null }})).await;
 match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { return __try_ok; } return Value::Null; } Err(_try_err) => { let error: Value = panic_to_value(_try_err); 
-                if !(is_instance(&error, &Value::Str("OrderNotFound".to_string()))) {
+                if !(matches!(&error, Value::Str(__s) if __s.contains("[OrderNotFound]"))) {
                     panic!("{}", error);
                 }
              } }
@@ -2558,7 +2558,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 }
              #[allow(unreachable_code)] { Value::Null }})).await;
 match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { return __try_ok; } return Value::Null; } Err(_try_err) => { let error: Value = panic_to_value(_try_err); 
-                if !(is_instance(&error, &Value::Str("OrderNotFound".to_string()))) {
+                if !(matches!(&error, Value::Str(__s) if __s.contains("[OrderNotFound]"))) {
                     panic!("{}", error);
                 }
              } }
@@ -2862,7 +2862,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         //         },
         //     ]
         //
-        if is_true(&Value::Bool(is_array(&response))) {
+        if is_true(&Value::Bool(matches!(&response, Value::Arr(_)))) {
             return self.parse_trades(response.clone(), &[market.clone(), since.clone(), limit.clone()]);
         }  else {
             let mut results: Value = Value::List(vec![]);

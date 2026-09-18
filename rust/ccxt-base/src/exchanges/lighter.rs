@@ -1013,7 +1013,7 @@ impl LighterCore {
             // }
             //
             let mut subAccounts: Value = self.safe_list_k(res.clone(), "sub_accounts", &[]);
-            if is_true(&Value::Bool(is_array(&subAccounts))) {
+            if is_true(&Value::Bool(matches!(&subAccounts, Value::Arr(_)))) {
                 let mut account: Value = self.safe_dict(subAccounts.clone(), Value::Int(0), &[]);
                 if (account == Value::Null) {
                     panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), methodName1)), Value::Str("() requires an ".to_string()))), optionName1)), Value::Str(" or ".to_string()))), optionName2)), Value::Str(" parameter".to_string())))));
@@ -1161,7 +1161,7 @@ impl LighterCore {
         let mut signature: Value = self.sign_hash(hashMessage.clone(), privateKey.clone());
         let mut decTxInfo: Value = self.parse_json_value(txInfo.clone());
         add_element_to_object(&mut decTxInfo, &Value::Str("L1Sig".to_string()), signature.clone());
-        return self.json(decTxInfo.clone());
+        return json_stringify(&decTxInfo);
 
     Value::Null
 }

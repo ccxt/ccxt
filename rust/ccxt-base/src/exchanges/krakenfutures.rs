@@ -4772,7 +4772,7 @@ impl KrakenfuturesCore {
         let mut query: Value = endpoint.clone();
         let mut postData: Value = Value::Str("".to_string());
         if (path.as_str() == Some("batchorder")) {
-            postData = Value::Str(format!("{}{}", Value::Str("json=".to_string()), self.json(params.clone())));
+            postData = Value::Str(format!("{}{}", Value::Str("json=".to_string()), json_stringify(&params)));
             body = postData.clone();
         }  else if Value::Int(object_keys(&params).len() as i64).as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN) {
             if is_true(&Value::Bool(matches!(&params, Value::Dict(__d) if __d.contains_key("orderIds")))) {

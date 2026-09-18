@@ -365,7 +365,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             skipMessage = Value::Str("[INFO] IGNORED_TEST".to_string());
         }  else if !isLoadMarkets && !supportedByExchange && !isProxyTest && !isFeatureTest && !isConstructorTest {
             skipMessage = Value::Str("[INFO] UNSUPPORTED_TEST".to_string()); // keep it aligned with the longest message
-        }  else if is_string(&skippedPropertiesForMethod) {
+        }  else if matches!(&skippedPropertiesForMethod, Value::Str(_)) {
             skipMessage = Value::Str("[INFO] SKIPPED_TEST".to_string());
         }  else if !is_true(&(Value::Bool(in_op(&self.testFiles, &methodName)))) {
             skipMessage = Value::Str("[INFO] UNIMPLEMENTED_TEST".to_string());
@@ -417,7 +417,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut mName: Value = get_value(&methodNames, &i);
             if is_true(&Value::Bool(in_op(&self.skippedMethods, &mName))) {
                 // if whole method is skipped, by assigning a string to it, i.e. "fetchOrders":"blabla"
-                if is_string(&get_value(&self.skippedMethods, &mName)) {
+                if matches!(&get_value(&self.skippedMethods, &mName), Value::Str(_)) {
                     return get_value(&self.skippedMethods, &mName);
                 }  else {
                     finalSkips = exchange.deep_extend(finalSkips.clone(), &[get_value(&self.skippedMethods, &mName)]);
@@ -446,7 +446,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut objectMethods: Value = get_value(&objectSkips, &objectName);
             if is_true(&exchange.in_array(methodName.clone(), objectMethods.clone())) {
                 // if whole object is skipped, by assigning a string to it, i.e. "orderBook":"blabla"
-                if is_true(&(Value::Bool(in_op(&self.skippedMethods, &objectName)))) && (is_string(&get_value(&self.skippedMethods, &objectName))) {
+                if is_true(&(Value::Bool(in_op(&self.skippedMethods, &objectName)))) && is_true(&(matches!(&get_value(&self.skippedMethods, &objectName), Value::Str(_)))) {
                     return get_value(&self.skippedMethods, &objectName);
                 }
                 let mut extraSkips: Value = exchange.safe_dict(self.skippedMethods.clone(), objectName.clone(), &[Value::Map({
@@ -499,13 +499,13 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 let mut e: Value = getRootException(ex);
                 let mut isLoadMarkets: bool = methodName.as_str() == Some("loadMarkets");
                 let mut isAuthError: bool = is_instance(&e, &Value::Str("AuthenticationError".to_string()));
-                let mut isNotSupported: bool = is_instance(&e, &Value::Str("NotSupported".to_string()));
+                let mut isNotSupported: bool = matches!(&e, Value::Str(__s) if __s.contains("[NotSupported]"));
                 let mut isOperationFailed: bool = is_instance(&e, &Value::Str("OperationFailed".to_string())); // includes "DDoSProtection", "RateLimitExceeded", "RequestTimeout", "ExchangeNotAvailable", "OperationFailed", "InvalidNonce", ...
                 let mut lastUrlMsg: Value = (if is_true(&self.wsTests) { Value::Str("".to_string()) } else { Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(" (Last url: ".to_string()), self.get_last_request_url(exchange.clone()))), Value::Str(" )".to_string()))) });
                 if isOperationFailed {
                     // if last retry was gone with same `tempFailure` error, then let's eventually return false
                     if (i.as_f64() == (match (&(maxRetries), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }).as_f64()) {
-                        let mut isOnMaintenance: bool = is_instance(&e, &Value::Str("OnMaintenance".to_string()));
+                        let mut isOnMaintenance: bool = matches!(&e, Value::Str(__s) if __s.contains("[OnMaintenance]"));
                         let mut isExchangeNotAvailable: bool = is_instance(&e, &Value::Str("ExchangeNotAvailable".to_string()));
                         let mut shouldFail: Value = Value::Null;
                         let mut retSuccess: Value = Value::Null;
@@ -1281,7 +1281,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 }
 
     pub fn assert_prediction_events(&self, mut exchange: Value, mut events: Value) -> Value {
-        assert(Value::Bool(is_array(&events)), &[add(&get_value(&exchange, &Value::Str("id".to_string())), &Value::Str(" fetchEvents/fetchEvent should return a list".to_string()))]);
+        assert(Value::Bool(matches!(&events, Value::Arr(_))), &[add(&get_value(&exchange, &Value::Str("id".to_string())), &Value::Str(" fetchEvents/fetchEvent should return a list".to_string()))]);
         let mut eventsLength: Value = Value::Int(events.len() as i64);
         {
                         let mut i: Value = Value::Int(0);
@@ -1332,11 +1332,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (active != Value::Null) {
             // typeof check, not `=== true || === false` — the latter transpiles to `== False`
             // in Python, which ruff rejects (E712)
-            assert(Value::Bool(is_bool(&active)), &[Value::Str(format!("{}{}", add(&get_value(&exchange, &Value::Str("id".to_string())), &Value::Str(" event active must be a bool".to_string())), logText))]);
+            assert(Value::Bool(matches!(&active, Value::Bool(_))), &[Value::Str(format!("{}{}", add(&get_value(&exchange, &Value::Str("id".to_string())), &Value::Str(" event active must be a bool".to_string())), logText))]);
         }
         let mut tags: Value = exchange.safe_value(event.clone(), Value::Str("tags".to_string()), &[]);
         if (tags != Value::Null) {
-            assert(Value::Bool(is_array(&tags)), &[Value::Str(format!("{}{}", add(&get_value(&exchange, &Value::Str("id".to_string())), &Value::Str(" event tags must be a list".to_string())), logText))]);
+            assert(Value::Bool(matches!(&tags, Value::Arr(_))), &[Value::Str(format!("{}{}", add(&get_value(&exchange, &Value::Str("id".to_string())), &Value::Str(" event tags must be a list".to_string())), logText))]);
         }
         let mut info: Value = exchange.safe_value(event.clone(), Value::Str("info".to_string()), &[]);
         assert(Value::Bool(info != Value::Null), &[Value::Str(format!("{}{}", add(&get_value(&exchange, &Value::Str("id".to_string())), &Value::Str(" event missing info".to_string())), logText))]);
@@ -1357,7 +1357,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         // honour a skip-tests.json createOrder skip — e.g. polymarket geo-blocks order placement
         // and CI runs via an EU proxy, so live order placement is skipped and covered by fixtures
         let mut createOrderSkip: Value = self.get_skips(exchange.clone(), Value::Str("createOrder".to_string()));
-        if is_string(&createOrderSkip) {
+        if matches!(&createOrderSkip, Value::Str(_)) {
             dump(&[Value::Str("[INFO] skipping prediction createOrder test".to_string()), get_value(&exchange, &Value::Str("id".to_string())), createOrderSkip.clone()]);
             return Value::Bool(true);
         }
@@ -1627,10 +1627,10 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut watchOrderBookSkips: Value = self.get_skips(exchange.clone(), Value::Str("watchOrderBook".to_string()));
         let mut fetchOrderBookSkips: Value = self.get_skips(exchange.clone(), Value::Str("fetchOrderBook".to_string()));
         // ensure with hardcoded list of required methods
-        if is_true(&self.wsTests) && is_true(&(Value::Bool(exchange.safe_bool(get_value(&exchange, &Value::Str("has".to_string())), Value::Str("watchOrderBook".to_string()), &[Value::Bool(false)]).as_bool() != Some(true)))) && !is_string(&watchOrderBookSkips) {
+        if is_true(&self.wsTests) && is_true(&(Value::Bool(exchange.safe_bool(get_value(&exchange, &Value::Str("has".to_string())), Value::Str("watchOrderBook".to_string()), &[Value::Bool(false)]).as_bool() != Some(true)))) && !matches!(&watchOrderBookSkips, Value::Str(_)) {
             dump(&[Value::Str("[TEST_FAILURE] Method \"watchOrderBook\" is not set in \"has\", please check the \"has\" property of exchange".to_string())]);
             exitScript(Value::Int(1));
-        }  else if !is_true(&self.wsTests) && is_true(&(Value::Bool(exchange.safe_bool(get_value(&exchange, &Value::Str("has".to_string())), Value::Str("fetchOrderBook".to_string()), &[Value::Bool(false)]).as_bool() != Some(true)))) && !is_string(&fetchOrderBookSkips) {
+        }  else if !is_true(&self.wsTests) && is_true(&(Value::Bool(exchange.safe_bool(get_value(&exchange, &Value::Str("has".to_string())), Value::Str("fetchOrderBook".to_string()), &[Value::Bool(false)]).as_bool() != Some(true)))) && !matches!(&fetchOrderBookSkips, Value::Str(_)) {
             dump(&[Value::Str("[TEST_FAILURE] Method \"fetchOrderBook\" is not set in \"has\", please check the \"has\" property of exchange".to_string())]);
             exitScript(Value::Int(1));
         }
@@ -1797,10 +1797,10 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         if is_true(&(Value::Bool(value == Value::Null))) || (is_equal(&value, &Value::Bool(false))) || is_true(&(Value::Bool(value.as_str() == Some("")))) {
             return Value::Bool(true);
         }
-        if is_true(&exchange.is_dictionary(value.clone())) || is_true(&Value::Bool(is_array(&value))) {
+        if is_true(&exchange.is_dictionary(value.clone())) || is_true(&Value::Bool(matches!(&value, Value::Arr(_)))) {
             return Value::Bool(false);
         }
-        if (is_string(&value)) || (is_bool(&value)) {
+        if is_true(&(matches!(&value, Value::Str(_)))) || is_true(&(matches!(&value, Value::Bool(_)))) {
             return Value::Bool(false);
         }
         return Value::Bool((is_less_than_or_equal(&value, &Value::Int(0))) && (is_greater_than_or_equal(&value, &Value::Int(0))));
@@ -1821,7 +1821,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         if is_true(&isNullValue(value.clone())) {
             return Value::Bool(true);
         }
-        if is_true(&Value::Bool(is_array(&value))) {
+        if is_true(&Value::Bool(matches!(&value, Value::Arr(_)))) {
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_1521: bool = true;
@@ -1893,7 +1893,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             }
         }
         // if needed convert stringified jsons to objects
-        if (is_string(&storedOutput)) && (is_string(&newOutput)) && is_true(&Value::Bool(starts_with(&storedOutput, &Value::Str("{".to_string())))) && is_true(&Value::Bool(starts_with(&newOutput, &Value::Str("{".to_string())))) {
+        if is_true(&(matches!(&storedOutput, Value::Str(_)))) && is_true(&(matches!(&newOutput, Value::Str(_)))) && is_true(&Value::Bool(starts_with(&storedOutput, &Value::Str("{".to_string())))) && is_true(&Value::Bool(starts_with(&newOutput, &Value::Str("{".to_string())))) {
             storedOutput = jsonParse(storedOutput.clone());
             newOutput = jsonParse(newOutput.clone());
         }
@@ -1936,7 +1936,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 self.assert_new_and_stored_output_inner(exchange.clone(), skipKeys.clone(), newValue.clone(), storedValue.clone(), &[strictTypeCheck.clone(), key.clone()]);
             }
             }
-        }  else if is_true(&(Value::Bool(storedOutput != Value::Null))) && is_true(&(Value::Bool(newOutput != Value::Null))) && is_true(&Value::Bool(is_array(&storedOutput))) && is_true(&(Value::Bool(is_array(&newOutput)))) {
+        }  else if is_true(&(Value::Bool(storedOutput != Value::Null))) && is_true(&(Value::Bool(newOutput != Value::Null))) && is_true(&Value::Bool(matches!(&storedOutput, Value::Arr(_)))) && is_true(&(Value::Bool(matches!(&newOutput, Value::Arr(_))))) {
             let mut storedArrayLength: Value = Value::Int(storedOutput.len() as i64);
             let mut newArrayLength: Value = Value::Int(newOutput.len() as i64);
             self.assert_static_error(Value::Bool(storedArrayLength.as_f64() == newArrayLength.as_f64()), Value::Str("output length mismatch".to_string()), storedOutput.clone(), newOutput.clone(), &[]);
@@ -1964,10 +1964,10 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 // when comparing the response we want to allow some flexibility, because a 50.0 can be equal to 50 after saving it to the json file
                 self.assert_static_error(Value::Bool(is_equal(&sanitizedNewOutput, &sanitizedStoredOutput)), messageError.clone(), storedOutput.clone(), newOutput.clone(), &[assertingKey.clone()]);
             }  else {
-                let mut isComputedBool: Value = Value::Bool(is_bool(&sanitizedNewOutput));
-                let mut isStoredBool: Value = Value::Bool(is_bool(&sanitizedStoredOutput));
-                let mut isComputedString: Value = Value::Bool(is_string(&sanitizedNewOutput));
-                let mut isStoredString: Value = Value::Bool(is_string(&sanitizedStoredOutput));
+                let mut isComputedBool: Value = (Value::Bool(matches!(&sanitizedNewOutput, Value::Bool(_))));
+                let mut isStoredBool: Value = (Value::Bool(matches!(&sanitizedStoredOutput, Value::Bool(_))));
+                let mut isComputedString: Value = (Value::Bool(matches!(&sanitizedNewOutput, Value::Str(_))));
+                let mut isStoredString: Value = (Value::Bool(matches!(&sanitizedStoredOutput, Value::Str(_))));
                 let mut isComputedUndefined: Value = (Value::Bool(sanitizedNewOutput == Value::Null));
                 let mut isStoredUndefined: Value = (Value::Bool(sanitizedStoredOutput == Value::Null));
                 let mut shouldBeSame: Value = Value::Bool(is_true(&(Value::Bool(isComputedBool.as_bool() == isStoredBool.as_bool()))) && is_true(&(Value::Bool(isComputedString.as_bool() == isStoredString.as_bool()))) && is_true(&(Value::Bool(isComputedUndefined.as_bool() == isStoredUndefined.as_bool()))));
@@ -2106,10 +2106,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             }
         }
         if (type_var.as_str() == Some("json")) && is_true(&(Value::Bool(storedOutput != Value::Null))) && is_true(&(Value::Bool(newOutput != Value::Null))) {
-            if is_string(&storedOutput) {
+            if matches!(&storedOutput, Value::Str(_)) {
                 storedOutput = jsonParse(storedOutput.clone());
             }
-            if is_string(&newOutput) {
+            if matches!(&newOutput, Value::Str(_)) {
                 newOutput = jsonParse(newOutput.clone());
             }
         }  else if (type_var.as_str() == Some("urlencoded")) && is_true(&(Value::Bool(storedOutput != Value::Null))) && is_true(&(Value::Bool(newOutput != Value::Null))) {
@@ -2171,7 +2171,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             }
          #[allow(unreachable_code)] { Value::Null }})).await;
 if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
-            if !(is_instance(&e, &Value::Str("InvalidProxySettings".to_string()))) {
+            if !(matches!(&e, Value::Str(__s) if __s.contains("[InvalidProxySettings]"))) {
                 panic!("{}", e);
             }
             output = get_value(&exchange, &Value::Str("last_request_body".to_string()));

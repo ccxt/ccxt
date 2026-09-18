@@ -3421,7 +3421,7 @@ impl ExtendedCore {
     m
 }));
         self.load_markets(&[]).await;
-        if is_string(&symbols) {
+        if matches!(&symbols, Value::Str(_)) {
             symbols = Value::List(vec![symbols.clone()]);
         }
         let mut paginate: Value = Value::Bool(false);
@@ -4761,7 +4761,7 @@ impl ExtendedCore {
 
     pub fn get_extended_decimal_to_base16(&self, mut value: Value) -> Value {
         let mut decimalString: Value = Value::Str("".to_string());
-        if is_string(&value) {
+        if matches!(&value, Value::Str(_)) {
             decimalString = value.clone();
         }  else {
             decimalString = self.number_to_string(value.clone());
@@ -4782,7 +4782,7 @@ impl ExtendedCore {
 }
 
     pub fn get_extended_signature_hex(&self, mut signature: Value) -> Value {
-        if is_string(&signature) {
+        if matches!(&signature, Value::Str(_)) {
             if (get_index_of(&signature, &Value::Str("0x".to_string())).as_f64() == Some(0.0)) {
                 return signature;
             }
@@ -4862,7 +4862,7 @@ impl ExtendedCore {
         if (status.as_str() == Some("error")) {
             let mut error: Value = self.safe_dict_k(response.clone(), "error", &[]);
             let mut errorCode: Value = self.safe_string_k(error.clone(), "code", &[]);
-            let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), self.json(response.clone())));
+            let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), json_stringify(&response)));
             self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), body.clone(), feedback.clone());
             self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), errorCode.clone(), feedback.clone());
             panic!("{}", crate::exchange_errors::exchange_error(feedback));
@@ -4898,7 +4898,7 @@ impl ExtendedCore {
                 m
             });
             if is_true(&(Value::Bool(is_true(&(Value::Bool(method.as_str() == Some("POST")))) || is_true(&(Value::Bool(method.as_str() == Some("PATCH"))))))) && !queryPost {
-                body = self.json(query.clone());
+                body = json_stringify(&query);
                 add_element_to_object(&mut headers, &Value::Str("Content-Type".to_string()), Value::Str("application/json".to_string()));
             }
         }

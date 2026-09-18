@@ -1551,7 +1551,7 @@ impl CoinbaseexchangeCore {
         let mut open: Value = Value::Null;
         let mut volume: Value = Value::Null;
         let mut symbol: Value = (if is_true(&(Value::Bool(market == Value::Null))) { Value::Null } else { market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null) });
-        if is_true(&Value::Bool(is_array(&ticker))) {
+        if is_true(&Value::Bool(matches!(&ticker, Value::Arr(_)))) {
             last = self.safe_string(ticker.clone(), Value::Int(4), &[]);
             timestamp = self.milliseconds();
         }  else {
@@ -2533,7 +2533,7 @@ impl CoinbaseexchangeCore {
             response = self.private_post_withdrawals_crypto(&[__ws_arg_24]).await;
         }
         if (response == Value::Null) {
-            panic!("{}", crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" withdraw() error: ".to_string()))), self.json(response.clone())))));
+            panic!("{}", crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" withdraw() error: ".to_string()))), json_stringify(&response)))));
         }
         return self.parse_transaction(response.clone(), &[currency.clone()]);
 
@@ -3078,7 +3078,7 @@ impl CoinbaseexchangeCore {
             let mut payload: Value = Value::Str("".to_string());
             if (method.as_str() != Some("GET")) {
                 if Value::Int(object_keys(&query).len() as i64).as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN) {
-                    body = self.json(query.clone());
+                    body = json_stringify(&query);
                     payload = body.clone();
                 }
             }
@@ -3143,9 +3143,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     m
 }));
         let mut response: Value = self.fetch2(path.clone(), &[api.clone(), method.clone(), params.clone(), headers.clone(), body.clone(), config.clone()]).await;
-        if !is_string(&response) {
+        if !matches!(&response, Value::Str(_)) {
             if is_true(&Value::Bool(in_op(&response, &Value::Str("message".to_string())))) {
-                panic!("{}", crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), self.json(response.clone())))));
+                panic!("{}", crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), json_stringify(&response)))));
             }
         }
         return response;

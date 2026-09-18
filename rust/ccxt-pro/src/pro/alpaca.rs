@@ -1093,7 +1093,7 @@ impl AlpacaCore {
 }
 
     pub fn handle_message(&mut self, mut client: Value, mut message: Value) {
-        if is_true(&Value::Bool(is_array(&message))) {
+        if is_true(&Value::Bool(matches!(&message, Value::Arr(_)))) {
             self.handle_crypto_message(client.clone(), message.clone());
             return;
         }

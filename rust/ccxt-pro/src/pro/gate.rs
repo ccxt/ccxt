@@ -1178,7 +1178,7 @@ impl GateCore {
             while { if !__for_first_339 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_339 = false; is_less_than(&i, &get_array_length(&bidAsks)) } {
             let mut bidAsk: Value = get_value(&bidAsks, &i);
             let mut bidAsk: Value = get_value(&bidAsks, &i);
-            if is_true(&Value::Bool(is_array(&bidAsk))) {
+            if is_true(&Value::Bool(matches!(&bidAsk, Value::Arr(_)))) {
                 bookSide.store_array(self.parse_order_book_bid_ask(bidAsk.clone(), &[]));
             }  else {
                 let mut price: Value = self.safe_float_k(bidAsk.clone(), "p", &[]);
@@ -1383,7 +1383,7 @@ impl GateCore {
         let mut marketType: Value = (if is_true(&(Value::Bool(rawMarketType.as_str() == Some("futures")))) { Value::Str("contract".to_string()) } else { Value::Str("spot".to_string()) });
         let mut result: Value = self.safe_value_k(message.clone(), "result", &[]);
         let mut results: Value = Value::List(vec![]);
-        if is_true(&Value::Bool(is_array(&result))) {
+        if is_true(&Value::Bool(matches!(&result, Value::Arr(_)))) {
             results = self.safe_list_k(message.clone(), "result", &[Value::List(vec![])]);
         }  else {
             let mut rawTicker: Value = self.safe_dict_k(message.clone(), "result", &[Value::Map({
@@ -1570,7 +1570,7 @@ impl GateCore {
         // }
         //
         let mut result: Value = self.safe_value_k(message.clone(), "result", &[]);
-        if !is_true(&Value::Bool(is_array(&result))) {
+        if !is_true(&Value::Bool(matches!(&result, Value::Arr(_)))) {
             result = Value::List(vec![result.clone()]);
         }
         let mut parsedTrades: Value = self.parse_trades(result.clone(), &[]);
@@ -1662,7 +1662,7 @@ impl GateCore {
         let mut rawMarketType: Value = self.safe_string(channelParts.clone(), Value::Int(0), &[]);
         let mut marketType: Value = (if is_true(&(Value::Bool(rawMarketType.as_str() == Some("spot")))) { Value::Str("spot".to_string()) } else { Value::Str("contract".to_string()) });
         let mut result: Value = self.safe_value_k(message.clone(), "result", &[]);
-        if !is_true(&Value::Bool(is_array(&result))) {
+        if !is_true(&Value::Bool(matches!(&result, Value::Arr(_)))) {
             result = Value::List(vec![result.clone()]);
         }
         let mut marketIds: Value = Value::Map({
@@ -2651,11 +2651,11 @@ impl GateCore {
         if (error != Value::Null) {
             let mut messageHash: Value = self.safe_string(get_value(&client, &Value::Str("subscriptions".to_string())), id.clone(), &[]);
             let _try_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-                self.throw_exactly_matched_exception(crate::value::get_value_k(&self.exceptions.as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "exact"), code.clone(), self.json(message.clone()));
-                self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), code.clone(), self.json(errs.clone()));
+                self.throw_exactly_matched_exception(crate::value::get_value_k(&self.exceptions.as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "exact"), code.clone(), json_stringify(&message));
+                self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), code.clone(), json_stringify(&errs));
                 let mut errorMessage: Value = self.safe_string_k(error.clone(), "message", &[self.safe_string(errs.clone(), Value::Str("message".to_string()), &[])]);
-                self.throw_broadly_matched_exception(crate::value::get_value_k(&self.exceptions.as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "broad"), errorMessage.clone(), self.json(message.clone()));
-                panic!("{}", crate::exchange_errors::exchange_error(self.json(message.clone())));
+                self.throw_broadly_matched_exception(crate::value::get_value_k(&self.exceptions.as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "broad"), errorMessage.clone(), json_stringify(&message));
+                panic!("{}", crate::exchange_errors::exchange_error(json_stringify(&message)));
              #[allow(unreachable_code)] { Value::Null }}));
 if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 client.reject(&[e.clone(), messageHash.clone()]);
@@ -3124,7 +3124,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut messageHash: Value = requestId.clone();
         let mut time: Value = self.seconds();
         // unfortunately, PHP demands double quotes for the escaped newline symbol
-        let mut signatureString: Value = join(&Value::List(vec![event.clone(), channel.clone(), self.json(reqParams.clone()), to_string_val(&time)]), &Value::Str("\n".to_string())); // eslint-disable-line quotes
+        let mut signatureString: Value = join(&Value::List(vec![event.clone(), channel.clone(), json_stringify(&reqParams), to_string_val(&time)]), &Value::Str("\n".to_string())); // eslint-disable-line quotes
         let mut signature: Value = self.hmac(self.encode(signatureString.clone()), self.encode(self.secret.clone()), Value::Str("sha512".to_string()), &[Value::Str("hex".to_string())]);
         let mut payload: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();

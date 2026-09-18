@@ -4909,7 +4909,7 @@ impl HitbtcCore {
                 url = Value::Str(format!("{}{}", url, getRequest));
             }
         }  else {
-            body = self.json(params.clone());
+            body = json_stringify(&params);
         }
         if (api.as_str() == Some("private")) {
             self.check_required_credentials(&[]);

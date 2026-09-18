@@ -336,7 +336,7 @@ impl CoinbaseCore {
         let mut market: Value = Value::Null;
         let mut messageHash: Value = name.clone();
         let mut productIds: Value = Value::List(vec![]);
-        if is_true(&Value::Bool(is_array(&symbol))) {
+        if is_true(&Value::Bool(matches!(&symbol, Value::Arr(_)))) {
             let mut symbols: Value = self.market_symbols(&[symbol.clone()]);
             let mut marketIds: Value = self.market_ids(&[symbols.clone()]);
             if (marketIds == Value::Null) {
@@ -391,7 +391,7 @@ impl CoinbaseCore {
         let mut watchMessageHash: Value = name.clone();
         let mut unWatchMessageHash: Value = Value::Str(format!("{}{}", Value::Str("unsubscribe:".to_string()), name));
         let mut productIds: Value = Value::List(vec![]);
-        if is_true(&Value::Bool(is_array(&symbol))) {
+        if is_true(&Value::Bool(matches!(&symbol, Value::Arr(_)))) {
             let mut symbols: Value = self.market_symbols(&[symbol.clone()]);
             let mut marketIds: Value = self.market_ids(&[symbols.clone()]);
             if (marketIds == Value::Null) {

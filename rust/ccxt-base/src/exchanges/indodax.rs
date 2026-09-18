@@ -2078,7 +2078,7 @@ impl IndodaxCore {
         // or
         // [{ data, ... }, { ... }, ... ]
         // {"success":"1","status":"approved","withdraw_currency":"strm","withdraw_address":"0x2b9A8cd5535D99b419aEfFBF1ae8D90a7eBdb24E","withdraw_amount":"2165.05767839","fee":"21.11000000","amount_after_fee":"2143.94767839","submit_time":"1730759489","withdraw_id":"strm-3423","txid":""}
-        if is_true(&Value::Bool(is_array(&response))) {
+        if is_true(&Value::Bool(matches!(&response, Value::Arr(_)))) {
             return Value::Null;
         }
         let mut error: Value = self.safe_value_k(response.clone(), "error", &[Value::Str("".to_string())]);
@@ -2092,7 +2092,7 @@ impl IndodaxCore {
         if (self.safe_integer_k(response.clone(), "success", &[Value::Int(0)]).as_f64() == Some(1.0)) {
             // { success: 1, return: { orders: [] }}
             if !is_true(&(Value::Bool(in_op(&response, &Value::Str("return".to_string()))))) {
-                panic!("{}", crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(": malformed response: ".to_string()))), self.json(response.clone())))));
+                panic!("{}", crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(": malformed response: ".to_string()))), json_stringify(&response)))));
             }  else {
                 return Value::Null;
             }

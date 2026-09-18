@@ -6389,7 +6389,7 @@ impl OkxCore {
          * @param {string[]|string} ids order ids
          * @returns {string[]} list of order ids
          */
-        if is_true(&(Value::Bool(ids != Value::Null))) && is_string(&ids) {
+        if is_true(&(Value::Bool(ids != Value::Null))) && matches!(&ids, Value::Str(_)) {
             return split(&ids, &Value::Str(",".to_string()));
         }  else {
             return ids;
@@ -9623,7 +9623,7 @@ impl OkxCore {
 }));
         let mut headers = get_arg(optional_args, 3, Value::Null);
         let mut body = get_arg(optional_args, 4, Value::Null);
-        let mut isArray: bool = is_array(&params);
+        let mut isArray: bool = matches!(&params, Value::Arr(_));
         let mut request: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", add(&Value::Str("/api/".to_string()), &self.version), Value::Str("/".to_string()))), self.implode_params(path.clone(), params.clone())));
         let mut query: Value = self.omit(params.clone(), self.extract_params(path.clone()), &[]);
         let mut url: Value = Value::Str(format!("{}{}", self.implode_hostname(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("rest")).cloned().unwrap_or(Value::Null)), request));
@@ -9637,7 +9637,7 @@ impl OkxCore {
             // inject id in implicit api call
             if (method.as_str() == Some("POST")) && is_true(&(Value::Bool((path.as_str() == Some("trade/batch-orders")) || (path.as_str() == Some("trade/order-algo")) || (path.as_str() == Some("trade/order"))))) {
                 let mut brokerId: Value = self.safe_string_k(self.options.clone(), "brokerId", &[Value::Str("6b9ad766b55dBCDE".to_string())]);
-                if is_true(&Value::Bool(is_array(&params))) {
+                if is_true(&Value::Bool(matches!(&params, Value::Arr(_)))) {
                     {
                                                 let mut i: Value = Value::Int(0);
                         let mut __for_first_1009: bool = true;
@@ -9677,7 +9677,7 @@ impl OkxCore {
                 }
             }  else {
                 if isArray || is_true(&(Value::Int(object_keys(&query).len() as i64).as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN))) {
-                    body = self.json(query.clone());
+                    body = json_stringify(&query);
                     auth = Value::Str(format!("{}{}", auth, body));
                 }
                 add_element_to_object(&mut headers, &Value::Str("Content-Type".to_string()), Value::Str("application/json".to_string()));
@@ -11298,7 +11298,7 @@ impl OkxCore {
         let mut openInterestAmount: Value = Value::Null;
         let mut openInterestValue: Value = Value::Null;
         let mut type_var: Value = self.safe_string_k(self.options.clone(), "defaultType", &[]);
-        if is_true(&Value::Bool(is_array(&interest))) {
+        if is_true(&Value::Bool(matches!(&interest, Value::Arr(_)))) {
             if (type_var.as_str() == Some("option")) {
                 openInterestAmount = self.safe_number(interest.clone(), Value::Int(1), &[]);
                 baseVolume = self.safe_number(interest.clone(), Value::Int(2), &[]);

@@ -7752,7 +7752,7 @@ impl BybitCore {
     m
 })]);
         let mut orders: Value = self.safe_list_k(result.clone(), "list", &[]);
-        if !is_true(&Value::Bool(is_array(&orders))) {
+        if !is_true(&Value::Bool(matches!(&orders, Value::Arr(_)))) {
             return Value::List(vec![self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), response.clone());
@@ -9522,7 +9522,7 @@ impl BybitCore {
             return self.fetch_paginated_call_cursor(Value::Str("fetchPositions".to_string()), &[symbols.clone(), Value::Null, Value::Null, params.clone(), Value::Str("nextPageCursor".to_string()), Value::Str("cursor".to_string()), Value::Null, Value::Int(200)]).await;
         }
         let mut symbol: Value = Value::Null;
-        if is_true(&(Value::Bool(symbols != Value::Null))) && is_true(&Value::Bool(is_array(&symbols))) {
+        if is_true(&(Value::Bool(symbols != Value::Null))) && is_true(&Value::Bool(matches!(&symbols, Value::Arr(_)))) {
             let mut symbolsLength: Value = Value::Int(symbols.len() as i64);
             if symbolsLength.as_f64().unwrap_or(f64::NAN) > Value::Int(1).as_f64().unwrap_or(f64::NAN) {
                 panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchPositions() does not accept an array with more than one symbol".to_string())))));
@@ -13498,7 +13498,7 @@ impl BybitCore {
             let mut timestamp: Value = to_string_val(&self.nonce());
             if isOpenapi {
                 if Value::Int(object_keys(&params).len() as i64).as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN) {
-                    body = self.json(params.clone());
+                    body = json_stringify(&params);
                 }  else {
                     // this fix for PHP is required otherwise it generates
                     // '[]' on empty arrays even when forced to use objects
@@ -13534,7 +13534,7 @@ impl BybitCore {
                 let mut auth_base: Value = add(&Value::Str(format!("{}{}", to_string_val(&timestamp), self.apiKey.clone())), &to_string_val(&get_value(&self.options, &Value::Str("recvWindow".to_string()))));
                 let mut authFull: Value = Value::Null;
                 if (method.as_str() == Some("POST")) {
-                    body = self.json(query.clone());
+                    body = json_stringify(&query);
                     authFull = add(&auth_base, &body);
                 }  else {
                     authFull = Value::Str(format!("{}{}", auth_base, queryEncoded));
@@ -13579,7 +13579,7 @@ impl BybitCore {
                             m
                         });
                     }  else {
-                        body = self.json(extendedQuery.clone());
+                        body = json_stringify(&extendedQuery);
                         headers = Value::Map({
                             let mut m = indexmap::IndexMap::new();
                                 m.insert("Content-Type".to_string(), Value::Str("application/json".to_string()));
