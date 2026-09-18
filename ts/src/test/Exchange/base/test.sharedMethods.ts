@@ -724,7 +724,7 @@ function assertAmountPriceCost (exchange: Exchange, skippedProperties: any, meth
         isValid = true;
     } else {
         // else we need to know the amountPrecision, so we would pass the test if the remainder is less than amountPrecision
-        assert (amountPrecision !== undefined, 'amount precision is not defined, you might add in skips-json' + logText);
+        assert (amountPrecision !== undefined, 'amount precision is not defined, you might add "amountPriceCost" in skips' + logText);
         // rounding loss more than then half of the market.precision.amount is not tolerable
         const amountPrecisionHalf = Precise.stringDiv (amountPrecision, '2');
         isValid = Precise.stringLt (compareResult, amountPrecisionHalf);

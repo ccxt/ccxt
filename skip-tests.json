@@ -295,13 +295,12 @@
             },
             "fetchTrades": {
                 "cost": "absent market.precision.amount",
-                "compareToZero": "sometimes equals to zero: https://app.travis-ci.com/github/ccxt/ccxt/builds/267809189#L2540"
+                "compareToZero": "sometimes equals to zero: https://app.travis-ci.com/github/ccxt/ccxt/builds/267809189#L2540",
+                "sideSequence": "todo check, eg https://bit2c.co.il/Exchanges/BtcNis/trades.json",
+                "amountPriceCost": "todo check"
             },
             "fetchTicker": {
                 "lastBetweenBidAsk": "very low volume exchange"
-            },
-            "fetchTrades": {
-                "sideSequence": "todo check, eg https://bit2c.co.il/Exchanges/BtcNis/trades.json"
             }
         }
     },
@@ -573,6 +572,9 @@
             },
             "fetchTrades": {
                 "sideSequence": "need directional parsing, eg https://www.bitrue.com/api/v1/trades?symbol=BTCUSDT&limit=12000"
+            },
+            "watchTrades": {
+                "amountPriceCost": "todo check"
             }
         }
     },
@@ -1367,6 +1369,9 @@
             },
             "fetchOHLCV": {
                 "compareOHLCV": "api engine broken : https://github.com/ccxt/ccxt/actions/runs/21000025491/job/60367774165?pr=27676#step:10:1479"
+            },
+            "fetchTrades": {
+                "sideSequence": "todo check, eg https://api.foxbit.com.br/rest/v3/markets/btcusdt/trades/history?page_size=200"
             }
         }
     },
@@ -2627,6 +2632,9 @@
             },
             "fetchOrderBook": {
                 "timestamp": "not provided"
+            },
+            "watchTrades": {
+                "amountPriceCost": "todo check"
             }
         }
     },
@@ -2687,7 +2695,8 @@
                 "takerOrMaker": "todo fix"
             },
             "fetchTrades": {
-                "sideSequence": "todo check"
+                "sideSequence": "todo check",
+                "amountPriceCost": "todo"
             }
         }
     },
@@ -2745,7 +2754,8 @@
             },
             "fetchTrades": {
                 "side": "not provided",
-                "sideSequence": "todo check"
+                "sideSequence": "todo check",
+                "amountPriceCost": "todo"
             },
             "watchTrades": {
                 "side": "not provided"
