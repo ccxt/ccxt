@@ -314,7 +314,7 @@ impl PhemexCore {
 
     pub fn from_ep(&self, mut ep: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
-        if is_true(&(Value::Bool(ep == Value::Null))) || is_true(&(Value::Bool(market == Value::Null))) {
+        if is_true(&(ep == Value::Null)) || is_true(&(market == Value::Null)) {
             return ep;
         }
         return self.from_en(ep.clone(), self.safe_integer_k(market.clone(), "priceScale", &[]));
@@ -324,7 +324,7 @@ impl PhemexCore {
 
     pub fn from_ev(&self, mut ev: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
-        if is_true(&(Value::Bool(ev == Value::Null))) || is_true(&(Value::Bool(market == Value::Null))) {
+        if is_true(&(ev == Value::Null)) || is_true(&(market == Value::Null)) {
             return ev;
         }
         return self.from_en(ev.clone(), self.safe_integer_k(market.clone(), "valueScale", &[]));
@@ -334,7 +334,7 @@ impl PhemexCore {
 
     pub fn from_er(&self, mut er: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
-        if is_true(&(Value::Bool(er == Value::Null))) || is_true(&(Value::Bool(market == Value::Null))) {
+        if is_true(&(er == Value::Null)) || is_true(&(market == Value::Null)) {
             return er;
         }
         return self.from_en(er.clone(), self.safe_integer_k(market.clone(), "ratioScale", &[]));
@@ -384,7 +384,7 @@ impl PhemexCore {
         let mut average: Value = Value::Null;
         let mut openString: Value = self.omit_zero(self.from_ep(self.safe_string_k(ticker.clone(), "open", &[]), &[market.clone()]));
         let mut open: Value = self.parse_number(openString.clone(), &[]);
-        if is_true(&(Value::Bool(openString != Value::Null))) && is_true(&(Value::Bool(lastString != Value::Null))) {
+        if is_true(&(openString != Value::Null)) && is_true(&(lastString != Value::Null)) {
             change = self.parse_number(crate::precise::Precise::stringSub(&lastString, &openString), &[]);
             average = self.parse_number(crate::precise::Precise::stringDiv(&crate::precise::Precise::stringAdd(&lastString, &openString), &Value::Str("2".to_string())), &[]);
             percentage = self.parse_number(crate::precise::Precise::stringMul(&crate::precise::Precise::stringSub(&crate::precise::Precise::stringDiv(&lastString, &openString), &Value::Str("1".to_string())), &Value::Str("100".to_string())), &[]);
@@ -450,7 +450,7 @@ impl PhemexCore {
         let mut average: Value = Value::Null;
         let mut openString: Value = self.omit_zero(self.from_ep(self.safe_string(ticker.clone(), Value::Int(1), &[]), &[market.clone()]));
         let mut open: Value = self.parse_number(openString.clone(), &[]);
-        if is_true(&(Value::Bool(openString != Value::Null))) && is_true(&(Value::Bool(lastString != Value::Null))) {
+        if is_true(&(openString != Value::Null)) && is_true(&(lastString != Value::Null)) {
             change = self.parse_number(crate::precise::Precise::stringSub(&lastString, &openString), &[]);
             average = self.parse_number(crate::precise::Precise::stringDiv(&crate::precise::Precise::stringAdd(&lastString, &openString), &Value::Str("2".to_string())), &[]);
             percentage = self.parse_number(crate::precise::Precise::stringMul(&crate::precise::Precise::stringSub(&crate::precise::Precise::stringDiv(&lastString, &openString), &Value::Str("1".to_string())), &Value::Str("100".to_string())), &[]);
@@ -560,13 +560,13 @@ impl PhemexCore {
         //    }
         //
         let mut tickers: Value = Value::List(vec![]);
-        if is_true(&Value::Bool(in_op(&message, &Value::Str("market24h".to_string())))) {
+        if (in_op(&message, &Value::Str("market24h".to_string()))) {
             let mut ticker: Value = self.safe_value_k(message.clone(), "market24h", &[]);
             append_to_array(&mut tickers, self.parse_swap_ticker(ticker.clone(), &[]));
-        }  else if is_true(&Value::Bool(in_op(&message, &Value::Str("spot_market24h".to_string())))) {
+        }  else if (in_op(&message, &Value::Str("spot_market24h".to_string()))) {
             let mut ticker: Value = self.safe_value_k(message.clone(), "spot_market24h", &[]);
             append_to_array(&mut tickers, self.parse_ticker(ticker.clone(), &[]));
-        }  else if is_true(&Value::Bool(in_op(&message, &Value::Str("data".to_string())))) {
+        }  else if (in_op(&message, &Value::Str("data".to_string()))) {
             let mut data: Value = self.safe_list_k(message.clone(), "data", &[Value::List(vec![])]);
             {
                                 let mut i: Value = Value::Int(0);
@@ -958,7 +958,7 @@ impl PhemexCore {
         let mut requestId: Value = self.request_id();
         let mut isSwap: Value = market.as_map().and_then(|__m| __m.get("swap")).cloned().unwrap_or(Value::Null);
         let mut settleIsUSDT: bool = market.as_map().and_then(|__m| __m.get("settle")).cloned().unwrap_or(Value::Null).as_str() == Some("USDT");
-        let mut isUsdtSwap: bool = is_true(&(Value::Bool(isSwap.as_bool() == Some(true)))) && settleIsUSDT;
+        let mut isUsdtSwap: bool = is_true(&(isSwap.as_bool() == Some(true))) && settleIsUSDT;
         let mut name: Value = (if isUsdtSwap { Value::Str("trade_p".to_string()) } else { Value::Str("trade".to_string()) });
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("trade:".to_string()), symbol));
         let mut method: Value = Value::Str(format!("{}{}", name, Value::Str(".subscribe".to_string())));
@@ -1007,7 +1007,7 @@ impl PhemexCore {
         let mut requestId: Value = self.request_id();
         let mut isSwap: Value = market.as_map().and_then(|__m| __m.get("swap")).cloned().unwrap_or(Value::Null);
         let mut settleIsUSDT: bool = market.as_map().and_then(|__m| __m.get("settle")).cloned().unwrap_or(Value::Null).as_str() == Some("USDT");
-        let mut isUsdtSwap: bool = is_true(&(Value::Bool(isSwap.as_bool() == Some(true)))) && settleIsUSDT;
+        let mut isUsdtSwap: bool = is_true(&(isSwap.as_bool() == Some(true))) && settleIsUSDT;
         let mut name: Value = (if isUsdtSwap { Value::Str("orderbook_p".to_string()) } else { Value::Str("orderbook".to_string()) });
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("orderbook:".to_string()), symbol));
         let mut method: Value = Value::Str(format!("{}{}", name, Value::Str(".subscribe".to_string())));
@@ -1056,7 +1056,7 @@ impl PhemexCore {
         let mut requestId: Value = self.request_id();
         let mut isSwap: Value = market.as_map().and_then(|__m| __m.get("swap")).cloned().unwrap_or(Value::Null);
         let mut settleIsUSDT: bool = market.as_map().and_then(|__m| __m.get("settle")).cloned().unwrap_or(Value::Null).as_str() == Some("USDT");
-        let mut isUsdtSwap: bool = is_true(&(Value::Bool(isSwap.as_bool() == Some(true)))) && settleIsUSDT;
+        let mut isUsdtSwap: bool = is_true(&(isSwap.as_bool() == Some(true))) && settleIsUSDT;
         let mut name: Value = (if isUsdtSwap { Value::Str("kline_p".to_string()) } else { Value::Str("kline".to_string()) });
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("kline:".to_string()), timeframe)), Value::Str(":".to_string()))), symbol));
         let mut method: Value = Value::Str(format!("{}{}", name, Value::Str(".subscribe".to_string())));
@@ -1158,7 +1158,7 @@ impl PhemexCore {
             add_element_to_object(&mut self.orderbooks, &symbol, orderbook.clone());
             client.resolve(&[orderbook.clone(), messageHash.clone()]);
         }  else {
-            if is_true(&Value::Bool(in_op(&self.orderbooks, &symbol))) {
+            if (in_op(&self.orderbooks, &symbol)) {
                 let mut orderbook: Value = get_value(&self.orderbooks, &symbol);
                 let mut changes: Value = self.safe_dict2(message.clone(), Value::Str("book".to_string()), Value::Str("orderbook_p".to_string()), &[Value::Map({
                     let mut m = indexmap::IndexMap::new();
@@ -1213,7 +1213,7 @@ impl PhemexCore {
         { let __destr_tmp = self.handle_market_type_and_params(Value::Str("watchMyTrades".to_string()), &[market.clone(), params.clone()]); type_var = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         if (symbol == Value::Null) {
             let mut settle: Value = self.safe_string_k(params.clone(), "settle", &[]);
-            messageHash = (if is_true(&(Value::Bool(settle.as_str() == Some("USDT")))) { (Value::Str(format!("{}{}", messageHash, Value::Str("perpetual".to_string())))) } else { (Value::Str(format!("{}{}", messageHash, type_var))) });
+            messageHash = (if is_true(&(settle.as_str() == Some("USDT"))) { (Value::Str(format!("{}{}", messageHash, Value::Str("perpetual".to_string())))) } else { (Value::Str(format!("{}{}", messageHash, type_var))) });
         }
         let mut trades: Value = self.subscribe_private(type_var.clone(), messageHash.clone(), &[params.clone()]).await;
         if is_true(&self.newUpdates) {
@@ -1345,7 +1345,7 @@ impl PhemexCore {
             cachedTrades.append(parsed.clone());
             let mut symbol: Value = parsed.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
             if (type_var == Value::Null) {
-                type_var = (if is_true(&(Value::Bool(market.as_map().and_then(|__m| __m.get("settle")).cloned().unwrap_or(Value::Null).as_str() == Some("USDT")))) { Value::Str("perpetual".to_string()) } else { market.as_map().and_then(|__m| __m.get("type")).cloned().unwrap_or(Value::Null) });
+                type_var = (if is_true(&(market.as_map().and_then(|__m| __m.get("settle")).cloned().unwrap_or(Value::Null).as_str() == Some("USDT"))) { Value::Str("perpetual".to_string()) } else { market.as_map().and_then(|__m| __m.get("type")).cloned().unwrap_or(Value::Null) });
             }
             if (symbol != Value::Null) {
                 add_element_to_object(&mut marketIds, &symbol, Value::Bool(true));
@@ -1576,7 +1576,7 @@ impl PhemexCore {
         //
         let mut trades: Value = Value::List(vec![]);
         let mut parsedOrders: Value = Value::List(vec![]);
-        if is_true(&(Value::Bool(in_op(&message, &Value::Str("closed".to_string()))))) || is_true(&(Value::Bool(in_op(&message, &Value::Str("fills".to_string()))))) || is_true(&(Value::Bool(in_op(&message, &Value::Str("open".to_string()))))) {
+        if (in_op(&message, &Value::Str("closed".to_string()))) || (in_op(&message, &Value::Str("fills".to_string()))) || (in_op(&message, &Value::Str("open".to_string()))) {
             let mut closed: Value = self.safe_value_k(message.clone(), "closed", &[Value::List(vec![])]);
             let mut open: Value = self.safe_value_k(message.clone(), "open", &[Value::List(vec![])]);
             let mut orders: Value = self.array_concat(open.clone(), closed.clone());
@@ -1607,7 +1607,7 @@ impl PhemexCore {
                 let mut update: Value = get_value(&message, &i);
                 let mut update: Value = get_value(&message, &i);
                 let mut action: Value = self.safe_string_k(update.clone(), "action", &[]);
-                if is_true(&(Value::Bool(action != Value::Null))) && is_true(&(Value::Bool(action.as_str() != Some("Cancel")))) {
+                if is_true(&(action != Value::Null)) && is_true(&(action.as_str() != Some("Cancel"))) {
                     // order + trade info together
                     append_to_array(&mut trades, update.clone());
                 }
@@ -1783,7 +1783,7 @@ impl PhemexCore {
         //
         let mut id: Value = self.safe_string_k(order.clone(), "orderID", &[]);
         let mut clientOrderId: Value = self.safe_string_k(order.clone(), "clOrdID", &[]);
-        if is_true(&(Value::Bool(clientOrderId != Value::Null))) && is_true(&(Value::Int(clientOrderId.len() as i64).as_f64().unwrap_or(f64::NAN) < Value::Int(1).as_f64().unwrap_or(f64::NAN))) {
+        if is_true(&(clientOrderId != Value::Null)) && is_true(&(Value::Int(clientOrderId.len() as i64).as_f64().unwrap_or(f64::NAN) < Value::Int(1).as_f64().unwrap_or(f64::NAN))) {
             clientOrderId = Value::Null;
         }
         let mut marketId: Value = self.safe_string_k(order.clone(), "symbol", &[]);
@@ -1933,7 +1933,7 @@ impl PhemexCore {
         //     ]
         // }
         let mut id: Value = self.safe_string_k(message.clone(), "id", &[Value::Str("".to_string())]);
-        if is_true(&Value::Bool(in_op(&get_value(&client, &Value::Str("subscriptions".to_string())), &id))) {
+        if (in_op(&get_value(&client, &Value::Str("subscriptions".to_string())), &id)) {
             let mut method: Value = self.safe_value(get_value(&client, &Value::Str("subscriptions".to_string())), id.clone(), &[]);
             remove(&mut get_value(&client, &Value::Str("subscriptions".to_string())), &id);
             if !is_equal(&method, &Value::Bool(true)) {
@@ -1942,29 +1942,29 @@ impl PhemexCore {
             }
         }
         let mut methodName: Value = self.safe_string_k(message.clone(), "method", &[Value::Str("".to_string())]);
-        if is_true(&(Value::Bool(in_op(&message, &Value::Str("market24h".to_string()))))) || is_true(&(Value::Bool(in_op(&message, &Value::Str("spot_market24h".to_string()))))) || is_true(&(get_index_of(&methodName, &Value::Str("perp_market24h_pack_p".to_string())).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN))) {
+        if (in_op(&message, &Value::Str("market24h".to_string()))) || (in_op(&message, &Value::Str("spot_market24h".to_string()))) || is_true(&(get_index_of(&methodName, &Value::Str("perp_market24h_pack_p".to_string())).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN))) {
             self.handle_ticker(client.clone(), message.clone());
             return;
-        }  else if is_true(&(Value::Bool(in_op(&message, &Value::Str("trades".to_string()))))) || is_true(&(Value::Bool(in_op(&message, &Value::Str("trades_p".to_string()))))) {
+        }  else if (in_op(&message, &Value::Str("trades".to_string()))) || (in_op(&message, &Value::Str("trades_p".to_string()))) {
             self.handle_trades(client.clone(), message.clone());
             return;
-        }  else if is_true(&(Value::Bool(in_op(&message, &Value::Str("kline".to_string()))))) || is_true(&(Value::Bool(in_op(&message, &Value::Str("kline_p".to_string()))))) {
+        }  else if (in_op(&message, &Value::Str("kline".to_string()))) || (in_op(&message, &Value::Str("kline_p".to_string()))) {
             self.handle_ohlcv(client.clone(), message.clone());
             return;
-        }  else if is_true(&(Value::Bool(in_op(&message, &Value::Str("book".to_string()))))) || is_true(&(Value::Bool(in_op(&message, &Value::Str("orderbook_p".to_string()))))) {
+        }  else if (in_op(&message, &Value::Str("book".to_string()))) || (in_op(&message, &Value::Str("orderbook_p".to_string()))) {
             self.handle_order_book(client.clone(), message.clone());
             return;
         }
-        if is_true(&(Value::Bool(in_op(&message, &Value::Str("orders".to_string()))))) || is_true(&(Value::Bool(in_op(&message, &Value::Str("orders_p".to_string()))))) {
+        if (in_op(&message, &Value::Str("orders".to_string()))) || (in_op(&message, &Value::Str("orders_p".to_string()))) {
             let mut orders: Value = self.safe_value2(message.clone(), Value::Str("orders".to_string()), Value::Str("orders_p".to_string()), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
             })]);
             self.handle_orders(client.clone(), orders.clone());
         }
-        if is_true(&(Value::Bool(in_op(&message, &Value::Str("accounts".to_string()))))) || is_true(&(Value::Bool(in_op(&message, &Value::Str("accounts_p".to_string()))))) || is_true(&(Value::Bool(in_op(&message, &Value::Str("wallets".to_string()))))) {
-            let mut type_var: Value = (if is_true(&(Value::Bool(in_op(&message, &Value::Str("accounts".to_string()))))) { Value::Str("swap".to_string()) } else { Value::Str("spot".to_string()) });
-            if is_true(&Value::Bool(in_op(&message, &Value::Str("accounts_p".to_string())))) {
+        if (in_op(&message, &Value::Str("accounts".to_string()))) || (in_op(&message, &Value::Str("accounts_p".to_string()))) || (in_op(&message, &Value::Str("wallets".to_string()))) {
+            let mut type_var: Value = (if (in_op(&message, &Value::Str("accounts".to_string()))) { Value::Str("swap".to_string()) } else { Value::Str("spot".to_string()) });
+            if (in_op(&message, &Value::Str("accounts_p".to_string()))) {
                 type_var = Value::Str("perpetual".to_string());
             }
             let mut accounts: Value = self.safe_value_n(message.clone(), Value::List(vec![Value::Str("accounts".to_string()), Value::Str("accounts_p".to_string()), Value::Str("wallets".to_string())]), &[Value::List(vec![])]);
@@ -1990,7 +1990,7 @@ impl PhemexCore {
         }  else {
             let mut error = Value::from(crate::exchange_errors::authentication_error(Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), self.json(message.clone())))));
             client.reject(&[Value::from(error.clone()), messageHash.clone()]);
-            if is_true(&Value::Bool(in_op(&get_value(&client, &Value::Str("subscriptions".to_string())), &messageHash))) {
+            if (in_op(&get_value(&client, &Value::Str("subscriptions".to_string())), &messageHash)) {
                 remove(&mut get_value(&client, &Value::Str("subscriptions".to_string())), &messageHash);
             }
         }
@@ -2055,7 +2055,7 @@ impl PhemexCore {
             });
             let mut subscriptionHash: Value = to_string_val(&requestId);
             let mut message: Value = self.extend(request.clone(), &[params.clone()]);
-            if !is_true(&(Value::Bool(in_op(&get_value(&client, &Value::Str("subscriptions".to_string())), &messageHash)))) {
+            if !(in_op(&get_value(&client, &Value::Str("subscriptions".to_string())), &messageHash)) {
                 add_element_to_object(&mut get_value(&client, &Value::Str("subscriptions".to_string())), &subscriptionHash, Value::Str("handle_authenticate".to_string()).clone());
             }
             future = self.watch(url.clone(), messageHash.clone(), &[message.clone(), messageHash.clone()]).await;

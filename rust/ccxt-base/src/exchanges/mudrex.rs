@@ -504,7 +504,7 @@ impl MudrexCore {
     m
 }), &[])))));
                 }
-                if is_true(&(Value::Bool(methodUpper.as_str() == Some("DELETE")))) && is_true(&self.is_empty(query.clone())) {
+                if is_true(&(methodUpper.as_str() == Some("DELETE"))) && is_true(&self.is_empty(query.clone())) {
                     return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), url.clone());
@@ -768,7 +768,7 @@ impl MudrexCore {
         let __ws_arg_4 = self.extend(request.clone(), &[params.clone()]);
         let mut response: Value = self.private_get_futures(&[__ws_arg_4]).await;
         let mut data: Value = self.safe_value_k(response.clone(), "data", &[Value::List(vec![])]);
-        let mut rows: Value = (if is_true(&Value::Bool(is_array(&data))) { data.clone() } else { self.safe_list_k(data.clone(), "items", &[Value::List(vec![])]) });
+        let mut rows: Value = (if (is_array(&data)) { data.clone() } else { self.safe_list_k(data.clone(), "items", &[Value::List(vec![])]) });
         let mut resultTickers: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -857,22 +857,22 @@ impl MudrexCore {
             let mut response: Value = self.private_get_futures(&[q.clone()]).await;
             let mut data: Value = self.safe_value_k(response.clone(), "data", &[Value::List(vec![])]);
             let mut items: Value = Value::List(vec![]);
-            if is_object(&data) && !is_true(&Value::Bool(is_array(&data))) {
+            if is_object(&data) && !(is_array(&data)) {
                 items = self.safe_list_k(data.clone(), "items", &[Value::List(vec![])]);
                 // hoisted - inline length reads within conditionals become strlen for php, fatal on arrays
                 let mut itemsLength: Value = Value::Int(items.len() as i64);
-                if is_true(&(Value::Bool(itemsLength == Value::Null))) || is_true(&(Value::Bool(itemsLength.as_f64() == Some(0.0)))) {
+                if is_true(&(itemsLength == Value::Null)) || is_true(&(itemsLength.as_f64() == Some(0.0))) {
                     items = self.safe_list_k(data.clone(), "results", &[Value::List(vec![])]);
                     itemsLength = Value::Int(items.len() as i64);
                 }
-                if is_true(&(Value::Bool(itemsLength.as_f64() == Some(0.0)))) && is_true(&(Value::Bool(in_op(&data, &Value::Str("symbol".to_string()))))) {
+                if is_true(&(itemsLength.as_f64() == Some(0.0))) && (in_op(&data, &Value::Str("symbol".to_string()))) {
                     items = Value::List(vec![data.clone()]);
                 }
             }  else {
                 items = self.to_array(data.clone());
             }
             let mut numItems: Value = Value::Int(items.len() as i64);
-            if is_true(&(Value::Bool(numItems == Value::Null))) || is_true(&(Value::Bool(numItems.as_f64() == Some(0.0)))) {
+            if is_true(&(numItems == Value::Null)) || is_true(&(numItems.as_f64() == Some(0.0))) {
                 paging = Value::Bool(false);
                 break;
             }
@@ -906,7 +906,7 @@ impl MudrexCore {
     pub fn parse_market(&self, mut asset: Value) -> Value {
         let mut ms: Value = self.safe_string_k(asset.clone(), "symbol", &[]);
         let mut base: Value = ms.clone();
-        if (ms != Value::Null) && is_true(&Value::Bool(ends_with(&ms, &Value::Str("USDT".to_string())))) {
+        if (ms != Value::Null) && (ends_with(&ms, &Value::Str("USDT".to_string()))) {
             base = slice(&ms, &Value::Int(0), &Value::Int(-4));
         }
         let mut quote: Value = Value::Str("USDT".to_string());
@@ -1183,7 +1183,7 @@ impl MudrexCore {
         // an existing position through the riskorder endpoint, so a positionId is required
         let mut stopLossPrice: Value = self.safe_string_k(params.clone(), "stopLossPrice", &[]);
         let mut takeProfitPrice: Value = self.safe_string_k(params.clone(), "takeProfitPrice", &[]);
-        if is_true(&(Value::Bool(stopLossPrice != Value::Null))) || is_true(&(Value::Bool(takeProfitPrice != Value::Null))) {
+        if is_true(&(stopLossPrice != Value::Null)) || is_true(&(takeProfitPrice != Value::Null)) {
             let mut positionId: Value = self.safe_string2(params.clone(), Value::Str("positionId".to_string()), Value::Str("position_id".to_string()), &[]);
             if (positionId == Value::Null) {
                 panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires a positionId parameter to place a stopLossPrice or takeProfitPrice order".to_string())))));
@@ -1208,7 +1208,7 @@ impl MudrexCore {
             return self.parse_order(riskData.clone(), &[market.clone()]);
         }
         let mut lev: Value = self.safe_integer_k(params.clone(), "leverage", &[Value::Int(1)]);
-        if is_true(&(Value::Bool(type_var.as_str() == Some("market")))) && is_true(&(Value::Bool(price == Value::Null))) {
+        if is_true(&(type_var.as_str() == Some("market"))) && is_true(&(price == Value::Null)) {
             panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires a price argument for market orders".to_string())))));
         }
         let mut request: Value = Value::Map({
@@ -1218,8 +1218,8 @@ impl MudrexCore {
                 m.insert("leverage".to_string(), self.number_to_string(lev.clone()));
                 m.insert("quantity".to_string(), self.amount_to_precision(symbol.clone(), amount.clone()));
                 m.insert("order_price".to_string(), self.price_to_precision(symbol.clone(), price.clone()));
-                m.insert("order_type".to_string(), (if is_true(&(Value::Bool(side.as_str() == Some("buy")))) { Value::Str("LONG".to_string()) } else { Value::Str("SHORT".to_string()) }));
-                m.insert("trigger_type".to_string(), (if is_true(&(Value::Bool(type_var.as_str() == Some("market")))) { Value::Str("MARKET".to_string()) } else { Value::Str("LIMIT".to_string()) }));
+                m.insert("order_type".to_string(), (if is_true(&(side.as_str() == Some("buy"))) { Value::Str("LONG".to_string()) } else { Value::Str("SHORT".to_string()) }));
+                m.insert("trigger_type".to_string(), (if is_true(&(type_var.as_str() == Some("market"))) { Value::Str("MARKET".to_string()) } else { Value::Str("LIMIT".to_string()) }));
                 m.insert("reduce_only".to_string(), self.safe_bool_k(params.clone(), "reduceOnly", &[Value::Bool(false)]));
             m
         });
@@ -1333,7 +1333,7 @@ impl MudrexCore {
             side = Value::Str("sell".to_string());
         }
         // stop-loss / take-profit rows attached to a position carry the trigger value under the "price" key
-        let mut isRiskOrder: bool = is_true(&(Value::Bool(rawSide.as_str() == Some("STOPLOSS")))) || is_true(&(Value::Bool(rawSide.as_str() == Some("TAKEPROFIT"))));
+        let mut isRiskOrder: bool = is_true(&(rawSide.as_str() == Some("STOPLOSS"))) || is_true(&(rawSide.as_str() == Some("TAKEPROFIT")));
         let mut priceString: Value = self.safe_string2(order.clone(), Value::Str("price".to_string()), Value::Str("order_price".to_string()), &[]);
         let mut orderPrice: Value = priceString.clone();
         let mut triggerPrice: Value = Value::Null;
@@ -1722,7 +1722,7 @@ impl MudrexCore {
         let mut entryPriceString: Value = self.safe_string_k(position.clone(), "entry_price", &[]);
         let mut contractSizeString: Value = self.safe_string_k(market.clone(), "contractSize", &[Value::Str("1".to_string())]);
         let mut notional: Value = Value::Null;
-        if is_true(&(Value::Bool(quantityString != Value::Null))) && is_true(&(Value::Bool(entryPriceString != Value::Null))) {
+        if is_true(&(quantityString != Value::Null)) && is_true(&(entryPriceString != Value::Null)) {
             notional = self.parse_number(crate::precise::Precise::stringMul(&crate::precise::Precise::stringMul(&quantityString, &entryPriceString), &contractSizeString), &[]);
         }
         let mut initialMargin: Value = self.safe_string_k(position.clone(), "initial_margin", &[]);
@@ -1964,7 +1964,7 @@ impl MudrexCore {
                 append_to_array(&mut allRows, entry.clone());
                 if (self.safe_string_k(entry.clone(), "fee_type", &[]).as_str() == Some("TRANSACTION")) {
                     // count only rows the client-side symbol filter keeps, otherwise a symbol-filtered call under-returns
-                    if is_true(&(Value::Bool(market == Value::Null))) || is_true(&(Value::Bool(self.safe_string_k(entry.clone(), "symbol", &[]).as_str() == market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null).as_str()))) {
+                    if is_true(&(market == Value::Null)) || is_true(&(self.safe_string_k(entry.clone(), "symbol", &[]).as_str() == market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null).as_str())) {
                         transactionsCount = self.sum(&[transactionsCount.clone(), Value::Int(1)]);
                     }
                 }
@@ -1973,7 +1973,7 @@ impl MudrexCore {
             calls = self.sum(&[calls.clone(), Value::Int(1)]);
             paging = Value::Bool(false);
             // the page cap bounds the walk when the requested symbol has few or no rows anywhere near the top of the history
-            if is_true(&(Value::Bool(limit != Value::Null))) && is_true(&(Value::Bool(dataLength.as_f64() == pageSize.as_f64()))) && is_true(&(transactionsCount.as_f64().unwrap_or(f64::NAN) < limit.as_f64().unwrap_or(f64::NAN))) && is_true(&(calls.as_f64().unwrap_or(f64::NAN) < maxCalls.as_f64().unwrap_or(f64::NAN))) {
+            if is_true(&(limit != Value::Null)) && is_true(&(dataLength.as_f64() == pageSize.as_f64())) && is_true(&(transactionsCount.as_f64().unwrap_or(f64::NAN) < limit.as_f64().unwrap_or(f64::NAN))) && is_true(&(calls.as_f64().unwrap_or(f64::NAN) < maxCalls.as_f64().unwrap_or(f64::NAN))) {
                 // this.sum keeps the offset numeric across the php transpile, see https://github.com/ccxt/ccxt/pull/29684
                 offset = self.sum(&[offset.clone(), pageSize.clone()]);
                 paging = Value::Bool(true);
@@ -2074,7 +2074,7 @@ impl MudrexCore {
         let mut feeCostString: Value = self.safe_string_k(trade.clone(), "fee_amount", &[]);
         // rebate_amount is attached by fetchMyTrades from the fill's REBATE row - the reported fee is the net charge
         let mut rebateString: Value = self.safe_string_k(trade.clone(), "rebate_amount", &[]);
-        if is_true(&(Value::Bool(feeCostString != Value::Null))) && is_true(&(Value::Bool(rebateString != Value::Null))) {
+        if is_true(&(feeCostString != Value::Null)) && is_true(&(rebateString != Value::Null)) {
             feeCostString = crate::precise::Precise::stringSub(&feeCostString, &rebateString);
         }
         if (feeCostString != Value::Null) {

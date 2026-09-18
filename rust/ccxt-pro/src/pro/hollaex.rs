@@ -359,7 +359,7 @@ impl HollaexCore {
         let mut timestampMs: Value = self.parse8601(timestamp.clone());
         let mut snapshot: Value = self.parse_order_book(data.clone(), symbol.clone(), &[timestampMs.clone()]);
         let mut orderbook: Value = Value::Null;
-        if !is_true(&(Value::Bool(in_op(&self.orderbooks, &symbol)))) {
+        if !(in_op(&self.orderbooks, &symbol)) {
             orderbook = self.order_book(&[snapshot.clone()]);
             add_element_to_object(&mut self.orderbooks, &symbol, orderbook.clone());
         }  else {
@@ -669,7 +669,7 @@ impl HollaexCore {
         }
         let mut stored: Value = self.orders.clone();
         let mut rawOrders: Value = Value::Null;
-        if !is_true(&Value::Bool(is_array(&data))) {
+        if !(is_array(&data)) {
             rawOrders = Value::List(vec![data.clone()]);
         }  else {
             rawOrders = data.clone();
@@ -762,11 +762,11 @@ impl HollaexCore {
             let mut currencyId: Value = self.safe_string(parts.clone(), Value::Int(0), &[]);
             let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
             let mut account: Value = self.account();
-            if is_true(&(Value::Bool(code != Value::Null))) && is_true(&(Value::Bool(in_op(&self.balance, &code)))) {
+            if is_true(&(code != Value::Null)) && (in_op(&self.balance, &code)) {
                 account = get_value(&self.balance, &code);
             }
             let mut second: Value = self.safe_string(parts.clone(), Value::Int(1), &[]);
-            let mut freeOrTotal: Value = (if is_true(&(Value::Bool(second.as_str() == Some("available")))) { Value::Str("free".to_string()) } else { Value::Str("total".to_string()) });
+            let mut freeOrTotal: Value = (if is_true(&(second.as_str() == Some("available"))) { Value::Str("free".to_string()) } else { Value::Str("total".to_string()) });
             add_element_to_object(&mut account, &freeOrTotal, self.safe_string(data.clone(), key.clone(), &[]));
             if (code != Value::Null) {
                 add_element_to_object(&mut self.balance, &code, account.clone());

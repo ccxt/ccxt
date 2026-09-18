@@ -2355,7 +2355,7 @@ impl CoinexCore {
             let mut quoteId: Value = self.safe_string_k(entry.clone(), "quote_ccy", &[]);
             let mut base: Value = self.safe_currency_code(baseId.clone(), &[]);
             let mut quote: Value = self.safe_currency_code(quoteId.clone(), &[]);
-            let mut settleId: Value = (if is_true(&(Value::Bool(subType.as_str() == Some("linear")))) { Value::Str("USDT".to_string()) } else { baseId.clone() });
+            let mut settleId: Value = (if is_true(&(subType.as_str() == Some("linear"))) { Value::Str("USDT".to_string()) } else { baseId.clone() });
             let mut settle: Value = self.safe_currency_code(settleId.clone(), &[]);
             let mut symbol: Value = add(&Value::Str(format!("{}{}", add(&add(&base, &Value::Str("/".to_string())), &quote), Value::Str(":".to_string()))), &settle);
             let mut leveragesLength: Value = Value::Int(leverages.len() as i64);
@@ -2468,13 +2468,13 @@ impl CoinexCore {
         //         "volume_sell": "6.1249"
         //     }
         //
-        let mut marketType: Value = (if is_true(&(Value::Bool(in_op(&ticker, &Value::Str("mark_price".to_string()))))) { Value::Str("swap".to_string()) } else { Value::Str("spot".to_string()) });
+        let mut marketType: Value = (if (in_op(&ticker, &Value::Str("mark_price".to_string()))) { Value::Str("swap".to_string()) } else { Value::Str("spot".to_string()) });
         let mut marketId: Value = self.safe_string_k(ticker.clone(), "market", &[]);
         market = self.safe_market(&[marketId.clone(), market.clone(), Value::Null, marketType.clone()]);
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         // on inverse contracts 'value' is denominated in the settle currency, not
         // the quote, so it is the quote volume only for spot and linear markets
-        let mut quoteVolume: Value = (if is_true(&(Value::Bool(market.as_map().and_then(|__m| __m.get("inverse")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)))) { Value::Null } else { self.safe_string_k(ticker.clone(), "value", &[]) });
+        let mut quoteVolume: Value = (if is_true(&(market.as_map().and_then(|__m| __m.get("inverse")).cloned().unwrap_or(Value::Null).as_bool() == Some(true))) { Value::Null } else { self.safe_string_k(ticker.clone(), "value", &[]) });
         return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), symbol.clone());
@@ -3330,7 +3330,7 @@ impl CoinexCore {
         { let __destr_tmp = self.handle_market_type_and_params(Value::Str("fetchBalance".to_string()), &[Value::Null, params.clone()]); marketType = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         let mut marginMode: Value = Value::Null;
         { let __destr_tmp = self.handle_margin_mode_and_params(Value::Str("fetchBalance".to_string()), &[params.clone()]); marginMode = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
-        let mut isMargin: bool = is_true(&(Value::Bool(marginMode != Value::Null))) || is_true(&(Value::Bool(marketType.as_str() == Some("margin"))));
+        let mut isMargin: bool = is_true(&(marginMode != Value::Null)) || is_true(&(marketType.as_str() == Some("margin")));
         if (marketType.as_str() == Some("swap")) {
             return self.fetch_swap_balance(&[params.clone()]).await;
         }  else if (marketType.as_str() == Some("financial")) {
@@ -3581,7 +3581,7 @@ impl CoinexCore {
         if (orderType.as_str() == Some("futures")) {
             orderType = Value::Str("swap".to_string());
         }
-        let mut marketType: Value = (if is_true(&(Value::Bool(orderType.as_str() == Some("swap")))) { Value::Str("swap".to_string()) } else { Value::Str("spot".to_string()) });
+        let mut marketType: Value = (if is_true(&(orderType.as_str() == Some("swap"))) { Value::Str("swap".to_string()) } else { Value::Str("spot".to_string()) });
         market = self.safe_market(&[marketId.clone(), market.clone(), Value::Null, marketType.clone()]);
         let mut feeCurrencyId: Value = self.safe_string_k(order.clone(), "fee_ccy", &[]);
         let mut feeCurrency: Value = self.safe_currency_code(feeCurrencyId.clone(), &[]);
@@ -3704,7 +3704,7 @@ impl CoinexCore {
         }  else {
             add_element_to_object(&mut request, &Value::Str("client_id".to_string()), clientOrderId.clone());
         }
-        if is_true(&(Value::Bool(stopLossPrice == Value::Null))) && is_true(&(Value::Bool(takeProfitPrice == Value::Null))) {
+        if is_true(&(stopLossPrice == Value::Null)) && is_true(&(takeProfitPrice == Value::Null)) {
             if (reduceOnly.as_bool() != Some(true)) {
                 add_element_to_object(&mut request, &Value::Str("side".to_string()), side.clone());
             }
@@ -3725,7 +3725,7 @@ impl CoinexCore {
         }
         if (swap.as_bool() == Some(true)) {
             add_element_to_object(&mut request, &Value::Str("market_type".to_string()), Value::Str("FUTURES".to_string()));
-            if is_true(&(Value::Bool((stopLossPrice != Value::Null) && (stopLossPrice.as_str() != Some(""))))) || is_true(&(Value::Bool((takeProfitPrice != Value::Null) && (takeProfitPrice.as_str() != Some(""))))) {
+            if is_true(&((stopLossPrice != Value::Null) && (stopLossPrice.as_str() != Some("")))) || is_true(&((takeProfitPrice != Value::Null) && (takeProfitPrice.as_str() != Some("")))) {
                 if (stopLossPrice != Value::Null) && (stopLossPrice.as_str() != Some("")) {
                     add_element_to_object(&mut request, &Value::Str("stop_loss_price".to_string()), self.price_to_precision(symbol.clone(), stopLossPrice.clone()));
                     add_element_to_object(&mut request, &Value::Str("stop_loss_type".to_string()), self.safe_string_k(params.clone(), "stop_type", &[Value::Str("latest_price".to_string())]));
@@ -3748,19 +3748,19 @@ impl CoinexCore {
             }  else {
                 add_element_to_object(&mut request, &Value::Str("market_type".to_string()), Value::Str("SPOT".to_string()));
             }
-            if is_true(&(Value::Bool(type_var.as_str() == Some("market")))) && is_true(&(Value::Bool(side.as_str() == Some("buy")))) {
+            if is_true(&(type_var.as_str() == Some("market"))) && is_true(&(side.as_str() == Some("buy"))) {
                 let mut createMarketBuyOrderRequiresPrice: Value = Value::Bool(true);
                 { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("createOrder".to_string()), Value::Str("createMarketBuyOrderRequiresPrice".to_string()), &[Value::Bool(true)]); createMarketBuyOrderRequiresPrice = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
                 let mut cost: Value = self.safe_number_k(params.clone(), "cost", &[]);
                 params = self.omit(params.clone(), Value::Str("cost".to_string()), &[]);
                 if is_true(&createMarketBuyOrderRequiresPrice) {
-                    if is_true(&(Value::Bool(price == Value::Null))) && is_true(&(Value::Bool(cost == Value::Null))) {
+                    if is_true(&(price == Value::Null)) && is_true(&(cost == Value::Null)) {
                         panic!("{}", crate::exchange_errors::invalid_order(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument".to_string())))));
                     }  else {
                         let mut amountString: Value = self.number_to_string(amount.clone());
                         let mut priceString: Value = self.number_to_string(price.clone());
                         let mut quoteAmount: Value = self.parse_to_numeric(crate::precise::Precise::stringMul(&amountString, &priceString));
-                        let mut costRequest: Value = (if is_true(&(Value::Bool(cost != Value::Null))) { cost.clone() } else { quoteAmount.clone() });
+                        let mut costRequest: Value = (if is_true(&(cost != Value::Null)) { cost.clone() } else { quoteAmount.clone() });
                         add_element_to_object(&mut request, &Value::Str("amount".to_string()), self.cost_to_precision(symbol.clone(), costRequest.clone()));
                     }
                 }  else {
@@ -3967,7 +3967,7 @@ impl CoinexCore {
     m
 })]);
             let mut order: Value = Value::Null;
-            if is_true(&(Value::Bool(market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)))) && !isTriggerOrder {
+            if is_true(&(market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true))) && !isTriggerOrder {
                 add_element_to_object(&mut entry, &Value::Str("status".to_string()), status.clone());
                 order = self.parse_order(entry.clone(), &[market.clone()]);
             }  else {
@@ -4244,7 +4244,7 @@ impl CoinexCore {
             let mut entry: Value = get_value(&data, &i);
             let mut code: Value = self.safe_string_k(entry.clone(), "code", &[]);
             let mut message: Value = self.safe_string_k(entry.clone(), "message", &[Value::Str("".to_string())]);
-            if is_true(&(Value::Bool(code.as_str() != Some("0")))) || is_true(&(Value::Bool(is_true(&(Value::Bool(message.as_str() != Some("Success")))) && is_true(&(Value::Bool(message.as_str() != Some("Succeeded")))) && is_true(&(Value::Bool(to_lower(&message).as_str() != Some("ok")))) && is_true(&(Value::Bool(data == Value::Null)))))) {
+            if is_true(&(code.as_str() != Some("0"))) || (is_true(&(message.as_str() != Some("Success"))) && is_true(&(message.as_str() != Some("Succeeded"))) && is_true(&(to_lower(&message).as_str() != Some("ok"))) && is_true(&(data == Value::Null))) {
                 let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), message));
                 self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), message.clone(), feedback.clone());
                 self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), code.clone(), feedback.clone());
@@ -4520,8 +4520,8 @@ impl CoinexCore {
         let mut marketType: Value = Value::Null;
         { let __destr_tmp = self.handle_market_type_and_params(Value::Str("fetchOrdersByStatus".to_string()), &[market.clone(), params.clone()]); marketType = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         let mut response: Value = Value::Null;
-        let mut isClosed: bool = is_true(&(Value::Bool(status.as_str() == Some("finished")))) || is_true(&(Value::Bool(status.as_str() == Some("closed"))));
-        let mut isOpen: bool = is_true(&(Value::Bool(status.as_str() == Some("pending")))) || is_true(&(Value::Bool(status.as_str() == Some("open"))));
+        let mut isClosed: bool = is_true(&(status.as_str() == Some("finished"))) || is_true(&(status.as_str() == Some("closed")));
+        let mut isOpen: bool = is_true(&(status.as_str() == Some("pending"))) || is_true(&(status.as_str() == Some("open")));
         if (marketType.as_str() == Some("swap")) {
             add_element_to_object(&mut request, &Value::Str("market_type".to_string()), Value::Str("FUTURES".to_string()));
             if isClosed {
@@ -4867,7 +4867,7 @@ impl CoinexCore {
         let mut market: Value = Value::Null;
         if (symbols != Value::Null) {
             let mut symbol: Value = Value::Null;
-            if is_true(&Value::Bool(is_array(&symbols))) {
+            if (is_array(&symbols)) {
                 let mut symbolsLength: Value = Value::Int(symbols.len() as i64);
                 if symbolsLength.as_f64().unwrap_or(f64::NAN) > Value::Int(1).as_f64().unwrap_or(f64::NAN) {
                     panic!("{}", crate::exchange_errors::bad_request(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchPositions() symbols argument cannot contain more than 1 symbol".to_string())))));
@@ -5268,7 +5268,7 @@ impl CoinexCore {
             let mut marketId: Value = self.safe_string_k(info.clone(), "market", &[]);
             market = self.safe_market(&[marketId.clone(), market.clone(), Value::Null, Value::Str("swap".to_string())]);
             let mut maxNotional: Value = self.safe_number_k(tier.clone(), "amount", &[]);
-            let mut curr: Value = (if is_true(&(Value::Bool(market.as_map().and_then(|__m| __m.get("linear")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)))) { market.as_map().and_then(|__m| __m.get("base")).cloned().unwrap_or(Value::Null) } else { market.as_map().and_then(|__m| __m.get("quote")).cloned().unwrap_or(Value::Null) });
+            let mut curr: Value = (if is_true(&(market.as_map().and_then(|__m| __m.get("linear")).cloned().unwrap_or(Value::Null).as_bool() == Some(true))) { market.as_map().and_then(|__m| __m.get("base")).cloned().unwrap_or(Value::Null) } else { market.as_map().and_then(|__m| __m.get("quote")).cloned().unwrap_or(Value::Null) });
             let mut notional: Value = minNotional.clone();
             append_to_array(&mut tiers, Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -5356,7 +5356,7 @@ impl CoinexCore {
     m
 })]);
         let mut status: Value = self.safe_string_lower(response.clone(), Value::Str("message".to_string()), &[]);
-        let mut type_var: Value = (if is_true(&(Value::Bool(addOrReduce.as_str() == Some("reduce")))) { Value::Str("reduce".to_string()) } else { Value::Str("add".to_string()) });
+        let mut type_var: Value = (if is_true(&(addOrReduce.as_str() == Some("reduce"))) { Value::Str("reduce".to_string()) } else { Value::Str("add".to_string()) });
         let __ws_arg_51 = self.parse_margin_modification(data.clone(), &[market.clone()]);
         let __ws_arg_52 = self.parse_number(amount.clone(), &[]);
         return self.extend(__ws_arg_51, &[Value::Map({
@@ -6031,7 +6031,7 @@ impl CoinexCore {
         let mut currencyId: Value = self.safe_string_k(transaction.clone(), "ccy", &[]);
         let mut code: Value = self.safe_currency_code(currencyId.clone(), &[currency.clone()]);
         let mut timestamp: Value = self.safe_integer_k(transaction.clone(), "created_at", &[]);
-        let mut type_var: Value = (if is_true(&(Value::Bool(in_op(&transaction, &Value::Str("withdraw_id".to_string()))))) { Value::Str("withdrawal".to_string()) } else { Value::Str("deposit".to_string()) });
+        let mut type_var: Value = (if (in_op(&transaction, &Value::Str("withdraw_id".to_string()))) { Value::Str("withdrawal".to_string()) } else { Value::Str("deposit".to_string()) });
         let mut networkId: Value = self.safe_string_k(transaction.clone(), "chain", &[]);
         let mut feeCost: Value = self.safe_string_k(transaction.clone(), "tx_fee", &[]);
         let mut transferMethod: Value = self.safe_string_lower2(transaction.clone(), Value::Str("withdraw_method".to_string()), Value::Str("deposit_method".to_string()), &[]);
@@ -6115,7 +6115,7 @@ impl CoinexCore {
                 m.insert("to_account_type".to_string(), toId.clone());
             m
         });
-        if is_true(&(Value::Bool(fromAccount.as_str() == Some("margin")))) || is_true(&(Value::Bool(toAccount.as_str() == Some("margin")))) {
+        if is_true(&(fromAccount.as_str() == Some("margin"))) || is_true(&(toAccount.as_str() == Some("margin"))) {
             let mut symbol: Value = self.safe_string_k(params.clone(), "symbol", &[]);
             if (symbol == Value::Null) {
                 panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" transfer() the symbol parameter must be defined for a margin account".to_string())))));
@@ -6123,7 +6123,7 @@ impl CoinexCore {
             params = self.omit(params.clone(), Value::Str("symbol".to_string()), &[]);
             add_element_to_object(&mut request, &Value::Str("market".to_string()), self.market_id(symbol.clone()));
         }
-        if is_true(&(Value::Bool(fromAccount.as_str() != Some("spot")))) && is_true(&(Value::Bool(toAccount.as_str() != Some("spot")))) {
+        if is_true(&(fromAccount.as_str() != Some("spot"))) && is_true(&(toAccount.as_str() != Some("spot"))) {
             panic!("{}", crate::exchange_errors::bad_request(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" transfer() can only be between spot and swap, or spot and margin, either the fromAccount or toAccount must be spot".to_string())))));
         }
         let __ws_arg_58 = self.extend(request.clone(), &[params.clone()]);
@@ -6973,7 +6973,7 @@ impl CoinexCore {
                 add_element_to_object(get_value_mut(&mut result, &Value::Str("withdraw".to_string())), &Value::Str("fee".to_string()), self.safe_number_k(entry.clone(), "withdrawal_fee", &[]));
                 add_element_to_object(get_value_mut(&mut result, &Value::Str("withdraw".to_string())), &Value::Str("percentage".to_string()), Value::Bool(false));
                 let mut networkId: Value = self.safe_string_k(entry.clone(), "chain", &[]);
-                if is_true(&(Value::Bool(networkId != Value::Null))) && is_true(&(Value::Bool(networkId.as_str() != Some("")))) {
+                if is_true(&(networkId != Value::Null)) && is_true(&(networkId.as_str() != Some(""))) {
                     let mut currencyId: Value = self.safe_string_k(asset.clone(), "ccy", &[]);
                     let mut feeCode: Value = self.safe_currency_code(currencyId.clone(), &[currency.clone()]);
                     let mut networkCode: Value = self.network_id_to_code(&[networkId.clone(), feeCode.clone()]);
@@ -7269,7 +7269,7 @@ impl CoinexCore {
         let mut marginMode: Value = Value::Null;
         { let __destr_tmp = self.super_handle_margin_mode_and_params(methodName.clone(), params.clone(), defaultValue.clone()); marginMode = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         if (marginMode == Value::Null) {
-            if is_true(&(Value::Bool(defaultType.as_str() == Some("margin")))) || is_true(&(Value::Bool(isMargin.as_bool() == Some(true)))) {
+            if is_true(&(defaultType.as_str() == Some("margin"))) || is_true(&(isMargin.as_bool() == Some(true))) {
                 marginMode = Value::Str("isolated".to_string());
             }
         }
@@ -7307,7 +7307,7 @@ impl CoinexCore {
             let mut lastWords: Value = split(&lastPart, &Value::Str("_".to_string()));
             let mut numWords: Value = Value::Int(lastWords.len() as i64);
             let mut lastWord: Value = self.safe_string(lastWords.clone(), (match (&(numWords), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }), &[Value::Str("".to_string())]);
-            if is_true(&(Value::Bool(firstPart.as_str() == Some("order")))) && is_true(&(Value::Bool((lastWord.as_str() == Some("limit")) || (lastWord.as_str() == Some("market"))))) {
+            if is_true(&(firstPart.as_str() == Some("order"))) && is_true(&((lastWord.as_str() == Some("limit")) || (lastWord.as_str() == Some("market")))) {
                 // inject in implicit API calls
                 // POST /order/limit - Place limit orders
                 // POST /order/market - Place market orders
@@ -7342,7 +7342,7 @@ impl CoinexCore {
                     m.insert("AccessId".to_string(), self.apiKey.clone());
                 m
             });
-            if is_true(&(Value::Bool(method.as_str() == Some("GET")))) || is_true(&(Value::Bool(method.as_str() == Some("PUT")))) {
+            if is_true(&(method.as_str() == Some("GET"))) || is_true(&(method.as_str() == Some("PUT"))) {
                 url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".to_string()), urlencoded))));
             }  else {
                 add_element_to_object(&mut headers, &Value::Str("Content-Type".to_string()), Value::Str("application/x-www-form-urlencoded".to_string()));
@@ -7370,7 +7370,7 @@ impl CoinexCore {
                         m.insert("Content-Type".to_string(), Value::Str("application/json".to_string()));
                     m
                 });
-                if is_true(&(Value::Bool(method.as_str() == Some("GET")))) || is_true(&(Value::Bool(method.as_str() == Some("DELETE")))) || is_true(&(Value::Bool(method.as_str() == Some("PUT")))) {
+                if is_true(&(method.as_str() == Some("GET"))) || is_true(&(method.as_str() == Some("DELETE"))) || is_true(&(method.as_str() == Some("PUT"))) {
                     url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".to_string()), urlencoded))));
                 }  else {
                     body = self.json(query.clone());
@@ -7423,7 +7423,7 @@ impl CoinexCore {
         let mut code: Value = self.safe_string_k(response.clone(), "code", &[]);
         let mut data: Value = self.safe_value_k(response.clone(), "data", &[]);
         let mut message: Value = self.safe_string_k(response.clone(), "message", &[Value::Str("".to_string())]);
-        if is_true(&(Value::Bool(code.as_str() != Some("0")))) || is_true(&(Value::Bool(is_true(&(Value::Bool(message.as_str() != Some("Success")))) && is_true(&(Value::Bool(message.as_str() != Some("Succeeded")))) && is_true(&(Value::Bool(to_lower(&message).as_str() != Some("ok")))) && is_true(&(Value::Bool(data == Value::Null)))))) {
+        if is_true(&(code.as_str() != Some("0"))) || (is_true(&(message.as_str() != Some("Success"))) && is_true(&(message.as_str() != Some("Succeeded"))) && is_true(&(to_lower(&message).as_str() != Some("ok"))) && is_true(&(data == Value::Null))) {
             let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), message));
             self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), message.clone(), feedback.clone());
             self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), code.clone(), feedback.clone());

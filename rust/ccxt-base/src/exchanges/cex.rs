@@ -1260,7 +1260,7 @@ impl CexCore {
         }
         if (since != Value::Null) && (until != Value::Null) && (limit != Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchOHLCV does not support fetching candles with both a limit and since/until".to_string())))));
-        }  else if is_true(&(Value::Bool((since != Value::Null) || (until != Value::Null)))) && (limit == Value::Null) {
+        }  else if is_true(&((since != Value::Null) || (until != Value::Null))) && (limit == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchOHLCV requires a limit parameter when fetching candles with since or until".to_string())))));
         }
         if (limit != Value::Null) {
@@ -1368,7 +1368,7 @@ impl CexCore {
             while { if !__for_first_514 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_514 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(symbols.len() as i64).as_f64().unwrap_or(f64::NAN) } {
             let mut symbol: Value = get_value(&symbols, &i);
             let mut symbol: Value = get_value(&symbols, &i);
-            if !is_true(&(Value::Bool(in_op(&result, &symbol)))) {
+            if !(in_op(&result, &symbol)) {
                 let mut market: Value = self.market(symbol.clone());
                 add_element_to_object(&mut result, &symbol, self.parse_trading_fee(response.clone(), &[market.clone()]));
             }
@@ -2270,7 +2270,7 @@ impl CexCore {
         let mut currency = get_arg(optional_args, 0, Value::Null);
         let mut currencyId: Value = self.safe_string_k(transaction.clone(), "currency", &[]);
         let mut direction: Value = self.safe_string_k(transaction.clone(), "direction", &[]);
-        let mut type_var: Value = (if is_true(&(Value::Bool(direction.as_str() == Some("withdraw")))) { Value::Str("withdrawal".to_string()) } else { Value::Str("deposit".to_string()) });
+        let mut type_var: Value = (if is_true(&(direction.as_str() == Some("withdraw"))) { Value::Str("withdrawal".to_string()) } else { Value::Str("deposit".to_string()) });
         let mut code: Value = self.safe_currency_code(currencyId.clone(), &[currency.clone()]);
         let mut updatedAt: Value = self.safe_string_k(transaction.clone(), "updatedAt", &[]);
         let mut timestamp: Value = self.parse8601(updatedAt.clone());

@@ -833,7 +833,7 @@ impl DeltaCore {
         let mut strike: Value = self.safe_string(optionParts.clone(), Value::Int(2), &[]);
         let mut datetime: Value = self.convert_expire_date(expiry.clone());
         let mut timestamp: Value = self.parse8601(datetime.clone());
-        let mut optionTypeUnified: Value = (if is_true(&(Value::Bool(optionType.as_str() == Some("C")))) { Value::Str("call".to_string()) } else { Value::Str("put".to_string()) });
+        let mut optionTypeUnified: Value = (if is_true(&(optionType.as_str() == Some("C"))) { Value::Str("call".to_string()) } else { Value::Str("put".to_string()) });
         return self.safe_market_structure(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), add(&Value::Str(format!("{}{}", add(&Value::Str(format!("{}{}", add(&add(&optionType, &Value::Str("-".to_string())), &base), Value::Str("-".to_string()))), &strike), Value::Str("-".to_string()))), &expiry));
@@ -899,8 +899,8 @@ impl DeltaCore {
         let mut market = get_arg(optional_args, 1, Value::Null);
         let mut delimiter = get_arg(optional_args, 2, Value::Null);
         let mut marketType = get_arg(optional_args, 3, Value::Null);
-        let mut isOption: bool = is_true(&(Value::Bool(marketId != Value::Null))) && (is_true(&(Value::Bool(ends_with(&marketId, &Value::Str("-C".to_string()))))) || is_true(&(Value::Bool(ends_with(&marketId, &Value::Str("-P".to_string()))))) || is_true(&(Value::Bool(starts_with(&marketId, &Value::Str("C-".to_string()))))) || is_true(&(Value::Bool(starts_with(&marketId, &Value::Str("P-".to_string()))))));
-        if isOption && is_true(&(Value::Bool(is_true(&(Value::Bool(self.markets_by_id.clone() == Value::Null))) || !is_true(&(Value::Bool(in_op(&self.markets_by_id, &marketId))))))) {
+        let mut isOption: bool = is_true(&(marketId != Value::Null)) && ((ends_with(&marketId, &Value::Str("-C".to_string()))) || (ends_with(&marketId, &Value::Str("-P".to_string()))) || (starts_with(&marketId, &Value::Str("C-".to_string()))) || (starts_with(&marketId, &Value::Str("P-".to_string()))));
+        if isOption && (is_true(&(self.markets_by_id.clone() == Value::Null)) || !(in_op(&self.markets_by_id, &marketId))) {
             return self.create_expired_option_market(marketId.clone());
         }
         return self.super_safe_market(marketId.clone(), market.clone(), delimiter.clone(), marketType.clone());
@@ -1002,7 +1002,7 @@ impl DeltaCore {
     m
 })]);
         let mut underMaintenance: Value = self.safe_string_k(result.clone(), "under_maintenance", &[]);
-        let mut status: Value = (if is_true(&(Value::Bool(underMaintenance.as_str() == Some("true")))) { Value::Str("maintenance".to_string()) } else { Value::Str("ok".to_string()) });
+        let mut status: Value = (if is_true(&(underMaintenance.as_str() == Some("true"))) { Value::Str("maintenance".to_string()) } else { Value::Str("ok".to_string()) });
         let mut updated: Value = self.safe_integer_product(result.clone(), Value::Str("server_time".to_string()), Value::Float(0.001), &[self.milliseconds()]);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1178,11 +1178,11 @@ impl DeltaCore {
 }));
         let mut markets: Value = self.super_load_markets(reload.clone(), params.clone()).await;
         let mut currenciesByNumericId: Value = self.safe_dict_k(self.options.clone(), "currenciesByNumericId", &[]);
-        if is_true(&(Value::Bool(currenciesByNumericId == Value::Null))) || is_true(&reload) {
+        if is_true(&(currenciesByNumericId == Value::Null)) || is_true(&reload) {
             { let __be_tmp = self.index_by_stringified_numeric_id(self.currencies.clone()); add_element_to_object(&mut self.options, &Value::Str("currenciesByNumericId".to_string()), __be_tmp); };
         }
         let mut marketsByNumericId: Value = self.safe_dict_k(self.options.clone(), "marketsByNumericId", &[]);
-        if is_true(&(Value::Bool(marketsByNumericId == Value::Null))) || is_true(&reload) {
+        if is_true(&(marketsByNumericId == Value::Null)) || is_true(&reload) {
             { let __be_tmp = self.index_by_stringified_numeric_id(self.markets.clone()); add_element_to_object(&mut self.options, &Value::Str("marketsByNumericId".to_string()), __be_tmp); };
         }
         return markets;
@@ -1420,7 +1420,7 @@ impl DeltaCore {
             let mut market: Value = get_value(&markets, &i);
             let mut market: Value = get_value(&markets, &i);
             let mut type_var: Value = self.safe_string_k(market.clone(), "contract_type", &[]);
-            if is_true(&(Value::Bool(type_var.as_str() == Some("options_combos")))) || is_true(&(Value::Bool(type_var.as_str() == Some("binary_call_options")))) || is_true(&(Value::Bool(type_var.as_str() == Some("binary_put_options")))) {
+            if is_true(&(type_var.as_str() == Some("options_combos"))) || is_true(&(type_var.as_str() == Some("binary_call_options"))) || is_true(&(type_var.as_str() == Some("binary_put_options"))) {
                 continue;
             }
             // const settlingAsset = this.safeValue (market, 'settling_asset', {});
@@ -1693,7 +1693,7 @@ impl DeltaCore {
         // spot markets that is the base currency rather than the quote
         let mut turnoverSymbol: Value = self.safe_string_upper(ticker.clone(), Value::Str("turnover_symbol".to_string()), &[]);
         let mut quoteId: Value = self.safe_string_upper(market.clone(), Value::Str("quoteId".to_string()), &[]);
-        let mut baseDenominated: bool = is_true(&(Value::Bool(turnoverSymbol != Value::Null))) && is_true(&(Value::Bool(quoteId != Value::Null))) && is_true(&(Value::Bool(turnoverSymbol.as_str() != quoteId.as_str())));
+        let mut baseDenominated: bool = is_true(&(turnoverSymbol != Value::Null)) && is_true(&(quoteId != Value::Null)) && is_true(&(turnoverSymbol.as_str() != quoteId.as_str()));
         let mut quoteVolume: Value = (if baseDenominated { self.safe_number_k(ticker.clone(), "turnover_usd", &[]) } else { self.safe_number_k(ticker.clone(), "turnover", &[]) });
         return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2041,7 +2041,7 @@ impl DeltaCore {
             let mut rawTicker: Value = get_value(&tickers, &i);
             let mut rawTicker: Value = get_value(&tickers, &i);
             let mut contractType: Value = self.safe_string_k(rawTicker.clone(), "contract_type", &[]);
-            if is_true(&(Value::Bool(contractType.as_str() == Some("options_combos")))) || is_true(&(Value::Bool(contractType.as_str() == Some("binary_call_options")))) || is_true(&(Value::Bool(contractType.as_str() == Some("binary_put_options")))) {
+            if is_true(&(contractType.as_str() == Some("options_combos"))) || is_true(&(contractType.as_str() == Some("binary_call_options"))) || is_true(&(contractType.as_str() == Some("binary_put_options"))) {
                 continue;
             }
             let mut ticker: Value = self.parse_ticker(rawTicker.clone(), &[]);
@@ -2311,7 +2311,7 @@ impl DeltaCore {
             m
         });
         let mut duration: Value = self.parse_timeframe(timeframe.clone());
-        limit = (if is_true(&(Value::Bool((limit != Value::Null) && (limit != Value::Null) && (limit.as_f64() != Some(0.0))))) { limit.clone() } else { Value::Int(2000) }); // max 2000
+        limit = (if is_true(&((limit != Value::Null) && (limit != Value::Null) && (limit.as_f64() != Some(0.0)))) { limit.clone() } else { Value::Int(2000) }); // max 2000
         let mut until: Value = self.safe_integer_product(params.clone(), Value::Str("until".to_string()), Value::Float(0.001), &[]);
         let mut untilIsDefined: bool = until != Value::Null;
         if untilIsDefined {
@@ -2375,7 +2375,7 @@ impl DeltaCore {
             let mut balance: Value = get_value(&balances, &i);
             let mut currencyId: Value = self.safe_string_k(balance.clone(), "asset_id", &[]);
             let mut currency: Value = self.safe_dict(currenciesByNumericId.clone(), currencyId.clone(), &[]);
-            let mut code: Value = (if is_true(&(Value::Bool(currency == Value::Null))) { currencyId.clone() } else { currency.as_map().and_then(|__m| __m.get("code")).cloned().unwrap_or(Value::Null) });
+            let mut code: Value = (if is_true(&(currency == Value::Null)) { currencyId.clone() } else { currency.as_map().and_then(|__m| __m.get("code")).cloned().unwrap_or(Value::Null) });
             let mut account: Value = self.account();
             add_element_to_object(&mut account, &Value::Str("total".to_string()), self.safe_string_k(balance.clone(), "balance", &[]));
             add_element_to_object(&mut account, &Value::Str("free".to_string()), self.safe_string_k(balance.clone(), "available_balance", &[]));
@@ -2658,7 +2658,7 @@ impl DeltaCore {
     m
 })]);
         market = self.safe_value(marketsByNumericId.clone(), marketId.clone(), &[market.clone()]);
-        let mut symbol: Value = (if is_true(&(Value::Bool(market == Value::Null))) { marketId.clone() } else { market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null) });
+        let mut symbol: Value = (if is_true(&(market == Value::Null)) { marketId.clone() } else { market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null) });
         let mut status: Value = self.parse_order_status(self.safe_string_k(order.clone(), "state", &[]));
         let mut side: Value = self.safe_string_k(order.clone(), "side", &[]);
         let mut type_var: Value = self.safe_string_k(order.clone(), "order_type", &[]);
@@ -3356,16 +3356,16 @@ impl DeltaCore {
         let mut referenceId: Value = self.safe_string_k(metaData.clone(), "transaction_id", &[]);
         let mut referenceAccount: Value = Value::Null;
         let mut type_var: Value = self.safe_string_k(item.clone(), "transaction_type", &[]);
-        if is_true(&(Value::Bool(type_var.as_str() == Some("deposit")))) || is_true(&(Value::Bool(type_var.as_str() == Some("commission_rebate")))) || is_true(&(Value::Bool(type_var.as_str() == Some("referral_bonus")))) || is_true(&(Value::Bool(type_var.as_str() == Some("pnl")))) || is_true(&(Value::Bool(type_var.as_str() == Some("withdrawal_cancellation")))) || is_true(&(Value::Bool(type_var.as_str() == Some("promo_credit")))) {
+        if is_true(&(type_var.as_str() == Some("deposit"))) || is_true(&(type_var.as_str() == Some("commission_rebate"))) || is_true(&(type_var.as_str() == Some("referral_bonus"))) || is_true(&(type_var.as_str() == Some("pnl"))) || is_true(&(type_var.as_str() == Some("withdrawal_cancellation"))) || is_true(&(type_var.as_str() == Some("promo_credit"))) {
             direction = Value::Str("in".to_string());
-        }  else if is_true(&(Value::Bool(type_var.as_str() == Some("withdrawal")))) || is_true(&(Value::Bool(type_var.as_str() == Some("commission")))) || is_true(&(Value::Bool(type_var.as_str() == Some("conversion")))) || is_true(&(Value::Bool(type_var.as_str() == Some("perpetual_futures_funding")))) {
+        }  else if is_true(&(type_var.as_str() == Some("withdrawal"))) || is_true(&(type_var.as_str() == Some("commission"))) || is_true(&(type_var.as_str() == Some("conversion"))) || is_true(&(type_var.as_str() == Some("perpetual_futures_funding"))) {
             direction = Value::Str("out".to_string());
         }
         type_var = self.parse_ledger_entry_type(type_var.clone());
         let mut currencyId: Value = self.safe_string_k(item.clone(), "asset_id", &[]);
         let mut currenciesByNumericId: Value = self.safe_dict_k(self.options.clone(), "currenciesByNumericId", &[]);
         currency = self.safe_value(currenciesByNumericId.clone(), currencyId.clone(), &[currency.clone()]);
-        let mut code: Value = (if is_true(&(Value::Bool(currency == Value::Null))) { Value::Null } else { currency.as_map().and_then(|__m| __m.get("code")).cloned().unwrap_or(Value::Null) });
+        let mut code: Value = (if is_true(&(currency == Value::Null)) { Value::Null } else { currency.as_map().and_then(|__m| __m.get("code")).cloned().unwrap_or(Value::Null) });
         let mut amount: Value = self.safe_string_k(item.clone(), "amount", &[]);
         let mut timestamp: Value = self.parse8601(self.safe_string_k(item.clone(), "created_at", &[]));
         let mut after: Value = self.safe_string_k(item.clone(), "balance", &[]);

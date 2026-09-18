@@ -393,8 +393,8 @@ impl BithumbCore {
         { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("watchTickers".to_string()), Value::Str("generation".to_string()), &[Value::Int(2)]); generation = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         let mut isGenerationTwo: bool = generation.as_f64() == Some(2.0);
         symbols = self.market_symbols(&[symbols.clone(), Value::Null, Value::Bool(false), Value::Bool(true), Value::Bool(true)]);
-        let mut symbolsLength: Value = (if is_true(&(Value::Bool(symbols == Value::Null))) { Value::Int(0) } else { Value::Int(symbols.len() as i64) });
-        if isGenerationTwo && is_true(&(Value::Bool(symbolsLength.as_f64() == Some(0.0)))) {
+        let mut symbolsLength: Value = (if is_true(&(symbols == Value::Null)) { Value::Int(0) } else { Value::Int(symbols.len() as i64) });
+        if isGenerationTwo && is_true(&(symbolsLength.as_f64() == Some(0.0))) {
             panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" watchTickers() requires symbols for the generation 2 API".to_string())))));
         }
         if (symbols == Value::Null) {
@@ -769,7 +769,7 @@ impl BithumbCore {
                 return;
             }
             let mut legacyTimestamp: Value = self.parse_to_int(slice(&timestampStr, &Value::Int(0), &Value::Int(13)));
-            if !is_true(&(Value::Bool(in_op(&self.orderbooks, &legacySymbol)))) {
+            if !(in_op(&self.orderbooks, &legacySymbol)) {
                 let mut ob: Value = self.order_book(&[]);
                 add_element_to_object(&mut ob, &Value::Str("symbol".to_string()), legacySymbol.clone());
                 add_element_to_object(&mut self.orderbooks, &legacySymbol, ob.clone());
@@ -793,7 +793,7 @@ impl BithumbCore {
             m
         })]);
         let mut obLimit: Value = self.safe_integer_k(options.clone(), "limit", &[Value::Int(1000)]);
-        if !is_true(&(Value::Bool(in_op(&self.orderbooks, &symbol)))) || is_true(&(Value::Bool(streamType.as_str() == Some("SNAPSHOT")))) {
+        if !(in_op(&self.orderbooks, &symbol)) || is_true(&(streamType.as_str() == Some("SNAPSHOT"))) {
             { let __be_tmp = self.order_book(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -818,10 +818,10 @@ impl BithumbCore {
             let mut bidSize: Value = self.safe_number_k(entry.clone(), "bid_size", &[]);
             let mut askPrice: Value = self.safe_number_k(entry.clone(), "ask_price", &[]);
             let mut askSize: Value = self.safe_number_k(entry.clone(), "ask_size", &[]);
-            if is_true(&(Value::Bool(bidPrice != Value::Null))) && is_true(&(Value::Bool(bidSize != Value::Null))) {
+            if is_true(&(bidPrice != Value::Null)) && is_true(&(bidSize != Value::Null)) {
                 bids.store(bidPrice.clone(), bidSize.clone());
             }
-            if is_true(&(Value::Bool(askPrice != Value::Null))) && is_true(&(Value::Bool(askSize != Value::Null))) {
+            if is_true(&(askPrice != Value::Null)) && is_true(&(askSize != Value::Null)) {
                 asks.store(askPrice.clone(), askSize.clone());
             }
         }
@@ -851,7 +851,7 @@ impl BithumbCore {
         //    }
         //
         let mut sideId: Value = self.safe_string_k(delta.clone(), "orderType", &[]);
-        let mut side: Value = (if is_true(&(Value::Bool(sideId.as_str() == Some("bid")))) { Value::Str("bids".to_string()) } else { Value::Str("asks".to_string()) });
+        let mut side: Value = (if is_true(&(sideId.as_str() == Some("bid"))) { Value::Str("bids".to_string()) } else { Value::Str("asks".to_string()) });
         let mut bidAsk: Value = self.parse_order_book_bid_ask(delta.clone(), &[Value::Str("price".to_string()), Value::Str("quantity".to_string())]);
         let mut orderbookSide: Value = get_value(&orderbook, &side);
         let mut orderbookSide: Value = get_value(&orderbook, &side);
@@ -993,7 +993,7 @@ impl BithumbCore {
             }
             let mut parsed: Value = self.parse_ws_trade(rawTrade.clone(), &[]);
             let mut symbol: Value = self.safe_string_k(parsed.clone(), "symbol", &[fallbackSymbol.clone()]);
-            if !is_true(&(Value::Bool(in_op(&self.trades, &symbol)))) {
+            if !(in_op(&self.trades, &symbol)) {
                 let mut limit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
                 let mut stored = ArrayCache::new(limit.clone());
                 add_element_to_object(&mut self.trades, &symbol, stored.clone());
@@ -1065,7 +1065,7 @@ impl BithumbCore {
         m.insert("symbol".to_string(), self.safe_symbol(marketId.clone(), &[market.clone(), Value::Str("_".to_string())]));
         m.insert("order".to_string(), Value::Null);
         m.insert("type".to_string(), Value::Null);
-        m.insert("side".to_string(), (if is_true(&(Value::Bool(sideId.as_str() == Some("1")))) { Value::Str("buy".to_string()) } else { Value::Str("sell".to_string()) }));
+        m.insert("side".to_string(), (if is_true(&(sideId.as_str() == Some("1"))) { Value::Str("buy".to_string()) } else { Value::Str("sell".to_string()) }));
         m.insert("takerOrMaker".to_string(), Value::Null);
         m.insert("price".to_string(), self.safe_string_k(trade.clone(), "contPrice", &[]));
         m.insert("amount".to_string(), self.safe_string_k(trade.clone(), "contQty", &[]));
@@ -1097,12 +1097,12 @@ impl BithumbCore {
             client.reject(&[Value::from(crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" websocket error ".to_string()))), errorName)), addedMessage))))]);
             return Value::Bool(false);
         }
-        if !is_true(&(Value::Bool(in_op(&message, &Value::Str("status".to_string()))))) {
+        if !(in_op(&message, &Value::Str("status".to_string()))) {
             return Value::Bool(true);
         }
         let mut errorCode: Value = self.safe_string_k(message.clone(), "status", &[]);
         let _try_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-            if is_true(&(Value::Bool(errorCode.as_str() == Some("UP")))) || is_true(&(Value::Bool(errorCode.as_str() == Some("0000")))) {
+            if is_true(&(errorCode.as_str() == Some("UP"))) || is_true(&(errorCode.as_str() == Some("0000"))) {
                 return Value::Bool(true);
             }
             if (errorCode.as_str() != Some("0000")) {
@@ -1409,7 +1409,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut sideId: Value = self.safe_string_k(order.clone(), "ask_bid", &[]);
         let mut side: Value = self.safe_string_lower(order.clone(), Value::Str("side".to_string()), &[]);
         if (sideId != Value::Null) {
-            side = (if is_true(&(Value::Bool(sideId.as_str() == Some("BID")))) { (Value::Str("buy".to_string())) } else { (Value::Str("sell".to_string())) });
+            side = (if is_true(&(sideId.as_str() == Some("BID"))) { (Value::Str("buy".to_string())) } else { (Value::Str("sell".to_string())) });
         }
         let mut typeId: Value = self.safe_string_k(order.clone(), "order_type", &[]);
         let mut type_var: Value = Value::Null;
@@ -1496,11 +1496,11 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             self.handle_pong(client.clone(), message.clone());
             return;
         }
-        if is_true(&(Value::Bool(in_op(&message, &Value::Str("pong".to_string()))))) || is_true(&(Value::Bool(in_op(&message, &Value::Str("PINGPONG".to_string()))))) {
+        if (in_op(&message, &Value::Str("pong".to_string()))) || (in_op(&message, &Value::Str("PINGPONG".to_string()))) {
             self.handle_pong(client.clone(), message.clone());
             return;
         }
-        if is_true(&Value::Bool(in_op(&message, &Value::Str("ping".to_string())))) {
+        if (in_op(&message, &Value::Str("ping".to_string()))) {
             self.handle_ping(client.clone(), message.clone());
             return;
         }

@@ -1626,7 +1626,7 @@ impl BitsoCore {
         let mut markerInParams: bool = in_op(&params, &Value::Str("marker".to_string()));
         // warn the user with an exception if the user wants to filter
         // starting from since timestamp, but does not set the trade id with an extra 'marker' param
-        if is_true(&(Value::Bool(since != Value::Null))) && !markerInParams {
+        if is_true(&(since != Value::Null)) && !markerInParams {
             panic!("{}", crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchMyTrades() does not support fetching trades starting from a timestamp with the `since` argument, use the `marker` extra param to filter starting from an integer trade id".to_string())))));
         }
         // convert it to an integer unconditionally
@@ -1763,7 +1763,7 @@ impl BitsoCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if !is_true(&Value::Bool(is_array(&ids))) {
+        if !(is_array(&ids)) {
             panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" cancelOrders() ids argument should be an array".to_string())))));
         }
         let mut market: Value = Value::Null;
@@ -1935,7 +1935,7 @@ impl BitsoCore {
         let mut markerInParams: bool = in_op(&params, &Value::Str("marker".to_string()));
         // warn the user with an exception if the user wants to filter
         // starting from since timestamp, but does not set the trade id with an extra 'marker' param
-        if is_true(&(Value::Bool(since != Value::Null))) && !markerInParams {
+        if is_true(&(since != Value::Null)) && !markerInParams {
             panic!("{}", crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchOpenOrders() does not support fetching orders starting from a timestamp with the `since` argument, use the `marker` extra param to filter starting from an integer trade id".to_string())))));
         }
         // convert it to an integer unconditionally
@@ -1987,7 +1987,7 @@ impl BitsoCore {
             m
         })]).await;
         let mut payload: Value = self.safe_value_k(response.clone(), "payload", &[]);
-        if is_true(&Value::Bool(is_array(&payload))) {
+        if (is_array(&payload)) {
             let mut numOrders: Value = Value::Int(payload.len() as i64);
             if (numOrders.as_f64() == Some(1.0)) {
                 return self.parse_order(payload.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null), &[]);
@@ -2279,7 +2279,7 @@ impl BitsoCore {
             let mut depositFee: Value = get_value(&depositFees, &i);
             let mut currencyId: Value = self.safe_string_k(depositFee.clone(), "currency", &[]);
             let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
-            if is_true(&(Value::Bool(codes != Value::Null))) && !is_true(&self.in_array(code.clone(), codes.clone())) {
+            if is_true(&(codes != Value::Null)) && !is_true(&self.in_array(code.clone(), codes.clone())) {
                 continue;
             }
             if (code != Value::Null) {
@@ -2307,7 +2307,7 @@ impl BitsoCore {
             let mut currencyId: Value = get_value(&currencyIds, &i);
             let mut currencyId: Value = get_value(&currencyIds, &i);
             let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
-            if is_true(&(Value::Bool(codes != Value::Null))) && !is_true(&self.in_array(code.clone(), codes.clone())) {
+            if is_true(&(codes != Value::Null)) && !is_true(&self.in_array(code.clone(), codes.clone())) {
                 continue;
             }
             if (code != Value::Null) {
@@ -2456,7 +2456,7 @@ impl BitsoCore {
             let mut entry: Value = get_value(&depositResponse, &i);
             let mut currencyId: Value = self.safe_string_k(entry.clone(), "currency", &[]);
             let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
-            if is_true(&(Value::Bool(codes == Value::Null))) || is_true(&(Value::Bool(is_true(&(Value::Bool(code != Value::Null))) && is_true(&(Value::Bool(in_op(&codes, &code))))))) {
+            if is_true(&(codes == Value::Null)) || (is_true(&(code != Value::Null)) && (in_op(&codes, &code))) {
                 if (code != Value::Null) {
                     add_element_to_object(&mut result, &code, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2491,7 +2491,7 @@ impl BitsoCore {
             let mut currencyId: Value = get_value(&withdrawalKeys, &i);
             let mut currencyId: Value = get_value(&withdrawalKeys, &i);
             let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
-            if is_true(&(Value::Bool(code != Value::Null))) && is_true(&(Value::Bool(is_true(&(Value::Bool(codes == Value::Null))) || is_true(&(Value::Bool(in_op(&codes, &code))))))) {
+            if is_true(&(code != Value::Null)) && (is_true(&(codes == Value::Null)) || (in_op(&codes, &code))) {
                 let mut withdrawFee: Value = self.parse_number(get_value(&withdrawalResponse, &currencyId), &[]);
                 let mut resultValue: Value = self.safe_value(result.clone(), code.clone(), &[]);
                 if (resultValue == Value::Null) {
@@ -2542,7 +2542,7 @@ impl BitsoCore {
             m
         });
         let mut currency: Value = self.currency(code.clone());
-        let mut method: Value = (if is_true(&(Value::Bool(in_op(&methods, &code)))) { get_value(&methods, &code) } else { Value::Null });
+        let mut method: Value = (if (in_op(&methods, &code)) { get_value(&methods, &code) } else { Value::Null });
         if (method == Value::Null) {
             panic!("{}", crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" not valid withdraw coin: ".to_string()))), code))));
         }
@@ -2633,7 +2633,7 @@ impl BitsoCore {
         let mut status: Value = self.safe_string_k(transaction.clone(), "status", &[]);
         let mut withdrawId: Value = self.safe_string_k(transaction.clone(), "wid", &[]);
         let mut networkCode: Value = self.network_id_to_code(&[networkId.clone(), currency.as_map().and_then(|__m| __m.get("code")).cloned().unwrap_or(Value::Null)]);
-        let mut networkCodeUpper: Value = (if is_true(&(Value::Bool(networkCode != Value::Null))) { to_upper(&networkCode) } else { Value::Null });
+        let mut networkCodeUpper: Value = (if is_true(&(networkCode != Value::Null)) { to_upper(&networkCode) } else { Value::Null });
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), self.safe_string2(transaction.clone(), Value::Str("wid".to_string()), Value::Str("fid".to_string()), &[]));
@@ -2642,10 +2642,10 @@ impl BitsoCore {
         m.insert("datetime".to_string(), datetime.clone());
         m.insert("network".to_string(), networkCodeUpper.clone());
         m.insert("addressFrom".to_string(), receivingAddress.clone());
-        m.insert("address".to_string(), (if is_true(&(Value::Bool(withdrawalAddress != Value::Null))) { withdrawalAddress.clone() } else { receivingAddress.clone() }));
+        m.insert("address".to_string(), (if is_true(&(withdrawalAddress != Value::Null)) { withdrawalAddress.clone() } else { receivingAddress.clone() }));
         m.insert("addressTo".to_string(), withdrawalAddress.clone());
         m.insert("amount".to_string(), self.safe_number_k(transaction.clone(), "amount", &[]));
-        m.insert("type".to_string(), (if is_true(&(Value::Bool(withdrawId == Value::Null))) { Value::Str("deposit".to_string()) } else { Value::Str("withdrawal".to_string()) }));
+        m.insert("type".to_string(), (if is_true(&(withdrawId == Value::Null)) { Value::Str("deposit".to_string()) } else { Value::Str("withdrawal".to_string()) }));
         m.insert("currency".to_string(), self.safe_currency_code(currencyId.clone(), &[currency.clone()]));
         m.insert("status".to_string(), self.parse_transaction_status(status.clone()));
         m.insert("updated".to_string(), Value::Null);
@@ -2735,13 +2735,13 @@ impl BitsoCore {
         if (response == Value::Null) {
             return Value::Null;
         }
-        if is_true(&Value::Bool(in_op(&response, &Value::Str("success".to_string())))) {
+        if (in_op(&response, &Value::Str("success".to_string()))) {
             //
             //     {"success":false,"error":{"code":104,"message":"Cannot perform request - nonce must be higher than 1520307203724237"}}
             //
             let mut success: Value = self.safe_bool_k(response.clone(), "success", &[Value::Bool(false)]);
             if is_string(&success) {
-                if is_true(&(Value::Bool(success.as_str() == Some("true")))) || (is_equal(&success, &Value::Str("1".to_string()))) {
+                if is_true(&(success.as_str() == Some("true"))) || (is_equal(&success, &Value::Str("1".to_string()))) {
                     success = Value::Bool(true);
                 }  else {
                     success = Value::Bool(false);

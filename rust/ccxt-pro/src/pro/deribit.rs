@@ -1077,7 +1077,7 @@ impl DeribitCore {
         let mut marketId: Value = self.safe_string_k(data.clone(), "instrument_name", &[]);
         let mut symbol: Value = self.safe_symbol(marketId.clone(), &[]);
         let mut timestamp: Value = self.safe_integer_k(data.clone(), "timestamp", &[]);
-        if !is_true(&(Value::Bool(in_op(&self.orderbooks, &symbol)))) {
+        if !(in_op(&self.orderbooks, &symbol)) {
             { let __be_tmp = self.counted_order_book(&[]); add_element_to_object(&mut self.orderbooks, &symbol, __be_tmp); };
         }
         let mut storedOrderBook: Value = get_value(&self.orderbooks, &symbol);
@@ -1243,7 +1243,7 @@ impl DeribitCore {
             m
         })]);
         let mut orders: Value = Value::List(vec![]);
-        if is_true(&Value::Bool(is_array(&data))) {
+        if (is_array(&data)) {
             orders = self.parse_orders(data.clone(), &[]);
         }  else {
             let mut order: Value = self.parse_order(data.clone(), &[]);
@@ -1309,7 +1309,7 @@ impl DeribitCore {
     m
 }));
         let mut symbolsLength: Value = Value::Int(symbolsAndTimeframes.len() as i64);
-        if (symbolsLength.as_f64() == Some(0.0)) || !is_true(&Value::Bool(is_array(&symbolsAndTimeframes.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null)))) {
+        if (symbolsLength.as_f64() == Some(0.0)) || !(is_array(&symbolsAndTimeframes.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null))) {
             panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" watchOHLCVForSymbols() requires a an array of symbols and timeframes, like  [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]".to_string())))));
         }
         let mut symboltimeframecandlesVariable = self.watch_multiple_wrapper(Value::Str("chart.trades".to_string()), Value::Null, &[symbolsAndTimeframes.clone(), params.clone()]).await;

@@ -1309,7 +1309,7 @@ impl LbankCore {
             m
         })]);
         market = self.safe_market(&[marketId.clone(), market.clone()]);
-        let mut data: Value = (if is_true(&(Value::Bool(market.as_map().and_then(|__m| __m.get("contract")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)))) { ticker.clone() } else { tickerData.clone() });
+        let mut data: Value = (if is_true(&(market.as_map().and_then(|__m| __m.get("contract")).cloned().unwrap_or(Value::Null).as_bool() == Some(true))) { ticker.clone() } else { tickerData.clone() });
         return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), symbol.clone());
@@ -1675,7 +1675,7 @@ impl LbankCore {
         let mut fee: Value = Value::Null;
         let mut feeCost: Value = self.safe_string_k(trade.clone(), "tradeFee", &[]);
         if (feeCost != Value::Null) {
-            let mut feeCurr: Value = (if is_true(&(Value::Bool(side.as_str() == Some("buy")))) { self.safe_string_k(market.clone(), "base", &[]) } else { self.safe_string_k(market.clone(), "quote", &[]) });
+            let mut feeCurr: Value = (if is_true(&(side.as_str() == Some("buy"))) { self.safe_string_k(market.clone(), "base", &[]) } else { self.safe_string_k(market.clone(), "quote", &[]) });
             fee = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("cost".to_string(), feeCost.clone());
@@ -2194,7 +2194,7 @@ impl LbankCore {
         //        "code": 0
         //    }
         //
-        let mut balanceResponse: Value = (if is_true(&(Value::Bool(response == Value::Null))) { Value::Map({
+        let mut balanceResponse: Value = (if is_true(&(response == Value::Null)) { Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }) } else { response.clone() });
@@ -2363,8 +2363,8 @@ impl LbankCore {
         });
         let mut ioc: bool = timeInForce.as_str() == Some("IOC");
         let mut fok: bool = timeInForce.as_str() == Some("FOK");
-        let mut maker: bool = is_true(&(Value::Bool(postOnly.as_bool() == Some(true)))) || is_true(&(Value::Bool(timeInForce.as_str() == Some("PO"))));
-        if is_true(&(Value::Bool(type_var.as_str() == Some("market")))) && (ioc || fok || maker) {
+        let mut maker: bool = is_true(&(postOnly.as_bool() == Some(true))) || is_true(&(timeInForce.as_str() == Some("PO")));
+        if is_true(&(type_var.as_str() == Some("market"))) && (ioc || fok || maker) {
             panic!("{}", crate::exchange_errors::invalid_order(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder () does not allow market FOK, IOC, or postOnly orders. Only limit IOC, FOK, and postOnly orders are allowed".to_string())))));
         }
         if (type_var.as_str() == Some("limit")) {
@@ -3686,7 +3686,7 @@ impl LbankCore {
                 if (fee != Value::Null) {
                     let mut networkCode: Value = self.network_id_to_code(&[self.safe_string_k(networkEntry.clone(), "name", &[]), code.clone()]);
                     if (networkCode != Value::Null) {
-                        if is_true(&(Value::Bool(code != Value::Null))) && is_true(&(Value::Bool(networkCode != Value::Null))) {
+                        if is_true(&(code != Value::Null)) && is_true(&(networkCode != Value::Null)) {
                             add_element_to_object(get_value_mut(&mut withdrawFees, &code), &networkCode, fee.clone());
                         }
                     }
@@ -3780,7 +3780,7 @@ impl LbankCore {
 }));
                     }
                 }
-                if is_true(&(Value::Bool(codeInner != Value::Null))) && is_true(&(Value::Bool(network != Value::Null))) {
+                if is_true(&(codeInner != Value::Null)) && is_true(&(network != Value::Null)) {
                     add_element_to_object(get_value_mut(&mut withdrawFees, &codeInner), &network, self.parse_number(fee.clone(), &[]));
                 }
             }
@@ -3966,7 +3966,7 @@ impl LbankCore {
             if is_equal(&canWithdraw, &Value::Bool(true)) {
                 let mut currencyId: Value = self.safe_string_k(fee.clone(), "assetCode", &[]);
                 let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
-                if is_true(&(Value::Bool(code != Value::Null))) && is_true(&(Value::Bool((codes == Value::Null) || is_true(&self.in_array(code.clone(), codes.clone()))))) {
+                if is_true(&(code != Value::Null)) && is_true(&((codes == Value::Null) || is_true(&self.in_array(code.clone(), codes.clone())))) {
                     let mut withdrawFee: Value = self.safe_number_k(fee.clone(), "fee", &[]);
                     if (withdrawFee != Value::Null) {
                         let mut resultValue: Value = self.safe_value(result.clone(), code.clone(), &[]);
@@ -4200,7 +4200,7 @@ impl LbankCore {
             panic!("{}", crate::exchange_errors::null_response(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" parseBalance() returned empty response".to_string())))));
         }
         let mut success: Value = self.safe_value_k(response.clone(), "result", &[]);
-        if is_true(&(Value::Bool(success.as_str() == Some("false")))) || is_true(&(Value::Bool(success == Value::Null))) || is_true(&(Value::Bool(success == Value::Null))) || (is_equal(&success, &Value::Bool(false))) {
+        if is_true(&(success.as_str() == Some("false"))) || is_true(&(success == Value::Null)) || is_true(&(success == Value::Null)) || (is_equal(&success, &Value::Bool(false))) {
             let mut errorCode: Value = self.safe_string_k(response.clone(), "error_code", &[]);
             let mut message: Value = self.safe_string(Value::Map({
                 let mut m = indexmap::IndexMap::new();

@@ -617,7 +617,7 @@ impl BittradeCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if is_true(&(Value::Bool(limit != Value::Null))) && is_true(&(Value::Bool(limit.as_f64() != Some(150.0)))) {
+        if is_true(&(limit != Value::Null)) && is_true(&(limit.as_f64() != Some(150.0))) {
             panic!("{}", crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" watchOrderBook accepts limit = 150 only".to_string())))));
         }
         if (self.markets.clone() == Value::Null) {
@@ -626,7 +626,7 @@ impl BittradeCore {
         let mut market: Value = self.market(symbol.clone());
         symbol = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         // only supports a limit of 150 at this time
-        limit = (if is_true(&(Value::Bool(limit == Value::Null))) { Value::Int(150) } else { limit.clone() });
+        limit = (if is_true(&(limit == Value::Null)) { Value::Int(150) } else { limit.clone() });
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", add(&Value::Str("market.".to_string()), &market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)), Value::Str(".mbp.".to_string()))), to_string_val(&limit)));
         let mut api: Value = self.safe_string_k(self.options.clone(), "api", &[Value::Str("api".to_string())]);
         let mut hostname: Value = Value::Map({
@@ -791,7 +791,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         })]);
         let mut seqNum: Value = self.safe_integer_k(tick.clone(), "seqNum", &[]);
         let mut prevSeqNum: Value = self.safe_integer_k(tick.clone(), "prevSeqNum", &[]);
-        if is_true(&(Value::Bool(prevSeqNum == Value::Null))) || is_true(&(Value::Bool(seqNum == Value::Null))) {
+        if is_true(&(prevSeqNum == Value::Null)) || is_true(&(seqNum == Value::Null)) {
             return orderbook;
         }
         if (is_less_than_or_equal(&prevSeqNum, &crate::value::get_value_k(&orderbook, "nonce"))) && (is_greater_than(&seqNum, &crate::value::get_value_k(&orderbook, "nonce"))) {
@@ -852,7 +852,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             return;
         }
         let mut limit: Value = self.safe_integer_k(subscription.clone(), "limit", &[]);
-        if is_true(&Value::Bool(in_op(&self.orderbooks, &symbol))) {
+        if (in_op(&self.orderbooks, &symbol)) {
             remove(&mut self.orderbooks, &symbol);
         }
         { let __be_tmp = self.order_book(&[Value::Map({
@@ -884,7 +884,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 return self.dispatch_ws_handler(&method, &[client.clone(), message.clone(), subscription.clone()]);
             }
             // clean up
-            if is_true(&Value::Bool(in_op(&get_value(&client, &Value::Str("subscriptions".to_string())), &id))) {
+            if (in_op(&get_value(&client, &Value::Str("subscriptions".to_string())), &id)) {
                 remove(&mut get_value(&client, &Value::Str("subscriptions".to_string())), &id);
             }
         }
@@ -984,7 +984,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     let mut messageHash: Value = self.safe_string_k(subscription.clone(), "messageHash", &[]);
                     client.reject(&[e.clone(), messageHash.clone()]);
                     client.reject(&[e.clone(), id.clone()]);
-                    if is_true(&Value::Bool(in_op(&get_value(&client, &Value::Str("subscriptions".to_string())), &id))) {
+                    if (in_op(&get_value(&client, &Value::Str("subscriptions".to_string())), &id)) {
                         remove(&mut get_value(&client, &Value::Str("subscriptions".to_string())), &id);
                     }
                 }

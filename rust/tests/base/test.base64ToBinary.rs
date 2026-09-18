@@ -56,5 +56,5 @@ pub fn testBase64ToBinary() {
     let mut binary10: Value = exchange.base64_to_binary(b64_10.clone(), &[]);
     assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.binary_to_base64(binary10.clone(), &[]).as_str() == b64_10.as_str()))));
     // @SKIP_END_GO
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_string(Value::Null, Value::Str("key".to_string()), &[]) == Value::Null))));
+    assert!(ccxt::runtime::is_true(&((exchange.safe_string(Value::Null, Value::Str("key".to_string()), &[]) == Value::Null))));
 }

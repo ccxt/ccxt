@@ -849,7 +849,7 @@ impl LatokenCore {
             if (baseCurrencyInfo != Value::Null) && (quoteCurrencyInfo != Value::Null) {
                 let mut base: Value = self.safe_currency_code(self.safe_string_k(baseCurrencyInfo.clone(), "tag", &[]), &[]);
                 let mut quote: Value = self.safe_currency_code(self.safe_string_k(quoteCurrencyInfo.clone(), "tag", &[]), &[]);
-                if is_true(&(Value::Bool(base == Value::Null))) || is_true(&(Value::Bool(quote == Value::Null))) {
+                if is_true(&(base == Value::Null)) || is_true(&(quote == Value::Null)) {
                     continue;
                 }
                 let mut lowercaseQuote: Value = to_lower(&quote);
@@ -1335,7 +1335,7 @@ impl LatokenCore {
         let mut base: Value = self.safe_currency_code(baseId.clone(), &[]);
         let mut quote: Value = self.safe_currency_code(quoteId.clone(), &[]);
         let mut symbol: Value = add(&add(&base, &Value::Str("/".to_string())), &quote);
-        if is_true(&(Value::Bool(self.markets.clone() != Value::Null))) && is_true(&(Value::Bool(in_op(&self.markets, &symbol)))) {
+        if is_true(&(self.markets.clone() != Value::Null)) && (in_op(&self.markets, &symbol)) {
             market = self.market(symbol.clone());
         }
         let mut id: Value = self.safe_string_k(trade.clone(), "id", &[]);
@@ -1641,9 +1641,9 @@ impl LatokenCore {
         let mut base: Value = self.safe_currency_code(baseId.clone(), &[]);
         let mut quote: Value = self.safe_currency_code(quoteId.clone(), &[]);
         let mut symbol: Value = Value::Null;
-        if is_true(&(Value::Bool(base != Value::Null))) && is_true(&(Value::Bool(quote != Value::Null))) {
+        if is_true(&(base != Value::Null)) && is_true(&(quote != Value::Null)) {
             symbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".to_string()))), quote));
-            if is_true(&(Value::Bool(self.markets.clone() != Value::Null))) && is_true(&(Value::Bool(in_op(&self.markets, &symbol)))) {
+            if is_true(&(self.markets.clone() != Value::Null)) && (in_op(&self.markets, &symbol)) {
                 market = self.market(symbol.clone());
             }
         }
@@ -2409,7 +2409,7 @@ impl LatokenCore {
         }
         let mut error: Value = self.safe_value_k(response.clone(), "error", &[]);
         let mut errorMessage: Value = self.safe_string_k(error.clone(), "message", &[]);
-        if is_true(&(Value::Bool(error != Value::Null))) || is_true(&(Value::Bool(errorMessage != Value::Null))) {
+        if is_true(&(error != Value::Null)) || is_true(&(errorMessage != Value::Null)) {
             self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), error.clone(), feedback.clone());
             self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), body.clone(), feedback.clone());
             panic!("{}", crate::exchange_errors::exchange_error(feedback));

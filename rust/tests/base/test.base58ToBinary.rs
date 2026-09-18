@@ -45,5 +45,5 @@ pub fn testBase58ToBinary() {
     let mut binary7: Value = exchange.base58_to_binary(b58_7.clone(), &[]);
     assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.binary_to_base58(binary7.clone(), &[]).as_str() == b58_7.as_str()))));
     // @SKIP_END_GO
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.parse_number(Value::Null, &[]) == Value::Null))));
+    assert!(ccxt::runtime::is_true(&((exchange.parse_number(Value::Null, &[]) == Value::Null))));
 }

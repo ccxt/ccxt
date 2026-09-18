@@ -1157,13 +1157,13 @@ impl CryptomusCore {
                 let mut createMarketBuyOrderRequiresPrice: Value = Value::Bool(true);
                 { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("createOrder".to_string()), Value::Str("createMarketBuyOrderRequiresPrice".to_string()), &[Value::Bool(true)]); createMarketBuyOrderRequiresPrice = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
                 if is_true(&createMarketBuyOrderRequiresPrice) {
-                    if is_true(&(Value::Bool(price == Value::Null))) && is_true(&(Value::Bool(cost == Value::Null))) {
+                    if is_true(&(price == Value::Null)) && is_true(&(cost == Value::Null)) {
                         panic!("{}", crate::exchange_errors::invalid_order(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option of param to false and pass the cost to spend in the amount argument".to_string())))));
                     }  else if (cost == Value::Null) {
                         cost = crate::precise::Precise::stringMul(&amountToString, &priceToString);
                     }
                 }  else {
-                    cost = (if is_true(&(Value::Bool((cost != Value::Null) && (cost.as_str() != Some(""))))) { cost.clone() } else { amountToString.clone() });
+                    cost = (if is_true(&((cost != Value::Null) && (cost.as_str() != Some("")))) { cost.clone() } else { amountToString.clone() });
                 }
                 add_element_to_object(&mut request, &Value::Str("value".to_string()), cost.clone());
             }  else {
@@ -1713,12 +1713,12 @@ impl CryptomusCore {
         if (response == Value::Null) {
             return Value::Null;
         }
-        if is_true(&Value::Bool(in_op(&response, &Value::Str("code".to_string())))) {
+        if (in_op(&response, &Value::Str("code".to_string()))) {
             let mut code: Value = self.safe_string_k(response.clone(), "code", &[]);
             let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), body));
             self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), code.clone(), feedback.clone());
             panic!("{}", crate::exchange_errors::exchange_error(feedback));
-        }  else if is_true(&Value::Bool(in_op(&response, &Value::Str("message".to_string())))) {
+        }  else if (in_op(&response, &Value::Str("message".to_string()))) {
             //
             //      {"message":"Minimum amount 15 USDT","state":1}
             //

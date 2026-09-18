@@ -640,8 +640,8 @@ impl RevolutxCore {
         let mut status: Value = self.safe_string_k(currency.clone(), "status", &[]);
         let mut active: Value = (Value::Bool(status.as_str() == Some("active")));
         let mut assetType: Value = self.safe_string_k(currency.clone(), "asset_type", &[]);
-        let mut type_var: Value = (if is_true(&(Value::Bool(assetType.as_str() == Some("crypto")))) { Value::Str("crypto".to_string()) } else { Value::Str("fiat".to_string()) });
-        let mut precision: Value = (if is_true(&(Value::Bool(scale != Value::Null))) { crate::runtime::Math::pow(&Value::Int(10), &negate(&scale)) } else { Value::Null });
+        let mut type_var: Value = (if is_true(&(assetType.as_str() == Some("crypto"))) { Value::Str("crypto".to_string()) } else { Value::Str("fiat".to_string()) });
+        let mut precision: Value = (if is_true(&(scale != Value::Null)) { crate::runtime::Math::pow(&Value::Int(10), &negate(&scale)) } else { Value::Null });
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), currency.clone());
@@ -899,7 +899,7 @@ impl RevolutxCore {
                 while { if !__for_first_1079 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1079 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(symbols.len() as i64).as_f64().unwrap_or(f64::NAN) } {
                 let mut s: Value = get_value(&symbols, &i);
                 let mut s: Value = get_value(&symbols, &i);
-                if is_true(&Value::Bool(in_op(&result, &s))) {
+                if (in_op(&result, &s)) {
                     add_element_to_object(&mut filtered, &s, get_value(&result, &s));
                 }
             }
@@ -1227,7 +1227,7 @@ impl RevolutxCore {
         //         { "currency": "USD", "available": "50000.00", "reserved": "1000.00", "total": "51000.00", "staked": "32.00000000" }
         //     ]
         //
-        let mut data: Value = (if is_true(&Value::Bool(is_array(&response))) { response.clone() } else { self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]) });
+        let mut data: Value = (if (is_array(&response)) { response.clone() } else { self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]) });
         let mut result: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("info".to_string(), response.clone());
@@ -1252,7 +1252,7 @@ impl RevolutxCore {
             let mut staked: Value = self.safe_string_k(balance.clone(), "staked", &[]);
             let mut used: Value = reserved.clone();
             if (staked != Value::Null) {
-                used = (if is_true(&(Value::Bool(reserved == Value::Null))) { staked.clone() } else { crate::precise::Precise::stringAdd(&reserved, &staked) });
+                used = (if is_true(&(reserved == Value::Null)) { staked.clone() } else { crate::precise::Precise::stringAdd(&reserved, &staked) });
             }
             add_element_to_object(&mut account, &Value::Str("used".to_string()), used.clone());
             add_element_to_object(&mut account, &Value::Str("total".to_string()), self.safe_string_k(balance.clone(), "total", &[]));
@@ -1464,7 +1464,7 @@ impl RevolutxCore {
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut orderData: Value = (if is_true(&Value::Bool(is_array(&data))) { self.safe_dict(data.clone(), Value::Int(0), &[Value::Map({
+        let mut orderData: Value = (if (is_array(&data)) { self.safe_dict(data.clone(), Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]) } else { self.safe_dict_k(response.clone(), "data", &[Value::Map({
@@ -1991,7 +1991,7 @@ impl RevolutxCore {
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut orderData: Value = (if is_true(&Value::Bool(is_array(&data))) { self.safe_dict(data.clone(), Value::Int(0), &[Value::Map({
+        let mut orderData: Value = (if (is_array(&data)) { self.safe_dict(data.clone(), Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]) } else { self.safe_dict_k(response.clone(), "data", &[Value::Map({

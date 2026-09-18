@@ -1852,7 +1852,7 @@ impl WeexCore {
             let __ws_arg_1 = self.extend(request.clone(), &[params.clone()]);
             response = self.contract_get_capi_v3_market_ticker24hr(&[__ws_arg_1]).await;
         }
-        if !is_true(&Value::Bool(is_array(&response))) {
+        if !(is_array(&response)) {
             response = Value::List(vec![response.clone()]);
         }
         return self.parse_tickers(response.clone(), &[symbols.clone()]);
@@ -1890,7 +1890,7 @@ impl WeexCore {
         }  else {
             response = self.contract_get_capi_v3_market_ticker_book_ticker(&[params.clone()]).await;
         }
-        if !is_true(&Value::Bool(is_array(&response))) {
+        if !(is_array(&response)) {
             response = Value::List(vec![response.clone()]);
         }
         let mut results: Value = Value::List(vec![]);
@@ -1975,7 +1975,7 @@ impl WeexCore {
         let mut marketId: Value = self.safe_string_k(ticker.clone(), "symbol", &[]);
         let mut markPrice: Value = self.safe_string_k(ticker.clone(), "markPrice", &[]);
         let mut marketType: Value = Value::Str("spot".to_string());
-        if is_true(&(Value::Bool(markPrice != Value::Null))) || is_true(&(Value::Bool(is_true(&(Value::Bool(market != Value::Null))) && is_true(&(Value::Bool(market.as_map().and_then(|__m| __m.get("contract")).cloned().unwrap_or(Value::Null).as_bool() == Some(true))))))) {
+        if is_true(&(markPrice != Value::Null)) || (is_true(&(market != Value::Null)) && is_true(&(market.as_map().and_then(|__m| __m.get("contract")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)))) {
             // 24hr swap tickers carry markPrice, but book tickers do not, so also honor the market resolved by the caller
             marketType = Value::Str("swap".to_string());
         }
@@ -2172,7 +2172,7 @@ impl WeexCore {
                 m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
-        if is_true(&(Value::Bool(limit != Value::Null))) && is_true(&(limit.as_f64().unwrap_or(f64::NAN) > Value::Int(15).as_f64().unwrap_or(f64::NAN))) {
+        if is_true(&(limit != Value::Null)) && is_true(&(limit.as_f64().unwrap_or(f64::NAN) > Value::Int(15).as_f64().unwrap_or(f64::NAN))) {
             add_element_to_object(&mut request, &Value::Str("limit".to_string()), Value::Int(200)); // default is 15, max is 200
         }
         let mut response: Value = Value::Null;
@@ -2354,12 +2354,12 @@ impl WeexCore {
             }
             let mut startTime: Value = since.clone();
             let mut endTime: Value = until.clone();
-            if is_true(&(Value::Bool(since == Value::Null))) || is_true(&(Value::Bool(until == Value::Null))) {
+            if is_true(&(since == Value::Null)) || is_true(&(until == Value::Null)) {
                 let mut now: Value = self.milliseconds();
                 let mut duration: Value = (match (&(self.parse_timeframe(timeframe.clone())), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
-                let mut numberOfCandles: Value = (if is_true(&(Value::Bool((limit != Value::Null) && (limit != Value::Null) && (limit.as_f64() != Some(0.0))))) { limit.clone() } else { maxHistoricalLimit.clone() });
+                let mut numberOfCandles: Value = (if is_true(&((limit != Value::Null) && (limit != Value::Null) && (limit.as_f64() != Some(0.0)))) { limit.clone() } else { maxHistoricalLimit.clone() });
                 let mut timeDelta: Value = (match (&(numberOfCandles), &(duration)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
-                if is_true(&(Value::Bool(since == Value::Null))) && is_true(&(Value::Bool(until == Value::Null))) {
+                if is_true(&(since == Value::Null)) && is_true(&(until == Value::Null)) {
                     endTime = now.clone();
                     startTime = (match (&(now), &(timeDelta)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
                 }  else if (since == Value::Null) {
@@ -2521,7 +2521,7 @@ impl WeexCore {
         if (market == Value::Null) {
             let mut marketId: Value = self.safe_string_k(trade.clone(), "symbol", &[]);
             let mut realizedPnl: Value = self.safe_string_k(trade.clone(), "realizedPnl", &[]);
-            let mut marketType: Value = (if is_true(&(Value::Bool(realizedPnl != Value::Null))) { Value::Str("swap".to_string()) } else { Value::Str("spot".to_string()) });
+            let mut marketType: Value = (if is_true(&(realizedPnl != Value::Null)) { Value::Str("swap".to_string()) } else { Value::Str("spot".to_string()) });
             market = self.safe_market(&[marketId.clone(), Value::Null, Value::Null, marketType.clone()]);
             isSpot = Value::Bool(marketType.as_str() == Some("spot"));
         }  else {
@@ -2799,7 +2799,7 @@ impl WeexCore {
         let mut type_var: Value = Value::Null;
         { let __destr_tmp = self.handle_market_type_and_params(Value::Str("fetchBalance".to_string()), &[Value::Null, params.clone()]); type_var = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         let mut sandboxMode: Value = self.safe_bool_k(self.options.clone(), "sandboxMode", &[Value::Bool(false)]);
-        if is_true(&(Value::Bool(sandboxMode.as_bool() == Some(true)))) && is_true(&(Value::Bool(requestedType == Value::Null))) {
+        if is_true(&(sandboxMode.as_bool() == Some(true))) && is_true(&(requestedType == Value::Null)) {
             type_var = Value::Str("swap".to_string()); // the demo trading API only provides the swap account, don't let the default spot type break a bare fetchBalance() call
         }
         let mut response: Value = Value::Null;
@@ -2871,7 +2871,7 @@ impl WeexCore {
             while { if !__for_first_1105 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1105 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(balances.len() as i64).as_f64().unwrap_or(f64::NAN) } {
             let mut entry: Value = self.safe_dict(balances.clone(), i.clone(), &[]);
             let mut currencyId: Value = self.safe_string_k(entry.clone(), "asset", &[]);
-            if is_true(&(Value::Bool(sandboxMode.as_bool() == Some(true)))) && is_true(&(Value::Bool(currencyId.as_str() == Some("SUSDT")))) {
+            if is_true(&(sandboxMode.as_bool() == Some(true))) && is_true(&(currencyId.as_str() == Some("SUSDT"))) {
                 currencyId = Value::Str("USDT".to_string()); // demo trading balances are denominated in the demo asset SUSDT
             }
             let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
@@ -3218,10 +3218,10 @@ impl WeexCore {
         let mut stopLoss: Value = self.safe_dict_k(params.clone(), "stopLoss", &[]);
         let mut hasStopLoss: bool = stopLoss != Value::Null;
         // the exchange accepts but silently ignores execution prices for attached take profit / stop loss, they always execute at market price
-        if hasTakeProfit && is_true(&(Value::Bool(self.safe_number_k(takeProfit.clone(), "price", &[]) != Value::Null))) {
+        if hasTakeProfit && is_true(&(self.safe_number_k(takeProfit.clone(), "price", &[]) != Value::Null)) {
             panic!("{}", crate::exchange_errors::not_supported(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder() does not support the price field inside the takeProfit params, the attached take profit executes at market price".to_string())))));
         }
-        if hasStopLoss && is_true(&(Value::Bool(self.safe_number_k(stopLoss.clone(), "price", &[]) != Value::Null))) {
+        if hasStopLoss && is_true(&(self.safe_number_k(stopLoss.clone(), "price", &[]) != Value::Null)) {
             panic!("{}", crate::exchange_errors::not_supported(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder() does not support the price field inside the stopLoss params, the attached stop loss executes at market price".to_string())))));
         }
         let mut timeInForce: Value = self.safe_string_k(params.clone(), "timeInForce", &[]);
@@ -3372,7 +3372,7 @@ impl WeexCore {
         let mut type_var: Value = Value::Null;
         { let __destr_tmp = self.handle_market_type_and_params(Value::Str("cancelOrder".to_string()), &[market.clone(), params.clone()]); type_var = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         let mut trigger: Value = self.safe_bool_k(params.clone(), "trigger", &[Value::Bool(false)]);
-        if is_true(&(Value::Bool(trigger.as_bool() == Some(true)))) && (id == Value::Null) {
+        if is_true(&(trigger.as_bool() == Some(true))) && (id == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" cancelOrder() requires an id argument for trigger orders".to_string())))));
         }
         let mut request: Value = Value::Map({
@@ -3582,7 +3582,7 @@ impl WeexCore {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        if is_true(&(Value::Bool(id == Value::Null))) && !isSpot {
+        if is_true(&(id == Value::Null)) && !isSpot {
             panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchOrder() requires an id argument for non-spot markets".to_string())))));
         }
         let mut clientOrderId: Value = self.safe_string_k(params.clone(), "clientOrderId", &[]);
@@ -4105,13 +4105,13 @@ impl WeexCore {
         //
         let mut errorCode: Value = self.safe_string_k(order.clone(), "errorCode", &[]);
         let mut errorMessage: Value = self.safe_string_k(order.clone(), "errorMsg", &[]);
-        if is_true(&(Value::Bool(errorCode != Value::Null))) || is_true(&(Value::Bool(errorMessage != Value::Null))) {
+        if is_true(&(errorCode != Value::Null)) || is_true(&(errorMessage != Value::Null)) {
             self.handle_order_or_position_error(errorCode.clone(), errorMessage.clone(), order.clone());
         }
         if (market == Value::Null) {
             let mut marketId: Value = self.from_sandbox_market_id(self.safe_string_k(order.clone(), "symbol", &[]));
             let mut positionSide: Value = self.safe_string_k(order.clone(), "positionSide", &[]);
-            let mut marketType: Value = (if is_true(&(Value::Bool(positionSide == Value::Null))) { Value::Str("spot".to_string()) } else { Value::Str("swap".to_string()) });
+            let mut marketType: Value = (if is_true(&(positionSide == Value::Null)) { Value::Str("spot".to_string()) } else { Value::Str("swap".to_string()) });
             market = self.safe_market(&[marketId.clone(), Value::Null, Value::Null, marketType.clone()]);
         }
         let mut timestamp: Value = self.safe_integer_n(order.clone(), Value::List(vec![Value::Str("transactTime".to_string()), Value::Str("time".to_string()), Value::Str("createTime".to_string())]), &[]);
@@ -4212,7 +4212,7 @@ impl WeexCore {
         if (errorMessage == Value::Null) {
             errorMessage = Value::Str("".to_string());
         }
-        if is_true(&(Value::Bool(errorCode.as_str() == Some("")))) && is_true(&(Value::Bool(errorMessage.as_str() == Some("")))) {
+        if is_true(&(errorCode.as_str() == Some(""))) && is_true(&(errorMessage.as_str() == Some(""))) {
             return;
         }
         let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), self.json(order.clone())));
@@ -4290,7 +4290,7 @@ impl WeexCore {
         let mut marketType: Value = Value::Null;
         { let __destr_tmp = self.handle_market_type_and_params(Value::Str("fetchMyTrades".to_string()), &[market.clone(), params.clone()]); marketType = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         let mut isSpot: bool = marketType.as_str() == Some("spot");
-        if isSpot && is_true(&(Value::Bool(symbol == Value::Null))) {
+        if isSpot && is_true(&(symbol == Value::Null)) {
             panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchMyTrades() requires a symbol argument for spot markets".to_string())))));
         }
         let mut paginate: Value = Value::Bool(false);
@@ -4519,7 +4519,7 @@ impl WeexCore {
         let mut transferReason: Value = self.safe_string_k(item.clone(), "transferReason", &[]);
         let mut isContractEntry: bool = transferReason != Value::Null;
         if isContractEntry {
-            if is_true(&(Value::Bool(rawType.as_str() == Some("withdraw")))) || is_true(&(Value::Bool(rawType.as_str() == Some("deposit")))) {
+            if is_true(&(rawType.as_str() == Some("withdraw"))) || is_true(&(rawType.as_str() == Some("deposit"))) {
                 rawType = Value::Str("transfer".to_string());
             }
         }
@@ -5290,7 +5290,7 @@ impl WeexCore {
         let mut isolatedLongLeverage: Value = self.safe_number_k(params.clone(), "isolatedLongLeverage", &[]);
         let mut isolatedShortLeverage: Value = self.safe_number_k(params.clone(), "isolatedShortLeverage", &[]);
         let mut crossLeverage: Value = self.safe_number_k(params.clone(), "crossLeverage", &[]);
-        if is_true(&(Value::Bool(isolatedLongLeverage == Value::Null))) && is_true(&(Value::Bool(isolatedShortLeverage == Value::Null))) && is_true(&(Value::Bool(crossLeverage == Value::Null))) {
+        if is_true(&(isolatedLongLeverage == Value::Null)) && is_true(&(isolatedShortLeverage == Value::Null)) && is_true(&(crossLeverage == Value::Null)) {
             if (marginMode.as_str() == Some("isolated")) {
                 add_element_to_object(&mut request, &Value::Str("isolatedLongLeverage".to_string()), leverage.clone());
                 add_element_to_object(&mut request, &Value::Str("isolatedShortLeverage".to_string()), leverage.clone());
@@ -5434,7 +5434,7 @@ impl WeexCore {
         //     }
         //
         let mut msg: Value = self.safe_string_k(data.clone(), "msg", &[]);
-        let mut status: Value = (if is_true(&(Value::Bool(msg.as_str() == Some("success")))) { Value::Str("ok".to_string()) } else { Value::Str("failed".to_string()) });
+        let mut status: Value = (if is_true(&(msg.as_str() == Some("success"))) { Value::Str("ok".to_string()) } else { Value::Str("failed".to_string()) });
         let mut timestamp: Value = self.safe_integer_k(data.clone(), "requestTime", &[]);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -5507,7 +5507,7 @@ impl WeexCore {
     pub fn to_sandbox_market_id(&self, mut market: Value) -> Value {
         let mut sandboxMode: Value = self.safe_bool_k(self.options.clone(), "sandboxMode", &[Value::Bool(false)]);
         let mut baseId: Value = self.safe_string_k(market.clone(), "baseId", &[]);
-        if is_true(&(Value::Bool(sandboxMode.as_bool() == Some(true)))) && is_true(&(Value::Bool(baseId != Value::Null))) {
+        if is_true(&(sandboxMode.as_bool() == Some(true))) && is_true(&(baseId != Value::Null)) {
             return Value::Str(format!("{}{}", baseId, Value::Str("SUSDT".to_string())));
         }
         return self.safe_string_k(market.clone(), "id", &[]);
@@ -5525,13 +5525,13 @@ impl WeexCore {
  */
     pub fn from_sandbox_market_id(&self, mut marketId: Value) -> Value {
         let mut sandboxMode: Value = self.safe_bool_k(self.options.clone(), "sandboxMode", &[Value::Bool(false)]);
-        if is_true(&(Value::Bool(sandboxMode.as_bool() != Some(true)))) || is_true(&(Value::Bool(marketId == Value::Null))) {
+        if is_true(&(sandboxMode.as_bool() != Some(true))) || is_true(&(marketId == Value::Null)) {
             return marketId;
         }
-        if is_true(&(Value::Bool(self.markets_by_id.clone() != Value::Null))) && is_true(&(Value::Bool(in_op(&self.markets_by_id, &marketId)))) {
+        if is_true(&(self.markets_by_id.clone() != Value::Null)) && (in_op(&self.markets_by_id, &marketId)) {
             return marketId;
         }
-        if is_true(&Value::Bool(ends_with(&marketId, &Value::Str("SUSDT".to_string())))) {
+        if (ends_with(&marketId, &Value::Str("SUSDT".to_string()))) {
             let mut baseLength: Value = (match (&(Value::Int(marketId.len() as i64)), &(Value::Int(5))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
             return Value::Str(format!("{}{}", slice(&marketId, &Value::Int(0), &baseLength), Value::Str("USDT".to_string())));
         }
@@ -5557,20 +5557,20 @@ impl WeexCore {
         let mut endpoint: Value = self.implode_params(path.clone(), params.clone());
         let mut query: Value = self.omit(params.clone(), self.extract_params(path.clone()), &[]);
         let mut isBatch: bool = is_greater_than_or_equal(&get_index_of(&path, &Value::Str("batch".to_string())), &Value::Int(0));
-        if !isBatch && is_true(&(Value::Bool(is_true(&(Value::Bool(method.as_str() == Some("GET")))) || is_true(&(Value::Bool(method.as_str() == Some("DELETE"))))))) {
+        if !isBatch && (is_true(&(method.as_str() == Some("GET"))) || is_true(&(method.as_str() == Some("DELETE")))) {
             if Value::Int(object_keys(&query).len() as i64).as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN) {
                 endpoint = Value::Str(format!("{}{}", endpoint, Value::Str(format!("{}{}", Value::Str("?".to_string()), self.urlencode(query.clone(), &[])))));
             }
         }
-        if is_true(&(Value::Bool(api.as_str() == Some("private")))) || is_true(&(Value::Bool(api.as_str() == Some("contractPrivate")))) {
+        if is_true(&(api.as_str() == Some("private"))) || is_true(&(api.as_str() == Some("contractPrivate"))) {
             let mut sandboxMode: Value = self.safe_bool_k(self.options.clone(), "sandboxMode", &[Value::Bool(false)]);
-            if is_true(&(Value::Bool(sandboxMode.as_bool() == Some(true)))) && (!is_equal(&get_index_of(&path, &Value::Str("capi/v3/sim/".to_string())), &Value::Int(0))) {
+            if is_true(&(sandboxMode.as_bool() == Some(true))) && (!is_equal(&get_index_of(&path, &Value::Str("capi/v3/sim/".to_string())), &Value::Int(0))) {
                 panic!("{}", crate::exchange_errors::not_supported(Value::Str(format!("{}{}", add(&Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), &path), Value::Str(" is not available in sandbox mode, demo trading only supports fetchBalance, createOrder, fetchPositions, fetchClosedOrders and fetchCanceledOrders for swap markets".to_string())))));
             }
             self.check_required_credentials(&[]);
             let mut timestamp: Value = self.number_to_string(self.nonce());
             let mut payload: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", timestamp, method)), Value::Str("/".to_string()))), endpoint));
-            if is_true(&(Value::Bool(method.as_str() == Some("POST")))) || isBatch {
+            if is_true(&(method.as_str() == Some("POST"))) || isBatch {
                 body = self.json(query.clone());
                 payload = Value::Str(format!("{}{}", payload, body));
             }
@@ -5583,7 +5583,7 @@ impl WeexCore {
                     m.insert("ACCESS-TIMESTAMP".to_string(), timestamp.clone());
                 m
             });
-            if is_true(&(Value::Bool(method.as_str() == Some("POST")))) || is_true(&(Value::Bool(method.as_str() == Some("DELETE")))) {
+            if is_true(&(method.as_str() == Some("POST"))) || is_true(&(method.as_str() == Some("DELETE"))) {
                 add_element_to_object(&mut headers, &Value::Str("Content-Type".to_string()), Value::Str("application/json".to_string()));
             }
         }  else {

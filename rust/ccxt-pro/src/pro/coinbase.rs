@@ -336,7 +336,7 @@ impl CoinbaseCore {
         let mut market: Value = Value::Null;
         let mut messageHash: Value = name.clone();
         let mut productIds: Value = Value::List(vec![]);
-        if is_true(&Value::Bool(is_array(&symbol))) {
+        if (is_array(&symbol)) {
             let mut symbols: Value = self.market_symbols(&[symbol.clone()]);
             let mut marketIds: Value = self.market_ids(&[symbols.clone()]);
             if (marketIds == Value::Null) {
@@ -391,7 +391,7 @@ impl CoinbaseCore {
         let mut watchMessageHash: Value = name.clone();
         let mut unWatchMessageHash: Value = Value::Str(format!("{}{}", Value::Str("unsubscribe:".to_string()), name));
         let mut productIds: Value = Value::List(vec![]);
-        if is_true(&Value::Bool(is_array(&symbol))) {
+        if (is_array(&symbol)) {
             let mut symbols: Value = self.market_symbols(&[symbol.clone()]);
             let mut marketIds: Value = self.market_ids(&[symbols.clone()]);
             if (marketIds == Value::Null) {
@@ -569,14 +569,14 @@ impl CoinbaseCore {
         });
         let mut timestamp: Value = self.number_to_string(self.seconds());
         self.check_required_credentials(&[]);
-        let mut isCloudAPiKey: bool = is_true(&(get_index_of(&self.apiKey, &Value::Str("organizations/".to_string())).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN))) || is_true(&(Value::Bool(starts_with(&self.secret, &Value::Str("-----BEGIN".to_string())))));
+        let mut isCloudAPiKey: bool = is_true(&(get_index_of(&self.apiKey, &Value::Str("organizations/".to_string())).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN))) || (starts_with(&self.secret, &Value::Str("-----BEGIN".to_string())));
         let mut auth: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", timestamp, name)), join(&productIds, &Value::Str(",".to_string()))));
         if !isCloudAPiKey {
             add_element_to_object(&mut subscribe, &Value::Str("api_key".to_string()), self.apiKey.clone());
             add_element_to_object(&mut subscribe, &Value::Str("timestamp".to_string()), timestamp.clone());
             add_element_to_object(&mut subscribe, &Value::Str("signature".to_string()), self.hmac(self.encode(auth.clone()), self.encode(self.secret.clone()), Value::Str("sha256".to_string()), &[]));
         }  else {
-            if is_true(&Value::Bool(starts_with(&self.apiKey, &Value::Str("-----BEGIN".to_string())))) {
+            if (starts_with(&self.apiKey, &Value::Str("-----BEGIN".to_string()))) {
                 panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" apiKey should contain the name (eg: organizations/3b910e93....) and not the public key".to_string())))));
             }
             let mut currentToken: Value = self.safe_string_k(self.options.clone(), "wsToken", &[]);
@@ -1253,7 +1253,7 @@ impl CoinbaseCore {
                 let mut cachedOrders: Value = self.orders.clone();
                 let mut marketId: Value = self.safe_string_k(responseOrder.clone(), "product_id", &[]);
                 if (marketId != Value::Null) {
-                    if !is_true(&(Value::Bool(in_op(&marketIds, &marketId)))) {
+                    if !(in_op(&marketIds, &marketId)) {
                         append_to_array(&mut marketIds, marketId.clone());
                     }
                 }
@@ -1411,7 +1411,7 @@ impl CoinbaseCore {
 }), limit.clone()]); add_element_to_object(&mut self.orderbooks, &symbol, __be_tmp); };
             }
             // unknown bug, can't reproduce, but sometimes orderbook is undefined
-            if !is_true(&(Value::Bool(in_op(&self.orderbooks, &symbol)))) && is_equal(&get_value(&self.orderbooks, &symbol), &Value::Null) {
+            if !(in_op(&self.orderbooks, &symbol)) && is_equal(&get_value(&self.orderbooks, &symbol), &Value::Null) {
                 continue;
             }
             let mut orderbook: Value = get_value(&self.orderbooks, &symbol);
@@ -1426,7 +1426,7 @@ impl CoinbaseCore {
 }
 
     pub fn try_resolve_usdc(&self, mut client: Value, mut messageHash: Value, mut result: Value) {
-        if is_true(&Value::Bool(ends_with(&messageHash, &Value::Str("/USD".to_string())))) || is_true(&Value::Bool(ends_with(&messageHash, &Value::Str("-USD".to_string())))) {
+        if (ends_with(&messageHash, &Value::Str("/USD".to_string()))) || (ends_with(&messageHash, &Value::Str("-USD".to_string()))) {
             client.resolve(&[result.clone(), Value::Str(format!("{}{}", messageHash, Value::Str("C".to_string())))]); // when subscribing to BTC/USDC and coinbase returns BTC/USD, so resolve USDC too
         }
 }
@@ -1508,7 +1508,7 @@ impl CoinbaseCore {
         if (type_var.as_str() == Some("error")) {
             let mut errorMessage: Value = self.safe_string_k(message.clone(), "message", &[]);
             // ternary (not ||) so the ast-transpiler emits a value-typed conditional, not a boolean
-            let mut errorMessageValue: Value = (if is_true(&(Value::Bool(errorMessage != Value::Null))) { errorMessage.clone() } else { Value::Str("unknown error".to_string()) });
+            let mut errorMessageValue: Value = (if is_true(&(errorMessage != Value::Null)) { errorMessage.clone() } else { Value::Str("unknown error".to_string()) });
             panic!("{}", crate::exchange_errors::exchange_error(errorMessageValue));
         }
         let mut method: Value = self.safe_value(methods.clone(), channel.clone(), &[]);

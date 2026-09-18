@@ -598,7 +598,7 @@ impl MercadoCore {
             let mut quoteId: Value = Value::Str("BRL".to_string());
             let mut base: Value = self.safe_currency_code(baseId.clone(), &[]);
             let mut quote: Value = self.safe_currency_code(quoteId.clone(), &[]);
-            if is_true(&(Value::Bool(base == Value::Null))) || is_true(&(Value::Bool(quote == Value::Null))) {
+            if is_true(&(base == Value::Null)) || is_true(&(quote == Value::Null)) {
                 continue;
             }
             let mut id: Value = Value::Str(format!("{}{}", quote, base));
@@ -852,7 +852,7 @@ impl MercadoCore {
         }
         let mut to: Value = self.safe_integer_k(params.clone(), "to", &[]);
         let mut response: Value = Value::Null;
-        if is_true(&(Value::Bool(since != Value::Null))) && is_true(&(Value::Bool(to != Value::Null))) {
+        if is_true(&(since != Value::Null)) && is_true(&(to != Value::Null)) {
             let __ws_arg_2 = self.extend(request.clone(), &[params.clone()]);
             response = self.public_get_coin_trades_from_to(&[__ws_arg_2]).await;
         }  else if (since != Value::Null) {
@@ -889,7 +889,7 @@ impl MercadoCore {
             let mut currencyId: Value = get_value(&currencyIds, &i);
             let mut currencyId: Value = get_value(&currencyIds, &i);
             let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
-            if is_true(&Value::Bool(in_op(&balances, &currencyId))) {
+            if (in_op(&balances, &currencyId)) {
                 let mut balance: Value = self.safe_value(balances.clone(), currencyId.clone(), &[Value::Map({
                     let mut m = indexmap::IndexMap::new();
                     m
@@ -1103,8 +1103,8 @@ impl MercadoCore {
         let mut id: Value = self.safe_string_k(order.clone(), "order_id", &[]);
         let mut order_type: Value = self.safe_string_k(order.clone(), "order_type", &[]);
         let mut side: Value = Value::Null;
-        if is_true(&Value::Bool(in_op(&order, &Value::Str("order_type".to_string())))) {
-            side = (if is_true(&(Value::Bool(order_type.as_str() == Some("1")))) { Value::Str("buy".to_string()) } else { Value::Str("sell".to_string()) });
+        if (in_op(&order, &Value::Str("order_type".to_string()))) {
+            side = (if is_true(&(order_type.as_str() == Some("1"))) { Value::Str("buy".to_string()) } else { Value::Str("sell".to_string()) });
         }
         let mut status: Value = self.parse_order_status(self.safe_string_k(order.clone(), "status", &[]));
         let mut marketId: Value = self.safe_string_k(order.clone(), "coin_pair", &[]);
@@ -1235,7 +1235,7 @@ impl MercadoCore {
             }
             if (code.as_str() == Some("XRP")) {
                 if (tag == Value::Null) {
-                    if !is_true(&(Value::Bool(matches!(&params, Value::Dict(__d) if __d.contains_key("destination_tag"))))) {
+                    if !is_true(&(matches!(&params, Value::Dict(__d) if __d.contains_key("destination_tag")))) {
                         panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" withdraw() requires a tag argument or destination_tag parameter to withdraw ".to_string()))), code))));
                     }
                 }  else {
@@ -1533,7 +1533,7 @@ impl MercadoCore {
         let mut body = get_arg(optional_args, 4, Value::Null);
         let mut url: Value = add(&get_value(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), &api), &Value::Str("/".to_string()));
         let mut query: Value = self.omit(params.clone(), self.extract_params(path.clone()), &[]);
-        if is_true(&(Value::Bool(api.as_str() == Some("public")))) || is_true(&(Value::Bool(api.as_str() == Some("v4Public")))) || is_true(&(Value::Bool(api.as_str() == Some("v4PublicNet")))) {
+        if is_true(&(api.as_str() == Some("public"))) || is_true(&(api.as_str() == Some("v4Public"))) || is_true(&(api.as_str() == Some("v4PublicNet"))) {
             url = Value::Str(format!("{}{}", url, self.implode_params(path.clone(), params.clone())));
             if Value::Int(object_keys(&query).len() as i64).as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN) {
                 url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".to_string()), self.urlencode(query.clone(), &[])))));

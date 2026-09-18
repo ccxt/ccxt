@@ -362,7 +362,7 @@ impl ExtendedCore {
         let mut timestamp: Value = self.safe_integer_k(message.clone(), "ts", &[]);
         let mut nonce: Value = self.safe_integer_k(message.clone(), "seq", &[]);
         let mut type_var: Value = self.safe_string_k(message.clone(), "type", &[self.safe_string(data.clone(), Value::Str("t".to_string()), &[])]);
-        if !is_true(&(Value::Bool(in_op(&self.orderbooks, &symbol)))) {
+        if !(in_op(&self.orderbooks, &symbol)) {
             let mut defaultLimit: Value = self.safe_integer_k(self.options.clone(), "watchOrderBookLimit", &[Value::Int(1000)]);
             let mut subscription: Value = self.safe_dict(get_value(&client, &Value::Str("subscriptions".to_string())), messageHash.clone(), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -383,7 +383,7 @@ impl ExtendedCore {
             return;
         }
         let mut previousNonce: Value = self.safe_integer_k(orderbook.clone(), "nonce", &[]);
-        if is_true(&(Value::Bool(previousNonce != Value::Null))) && is_true(&(Value::Bool(nonce.as_f64() != (match (&(previousNonce), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }).as_f64()))) {
+        if is_true(&(previousNonce != Value::Null)) && is_true(&(nonce.as_f64() != (match (&(previousNonce), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }).as_f64())) {
             remove(&mut get_value(&client, &Value::Str("subscriptions".to_string())), &messageHash);
             remove(&mut self.orderbooks, &symbol);
             let mut error = Value::from(crate::exchange_errors::invalid_nonce(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" watchOrderBook received invalid nonce".to_string())))));
@@ -418,7 +418,7 @@ impl ExtendedCore {
         let mut subscription = get_arg(optional_args, 0, Value::Null);
         self.check_required_credentials(&[]);
         let mut url: Value = add(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), &Value::Str("/account".to_string()));
-        if is_true(&(Value::Bool(self.clients.clone() == Value::Null))) || !is_true(&(Value::Bool(in_op(&self.clients, &url)))) {
+        if is_true(&(self.clients.clone() == Value::Null)) || !(in_op(&self.clients, &url)) {
             let mut defaultOptions: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("ws".to_string(), Value::Map({
@@ -1067,7 +1067,7 @@ impl ExtendedCore {
         let mut market: Value = self.safe_market(&[marketId.clone()]);
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         let mut timestamp: Value = self.safe_integer_k(data.clone(), "ts", &[]);
-        if is_true(&(Value::Bool(timestamp == Value::Null))) || is_true(&(Value::Bool(timestamp.as_f64() == Some(0.0)))) {
+        if is_true(&(timestamp == Value::Null)) || is_true(&(timestamp.as_f64() == Some(0.0))) {
             timestamp = self.safe_integer_k(message.clone(), "ts", &[]);
         }
         let mut ticker: Value = self.safe_ticker(Value::Map({
@@ -1167,7 +1167,7 @@ impl ExtendedCore {
         }
         let mut previousNonce: Value = self.safe_integer_k(subscription.clone(), "nonce", &[]);
         let mut nonce: Value = self.safe_integer_k(message.clone(), "seq", &[]);
-        if is_true(&(Value::Bool(previousNonce != Value::Null))) && is_true(&(Value::Bool(nonce != Value::Null))) && is_true(&(nonce.as_f64().unwrap_or(f64::NAN) <= previousNonce.as_f64().unwrap_or(f64::NAN))) {
+        if is_true(&(previousNonce != Value::Null)) && is_true(&(nonce != Value::Null)) && is_true(&(nonce.as_f64().unwrap_or(f64::NAN) <= previousNonce.as_f64().unwrap_or(f64::NAN))) {
             return;
         }
         add_element_to_object(&mut subscription, &Value::Str("nonce".to_string()), nonce.clone());
@@ -1272,7 +1272,7 @@ impl ExtendedCore {
         let mut symbol: Value = self.safe_string_k(subscription.clone(), "symbol", &[]);
         let mut timeframe: Value = self.safe_string_k(subscription.clone(), "timeframe", &[]);
         let mut candleType: Value = self.safe_string_k(subscription.clone(), "candleType", &[]);
-        let mut cacheKey: Value = (if is_true(&(Value::Bool(candleType.as_str() == Some("trades")))) { timeframe.clone() } else { add(&add(&timeframe, &Value::Str(":".to_string())), &candleType) });
+        let mut cacheKey: Value = (if is_true(&(candleType.as_str() == Some("trades"))) { timeframe.clone() } else { add(&add(&timeframe, &Value::Str(":".to_string())), &candleType) });
         let mut messageHash: Value = self.safe_string_k(subscription.clone(), "messageHash", &[]);
         { let __be_tmp = self.safe_value(self.ohlcvs.clone(), symbol.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1287,7 +1287,7 @@ impl ExtendedCore {
         }
         let mut previousNonce: Value = self.safe_integer_k(subscription.clone(), "nonce", &[]);
         let mut nonce: Value = self.safe_integer_k(message.clone(), "seq", &[]);
-        if is_true(&(Value::Bool(previousNonce != Value::Null))) && is_true(&(Value::Bool(nonce != Value::Null))) && is_true(&(nonce.as_f64().unwrap_or(f64::NAN) <= previousNonce.as_f64().unwrap_or(f64::NAN))) {
+        if is_true(&(previousNonce != Value::Null)) && is_true(&(nonce != Value::Null)) && is_true(&(nonce.as_f64().unwrap_or(f64::NAN) <= previousNonce.as_f64().unwrap_or(f64::NAN))) {
             return;
         }
         add_element_to_object(&mut subscription, &Value::Str("nonce".to_string()), nonce.clone());
@@ -1347,7 +1347,7 @@ impl ExtendedCore {
         }
         let mut type_var: Value = self.safe_string_k(message.clone(), "type", &[]);
         let mut data: Value = self.safe_value_k(message.clone(), "data", &[]);
-        if is_true(&Value::Bool(is_array(&data))) {
+        if (is_array(&data)) {
             let mut first: Value = self.safe_dict(data.clone(), Value::Int(0), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
@@ -1362,25 +1362,25 @@ impl ExtendedCore {
             // an account frame may carry several sections at once, so these are
             // not mutually exclusive and must not fall through to the order book
             let mut isAccountUpdate: bool = false;
-            if is_true(&(Value::Bool(type_var.as_str() == Some("ORDER")))) || is_true(&(Value::Bool(in_op(&data, &Value::Str("orders".to_string()))))) {
+            if is_true(&(type_var.as_str() == Some("ORDER"))) || (in_op(&data, &Value::Str("orders".to_string()))) {
                 self.handle_orders(client.clone(), message.clone());
                 isAccountUpdate = true;
             }
-            if is_true(&(Value::Bool(type_var.as_str() == Some("TRADE")))) || is_true(&(Value::Bool(in_op(&data, &Value::Str("trades".to_string()))))) {
+            if is_true(&(type_var.as_str() == Some("TRADE"))) || (in_op(&data, &Value::Str("trades".to_string()))) {
                 self.handle_my_trades(client.clone(), message.clone());
                 isAccountUpdate = true;
             }
-            if is_true(&(Value::Bool(type_var.as_str() == Some("POSITION")))) || is_true(&(Value::Bool(in_op(&data, &Value::Str("positions".to_string()))))) {
+            if is_true(&(type_var.as_str() == Some("POSITION"))) || (in_op(&data, &Value::Str("positions".to_string()))) {
                 self.handle_positions(client.clone(), message.clone());
                 isAccountUpdate = true;
             }
-            if is_true(&(Value::Bool(type_var.as_str() == Some("BALANCE")))) || is_true(&(Value::Bool(in_op(&data, &Value::Str("balance".to_string()))))) || is_true(&(Value::Bool(in_op(&data, &Value::Str("spotBalances".to_string()))))) {
+            if is_true(&(type_var.as_str() == Some("BALANCE"))) || (in_op(&data, &Value::Str("balance".to_string()))) || (in_op(&data, &Value::Str("spotBalances".to_string()))) {
                 self.handle_balance(client.clone(), message.clone());
                 isAccountUpdate = true;
             }
             if (type_var.as_str() == Some("MP")) {
                 self.handle_mark_price(client.clone(), message.clone());
-            }  else if is_true(&Value::Bool(in_op(&data, &Value::Str("f".to_string())))) {
+            }  else if (in_op(&data, &Value::Str("f".to_string()))) {
                 self.handle_funding_rate(client.clone(), message.clone());
             }  else if !isAccountUpdate {
                 self.handle_order_book(client.clone(), message.clone());

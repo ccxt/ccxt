@@ -814,7 +814,7 @@ impl P2bCore {
         //    }
         //
         let mut timestamp: Value = self.safe_integer_product(ticker.clone(), Value::Str("at".to_string()), Value::Int(1000), &[]);
-        if is_true(&Value::Bool(in_op(&ticker, &Value::Str("ticker".to_string())))) {
+        if (in_op(&ticker, &Value::Str("ticker".to_string()))) {
             ticker = self.safe_value_k(ticker.clone(), "ticker", &[]);
         }
         let mut last: Value = self.safe_string_k(ticker.clone(), "last", &[]);
@@ -1808,7 +1808,7 @@ impl P2bCore {
             let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), body));
             self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), errorCode.clone(), feedback.clone());
             let mut codeAsString: Value = to_string_val(&code);
-            if is_true(&(code.as_f64().unwrap_or(f64::NAN) < Value::Int(400).as_f64().unwrap_or(f64::NAN))) || !is_true(&(Value::Bool(in_op(&self.httpExceptions, &codeAsString)))) {
+            if is_true(&(code.as_f64().unwrap_or(f64::NAN) < Value::Int(400).as_f64().unwrap_or(f64::NAN))) || !(in_op(&self.httpExceptions, &codeAsString)) {
                 panic!("{}", crate::exchange_errors::exchange_error(feedback));
             }
         }

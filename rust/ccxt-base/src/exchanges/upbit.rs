@@ -820,13 +820,13 @@ impl UpbitCore {
         let mut walletLocked: Value = self.safe_value_k(memberInfo.clone(), "wallet_locked", &[]);
         let mut locked: Value = self.safe_value_k(memberInfo.clone(), "locked", &[]);
         let mut active: Value = Value::Bool(true);
-        if is_true(&(Value::Bool(canWithdraw != Value::Null))) && (!is_equal(&canWithdraw, &Value::Bool(true))) {
+        if is_true(&(canWithdraw != Value::Null)) && (!is_equal(&canWithdraw, &Value::Bool(true))) {
             active = Value::Bool(false);
         }  else if (walletState.as_str() != Some("working")) {
             active = Value::Bool(false);
-        }  else if is_true(&(Value::Bool(walletLocked != Value::Null))) && (is_equal(&walletLocked, &Value::Bool(true))) {
+        }  else if is_true(&(walletLocked != Value::Null)) && (is_equal(&walletLocked, &Value::Bool(true))) {
             active = Value::Bool(false);
-        }  else if is_true(&(Value::Bool(locked != Value::Null))) && (is_equal(&locked, &Value::Bool(true))) {
+        }  else if is_true(&(locked != Value::Null)) && (is_equal(&locked, &Value::Bool(true))) {
             active = Value::Bool(false);
         }
         let mut maxOnetimeWithdrawal: Value = self.safe_string_k(withdrawLimits.clone(), "onetime", &[]);
@@ -1885,7 +1885,7 @@ impl UpbitCore {
         let mut timeInForce: Value = self.safe_string_lower2(params.clone(), Value::Str("timeInForce".to_string()), Value::Str("time_in_force".to_string()), &[]);
         let mut selfTradePrevention: Value = self.safe_string2(params.clone(), Value::Str("selfTradePrevention".to_string()), Value::Str("smp_type".to_string()), &[]);
         let mut test: Value = self.safe_bool_k(params.clone(), "test", &[Value::Bool(false)]);
-        if is_true(&postOnly) && is_true(&(Value::Bool(selfTradePrevention != Value::Null))) {
+        if is_true(&postOnly) && is_true(&(selfTradePrevention != Value::Null)) {
             panic!("{}", crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder() does not support post_only and selfTradePrevention simultaneously.".to_string())))));
         }
         let mut orderSide: Value = Value::Null;
@@ -2041,7 +2041,7 @@ impl UpbitCore {
         let mut postOnly: Value = self.is_post_only(Value::Bool(type_var.as_str() == Some("market")), Value::Bool(false), &[params.clone()]);
         let mut timeInForce: Value = self.safe_string_lower2(params.clone(), Value::Str("newTimeInForce".to_string()), Value::Str("new_time_in_force".to_string()), &[]);
         let mut selfTradePrevention: Value = self.safe_string2(params.clone(), Value::Str("selfTradePrevention".to_string()), Value::Str("new_smp_type".to_string()), &[]);
-        if is_true(&postOnly) && is_true(&(Value::Bool(selfTradePrevention != Value::Null))) {
+        if is_true(&postOnly) && is_true(&(selfTradePrevention != Value::Null)) {
             panic!("{}", crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" editOrder() does not support post_only and selfTradePrevention simultaneously.".to_string())))));
         }
         params = self.omit(params.clone(), Value::Str("clientOrderId".to_string()), &[]);
@@ -2998,11 +2998,11 @@ impl UpbitCore {
             });
             let mut hasQuery: Value = Value::Int(object_keys(&query).len() as i64);
             let mut auth: Value = Value::Null;
-            if is_true(&(Value::Bool(method.as_str() != Some("GET")))) && is_true(&(Value::Bool(method.as_str() != Some("DELETE")))) {
+            if is_true(&(method.as_str() != Some("GET"))) && is_true(&(method.as_str() != Some("DELETE"))) {
                 body = self.json(params.clone());
                 add_element_to_object(&mut headers, &Value::Str("Content-Type".to_string()), Value::Str("application/json".to_string()));
             }
-            if is_true(&(Value::Bool(hasQuery != Value::Null))) && is_true(&(Value::Bool(hasQuery.as_f64() != Some(0.0)))) {
+            if is_true(&(hasQuery != Value::Null)) && is_true(&(hasQuery.as_f64() != Some(0.0))) {
                 auth = self.rawencode(query.clone(), &[]);
             }
             if (auth != Value::Null) {

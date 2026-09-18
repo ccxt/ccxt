@@ -586,7 +586,7 @@ impl Bit2cCore {
             let mut account: Value = self.account();
             let mut currency: Value = self.currency(code.clone());
             let mut uppercase: Value = to_upper(&get_value(&currency, &Value::Str("id".to_string())));
-            if is_true(&Value::Bool(in_op(&response, &uppercase))) {
+            if (in_op(&response, &uppercase)) {
                 add_element_to_object(&mut account, &Value::Str("free".to_string()), self.safe_string(response.clone(), Value::Str(format!("{}{}", Value::Str("AVAILABLE_".to_string()), uppercase)), &[]));
                 add_element_to_object(&mut account, &Value::Str("total".to_string()), self.safe_string(response.clone(), uppercase.clone(), &[]));
             }
@@ -1082,7 +1082,7 @@ impl Bit2cCore {
         //
         let mut orderUnified: Value = Value::Null;
         let mut isNewOrder: bool = false;
-        if is_true(&Value::Bool(in_op(&order, &Value::Str("NewOrder".to_string())))) {
+        if (in_op(&order, &Value::Str("NewOrder".to_string()))) {
             orderUnified = order.as_map().and_then(|__m| __m.get("NewOrder")).cloned().unwrap_or(Value::Null);
             isNewOrder = true;
         }  else {
@@ -1348,7 +1348,7 @@ impl Bit2cCore {
             amount = self.safe_string_k(trade.clone(), "amount", &[]);
             side = self.safe_value_k(trade.clone(), "isBid", &[]);
             if (side != Value::Null) {
-                if is_true(&(Value::Bool(side != Value::Null))) && is_true(&(Value::Bool(side.as_str() != Some("")))) {
+                if is_true(&(side != Value::Null)) && is_true(&(side.as_str() != Some(""))) {
                     side = Value::Str("buy".to_string());
                 }  else {
                     side = Value::Str("sell".to_string());

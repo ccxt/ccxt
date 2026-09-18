@@ -911,7 +911,7 @@ impl CoinspotCore {
             m
         });
         let mut balances: Value = self.safe_value2(response.clone(), Value::Str("balance".to_string()), Value::Str("balances".to_string()), &[]);
-        if is_true(&Value::Bool(is_array(&balances))) {
+        if (is_array(&balances)) {
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_588: bool = true;
@@ -977,7 +977,7 @@ impl CoinspotCore {
         }
         let mut method: Value = self.safe_string_k(self.options.clone(), "fetchBalance", &[Value::Str("private_post_my_balances".to_string())]);
         let mut response: Value = Value::Null;
-        if is_true(&(Value::Bool(method.as_str() == Some("private_post_ro_my_balances")))) || is_true(&(Value::Bool(method.as_str() == Some("privatePostRoMyBalances")))) {
+        if is_true(&(method.as_str() == Some("private_post_ro_my_balances"))) || is_true(&(method.as_str() == Some("privatePostRoMyBalances"))) {
             response = self.private_post_ro_my_balances(&[params.clone()]).await;
         }  else {
             response = self.private_post_my_balances(&[params.clone()]).await;
@@ -1501,7 +1501,7 @@ impl CoinspotCore {
         let mut version: Value = (if isVersionedApi { api.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null) } else { Value::Null });
         let mut accessType: Value = (if isVersionedApi { api.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null) } else { api.clone() });
         let mut endpoint: Value = Value::Str(format!("{}{}", Value::Str("/".to_string()), self.implode_params(path.clone(), params.clone())));
-        let mut fullPath: Value = (if is_true(&(Value::Bool(version != Value::Null))) { Value::Str(format!("{}{}", add(&Value::Str("/".to_string()), &version), endpoint)) } else { endpoint.clone() });
+        let mut fullPath: Value = (if is_true(&(version != Value::Null)) { Value::Str(format!("{}{}", add(&Value::Str("/".to_string()), &version), endpoint)) } else { endpoint.clone() });
         let mut url: Value = add(&get_value(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), &accessType), &fullPath);
         if (accessType.as_str() == Some("private")) {
             self.check_required_credentials(&[]);

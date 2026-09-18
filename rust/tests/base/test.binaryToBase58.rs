@@ -19,7 +19,7 @@ pub fn testBinaryToBase58() {
             m.insert("id".to_string(), Value::Str("sampleexchange".to_string()));
         m
     }));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.parse_number(Value::Null, &[]) == Value::Null))));
+    assert!(ccxt::runtime::is_true(&((exchange.parse_number(Value::Null, &[]) == Value::Null))));
     // @SKIP_START_GO
     // Test 1: Simple string
     let mut binary1: Value = helperStrToBinary5(exchange.clone_self(), Value::Str("hello".to_string()));

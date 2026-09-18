@@ -10,13 +10,13 @@ use ccxt::exchange_generated::ExchangeBase;
 
 pub fn testConstants() {
     // assert all
-    assert!(ccxt::runtime::is_true(&(Value::Bool(Value::Int(ccxt::runtime::ROUND).as_f64() == Some(1.0)))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(Value::Int(ccxt::runtime::TRUNCATE).as_f64() == Some(0.0)))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(Value::Int(ccxt::runtime::ROUND_UP).as_f64() == Some(2.0)))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(Value::Int(ccxt::runtime::ROUND_DOWN).as_f64() == Some(3.0)))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(Value::Int(ccxt::runtime::DECIMAL_PLACES).as_f64() == Some(2.0)))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(Value::Int(ccxt::runtime::SIGNIFICANT_DIGITS).as_f64() == Some(3.0)))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(Value::Int(ccxt::runtime::TICK_SIZE).as_f64() == Some(4.0)))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(Value::Int(ccxt::runtime::NO_PADDING).as_f64() == Some(5.0)))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(Value::Int(ccxt::runtime::PAD_WITH_ZERO).as_f64() == Some(6.0)))));
+    assert!(ccxt::runtime::is_true(&((Value::Int(ccxt::runtime::ROUND).as_f64() == Some(1.0)))));
+    assert!(ccxt::runtime::is_true(&((Value::Int(ccxt::runtime::TRUNCATE).as_f64() == Some(0.0)))));
+    assert!(ccxt::runtime::is_true(&((Value::Int(ccxt::runtime::ROUND_UP).as_f64() == Some(2.0)))));
+    assert!(ccxt::runtime::is_true(&((Value::Int(ccxt::runtime::ROUND_DOWN).as_f64() == Some(3.0)))));
+    assert!(ccxt::runtime::is_true(&((Value::Int(ccxt::runtime::DECIMAL_PLACES).as_f64() == Some(2.0)))));
+    assert!(ccxt::runtime::is_true(&((Value::Int(ccxt::runtime::SIGNIFICANT_DIGITS).as_f64() == Some(3.0)))));
+    assert!(ccxt::runtime::is_true(&((Value::Int(ccxt::runtime::TICK_SIZE).as_f64() == Some(4.0)))));
+    assert!(ccxt::runtime::is_true(&((Value::Int(ccxt::runtime::NO_PADDING).as_f64() == Some(5.0)))));
+    assert!(ccxt::runtime::is_true(&((Value::Int(ccxt::runtime::PAD_WITH_ZERO).as_f64() == Some(6.0)))));
 }

@@ -1520,7 +1520,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             add_element_to_object(&mut account, &Value::Str("total".to_string()), self.safe_string_k(balance.clone(), "amount", &[]));
             add_element_to_object(&mut account, &Value::Str("free".to_string()), self.safe_string_k(balance.clone(), "available_to_withdraw", &[]));
             // skip a spot USDC entry so it can't clobber the perp-collateral account above
-            if is_true(&(Value::Bool(code != Value::Null))) && !is_true(&(Value::Bool(in_op(&result, &code)))) {
+            if is_true(&(code != Value::Null)) && !(in_op(&result, &code)) {
                 add_element_to_object(&mut result, &code, account.clone());
             }
         }
@@ -1590,7 +1590,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         // }
         let mut isIsolated: Value = self.safe_bool_k(setting.clone(), "isolated", &[Value::Bool(false)]);
         let mut leverage: Value = self.safe_integer_k(setting.clone(), "leverage", &[]);
-        let mut marginMode: Value = (if is_true(&(Value::Bool(isIsolated.as_bool() == Some(true)))) { Value::Str("isolated".to_string()) } else { Value::Str("cross".to_string()) });
+        let mut marginMode: Value = (if is_true(&(isIsolated.as_bool() == Some(true))) { Value::Str("isolated".to_string()) } else { Value::Str("cross".to_string()) });
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), setting.clone());
@@ -1661,7 +1661,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     m
 }));
         let mut settings: Value = self.handle_option(Value::Str("loadAccountSettings".to_string()), Value::Str("settings".to_string()), &[]);
-        if is_true(&(Value::Bool(settings == Value::Null))) || is_true(&(Value::Bool(refresh.as_bool() == Some(true)))) {
+        if is_true(&(settings == Value::Null)) || is_true(&(refresh.as_bool() == Some(true))) {
             { let __be_tmp = self.create_safe_dictionary(&[]); add_element_to_object(&mut self.options, &Value::Str("settings".to_string()), __be_tmp); };
             settings = self.fetch_account_settings(&[params.clone()]).await;
             add_element_to_object(&mut self.options, &Value::Str("settings".to_string()), settings.clone());
@@ -1762,7 +1762,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //
         // }
         let mut isIsolated: Value = self.safe_bool_k(setting.clone(), "isolated", &[Value::Bool(false)]);
-        let mut marginMode: Value = (if is_true(&(Value::Bool(isIsolated.as_bool() == Some(true)))) { Value::Str("isolated".to_string()) } else { Value::Str("cross".to_string()) });
+        let mut marginMode: Value = (if is_true(&(isIsolated.as_bool() == Some(true))) { Value::Str("isolated".to_string()) } else { Value::Str("cross".to_string()) });
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), symbol.clone());
@@ -2238,7 +2238,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut orderId: Value = self.safe_string_k(trade.clone(), "order_id", &[]);
         let mut takerOrMaker: Value = Value::Null;
         if (eventType != Value::Null) {
-            takerOrMaker = (if is_true(&(Value::Bool(eventType.as_str() == Some("fulfill_maker")))) { Value::Str("maker".to_string()) } else { Value::Str("taker".to_string()) });
+            takerOrMaker = (if is_true(&(eventType.as_str() == Some("fulfill_maker"))) { Value::Str("maker".to_string()) } else { Value::Str("taker".to_string()) });
         }
         // public trades have no orderId
         if (orderId == Value::Null) {
@@ -2415,7 +2415,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut defaultSlippage: Value = self.handle_option(Value::Str("createOrder".to_string()), Value::Str("defaultSlippage".to_string()), &[Value::Str("0.5".to_string())]);
             let mut slippage: Value = self.safe_string2(params.clone(), Value::Str("slippage".to_string()), Value::Str("slippage_percent".to_string()), &[defaultSlippage.clone()]);
             add_element_to_object(&mut sigPayload, &Value::Str("slippage_percent".to_string()), slippage.clone());
-        }  else if (isTakeProfitOrder || isStopLossOrder) && is_true(&(Value::Bool(price == Value::Null))) {
+        }  else if (isTakeProfitOrder || isStopLossOrder) && is_true(&(price == Value::Null)) {
             operationType = Value::Str("set_position_tpsl".to_string());
         }  else if isStopOrder {
             operationType = Value::Str("create_stop_order".to_string());
@@ -2469,7 +2469,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (price != Value::Null) && (operationType.as_str() == Some("create_order")) {
             add_element_to_object(&mut sigPayload, &Value::Str("price".to_string()), self.price_to_precision(symbol.clone(), price.clone()));
         }
-        if (amount != Value::Null) && is_true(&(Value::Bool((operationType.as_str() != Some("create_stop_order")) && (operationType.as_str() != Some("set_position_tpsl"))))) {
+        if (amount != Value::Null) && is_true(&((operationType.as_str() != Some("create_stop_order")) && (operationType.as_str() != Some("set_position_tpsl")))) {
             add_element_to_object(&mut sigPayload, &Value::Str("amount".to_string()), self.amount_to_precision(symbol.clone(), amount.clone()));
         }
         let mut clientOrderId: Value = self.safe_string_k(params.clone(), "clientOrderId", &[]);
@@ -2630,7 +2630,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut error: Value = self.safe_string_k(order.clone(), "error", &[]);
             let mut success: Value = self.safe_bool_k(order.clone(), "success", &[Value::Bool(false)]);
             let mut status: Value = Value::Null;
-            if is_true(&(Value::Bool(error != Value::Null))) || is_true(&(Value::Bool(success.as_bool() != Some(true)))) {
+            if is_true(&(error != Value::Null)) || is_true(&(success.as_bool() != Some(true))) {
                 status = Value::Str("rejected".to_string());
             }  else {
                 status = Value::Str("open".to_string());
@@ -2713,7 +2713,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut error: Value = self.safe_string_k(order.clone(), "error", &[]);
             let mut success: Value = self.safe_bool_k(order.clone(), "success", &[Value::Bool(false)]);
             let mut status: Value = Value::Null;
-            if is_true(&(Value::Bool(error != Value::Null))) || is_true(&(Value::Bool(success.as_bool() != Some(true)))) {
+            if is_true(&(error != Value::Null)) || is_true(&(success.as_bool() != Some(true))) {
                 status = Value::Str("closed".to_string());
             }  else {
                 status = Value::Str("canceled".to_string());
@@ -2889,7 +2889,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         // }
         //
         let mut success: Value = self.safe_bool_k(response.clone(), "success", &[Value::Bool(false)]);
-        let mut status: Value = (if is_true(&(Value::Bool(success.as_bool() == Some(true)))) { Value::Str("canceled".to_string()) } else { Value::Str("closed".to_string()) });
+        let mut status: Value = (if is_true(&(success.as_bool() == Some(true))) { Value::Str("canceled".to_string()) } else { Value::Str("closed".to_string()) });
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id.clone());
@@ -3013,7 +3013,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("amount".to_string(), amountNormalized.clone());
             m
         });
-        if is_true(&(Value::Bool(clientOrderId == Value::Null))) && is_true(&(Value::Bool(id == Value::Null))) {
+        if is_true(&(clientOrderId == Value::Null)) && is_true(&(id == Value::Null)) {
             panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", Value::Str("this.id".to_string()), Value::Str("editOrder() requires either \"id\" or \"clientOrderId\"".to_string())))));
         }
         if (clientOrderId != Value::Null) {
@@ -3462,7 +3462,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut hasMore: Value = self.safe_bool_k(response.clone(), "has_more", &[Value::Bool(false)]);
         let mut dataLength: Value = Value::Int(data.len() as i64);
         if (hasMore.as_bool() == Some(true)) {
-            if is_true(&(Value::Bool(paginationCursor != Value::Null))) && is_true(&(dataLength.as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN))) {
+            if is_true(&(paginationCursor != Value::Null)) && is_true(&(dataLength.as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN))) {
                 let mut first: Value = data.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
                 add_element_to_object(&mut first, &Value::Str("next_cursor".to_string()), paginationCursor.clone());
                 add_element_to_object(&mut first, &Value::Str("has_more".to_string()), hasMore.clone());
@@ -3724,7 +3724,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut status: Value = self.safe_string2(order.clone(), Value::Str("order_status".to_string()), Value::Str("os".to_string()), &[Value::Str("open".to_string())]); // open if method is fetchOpenOrders
         let mut side: Value = self.safe_string_k(order.clone(), "side", &[Value::Str("d".to_string())]);
         if (side != Value::Null) {
-            side = (if is_true(&(Value::Bool(side.as_str() == Some("bid")))) { Value::Str("buy".to_string()) } else { Value::Str("sell".to_string()) });
+            side = (if is_true(&(side.as_str() == Some("bid"))) { Value::Str("buy".to_string()) } else { Value::Str("sell".to_string()) });
         }
         let mut totalAmount: Value = self.safe_string2(order.clone(), Value::Str("initial_amount".to_string()), Value::Str("a".to_string()), &[]);
         let mut filledAmount: Value = self.safe_string2(order.clone(), Value::Str("filled_amount".to_string()), Value::Str("f".to_string()), &[]);
@@ -3865,11 +3865,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         market = self.safe_market(&[marketId.clone(), market.clone()]);
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         let mut margin: Value = self.safe_string_k(position.clone(), "margin", &[]);
-        let mut marginMode: Value = (if is_true(&(Value::Bool((margin != Value::Null) && (margin.as_str() != Some("0"))))) { Value::Str("isolated".to_string()) } else { Value::Str("cross".to_string()) });
+        let mut marginMode: Value = (if is_true(&((margin != Value::Null) && (margin.as_str() != Some("0")))) { Value::Str("isolated".to_string()) } else { Value::Str("cross".to_string()) });
         let mut isIsolated: Value = (Value::Bool(marginMode.as_str() == Some("isolated")));
         let mut side: Value = self.safe_string_k(position.clone(), "side", &[]);
         if (side != Value::Null) {
-            side = (if is_true(&(Value::Bool(side.as_str() == Some("bid")))) { Value::Str("long".to_string()) } else { Value::Str("short".to_string()) });
+            side = (if is_true(&(side.as_str() == Some("bid"))) { Value::Str("long".to_string()) } else { Value::Str("short".to_string()) });
         }
         let mut createdAt: Value = self.safe_integer_k(position.clone(), "created_at", &[]);
         return self.safe_position(Value::Map({
@@ -4199,7 +4199,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut interestValue: Value = Value::Null;
         let mut markPrice: Value = self.safe_string_k(interest.clone(), "mark", &[]);
         let mut openInterest: Value = self.safe_string_k(interest.clone(), "open_interest", &[]);
-        if is_true(&(Value::Bool(openInterest != Value::Null))) && is_true(&(Value::Bool(markPrice != Value::Null))) {
+        if is_true(&(openInterest != Value::Null)) && is_true(&(markPrice != Value::Null)) {
             interestValue = crate::precise::Precise::stringMul(&openInterest, &markPrice);
         }
         let mut timestamp: Value = self.safe_integer_k(interest.clone(), "timestamp", &[]);
@@ -4528,7 +4528,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut success: Value = self.safe_bool_k(transfer.clone(), "success", &[]);
         let mut status: Value = Value::Null;
         if (success != Value::Null) {
-            status = (if is_true(&(Value::Bool(success.as_bool() == Some(true)))) { Value::Str("ok".to_string()) } else { Value::Str("failed".to_string()) });
+            status = (if is_true(&(success.as_bool() == Some(true))) { Value::Str("ok".to_string()) } else { Value::Str("failed".to_string()) });
         }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -4783,7 +4783,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }  else {
             error = Value::Bool(true);
         }
-        let mut nonEmptyMessage: bool = is_true(&(Value::Bool(message != Value::Null))) && is_true(&(Value::Bool(message.as_str() != Some(""))));
+        let mut nonEmptyMessage: bool = is_true(&(message != Value::Null)) && is_true(&(message.as_str() != Some("")));
         if is_true(&error) || nonEmptyMessage {
             let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), body));
             self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), message.clone(), feedback.clone()); // Try deeper catch first
@@ -4816,7 +4816,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("Content-Type".to_string(), Value::Str("application/json".to_string()));
             m
         });
-        if is_true(&(Value::Bool(method.as_str() == Some("GET")))) && is_true(&(paramsLen.as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN))) {
+        if is_true(&(method.as_str() == Some("GET"))) && is_true(&(paramsLen.as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN))) {
             url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".to_string()), self.urlencode(params.clone(), &[])))));
             add_element_to_object(&mut headers, &Value::Str("Accept".to_string()), Value::Str("*/*".to_string()));
         }
@@ -4875,7 +4875,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             }
             }
             return result;
-        }  else if is_true(&Value::Bool(is_array(&value))) {
+        }  else if (is_array(&value)) {
             let mut result: Value = Value::List(vec![]);
             {
                                 let mut i: Value = Value::Int(0);

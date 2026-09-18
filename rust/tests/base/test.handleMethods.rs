@@ -40,7 +40,7 @@ fn helperTestHandleMarketTypeAndParams() {
     let mut marketType1: Value = marketType1params1Variable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
     let mut params1: Value = marketType1params1Variable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
     assert!(ccxt::runtime::is_true(&(Value::Bool(matches!(&initialParams, Value::Dict(__d) if __d.contains_key("defaultType"))))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(!is_true(&(Value::Bool(in_op(&params1, &Value::Str("defaultType".to_string())))))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(!is_true(&(in_op(&params1, &Value::Str("defaultType".to_string()))))))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(marketType1.as_str() == Some("valueFromParam")))));
     //
     // case #2, should prevail: market.type
@@ -124,7 +124,7 @@ fn helperTestHandleNetworkRequest() {
 }), Value::Str("chain_id".to_string()), &[currencyCode.clone(), Value::Bool(false)]);
     let mut request1: Value = request1params1Variable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
     let mut params1: Value = request1params1Variable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
-    assert!(ccxt::runtime::is_true(&(Value::Bool(!is_true(&(Value::Bool(in_op(&params1, &Value::Str("network".to_string())))))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(!is_true(&(in_op(&params1, &Value::Str("network".to_string()))))))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(in_op(&request1, &Value::Str("chain_id".to_string()))))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(request1.as_map().and_then(|__m| __m.get("chain_id")).cloned().unwrap_or(Value::Null).as_str() == Some("Xyz")))));
 }

@@ -3298,7 +3298,7 @@ impl KucoinCore {
         let mut type_var: Value = Value::Null;
         { let __destr_tmp = self.handle_market_type_and_params(Value::Str("fetchTime".to_string()), &[Value::Null, params.clone()]); type_var = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         let mut response: Value = Value::Null;
-        if is_true(&(Value::Bool(type_var.as_str() != Some("spot")))) && is_true(&(Value::Bool(type_var.as_str() != Some("margin")))) {
+        if is_true(&(type_var.as_str() != Some("spot"))) && is_true(&(type_var.as_str() != Some("margin"))) {
             //
             //    {
             //        "code": "200000",
@@ -3346,7 +3346,7 @@ impl KucoinCore {
         let mut response: Value = Value::Null;
         if is_true(&uta) {
             let mut defaultType: Value = self.safe_string_k(self.options.clone(), "defaultType", &[Value::Str("spot".to_string())]);
-            let mut defaultTradeType: Value = (if is_true(&(Value::Bool(defaultType.as_str() == Some("spot")))) { Value::Str("SPOT".to_string()) } else { Value::Str("FUTURES".to_string()) });
+            let mut defaultTradeType: Value = (if is_true(&(defaultType.as_str() == Some("spot"))) { Value::Str("SPOT".to_string()) } else { Value::Str("FUTURES".to_string()) });
             let mut tradeType: Value = self.safe_string_upper(params.clone(), Value::Str("tradeType".to_string()), &[defaultTradeType.clone()]);
             let mut request: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -3355,7 +3355,7 @@ impl KucoinCore {
             });
             let __ws_arg_0 = self.extend(request.clone(), &[params.clone()]);
             response = self.uta_get_server_status(&[__ws_arg_0]).await;
-        }  else if is_true(&(Value::Bool(type_var.as_str() != Some("spot")))) && is_true(&(Value::Bool(type_var.as_str() != Some("margin")))) {
+        }  else if is_true(&(type_var.as_str() != Some("spot"))) && is_true(&(type_var.as_str() != Some("margin"))) {
             response = self.futures_public_get_status(&[params.clone()]).await;
         }  else {
             response = self.public_get_status(&[params.clone()]).await;
@@ -3367,7 +3367,7 @@ impl KucoinCore {
         let mut status: Value = self.safe_string2(data.clone(), Value::Str("status".to_string()), Value::Str("serverStatus".to_string()), &[]);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("status".to_string(), (if is_true(&(Value::Bool(status.as_str() == Some("open")))) { Value::Str("ok".to_string()) } else { Value::Str("maintenance".to_string()) }));
+        m.insert("status".to_string(), (if is_true(&(status.as_str() == Some("open"))) { Value::Str("ok".to_string()) } else { Value::Str("maintenance".to_string()) }));
         m.insert("updated".to_string(), Value::Null);
         m.insert("eta".to_string(), Value::Null);
         m.insert("url".to_string(), Value::Null);
@@ -3489,7 +3489,7 @@ impl KucoinCore {
         if fetchContractMarkets {
             contractIndex = nextIndex.clone();
         }
-        let mut crossData: Value = (if is_true(&(Value::Bool(requestMarginables.as_bool() == Some(true)))) { self.safe_dict_k(get_value(&responses, &crossIndex), "data", &[Value::Map({
+        let mut crossData: Value = (if is_true(&(requestMarginables.as_bool() == Some(true))) { self.safe_dict_k(get_value(&responses, &crossIndex), "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]) } else { Value::Map({
@@ -3498,7 +3498,7 @@ impl KucoinCore {
 }) });
         let mut crossItems: Value = self.safe_list_k(crossData.clone(), "items", &[Value::List(vec![])]);
         let mut crossById: Value = self.index_by(crossItems.clone(), Value::Str("symbol".to_string()));
-        let mut isolatedData: Value = (if is_true(&(Value::Bool(requestMarginables.as_bool() == Some(true)))) { get_value(&responses, &isolatedIndex) } else { Value::Map({
+        let mut isolatedData: Value = (if is_true(&(requestMarginables.as_bool() == Some(true))) { get_value(&responses, &isolatedIndex) } else { Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }) });
@@ -3926,7 +3926,7 @@ impl KucoinCore {
             let mut quote: Value = self.safe_currency_code(quoteId.clone(), &[]);
             let mut settle: Value = self.safe_currency_code(settleId.clone(), &[]);
             let mut hasMargin: Value = self.safe_string_k(market.clone(), "marginMode", &[]);
-            let mut isMarginable: Value = (if is_true(&(Value::Bool(hasMargin.as_str() == Some("1")))) { Value::Bool(true) } else { Value::Bool(false) });
+            let mut isMarginable: Value = (if is_true(&(hasMargin.as_str() == Some("1"))) { Value::Bool(true) } else { Value::Bool(false) });
             let mut symbol: Value = add(&add(&base, &Value::Str("/".to_string())), &quote);
             if (settle != Value::Null) {
                 symbol = Value::Str(format!("{}{}", symbol, Value::Str(format!("{}{}", Value::Str(":".to_string()), settle))));
@@ -4044,7 +4044,7 @@ impl KucoinCore {
  */
     pub async fn load_migration_status(&mut self, optional_args: &[Value]) -> Value {
         let mut force = get_arg(optional_args, 0, Value::Bool(false));
-        if !is_true(&(Value::Bool(in_op(&self.options, &Value::Str("hf".to_string()))))) || is_true(&(Value::Bool(self.options.as_map().and_then(|__m| __m.get("hf")).cloned().unwrap_or(Value::Null) == Value::Null))) || is_true(&force) {
+        if !(in_op(&self.options, &Value::Str("hf".to_string()))) || is_true(&(self.options.as_map().and_then(|__m| __m.get("hf")).cloned().unwrap_or(Value::Null) == Value::Null)) || is_true(&force) {
             let mut result: Value = self.private_get_hf_accounts_opened(&[]).await;
             { let __be_tmp = self.safe_bool_k(result.clone(), "data", &[]); add_element_to_object(&mut self.options, &Value::Str("hf".to_string()), __be_tmp); };
         }
@@ -4450,7 +4450,7 @@ impl KucoinCore {
         //        "chain": "ERC20"
         //    }
         //
-        if is_true(&Value::Bool(in_op(&fee, &Value::Str("chains".to_string())))) {
+        if (in_op(&fee, &Value::Str("chains".to_string()))) {
             // if data obtained through `currencies` endpoint
             let mut resultNew: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -4567,7 +4567,7 @@ impl KucoinCore {
             panic!("{}", crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" isFuturesMethod() type must be one of ".to_string()))), join(&keys, &Value::Str(", ".to_string()))))));
         }
         params = self.omit(params.clone(), Value::Str("type".to_string()), &[]);
-        return Value::Bool(is_true(&(Value::Bool(type_var.as_str() == Some("contract")))) || is_true(&(Value::Bool(type_var.as_str() == Some("future")))) || is_true(&(Value::Bool(type_var.as_str() == Some("futures")))));
+        return Value::Bool(is_true(&(type_var.as_str() == Some("contract"))) || is_true(&(type_var.as_str() == Some("future"))) || is_true(&(type_var.as_str() == Some("futures"))));
 
     Value::Null
 }
@@ -4820,7 +4820,7 @@ impl KucoinCore {
         let mut timestamp: Value = self.safe_integer_product(ticker.clone(), Value::Str("ts".to_string()), Value::Float(0.000001), &[]);
         let mut change: Value = self.safe_string_k(ticker.clone(), "priceChg", &[]);
         let mut percentage: Value = Value::Null;
-        if is_true(&(Value::Bool(last == Value::Null))) || is_true(&(Value::Bool(change == Value::Null))) {
+        if is_true(&(last == Value::Null)) || is_true(&(change == Value::Null)) {
             percentage = crate::precise::Precise::stringMul(&self.safe_string_k(ticker.clone(), "priceChgPct", &[]), &Value::Str("100".to_string()));
         }
         return self.safe_ticker(Value::Map({
@@ -4910,13 +4910,13 @@ impl KucoinCore {
         let mut type_var: Value = Value::Null;
         { let __destr_tmp = self.handle_market_type_and_params(Value::Str("fetchTickers".to_string()), &[firstMarket.clone(), params.clone()]); type_var = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         let mut response: Value = Value::Null;
-        if is_true(&(Value::Bool(tradeType != Value::Null))) || is_true(&uta) {
+        if is_true(&(tradeType != Value::Null)) || is_true(&uta) {
             if (tradeType == Value::Null) {
                 add_element_to_object(&mut request, &Value::Str("tradeType".to_string()), self.type_to_trade_type(type_var.clone()));
             }
             let __ws_arg_6 = self.extend(request.clone(), &[params.clone()]);
             response = self.uta_get_market_ticker(&[__ws_arg_6]).await;
-        }  else if is_true(&(Value::Bool(type_var.as_str() != Some("spot")))) && is_true(&(Value::Bool(type_var.as_str() != Some("margin")))) {
+        }  else if is_true(&(type_var.as_str() != Some("spot"))) && is_true(&(type_var.as_str() != Some("margin"))) {
             return self.fetch_contract_tickers(&[symbols.clone(), params.clone()]).await;
         }  else {
             response = self.public_get_market_all_tickers(&[params.clone()]).await;
@@ -5293,7 +5293,7 @@ impl KucoinCore {
         let mut uta: Value = Value::Bool(false);
         { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("fetchOHLCV".to_string()), Value::Str("uta".to_string()), &[uta.clone()]); uta = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         let mut priceType: Value = self.safe_string_k(params.clone(), "price", &[]);
-        if is_true(&(Value::Bool(priceType != Value::Null))) && (!is_true(&uta)) {
+        if is_true(&(priceType != Value::Null)) && (!is_true(&uta)) {
             uta = Value::Bool(true); // mark, index, premiumIndex price types are only available for UTA
         }
         if is_true(&uta) {
@@ -5362,7 +5362,7 @@ impl KucoinCore {
         add_element_to_object(&mut request, &Value::Str("endAt".to_string()), self.parse_to_int(math_floor(&(match ((endAt).as_f64(), (denominator).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }))));
         let mut type_var: Value = Value::Null;
         { let __destr_tmp = self.handle_market_type_and_params(Value::Str("fetchOHLCV".to_string()), &[market.clone(), params.clone()]); type_var = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
-        if is_true(&(Value::Bool(type_var.as_str() == Some("spot")))) || is_true(&(Value::Bool(type_var.as_str() == Some("margin")))) {
+        if is_true(&(type_var.as_str() == Some("spot"))) || is_true(&(type_var.as_str() == Some("margin"))) {
             add_element_to_object(&mut request, &Value::Str("tradeType".to_string()), Value::Str("SPOT".to_string()));
         }  else {
             add_element_to_object(&mut request, &Value::Str("tradeType".to_string()), Value::Str("FUTURES".to_string()));
@@ -5650,7 +5650,7 @@ impl KucoinCore {
         { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("fetchDepositAddress".to_string()), Value::Str("uta".to_string()), &[uta.clone()]); uta = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         if (accountType.as_str() == Some("contract")) {
             return self.fetch_contract_deposit_address(code.clone(), &[params.clone()]).await;
-        }  else if is_true(&uta) || is_true(&(Value::Bool(accountType.as_str() == Some("uta")))) || is_true(&(Value::Bool(accountType.as_str() == Some("unified")))) {
+        }  else if is_true(&uta) || is_true(&(accountType.as_str() == Some("uta"))) || is_true(&(accountType.as_str() == Some("unified"))) {
             let __ws_arg_16 = self.extend(params.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("uta".to_string(), Value::Bool(true));
@@ -5902,21 +5902,21 @@ impl KucoinCore {
         { let __destr_tmp = self.handle_market_type_and_params(Value::Str("fetchOrderBook".to_string()), &[market.clone(), params.clone()]); type_var = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         if is_true(&uta) {
             let mut limitString: Value = Value::Str("20".to_string());
-            if is_true(&(Value::Bool(limit == Value::Null))) || is_true(&(limit.as_f64().unwrap_or(f64::NAN) >= Value::Int(100).as_f64().unwrap_or(f64::NAN))) {
+            if is_true(&(limit == Value::Null)) || is_true(&(limit.as_f64().unwrap_or(f64::NAN) >= Value::Int(100).as_f64().unwrap_or(f64::NAN))) {
                 limitString = Value::Str("FULL".to_string());
             }  else if limit.as_f64().unwrap_or(f64::NAN) > Value::Int(20).as_f64().unwrap_or(f64::NAN) {
                 limitString = Value::Str("100".to_string());
             }
             add_element_to_object(&mut request, &Value::Str("limit".to_string()), limitString.clone());
             add_element_to_object(&mut request, &Value::Str("symbol".to_string()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
-            if is_true(&(Value::Bool(type_var.as_str() == Some("spot")))) || is_true(&(Value::Bool(type_var.as_str() == Some("margin")))) {
+            if is_true(&(type_var.as_str() == Some("spot"))) || is_true(&(type_var.as_str() == Some("margin"))) {
                 add_element_to_object(&mut request, &Value::Str("tradeType".to_string()), Value::Str("SPOT".to_string()));
             }  else {
                 add_element_to_object(&mut request, &Value::Str("tradeType".to_string()), Value::Str("FUTURES".to_string()));
             }
             let __ws_arg_21 = self.extend(request.clone(), &[params.clone()]);
             response = self.uta_private_get_market_orderbook(&[__ws_arg_21]).await;
-        }  else if is_true(&(Value::Bool(type_var.as_str() != Some("spot")))) && is_true(&(Value::Bool(type_var.as_str() != Some("margin")))) {
+        }  else if is_true(&(type_var.as_str() != Some("spot"))) && is_true(&(type_var.as_str() != Some("margin"))) {
             if (level.as_f64() != Some(2.0)) && (level != Value::Null) {
                 panic!("{}", crate::exchange_errors::bad_request(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchOrderBook() can only return level 2".to_string())))));
             }
@@ -5957,13 +5957,13 @@ impl KucoinCore {
             if (level.as_f64() == Some(2.0)) {
                 add_element_to_object(&mut request, &Value::Str("level".to_string()), level.clone());
                 if (limit != Value::Null) {
-                    if is_true(&(Value::Bool(limit.as_f64() == Some(20.0)))) || is_true(&(Value::Bool(limit.as_f64() == Some(100.0)))) {
+                    if is_true(&(limit.as_f64() == Some(20.0))) || is_true(&(limit.as_f64() == Some(100.0))) {
                         add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone());
                     }  else {
                         panic!("{}", crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchOrderBook() limit argument must be 20 or 100".to_string())))));
                     }
                 }
-                add_element_to_object(&mut request, &Value::Str("limit".to_string()), (if is_true(&(Value::Bool(limit != Value::Null))) { limit.clone() } else { Value::Int(100) }));
+                add_element_to_object(&mut request, &Value::Str("limit".to_string()), (if is_true(&(limit != Value::Null)) { limit.clone() } else { Value::Int(100) }));
             }
             let __ws_arg_25 = self.extend(request.clone(), &[params.clone()]);
             response = self.public_get_market_orderbook_level_level_limit(&[__ws_arg_25]).await;
@@ -6026,7 +6026,7 @@ impl KucoinCore {
         let mut takeProfitPrice: Value = self.safe_value_k(params.clone(), "takeProfitPrice", &[]);
         let mut isStopLoss: bool = stopLossPrice != Value::Null;
         let mut isTakeProfit: bool = takeProfitPrice != Value::Null;
-        if (isStopLoss && isTakeProfit) || is_true(&(Value::Bool(is_true(&(Value::Bool(triggerPrice != Value::Null))) && is_true(&(Value::Bool(stopLossPrice != Value::Null)))))) || is_true(&(Value::Bool(is_true(&(Value::Bool(triggerPrice != Value::Null))) && isTakeProfit))) {
+        if (isStopLoss && isTakeProfit) || (is_true(&(triggerPrice != Value::Null)) && is_true(&(stopLossPrice != Value::Null))) || (is_true(&(triggerPrice != Value::Null)) && isTakeProfit) {
             panic!("{}", crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder() - you should use either triggerPrice or stopLossPrice or takeProfitPrice".to_string())))));
         }
         return Value::List(vec![triggerPrice.clone(), stopLossPrice.clone(), takeProfitPrice.clone()]);
@@ -6149,7 +6149,7 @@ impl KucoinCore {
         let mut stopLossPrice: Value = triggerPricestopLossPricetakeProfitPriceVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         let mut takeProfitPrice: Value = triggerPricestopLossPricetakeProfitPriceVariable.as_array().and_then(|__arr| __arr.get(2)).cloned().unwrap_or(Value::Null);
         let mut tradeType: Value = self.safe_string_k(params.clone(), "tradeType", &[]); // keep it for backward compatibility
-        let mut isTriggerOrder: bool = is_true(&(Value::Bool(triggerPrice != Value::Null))) || is_true(&(Value::Bool(stopLossPrice != Value::Null))) || is_true(&(Value::Bool(takeProfitPrice != Value::Null)));
+        let mut isTriggerOrder: bool = is_true(&(triggerPrice != Value::Null)) || is_true(&(stopLossPrice != Value::Null)) || is_true(&(takeProfitPrice != Value::Null));
         let mut marginResult: Value = self.handle_margin_mode_and_params(Value::Str("createOrder".to_string()), &[params.clone()]);
         let mut marginMode: Value = self.safe_string(marginResult.clone(), Value::Int(0), &[]);
         let mut isMarginOrder: bool = (tradeType.as_str() == Some("MARGIN_TRADE")) || (marginMode != Value::Null);
@@ -6253,18 +6253,18 @@ impl KucoinCore {
         let mut triggerPrice: Value = triggerPricestopLossPricetakeProfitPriceVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut stopLossPrice: Value = triggerPricestopLossPricetakeProfitPriceVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         let mut takeProfitPrice: Value = triggerPricestopLossPricetakeProfitPriceVariable.as_array().and_then(|__arr| __arr.get(2)).cloned().unwrap_or(Value::Null);
-        let mut isTriggerOrder: bool = is_true(&(Value::Bool(triggerPrice != Value::Null))) || is_true(&(Value::Bool(stopLossPrice != Value::Null))) || is_true(&(Value::Bool(takeProfitPrice != Value::Null)));
+        let mut isTriggerOrder: bool = is_true(&(triggerPrice != Value::Null)) || is_true(&(stopLossPrice != Value::Null)) || is_true(&(takeProfitPrice != Value::Null));
         let mut isMarginOrder: bool = (tradeType.as_str() == Some("MARGIN_TRADE")) || (marginMode != Value::Null);
         params = self.omit(params.clone(), Value::List(vec![Value::Str("stopLossPrice".to_string()), Value::Str("takeProfitPrice".to_string()), Value::Str("triggerPrice".to_string()), Value::Str("stopPrice".to_string())]), &[]);
         if isTriggerOrder {
             if (triggerPrice != Value::Null) {
                 add_element_to_object(&mut request, &Value::Str("stopPrice".to_string()), self.price_to_precision(symbol.clone(), triggerPrice.clone()));
-            }  else if is_true(&(Value::Bool(stopLossPrice != Value::Null))) || is_true(&(Value::Bool(takeProfitPrice != Value::Null))) {
+            }  else if is_true(&(stopLossPrice != Value::Null)) || is_true(&(takeProfitPrice != Value::Null)) {
                 if (stopLossPrice != Value::Null) {
-                    add_element_to_object(&mut request, &Value::Str("stop".to_string()), (if is_true(&(Value::Bool(side.as_str() == Some("buy")))) { Value::Str("entry".to_string()) } else { Value::Str("loss".to_string()) }));
+                    add_element_to_object(&mut request, &Value::Str("stop".to_string()), (if is_true(&(side.as_str() == Some("buy"))) { Value::Str("entry".to_string()) } else { Value::Str("loss".to_string()) }));
                     add_element_to_object(&mut request, &Value::Str("stopPrice".to_string()), self.price_to_precision(symbol.clone(), stopLossPrice.clone()));
                 }  else {
-                    add_element_to_object(&mut request, &Value::Str("stop".to_string()), (if is_true(&(Value::Bool(side.as_str() == Some("buy")))) { Value::Str("loss".to_string()) } else { Value::Str("entry".to_string()) }));
+                    add_element_to_object(&mut request, &Value::Str("stop".to_string()), (if is_true(&(side.as_str() == Some("buy"))) { Value::Str("loss".to_string()) } else { Value::Str("entry".to_string()) }));
                     add_element_to_object(&mut request, &Value::Str("stopPrice".to_string()), self.price_to_precision(symbol.clone(), takeProfitPrice.clone()));
                 }
             }
@@ -6348,7 +6348,7 @@ impl KucoinCore {
         let mut market: Value = self.market(symbol.clone());
         let mut testOrder: Value = self.safe_bool_k(params.clone(), "test", &[Value::Bool(false)]);
         params = self.omit(params.clone(), Value::Str("test".to_string()), &[]);
-        let mut hasTpOrSlOrder: bool = is_true(&(Value::Bool(self.safe_value_k(params.clone(), "stopLoss", &[]) != Value::Null))) || is_true(&(Value::Bool(self.safe_value_k(params.clone(), "takeProfit", &[]) != Value::Null)));
+        let mut hasTpOrSlOrder: bool = is_true(&(self.safe_value_k(params.clone(), "stopLoss", &[]) != Value::Null)) || is_true(&(self.safe_value_k(params.clone(), "takeProfit", &[]) != Value::Null));
         let mut orderRequest: Value = self.create_contract_order_request(symbol.clone(), type_var.clone(), side.clone(), amount.clone(), &[price.clone(), params.clone()]);
         let mut response: Value = Value::Null;
         if (testOrder.as_bool() == Some(true)) {
@@ -6443,7 +6443,7 @@ impl KucoinCore {
         let mut triggerPriceTypeValue: Value = self.safe_string(triggerPriceTypes.clone(), triggerPriceType.clone(), &[triggerPriceType.clone()]);
         params = self.omit(params.clone(), Value::List(vec![Value::Str("stopLossPrice".to_string()), Value::Str("takeProfitPrice".to_string()), Value::Str("triggerPrice".to_string()), Value::Str("stopPrice".to_string()), Value::Str("takeProfit".to_string()), Value::Str("stopLoss".to_string())]), &[]);
         if (triggerPrice != Value::Null) {
-            add_element_to_object(&mut request, &Value::Str("stop".to_string()), (if is_true(&(Value::Bool(side.as_str() == Some("buy")))) { Value::Str("up".to_string()) } else { Value::Str("down".to_string()) }));
+            add_element_to_object(&mut request, &Value::Str("stop".to_string()), (if is_true(&(side.as_str() == Some("buy"))) { Value::Str("up".to_string()) } else { Value::Str("down".to_string()) }));
             add_element_to_object(&mut request, &Value::Str("stopPrice".to_string()), self.price_to_precision(symbol.clone(), triggerPrice.clone()));
             add_element_to_object(&mut request, &Value::Str("stopPriceType".to_string()), triggerPriceTypeValue.clone());
         }  else if hasStopLoss || hasTakeProfit {
@@ -6461,12 +6461,12 @@ impl KucoinCore {
                 priceType = self.safe_string(triggerPriceTypes.clone(), priceType.clone(), &[priceType.clone()]);
             }
             add_element_to_object(&mut request, &Value::Str("stopPriceType".to_string()), priceType.clone());
-        }  else if is_true(&(Value::Bool(stopLossPrice != Value::Null))) || is_true(&(Value::Bool(takeProfitPrice != Value::Null))) {
+        }  else if is_true(&(stopLossPrice != Value::Null)) || is_true(&(takeProfitPrice != Value::Null)) {
             if (stopLossPrice != Value::Null) {
-                add_element_to_object(&mut request, &Value::Str("stop".to_string()), (if is_true(&(Value::Bool(side.as_str() == Some("buy")))) { Value::Str("up".to_string()) } else { Value::Str("down".to_string()) }));
+                add_element_to_object(&mut request, &Value::Str("stop".to_string()), (if is_true(&(side.as_str() == Some("buy"))) { Value::Str("up".to_string()) } else { Value::Str("down".to_string()) }));
                 add_element_to_object(&mut request, &Value::Str("stopPrice".to_string()), self.price_to_precision(symbol.clone(), stopLossPrice.clone()));
             }  else {
-                add_element_to_object(&mut request, &Value::Str("stop".to_string()), (if is_true(&(Value::Bool(side.as_str() == Some("buy")))) { Value::Str("down".to_string()) } else { Value::Str("up".to_string()) }));
+                add_element_to_object(&mut request, &Value::Str("stop".to_string()), (if is_true(&(side.as_str() == Some("buy"))) { Value::Str("down".to_string()) } else { Value::Str("up".to_string()) }));
                 add_element_to_object(&mut request, &Value::Str("stopPrice".to_string()), self.price_to_precision(symbol.clone(), takeProfitPrice.clone()));
             }
             add_element_to_object(&mut request, &Value::Str("reduceOnly".to_string()), Value::Bool(true));
@@ -6490,11 +6490,11 @@ impl KucoinCore {
             add_element_to_object(&mut request, &Value::Str("postOnly".to_string()), Value::Bool(true));
         }
         let mut hidden: Value = self.safe_value_k(params.clone(), "hidden", &[]);
-        if is_true(&(Value::Bool(postOnly.as_bool() == Some(true)))) && is_true(&(Value::Bool(hidden != Value::Null))) {
+        if is_true(&(postOnly.as_bool() == Some(true))) && is_true(&(hidden != Value::Null)) {
             panic!("{}", crate::exchange_errors::bad_request(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder() does not support the postOnly parameter together with a hidden parameter".to_string())))));
         }
         let mut iceberg: Value = self.safe_value_k(params.clone(), "iceberg", &[]);
-        if is_true(&(Value::Bool(iceberg != Value::Null))) && (!is_equal(&iceberg, &Value::Bool(false))) {
+        if is_true(&(iceberg != Value::Null)) && (!is_equal(&iceberg, &Value::Bool(false))) {
             let mut visibleSize: Value = self.safe_value_k(params.clone(), "visibleSize", &[]);
             if (visibleSize == Value::Null) {
                 panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires a visibleSize parameter for iceberg orders".to_string())))));
@@ -6506,12 +6506,12 @@ impl KucoinCore {
         if (reduceOnly.as_bool() == Some(true)) {
             add_element_to_object(&mut request, &Value::Str("reduceOnly".to_string()), reduceOnly.clone());
             if (hedged.as_bool() == Some(true)) {
-                let mut reduceOnlyPosSide: Value = (if is_true(&(Value::Bool(side.as_str() == Some("sell")))) { Value::Str("LONG".to_string()) } else { Value::Str("SHORT".to_string()) });
+                let mut reduceOnlyPosSide: Value = (if is_true(&(side.as_str() == Some("sell"))) { Value::Str("LONG".to_string()) } else { Value::Str("SHORT".to_string()) });
                 add_element_to_object(&mut request, &Value::Str("positionSide".to_string()), reduceOnlyPosSide.clone());
             }
         }  else {
             if (hedged.as_bool() == Some(true)) {
-                let mut posSide: Value = (if is_true(&(Value::Bool(side.as_str() == Some("buy")))) { Value::Str("LONG".to_string()) } else { Value::Str("SHORT".to_string()) });
+                let mut posSide: Value = (if is_true(&(side.as_str() == Some("buy"))) { Value::Str("LONG".to_string()) } else { Value::Str("SHORT".to_string()) });
                 add_element_to_object(&mut request, &Value::Str("positionSide".to_string()), posSide.clone());
             }
         }
@@ -6630,7 +6630,7 @@ impl KucoinCore {
         let mut cost: Value = self.safe_string_k(params.clone(), "cost", &[]);
         if (cost != Value::Null) {
             params = self.omit(params.clone(), Value::Str("cost".to_string()), &[]);
-            if is_true(&(Value::Bool(isSpot.as_bool() == Some(true)))) && is_true(&isMarketOrder) {
+            if is_true(&(isSpot.as_bool() == Some(true))) && is_true(&isMarketOrder) {
                 add_element_to_object(&mut request, &Value::Str("sizeUnit".to_string()), Value::Str("QUOTECCY".to_string()));
                 add_element_to_object(&mut request, &Value::Str("size".to_string()), self.market_order_amount_to_precision(symbol.clone(), cost.clone()));
             }  else {
@@ -6650,7 +6650,7 @@ impl KucoinCore {
         let mut postOnly: Value = Value::Null;
         { let __destr_tmp = self.handle_post_only(isMarketOrder.clone(), Value::Bool(false), &[params.clone()]); postOnly = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         let mut timeInForce: Value = self.handle_time_in_force(&[params.clone()]);
-        if is_true(&(Value::Bool(timeInForce != Value::Null))) {
+        if is_true(&(timeInForce != Value::Null)) {
             params = self.omit(params.clone(), Value::Str("timeInForce".to_string()), &[]);
             add_element_to_object(&mut request, &Value::Str("timeInForce".to_string()), timeInForce.clone());
         }
@@ -6672,9 +6672,9 @@ impl KucoinCore {
                 let mut hedged: Value = Value::Bool(false);
                 { let __destr_tmp = self.handle_param_bool(params.clone(), Value::Str("hedged".to_string()), &[hedged.clone()]); hedged = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
                 if (hedged.as_bool() == Some(true)) {
-                    let mut positionSide: Value = (if is_true(&(Value::Bool(side.as_str() == Some("buy")))) { Value::Str("LONG".to_string()) } else { Value::Str("SHORT".to_string()) });
+                    let mut positionSide: Value = (if is_true(&(side.as_str() == Some("buy"))) { Value::Str("LONG".to_string()) } else { Value::Str("SHORT".to_string()) });
                     if (reduceOnly.as_bool() == Some(true)) {
-                        positionSide = (if is_true(&(Value::Bool(positionSide.as_str() == Some("LONG")))) { Value::Str("SHORT".to_string()) } else { Value::Str("LONG".to_string()) });
+                        positionSide = (if is_true(&(positionSide.as_str() == Some("LONG"))) { Value::Str("SHORT".to_string()) } else { Value::Str("LONG".to_string()) });
                     }
                     add_element_to_object(&mut request, &Value::Str("positionSide".to_string()), positionSide.clone());
                 }
@@ -6701,7 +6701,7 @@ impl KucoinCore {
             if (triggerDirection == Value::Null) {
                 panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires a triggerDirection parameter for trigger orders. Provide params.tringgerDirection or use params.stopLossPrice or params.takeProfitPrice instead of params.triggerPrice".to_string())))));
             }
-            add_element_to_object(&mut request, &Value::Str("triggerDirection".to_string()), (if is_true(&(Value::Bool(triggerDirection.as_str() == Some("ascending")))) { Value::Str("UP".to_string()) } else { Value::Str("DOWN".to_string()) }));
+            add_element_to_object(&mut request, &Value::Str("triggerDirection".to_string()), (if is_true(&(triggerDirection.as_str() == Some("ascending"))) { Value::Str("UP".to_string()) } else { Value::Str("DOWN".to_string()) }));
             add_element_to_object(&mut request, &Value::Str("triggerPrice".to_string()), self.price_to_precision(symbol.clone(), triggerPrice.clone()));
         }  else if hasStopLoss || hasTakeProfit {
             if (isContract.as_bool() != Some(true)) {
@@ -6719,16 +6719,16 @@ impl KucoinCore {
                 add_element_to_object(&mut request, &Value::Str("tpTriggerPrice".to_string()), self.price_to_precision(symbol.clone(), tpTriggerPrice.clone()));
                 add_element_to_object(&mut request, &Value::Str("tpTriggerPriceType".to_string()), self.safe_string(triggerPriceTypes.clone(), tpTriggerPriceType.clone(), &[tpTriggerPriceType.clone()]));
             }
-        }  else if is_true(&(Value::Bool(stopLossPrice != Value::Null))) || is_true(&(Value::Bool(takeProfitPrice != Value::Null))) {
+        }  else if is_true(&(stopLossPrice != Value::Null)) || is_true(&(takeProfitPrice != Value::Null)) {
             if (stopLossPrice != Value::Null) {
-                add_element_to_object(&mut request, &Value::Str("triggerDirection".to_string()), (if is_true(&(Value::Bool(side.as_str() == Some("buy")))) { Value::Str("UP".to_string()) } else { Value::Str("DOWN".to_string()) }));
+                add_element_to_object(&mut request, &Value::Str("triggerDirection".to_string()), (if is_true(&(side.as_str() == Some("buy"))) { Value::Str("UP".to_string()) } else { Value::Str("DOWN".to_string()) }));
                 add_element_to_object(&mut request, &Value::Str("triggerPrice".to_string()), self.price_to_precision(symbol.clone(), stopLossPrice.clone()));
                 if (isContract.as_bool() == Some(true)) {
                     let mut stopLossPriceType: Value = self.safe_string2(params.clone(), Value::Str("stopLossPriceType".to_string()), Value::Str("triggerPriceType".to_string()), &[Value::Str("mark".to_string())]);
                     add_element_to_object(&mut request, &Value::Str("triggerPriceType".to_string()), self.safe_string(triggerPriceTypes.clone(), stopLossPriceType.clone(), &[stopLossPriceType.clone()]));
                 }
             }  else {
-                add_element_to_object(&mut request, &Value::Str("triggerDirection".to_string()), (if is_true(&(Value::Bool(side.as_str() == Some("buy")))) { Value::Str("DOWN".to_string()) } else { Value::Str("UP".to_string()) }));
+                add_element_to_object(&mut request, &Value::Str("triggerDirection".to_string()), (if is_true(&(side.as_str() == Some("buy"))) { Value::Str("DOWN".to_string()) } else { Value::Str("UP".to_string()) }));
                 add_element_to_object(&mut request, &Value::Str("triggerPrice".to_string()), self.price_to_precision(symbol.clone(), takeProfitPrice.clone()));
                 if (isContract.as_bool() == Some(true)) {
                     let mut takeProfitPriceType: Value = self.safe_string2(params.clone(), Value::Str("takeProfitPriceType".to_string()), Value::Str("triggerPriceType".to_string()), &[Value::Str("mark".to_string())]);
@@ -7168,7 +7168,7 @@ impl KucoinCore {
             market = self.market(symbol.clone());
         }
         { let __destr_tmp = self.handle_market_type_and_params(Value::Str("cancelOrder".to_string()), &[market.clone(), params.clone()]); marketType = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
-        if is_true(&(Value::Bool(marketType.as_str() == Some("spot")))) || is_true(&(Value::Bool(marketType.as_str() == Some("margin")))) {
+        if is_true(&(marketType.as_str() == Some("spot"))) || is_true(&(marketType.as_str() == Some("margin"))) {
             return self.cancel_spot_order(id.clone(), &[symbol.clone(), params.clone()]).await;
         }  else {
             return self.cancel_contract_order(id.clone(), &[symbol.clone(), params.clone()]).await;
@@ -7223,7 +7223,7 @@ impl KucoinCore {
         { let __destr_tmp = self.handle_margin_mode_and_params(Value::Str("cancelOrder".to_string()), &[params.clone()]); marginMode = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         let mut tradeType: Value = self.safe_string_k(params.clone(), "tradeType", &[]); // keep it for backward compatibility
         let mut isMarginOrder: bool = (tradeType.as_str() == Some("MARGIN_TRADE")) || (marginMode != Value::Null);
-        if is_true(&(Value::Bool(hf.as_bool() == Some(true)))) || is_true(&useSync) || isMarginOrder {
+        if is_true(&(hf.as_bool() == Some(true))) || is_true(&useSync) || isMarginOrder {
             if (trigger.as_bool() != Some(true)) {
                 if (symbol == Value::Null) {
                     panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" cancelOrder() requires a symbol parameter for hf orders".to_string())))));
@@ -7499,7 +7499,7 @@ impl KucoinCore {
             market = self.market(symbol.clone());
         }
         { let __destr_tmp = self.handle_market_type_and_params(Value::Str("cancelAllOrders".to_string()), &[market.clone(), params.clone()]); marketType = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
-        if is_true(&(Value::Bool(marketType.as_str() == Some("spot")))) || is_true(&(Value::Bool(marketType.as_str() == Some("margin")))) {
+        if is_true(&(marketType.as_str() == Some("spot"))) || is_true(&(marketType.as_str() == Some("margin"))) {
             return self.cancel_all_spot_orders(&[symbol.clone(), params.clone()]).await;
         }  else {
             return self.cancel_all_contract_orders(&[symbol.clone(), params.clone()]).await;
@@ -7548,12 +7548,12 @@ impl KucoinCore {
         let mut isMarginOrders: bool = marginMode != Value::Null;
         if (symbol != Value::Null) {
             add_element_to_object(&mut request, &Value::Str("symbol".to_string()), self.market_id(symbol.clone()));
-        }  else if is_true(&(Value::Bool(trigger.as_bool() != Some(true)))) && isMarginOrders {
+        }  else if is_true(&(trigger.as_bool() != Some(true))) && isMarginOrders {
             panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" cancelAllOrders() requires a symbol argument for margin non-trigger orders".to_string())))));
         }
         if isMarginOrders {
             add_element_to_object(&mut request, &Value::Str("tradeType".to_string()), get_value(&self.options.as_map().and_then(|__m| __m.get("marginModes")).cloned().unwrap_or(Value::Null), &marginMode));
-            if (marginMode.as_str() == Some("isolated")) && is_true(&(Value::Bool(trigger.as_bool() == Some(true)))) {
+            if (marginMode.as_str() == Some("isolated")) && is_true(&(trigger.as_bool() == Some(true))) {
                 panic!("{}", crate::exchange_errors::bad_request(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" cancelAllOrders does not support isolated margin for stop orders".to_string())))));
             }
         }
@@ -7620,7 +7620,7 @@ impl KucoinCore {
         let mut trigger: Value = self.safe_value2(params.clone(), Value::Str("stop".to_string()), Value::Str("trigger".to_string()), &[]);
         params = self.omit(params.clone(), Value::List(vec![Value::Str("stop".to_string()), Value::Str("trigger".to_string())]), &[]);
         let mut response: Value = Value::Null;
-        if is_true(&(Value::Bool(trigger != Value::Null))) && (!is_equal(&trigger, &Value::Bool(false))) {
+        if is_true(&(trigger != Value::Null)) && (!is_equal(&trigger, &Value::Bool(false))) {
             let __ws_arg_53 = self.extend(request.clone(), &[params.clone()]);
             response = self.futures_private_delete_stop_orders(&[__ws_arg_53]).await;
         }  else {
@@ -7672,10 +7672,10 @@ impl KucoinCore {
         }
         let mut market: Value = self.market(symbol.clone());
         let mut isContract: Value = market.as_map().and_then(|__m| __m.get("contract")).cloned().unwrap_or(Value::Null);
-        let mut tradeType: Value = (if is_true(&(Value::Bool(isContract.as_bool() == Some(true)))) { Value::Str("FUTURES".to_string()) } else { Value::Str("SPOT".to_string()) });
+        let mut tradeType: Value = (if is_true(&(isContract.as_bool() == Some(true))) { Value::Str("FUTURES".to_string()) } else { Value::Str("SPOT".to_string()) });
         let mut trigger: Value = Value::Bool(false);
         { let __destr_tmp = self.handle_param_bool(params.clone(), Value::Str("trigger".to_string()), &[trigger.clone()]); trigger = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
-        let mut orderFilter: Value = (if is_true(&(Value::Bool(trigger.as_bool() == Some(true)))) { Value::Str("ADVANCED".to_string()) } else { Value::Str("NORMAL".to_string()) });
+        let mut orderFilter: Value = (if is_true(&(trigger.as_bool() == Some(true))) { Value::Str("ADVANCED".to_string()) } else { Value::Str("NORMAL".to_string()) });
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("accountMode".to_string(), Value::Str("unified".to_string()));
@@ -7781,7 +7781,7 @@ impl KucoinCore {
                 m
             })]);
             return self.fetch_uta_orders_by_status(status.clone(), &[symbol.clone(), since.clone(), limit.clone(), params.clone()]).await;
-        }  else if is_true(&(Value::Bool(marketType.as_str() == Some("spot")))) || is_true(&(Value::Bool(marketType.as_str() == Some("margin")))) {
+        }  else if is_true(&(marketType.as_str() == Some("spot"))) || is_true(&(marketType.as_str() == Some("margin"))) {
             return self.fetch_spot_orders_by_status(status.clone(), &[symbol.clone(), since.clone(), limit.clone(), params.clone()]).await;
         }  else {
             return self.fetch_contract_orders_by_status(status.clone(), &[symbol.clone(), since.clone(), limit.clone(), params.clone()]).await;
@@ -7832,7 +7832,7 @@ impl KucoinCore {
         let mut trigger: Value = self.safe_bool2(params.clone(), Value::Str("stop".to_string()), Value::Str("trigger".to_string()), &[Value::Bool(false)]);
         let mut hf: Value = Value::Null;
         { let __destr_tmp = self.handle_hf_and_params(&[params.clone()]); hf = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
-        if is_true(&(Value::Bool(hf.as_bool() == Some(true)))) && is_true(&(Value::Bool(symbol == Value::Null))) {
+        if is_true(&(hf.as_bool() == Some(true))) && is_true(&(symbol == Value::Null)) {
             panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchOrdersByStatus() requires a symbol parameter for hf orders".to_string())))));
         }
         params = self.omit(params.clone(), Value::List(vec![Value::Str("stop".to_string()), Value::Str("trigger".to_string()), Value::Str("till".to_string()), Value::Str("until".to_string())]), &[]);
@@ -7856,7 +7856,7 @@ impl KucoinCore {
         }
         add_element_to_object(&mut request, &Value::Str("tradeType".to_string()), self.safe_string(self.options.as_map().and_then(|__m| __m.get("marginModes")).cloned().unwrap_or(Value::Null), marginMode.clone(), &[Value::Str("TRADE".to_string())]));
         let mut response: Value = Value::Null;
-        if isMarginOrder && (lowercaseStatus.as_str() == Some("active")) && is_true(&(Value::Bool(trigger.as_bool() != Some(true)))) {
+        if isMarginOrder && (lowercaseStatus.as_str() == Some("active")) && is_true(&(trigger.as_bool() != Some(true))) {
             // hf margin open non-trigger orders require only symbol and tradeType params
             let __ws_arg_56 = self.extend(request.clone(), &[query.clone()]);
             response = self.private_get_hf_margin_orders_active(&[__ws_arg_56]).await;
@@ -7870,7 +7870,7 @@ impl KucoinCore {
             if (limit != Value::Null) {
                 add_element_to_object(&mut request, &Value::Str("pageSize".to_string()), limit.clone());
             }
-            if is_true(&(Value::Bool(until != Value::Null))) && is_true(&(Value::Bool(until.as_f64() != Some(0.0)))) {
+            if is_true(&(until != Value::Null)) && is_true(&(until.as_f64() != Some(0.0))) {
                 add_element_to_object(&mut request, &Value::Str("endAt".to_string()), until.clone());
             }
             if (trigger.as_bool() == Some(true)) {
@@ -8094,8 +8094,8 @@ impl KucoinCore {
             marketType = self.safe_string_k(params.clone(), "marketType", &[]);
         }
         params = self.omit(params.clone(), Value::Str("marketType".to_string()), &[]);
-        let mut isContract: Value = Value::Bool(is_true(&(Value::Bool(marketType.as_str() != Some("spot")))) && is_true(&(Value::Bool(marketType.as_str() != Some("margin")))));
-        if !is_true(&isContract) && is_true(&(Value::Bool(symbol == Value::Null))) {
+        let mut isContract: Value = Value::Bool(is_true(&(marketType.as_str() != Some("spot"))) && is_true(&(marketType.as_str() != Some("margin"))));
+        if !is_true(&isContract) && is_true(&(symbol == Value::Null)) {
             panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchOrdersByStatus() requires a symbol argument for spot and margin markets when using uta endpoint".to_string())))));
         }
         let mut marginMode: Value = Value::Null;
@@ -8323,7 +8323,7 @@ impl KucoinCore {
             let mut market: Value = self.market(symbol.clone());
             marketType = market.as_map().and_then(|__m| __m.get("type")).cloned().unwrap_or(Value::Null);
         }
-        if is_true(&(Value::Bool(marketType.as_str() == Some("spot")))) || is_true(&(Value::Bool(marketType.as_str() == Some("margin")))) {
+        if is_true(&(marketType.as_str() == Some("spot"))) || is_true(&(marketType.as_str() == Some("margin"))) {
             return self.fetch_spot_order(id.clone(), &[symbol.clone(), params.clone()]).await;
         }  else {
             return self.fetch_contract_order(id.clone(), &[symbol.clone(), params.clone()]).await;
@@ -8377,7 +8377,7 @@ impl KucoinCore {
         if (symbol != Value::Null) {
             market = self.market(symbol.clone());
         }
-        if is_true(&(Value::Bool(hf.as_bool() == Some(true)))) || isMarginOrder {
+        if is_true(&(hf.as_bool() == Some(true))) || isMarginOrder {
             if (trigger.as_bool() != Some(true)) {
                 if (symbol == Value::Null) {
                     panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchOrder() requires a symbol parameter for hf and margin orders".to_string())))));
@@ -8441,7 +8441,7 @@ impl KucoinCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        if is_true(&Value::Bool(is_array(&responseData))) {
+        if (is_array(&responseData)) {
             responseData = self.safe_value(responseData.clone(), Value::Int(0), &[]);
         }
         return self.parse_order(responseData.clone(), &[market.clone()]);
@@ -8531,7 +8531,7 @@ impl KucoinCore {
         //         }
         //     }
         //
-        let mut market: Value = (if is_true(&(Value::Bool(symbol != Value::Null))) { self.market(symbol.clone()) } else { Value::Null });
+        let mut market: Value = (if is_true(&(symbol != Value::Null)) { self.market(symbol.clone()) } else { Value::Null });
         let mut responseData: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -8677,7 +8677,7 @@ impl KucoinCore {
         let mut tradeType: Value = self.safe_string_k(order.clone(), "tradeType", &[]);
         let mut utaTradeTypes: Value = Value::List(vec![Value::Str("SPOT".to_string()), Value::Str("CROSS".to_string()), Value::Str("ISOLATED".to_string()), Value::Str("FUTURES".to_string())]); // tradeType specific for uta endpoint
         let mut isUtaOrder: Value = self.in_array(tradeType.clone(), utaTradeTypes.clone());
-        if is_true(&Value::Bool(in_op(&order, &Value::Str("sizeUnit".to_string())))) {
+        if (in_op(&order, &Value::Str("sizeUnit".to_string()))) {
             isUtaOrder = Value::Bool(true);
         }
         if is_true(&isUtaOrder) {
@@ -8685,7 +8685,7 @@ impl KucoinCore {
         }
         let mut marketId: Value = self.safe_string_k(order.clone(), "symbol", &[]);
         market = self.safe_market(&[marketId.clone(), market.clone()]);
-        if is_true(&(Value::Bool(market != Value::Null))) && is_true(&(Value::Bool(market.as_map().and_then(|__m| __m.get("contract")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)))) {
+        if is_true(&(market != Value::Null)) && is_true(&(market.as_map().and_then(|__m| __m.get("contract")).cloned().unwrap_or(Value::Null).as_bool() == Some(true))) {
             return self.parse_contract_order(order.clone(), &[market.clone()]);
         }  else {
             return self.parse_spot_order(order.clone(), &[market.clone()]);
@@ -8772,7 +8772,7 @@ impl KucoinCore {
         let mut filled: Value = self.safe_string_k(order.clone(), "filledSize", &[]);
         let mut cost: Value = self.safe_string_k(order.clone(), "filledValue", &[]);
         let mut average: Value = self.safe_string_k(order.clone(), "avgDealPrice", &[]);
-        if is_true(&(Value::Bool(average == Value::Null))) && is_true(&crate::precise::Precise::stringGt(&filled, &Value::Str("0".to_string()))) {
+        if is_true(&(average == Value::Null)) && is_true(&crate::precise::Precise::stringGt(&filled, &Value::Str("0".to_string()))) {
             let mut contractSize: Value = self.safe_string_k(market.clone(), "contractSize", &[]);
             if (market.as_map().and_then(|__m| __m.get("linear")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
                 average = crate::precise::Precise::stringDiv(&cost, &crate::precise::Precise::stringMul(&contractSize, &filled));
@@ -8789,7 +8789,7 @@ impl KucoinCore {
         if (isActive != Value::Null) {
             status = (if (is_equal(&isActive, &Value::Bool(true))) { Value::Str("open".to_string()) } else { Value::Str("closed".to_string()) });
         }
-        status = (if is_true(&(Value::Bool(cancelExist.as_bool() == Some(true)))) { Value::Str("canceled".to_string()) } else { status.clone() });
+        status = (if is_true(&(cancelExist.as_bool() == Some(true))) { Value::Str("canceled".to_string()) } else { status.clone() });
         let mut fee: Value = Value::Null;
         if (feeCost != Value::Null) {
             fee = Value::Map({
@@ -8978,7 +8978,7 @@ impl KucoinCore {
         if trigger {
             if (responseStatus.as_str() == Some("NEW")) {
                 status = Value::Str("open".to_string());
-            }  else if is_true(&(Value::Bool(isActive.as_bool() != Some(true)))) && is_true(&(Value::Bool(stopTriggered.as_bool() != Some(true)))) {
+            }  else if is_true(&(isActive.as_bool() != Some(true))) && is_true(&(stopTriggered.as_bool() != Some(true))) {
                 status = Value::Str("cancelled".to_string());
             }
         }
@@ -9084,7 +9084,7 @@ impl KucoinCore {
         let mut rawStatus: Value = self.safe_string_k(order.clone(), "status", &[]);
         let mut average: Value = self.safe_string_k(order.clone(), "avgPrice", &[]);
         let mut filled: Value = self.safe_string_k(order.clone(), "filledSize", &[]); // might be in base or quote, need to check sizeUnit
-        if is_true(&(Value::Bool(sizeUnit.as_str() == Some("BASECCY")))) || is_true(&(Value::Bool(sizeUnit.as_str() == Some("UNIT")))) {
+        if is_true(&(sizeUnit.as_str() == Some("BASECCY"))) || is_true(&(sizeUnit.as_str() == Some("UNIT"))) {
             amount = size.clone();
         }  else {
             cost = filled.clone();
@@ -9246,7 +9246,7 @@ impl KucoinCore {
             })]);
             return self.fetch_my_uta_trades(&[symbol.clone(), since.clone(), limit.clone(), params.clone()]).await;
         }
-        if is_true(&(Value::Bool(marketType.as_str() == Some("spot")))) || is_true(&(Value::Bool(marketType.as_str() == Some("margin")))) {
+        if is_true(&(marketType.as_str() == Some("spot"))) || is_true(&(marketType.as_str() == Some("margin"))) {
             return self.fetch_my_spot_trades(&[symbol.clone(), since.clone(), limit.clone(), params.clone()]).await;
         }  else {
             return self.fetch_my_contract_trades(&[symbol.clone(), since.clone(), limit.clone(), params.clone()]).await;
@@ -9298,9 +9298,9 @@ impl KucoinCore {
         let mut isMargin: bool = marginMode != Value::Null;
         if isMargin {
             hf = Value::Bool(true);
-            add_element_to_object(&mut request, &Value::Str("tradeType".to_string()), (if is_true(&(Value::Bool(marginMode == Value::Null))) { Value::Null } else { self.safe_string(self.options.as_map().and_then(|__m| __m.get("marginModes")).cloned().unwrap_or(Value::Null), marginMode.clone(), &[marginMode.clone()]) }));
+            add_element_to_object(&mut request, &Value::Str("tradeType".to_string()), (if is_true(&(marginMode == Value::Null)) { Value::Null } else { self.safe_string(self.options.as_map().and_then(|__m| __m.get("marginModes")).cloned().unwrap_or(Value::Null), marginMode.clone(), &[marginMode.clone()]) }));
         }
-        if is_true(&(Value::Bool(hf.as_bool() == Some(true)))) && (symbol == Value::Null) {
+        if is_true(&(hf.as_bool() == Some(true))) && (symbol == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchMyTrades() requires a symbol parameter for hf or margin orders".to_string())))));
         }
         let mut market: Value = Value::Null;
@@ -9547,7 +9547,7 @@ impl KucoinCore {
             market = self.market(symbol.clone());
             add_element_to_object(&mut request, &Value::Str("symbol".to_string()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             isContract = market.as_map().and_then(|__m| __m.get("contract")).cloned().unwrap_or(Value::Null);
-        }  else if is_true(&(Value::Bool(marketType.as_str() == Some("spot")))) || is_true(&(Value::Bool(marketType.as_str() == Some("margin")))) {
+        }  else if is_true(&(marketType.as_str() == Some("spot"))) || is_true(&(marketType.as_str() == Some("margin"))) {
             panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchMyTrades() requires a symbol parameter for uta spot or margin trades".to_string())))));
         }  else {
             isContract = Value::Bool(true);
@@ -9654,7 +9654,7 @@ impl KucoinCore {
         let mut type_var: Value = Value::Null;
         { let __destr_tmp = self.handle_market_type_and_params(Value::Str("fetchTrades".to_string()), &[market.clone(), params.clone()]); type_var = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         if is_true(&uta) {
-            if is_true(&(Value::Bool(type_var.as_str() == Some("spot")))) || is_true(&(Value::Bool(type_var.as_str() == Some("margin")))) {
+            if is_true(&(type_var.as_str() == Some("spot"))) || is_true(&(type_var.as_str() == Some("margin"))) {
                 add_element_to_object(&mut request, &Value::Str("tradeType".to_string()), Value::Str("SPOT".to_string()));
             }  else {
                 add_element_to_object(&mut request, &Value::Str("tradeType".to_string()), Value::Str("FUTURES".to_string()));
@@ -9684,7 +9684,7 @@ impl KucoinCore {
     m
 })]);
             trades = self.safe_list_k(data.clone(), "list", &[Value::List(vec![])]);
-        }  else if is_true(&(Value::Bool(type_var.as_str() == Some("spot")))) || is_true(&(Value::Bool(type_var.as_str() == Some("margin")))) {
+        }  else if is_true(&(type_var.as_str() == Some("spot"))) || is_true(&(type_var.as_str() == Some("margin"))) {
             let __ws_arg_88 = self.extend(request.clone(), &[params.clone()]);
             response = self.public_get_market_histories(&[__ws_arg_88]).await;
             //
@@ -9735,12 +9735,12 @@ impl KucoinCore {
 
     pub fn parse_trade(&self, mut trade: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
-        if is_true(&Value::Bool(in_op(&trade, &Value::Str("liquidityRole".to_string())))) {
+        if (in_op(&trade, &Value::Str("liquidityRole".to_string()))) {
             return self.parse_my_uta_trade(trade.clone(), &[market.clone()]);
         }
         let mut marketId: Value = self.safe_string_k(trade.clone(), "symbol", &[]);
         market = self.safe_market(&[marketId.clone(), market.clone()]);
-        if is_true(&(Value::Bool(market == Value::Null))) || is_true(&(Value::Bool(market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)))) {
+        if is_true(&(market == Value::Null)) || is_true(&(market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true))) {
             return self.parse_spot_or_uta_trade(trade.clone(), &[market.clone()]);
         }  else {
             return self.parse_contract_trade(trade.clone(), &[market.clone()]);
@@ -9849,7 +9849,7 @@ impl KucoinCore {
         }  else {
             timestamp = self.safe_integer_k(trade.clone(), "createdAt", &[]);
             // if it's a historical v1 trade, the exchange returns timestamp in seconds
-            if is_true(&(Value::Bool(in_op(&trade, &Value::Str("dealValue".to_string()))))) && is_true(&(Value::Bool(timestamp != Value::Null))) {
+            if (in_op(&trade, &Value::Str("dealValue".to_string()))) && is_true(&(timestamp != Value::Null)) {
                 timestamp = (match (&(timestamp), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
             }
         }
@@ -9862,7 +9862,7 @@ impl KucoinCore {
             let mut feeCurrencyId: Value = self.safe_string_k(trade.clone(), "feeCurrency", &[]);
             let mut feeCurrency: Value = self.safe_currency_code(feeCurrencyId.clone(), &[]);
             if (feeCurrency == Value::Null) {
-                feeCurrency = (if is_true(&(Value::Bool(side.as_str() == Some("sell")))) { market.as_map().and_then(|__m| __m.get("quote")).cloned().unwrap_or(Value::Null) } else { market.as_map().and_then(|__m| __m.get("base")).cloned().unwrap_or(Value::Null) });
+                feeCurrency = (if is_true(&(side.as_str() == Some("sell"))) { market.as_map().and_then(|__m| __m.get("quote")).cloned().unwrap_or(Value::Null) } else { market.as_map().and_then(|__m| __m.get("base")).cloned().unwrap_or(Value::Null) });
             }
             fee = Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -9986,7 +9986,7 @@ impl KucoinCore {
         }  else {
             timestamp = self.safe_integer_k(trade.clone(), "createdAt", &[]);
             // if it's a historical v1 trade, the exchange returns timestamp in seconds
-            if is_true(&(Value::Bool(in_op(&trade, &Value::Str("dealValue".to_string()))))) && is_true(&(Value::Bool(timestamp != Value::Null))) {
+            if (in_op(&trade, &Value::Str("dealValue".to_string()))) && is_true(&(timestamp != Value::Null)) {
                 timestamp = (match (&(timestamp), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
             }
         }
@@ -9999,7 +9999,7 @@ impl KucoinCore {
             let mut feeCurrencyId: Value = self.safe_string_k(trade.clone(), "feeCurrency", &[]);
             let mut feeCurrency: Value = self.safe_currency_code(feeCurrencyId.clone(), &[]);
             if (feeCurrency == Value::Null) {
-                feeCurrency = (if is_true(&(Value::Bool(side.as_str() == Some("sell")))) { market.as_map().and_then(|__m| __m.get("quote")).cloned().unwrap_or(Value::Null) } else { market.as_map().and_then(|__m| __m.get("base")).cloned().unwrap_or(Value::Null) });
+                feeCurrency = (if is_true(&(side.as_str() == Some("sell"))) { market.as_map().and_then(|__m| __m.get("quote")).cloned().unwrap_or(Value::Null) } else { market.as_map().and_then(|__m| __m.get("base")).cloned().unwrap_or(Value::Null) });
             }
             fee = Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -10349,7 +10349,7 @@ impl KucoinCore {
             }
             txid = txidParts.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         }
-        let mut type_var: Value = (if is_true(&(Value::Bool(txid == Value::Null))) { Value::Str("withdrawal".to_string()) } else { Value::Str("deposit".to_string()) });
+        let mut type_var: Value = (if is_true(&(txid == Value::Null)) { Value::Str("withdrawal".to_string()) } else { Value::Str("deposit".to_string()) });
         let mut rawStatus: Value = self.safe_string_k(transaction.clone(), "status", &[]);
         let mut fee: Value = Value::Null;
         let mut feeCost: Value = self.safe_string_k(transaction.clone(), "fee", &[]);
@@ -10368,10 +10368,10 @@ impl KucoinCore {
         }
         let mut timestamp: Value = self.safe_integer2(transaction.clone(), Value::Str("createdAt".to_string()), Value::Str("createAt".to_string()), &[]);
         let mut updated: Value = self.safe_integer_k(transaction.clone(), "updatedAt", &[]);
-        let mut isV1: bool = !is_true(&(Value::Bool(in_op(&transaction, &Value::Str("createdAt".to_string())))));
+        let mut isV1: bool = !(in_op(&transaction, &Value::Str("createdAt".to_string())));
         // if it's a v1 structure
         if isV1 {
-            type_var = (if is_true(&(Value::Bool(in_op(&transaction, &Value::Str("address".to_string()))))) { Value::Str("withdrawal".to_string()) } else { Value::Str("deposit".to_string()) });
+            type_var = (if (in_op(&transaction, &Value::Str("address".to_string()))) { Value::Str("withdrawal".to_string()) } else { Value::Str("deposit".to_string()) });
             if (timestamp != Value::Null) {
                 timestamp = (match (&(timestamp), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
             }
@@ -10874,13 +10874,13 @@ impl KucoinCore {
         }
         let mut hf: Value = Value::Null;
         { let __destr_tmp = self.handle_hf_and_params(&[params.clone()]); hf = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
-        if is_true(&(Value::Bool(hf.as_bool() == Some(true)))) && is_true(&(Value::Bool(type_var.as_str() != Some("main")))) {
+        if is_true(&(hf.as_bool() == Some(true))) && is_true(&(type_var.as_str() != Some("main"))) {
             type_var = Value::Str("trade_hf".to_string());
         }
         let mut marginMode: Value = Value::Null;
         { let __destr_tmp = self.handle_margin_mode_and_params(Value::Str("fetchBalance".to_string()), &[params.clone()]); marginMode = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
-        let mut isolated: bool = is_true(&(Value::Bool(marginMode.as_str() == Some("isolated")))) || is_true(&(Value::Bool(type_var.as_str() == Some("isolated"))));
-        let mut cross: bool = is_true(&(Value::Bool(marginMode.as_str() == Some("cross")))) || is_true(&(Value::Bool(type_var.as_str() == Some("margin"))));
+        let mut isolated: bool = is_true(&(marginMode.as_str() == Some("isolated"))) || is_true(&(type_var.as_str() == Some("isolated")));
+        let mut cross: bool = is_true(&(marginMode.as_str() == Some("cross"))) || is_true(&(type_var.as_str() == Some("margin")));
         if isolated {
             if (currency != Value::Null) {
                 add_element_to_object(&mut request, &Value::Str("balanceCurrency".to_string()), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
@@ -11395,7 +11395,7 @@ impl KucoinCore {
         add_element_to_object(&mut request, &Value::Str("clientOid".to_string()), clientOid.clone());
         let mut fromId: Value = self.convert_type_to_account(fromAccount.clone());
         let mut toId: Value = self.convert_type_to_account(toAccount.clone());
-        let mut exchangeIds: Value = (if is_true(&(Value::Bool(self.ids.clone() == Value::Null))) { Value::List(vec![]) } else { self.ids.clone() });
+        let mut exchangeIds: Value = (if is_true(&(self.ids.clone() == Value::Null)) { Value::List(vec![]) } else { self.ids.clone() });
         let mut fromIsolated: Value = self.in_array(fromId.clone(), exchangeIds.clone());
         let mut toIsolated: Value = self.in_array(toId.clone(), exchangeIds.clone());
         if is_true(&fromIsolated) {
@@ -11482,20 +11482,20 @@ impl KucoinCore {
         let mut transferType: Value = Value::Str("INTERNAL".to_string());
         { let __destr_tmp = self.handle_param_string2(params.clone(), Value::Str("transferType".to_string()), Value::Str("type".to_string()), &[transferType.clone()]); transferType = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         if (transferType.as_str() == Some("PARENT_TO_SUB")) {
-            if !is_true(&(Value::Bool(matches!(&params, Value::Dict(__d) if __d.contains_key("toUserId"))))) {
+            if !is_true(&(matches!(&params, Value::Dict(__d) if __d.contains_key("toUserId")))) {
                 panic!("{}", crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" transfer() requires a toUserId param for PARENT_TO_SUB transfers".to_string())))));
             }
         }  else if (transferType.as_str() == Some("SUB_TO_PARENT")) {
-            if !is_true(&(Value::Bool(matches!(&params, Value::Dict(__d) if __d.contains_key("fromUserId"))))) {
+            if !is_true(&(matches!(&params, Value::Dict(__d) if __d.contains_key("fromUserId")))) {
                 panic!("{}", crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" transfer() requires a fromUserId param for SUB_TO_PARENT transfers".to_string())))));
             }
         }
-        if !is_true(&(Value::Bool(matches!(&params, Value::Dict(__d) if __d.contains_key("clientOid"))))) {
+        if !is_true(&(matches!(&params, Value::Dict(__d) if __d.contains_key("clientOid")))) {
             add_element_to_object(&mut request, &Value::Str("clientOid".to_string()), self.uuid(&[]));
         }
         let mut fromId: Value = self.convert_type_to_account(fromAccount.clone());
         let mut toId: Value = self.convert_type_to_account(toAccount.clone());
-        let mut exchangeIds: Value = (if is_true(&(Value::Bool(self.ids.clone() == Value::Null))) { Value::List(vec![]) } else { self.ids.clone() });
+        let mut exchangeIds: Value = (if is_true(&(self.ids.clone() == Value::Null)) { Value::List(vec![]) } else { self.ids.clone() });
         let mut fromIsolated: Value = self.in_array(fromId.clone(), exchangeIds.clone());
         let mut toIsolated: Value = self.in_array(toId.clone(), exchangeIds.clone());
         if is_true(&fromIsolated) {
@@ -11642,8 +11642,8 @@ impl KucoinCore {
             accountToRaw = self.safe_string_lower(transfer.clone(), Value::Str("recAccountType".to_string()), &[]);
         }
         let mut accountsByType: Value = self.safe_dict_k(self.options.clone(), "accountsByType", &[]);
-        let mut accountFrom: Value = (if is_true(&(Value::Bool(accountFromRaw == Value::Null))) { Value::Null } else { self.safe_string(accountsByType.clone(), accountFromRaw.clone(), &[accountFromRaw.clone()]) });
-        let mut accountTo: Value = (if is_true(&(Value::Bool(accountToRaw == Value::Null))) { Value::Null } else { self.safe_string(accountsByType.clone(), accountToRaw.clone(), &[accountToRaw.clone()]) });
+        let mut accountFrom: Value = (if is_true(&(accountFromRaw == Value::Null)) { Value::Null } else { self.safe_string(accountsByType.clone(), accountFromRaw.clone(), &[accountFromRaw.clone()]) });
+        let mut accountTo: Value = (if is_true(&(accountToRaw == Value::Null)) { Value::Null } else { self.safe_string(accountsByType.clone(), accountToRaw.clone(), &[accountToRaw.clone()]) });
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), self.safe_string_n(transfer.clone(), Value::List(vec![Value::Str("id".to_string()), Value::Str("applyId".to_string()), Value::Str("orderId".to_string())]), &[]));
@@ -11851,7 +11851,7 @@ if let Err(_try_err) = _try_result { let exc: Value = panic_to_value(_try_err);
         }
         let mut fee: Value = Value::Null;
         let mut feeCostString: Value = self.safe_string_k(item.clone(), "fee", &[]);
-        let mut feeCost: Value = (if is_true(&(Value::Bool(feeCostString == Value::Null))) { Value::Null } else { self.omit_zero(feeCostString.clone()) });
+        let mut feeCost: Value = (if is_true(&(feeCostString == Value::Null)) { Value::Null } else { self.omit_zero(feeCostString.clone()) });
         let mut feeCurrency: Value = Value::Null;
         if (feeCost != Value::Null) {
             feeCurrency = code.clone();
@@ -11929,8 +11929,8 @@ if let Err(_try_err) = _try_result { let exc: Value = panic_to_value(_try_err);
         { let __destr_tmp = self.handle_market_type_and_params(Value::Str("fetchLedger".to_string()), &[Value::Null, params.clone(), requestedType.clone()]); requestedType = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         let mut marginMode: Value = Value::Null;
         { let __destr_tmp = self.handle_margin_mode_and_params(Value::Str("fetchLedger".to_string()), &[params.clone()]); marginMode = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
-        if is_true(&uta) && is_true(&(Value::Bool(requestedType.as_str() == Some("margin")))) {
-            marginMode = (if is_true(&(Value::Bool(marginMode == Value::Null))) { Value::Str("cross".to_string()) } else { marginMode.clone() }); // default to cross margin for UTA if margin is requested but marginMode is not specified
+        if is_true(&uta) && is_true(&(requestedType.as_str() == Some("margin"))) {
+            marginMode = (if is_true(&(marginMode == Value::Null)) { Value::Str("cross".to_string()) } else { marginMode.clone() }); // default to cross margin for UTA if margin is requested but marginMode is not specified
             requestedType = marginMode.clone();
         }
         let mut accountsByType: Value = self.safe_dict_k(self.options.clone(), "accountsByType", &[]);
@@ -11945,7 +11945,7 @@ if let Err(_try_err) = _try_result { let exc: Value = panic_to_value(_try_err);
         }  else if (type_var.as_str() == Some("contract")) {
             maxLimit = Value::Int(50);
         }  else if is_true(&uta) {
-            if is_true(&(Value::Bool(type_var.as_str() == Some("UNIFIED")))) || is_true(&(Value::Bool(type_var.as_str() == Some("SPOT")))) {
+            if is_true(&(type_var.as_str() == Some("UNIFIED"))) || is_true(&(type_var.as_str() == Some("SPOT"))) {
                 maxLimit = Value::Int(200);
             }  else if (type_var.as_str() == Some("FUTURES")) {
                 maxLimit = Value::Int(100);
@@ -12087,11 +12087,11 @@ if let Err(_try_err) = _try_result { let exc: Value = panic_to_value(_try_err);
 })]);
         let mut defaultVersion: Value = self.safe_string(methodVersions.clone(), path.clone(), &[self.options.as_map().and_then(|__m| __m.get("version")).cloned().unwrap_or(Value::Null)]);
         let mut version: Value = self.safe_string_k(params.clone(), "version", &[defaultVersion.clone()]);
-        if (version.as_str() == Some("v3")) && is_true(&(Value::Bool(matches!(&config, Value::Dict(__d) if __d.contains_key("v3"))))) {
+        if (version.as_str() == Some("v3")) && is_true(&(matches!(&config, Value::Dict(__d) if __d.contains_key("v3")))) {
             return crate::value::get_value_k(&config, "v3");
-        }  else if (version.as_str() == Some("v2")) && is_true(&(Value::Bool(matches!(&config, Value::Dict(__d) if __d.contains_key("v2"))))) {
+        }  else if (version.as_str() == Some("v2")) && is_true(&(matches!(&config, Value::Dict(__d) if __d.contains_key("v2")))) {
             return crate::value::get_value_k(&config, "v2");
-        }  else if (version.as_str() == Some("v1")) && is_true(&(Value::Bool(matches!(&config, Value::Dict(__d) if __d.contains_key("v1"))))) {
+        }  else if (version.as_str() == Some("v1")) && is_true(&(matches!(&config, Value::Dict(__d) if __d.contains_key("v1")))) {
             return crate::value::get_value_k(&config, "v1");
         }
         return self.safe_value_k(config.clone(), "cost", &[Value::Int(1)]);
@@ -12269,7 +12269,7 @@ if let Err(_try_err) = _try_result { let exc: Value = panic_to_value(_try_err);
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut assets: Value = (if is_true(&(Value::Bool(marginMode.as_str() == Some("isolated")))) { self.safe_list_k(data.clone(), "assets", &[Value::List(vec![])]) } else { self.safe_list_k(data.clone(), "accounts", &[Value::List(vec![])]) });
+        let mut assets: Value = (if is_true(&(marginMode.as_str() == Some("isolated"))) { self.safe_list_k(data.clone(), "assets", &[Value::List(vec![])]) } else { self.safe_list_k(data.clone(), "accounts", &[Value::List(vec![])]) });
         let mut interest: Value = self.parse_borrow_interests(assets.clone(), &[market.clone()]);
         let mut filteredByCurrency: Value = self.filter_by_currency_since_limit(interest.clone(), &[code.clone(), since.clone(), limit.clone()]);
         return self.filter_by_symbol_since_limit(filteredByCurrency.clone(), &[symbol.clone(), since.clone(), limit.clone()]);
@@ -12328,7 +12328,7 @@ if let Err(_try_err) = _try_result { let exc: Value = panic_to_value(_try_err);
         //     }
         //
         let mut marketId: Value = self.safe_string_k(info.clone(), "symbol", &[]);
-        let mut marginMode: Value = (if is_true(&(Value::Bool(marketId == Value::Null))) { Value::Str("cross".to_string()) } else { Value::Str("isolated".to_string()) });
+        let mut marginMode: Value = (if is_true(&(marketId == Value::Null)) { Value::Str("cross".to_string()) } else { Value::Str("isolated".to_string()) });
         market = self.safe_market(&[marketId.clone(), market.clone()]);
         let mut symbol: Value = self.safe_string_k(market.clone(), "symbol", &[]);
         let mut isolatedBase: Value = self.safe_dict_k(info.clone(), "baseAsset", &[Value::Map({
@@ -12523,8 +12523,8 @@ if let Err(_try_err) = _try_result { let exc: Value = panic_to_value(_try_err);
             let mut item: Value = get_value(&response, &i);
             let mut item: Value = get_value(&response, &i);
             let mut code: Value = self.safe_currency_code(self.safe_string_k(item.clone(), "currency", &[]), &[]);
-            if is_true(&(Value::Bool(code != Value::Null))) && is_true(&(Value::Bool((codes == Value::Null) || is_true(&self.in_array(code.clone(), codes.clone()))))) {
-                if !is_true(&(Value::Bool(in_op(&borrowRateHistories, &code)))) {
+            if is_true(&(code != Value::Null)) && is_true(&((codes == Value::Null) || is_true(&self.in_array(code.clone(), codes.clone())))) {
+                if !(in_op(&borrowRateHistories, &code)) {
                     add_element_to_object(&mut borrowRateHistories, &code, Value::List(vec![]));
                 }
                 let mut borrowRateStructure: Value = self.parse_borrow_rate(item.clone(), &[]);
@@ -12952,7 +12952,7 @@ if let Err(_try_err) = _try_result { let exc: Value = panic_to_value(_try_err);
         let mut market: Value = Value::Null;
         let mut marketType: Value = Value::Null;
         { let __destr_tmp = self.handle_market_type_and_params(Value::Str("setLeverage".to_string()), &[Value::Null, params.clone()]); marketType = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
-        if is_true(&(Value::Bool(symbol != Value::Null))) || is_true(&(Value::Bool(is_true(&(Value::Bool(marketType.as_str() != Some("spot")))) && is_true(&(Value::Bool(marketType.as_str() != Some("margin"))))))) {
+        if is_true(&(symbol != Value::Null)) || (is_true(&(marketType.as_str() != Some("spot"))) && is_true(&(marketType.as_str() != Some("margin")))) {
             if (symbol == Value::Null) {
                 panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" setLeverage requires a symbol argument for contract markets".to_string())))));
             }
@@ -13029,7 +13029,7 @@ if let Err(_try_err) = _try_result { let exc: Value = panic_to_value(_try_err);
         }
         let mut marginMode: Value = Value::Null;
         { let __destr_tmp = self.handle_margin_mode_and_params(symbol.clone(), &[params.clone()]); marginMode = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
-        if is_true(&(Value::Bool(marginMode != Value::Null))) && is_true(&(Value::Bool(marginMode.as_str() != Some("cross")))) {
+        if is_true(&(marginMode != Value::Null)) && is_true(&(marginMode.as_str() != Some("cross"))) {
             panic!("{}", crate::exchange_errors::not_supported(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" setLeverage() currently supports only params[\"marginMode\"] = \"cross\" for contracts".to_string())))));
         }
         if (self.markets.clone() == Value::Null) {
@@ -13221,7 +13221,7 @@ if let Err(_try_err) = _try_result { let exc: Value = panic_to_value(_try_err);
             let mut entry: Value = get_value(&data, &i);
             let mut marketId: Value = self.safe_string_k(entry.clone(), "symbol", &[]);
             // kucoin returns funding index symbols (e.g. .ETHUSDTMFPI8H) alongside tradeable contracts
-            let mut isFundingIndex: bool = is_true(&(Value::Bool(marketId != Value::Null))) && is_true(&(Value::Bool(starts_with(&marketId, &Value::Str(".".to_string())))));
+            let mut isFundingIndex: bool = is_true(&(marketId != Value::Null)) && (starts_with(&marketId, &Value::Str(".".to_string())));
             if !isFundingIndex {
                 append_to_array(&mut rates, entry.clone());
             }
@@ -14012,9 +14012,9 @@ if let Err(_try_err) = _try_result { let exc: Value = panic_to_value(_try_err);
         }
         let mut lastUpdateTimestamp: Value = self.safe_integer_k(position.clone(), "closeTime", &[]);
         if (lastUpdateTimestamp == Value::Null) {
-            if is_true(&Value::Bool(in_op(&position, &Value::Str("closingTime".to_string())))) {
+            if (in_op(&position, &Value::Str("closingTime".to_string()))) {
                 lastUpdateTimestamp = self.safe_integer_product(position.clone(), Value::Str("closingTime".to_string()), Value::Float(0.000001), &[]);
-            }  else if is_true(&Value::Bool(in_op(&position, &Value::Str("updateTime".to_string())))) {
+            }  else if (in_op(&position, &Value::Str("updateTime".to_string()))) {
                 lastUpdateTimestamp = self.safe_integer_product(position.clone(), Value::Str("updateTime".to_string()), Value::Float(0.000001), &[]);
             }
         }
@@ -14321,7 +14321,7 @@ if let Err(_try_err) = _try_result { let exc: Value = panic_to_value(_try_err);
         m.insert("amount".to_string(), self.parse_number(amountString.clone(), &[]));
         m.insert("total".to_string(), Value::Null);
         m.insert("code".to_string(), self.safe_currency_code(currencyId.clone(), &[]));
-        m.insert("status".to_string(), (if is_true(&(Value::Bool(responseCode.as_str() == Some("200000")))) { Value::Str("ok".to_string()) } else { Value::Null }));
+        m.insert("status".to_string(), (if is_true(&(responseCode.as_str() == Some("200000"))) { Value::Str("ok".to_string()) } else { Value::Null }));
         m.insert("timestamp".to_string(), Value::Null);
         m.insert("datetime".to_string(), Value::Null);
     m
@@ -14448,7 +14448,7 @@ if let Err(_try_err) = _try_result { let exc: Value = panic_to_value(_try_err);
     pub fn parse_margin_mode(&self, mut marginMode: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         let mut marginType: Value = self.safe_string_k(marginMode.clone(), "marginMode", &[]);
-        marginType = (if is_true(&(Value::Bool(marginType.as_str() == Some("ISOLATED")))) { Value::Str("isolated".to_string()) } else { Value::Str("cross".to_string()) });
+        marginType = (if is_true(&(marginType.as_str() == Some("ISOLATED"))) { Value::Str("isolated".to_string()) } else { Value::Str("cross".to_string()) });
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), marginMode.clone());
@@ -14823,7 +14823,7 @@ if let Err(_try_err) = _try_result { let exc: Value = panic_to_value(_try_err);
             let mut tier: Value = self.safe_dict(tiers.clone(), i.clone(), &[]);
             let mut symbol: Value = self.safe_string_k(tier.clone(), "symbol", &[]);
             if (symbol != Value::Null) {
-                if !is_true(&(Value::Bool(in_op(&result, &symbol)))) {
+                if !(in_op(&result, &symbol)) {
                     add_element_to_object(&mut result, &symbol, Value::List(vec![]));
                 }
                 crate::runtime::append_to_object_array(&mut result, &symbol, tier.clone());
@@ -15055,7 +15055,7 @@ if let Err(_try_err) = _try_result { let exc: Value = panic_to_value(_try_err);
             endpoint = Value::Str(format!("{}{}", Value::Str("/api/v1/".to_string()), self.implode_params(path.clone(), params.clone())));
         }
         let mut isUtaPrivate: bool = false;
-        if is_true(&(Value::Bool(api.as_str() == Some("uta")))) || is_true(&(Value::Bool(api.as_str() == Some("utaPrivate")))) {
+        if is_true(&(api.as_str() == Some("uta"))) || is_true(&(api.as_str() == Some("utaPrivate"))) {
             endpoint = Value::Str(format!("{}{}", Value::Str("/api/ua/v1/".to_string()), self.implode_params(path.clone(), params.clone())));
             if (api.as_str() == Some("utaPrivate")) {
                 isUtaPrivate = true;
@@ -15063,17 +15063,17 @@ if let Err(_try_err) = _try_result { let exc: Value = panic_to_value(_try_err);
         }
         let mut query: Value = self.omit(params.clone(), self.extract_params(path.clone()), &[]);
         let mut endpart: Value = Value::Str("".to_string());
-        headers = (if is_true(&(Value::Bool(headers != Value::Null))) { headers.clone() } else { Value::Map({
+        headers = (if is_true(&(headers != Value::Null)) { headers.clone() } else { Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }) });
         let mut url: Value = get_value(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), &api);
         let mut tradeType: Value = self.safe_string_k(query.clone(), "tradeType", &[]);
         if !is_true(&self.is_empty(query.clone())) {
-            if is_true(&(Value::Bool(is_true(&(Value::Bool(method.as_str() == Some("GET")))) || is_true(&(Value::Bool(method.as_str() == Some("DELETE"))))))) && is_true(&(Value::Bool(path.as_str() != Some("orders/multi-cancel")))) {
+            if (is_true(&(method.as_str() == Some("GET"))) || is_true(&(method.as_str() == Some("DELETE")))) && is_true(&(path.as_str() != Some("orders/multi-cancel"))) {
                 endpoint = Value::Str(format!("{}{}", endpoint, Value::Str(format!("{}{}", Value::Str("?".to_string()), self.rawencode(query.clone(), &[])))));
             }  else {
-                if is_true(&(Value::Bool(endpoint.as_str() == Some("/api/ua/v1/classic/order/place")))) || is_true(&(Value::Bool(endpoint.as_str() == Some("/api/ua/v1/classic/order/place/batch")))) || is_true(&(Value::Bool(endpoint.as_str() == Some("/api/ua/v1/classic/order/cancel")))) || is_true(&(Value::Bool(endpoint.as_str() == Some("/api/ua/v1/classic/order/cancel/batch")))) {
+                if is_true(&(endpoint.as_str() == Some("/api/ua/v1/classic/order/place"))) || is_true(&(endpoint.as_str() == Some("/api/ua/v1/classic/order/place/batch"))) || is_true(&(endpoint.as_str() == Some("/api/ua/v1/classic/order/cancel"))) || is_true(&(endpoint.as_str() == Some("/api/ua/v1/classic/order/cancel/batch"))) {
                     endpoint = Value::Str(format!("{}{}", endpoint, add(&Value::Str("?tradeType=".to_string()), &tradeType)));
                 }
                 body = self.json(query.clone());
@@ -15096,7 +15096,7 @@ if let Err(_try_err) = _try_result { let exc: Value = panic_to_value(_try_err);
                     m.insert("KC-API-TIMESTAMP".to_string(), timestamp.clone());
                 m
             }), &[headers.clone()]);
-            headers = (if is_true(&(Value::Bool(headers == Value::Null))) { Value::Map({
+            headers = (if is_true(&(headers == Value::Null)) { Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }) } else { headers.clone() });
@@ -15114,12 +15114,12 @@ if let Err(_try_err) = _try_result { let exc: Value = panic_to_value(_try_err);
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-            let mut isUtaFuturePrivate: bool = isUtaPrivate && is_true(&(Value::Bool(tradeType.as_str() == Some("FUTURES"))));
+            let mut isUtaFuturePrivate: bool = isUtaPrivate && is_true(&(tradeType.as_str() == Some("FUTURES")));
             let mut isFuturePartner: bool = isFuturePrivate || isUtaFuturePrivate;
             partner = (if isFuturePartner { self.safe_value_k(partner.clone(), "future", &[partner.clone()]) } else { self.safe_value_k(partner.clone(), "spot", &[partner.clone()]) });
             let mut partnerId: Value = self.safe_string_k(partner.clone(), "id", &[]);
             let mut partnerSecret: Value = self.safe_string2(partner.clone(), Value::Str("secret".to_string()), Value::Str("key".to_string()), &[]);
-            if is_true(&(Value::Bool(partnerId != Value::Null))) && is_true(&(Value::Bool(partnerSecret != Value::Null))) {
+            if is_true(&(partnerId != Value::Null)) && is_true(&(partnerSecret != Value::Null)) {
                 let mut partnerPayload: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", timestamp, partnerId)), self.apiKey.clone()));
                 let mut partnerSignature: Value = self.hmac(self.encode(partnerPayload.clone()), self.encode(partnerSecret.clone()), Value::Str("sha256".to_string()), &[Value::Str("base64".to_string())]);
                 add_element_to_object(&mut headers, &Value::Str("KC-API-PARTNER-SIGN".to_string()), partnerSignature.clone());
@@ -15146,7 +15146,7 @@ if let Err(_try_err) = _try_result { let exc: Value = panic_to_value(_try_err);
 }
 
     pub fn handle_errors(&self, mut code: Value, mut reason: Value, mut url: Value, mut method: Value, mut headers: Value, mut body: Value, mut response: Value, mut requestHeaders: Value, mut requestBody: Value) -> Value {
-        if is_true(&(Value::Bool(response == Value::Null))) || is_true(&(Value::Bool(response == Value::Null))) {
+        if is_true(&(response == Value::Null)) || is_true(&(response == Value::Null)) {
             self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), body.clone(), body.clone());
             return Value::Null;
         }

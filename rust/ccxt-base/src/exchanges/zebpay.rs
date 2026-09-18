@@ -864,15 +864,15 @@ impl ZebpayCore {
             withdraw = (if is_true(&(withdrawAllowed)) { withdrawAllowed.clone() } else { withdraw.clone() });
             let mut withdrawFeeString: Value = self.safe_string_k(chain.clone(), "withdrawalFee", &[]);
             if (withdrawFeeString != Value::Null) {
-                minWithdrawFeeString = (if is_true(&(Value::Bool(minWithdrawFeeString == Value::Null))) { withdrawFeeString.clone() } else { crate::precise::Precise::stringMin(&withdrawFeeString, &minWithdrawFeeString) });
+                minWithdrawFeeString = (if is_true(&(minWithdrawFeeString == Value::Null)) { withdrawFeeString.clone() } else { crate::precise::Precise::stringMin(&withdrawFeeString, &minWithdrawFeeString) });
             }
             let mut minNetworkWithdrawString: Value = self.safe_string_k(chain.clone(), "withdrawalMinSize", &[]);
             if (minNetworkWithdrawString != Value::Null) {
-                minWithdrawString = (if is_true(&(Value::Bool(minWithdrawString == Value::Null))) { minNetworkWithdrawString.clone() } else { crate::precise::Precise::stringMin(&minNetworkWithdrawString, &minWithdrawString) });
+                minWithdrawString = (if is_true(&(minWithdrawString == Value::Null)) { minNetworkWithdrawString.clone() } else { crate::precise::Precise::stringMin(&minNetworkWithdrawString, &minWithdrawString) });
             }
             let mut minNetworkDepositString: Value = self.safe_string_k(chain.clone(), "depositMinSize", &[]);
             if (minNetworkDepositString != Value::Null) {
-                minDepositString = (if is_true(&(Value::Bool(minDepositString == Value::Null))) { minNetworkDepositString.clone() } else { crate::precise::Precise::stringMin(&minNetworkDepositString, &minDepositString) });
+                minDepositString = (if is_true(&(minDepositString == Value::Null)) { minNetworkDepositString.clone() } else { crate::precise::Precise::stringMin(&minNetworkDepositString, &minDepositString) });
             }
             if (networkCode != Value::Null) {
                 add_element_to_object(&mut networks, &networkCode, Value::Map({
@@ -1266,7 +1266,7 @@ impl ZebpayCore {
         }  else {
             add_element_to_object(&mut request, &Value::Str("interval".to_string()), timeframe.clone());
         }
-        if is_true(&(Value::Bool(market.as_map().and_then(|__m| __m.get("contract")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)))) && is_true(&(Value::Bool(limit != Value::Null))) {
+        if is_true(&(market.as_map().and_then(|__m| __m.get("contract")).cloned().unwrap_or(Value::Null).as_bool() == Some(true))) && is_true(&(limit != Value::Null)) {
             add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone());
         }
         if (since != Value::Null) {
@@ -1357,7 +1357,7 @@ impl ZebpayCore {
                 m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
-        if is_true(&(Value::Bool(market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)))) && (limit != Value::Null) {
+        if is_true(&(market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true))) && (limit != Value::Null) {
             add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone());
         }
         let mut response: Value = Value::Null;
@@ -2738,7 +2738,7 @@ impl ZebpayCore {
         let mut access: Value = self.safe_string(api.clone(), Value::Int(0), &[Value::Str("public".to_string())]);
         if (access.as_str() == Some("public")) {
             if (method.as_str() == Some("GET")) || (method.as_str() == Some("DELETE")) {
-                if is_true(&(Value::Bool(queryLength != Value::Null))) && is_true(&(Value::Bool(queryLength.as_f64() != Some(0.0)))) {
+                if is_true(&(queryLength != Value::Null)) && is_true(&(queryLength.as_f64() != Some(0.0))) {
                     url = add(&url, &Value::Str(format!("{}{}", Value::Str("?".to_string()), self.urlencode(query.clone(), &[]))));
                 }
             }  else {
@@ -2754,7 +2754,7 @@ impl ZebpayCore {
             self.check_required_credentials(&[]);
             let mut isSpot: bool = marketType.as_str() == Some("spot");
             add_element_to_object(&mut params, &Value::Str("timestamp".to_string()), timestamp.clone());
-            if (method.as_str() == Some("GET")) || is_true(&(Value::Bool((method.as_str() == Some("DELETE")) && isSpot))) {
+            if (method.as_str() == Some("GET")) || is_true(&((method.as_str() == Some("DELETE")) && isSpot)) {
                 // For GET/DELETE: Append params to URL and sign the query string
                 let mut queryString: Value = self.urlencode(params.clone(), &[]);
                 signature = self.hmac(self.encode(queryString.clone()), self.encode(self.secret.clone()), Value::Str("sha256".to_string()), &[Value::Str("hex".to_string())]);

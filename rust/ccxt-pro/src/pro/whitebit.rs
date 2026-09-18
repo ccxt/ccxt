@@ -410,14 +410,14 @@ impl WhitebitCore {
             let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("candles".to_string()), Value::Str(":".to_string()))), symbol));
             let mut parsed: Value = self.parse_ohlcv(data.clone(), &[market.clone()]);
             // this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol);
-            if !is_true(&(Value::Bool(in_op(&self.ohlcvs, &symbol)))) {
+            if !(in_op(&self.ohlcvs, &symbol)) {
                 add_element_to_object(&mut self.ohlcvs, &symbol, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }));
             }
             // let stored = this.ohlcvs[symbol]['unknown']; // we don't know the timeframe but we need to respect the type
-            if !is_true(&(Value::Bool(in_op(&get_value(&self.ohlcvs, &symbol), &Value::Str("unknown".to_string()))))) {
+            if !(in_op(&get_value(&self.ohlcvs, &symbol), &Value::Str("unknown".to_string()))) {
                 let mut limit: Value = self.safe_integer_k(self.options.clone(), "OHLCVLimit", &[Value::Int(1000)]);
                 let mut stored = ArrayCacheByTimestamp::new(limit.clone());
                 add_element_to_object(get_value_mut(unsafe { crate::runtime::coerce_value_to_mut(&self.ohlcvs) }, &symbol), &Value::Str("unknown".to_string()), stored.clone());
@@ -516,7 +516,7 @@ impl WhitebitCore {
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         let mut data: Value = self.safe_value(params.clone(), Value::Int(1), &[]);
         let mut timestamp: Value = self.safe_timestamp(data.clone(), Value::Str("timestamp".to_string()), &[]);
-        if !is_true(&(Value::Bool(in_op(&self.orderbooks, &symbol)))) {
+        if !(in_op(&self.orderbooks, &symbol)) {
             let mut ob: Value = self.order_book(&[]);
             add_element_to_object(&mut self.orderbooks, &symbol, ob.clone());
         }
@@ -869,7 +869,7 @@ impl WhitebitCore {
         let mut feeCost: Value = self.safe_string(trade.clone(), Value::Int(6), &[]);
         if (feeCost != Value::Null) {
             let mut feeCurrencyId: Value = self.safe_string(trade.clone(), Value::Int(10), &[]);
-            let mut feeCurrencyCode: Value = (if is_true(&(Value::Bool(feeCurrencyId != Value::Null))) { self.safe_currency_code(feeCurrencyId.clone(), &[]) } else { market.as_map().and_then(|__m| __m.get("quote")).cloned().unwrap_or(Value::Null) });
+            let mut feeCurrencyCode: Value = (if is_true(&(feeCurrencyId != Value::Null)) { self.safe_currency_code(feeCurrencyId.clone(), &[]) } else { market.as_map().and_then(|__m| __m.get("quote")).cloned().unwrap_or(Value::Null) });
             fee = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("cost".to_string(), feeCost.clone());
@@ -1047,7 +1047,7 @@ impl WhitebitCore {
         let mut lastTradeTimestamp: Value = self.safe_timestamp(order.clone(), Value::Str("mtime".to_string()), &[]);
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         let mut rawSide: Value = self.safe_integer_k(order.clone(), "side", &[]);
-        let mut side: Value = (if is_true(&(Value::Bool(rawSide.as_f64() == Some(1.0)))) { Value::Str("sell".to_string()) } else { Value::Str("buy".to_string()) });
+        let mut side: Value = (if is_true(&(rawSide.as_f64() == Some(1.0))) { Value::Str("sell".to_string()) } else { Value::Str("buy".to_string()) });
         let mut dealFee: Value = self.safe_string_k(order.clone(), "deal_fee", &[]);
         let mut fee: Value = Value::Null;
         if (dealFee != Value::Null) {
@@ -1059,7 +1059,7 @@ impl WhitebitCore {
             });
         }
         let mut unifiedStatus: Value = Value::Null;
-        if is_true(&(Value::Bool(status.as_f64() == Some(1.0)))) || is_true(&(Value::Bool(status.as_f64() == Some(2.0)))) {
+        if is_true(&(status.as_f64() == Some(1.0))) || is_true(&(status.as_f64() == Some(2.0))) {
             unifiedStatus = Value::Str("open".to_string());
         }  else {
             if is_true(&crate::precise::Precise::stringEquals(&remaining, &Value::Str("0".to_string()))) {
@@ -1164,13 +1164,13 @@ impl WhitebitCore {
 }
 
     pub fn set_balance_cache(&mut self, mut client: Value, mut type_var: Value, mut subscriptionHash: Value) {
-        if is_true(&Value::Bool(in_op(&get_value(&client, &Value::Str("subscriptions".to_string())), &subscriptionHash))) {
+        if (in_op(&get_value(&client, &Value::Str("subscriptions".to_string())), &subscriptionHash)) {
             return;
         }
         let mut fetchBalanceSnapshot: Value = self.handle_option(Value::Str("watchBalance".to_string()), Value::Str("fetchBalanceSnapshot".to_string()), &[Value::Bool(true)]);
         if is_equal(&fetchBalanceSnapshot, &Value::Bool(true)) {
             let mut messageHash: Value = add(&type_var, &Value::Str(":fetchBalanceSnapshot".to_string()));
-            if !is_true(&(Value::Bool(in_op(&get_value(&client, &Value::Str("futures".to_string())), &messageHash)))) {
+            if !(in_op(&get_value(&client, &Value::Str("futures".to_string())), &messageHash)) {
                 client.future(&[messageHash.clone()]);
                 self.spawn(&[Value::Str("load_balance_snapshot".to_string()).clone(), client.clone(), messageHash.clone(), type_var.clone(), subscriptionHash.clone()]);
             }
@@ -1185,7 +1185,7 @@ impl WhitebitCore {
         })]).await;
         { let __t = self.extend(response.clone(), &[self.balance.clone()]); self.balance = __t; }
         // don't remove the future from the .futures cache
-        if is_true(&Value::Bool(in_op(&get_value(&client, &Value::Str("futures".to_string())), &messageHash))) {
+        if (in_op(&get_value(&client, &Value::Str("futures".to_string())), &messageHash)) {
             let mut future: Value = get_value(&get_value(&client, &Value::Str("futures".to_string())), &messageHash);
             future.resolve(&[]);
             client.resolve(&[self.balance.clone(), subscriptionHash.clone()]);
@@ -1379,7 +1379,7 @@ impl WhitebitCore {
                         m.insert("params".to_string(), marketIdsNew.clone());
                     m
                 });
-                if is_true(&Value::Bool(in_op(&get_value(&client, &Value::Str("subscriptions".to_string())), &method))) {
+                if (in_op(&get_value(&client, &Value::Str("subscriptions".to_string())), &method)) {
                     remove(&mut get_value(&client, &Value::Str("subscriptions".to_string())), &method);
                 }
                 return self.watch(url.clone(), messageHash.clone(), &[resubRequest.clone(), method.clone(), subscription.clone()]).await;
@@ -1431,7 +1431,7 @@ impl WhitebitCore {
         // their own authorize frame. the flight lives in client.futures of the handshake client
         // under a non-messageHash key and settles only via client.resolve () / client.reject ()
         let mut messageHash: Value = Value::Str("authenticateFlight".to_string());
-        if is_true(&Value::Bool(in_op(&get_value(&client, &Value::Str("futures".to_string())), &messageHash))) {
+        if (in_op(&get_value(&client, &Value::Str("futures".to_string())), &messageHash)) {
             // a flight is already in progress - wake when the leader settles
             // it, the socket is authorized by then. the flight gate is
             // checked before the subscriptions one because watch () registers
@@ -1487,10 +1487,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             // replay that failure. the stale future is settled through
             // client.reject () - guarded, so it always has a waiter and the
             // error is never parked in client.rejections
-            if is_true(&Value::Bool(in_op(&get_value(&client, &Value::Str("subscriptions".to_string())), &subscribeHash))) {
+            if (in_op(&get_value(&client, &Value::Str("subscriptions".to_string())), &subscribeHash)) {
                 remove(&mut get_value(&client, &Value::Str("subscriptions".to_string())), &subscribeHash);
             }
-            if is_true(&Value::Bool(in_op(&get_value(&client, &Value::Str("futures".to_string())), &subscribeHash))) {
+            if (in_op(&get_value(&client, &Value::Str("futures".to_string())), &subscribeHash)) {
                 client.reject(&[e.clone(), subscribeHash.clone()]);
             }
             // reject the flight - the leader and every waiter throw and the
@@ -1535,7 +1535,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             if is_instance(&e, &Value::Str("AuthenticationError".to_string())) {
                 client.reject(&[e.clone(), Value::Str("authenticated".to_string())]);
-                if is_true(&Value::Bool(in_op(&get_value(&client, &Value::Str("subscriptions".to_string())), &Value::Str("authenticated".to_string())))) {
+                if (in_op(&get_value(&client, &Value::Str("subscriptions".to_string())), &Value::Str("authenticated".to_string()))) {
                     remove(&mut get_value(&client, &Value::Str("subscriptions".to_string())), &Value::Str("authenticated".to_string()));
                 }
                 return Value::Bool(false);
@@ -1600,7 +1600,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut subscription: Value = get_value(&values, &i);
             if !is_equal(&subscription, &Value::Bool(true)) {
                 let mut subId: Value = self.safe_integer_k(subscription.clone(), "id", &[]);
-                if is_true(&(Value::Bool(subId != Value::Null))) && (is_equal(&subId, &id)) {
+                if is_true(&(subId != Value::Null)) && (is_equal(&subId, &id)) {
                     let mut method: Value = self.safe_value_k(subscription.clone(), "method", &[]);
                     if (method != Value::Null) {
                         self.dispatch_ws_handler(&method, &[client.clone(), message.clone()]);

@@ -1508,7 +1508,7 @@ impl OnetradingCore {
 }));
             }
         }
-        if is_true(&(Value::Bool(marketId != Value::Null))) && is_true(&(Value::Bool(timeframe != Value::Null))) {
+        if is_true(&(marketId != Value::Null)) && is_true(&(timeframe != Value::Null)) {
             add_element_to_object(get_value_mut(&mut subscription, &marketId), &timeframe, Value::Bool(true));
         }
         let mut properties: Value = Value::List(vec![]);

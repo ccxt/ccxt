@@ -948,7 +948,7 @@ impl CoinbaseinternationalCore {
         let mut trade: Value = self.parse_ws_trade(message.clone(), &[]);
         let mut symbol: Value = trade.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         let mut channel: Value = self.safe_string_k(message.clone(), "channel", &[]);
-        if !is_true(&(Value::Bool(in_op(&self.trades, &symbol)))) {
+        if !(in_op(&self.trades, &symbol)) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
             let mut tradesArrayCache = ArrayCache::new(limit.clone());
             add_element_to_object(&mut self.trades, &symbol, tradesArrayCache.clone());
@@ -1083,7 +1083,7 @@ impl CoinbaseinternationalCore {
         let mut symbol: Value = self.safe_symbol(marketId.clone(), &[]);
         let mut datetime: Value = self.safe_string_k(message.clone(), "time", &[]);
         let mut channel: Value = self.safe_string_k(message.clone(), "channel", &[]);
-        if !is_true(&(Value::Bool(in_op(&self.orderbooks, &symbol)))) {
+        if !(in_op(&self.orderbooks, &symbol)) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "watchOrderBookLimit", &[Value::Int(1000)]);
             { let __be_tmp = self.order_book(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1108,7 +1108,7 @@ impl CoinbaseinternationalCore {
 
     pub fn handle_delta(&self, mut orderbook: Value, mut delta: Value) {
         let mut rawSide: Value = self.safe_string_lower(delta.clone(), Value::Int(0), &[]);
-        let mut side: Value = (if is_true(&(Value::Bool(rawSide.as_str() == Some("buy")))) { Value::Str("bids".to_string()) } else { Value::Str("asks".to_string()) });
+        let mut side: Value = (if is_true(&(rawSide.as_str() == Some("buy"))) { Value::Str("bids".to_string()) } else { Value::Str("asks".to_string()) });
         let mut price: Value = self.safe_float(delta.clone(), Value::Int(1), &[]);
         let mut amount: Value = self.safe_float(delta.clone(), Value::Int(2), &[]);
         let mut bookside: Value = get_value(&orderbook, &side);

@@ -336,9 +336,9 @@ impl BitfinexCore {
             m
         })]).await;
         let mut checksum: Value = self.safe_bool_k(self.options.clone(), "checksum", &[Value::Bool(true)]);
-        if is_true(&(Value::Bool(checksum.as_bool() == Some(true)))) && is_true(&(Value::Bool(channel.as_str() == Some("book")))) {
+        if is_true(&(checksum.as_bool() == Some(true))) && is_true(&(channel.as_str() == Some("book"))) {
             let mut sub: Value = get_value(&get_value(&client, &Value::Str("subscriptions".to_string())), &messageHash);
-            if is_true(&(Value::Bool(sub != Value::Null))) && (!is_equal(&crate::value::get_value_k(&sub, "checksum"), &Value::Bool(true))) {
+            if is_true(&(sub != Value::Null)) && (!is_equal(&crate::value::get_value_k(&sub, "checksum"), &Value::Bool(true))) {
                 add_element_to_object(get_value_mut(&mut get_value(&client, &Value::Str("subscriptions".to_string())), &messageHash), &Value::Str("checksum".to_string()), Value::Bool(true));
                 client.send(&[Value::Map({
                     let mut m = indexmap::IndexMap::new();
@@ -550,7 +550,7 @@ impl BitfinexCore {
         let mut data: Value = self.safe_value(message.clone(), Value::Int(1), &[Value::List(vec![])]);
         let mut ohlcvs: Value = Value::List(vec![]);
         let mut first: Value = self.safe_value(data.clone(), Value::Int(0), &[]);
-        if is_true(&Value::Bool(is_array(&first))) {
+        if (is_array(&first)) {
             // snapshot
             ohlcvs = data.clone();
         }  else {
@@ -907,7 +907,7 @@ impl BitfinexCore {
         let mut maker: Value = self.safe_integer(trade.clone(), Value::Int(8), &[]);
         let mut takerOrMaker: Value = Value::Null;
         if (maker != Value::Null) {
-            takerOrMaker = (if is_true(&(Value::Bool(maker.as_f64() == Value::Int(-1).as_f64()))) { Value::Str("taker".to_string()) } else { Value::Str("maker".to_string()) });
+            takerOrMaker = (if is_true(&(maker.as_f64() == Value::Int(-1).as_f64())) { Value::Str("taker".to_string()) } else { Value::Str("maker".to_string()) });
         }
         return self.safe_trade(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1023,7 +1023,7 @@ impl BitfinexCore {
     m
 }));
         if (limit != Value::Null) {
-            if is_true(&(Value::Bool(limit.as_f64() != Some(25.0)))) && is_true(&(Value::Bool(limit.as_f64() != Some(100.0)))) {
+            if is_true(&(limit.as_f64() != Some(25.0))) && is_true(&(limit.as_f64() != Some(100.0))) {
                 panic!("{}", crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" watchOrderBook limit argument must be undefined, 25 or 100".to_string())))));
             }
         }
@@ -1082,7 +1082,7 @@ impl BitfinexCore {
         let mut prec: Value = self.safe_string_k(subscription.clone(), "prec", &[Value::Str("P0".to_string())]);
         let mut isRaw: bool = prec.as_str() == Some("R0");
         // if it is an initial snapshot
-        if !is_true(&(Value::Bool(in_op(&self.orderbooks, &symbol)))) {
+        if !(in_op(&self.orderbooks, &symbol)) {
             let mut limit: Value = self.safe_integer_k(subscription.clone(), "len", &[]);
             if isRaw {
                 // raw order books
@@ -1446,7 +1446,7 @@ impl BitfinexCore {
             m
         });
         let mut unifiedChannel: Value = self.safe_string(mappings.clone(), self.safe_string_k(message.clone(), "channel", &[]), &[]);
-        if is_true(&Value::Bool(in_op(&message, &Value::Str("key".to_string())))) {
+        if (in_op(&message, &Value::Str("key".to_string()))) {
             // handle ohlcv differently because the message is different
             let mut key: Value = self.safe_string_k(message.clone(), "key", &[]);
             let mut subKeyId: Value = add(&Value::Str("unsubscribe:".to_string()), &key);
@@ -1507,7 +1507,7 @@ impl BitfinexCore {
             let mut error = Value::from(crate::exchange_errors::authentication_error(self.json(message.clone())));
             client.reject(&[Value::from(error.clone()), messageHash.clone()]);
             // allows further authentication attempts
-            if is_true(&Value::Bool(in_op(&get_value(&client, &Value::Str("subscriptions".to_string())), &messageHash))) {
+            if (in_op(&get_value(&client, &Value::Str("subscriptions".to_string())), &messageHash)) {
                 remove(&mut get_value(&client, &Value::Str("subscriptions".to_string())), &messageHash);
             }
         }
@@ -1772,7 +1772,7 @@ impl BitfinexCore {
         //        }
         //    }
         //
-        if is_true(&Value::Bool(is_array(&message))) {
+        if (is_array(&message)) {
             if (message.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null).as_str() == Some("hb")) {
                 return;
             }

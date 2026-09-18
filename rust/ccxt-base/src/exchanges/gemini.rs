@@ -1170,7 +1170,7 @@ impl GeminiCore {
         let mut id: Value = self.safe_string(rawCurrency.clone(), Value::Int(0), &[]);
         let mut code: Value = self.safe_currency_code(id.clone(), &[]);
         let mut fiatFlag: Value = self.safe_string(rawCurrency.clone(), Value::Int(7), &[]);
-        let mut isFiat: bool = is_true(&(Value::Bool(fiatFlag != Value::Null))) && is_true(&(Value::Bool(fiatFlag.as_str() != Some(""))));
+        let mut isFiat: bool = is_true(&(fiatFlag != Value::Null)) && is_true(&(fiatFlag.as_str() != Some("")));
         let mut type_var: Value = (if isFiat { Value::Str("fiat".to_string()) } else { Value::Str("crypto".to_string()) });
         let mut precision: Value = self.parse_number(self.parse_precision(&[self.safe_string(rawCurrency.clone(), Value::Int(5), &[])]), &[]);
         let mut networks: Value = Value::Map({
@@ -1420,7 +1420,7 @@ impl GeminiCore {
 }));
         // these markets can't be scrapped and fetchMarketsFrom api does an extra call
         // to load market ids which we don't need here
-        if is_true(&Value::Bool(matches!(&self.urls, Value::Dict(__d) if __d.contains_key("test")))) {
+        if is_true(&(matches!(&self.urls, Value::Dict(__d) if __d.contains_key("test")))) {
             return Value::List(vec![]);
         }
         let mut fetchUsdtMarkets: Value = self.safe_list_k(self.options.clone(), "fetchUsdtMarkets", &[Value::List(vec![])]);
@@ -1468,7 +1468,7 @@ impl GeminiCore {
         let mut brokenPairs: Value = self.safe_list_k(self.options.clone(), "brokenPairs", &[Value::List(vec![])]);
         let mut marketIds: Value = Value::List(vec![]);
         let mut allMarketIds: Value = Value::List(vec![]);
-        if is_true(&Value::Bool(is_array(&marketIdsRaw))) {
+        if (is_array(&marketIdsRaw)) {
             allMarketIds = marketIdsRaw.clone();
         }
         {
@@ -1613,7 +1613,7 @@ impl GeminiCore {
     m
 })]);
             let mut lowerCaseId: Value = to_lower(&marketIdWithoutPerp);
-            if is_true(&Value::Bool(in_op(&conflictingMarkets, &lowerCaseId))) {
+            if (in_op(&conflictingMarkets, &lowerCaseId)) {
                 let mut conflictingMarket: Value = get_value(&conflictingMarkets, &lowerCaseId);
                 let mut conflictingMarket: Value = get_value(&conflictingMarkets, &lowerCaseId);
                 baseId = crate::value::get_value_k(&conflictingMarket, "base");
@@ -1629,7 +1629,7 @@ impl GeminiCore {
                     while { if !__for_first_715 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_715 = false; is_less_than(&i, &get_array_length(&quoteCurrencies)) } {
                     let mut quoteCurrency: Value = get_value(&quoteCurrencies, &i);
                     let mut quoteCurrency: Value = get_value(&quoteCurrencies, &i);
-                    if is_true(&Value::Bool(ends_with(&marketIdWithoutPerp, &quoteCurrency))) {
+                    if (ends_with(&marketIdWithoutPerp, &quoteCurrency)) {
                         let mut quoteLength: Value = self.parse_to_int(multiply(&Value::Int(-1), &get_array_length(&quoteCurrency)));
                         baseId = slice(&marketIdWithoutPerp, &Value::Int(0), &quoteLength);
                         quoteId = quoteCurrency.clone();
@@ -1903,7 +1903,7 @@ impl GeminiCore {
         let mut quoteId: Value = Value::Null;
         let mut base: Value = Value::Null;
         let mut quote: Value = Value::Null;
-        if is_true(&(Value::Bool(marketId != Value::Null))) && is_true(&(Value::Bool(market == Value::Null))) {
+        if is_true(&(marketId != Value::Null)) && is_true(&(market == Value::Null)) {
             let mut idLength: Value = (match (&(Value::Int(marketId.len() as i64)), &(Value::Int(0))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
             if (idLength.as_f64() == Some(7.0)) {
                 baseId = slice(&marketId, &Value::Int(0), &Value::Int(4));
@@ -1916,7 +1916,7 @@ impl GeminiCore {
             quote = self.safe_currency_code(quoteId.clone(), &[]);
             symbol = add(&add(&base, &Value::Str("/".to_string())), &quote);
         }
-        if is_true(&(Value::Bool(symbol == Value::Null))) && is_true(&(Value::Bool(market != Value::Null))) {
+        if is_true(&(symbol == Value::Null)) && is_true(&(market != Value::Null)) {
             symbol = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
             baseId = self.safe_string_upper(market.clone(), Value::Str("baseId".to_string()), &[]);
             quoteId = self.safe_string_upper(market.clone(), Value::Str("quoteId".to_string()), &[]);
@@ -2550,9 +2550,9 @@ impl GeminiCore {
             let mut timeInForce: Value = self.safe_string_k(params.clone(), "timeInForce", &[]);
             params = self.omit(params.clone(), Value::Str("timeInForce".to_string()), &[]);
             if (timeInForce != Value::Null) {
-                if is_true(&(Value::Bool(timeInForce.as_str() == Some("IOC")))) || is_true(&(Value::Bool(timeInForce.as_str() == Some("immediate-or-cancel")))) {
+                if is_true(&(timeInForce.as_str() == Some("IOC"))) || is_true(&(timeInForce.as_str() == Some("immediate-or-cancel"))) {
                     add_element_to_object(&mut request, &Value::Str("options".to_string()), Value::List(vec![Value::Str("immediate-or-cancel".to_string())]));
-                }  else if is_true(&(Value::Bool(timeInForce.as_str() == Some("FOK")))) || is_true(&(Value::Bool(timeInForce.as_str() == Some("fill-or-kill")))) {
+                }  else if is_true(&(timeInForce.as_str() == Some("FOK"))) || is_true(&(timeInForce.as_str() == Some("fill-or-kill"))) {
                     add_element_to_object(&mut request, &Value::Str("options".to_string()), Value::List(vec![Value::Str("fill-or-kill".to_string())]));
                 }  else if (timeInForce.as_str() == Some("PO")) {
                     add_element_to_object(&mut request, &Value::Str("options".to_string()), Value::List(vec![Value::Str("maker-or-cancel".to_string())]));
@@ -2978,7 +2978,7 @@ impl GeminiCore {
             }
         }
         url = add(&get_value(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), &api), &url);
-        if is_true(&(Value::Bool(method.as_str() == Some("POST")))) || is_true(&(Value::Bool(method.as_str() == Some("DELETE")))) {
+        if is_true(&(method.as_str() == Some("POST"))) || is_true(&(method.as_str() == Some("DELETE"))) {
             body = self.json(query.clone());
         }
         return Value::Map({
@@ -3104,7 +3104,7 @@ impl GeminiCore {
         //     ]
         //
         let mut candles: Value = Value::List(vec![]);
-        if is_true(&Value::Bool(is_array(&response))) {
+        if (is_array(&response)) {
             candles = response.clone();
         }
         return self.parse_ohlc_vs(candles.clone(), &[market.clone(), timeframe.clone(), since.clone(), limit.clone()]);

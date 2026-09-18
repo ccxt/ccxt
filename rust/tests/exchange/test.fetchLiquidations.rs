@@ -15,7 +15,7 @@ pub async fn testFetchLiquidations(mut exchange: Value, mut skippedProperties: V
         return Value::Bool(true);
     }
     let mut items: Value = crate::live_dispatch::dispatch(&mut exchange, "fetch_liquidations", vec![code.clone()]).await;
-    assert!(ccxt::runtime::is_true(&(Value::Bool(is_array(&items)))));
+    assert!(ccxt::runtime::is_true(&((is_array(&items)))));
     {
                 let mut i: Value = Value::Int(0);
         let mut __for_first_1459: bool = true;

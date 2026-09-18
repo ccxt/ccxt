@@ -10,7 +10,7 @@ use crate::test_helpers::*;
 use super::*;
 
 pub async fn testAfterConstruct(mut exchange: Value, mut skippedProperties: Value) -> Value {
-    if !is_true(&(Value::Bool(in_op(&skippedProperties, &Value::Str("networks".to_string()))))) {
+    if !(in_op(&skippedProperties, &Value::Str("networks".to_string()))) {
         testOptionsNetworks(exchange.clone(), skippedProperties.clone());
     }
     return Value::Bool(true);
@@ -18,7 +18,7 @@ pub async fn testAfterConstruct(mut exchange: Value, mut skippedProperties: Valu
     Value::Null
 }
 pub fn testOptionsNetworks(mut exchange: Value, mut skippedProperties: Value) {
-    if !is_true(&(Value::Bool(in_op(&skippedProperties, &Value::Str("networks".to_string()))))) {
+    if !(in_op(&skippedProperties, &Value::Str("networks".to_string()))) {
         // only allow these whitelisted unified networkCodes to be repeated
         let mut allowedUnifiedAliases: Value = Value::List(vec![Value::Str("BTC".to_string()), Value::Str("ERC20".to_string()), Value::Str("ETH".to_string()), Value::Str("TRX".to_string()), Value::Str("TRC20".to_string()), Value::Str("BRC20".to_string()), Value::Str("CRONOS".to_string()), Value::Str("CRC20".to_string()), Value::Str("CRO".to_string()), Value::Str("BEP20".to_string()), Value::Str("BSC".to_string()), Value::Str("HECO".to_string()), Value::Str("HRC20".to_string()), Value::Str("HT".to_string()), Value::Str("OP".to_string()), Value::Str("OPTIMISM".to_string()), Value::Str("SOL".to_string()), Value::Str("POLYGON".to_string()), Value::Str("MATIC".to_string()), Value::Str("CARDANO".to_string()), Value::Str("ADA".to_string()), Value::Str("ATOM".to_string()), Value::Str("COSMOS".to_string())]);
         // safeDict, not exchange.options['networks']: a direct missing-key access throws
@@ -34,7 +34,7 @@ pub fn testOptionsNetworks(mut exchange: Value, mut skippedProperties: Value) {
             return;
         }
         // 2) ensure 'networksById' dictionary exists in options
-        assert!(ccxt::runtime::is_true(&(Value::Bool(in_op(&get_value(&exchange, &Value::Str("options".to_string())), &Value::Str("networksById".to_string()))))));
+        assert!(ccxt::runtime::is_true(&((in_op(&get_value(&exchange, &Value::Str("options".to_string())), &Value::Str("networksById".to_string()))))));
         assert!(ccxt::runtime::is_true(&(exchange.is_dictionary(get_value(&get_value(&exchange, &Value::Str("options".to_string())), &Value::Str("networksById".to_string()))))));
         //
         let mut networkCodes: Value = object_keys(&get_value(&exchange, &Value::Str("options".to_string())).as_map().and_then(|__m| __m.get("networks")).cloned().unwrap_or(Value::Null));
@@ -73,13 +73,13 @@ pub fn testOptionsNetworks(mut exchange: Value, mut skippedProperties: Value) {
             let mut networkIdConverted: Value = exchange.network_code_to_id(networkCode.clone(), &[]);
             assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&networkId, &networkIdConverted)))));
             // ensure it exists in networksById
-            assert!(ccxt::runtime::is_true(&(Value::Bool(in_op(&get_value(&exchange, &Value::Str("options".to_string())).as_map().and_then(|__m| __m.get("networksById")).cloned().unwrap_or(Value::Null), &networkId)))));
+            assert!(ccxt::runtime::is_true(&((in_op(&get_value(&exchange, &Value::Str("options".to_string())).as_map().and_then(|__m| __m.get("networksById")).cloned().unwrap_or(Value::Null), &networkId)))));
             // ensure networkCode matches for networksById (however, it only works if one mapping is set)
             if !is_true(&exchange.in_array(networkCode.clone(), allowedUnifiedAliases.clone())) {
                 assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&get_value(&get_value(&exchange, &Value::Str("options".to_string())).as_map().and_then(|__m| __m.get("networksById")).cloned().unwrap_or(Value::Null), &networkId), &networkCode)))));
                 // check networkIdToCode conversion back
                 let mut networkCodeConverted: Value = exchange.network_id_to_code(&[networkId.clone()]);
-                assert!(ccxt::runtime::is_true(&(Value::Bool(networkCode.as_str() == networkCodeConverted.as_str()))));
+                assert!(ccxt::runtime::is_true(&((networkCode.as_str() == networkCodeConverted.as_str()))));
             }
         }
         }

@@ -1888,7 +1888,7 @@ impl BullishCore {
 }));
         let mut maxRetries: Value = Value::Null;
         { let __destr_tmp = self.handle_option_and_params(params.clone(), method.clone(), Value::Str("maxRetries".to_string()), &[Value::Int(3)]); maxRetries = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
-        if is_true(&(Value::Bool(method.as_str() != Some("fetchOHLCV")))) && is_true(&(Value::Bool(method.as_str() != Some("fetchFundingRateHistory")))) && is_true(&(Value::Bool(method.as_str() != Some("fetchTrades")))) {
+        if is_true(&(method.as_str() != Some("fetchOHLCV"))) && is_true(&(method.as_str() != Some("fetchFundingRateHistory"))) && is_true(&(method.as_str() != Some("fetchTrades"))) {
             panic!("{}", crate::exchange_errors::not_supported(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" safeDeterministicCall() does not support the ".to_string()))), method)), Value::Str(" method".to_string())))));
         }
         let mut errors: Value = Value::Int(0);
@@ -2189,7 +2189,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut ninetyDays: Value = (match (&((match (&((match (&((match (&(Value::Int(90)), &(Value::Int(24))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })), &(Value::Int(60))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })), &(Value::Int(60))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
         let mut now: Value = self.milliseconds();
         let mut allowedSince: Value = (match (&(now), &(ninetyDays)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
-        if is_true(&(Value::Bool(since != Value::Null))) && is_true(&(since.as_f64().unwrap_or(f64::NAN) < allowedSince.as_f64().unwrap_or(f64::NAN))) {
+        if is_true(&(since != Value::Null)) && is_true(&(since.as_f64().unwrap_or(f64::NAN) < allowedSince.as_f64().unwrap_or(f64::NAN))) {
             panic!("{}", crate::exchange_errors::bad_request(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), method)), Value::Str("() only allows fetching entries up to 90 days in the past".to_string())))));
         }
         params = self.omit(params.clone(), Value::Str("paginate".to_string()), &[]);
@@ -2220,7 +2220,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut sinceKey = get_arg(optional_args, 2, Value::Str("createdAtDatetime[gte]".to_string()));
         let mut untilKey = get_arg(optional_args, 3, Value::Str("createdAtDatetime[lte]".to_string()));
         let mut until: Value = self.safe_integer_k(params.clone(), "until", &[]);
-        if is_true(&(Value::Bool(since != Value::Null))) || is_true(&(Value::Bool(until != Value::Null))) {
+        if is_true(&(since != Value::Null)) || is_true(&(until != Value::Null)) {
             let mut timeDelta: Value = (match (&((match (&((match (&((match (&(Value::Int(7)), &(Value::Int(24))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })), &(Value::Int(60))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })), &(Value::Int(60))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }); // 7 days
             if (since == Value::Null) {
                 since = (match (&(until), &(timeDelta)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
@@ -2456,7 +2456,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 m.insert("tradingAccountId".to_string(), tradingAccountId.clone());
             m
         });
-        let mut isMarketOrder: Value = (Value::Bool(is_true(&(Value::Bool(type_var.as_str() == Some("market")))) || (type_var.as_str() == Some("MARKET"))));
+        let mut isMarketOrder: Value = (Value::Bool(is_true(&(type_var.as_str() == Some("market"))) || (type_var.as_str() == Some("MARKET"))));
         let mut postOnly: Value = Value::Bool(false);
         { let __destr_tmp = self.handle_post_only(isMarketOrder.clone(), Value::Bool(type_var.as_str() == Some("POST_ONLY")), &[params.clone()]); postOnly = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         if is_true(&postOnly) {
@@ -3417,7 +3417,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             add_element_to_object(&mut request, &Value::Str("assetSymbol".to_string()), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
         }
         let mut until: Value = self.safe_integer_k(params.clone(), "until", &[]);
-        if is_true(&(Value::Bool(since == Value::Null))) && is_true(&(Value::Bool(until == Value::Null))) {
+        if is_true(&(since == Value::Null)) && is_true(&(until == Value::Null)) {
             // since and until are mandatory for this endpoint, set until to now if both are undefined
             let mut now: Value = self.milliseconds();
             params = self.extend(params.clone(), &[Value::Map({
@@ -3767,17 +3767,17 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 }
             }
             if (path.as_str() == Some("v1/users/hmac/login")) {
-                headers = (if is_true(&(Value::Bool(headers == Value::Null))) { Value::Map({
+                headers = (if is_true(&(headers == Value::Null)) { Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }) } else { headers.clone() });
                 add_element_to_object(&mut headers, &Value::Str("BX-PUBLIC-KEY".to_string()), self.apiKey.clone());
             }  else {
                 let mut token: Value = self.token.clone();
-                if is_true(&(Value::Bool(token == Value::Null))) {
+                if is_true(&(token == Value::Null)) {
                     panic!("{}", crate::exchange_errors::authentication_error(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" requires a token, please call signIn() first".to_string())))));
                 }
-                headers = (if is_true(&(Value::Bool(headers == Value::Null))) { Value::Map({
+                headers = (if is_true(&(headers == Value::Null)) { Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }) } else { headers.clone() });
@@ -3841,7 +3841,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut now: Value = self.milliseconds();
         let mut token: Value = self.token.clone();
         let mut tokenExpires: Value = self.safe_integer_k(self.options.clone(), "tokenExpires", &[]);
-        if is_true(&(Value::Bool(token == Value::Null))) || is_true(&(Value::Bool(tokenExpires == Value::Null))) || is_true(&(now.as_f64().unwrap_or(f64::NAN) > tokenExpires.as_f64().unwrap_or(f64::NAN))) {
+        if is_true(&(token == Value::Null)) || is_true(&(tokenExpires == Value::Null)) || is_true(&(now.as_f64().unwrap_or(f64::NAN) > tokenExpires.as_f64().unwrap_or(f64::NAN))) {
             return self.sign_in(&[]).await;
         }  else {
             return self.token.clone();
@@ -3869,7 +3869,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         //
         let mut code: Value = self.safe_string_k(response.clone(), "errorCode", &[]);
         let mut type_var: Value = self.safe_string_k(response.clone(), "type", &[]);
-        if is_true(&(Value::Bool((code != Value::Null) && (code.as_str() != Some("0")) && (code.as_str() != Some("1001"))))) || is_true(&(Value::Bool((type_var != Value::Null) && (type_var.as_str() == Some("HttpInvalidParameterException"))))) {
+        if is_true(&((code != Value::Null) && (code.as_str() != Some("0")) && (code.as_str() != Some("1001")))) || is_true(&((type_var != Value::Null) && (type_var.as_str() == Some("HttpInvalidParameterException")))) {
             let mut message: Value = Value::Str("".to_string());
             let mut errorCodeName: Value = self.safe_string_k(response.clone(), "errorCodeName", &[]);
             if (errorCodeName != Value::Null) {

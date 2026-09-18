@@ -26,5 +26,5 @@ pub fn testUrlencode() {
     let mut expected1: Value = Value::Str("a=1&c=%2B%26".to_string());
     let mut expected2: Value = Value::Str("c=%2B%26&a=1".to_string());
     let mut encoded: Value = exchange.urlencode(dict1.clone(), &[]);
-    assert!(ccxt::runtime::is_true(&(Value::Bool((encoded.as_str() == expected1.as_str()) || (encoded.as_str() == expected2.as_str())))));
+    assert!(ccxt::runtime::is_true(&(((encoded.as_str() == expected1.as_str()) || (encoded.as_str() == expected2.as_str())))));
 }

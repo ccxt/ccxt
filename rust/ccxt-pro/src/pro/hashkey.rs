@@ -413,7 +413,7 @@ impl HashkeyCore {
         let mut marketId: Value = self.safe_string_k(message.clone(), "symbol", &[]);
         let mut market: Value = self.safe_market(&[marketId.clone()]);
         let mut symbol: Value = self.safe_symbol(marketId.clone(), &[market.clone()]);
-        if !is_true(&(Value::Bool(in_op(&self.ohlcvs, &symbol)))) {
+        if !(in_op(&self.ohlcvs, &symbol)) {
             add_element_to_object(&mut self.ohlcvs, &symbol, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -422,7 +422,7 @@ impl HashkeyCore {
         let mut params: Value = self.safe_dict_k(message.clone(), "params", &[]);
         let mut klineType: Value = self.safe_string_k(params.clone(), "klineType", &[]);
         let mut timeframe: Value = self.find_timeframe(klineType.clone(), &[]);
-        if !is_true(&(Value::Bool(in_op(&get_value(&self.ohlcvs, &symbol), &timeframe)))) {
+        if !(in_op(&get_value(&self.ohlcvs, &symbol), &timeframe)) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "OHLCVLimit", &[Value::Int(1000)]);
             add_element_to_object(get_value_mut(unsafe { crate::runtime::coerce_value_to_mut(&self.ohlcvs) }, &symbol), &timeframe, ArrayCacheByTimestamp::new(limit.clone()));
         }
@@ -578,7 +578,7 @@ impl HashkeyCore {
         let mut marketId: Value = self.safe_string_k(message.clone(), "symbol", &[]);
         let mut market: Value = self.safe_market(&[marketId.clone()]);
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
-        if !is_true(&(Value::Bool(in_op(&self.trades, &symbol)))) {
+        if !(in_op(&self.trades, &symbol)) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
             add_element_to_object(&mut self.trades, &symbol, ArrayCache::new(limit.clone()));
         }
@@ -662,7 +662,7 @@ impl HashkeyCore {
         let mut marketId: Value = self.safe_string_k(message.clone(), "symbol", &[]);
         let mut symbol: Value = self.safe_symbol(marketId.clone(), &[]);
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("orderbook:".to_string()), symbol));
-        if !is_true(&(Value::Bool(in_op(&self.orderbooks, &symbol)))) {
+        if !(in_op(&self.orderbooks, &symbol)) {
             { let __be_tmp = self.order_book(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1117,14 +1117,14 @@ impl HashkeyCore {
 }
 
     pub fn set_balance_cache(&mut self, mut client: Value, mut type_var: Value, mut subscribeHash: Value) {
-        if is_true(&Value::Bool(in_op(&get_value(&client, &Value::Str("subscriptions".to_string())), &subscribeHash))) {
+        if (in_op(&get_value(&client, &Value::Str("subscriptions".to_string())), &subscribeHash)) {
             return;
         }
         let mut options: Value = self.safe_dict_k(self.options.clone(), "watchBalance", &[]);
         let mut snapshot: Value = self.safe_bool_k(options.clone(), "fetchBalanceSnapshot", &[Value::Bool(true)]);
         if (snapshot.as_bool() == Some(true)) {
             let mut messageHash: Value = Value::Str(format!("{}{}", add(&type_var, &Value::Str(":".to_string())), Value::Str("fetchBalanceSnapshot".to_string())));
-            if !is_true(&(Value::Bool(in_op(&get_value(&client, &Value::Str("futures".to_string())), &messageHash)))) {
+            if !(in_op(&get_value(&client, &Value::Str("futures".to_string())), &messageHash)) {
                 client.future(&[messageHash.clone()]);
                 self.spawn(&[Value::Str("load_balance_snapshot".to_string()).clone(), client.clone(), messageHash.clone(), type_var.clone()]);
             }
@@ -1147,7 +1147,7 @@ impl HashkeyCore {
 })]);
         { let __be_tmp = self.extend(response.clone(), &[__ws_arg_1]); add_element_to_object(&mut self.balance, &type_var, __be_tmp); };
         // don't remove the future from the .futures cache
-        if is_true(&Value::Bool(in_op(&get_value(&client, &Value::Str("futures".to_string())), &messageHash))) {
+        if (in_op(&get_value(&client, &Value::Str("futures".to_string())), &messageHash)) {
             let mut future: Value = get_value(&get_value(&client, &Value::Str("futures".to_string())), &messageHash);
             future.resolve(&[]);
             client.resolve(&[get_value(&self.balance, &type_var), add(&Value::Str("balance:".to_string()), &type_var)]);
@@ -1180,7 +1180,7 @@ impl HashkeyCore {
         let mut balanceUpdate: Value = self.safe_dict(data.clone(), Value::Int(0), &[]);
         let mut isSpot: bool = event.as_str() == Some("outboundAccountInfo");
         let mut type_var: Value = (if isSpot { Value::Str("spot".to_string()) } else { Value::Str("swap".to_string()) });
-        if !is_true(&(Value::Bool(in_op(&self.balance, &type_var)))) {
+        if !(in_op(&self.balance, &type_var)) {
             add_element_to_object(&mut self.balance, &type_var, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1192,7 +1192,7 @@ impl HashkeyCore {
         let mut account: Value = self.account();
         add_element_to_object(&mut account, &Value::Str("free".to_string()), self.safe_string_k(balanceUpdate.clone(), "f", &[]));
         add_element_to_object(&mut account, &Value::Str("used".to_string()), self.safe_string_k(balanceUpdate.clone(), "l", &[]));
-        if is_true(&(Value::Bool(type_var != Value::Null))) && is_true(&(Value::Bool(code != Value::Null))) {
+        if is_true(&(type_var != Value::Null)) && is_true(&(code != Value::Null)) {
             add_element_to_object(get_value_mut(unsafe { crate::runtime::coerce_value_to_mut(&self.balance) }, &type_var), &code, account.clone());
         }
         { let __be_tmp = self.safe_balance(get_value(&self.balance, &type_var)); add_element_to_object(&mut self.balance, &type_var, __be_tmp); };
@@ -1220,7 +1220,7 @@ impl HashkeyCore {
         // the client's own accessors
         let mut messageHash: Value = Value::Str("authenticateFlight".to_string());
         let mut client: Value = self.client(&[Value::Str("authenticationFlights".to_string())]);
-        if is_true(&Value::Bool(in_op(&get_value(&client, &Value::Str("futures".to_string())), &messageHash))) {
+        if (in_op(&get_value(&client, &Value::Str("futures".to_string())), &messageHash)) {
             // a flight is already in progress - wake when the leader
             // settles it: the listenKey is then in the bucket
             crate::exchange_stubs::ws_await_flight(&client.future(&[messageHash.clone()])).await;
@@ -1291,7 +1291,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
 }
 
     pub fn handle_message(&mut self, mut client: Value, mut message: Value) {
-        if is_true(&Value::Bool(is_array(&message))) {
+        if (is_array(&message)) {
             message = self.safe_dict(message.clone(), Value::Int(0), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
@@ -1306,13 +1306,13 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
             self.handle_trades(client.clone(), message.clone());
         }  else if (topic.as_str() == Some("depth")) {
             self.handle_order_book(client.clone(), message.clone());
-        }  else if is_true(&(Value::Bool(topic.as_str() == Some("contractExecutionReport")))) || is_true(&(Value::Bool(topic.as_str() == Some("executionReport")))) {
+        }  else if is_true(&(topic.as_str() == Some("contractExecutionReport"))) || is_true(&(topic.as_str() == Some("executionReport"))) {
             self.handle_order(client.clone(), message.clone());
         }  else if (topic.as_str() == Some("ticketInfo")) {
             self.handle_my_trade(client.clone(), message.clone(), &[]);
         }  else if (topic.as_str() == Some("outboundContractPositionInfo")) {
             self.handle_position(client.clone(), message.clone());
-        }  else if is_true(&(Value::Bool(topic.as_str() == Some("outboundAccountInfo")))) || is_true(&(Value::Bool(topic.as_str() == Some("outboundContractAccountInfo")))) {
+        }  else if is_true(&(topic.as_str() == Some("outboundAccountInfo"))) || is_true(&(topic.as_str() == Some("outboundContractAccountInfo"))) {
             self.handle_balance(client.clone(), message.clone());
         }
 }

@@ -902,7 +902,7 @@ impl BithumbCore {
 
     pub fn get_gen2_market_id(&self, mut market: Value) -> Value {
         let mut marketId: Value = self.safe_string_k(market.clone(), "id", &[]);
-        if is_true(&(Value::Bool(marketId != Value::Null))) && is_true(&(get_index_of(&marketId, &Value::Str("-".to_string())).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN))) {
+        if is_true(&(marketId != Value::Null)) && is_true(&(get_index_of(&marketId, &Value::Str("-".to_string())).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN))) {
             return marketId;
         }
         let mut quoteId: Value = self.safe_string2(market.clone(), Value::Str("quoteId".to_string()), Value::Str("quote".to_string()), &[]);
@@ -957,7 +957,7 @@ impl BithumbCore {
                     base = self.safe_currency_code(baseId.clone(), &[]);
                     quote = self.safe_currency_code(quoteId.clone(), &[]);
                 }
-                if is_true(&(Value::Bool(base == Value::Null))) || is_true(&(Value::Bool(quote == Value::Null))) {
+                if is_true(&(base == Value::Null)) || is_true(&(quote == Value::Null)) {
                     continue;
                 }
                 append_to_array(&mut result, Value::Map({
@@ -1073,7 +1073,7 @@ impl BithumbCore {
                     let mut market: Value = get_value(&data, &currencyId);
                     let mut base: Value = self.safe_currency_code(currencyId.clone(), &[]);
                     let mut active: Value = Value::Bool(true);
-                    if is_true(&Value::Bool(is_array(&market))) {
+                    if (is_array(&market)) {
                         let mut numElements: Value = Value::Int(market.len() as i64);
                         if (numElements.as_f64() == Some(0.0)) {
                             active = Value::Bool(false);
@@ -1484,10 +1484,10 @@ impl BithumbCore {
         let mut percentage: Value = self.safe_string2(ticker.clone(), Value::Str("signed_change_rate".to_string()), Value::Str("change_rate".to_string()), &[]);
         let mut open: Value = self.safe_string_k(ticker.clone(), "opening_price", &[]);
         let mut nonZeroOpen: Value = self.omit_zero(open.clone());
-        if is_true(&(Value::Bool(marketId != Value::Null))) && is_true(&(Value::Bool(nonZeroOpen != Value::Null))) && is_true(&(Value::Bool(close != Value::Null))) {
+        if is_true(&(marketId != Value::Null)) && is_true(&(nonZeroOpen != Value::Null)) && is_true(&(close != Value::Null)) {
             let mut computedChange: Value = crate::precise::Precise::stringSub(&close, &open);
             // Some v2 payloads return signed_change_price as 0 while open/last imply a non-zero move.
-            if is_true(&(Value::Bool(change != Value::Null))) && is_true(&crate::precise::Precise::stringEq(&change, &Value::Str("0".to_string()))) && !is_true(&crate::precise::Precise::stringEq(&computedChange, &Value::Str("0".to_string()))) {
+            if is_true(&(change != Value::Null)) && is_true(&crate::precise::Precise::stringEq(&change, &Value::Str("0".to_string()))) && !is_true(&crate::precise::Precise::stringEq(&computedChange, &Value::Str("0".to_string()))) {
                 change = computedChange.clone();
                 percentage = Value::Null;
             }
@@ -1495,10 +1495,10 @@ impl BithumbCore {
         let mut high: Value = self.safe_string2(ticker.clone(), Value::Str("max_price".to_string()), Value::Str("high_price".to_string()), &[]);
         let mut low: Value = self.safe_string2(ticker.clone(), Value::Str("min_price".to_string()), Value::Str("low_price".to_string()), &[]);
         // Some generation 2 ticker payloads can contain inconsistent high/low versus last.
-        if is_true(&(Value::Bool(close != Value::Null))) && is_true(&(Value::Bool(high != Value::Null))) && is_true(&crate::precise::Precise::stringGt(&close, &high)) {
+        if is_true(&(close != Value::Null)) && is_true(&(high != Value::Null)) && is_true(&crate::precise::Precise::stringGt(&close, &high)) {
             high = close.clone();
         }
-        if is_true(&(Value::Bool(close != Value::Null))) && is_true(&(Value::Bool(low != Value::Null))) && is_true(&crate::precise::Precise::stringLt(&close, &low)) {
+        if is_true(&(close != Value::Null)) && is_true(&(low != Value::Null)) && is_true(&crate::precise::Precise::stringLt(&close, &low)) {
             low = close.clone();
         }
         return self.safe_ticker(Value::Map({
@@ -1563,7 +1563,7 @@ impl BithumbCore {
             // Bithumb v2 ticker payloads are inconsistent for all-market calls,
             // so we aggregate 300 markets per request only when symbols are not provided.
             let mut marketIds: Value = Value::List(vec![]);
-            let mut symbolsForMarketIds: Value = (if is_true(&(Value::Bool(symbols == Value::Null))) { self.symbols.clone() } else { symbols.clone() });
+            let mut symbolsForMarketIds: Value = (if is_true(&(symbols == Value::Null)) { self.symbols.clone() } else { symbols.clone() });
             let mut symbolsForMarketIdsLength: Value = Value::Int(symbolsForMarketIds.len() as i64);
             {
                                 let mut i: Value = Value::Int(0);
@@ -1586,7 +1586,7 @@ impl BithumbCore {
                 append_to_array(&mut promises, self.public_get_v1_ticker(&[__ws_arg_5]).await);
             }  else {
                 let mut maxMarketIdsPerRequest: Value = self.safe_integer_k(self.options.clone(), "fetchTickersGeneration2MaxMarketIdsPerRequest", &[Value::Int(300)]);
-                if is_true(&(Value::Bool(maxMarketIdsPerRequest == Value::Null))) || is_true(&(maxMarketIdsPerRequest.as_f64().unwrap_or(f64::NAN) < Value::Int(1).as_f64().unwrap_or(f64::NAN))) {
+                if is_true(&(maxMarketIdsPerRequest == Value::Null)) || is_true(&(maxMarketIdsPerRequest.as_f64().unwrap_or(f64::NAN) < Value::Int(1).as_f64().unwrap_or(f64::NAN))) {
                     maxMarketIdsPerRequest = Value::Int(300);
                 }
                 let mut marketIdsChunk: Value = Value::List(vec![]);
@@ -1647,20 +1647,20 @@ impl BithumbCore {
                 while { if !__for_first_375 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_375 = false; i.as_f64().unwrap_or(f64::NAN) < responsesLength.as_f64().unwrap_or(f64::NAN) } {
                 let mut response: Value = get_value(&responses, &i);
                 let mut response: Value = get_value(&responses, &i);
-                if is_true(&self.is_dictionary(response.clone())) && is_true(&(Value::Bool(in_op(&response, &Value::Str("data".to_string()))))) && is_true(&(Value::Bool(crate::value::get_value_k(&response, "data") != Value::Null))) {
+                if is_true(&self.is_dictionary(response.clone())) && (in_op(&response, &Value::Str("data".to_string()))) && is_true(&(crate::value::get_value_k(&response, "data") != Value::Null)) {
                     response = crate::value::get_value_k(&response, "data");
                 }
                 let mut expectedMarketId: Value = Value::Null;
                 let mut marketIdsChunk: Value = self.safe_list(marketIdsChunks.clone(), i.clone(), &[Value::List(vec![])]);
                 let mut firstMarketId: Value = self.safe_string(marketIdsChunk.clone(), Value::Int(0), &[]);
-                if is_true(&(Value::Bool(firstMarketId != Value::Null))) && is_true(&(Value::Bool(self.safe_string(marketIdsChunk.clone(), Value::Int(1), &[]) == Value::Null))) {
+                if is_true(&(firstMarketId != Value::Null)) && is_true(&(self.safe_string(marketIdsChunk.clone(), Value::Int(1), &[]) == Value::Null)) {
                     expectedMarketId = firstMarketId.clone();
                 }
                 let mut tickers: Value = Value::List(vec![]);
-                if is_true(&Value::Bool(is_array(&response))) {
+                if (is_array(&response)) {
                     tickers = response.clone();
                 }  else if is_true(&self.is_dictionary(response.clone())) {
-                    if is_true(&(Value::Bool(in_op(&response, &Value::Str("market".to_string()))))) || is_true(&(Value::Bool(in_op(&response, &Value::Str("trade_date".to_string()))))) || is_true(&(Value::Bool(in_op(&response, &Value::Str("trade_timestamp".to_string()))))) {
+                    if (in_op(&response, &Value::Str("market".to_string()))) || (in_op(&response, &Value::Str("trade_date".to_string()))) || (in_op(&response, &Value::Str("trade_timestamp".to_string()))) {
                         tickers = Value::List(vec![response.clone()]);
                     }  else {
                         let mut ids: Value = object_keys(&response);
@@ -1718,7 +1718,7 @@ impl BithumbCore {
                     let mut symbol: Value = get_value(&symbols, &i);
                     let mut market: Value = self.market(symbol.clone());
                     let mut quoteId: Value = self.safe_string_k(market.clone(), "quoteId", &[]);
-                    if is_true(&(Value::Bool(quoteId != Value::Null))) && is_true(&(Value::Bool(in_op(&quoteCurrencies, &quoteId)))) {
+                    if is_true(&(quoteId != Value::Null)) && (in_op(&quoteCurrencies, &quoteId)) {
                         add_element_to_object(&mut requiredQuotes, &quoteId, Value::Bool(true));
                     }
                 }
@@ -1914,7 +1914,7 @@ impl BithumbCore {
         //     }
         //
         let mut timestamp: Value = Value::Null;
-        if is_true(&Value::Bool(is_array(&ohlcv))) {
+        if (is_array(&ohlcv)) {
             timestamp = self.safe_integer2(ohlcv.clone(), Value::Int(0), Value::Str("timestamp".to_string()), &[]);
         }  else {
             timestamp = self.parse8601(self.safe_string2(ohlcv.clone(), Value::Str("candle_date_time_utc".to_string()), Value::Str("candle_date_time_kst".to_string()), &[]));
@@ -2129,7 +2129,7 @@ impl BithumbCore {
                 timestamp = self.safe_integer_product(trade.clone(), Value::Str("transaction_date".to_string()), Value::Float(0.001), &[]);
             }
         }
-        if is_true(&(Value::Bool(timestamp != Value::Null))) && (!isGenerationTwo) {
+        if is_true(&(timestamp != Value::Null)) && (!isGenerationTwo) {
             timestamp = (match (&(timestamp), &((match (&(Value::Int(9)), &(Value::Int(3600000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }); // they report UTC + 9 hours, server in Korean timezone
         }
         let mut type_var: Value = Value::Null;
@@ -2397,7 +2397,7 @@ impl BithumbCore {
         }
         let mut postOnly: Value = Value::Bool(false);
         { let __destr_tmp = self.handle_post_only(Value::Bool(type_var.as_str() == Some("market")), Value::Bool(false), &[params.clone()]); postOnly = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
-        if is_true(&postOnly) || is_true(&(Value::Bool(timeInForce.as_str() == Some("PO")))) {
+        if is_true(&postOnly) || is_true(&(timeInForce.as_str() == Some("PO"))) {
             add_element_to_object(&mut request, &Value::Str("time_in_force".to_string()), Value::Str("post_only".to_string()));
             params = self.omit(params.clone(), Value::Str("postOnly".to_string()), &[]);
         }  else if (timeInForce.as_str() == Some("FOK")) {
@@ -2419,7 +2419,7 @@ impl BithumbCore {
                 let mut createMarketBuyOrderRequiresPrice: Value = Value::Bool(true);
                 { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("createOrder".to_string()), Value::Str("createMarketBuyOrderRequiresPrice".to_string()), &[Value::Bool(true)]); createMarketBuyOrderRequiresPrice = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
                 if is_true(&createMarketBuyOrderRequiresPrice) {
-                    if is_true(&(Value::Bool(price == Value::Null))) && is_true(&(Value::Bool(cost == Value::Null))) {
+                    if is_true(&(price == Value::Null)) && is_true(&(cost == Value::Null)) {
                         panic!("{}", crate::exchange_errors::invalid_order(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument".to_string())))));
                     }  else {
                         let mut amountString: Value = self.number_to_string(amount.clone());
@@ -2427,7 +2427,7 @@ impl BithumbCore {
                         cost = crate::precise::Precise::stringMul(&amountString, &priceString);
                     }
                 }  else {
-                    cost = (if is_true(&(Value::Bool(cost == Value::Null))) { self.number_to_string(amount.clone()) } else { cost.clone() });
+                    cost = (if is_true(&(cost == Value::Null)) { self.number_to_string(amount.clone()) } else { cost.clone() });
                 }
                 add_element_to_object(&mut request, &Value::Str("price".to_string()), self.price_to_precision(symbol.clone(), cost.clone()));
             }  else {
@@ -2730,7 +2730,7 @@ impl BithumbCore {
             let mut marketDefined: Value = market.clone();
             let mut base: Value = self.safe_string_k(marketDefined.clone(), "base", &[]);
             let mut quote: Value = self.safe_string_k(marketDefined.clone(), "quote", &[]);
-            if is_true(&(Value::Bool(base == Value::Null))) || is_true(&(Value::Bool(quote == Value::Null))) {
+            if is_true(&(base == Value::Null)) || is_true(&(quote == Value::Null)) {
                 panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchOrder() requires a market with defined base and quote".to_string())))));
             }
             add_element_to_object(&mut request, &Value::Str("order_id".to_string()), id.clone());
@@ -2943,7 +2943,7 @@ impl BithumbCore {
         let mut price: Value = self.safe_string2(order.clone(), Value::Str("order_price".to_string()), Value::Str("price".to_string()), &[]);
         let mut type_var: Value = self.safe_string2(order.clone(), Value::Str("order_type".to_string()), Value::Str("ord_type".to_string()), &[]);
         let mut progressCount: Value = self.safe_string_k(order.clone(), "progress_count", &[]);
-        if is_true(&(Value::Bool(type_var == Value::Null))) && is_true(&(Value::Bool(price != Value::Null))) && is_true(&(Value::Bool(progressCount == Value::Null))) {
+        if is_true(&(type_var == Value::Null)) && is_true(&(price != Value::Null)) && is_true(&(progressCount == Value::Null)) {
             if is_true(&crate::precise::Precise::stringEquals(&price, &Value::Str("0".to_string()))) {
                 type_var = Value::Str("market".to_string());
             }  else {
@@ -2964,7 +2964,7 @@ impl BithumbCore {
         let mut quoteId: Value = self.safe_string_k(order.clone(), "payment_currency", &[]);
         let mut base: Value = self.safe_currency_code(baseId.clone(), &[]);
         let mut quote: Value = self.safe_currency_code(quoteId.clone(), &[]);
-        if is_true(&(Value::Bool(base != Value::Null))) && is_true(&(Value::Bool(quote != Value::Null))) {
+        if is_true(&(base != Value::Null)) && is_true(&(quote != Value::Null)) {
             symbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".to_string()))), quote));
         }
         if (symbol == Value::Null) {
@@ -3308,7 +3308,7 @@ impl BithumbCore {
             add_element_to_object(&mut request, &Value::Str("algo_order_id".to_string()), id.clone());
         }  else {
             let mut clientOrderId: Value = self.safe_string2(params.clone(), Value::Str("clientOrderId".to_string()), Value::Str("client_order_id".to_string()), &[]);
-            if is_true(&(Value::Bool(generation.as_f64() == Some(2.0)))) && is_true(&(Value::Bool(clientOrderId != Value::Null))) {
+            if is_true(&(generation.as_f64() == Some(2.0))) && is_true(&(clientOrderId != Value::Null)) {
                 add_element_to_object(&mut request, &Value::Str("client_order_id".to_string()), clientOrderId.clone());
                 params = self.omit(params.clone(), Value::List(vec![Value::Str("clientOrderId".to_string())]), &[]);
             }  else {
@@ -3330,7 +3330,7 @@ impl BithumbCore {
             let mut marketDefined: Value = market.clone();
             let mut base: Value = self.safe_string_k(marketDefined.clone(), "base", &[]);
             let mut quote: Value = self.safe_string_k(marketDefined.clone(), "quote", &[]);
-            if is_true(&(Value::Bool(base == Value::Null))) || is_true(&(Value::Bool(quote == Value::Null))) {
+            if is_true(&(base == Value::Null)) || is_true(&(quote == Value::Null)) {
                 panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" cancelOrder() requires a market with defined base and quote".to_string())))));
             }
             let mut side_in_params: bool = in_op(&params, &Value::Str("side".to_string()));
@@ -3488,7 +3488,7 @@ impl BithumbCore {
         if (code.as_str() == Some("XRP")) || (code.as_str() == Some("XMR")) || (code.as_str() == Some("EOS")) || (code.as_str() == Some("STEEM")) || (code.as_str() == Some("TON")) {
             let mut destination: Value = self.safe_string2(params.clone(), Value::Str("destination".to_string()), Value::Str("secondary_address".to_string()), &[]);
             params = self.omit(params.clone(), Value::List(vec![Value::Str("destination".to_string()), Value::Str("secondary_address".to_string())]), &[]);
-            if is_true(&(Value::Bool(tag == Value::Null))) && is_true(&(Value::Bool(destination == Value::Null))) {
+            if is_true(&(tag == Value::Null)) && is_true(&(destination == Value::Null)) {
                 panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), code)), Value::Str(" withdraw() requires a tag argument or an extra destination param".to_string())))));
             }  else if (tag != Value::Null) {
                 destinationRequest = tag.clone();
@@ -3584,7 +3584,7 @@ impl BithumbCore {
         currency = self.safe_currency(currencyId.clone(), &[currency.clone()]);
         let mut datetime: Value = self.safe_string_k(transaction.clone(), "created_at", &[]);
         let mut timestamp: Value = self.parse8601(datetime.clone());
-        if is_true(&(Value::Bool(datetime != Value::Null))) && is_true(&(get_index_of(&datetime, &Value::Str("+09:00".to_string())).as_f64().unwrap_or(f64::NAN) > Value::Int(-1).as_f64().unwrap_or(f64::NAN))) {
+        if is_true(&(datetime != Value::Null)) && is_true(&(get_index_of(&datetime, &Value::Str("+09:00".to_string())).as_f64().unwrap_or(f64::NAN) > Value::Int(-1).as_f64().unwrap_or(f64::NAN))) {
             let mut normalized: Value = replace_str(&datetime, &Value::Str("+09:00".to_string()), &Value::Str("Z".to_string()));
             let mut normalizedTimestamp: Value = self.parse8601(normalized.clone());
             if (normalizedTimestamp != Value::Null) {
@@ -4083,7 +4083,7 @@ impl BithumbCore {
             let mut key: Value = get_value(&keys, &i);
             let mut value: Value = get_value(&query, &key);
             let mut value: Value = get_value(&query, &key);
-            if is_true(&Value::Bool(is_array(&value))) {
+            if (is_array(&value)) {
                 let mut encodedKey: Value = Value::Str(format!("{}{}", self.encode_uri_component(key.clone()), Value::Str("[]".to_string())));
                 {
                                         let mut j: Value = Value::Int(0);
@@ -4143,7 +4143,7 @@ impl BithumbCore {
             }
         }  else {
             self.check_required_credentials(&[]);
-            let mut isVersionedApi: bool = is_true(&Value::Bool(starts_with(&endpoint, &Value::Str("/v1/".to_string())))) || is_true(&Value::Bool(starts_with(&endpoint, &Value::Str("/v2/".to_string()))));
+            let mut isVersionedApi: bool = (starts_with(&endpoint, &Value::Str("/v1/".to_string()))) || (starts_with(&endpoint, &Value::Str("/v2/".to_string())));
             if isVersionedApi {
                 headers = Value::Map({
                     let mut m = indexmap::IndexMap::new();
@@ -4159,7 +4159,7 @@ impl BithumbCore {
                     m
                 });
                 let mut auth: Value = Value::Null;
-                if is_true(&(Value::Bool(method.as_str() != Some("GET")))) && is_true(&(Value::Bool(method.as_str() != Some("DELETE")))) {
+                if is_true(&(method.as_str() != Some("GET"))) && is_true(&(method.as_str() != Some("DELETE"))) {
                     add_element_to_object(&mut headers, &Value::Str("Content-Type".to_string()), Value::Str("application/json".to_string()));
                     if hasQuery {
                         body = self.json(query.clone());
@@ -4170,7 +4170,7 @@ impl BithumbCore {
                     url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".to_string()), auth))));
                 }
                 if hasQuery {
-                    let mut authString: Value = (if is_true(&(Value::Bool(auth == Value::Null))) { Value::Str("".to_string()) } else { auth.clone() });
+                    let mut authString: Value = (if is_true(&(auth == Value::Null)) { Value::Str("".to_string()) } else { auth.clone() });
                     add_element_to_object(&mut request, &Value::Str("query_hash".to_string()), self.hash(self.encode(authString.clone()), Value::Str("sha512".to_string()), &[]));
                     add_element_to_object(&mut request, &Value::Str("query_hash_alg".to_string()), Value::Str("SHA512".to_string()));
                 }
@@ -4235,7 +4235,7 @@ impl BithumbCore {
             }
             panic!("{}", crate::exchange_errors::exchange_error(feedback));
         }
-        if is_true(&Value::Bool(in_op(&response, &Value::Str("status".to_string())))) {
+        if (in_op(&response, &Value::Str("status".to_string()))) {
             // generation 1:
             //
             //     {"status":"5100","message":"After May 23th, recent_transactions is no longer, hence users will not be able to connect to recent_transactions"}

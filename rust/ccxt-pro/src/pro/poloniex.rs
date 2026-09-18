@@ -452,7 +452,7 @@ impl PoloniexCore {
             }
             messageHash = Value::Str(format!("{}{}", Value::Str(format!("{}{}", messageHash, Value::Str("::".to_string()))), join(&symbols, &Value::Str(",".to_string()))));
             let mut ids: Value = self.market_ids(&[symbols.clone()]);
-            marketIds = (if is_true(&(Value::Bool(ids == Value::Null))) { Value::List(vec![]) } else { ids.clone() });
+            marketIds = (if is_true(&(ids == Value::Null)) { Value::List(vec![]) } else { ids.clone() });
         }
         if (name.as_str() != Some("balances")) {
             add_element_to_object(&mut subscribe, &Value::Str("symbols".to_string()), marketIds.clone());
@@ -539,7 +539,7 @@ impl PoloniexCore {
                 m.insert("type".to_string(), to_upper(&type_var));
             m
         });
-        if is_true(&(Value::Bool(uppercaseType.as_str() == Some("MARKET")))) && is_true(&(Value::Bool(uppercaseSide.as_str() == Some("BUY")))) {
+        if is_true(&(uppercaseType.as_str() == Some("MARKET"))) && is_true(&(uppercaseSide.as_str() == Some("BUY"))) {
             let mut quoteAmount: Value = Value::Null;
             let mut createMarketBuyOrderRequiresPrice: Value = Value::Bool(true);
             { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("createOrder".to_string()), Value::Str("createMarketBuyOrderRequiresPrice".to_string()), &[Value::Bool(true)]); createMarketBuyOrderRequiresPrice = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
@@ -912,7 +912,7 @@ impl PoloniexCore {
         if (symbol != Value::Null) {
             symbol = self.symbol(symbol.clone());
         }
-        let mut symbols: Value = (if is_true(&(Value::Bool(symbol == Value::Null))) { Value::Null } else { Value::List(vec![symbol.clone()]) });
+        let mut symbols: Value = (if is_true(&(symbol == Value::Null)) { Value::Null } else { Value::List(vec![symbol.clone()]) });
         let mut orders: Value = self.subscribe(name.clone(), name.clone(), Value::Bool(true), &[symbols.clone(), params.clone()]).await;
         if is_true(&self.newUpdates) {
             limit = orders.get_limit(symbol.clone(), limit.clone());
@@ -950,7 +950,7 @@ impl PoloniexCore {
         if (symbol != Value::Null) {
             symbol = self.symbol(symbol.clone());
         }
-        let mut symbols: Value = (if is_true(&(Value::Bool(symbol == Value::Null))) { Value::Null } else { Value::List(vec![symbol.clone()]) });
+        let mut symbols: Value = (if is_true(&(symbol == Value::Null)) { Value::Null } else { Value::List(vec![symbol.clone()]) });
         let mut trades: Value = self.subscribe(name.clone(), messageHash.clone(), Value::Bool(true), &[symbols.clone(), params.clone()]).await;
         if is_true(&self.newUpdates) {
             limit = trades.get_limit(symbol.clone(), limit.clone());
@@ -1028,7 +1028,7 @@ impl PoloniexCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]); add_element_to_object(&mut self.ohlcvs, &symbol, __be_tmp); };
-        let mut stored: Value = (if is_true(&(Value::Bool(timeframe == Value::Null))) { Value::Null } else { self.safe_value(self.safe_value(self.ohlcvs.clone(), symbol.clone(), &[]), timeframe.clone(), &[]) });
+        let mut stored: Value = (if is_true(&(timeframe == Value::Null)) { Value::Null } else { self.safe_value(self.safe_value(self.ohlcvs.clone(), symbol.clone(), &[]), timeframe.clone(), &[]) });
         if (symbol != Value::Null) {
             if (stored == Value::Null) {
                 let mut limit: Value = self.safe_integer_k(self.options.clone(), "OHLCVLimit", &[Value::Int(1000)]);
@@ -1076,7 +1076,7 @@ impl PoloniexCore {
                 let mut symbol: Value = trade.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
                 let mut type_var: Value = Value::Str("trades".to_string());
                 let mut messageHash: Value = add(&Value::Str(format!("{}{}", type_var, Value::Str("::".to_string()))), &symbol);
-                let mut tradesArray: Value = (if is_true(&(Value::Bool(symbol == Value::Null))) { Value::Null } else { self.safe_value(self.trades.clone(), symbol.clone(), &[]) });
+                let mut tradesArray: Value = (if is_true(&(symbol == Value::Null)) { Value::Null } else { self.safe_value(self.trades.clone(), symbol.clone(), &[]) });
                 if (tradesArray == Value::Null) {
                     let mut tradesLimit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
                     tradesArray = ArrayCache::new(tradesLimit.clone());
@@ -1360,7 +1360,7 @@ impl PoloniexCore {
     m
 }));
                     }
-                    if is_true(&(Value::Bool(crate::value::get_value_k(&crate::value::get_value_k(&previousOrder, "fee"), "cost") != Value::Null))) && is_true(&(Value::Bool(self.safe_number(trade.as_map().and_then(|__m| __m.get("fee")).cloned().unwrap_or(Value::Null), Value::Str("cost".to_string()), &[]) != Value::Null))) {
+                    if is_true(&(crate::value::get_value_k(&crate::value::get_value_k(&previousOrder, "fee"), "cost") != Value::Null)) && is_true(&(self.safe_number(trade.as_map().and_then(|__m| __m.get("fee")).cloned().unwrap_or(Value::Null), Value::Str("cost".to_string()), &[]) != Value::Null)) {
                         let mut stringOrderCost: Value = self.number_to_string(crate::value::get_value_k(&crate::value::get_value_k(&previousOrder, "fee"), "cost"));
                         let mut stringTradeCost: Value = self.number_to_string(self.safe_number(trade.as_map().and_then(|__m| __m.get("fee")).cloned().unwrap_or(Value::Null), Value::Str("cost".to_string()), &[]));
                         add_element_to_object(get_value_mut(&mut previousOrder, &Value::Str("fee".to_string())), &Value::Str("cost".to_string()), crate::precise::Precise::stringAdd(&stringOrderCost, &stringTradeCost));
@@ -1785,7 +1785,7 @@ impl PoloniexCore {
                 m.insert("auth".to_string(), Value::Str("handle_authenticate".to_string()).clone());
             m
         });
-        let mut method: Value = (if is_true(&(Value::Bool(type_var == Value::Null))) { Value::Null } else { self.safe_value(methods.clone(), type_var.clone(), &[]) });
+        let mut method: Value = (if is_true(&(type_var == Value::Null)) { Value::Null } else { self.safe_value(methods.clone(), type_var.clone(), &[]) });
         if (type_var.as_str() == Some("auth")) {
             self.handle_authenticate(client.clone(), message.clone());
         }  else if (type_var == Value::Null) {
@@ -1834,7 +1834,7 @@ impl PoloniexCore {
         let mut data: Value = self.safe_list_k(message.clone(), "data", &[]);
         let mut first: Value = self.safe_dict(data.clone(), Value::Int(0), &[]);
         let mut orderId: Value = self.safe_string_k(first.clone(), "orderId", &[]);
-        if is_true(&(Value::Bool(event.as_str() == Some("error")))) || is_true(&(Value::Bool(orderId.as_str() == Some("0")))) {
+        if is_true(&(event.as_str() == Some("error"))) || is_true(&(orderId.as_str() == Some("0"))) {
             let _try_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
                 let mut error: Value = self.safe_string_k(first.clone(), "message", &[]);
                 let mut code: Value = self.safe_string_k(first.clone(), "code", &[]);
@@ -1847,7 +1847,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 if is_instance(&e, &Value::Str("AuthenticationError".to_string())) {
                     let mut messageHash: Value = Value::Str("authenticated".to_string());
                     client.reject(&[e.clone(), messageHash.clone()]);
-                    if is_true(&Value::Bool(in_op(&get_value(&client, &Value::Str("subscriptions".to_string())), &messageHash))) {
+                    if (in_op(&get_value(&client, &Value::Str("subscriptions".to_string())), &messageHash)) {
                         remove(&mut get_value(&client, &Value::Str("subscriptions".to_string())), &messageHash);
                     }
                 }  else {
@@ -1878,7 +1878,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }  else {
             let mut error = Value::from(crate::exchange_errors::authentication_error(Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), self.json(message.clone())))));
             client.reject(&[Value::from(error.clone()), messageHash.clone()]);
-            if is_true(&Value::Bool(in_op(&get_value(&client, &Value::Str("subscriptions".to_string())), &messageHash))) {
+            if (in_op(&get_value(&client, &Value::Str("subscriptions".to_string())), &messageHash)) {
                 remove(&mut get_value(&client, &Value::Str("subscriptions".to_string())), &messageHash);
             }
         }

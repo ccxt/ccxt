@@ -510,7 +510,7 @@ impl DeepcoinCore {
         // settled through client.resolve / client.reject so the registry is only mutated inside the client (one lock in go)
         let mut messageHash: Value = Value::Str("authenticate".to_string());
         let mut client: Value = self.client(&[Value::Str("authenticationFlights".to_string())]);
-        if is_true(&Value::Bool(in_op(&get_value(&client, &Value::Str("futures".to_string())), &messageHash))) {
+        if (in_op(&get_value(&client, &Value::Str("futures".to_string())), &messageHash)) {
             // a flight is already in progress - wake when the leader
             // settles it: the listenKey is then in the bucket
             crate::exchange_stubs::ws_await_flight(&client.future(&[messageHash.clone()])).await;
@@ -833,7 +833,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut marketId: Value = self.safe_string_k(data.clone(), "I", &[]);
         let mut market: Value = self.safe_market(&[marketId.clone(), Value::Null, Value::Str("/".to_string())]);
         let mut symbol: Value = self.safe_symbol(marketId.clone(), &[market.clone()]);
-        if !is_true(&(Value::Bool(in_op(&self.trades, &symbol)))) {
+        if !(in_op(&self.trades, &symbol)) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
             add_element_to_object(&mut self.trades, &symbol, ArrayCache::new(limit.clone()));
         }
@@ -1057,13 +1057,13 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut symbol: Value = self.safe_symbol(marketId.clone(), &[market.clone()]);
         let mut interval: Value = self.safe_string_k(data.clone(), "P", &[]);
         let mut timeframe: Value = self.find_timeframe(interval.clone(), &[]);
-        if !is_true(&(Value::Bool(in_op(&self.ohlcvs, &symbol)))) {
+        if !(in_op(&self.ohlcvs, &symbol)) {
             add_element_to_object(&mut self.ohlcvs, &symbol, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }));
         }
-        if !is_true(&(Value::Bool(in_op(&get_value(&self.ohlcvs, &symbol), &timeframe)))) {
+        if !(in_op(&get_value(&self.ohlcvs, &symbol), &timeframe)) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "OHLCVLimit", &[Value::Int(1000)]);
             add_element_to_object(get_value_mut(unsafe { crate::runtime::coerce_value_to_mut(&self.ohlcvs) }, &symbol), &timeframe, ArrayCacheByTimestamp::new(limit.clone()));
         }
@@ -1209,7 +1209,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut marketId: Value = self.safe_string_k(data.clone(), "I", &[]);
         let mut market: Value = self.safe_market(&[marketId.clone(), Value::Null, Value::Str("/".to_string())]);
         let mut symbol: Value = self.safe_symbol(marketId.clone(), &[market.clone()]);
-        if !is_true(&(Value::Bool(in_op(&self.orderbooks, &symbol)))) {
+        if !(in_op(&self.orderbooks, &symbol)) {
             { let __be_tmp = self.order_book(&[]); add_element_to_object(&mut self.orderbooks, &symbol, __be_tmp); };
         }
         let mut orderbook: Value = get_value(&self.orderbooks, &symbol);
@@ -1414,7 +1414,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut symbol: Value = self.safe_symbol(marketId.clone(), &[market.clone()]);
         let mut messageHash: Value = Value::Str("myTrades".to_string());
         let mut symbolMessageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", messageHash, Value::Str("::".to_string()))), symbol));
-        if is_true(&(Value::Bool(in_op(&get_value(&client, &Value::Str("futures".to_string())), &messageHash)))) || is_true(&(Value::Bool(in_op(&get_value(&client, &Value::Str("futures".to_string())), &symbolMessageHash)))) {
+        if (in_op(&get_value(&client, &Value::Str("futures".to_string())), &messageHash)) || (in_op(&get_value(&client, &Value::Str("futures".to_string())), &symbolMessageHash)) {
             if is_equal(&self.myTrades, &Value::Null) {
                 let mut limit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
                 self.myTrades = ArrayCacheBySymbolById::new(limit.clone());
@@ -1508,7 +1508,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut symbol: Value = self.safe_symbol(marketId.clone(), &[market.clone()]);
         let mut messageHash: Value = Value::Str("orders".to_string());
         let mut symbolMessageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", messageHash, Value::Str("::".to_string()))), symbol));
-        if is_true(&(Value::Bool(in_op(&get_value(&client, &Value::Str("futures".to_string())), &messageHash)))) || is_true(&(Value::Bool(in_op(&get_value(&client, &Value::Str("futures".to_string())), &symbolMessageHash)))) {
+        if (in_op(&get_value(&client, &Value::Str("futures".to_string())), &messageHash)) || (in_op(&get_value(&client, &Value::Str("futures".to_string())), &symbolMessageHash)) {
             if is_equal(&self.orders, &Value::Null) {
                 let mut limit: Value = self.safe_integer_k(self.options.clone(), "ordersLimit", &[Value::Int(1000)]);
                 self.orders = ArrayCacheBySymbolById::new(limit.clone());
@@ -1681,7 +1681,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut symbol: Value = self.safe_symbol(marketId.clone(), &[market.clone()]);
         let mut messageHash: Value = Value::Str("positions".to_string());
         let mut symbolMessageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", messageHash, Value::Str("::".to_string()))), symbol));
-        if is_true(&(Value::Bool(in_op(&get_value(&client, &Value::Str("futures".to_string())), &messageHash)))) || is_true(&(Value::Bool(in_op(&get_value(&client, &Value::Str("futures".to_string())), &symbolMessageHash)))) {
+        if (in_op(&get_value(&client, &Value::Str("futures".to_string())), &messageHash)) || (in_op(&get_value(&client, &Value::Str("futures".to_string())), &symbolMessageHash)) {
             if (self.positions.clone() == Value::Null) {
                 self.positions = ArrayCacheBySymbolBySide::new(Value::Null);
             }
@@ -1783,7 +1783,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             self.handle_pong(client.clone(), message.clone());
         }  else {
             let mut m: Value = self.safe_string_k(message.clone(), "m", &[]);
-            if is_true(&(Value::Bool(m != Value::Null))) && is_true(&(Value::Bool(m.as_str() != Some("Success")))) {
+            if is_true(&(m != Value::Null)) && is_true(&(m.as_str() != Some("Success"))) {
                 self.handle_error_message(client.clone(), message.clone());
             }
             let mut action: Value = self.safe_string2(message.clone(), Value::Str("a".to_string()), Value::Str("action".to_string()), &[]);

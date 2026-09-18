@@ -1268,7 +1268,7 @@ impl ParadexCore {
         let mut status: Value = self.safe_string_k(response.clone(), "status", &[]);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("status".to_string(), (if is_true(&(Value::Bool(status.as_str() == Some("ok")))) { Value::Str("ok".to_string()) } else { Value::Str("maintenance".to_string()) }));
+        m.insert("status".to_string(), (if is_true(&(status.as_str() == Some("ok"))) { Value::Str("ok".to_string()) } else { Value::Str("maintenance".to_string()) }));
         m.insert("updated".to_string(), Value::Null);
         m.insert("eta".to_string(), Value::Null);
         m.insert("url".to_string(), Value::Null);
@@ -1429,14 +1429,14 @@ impl ParadexCore {
         let mut takerFee: Value = self.parse_number(Value::Str("0.0003".to_string()), &[]);
         let mut makerFee: Value = self.parse_number(Value::Str("-0.00005".to_string()), &[]);
         if is_true(&isOption) {
-            let mut optionTypeSuffix: Value = (if is_true(&(Value::Bool(optionType.as_str() == Some("CALL")))) { Value::Str("C".to_string()) } else { Value::Str("P".to_string()) });
-            let mut deliveryValue: Value = (if is_true(&(Value::Bool(expiry.as_f64() == Some(0.0)))) { Value::Str("".to_string()) } else { Value::Str(format!("{}{}", self.yymmdd(expiry.clone(), &[]), Value::Str("-".to_string()))) });
+            let mut optionTypeSuffix: Value = (if is_true(&(optionType.as_str() == Some("CALL"))) { Value::Str("C".to_string()) } else { Value::Str("P".to_string()) });
+            let mut deliveryValue: Value = (if is_true(&(expiry.as_f64() == Some(0.0))) { Value::Str("".to_string()) } else { Value::Str(format!("{}{}", self.yymmdd(expiry.clone(), &[]), Value::Str("-".to_string()))) });
             symbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", add(&Value::Str(format!("{}{}", Value::Str(format!("{}{}", symbol, Value::Str("-".to_string()))), deliveryValue)), &strikePrice), Value::Str("-".to_string()))), optionTypeSuffix));
             makerFee = self.parse_number(Value::Str("0.0003".to_string()), &[]);
         }  else {
             expiry = Value::Null;
         }
-        let mut expireDatetime: Value = (if is_true(&(Value::Bool(expiry.as_f64() == Some(0.0)))) { Value::Null } else { self.iso8601(expiry.clone()) });
+        let mut expireDatetime: Value = (if is_true(&(expiry.as_f64() == Some(0.0))) { Value::Null } else { self.iso8601(expiry.clone()) });
         return self.safe_market_structure(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), marketId.clone());
@@ -2017,7 +2017,7 @@ impl ParadexCore {
         // option row carries an empty funding_rate and a period of zero. left
         // without a symbol, parseFundingRates drops the row
         let mut rate: Value = self.safe_string_k(contract.clone(), "funding_rate", &[]);
-        let mut funds: bool = is_true(&(Value::Bool(market.as_map().and_then(|__m| __m.get("swap")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)))) && is_true(&(Value::Bool(rate != Value::Null))) && is_true(&(Value::Bool(rate.as_str() != Some(""))));
+        let mut funds: bool = is_true(&(market.as_map().and_then(|__m| __m.get("swap")).cloned().unwrap_or(Value::Null).as_bool() == Some(true))) && is_true(&(rate != Value::Null)) && is_true(&(rate.as_str() != Some("")));
         // the funding period belongs to the market and is not always eight hours:
         // fetchMarkets documents one on twenty four. funding accrues each second
         // against an index, and this rate is the amount for a whole period
@@ -2027,7 +2027,7 @@ impl ParadexCore {
 })]), Value::Str("funding_period_hours".to_string()), &[]);
         // zero hours is not an interval, and a caller annualising a rate divides by it
         let mut interval: Value = Value::Null;
-        if is_true(&(Value::Bool(hours != Value::Null))) && is_true(&crate::precise::Precise::stringGt(&hours, &Value::Str("0".to_string()))) {
+        if is_true(&(hours != Value::Null)) && is_true(&crate::precise::Precise::stringGt(&hours, &Value::Str("0".to_string()))) {
             interval = Value::Str(format!("{}{}", hours, Value::Str("h".to_string())));
         }
         return Value::Map({
@@ -2764,7 +2764,7 @@ impl ParadexCore {
         let mut isMarket: Value = Value::Bool(orderType.as_str() == Some("MARKET"));
         let mut isTakeProfitOrder: bool = takeProfitPrice != Value::Null;
         let mut isStopLossOrder: bool = stopLossPrice != Value::Null;
-        let mut isStopOrder: bool = is_true(&(Value::Bool(triggerPrice != Value::Null))) || isTakeProfitOrder || isStopLossOrder;
+        let mut isStopOrder: bool = is_true(&(triggerPrice != Value::Null)) || isTakeProfitOrder || isStopLossOrder;
         let mut timeInForce: Value = self.safe_string_upper(params.clone(), Value::Str("timeInForce".to_string()), &[]);
         let mut postOnly: Value = self.is_post_only(isMarket.clone(), Value::Null, &[params.clone()]);
         if !is_true(&isMarket) {
@@ -2843,7 +2843,7 @@ impl ParadexCore {
             let mut m = indexmap::IndexMap::new();
                 m.insert("timestamp".to_string(), (match (&(now), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }));
                 m.insert("market".to_string(), self.string_to_base16(request.as_map().and_then(|__m| __m.get("market")).cloned().unwrap_or(Value::Null)));
-                m.insert("side".to_string(), (if is_true(&(Value::Bool(request.as_map().and_then(|__m| __m.get("side")).cloned().unwrap_or(Value::Null).as_str() == Some("BUY")))) { Value::Str("1".to_string()) } else { Value::Str("2".to_string()) }));
+                m.insert("side".to_string(), (if is_true(&(request.as_map().and_then(|__m| __m.get("side")).cloned().unwrap_or(Value::Null).as_str() == Some("BUY"))) { Value::Str("1".to_string()) } else { Value::Str("2".to_string()) }));
                 m.insert("orderType".to_string(), self.string_to_base16(request.as_map().and_then(|__m| __m.get("type")).cloned().unwrap_or(Value::Null)));
                 m.insert("size".to_string(), self.scale_number(request.as_map().and_then(|__m| __m.get("size")).cloned().unwrap_or(Value::Null)));
                 m.insert("price".to_string(), (if (isMarket) { Value::Str("0".to_string()) } else { self.scale_number(request.as_map().and_then(|__m| __m.get("price")).cloned().unwrap_or(Value::Null)) }));
@@ -3177,8 +3177,8 @@ impl ParadexCore {
         }
         let mut clientOrderIds: Value = self.safe_list_n(params.clone(), Value::List(vec![Value::Str("clOrdIDs".to_string()), Value::Str("clientOrderIds".to_string()), Value::Str("client_order_ids".to_string())]), &[]);
         params = self.omit(params.clone(), Value::List(vec![Value::Str("clOrdIDs".to_string()), Value::Str("clientOrderIds".to_string()), Value::Str("client_order_ids".to_string())]), &[]);
-        let mut hasOrderIds: bool = is_true(&(Value::Bool(ids != Value::Null))) && is_true(&(Value::Bool(is_array(&ids))));
-        let mut hasClientOrderIds: bool = is_true(&(Value::Bool(clientOrderIds != Value::Null))) && is_true(&(Value::Bool(is_array(&clientOrderIds))));
+        let mut hasOrderIds: bool = is_true(&(ids != Value::Null)) && (is_array(&ids));
+        let mut hasClientOrderIds: bool = is_true(&(clientOrderIds != Value::Null)) && (is_array(&clientOrderIds));
         if !hasOrderIds && !hasClientOrderIds {
             panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" cancelOrders() requires a non-empty ids argument or a non-empty clientOrderIds parameter".to_string())))));
         }
@@ -3421,7 +3421,7 @@ impl ParadexCore {
         let mut orders: Value = self.safe_list_k(response.clone(), "results", &[Value::List(vec![])]);
         let mut paginationCursor: Value = self.safe_string_k(response.clone(), "next", &[]);
         let mut ordersLength: Value = Value::Int(orders.len() as i64);
-        if is_true(&(Value::Bool(paginationCursor != Value::Null))) && is_true(&(ordersLength.as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN))) {
+        if is_true(&(paginationCursor != Value::Null)) && is_true(&(ordersLength.as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN))) {
             let mut first: Value = orders.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
             add_element_to_object(&mut first, &Value::Str("next".to_string()), paginationCursor.clone());
             add_element_to_object(&mut orders, &Value::Int(0), first.clone());
@@ -4189,7 +4189,7 @@ impl ParadexCore {
         let mut timestamp: Value = self.safe_integer_k(transaction.clone(), "created_at", &[]);
         let mut updated: Value = self.safe_integer_k(transaction.clone(), "last_updated_at", &[]);
         let mut type_var: Value = self.safe_string_k(transaction.clone(), "kind", &[]);
-        type_var = (if is_true(&(Value::Bool(type_var.as_str() == Some("DEPOSIT")))) { Value::Str("deposit".to_string()) } else { Value::Str("withdrawal".to_string()) });
+        type_var = (if is_true(&(type_var.as_str() == Some("DEPOSIT"))) { Value::Str("deposit".to_string()) } else { Value::Str("withdrawal".to_string()) });
         let mut status: Value = self.parse_transaction_status(self.safe_string_k(transaction.clone(), "status", &[]));
         let mut amount: Value = self.safe_number_k(transaction.clone(), "amount", &[]);
         return Value::Map({
@@ -4894,7 +4894,7 @@ impl ParadexCore {
             }  else {
                 let mut token: Value = self.options.as_map().and_then(|__m| __m.get("authToken")).cloned().unwrap_or(Value::Null);
                 add_element_to_object(&mut headers, &Value::Str("Authorization".to_string()), add(&Value::Str("Bearer ".to_string()), &token));
-                if is_true(&(Value::Bool(method.as_str() == Some("POST")))) || is_true(&(Value::Bool(method.as_str() == Some("PUT")))) || is_true(&(Value::Bool(is_true(&(Value::Bool(method.as_str() == Some("DELETE")))) && is_true(&(Value::Bool(path.as_str() == Some("orders/batch"))))))) {
+                if is_true(&(method.as_str() == Some("POST"))) || is_true(&(method.as_str() == Some("PUT"))) || (is_true(&(method.as_str() == Some("DELETE"))) && is_true(&(path.as_str() == Some("orders/batch")))) {
                     add_element_to_object(&mut headers, &Value::Str("Content-Type".to_string()), Value::Str("application/json".to_string()));
                     body = self.json(query.clone());
                 }  else {

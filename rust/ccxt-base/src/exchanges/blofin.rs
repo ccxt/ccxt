@@ -1424,7 +1424,7 @@ impl BlofinCore {
                 m.insert("instId".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
-        limit = (if is_true(&(Value::Bool(limit == Value::Null))) { Value::Int(50) } else { limit.clone() });
+        limit = (if is_true(&(limit == Value::Null)) { Value::Int(50) } else { limit.clone() });
         if (limit != Value::Null) {
             add_element_to_object(&mut request, &Value::Str("size".to_string()), limit.clone()); // max 100
         }
@@ -1490,7 +1490,7 @@ impl BlofinCore {
         let mut last: Value = self.safe_string_k(ticker.clone(), "last", &[]);
         let mut open: Value = self.safe_string_k(ticker.clone(), "open24h", &[]);
         let mut spot: Value = self.safe_bool_k(market.clone(), "spot", &[Value::Bool(false)]);
-        let mut quoteVolume: Value = (if is_true(&(Value::Bool(spot.as_bool() == Some(true)))) { self.safe_string_k(ticker.clone(), "volCurrency24h", &[]) } else { Value::Null });
+        let mut quoteVolume: Value = (if is_true(&(spot.as_bool() == Some(true))) { self.safe_string_k(ticker.clone(), "volCurrency24h", &[]) } else { Value::Null });
         let mut baseVolume: Value = self.safe_string_k(ticker.clone(), "vol24h", &[]);
         let mut high: Value = self.safe_string_k(ticker.clone(), "high24h", &[]);
         let mut low: Value = self.safe_string_k(ticker.clone(), "low24h", &[]);
@@ -2020,7 +2020,7 @@ impl BlofinCore {
 
     pub fn parse_balance_by_type(&self, mut response: Value) -> Value {
         let mut data: Value = self.safe_list_k(response.clone(), "data", &[]);
-        if is_true(&(Value::Bool(data != Value::Null))) && is_true(&Value::Bool(is_array(&data))) {
+        if is_true(&(data != Value::Null)) && (is_array(&data)) {
             return self.parse_funding_balance(response.clone());
         }  else {
             return self.parse_balance(response.clone());
@@ -2083,7 +2083,7 @@ impl BlofinCore {
             // it may be incorrect to use total, free and used for swap accounts
             let mut eq: Value = self.safe_string_k(balance.clone(), "equity", &[]);
             let mut availEq: Value = self.safe_string_k(balance.clone(), "available", &[]);
-            if is_true(&(Value::Bool(eq == Value::Null))) || is_true(&(Value::Bool(availEq == Value::Null))) {
+            if is_true(&(eq == Value::Null)) || is_true(&(availEq == Value::Null)) {
                 add_element_to_object(&mut account, &Value::Str("free".to_string()), self.safe_string_k(balance.clone(), "availableEquity", &[]));
                 add_element_to_object(&mut account, &Value::Str("used".to_string()), self.safe_string_k(balance.clone(), "frozen", &[]));
             }  else {
@@ -2232,16 +2232,16 @@ impl BlofinCore {
         let mut timeInForce: Value = self.safe_string_k(params.clone(), "timeInForce", &[Value::Str("GTC".to_string())]);
         let mut isHedged: Value = self.safe_bool_k(params.clone(), "hedged", &[Value::Bool(false)]);
         if (isHedged.as_bool() == Some(true)) {
-            add_element_to_object(&mut request, &Value::Str("positionSide".to_string()), (if is_true(&(Value::Bool(side.as_str() == Some("buy")))) { Value::Str("long".to_string()) } else { Value::Str("short".to_string()) }));
+            add_element_to_object(&mut request, &Value::Str("positionSide".to_string()), (if is_true(&(side.as_str() == Some("buy"))) { Value::Str("long".to_string()) } else { Value::Str("short".to_string()) }));
         }
         let mut isMarketOrder: Value = Value::Bool(type_var.as_str() == Some("market"));
         params = self.omit(params.clone(), Value::List(vec![Value::Str("timeInForce".to_string())]), &[]);
-        let mut ioc: bool = is_true(&(Value::Bool(timeInForce.as_str() == Some("IOC")))) || is_true(&(Value::Bool(type_var.as_str() == Some("ioc"))));
+        let mut ioc: bool = is_true(&(timeInForce.as_str() == Some("IOC"))) || is_true(&(type_var.as_str() == Some("ioc")));
         let mut marketIOC: bool = is_true(&isMarketOrder) && ioc;
         if is_true(&isMarketOrder) || marketIOC {
             add_element_to_object(&mut request, &Value::Str("orderType".to_string()), Value::Str("market".to_string()));
         }  else {
-            let mut key: Value = (if is_true(&(Value::Bool(triggerPriceAny != Value::Null))) { Value::Str("orderPrice".to_string()) } else { Value::Str("price".to_string()) });
+            let mut key: Value = (if is_true(&(triggerPriceAny != Value::Null)) { Value::Str("orderPrice".to_string()) } else { Value::Str("price".to_string()) });
             add_element_to_object(&mut request, &key, self.price_to_precision(symbol.clone(), price.clone()));
         }
         let mut postOnly: Value = Value::Bool(false);
@@ -2385,7 +2385,7 @@ impl BlofinCore {
             });
         }
         let mut clientOrderId: Value = self.safe_string_k(order.clone(), "clientOrderId", &[]);
-        if is_true(&(Value::Bool(clientOrderId != Value::Null))) && is_true(&(Value::Int(clientOrderId.len() as i64).as_f64().unwrap_or(f64::NAN) < Value::Int(1).as_f64().unwrap_or(f64::NAN))) {
+        if is_true(&(clientOrderId != Value::Null)) && is_true(&(Value::Int(clientOrderId.len() as i64).as_f64().unwrap_or(f64::NAN) < Value::Int(1).as_f64().unwrap_or(f64::NAN))) {
             clientOrderId = Value::Null; // fix empty clientOrderId string
         }
         let mut stopLossTriggerPrice: Value = self.safe_number_k(order.clone(), "slTriggerPrice", &[]);
@@ -2518,7 +2518,7 @@ impl BlofinCore {
         let mut hedged: Value = self.safe_bool_k(params.clone(), "hedged", &[Value::Bool(false)]);
         let mut positionSide: Value = Value::Str("net".to_string());
         if (hedged.as_bool() == Some(true)) {
-            positionSide = (if is_true(&(Value::Bool(side.as_str() == Some("buy")))) { Value::Str("short".to_string()) } else { Value::Str("long".to_string()) });
+            positionSide = (if is_true(&(side.as_str() == Some("buy"))) { Value::Str("short".to_string()) } else { Value::Str("long".to_string()) });
         }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -2608,7 +2608,7 @@ impl BlofinCore {
         if (clientOrderId != Value::Null) {
             add_element_to_object(&mut request, &Value::Str("clientOrderId".to_string()), clientOrderId.clone());
         }  else {
-            if is_true(&(Value::Bool(isTrigger.as_bool() != Some(true)))) && is_true(&(Value::Bool(isTpsl.as_bool() != Some(true)))) {
+            if is_true(&(isTrigger.as_bool() != Some(true))) && is_true(&(isTpsl.as_bool() != Some(true))) {
                 add_element_to_object(&mut request, &Value::Str("orderId".to_string()), to_string_val(&id));
             }  else if (isTpsl.as_bool() == Some(true)) {
                 add_element_to_object(&mut request, &Value::Str("tpslId".to_string()), to_string_val(&id));
@@ -2730,10 +2730,10 @@ impl BlofinCore {
         { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("fetchOpenOrders".to_string()), Value::Str("method".to_string()), &[Value::Str("privateGetTradeOrdersPending".to_string())]); method = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         let mut query: Value = self.omit(params.clone(), Value::List(vec![Value::Str("method".to_string()), Value::Str("stop".to_string()), Value::Str("trigger".to_string()), Value::Str("tpsl".to_string()), Value::Str("TPSL".to_string())]), &[]);
         let mut response: Value = Value::Null;
-        if is_true(&(Value::Bool(isTpSl.as_bool() == Some(true)))) || is_true(&(Value::Bool(method.as_str() == Some("privateGetTradeOrdersTpslPending")))) {
+        if is_true(&(isTpSl.as_bool() == Some(true))) || is_true(&(method.as_str() == Some("privateGetTradeOrdersTpslPending"))) {
             let __ws_arg_11 = self.extend(request.clone(), &[query.clone()]);
             response = self.private_get_trade_orders_tpsl_pending(&[__ws_arg_11]).await;
-        }  else if is_true(&(Value::Bool(isTrigger.as_bool() == Some(true)))) || is_true(&(Value::Bool(method.as_str() == Some("privateGetTradeOrdersAlgoPending")))) {
+        }  else if is_true(&(isTrigger.as_bool() == Some(true))) || is_true(&(method.as_str() == Some("privateGetTradeOrdersAlgoPending"))) {
             add_element_to_object(&mut request, &Value::Str("orderType".to_string()), Value::Str("trigger".to_string()));
             let __ws_arg_12 = self.extend(request.clone(), &[query.clone()]);
             response = self.private_get_trade_orders_algo_pending(&[__ws_arg_12]).await;
@@ -3815,7 +3815,7 @@ impl BlofinCore {
         if (marginMode == Value::Null) {
             marginMode = self.safe_string_k(params.clone(), "marginMode", &[Value::Str("cross".to_string())]); // cross as default marginMode
         }
-        if is_true(&(Value::Bool(marginMode.as_str() != Some("cross")))) && is_true(&(Value::Bool(marginMode.as_str() != Some("isolated")))) {
+        if is_true(&(marginMode.as_str() != Some("cross"))) && is_true(&(marginMode.as_str() != Some("isolated"))) {
             panic!("{}", crate::exchange_errors::bad_request(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchLeverages() requires a marginMode parameter that must be either cross or isolated".to_string())))));
         }
         symbols = self.market_symbols(&[symbols.clone()]);
@@ -3885,7 +3885,7 @@ impl BlofinCore {
         if (marginMode == Value::Null) {
             marginMode = self.safe_string_k(params.clone(), "marginMode", &[Value::Str("cross".to_string())]); // cross as default marginMode
         }
-        if is_true(&(Value::Bool(marginMode.as_str() != Some("cross")))) && is_true(&(Value::Bool(marginMode.as_str() != Some("isolated")))) {
+        if is_true(&(marginMode.as_str() != Some("cross"))) && is_true(&(marginMode.as_str() != Some("isolated"))) {
             panic!("{}", crate::exchange_errors::bad_request(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchLeverage() requires a marginMode parameter that must be either cross or isolated".to_string())))));
         }
         let mut market: Value = self.market(symbol.clone());
@@ -3966,7 +3966,7 @@ impl BlofinCore {
         let mut market: Value = self.market(symbol.clone());
         let mut marginMode: Value = Value::Null;
         { let __destr_tmp = self.handle_margin_mode_and_params(Value::Str("setLeverage".to_string()), &[params.clone(), Value::Str("cross".to_string())]); marginMode = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
-        if is_true(&(Value::Bool(marginMode.as_str() != Some("cross")))) && is_true(&(Value::Bool(marginMode.as_str() != Some("isolated")))) {
+        if is_true(&(marginMode.as_str() != Some("cross"))) && is_true(&(marginMode.as_str() != Some("isolated"))) {
             panic!("{}", crate::exchange_errors::bad_request(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" setLeverage() requires a marginMode parameter that must be either cross or isolated".to_string())))));
         }
         let mut request: Value = Value::Map({
@@ -4079,7 +4079,7 @@ impl BlofinCore {
         { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("fetchClosedOrders".to_string()), Value::Str("method".to_string()), &[Value::Str("privateGetTradeOrdersHistory".to_string())]); method = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         let mut query: Value = self.omit(params.clone(), Value::List(vec![Value::Str("method".to_string()), Value::Str("stop".to_string()), Value::Str("trigger".to_string()), Value::Str("tpsl".to_string()), Value::Str("TPSL".to_string())]), &[]);
         let mut response: Value = Value::Null;
-        if is_true(&(Value::Bool(isTrigger.as_bool() == Some(true)))) || is_true(&(Value::Bool(method.as_str() == Some("privateGetTradeOrdersTpslHistory")))) {
+        if is_true(&(isTrigger.as_bool() == Some(true))) || is_true(&(method.as_str() == Some("privateGetTradeOrdersTpslHistory"))) {
             let __ws_arg_28 = self.extend(request.clone(), &[query.clone()]);
             response = self.private_get_trade_orders_tpsl_history(&[__ws_arg_28]).await;
         }  else {

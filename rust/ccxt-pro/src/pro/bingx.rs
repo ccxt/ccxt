@@ -592,7 +592,7 @@ impl BingxCore {
         // the Coin-M stream is a distinct endpoint, so it identifies an inverse
         // ticker even when the market id could not be resolved
         let mut inverseUrl: Value = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), Value::Str("inverse".to_string()), &[]);
-        let mut isInverse: Value = Value::Bool(is_true(&(Value::Bool(inverseUrl != Value::Null))) && is_true(&(Value::Bool(get_index_of(&get_value(&client, &Value::Str("url".to_string())), &inverseUrl).as_f64() == Some(0.0)))));
+        let mut isInverse: Value = Value::Bool(is_true(&(inverseUrl != Value::Null)) && is_true(&(get_index_of(&get_value(&client, &Value::Str("url".to_string())), &inverseUrl).as_f64() == Some(0.0))));
         let mut ticker: Value = self.parse_ws_ticker(data.clone(), &[market.clone(), isInverse.clone()]);
         add_element_to_object(&mut self.tickers, &symbol, ticker.clone());
         client.resolve(&[ticker.clone(), self.get_message_hash(Value::Str("ticker".to_string()), &[symbol.clone()])]);
@@ -633,7 +633,7 @@ impl BingxCore {
         // Coin-M m is coin volume; v is contracts and q is already USD turnover.
         // prefer the caller's stream-derived flag so an unresolved market id on
         // the Coin-M endpoint does not silently fall back to the contract count
-        let mut inverse: Value = (if is_true(&(Value::Bool(isInverse == Value::Null))) { (Value::Bool(market.as_map().and_then(|__m| __m.get("inverse")).cloned().unwrap_or(Value::Null).as_bool() == Some(true))) } else { isInverse.clone() });
+        let mut inverse: Value = (if is_true(&(isInverse == Value::Null)) { (Value::Bool(market.as_map().and_then(|__m| __m.get("inverse")).cloned().unwrap_or(Value::Null).as_bool() == Some(true))) } else { isInverse.clone() });
         let mut baseVolumeKey: Value = (if is_true(&inverse) { Value::Str("m".to_string()) } else { Value::Str("v".to_string()) });
         return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -887,7 +887,7 @@ impl BingxCore {
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("trade::".to_string()), symbol));
         let mut trades: Value = Value::Null;
-        if is_true(&Value::Bool(is_array(&data))) {
+        if (is_array(&data)) {
             trades = self.parse_trades(data.clone(), &[market.clone()]);
         }  else {
             trades = Value::List(vec![self.parse_trade(data.clone(), &[market.clone()])]);
@@ -1654,14 +1654,14 @@ impl BingxCore {
 }
 
     pub fn set_balance_cache(&mut self, mut client: Value, mut type_var: Value, mut subType: Value, mut subscriptionHash: Value, mut params: Value) {
-        if is_true(&Value::Bool(in_op(&get_value(&client, &Value::Str("subscriptions".to_string())), &subscriptionHash))) {
+        if (in_op(&get_value(&client, &Value::Str("subscriptions".to_string())), &subscriptionHash)) {
             return;
         }
         let mut fetchBalanceSnapshot: Value = Value::Bool(false);
         { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("watchBalance".to_string()), Value::Str("fetchBalanceSnapshot".to_string()), &[Value::Bool(true)]); fetchBalanceSnapshot = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         if is_true(&fetchBalanceSnapshot) {
             let mut messageHash: Value = add(&type_var, &Value::Str(":fetchBalanceSnapshot".to_string()));
-            if !is_true(&(Value::Bool(in_op(&get_value(&client, &Value::Str("futures".to_string())), &messageHash)))) {
+            if !(in_op(&get_value(&client, &Value::Str("futures".to_string())), &messageHash)) {
                 client.future(&[messageHash.clone()]);
                 self.spawn(&[Value::Str("load_balance_snapshot".to_string()).clone(), client.clone(), messageHash.clone(), type_var.clone(), subType.clone()]);
             }
@@ -1686,7 +1686,7 @@ impl BingxCore {
 })]);
         { let __be_tmp = self.extend(response.clone(), &[__ws_arg_5]); add_element_to_object(&mut self.balance, &type_var, __be_tmp); };
         // don't remove the future from the .futures cache
-        if is_true(&Value::Bool(in_op(&get_value(&client, &Value::Str("futures".to_string())), &messageHash))) {
+        if (in_op(&get_value(&client, &Value::Str("futures".to_string())), &messageHash)) {
             let mut future: Value = get_value(&get_value(&client, &Value::Str("futures".to_string())), &messageHash);
             future.resolve(&[]);
             client.resolve(&[get_value(&self.balance, &type_var), add(&type_var, &Value::Str(":balance".to_string()))]);
@@ -1721,7 +1721,7 @@ impl BingxCore {
         let mut market: Value = Value::Null;
         let mut messageHash: Value = Value::Str("".to_string());
         symbols = self.market_symbols(&[symbols.clone()]);
-        if is_true(&(Value::Bool(symbols != Value::Null))) && !is_true(&self.is_empty(symbols.clone())) {
+        if is_true(&(symbols != Value::Null)) && !is_true(&self.is_empty(symbols.clone())) {
             market = self.get_market_from_symbols(&[symbols.clone()]);
             messageHash = Value::Str(format!("{}{}", Value::Str("::".to_string()), join(&symbols, &Value::Str(",".to_string()))));
         }
@@ -1773,7 +1773,7 @@ impl BingxCore {
         let mut fetchPositionsSnapshot: Value = self.handle_option(Value::Str("watchPositions".to_string()), Value::Str("fetchPositionsSnapshot".to_string()), &[Value::Bool(true)]);
         if is_equal(&fetchPositionsSnapshot, &Value::Bool(true)) {
             let mut messageHash: Value = add(&type_var, &Value::Str(":fetchPositionsSnapshot".to_string()));
-            if !is_true(&(Value::Bool(in_op(&get_value(&client, &Value::Str("futures".to_string())), &messageHash)))) {
+            if !(in_op(&get_value(&client, &Value::Str("futures".to_string())), &messageHash)) {
                 client.future(&[messageHash.clone()]);
                 self.spawn(&[Value::Str("load_positions_snapshot".to_string()).clone(), client.clone(), messageHash.clone(), type_var.clone()]);
             }
@@ -1804,7 +1804,7 @@ impl BingxCore {
         }
         }
         // don't remove the future from the .futures cache
-        if is_true(&Value::Bool(in_op(&get_value(&client, &Value::Str("futures".to_string())), &messageHash))) {
+        if (in_op(&get_value(&client, &Value::Str("futures".to_string())), &messageHash)) {
             let mut future: Value = get_value(&get_value(&client, &Value::Str("futures".to_string())), &messageHash);
             future.resolve(&[cache.clone()]);
             client.resolve(&[cache.clone(), Value::Str("swap:positions".to_string())]);
@@ -1842,7 +1842,7 @@ impl BingxCore {
             }
         }
         let mut marginMode: Value = self.safe_string_k(position.clone(), "mt", &[]);
-        let mut collateral: Value = (if is_true(&(Value::Bool(marginMode.as_str() == Some("isolated")))) { self.safe_number_k(position.clone(), "iw", &[]) } else { Value::Null });
+        let mut collateral: Value = (if is_true(&(marginMode.as_str() == Some("isolated"))) { self.safe_number_k(position.clone(), "iw", &[]) } else { Value::Null });
         return self.safe_position(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), position.clone());
@@ -1904,7 +1904,7 @@ impl BingxCore {
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        if !is_true(&(Value::Bool(in_op(&data, &Value::Str("P".to_string()))))) {
+        if !(in_op(&data, &Value::Str("P".to_string()))) {
             return;
         }
         let mut rawPositions: Value = self.safe_list_k(data.clone(), "P", &[Value::List(vec![])]);
@@ -2042,7 +2042,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
             // entry under the same lock in every port
             let mut messageHash: Value = Value::Str("authenticate".to_string());
             let mut client: Value = self.client(&[Value::Str("authenticationFlights".to_string())]);
-            if is_true(&Value::Bool(in_op(&get_value(&client, &Value::Str("futures".to_string())), &messageHash))) {
+            if (in_op(&get_value(&client, &Value::Str("futures".to_string())), &messageHash)) {
                 // a flight is already in progress - wake when the leader
                 // settles it: the listenKey is then in the bucket
                 crate::exchange_stubs::ws_await_flight(&client.future(&[messageHash.clone()])).await;
@@ -2329,9 +2329,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut data: Value = self.safe_list_k(a.clone(), "B", &[Value::List(vec![])]);
         let mut timestamp: Value = self.safe_integer2(message.clone(), Value::Str("T".to_string()), Value::Str("E".to_string()), &[]);
         let mut spotUrl: Value = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), Value::Str("spot".to_string()), &[]);
-        let mut isSpot: bool = is_true(&(Value::Bool(spotUrl != Value::Null))) && is_true(&(Value::Bool(get_index_of(&get_value(&client, &Value::Str("url".to_string())), &spotUrl).as_f64() == Some(0.0))));
+        let mut isSpot: bool = is_true(&(spotUrl != Value::Null)) && is_true(&(get_index_of(&get_value(&client, &Value::Str("url".to_string())), &spotUrl).as_f64() == Some(0.0)));
         let mut type_var: Value = (if isSpot { Value::Str("spot".to_string()) } else { Value::Str("swap".to_string()) });
-        if !is_true(&(Value::Bool(in_op(&self.balance, &type_var)))) {
+        if !(in_op(&self.balance, &type_var)) {
             add_element_to_object(&mut self.balance, &type_var, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -2352,7 +2352,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             add_element_to_object(&mut account, &Value::Str("info".to_string()), balance.clone());
             add_element_to_object(&mut account, &Value::Str("used".to_string()), self.safe_string_k(balance.clone(), "lk", &[]));
             add_element_to_object(&mut account, &Value::Str("free".to_string()), self.safe_string_k(balance.clone(), "wb", &[]));
-            if is_true(&(Value::Bool(type_var != Value::Null))) && is_true(&(Value::Bool(code != Value::Null))) {
+            if is_true(&(type_var != Value::Null)) && is_true(&(code != Value::Null)) {
                 add_element_to_object(get_value_mut(unsafe { crate::runtime::coerce_value_to_mut(&self.balance) }, &type_var), &code, account.clone());
             }
         }
@@ -2366,7 +2366,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             return;
         }
         // public subscriptions
-        if is_true(&(Value::Bool(message.as_str() == Some("Ping")))) || is_true(&(Value::Bool(in_op(&message, &Value::Str("ping".to_string()))))) {
+        if is_true(&(message.as_str() == Some("Ping"))) || (in_op(&message, &Value::Str("ping".to_string()))) {
             self.spawn(&[Value::Str("pong".to_string()).clone(), client.clone(), message.clone()]);
             return;
         }
@@ -2412,7 +2412,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             })]);
             let mut type_var: Value = self.safe_string_k(data.clone(), "x", &[]);
             let mut status: Value = self.safe_string_k(data.clone(), "X", &[]);
-            if is_true(&(Value::Bool(type_var.as_str() == Some("TRADE")))) && is_true(&(Value::Bool(status.as_str() == Some("FILLED")))) {
+            if is_true(&(type_var.as_str() == Some("TRADE"))) && is_true(&(status.as_str() == Some("FILLED"))) {
                 self.handle_my_trades(client.clone(), message.clone());
             }
         }

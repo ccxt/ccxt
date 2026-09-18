@@ -1101,7 +1101,7 @@ impl FoxbitCore {
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("market".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
-                m.insert("depth".to_string(), (if is_true(&(Value::Bool(limit == Value::Null))) { defaultLimit.clone() } else { limit.clone() }));
+                m.insert("depth".to_string(), (if is_true(&(limit == Value::Null)) { defaultLimit.clone() } else { limit.clone() }));
             m
         });
         let __ws_arg_1 = self.extend(request.clone(), &[params.clone()]);
@@ -2484,7 +2484,7 @@ impl FoxbitCore {
             amount = crate::precise::Precise::stringAdd(&remaining, &filled);
         }
         let mut cost: Value = self.safe_string_k(order.clone(), "funds_received", &[]);
-        if is_true(&(Value::Bool(cost == Value::Null))) || is_true(&(Value::Bool(cost.as_str() == Some("")))) {
+        if is_true(&(cost == Value::Null)) || is_true(&(cost.as_str() == Some(""))) {
             let mut priceAverage: Value = self.safe_string_k(order.clone(), "price_avg", &[]);
             let mut priceToCalculate: Value = self.safe_string_k(order.clone(), "price", &[priceAverage.clone()]);
             cost = crate::precise::Precise::stringMul(&priceToCalculate, &amount);

@@ -1802,7 +1802,7 @@ impl HashkeyCore {
         }
         }
         let mut rawType: Value = self.safe_string_k(rawCurrency.clone(), "tokenType", &[]);
-        let mut type_var: Value = (if is_true(&(Value::Bool(rawType.as_str() == Some("REAL_MONEY")))) { Value::Str("fiat".to_string()) } else { Value::Str("crypto".to_string()) });
+        let mut type_var: Value = (if is_true(&(rawType.as_str() == Some("REAL_MONEY"))) { Value::Str("fiat".to_string()) } else { Value::Str("crypto".to_string()) });
         return self.safe_currency_structure(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), currencyId.clone());
@@ -2303,7 +2303,7 @@ impl HashkeyCore {
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         let mut last: Value = self.safe_string_k(ticker.clone(), "c", &[]);
         let mut baseVolume: Value = self.safe_string_k(ticker.clone(), "v", &[]);
-        if is_true(&(Value::Bool(market.as_map().and_then(|__m| __m.get("contract")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)))) && is_true(&(Value::Bool(market.as_map().and_then(|__m| __m.get("contractSize")).cloned().unwrap_or(Value::Null) != Value::Null))) {
+        if is_true(&(market.as_map().and_then(|__m| __m.get("contract")).cloned().unwrap_or(Value::Null).as_bool() == Some(true))) && is_true(&(market.as_map().and_then(|__m| __m.get("contractSize")).cloned().unwrap_or(Value::Null) != Value::Null)) {
             // 'v' counts contracts, and a ticker reports base volume
             baseVolume = crate::precise::Precise::stringMul(&baseVolume, &self.number_to_string(market.as_map().and_then(|__m| __m.get("contractSize")).cloned().unwrap_or(Value::Null)));
         }
@@ -3269,9 +3269,9 @@ impl HashkeyCore {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol.clone());
-        let mut isMarketBuy: bool = is_true(&(Value::Bool(type_var.as_str() == Some("market")))) && is_true(&(Value::Bool(side.as_str() == Some("buy"))));
+        let mut isMarketBuy: bool = is_true(&(type_var.as_str() == Some("market"))) && is_true(&(side.as_str() == Some("buy")));
         let mut cost: Value = self.safe_string_k(params.clone(), "cost", &[]);
-        if (!isMarketBuy) && is_true(&(Value::Bool(cost != Value::Null))) {
+        if (!isMarketBuy) && is_true(&(cost != Value::Null)) {
             panic!("{}", crate::exchange_errors::not_supported(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder() supports cost parameter for spot market buy orders only".to_string())))));
         }
         let mut request: Value = self.create_spot_order_request(symbol.clone(), type_var.clone(), side.clone(), amount.clone(), &[price.clone(), params.clone()]);
@@ -3283,7 +3283,7 @@ impl HashkeyCore {
         if (test.as_bool() == Some(true)) {
             params = self.omit(params.clone(), Value::Str("test".to_string()), &[]);
             response = self.private_post_api_v1_spot_order_test(&[request.clone()]).await;
-        }  else if isMarketBuy && is_true(&(Value::Bool(cost == Value::Null))) {
+        }  else if isMarketBuy && is_true(&(cost == Value::Null)) {
             response = self.private_post_api_v11_spot_order(&[request.clone()]).await; // the endpoint for market buy orders by amount
         }  else {
             response = self.private_post_api_v1_spot_order(&[request.clone()]).await; // the endpoint for market buy orders by cost and other orders
@@ -3369,7 +3369,7 @@ impl HashkeyCore {
         let mut isMarketOrder: Value = Value::Bool(type_var.as_str() == Some("MARKET"));
         let mut postOnly: Value = Value::Bool(false);
         { let __destr_tmp = self.handle_post_only(isMarketOrder.clone(), Value::Bool(type_var.as_str() == Some("LIMIT_MAKER")), &[params.clone()]); postOnly = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
-        if is_true(&postOnly) && is_true(&(Value::Bool(type_var.as_str() == Some("LIMIT")))) {
+        if is_true(&postOnly) && is_true(&(type_var.as_str() == Some("LIMIT"))) {
             add_element_to_object(&mut request, &Value::Str("type".to_string()), Value::Str("LIMIT_MAKER".to_string()));
         }
         let mut clientOrderId: Value = Value::Null;
@@ -4078,7 +4078,7 @@ impl HashkeyCore {
         // type param is reserved in ccxt for defining the type of the market
         // current method warns user if he provides the exchange specific value in type parameter
         let mut paramsType: Value = self.safe_string_k(params.clone(), "type", &[]);
-        if is_true(&(Value::Bool(paramsType != Value::Null))) && is_true(&(Value::Bool(paramsType.as_str() != Some("spot")))) && is_true(&(Value::Bool(paramsType.as_str() != Some("swap")))) {
+        if is_true(&(paramsType != Value::Null)) && is_true(&(paramsType.as_str() != Some("spot"))) && is_true(&(paramsType.as_str() != Some("swap"))) {
             panic!("{}", crate::exchange_errors::bad_request(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", add(&Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), &methodName), Value::Str(" () type parameter can not be \"".to_string()))), paramsType)), Value::Str("\". It should define the type of the market (\"spot\" or \"swap\"). To define the type of an order use the trigger parameter (true for trigger orders)".to_string())))));
         }
 }
@@ -4280,7 +4280,7 @@ impl HashkeyCore {
         if (secondPart != Value::Null) {
             if (secondPart.as_str() == Some("open")) {
                 reduceOnly = Value::Bool(false);
-            }  else if is_true(&(Value::Bool(secondPart.as_str() == Some("close")))) {
+            }  else if is_true(&(secondPart.as_str() == Some("close"))) {
                 reduceOnly = Value::Bool(true);
             }
         }
@@ -4312,7 +4312,7 @@ impl HashkeyCore {
         let mut postOnly: Value = Value::Null;
         if (type_var.as_str() == Some("LIMIT_MAKER")) {
             postOnly = Value::Bool(true);
-        }  else if is_true(&(Value::Bool(timeInForce.as_str() == Some("LIMIT_MAKER")))) || is_true(&(Value::Bool(timeInForce.as_str() == Some("MAKER")))) {
+        }  else if is_true(&(timeInForce.as_str() == Some("LIMIT_MAKER"))) || is_true(&(timeInForce.as_str() == Some("MAKER"))) {
             postOnly = Value::Bool(true);
             timeInForce = Value::Str("PO".to_string());
         }
@@ -4539,7 +4539,7 @@ impl HashkeyCore {
     m
 }));
         let mut methodName: Value = Value::Str("fetchPositions".to_string());
-        if is_true(&(Value::Bool(symbols == Value::Null))) {
+        if is_true(&(symbols == Value::Null)) {
             panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), methodName)), Value::Str("() requires a symbol argument with one single market symbol".to_string())))));
         }  else {
             let mut symbolsLength: Value = Value::Int(symbols.len() as i64);
@@ -4760,7 +4760,7 @@ impl HashkeyCore {
         if (marginMode.as_str() == Some("CROSSED")) {
             marginMode = Value::Str("CROSS".to_string());
         }
-        if is_true(&(Value::Bool(marginMode.as_str() != Some("CROSS")))) && is_true(&(Value::Bool(marginMode.as_str() != Some("ISOLATED")))) {
+        if is_true(&(marginMode.as_str() != Some("CROSS"))) && is_true(&(marginMode.as_str() != Some("ISOLATED"))) {
             panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" setMarginMode() marginMode must be either cross or isolated".to_string())))));
         }
         let mut market: Value = self.market(symbol.clone());
@@ -4839,7 +4839,7 @@ impl HashkeyCore {
             panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", add(&Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), &type_var), Value::Str("Margin() requires a params[\"side\"] argument, either \"long\" or \"short\"".to_string())))));
         }
         side = to_upper(&side);
-        if is_true(&(Value::Bool(side.as_str() != Some("LONG")))) && is_true(&(Value::Bool(side.as_str() != Some("SHORT")))) {
+        if is_true(&(side.as_str() != Some("LONG"))) && is_true(&(side.as_str() != Some("SHORT"))) {
             panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", add(&Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), &type_var), Value::Str("Margin() params[\"side\"] must be either long or short".to_string())))));
         }
         let mut amountString: Value = self.number_to_string(amount.clone());
@@ -5196,7 +5196,7 @@ impl HashkeyCore {
                 m
             });
             let mut signature: Value = Value::Null;
-            if is_true(&(Value::Bool(method.as_str() == Some("POST")))) && is_true(&(Value::Bool(is_true(&(Value::Bool(path.as_str() == Some("api/v1/spot/batchOrders")))) || is_true(&(Value::Bool(path.as_str() == Some("api/v1/futures/batchOrders"))))))) {
+            if is_true(&(method.as_str() == Some("POST"))) && (is_true(&(path.as_str() == Some("api/v1/spot/batchOrders"))) || is_true(&(path.as_str() == Some("api/v1/futures/batchOrders")))) {
                 add_element_to_object(&mut headers, &Value::Str("Content-Type".to_string()), Value::Str("application/json".to_string()));
                 body = self.json(self.safe_list_k(params.clone(), "orders", &[]));
                 signature = self.hmac(self.encode(self.custom_urlencode(&[additionalParams.clone()])), self.encode(self.secret.clone()), Value::Str("sha256".to_string()), &[]);
@@ -5272,7 +5272,7 @@ impl HashkeyCore {
             }
             }
         }
-        if is_true(&(Value::Bool(code.as_f64() != Some(200.0)))) || errorInArray {
+        if is_true(&(code.as_f64() != Some(200.0))) || errorInArray {
             let mut feedback: Value = add(&Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), &body);
             self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), responseCodeString.clone(), feedback.clone());
             self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), responseCodeString.clone(), feedback.clone());

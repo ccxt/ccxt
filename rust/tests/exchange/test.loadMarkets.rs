@@ -13,14 +13,14 @@ pub async fn testLoadMarkets(mut exchange: Value, mut skippedProperties: Value) 
     let mut method: Value = Value::Str("loadMarkets".to_string());
     let mut markets: Value = crate::live_dispatch::dispatch(&mut exchange, "load_markets", vec![]).await;
     assert!(ccxt::runtime::is_true(&(exchange.is_dictionary(get_value(&exchange, &Value::Str("markets".to_string()))))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(is_array(&get_value(&exchange, &Value::Str("symbols".to_string())))))));
+    assert!(ccxt::runtime::is_true(&((is_array(&get_value(&exchange, &Value::Str("symbols".to_string())))))));
     let mut symbolsLength: Value = Value::Int(get_value(&exchange, &Value::Str("symbols".to_string())).len() as i64);
-    assert!(ccxt::runtime::is_true(&(Value::Bool(get_value(&exchange, &Value::Str("markets".to_string())) != Value::Null))));
+    assert!(ccxt::runtime::is_true(&((get_value(&exchange, &Value::Str("markets".to_string())) != Value::Null))));
     let mut marketKeys: Value = object_keys(&get_value(&exchange, &Value::Str("markets".to_string())));
     let mut marketKeysLength: Value = Value::Int(marketKeys.len() as i64);
-    assert!(ccxt::runtime::is_true(&(Value::Bool(symbolsLength.as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN)))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(marketKeysLength.as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN)))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(symbolsLength.as_f64() == marketKeysLength.as_f64()))));
+    assert!(ccxt::runtime::is_true(&((symbolsLength.as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN)))));
+    assert!(ccxt::runtime::is_true(&((marketKeysLength.as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN)))));
+    assert!(ccxt::runtime::is_true(&((symbolsLength.as_f64() == marketKeysLength.as_f64()))));
     let mut marketValues: Value = object_values(&markets);
     {
                 let mut i: Value = Value::Int(0);
@@ -49,7 +49,7 @@ pub async fn testLoadMarkets(mut exchange: Value, mut skippedProperties: Value) 
         while { if !__for_first_1481 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1481 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(marketTypes.len() as i64).as_f64().unwrap_or(f64::NAN) } {
         let mut mType: Value = get_value(&marketTypes, &i);
         if (get_value(&get_value(&exchange, &Value::Str("has".to_string())), &mType) != Value::Null) && !is_equal(&get_value(&get_value(&exchange, &Value::Str("has".to_string())), &mType), &Value::Bool(false)) {
-            let mut skipMarketTypes: Value = Value::Bool(is_true(&(Value::Bool(in_op(&skippedProperties, &Value::Str("optionsNotLoadedByDefault".to_string()))))) && (mType.as_str() == Some("option")));
+            let mut skipMarketTypes: Value = Value::Bool((in_op(&skippedProperties, &Value::Str("optionsNotLoadedByDefault".to_string()))) && (mType.as_str() == Some("option")));
             assert!(ccxt::runtime::is_true(&(Value::Bool(is_true(&exchange.in_array(mType.clone(), collectedTypes.clone())) || is_true(&skipMarketTypes)))));
         }  else if (get_value(&get_value(&exchange, &Value::Str("has".to_string())), &mType).as_bool() == Some(false)) {
             // some exchanges might have a couple of markets of a certain type loaded even though 'has[type]' is

@@ -1707,7 +1707,7 @@ impl BitvavoCore {
         let mut subaccountId: Value = self.safe_string_k(params.clone(), "subaccountId", &[]);
         params = self.omit(params.clone(), Value::Str("subaccountId".to_string()), &[]);
         let mut direction: Value = Value::Null;
-        if is_true(&(Value::Bool(fromAccount.as_str() == Some("master")))) && is_true(&(Value::Bool(toAccount.as_str() == Some("master")))) {
+        if is_true(&(fromAccount.as_str() == Some("master"))) && is_true(&(toAccount.as_str() == Some("master"))) {
             panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" transfer() requires fromAccount and toAccount to be different (one master and one subaccount id)".to_string())))));
         }  else if (fromAccount.as_str() == Some("master")) {
             direction = Value::Str("masterToSub".to_string());
@@ -1962,8 +1962,8 @@ impl BitvavoCore {
                 m.insert("orderType".to_string(), type_var.clone());
             m
         });
-        let mut isMarketOrder: Value = Value::Bool(is_true(&(Value::Bool(type_var.as_str() == Some("market")))) || is_true(&(Value::Bool(type_var.as_str() == Some("stopLoss")))) || is_true(&(Value::Bool(type_var.as_str() == Some("takeProfit")))));
-        let mut isLimitOrder: bool = is_true(&(Value::Bool(type_var.as_str() == Some("limit")))) || is_true(&(Value::Bool(type_var.as_str() == Some("stopLossLimit")))) || is_true(&(Value::Bool(type_var.as_str() == Some("takeProfitLimit"))));
+        let mut isMarketOrder: Value = Value::Bool(is_true(&(type_var.as_str() == Some("market"))) || is_true(&(type_var.as_str() == Some("stopLoss"))) || is_true(&(type_var.as_str() == Some("takeProfit"))));
+        let mut isLimitOrder: bool = is_true(&(type_var.as_str() == Some("limit"))) || is_true(&(type_var.as_str() == Some("stopLossLimit"))) || is_true(&(type_var.as_str() == Some("takeProfitLimit")));
         let mut timeInForce: Value = self.safe_string_k(params.clone(), "timeInForce", &[]);
         let mut triggerPrice: Value = self.safe_string_n(params.clone(), Value::List(vec![Value::Str("triggerPrice".to_string()), Value::Str("stopPrice".to_string()), Value::Str("triggerAmount".to_string())]), &[]);
         let mut postOnly: Value = self.is_post_only(isMarketOrder.clone(), Value::Bool(false), &[params.clone()]);
@@ -1991,8 +1991,8 @@ impl BitvavoCore {
             add_element_to_object(&mut request, &Value::Str("price".to_string()), self.price_to_precision(symbol.clone(), price.clone()));
             add_element_to_object(&mut request, &Value::Str("amount".to_string()), self.amount_to_precision(symbol.clone(), amount.clone()));
         }
-        let mut isTakeProfit: bool = is_true(&(Value::Bool(takeProfitPrice != Value::Null))) || is_true(&(Value::Bool(type_var.as_str() == Some("takeProfit")))) || is_true(&(Value::Bool(type_var.as_str() == Some("takeProfitLimit"))));
-        let mut isStopLoss: bool = is_true(&(Value::Bool(stopLossPrice != Value::Null))) || is_true(&(Value::Bool(triggerPrice != Value::Null))) && (!isTakeProfit) || is_true(&(Value::Bool(type_var.as_str() == Some("stopLoss")))) || is_true(&(Value::Bool(type_var.as_str() == Some("stopLossLimit"))));
+        let mut isTakeProfit: bool = is_true(&(takeProfitPrice != Value::Null)) || is_true(&(type_var.as_str() == Some("takeProfit"))) || is_true(&(type_var.as_str() == Some("takeProfitLimit")));
+        let mut isStopLoss: bool = is_true(&(stopLossPrice != Value::Null)) || is_true(&(triggerPrice != Value::Null)) && (!isTakeProfit) || is_true(&(type_var.as_str() == Some("stopLoss"))) || is_true(&(type_var.as_str() == Some("stopLossLimit")));
         if isStopLoss {
             if (stopLossPrice != Value::Null) {
                 triggerPrice = stopLossPrice.clone();
@@ -2009,7 +2009,7 @@ impl BitvavoCore {
             add_element_to_object(&mut request, &Value::Str("triggerType".to_string()), Value::Str("price".to_string()));
             add_element_to_object(&mut request, &Value::Str("triggerReference".to_string()), Value::Str("lastTrade".to_string())); // 'bestBid', 'bestAsk', 'midPrice'
         }
-        if is_true(&(Value::Bool(timeInForce != Value::Null))) && is_true(&(Value::Bool(timeInForce.as_str() != Some("PO")))) {
+        if is_true(&(timeInForce != Value::Null)) && is_true(&(timeInForce.as_str() != Some("PO"))) {
             add_element_to_object(&mut request, &Value::Str("timeInForce".to_string()), timeInForce.clone());
         }
         if is_true(&postOnly) {
@@ -3029,7 +3029,7 @@ impl BitvavoCore {
             });
         }
         let mut type_var: Value = Value::Null;
-        if is_true(&(Value::Bool(in_op(&transaction, &Value::Str("success".to_string()))))) || is_true(&(Value::Bool(in_op(&transaction, &Value::Str("address".to_string()))))) {
+        if (in_op(&transaction, &Value::Str("success".to_string()))) || (in_op(&transaction, &Value::Str("address".to_string()))) {
             type_var = Value::Str("withdrawal".to_string());
         }  else {
             type_var = Value::Str("deposit".to_string());
@@ -3158,7 +3158,7 @@ impl BitvavoCore {
         let mut body = get_arg(optional_args, 4, Value::Null);
         let mut query: Value = self.omit(params.clone(), self.extract_params(path.clone()), &[]);
         let mut url: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", add(&Value::Str("/".to_string()), &self.version), Value::Str("/".to_string()))), self.implode_params(path.clone(), params.clone())));
-        let mut getOrDelete: bool = is_true(&(Value::Bool(method.as_str() == Some("GET")))) || is_true(&(Value::Bool(method.as_str() == Some("DELETE"))));
+        let mut getOrDelete: bool = is_true(&(method.as_str() == Some("GET"))) || is_true(&(method.as_str() == Some("DELETE")));
         if getOrDelete {
             if Value::Int(object_keys(&query).len() as i64).as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN) {
                 url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".to_string()), self.urlencode(query.clone(), &[])))));
@@ -3229,7 +3229,7 @@ impl BitvavoCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if is_true(&(Value::Bool(matches!(&config, Value::Dict(__d) if __d.contains_key("noMarket"))))) && !is_true(&(Value::Bool(in_op(&params, &Value::Str("market".to_string()))))) {
+        if is_true(&(matches!(&config, Value::Dict(__d) if __d.contains_key("noMarket")))) && !(in_op(&params, &Value::Str("market".to_string()))) {
             return crate::value::get_value_k(&config, "noMarket");
         }
         return self.safe_value_k(config.clone(), "cost", &[Value::Int(1)]);

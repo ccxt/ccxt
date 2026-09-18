@@ -540,7 +540,7 @@ impl BlofinCore {
         let mut market: Value = self.safe_market(&[marketId.clone()]);
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         let mut messageHash: Value = Value::Str(format!("{}{}", add(&channelName, &Value::Str(":".to_string())), symbol));
-        if !is_true(&(Value::Bool(in_op(&self.orderbooks, &symbol)))) {
+        if !(in_op(&self.orderbooks, &symbol)) {
             { let __be_tmp = self.order_book(&[]); add_element_to_object(&mut self.orderbooks, &symbol, __be_tmp); };
         }
         let mut orderbook: Value = get_value(&self.orderbooks, &symbol);
@@ -794,7 +794,7 @@ impl BlofinCore {
     m
 }));
         let mut symbolsLength: Value = Value::Int(symbolsAndTimeframes.len() as i64);
-        if (symbolsLength.as_f64() == Some(0.0)) || !is_true(&Value::Bool(is_array(&symbolsAndTimeframes.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null)))) {
+        if (symbolsLength.as_f64() == Some(0.0)) || !(is_array(&symbolsAndTimeframes.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null))) {
             panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" watchOHLCVForSymbols() requires a an array of symbols and timeframes, like  [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]".to_string())))));
         }
         if (self.markets.clone() == Value::Null) {
@@ -906,7 +906,7 @@ impl BlofinCore {
         //     }
         //
         let mut marketType: Value = Value::Str("swap".to_string()); // for now
-        if !is_true(&(Value::Bool(in_op(&self.balance, &marketType)))) {
+        if !(in_op(&self.balance, &marketType)) {
             add_element_to_object(&mut self.balance, &marketType, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -945,7 +945,7 @@ impl BlofinCore {
     m
 }));
         add_element_to_object(&mut params, &Value::Str("callerMethodName".to_string()), Value::Str("watchOrders".to_string()));
-        let mut symbolsArray: Value = (if is_true(&(Value::Bool(symbol != Value::Null))) { Value::List(vec![symbol.clone()]) } else { Value::List(vec![]) });
+        let mut symbolsArray: Value = (if is_true(&(symbol != Value::Null)) { Value::List(vec![symbol.clone()]) } else { Value::List(vec![]) });
         return self.watch_orders_for_symbols(symbolsArray.clone(), &[since.clone(), limit.clone(), params.clone()]).await;
 
     Value::Null
@@ -1301,7 +1301,7 @@ impl BlofinCore {
             let mut arg: Value = self.safe_dict_k(message.clone(), "arg", &[]);
             let mut channelName: Value = self.safe_string_k(arg.clone(), "channel", &[]);
             method = self.safe_value(methods.clone(), channelName.clone(), &[]);
-            if is_true(&(Value::Bool(method == Value::Null))) && is_true(&(get_index_of(&channelName, &Value::Str("candle".to_string())).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN))) {
+            if is_true(&(method == Value::Null)) && is_true(&(get_index_of(&channelName, &Value::Str("candle".to_string())).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN))) {
                 method = methods.as_map().and_then(|__m| __m.get("candle")).cloned().unwrap_or(Value::Null);
             }
         }

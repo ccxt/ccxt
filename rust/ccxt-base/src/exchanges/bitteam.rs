@@ -1023,7 +1023,7 @@ impl BitteamCore {
         });
         let mut blockChain: Value = self.safe_string_k(currency.clone(), "blockChain", &[]);
         // if only one blockChain
-        if is_true(&(Value::Bool(blockChain != Value::Null))) && is_true(&(Value::Bool(blockChain.as_str() != Some("")))) {
+        if is_true(&(blockChain != Value::Null)) && is_true(&(blockChain.as_str() != Some(""))) {
             fee = self.parse_number(withdrawCommissionFixed.clone(), &[]);
             add_element_to_object(&mut feesByNetworkId, &blockChain, fee.clone());
         }  else {
@@ -1980,7 +1980,7 @@ impl BitteamCore {
         //
         let mut tickers: Value = Value::List(vec![]);
         let mut rawTickers: Value = Value::List(vec![]);
-        if is_true(&Value::Bool(is_array(&response))) {
+        if (is_array(&response)) {
             rawTickers = response.clone();
         }
         {
@@ -2308,7 +2308,7 @@ impl BitteamCore {
         let mut bestAskVolume: Value = Value::Null;
         let mut bids: Value = self.safe_value_k(ticker.clone(), "bids", &[]);
         let mut asks: Value = self.safe_value_k(ticker.clone(), "asks", &[]);
-        if is_true(&(Value::Bool(bids != Value::Null))) && is_true(&(Value::Bool(is_array(&bids)))) && is_true(&(Value::Bool(asks != Value::Null))) && is_true(&(Value::Bool(is_array(&asks)))) {
+        if is_true(&(bids != Value::Null)) && (is_array(&bids)) && is_true(&(asks != Value::Null)) && (is_array(&asks)) {
             let mut bestBid: Value = self.safe_value(bids.clone(), Value::Int(0), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
@@ -3103,7 +3103,7 @@ impl BitteamCore {
         }
         if (code.as_f64() != Some(200.0)) {
             if (code.as_f64() == Some(404.0)) {
-                if is_true(&(get_index_of(&url, &Value::Str("/ccxt/order/".to_string())).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN))) && is_true(&(Value::Bool(method.as_str() == Some("GET")))) {
+                if is_true(&(get_index_of(&url, &Value::Str("/ccxt/order/".to_string())).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN))) && is_true(&(method.as_str() == Some("GET"))) {
                     let mut parts: Value = split(&url, &Value::Str("/order/".to_string()));
                     let mut orderId: Value = self.safe_string(parts.clone(), Value::Int(1), &[]);
                     panic!("{}", crate::exchange_errors::order_not_found(Value::Str(format!("{}{}", add(&Value::Str(format!("{}{}", self.id.clone(), Value::Str(" order ".to_string()))), &orderId), Value::Str(" not found".to_string())))));

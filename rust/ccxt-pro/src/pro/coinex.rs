@@ -734,7 +734,7 @@ impl CoinexCore {
     m
 }));
             }
-            if is_true(&(Value::Bool(accountType != Value::Null))) && is_true(&(Value::Bool(code != Value::Null))) {
+            if is_true(&(accountType != Value::Null)) && is_true(&(code != Value::Null)) {
                 add_element_to_object(get_value_mut(unsafe { crate::runtime::coerce_value_to_mut(&self.balance) }, &accountType), &code, account.clone());
             }
         }  else {
@@ -1919,9 +1919,9 @@ impl CoinexCore {
         //     { "id": 1, "code": 21002, "message": "Signature Incorrect" }
         //
         let mut message: Value = self.safe_string_lower(response.clone(), Value::Str("message".to_string()), &[]);
-        let mut isErrorMessage: bool = is_true(&(Value::Bool(message != Value::Null))) && is_true(&(Value::Bool(message.as_str() != Some("ok"))));
+        let mut isErrorMessage: bool = is_true(&(message != Value::Null)) && is_true(&(message.as_str() != Some("ok")));
         let mut errorCode: Value = self.safe_string_k(response.clone(), "code", &[]);
-        let mut isErrorCode: bool = is_true(&(Value::Bool(errorCode != Value::Null))) && is_true(&(Value::Bool(errorCode.as_str() != Some("0"))));
+        let mut isErrorCode: bool = is_true(&(errorCode != Value::Null)) && is_true(&(errorCode.as_str() != Some("0")));
         if isErrorCode || isErrorMessage {
             let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), body));
             self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), errorCode.clone(), feedback.clone());
@@ -1954,13 +1954,13 @@ impl CoinexCore {
         let mut status: Value = self.safe_string_lower(message.clone(), Value::Str("message".to_string()), &[]);
         let mut errorCode: Value = self.safe_string_k(message.clone(), "code", &[]);
         let mut messageHash: Value = Value::Str("authenticated".to_string());
-        if is_true(&(Value::Bool(status.as_str() == Some("ok")))) || is_true(&(Value::Bool(errorCode.as_str() == Some("0")))) {
+        if is_true(&(status.as_str() == Some("ok"))) || is_true(&(errorCode.as_str() == Some("0"))) {
             let mut future: Value = self.safe_value(get_value(&client, &Value::Str("futures".to_string())), messageHash.clone(), &[]);
             future.resolve(&[Value::Bool(true)]);
         }  else {
             let mut error = Value::from(crate::exchange_errors::authentication_error(self.json(message.clone())));
             client.reject(&[Value::from(error.clone()), messageHash.clone()]);
-            if is_true(&Value::Bool(in_op(&get_value(&client, &Value::Str("subscriptions".to_string())), &messageHash))) {
+            if (in_op(&get_value(&client, &Value::Str("subscriptions".to_string())), &messageHash)) {
                 remove(&mut get_value(&client, &Value::Str("subscriptions".to_string())), &messageHash);
             }
         }

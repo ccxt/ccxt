@@ -846,7 +846,7 @@ impl BtcmarketsCore {
         let mut currencyId: Value = self.safe_string_k(transaction.clone(), "assetName", &[]);
         let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
         let mut amount: Value = self.safe_string_k(transaction.clone(), "amount", &[]);
-        if is_true(&(Value::Bool(fee != Value::Null))) && is_true(&(Value::Bool(fee.as_str() != Some("")))) {
+        if is_true(&(fee != Value::Null)) && is_true(&(fee.as_str() != Some(""))) {
             amount = crate::precise::Precise::stringSub(&amount, &fee);
         }
         return Value::Map({
@@ -1297,7 +1297,7 @@ impl BtcmarketsCore {
         let mut timestamp: Value = self.parse8601(self.safe_string_k(trade.clone(), "timestamp", &[]));
         let mut marketId: Value = self.safe_string_k(trade.clone(), "marketId", &[]);
         market = self.safe_market(&[marketId.clone(), market.clone(), Value::Str("-".to_string())]);
-        let mut feeCurrencyCode: Value = (if is_true(&(Value::Bool(market.as_map().and_then(|__m| __m.get("quote")).cloned().unwrap_or(Value::Null).as_str() == Some("AUD")))) { market.as_map().and_then(|__m| __m.get("quote")).cloned().unwrap_or(Value::Null) } else { market.as_map().and_then(|__m| __m.get("base")).cloned().unwrap_or(Value::Null) });
+        let mut feeCurrencyCode: Value = (if is_true(&(market.as_map().and_then(|__m| __m.get("quote")).cloned().unwrap_or(Value::Null).as_str() == Some("AUD"))) { market.as_map().and_then(|__m| __m.get("quote")).cloned().unwrap_or(Value::Null) } else { market.as_map().and_then(|__m| __m.get("base")).cloned().unwrap_or(Value::Null) });
         let mut side: Value = self.safe_string_k(trade.clone(), "side", &[]);
         if (side.as_str() == Some("Bid")) {
             side = Value::Str("buy".to_string());
@@ -1402,7 +1402,7 @@ impl BtcmarketsCore {
             let mut m = indexmap::IndexMap::new();
                 m.insert("marketId".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
                 m.insert("amount".to_string(), self.amount_to_precision(symbol.clone(), amount.clone()));
-                m.insert("side".to_string(), (if is_true(&(Value::Bool(side.as_str() == Some("buy")))) { Value::Str("Bid".to_string()) } else { Value::Str("Ask".to_string()) }));
+                m.insert("side".to_string(), (if is_true(&(side.as_str() == Some("buy"))) { Value::Str("Bid".to_string()) } else { Value::Str("Ask".to_string()) }));
             m
         });
         let mut lowercaseType: Value = to_lower(&type_var);
@@ -1924,7 +1924,7 @@ impl BtcmarketsCore {
             let mut nonce: Value = to_string_val(&self.nonce());
             let mut secret: Value = self.base64_to_binary(self.secret.clone(), &[]);
             let mut auth: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", method, request)), nonce));
-            if is_true(&(Value::Bool(method.as_str() == Some("GET")))) || is_true(&(Value::Bool(method.as_str() == Some("DELETE")))) {
+            if is_true(&(method.as_str() == Some("GET"))) || is_true(&(method.as_str() == Some("DELETE"))) {
                 if Value::Int(object_keys(&query).len() as i64).as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN) {
                     request = Value::Str(format!("{}{}", request, Value::Str(format!("{}{}", Value::Str("?".to_string()), self.urlencode(query.clone(), &[])))));
                 }

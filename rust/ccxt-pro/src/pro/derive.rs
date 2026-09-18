@@ -411,9 +411,9 @@ impl DeriveCore {
         let mut market: Value = self.safe_market(&[marketId.clone()]);
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         let mut topic: Value = self.safe_string_k(params.clone(), "channel", &[]);
-        if !is_true(&(Value::Bool(in_op(&self.orderbooks, &symbol)))) {
+        if !(in_op(&self.orderbooks, &symbol)) {
             let mut defaultLimit: Value = self.safe_integer_k(self.options.clone(), "watchOrderBookLimit", &[Value::Int(1000)]);
-            let mut subscription: Value = (if is_true(&(Value::Bool(topic == Value::Null))) { Value::Null } else { get_value(&get_value(&client, &Value::Str("subscriptions".to_string())), &topic) });
+            let mut subscription: Value = (if is_true(&(topic == Value::Null)) { Value::Null } else { get_value(&get_value(&client, &Value::Str("subscriptions".to_string())), &topic) });
             let mut limit: Value = self.safe_integer_k(subscription.clone(), "limit", &[defaultLimit.clone()]);
             { let __be_tmp = self.order_book(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -541,7 +541,7 @@ impl DeriveCore {
         })]);
         let mut topic: Value = self.safe_string_k(params.clone(), "channel", &[]);
         let mut ticker: Value = Value::Null;
-        if (topic != Value::Null) && is_true(&Value::Bool(starts_with(&topic, &Value::Str("ticker_slim".to_string())))) {
+        if (topic != Value::Null) && (starts_with(&topic, &Value::Str("ticker_slim".to_string()))) {
             // the slim payload uses short keys and does not carry the instrument name,
             // so the symbol is recovered from the channel: ticker_slim.BTC-PERP.100
             let mut parts: Value = split(&topic, &Value::Str(".".to_string()));
@@ -690,10 +690,10 @@ impl DeriveCore {
         let mut marketId: Value = self.safe_string(parsedTopic.clone(), Value::Int(1), &[]);
         let mut market: Value = self.safe_market(&[marketId.clone()]);
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
-        if is_true(&Value::Bool(in_op(&self.orderbooks, &symbol))) {
+        if (in_op(&self.orderbooks, &symbol)) {
             remove(&mut self.orderbooks, &symbol);
         }
-        if is_true(&Value::Bool(in_op(&get_value(&client, &Value::Str("subscriptions".to_string())), &topic))) {
+        if (in_op(&get_value(&client, &Value::Str("subscriptions".to_string())), &topic)) {
             remove(&mut get_value(&client, &Value::Str("subscriptions".to_string())), &topic);
         }
         let mut error = Value::from(crate::exchange_errors::unsubscribe_error(Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" orderbook ".to_string()))), symbol))));
@@ -706,10 +706,10 @@ impl DeriveCore {
         let mut marketId: Value = self.safe_string(parsedTopic.clone(), Value::Int(1), &[]);
         let mut market: Value = self.safe_market(&[marketId.clone()]);
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
-        if is_true(&Value::Bool(in_op(&self.orderbooks, &symbol))) {
+        if (in_op(&self.orderbooks, &symbol)) {
             remove(&mut self.trades, &symbol);
         }
-        if is_true(&Value::Bool(in_op(&get_value(&client, &Value::Str("subscriptions".to_string())), &topic))) {
+        if (in_op(&get_value(&client, &Value::Str("subscriptions".to_string())), &topic)) {
             remove(&mut get_value(&client, &Value::Str("subscriptions".to_string())), &topic);
         }
         let mut error = Value::from(crate::exchange_errors::unsubscribe_error(Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" trades ".to_string()))), symbol))));
@@ -1013,7 +1013,7 @@ impl DeriveCore {
                     let mut m = indexmap::IndexMap::new();
                     m
                 })]);
-                let mut order: Value = (if is_true(&(Value::Bool(orderId == Value::Null))) { Value::Null } else { self.safe_value(orders.clone(), orderId.clone(), &[]) });
+                let mut order: Value = (if is_true(&(orderId == Value::Null)) { Value::Null } else { self.safe_value(orders.clone(), orderId.clone(), &[]) });
                 if (order != Value::Null) {
                     let mut fee: Value = self.safe_value_k(order.clone(), "fee", &[]);
                     if (fee != Value::Null) {
@@ -1125,7 +1125,7 @@ impl DeriveCore {
         //     error: { code: -32600, message: 'Invalid Request' }
         // }
         //
-        if !is_true(&(Value::Bool(in_op(&message, &Value::Str("error".to_string()))))) {
+        if !(in_op(&message, &Value::Str("error".to_string()))) {
             return Value::Bool(false);
         }
         let mut errorMessage: Value = self.safe_dict_k(message.clone(), "error", &[]);
@@ -1142,7 +1142,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             if is_instance(&error, &Value::Str("AuthenticationError".to_string())) {
                 let mut messageHash: Value = Value::Str("authenticated".to_string());
                 client.reject(&[Value::from(error.clone()), messageHash.clone()]);
-                if is_true(&Value::Bool(in_op(&get_value(&client, &Value::Str("subscriptions".to_string())), &messageHash))) {
+                if (in_op(&get_value(&client, &Value::Str("subscriptions".to_string())), &messageHash)) {
                     remove(&mut get_value(&client, &Value::Str("subscriptions".to_string())), &messageHash);
                 }
             }  else {
@@ -1185,22 +1185,22 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 }
             }
         }
-        let mut method: Value = (if is_true(&(Value::Bool(event == Value::Null))) { Value::Null } else { self.safe_value(methods.clone(), event.clone(), &[]) });
+        let mut method: Value = (if is_true(&(event == Value::Null)) { Value::Null } else { self.safe_value(methods.clone(), event.clone(), &[]) });
         if (method != Value::Null) {
             self.dispatch_ws_handler(&method, &[client.clone(), message.clone()]);
             return;
         }
-        if is_true(&Value::Bool(in_op(&message, &Value::Str("id".to_string())))) {
+        if (in_op(&message, &Value::Str("id".to_string()))) {
             let mut id: Value = self.safe_string_k(message.clone(), "id", &[]);
             let mut subscriptionsById: Value = self.index_by(get_value(&client, &Value::Str("subscriptions".to_string())), Value::Str("id".to_string()));
-            let mut subscription: Value = (if is_true(&(Value::Bool(id == Value::Null))) { Value::Map({
+            let mut subscription: Value = (if is_true(&(id == Value::Null)) { Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }) } else { self.safe_value(subscriptionsById.clone(), id.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]) });
-            if is_true(&Value::Bool(in_op(&subscription, &Value::Str("method".to_string())))) {
+            if (in_op(&subscription, &Value::Str("method".to_string()))) {
                 if (crate::value::get_value_k(&subscription, "method").as_str() == Some("public/login")) {
                     self.handle_auth(client.clone(), message.clone());
                 }  else if (crate::value::get_value_k(&subscription, "method").as_str() == Some("unsubscribe")) {
@@ -1227,7 +1227,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             let mut error = Value::from(crate::exchange_errors::authentication_error(self.json(message.clone())));
             client.reject(&[Value::from(error.clone()), messageHash.clone()]);
             // allows further authentication attempts
-            if is_true(&Value::Bool(in_op(&get_value(&client, &Value::Str("subscriptions".to_string())), &messageHash))) {
+            if (in_op(&get_value(&client, &Value::Str("subscriptions".to_string())), &messageHash)) {
                 remove(&mut get_value(&client, &Value::Str("subscriptions".to_string())), &Value::Str("authenticated".to_string()));
             }
         }

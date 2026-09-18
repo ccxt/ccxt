@@ -301,7 +301,7 @@ impl UpbitCore {
         }));
         let mut client: Value = self.client(&[url.clone()]);
         let mut subscriptionsKey: Value = Value::Str("upbitPublicSubscriptions".to_string());
-        if !is_true(&(Value::Bool(in_op(&get_value(&client, &Value::Str("subscriptions".to_string())), &subscriptionsKey)))) {
+        if !(in_op(&get_value(&client, &Value::Str("subscriptions".to_string())), &subscriptionsKey)) {
             add_element_to_object(&mut get_value(&client, &Value::Str("subscriptions".to_string())), &subscriptionsKey, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -319,7 +319,7 @@ impl UpbitCore {
             let mut symbol: Value = get_value(&symbols, &i);
             let mut messageHash: Value = Value::Str(format!("{}{}", add(&channel, &Value::Str(":".to_string())), symbol));
             append_to_array(&mut messageHashes, messageHash.clone());
-            if !is_true(&(Value::Bool(in_op(&subscriptions, &messageHash)))) {
+            if !(in_op(&subscriptions, &messageHash)) {
                 add_element_to_object(&mut subscriptions, &messageHash, Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("type".to_string(), channel.clone());
@@ -736,7 +736,7 @@ impl UpbitCore {
         let mut client: Value = self.client(&[url.clone()]);
         // Track private channel subscriptions to support multiple concurrent watches
         let mut subscriptionsKey: Value = Value::Str("upbitPrivateSubscriptions".to_string());
-        if !is_true(&(Value::Bool(in_op(&get_value(&client, &Value::Str("subscriptions".to_string())), &subscriptionsKey)))) {
+        if !(in_op(&get_value(&client, &Value::Str("subscriptions".to_string())), &subscriptionsKey)) {
             add_element_to_object(&mut get_value(&client, &Value::Str("subscriptions".to_string())), &subscriptionsKey, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -747,7 +747,7 @@ impl UpbitCore {
             channelKey = add(&add(&channel, &Value::Str(":".to_string())), &symbol);
         }
         let mut subscriptions: Value = get_value(&get_value(&client, &Value::Str("subscriptions".to_string())), &subscriptionsKey);
-        let mut isNewChannel: bool = !is_true(&(Value::Bool(in_op(&subscriptions, &channelKey))));
+        let mut isNewChannel: bool = !(in_op(&subscriptions, &channelKey));
         if isNewChannel {
             add_element_to_object(&mut subscriptions, &channelKey, request.clone());
         }
@@ -1016,14 +1016,14 @@ impl UpbitCore {
             self.orders = ArrayCacheBySymbolById::new(limit.clone());
         }
         let mut cachedOrders: Value = self.orders.clone();
-        let mut orders: Value = (if is_true(&(Value::Bool(symbol == Value::Null))) { Value::Map({
+        let mut orders: Value = (if is_true(&(symbol == Value::Null)) { Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }) } else { self.safe_value(cachedOrders.hashmap(), symbol.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]) });
-        let mut order: Value = (if is_true(&(Value::Bool(orderId == Value::Null))) { Value::Null } else { self.safe_value(orders.clone(), orderId.clone(), &[]) });
+        let mut order: Value = (if is_true(&(orderId == Value::Null)) { Value::Null } else { self.safe_value(orders.clone(), orderId.clone(), &[]) });
         if (order != Value::Null) {
             let mut fee: Value = self.safe_value_k(order.clone(), "fee", &[]);
             if (fee != Value::Null) {
@@ -1123,7 +1123,7 @@ impl UpbitCore {
             m
         });
         let mut methodName: Value = self.safe_string_k(message.clone(), "type", &[]);
-        let mut method: Value = (if is_true(&(Value::Bool(methodName == Value::Null))) { Value::Null } else { self.safe_value(methods.clone(), methodName.clone(), &[]) });
+        let mut method: Value = (if is_true(&(methodName == Value::Null)) { Value::Null } else { self.safe_value(methods.clone(), methodName.clone(), &[]) });
         if (method != Value::Null) {
             self.dispatch_ws_handler(&method, &[client.clone(), message.clone()]);
         }

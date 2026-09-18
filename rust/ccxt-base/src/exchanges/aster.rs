@@ -1812,7 +1812,7 @@ impl AsterCore {
     pub fn is_linear(&self, mut type_var: Value, optional_args: &[Value]) -> Value {
         let mut subType = get_arg(optional_args, 0, Value::Null);
         if (subType == Value::Null) {
-            return Value::Bool(is_true(&(Value::Bool(type_var.as_str() == Some("future")))) || is_true(&(Value::Bool(type_var.as_str() == Some("swap")))));
+            return Value::Bool(is_true(&(type_var.as_str() == Some("future"))) || is_true(&(type_var.as_str() == Some("swap"))));
         }  else {
             return Value::Bool(subType.as_str() == Some("linear"));
         }
@@ -2072,7 +2072,7 @@ impl AsterCore {
         if (pricePrecision == Value::Null) {
             pricePrecision = self.parse_number(self.parse_precision(&[self.safe_string_k(market.clone(), "pricePrecision", &[])]), &[]);
         }
-        let mut amountPrecision: Value = (if is_true(&(Value::Bool(filterLotSize != Value::Null))) { self.safe_number_k(filterLotSize.clone(), "stepSize", &[]) } else { self.parse_number(self.parse_precision(&[self.safe_string_k(market.clone(), "quantityPrecision", &[])]), &[]) });
+        let mut amountPrecision: Value = (if is_true(&(filterLotSize != Value::Null)) { self.safe_number_k(filterLotSize.clone(), "stepSize", &[]) } else { self.parse_number(self.parse_precision(&[self.safe_string_k(market.clone(), "quantityPrecision", &[])]), &[]) });
         return self.safe_market_structure(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id.clone());
@@ -2306,7 +2306,7 @@ impl AsterCore {
         //
         let mut id: Value = self.safe_string2(trade.clone(), Value::Str("id".to_string()), Value::Str("a".to_string()), &[]);
         let mut marketId: Value = self.safe_string_k(trade.clone(), "symbol", &[]);
-        let mut marketType: Value = (if is_true(&(Value::Bool(in_op(&trade, &Value::Str("positionSide".to_string()))))) { Value::Str("swap".to_string()) } else { Value::Str("spot".to_string()) });
+        let mut marketType: Value = (if (in_op(&trade, &Value::Str("positionSide".to_string()))) { Value::Str("swap".to_string()) } else { Value::Str("spot".to_string()) });
         market = self.safe_market(&[marketId.clone(), market.clone(), Value::Null, marketType.clone()]);
         let mut currencyId: Value = self.safe_string2(trade.clone(), Value::Str("commissionAsset".to_string()), Value::Str("marginAsset".to_string()), &[]);
         let mut currencyCode: Value = self.safe_currency_code(currencyId.clone(), &[]);
@@ -2399,7 +2399,7 @@ impl AsterCore {
             request = self.handle_until_option(Value::Str("endTime".to_string()), request.clone(), params.clone(), &[]);
         }
         // use historical endpoint for targeted requests
-        if is_true(&Value::Bool(in_op(&request, &Value::Str("startTime".to_string())))) {
+        if (in_op(&request, &Value::Str("startTime".to_string()))) {
             if (market.as_map().and_then(|__m| __m.get("swap")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
                 let __ws_arg_4 = self.extend(request.clone(), &[params.clone()]);
                 response = self.fapi_public_get_v3_agg_trades(&[__ws_arg_4]).await;
@@ -2593,9 +2593,9 @@ impl AsterCore {
         let mut isTickerResponse: bool = in_op(&ticker, &Value::Str("priceChange".to_string()));
         let mut marketType: Value = Value::Null;
         if isTickerResponse {
-            marketType = (if is_true(&(Value::Bool(in_op(&ticker, &Value::Str("baseAsset".to_string()))))) { Value::Str("spot".to_string()) } else { Value::Str("swap".to_string()) });
+            marketType = (if (in_op(&ticker, &Value::Str("baseAsset".to_string()))) { Value::Str("spot".to_string()) } else { Value::Str("swap".to_string()) });
         }  else {
-            marketType = (if is_true(&(Value::Bool(in_op(&ticker, &Value::Str("lastUpdateId".to_string()))))) { Value::Str("swap".to_string()) } else { Value::Str("spot".to_string()) });
+            marketType = (if (in_op(&ticker, &Value::Str("lastUpdateId".to_string()))) { Value::Str("swap".to_string()) } else { Value::Str("spot".to_string()) });
         }
         let mut marketId: Value = self.safe_string_k(ticker.clone(), "symbol", &[]);
         market = self.safe_market(&[marketId.clone(), market.clone(), Value::Null, marketType.clone()]);
@@ -3126,7 +3126,7 @@ impl AsterCore {
         if (marginMode.as_str() == Some("CROSS")) {
             marginMode = Value::Str("CROSSED".to_string());
         }
-        if is_true(&(Value::Bool(marginMode.as_str() != Some("ISOLATED")))) && is_true(&(Value::Bool(marginMode.as_str() != Some("CROSSED")))) {
+        if is_true(&(marginMode.as_str() != Some("ISOLATED"))) && is_true(&(marginMode.as_str() != Some("CROSSED"))) {
             panic!("{}", crate::exchange_errors::bad_request(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" marginMode must be either isolated or cross".to_string())))));
         }
         self.load_markets_and_sign_in().await;
@@ -3341,7 +3341,7 @@ impl AsterCore {
         //
         let mut info: Value = order.clone();
         let mut positionSide: Value = self.safe_string_k(order.clone(), "positionSide", &[]);
-        let mut defaultType: Value = (if is_true(&(Value::Bool(positionSide != Value::Null))) { Value::Str("swap".to_string()) } else { Value::Str("spot".to_string()) });
+        let mut defaultType: Value = (if is_true(&(positionSide != Value::Null)) { Value::Str("swap".to_string()) } else { Value::Str("spot".to_string()) });
         let mut marketId: Value = self.safe_string_k(order.clone(), "symbol", &[]);
         market = self.safe_market(&[marketId.clone(), market.clone(), Value::Null, defaultType.clone()]);
         let mut side: Value = self.safe_string_lower(order.clone(), Value::Str("side".to_string()), &[]);
@@ -3798,11 +3798,11 @@ impl AsterCore {
             timeInForceIsRequired = true;
             quantityIsRequired = true;
             priceIsRequired = true;
-        }  else if is_true(&(Value::Bool(uppercaseType.as_str() == Some("STOP")))) || is_true(&(Value::Bool(uppercaseType.as_str() == Some("TAKE_PROFIT")))) {
+        }  else if is_true(&(uppercaseType.as_str() == Some("STOP"))) || is_true(&(uppercaseType.as_str() == Some("TAKE_PROFIT"))) {
             quantityIsRequired = true;
             priceIsRequired = true;
             triggerPriceIsRequired = true;
-        }  else if is_true(&(Value::Bool(uppercaseType.as_str() == Some("STOP_MARKET")))) || is_true(&(Value::Bool(uppercaseType.as_str() == Some("TAKE_PROFIT_MARKET")))) {
+        }  else if is_true(&(uppercaseType.as_str() == Some("STOP_MARKET"))) || is_true(&(uppercaseType.as_str() == Some("TAKE_PROFIT_MARKET"))) {
             if (closePosition.as_bool() != Some(true)) {
                 quantityIsRequired = true;
             }
@@ -3842,13 +3842,13 @@ impl AsterCore {
                 add_element_to_object(&mut request, &Value::Str("stopPrice".to_string()), self.price_to_precision(symbol.clone(), stopPrice.clone()));
             }
         }
-        if timeInForceIsRequired && is_true(&(Value::Bool(self.safe_string_k(params.clone(), "timeInForce", &[]) == Value::Null))) && is_true(&(Value::Bool(self.safe_string_k(request.clone(), "timeInForce", &[]) == Value::Null))) {
+        if timeInForceIsRequired && is_true(&(self.safe_string_k(params.clone(), "timeInForce", &[]) == Value::Null)) && is_true(&(self.safe_string_k(request.clone(), "timeInForce", &[]) == Value::Null)) {
             let mut tif: Value = Value::Null;
             { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("createOrder".to_string()), Value::Str("timeInForce".to_string()), &[]); tif = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
             add_element_to_object(&mut request, &Value::Str("timeInForce".to_string()), tif.clone());
         }
         let mut requestParams: Value = self.omit(params.clone(), Value::List(vec![Value::Str("newClientOrderId".to_string()), Value::Str("clientOrderId".to_string()), Value::Str("stopPrice".to_string()), Value::Str("triggerPrice".to_string()), Value::Str("trailingTriggerPrice".to_string()), Value::Str("trailingPercent".to_string()), Value::Str("trailingDelta".to_string()), Value::Str("stopPrice".to_string()), Value::Str("stopLossPrice".to_string()), Value::Str("takeProfitPrice".to_string())]), &[]);
-        if is_true(&(Value::Bool(self.safe_bool_k(self.options.clone(), "builderFee", &[]).as_bool() == Some(true)))) && is_true(&(Value::Bool(market.as_map().and_then(|__m| __m.get("swap")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)))) {
+        if is_true(&(self.safe_bool_k(self.options.clone(), "builderFee", &[]).as_bool() == Some(true))) && is_true(&(market.as_map().and_then(|__m| __m.get("swap")).cloned().unwrap_or(Value::Null).as_bool() == Some(true))) {
             add_element_to_object(&mut request, &Value::Str("builder".to_string()), self.safe_string_k(self.options.clone(), "builder", &[]));
             add_element_to_object(&mut request, &Value::Str("feeRate".to_string()), self.safe_string_k(self.options.clone(), "builderRate", &[]));
         }
@@ -4083,7 +4083,7 @@ impl AsterCore {
         let mut longLeverage: Value = Value::Null;
         let mut shortLeverage: Value = Value::Null;
         let mut leverageValue: Value = self.safe_integer_k(leverage.clone(), "leverage", &[]);
-        if is_true(&(Value::Bool(side == Value::Null))) || is_true(&(Value::Bool(side.as_str() == Some("both")))) {
+        if is_true(&(side == Value::Null)) || is_true(&(side.as_str() == Some("both"))) {
             longLeverage = leverageValue.clone();
             shortLeverage = leverageValue.clone();
         }  else if (side.as_str() == Some("long")) {
@@ -4195,7 +4195,7 @@ impl AsterCore {
             m
         });
         if (type_var != Value::Null) {
-            add_element_to_object(&mut request, &Value::Str("type".to_string()), (if is_true(&(Value::Bool(type_var.as_str() == Some("add")))) { Value::Int(1) } else { Value::Int(2) }));
+            add_element_to_object(&mut request, &Value::Str("type".to_string()), (if is_true(&(type_var.as_str() == Some("add"))) { Value::Int(1) } else { Value::Int(2) }));
         }
         if (limit != Value::Null) {
             add_element_to_object(&mut request, &Value::Str("limit".to_string()), crate::runtime::Math::min(&limit, &Value::Int(1000)));
@@ -4256,7 +4256,7 @@ impl AsterCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), data.clone());
         m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null));
-        m.insert("type".to_string(), (if is_true(&(Value::Bool(rawType.as_f64() == Some(1.0)))) { Value::Str("add".to_string()) } else { Value::Str("reduce".to_string()) }));
+        m.insert("type".to_string(), (if is_true(&(rawType.as_f64() == Some(1.0))) { Value::Str("add".to_string()) } else { Value::Str("reduce".to_string()) }));
         m.insert("marginMode".to_string(), Value::Str("isolated".to_string()));
         m.insert("amount".to_string(), self.safe_number_k(data.clone(), "amount", &[]));
         m.insert("code".to_string(), self.safe_string_k(data.clone(), "asset", &[]));
@@ -4606,7 +4606,7 @@ impl AsterCore {
 })]);
             let mut basePrecisionValue: Value = self.safe_string_k(precision.clone(), "base", &[]);
             let mut quotePrecisionValue: Value = self.safe_string2(precision.clone(), Value::Str("quote".to_string()), Value::Str("price".to_string()), &[]);
-            let mut precisionIsUndefined: bool = is_true(&(Value::Bool(basePrecisionValue == Value::Null))) && is_true(&(Value::Bool(quotePrecisionValue == Value::Null)));
+            let mut precisionIsUndefined: bool = is_true(&(basePrecisionValue == Value::Null)) && is_true(&(quotePrecisionValue == Value::Null));
             if !precisionIsUndefined {
                 if linear {
                     // walletBalance = (liquidationPrice * (±1 + mmp) ± entryPrice) * contracts
@@ -4645,7 +4645,7 @@ impl AsterCore {
         }  else {
             collateralString = self.safe_string_k(position.clone(), "isolatedMargin", &[]);
         }
-        collateralString = (if is_true(&(Value::Bool(collateralString == Value::Null))) { Value::Str("0".to_string()) } else { collateralString.clone() });
+        collateralString = (if is_true(&(collateralString == Value::Null)) { Value::Str("0".to_string()) } else { collateralString.clone() });
         let mut collateral: Value = self.parse_number(collateralString.clone(), &[]);
         let mut markPrice: Value = self.parse_number(self.omit_zero(self.safe_string_k(position.clone(), "markPrice", &[])), &[]);
         let mut timestamp: Value = self.safe_integer_k(position.clone(), "updateTime", &[]);
@@ -4733,7 +4733,7 @@ impl AsterCore {
     m
 }));
         if (symbols != Value::Null) {
-            if !is_true(&Value::Bool(is_array(&symbols))) {
+            if !(is_array(&symbols)) {
                 panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchPositionsRisk() requires an array argument for symbols".to_string())))));
             }
         }
@@ -4858,13 +4858,13 @@ impl AsterCore {
             let mut position: Value = get_value(&positions, &i);
             let mut marketId: Value = self.safe_string_k(position.clone(), "symbol", &[]);
             let mut market: Value = self.safe_market(&[marketId.clone(), Value::Null, Value::Null, Value::Str("contract".to_string())]);
-            let mut code: Value = (if is_true(&(Value::Bool(market.as_map().and_then(|__m| __m.get("linear")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)))) { market.as_map().and_then(|__m| __m.get("quote")).cloned().unwrap_or(Value::Null) } else { market.as_map().and_then(|__m| __m.get("base")).cloned().unwrap_or(Value::Null) });
+            let mut code: Value = (if is_true(&(market.as_map().and_then(|__m| __m.get("linear")).cloned().unwrap_or(Value::Null).as_bool() == Some(true))) { market.as_map().and_then(|__m| __m.get("quote")).cloned().unwrap_or(Value::Null) } else { market.as_map().and_then(|__m| __m.get("base")).cloned().unwrap_or(Value::Null) });
             let mut maintenanceMargin: Value = self.safe_string_k(position.clone(), "maintMargin", &[]);
             // check for maintenance margin so empty positions are not returned
-            let mut isPositionOpen: bool = is_true(&(Value::Bool(maintenanceMargin.as_str() != Some("0")))) && is_true(&(Value::Bool(maintenanceMargin.as_str() != Some("0.00000000"))));
+            let mut isPositionOpen: bool = is_true(&(maintenanceMargin.as_str() != Some("0"))) && is_true(&(maintenanceMargin.as_str() != Some("0.00000000")));
             if !is_true(&filterClosed) || isPositionOpen {
                 // sometimes not all the codes are correctly returned...
-                if is_true(&Value::Bool(in_op(&balances, &code))) {
+                if (in_op(&balances, &code)) {
                     let __ws_arg_44 = self.extend(position.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("crossMargin".to_string(), crate::value::get_value_k(&get_value(&balances, &code), "crossMargin"));
@@ -4888,7 +4888,7 @@ impl AsterCore {
         market = self.safe_market(&[marketId.clone(), market.clone(), Value::Null, Value::Str("contract".to_string())]);
         let mut symbol: Value = self.safe_string_k(market.clone(), "symbol", &[]);
         let mut leverageString: Value = self.safe_string_k(position.clone(), "leverage", &[]);
-        let mut leverage: Value = (if is_true(&(Value::Bool(leverageString != Value::Null))) { crate::runtime::parse_int(&leverageString) } else { Value::Null });
+        let mut leverage: Value = (if is_true(&(leverageString != Value::Null)) { crate::runtime::parse_int(&leverageString) } else { Value::Null });
         let mut initialMarginString: Value = self.safe_string_k(position.clone(), "initialMargin", &[]);
         let mut initialMargin: Value = self.parse_number(initialMarginString.clone(), &[]);
         let mut initialMarginPercentageString: Value = Value::Null;
@@ -5081,7 +5081,7 @@ impl AsterCore {
     m
 }));
         if (symbols != Value::Null) {
-            if !is_true(&Value::Bool(is_array(&symbols))) {
+            if !(is_array(&symbols)) {
                 panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchPositions() requires an array argument for symbols".to_string())))));
             }
         }
@@ -5107,7 +5107,7 @@ impl AsterCore {
         // by default cache the leverage bracket
         // it contains useful stuff like the maintenance margin and initial margin for positions
         let mut leverageBrackets: Value = self.safe_dict_k(self.options.clone(), "leverageBrackets", &[]);
-        if is_true(&(Value::Bool(leverageBrackets == Value::Null))) || is_true(&(reload)) {
+        if is_true(&(leverageBrackets == Value::Null)) || is_true(&(reload)) {
             let mut response: Value = self.fapi_private_get_v3_leverage_bracket(&[params.clone()]).await;
             //
             //    [
@@ -5290,7 +5290,7 @@ impl AsterCore {
 })]);
         let mut network: Value = self.safe_string_upper(params.clone(), Value::Str("network".to_string()), &[]);
         network = self.safe_string(networks.clone(), network.clone(), &[network.clone()]);
-        if is_true(&(Value::Bool(chainId == Value::Null))) && is_true(&(Value::Bool(network != Value::Null))) {
+        if is_true(&(chainId == Value::Null)) && is_true(&(network != Value::Null)) {
             let mut chainIds: Value = self.safe_dict_k(self.options.clone(), "networksToChainId", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -5476,7 +5476,7 @@ impl AsterCore {
             let mut walletAddress: Value = self.safe_string_k(self.options.clone(), "cachedWalletAddress", &[]);
             let mut privateKeyHash: Value = self.hash(self.encode(self.privateKey.clone()), Value::Str("keccak".to_string()), &[Value::Str("hex".to_string())]);
             let mut cachedPrivateKeyHash: Value = self.safe_string_k(self.options.clone(), "privateKeyHashForCachedWalletAddress", &[]);
-            if is_true(&(Value::Bool(walletAddress == Value::Null))) || (!is_equal(&cachedPrivateKeyHash, &privateKeyHash)) {
+            if is_true(&(walletAddress == Value::Null)) || (!is_equal(&cachedPrivateKeyHash, &privateKeyHash)) {
                 walletAddress = self.eth_get_address_from_private_key(self.privateKey.clone(), &[]);
                 add_element_to_object(&mut self.options.clone(), &Value::Str("cachedWalletAddress".to_string()), walletAddress.clone());
                 add_element_to_object(&mut self.options.clone(), &Value::Str("privateKeyHashForCachedWalletAddress".to_string()), privateKeyHash.clone());
@@ -5600,7 +5600,7 @@ impl AsterCore {
             let mut key: Value = get_value(&keys, &i);
             let mut value: Value = get_value(&values, &key);
             let mut value: Value = get_value(&values, &key);
-            let mut isObj: bool = is_true(&Value::Bool(is_array(&value))) || is_true(&self.is_dictionary(value.clone()));
+            let mut isObj: bool = (is_array(&value)) || is_true(&self.is_dictionary(value.clone()));
             let mut valueJsonified: Value = (if isObj { self.json(value.clone()) } else { to_string_val(&value) });
             let mut encoded: Value = self.encode_uri_component(valueJsonified.clone());
             encodedString = Value::Str(format!("{}{}", encodedString, Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", key, Value::Str("=".to_string()))), encoded)), Value::Str("&".to_string())))));

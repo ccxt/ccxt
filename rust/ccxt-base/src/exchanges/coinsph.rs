@@ -1140,7 +1140,7 @@ impl CoinsphCore {
         m.insert("id".to_string(), id.clone());
         m.insert("name".to_string(), self.safe_string_k(rawCurrency.clone(), "name", &[]));
         m.insert("code".to_string(), code.clone());
-        m.insert("type".to_string(), (if is_true(&(Value::Bool(isFiat.as_bool() == Some(true)))) { Value::Str("fiat".to_string()) } else { Value::Str("crypto".to_string()) }));
+        m.insert("type".to_string(), (if is_true(&(isFiat.as_bool() == Some(true))) { Value::Str("fiat".to_string()) } else { Value::Str("crypto".to_string()) }));
         m.insert("precision".to_string(), self.parse_number(self.parse_precision(&[self.safe_string_k(rawCurrency.clone(), "transferPrecision", &[])]), &[]));
         m.insert("info".to_string(), rawCurrency.clone());
         m.insert("active".to_string(), Value::Null);
@@ -1164,11 +1164,11 @@ impl CoinsphCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if is_true(&(Value::Bool(matches!(&config, Value::Dict(__d) if __d.contains_key("noSymbol"))))) && !is_true(&(Value::Bool(in_op(&params, &Value::Str("symbol".to_string()))))) {
+        if is_true(&(matches!(&config, Value::Dict(__d) if __d.contains_key("noSymbol")))) && !(in_op(&params, &Value::Str("symbol".to_string()))) {
             return crate::value::get_value_k(&config, "noSymbol");
-        }  else if is_true(&(Value::Bool(matches!(&config, Value::Dict(__d) if __d.contains_key("noSymbolAndNoSymbols"))))) && !is_true(&(Value::Bool(in_op(&params, &Value::Str("symbol".to_string()))))) && !is_true(&(Value::Bool(in_op(&params, &Value::Str("symbols".to_string()))))) {
+        }  else if is_true(&(matches!(&config, Value::Dict(__d) if __d.contains_key("noSymbolAndNoSymbols")))) && !(in_op(&params, &Value::Str("symbol".to_string()))) && !(in_op(&params, &Value::Str("symbols".to_string()))) {
             return crate::value::get_value_k(&config, "noSymbolAndNoSymbols");
-        }  else if is_true(&(Value::Bool(matches!(&config, Value::Dict(__d) if __d.contains_key("byNumberOfSymbols"))))) && is_true(&(Value::Bool(in_op(&params, &Value::Str("symbols".to_string()))))) {
+        }  else if is_true(&(matches!(&config, Value::Dict(__d) if __d.contains_key("byNumberOfSymbols")))) && (in_op(&params, &Value::Str("symbols".to_string()))) {
             let mut symbols: Value = crate::value::get_value_k(&params, "symbols");
             let mut symbolsAmount: Value = get_array_length(&symbols);
             let mut byNumberOfSymbols: Value = self.safe_list_k(config.clone(), "byNumberOfSymbols", &[Value::List(vec![])]);
@@ -1183,7 +1183,7 @@ impl CoinsphCore {
                 }
             }
             }
-        }  else if is_true(&(Value::Bool(matches!(&config, Value::Dict(__d) if __d.contains_key("byLimit"))))) && is_true(&(Value::Bool(in_op(&params, &Value::Str("limit".to_string()))))) {
+        }  else if is_true(&(matches!(&config, Value::Dict(__d) if __d.contains_key("byLimit")))) && (in_op(&params, &Value::Str("limit".to_string()))) {
             let mut limit: Value = crate::value::get_value_k(&params, "limit");
             let mut byLimit: Value = self.safe_list_k(config.clone(), "byLimit", &[Value::List(vec![])]);
             {
@@ -1937,12 +1937,12 @@ impl CoinsphCore {
         let mut isBuyer: Value = self.safe_bool2(trade.clone(), Value::Str("isBuyer".to_string()), Value::Str("isBuyerMaker".to_string()), &[]);
         let mut side: Value = Value::Null;
         if (isBuyer != Value::Null) {
-            side = (if is_true(&(Value::Bool(isBuyer.as_bool() == Some(true)))) { Value::Str("buy".to_string()) } else { Value::Str("sell".to_string()) });
+            side = (if is_true(&(isBuyer.as_bool() == Some(true))) { Value::Str("buy".to_string()) } else { Value::Str("sell".to_string()) });
         }
         let mut isMaker: Value = self.safe_string_k(trade.clone(), "isMaker", &[]);
         let mut takerOrMaker: Value = Value::Null;
         if (isMaker != Value::Null) {
-            takerOrMaker = (if is_true(&(Value::Bool(isMaker.as_str() == Some("true")))) { Value::Str("maker".to_string()) } else { Value::Str("taker".to_string()) });
+            takerOrMaker = (if is_true(&(isMaker.as_str() == Some("true"))) { Value::Str("maker".to_string()) } else { Value::Str("taker".to_string()) });
         }
         let mut costString: Value = Value::Null;
         if (orderId != Value::Null) {
@@ -2683,7 +2683,7 @@ impl CoinsphCore {
             panic!("{}", crate::exchange_errors::invalid_address(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" withdraw() makes a withdrawals only to coins_ph account, add .options['withdraw']['warning'] = false to make a withdrawal to your coins_ph account".to_string())))));
         }
         let mut networkCode: Value = self.safe_string_k(params.clone(), "network", &[]);
-        let mut networkId: Value = (if is_true(&(Value::Bool(networkCode == Value::Null))) { Value::Null } else { self.network_code_to_id(networkCode.clone(), &[code.clone()]) });
+        let mut networkId: Value = (if is_true(&(networkCode == Value::Null)) { Value::Null } else { self.network_code_to_id(networkCode.clone(), &[code.clone()]) });
         if (networkId == Value::Null) {
             panic!("{}", crate::exchange_errors::bad_request(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" withdraw() require network parameter".to_string())))));
         }
@@ -2935,7 +2935,7 @@ impl CoinsphCore {
     m
 }));
         let mut networkCode: Value = self.safe_string_k(params.clone(), "network", &[]);
-        let mut networkId: Value = (if is_true(&(Value::Bool(networkCode == Value::Null))) { Value::Null } else { self.network_code_to_id(networkCode.clone(), &[code.clone()]) });
+        let mut networkId: Value = (if is_true(&(networkCode == Value::Null)) { Value::Null } else { self.network_code_to_id(networkCode.clone(), &[code.clone()]) });
         if (networkId == Value::Null) {
             panic!("{}", crate::exchange_errors::bad_request(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchDepositAddress() require network parameter".to_string())))));
         }
@@ -2994,7 +2994,7 @@ impl CoinsphCore {
             while { if !__for_first_586 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_586 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(keys.len() as i64).as_f64().unwrap_or(f64::NAN) } {
             let mut key: Value = get_value(&keys, &i);
             let mut key: Value = get_value(&keys, &i);
-            if is_true(&Value::Bool(is_array(&get_value(&query, &key)))) {
+            if (is_array(&get_value(&query, &key))) {
                 if (i.as_f64() != Some(0.0)) {
                     encodedArrayParams = Value::Str(format!("{}{}", encodedArrayParams, Value::Str("&".to_string())));
                 }
@@ -3080,7 +3080,7 @@ impl CoinsphCore {
             return Value::Null;
         }
         let mut responseCode: Value = self.safe_string_k(response.clone(), "code", &[]);
-        if is_true(&(Value::Bool(responseCode != Value::Null))) && is_true(&(Value::Bool(responseCode.as_str() != Some("200")))) && is_true(&(Value::Bool(responseCode.as_str() != Some("0")))) {
+        if is_true(&(responseCode != Value::Null)) && is_true(&(responseCode.as_str() != Some("200"))) && is_true(&(responseCode.as_str() != Some("0"))) {
             let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), body));
             self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), body.clone(), feedback.clone());
             self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), responseCode.clone(), feedback.clone());

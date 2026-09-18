@@ -1467,7 +1467,7 @@ impl CoinmateCore {
             });
         }
         let mut takerOrMaker: Value = self.safe_string_k(trade.clone(), "feeType", &[]);
-        takerOrMaker = (if is_true(&(Value::Bool(takerOrMaker.as_str() == Some("MAKER")))) { Value::Str("maker".to_string()) } else { Value::Str("taker".to_string()) });
+        takerOrMaker = (if is_true(&(takerOrMaker.as_str() == Some("MAKER"))) { Value::Str("maker".to_string()) } else { Value::Str("taker".to_string()) });
         return self.safe_trade(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id.clone());
@@ -1885,7 +1885,7 @@ impl CoinmateCore {
             m
         });
         let mut market: Value = Value::Null;
-        if is_true(&(Value::Bool(symbol != Value::Null))) && is_true(&(Value::Bool(symbol.as_str() != Some("")))) {
+        if is_true(&(symbol != Value::Null)) && is_true(&(symbol.as_str() != Some(""))) {
             market = self.market(symbol.clone());
         }
         let __ws_arg_8 = self.extend(request.clone(), &[params.clone()]);

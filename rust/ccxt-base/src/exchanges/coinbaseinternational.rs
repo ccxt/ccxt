@@ -828,11 +828,11 @@ impl CoinbaseinternationalCore {
 }));
         let mut portfolio: Value = Value::Null;
         { let __destr_tmp = self.handle_option_and_params(params.clone(), methodName.clone(), Value::Str("portfolio".to_string()), &[]); portfolio = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
-        if is_true(&(Value::Bool(portfolio != Value::Null))) && is_true(&(Value::Bool(portfolio.as_str() != Some("")))) {
+        if is_true(&(portfolio != Value::Null)) && is_true(&(portfolio.as_str() != Some(""))) {
             return Value::List(vec![portfolio.clone(), params.clone()]);
         }
         let mut defaultPortfolio: Value = self.safe_string_k(self.options.clone(), "portfolio", &[]);
-        if is_true(&(Value::Bool(defaultPortfolio != Value::Null))) && is_true(&(Value::Bool(defaultPortfolio.as_str() != Some("")))) {
+        if is_true(&(defaultPortfolio != Value::Null)) && is_true(&(defaultPortfolio.as_str() != Some(""))) {
             return Value::List(vec![defaultPortfolio.clone(), params.clone()]);
         }
         let mut accounts: Value = self.fetch_accounts(&[]).await;
@@ -2231,7 +2231,7 @@ impl CoinbaseinternationalCore {
             m
         });
         let mut rows: Value = Value::List(vec![]);
-        if is_true(&Value::Bool(is_array(&instruments))) {
+        if (is_array(&instruments)) {
             rows = instruments.clone();
         }
         {
@@ -2449,7 +2449,7 @@ impl CoinbaseinternationalCore {
         m.insert("amount".to_string(), amount.clone());
         m.insert("fromAccount".to_string(), fromAccount.clone());
         m.insert("toAccount".to_string(), toAccount.clone());
-        m.insert("status".to_string(), (if is_true(&(Value::Bool(success.as_bool() == Some(true)))) { Value::Str("ok".to_string()) } else { Value::Str("failed".to_string()) }));
+        m.insert("status".to_string(), (if is_true(&(success.as_bool() == Some(true))) { Value::Str("ok".to_string()) } else { Value::Str("failed".to_string()) }));
     m
 });
 
@@ -2531,7 +2531,7 @@ impl CoinbaseinternationalCore {
             }
             tif = Value::Str("IOC".to_string());
         }  else {
-            tif = (if is_true(&(Value::Bool(tif == Value::Null))) { Value::Str("GTC".to_string()) } else { tif.clone() });
+            tif = (if is_true(&(tif == Value::Null)) { Value::Str("GTC".to_string()) } else { tif.clone() });
         }
         if (postOnly != Value::Null) {
             add_element_to_object(&mut request, &Value::Str("post_only".to_string()), postOnly.clone());
@@ -2711,7 +2711,7 @@ impl CoinbaseinternationalCore {
             m
         });
         let mut market: Value = Value::Null;
-        if is_true(&(Value::Bool(symbol != Value::Null))) && is_true(&(Value::Bool(symbol.as_str() != Some("")))) {
+        if is_true(&(symbol != Value::Null)) && is_true(&(symbol.as_str() != Some(""))) {
             market = self.market(symbol.clone());
             add_element_to_object(&mut request, &Value::Str("instrument".to_string()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
         }
@@ -2862,7 +2862,7 @@ impl CoinbaseinternationalCore {
             m
         });
         let mut market: Value = Value::Null;
-        if is_true(&(Value::Bool(symbol != Value::Null))) && is_true(&(Value::Bool(symbol.as_str() != Some("")))) {
+        if is_true(&(symbol != Value::Null)) && is_true(&(symbol.as_str() != Some(""))) {
             market = self.market(symbol.clone());
             add_element_to_object(&mut request, &Value::Str("instrument".to_string()), symbol.clone());
         }

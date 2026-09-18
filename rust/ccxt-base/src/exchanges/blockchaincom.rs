@@ -909,7 +909,7 @@ impl BlockchaincomCore {
         let mut marketId: Value = self.safe_string_k(order.clone(), "symbol", &[]);
         let mut symbol: Value = self.safe_symbol(marketId.clone(), &[market.clone(), Value::Str("-".to_string())]);
         let mut exchangeOrderId: Value = self.safe_string_k(order.clone(), "exOrdId", &[]);
-        let mut price: Value = (if is_true(&(Value::Bool(type_var.as_str() != Some("market")))) { self.safe_string_k(order.clone(), "price", &[]) } else { Value::Null });
+        let mut price: Value = (if is_true(&(type_var.as_str() != Some("market"))) { self.safe_string_k(order.clone(), "price", &[]) } else { Value::Null });
         let mut average: Value = self.safe_number_k(order.clone(), "avgPx", &[]);
         let mut timestamp: Value = self.safe_integer_k(order.clone(), "timestamp", &[]);
         let mut datetime: Value = self.iso8601(timestamp.clone());
@@ -1439,14 +1439,14 @@ impl BlockchaincomCore {
         let mut currencyId: Value = self.safe_string_k(transaction.clone(), "currency", &[]);
         let mut code: Value = self.safe_currency_code(currencyId.clone(), &[currency.clone()]);
         let mut state: Value = self.safe_string_k(transaction.clone(), "state", &[]);
-        if is_true(&Value::Bool(in_op(&transaction, &Value::Str("depositId".to_string())))) {
+        if (in_op(&transaction, &Value::Str("depositId".to_string()))) {
             type_var = Value::Str("deposit".to_string());
             id = self.safe_string_k(transaction.clone(), "depositId", &[]);
-        }  else if is_true(&Value::Bool(in_op(&transaction, &Value::Str("withdrawalId".to_string())))) {
+        }  else if (in_op(&transaction, &Value::Str("withdrawalId".to_string()))) {
             type_var = Value::Str("withdrawal".to_string());
             id = self.safe_string_k(transaction.clone(), "withdrawalId", &[]);
         }
-        let mut feeCost: Value = (if is_true(&(Value::Bool(type_var.as_str() == Some("withdrawal")))) { self.safe_number_k(transaction.clone(), "fee", &[]) } else { Value::Null });
+        let mut feeCost: Value = (if is_true(&(type_var.as_str() == Some("withdrawal"))) { self.safe_number_k(transaction.clone(), "fee", &[]) } else { Value::Null });
         let mut fee: Value = Value::Null;
         if (feeCost != Value::Null) {
             fee = Value::Map({
@@ -1790,7 +1790,7 @@ impl BlockchaincomCore {
                     m.insert("X-API-Token".to_string(), self.secret.clone());
                 m
             });
-            if is_true(&(Value::Bool(method.as_str() == Some("GET")))) {
+            if is_true(&(method.as_str() == Some("GET"))) {
                 if Value::Int(object_keys(&query).len() as i64).as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN) {
                     url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".to_string()), self.urlencode(query.clone(), &[])))));
                 }

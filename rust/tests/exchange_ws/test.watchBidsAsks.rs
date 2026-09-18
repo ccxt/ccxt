@@ -38,7 +38,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             // for some exchanges, multi symbol methods might require symbols array to be present, so
             // so, if method throws "arguments-required" exception, we don't fail test, but just skip silently,
             // because tests will make a second call of this method with symbols array
-            if (is_instance(&e, &Value::Str("ArgumentsRequired".to_string()))) && is_true(&(Value::Bool((argSymbols == Value::Null) || (Value::Int(argSymbols.len() as i64).as_f64() == Some(0.0))))) {
+            if (is_instance(&e, &Value::Str("ArgumentsRequired".to_string()))) && is_true(&((argSymbols == Value::Null) || (Value::Int(argSymbols.len() as i64).as_f64() == Some(0.0)))) {
                 // todo: provide random symbols to try
                 // return false;
                 shouldReturn = Value::Bool(true);

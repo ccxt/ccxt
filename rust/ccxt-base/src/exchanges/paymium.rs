@@ -421,7 +421,7 @@ impl PaymiumCore {
             let mut currency: Value = self.currency(code.clone());
             let mut currencyId: Value = currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null);
             let mut free: Value = Value::Str(format!("{}{}", Value::Str("balance_".to_string()), currencyId));
-            if is_true(&Value::Bool(in_op(&response, &free))) {
+            if (in_op(&response, &free)) {
                 let mut account: Value = self.account();
                 let mut used: Value = Value::Str(format!("{}{}", Value::Str("locked_".to_string()), currencyId));
                 add_element_to_object(&mut account, &Value::Str("free".to_string()), self.safe_string(response.clone(), free.clone(), &[]));
