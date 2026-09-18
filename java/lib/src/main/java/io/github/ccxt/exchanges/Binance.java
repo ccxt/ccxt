@@ -4337,8 +4337,8 @@ public class Binance extends BinanceApi
     {
         // support expired option contracts
         String settle = "USDT";
-        Object optionParts = Helpers.split(symbol, "-");
-        Object symbolBase = Helpers.split(symbol, "/");
+        List<Object> optionParts = (List<Object>) Helpers.split(symbol, "-");
+        List<Object> symbolBase = (List<Object>) Helpers.split(symbol, "/");
         String base = null;
         if (Helpers.isGreaterThan(Helpers.getIndexOf(symbol, "/"), Helpers.opNeg(1)))
         {
@@ -5103,7 +5103,7 @@ public class Binance extends BinanceApi
                 Object res = this.safeValue(results, i);
                 if ((java.util.Objects.equals(fetchMargins, true)) && Helpers.isTrue(Helpers.isArray(res)))
                 {
-                    Object keysList = Helpers.objectKeys(this.indexBy(res, "symbol"));
+                    List<Object> keysList = Helpers.objectKeys(this.indexBy(res, "symbol"));
                     Object length = Helpers.getArrayLength(((Map<String, Object>)this.options).get("crossMarginPairsData"));
                     // first one is the cross-margin promise
                     if (Helpers.isEqual(length, 0))
@@ -5385,7 +5385,7 @@ public class Binance extends BinanceApi
         {
             throw new ExchangeError((this.id + " parseMarket() missing id")) ;
         }
-        Object optionParts = Helpers.split(id, "-");
+        List<Object> optionParts = (List<Object>) Helpers.split(id, "-");
         String optionBase = this.safeString(optionParts, 0);
         String lowercaseId = this.safeStringLower(market, "symbol");
         String baseId = this.safeString(market, "baseAsset", optionBase);
@@ -7037,7 +7037,7 @@ public class Binance extends BinanceApi
             }
             if (java.util.Objects.equals(price, "index"))
             {
-                Object parts = Helpers.split(marketId, "_");
+                List<Object> parts = (List<Object>) Helpers.split(marketId, "_");
                 String pair = this.safeString(parts, 0);
                 ((Map<String, Object>)request).put("pair", pair); // Index price takes this argument instead of symbol
             } else
@@ -12369,7 +12369,7 @@ public class Binance extends BinanceApi
         Object accountsById = this.safeDict(this.options, "accountsById", new HashMap<String, Object>() {{}});
         if (!java.util.Objects.equals(type, null))
         {
-            Object parts = Helpers.split(type, "_");
+            List<Object> parts = (List<Object>) Helpers.split(type, "_");
             fromAccount = this.safeValue(parts, 0);
             toAccount = this.safeValue(parts, 1);
             fromAccount = this.safeString(accountsById, fromAccount, fromAccount);
@@ -13359,7 +13359,7 @@ public class Binance extends BinanceApi
                 {
                     throw new ExchangeError((this.id + " markets not loaded")) ;
                 }
-                Object symbols = Helpers.objectKeys(markets);
+                List<Object> symbols = Helpers.objectKeys(markets);
                 Map<String, Object> result = new HashMap<String, Object>() {{}};
                 Object feeTier = this.safeInteger(response, "feeTier");
                 Object feeTiers = Helpers.GetValue(Helpers.GetValue(((Map<String, Object>)this.fees).get("linear"), "trading"), "tiers");
@@ -13399,7 +13399,7 @@ public class Binance extends BinanceApi
                 {
                     throw new ExchangeError((this.id + " markets not loaded")) ;
                 }
-                Object symbols = Helpers.objectKeys(markets);
+                List<Object> symbols = Helpers.objectKeys(markets);
                 Map<String, Object> result = new HashMap<String, Object>() {{}};
                 Object feeTier = this.safeInteger(response, "feeTier");
                 Object feeTiers = Helpers.GetValue(Helpers.GetValue(((Map<String, Object>)this.fees).get("inverse"), "trading"), "tiers");
@@ -16100,7 +16100,7 @@ final Object finalMarket = market;
         Object networkCode = null;
         Map<String, Object> currency = (Map<String, Object>) this.currency(currencyCode);
         Object networks = this.safeDict(currency, "networks", new HashMap<String, Object>() {{}});
-        Object networkCodes = Helpers.objectKeys(networks);
+        List<Object> networkCodes = Helpers.objectKeys(networks);
         for (var i = 0; i < ((List<?>)networkCodes).size(); i++)
         {
             Object currentNetworkCode = Helpers.GetValue(networkCodes, i);
@@ -16122,7 +16122,7 @@ final Object finalMarket = market;
         {
             return null;
         }
-        Object urlParts = Helpers.split(url, "/");
+        List<Object> urlParts = (List<Object>) Helpers.split(url, "/");
         String scheme = this.safeString(urlParts, 0);
         if (java.util.Objects.equals(scheme, null))
         {

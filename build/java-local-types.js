@@ -1394,6 +1394,41 @@ function receiverMethodLocalType (initializer) {
     return entry !== undefined && entry.args.includes (argCount) ? entry : undefined;
 }
 
+// ===== list-producer locals =====
+//
+// `x.split (sep)` prints `Helpers.split(x, sep)`: Collections.emptyList() on the null
+// path, Arrays.asList(...) otherwise, so the box is always a java.util.List<Object> while
+// the helper's declared Java return is Object -> the declaration carries the
+// (java.util.List<Object>) checkcast. `Object.keys (x)` prints `Helpers.objectKeys(x)`,
+// declared `List<Object>` in the hand-written Helpers -> no cast. `Helpers.GetValue(...)`
+// is NOT in this family: the helper hands back whatever the row holds (list, map, scalar,
+// null), so its locals keep the Object declaration.
+const JAVA_LIST_PRODUCER_LOCAL_TYPES = {
+    'objectKeys': { type: JAVA_ARRAY_TYPE, valuePrefix: 'Helpers.objectKeys(' },
+    'split': { type: JAVA_ARRAY_TYPE, cast: JAVA_ARRAY_CAST, valuePrefix: 'Helpers.split(' },
+};
+
+// the proven Java type of a local initialised from a list-producing call, or undefined
+function javaListProducerLocalType (initializer) {
+    if (!ts.isCallExpression (initializer)) {
+        return undefined;
+    }
+    const callee = initializer.expression;
+    if (!ts.isPropertyAccessExpression (callee)) {
+        return undefined;
+    }
+    // `Object.keys (x)` — a call on the Object builtin (prints Helpers.objectKeys(x))
+    if (callee.name.escapedText === 'keys'
+        && ts.isIdentifier (callee.expression) && callee.expression.escapedText === 'Object') {
+        return JAVA_LIST_PRODUCER_LOCAL_TYPES['objectKeys'];
+    }
+    // `x.split (sep)` on any receiver — every split prints Helpers.split(x, sep)
+    if (callee.name.escapedText === 'split') {
+        return JAVA_LIST_PRODUCER_LOCAL_TYPES['split'];
+    }
+    return undefined;
+}
+
 // does the printed Java for an accepted `messageHash*` initializer still need a `(String)`
 // checkcast to assign to the String local? Only the shapes whose printed static type is
 // Object do — the String prover (isProvablyStringExpression) has already established the
@@ -1449,6 +1484,11 @@ function localInitializerType (printer, declaration, isProFile, narrowed) {
     const initializer = unwrapParens (declaration.initializer);
     if (initializer === undefined) {
         return undefined;
+    }
+    // list producers: `x.split(sep)` / `Object.keys(x)` hand back a list on every path
+    const listProducer = javaListProducerLocalType (initializer);
+    if (listProducer !== undefined) {
+        return listProducer;
     }
     // string-element access: `const x = parts[0]` where `parts` is provably a list of
     // String instances — printed `Helpers.GetValue(parts, 0)`, the cast is exact

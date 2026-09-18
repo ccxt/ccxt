@@ -4492,7 +4492,7 @@ public Object describe()
         {
             timeframes = this.timeframes;
         }
-        Object keys = Helpers.objectKeys(timeframes);
+        List<Object> keys = Helpers.objectKeys(timeframes);
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
             Object key = Helpers.GetValue(keys, i);
@@ -4696,7 +4696,7 @@ public Object describe()
     public Object findMessageHashes(Client client, Object element)
     {
         List<Object> result = new ArrayList<Object>(Arrays.asList());
-        Object messageHashes = Helpers.objectKeys(client.futures);
+        List<Object> messageHashes = Helpers.objectKeys(client.futures);
         for (var i = 0; i < ((List<?>)messageHashes).size(); i++)
         {
             Object messageHash = Helpers.GetValue(messageHashes, i);
@@ -5856,7 +5856,7 @@ public Object describe()
             }
         }
         // other methods
-        Object keys = Helpers.objectKeys(featuresObj);
+        List<Object> keys = Helpers.objectKeys(featuresObj);
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
             Object key = Helpers.GetValue(keys, i);
@@ -5966,7 +5966,7 @@ public Object describe()
         {
             return (((!java.util.Objects.equals(defaultValue, null)))) ? defaultValue : methodDict;
         }
-        Object splited = Helpers.split(paramName, "."); // can be only parent key (`stopLoss`) or with child (`stopLoss.triggerPrice`)
+        List<Object> splited = (List<Object>) Helpers.split(paramName, "."); // can be only parent key (`stopLoss`) or with child (`stopLoss.triggerPrice`)
         Object parentKey = Helpers.GetValue(splited, 0);
         String subKey = this.safeString(splited, 1);
         if (!(Helpers.inOp(methodDict, parentKey)))
@@ -6107,7 +6107,7 @@ public Object describe()
     {
         // derive data from networks: deposit, withdraw, active, fee, limits, precision
         Object networks = this.safeDict(currency, "networks", new HashMap<String, Object>() {{}});
-        Object keys = Helpers.objectKeys(networks);
+        List<Object> keys = Helpers.objectKeys(networks);
         Object length = ((List<?>)keys).size();
         if (!Helpers.isEqual(length, 0))
         {
@@ -6339,7 +6339,7 @@ public Object describe()
             // otherwise an explicit `taker: undefined` (from safeMarketStructure)
             // would clobber the fee defaults from this.fees['trading'] in the merge
             Map<String, Object> valueDefined = new HashMap<String, Object>() {{}};
-            Object valueKeys = Helpers.objectKeys(value);
+            List<Object> valueKeys = Helpers.objectKeys(value);
             for (var j = 0; j < ((List<?>)valueKeys).size(); j++)
             {
                 Object valueKey = Helpers.GetValue(valueKeys, j);
@@ -6372,7 +6372,7 @@ public Object describe()
         Object numCurrencies = 0;
         if (!java.util.Objects.equals(currencies, null))
         {
-            Object keys = Helpers.objectKeys(currencies);
+            List<Object> keys = Helpers.objectKeys(currencies);
             numCurrencies = ((List<?>)keys).size();
         }
         if (Helpers.isGreaterThan(numCurrencies, 0))
@@ -6415,7 +6415,7 @@ public Object describe()
             this.quoteCurrencies = this.mapToSafeMap(this.indexBy(quoteCurrencies, "code"));
             List<Object> allCurrencies = (List<Object>) this.arrayConcat(baseCurrencies, quoteCurrencies);
             Map<String, Object> groupedCurrencies = this.groupBy(allCurrencies, "code");
-            Object codes = Helpers.objectKeys(groupedCurrencies);
+            List<Object> codes = Helpers.objectKeys(groupedCurrencies);
             List<Object> resultingCurrencies = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)codes).size(); i++)
             {
@@ -6493,7 +6493,7 @@ public Object describe()
     public Object safeBalance(Object balance)
     {
         Object balances = this.omit(balance, new ArrayList<Object>(Arrays.asList("info", "timestamp", "datetime", "free", "used", "total")));
-        Object codes = Helpers.objectKeys(balances);
+        List<Object> codes = Helpers.objectKeys(balances);
         ((Map<String, Object>)balance).put("free", new HashMap<String, Object>() {{}});
         ((Map<String, Object>)balance).put("used", new HashMap<String, Object>() {{}});
         ((Map<String, Object>)balance).put("total", new HashMap<String, Object>() {{}});
@@ -6529,7 +6529,7 @@ public Object describe()
                 Helpers.addElementToObject(debtBalance, code, Helpers.GetValue(Helpers.GetValue(balance, code), "debt"));
             }
         }
-        Object debtBalanceArray = Helpers.objectKeys(debtBalance);
+        List<Object> debtBalanceArray = Helpers.objectKeys(debtBalance);
         Object length = ((List<?>)debtBalanceArray).size();
         if ((!java.util.Objects.equals(length, null)) && (!Helpers.isEqual(length, 0)))
         {
@@ -6934,7 +6934,7 @@ public Object describe()
             }
         } else
         {
-            Object ids = Helpers.objectKeys(orders);
+            List<Object> ids = Helpers.objectKeys(orders);
             for (var i = 0; i < ((List<?>)ids).size(); i++)
             {
                 Object id = Helpers.GetValue(ids, i);
@@ -7209,7 +7209,7 @@ public Object describe()
     public Object addKeyInArrayItems(Object obj, Object keyName)
     {
         List<Object> result = new ArrayList<Object>(Arrays.asList());
-        Object keys = Helpers.objectKeys(obj);
+        List<Object> keys = Helpers.objectKeys(obj);
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
             Object key = Helpers.GetValue(keys, i);
@@ -7228,7 +7228,7 @@ public Object describe()
     public Object invertFlatStringDictionary(Object dict)
     {
         Map<String, Object> reversed = new HashMap<String, Object>() {{}};
-        Object keys = Helpers.objectKeys(dict);
+        List<Object> keys = Helpers.objectKeys(dict);
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
             Object key = Helpers.GetValue(keys, i);
@@ -7725,7 +7725,7 @@ public Object describe()
                 }
                 if (!java.util.Objects.equals(startRegex, null))
                 {
-                    Object splitted_by_start = Helpers.split(content, startRegex);
+                    List<Object> splitted_by_start = (List<Object>) Helpers.split(content, startRegex);
                     content = Helpers.GetValue(splitted_by_start, 1); // we need second part after start
                 }
                 if (java.util.Objects.equals(content, null))
@@ -7734,7 +7734,7 @@ public Object describe()
                 }
                 if (!java.util.Objects.equals(endRegex, null))
                 {
-                    Object splitted_by_end = Helpers.split(content, endRegex);
+                    List<Object> splitted_by_end = (List<Object>) Helpers.split(content, endRegex);
                     content = Helpers.GetValue(splitted_by_end, 0); // we need first part after start
                 }
                 if ((java.util.Objects.equals(returnAsJson, true)) && ((content instanceof String)))
@@ -8023,7 +8023,7 @@ public Object describe()
             return null;
         }
         Object replacements = this.safeDict(this.options, "defaultNetworkCodeReplacements", new HashMap<String, Object>() {{}});
-        Object keys = Helpers.objectKeys(replacements);
+        List<Object> keys = Helpers.objectKeys(replacements);
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
             Object baseCoin = Helpers.GetValue(keys, i);
@@ -8314,7 +8314,7 @@ public Object describe()
             }
         } else
         {
-            Object keys = Helpers.objectKeys(response);
+            List<Object> keys = Helpers.objectKeys(response);
             for (var i = 0; i < ((List<?>)keys).size(); i++)
             {
                 Object marketId = Helpers.GetValue(keys, i);
@@ -9148,7 +9148,7 @@ public Object describe()
                 }
             } else if (!java.util.Objects.equals(delimiter, null) && !java.util.Objects.equals(delimiter, ""))
             {
-                Object parts = Helpers.split(marketId, delimiter);
+                List<Object> parts = (List<Object>) Helpers.split(marketId, delimiter);
                 Object partsLength = ((List<?>)parts).size();
                 final Object finalMarketId = marketId;
                 Map<String, Object> result = (Map<String, Object>) this.safeMarketStructure(new HashMap<String, Object>() {{
@@ -9218,7 +9218,7 @@ public Object describe()
         * @returns {boolean} true if all required credentials have been set, otherwise false or an error is thrown is param error=true
         */
         Object error = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : true;
-        Object keys = Helpers.objectKeys(this.requiredCredentials);
+        List<Object> keys = Helpers.objectKeys(this.requiredCredentials);
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
             Object key = Helpers.GetValue(keys, i);
@@ -9662,7 +9662,7 @@ public Object describe()
     public Object findBroadlyMatchedKey(Object broad, Object str)
     {
         // a helper for matching error strings exactly vs broadly
-        Object keys = Helpers.objectKeys(broad);
+        List<Object> keys = Helpers.objectKeys(broad);
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
             Object key = Helpers.GetValue(keys, i);
@@ -10237,7 +10237,7 @@ public Object describe()
                     return this.safeDict(addressStructures, network);
                 } else
                 {
-                    Object keys = Helpers.objectKeys(addressStructures);
+                    List<Object> keys = Helpers.objectKeys(addressStructures);
                     Object key = Helpers.GetValue(keys, 0);
                     return this.safeDict(addressStructures, key);
                 }
@@ -10317,7 +10317,7 @@ public Object describe()
         {
             throw new ArgumentsRequired((this.id + " currency() requires a code argument")) ;
         }
-        Object keys = Helpers.objectKeys(this.currencies);
+        List<Object> keys = Helpers.objectKeys(this.currencies);
         Object numCurrencies = ((List<?>)keys).size();
         if (Helpers.isEqual(numCurrencies, 0))
         {
@@ -10733,7 +10733,7 @@ public Object describe()
             }
         } else
         {
-            Object marketIds = Helpers.objectKeys(pricesData);
+            List<Object> marketIds = Helpers.objectKeys(pricesData);
             for (var i = 0; i < ((List<?>)marketIds).size(); i++)
             {
                 Object marketId = Helpers.GetValue(marketIds, i);
@@ -10783,7 +10783,7 @@ public Object describe()
             }
         } else
         {
-            Object marketIds = Helpers.objectKeys(tickers);
+            List<Object> marketIds = Helpers.objectKeys(tickers);
             for (var i = 0; i < ((List<?>)marketIds).size(); i++)
             {
                 Object marketId = Helpers.GetValue(marketIds, i);
@@ -11520,7 +11520,7 @@ public Object describe()
         * @returns {object} A deposit withdraw fee structure
         */
         Object currency = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-        Object networkKeys = Helpers.objectKeys(Helpers.GetValue(fee, "networks"));
+        List<Object> networkKeys = Helpers.objectKeys(Helpers.GetValue(fee, "networks"));
         Object numNetworks = ((List<?>)networkKeys).size();
         if (Helpers.isEqual(numNetworks, 1))
         {
@@ -12234,7 +12234,7 @@ public Object describe()
 
     public Object removeKeysFromDict(Object dict, Object removeKeys)
     {
-        Object keys = Helpers.objectKeys(dict);
+        List<Object> keys = Helpers.objectKeys(dict);
         Map<String, Object> newDict = new HashMap<String, Object>() {{}};
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
@@ -12337,7 +12337,7 @@ public Object describe()
             }
         } else
         {
-            Object marketIds = Helpers.objectKeys(greeks);
+            List<Object> marketIds = Helpers.objectKeys(greeks);
             for (var i = 0; i < ((List<?>)marketIds).size(); i++)
             {
                 Object marketId = Helpers.GetValue(marketIds, i);
@@ -12747,7 +12747,7 @@ public Object describe()
             }
         } else
         {
-            Object clientSubscriptions = Helpers.objectKeys(client.subscriptions);
+            List<Object> clientSubscriptions = Helpers.objectKeys(client.subscriptions);
             for (var i = 0; i < ((List<?>)clientSubscriptions).size(); i++)
             {
                 Object sub = Helpers.GetValue(clientSubscriptions, i);
@@ -12756,7 +12756,7 @@ public Object describe()
                     ((Map<String,Object>)client.subscriptions).remove((String)sub);
                 }
             }
-            Object clientFutures = Helpers.objectKeys(client.futures);
+            List<Object> clientFutures = Helpers.objectKeys(client.futures);
             for (var i = 0; i < ((List<?>)clientFutures).size(); i++)
             {
                 Object future = Helpers.GetValue(clientFutures, i);
@@ -12853,7 +12853,7 @@ public Object describe()
                 }
             } else if ((java.util.Objects.equals(topic, "ticker") || java.util.Objects.equals(topic, "markPrice")) && (!java.util.Objects.equals(this.tickers, null)))
             {
-                Object tickerSymbols = Helpers.objectKeys(this.tickers);
+                List<Object> tickerSymbols = Helpers.objectKeys(this.tickers);
                 for (var i = 0; i < ((List<?>)tickerSymbols).size(); i++)
                 {
                     Object tickerSymbol = Helpers.GetValue(tickerSymbols, i);
@@ -12864,7 +12864,7 @@ public Object describe()
                 }
             } else if (java.util.Objects.equals(topic, "bidsasks") && (!java.util.Objects.equals(this.bidsasks, null)))
             {
-                Object bidsaskSymbols = Helpers.objectKeys(this.bidsasks);
+                List<Object> bidsaskSymbols = Helpers.objectKeys(this.bidsasks);
                 for (var i = 0; i < ((List<?>)bidsaskSymbols).size(); i++)
                 {
                     Object bidsaskSymbol = Helpers.GetValue(bidsaskSymbols, i);
