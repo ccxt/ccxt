@@ -187,7 +187,7 @@ public partial class hollaex : ccxt.hollaex
         IList<object> parsedTrades = this.parseTrades(data, market);
         for (int j = 0; j < getArrayLength(parsedTrades); j++)
         {
-            callDynamically(stored, "append", new object[] {getValue(parsedTrades, j)});
+            callDynamically(stored, "append", new object[] {parsedTrades[j]});
         }
         object messageHash = add(add(channel, ":"), marketId);
         (client as WebSocketClient).resolve(stored, messageHash);
@@ -288,7 +288,7 @@ public partial class hollaex : ccxt.hollaex
         List<object> keys = new List<object>(((IDictionary<string,object>)marketIds).Keys);
         for (int i = 0; i < keys.Count; i++)
         {
-            string? marketId = ((string)getValue(keys, i));
+            string? marketId = ((string)keys[i]);
             object messageHash = add(add(channel, ":"), marketId);
             (client as WebSocketClient).resolve(this.myTrades, messageHash);
         }
@@ -430,7 +430,7 @@ public partial class hollaex : ccxt.hollaex
         List<object> keys = new List<object>(((IDictionary<string,object>)marketIds).Keys);
         for (int i = 0; i < keys.Count; i++)
         {
-            string? marketId = ((string)getValue(keys, i));
+            string? marketId = ((string)keys[i]);
             object messageHash = add(add(channel, ":"), marketId);
             (client as WebSocketClient).resolve(this.orders, messageHash);
         }
@@ -478,7 +478,7 @@ public partial class hollaex : ccxt.hollaex
         ((IDictionary<string,object>)this.balance)["datetime"] = this.iso8601(timestamp);
         for (int i = 0; i < keys.Count; i++)
         {
-            string? key = ((string)getValue(keys, i));
+            string? key = ((string)keys[i]);
             List<object> parts = ((string)key).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
             string? currencyId = this.safeString(parts, 0);
             string? code = this.safeCurrencyCode(currencyId);

@@ -713,7 +713,7 @@ public partial class coinbaseexchange : Exchange
         List<object> supportedNetworks = this.safeList(rawCurrency, "supported_networks", new List<object>() {});
         for (int j = 0; j < supportedNetworks.Count; j++)
         {
-            object network = getValue(supportedNetworks, j);
+            object network = supportedNetworks[j];
             string? networkId = this.safeString(network, "id");
             object networkCode = this.networkIdToCode(networkId, code);
             if ((networkCode != null))
@@ -827,7 +827,7 @@ public partial class coinbaseexchange : Exchange
         IList<object> rawMarkets = this.toArray(response);
         for (int i = 0; i < getArrayLength(rawMarkets); i++)
         {
-            object market = getValue(rawMarkets, i);
+            object market = rawMarkets[i];
             string? id = this.safeString(market, "id");
             var baseIdquoteIdVariable = ((string)((string)id)).Split(new [] {((string)"-")}, StringSplitOptions.None).ToList<object>();
             var baseId = ((IList<object>) baseIdquoteIdVariable)[0];
@@ -1166,7 +1166,7 @@ public partial class coinbaseexchange : Exchange
         string delimiter = "-";
         for (int i = 0; i < marketIds.Count; i++)
         {
-            string? marketId = ((string)getValue(marketIds, i));
+            string? marketId = ((string)marketIds[i]);
             object entry = this.safeValue(response, marketId, new List<object>() {});
             object first = this.safeValue(entry, 0, new List<object>() {});
             Dictionary<string, object> market = this.safeMarket(marketId, null, delimiter);
@@ -2180,7 +2180,7 @@ public partial class coinbaseexchange : Exchange
         IList<object> entries = this.toArray(response);
         for (int i = 0; i < getArrayLength(entries); i++)
         {
-            ((IDictionary<string,object>)getValue(entries, i))["currency"] = code;
+            ((IDictionary<string,object>)entries[i])["currency"] = code;
         }
         return ccxt.BaseExchange.ToLedgerEntryList(this.parseLedger(entries, currency, since, limit));
     }

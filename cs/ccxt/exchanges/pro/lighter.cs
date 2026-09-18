@@ -320,7 +320,7 @@ public partial class lighter : ccxt.lighter
             List<object> marketIds = new List<object>(((IDictionary<string,object>)data).Keys);
             for (int i = 0; i < marketIds.Count; i++)
             {
-                string? marketId = ((string)getValue(marketIds, i));
+                string? marketId = ((string)marketIds[i]);
                 Dictionary<string, object> market = this.safeMarket(marketId);
                 string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
                 Dictionary<string, object> ticker = this.parseTicker(getValue(data, marketId), market);
@@ -842,7 +842,7 @@ public partial class lighter : ccxt.lighter
         string? messageHash = ((string)this.getMessageHash("myTrades"));
         for (int i = 0; i < marketIds.Count; i++)
         {
-            string? marketId = ((string)getValue(marketIds, i));
+            string? marketId = ((string)marketIds[i]);
             Dictionary<string, object> market = this.safeMarket(marketId);
             List<object> trades = this.safeList(data, marketId, new List<object>() {});
             int tradesLength = trades.Count;
@@ -1187,7 +1187,7 @@ public partial class lighter : ccxt.lighter
             List<object> assetIds = new List<object>(((IDictionary<string,object>)assets).Keys);
             for (int i = 0; i < assetIds.Count; i++)
             {
-                string? assetId = ((string)getValue(assetIds, i));
+                string? assetId = ((string)assetIds[i]);
                 object asset = getValue(assets, assetId);
                 string? codeId = this.safeString(asset, "symbol");
                 string? code = this.safeCurrencyCode(codeId);
@@ -1472,12 +1472,12 @@ public partial class lighter : ccxt.lighter
         string? messageHash = ((string)this.getMessageHash("orders"));
         for (int i = 0; i < marketIds.Count; i++)
         {
-            string? marketId = ((string)getValue(marketIds, i));
+            string? marketId = ((string)marketIds[i]);
             Dictionary<string, object> market = this.safeMarket(marketId);
             List<object> orders = this.safeList(data, marketId, new List<object>() {});
             for (int j = 0; j < orders.Count; j++)
             {
-                Dictionary<string, object> order = this.parseOrder(getValue(orders, j), market);
+                Dictionary<string, object> order = this.parseOrder(orders[j], market);
                 callDynamically(stored, "append", new object[] {order});
                 string? symbol = ((string)getValue(order, "symbol"));
                 if ((symbol != null))
@@ -1522,7 +1522,7 @@ public partial class lighter : ccxt.lighter
                 List<object> subscriptionKeys = new List<object>(((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Keys);
                 for (int i = 0; i < subscriptionKeys.Count; i++)
                 {
-                    string? subscriptionHash = ((string)getValue(subscriptionKeys, i));
+                    string? subscriptionHash = ((string)subscriptionKeys[i]);
                     string? subscriptionId = this.safeString(getValue(((WebSocketClient)client).subscriptions, subscriptionHash), "id");
                     string? subscription = this.safeString(getValue(((WebSocketClient)client).subscriptions, subscriptionHash), "subscription");
                     if ((id == subscriptionId))
@@ -1686,7 +1686,7 @@ public partial class lighter : ccxt.lighter
             List<object> subscriptionHashes = new List<object>(((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Keys);
             for (int i = 0; i < subscriptionHashes.Count; i++)
             {
-                string? subscriptionHash = ((string)getValue(subscriptionHashes, i));
+                string? subscriptionHash = ((string)subscriptionHashes[i]);
                 if (((string)subscriptionHash).StartsWith(((string)"ticker")))
                 {
                     IDictionary<string, object> subscription = this.safeDict(((WebSocketClient)client).subscriptions, subscriptionHash);

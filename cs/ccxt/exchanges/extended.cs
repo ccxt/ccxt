@@ -503,7 +503,7 @@ public partial class extended : Exchange
         List<object> keys = new List<object>(((IDictionary<string,object>)input).Keys);
         for (int i = 0; i < keys.Count; i++)
         {
-            string? key = ((string)getValue(keys, i));
+            string? key = ((string)keys[i]);
             object item = getValue(input, key);
             string? numericIdString = this.safeString(item, "numericId");
             if ((numericIdString == null))
@@ -973,7 +973,7 @@ public partial class extended : Exchange
         Dictionary<string, object> tickers = new Dictionary<string, object>() {};
         for (int i = 0; i < data.Count; i++)
         {
-            object marketData = getValue(data, i);
+            object marketData = data[i];
             string? marketId = this.safeString(marketData, "name");
             Dictionary<string, object> market = this.safeMarket(marketId);
             IDictionary<string, object> stats = this.safeDict(marketData, "marketStats", new Dictionary<string, object>() {});

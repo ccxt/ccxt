@@ -506,11 +506,11 @@ public partial class coinbase : ccxt.coinbase
         List<object> newTickers = new List<object>() {};
         for (int i = 0; i < events.Count; i++)
         {
-            object tickersObj = getValue(events, i);
+            object tickersObj = events[i];
             List<object> tickers = this.safeList(tickersObj, "tickers", new List<object>() {});
             for (int j = 0; j < tickers.Count; j++)
             {
-                object ticker = getValue(tickers, j);
+                object ticker = tickers[j];
                 string? wsMarketId = this.safeString(ticker, "product_id");
                 if ((wsMarketId == null))
                 {
@@ -840,7 +840,7 @@ public partial class coinbase : ccxt.coinbase
         }
         for (int i = 0; i < events.Count; i++)
         {
-            object currentEvent = getValue(events, i);
+            object currentEvent = events[i];
             List<object> currentTrades = this.safeList(currentEvent, "trades");
             if ((currentTrades == null))
             {
@@ -901,7 +901,7 @@ public partial class coinbase : ccxt.coinbase
         }
         for (int i = 0; i < events.Count; i++)
         {
-            object eventVar = getValue(events, i);
+            object eventVar = events[i];
             List<object> responseOrders = this.safeList(eventVar, "orders");
             if ((responseOrders == null))
             {
@@ -909,7 +909,7 @@ public partial class coinbase : ccxt.coinbase
             }
             for (int j = 0; j < responseOrders.Count; j++)
             {
-                object responseOrder = getValue(responseOrders, j);
+                object responseOrder = responseOrders[j];
                 Dictionary<string, object> parsed = ((Dictionary<string, object>)this.parseWsOrder(responseOrder));
                 object cachedOrders = this.orders;
                 string? marketId = this.safeString(responseOrder, "product_id");
@@ -925,7 +925,7 @@ public partial class coinbase : ccxt.coinbase
         }
         for (int i = 0; i < getArrayLength(marketIds); i++)
         {
-            string? marketId = ((string)getValue(marketIds, i));
+            string? marketId = ((string)marketIds[i]);
             string? symbol = this.safeSymbol(marketId);
             string messageHash = ("user::" + symbol);
             (client as WebSocketClient).resolve(this.orders, messageHash);
@@ -1038,7 +1038,7 @@ public partial class coinbase : ccxt.coinbase
         string? datetime = this.safeString(message, "timestamp");
         for (int i = 0; i < events.Count; i++)
         {
-            object eventVar = getValue(events, i);
+            object eventVar = events[i];
             List<object> updates = this.safeList(eventVar, "updates", new List<object>() {});
             string? marketId = this.safeString(eventVar, "product_id");
             // sometimes we subscribe to BTC/USDC and coinbase returns BTC/USD, as they are aliases
@@ -1109,7 +1109,7 @@ public partial class coinbase : ccxt.coinbase
             List<object> subMessageHashes = this.safeList(unSubObject, "subMessageHashes", new List<object>() {});
             for (int i = 0; i < messageHashes.Count; i++)
             {
-                object messageHash = getValue(messageHashes, i);
+                object messageHash = messageHashes[i];
                 object subHash = getValue(subMessageHashes, i);
                 this.cleanUnsubscription(client as WebSocketClient, subHash, messageHash);
             }

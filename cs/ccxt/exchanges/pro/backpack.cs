@@ -165,7 +165,7 @@ public partial class backpack : ccxt.backpack
                         List<object> keys = new List<object>(((IDictionary<string,object>)cache).Keys);
                         for (int j = 0; j < keys.Count; j++)
                         {
-                            object symbol = getValue(keys, j);
+                            object symbol = keys[j];
                             ((IDictionary<string,object>)cache).Remove((string)symbol);
                         }
                     }
@@ -186,7 +186,7 @@ public partial class backpack : ccxt.backpack
                     List<object> keys = new List<object>(((IDictionary<string,object>)cache).Keys);
                     for (int j = 0; j < keys.Count; j++)
                     {
-                        object symbol = getValue(keys, j);
+                        object symbol = keys[j];
                         ((IDictionary<string,object>)this.positions).Remove((string)symbol);
                     }
                 } else

@@ -665,7 +665,7 @@ public partial class delta : Exchange
         Dictionary<string, object> networks = new Dictionary<string, object>() {};
         for (int j = 0; j < chains.Count; j++)
         {
-            object chain = getValue(chains, j);
+            object chain = chains[j];
             string? networkId = this.safeString(chain, "network");
             object networkCode = this.networkIdToCode(networkId, code);
             if ((networkCode != null))
@@ -746,7 +746,7 @@ public partial class delta : Exchange
         List<object> keys = new List<object>(((IDictionary<string,object>)input).Keys);
         for (int i = 0; i < keys.Count; i++)
         {
-            string? key = ((string)getValue(keys, i));
+            string? key = ((string)keys[i]);
             object item = getValue(input, key);
             string? numericIdString = this.safeString(item, "numericId");
             if ((numericIdString == null))
@@ -952,7 +952,7 @@ public partial class delta : Exchange
         List<object> result = new List<object>() {};
         for (int i = 0; i < markets.Count; i++)
         {
-            object market = getValue(markets, i);
+            object market = markets[i];
             string? type = this.safeString(market, "contract_type");
             if (((type == "options_combos")) || ((type == "binary_call_options")) || ((type == "binary_put_options")))
             {
@@ -1531,7 +1531,7 @@ public partial class delta : Exchange
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         for (int i = 0; i < tickers.Count; i++)
         {
-            object rawTicker = getValue(tickers, i);
+            object rawTicker = tickers[i];
             string? contractType = this.safeString(rawTicker, "contract_type");
             if (((contractType == "options_combos")) || ((contractType == "binary_call_options")) || ((contractType == "binary_put_options")))
             {
@@ -1835,7 +1835,7 @@ public partial class delta : Exchange
         IDictionary<string, object> currenciesByNumericId = this.safeDict(this.options, "currenciesByNumericId", new Dictionary<string, object>() {});
         for (int i = 0; i < balances.Count; i++)
         {
-            object balance = getValue(balances, i);
+            object balance = balances[i];
             string? currencyId = this.safeString(balance, "asset_id");
             IDictionary<string, object> currency = this.safeDict(currenciesByNumericId, currencyId);
             object code = ((bool) ((currency == null))) ? currencyId : getValue(currency, "code");

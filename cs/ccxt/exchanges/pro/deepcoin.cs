@@ -876,7 +876,7 @@ public partial class deepcoin : ccxt.deepcoin
         };
         for (int i = 0; i < entries.Count; i++)
         {
-            object entry = getValue(entries, i);
+            object entry = entries[i];
             IDictionary<string, object> entryData = this.safeDict(entry, "d", new Dictionary<string, object>() {});
             string? side = this.safeString(entryData, "D");
             double? price = this.safeNumber(entryData, "P");

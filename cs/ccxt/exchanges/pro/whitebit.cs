@@ -125,7 +125,7 @@ public partial class whitebit : ccxt.whitebit
         List<object> parameters = this.safeList(message, "params", new List<object>() {});
         for (int i = 0; i < parameters.Count; i++)
         {
-            object data = getValue(parameters, i);
+            object data = parameters[i];
             string? marketId = this.safeString(data, 7);
             Dictionary<string, object> market = this.safeMarket(marketId);
             string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
@@ -365,7 +365,7 @@ public partial class whitebit : ccxt.whitebit
         List<object> messageHashes = new List<object>(((IDictionary<string, ccxt.Exchange.Future>)client.futures).Keys);
         for (int i = 0; i < messageHashes.Count; i++)
         {
-            string? currentMessageHash = ((string)getValue(messageHashes, i));
+            string? currentMessageHash = ((string)messageHashes[i]);
             if (getIndexOf(currentMessageHash, "tickers") >= 0 && getIndexOf(currentMessageHash, symbol) >= 0)
             {
                 // Example: user calls watchTickers with ['LTC/USDT', 'ETH/USDT']
@@ -457,7 +457,7 @@ public partial class whitebit : ccxt.whitebit
         IList<object> parsedTrades = this.parseTrades(data, market);
         for (int j = 0; j < getArrayLength(parsedTrades); j++)
         {
-            callDynamically(stored, "append", new object[] {getValue(parsedTrades, j)});
+            callDynamically(stored, "append", new object[] {parsedTrades[j]});
         }
         string messageHash = add("trades:", (market.ContainsKey("symbol") ? market["symbol"] : null));
         (client as WebSocketClient).resolve(stored, messageHash);
@@ -955,7 +955,7 @@ public partial class whitebit : ccxt.whitebit
                 List<object> keys = new List<object>(((IDictionary<string,object>)balanceDict).Keys);
                 for (int j = 0; j < keys.Count; j++)
                 {
-                    string? currencyId = ((string)getValue(keys, j));
+                    string? currencyId = ((string)keys[j]);
                     IDictionary<string, object> rawBalance = this.safeDict(balanceDict, currencyId, new Dictionary<string, object>() {});
                     string? code = this.safeCurrencyCode(currencyId);
                     Dictionary<string, object> account = this.account();
@@ -1275,7 +1275,7 @@ public partial class whitebit : ccxt.whitebit
         List<object> values = new List<object>(((IDictionary<string,object>)subs).Values);
         for (int i = 0; i < values.Count; i++)
         {
-            object subscription = getValue(values, i);
+            object subscription = values[i];
             if (!isEqual(subscription, true))
             {
                 Int64? subId = this.safeInteger(subscription, "id");

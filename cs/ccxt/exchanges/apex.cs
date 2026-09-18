@@ -589,7 +589,7 @@ public partial class apex : Exchange
             List<object> tokens = this.safeList(chain, "tokens", new List<object>() {});
             for (int f = 0; f < tokens.Count; f++)
             {
-                object token = getValue(tokens, f);
+                object token = tokens[f];
                 string? tokenName = this.safeString(token, "token");
                 if ((tokenName == currencyId))
                 {
@@ -1242,7 +1242,7 @@ public partial class apex : Exchange
         List<object> resultList = this.safeList(data, "historyFunds", new List<object>() {});
         for (int i = 0; i < resultList.Count; i++)
         {
-            object entry = getValue(resultList, i);
+            object entry = resultList[i];
             Int64? timestamp = this.safeInteger(entry, "fundingTimestamp");
             string? marketId = this.safeString(entry, "symbol");
             ((IList<object>)rates).Add(new Dictionary<string, object>() {
@@ -1654,9 +1654,9 @@ public partial class apex : Exchange
         }
         for (int i = 0; i < getArrayLength(assets); i++)
         {
-            if (isEqual(this.safeString(getValue(assets, i), "token", ""), code))
+            if (isEqual(this.safeString(assets[i], "token", ""), code))
             {
-                currency = getValue(assets, i);
+                currency = assets[i];
             }
         }
         string? tokenId = this.safeString(currency, "tokenId", "");

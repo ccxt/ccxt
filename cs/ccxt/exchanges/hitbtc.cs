@@ -866,7 +866,7 @@ public partial class hitbtc : Exchange
         List<object> ids = new List<object>(((IDictionary<string,object>)response).Keys);
         for (int i = 0; i < ids.Count; i++)
         {
-            string? id = ((string)getValue(ids, i));
+            string? id = ((string)ids[i]);
             if (((string)id).EndsWith(((string)"_BQX")))
             {
                 continue;
@@ -1038,7 +1038,7 @@ public partial class hitbtc : Exchange
         Dictionary<string, object> networks = new Dictionary<string, object>() {};
         for (int j = 0; j < rawNetworks.Count; j++)
         {
-            object rawNetwork = getValue(rawNetworks, j);
+            object rawNetwork = rawNetworks[j];
             string? networkId = this.safeString2(rawNetwork, "protocol", "network");
             object networkCode = this.networkIdToCode(networkId, code);
             networkCode = ((bool) ((networkCode != null))) ? ((string)networkCode).ToUpper() : code; // as hitbtc is white label, ensure we safeguard from possible bugs
@@ -1313,7 +1313,7 @@ public partial class hitbtc : Exchange
         List<object> keys = new List<object>(((IDictionary<string,object>)response).Keys);
         for (int i = 0; i < keys.Count; i++)
         {
-            string? marketId = ((string)getValue(keys, i));
+            string? marketId = ((string)keys[i]);
             Dictionary<string, object> market = this.safeMarket(marketId);
             string? symbol = ((string)getValue(market, "symbol"));
             IDictionary<string, object> entry = this.safeDict(response, marketId, new Dictionary<string, object>() {});
@@ -1407,7 +1407,7 @@ public partial class hitbtc : Exchange
         List<object> marketIds = new List<object>(((IDictionary<string,object>)response).Keys);
         for (int i = 0; i < marketIds.Count; i++)
         {
-            string? marketId = ((string)getValue(marketIds, i));
+            string? marketId = ((string)marketIds[i]);
             Dictionary<string, object> marketInner = this.market(marketId);
             List<object> rawTrades = this.safeList(response, marketId, new List<object>() {});
             IList<object> parsed = this.parseTrades(rawTrades, marketInner);
@@ -1840,7 +1840,7 @@ public partial class hitbtc : Exchange
         List<object> marketIds = new List<object>(((IDictionary<string,object>)response).Keys);
         for (int i = 0; i < marketIds.Count; i++)
         {
-            string? marketId = ((string)getValue(marketIds, i));
+            string? marketId = ((string)marketIds[i]);
             IDictionary<string, object> orderbook = this.safeDict(response, marketId, new Dictionary<string, object>() {});
             string? symbol = this.safeSymbol(marketId);
             Int64? timestamp = this.parse8601(this.safeString(orderbook, "timestamp"));
@@ -3312,12 +3312,12 @@ public partial class hitbtc : Exchange
         List<object> rates = new List<object>() {};
         for (int i = 0; i < contracts.Count; i++)
         {
-            string? marketId = ((string)getValue(contracts, i));
+            string? marketId = ((string)contracts[i]);
             Dictionary<string, object> marketInner = this.safeMarket(marketId);
             List<object> fundingRateData = this.safeList(response, marketId, new List<object>() {});
             for (int j = 0; j < fundingRateData.Count; j++)
             {
-                object entry = getValue(fundingRateData, j);
+                object entry = fundingRateData[j];
                 string? symbolInner = this.safeSymbol(getValue(marketInner, "symbol"));
                 double? fundingRate = this.safeNumber(entry, "funding_rate");
                 string? datetime = this.safeString(entry, "timestamp");
@@ -3551,7 +3551,7 @@ public partial class hitbtc : Exchange
         double? contracts = null;
         for (int i = 0; i < positions.Count; i++)
         {
-            object entry = getValue(positions, i);
+            object entry = positions[i];
             liquidationPrice = this.safeNumber(entry, "price_liquidation");
             entryPrice = this.safeNumber(entry, "price_entry");
             contracts = this.safeNumber(entry, "quantity");
@@ -3560,7 +3560,7 @@ public partial class hitbtc : Exchange
         double? collateral = null;
         for (int i = 0; i < currencies.Count; i++)
         {
-            object entry = getValue(currencies, i);
+            object entry = currencies[i];
             collateral = this.safeNumber(entry, "margin_balance");
         }
         string? marketId = this.safeString(position, "symbol");
@@ -3673,7 +3673,7 @@ public partial class hitbtc : Exchange
         List<object> markets = new List<object>(((IDictionary<string,object>)response).Keys);
         for (int i = 0; i < markets.Count; i++)
         {
-            string? marketId = ((string)getValue(markets, i));
+            string? marketId = ((string)markets[i]);
             Dictionary<string, object> marketInner = this.safeMarket(marketId);
             IDictionary<string, object> openInterest = this.safeDict(response, marketId, new Dictionary<string, object>() {});
             ((IList<object>)results).Add(this.parseOpenInterest(openInterest, marketInner));
@@ -4177,7 +4177,7 @@ public partial class hitbtc : Exchange
         Dictionary<string, object> result = this.depositWithdrawFee(fee);
         for (int j = 0; j < networks.Count; j++)
         {
-            object networkEntry = getValue(networks, j);
+            object networkEntry = networks[j];
             string? networkId = this.safeString(networkEntry, "network");
             string? code = this.safeString(currency, "code");
             object networkCode = this.networkIdToCode(networkId, code);

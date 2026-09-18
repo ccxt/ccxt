@@ -669,7 +669,7 @@ public partial class lbank : Exchange
         List<object> result = new List<object>() {};
         for (int i = 0; i < data.Count; i++)
         {
-            object market = getValue(data, i);
+            object market = data[i];
             string? marketId = this.safeString(market, "symbol");
             List<object> parts = ((string)((string)marketId)).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
             string? baseId = ((string)(parts != null && 0 < parts.Count ? parts[0] : null));
@@ -769,7 +769,7 @@ public partial class lbank : Exchange
         List<object> result = new List<object>() {};
         for (int i = 0; i < data.Count; i++)
         {
-            object market = getValue(data, i);
+            object market = data[i];
             string? marketId = this.safeString(market, "symbol");
             string? baseId = this.safeString(market, "baseCurrency");
             string? settleId = this.safeString(market, "clearCurrency");
@@ -1501,7 +1501,7 @@ public partial class lbank : Exchange
             List<object> currencies = new List<object>(((IDictionary<string,object>)free).Keys);
             for (int i = 0; i < currencies.Count; i++)
             {
-                string? currencyId = ((string)getValue(currencies, i));
+                string? currencyId = ((string)currencies[i]);
                 string? code = this.safeCurrencyCode(currencyId);
                 Dictionary<string, object> account = this.account();
                 ((IDictionary<string,object>)account)["used"] = this.safeString(used, currencyId);
@@ -1802,7 +1802,7 @@ public partial class lbank : Exchange
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         for (int i = 0; i < fees.Count; i++)
         {
-            object fee = this.parseTradingFee(getValue(fees, i));
+            object fee = this.parseTradingFee(fees[i]);
             object symbol = getValue(fee, "symbol");
             ((IDictionary<string,object>)result)[(string)((string)symbol)] = fee;
         }
@@ -3029,7 +3029,7 @@ public partial class lbank : Exchange
         Dictionary<string, object> withdrawFees = new Dictionary<string, object>() {};
         for (int i = 0; i < result.Count; i++)
         {
-            object entry = getValue(result, i);
+            object entry = result[i];
             string? currencyId = this.safeString(entry, "coin");
             string? code = this.safeCurrencyCode(currencyId);
             List<object> networkList = this.safeList(entry, "networkList", new List<object>() {});
@@ -3039,7 +3039,7 @@ public partial class lbank : Exchange
             }
             for (int j = 0; j < networkList.Count; j++)
             {
-                object networkEntry = getValue(networkList, j);
+                object networkEntry = networkList[j];
                 double? fee = this.safeNumber(networkEntry, "withdrawFee");
                 if (!isEqual(fee, null))
                 {
@@ -3100,7 +3100,7 @@ public partial class lbank : Exchange
         Dictionary<string, object> withdrawFees = new Dictionary<string, object>() {};
         for (int i = 0; i < result.Count; i++)
         {
-            object item = getValue(result, i);
+            object item = result[i];
             object canWithdraw = this.safeValue(item, "canWithDraw");
             if (isEqual(canWithdraw, "true"))
             {
@@ -3348,7 +3348,7 @@ public partial class lbank : Exchange
         List<object> networkList = this.safeList(fee, "networkList", new List<object>() {});
         for (int j = 0; j < networkList.Count; j++)
         {
-            object networkEntry = getValue(networkList, j);
+            object networkEntry = networkList[j];
             object networkCode = this.networkIdToCode(this.safeString(networkEntry, "name"), code);
             double? withdrawFee = this.safeNumber(networkEntry, "withdrawFee");
             object isDefault = this.safeValue(networkEntry, "isDefault");

@@ -15,7 +15,7 @@ public partial class testMainClass : BaseTest
         testSharedMethods.assertNonEmtpyArray(exchange, skippedProperties, method, symbols);
         for (int i = 0; i < symbols.Count; i++)
         {
-            object symbol = getValue(symbols, i);
+            object symbol = symbols[i];
             testTradingFee(exchange, skippedProperties, method, symbol, getValue(fees, symbol));
         }
         return true;

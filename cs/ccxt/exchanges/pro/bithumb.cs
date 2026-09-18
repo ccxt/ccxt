@@ -541,7 +541,7 @@ public partial class bithumb : ccxt.bithumb
         List<object> units = this.safeList(message, "orderbook_units", new List<object>() {});
         for (int i = 0; i < units.Count; i++)
         {
-            object entry = getValue(units, i);
+            object entry = units[i];
             double? bidPrice = this.safeNumber(entry, "bid_price");
             double? bidSize = this.safeNumber(entry, "bid_size");
             double? askPrice = this.safeNumber(entry, "ask_price");
@@ -702,7 +702,7 @@ public partial class bithumb : ccxt.bithumb
         }
         for (int i = 0; i < getArrayLength(rawTrades); i++)
         {
-            object rawTrade = getValue(rawTrades, i);
+            object rawTrade = rawTrades[i];
             string? marketId = this.safeString2(rawTrade, "symbol", "code");
             if ((marketId == null))
             {
@@ -906,7 +906,7 @@ public partial class bithumb : ccxt.bithumb
         }
         for (int i = 0; i < assets.Count; i++)
         {
-            object asset = getValue(assets, i);
+            object asset = assets[i];
             string? currencyId = this.safeString(asset, "currency");
             string? code = this.safeCurrencyCode(currencyId);
             Dictionary<string, object> account = this.account();
@@ -950,7 +950,7 @@ public partial class bithumb : ccxt.bithumb
         List<object> keys = new List<object>(((IDictionary<string,object>)subscriptions).Keys);
         for (int i = 0; i < keys.Count; i++)
         {
-            ((IList<object>)request).Add(getValue(subscriptions, getValue(keys, i)));
+            ((IList<object>)request).Add(getValue(subscriptions, keys[i]));
         }
         return ((List<object>)((object)(request)));
     }

@@ -413,7 +413,7 @@ public partial class hollaex : Exchange
         List<object> result = new List<object>() {};
         for (int i = 0; i < keys.Count; i++)
         {
-            string? key = ((string)getValue(keys, i));
+            string? key = ((string)keys[i]);
             object market = getValue(pairs, key);
             string? baseId = this.safeString(market, "pair_base");
             string? quoteId = this.safeString(market, "pair_2");
@@ -567,7 +567,7 @@ public partial class hollaex : Exchange
         List<object> networkIds = new List<object>(((IDictionary<string,object>)rawNetworks).Keys);
         for (int j = 0; j < networkIds.Count; j++)
         {
-            string? networkId = ((string)getValue(networkIds, j));
+            string? networkId = ((string)networkIds[j]);
             IDictionary<string, object> networkEntry = this.safeDict(rawNetworks, networkId);
             object networkCode = this.networkIdToCode(networkId, code);
             if ((networkCode != null))
@@ -638,7 +638,7 @@ public partial class hollaex : Exchange
         List<object> marketIds = new List<object>(((IDictionary<string,object>)response).Keys);
         for (int i = 0; i < marketIds.Count; i++)
         {
-            string? marketId = ((string)getValue(marketIds, i));
+            string? marketId = ((string)marketIds[i]);
             IDictionary<string, object> orderbook = this.safeDict(response, marketId, new Dictionary<string, object>() {});
             string? symbol = this.safeSymbol(marketId, null, "-");
             Int64? timestamp = this.parse8601(this.safeString(orderbook, "timestamp"));
@@ -771,7 +771,7 @@ public partial class hollaex : Exchange
         List<object> keys = new List<object>(((IDictionary<string,object>)tickers).Keys);
         for (int i = 0; i < keys.Count; i++)
         {
-            string? key = ((string)getValue(keys, i));
+            string? key = ((string)keys[i]);
             object ticker = getValue(tickers, key);
             string? marketId = this.safeString(ticker, "symbol", key);
             Dictionary<string, object> market = this.safeMarket(marketId, null, "-");
@@ -1105,7 +1105,7 @@ public partial class hollaex : Exchange
         List<object> currencyIds = new List<object>(((IDictionary<string,object>)currenciesById).Keys);
         for (int i = 0; i < currencyIds.Count; i++)
         {
-            object currencyId = getValue(currencyIds, i);
+            object currencyId = currencyIds[i];
             string? code = this.safeCurrencyCode(currencyId);
             Dictionary<string, object> account = this.account();
             ((IDictionary<string,object>)account)["free"] = this.safeString(response, add(currencyId, "_available"));

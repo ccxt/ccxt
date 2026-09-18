@@ -279,7 +279,7 @@ public partial class hitbtc : ccxt.hitbtc
         List<object> marketIds = new List<object>(((IDictionary<string,object>)data).Keys);
         for (int i = 0; i < marketIds.Count; i++)
         {
-            string? marketId = ((string)getValue(marketIds, i));
+            string? marketId = ((string)marketIds[i]);
             Dictionary<string, object> market = this.safeMarket(marketId);
             string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
             object item = getValue(data, marketId);
@@ -454,7 +454,7 @@ public partial class hitbtc : ccxt.hitbtc
         string topic = "tickers";
         for (int i = 0; i < marketIds.Count; i++)
         {
-            string? marketId = ((string)getValue(marketIds, i));
+            string? marketId = ((string)marketIds[i]);
             Dictionary<string, object> market = this.safeMarket(marketId);
             string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
             Dictionary<string, object> ticker = ((Dictionary<string, object>)this.parseWsTicker(getValue(data, marketId), market));
@@ -591,7 +591,7 @@ public partial class hitbtc : ccxt.hitbtc
         string topic = "bidask";
         for (int i = 0; i < marketIds.Count; i++)
         {
-            string? marketId = ((string)getValue(marketIds, i));
+            string? marketId = ((string)marketIds[i]);
             Dictionary<string, object> market = this.safeMarket(marketId);
             string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
             Dictionary<string, object> ticker = ((Dictionary<string, object>)this.parseWsBidAsk(getValue(data, marketId), market));
@@ -702,7 +702,7 @@ public partial class hitbtc : ccxt.hitbtc
         List<object> marketIds = new List<object>(((IDictionary<string,object>)data).Keys);
         for (int i = 0; i < marketIds.Count; i++)
         {
-            string? marketId = ((string)getValue(marketIds, i));
+            string? marketId = ((string)marketIds[i]);
             Dictionary<string, object> market = this.safeMarket(marketId);
             Int64? tradesLimit = this.safeInteger(this.options, "tradesLimit", 1000);
             string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
@@ -730,7 +730,7 @@ public partial class hitbtc : ccxt.hitbtc
         List<object> result = new List<object>() {};
         for (int i = 0; i < getArrayLength(tradesArray); i++)
         {
-            Dictionary<string, object> trade = this.extend(this.parseWsTrade(getValue(tradesArray, i), market), parameters);
+            Dictionary<string, object> trade = this.extend(this.parseWsTrade(tradesArray[i], market), parameters);
             ((IList<object>)result).Add(trade);
         }
         result = this.sortBy2(result, "timestamp", "id");
@@ -852,7 +852,7 @@ public partial class hitbtc : ccxt.hitbtc
         }
         for (int i = 0; i < marketIds.Count; i++)
         {
-            string? marketId = ((string)getValue(marketIds, i));
+            string? marketId = ((string)marketIds[i]);
             Dictionary<string, object> market = this.safeMarket(marketId);
             string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
             ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = this.safeValue(this.ohlcvs, symbol, new Dictionary<string, object>() {});
@@ -866,7 +866,7 @@ public partial class hitbtc : ccxt.hitbtc
             List<object> ohlcvs = this.parseWsOHLCVs(getValue(data, marketId), market);
             for (int j = 0; j < getArrayLength(ohlcvs); j++)
             {
-                callDynamically(stored, "append", new object[] {getValue(ohlcvs, j)});
+                callDynamically(stored, "append", new object[] {ohlcvs[j]});
             }
             string messageHash = ("candles::" + symbol);
             (client as WebSocketClient).resolve(stored, messageHash);

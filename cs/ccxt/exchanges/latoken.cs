@@ -524,7 +524,7 @@ public partial class latoken : Exchange
         IList<object> rawMarkets = this.toArray(response);
         for (int i = 0; i < getArrayLength(rawMarkets); i++)
         {
-            object market = getValue(rawMarkets, i);
+            object market = rawMarkets[i];
             string? id = this.safeString(market, "id");
             // the exchange shows them inverted
             string? baseId = this.safeString(market, "baseCurrency");
@@ -728,7 +728,7 @@ public partial class latoken : Exchange
         List<object> balances = this.safeList(balancesByType, accountType, new List<object>() {});
         for (int i = 0; i < balances.Count; i++)
         {
-            object balance = getValue(balances, i);
+            object balance = balances[i];
             string? currencyId = this.safeString(balance, "currency");
             Int64? timestamp = this.safeInteger(balance, "timestamp");
             if (!isEqual(timestamp, null))
@@ -812,7 +812,7 @@ public partial class latoken : Exchange
         List<object> bids = new List<object>() {};
         for (int i = 0; i < rawAsks.Count; i++)
         {
-            object askEntry = getValue(rawAsks, i);
+            object askEntry = rawAsks[i];
             string? askQuantity = this.safeString(askEntry, "quantity");
             if (Precise.stringGt(askQuantity, "0"))
             {
@@ -821,7 +821,7 @@ public partial class latoken : Exchange
         }
         for (int i = 0; i < rawBids.Count; i++)
         {
-            object bidEntry = getValue(rawBids, i);
+            object bidEntry = rawBids[i];
             string? bidQuantity = this.safeString(bidEntry, "quantity");
             if (Precise.stringGt(bidQuantity, "0"))
             {

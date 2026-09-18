@@ -878,7 +878,7 @@ public partial class bitfinex : Exchange
         List<object> result = new List<object>() {};
         for (int i = 0; i < getArrayLength(markets); i++)
         {
-            object pairObj = getValue(markets, i);
+            object pairObj = markets[i];
             string? id = this.safeStringUpper(pairObj, 0);
             object market = this.safeValue(pairObj, 1, new Dictionary<string, object>() {});
             bool spot = true;
@@ -1121,7 +1121,7 @@ public partial class bitfinex : Exchange
         IList<object> arr = this.toArray(allowedIds);
         for (int i = 0; i < getArrayLength(arr); i++)
         {
-            Dictionary<string, object> parsed = this.parseCurrencyCustom(getValue(arr, i), indexed, indexedNetworks);
+            Dictionary<string, object> parsed = this.parseCurrencyCustom(arr[i], indexed, indexedNetworks);
             object code = getValue(parsed, "code");
             ((IDictionary<string,object>)result)[(string)code] = parsed;
         }
@@ -1240,7 +1240,7 @@ public partial class bitfinex : Exchange
         };
         for (int i = 0; i < getArrayLength(balances); i++)
         {
-            object balance = getValue(balances, i);
+            object balance = balances[i];
             Dictionary<string, object> account = this.account();
             string? interest = this.safeString(balance, 3);
             if ((interest != "0"))
@@ -1473,7 +1473,7 @@ public partial class bitfinex : Exchange
         IList<object> orders = this.toArray(orderbook);
         for (int i = 0; i < getArrayLength(orders); i++)
         {
-            object order = getValue(orders, i);
+            object order = orders[i];
             double? price = this.safeNumber(order, priceIndex);
             string? signedAmount = this.safeString(order, 2);
             string? amount = Precise.stringAbs(signedAmount);
@@ -1849,7 +1849,7 @@ public partial class bitfinex : Exchange
         for (int i = 0; i < getArrayLength(trades); i++)
         {
             ((IList<object>)tradesList).Add(new Dictionary<string, object>() {
-                { "result", getValue(trades, i) },
+                { "result", trades[i] },
             }); // convert to array of dicts to match parseOrder signature
         }
         return ccxt.BaseExchange.ToTradeList(this.parseTrades(tradesList, market, null, limit));
@@ -2328,7 +2328,7 @@ public partial class bitfinex : Exchange
         List<object> data = this.safeList(response, 4, new List<object>() {});
         for (int i = 0; i < data.Count; i++)
         {
-            object entry = getValue(data, i);
+            object entry = data[i];
             object individualOrder = getValue(entry, 4);
             ((IList<object>)results).Add(new Dictionary<string, object>() {
                 { "result", getValue(individualOrder, 0) },
@@ -2362,7 +2362,7 @@ public partial class bitfinex : Exchange
         for (int i = 0; i < orders.Count; i++)
         {
             ((IList<object>)ordersList).Add(new Dictionary<string, object>() {
-                { "result", getValue(orders, i) },
+                { "result", orders[i] },
             });
         }
         return ccxt.BaseExchange.ToOrderList(this.parseOrders(ordersList));
@@ -2505,7 +2505,7 @@ public partial class bitfinex : Exchange
         for (int i = 0; i < orders.Count; i++)
         {
             ((IList<object>)ordersList).Add(new Dictionary<string, object>() {
-                { "result", getValue(orders, i) },
+                { "result", orders[i] },
             });
         }
         return ccxt.BaseExchange.ToOrderList(this.parseOrders(ordersList, market));
@@ -2779,7 +2779,7 @@ public partial class bitfinex : Exchange
         for (int i = 0; i < getArrayLength(rawTrades); i++)
         {
             ((IList<object>)tradesList).Add(new Dictionary<string, object>() {
-                { "result", getValue(rawTrades, i) },
+                { "result", rawTrades[i] },
             }); // convert to array of dicts to match parseOrder signature
         }
         return ccxt.BaseExchange.ToTradeList(this.parseTrades(tradesList, market, since, limit));
@@ -3437,7 +3437,7 @@ public partial class bitfinex : Exchange
         for (int i = 0; i < getArrayLength(rawPositions); i++)
         {
             ((IList<object>)positionsList).Add(new Dictionary<string, object>() {
-                { "result", getValue(rawPositions, i) },
+                { "result", rawPositions[i] },
             });
         }
         return ccxt.BaseExchange.ToPositionList(this.parsePositions(positionsList, symbols));
@@ -3893,7 +3893,7 @@ public partial class bitfinex : Exchange
         List<object> rates = new List<object>() {};
         for (int i = 0; i < getArrayLength(rawRatesData); i++)
         {
-            object fr = getValue(rawRatesData, i);
+            object fr = rawRatesData[i];
             object rate = this.parseFundingRateHistory(fr, market);
             ((IList<object>)rates).Add(rate);
         }

@@ -1332,7 +1332,7 @@ public partial class derive : Exchange
         List<object> result = new List<object>() {};
         for (int i = 0; i < getArrayLength(tradesArray); i++)
         {
-            object rawTrade = getValue(tradesArray, i);
+            object rawTrade = tradesArray[i];
             bool isFetchTrades = !(inOp(rawTrade, "order_id"));
             string? liquidityRole = this.safeString(rawTrade, "liquidity_role");
             if (isFetchTrades && ((liquidityRole == "maker")))
@@ -1455,7 +1455,7 @@ public partial class derive : Exchange
         List<object> rates = new List<object>() {};
         for (int i = 0; i < data.Count; i++)
         {
-            object entry = getValue(data, i);
+            object entry = data[i];
             Int64? timestamp = this.safeInteger(entry, "timestamp");
             ((IList<object>)rates).Add(new Dictionary<string, object>() {
                 { "info", entry },
@@ -2997,7 +2997,7 @@ public partial class derive : Exchange
             List<object> collaterals = this.safeList(subaccount, "collaterals", new List<object>() {});
             for (int j = 0; j < collaterals.Count; j++)
             {
-                object balance = getValue(collaterals, j);
+                object balance = collaterals[j];
                 string? code = this.safeCurrencyCode(this.safeString(balance, "currency"));
                 IDictionary<string, object> account = this.safeDict(result, code);
                 if ((account == null))

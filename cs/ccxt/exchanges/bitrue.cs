@@ -850,7 +850,7 @@ public partial class bitrue : Exchange
         Dictionary<string, object> networks = new Dictionary<string, object>() {};
         for (int j = 0; j < networkDetails.Count; j++)
         {
-            object entry = getValue(networkDetails, j);
+            object entry = networkDetails[j];
             string? networkId = this.safeString(entry, "chain");
             object network = this.networkIdToCode(networkId, code);
             if ((network != null))
@@ -922,7 +922,7 @@ public partial class bitrue : Exchange
         }
         for (int i = 0; i < getArrayLength(types); i++)
         {
-            object marketType = getValue(types, i);
+            object marketType = types[i];
             if (isEqual(marketType, "spot"))
             {
                 ((IList<object>)promisesRaw).Add(this.spotV1PublicGetExchangeInfo(parameters));
@@ -1186,7 +1186,7 @@ public partial class bitrue : Exchange
         List<object> balances = this.safeList2(response, "balances", "account", new List<object>() {});
         for (int i = 0; i < balances.Count; i++)
         {
-            object balance = getValue(balances, i);
+            object balance = balances[i];
             string? currencyId = this.safeString2(balance, "asset", "marginCoin");
             string? code = this.safeCurrencyCode(currencyId);
             Dictionary<string, object> account = this.account();
@@ -3693,7 +3693,7 @@ public partial class bitrue : Exchange
             List<object> byLimit = this.safeList(config, "byLimit", new List<object>() {});
             for (int i = 0; i < byLimit.Count; i++)
             {
-                object entry = getValue(byLimit, i);
+                object entry = byLimit[i];
                 if (isLessThanOrEqual(limit, getValue(entry, 0)))
                 {
                     return getValue(entry, 1);

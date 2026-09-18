@@ -1032,7 +1032,7 @@ public partial class woofipro : Exchange
         Dictionary<string, object> indexedChains = this.indexBy(chainRows, "chain_id");
         for (int i = 0; i < tokenRows.Count; i++)
         {
-            object token = getValue(tokenRows, i);
+            object token = tokenRows[i];
             Dictionary<string, object> parsed = this.parseCurrency(new Dictionary<string, object>() {
                 { "_token", token },
                 { "_indexedChains", indexedChains },
@@ -1056,7 +1056,7 @@ public partial class woofipro : Exchange
         Dictionary<string, object> resultingNetworks = new Dictionary<string, object>() {};
         for (int j = 0; j < networks.Count; j++)
         {
-            object networkEntry = getValue(networks, j);
+            object networkEntry = networks[j];
             string? networkId = this.safeString(networkEntry, "chain_id");
             IDictionary<string, object> networkRow = this.safeDict(indexedChains, networkId);
             string? networkName = this.safeString(networkRow, "name", networkId);
@@ -1539,7 +1539,7 @@ public partial class woofipro : Exchange
         List<object> result = new List<object>() {};
         for (int i = 0; i < rows.Count; i++)
         {
-            object row = getValue(rows, i);
+            object row = rows[i];
             string? marketId = this.safeString(row, "symbol", "");
             if (((this.markets_by_id == null)) || !(this.markets_by_id.ContainsKey(marketId)))
             {
@@ -1663,7 +1663,7 @@ public partial class woofipro : Exchange
         List<object> result = new List<object>() {};
         for (int i = 0; i < rows.Count; i++)
         {
-            object row = getValue(rows, i);
+            object row = rows[i];
             string? marketId = this.safeString(row, "symbol", "");
             if (((this.markets_by_id == null)) || !(this.markets_by_id.ContainsKey(marketId)))
             {
@@ -1745,7 +1745,7 @@ public partial class woofipro : Exchange
         List<object> rates = new List<object>() {};
         for (int i = 0; i < result.Count; i++)
         {
-            object entry = getValue(result, i);
+            object entry = result[i];
             string? marketId = this.safeString(entry, "symbol");
             Int64? timestamp = this.safeInteger(entry, "funding_rate_timestamp");
             ((IList<object>)rates).Add(new Dictionary<string, object>() {
@@ -1921,7 +1921,7 @@ public partial class woofipro : Exchange
         List<object> symbols = this.symbols;
         for (int i = 0; i < getArrayLength(symbols); i++)
         {
-            object symbol = getValue(symbols, i);
+            object symbol = symbols[i];
             ((IDictionary<string,object>)result)[(string)symbol] = new Dictionary<string, object>() {
                 { "info", response },
                 { "symbol", symbol },
@@ -3137,7 +3137,7 @@ public partial class woofipro : Exchange
         List<object> balances = this.safeList(response, "holding", new List<object>() {});
         for (int i = 0; i < balances.Count; i++)
         {
-            object balance = getValue(balances, i);
+            object balance = balances[i];
             string? code = this.safeCurrencyCode(this.safeString(balance, "token"));
             Dictionary<string, object> account = this.account();
             ((IDictionary<string,object>)account)["total"] = this.safeString(balance, "holding");

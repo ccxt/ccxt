@@ -2244,7 +2244,7 @@ public partial class kucoin : Exchange
         List<object> result = new List<object>() {};
         for (int i = 0; i < getArrayLength(symbolsData); i++)
         {
-            object market = getValue(symbolsData, i);
+            object market = symbolsData[i];
             string? id = this.safeString(market, "symbol");
             if ((id == null))
             {
@@ -2402,7 +2402,7 @@ public partial class kucoin : Exchange
         List<object> data = this.safeList(response, "data", new List<object>() {});
         for (int i = 0; i < data.Count; i++)
         {
-            object market = getValue(data, i);
+            object market = data[i];
             string? id = this.safeString(market, "symbol");
             Int64? expiry = this.safeInteger(market, "expireDate");
             bool future = (this.safeString(market, "nextFundingRateTime") == null);
@@ -2585,7 +2585,7 @@ public partial class kucoin : Exchange
         List<object> result = new List<object>() {};
         for (int i = 0; i < getArrayLength(symbolsData); i++)
         {
-            object market = getValue(symbolsData, i);
+            object market = symbolsData[i];
             string? id = this.safeString(market, "symbol");
             string? baseId = this.safeString(market, "baseCurrency");
             string? quoteId = this.safeString(market, "quoteCurrency");
@@ -2933,7 +2933,7 @@ public partial class kucoin : Exchange
         List<object> result = new List<object>() {};
         for (int i = 0; i < getArrayLength(data); i++)
         {
-            object account = getValue(data, i);
+            object account = data[i];
             string? accountId = this.safeString(account, "id");
             string? currencyId = this.safeString(account, "currency");
             string? code = this.safeCurrencyCode(currencyId);
@@ -3079,7 +3079,7 @@ public partial class kucoin : Exchange
             List<object> chains = this.safeList(fee, "chains", new List<object>() {});
             for (int i = 0; i < chains.Count; i++)
             {
-                object chain = getValue(chains, i);
+                object chain = chains[i];
                 string? chainId = this.safeString(chain, "chainId");
                 object networkCodeNew = this.networkIdToCode(chainId, this.safeString(currency, "code"));
                 if ((networkCodeNew != null))
@@ -3503,8 +3503,8 @@ public partial class kucoin : Exchange
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         for (int i = 0; i < tickers.Count; i++)
         {
-            ((IDictionary<string,object>)getValue(tickers, i))["time"] = time;
-            object ticker = this.parseSpotOrUtaTicker(getValue(tickers, i));
+            ((IDictionary<string,object>)tickers[i])["time"] = time;
+            object ticker = this.parseSpotOrUtaTicker(tickers[i]);
             string? symbol = this.safeString(ticker, "symbol");
             if ((symbol != null))
             {
@@ -9478,7 +9478,7 @@ public partial class kucoin : Exchange
             List<object> accounts = this.safeList(data, "accounts", new List<object>() {});
             for (int i = 0; i < accounts.Count; i++)
             {
-                object balance = getValue(accounts, i);
+                object balance = accounts[i];
                 string? currencyId = this.safeString(balance, "currency");
                 string? codeInner = this.safeCurrencyCode(currencyId);
                 if ((codeInner != null))
@@ -9491,7 +9491,7 @@ public partial class kucoin : Exchange
             List<object> data = this.safeList(response, "data", new List<object>() {});
             for (int i = 0; i < data.Count; i++)
             {
-                object balance = getValue(data, i);
+                object balance = data[i];
                 string? balanceType = this.safeString(balance, "type");
                 if ((balanceType == type))
                 {
@@ -9695,7 +9695,7 @@ public partial class kucoin : Exchange
         {
             for (int i = 0; i < accounts.Count; i++)
             {
-                object entry = getValue(accounts, i);
+                object entry = accounts[i];
                 List<object> currencies = this.safeList(entry, "currencies", new List<object>() {});
                 for (int j = 0; j < currencies.Count; j++)
                 {
@@ -10926,7 +10926,7 @@ public partial class kucoin : Exchange
         List<object> keys = new List<object>(((IDictionary<string,object>)borrowRateHistories).Keys);
         for (int i = 0; i < keys.Count; i++)
         {
-            string? code = ((string)getValue(keys, i));
+            string? code = ((string)keys[i]);
             ((IDictionary<string,object>)borrowRateHistories)[(string)code] = this.filterByCurrencySinceLimit(getValue(borrowRateHistories, code),((string)code), since, limit);
         }
         return ((Dictionary<string, object>)((object)(borrowRateHistories)));
@@ -11526,7 +11526,7 @@ public partial class kucoin : Exchange
         List<object> rates = new List<object>() {};
         for (int i = 0; i < data.Count; i++)
         {
-            object entry = getValue(data, i);
+            object entry = data[i];
             string? marketId = this.safeString(entry, "symbol");
             // kucoin returns funding index symbols (e.g. .ETHUSDTMFPI8H) alongside tradeable contracts
             bool isFundingIndex = ((marketId != null)) && (((string)marketId).StartsWith(((string)".")));
@@ -11827,7 +11827,7 @@ public partial class kucoin : Exchange
         List<object> fees = new List<object>() {};
         for (int i = 0; i < getArrayLength(dataList); i++)
         {
-            object listItem = getValue(dataList, i);
+            object listItem = dataList[i];
             Int64? timestamp = this.safeInteger2(listItem, "timePoint", "settlementTime");
             string? marketId = this.safeString(listItem, "symbol");
             ((IList<object>)fees).Add(new Dictionary<string, object>() {

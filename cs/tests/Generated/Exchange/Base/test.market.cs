@@ -142,7 +142,7 @@ public partial class testMainClass : BaseTest
         List<object> checkedTypes = new List<object>() {"spot", "swap", "future", "option"};
         for (int i = 0; i < (checkedTypes?.Count ?? 0); postFixIncrement(ref i))
         {
-            string? type = ((string)getValue(checkedTypes, i));
+            string? type = ((string)checkedTypes[i]);
             if (isEqual(getValue(market, type), true))
             {
                 assert(isEqual(type, getValue(market, "type")), ((((("market.type (" + (getValue(market, "type"))) + ") not equal to \"") + type) + "\"") + (logText)));
@@ -154,7 +154,7 @@ public partial class testMainClass : BaseTest
             List<object> checkedSubTypes = new List<object>() {"linear", "inverse"};
             for (int i = 0; i < (checkedSubTypes?.Count ?? 0); postFixIncrement(ref i))
             {
-                string? subType = ((string)getValue(checkedSubTypes, i));
+                string? subType = ((string)checkedSubTypes[i]);
                 if (isEqual(getValue(market, subType), true))
                 {
                     assert(isEqual(subType, getValue(market, "subType")), ((((("market.subType (" + (getValue(market, "subType"))) + ") not equal to \"") + subType) + "\"") + (logText)));
@@ -261,7 +261,7 @@ public partial class testMainClass : BaseTest
         assert(precisionKeysLen >= 2, ("precision should have \"amount\" and \"price\" keys at least" + (logText)));
         for (int i = 0; i < precisionKeys.Count; postFixIncrement(ref i))
         {
-            string? priceOrAmountKey = ((string)getValue(precisionKeys, i));
+            string? priceOrAmountKey = ((string)precisionKeys[i]);
             // only allow very high priced markets (wher coin costs around 100k) to have a 5$ price tickSize
             bool isExclusivePair = isEqual(getValue(market, "baseId"), "BTC");
             bool isNonSpot = !isEqual(spot, true); // such high precision is only allowed in contract markets
@@ -282,7 +282,7 @@ public partial class testMainClass : BaseTest
         assert(limitsKeysLength >= 3, ("limits should have \"amount\", \"price\" and \"cost\" keys at least" + (logText)));
         for (int i = 0; i < limitsKeys.Count; postFixIncrement(ref i))
         {
-            string? key = ((string)getValue(limitsKeys, i));
+            string? key = ((string)limitsKeys[i]);
             object limitEntry = getValue(getValue(market, "limits"), key);
             if (isInactiveMarket)
             {

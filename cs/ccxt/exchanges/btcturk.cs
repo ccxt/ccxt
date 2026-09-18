@@ -365,7 +365,7 @@ public partial class btcturk : Exchange
         double? minCost = null;
         for (int j = 0; j < filters.Count; j++)
         {
-            object filter = getValue(filters, j);
+            object filter = filters[j];
             string? filterType = this.safeString(filter, "filterType");
             if ((filterType == "PRICE_FILTER"))
             {
@@ -438,7 +438,7 @@ public partial class btcturk : Exchange
         };
         for (int i = 0; i < data.Count; i++)
         {
-            object entry = getValue(data, i);
+            object entry = data[i];
             string? currencyId = this.safeString(entry, "asset");
             string? code = this.safeCurrencyCode(currencyId);
             Dictionary<string, object> account = this.account();

@@ -134,7 +134,7 @@ public partial class dydx : ccxt.dydx
         IList<object> parsedTrades = this.parseTrades(rawTrades, market);
         for (int i = 0; i < getArrayLength(parsedTrades); i++)
         {
-            object parsed = getValue(parsedTrades, i);
+            object parsed = parsedTrades[i];
             callDynamically(stored, "append", new object[] {parsed});
         }
         string messageHash = (("trade" + ":") + symbol);

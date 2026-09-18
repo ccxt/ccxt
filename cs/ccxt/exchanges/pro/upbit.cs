@@ -81,7 +81,7 @@ public partial class upbit : ccxt.upbit
         List<object> channelKeys = new List<object>(((IDictionary<string,object>)subscriptions).Keys);
         for (int i = 0; i < channelKeys.Count; i++)
         {
-            string? key = ((string)getValue(channelKeys, i));
+            string? key = ((string)channelKeys[i]);
             ((IList<object>)finalMessage).Add(getValue(subscriptions, key));
         }
         return await this.watchMultiple(url, messageHashes, finalMessage, messageHashes);
@@ -299,7 +299,7 @@ public partial class upbit : ccxt.upbit
         List<object> data = this.safeList(message, "orderbook_units", new List<object>() {});
         for (int i = 0; i < data.Count; i++)
         {
-            object entry = getValue(data, i);
+            object entry = data[i];
             double? ask_price = this.safeFloat(entry, "ask_price");
             double? ask_size = this.safeFloat(entry, "ask_size");
             double? bid_price = this.safeFloat(entry, "bid_price");
@@ -443,14 +443,14 @@ public partial class upbit : ccxt.upbit
         List<object> channelKeys = new List<object>(((IDictionary<string,object>)subscriptions).Keys);
         for (int i = 0; i < channelKeys.Count; i++)
         {
-            ((IList<object>)requests).Add(getValue(subscriptions, getValue(channelKeys, i)));
+            ((IList<object>)requests).Add(getValue(subscriptions, channelKeys[i]));
         }
         List<object> message = new List<object>() {new Dictionary<string, object>() {
     { "ticket", this.uuid() },
 }};
         for (int i = 0; i < getArrayLength(requests); i++)
         {
-            ((IList<object>)message).Add(getValue(requests, i));
+            ((IList<object>)message).Add(requests[i]);
         }
         return await this.watch(url, messageHash, message, messageHash);
     }
@@ -751,7 +751,7 @@ public partial class upbit : ccxt.upbit
         ((IDictionary<string,object>)this.balance)["datetime"] = this.iso8601(timestamp);
         for (int i = 0; i < data.Count; i++)
         {
-            object balance = getValue(data, i);
+            object balance = data[i];
             string? currencyId = this.safeString(balance, "currency");
             string? code = this.safeCurrencyCode(currencyId);
             string? available = this.safeString(balance, "balance");

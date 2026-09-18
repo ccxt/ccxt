@@ -986,7 +986,7 @@ public partial class modetrade : Exchange
         Dictionary<string, object> resultingNetworks = new Dictionary<string, object>() {};
         for (int j = 0; j < networks.Count; j++)
         {
-            object network = getValue(networks, j);
+            object network = networks[j];
             // TODO: transform chain id to human readable name
             string? networkId = this.safeString(network, "chain_id", "");
             string? precision = this.parsePrecision(this.safeString(network, "decimals"));
@@ -1390,7 +1390,7 @@ public partial class modetrade : Exchange
         List<object> rates = new List<object>() {};
         for (int i = 0; i < result.Count; i++)
         {
-            object entry = getValue(result, i);
+            object entry = result[i];
             string? marketId = this.safeString(entry, "symbol");
             Int64? timestamp = this.safeInteger(entry, "funding_rate_timestamp");
             ((IList<object>)rates).Add(new Dictionary<string, object>() {
@@ -1568,7 +1568,7 @@ public partial class modetrade : Exchange
         {
             for (int i = 0; i < getArrayLength(symbols); i++)
             {
-                object symbol = getValue(symbols, i);
+                object symbol = symbols[i];
                 ((IDictionary<string,object>)result)[(string)symbol] = new Dictionary<string, object>() {
                     { "info", response },
                     { "symbol", symbol },
@@ -2801,7 +2801,7 @@ public partial class modetrade : Exchange
         List<object> balances = this.safeList(response, "holding", new List<object>() {});
         for (int i = 0; i < balances.Count; i++)
         {
-            object balance = getValue(balances, i);
+            object balance = balances[i];
             string? code = this.safeCurrencyCode(this.safeString(balance, "token"));
             Dictionary<string, object> account = this.account();
             ((IDictionary<string,object>)account)["total"] = this.safeString(balance, "holding");

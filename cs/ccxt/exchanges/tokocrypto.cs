@@ -852,7 +852,7 @@ public partial class tokocrypto : Exchange
         List<object> result = new List<object>() {};
         for (int i = 0; i < list.Count; i++)
         {
-            object market = getValue(list, i);
+            object market = list[i];
             string? baseId = this.safeString(market, "baseAsset");
             string? quoteId = this.safeString(market, "quoteAsset");
             string? id = this.safeString(market, "symbol");
@@ -869,7 +869,7 @@ public partial class tokocrypto : Exchange
             List<object> permissions = this.safeList(market, "permissions", new List<object>() {});
             for (int j = 0; j < permissions.Count; j++)
             {
-                if (isEqual(getValue(permissions, j), "TRD_GRP_003"))
+                if (isEqual(permissions[j], "TRD_GRP_003"))
                 {
                     active = false;
                     break;
@@ -1732,7 +1732,7 @@ public partial class tokocrypto : Exchange
         List<object> balances = this.safeList(data, "accountAssets", new List<object>() {});
         for (int i = 0; i < balances.Count; i++)
         {
-            object balance = getValue(balances, i);
+            object balance = balances[i];
             string? currencyId = this.safeString(balance, "asset");
             string? code = this.safeCurrencyCode(currencyId);
             Dictionary<string, object> account = this.account();
@@ -3031,7 +3031,7 @@ public partial class tokocrypto : Exchange
             List<object> byLimit = this.safeList(config, "byLimit", new List<object>() {});
             for (int i = 0; i < byLimit.Count; i++)
             {
-                object entry = getValue(byLimit, i);
+                object entry = byLimit[i];
                 if (isLessThanOrEqual(limit, getValue(entry, 0)))
                 {
                     return getValue(entry, 1);

@@ -1069,7 +1069,7 @@ public partial class paradex : Exchange
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         for (int i = 0; i < getArrayLength(fees); i++)
         {
-            object fee = this.parseTradingFee(getValue(fees, i));
+            object fee = this.parseTradingFee(fees[i]);
             object symbol = getValue(fee, "symbol");
             ((IDictionary<string,object>)result)[(string)((string)symbol)] = fee;
         }
@@ -1552,7 +1552,7 @@ public partial class paradex : Exchange
         List<object> trades = this.safeList(response, "results", new List<object>() {});
         for (int i = 0; i < getArrayLength(trades); i++)
         {
-            ((IDictionary<string,object>)getValue(trades, i))["next"] = this.safeString(response, "next");
+            ((IDictionary<string,object>)trades[i])["next"] = this.safeString(response, "next");
         }
         return ccxt.BaseExchange.ToTradeList(this.parseTrades(trades, market, since, limit));
     }
@@ -2406,7 +2406,7 @@ public partial class paradex : Exchange
         List<object> errors = this.safeList(response, "errors", new List<object>() {});
         for (int i = 0; i < getArrayLength(errors); i++)
         {
-            object error = getValue(errors, i);
+            object error = errors[i];
             ((IList<object>)parsedOrders).Add(this.safeOrder(new Dictionary<string, object>() {
                 { "info", error },
                 { "status", "rejected" },
@@ -2518,7 +2518,7 @@ public partial class paradex : Exchange
         List<object> orders = new List<object>() {};
         for (int i = 0; i < getArrayLength(results); i++)
         {
-            object result = getValue(results, i);
+            object result = results[i];
             string? marketId = this.safeString(result, "market");
             Dictionary<string, object> market = this.safeMarket(marketId);
             string? status = this.safeString(result, "status");
@@ -2922,7 +2922,7 @@ public partial class paradex : Exchange
         List<object> trades = this.safeList(response, "results", new List<object>() {});
         for (int i = 0; i < getArrayLength(trades); i++)
         {
-            ((IDictionary<string,object>)getValue(trades, i))["next"] = this.safeString(response, "next");
+            ((IDictionary<string,object>)trades[i])["next"] = this.safeString(response, "next");
         }
         return ccxt.BaseExchange.ToTradeList(this.parseTrades(trades, market, since, limit));
     }
@@ -3199,7 +3199,7 @@ public partial class paradex : Exchange
         List<object> deposits = new List<object>() {};
         for (int i = 0; i < getArrayLength(rows); i++)
         {
-            object row = getValue(rows, i);
+            object row = rows[i];
             if (isEqual(getValue(row, "kind"), "DEPOSIT"))
             {
                 ((IList<object>)deposits).Add(row);
@@ -3275,7 +3275,7 @@ public partial class paradex : Exchange
         List<object> deposits = new List<object>() {};
         for (int i = 0; i < getArrayLength(rows); i++)
         {
-            object row = getValue(rows, i);
+            object row = rows[i];
             if (isEqual(getValue(row, "kind"), "WITHDRAWAL"))
             {
                 ((IList<object>)deposits).Add(row);
@@ -3994,7 +3994,7 @@ public partial class paradex : Exchange
         List<object> rates = new List<object>() {};
         for (int i = 0; i < getArrayLength(results); i++)
         {
-            object rate = getValue(results, i);
+            object rate = results[i];
             Int64? timestamp = this.safeInteger(rate, "created_at");
             string? datetime = this.iso8601(timestamp);
             ((IList<object>)rates).Add(new Dictionary<string, object>() {

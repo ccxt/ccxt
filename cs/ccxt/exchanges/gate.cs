@@ -2105,7 +2105,7 @@ public partial class gate : Exchange
         List<object> types = this.safeList(fetchMarketsOptions, "types", new List<object>() {"spot", "swap", "future", "option"});
         for (int i = 0; i < types.Count; i++)
         {
-            object marketType = getValue(types, i);
+            object marketType = types[i];
             if (isEqual(marketType, "spot"))
             {
                 // if (!sandboxMode) {
@@ -2881,7 +2881,7 @@ public partial class gate : Exchange
         Dictionary<string, object> networks = new Dictionary<string, object>() {};
         for (int j = 0; j < chains.Count; j++)
         {
-            object chain = getValue(chains, j);
+            object chain = chains[j];
             string? networkId = this.safeString(chain, "name");
             object networkCode = this.networkIdToCode(networkId, code);
             if ((networkCode != null))
@@ -3359,7 +3359,7 @@ public partial class gate : Exchange
         List<object> symbols = this.symbols;
         for (int i = 0; i < getArrayLength(symbols); i++)
         {
-            object symbol = getValue(symbols, i);
+            object symbol = symbols[i];
             Dictionary<string, object> market = this.market(symbol);
             ((IDictionary<string,object>)result)[(string)symbol] = this.parseTradingFee(response, market);
         }
@@ -3454,7 +3454,7 @@ public partial class gate : Exchange
                 List<object> networkIds = new List<object>(((IDictionary<string,object>)withdrawFixOnChains).Keys);
                 for (int j = 0; j < networkIds.Count; j++)
                 {
-                    string? networkId = ((string)getValue(networkIds, j));
+                    string? networkId = ((string)networkIds[j]);
                     object networkCode = this.networkIdToCode(networkId, code);
                     if ((networkCode != null))
                     {
@@ -3547,7 +3547,7 @@ public partial class gate : Exchange
             List<object> chainKeys = new List<object>(((IDictionary<string,object>)withdrawFixOnChains).Keys);
             for (int i = 0; i < chainKeys.Count; i++)
             {
-                string? chainKey = ((string)getValue(chainKeys, i));
+                string? chainKey = ((string)chainKeys[i]);
                 string? currencyId = this.safeString(fee, "currency");
                 string? code = this.safeCurrencyCode(currencyId, currency);
                 object networkCode = this.networkIdToCode(chainKey, code);
@@ -4364,7 +4364,7 @@ public partial class gate : Exchange
             List<object> keys = new List<object>(((IDictionary<string,object>)balances).Keys);
             for (int i = 0; i < keys.Count; i++)
             {
-                string? currencyId = ((string)getValue(keys, i));
+                string? currencyId = ((string)keys[i]);
                 object content = getValue(balances, currencyId);
                 ((IDictionary<string,object>)content)["currency"] = currencyId;
                 ((IList<object>)flatBalances).Add(content);

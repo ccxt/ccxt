@@ -384,7 +384,7 @@ public partial class extended : ccxt.extended
         }
         for (int i = 0; i < rawTrades.Count; i++)
         {
-            Dictionary<string, object> trade = this.parseTrade(getValue(rawTrades, i));
+            Dictionary<string, object> trade = this.parseTrade(rawTrades[i]);
             string? symbol = this.safeString(trade, "symbol");
             ((IDictionary<string,object>)symbols)[(string)((string)symbol)] = true;
             callDynamically(stored, "append", new object[] {trade});
@@ -392,14 +392,14 @@ public partial class extended : ccxt.extended
         List<object> keys = new List<object>(((IDictionary<string,object>)symbols).Keys);
         for (int i = 0; i < keys.Count; i++)
         {
-            string messageHash = add("myTrades:", getValue(keys, i));
+            string messageHash = add("myTrades:", keys[i]);
             (client as WebSocketClient).resolve(stored, messageHash);
         }
         (client as WebSocketClient).resolve(stored, "myTrades");
         List<object> subscriptions = new List<object>(((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Keys);
         for (int i = 0; i < subscriptions.Count; i++)
         {
-            string? messageHash = ((string)getValue(subscriptions, i));
+            string? messageHash = ((string)subscriptions[i]);
             if ((getIndexOf(messageHash, "myTrades:") == 0))
             {
                 (client as WebSocketClient).resolve(stored, messageHash);
@@ -482,7 +482,7 @@ public partial class extended : ccxt.extended
         }
         for (int i = 0; i < rawPositions.Count; i++)
         {
-            object rawPosition = getValue(rawPositions, i);
+            object rawPosition = rawPositions[i];
             string? marketId = this.safeString(rawPosition, "market");
             if ((marketId == null))
             {
@@ -495,7 +495,7 @@ public partial class extended : ccxt.extended
         List<object> messageHashes = this.findMessageHashes(client as WebSocketClient, "positions::");
         for (int i = 0; i < getArrayLength(messageHashes); i++)
         {
-            object messageHash = getValue(messageHashes, i);
+            object messageHash = messageHashes[i];
             List<object> parts = ((string)messageHash).Split(new [] {((string)"::")}, StringSplitOptions.None).ToList<object>();
             string? symbolsString = ((string)(parts != null && 1 < parts.Count ? parts[1] : null));
             List<object> symbols = ((string)symbolsString).Split(new [] {((string)",")}, StringSplitOptions.None).ToList<object>();
@@ -564,14 +564,14 @@ public partial class extended : ccxt.extended
         List<object> keys = new List<object>(((IDictionary<string,object>)symbols).Keys);
         for (int i = 0; i < keys.Count; i++)
         {
-            string messageHash = add("orders:", getValue(keys, i));
+            string messageHash = add("orders:", keys[i]);
             (client as WebSocketClient).resolve(orders, messageHash);
         }
         (client as WebSocketClient).resolve(orders, "orders");
         List<object> subscriptions = new List<object>(((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Keys);
         for (int i = 0; i < subscriptions.Count; i++)
         {
-            string? messageHash = ((string)getValue(subscriptions, i));
+            string? messageHash = ((string)subscriptions[i]);
             if ((getIndexOf(messageHash, "orders:") == 0))
             {
                 (client as WebSocketClient).resolve(orders, messageHash);
@@ -808,7 +808,7 @@ public partial class extended : ccxt.extended
         ((IDictionary<string,object>)subscription)["nonce"] = nonce;
         for (int i = 0; i < data.Count; i++)
         {
-            Dictionary<string, object> trade = this.parseTrade(getValue(data, i), market);
+            Dictionary<string, object> trade = this.parseTrade(data[i], market);
             callDynamically(stored, "append", new object[] {trade});
         }
         (client as WebSocketClient).resolve(stored, messageHash);
@@ -925,7 +925,7 @@ public partial class extended : ccxt.extended
         List<object> data = this.safeList(message, "data", new List<object>() {});
         for (int i = 0; i < data.Count; i++)
         {
-            object parsed = this.parseOHLCV(getValue(data, i));
+            object parsed = this.parseOHLCV(data[i]);
             callDynamically(stored, "append", new object[] {parsed});
         }
         (client as WebSocketClient).resolve(stored, messageHash);
@@ -936,7 +936,7 @@ public partial class extended : ccxt.extended
         List<object> keys = new List<object>(((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Keys);
         for (int i = 0; i < keys.Count; i++)
         {
-            string? key = ((string)getValue(keys, i));
+            string? key = ((string)keys[i]);
             IDictionary<string, object> subscription = this.safeDict(((WebSocketClient)client).subscriptions, key);
             string? subscriptionName = this.safeString(subscription, "name");
             if (isEqual(subscriptionName, name))

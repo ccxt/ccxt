@@ -157,7 +157,7 @@ public partial class coinex : ccxt.coinex
         Dictionary<string, object> newTickers = new Dictionary<string, object>() {};
         for (int i = 0; i < rawTickers.Count; i++)
         {
-            object entry = getValue(rawTickers, i);
+            object entry = rawTickers[i];
             string? marketId = this.safeString(entry, "market");
             string? symbol = this.safeSymbol(marketId, null, null, defaultType);
             Dictionary<string, object> market = this.safeMarket(marketId, null, null, defaultType);
@@ -168,7 +168,7 @@ public partial class coinex : ccxt.coinex
         List<object> messageHashes = this.findMessageHashes(client as WebSocketClient, "tickers::");
         for (int i = 0; i < getArrayLength(messageHashes); i++)
         {
-            object messageHash = getValue(messageHashes, i);
+            object messageHash = messageHashes[i];
             List<object> parts = ((string)messageHash).Split(new [] {((string)"::")}, StringSplitOptions.None).ToList<object>();
             string? symbolsString = ((string)(parts != null && 1 < parts.Count ? parts[1] : null));
             List<object> symbols = ((string)symbolsString).Split(new [] {((string)",")}, StringSplitOptions.None).ToList<object>();
@@ -374,7 +374,7 @@ public partial class coinex : ccxt.coinex
         }
         for (int i = 0; i < getArrayLength(rawBalances); i++)
         {
-            object entry = getValue(rawBalances, i);
+            object entry = rawBalances[i];
             this.parseWsBalance(entry, account);
         }
         string? messageHash = null;
@@ -606,7 +606,7 @@ public partial class coinex : ccxt.coinex
         }
         for (int i = 0; i < trades.Count; i++)
         {
-            object trade = getValue(trades, i);
+            object trade = trades[i];
             Dictionary<string, object> parsed = ((Dictionary<string, object>)this.parseWsTrade(trade, market));
             callDynamically(stored, "append", new object[] {parsed});
         }

@@ -411,14 +411,14 @@ public partial class kalshi : PredictionExchange
             int rawMarketsLength = rawMarkets.Count;
             for (int i = 0; i < rawMarkets.Count; i++)
             {
-                object raw = getValue(rawMarkets, i);
+                object raw = rawMarkets[i];
                 List<object> parsed = this.parseBinaryMarketToOutcomes(raw);
                 string? eventTicker = this.safeString(raw, "event_ticker");
                 string? eventTitle = this.safeString(raw, "title", eventTicker);
                 string? eventKey = ((bool) ((eventTitle != null) && (eventTitle != ""))) ? this.shortenSlug(eventTitle) : null;
                 for (int j = 0; j < getArrayLength(parsed); j++)
                 {
-                    object m = getValue(parsed, j);
+                    object m = parsed[j];
                     ((IList<object>)flatMarkets).Add(m);
                     if (((eventKey != null)) && ((eventKey != "")))
                     {
@@ -617,7 +617,7 @@ public partial class kalshi : PredictionExchange
             List<object> rawMarkets = this.safeList(response, "markets", new List<object>() {});
             for (int i = 0; i < rawMarkets.Count; i++)
             {
-                Dictionary<string, object> parsed = this.parseMarket(getValue(rawMarkets, i));
+                Dictionary<string, object> parsed = this.parseMarket(rawMarkets[i]);
                 if ((parsed == null))
                 {
                     throw new ExchangeError ((string)(this.id + " fetchOutcomes() could not resolve parsed")) ;
@@ -789,7 +789,7 @@ public partial class kalshi : PredictionExchange
         object resolvedOutcome = null;
         for (int oi = 0; oi < getArrayLength(outcomeLabels); oi++)
         {
-            string? label = ((string)getValue(outcomeLabels, oi));
+            string? label = ((string)outcomeLabels[oi]);
             object outcomeHandle = this.slugToOutcomeSymbol(eventTicker, subtitleOrTicker, label);
             bool? winnerRaw = null;
             int? settleFractionRaw = null;
@@ -1205,7 +1205,7 @@ public partial class kalshi : PredictionExchange
         List<object> tickers = new List<object>() {};
         for (int i = 0; i < getArrayLength(targets); i++)
         {
-            IDictionary<string, object> outcomeObj = this.outcome(getValue(targets, i));
+            IDictionary<string, object> outcomeObj = this.outcome(targets[i]);
             string? ticker = this.safeString(getValue(outcomeObj, "info"), "ticker");
             if ((ticker == null))
             {
@@ -1245,7 +1245,7 @@ public partial class kalshi : PredictionExchange
             List<object> rawMarkets = this.safeList(response, "markets", new List<object>() {});
             for (int i = 0; i < rawMarkets.Count; i++)
             {
-                object raw = getValue(rawMarkets, i);
+                object raw = rawMarkets[i];
                 string? marketTicker = this.safeString(raw, "ticker");
                 if (((marketTicker == null)) || !(outcomesByTicker.ContainsKey(marketTicker)))
                 {
@@ -1313,28 +1313,28 @@ public partial class kalshi : PredictionExchange
             // NO perspective: NO bids come from rawNo, NO asks invert rawYes (NO ask = 1 - YES bid)
             for (int bi = 0; bi < rawNo.Count; bi++)
             {
-                double? price = this.safeNumber(getValue(rawNo, bi), 0);
-                ((IList<object>)bids).Add(new List<object>() {price, this.safeNumber(getValue(rawNo, bi), 1)});
+                double? price = this.safeNumber(rawNo[bi], 0);
+                ((IList<object>)bids).Add(new List<object>() {price, this.safeNumber(rawNo[bi], 1)});
             }
             for (int ai = 0; ai < rawYes.Count; ai++)
             {
-                double? yesPrice = this.safeNumber(getValue(rawYes, ai), 0);
+                double? yesPrice = this.safeNumber(rawYes[ai], 0);
                 double? price = ((bool) (!isEqual(yesPrice, null))) ? this.parseNumber(Precise.stringSub("1", this.numberToString(yesPrice))) : null;
-                ((IList<object>)asks).Add(new List<object>() {price, this.safeNumber(getValue(rawYes, ai), 1)});
+                ((IList<object>)asks).Add(new List<object>() {price, this.safeNumber(rawYes[ai], 1)});
             }
         } else
         {
             // YES perspective: YES bids from rawYes, YES asks invert rawNo (YES ask = 1 - NO bid)
             for (int bi = 0; bi < rawYes.Count; bi++)
             {
-                double? price = this.safeNumber(getValue(rawYes, bi), 0);
-                ((IList<object>)bids).Add(new List<object>() {price, this.safeNumber(getValue(rawYes, bi), 1)});
+                double? price = this.safeNumber(rawYes[bi], 0);
+                ((IList<object>)bids).Add(new List<object>() {price, this.safeNumber(rawYes[bi], 1)});
             }
             for (int ai = 0; ai < rawNo.Count; ai++)
             {
-                double? noPrice = this.safeNumber(getValue(rawNo, ai), 0);
+                double? noPrice = this.safeNumber(rawNo[ai], 0);
                 double? price = ((bool) (!isEqual(noPrice, null))) ? this.parseNumber(Precise.stringSub("1", this.numberToString(noPrice))) : null;
-                ((IList<object>)asks).Add(new List<object>() {price, this.safeNumber(getValue(rawNo, ai), 1)});
+                ((IList<object>)asks).Add(new List<object>() {price, this.safeNumber(rawNo[ai], 1)});
             }
         }
         return ccxt.BaseExchange.ToPredictionOrderBook(this.safePredictionOrderBook(this.sortedOrders(this.safeString(outcomeObj, "outcome", outcome), timestamp, bids, asks), outcomeObj));
@@ -1462,7 +1462,7 @@ public partial class kalshi : PredictionExchange
         List<object> usableCandles = new List<object>() {};
         for (int i = 0; i < candles.Count; i++)
         {
-            object candle = getValue(candles, i);
+            object candle = candles[i];
             IDictionary<string, object> priceObj = this.safeDict(candle, "price", new Dictionary<string, object>() {});
             double? openPrice = this.safeNumber(priceObj, "open_dollars");
             double? previousPrice = this.safeNumber(priceObj, "previous_dollars");
@@ -1561,7 +1561,7 @@ public partial class kalshi : PredictionExchange
         List<object> filteredTrades = new List<object>() {};
         for (int i = 0; i < trades.Count; i++)
         {
-            object trade = getValue(trades, i);
+            object trade = trades[i];
             string? tradeTicker = this.safeString2(trade, "ticker", "market_ticker");
             if ((tradeTicker == null) || (tradeTicker == ticker))
             {
@@ -1690,7 +1690,7 @@ public partial class kalshi : PredictionExchange
         List<object> result = new List<object>() {};
         for (int i = 0; i < getArrayLength(trades); i++)
         {
-            object trade = getValue(trades, i);
+            object trade = trades[i];
             if (((wantedOutcome == null)) || (isEqual(this.safeString(trade, "outcome"), wantedOutcome)))
             {
                 ((IList<object>)result).Add(trade);
@@ -1930,7 +1930,7 @@ public partial class kalshi : PredictionExchange
         List<object> result = new List<object>() {};
         for (int i = 0; i < getArrayLength(parsed); i++)
         {
-            Dictionary<string, object> settlement = ((Dictionary<string, object>)getValue(parsed, i));
+            Dictionary<string, object> settlement = ((Dictionary<string, object>)parsed[i]);
             if (((wantedOutcome == null)) || (isEqual(this.safeString(settlement, "outcome"), wantedOutcome)))
             {
                 ((IList<object>)result).Add(settlement);
@@ -2970,7 +2970,7 @@ public partial class kalshi : PredictionExchange
         Int64? latestClose = null;
         for (int i = 0; i < rawMarkets.Count; i++)
         {
-            object rawMarket = getValue(rawMarkets, i);
+            object rawMarket = rawMarkets[i];
             Dictionary<string, object> parsed = this.parseMarket(rawMarket);
             ((IList<object>)marketsList).Add(parsed);
             totalVolume = this.sum(totalVolume, this.safeNumber2(rawMarket, "volume_fp", "volume", 0));

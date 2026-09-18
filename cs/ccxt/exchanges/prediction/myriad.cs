@@ -691,7 +691,7 @@ public partial class myriad : PredictionExchange
         List<object> result = new List<object>() {};
         for (int i = 0; i < data.Count; i++)
         {
-            ((IList<object>)result).Add(this.parsePredictionPosition(getValue(data, i)));
+            ((IList<object>)result).Add(this.parsePredictionPosition(data[i]));
         }
         return ccxt.BaseExchange.ToPredictionPositionList(this.filterByArray(result, "outcome", outcomes, false));
     }
@@ -878,7 +878,7 @@ public partial class myriad : PredictionExchange
         List<object> signedFields = new List<object>() {};
         for (int i = 0; i < getArrayLength(fields); i++)
         {
-            ((IList<object>)signedFields).Add(getValue(fields, i));
+            ((IList<object>)signedFields).Add(fields[i]);
         }
         ((IList<object>)signedFields).Add(this.rlpEncodeBytes(this.intToRlpHex(yParity)));
         ((IList<object>)signedFields).Add(this.rlpEncodeBytes(rHex));
@@ -2783,7 +2783,7 @@ public partial class myriad : PredictionExchange
         double? change = null;
         for (int i = 0; i < getArrayLength(outcomes); i++)
         {
-            object o = getValue(outcomes, i);
+            object o = outcomes[i];
             if (isEqual(this.safeString(o, "outcomeId", this.safeString(o, "id")), outcomeId))
             {
                 price = this.safeNumber(o, "price");
@@ -2951,7 +2951,7 @@ public partial class myriad : PredictionExchange
         double? price = null;
         for (int i = 0; i < getArrayLength(outcomes); i++)
         {
-            object o = getValue(outcomes, i);
+            object o = outcomes[i];
             if ((this.safeString(o, "outcomeId", this.safeString(o, "id")) == outcomeId))
             {
                 price = this.safeNumber(o, "price");
@@ -3012,7 +3012,7 @@ public partial class myriad : PredictionExchange
         List<object> bids = new List<object>() {};
         for (int i = 0; i < getArrayLength(rawBids); i++)
         {
-            object row = getValue(rawBids, i);
+            object row = rawBids[i];
             string? rowPrice = Precise.stringDiv(this.safeString(row, 0), "1000000000000000000");
             string? rowAmount = Precise.stringDiv(this.safeString(row, 1), "1000000000000000000");
             ((IList<object>)bids).Add(new List<object> {this.parseNumber(rowPrice), this.parseNumber(rowAmount)});
@@ -3020,7 +3020,7 @@ public partial class myriad : PredictionExchange
         List<object> asks = new List<object>() {};
         for (int i = 0; i < getArrayLength(rawAsks); i++)
         {
-            object row = getValue(rawAsks, i);
+            object row = rawAsks[i];
             string? rowPrice = Precise.stringDiv(this.safeString(row, 0), "1000000000000000000");
             string? rowAmount = Precise.stringDiv(this.safeString(row, 1), "1000000000000000000");
             ((IList<object>)asks).Add(new List<object> {this.parseNumber(rowPrice), this.parseNumber(rowAmount)});
@@ -3105,7 +3105,7 @@ public partial class myriad : PredictionExchange
         object selectedOutcome = null;
         for (int i = 0; i < getArrayLength(outcomes); i++)
         {
-            object oc = getValue(outcomes, i);
+            object oc = outcomes[i];
             string? currentId = this.safeString(oc, "id", this.safeString(oc, "outcomeId"));
             string? currentTitle = this.safeString(oc, "title", this.safeString(oc, "label"));
             if (((outcomeId != null)) && ((currentId == outcomeId)))
@@ -3125,7 +3125,7 @@ public partial class myriad : PredictionExchange
         {
             for (int i = 0; i < chartsList.Count; i++)
             {
-                object chartObj = getValue(chartsList, i);
+                object chartObj = chartsList[i];
                 if ((this.safeString(chartObj, "timeframe") == bucketKey))
                 {
                     chart = chartObj;
@@ -3149,7 +3149,7 @@ public partial class myriad : PredictionExchange
         List<object> usablePoints = new List<object>() {};
         for (int i = 0; i < getArrayLength(points); i++)
         {
-            object point = getValue(points, i);
+            object point = points[i];
             double? pointOpen = this.safeNumber(point, "open");
             double? pointPrice = this.safeNumber(point, "price", this.safeNumber(point, "value"));
             Int64? pointTs = this.safeInteger(point, "timestamp");
@@ -3232,7 +3232,7 @@ public partial class myriad : PredictionExchange
         List<object> promises = new List<object>() {};
         for (int i = 0; i < getArrayLength(marketKeys); i++)
         {
-            object key = getValue(marketKeys, i);
+            object key = marketKeys[i];
             IList<object> grouped = (IList<object>)(getValue(outcomesByMarket, key));
             object firstOutcome = getValue(grouped, 0);
             IDictionary<string, object> info = this.safeDict(firstOutcome, "info", new Dictionary<string, object>() {});
@@ -3244,12 +3244,12 @@ public partial class myriad : PredictionExchange
         List<object> responses = await promiseAll(promises);
         for (int i = 0; i < getArrayLength(marketKeys); i++)
         {
-            object key = getValue(marketKeys, i);
+            object key = marketKeys[i];
             object response = getValue(responses, i);
             IList<object> grouped = (IList<object>)(getValue(outcomesByMarket, key));
             for (int j = 0; j < getArrayLength(grouped); j++)
             {
-                object outcomeObj = getValue(grouped, j);
+                object outcomeObj = grouped[j];
                 Dictionary<string, object> ticker = this.parsePredictionTicker(response, outcomeObj);
                 string? symbolKey = this.safeString(ticker, "outcome");
                 if ((symbolKey != null))
@@ -3531,7 +3531,7 @@ public partial class myriad : PredictionExchange
         List<object> marketsList = new List<object>() {};
         for (int i = 0; i < getArrayLength(rawMarkets); i++)
         {
-            object rawMarket = getValue(rawMarkets, i);
+            object rawMarket = rawMarkets[i];
             ((IList<object>)marketsList).Add(this.parseMyriadMarket(rawMarket, questionSlug));
         }
         string? endDate = this.safeString(rawEvent, "expiresAt", this.safeString(rawEvent, "endDate"));

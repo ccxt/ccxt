@@ -628,7 +628,7 @@ public partial class bitbank : Exchange
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         for (int i = 0; i < pairs.Count; i++)
         {
-            object pair = getValue(pairs, i);
+            object pair = pairs[i];
             string? marketId = this.safeString(pair, "name");
             Dictionary<string, object> market = this.safeMarket(marketId);
             string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
@@ -734,7 +734,7 @@ public partial class bitbank : Exchange
         List<object> assets = this.safeList(data, "assets", new List<object>() {});
         for (int i = 0; i < assets.Count; i++)
         {
-            object balance = getValue(assets, i);
+            object balance = assets[i];
             string? currencyId = this.safeString(balance, "asset");
             string? code = this.safeCurrencyCode(currencyId);
             Dictionary<string, object> account = this.account();

@@ -405,7 +405,7 @@ public partial class indodax : Exchange
         IList<object> rawMarkets = this.toArray(response);
         for (int i = 0; i < getArrayLength(rawMarkets); i++)
         {
-            object market = getValue(rawMarkets, i);
+            object market = rawMarkets[i];
             string? id = this.safeString(market, "id");
             string? baseId = this.safeString(market, "traded_currency");
             string? quoteId = this.safeString(market, "base_currency");
@@ -483,7 +483,7 @@ public partial class indodax : Exchange
         List<object> currencyIds = new List<object>(((IDictionary<string,object>)free).Keys);
         for (int i = 0; i < currencyIds.Count; i++)
         {
-            string? currencyId = ((string)getValue(currencyIds, i));
+            string? currencyId = ((string)currencyIds[i]);
             string? code = this.safeCurrencyCode(currencyId);
             Dictionary<string, object> account = this.account();
             ((IDictionary<string,object>)account)["free"] = this.safeString(free, currencyId);
@@ -690,7 +690,7 @@ public partial class indodax : Exchange
         Dictionary<string, object> parsedTickers = new Dictionary<string, object>() {};
         for (int i = 0; i < keys.Count; i++)
         {
-            string? key = ((string)getValue(keys, i));
+            string? key = ((string)keys[i]);
             object rawTicker = getValue(tickers, key);
             string marketId = ((string)key).Replace((string)"_", (string)"");
             Dictionary<string, object> market = this.safeMarket(marketId);
@@ -1014,7 +1014,7 @@ public partial class indodax : Exchange
         List<object> exchangeOrders = new List<object>() {};
         for (int i = 0; i < marketIds.Count; i++)
         {
-            string? marketId = ((string)getValue(marketIds, i));
+            string? marketId = ((string)marketIds[i]);
             object marketOrders = getValue(rawOrders, marketId);
             market = this.safeMarket(marketId);
             IList<object> parsedOrders = this.parseOrders(marketOrders, market, since, limit);
@@ -1359,13 +1359,13 @@ public partial class indodax : Exchange
             List<object> keys = new List<object>(((IDictionary<string,object>)withdraw).Keys);
             for (int i = 0; i < keys.Count; i++)
             {
-                object key = getValue(keys, i);
+                object key = keys[i];
                 transactions = this.arrayConcat(transactions, getValue(withdraw, key));
             }
             keys = new List<object>(((IDictionary<string,object>)deposit).Keys);
             for (int i = 0; i < keys.Count; i++)
             {
-                object key = getValue(keys, i);
+                object key = keys[i];
                 transactions = this.arrayConcat(transactions, getValue(deposit, key));
             }
         } else
@@ -1588,7 +1588,7 @@ public partial class indodax : Exchange
         };
         for (int i = 0; i < addressKeys.Count; i++)
         {
-            string? marketId = ((string)getValue(addressKeys, i));
+            string? marketId = ((string)addressKeys[i]);
             string? code = this.safeCurrencyCode(marketId);
             string? address = this.safeString(addresses, marketId);
             if (((address != null)) && (((codes == null)) || (this.inArray(code, codes))))
@@ -1612,7 +1612,7 @@ public partial class indodax : Exchange
                         List<object> networkIds = ((string)networkId).Split(new [] {((string)",")}, StringSplitOptions.None).ToList<object>();
                         for (int j = 0; j < networkIds.Count; j++)
                         {
-                            object _netIdTmp = this.networkIdToCode(getValue(networkIds, j), code);
+                            object _netIdTmp = this.networkIdToCode(networkIds[j], code);
                             if ((_netIdTmp != null))
                             {
                                 ((IList<object>)network).Add(((string)_netIdTmp).ToUpper());

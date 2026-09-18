@@ -392,7 +392,7 @@ public partial class revolutx : Exchange
         List<object> result = new List<object>() {};
         for (int i = 0; i < keys.Count; i++)
         {
-            string? key = ((string)getValue(keys, i));
+            string? key = ((string)keys[i]);
             IDictionary<string, object> market = this.safeDict(markets, key, new Dictionary<string, object>() {});
             object bs = this.safeString(market, "base");
             string? quote = this.safeString(market, "quote");
@@ -483,7 +483,7 @@ public partial class revolutx : Exchange
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         for (int i = 0; i < keys.Count; i++)
         {
-            string? key = ((string)getValue(keys, i));
+            string? key = ((string)keys[i]);
             IDictionary<string, object> currency = this.safeDict(currencies, key, new Dictionary<string, object>() {});
             Dictionary<string, object> currencyData = this.extend(currency, new Dictionary<string, object>() {
                 { "id", key },

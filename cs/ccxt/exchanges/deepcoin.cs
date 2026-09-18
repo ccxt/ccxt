@@ -555,12 +555,12 @@ public partial class deepcoin : Exchange
         List<object> result = new List<object>() {};
         for (int i = 0; i < getArrayLength(types); i++)
         {
-            ((IList<object>)promises).Add(this.FetchMarketsByType(getValue(types, i), parameters));
+            ((IList<object>)promises).Add(this.FetchMarketsByType(types[i], parameters));
         }
         promises = await promiseAll(promises);
         for (int i = 0; i < getArrayLength(promises); i++)
         {
-            result = this.arrayConcat(result, getValue(promises, i));
+            result = this.arrayConcat(result, promises[i]);
         }
         return ccxt.BaseExchange.ToMarketInterfaceList(result);
     }
@@ -737,7 +737,7 @@ public partial class deepcoin : Exchange
         List<object> symbols = new List<object>(((IDictionary<string,object>)result).Keys);
         for (int i = 0; i < symbols.Count; i++)
         {
-            string? symbol = ((string)getValue(symbols, i));
+            string? symbol = ((string)symbols[i]);
             object market = getValue(result, symbol);
             if (((market != null)) && (isEqual(getValue(market, "swap"), true)))
             {
@@ -1184,7 +1184,7 @@ public partial class deepcoin : Exchange
         List<object> balances = this.safeList(response, "data", new List<object>() {});
         for (int i = 0; i < getArrayLength(balances); i++)
         {
-            object balance = getValue(balances, i);
+            object balance = balances[i];
             string? symbol = this.safeString(balance, "ccy");
             string? code = this.safeCurrencyCode(symbol);
             Dictionary<string, object> account = this.account();

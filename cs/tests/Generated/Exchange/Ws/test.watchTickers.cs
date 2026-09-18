@@ -66,7 +66,7 @@ public partial class testMainClass : BaseTest
                 testSharedMethods.assertNonEmtpyArray(exchange, skippedProperties, method, values, checkedSymbol);
                 for (int i = 0; i < values.Count; i++)
                 {
-                    object ticker = getValue(values, i);
+                    object ticker = values[i];
                     try
                     {
                         testTicker(exchange, skippedProperties, method, ticker, checkedSymbol);

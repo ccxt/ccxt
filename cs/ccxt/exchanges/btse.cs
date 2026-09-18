@@ -1215,7 +1215,7 @@ public partial class btse : Exchange
                 List<object> inUse = this.safeList(row, "assetsInUse", new List<object>() {});
                 for (int j = 0; j < inUse.Count; j++)
                 {
-                    object usedRow = getValue(inUse, j);
+                    object usedRow = inUse[j];
                     string? usedCode = this.safeCurrencyCode(this.safeString(usedRow, "currency"));
                     if ((usedCode == null))
                     {
@@ -1225,7 +1225,7 @@ public partial class btse : Exchange
                 }
                 for (int j = 0; j < assets.Count; j++)
                 {
-                    object assetRow = getValue(assets, j);
+                    object assetRow = assets[j];
                     string? code = this.safeCurrencyCode(this.safeString(assetRow, "currency"));
                     if ((code == null))
                     {
@@ -1250,7 +1250,7 @@ public partial class btse : Exchange
         List<object> codes = new List<object>(((IDictionary<string,object>)totals).Keys);
         for (int i = 0; i < codes.Count; i++)
         {
-            string? code = ((string)getValue(codes, i));
+            string? code = ((string)codes[i]);
             Dictionary<string, object> account = this.account();
             ((IDictionary<string,object>)account)["total"] = this.safeString(totals, code);
             ((IDictionary<string,object>)account)["free"] = this.safeString(frees, code);
@@ -1314,7 +1314,7 @@ public partial class btse : Exchange
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         for (int i = 0; i < getArrayLength(data); i++)
         {
-            object entry = getValue(data, i);
+            object entry = data[i];
             string? marketId = this.safeString(entry, "symbol");
             Dictionary<string, object> market = this.safeMarket(marketId);
             string? symbol = ((string)getValue(market, "symbol"));
@@ -1324,7 +1324,7 @@ public partial class btse : Exchange
                 List<object> tiers = new List<object>() {};
                 for (int j = 0; j < levels.Count; j++)
                 {
-                    object level = getValue(levels, j);
+                    object level = levels[j];
                     // the endpoint only reports the notional ladder, the
                     // per-tier leverage and margin rates are not available
                     ((IList<object>)tiers).Add(new Dictionary<string, object>() {
@@ -1347,7 +1347,7 @@ public partial class btse : Exchange
         List<object> symbolKeys = new List<object>(((IDictionary<string,object>)result).Keys);
         for (int i = 0; i < symbolKeys.Count; i++)
         {
-            string? symbolKey = ((string)getValue(symbolKeys, i));
+            string? symbolKey = ((string)symbolKeys[i]);
             object tiersList = getValue(result, symbolKey);
             for (object j = 0; isLessThan(j, getArrayLength(tiersList)); postFixIncrement(ref j))
             {
@@ -1565,7 +1565,7 @@ public partial class btse : Exchange
         List<object> rows = new List<object>() {};
         for (int i = 0; i < data.Count; i++)
         {
-            object row = getValue(data, i);
+            object row = data[i];
             // spot rows do not carry an open interest
             if ((this.safeString(row, "openInterest") != null))
             {
@@ -1643,7 +1643,7 @@ public partial class btse : Exchange
         List<object> rows = new List<object>() {};
         for (int i = 0; i < data.Count; i++)
         {
-            object row = getValue(data, i);
+            object row = data[i];
             // spot rows do not carry a funding rate
             if ((this.safeString(row, "fundingRate") != null))
             {
@@ -1775,7 +1775,7 @@ public partial class btse : Exchange
         List<object> result = new List<object>() {};
         for (int i = 0; i < getArrayLength(trades); i++)
         {
-            object trade = getValue(trades, i);
+            object trade = trades[i];
             Int64? timestamp = this.safeInteger(trade, "timestamp");
             if ((isEqual(timestamp, null)) || (isLessThanOrEqual(timestamp, until)))
             {
@@ -3149,7 +3149,7 @@ public partial class btse : Exchange
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         for (int i = 0; i < getArrayLength(responseList); i++)
         {
-            object feeInfo = getValue(responseList, i);
+            object feeInfo = responseList[i];
             string? marketId = this.safeString(feeInfo, "symbol");
             Dictionary<string, object> market = this.safeMarket(marketId);
             string? symbol = ((string)getValue(market, "symbol"));
@@ -3244,14 +3244,14 @@ public partial class btse : Exchange
         Dictionary<string, object> allowed = new Dictionary<string, object>() {};
         for (int i = 0; i < typesList.Count; i++)
         {
-            object historyType = getValue(typesList, i);
+            object historyType = typesList[i];
             ((IDictionary<string,object>)allowed)[(string)historyType] = true;
             ((IDictionary<string,object>)allowed)[(string)this.capitalize(((string)historyType).ToLower())] = true;
         }
         List<object> rows = new List<object>() {};
         for (int i = 0; i < rawRows.Count; i++)
         {
-            object entry = getValue(rawRows, i);
+            object entry = rawRows[i];
             string? type = this.safeString(entry, "type", "");
             if (allowed.ContainsKey(type))
             {
@@ -4041,7 +4041,7 @@ public partial class btse : Exchange
         string? marginMode = null;
         for (int i = 0; i < getArrayLength(safeResponse); i++)
         {
-            object entrty = getValue(safeResponse, i);
+            object entrty = safeResponse[i];
             Int64? leverageValue = this.safeInteger(entrty, "leverage");
             string? positionDirection = this.safeString(entrty, "positionDirection");
             marginMode = this.safeStringLower(entrty, "marginMode");

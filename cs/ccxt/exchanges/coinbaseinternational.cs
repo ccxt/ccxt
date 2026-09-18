@@ -1027,11 +1027,11 @@ public partial class coinbaseinternational : Exchange
         IList<object> networksArray = this.toArray(networks);
         for (int i = 0; i < getArrayLength(networksArray); i++)
         {
-            object info = getValue(getValue(networksArray, i), "info");
+            object info = getValue(networksArray[i], "info");
             bool? is_default = this.safeBool(info, "is_default", false);
             if ((is_default == true))
             {
-                return getValue(networksArray, i);
+                return networksArray[i];
             }
         }
         return getValue(networksArray, 0);
@@ -1832,7 +1832,7 @@ public partial class coinbaseinternational : Exchange
         }
         for (int i = 0; i < getArrayLength(rows); i++)
         {
-            object instrument = getValue(rows, i);
+            object instrument = rows[i];
             string? marketId = this.safeString(instrument, "symbol");
             string? symbol = this.safeSymbol(marketId);
             IDictionary<string, object> quote = this.safeDict(instrument, "quote", new Dictionary<string, object>() {});

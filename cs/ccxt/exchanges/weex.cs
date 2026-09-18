@@ -1404,7 +1404,7 @@ public partial class weex : Exchange
         List<object> results = new List<object>() {};
         for (int i = 0; i < getArrayLength(response); i++)
         {
-            object rawTicker = getValue(response, i);
+            object rawTicker = response[i];
             // book tickers have no markPrice, so resolve the market from the endpoint type to disambiguate the spot/swap market id in parseTicker
             string? marketId = this.safeString(rawTicker, "symbol");
             Dictionary<string, object> tickerMarket = this.safeMarket(marketId, null, null, marketType);

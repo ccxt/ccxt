@@ -108,7 +108,7 @@ public partial class BaseTest
             Assert(!isEqual(exchangeProp(exchange, "userAgents"), null));
             for (int i = 0; i < getArrayLength(keys); i++)
             {
-                string? key = ((string)getValue(keys, i));
+                string? key = ((string)keys[i]);
                 object userAgent = getValue(exchangeProp(exchange, "userAgents"), key);
                 Assert((userAgent != null));
             }

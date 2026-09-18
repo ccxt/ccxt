@@ -179,14 +179,14 @@ public partial class xt : ccxt.xt
         object asks = getValue(orderbook, "asks");
         for (int i = 0; i < obBids.Count; i++)
         {
-            object bid = getValue(obBids, i);
+            object bid = obBids[i];
             double? price = this.safeNumber(bid, 0);
             double? quantity = this.safeNumber(bid, 1);
             (bids as IOrderBookSide).store(price, quantity);
         }
         for (int i = 0; i < obAsks.Count; i++)
         {
-            object ask = getValue(obAsks, i);
+            object ask = obAsks[i];
             double? price = this.safeNumber(ask, 0);
             double? quantity = this.safeNumber(ask, 1);
             (asks as IOrderBookSide).store(price, quantity);
@@ -926,7 +926,7 @@ public partial class xt : ccxt.xt
         List<object> messageHashes = this.findMessageHashes(client as WebSocketClient, "position::contract");
         for (int i = 0; i < getArrayLength(messageHashes); i++)
         {
-            object messageHash = getValue(messageHashes, i);
+            object messageHash = messageHashes[i];
             List<object> parts = ((string)messageHash).Split(new [] {((string)"::")}, StringSplitOptions.None).ToList<object>();
             string? symbolsString = ((string)(parts != null && 1 < parts.Count ? parts[1] : null));
             List<object> symbols = ((string)symbolsString).Split(new [] {((string)",")}, StringSplitOptions.None).ToList<object>();
@@ -1097,7 +1097,7 @@ public partial class xt : ccxt.xt
         List<object> newTickers = new List<object>() {};
         for (int i = 0; i < data.Count; i++)
         {
-            object tickerData = getValue(data, i);
+            object tickerData = data[i];
             Dictionary<string, object> ticker = this.parseTicker(tickerData);
             string? symbol = ((string)getValue(ticker, "symbol"));
             if ((symbol != null))
@@ -1110,7 +1110,7 @@ public partial class xt : ccxt.xt
         List<object> messageHashes = this.findMessageHashes(client as WebSocketClient, (messageHashStart + "::"));
         for (int i = 0; i < getArrayLength(messageHashes); i++)
         {
-            object messageHash = getValue(messageHashes, i);
+            object messageHash = messageHashes[i];
             List<object> parts = ((string)messageHash).Split(new [] {((string)"::")}, StringSplitOptions.None).ToList<object>();
             string? symbolsString = ((string)(parts != null && 2 < parts.Count ? parts[2] : null));
             List<object> symbols = ((string)symbolsString).Split(new [] {((string)",")}, StringSplitOptions.None).ToList<object>();
@@ -1348,7 +1348,7 @@ public partial class xt : ccxt.xt
                 object asks = getValue(orderbook, "asks");
                 for (int i = 0; i < obAsks.Count; i++)
                 {
-                    object ask = getValue(obAsks, i);
+                    object ask = obAsks[i];
                     double? price = this.safeNumber(ask, 0);
                     double? quantity = this.safeNumber(ask, 1);
                     (asks as IOrderBookSide).store(price, quantity);
@@ -1359,7 +1359,7 @@ public partial class xt : ccxt.xt
                 object bids = getValue(orderbook, "bids");
                 for (int i = 0; i < obBids.Count; i++)
                 {
-                    object bid = getValue(obBids, i);
+                    object bid = obBids[i];
                     double? price = this.safeNumber(bid, 0);
                     double? quantity = this.safeNumber(bid, 1);
                     (bids as IOrderBookSide).store(price, quantity);
@@ -1771,7 +1771,7 @@ public partial class xt : ccxt.xt
         List<object> subMessageHashes = this.safeList(subscription, "subMessageHashes", new List<object>() {});
         for (int j = 0; j < messageHashes.Count; j++)
         {
-            object unsubHash = getValue(messageHashes, j);
+            object unsubHash = messageHashes[j];
             object subHash = getValue(subMessageHashes, j);
             this.cleanUnsubscription(client as WebSocketClient, subHash, unsubHash);
         }

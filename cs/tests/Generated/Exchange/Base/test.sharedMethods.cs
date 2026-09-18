@@ -100,7 +100,7 @@ public partial class testMainClass : BaseTest
                 List<object> keys = new List<object>(((IDictionary<string,object>)format).Keys);
                 for (int i = 0; i < keys.Count; i++)
                 {
-                    string? key = ((string)getValue(keys, i));
+                    string? key = ((string)keys[i]);
                     if (inOp(skippedProperties, key))
                     {
                         continue;
@@ -469,7 +469,7 @@ public partial class testMainClass : BaseTest
                 }
                 for (int i = 0; i < getArrayLength(decimalNumbers); i++)
                 {
-                    string? num = ((string)getValue(decimalNumbers, i));
+                    string? num = ((string)decimalNumbers[i]);
                     string? numStr = num;
                     assertNonEqual(exchange, skippedProperties, method, entry, key, numStr);
                 }
@@ -533,7 +533,7 @@ public partial class testMainClass : BaseTest
             List<object> methods_singular = new List<object>() {"fetchOrder", "fetchOpenOrder", "fetchClosedOrder", "fetchCanceledOrder"};
             for (int i = 0; i < getArrayLength(methods_singular); i++)
             {
-                string? singularFetchName = ((string)getValue(methods_singular, i));
+                string? singularFetchName = ((string)methods_singular[i]);
                 if ((!isEqual(getValue(exchange.has, singularFetchName), null)) && (!isEqual(getValue(exchange.has, singularFetchName), false)))
                 {
                     object currentOrder = await ((Task<object>)callDynamically(exchange, singularFetchName, new object[] { originalId, symbol }));
@@ -552,7 +552,7 @@ public partial class testMainClass : BaseTest
                 List<object> methods_plural = new List<object>() {"fetchOrders", "fetchOpenOrders", "fetchClosedOrders", "fetchCanceledOrders"};
                 for (int i = 0; i < getArrayLength(methods_plural); i++)
                 {
-                    string? pluralFetchName = ((string)getValue(methods_plural, i));
+                    string? pluralFetchName = ((string)methods_plural[i]);
                     if ((!isEqual(getValue(exchange.has, pluralFetchName), null)) && (!isEqual(getValue(exchange.has, pluralFetchName), false)))
                     {
                         object orders = await ((Task<object>)callDynamically(exchange, pluralFetchName, new object[] { symbol, sinceTime }));

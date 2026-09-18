@@ -752,7 +752,7 @@ public partial class bitget : ccxt.bitget
         List<object> data = this.safeList(message, "data", new List<object>() {});
         for (int i = 0; i < data.Count; i++)
         {
-            object parsed = this.parseWsOHLCV(getValue(data, i), market);
+            object parsed = this.parseWsOHLCV(data[i], market);
             callDynamically(stored, "append", new object[] {parsed});
         }
         string? messageHash = null;
@@ -1592,7 +1592,7 @@ public partial class bitget : ccxt.bitget
         List<object> newPositions = new List<object>() {};
         for (int i = 0; i < rawPositions.Count; i++)
         {
-            object rawPosition = getValue(rawPositions, i);
+            object rawPosition = rawPositions[i];
             string? marketId = this.safeString2(rawPosition, "instId", "symbol");
             Dictionary<string, object> market = this.safeMarket(marketId, null, null, "contract");
             Dictionary<string, object> position = ((Dictionary<string, object>)this.parseWsPosition(rawPosition, market));
@@ -1602,7 +1602,7 @@ public partial class bitget : ccxt.bitget
         List<object> messageHashes = this.findMessageHashes(client as WebSocketClient, (instType + ":positions::"));
         for (int i = 0; i < getArrayLength(messageHashes); i++)
         {
-            object messageHash = getValue(messageHashes, i);
+            object messageHash = messageHashes[i];
             List<object> parts = ((string)messageHash).Split(new [] {((string)"::")}, StringSplitOptions.None).ToList<object>();
             string? symbolsString = ((string)(parts != null && 1 < parts.Count ? parts[1] : null));
             List<object> symbols = ((string)symbolsString).Split(new [] {((string)",")}, StringSplitOptions.None).ToList<object>();
@@ -1984,7 +1984,7 @@ public partial class bitget : ccxt.bitget
         Dictionary<string, object> marketSymbols = new Dictionary<string, object>() {};
         for (int i = 0; i < data.Count; i++)
         {
-            object order = getValue(data, i);
+            object order = data[i];
             string? marketId = this.safeString2(order, "instId", "symbol", argInstId);
             Dictionary<string, object> market = this.safeMarket(marketId, null, null, marketType);
             Dictionary<string, object> parsed = ((Dictionary<string, object>)this.parseWsOrder(order, market));
@@ -1998,7 +1998,7 @@ public partial class bitget : ccxt.bitget
         List<object> keys = new List<object>(((IDictionary<string,object>)marketSymbols).Keys);
         for (int i = 0; i < keys.Count; i++)
         {
-            string? symbol = ((string)getValue(keys, i));
+            string? symbol = ((string)keys[i]);
             string innerMessageHash = ((messageHash + ":") + symbol);
             if ((channel == "orders-crossed"))
             {
@@ -2708,13 +2708,13 @@ public partial class bitget : ccxt.bitget
         List<object> data = this.safeList(message, "data", new List<object>() {});
         for (int i = 0; i < data.Count; i++)
         {
-            object rawBalance = getValue(data, i);
+            object rawBalance = data[i];
             if ((instType == "uta"))
             {
                 List<object> coins = this.safeList(rawBalance, "coin", new List<object>() {});
                 for (int j = 0; j < coins.Count; j++)
                 {
-                    object entry = getValue(coins, j);
+                    object entry = coins[j];
                     string? currencyId = this.safeString(entry, "coin");
                     string? code = this.safeCurrencyCode(currencyId);
                     object account = this.account();
@@ -3302,7 +3302,7 @@ public partial class bitget : ccxt.bitget
         }
         for (int i = 0; i < getArrayLength(argsList); i++)
         {
-            object arg = getValue(argsList, i);
+            object arg = argsList[i];
             string? channel = this.safeString2(arg, "channel", "topic", "");
             if (getIndexOf(channel, "books") >= 0)
             {
