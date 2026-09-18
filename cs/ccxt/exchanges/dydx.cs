@@ -1614,7 +1614,7 @@ public partial class dydx : Exchange
                 {
                     throw new ExchangeError ((string)(this.id + " method() missing latestBlockHeight")) ;
                 }
-                goodTillBlock = add(latestBlockHeight, 20);
+                goodTillBlock = (latestBlockHeight + 20);
             }
         } else
         {

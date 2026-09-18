@@ -6155,9 +6155,17 @@ const NATIVE_ARITHMETIC_KIND_BY_TYPE = {
     'long': 'Int64',
     'Int64': 'Int64',
     'double': 'double',
+    // nullable spellings: only the `+` LEFT-operand rule below accepts them (see
+    // nativeArithmeticNullableLeftAdd); every other pair keeps the helper
+    'Int64?': 'Int64?',
+    'double?': 'double?',
 };
 
 const NATIVE_ARITHMETIC_SMALL_INT_KINDS = [ 'int', 'uint', 'Int64' ];
+
+// `+` pairs whose LEFT operand is a nullable numeric: the helper returns null for a null
+// left and otherwise unboxes the same sum, so the lifted operator is the identical result
+const NATIVE_ARITHMETIC_NULLABLE_LEFT_KINDS = [ 'Int64?', 'double?' ];
 
 const NATIVE_ARITHMETIC_SYMBOLS = {
     [ts.SyntaxKind.PlusToken]: '+',
@@ -6278,6 +6286,7 @@ function nativeArithmeticResultKind (csharp, node) {
 //                             call for every right operand — proven, unproven or boxed
 //   +  int/uint/Int64 pairs   the Int64 branch / the small-int promotion to long
 //   +  double + (double|int)  add's double branch (Convert.ToDouble == the implicit conversion)
+//   +  Int64?/double? left    the lifted operator (see nativeArithmeticNullableLeftAdd)
 //   -  int - int              subtract(int, int) is `a - b`
 //   -  small-int pairs        (Int64, Int64) / the promotion
 //   -  double - <numeric>     the object overload's double branch
@@ -6317,9 +6326,11 @@ function nativeArithmeticIsProven (op, left, right) {
     const bothInt32 = (leftBase === 'int' && rightBase === 'int') || (leftBase === 'uint' && rightBase === 'uint');
     const doubleLeft = (leftBase === 'double') && (rightBase === 'double' || NATIVE_ARITHMETIC_SMALL_INT_KINDS.includes (rightBase));
     if (op === ts.SyntaxKind.PlusToken) {
-        // a nullable operand keeps the helper here: add(object, object) returns the other
-        // operand for a null one, where the lifted `+` answers null (the add family's own rule)
-        return !nullable && ((leftBase === 'string' && rightBase === 'string') || doubleLeft || (bothSmall && !bothInt32));
+        // a nullable RIGHT operand keeps the helper: add(object, object) unboxes it and throws
+        // on null where the lifted `+` answers null; a nullable LEFT with a non-nullable right
+        // is the lifted operator exactly (null left -> null in both), see nativeArithmeticNullableLeftAdd
+        return (!nullable && ((leftBase === 'string' && rightBase === 'string') || doubleLeft || (bothSmall && !bothInt32)))
+            || nativeArithmeticNullableLeftAdd (left, right);
     }
     if (op === ts.SyntaxKind.MinusToken) {
         return !nullable && (doubleLeft || (bothSmall && !(leftBase === 'uint' && rightBase === 'uint')));
@@ -6333,12 +6344,32 @@ function nativeArithmeticIsProven (op, left, right) {
     return false;
 }
 
+// `Int64?` / `double?` LEFT operand of `+`: for every input the (object, object) helper
+// returns the same Int64 / double box the lifted operator computes and null exactly when the
+// left box is null (differential harness: null, int / uint / Int64 / double siblings,
+// Int64.MinValue / MaxValue and the overflow results). The RIGHT operand must be non-nullable
+// (a nullable right throws inside the helper where the operator yields null), and for
+// `Int64?` it must be a small int: the helper casts a double right to Int64 and throws, and a
+// nullable int / uint left is also out — the helper normalizes that box to Int64 (width).
+function nativeArithmeticNullableLeftAdd (left, right) {
+    if (NATIVE_ARITHMETIC_NULLABLE_LEFT_KINDS.indexOf (left) < 0) {
+        return false;
+    }
+    if (NATIVE_ARITHMETIC_SMALL_INT_KINDS.includes (right)) {
+        return true;
+    }
+    return (left === 'double?') && (right === 'double');
+}
+
 // the C# static type of an emitted native expression (the small-int pairs promote to long,
 // and the lifted operator of a nullable pair stays nullable)
 function nativeArithmeticPairResultKind (op, left, right) {
     const mark = (kind) => (nativeArithmeticIsNullableKind (left) || nativeArithmeticIsNullableKind (right)) ? kind + '?' : kind;
     if (left === 'string') {
         return 'string';
+    }
+    if (op === ts.SyntaxKind.PlusToken && NATIVE_ARITHMETIC_NULLABLE_LEFT_KINDS.indexOf (left) >= 0) {
+        return left; // the lifted `+` keeps the nullable kind
     }
     if (nativeArithmeticBaseKind (left) === 'double' || nativeArithmeticBaseKind (right) === 'double') {
         return mark ('double');

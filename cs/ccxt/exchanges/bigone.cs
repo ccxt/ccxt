@@ -1481,14 +1481,14 @@ public partial class bigone : Exchange
             object endByLimit = this.sum(since, multiply(multiply(limitVar, duration), 1000));
             if (untilIsDefined)
             {
-                ((IDictionary<string,object>)request)["time"] = this.iso8601(mathMin(endByLimit, add(until, 1)));
+                ((IDictionary<string,object>)request)["time"] = this.iso8601(mathMin(endByLimit, (until + 1)));
             } else
             {
                 ((IDictionary<string,object>)request)["time"] = this.iso8601(endByLimit);
             }
         } else if (untilIsDefined)
         {
-            ((IDictionary<string,object>)request)["time"] = this.iso8601(add(until, 1));
+            ((IDictionary<string,object>)request)["time"] = this.iso8601((until + 1));
         }
         parameters = this.omit(parameters, "until");
         Dictionary<string, object> response = await this.publicGetAssetPairsAssetPairNameCandles(this.extend(request, parameters));

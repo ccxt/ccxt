@@ -2225,7 +2225,7 @@ public partial class mexc : Exchange
             }
             if (!isEqual(until, null))
             {
-                ((IDictionary<string,object>)request)["endTime"] = add(until, 1); // mexc's endTime is not inclusive, so we add 1 ms to avoid missing the last candle in the results
+                ((IDictionary<string,object>)request)["endTime"] = (until + 1); // mexc's endTime is not inclusive, so we add 1 ms to avoid missing the last candle in the results
             }
             List<object> response = await this.spotPublicGetKlines(this.extend(request, parameters));
             //

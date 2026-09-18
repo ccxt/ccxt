@@ -121,7 +121,7 @@ public partial class extended : ccxt.extended
             return;
         }
         Int64? previousNonce = this.safeInteger(orderbook, "nonce");
-        if ((!isEqual(previousNonce, null)) && (!isEqual(nonce, add(previousNonce, 1))))
+        if ((!isEqual(previousNonce, null)) && (!isEqual(nonce, (previousNonce + 1))))
         {
             ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)messageHash);
             ((IDictionary<string,object>)this.orderbooks).Remove((string)symbol);

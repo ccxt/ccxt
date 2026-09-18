@@ -6952,7 +6952,7 @@ public partial class BaseExchange
                     {
                         break;
                     }
-                    object nextPaginationTimestamp = add(lastTimestamp, 1);
+                    object nextPaginationTimestamp = (lastTimestamp + 1);
                     paginationTimestamp = nextPaginationTimestamp;
                     if ((!isEqual(until, null)) && (isGreaterThanOrEqual(nextPaginationTimestamp, until)))
                     {
