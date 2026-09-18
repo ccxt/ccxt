@@ -59,7 +59,7 @@
                     "timestamp": null,
                     "datetime": null,
                     "lastTradeTimestamp": null,
-                    "symbol": null,
+                    "symbol": "BTC/TRY",
                     "type": null,
                     "timeInForce": null,
                     "postOnly": null,

@@ -50,6 +50,9 @@ export default class paribu extends Exchange {
                 'closeAllPositions': false,
                 'closePosition': false,
                 'createDepositAddress': false,
+                'createMarketBuyOrderWithCost': true,
+                'createMarketOrderWithCost': false,
+                'createMarketSellOrderWithCost': false,
                 'createOrder': true,
                 'createPostOnlyOrder': true,
                 'createReduceOnlyOrder': false,
@@ -1094,7 +1097,7 @@ export default class paribu extends Exchange {
                     if (price === undefined) {
                         throw new ArgumentsRequired (this.id + ' createOrder() requires the price argument or a cost parameter for a market buy order, the exchange sizes it by the quote amount');
                     }
-                    quoteAmount = this.numberToString (amount * price);
+                    quoteAmount = Precise.stringMul (this.numberToString (amount), this.numberToString (price));
                 }
                 request['total'] = this.costToPrecision (symbol, quoteAmount);
             } else {
@@ -1142,6 +1145,10 @@ export default class paribu extends Exchange {
      */
     override async cancelOrder (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
         await this.loadMarkets ();
+        let market: Market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
         const clientOrderId = this.safeString2 (params, 'clientOrderId', 'origClientOrderId');
         let response = undefined;
         if (clientOrderId === undefined) {
@@ -1157,10 +1164,9 @@ export default class paribu extends Exchange {
             // structure identifiable
             response = this.extend ({ 'uid': id }, response);
         } else {
-            if (symbol === undefined) {
+            if (market === undefined) {
                 throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument when cancelling by clientOrderId');
             }
-            const market = this.market (symbol);
             params = this.omit (params, [ 'clientOrderId', 'origClientOrderId' ]);
             const request: Dict = {
                 'market': market['id'],
@@ -1168,7 +1174,7 @@ export default class paribu extends Exchange {
             };
             response = await this.privateDeleteV2Order (this.extend (request, params));
         }
-        return this.parseOrder (response);
+        return this.parseOrder (response, market);
     }
 
     /**
