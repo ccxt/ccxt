@@ -717,7 +717,7 @@ public partial class BaseExchange
         if (ishttpProxyCallbackDefined || ishttp_proxy_callback_defined)
         {
             ((IList<object>)usedProxies).Add("httpProxyCallback");
-            httpProxy = ((bool) ishttpProxyCallbackDefined) ? callDynamically(this, "httpProxyCallback", new object[] { url, method, headers, body }) : callDynamically(this, "http_proxy_callback", new object[] { url, method, headers, body });
+            httpProxy = ((bool) ishttpProxyCallbackDefined) ? this.httpProxyCallback(url, method, headers, body) : this.http_proxy_callback(url, method, headers, body);
         }
         // httpsProxy
         bool isHttpsProxyDefined = this.valueIsDefined(this.httpsProxy);
@@ -732,7 +732,7 @@ public partial class BaseExchange
         if (ishttpsProxyCallbackDefined || ishttps_proxy_callback_defined)
         {
             ((IList<object>)usedProxies).Add("httpsProxyCallback");
-            httpsProxy = ((bool) ishttpsProxyCallbackDefined) ? callDynamically(this, "httpsProxyCallback", new object[] { url, method, headers, body }) : callDynamically(this, "https_proxy_callback", new object[] { url, method, headers, body });
+            httpsProxy = ((bool) ishttpsProxyCallbackDefined) ? this.httpsProxyCallback(url, method, headers, body) : this.https_proxy_callback(url, method, headers, body);
         }
         // socksProxy
         bool isSocksProxyDefined = this.valueIsDefined(this.socksProxy);
