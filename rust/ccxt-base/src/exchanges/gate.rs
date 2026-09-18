@@ -3277,7 +3277,7 @@ impl GateCore {
 
     pub fn set_sandbox_mode(&mut self, mut enable: Value) {
         self.super_set_sandbox_mode(enable.clone());
-        add_element_to_object(&mut self.options, &Value::Str("sandboxMode".to_string()), enable.clone());
+        if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("sandboxMode".to_string(), enable.clone()); }
 }
 
 /*
@@ -3314,11 +3314,11 @@ impl GateCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-                { let __be_tmp = Value::Bool(self.safe_integer_k(result.clone(), "mode", &[]).as_f64() == Some(2.0)); add_element_to_object(&mut self.options, &Value::Str("unifiedAccount".to_string()), __be_tmp); };
+                { let __be_tmp = Value::Bool(self.safe_integer_k(result.clone(), "mode", &[]).as_f64() == Some(2.0)); if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("unifiedAccount".to_string(), __be_tmp); } }
              #[allow(unreachable_code)] { Value::Null }})).await;
 if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 // if the request fails, the unifiedAccount is disabled
-                add_element_to_object(&mut self.options, &Value::Str("unifiedAccount".to_string()), Value::Bool(false));
+                if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("unifiedAccount".to_string(), Value::Bool(false)); }
             }
         }
         return self.options.as_map().and_then(|__m| __m.get("unifiedAccount")).cloned().unwrap_or(Value::Null);
@@ -5467,11 +5467,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 
     pub fn parse_balance_helper(&self, mut entry: Value) -> Value {
         let mut account: Value = self.account();
-        add_element_to_object(&mut account, &Value::Str("used".to_string()), self.safe_string2(entry.clone(), Value::Str("freeze".to_string()), Value::Str("locked".to_string()), &[]));
-        add_element_to_object(&mut account, &Value::Str("free".to_string()), self.safe_string_k(entry.clone(), "available", &[]));
-        add_element_to_object(&mut account, &Value::Str("total".to_string()), self.safe_string_k(entry.clone(), "total", &[]));
+        if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("used".to_string(), self.safe_string2(entry.clone(), Value::Str("freeze".to_string()), Value::Str("locked".to_string()), &[])); }
+        if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("free".to_string(), self.safe_string_k(entry.clone(), "available", &[])); }
+        if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("total".to_string(), self.safe_string_k(entry.clone(), "total", &[])); }
         if is_true(&Value::Bool(in_op(&entry, &Value::Str("borrowed".to_string())))) {
-            add_element_to_object(&mut account, &Value::Str("debt".to_string()), self.safe_string_k(entry.clone(), "borrowed", &[]));
+            if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("debt".to_string(), self.safe_string_k(entry.clone(), "borrowed", &[])); }
         }
         return account;
 

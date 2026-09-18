@@ -650,8 +650,8 @@ impl BtcboxCore {
             if is_true(&Value::Bool(in_op(&response, &free))) {
                 let mut account: Value = self.account();
                 let mut used: Value = Value::Str(format!("{}{}", currencyId, Value::Str("_lock".to_string())));
-                add_element_to_object(&mut account, &Value::Str("free".to_string()), self.safe_string(response.clone(), free.clone(), &[]));
-                add_element_to_object(&mut account, &Value::Str("used".to_string()), self.safe_string(response.clone(), used.clone(), &[]));
+                if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("free".to_string(), self.safe_string(response.clone(), free.clone(), &[])); }
+                if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("used".to_string(), self.safe_string(response.clone(), used.clone(), &[])); }
                 add_element_to_object(&mut result, &code, account.clone());
             }
         }

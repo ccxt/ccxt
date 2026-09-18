@@ -5621,7 +5621,7 @@ impl BitgetCore {
  * @param enabled
  */
     pub fn set_sandbox_mode(&mut self, mut enabled: Value) {
-        add_element_to_object(&mut self.options, &Value::Str("sandboxMode".to_string()), enabled.clone());
+        if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("sandboxMode".to_string(), enabled.clone()); }
 }
 
 /*
@@ -5702,7 +5702,7 @@ impl BitgetCore {
 if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 accountIsUTa = Value::Bool(false);
             }
-            add_element_to_object(&mut self.options, &Value::Str("uta".to_string()), accountIsUTa.clone());
+            if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("uta".to_string(), accountIsUTa.clone()); }
             return Value::List(vec![accountIsUTa.clone(), params.clone()]);
         }
         return Value::List(vec![defaultValue.clone(), params.clone()]);
@@ -5816,8 +5816,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         let mut results: Value = promise_all(&promises).await;
         let mut markets: Value = Value::List(vec![]);
-        add_element_to_object(&mut self.options, &Value::Str("crossMarginPairsData".to_string()), Value::List(vec![]));
-        add_element_to_object(&mut self.options, &Value::Str("isolatedMarginPairsData".to_string()), Value::List(vec![]));
+        if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("crossMarginPairsData".to_string(), Value::List(vec![])); }
+        if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("isolatedMarginPairsData".to_string(), Value::List(vec![])); }
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_343: bool = true;
@@ -5856,8 +5856,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     }
                 }
                 }
-                add_element_to_object(&mut self.options, &Value::Str("crossMarginPairsData".to_string()), crossKeys.clone());
-                add_element_to_object(&mut self.options, &Value::Str("isolatedMarginPairsData".to_string()), isolatedKeys.clone());
+                if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("crossMarginPairsData".to_string(), crossKeys.clone()); }
+                if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("isolatedMarginPairsData".to_string(), isolatedKeys.clone()); }
             }  else {
                 markets = self.array_concat(markets.clone(), data.clone());
             }
@@ -6963,19 +6963,19 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             m
         })]);
         let mut result: Value = self.parse_transaction(data.clone(), &[currency.clone()]);
-        add_element_to_object(&mut result, &Value::Str("type".to_string()), Value::Str("withdrawal".to_string()));
+        if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert("type".to_string(), Value::Str("withdrawal".to_string())); }
         let mut withdrawOptions: Value = self.safe_value_k(self.options.clone(), "withdraw", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
         let mut fillResponseFromRequest: Value = self.safe_bool_k(withdrawOptions, "fillResponseFromRequest", &[Value::Bool(true)]);
         if (fillResponseFromRequest.as_bool() == Some(true)) {
-            add_element_to_object(&mut result, &Value::Str("currency".to_string()), code.clone());
-            add_element_to_object(&mut result, &Value::Str("amount".to_string()), amount.clone());
-            add_element_to_object(&mut result, &Value::Str("tag".to_string()), tag.clone());
-            add_element_to_object(&mut result, &Value::Str("address".to_string()), address.clone());
-            add_element_to_object(&mut result, &Value::Str("addressTo".to_string()), address.clone());
-            add_element_to_object(&mut result, &Value::Str("network".to_string()), networkCode.clone());
+            if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert("currency".to_string(), code.clone()); }
+            if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert("amount".to_string(), amount.clone()); }
+            if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert("tag".to_string(), tag.clone()); }
+            if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert("address".to_string(), address.clone()); }
+            if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert("addressTo".to_string(), address.clone()); }
+            if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert("network".to_string(), networkCode.clone()); }
         }
         return result;
 
@@ -8101,9 +8101,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut feeCostString: Value = self.safe_string2(feeStructure.clone(), Value::Str("totalFee".to_string()), Value::Str("fee".to_string()), &[]);
             let mut deduction: Value = (if (self.safe_string_k(feeStructure.clone(), "deduction", &[]).as_str() == Some("yes")) { Value::Bool(true) } else { Value::Bool(false) });
             if is_true(&deduction) {
-                add_element_to_object(&mut fee, &Value::Str("cost".to_string()), feeCostString.clone());
+                if let Value::Dict(__d) = &mut fee { std::sync::Arc::make_mut(__d).insert("cost".to_string(), feeCostString.clone()); }
             }  else {
-                add_element_to_object(&mut fee, &Value::Str("cost".to_string()), crate::precise::Precise::stringNeg(&feeCostString));
+                if let Value::Dict(__d) = &mut fee { std::sync::Arc::make_mut(__d).insert("cost".to_string(), crate::precise::Precise::stringNeg(&feeCostString)); }
             }
         }
         return self.safe_trade(Value::Map({
@@ -9022,10 +9022,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut account: Value = self.account();
             let mut currencyId: Value = self.safe_string_k(entry.clone(), "coin", &[]);
             let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
-            add_element_to_object(&mut account, &Value::Str("debt".to_string()), self.safe_string_k(entry.clone(), "debt", &[]));
-            add_element_to_object(&mut account, &Value::Str("used".to_string()), self.safe_string2(entry.clone(), Value::Str("locked".to_string()), Value::Str("frozen".to_string()), &[]));
-            add_element_to_object(&mut account, &Value::Str("free".to_string()), self.safe_string_k(entry.clone(), "available", &[]));
-            add_element_to_object(&mut account, &Value::Str("total".to_string()), self.safe_string2(entry.clone(), Value::Str("equity".to_string()), Value::Str("balance".to_string()), &[]));
+            if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("debt".to_string(), self.safe_string_k(entry.clone(), "debt", &[])); }
+            if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("used".to_string(), self.safe_string2(entry.clone(), Value::Str("locked".to_string()), Value::Str("frozen".to_string()), &[])); }
+            if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("free".to_string(), self.safe_string_k(entry.clone(), "available", &[])); }
+            if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("total".to_string(), self.safe_string2(entry.clone(), Value::Str("equity".to_string()), Value::Str("balance".to_string()), &[])); }
             if (code != Value::Null) {
                 add_element_to_object(&mut result, &code, account.clone());
             }
@@ -9054,21 +9054,21 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut borrow: Value = self.safe_string_k(entry.clone(), "borrow", &[]);
             if (borrow != Value::Null) {
                 let mut interest: Value = self.safe_string_k(entry.clone(), "interest", &[]);
-                add_element_to_object(&mut account, &Value::Str("free".to_string()), self.safe_string_k(entry.clone(), "transferable", &[]));
-                add_element_to_object(&mut account, &Value::Str("total".to_string()), self.safe_string_k(entry.clone(), "totalAmount", &[]));
-                add_element_to_object(&mut account, &Value::Str("debt".to_string()), crate::precise::Precise::stringAdd(&borrow, &interest));
+                if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("free".to_string(), self.safe_string_k(entry.clone(), "transferable", &[])); }
+                if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("total".to_string(), self.safe_string_k(entry.clone(), "totalAmount", &[])); }
+                if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("debt".to_string(), crate::precise::Precise::stringAdd(&borrow, &interest)); }
             }  else {
                 // Use transferable instead of available for swap and margin https://github.com/ccxt/ccxt/pull/19127
                 let mut spotAccountFree: Value = self.safe_string_k(entry.clone(), "available", &[]);
                 let mut contractAccountFree: Value = self.safe_string_k(entry.clone(), "maxTransferOut", &[]);
                 if (contractAccountFree != Value::Null) {
-                    add_element_to_object(&mut account, &Value::Str("free".to_string()), contractAccountFree.clone());
-                    add_element_to_object(&mut account, &Value::Str("total".to_string()), self.safe_string_k(entry.clone(), "accountEquity", &[]));
+                    if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("free".to_string(), contractAccountFree.clone()); }
+                    if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("total".to_string(), self.safe_string_k(entry.clone(), "accountEquity", &[])); }
                 }  else {
-                    add_element_to_object(&mut account, &Value::Str("free".to_string()), spotAccountFree.clone());
+                    if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("free".to_string(), spotAccountFree.clone()); }
                     let mut frozen: Value = self.safe_string_k(entry.clone(), "frozen", &[]);
                     let mut locked: Value = self.safe_string_k(entry.clone(), "locked", &[]);
-                    add_element_to_object(&mut account, &Value::Str("used".to_string()), crate::precise::Precise::stringAdd(&frozen, &locked));
+                    if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("used".to_string(), crate::precise::Precise::stringAdd(&frozen, &locked)); }
                 }
             }
             if (code != Value::Null) {

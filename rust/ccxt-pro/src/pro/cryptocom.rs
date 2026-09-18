@@ -447,10 +447,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         let mut topicParams: Value = self.safe_value_k(params.clone(), "params", &[]);
         if (topicParams == Value::Null) {
-            add_element_to_object(&mut params, &Value::Str("params".to_string()), Value::Map({
+            if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("params".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-}));
+})); }
         }
         let mut bookSubscriptionType: Value = Value::Null;
         let mut bookSubscriptionType2: Value = Value::Null;
@@ -510,10 +510,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut limit: Value = self.safe_integer_k(params.clone(), "limit", &[Value::Int(50)]);
         let mut topicParams: Value = self.safe_value_k(params.clone(), "params", &[]);
         if (topicParams == Value::Null) {
-            add_element_to_object(&mut params, &Value::Str("params".to_string()), Value::Map({
+            if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("params".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-}));
+})); }
         }
         let mut bookSubscriptionType: Value = Value::Null;
         let mut bookSubscriptionType2: Value = Value::Null;
@@ -1681,8 +1681,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut currencyId: Value = self.safe_string_k(balance.clone(), "instrument_name", &[]);
             let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
             let mut account: Value = self.account();
-            add_element_to_object(&mut account, &Value::Str("total".to_string()), self.safe_string_k(balance.clone(), "quantity", &[]));
-            add_element_to_object(&mut account, &Value::Str("used".to_string()), self.safe_string_k(balance.clone(), "reserved_qty", &[]));
+            if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("total".to_string(), self.safe_string_k(balance.clone(), "quantity", &[])); }
+            if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("used".to_string(), self.safe_string_k(balance.clone(), "reserved_qty", &[])); }
             if (code != Value::Null) {
                 add_element_to_object(&mut self.balance, &code, account.clone());
             }

@@ -1905,7 +1905,7 @@ impl BitfinexCore {
             let mut account: Value = self.account();
             let mut interest: Value = self.safe_string(balance.clone(), Value::Int(3), &[]);
             if (interest.as_str() != Some("0")) {
-                add_element_to_object(&mut account, &Value::Str("debt".to_string()), interest.clone());
+                if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("debt".to_string(), interest.clone()); }
             }
             let mut type_var: Value = self.safe_string(balance.clone(), Value::Int(0), &[]);
             let mut currencyId: Value = self.safe_string_lower(balance.clone(), Value::Int(1), &[Value::Str("".to_string())]);
@@ -1915,8 +1915,8 @@ impl BitfinexCore {
             let mut derivativeCondition: bool = !isDerivative || isDerivativeCode;
             if is_true(&(Value::Bool(accountType.as_str() == type_var.as_str()))) && derivativeCondition {
                 let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
-                add_element_to_object(&mut account, &Value::Str("total".to_string()), self.safe_string(balance.clone(), Value::Int(2), &[]));
-                add_element_to_object(&mut account, &Value::Str("free".to_string()), self.safe_string(balance.clone(), Value::Int(4), &[]));
+                if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("total".to_string(), self.safe_string(balance.clone(), Value::Int(2), &[])); }
+                if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("free".to_string(), self.safe_string(balance.clone(), Value::Int(4), &[])); }
                 if (code != Value::Null) {
                     add_element_to_object(&mut result, &code, account.clone());
                 }
@@ -2164,8 +2164,8 @@ impl BitfinexCore {
             crate::runtime::append_to_object_array(&mut result, &side, Value::List(vec![price.clone(), self.parse_number(amount, &[])]));
         }
         }
-        { let __be_tmp = self.sort_by(crate::value::get_value_k(&result, "bids"), Value::Int(0), &[Value::Bool(true)]); add_element_to_object(&mut result, &Value::Str("bids".to_string()), __be_tmp); };
-        { let __be_tmp = self.sort_by(crate::value::get_value_k(&result, "asks"), Value::Int(0), &[]); add_element_to_object(&mut result, &Value::Str("asks".to_string()), __be_tmp); };
+        { let __be_tmp = self.sort_by(crate::value::get_value_k(&result, "bids"), Value::Int(0), &[Value::Bool(true)]); if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert("bids".to_string(), __be_tmp); } }
+        { let __be_tmp = self.sort_by(crate::value::get_value_k(&result, "asks"), Value::Int(0), &[]); if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert("asks".to_string(), __be_tmp); } }
         return result;
 
     Value::Null
@@ -3990,14 +3990,14 @@ impl BitfinexCore {
                 m
             });
             if is_true(&Value::Bool(in_op(&fiat, &market.as_map().and_then(|__m| __m.get("quote")).cloned().unwrap_or(Value::Null)))) {
-                add_element_to_object(&mut fee, &Value::Str("maker".to_string()), makerFeeFiat.clone());
-                add_element_to_object(&mut fee, &Value::Str("taker".to_string()), takerFeeFiat.clone());
+                if let Value::Dict(__d) = &mut fee { std::sync::Arc::make_mut(__d).insert("maker".to_string(), makerFeeFiat.clone()); }
+                if let Value::Dict(__d) = &mut fee { std::sync::Arc::make_mut(__d).insert("taker".to_string(), takerFeeFiat.clone()); }
             }  else if (market.as_map().and_then(|__m| __m.get("contract")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
-                add_element_to_object(&mut fee, &Value::Str("maker".to_string()), makerFeeDeriv.clone());
-                add_element_to_object(&mut fee, &Value::Str("taker".to_string()), takerFeeDeriv.clone());
+                if let Value::Dict(__d) = &mut fee { std::sync::Arc::make_mut(__d).insert("maker".to_string(), makerFeeDeriv.clone()); }
+                if let Value::Dict(__d) = &mut fee { std::sync::Arc::make_mut(__d).insert("taker".to_string(), takerFeeDeriv.clone()); }
             }  else {
-                add_element_to_object(&mut fee, &Value::Str("maker".to_string()), makerFee.clone());
-                add_element_to_object(&mut fee, &Value::Str("taker".to_string()), takerFee.clone());
+                if let Value::Dict(__d) = &mut fee { std::sync::Arc::make_mut(__d).insert("maker".to_string(), makerFee.clone()); }
+                if let Value::Dict(__d) = &mut fee { std::sync::Arc::make_mut(__d).insert("taker".to_string(), takerFee.clone()); }
             }
             add_element_to_object(&mut result, &symbol, fee.clone());
         }

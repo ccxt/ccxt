@@ -881,10 +881,10 @@ impl LighterCore {
 
     pub fn init_auth_object(&self, mut strAccountIndex: Value, mut strApiKeyIndex: Value) {
         if !is_true(&(Value::Bool(in_op(&self.options, &Value::Str("auths".to_string()))))) {
-            add_element_to_object(&mut self.options.clone(), &Value::Str("auths".to_string()), Value::Map({
+            if let Value::Dict(__d) = &mut self.options.clone() { std::sync::Arc::make_mut(__d).insert("auths".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-}));
+})); }
         }
         if !is_true(&(Value::Bool(in_op(&self.options.as_map().and_then(|__m| __m.get("auths")).cloned().unwrap_or(Value::Null), &strAccountIndex)))) {
             add_element_to_object(get_value_mut(unsafe { crate::runtime::coerce_value_to_mut(&self.options) }, &Value::Str("auths".to_string())), &strAccountIndex, Value::Map({
@@ -962,7 +962,7 @@ impl LighterCore {
         if is_true(&(Value::Bool(apiKeyIndex == Value::Null))) || is_true(&(apiKeyIndex.as_f64().unwrap_or(f64::NAN) < Value::Int(4).as_f64().unwrap_or(f64::NAN))) || is_true(&(apiKeyIndex.as_f64().unwrap_or(f64::NAN) > Value::Int(254).as_f64().unwrap_or(f64::NAN))) {
             // apiKeyIndex = this.randNumber (2);
             apiKeyIndex = Value::Int(254);
-            add_element_to_object(&mut self.options.clone(), &Value::Str("apiKeyIndex".to_string()), apiKeyIndex.clone()); // default to a value to avoid overriding other keys
+            if let Value::Dict(__d) = &mut self.options.clone() { std::sync::Arc::make_mut(__d).insert("apiKeyIndex".to_string(), apiKeyIndex.clone()); }; // default to a value to avoid overriding other keys
         }
         return Value::List(vec![self.parse_to_int(apiKeyIndex.clone()), params.clone()]);
 
@@ -1019,7 +1019,7 @@ impl LighterCore {
                     panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), methodName1)), Value::Str("() requires an ".to_string()))), optionName1)), Value::Str(" or ".to_string()))), optionName2)), Value::Str(" parameter".to_string()))));
                 }
                 accountIndex = account.as_map().and_then(|__m| __m.get("index")).cloned().unwrap_or(Value::Null);
-                add_element_to_object(&mut self.options, &Value::Str("accountIndex".to_string()), accountIndex.clone());
+                if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("accountIndex".to_string(), accountIndex.clone()); }
             }
         }
         return Value::List(vec![self.parse_to_int(accountIndex.clone()), params.clone()]);
@@ -1180,10 +1180,10 @@ impl LighterCore {
             let mut takerFeeRate: Value = self.safe_integer_k(self.options.clone(), "integratorTakerFee", &[Value::Int(1000)]);
             let mut makerFeeRate: Value = self.safe_integer_k(self.options.clone(), "integratorMakerFee", &[Value::Int(1000)]);
             Box::pin(self.approve_builder_fee(builder.clone(), takerFeeRate.clone(), makerFeeRate.clone(), accountIndex.clone(), apiKeyIndex.clone(), &[])).await;
-            add_element_to_object(&mut self.options, &Value::Str("approvedBuilderFee".to_string()), Value::Bool(true));
+            if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("approvedBuilderFee".to_string(), Value::Bool(true)); }
          #[allow(unreachable_code)] { Value::Null }})).await;
 if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
-            add_element_to_object(&mut self.options, &Value::Str("builderFee".to_string()), Value::Bool(false));
+            if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("builderFee".to_string(), Value::Bool(false)); }
         }
         return Value::Bool(true);
 
@@ -1288,8 +1288,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 
     pub fn set_sandbox_mode(&mut self, mut enable: Value) {
         self.super_set_sandbox_mode(enable.clone());
-        add_element_to_object(&mut self.options, &Value::Str("sandboxMode".to_string()), enable.clone());
-        add_element_to_object(&mut self.options, &Value::Str("chainId".to_string()), (if is_true(&enable) { Value::Int(300) } else { Value::Int(304) }));
+        if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("sandboxMode".to_string(), enable.clone()); }
+        if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("chainId".to_string(), (if is_true(&enable) { Value::Int(300) } else { Value::Int(304) })); }
 }
 
     pub fn create_order_request(&self, mut symbol: Value, mut type_var: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> Value {
@@ -1519,7 +1519,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         let mut accountIndex: Value = Value::Null;
         { let __destr_tmp = self.handle_account_index(params.clone(), method.clone(), Value::Str("accountIndex".to_string()), Value::Str("account_index".to_string()), &[]).await; accountIndex = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
-        add_element_to_object(&mut params, &Value::Str("accountIndex".to_string()), accountIndex.clone());
+        if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("accountIndex".to_string(), accountIndex.clone()); }
         let mut market: Value = self.market(symbol.clone());
         let mut groupingType: Value = Value::Null;
         { let __destr_tmp = self.handle_option_and_params(params.clone(), method.clone(), Value::Str("groupingType".to_string()), &[Value::Int(3)]); groupingType = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }; // default GROUPING_TYPE_ONE_TRIGGERS_A_ONE_CANCELS_THE_OTHER
@@ -2614,7 +2614,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 let mut perpUSDCFree: Value = self.safe_string_k(account.clone(), "available_balance", &[Value::Str("0".to_string())]);
                 add_element_to_object(&mut perpBalance, &Value::Str("total".to_string()), crate::precise::Precise::stringAdd(&perpTotal, &perpUSDCTotal));
                 add_element_to_object(&mut perpBalance, &Value::Str("free".to_string()), crate::precise::Precise::stringAdd(&perpFree, &perpUSDCFree));
-                add_element_to_object(&mut result, &Value::Str("USDC".to_string()), perpBalance.clone());
+                if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert("USDC".to_string(), perpBalance.clone()); }
             }
         }
         }

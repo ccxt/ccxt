@@ -1188,8 +1188,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             let mut currencyId: Value = self.safe_string_k(asset.clone(), "currency", &[]);
             let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
             let mut account: Value = self.account();
-            add_element_to_object(&mut account, &Value::Str("free".to_string()), self.safe_string_k(asset.clone(), "balance", &[]));
-            add_element_to_object(&mut account, &Value::Str("used".to_string()), self.safe_string_k(asset.clone(), "locked", &[]));
+            if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("free".to_string(), self.safe_string_k(asset.clone(), "balance", &[])); }
+            if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("used".to_string(), self.safe_string_k(asset.clone(), "locked", &[])); }
             if (code != Value::Null) {
                 add_element_to_object(&mut self.balance, &code, account.clone());
             }
@@ -1226,7 +1226,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         })]);
         add_element_to_object(&mut subscriptions, &subscriptionType, subscription.clone());
         add_element_to_object(&mut wsOptions, &Value::Str("gen2Subscriptions".to_string()), subscriptions.clone());
-        add_element_to_object(&mut self.options, &Value::Str("ws".to_string()), wsOptions.clone());
+        if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("ws".to_string(), wsOptions.clone()); }
         let mut request: Value = Value::List(vec![Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("ticket".to_string(), Value::Str("ccxt".to_string()));
@@ -1275,7 +1275,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
 }));
     m
 }));
-            add_element_to_object(&mut self.options, &Value::Str("ws".to_string()), wsOptions.clone());
+            if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("ws".to_string(), wsOptions.clone()); }
         }
         let mut url: Value = crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "privateGen2");
         let mut client: Value = self.client(&[url.clone()]);

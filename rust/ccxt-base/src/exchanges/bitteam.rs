@@ -987,7 +987,7 @@ impl BitteamCore {
         //     }
         //
         statusesResponse = self.index_by(statusesResponse.clone(), Value::Str("unified_cryptoasset_id".to_string()));
-        add_element_to_object(&mut self.options, &Value::Str("_temp_currencies_statuses".to_string()), statusesResponse.clone());
+        if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("_temp_currencies_statuses".to_string(), statusesResponse.clone()); }
         let mut result: Value = self.parse_currencies(currencies.clone());
         remove(&mut self.options, &Value::Str("_temp_currencies_statuses".to_string()));
         return result;

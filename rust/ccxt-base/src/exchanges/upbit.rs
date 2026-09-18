@@ -1123,8 +1123,8 @@ impl UpbitCore {
             let mut currencyId: Value = self.safe_string_k(balance.clone(), "currency", &[]);
             let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
             let mut account: Value = self.account();
-            add_element_to_object(&mut account, &Value::Str("free".to_string()), self.safe_string_k(balance.clone(), "balance", &[]));
-            add_element_to_object(&mut account, &Value::Str("used".to_string()), self.safe_string_k(balance.clone(), "locked", &[]));
+            if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("free".to_string(), self.safe_string_k(balance.clone(), "balance", &[])); }
+            if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("used".to_string(), self.safe_string_k(balance.clone(), "locked", &[])); }
             if (code != Value::Null) {
                 add_element_to_object(&mut result, &code, account.clone());
             }
@@ -2135,10 +2135,10 @@ impl UpbitCore {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        add_element_to_object(&mut result, &Value::Str("uuid".to_string()), self.safe_string_k(response.clone(), "new_order_uuid", &[]));
-        add_element_to_object(&mut result, &Value::Str("identifier".to_string()), self.safe_string_k(response.clone(), "new_order_identifier", &[]));
-        add_element_to_object(&mut result, &Value::Str("side".to_string()), self.safe_string_k(response.clone(), "side", &[]));
-        add_element_to_object(&mut result, &Value::Str("market".to_string()), self.safe_string_k(response.clone(), "market", &[]));
+        if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert("uuid".to_string(), self.safe_string_k(response.clone(), "new_order_uuid", &[])); }
+        if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert("identifier".to_string(), self.safe_string_k(response.clone(), "new_order_identifier", &[])); }
+        if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert("side".to_string(), self.safe_string_k(response.clone(), "side", &[])); }
+        if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert("market".to_string(), self.safe_string_k(response.clone(), "market", &[])); }
         return self.parse_order(result.clone(), &[]);
 
     Value::Null

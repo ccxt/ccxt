@@ -3566,7 +3566,7 @@ impl BybitCore {
             let mut newUrls: Value = self.omit(self.urls.clone(), Value::Str("apiBackupDemoTrading".to_string()), &[]);
             self.urls = newUrls.clone();
         }
-        add_element_to_object(&mut self.options, &Value::Str("enableDemoTrading".to_string()), enable.clone());
+        if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("enableDemoTrading".to_string(), enable.clone()); }
 }
 
     pub fn nonce(&self) -> Value {
@@ -3616,9 +3616,9 @@ impl BybitCore {
             if is_equal(&self.options.as_map().and_then(|__m| __m.get("enableDemoTrading")).cloned().unwrap_or(Value::Null), &Value::Bool(true)) {
                 // info endpoint is not available in demo trading
                 // so we're assuming UTA is enabled
-                add_element_to_object(&mut self.options, &Value::Str("enableUnifiedMargin".to_string()), Value::Bool(false));
-                add_element_to_object(&mut self.options, &Value::Str("enableUnifiedAccount".to_string()), Value::Bool(true));
-                add_element_to_object(&mut self.options, &Value::Str("unifiedMarginStatus".to_string()), Value::Int(6));
+                if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("enableUnifiedMargin".to_string(), Value::Bool(false)); }
+                if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("enableUnifiedAccount".to_string(), Value::Bool(true)); }
+                if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("unifiedMarginStatus".to_string(), Value::Int(6)); }
                 return Value::List(vec![self.options.as_map().and_then(|__m| __m.get("enableUnifiedMargin")).cloned().unwrap_or(Value::Null), self.options.as_map().and_then(|__m| __m.get("enableUnifiedAccount")).cloned().unwrap_or(Value::Null)]);
             }
             let mut rawPromises: Value = Value::List(vec![self.private_get_v5_user_query_api(&[params.clone()]).await, self.private_get_v5_account_info(&[params.clone()]).await]);
@@ -3688,9 +3688,9 @@ impl BybitCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-            { let __be_tmp = Value::Bool(self.safe_integer_k(result.clone(), "unified", &[]).as_f64() == Some(1.0)); add_element_to_object(&mut self.options, &Value::Str("enableUnifiedMargin".to_string()), __be_tmp); };
-            { let __be_tmp = Value::Bool(self.safe_integer_k(result.clone(), "uta", &[]).as_f64() == Some(1.0)); add_element_to_object(&mut self.options, &Value::Str("enableUnifiedAccount".to_string()), __be_tmp); };
-            { let __be_tmp = self.safe_integer_k(accountResult.clone(), "unifiedMarginStatus", &[Value::Int(6)]); add_element_to_object(&mut self.options, &Value::Str("unifiedMarginStatus".to_string()), __be_tmp); }; // default to uta 2.0 pro if not found
+            { let __be_tmp = Value::Bool(self.safe_integer_k(result.clone(), "unified", &[]).as_f64() == Some(1.0)); if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("enableUnifiedMargin".to_string(), __be_tmp); } }
+            { let __be_tmp = Value::Bool(self.safe_integer_k(result.clone(), "uta", &[]).as_f64() == Some(1.0)); if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("enableUnifiedAccount".to_string(), __be_tmp); } }
+            { let __be_tmp = self.safe_integer_k(accountResult.clone(), "unifiedMarginStatus", &[Value::Int(6)]); if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("unifiedMarginStatus".to_string(), __be_tmp); } }; // default to uta 2.0 pro if not found
         }
         return Value::List(vec![self.options.as_map().and_then(|__m| __m.get("enableUnifiedMargin")).cloned().unwrap_or(Value::Null), self.options.as_map().and_then(|__m| __m.get("enableUnifiedAccount")).cloned().unwrap_or(Value::Null)]);
 

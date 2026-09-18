@@ -1179,11 +1179,11 @@ impl DeltaCore {
         let mut markets: Value = self.super_load_markets(reload.clone(), params.clone()).await;
         let mut currenciesByNumericId: Value = self.safe_dict_k(self.options.clone(), "currenciesByNumericId", &[]);
         if is_true(&(Value::Bool(currenciesByNumericId == Value::Null))) || is_true(&reload) {
-            { let __be_tmp = self.index_by_stringified_numeric_id(self.currencies.clone()); add_element_to_object(&mut self.options, &Value::Str("currenciesByNumericId".to_string()), __be_tmp); };
+            { let __be_tmp = self.index_by_stringified_numeric_id(self.currencies.clone()); if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("currenciesByNumericId".to_string(), __be_tmp); } }
         }
         let mut marketsByNumericId: Value = self.safe_dict_k(self.options.clone(), "marketsByNumericId", &[]);
         if is_true(&(Value::Bool(marketsByNumericId == Value::Null))) || is_true(&reload) {
-            { let __be_tmp = self.index_by_stringified_numeric_id(self.markets.clone()); add_element_to_object(&mut self.options, &Value::Str("marketsByNumericId".to_string()), __be_tmp); };
+            { let __be_tmp = self.index_by_stringified_numeric_id(self.markets.clone()); if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("marketsByNumericId".to_string(), __be_tmp); } }
         }
         return markets;
 
@@ -2377,8 +2377,8 @@ impl DeltaCore {
             let mut currency: Value = self.safe_dict(currenciesByNumericId.clone(), currencyId.clone(), &[]);
             let mut code: Value = (if is_true(&(Value::Bool(currency == Value::Null))) { currencyId.clone() } else { currency.as_map().and_then(|__m| __m.get("code")).cloned().unwrap_or(Value::Null) });
             let mut account: Value = self.account();
-            add_element_to_object(&mut account, &Value::Str("total".to_string()), self.safe_string_k(balance.clone(), "balance", &[]));
-            add_element_to_object(&mut account, &Value::Str("free".to_string()), self.safe_string_k(balance.clone(), "available_balance", &[]));
+            if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("total".to_string(), self.safe_string_k(balance.clone(), "balance", &[])); }
+            if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("free".to_string(), self.safe_string_k(balance.clone(), "available_balance", &[])); }
             add_element_to_object(&mut result, &code, account.clone());
         }
         }

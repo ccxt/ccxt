@@ -5453,12 +5453,12 @@ impl OkxCore {
             // it may be incorrect to use total, free and used for swap accounts
             let mut eq: Value = self.safe_string_k(balance.clone(), "eq", &[]);
             let mut availEq: Value = self.safe_string_k(balance.clone(), "availEq", &[]);
-            add_element_to_object(&mut account, &Value::Str("total".to_string()), eq.clone());
+            if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("total".to_string(), eq.clone()); }
             if (availEq == Value::Null) {
-                add_element_to_object(&mut account, &Value::Str("free".to_string()), self.safe_string_k(balance.clone(), "availBal", &[]));
-                add_element_to_object(&mut account, &Value::Str("used".to_string()), self.safe_string_k(balance.clone(), "frozenBal", &[]));
+                if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("free".to_string(), self.safe_string_k(balance.clone(), "availBal", &[])); }
+                if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("used".to_string(), self.safe_string_k(balance.clone(), "frozenBal", &[])); }
             }  else {
-                add_element_to_object(&mut account, &Value::Str("free".to_string()), availEq.clone());
+                if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("free".to_string(), availEq.clone()); }
             }
             if (code != Value::Null) {
                 add_element_to_object(&mut result, &code, account.clone());
@@ -5489,9 +5489,9 @@ impl OkxCore {
             let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
             let mut account: Value = self.account();
             // it may be incorrect to use total, free and used for swap accounts
-            add_element_to_object(&mut account, &Value::Str("total".to_string()), self.safe_string_k(balance.clone(), "bal", &[]));
-            add_element_to_object(&mut account, &Value::Str("free".to_string()), self.safe_string_k(balance.clone(), "availBal", &[]));
-            add_element_to_object(&mut account, &Value::Str("used".to_string()), self.safe_string_k(balance.clone(), "frozenBal", &[]));
+            if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("total".to_string(), self.safe_string_k(balance.clone(), "bal", &[])); }
+            if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("free".to_string(), self.safe_string_k(balance.clone(), "availBal", &[])); }
+            if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("used".to_string(), self.safe_string_k(balance.clone(), "frozenBal", &[])); }
             if (code != Value::Null) {
                 add_element_to_object(&mut result, &code, account.clone());
             }
@@ -9655,8 +9655,8 @@ impl OkxCore {
                 }  else {
                     let mut clientOrderId: Value = self.safe_string_k(params.clone(), "clOrdId", &[]);
                     if (clientOrderId == Value::Null) {
-                        add_element_to_object(&mut params, &Value::Str("clOrdId".to_string()), Value::Str(format!("{}{}", brokerId, self.uuid16(&[]))));
-                        add_element_to_object(&mut params, &Value::Str("tag".to_string()), brokerId.clone());
+                        if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("clOrdId".to_string(), Value::Str(format!("{}{}", brokerId, self.uuid16(&[])))); }
+                        if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("tag".to_string(), brokerId.clone()); }
                     }
                 }
             }
@@ -11329,7 +11329,7 @@ impl OkxCore {
 
     pub fn set_sandbox_mode(&mut self, mut enable: Value) {
         self.super_set_sandbox_mode(enable.clone());
-        add_element_to_object(&mut self.options, &Value::Str("sandboxMode".to_string()), enable.clone());
+        if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("sandboxMode".to_string(), enable.clone()); }
         if is_true(&enable) {
             add_element_to_object(&mut self.headers, &Value::Str("x-simulated-trading".to_string()), Value::Str("1".to_string()));
         }  else if is_true(&Value::Bool(in_op(&self.headers, &Value::Str("x-simulated-trading".to_string())))) {

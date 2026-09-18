@@ -4214,10 +4214,10 @@ impl HtxCore {
         // - market-id from fetchMarkts:    `BTC-USDT-240419` (linear future) or `BTC240412` (inverse future)
         // - market-id from fetchTciker[s]: `BTC-USDT-CW`     (linear future) or `BTC_CW`    (inverse future)
         if !is_true(&(Value::Bool(in_op(&self.options, &Value::Str("futureMarketIdsForSymbols".to_string()))))) {
-            add_element_to_object(&mut self.options.clone(), &Value::Str("futureMarketIdsForSymbols".to_string()), Value::Map({
+            if let Value::Dict(__d) = &mut self.options.clone() { std::sync::Arc::make_mut(__d).insert("futureMarketIdsForSymbols".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-}));
+})); }
         }
         let mut futureMarketIdsForSymbols: Value = self.safe_dict_k(self.options.clone(), "futureMarketIdsForSymbols", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -5664,14 +5664,14 @@ impl HtxCore {
         //    }
         //
         let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
-        add_element_to_object(&mut self.options, &Value::Str("networkNamesByChainIds".to_string()), Value::Map({
+        if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("networkNamesByChainIds".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-}));
-        add_element_to_object(&mut self.options, &Value::Str("networkChainIdsByNames".to_string()), Value::Map({
+})); }
+        if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("networkChainIdsByNames".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-}));
+})); }
         return self.parse_currencies(data.clone());
 
     Value::Null
@@ -5679,16 +5679,16 @@ impl HtxCore {
 
     pub fn parse_currency(&self, mut rawCurrency: Value) -> Value {
         if !is_true(&(Value::Bool(in_op(&self.options, &Value::Str("networkNamesByChainIds".to_string()))))) {
-            add_element_to_object(&mut self.options.clone(), &Value::Str("networkNamesByChainIds".to_string()), Value::Map({
+            if let Value::Dict(__d) = &mut self.options.clone() { std::sync::Arc::make_mut(__d).insert("networkNamesByChainIds".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-}));
+})); }
         }
         if !is_true(&(Value::Bool(in_op(&self.options, &Value::Str("networkChainIdsByNames".to_string()))))) {
-            add_element_to_object(&mut self.options.clone(), &Value::Str("networkChainIdsByNames".to_string()), Value::Map({
+            if let Value::Dict(__d) = &mut self.options.clone() { std::sync::Arc::make_mut(__d).insert("networkChainIdsByNames".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-}));
+})); }
         }
         let mut currencyId: Value = self.safe_string_k(rawCurrency.clone(), "currency", &[]);
         let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
@@ -7600,7 +7600,7 @@ impl HtxCore {
         if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() != Some(true)) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" createMarketBuyOrderWithCost() supports spot orders only".to_string()))));
         }
-        add_element_to_object(&mut params, &Value::Str("createMarketBuyOrderRequiresPrice".to_string()), Value::Bool(false));
+        if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("createMarketBuyOrderRequiresPrice".to_string(), Value::Bool(false)); }
         return self.create_order(symbol.clone(), Value::Str("market".to_string()), Value::Str("buy".to_string()), cost.clone(), &[Value::Null, params.clone()]).await;
 
     Value::Null
@@ -7634,8 +7634,8 @@ impl HtxCore {
         if (trailingTriggerPrice == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" createTrailingPercentOrder() requires a trailingTriggerPrice argument".to_string()))));
         }
-        add_element_to_object(&mut params, &Value::Str("trailingPercent".to_string()), trailingPercent.clone());
-        add_element_to_object(&mut params, &Value::Str("trailingTriggerPrice".to_string()), trailingTriggerPrice.clone());
+        if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("trailingPercent".to_string(), trailingPercent.clone()); }
+        if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("trailingTriggerPrice".to_string(), trailingTriggerPrice.clone()); }
         return self.create_order(symbol.clone(), type_var.clone(), side.clone(), amount.clone(), &[price.clone(), params.clone()]).await;
 
     Value::Null
@@ -10536,13 +10536,13 @@ impl HtxCore {
                             // swap order placement
                             let mut channelCode: Value = self.safe_string_k(params.clone(), "channel_code", &[]);
                             if (channelCode == Value::Null) {
-                                add_element_to_object(&mut params, &Value::Str("channel_code".to_string()), id.clone());
+                                if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("channel_code".to_string(), id.clone()); }
                             }
                         }  else if is_true(&Value::Bool(ends_with(&pathString, &Value::Str("orders/place".to_string())))) {
                             // spot order placement
                             let mut clientOrderId: Value = self.safe_string_k(params.clone(), "client-order-id", &[]);
                             if (clientOrderId == Value::Null) {
-                                add_element_to_object(&mut params, &Value::Str("client-order-id".to_string()), Value::Str(format!("{}{}", id, self.uuid(&[]))));
+                                if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("client-order-id".to_string(), Value::Str(format!("{}{}", id, self.uuid(&[])))); }
                             }
                         }
                     }

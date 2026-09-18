@@ -2322,7 +2322,7 @@ impl LbankCore {
         if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() != Some(true)) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" createMarketBuyOrderWithCost() supports spot orders only".to_string()))));
         }
-        add_element_to_object(&mut params, &Value::Str("createMarketBuyOrderRequiresPrice".to_string()), Value::Bool(false));
+        if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("createMarketBuyOrderRequiresPrice".to_string(), Value::Bool(false)); }
         return self.create_order(symbol.clone(), Value::Str("market".to_string()), Value::Str("buy".to_string()), cost.clone(), &[Value::Null, params.clone()]).await;
 
     Value::Null
@@ -4143,7 +4143,7 @@ impl LbankCore {
                     pem = self.safe_value_k(self.options.clone(), "pem", &[]);
                     if (pem == Value::Null) {
                         pem = self.convert_secret_to_pem(self.encode(self.secret.clone()));
-                        add_element_to_object(&mut self.options.clone(), &Value::Str("pem".to_string()), pem.clone());
+                        if let Value::Dict(__d) = &mut self.options.clone() { std::sync::Arc::make_mut(__d).insert("pem".to_string(), pem.clone()); }
                     }
                 }  else {
                     pem = self.convert_secret_to_pem(self.encode(self.secret.clone()));

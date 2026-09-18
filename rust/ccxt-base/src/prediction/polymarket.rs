@@ -2740,13 +2740,13 @@ impl PolymarketCore {
         if (raw != Value::Null) {
             total = self.parse_number(crate::precise::Precise::stringDiv(&raw, &Value::Str("1000000".to_string())), &[]);
         }
-        add_element_to_object(&mut result, &Value::Str("USDC".to_string()), Value::Map({
+        if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert("USDC".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("free".to_string(), total.clone());
         m.insert("used".to_string(), Value::Null);
         m.insert("total".to_string(), total.clone());
     m
-}));
+})); }
         return self.safe_balance(result.clone());
 
     Value::Null
@@ -4473,9 +4473,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         });
         // cache in options rather than the typed apiKey/secret/password fields so the
         // assignment is valid in the struct-based languages (C#/Go/Java)
-        add_element_to_object(&mut self.options.clone(), &Value::Str("l2ApiKey".to_string()), creds.as_map().and_then(|__m| __m.get("apiKey")).cloned().unwrap_or(Value::Null));
-        add_element_to_object(&mut self.options.clone(), &Value::Str("l2Secret".to_string()), creds.as_map().and_then(|__m| __m.get("secret")).cloned().unwrap_or(Value::Null));
-        add_element_to_object(&mut self.options.clone(), &Value::Str("l2Passphrase".to_string()), creds.as_map().and_then(|__m| __m.get("passphrase")).cloned().unwrap_or(Value::Null));
+        if let Value::Dict(__d) = &mut self.options.clone() { std::sync::Arc::make_mut(__d).insert("l2ApiKey".to_string(), creds.as_map().and_then(|__m| __m.get("apiKey")).cloned().unwrap_or(Value::Null)); }
+        if let Value::Dict(__d) = &mut self.options.clone() { std::sync::Arc::make_mut(__d).insert("l2Secret".to_string(), creds.as_map().and_then(|__m| __m.get("secret")).cloned().unwrap_or(Value::Null)); }
+        if let Value::Dict(__d) = &mut self.options.clone() { std::sync::Arc::make_mut(__d).insert("l2Passphrase".to_string(), creds.as_map().and_then(|__m| __m.get("passphrase")).cloned().unwrap_or(Value::Null)); }
         return creds;
 
     Value::Null

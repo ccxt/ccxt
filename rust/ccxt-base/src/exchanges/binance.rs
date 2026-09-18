@@ -6551,7 +6551,7 @@ impl BinanceCore {
 
     pub fn set_sandbox_mode(&mut self, mut enable: Value) {
         self.super_set_sandbox_mode(enable.clone());
-        add_element_to_object(&mut self.options, &Value::Str("sandboxMode".to_string()), enable.clone());
+        if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("sandboxMode".to_string(), enable.clone()); }
 }
 
     pub fn create_expired_option_market(&self, mut symbol: Value) -> Value {
@@ -6875,7 +6875,7 @@ impl BinanceCore {
             let mut newUrls: Value = self.omit(self.urls.clone(), Value::Str("apiBackupDemoTrading".to_string()), &[]);
             self.urls = newUrls.clone();
         }
-        add_element_to_object(&mut self.options, &Value::Str("enableDemoTrading".to_string()), enable.clone());
+        if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("enableDemoTrading".to_string(), enable.clone()); }
 }
 
 /*
@@ -7297,8 +7297,8 @@ impl BinanceCore {
         }
         let mut results: Value = promise_all(&promisesRaw).await;
         let mut markets: Value = Value::List(vec![]);
-        add_element_to_object(&mut self.options, &Value::Str("crossMarginPairsData".to_string()), Value::List(vec![]));
-        add_element_to_object(&mut self.options, &Value::Str("isolatedMarginPairsData".to_string()), Value::List(vec![]));
+        if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("crossMarginPairsData".to_string(), Value::List(vec![])); }
+        if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("isolatedMarginPairsData".to_string(), Value::List(vec![])); }
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_252: bool = true;
@@ -7309,9 +7309,9 @@ impl BinanceCore {
                 let mut length: Value = get_array_length(&get_value(&self.options, &Value::Str("crossMarginPairsData".to_string())));
                 // first one is the cross-margin promise
                 if is_equal(&length, &Value::Int(0)) {
-                    add_element_to_object(&mut self.options, &Value::Str("crossMarginPairsData".to_string()), keysList.clone());
+                    if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("crossMarginPairsData".to_string(), keysList.clone()); }
                 }  else {
-                    add_element_to_object(&mut self.options, &Value::Str("isolatedMarginPairsData".to_string()), keysList.clone());
+                    if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("isolatedMarginPairsData".to_string(), keysList.clone()); }
                 }
             }  else {
                 let mut resultMarkets: Value = self.safe_list2(res.clone(), Value::Str("symbols".to_string()), Value::Str("optionSymbols".to_string()), &[Value::List(vec![])]);
@@ -7825,11 +7825,11 @@ impl BinanceCore {
 
     pub fn parse_balance_helper(&self, mut entry: Value) -> Value {
         let mut account: Value = self.account();
-        add_element_to_object(&mut account, &Value::Str("used".to_string()), self.safe_string_k(entry.clone(), "locked", &[]));
-        add_element_to_object(&mut account, &Value::Str("free".to_string()), self.safe_string_k(entry.clone(), "free", &[]));
+        if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("used".to_string(), self.safe_string_k(entry.clone(), "locked", &[])); }
+        if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("free".to_string(), self.safe_string_k(entry.clone(), "free", &[])); }
         let mut interest: Value = self.safe_string_k(entry.clone(), "interest", &[]);
         let mut debt: Value = self.safe_string_k(entry.clone(), "borrowed", &[]);
-        add_element_to_object(&mut account, &Value::Str("debt".to_string()), crate::precise::Precise::stringAdd(&debt, &interest));
+        if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("debt".to_string(), crate::precise::Precise::stringAdd(&debt, &interest)); }
         return account;
 
     Value::Null
@@ -11478,7 +11478,7 @@ impl BinanceCore {
         if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() != Some(true)) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" createMarketSellOrderWithCost() supports spot orders only".to_string()))));
         }
-        add_element_to_object(&mut params, &Value::Str("quoteOrderQty".to_string()), cost.clone());
+        if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("quoteOrderQty".to_string(), cost.clone()); }
         return self.create_order(symbol.clone(), Value::Str("market".to_string()), Value::Str("sell".to_string()), cost.clone(), &[Value::Null, params.clone()]).await;
 
     Value::Null
@@ -12386,8 +12386,8 @@ impl BinanceCore {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchClosedOrders() requires a symbol argument".to_string()))));
         }
         if (stock.as_bool() == Some(true)) {
-            add_element_to_object(&mut params, &Value::Str("stock".to_string()), Value::Bool(true));
-            add_element_to_object(&mut params, &Value::Str("orderStatus".to_string()), Value::Str("FILLED".to_string()));
+            if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("stock".to_string(), Value::Bool(true)); }
+            if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("orderStatus".to_string(), Value::Str("FILLED".to_string())); }
         }
         let mut orders: Value = self.fetch_orders(&[symbol.clone(), since.clone(), Value::Null, params.clone()]).await;
         let mut filteredOrders: Value = self.filter_by(orders.clone(), Value::Str("status".to_string()), Value::Str("closed".to_string()), &[]);
@@ -12438,8 +12438,8 @@ impl BinanceCore {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchCanceledOrders() requires a symbol argument".to_string()))));
         }
         if (stock.as_bool() == Some(true)) {
-            add_element_to_object(&mut params, &Value::Str("stock".to_string()), Value::Bool(true));
-            add_element_to_object(&mut params, &Value::Str("orderStatus".to_string()), Value::Str("CANCELED".to_string()));
+            if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("stock".to_string(), Value::Bool(true)); }
+            if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("orderStatus".to_string(), Value::Str("CANCELED".to_string())); }
         }
         let mut orders: Value = self.fetch_orders(&[symbol.clone(), since.clone(), Value::Null, params.clone()]).await;
         let mut filteredOrders: Value = self.filter_by(orders.clone(), Value::Str("status".to_string()), Value::Str("canceled".to_string()), &[]);
@@ -12490,8 +12490,8 @@ impl BinanceCore {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchCanceledAndClosedOrders() requires a symbol argument".to_string()))));
         }
         if (stock.as_bool() == Some(true)) {
-            add_element_to_object(&mut params, &Value::Str("stock".to_string()), Value::Bool(true));
-            add_element_to_object(&mut params, &Value::Str("orderStatus".to_string()), Value::Str("FILLED,CANCELED".to_string()));
+            if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("stock".to_string(), Value::Bool(true)); }
+            if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("orderStatus".to_string(), Value::Str("FILLED,CANCELED".to_string())); }
         }
         let mut orders: Value = self.fetch_orders(&[symbol.clone(), since.clone(), Value::Null, params.clone()]).await;
         let mut canceledOrders: Value = self.filter_by(orders.clone(), Value::Str("status".to_string()), Value::Str("canceled".to_string()), &[]);
@@ -15758,7 +15758,7 @@ impl BinanceCore {
             }  else {
                 panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" loadLeverageBrackets() supports linear and inverse contracts only".to_string()))));
             }
-            { let __be_tmp = self.create_safe_dictionary(&[]); add_element_to_object(&mut self.options, &Value::Str("leverageBrackets".to_string()), __be_tmp); };
+            { let __be_tmp = self.create_safe_dictionary(&[]); if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("leverageBrackets".to_string(), __be_tmp); } }
             if (response == Value::Null) {
                 panic!("{}", crate::exchange_errors::null_response(format!("{}{}", self.id.clone(), Value::Str(" loadLeverageBrackets() returned empty response".to_string()))));
             }
@@ -17342,7 +17342,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     m
 })]);
                     let mut brokerId: Value = self.safe_string(broker.clone(), marketType.clone(), &[defaultId.clone()]);
-                    add_element_to_object(&mut params, &Value::Str("newClientOrderId".to_string()), Value::Str(format!("{}{}", brokerId, self.uuid22(&[]))));
+                    if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("newClientOrderId".to_string(), Value::Str(format!("{}{}", brokerId, self.uuid22(&[])))); }
                 }
             }
             let mut query: Value = Value::Null;
@@ -17375,7 +17375,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     }
                 }
                 let mut queryBatch: Value = (self.json(checkedBatchOrders.clone()));
-                add_element_to_object(&mut params, &Value::Str("batchOrders".to_string()), queryBatch.clone());
+                if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("batchOrders".to_string(), queryBatch.clone()); }
             }
             let mut defaultRecvWindow: Value = self.safe_integer_k(self.options.clone(), "recvWindow", &[]);
             let __ws_arg_183 = self.nonce();
@@ -17638,7 +17638,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut response: Value = self.fetch2(path.clone(), &[api.clone(), method.clone(), params.clone(), headers.clone(), body.clone(), config.clone()]).await;
         // a workaround for {"code":-2015,"msg":"Invalid API-key, IP, or permissions for action."}
         if (api.as_str() == Some("private")) {
-            add_element_to_object(&mut self.options, &Value::Str("hasAlreadyAuthenticatedSuccessfully".to_string()), Value::Bool(true));
+            if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("hasAlreadyAuthenticatedSuccessfully".to_string(), Value::Bool(true)); }
         }
         return response;
 

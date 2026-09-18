@@ -602,8 +602,8 @@ impl CoincheckCore {
             if is_true(&Value::Bool(in_op(&response, &currencyId))) {
                 let mut account: Value = self.account();
                 let mut reserved: Value = Value::Str(format!("{}{}", currencyId, Value::Str("_reserved".to_string())));
-                add_element_to_object(&mut account, &Value::Str("free".to_string()), self.safe_string(response.clone(), currencyId.clone(), &[]));
-                add_element_to_object(&mut account, &Value::Str("used".to_string()), self.safe_string(response.clone(), reserved.clone(), &[]));
+                if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("free".to_string(), self.safe_string(response.clone(), currencyId.clone(), &[])); }
+                if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("used".to_string(), self.safe_string(response.clone(), reserved.clone(), &[])); }
                 add_element_to_object(&mut result, &code, account.clone());
             }
         }

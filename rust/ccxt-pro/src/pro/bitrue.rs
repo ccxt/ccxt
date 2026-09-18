@@ -469,10 +469,10 @@ impl BitrueCore {
             let mut updateUsed: bool = lockBalanceUpdateTime.as_f64() != Some(0.0);
             if updateFree || updateUsed {
                 if updateFree {
-                    add_element_to_object(&mut account, &Value::Str("free".to_string()), free.clone());
+                    if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("free".to_string(), free.clone()); }
                 }
                 if updateUsed {
-                    add_element_to_object(&mut account, &Value::Str("used".to_string()), used.clone());
+                    if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("used".to_string(), used.clone()); }
                 }
                 if (code != Value::Null) {
                     add_element_to_object(&mut self.balance, &code, account.clone());
@@ -1323,8 +1323,8 @@ impl BitrueCore {
                 if (key == Value::Null) {
                     panic!("{}", crate::exchange_errors::authentication_error(format!("{}{}", self.id.clone(), Value::Str(" authenticate() received an empty listenKey".to_string()))));
                 }
-                add_element_to_object(&mut self.options, &Value::Str("listenKey".to_string()), key.clone());
-                { let __be_tmp = Value::Str(format!("{}{}", add(&crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "private"), &Value::Str("/stream?listenKey=".to_string())), key)); add_element_to_object(&mut self.options, &Value::Str("listenKeyUrl".to_string()), __be_tmp); };
+                if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("listenKey".to_string(), key.clone()); }
+                { let __be_tmp = Value::Str(format!("{}{}", add(&crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "private"), &Value::Str("/stream?listenKey=".to_string())), key)); if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("listenKeyUrl".to_string(), __be_tmp); } }
                 client.resolve(&[key.clone(), messageHash.clone()]);
              #[allow(unreachable_code)] { Value::Null }})).await;
 if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
@@ -1367,8 +1367,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             self.parent.open_v1_private_put_poseidon_api_v1_listen_key_listen_key(&[__ws_arg_0]).await;
          #[allow(unreachable_code)] { Value::Null }})).await;
 if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err);
-            add_element_to_object(&mut self.options, &Value::Str("listenKey".to_string()), Value::Null);
-            add_element_to_object(&mut self.options, &Value::Str("listenKeyUrl".to_string()), Value::Null);
+            if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("listenKey".to_string(), Value::Null); }
+            if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("listenKeyUrl".to_string(), Value::Null); }
             return Value::Null;
         }
         let mut refreshTimeout: Value = self.safe_integer_k(self.options.clone(), "listenKeyRefreshRate", &[Value::Int(1800000)]);

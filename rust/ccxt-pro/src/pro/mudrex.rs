@@ -267,7 +267,7 @@ impl MudrexCore {
 
     pub fn request_id(&mut self) -> Value {
         let mut reqid: Value = self.sum(&[self.safe_integer_k(self.options.clone(), "correlationId", &[Value::Int(0)]), Value::Int(1)]);
-        add_element_to_object(&mut self.options, &Value::Str("correlationId".to_string()), reqid.clone());
+        if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("correlationId".to_string(), reqid.clone()); }
         return reqid;
 
     Value::Null
@@ -298,7 +298,7 @@ impl MudrexCore {
         add_element_to_object(&mut headers, &Value::Str("Partner-Id".to_string()), brokerId.clone());
         add_element_to_object(&mut innerOptions, &Value::Str("headers".to_string()), headers.clone());
         add_element_to_object(&mut wsOptions, &Value::Str("options".to_string()), innerOptions.clone());
-        add_element_to_object(&mut self.options, &Value::Str("ws".to_string()), wsOptions.clone());
+        if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("ws".to_string(), wsOptions.clone()); }
 }
 
     pub async fn watch_ticker(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {

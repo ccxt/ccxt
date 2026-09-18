@@ -1955,7 +1955,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         // kalshi candles carry only the period-END timestamp; thread the candle duration through so
         // parseOHLCV can stamp each candle at its OPEN (the CCXT convention)
-        add_element_to_object(&mut self.options, &Value::Str("ohlcvCandleDurationSeconds".to_string()), tf.clone());
+        if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("ohlcvCandleDurationSeconds".to_string(), tf.clone()); }
         return self.parse_ohlc_vs(usableCandles.clone(), &[outcomeObj.clone(), timeframe.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -2335,13 +2335,13 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (balanceCents != Value::Null) {
             total = (match ((balanceCents).as_f64(), (Value::Int(100)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null });
         }
-        add_element_to_object(&mut result, &Value::Str("USD".to_string()), Value::Map({
+        if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert("USD".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("free".to_string(), total.clone());
         m.insert("used".to_string(), Value::Int(0));
         m.insert("total".to_string(), total.clone());
     m
-}));
+})); }
         return self.safe_balance(result.clone());
 
     Value::Null

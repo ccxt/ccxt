@@ -2916,7 +2916,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         m.insert("exchangeRates".to_string(), exchangeRates.clone());
         m.insert("timestamp".to_string(), now.clone());
     m
-})]); add_element_to_object(&mut self.options, &Value::Str("fetchCurrencies".to_string()), __be_tmp); };
+})]); if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("fetchCurrencies".to_string(), __be_tmp); } }
         }
         return self.safe_dict_k(self.options.clone(), "fetchCurrencies", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -3094,9 +3094,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         }
         let __ws_arg_10 = crate::value::get_value_k(&self.options, "networks");
-        { let __be_tmp = self.extend(networks.clone(), &[__ws_arg_10]); add_element_to_object(&mut self.options, &Value::Str("networks".to_string()), __be_tmp); };
+        { let __be_tmp = self.extend(networks.clone(), &[__ws_arg_10]); if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("networks".to_string(), __be_tmp); } }
         let __ws_arg_11 = crate::value::get_value_k(&self.options, "networksById");
-        { let __be_tmp = self.extend(networksById.clone(), &[__ws_arg_11]); add_element_to_object(&mut self.options, &Value::Str("networksById".to_string()), __be_tmp); };
+        { let __be_tmp = self.extend(networksById.clone(), &[__ws_arg_11]); if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("networksById".to_string(), __be_tmp); } }
         return result;
 
     Value::Null
@@ -4262,7 +4262,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() != Some(true)) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" createMarketBuyOrderWithCost() supports spot orders only".to_string()))));
         }
-        add_element_to_object(&mut params, &Value::Str("createMarketBuyOrderRequiresPrice".to_string()), Value::Bool(false));
+        if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("createMarketBuyOrderRequiresPrice".to_string(), Value::Bool(false)); }
         return self.create_order(symbol.clone(), Value::Str("market".to_string()), Value::Str("buy".to_string()), cost.clone(), &[Value::Null, params.clone()]).await;
 
     Value::Null

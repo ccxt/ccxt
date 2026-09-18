@@ -698,7 +698,7 @@ impl UpbitCore {
 }));
     m
 }));
-            add_element_to_object(&mut self.options, &Value::Str("ws".to_string()), wsOptions.clone());
+            if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("ws".to_string(), wsOptions.clone()); }
         }
         let mut url: Value = add(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), &Value::Str("/private".to_string()));
         let mut client: Value = self.client(&[url.clone()]);
@@ -1099,8 +1099,8 @@ impl UpbitCore {
             let mut available: Value = self.safe_string_k(balance.clone(), "balance", &[]);
             let mut frozen: Value = self.safe_string_k(balance.clone(), "locked", &[]);
             let mut account: Value = self.account();
-            add_element_to_object(&mut account, &Value::Str("free".to_string()), available.clone());
-            add_element_to_object(&mut account, &Value::Str("used".to_string()), frozen.clone());
+            if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("free".to_string(), available.clone()); }
+            if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("used".to_string(), frozen.clone()); }
             if (code != Value::Null) {
                 add_element_to_object(&mut self.balance, &code, account.clone());
             }

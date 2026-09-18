@@ -449,7 +449,7 @@ impl LighterCore {
     m
 }));
         self.parent.pre_load_lighter_library(&[]).await;
-        { let __be_tmp = self.parent.create_auth(&[params.clone()]); add_element_to_object(&mut params, &Value::Str("auth".to_string()), __be_tmp); };
+        { let __be_tmp = self.parent.create_auth(&[params.clone()]); if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("auth".to_string(), __be_tmp); } }
         return self.subscribe_public(messageHash.clone(), &[params.clone()]).await;
 
     Value::Null

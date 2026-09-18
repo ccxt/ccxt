@@ -2174,7 +2174,7 @@ impl BitstampCore {
         m.insert("response".to_string(), response.clone());
         m.insert("timestamp".to_string(), now.clone());
     m
-})]); add_element_to_object(&mut self.options, &Value::Str("fetchMarkets".to_string()), __be_tmp); };
+})]); if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("fetchMarkets".to_string(), __be_tmp); } }
         }
         return self.safe_value(self.options.as_map().and_then(|__m| __m.get("fetchMarkets")).cloned().unwrap_or(Value::Null), Value::Str("response".to_string()), &[]);
 
@@ -2764,9 +2764,9 @@ impl BitstampCore {
             let mut currencyId: Value = self.safe_string_k(currencyBalance.clone(), "currency", &[]);
             let mut currencyCode: Value = self.safe_currency_code(currencyId.clone(), &[]);
             let mut account: Value = self.account();
-            add_element_to_object(&mut account, &Value::Str("free".to_string()), self.safe_string_k(currencyBalance.clone(), "available", &[]));
-            add_element_to_object(&mut account, &Value::Str("used".to_string()), self.safe_string_k(currencyBalance.clone(), "reserved", &[]));
-            add_element_to_object(&mut account, &Value::Str("total".to_string()), self.safe_string_k(currencyBalance.clone(), "total", &[]));
+            if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("free".to_string(), self.safe_string_k(currencyBalance.clone(), "available", &[])); }
+            if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("used".to_string(), self.safe_string_k(currencyBalance.clone(), "reserved", &[])); }
+            if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("total".to_string(), self.safe_string_k(currencyBalance.clone(), "total", &[])); }
             if (currencyCode != Value::Null) {
                 add_element_to_object(&mut result, &currencyCode, account.clone());
             }

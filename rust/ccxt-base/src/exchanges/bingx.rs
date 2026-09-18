@@ -4548,7 +4548,7 @@ impl BingxCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        add_element_to_object(&mut params, &Value::Str("quoteOrderQty".to_string()), cost.clone());
+        if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("quoteOrderQty".to_string(), cost.clone()); }
         return self.create_order(symbol.clone(), Value::Str("market".to_string()), side.clone(), cost.clone(), &[Value::Null, params.clone()]).await;
 
     Value::Null
@@ -4568,7 +4568,7 @@ impl BingxCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        add_element_to_object(&mut params, &Value::Str("quoteOrderQty".to_string()), cost.clone());
+        if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("quoteOrderQty".to_string(), cost.clone()); }
         return self.create_order(symbol.clone(), Value::Str("market".to_string()), Value::Str("buy".to_string()), cost.clone(), &[Value::Null, params.clone()]).await;
 
     Value::Null
@@ -4588,7 +4588,7 @@ impl BingxCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        add_element_to_object(&mut params, &Value::Str("quoteOrderQty".to_string()), cost.clone());
+        if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("quoteOrderQty".to_string(), cost.clone()); }
         return self.create_order(symbol.clone(), Value::Str("market".to_string()), Value::Str("sell".to_string()), cost.clone(), &[Value::Null, params.clone()]).await;
 
     Value::Null
@@ -5004,11 +5004,11 @@ impl BingxCore {
         // for py fix, the SL is already parsed as object (instead of stringified, as it's provided)
         // so we need trick to check if it's non-parsed string yet
         if is_true(&(Value::Bool(stopLossDict == Value::Null))) && is_true(&(Value::Bool(stopLoss != Value::Null))) && is_true(&(Value::Bool(get_index_of(&stopLoss, &Value::Str("{".to_string())).as_f64() == Some(0.0)))) {
-            add_element_to_object(&mut result, &Value::Str("stopLoss".to_string()), self.parse_json_value(stopLoss.clone()));
+            if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert("stopLoss".to_string(), self.parse_json_value(stopLoss.clone())); }
         }
         let mut takeProfit: Value = self.safe_string_k(result.clone(), "takeProfit", &[]);
         if is_true(&(Value::Bool(takeProfit != Value::Null))) && is_true(&(Value::Bool(get_index_of(&takeProfit, &Value::Str("{".to_string())).as_f64() == Some(0.0)))) {
-            add_element_to_object(&mut result, &Value::Str("takeProfit".to_string()), self.parse_json_value(takeProfit.clone()));
+            if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert("takeProfit".to_string(), self.parse_json_value(takeProfit.clone())); }
         }
         return self.parse_order(result.clone(), &[market.clone()]);
 
@@ -8490,7 +8490,7 @@ impl BingxCore {
 
     pub fn set_sandbox_mode(&mut self, mut enable: Value) {
         self.super_set_sandbox_mode(enable.clone());
-        add_element_to_object(&mut self.options, &Value::Str("sandboxMode".to_string()), enable.clone());
+        if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("sandboxMode".to_string(), enable.clone()); }
 }
 
     pub fn handle_errors(&self, mut httpCode: Value, mut reason: Value, mut url: Value, mut method: Value, mut headers: Value, mut body: Value, mut response: Value, mut requestHeaders: Value, mut requestBody: Value) -> Value {

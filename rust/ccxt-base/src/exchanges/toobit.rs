@@ -1249,7 +1249,7 @@ impl ToobitCore {
     m
 }));
         let mut response: Value = self.common_get_api_v1_exchange_info(&[params.clone()]).await;
-        add_element_to_object(&mut self.options, &Value::Str("exchangeInfo".to_string()), response.clone()); // we store it in options for later use in fetchMarkets
+        if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("exchangeInfo".to_string(), response.clone()); }; // we store it in options for later use in fetchMarkets
         //
         //    {
         //        "timezone": "UTC",
@@ -1501,7 +1501,7 @@ impl ToobitCore {
 }));
         let mut response: Value = self.safe_dict_k(self.options.clone(), "exchangeInfo", &[]);
         if (response != Value::Null) {
-            add_element_to_object(&mut self.options, &Value::Str("exchangeInfo".to_string()), Value::Null); // reset it to avoid using old cached data
+            if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("exchangeInfo".to_string(), Value::Null); }; // reset it to avoid using old cached data
         }  else {
             response = self.common_get_api_v1_exchange_info(&[params.clone()]).await;
         }
@@ -2443,9 +2443,9 @@ impl ToobitCore {
             let mut balance: Value = get_value(&balances, &i);
             let mut code: Value = self.safe_currency_code(self.safe_string_k(balance.clone(), "asset", &[]), &[]);
             let mut account: Value = self.account();
-            add_element_to_object(&mut account, &Value::Str("free".to_string()), self.safe_string2(balance.clone(), Value::Str("free".to_string()), Value::Str("availableBalance".to_string()), &[]));
-            add_element_to_object(&mut account, &Value::Str("total".to_string()), self.safe_string2(balance.clone(), Value::Str("total".to_string()), Value::Str("balance".to_string()), &[]));
-            add_element_to_object(&mut account, &Value::Str("used".to_string()), self.safe_string_k(balance.clone(), "locked", &[]));
+            if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("free".to_string(), self.safe_string2(balance.clone(), Value::Str("free".to_string()), Value::Str("availableBalance".to_string()), &[])); }
+            if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("total".to_string(), self.safe_string2(balance.clone(), Value::Str("total".to_string()), Value::Str("balance".to_string()), &[])); }
+            if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("used".to_string(), self.safe_string_k(balance.clone(), "locked", &[])); }
             if (code != Value::Null) {
                 add_element_to_object(&mut result, &code, account.clone());
             }

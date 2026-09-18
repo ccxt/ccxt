@@ -594,7 +594,7 @@ impl PoloniexCore {
         let mut clientOrderId: Value = self.safe_string_k(params.clone(), "clientOrderId", &[]);
         if (clientOrderId != Value::Null) {
             let mut clientOrderIds: Value = self.safe_value_k(params.clone(), "clientOrderId", &[Value::List(vec![])]);
-            add_element_to_object(&mut params, &Value::Str("clientOrderIds".to_string()), self.array_concat(clientOrderIds.clone(), Value::List(vec![clientOrderId.clone()])));
+            if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("clientOrderIds".to_string(), self.array_concat(clientOrderIds.clone(), Value::List(vec![clientOrderId.clone()]))); }
         }
         let mut orders: Value = self.cancel_orders_ws(Value::List(vec![id.clone()]), &[symbol.clone(), params.clone()]).await;
         let mut order: Value = self.safe_dict(orders.clone(), Value::Int(0), &[]);

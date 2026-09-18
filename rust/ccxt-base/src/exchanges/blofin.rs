@@ -2084,11 +2084,11 @@ impl BlofinCore {
             let mut eq: Value = self.safe_string_k(balance.clone(), "equity", &[]);
             let mut availEq: Value = self.safe_string_k(balance.clone(), "available", &[]);
             if is_true(&(Value::Bool(eq == Value::Null))) || is_true(&(Value::Bool(availEq == Value::Null))) {
-                add_element_to_object(&mut account, &Value::Str("free".to_string()), self.safe_string_k(balance.clone(), "availableEquity", &[]));
-                add_element_to_object(&mut account, &Value::Str("used".to_string()), self.safe_string_k(balance.clone(), "frozen", &[]));
+                if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("free".to_string(), self.safe_string_k(balance.clone(), "availableEquity", &[])); }
+                if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("used".to_string(), self.safe_string_k(balance.clone(), "frozen", &[])); }
             }  else {
-                add_element_to_object(&mut account, &Value::Str("total".to_string()), eq.clone());
-                add_element_to_object(&mut account, &Value::Str("free".to_string()), availEq.clone());
+                if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("total".to_string(), eq.clone()); }
+                if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("free".to_string(), availEq.clone()); }
             }
             add_element_to_object(&mut result, &code, account.clone());
         }
@@ -2132,9 +2132,9 @@ impl BlofinCore {
             let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
             let mut account: Value = self.account();
             // it may be incorrect to use total, free and used for swap accounts
-            add_element_to_object(&mut account, &Value::Str("total".to_string()), self.safe_string_k(balance.clone(), "balance", &[]));
-            add_element_to_object(&mut account, &Value::Str("free".to_string()), self.safe_string_k(balance.clone(), "available", &[]));
-            add_element_to_object(&mut account, &Value::Str("used".to_string()), self.safe_string_k(balance.clone(), "frozen", &[]));
+            if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("total".to_string(), self.safe_string_k(balance.clone(), "balance", &[])); }
+            if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("free".to_string(), self.safe_string_k(balance.clone(), "available", &[])); }
+            if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("used".to_string(), self.safe_string_k(balance.clone(), "frozen", &[])); }
             add_element_to_object(&mut result, &code, account.clone());
         }
         }
@@ -2478,7 +2478,7 @@ impl BlofinCore {
         let mut response: Value = Value::Null;
         let mut reduceOnly: Value = self.safe_bool_k(params.clone(), "reduceOnly", &[]);
         if (reduceOnly != Value::Null) {
-            add_element_to_object(&mut params, &Value::Str("reduceOnly".to_string()), (if is_true(&reduceOnly) { Value::Str("true".to_string()) } else { Value::Str("false".to_string()) }));
+            if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("reduceOnly".to_string(), (if is_true(&reduceOnly) { Value::Str("true".to_string()) } else { Value::Str("false".to_string()) })); }
         }
         if isCombinedSlTp {
             let mut tpslRequest: Value = self.create_tpsl_order_request(symbol.clone(), type_var.clone(), side.clone(), &[amount.clone(), price.clone(), params.clone()]);

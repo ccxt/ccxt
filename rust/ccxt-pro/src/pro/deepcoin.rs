@@ -393,7 +393,7 @@ impl DeepcoinCore {
         self.lock_id(&[]);
         let mut previousValue: Value = self.safe_integer_k(self.options.clone(), "lastRequestId", &[Value::Int(0)]);
         let mut newValue: Value = self.sum(&[previousValue.clone(), Value::Int(1)]);
-        add_element_to_object(&mut self.options, &Value::Str("lastRequestId".to_string()), newValue.clone());
+        if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("lastRequestId".to_string(), newValue.clone()); }
         self.unlock_id(&[]);
         return newValue;
 
@@ -550,8 +550,8 @@ impl DeepcoinCore {
                     panic!("{}", crate::exchange_errors::authentication_error(format!("{}{}", self.id.clone(), Value::Str(" authenticate() received an empty listenKey".to_string()))));
                 }
                 listenKeyExpiryTimestamp = self.safe_timestamp(data.clone(), Value::Str("expire_time".to_string()), &[]);
-                add_element_to_object(&mut self.options, &Value::Str("listenKey".to_string()), listenKey.clone());
-                add_element_to_object(&mut self.options, &Value::Str("listenKeyExpiryTimestamp".to_string()), listenKeyExpiryTimestamp.clone());
+                if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("listenKey".to_string(), listenKey.clone()); }
+                if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("listenKeyExpiryTimestamp".to_string(), listenKeyExpiryTimestamp.clone()); }
             }
             // settle the flight: client.resolve wakes every waiter and drops
             // the future from the registry under the client's own lock, so the

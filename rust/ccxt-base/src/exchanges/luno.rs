@@ -1101,8 +1101,8 @@ impl LunoCore {
                 { let __be_tmp = crate::precise::Precise::stringAdd(&crate::value::get_value_k(&get_value(&result, &code), "total"), &balanceUnconfirmed); add_element_to_object(get_value_mut(&mut result, &code), &Value::Str("total".to_string()), __be_tmp); };
             }  else if (code != Value::Null) {
                 let mut account: Value = self.account();
-                add_element_to_object(&mut account, &Value::Str("used".to_string()), reservedUnconfirmed.clone());
-                add_element_to_object(&mut account, &Value::Str("total".to_string()), balanceUnconfirmed.clone());
+                if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("used".to_string(), reservedUnconfirmed.clone()); }
+                if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("total".to_string(), balanceUnconfirmed.clone()); }
                 add_element_to_object(&mut result, &code, account.clone());
             }
         }

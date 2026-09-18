@@ -462,7 +462,7 @@ impl HtxCore {
     pub fn request_id(&mut self) -> Value {
         self.lock_id(&[]);
         let mut requestId: Value = self.sum(&[self.safe_integer_k(self.options.clone(), "requestId", &[Value::Int(0)]), Value::Int(1)]);
-        add_element_to_object(&mut self.options, &Value::Str("requestId".to_string()), requestId.clone());
+        if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("requestId".to_string(), requestId.clone()); }
         self.unlock_id(&[]);
         return to_string_val(&requestId);
 
@@ -798,7 +798,7 @@ impl HtxCore {
         let mut interval: Value = self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]);
         let mut subMessageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", add(&Value::Str("market.".to_string()), &market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)), Value::Str(".kline.".to_string()))), interval));
         let mut topic: Value = Value::Str("ohlcv".to_string());
-        add_element_to_object(&mut params, &Value::Str("symbolsAndTimeframes".to_string()), Value::List(vec![Value::List(vec![market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null), timeframe.clone()])]));
+        if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("symbolsAndTimeframes".to_string(), Value::List(vec![Value::List(vec![market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null), timeframe.clone()])])); }
         return self.unsubscribe_public(market.clone(), subMessageHash.clone(), topic.clone(), &[params.clone()]).await;
 
     Value::Null
@@ -940,7 +940,7 @@ impl HtxCore {
             subMessageHash = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", add(&Value::Str("market.".to_string()), &market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)), Value::Str(".depth.size_".to_string()))), self.number_to_string(depth.clone()))), Value::Str(".high_freq".to_string())));
         }
         if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() != Some(true)) {
-            add_element_to_object(&mut params, &Value::Str("data_type".to_string()), Value::Str("incremental".to_string()));
+            if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("data_type".to_string(), Value::Str("incremental".to_string())); }
         }
         return self.unsubscribe_public(market.clone(), subMessageHash.clone(), topic.clone(), &[params.clone()]).await;
 
