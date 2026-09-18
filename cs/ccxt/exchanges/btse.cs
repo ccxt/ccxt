@@ -1685,7 +1685,7 @@ public partial class btse : Exchange
         Int64? timestamp = this.safeTimestamp(contract, "closeTime");
         // dated futures carry a zero nextFundingTime as funding only applies to
         // perpetuals, observed live, the zero means no next funding and is omitted
-        object nextFundingTimestamp = this.safeIntegerOmitZero(contract, "nextFundingTime");
+        Int64? nextFundingTimestamp = this.safeIntegerOmitZero(contract, "nextFundingTime");
         Int64? fundingIntervalMinutes = this.safeInteger(contract, "fundingIntervalMinutes");
         string? interval = null;
         // a wire value of zero minutes reaches this, and zero hours is not an

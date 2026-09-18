@@ -1212,7 +1212,7 @@ public partial class derive : Exchange
         // }
         //
         string? marketId = this.safeString(ticker, "instrument_name");
-        object timestamp = this.safeIntegerOmitZero(ticker, "timestamp");
+        Int64? timestamp = this.safeIntegerOmitZero(ticker, "timestamp");
         string? symbol = this.safeSymbol(marketId, market);
         IDictionary<string, object> stats = this.safeDict(ticker, "stats");
         string? change = this.safeString(stats, "percent_change");

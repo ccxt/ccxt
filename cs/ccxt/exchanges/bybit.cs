@@ -11477,7 +11477,7 @@ public partial class bybit : Exchange
         //     }
         //
         string? marketId = this.safeString(info, "symbol");
-        object timestamp = this.safeIntegerOmitZero(info, "timestamp");
+        Int64? timestamp = this.safeIntegerOmitZero(info, "timestamp");
         string? longString = this.safeString(info, "buyRatio");
         string? shortString = this.safeString(info, "sellRatio");
         return new Dictionary<string, object>() {

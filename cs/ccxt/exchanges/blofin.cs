@@ -3625,7 +3625,7 @@ public partial class blofin : Exchange
         //     }
         //
         string? marketId = this.safeString(info, "instId");
-        object timestamp = this.safeIntegerOmitZero(info, "createTime");
+        Int64? timestamp = this.safeIntegerOmitZero(info, "createTime");
         return new Dictionary<string, object>() {
             { "info", info },
             { "symbol", this.safeSymbol(marketId, market, null, "contract") },
