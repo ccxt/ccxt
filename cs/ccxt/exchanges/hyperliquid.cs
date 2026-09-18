@@ -3657,7 +3657,7 @@ public partial class hyperliquid : Exchange
             string? oid = this.safeString(entry, "oid");
             if ((oid != null))
             {
-                if (!(inOp(deduplicatedByOid, oid)))
+                if (!(deduplicatedByOid.ContainsKey(oid)))
                 {
                     ((IDictionary<string,object>)deduplicatedByOid)[(string)oid] = rawOrder;
                 } else
@@ -5667,7 +5667,7 @@ public partial class hyperliquid : Exchange
     public override object calculateRateLimiterCost(object api, object method, object path, object parameters, object config = null)
     {
         config ??= new Dictionary<string, object>();
-        if ((inOp(config, "byType")) && (inOp(parameters, "type")))
+        if ((((IDictionary<string, object>)config).ContainsKey("byType")) && (inOp(parameters, "type")))
         {
             object type = getValue(parameters, "type");
             object byType = ((IDictionary<string,object>)config)["byType"];

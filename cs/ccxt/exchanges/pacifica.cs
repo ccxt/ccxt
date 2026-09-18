@@ -1033,7 +1033,7 @@ public partial class pacifica : Exchange
             ((IDictionary<string,object>)account)["total"] = this.safeString(balance, "amount");
             ((IDictionary<string,object>)account)["free"] = this.safeString(balance, "available_to_withdraw");
             // skip a spot USDC entry so it can't clobber the perp-collateral account above
-            if (((code != null)) && !(inOp(result, code)))
+            if (((code != null)) && !(result.ContainsKey(code)))
             {
                 ((IDictionary<string,object>)result)[(string)code] = account;
             }

@@ -376,7 +376,7 @@ public partial class bybit : ccxt.bybit
         object url = getValue(getValue(getValue(getValue(this.urls, "api"), "ws"), "private"), "trade");
         await this.authenticate(url);
         string requestId = ((object)this.requestId()).ToString();
-        if (inOp(orderRequest, "orderFilter"))
+        if (orderRequest.ContainsKey("orderFilter"))
         {
             ((IDictionary<string,object>)orderRequest).Remove((string)"orderFilter");
         }

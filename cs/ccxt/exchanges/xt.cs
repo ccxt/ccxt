@@ -3089,7 +3089,7 @@ public partial class xt : Exchange
         symbolVar = getValue(market, "symbol");
         if (((getValue(market, "spot") as bool?) == true))
         {
-            bool isTrailing = (inOp(parameters, "trailingPercent")) || (inOp(parameters, "trailingAmount")) || (inOp(parameters, "trailingTriggerPrice"));
+            bool isTrailing = (((IDictionary<string, object>)parameters).ContainsKey("trailingPercent")) || (((IDictionary<string, object>)parameters).ContainsKey("trailingAmount")) || (((IDictionary<string, object>)parameters).ContainsKey("trailingTriggerPrice"));
             if (isTrailing)
             {
                 throw new NotSupported ((string)(this.id + " createOrder() trailing orders are only supported on swap markets")) ;
@@ -4625,7 +4625,7 @@ public partial class xt : Exchange
         //     }
         //
         string? marketId = this.safeString(order, "symbol");
-        string marketType = ((bool) (inOp(order, "result")) || (inOp(order, "positionSide"))) ? "contract" : "spot";
+        string marketType = ((bool) ((order != null && ((IDictionary<string, object>)order).ContainsKey("result"))) || ((order != null && ((IDictionary<string, object>)order).ContainsKey("positionSide")))) ? "contract" : "spot";
         market = this.safeMarket(marketId, market, null, marketType);
         string? symbol = this.safeSymbol(marketId, market, null, marketType);
         Int64? timestamp = this.safeInteger2(order, "time", "createdTime");
@@ -5142,7 +5142,7 @@ public partial class xt : Exchange
         //         "id": 950898
         //     }
         //
-        string type = ((bool) (inOp(transaction, "fromAddr"))) ? "deposit" : "withdraw";
+        string type = ((bool) ((transaction != null && ((IDictionary<string, object>)transaction).ContainsKey("fromAddr")))) ? "deposit" : "withdraw";
         Int64? timestamp = this.safeInteger(transaction, "createdTime");
         string? address = this.safeString(transaction, "address");
         string? memo = this.safeString(transaction, "memo");

@@ -2015,10 +2015,10 @@ public partial class coinbaseexchange : Exchange
             { "amount", amount },
         };
         Dictionary<string, object> response = null;
-        if (inOp(parameters, "payment_method_id"))
+        if (((IDictionary<string, object>)parameters).ContainsKey("payment_method_id"))
         {
             response = await this.privatePostWithdrawalsPaymentMethod(this.extend(request, parameters));
-        } else if (inOp(parameters, "coinbase_account_id"))
+        } else if (((IDictionary<string, object>)parameters).ContainsKey("coinbase_account_id"))
         {
             response = await this.privatePostWithdrawalsCoinbaseAccount(this.extend(request, parameters));
         } else

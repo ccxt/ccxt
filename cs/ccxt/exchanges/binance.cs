@@ -5302,7 +5302,7 @@ public partial class binance : Exchange
         string? baseId = this.safeString(market, "baseAsset", optionBase);
         string? quoteId = this.safeString(market, "quoteAsset");
         bool stock = false;
-        if (inOp(market, "tradability"))
+        if ((market != null && ((IDictionary<string, object>)market).ContainsKey("tradability")))
         {
             quoteId = "USDC";
             stock = true;
@@ -5310,7 +5310,7 @@ public partial class binance : Exchange
         object bs = this.safeCurrencyCode(baseId);
         string? quote = this.safeCurrencyCode(quoteId);
         string? contractType = this.safeString(market, "contractType");
-        bool contract = (inOp(market, "contractType"));
+        bool contract = ((market != null && ((IDictionary<string, object>)market).ContainsKey("contractType")));
         Int64? expiry = this.safeInteger2(market, "deliveryDate", "expiryDate");
         object settleId = this.safeString(market, "marginAsset");
         if (((contractType == "PERPETUAL")) || (isEqual(expiry, 4133404800000)))
@@ -6230,19 +6230,19 @@ public partial class binance : Exchange
         //
         Int64? timestamp = this.safeInteger2(ticker, "closeTime", "time");
         string? marketType = null;
-        if ((inOp(ticker, "time")))
+        if (((ticker != null && ((IDictionary<string, object>)ticker).ContainsKey("time"))))
         {
             marketType = "contract";
         }
         if ((marketType == null))
         {
-            marketType = ((bool) (inOp(ticker, "bidQty"))) ? "spot" : "contract";
+            marketType = ((bool) ((ticker != null && ((IDictionary<string, object>)ticker).ContainsKey("bidQty")))) ? "spot" : "contract";
         }
         string? marketId = this.safeString(ticker, "symbol");
         string? symbol = this.safeSymbol(marketId, market, null, marketType);
         string? last = this.safeString(ticker, "lastPrice");
         string? wAvg = this.safeString(ticker, "weightedAvgPrice");
-        bool isCoinm = (inOp(ticker, "baseVolume"));
+        bool isCoinm = ((ticker != null && ((IDictionary<string, object>)ticker).ContainsKey("baseVolume")));
         string? baseVolume = null;
         string? quoteVolume = null;
         if (isCoinm)
@@ -6957,7 +6957,7 @@ public partial class binance : Exchange
 
     public override Dictionary<string, object> parseTrade(object trade, object market = null)
     {
-        if (inOp(trade, "isDustTrade"))
+        if ((trade != null && ((IDictionary<string, object>)trade).ContainsKey("isDustTrade")))
         {
             return this.parseDustTrade(trade, market);
         }
@@ -7177,7 +7177,7 @@ public partial class binance : Exchange
         string? amount = this.safeString2(trade, "q", "qty");
         amount = this.safeString(trade, "quantity", amount);
         string? marketId = this.safeString(trade, "symbol");
-        bool isSpotTrade = (inOp(trade, "isIsolated")) || (inOp(trade, "M")) || (inOp(trade, "orderListId")) || (inOp(trade, "isMaker"));
+        bool isSpotTrade = ((trade != null && ((IDictionary<string, object>)trade).ContainsKey("isIsolated"))) || ((trade != null && ((IDictionary<string, object>)trade).ContainsKey("M"))) || ((trade != null && ((IDictionary<string, object>)trade).ContainsKey("orderListId"))) || ((trade != null && ((IDictionary<string, object>)trade).ContainsKey("isMaker")));
         string marketType = ((bool) isSpotTrade) ? "spot" : "contract";
         market = this.safeMarket(marketId, market, null, marketType);
         object symbol = getValue(market, "symbol");
@@ -7187,37 +7187,37 @@ public partial class binance : Exchange
         if (!isEqual(buyerMaker, null))
         {
             side = ((bool) isTrue(buyerMaker)) ? "sell" : "buy"; // this is reversed intentionally
-        } else if (inOp(trade, "side"))
+        } else if ((trade != null && ((IDictionary<string, object>)trade).ContainsKey("side")))
         {
             side = this.safeStringLower(trade, "side");
         } else
         {
-            if (inOp(trade, "isBuyer"))
+            if ((trade != null && ((IDictionary<string, object>)trade).ContainsKey("isBuyer")))
             {
                 side = ((bool) (isEqual(((IDictionary<string,object>)trade)["isBuyer"], true))) ? "buy" : "sell"; // this is a true side
             }
         }
         Dictionary<string, object> fee = null;
-        if (inOp(trade, "commission"))
+        if ((trade != null && ((IDictionary<string, object>)trade).ContainsKey("commission")))
         {
             fee = new Dictionary<string, object>() {
                 { "cost", this.safeString(trade, "commission") },
                 { "currency", this.safeCurrencyCode(this.safeString(trade, "commissionAsset")) },
             };
         }
-        if (inOp(trade, "isMaker"))
+        if ((trade != null && ((IDictionary<string, object>)trade).ContainsKey("isMaker")))
         {
             takerOrMaker = ((bool) (isEqual(((IDictionary<string,object>)trade)["isMaker"], true))) ? "maker" : "taker";
         }
-        if (inOp(trade, "maker"))
+        if ((trade != null && ((IDictionary<string, object>)trade).ContainsKey("maker")))
         {
             takerOrMaker = ((bool) (isEqual(((IDictionary<string,object>)trade)["maker"], true))) ? "maker" : "taker";
         }
-        if ((inOp(trade, "optionSide")) || (isEqual(getValue(market, "option"), true)))
+        if (((trade != null && ((IDictionary<string, object>)trade).ContainsKey("optionSide"))) || (isEqual(getValue(market, "option"), true)))
         {
             string? settle = this.safeCurrencyCode(this.safeString(trade, "quoteAsset", "USDT"));
             takerOrMaker = this.safeStringLower(trade, "liquidity");
-            if (inOp(trade, "fee"))
+            if ((trade != null && ((IDictionary<string, object>)trade).ContainsKey("fee")))
             {
                 fee = new Dictionary<string, object>() {
                     { "cost", this.safeString(trade, "fee") },
@@ -7228,7 +7228,7 @@ public partial class binance : Exchange
             {
                 side = ((bool) (isEqual(side, "1"))) ? "buy" : "sell";
             }
-            if (inOp(trade, "optionSide"))
+            if ((trade != null && ((IDictionary<string, object>)trade).ContainsKey("optionSide")))
             {
                 if (!isEqual(side, "buy"))
                 {
@@ -7709,7 +7709,7 @@ public partial class binance : Exchange
         {
             throw new ArgumentsRequired ((string)(this.id + " requires a side argument")) ;
         }
-        if ((isEqual(price, null)) && !(inOp(parameters, "priceMatch")))
+        if ((isEqual(price, null)) && !(((IDictionary<string, object>)parameters).ContainsKey("priceMatch")))
         {
             throw new ArgumentsRequired ((string)(this.id + " editOrder() and editOrderWs() require a price argument for swap orders")) ;
         }
@@ -8617,13 +8617,13 @@ public partial class binance : Exchange
         }
         string? status = this.parseOrderStatus(this.safeStringN(order, new List<object>() {"status", "strategyStatus", "algoStatus"}));
         string? marketId = this.safeString(order, "symbol");
-        bool isContract = (inOp(order, "positionSide")) || (inOp(order, "cumQuote"));
+        bool isContract = ((order != null && ((IDictionary<string, object>)order).ContainsKey("positionSide"))) || ((order != null && ((IDictionary<string, object>)order).ContainsKey("cumQuote")));
         string marketType = ((bool) isContract) ? "contract" : "spot";
         string? symbol = this.safeSymbol(marketId, market, null, marketType);
         string? filled = this.safeString2(order, "executedQty", "filledQty", "0");
         Int64? timestamp = this.safeIntegerN(order, new List<object>() {"time", "createTime", "workingTime", "transactTime", "updateTime", "createdAt"}); // order of the keys matters here
         Int64? lastTradeTimestamp = null;
-        if ((inOp(order, "transactTime")) || (inOp(order, "updateTime")) || (inOp(order, "updatedAt")))
+        if (((order != null && ((IDictionary<string, object>)order).ContainsKey("transactTime"))) || ((order != null && ((IDictionary<string, object>)order).ContainsKey("updateTime"))) || ((order != null && ((IDictionary<string, object>)order).ContainsKey("updatedAt"))))
         {
             Int64? timestampValue = this.safeIntegerN(order, new List<object>() {"updateTime", "transactTime", "updatedAt"});
             if (isEqual(status, "open"))
@@ -12099,8 +12099,8 @@ public partial class binance : Exchange
                 }
             }
             IDictionary<string, object> accountsById = this.safeDict(this.options, "accountsById", new Dictionary<string, object>() {});
-            bool fromIsolated = !(inOp(accountsById, fromId));
-            bool toIsolated = !(inOp(accountsById, toId));
+            bool fromIsolated = !(accountsById.ContainsKey(fromId));
+            bool toIsolated = !(accountsById.ContainsKey(toId));
             if (fromIsolated && ((market == null)))
             {
                 isolatedSymbol = fromId; // allow user provide symbol as the from/to account
@@ -15641,7 +15641,7 @@ public partial class binance : Exchange
                     List<object> orderidlist = this.safeList(extendedParams, "orderidlist", new List<object>() {});
                     List<object> origclientorderidlist = this.safeList2(extendedParams, "origclientorderidlist", "origClientOrderIdList", new List<object>() {});
                     extendedParams = this.omit(extendedParams, new List<object>() {"orderidlist", "origclientorderidlist", "origClientOrderIdList"});
-                    if (inOp(extendedParams, "symbol"))
+                    if (extendedParams.ContainsKey("symbol"))
                     {
                         ((IDictionary<string,object>)extendedParams)["symbol"] = this.encodeURIComponent(getValue(extendedParams, "symbol"));
                     }
@@ -15853,16 +15853,16 @@ public partial class binance : Exchange
     {
         // safeValue keeps runtime identical to the prior bare index (no empty-array default)
         config ??= new Dictionary<string, object>();
-        if ((inOp(config, "noCoin")) && !(inOp(parameters, "coin")))
+        if ((((IDictionary<string, object>)config).ContainsKey("noCoin")) && !(inOp(parameters, "coin")))
         {
             return ((IDictionary<string,object>)config)["noCoin"];
-        } else if ((inOp(config, "noSymbol")) && !(inOp(parameters, "symbol")))
+        } else if ((((IDictionary<string, object>)config).ContainsKey("noSymbol")) && !(inOp(parameters, "symbol")))
         {
             return ((IDictionary<string,object>)config)["noSymbol"];
-        } else if ((inOp(config, "noPoolId")) && !(inOp(parameters, "poolId")))
+        } else if ((((IDictionary<string, object>)config).ContainsKey("noPoolId")) && !(inOp(parameters, "poolId")))
         {
             return ((IDictionary<string,object>)config)["noPoolId"];
-        } else if ((inOp(config, "byLimit")) && (inOp(parameters, "limit")))
+        } else if ((((IDictionary<string, object>)config).ContainsKey("byLimit")) && (inOp(parameters, "limit")))
         {
             object limit = getValue(parameters, "limit");
             object byLimit = this.safeValue(config, "byLimit");

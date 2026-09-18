@@ -8809,7 +8809,7 @@ public partial class okx : Exchange
             string? code = this.safeCurrencyCode(this.safeString(item, "ccy"));
             if (((code != null)) && ((codes == null) || this.inArray(code, codes)))
             {
-                if (!(inOp(borrowRateHistories, code)))
+                if (!(borrowRateHistories.ContainsKey(code)))
                 {
                     ((IDictionary<string,object>)borrowRateHistories)[(string)code] = new List<object>() {};
                 }

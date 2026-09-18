@@ -332,7 +332,7 @@ public partial class limitless : PredictionExchange
                 {
                     object raw = getValue(found, j);
                     string? slug = this.safeString(raw, "slug");
-                    if (((slug != null) && (slug != "")) && !(inOp(seen, slug)))
+                    if (((slug != null) && (slug != "")) && !(seen.ContainsKey(slug)))
                     {
                         ((IDictionary<string,object>)seen)[(string)slug] = true;
                         ((IList<object>)allRaw).Add(raw);
@@ -1206,7 +1206,7 @@ public partial class limitless : PredictionExchange
         // ticker is either a plain raw market object, or a composite dict { 'market': rawMarket, 'book': rawOrderbook }
         object raw = ticker;
         IDictionary<string, object> book = null;
-        if (inOp(ticker, "market"))
+        if ((ticker != null && ((IDictionary<string, object>)ticker).ContainsKey("market")))
         {
             raw = this.safeDict(ticker, "market", new Dictionary<string, object>() {});
             book = this.safeDict(ticker, "book");
@@ -1345,7 +1345,7 @@ public partial class limitless : PredictionExchange
             {
                 throw new ExchangeError ((string)(this.id + " fetchTickers() missing slug")) ;
             }
-            if (!(inOp(outcomesBySlug, slug)))
+            if (!(outcomesBySlug.ContainsKey(slug)))
             {
                 if ((slug != null))
                 {
@@ -1688,7 +1688,7 @@ public partial class limitless : PredictionExchange
             }
             object bucket = multiply(this.parseToInt(divide(pTs, ms)), ms);
             string key = ((object)bucket).ToString();
-            if (!(inOp(candles, key)))
+            if (!(candles.ContainsKey(key)))
             {
                 ((IDictionary<string,object>)candles)[(string)key] = new List<object>() {bucket, pPrice, pPrice, pPrice, pPrice, 0};
                 ((IList<object>)bucketOrder).Add(key);
@@ -3321,7 +3321,7 @@ public partial class limitless : PredictionExchange
                 {
                     object raw = getValue(found, j);
                     string? rawSlug = this.safeString(raw, "slug");
-                    if (((rawSlug != null) && (rawSlug != "")) && !(inOp(seen, rawSlug)))
+                    if (((rawSlug != null) && (rawSlug != "")) && !(seen.ContainsKey(rawSlug)))
                     {
                         ((IDictionary<string,object>)seen)[(string)rawSlug] = true;
                         ((IList<object>)rawMarkets).Add(raw);
@@ -3536,7 +3536,7 @@ public partial class limitless : PredictionExchange
             {
                 object raw = getValue(categoryMarkets, mi);
                 string? slug = this.safeString(raw, "slug");
-                if (((slug != null)) && !(inOp(seen, slug)))
+                if (((slug != null)) && !(seen.ContainsKey(slug)))
                 {
                     ((IDictionary<string,object>)seen)[(string)slug] = true;
                     ((IList<object>)allRaw).Add(raw);

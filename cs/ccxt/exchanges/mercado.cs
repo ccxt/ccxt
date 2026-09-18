@@ -792,7 +792,7 @@ public partial class mercado : Exchange
         string? id = this.safeString(order, "order_id");
         string? order_type = this.safeString(order, "order_type");
         string? side = null;
-        if (inOp(order, "order_type"))
+        if ((order != null && ((IDictionary<string, object>)order).ContainsKey("order_type")))
         {
             side = ((bool) ((order_type == "1"))) ? "buy" : "sell";
         }
@@ -899,14 +899,14 @@ public partial class mercado : Exchange
         };
         if (isEqual(code, "BRL"))
         {
-            bool account_ref = (inOp(parameters, "account_ref"));
+            bool account_ref = (((IDictionary<string, object>)parameters).ContainsKey("account_ref"));
             if (!account_ref)
             {
                 throw new ArgumentsRequired ((string)((this.id + " withdraw() requires account_ref parameter to withdraw ") + (code))) ;
             }
         } else if (!isEqual(code, "LTC"))
         {
-            bool tx_fee = (inOp(parameters, "tx_fee"));
+            bool tx_fee = (((IDictionary<string, object>)parameters).ContainsKey("tx_fee"));
             if (!tx_fee)
             {
                 throw new ArgumentsRequired ((string)((this.id + " withdraw() requires tx_fee parameter to withdraw ") + (code))) ;
@@ -915,7 +915,7 @@ public partial class mercado : Exchange
             {
                 if ((tagVar == null))
                 {
-                    if (!(inOp(parameters, "destination_tag")))
+                    if (!(((IDictionary<string, object>)parameters).ContainsKey("destination_tag")))
                     {
                         throw new ArgumentsRequired ((string)((this.id + " withdraw() requires a tag argument or destination_tag parameter to withdraw ") + (code))) ;
                     }

@@ -3955,7 +3955,7 @@ public partial class gate : Exchange
         //     }
         //
         string? marketId = this.safeStringN(ticker, new List<object>() {"currency_pair", "contract", "name"});
-        string marketType = ((bool) (inOp(ticker, "mark_price"))) ? "contract" : "spot";
+        string marketType = ((bool) ((ticker != null && ((IDictionary<string, object>)ticker).ContainsKey("mark_price")))) ? "contract" : "spot";
         string? symbol = this.safeSymbol(marketId, market, "_", marketType);
         string? last = this.safeString2(ticker, "last", "last_price");
         string? ask = this.safeStringN(ticker, new List<object>() {"lowest_ask", "a", "ask1_price"});
@@ -5090,7 +5090,7 @@ public partial class gate : Exchange
             timestamp = this.safeTimestamp2(trade, "time", "create_time");
         }
         string? marketId = this.safeString2(trade, "currency_pair", "contract");
-        string marketType = ((bool) (inOp(trade, "contract"))) ? "contract" : "spot";
+        string marketType = ((bool) ((trade != null && ((IDictionary<string, object>)trade).ContainsKey("contract")))) ? "contract" : "spot";
         market = this.safeMarket(marketId, market, "_", marketType);
         string? amountString = this.safeString2(trade, "amount", "size");
         string? priceString = this.safeString(trade, "price");
@@ -6439,7 +6439,7 @@ public partial class gate : Exchange
             }
         }
         string marketType = "contract";
-        if ((inOp(order, "currency_pair")) || (inOp(order, "market")))
+        if (((order != null && ((IDictionary<string, object>)order).ContainsKey("currency_pair"))) || ((order != null && ((IDictionary<string, object>)order).ContainsKey("market"))))
         {
             marketType = "spot";
         }
@@ -6504,10 +6504,10 @@ public partial class gate : Exchange
         string? clientOrderId = this.safeString(order, "text");
         if ((clientOrderId == null))
         {
-            if (inOp(order, "initial"))
+            if ((order != null && ((IDictionary<string, object>)order).ContainsKey("initial")))
             {
                 clientOrderId = this.safeString(((IDictionary<string,object>)order)["initial"], "text");
-            } else if (inOp(order, "trigger"))
+            } else if ((order != null && ((IDictionary<string, object>)order).ContainsKey("trigger")))
             {
                 clientOrderId = this.safeString(((IDictionary<string,object>)order)["trigger"], "text");
             }

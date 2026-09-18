@@ -201,7 +201,7 @@ public partial class opinion : PredictionExchange
                         ((IList<object>)flatMarkets).Add(getValue(childMarkets, ci));
                     }
                     string? eventKey = this.safeString(eventVar, "event");
-                    if (((eventKey != null)) && ((eventKey != "")) && !(inOp(seenEvents, eventKey)))
+                    if (((eventKey != null)) && ((eventKey != "")) && !(seenEvents.ContainsKey(eventKey)))
                     {
                         ((IDictionary<string,object>)seenEvents)[(string)eventKey] = true;
                         ((IList<object>)eventsList).Add(eventVar);
@@ -1658,7 +1658,7 @@ public partial class opinion : PredictionExchange
             object position = getValue(parsed, i);
             IDictionary<string, object> info = this.safeDict(position, "info", new Dictionary<string, object>() {});
             string? tokenId = this.safeString(info, "tokenId");
-            if (((tokenId != null)) && (inOp(wantedTokenIds, tokenId)))
+            if (((tokenId != null)) && (wantedTokenIds.ContainsKey(tokenId)))
             {
                 ((IList<object>)filtered).Add(position);
             }

@@ -74,7 +74,7 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
             ((IList<object>)productIds).Add((market.ContainsKey("id") ? market["id"] : null));
         }
         object url = getValue(getValue(this.urls, "api"), "ws");
-        if (inOp(parameters, "signature"))
+        if (((IDictionary<string, object>)parameters).ContainsKey("signature"))
         {
             // need to distinguish between public trades and user trades
             url = add(url, "?");
@@ -108,7 +108,7 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
             ((IList<object>)messageHashes).Add(add(add(messageHashStart, ":"), (market.ContainsKey("symbol") ? market["symbol"] : null)));
         }
         object url = getValue(getValue(this.urls, "api"), "ws");
-        if (inOp(parameters, "signature"))
+        if (((IDictionary<string, object>)parameters).ContainsKey("signature"))
         {
             // need to distinguish between public trades and user trades
             url = add(url, "?");

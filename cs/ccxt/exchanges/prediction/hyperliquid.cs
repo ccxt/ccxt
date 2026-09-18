@@ -1142,7 +1142,7 @@ public partial class hyperliquid : PredictionExchange
             if ((outcomes != null))
             {
                 string? outcomeHandle = this.safeString(outcomeObj, "outcome");
-                if ((outcomeHandle == null) || !(inOp(requestedOutcomeSymbols, outcomeHandle)))
+                if ((outcomeHandle == null) || !(requestedOutcomeSymbols.ContainsKey(outcomeHandle)))
                 {
                     continue;
                 }
@@ -1717,7 +1717,7 @@ public partial class hyperliquid : PredictionExchange
             string? oid = this.safeString(entry, "oid");
             if ((oid != null))
             {
-                if (!(inOp(deduped, oid)))
+                if (!(deduped.ContainsKey(oid)))
                 {
                     ((IDictionary<string,object>)deduped)[(string)oid] = raw;
                 } else
@@ -2180,7 +2180,7 @@ public partial class hyperliquid : PredictionExchange
             {
                 throw new ExchangeError ((string)(this.id + " fetchEvents() missing parentSymbol")) ;
             }
-            if (!(inOp(groupMap, parentSymbol)))
+            if (!(groupMap.ContainsKey(parentSymbol)))
             {
                 if ((parentSymbol != null))
                 {
@@ -2607,7 +2607,7 @@ public partial class hyperliquid : PredictionExchange
     public override object calculateRateLimiterCost(object api, object method, object path, object parameters, object config = null)
     {
         config ??= new Dictionary<string, object>();
-        if ((inOp(config, "byType")) && (inOp(parameters, "type")))
+        if ((((IDictionary<string, object>)config).ContainsKey("byType")) && (inOp(parameters, "type")))
         {
             object type = getValue(parameters, "type");
             object byType = ((IDictionary<string,object>)config)["byType"];

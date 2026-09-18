@@ -1149,29 +1149,29 @@ public partial class tokocrypto : Exchange
         {
             side = ((bool) (isEqual(buyerMaker, true))) ? "sell" : "buy"; // this is reversed intentionally
             takerOrMaker = "taker";
-        } else if (inOp(trade, "side"))
+        } else if ((trade != null && ((IDictionary<string, object>)trade).ContainsKey("side")))
         {
             side = this.safeStringLower(trade, "side");
         } else
         {
-            if (inOp(trade, "isBuyer"))
+            if ((trade != null && ((IDictionary<string, object>)trade).ContainsKey("isBuyer")))
             {
                 side = ((bool) (isEqual(((IDictionary<string,object>)trade)["isBuyer"], true))) ? "buy" : "sell"; // this is a true side
             }
         }
         Dictionary<string, object> fee = null;
-        if (inOp(trade, "commission"))
+        if ((trade != null && ((IDictionary<string, object>)trade).ContainsKey("commission")))
         {
             fee = new Dictionary<string, object>() {
                 { "cost", this.safeString(trade, "commission") },
                 { "currency", this.safeCurrencyCode(this.safeString(trade, "commissionAsset")) },
             };
         }
-        if (inOp(trade, "isMaker"))
+        if ((trade != null && ((IDictionary<string, object>)trade).ContainsKey("isMaker")))
         {
             takerOrMaker = ((bool) (isEqual(((IDictionary<string,object>)trade)["isMaker"], true))) ? "maker" : "taker";
         }
-        if (inOp(trade, "maker"))
+        if ((trade != null && ((IDictionary<string, object>)trade).ContainsKey("maker")))
         {
             takerOrMaker = ((bool) (isEqual(((IDictionary<string,object>)trade)["maker"], true))) ? "maker" : "taker";
         }
@@ -1362,7 +1362,7 @@ public partial class tokocrypto : Exchange
         string? marketId = this.safeString(ticker, "symbol");
         string? symbol = this.safeSymbol(marketId, market);
         string? last = this.safeString(ticker, "lastPrice");
-        bool isCoinm = (inOp(ticker, "baseVolume"));
+        bool isCoinm = ((ticker != null && ((IDictionary<string, object>)ticker).ContainsKey("baseVolume")));
         string? baseVolume = null;
         string? quoteVolume = null;
         if (isCoinm)
@@ -3016,16 +3016,16 @@ public partial class tokocrypto : Exchange
     public override object calculateRateLimiterCost(object api, object method, object path, object parameters, object config = null)
     {
         config ??= new Dictionary<string, object>();
-        if ((inOp(config, "noCoin")) && !(inOp(parameters, "coin")))
+        if ((((IDictionary<string, object>)config).ContainsKey("noCoin")) && !(inOp(parameters, "coin")))
         {
             return ((IDictionary<string,object>)config)["noCoin"];
-        } else if ((inOp(config, "noSymbol")) && !(inOp(parameters, "symbol")))
+        } else if ((((IDictionary<string, object>)config).ContainsKey("noSymbol")) && !(inOp(parameters, "symbol")))
         {
             return ((IDictionary<string,object>)config)["noSymbol"];
-        } else if ((inOp(config, "noPoolId")) && !(inOp(parameters, "poolId")))
+        } else if ((((IDictionary<string, object>)config).ContainsKey("noPoolId")) && !(inOp(parameters, "poolId")))
         {
             return ((IDictionary<string,object>)config)["noPoolId"];
-        } else if ((inOp(config, "byLimit")) && (inOp(parameters, "limit")))
+        } else if ((((IDictionary<string, object>)config).ContainsKey("byLimit")) && (inOp(parameters, "limit")))
         {
             object limit = getValue(parameters, "limit");
             List<object> byLimit = this.safeList(config, "byLimit", new List<object>() {});

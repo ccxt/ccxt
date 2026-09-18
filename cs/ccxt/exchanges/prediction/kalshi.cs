@@ -1211,7 +1211,7 @@ public partial class kalshi : PredictionExchange
             {
                 continue;
             }
-            if (!(inOp(outcomesByTicker, ticker)))
+            if (!(outcomesByTicker.ContainsKey(ticker)))
             {
                 ((IDictionary<string,object>)outcomesByTicker)[(string)ticker] = new List<object>() {};
                 ((IList<object>)tickers).Add(ticker);
@@ -1247,7 +1247,7 @@ public partial class kalshi : PredictionExchange
             {
                 object raw = getValue(rawMarkets, i);
                 string? marketTicker = this.safeString(raw, "ticker");
-                if (((marketTicker == null)) || !(inOp(outcomesByTicker, marketTicker)))
+                if (((marketTicker == null)) || !(outcomesByTicker.ContainsKey(marketTicker)))
                 {
                     continue;
                 }
@@ -1883,7 +1883,7 @@ public partial class kalshi : PredictionExchange
             object position = getValue(parsed, i);
             IDictionary<string, object> positionInfo = this.safeDict(position, "info", new Dictionary<string, object>() {});
             string? positionTicker = this.safeString(positionInfo, "ticker");
-            if (((positionTicker != null)) && (inOp(wantedTickers, positionTicker)))
+            if (((positionTicker != null)) && (wantedTickers.ContainsKey(positionTicker)))
             {
                 ((IList<object>)result).Add(position);
             }

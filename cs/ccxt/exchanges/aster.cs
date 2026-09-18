@@ -1604,7 +1604,7 @@ public partial class aster : Exchange
         //
         string? id = this.safeString2(trade, "id", "a");
         string? marketId = this.safeString(trade, "symbol");
-        string marketType = ((bool) (inOp(trade, "positionSide"))) ? "swap" : "spot";
+        string marketType = ((bool) ((trade != null && ((IDictionary<string, object>)trade).ContainsKey("positionSide")))) ? "swap" : "spot";
         market = this.safeMarket(marketId, market, null, marketType);
         string? currencyId = this.safeString2(trade, "commissionAsset", "marginAsset");
         string? currencyCode = this.safeCurrencyCode(currencyId);
@@ -1683,7 +1683,7 @@ public partial class aster : Exchange
         }
         object response = null;
         bool sinceDefined = !isEqual(since, null);
-        bool untilDefined = (inOp(parameters, "until"));
+        bool untilDefined = (((IDictionary<string, object>)parameters).ContainsKey("until"));
         if (sinceDefined)
         {
             ((IDictionary<string,object>)request)["startTime"] = since;
@@ -1899,14 +1899,14 @@ public partial class aster : Exchange
         string? baseVolume = this.safeString(ticker, "volume");
         string? high = this.safeString(ticker, "highPrice");
         string? low = this.safeString(ticker, "lowPrice");
-        bool isTickerResponse = (inOp(ticker, "priceChange"));
+        bool isTickerResponse = ((ticker != null && ((IDictionary<string, object>)ticker).ContainsKey("priceChange")));
         string? marketType = null;
         if (isTickerResponse)
         {
-            marketType = ((bool) (inOp(ticker, "baseAsset"))) ? "spot" : "swap";
+            marketType = ((bool) ((ticker != null && ((IDictionary<string, object>)ticker).ContainsKey("baseAsset")))) ? "spot" : "swap";
         } else
         {
-            marketType = ((bool) (inOp(ticker, "lastUpdateId"))) ? "swap" : "spot";
+            marketType = ((bool) ((ticker != null && ((IDictionary<string, object>)ticker).ContainsKey("lastUpdateId")))) ? "swap" : "spot";
         }
         string? marketId = this.safeString(ticker, "symbol");
         market = this.safeMarket(marketId, market, null, marketType);

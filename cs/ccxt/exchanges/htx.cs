@@ -2908,7 +2908,7 @@ public partial class htx : Exchange
         string? bidVolume = null;
         string? ask = null;
         string? askVolume = null;
-        if (inOp(ticker, "bid"))
+        if ((ticker != null && ((IDictionary<string, object>)ticker).ContainsKey("bid")))
         {
             if (!isEqual(((IDictionary<string,object>)ticker)["bid"], null) && ((((IDictionary<string,object>)ticker)["bid"] is IList<object>) || (((IDictionary<string,object>)ticker)["bid"].GetType().IsGenericType && ((IDictionary<string,object>)ticker)["bid"].GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
             {
@@ -2920,7 +2920,7 @@ public partial class htx : Exchange
                 bidVolume = this.safeString(ticker, "bidSize");
             }
         }
-        if (inOp(ticker, "ask"))
+        if ((ticker != null && ((IDictionary<string, object>)ticker).ContainsKey("ask")))
         {
             if (!isEqual(((IDictionary<string,object>)ticker)["ask"], null) && ((((IDictionary<string,object>)ticker)["ask"] is IList<object>) || (((IDictionary<string,object>)ticker)["ask"].GetType().IsGenericType && ((IDictionary<string,object>)ticker)["ask"].GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
             {
@@ -3079,7 +3079,7 @@ public partial class htx : Exchange
         {
             market = this.market(first);
         }
-        bool isSubTypeRequested = (inOp(parameters, "subType")) || (inOp(parameters, "business_type"));
+        bool isSubTypeRequested = (((IDictionary<string, object>)parameters).ContainsKey("subType")) || (((IDictionary<string, object>)parameters).ContainsKey("business_type"));
         string? type = null;
         object subType = null;
         IList<object> typeparametersVariable = (IList<object>)this.handleMarketTypeAndParams("fetchTickers", market, parameters);
@@ -3341,7 +3341,7 @@ public partial class htx : Exchange
         {
             throw new NullResponse ((string)(this.id + " fetchOrderBook() returned empty response")) ;
         }
-        if (inOp(response, "tick"))
+        if (response.ContainsKey("tick"))
         {
             if ((isEqual(getValue(response, "tick"), null)) || (isEqual(getValue(response, "tick"), null)))
             {

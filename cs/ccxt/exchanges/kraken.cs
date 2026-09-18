@@ -1656,7 +1656,7 @@ public partial class kraken : Exchange
         } else if ((trade is string))
         {
             id = trade;
-        } else if (inOp(trade, "ordertxid"))
+        } else if ((trade != null && ((IDictionary<string, object>)trade).ContainsKey("ordertxid")))
         {
             string? marketId = this.safeString(trade, "pair");
             object foundMarket = this.findMarketByAltnameOrId(marketId);
@@ -1675,7 +1675,7 @@ public partial class kraken : Exchange
             type = this.safeString(trade, "ordertype");
             price = this.safeString(trade, "price");
             amount = this.safeString(trade, "vol");
-            if (inOp(trade, "fee"))
+            if ((trade != null && ((IDictionary<string, object>)trade).ContainsKey("fee")))
             {
                 object currency = null;
                 if ((market != null))
@@ -2561,7 +2561,7 @@ public partial class kraken : Exchange
             object extendedPostFlags = ((bool) ((flags != null))) ? add(flags, ",post") : "post";
             ((IDictionary<string,object>)request)["oflags"] = extendedPostFlags;
         }
-        if (((flags != null)) && !(inOp(request, "oflags")))
+        if (((flags != null)) && !((request != null && ((IDictionary<string, object>)request).ContainsKey("oflags"))))
         {
             ((IDictionary<string,object>)request)["oflags"] = flags;
         }
@@ -3817,7 +3817,7 @@ public partial class kraken : Exchange
         IList<object> tagparametersVariable = (IList<object>)this.handleWithdrawTagAndParams(tagVar, parameters);
         tagVar = ((IList<object>)tagparametersVariable)[0];
         parameters = ((IList<object>)tagparametersVariable)[1];
-        if (inOp(parameters, "key"))
+        if (((IDictionary<string, object>)parameters).ContainsKey("key"))
         {
             await this.loadMarkets();
             Dictionary<string, object> currency = this.currency(((string)code));

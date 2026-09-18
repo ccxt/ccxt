@@ -1548,7 +1548,7 @@ public partial class coinex : Exchange
         //         "volume_sell": "6.1249"
         //     }
         //
-        string marketType = ((bool) (inOp(ticker, "mark_price"))) ? "swap" : "spot";
+        string marketType = ((bool) ((ticker != null && ((IDictionary<string, object>)ticker).ContainsKey("mark_price")))) ? "swap" : "spot";
         string? marketId = this.safeString(ticker, "market");
         market = this.safeMarket(marketId, market, null, marketType);
         object symbol = getValue(market, "symbol");
@@ -4903,7 +4903,7 @@ public partial class coinex : Exchange
         string? currencyId = this.safeString(transaction, "ccy");
         string? code = this.safeCurrencyCode(currencyId, currency);
         Int64? timestamp = this.safeInteger(transaction, "created_at");
-        string type = ((bool) (inOp(transaction, "withdraw_id"))) ? "withdrawal" : "deposit";
+        string type = ((bool) ((transaction != null && ((IDictionary<string, object>)transaction).ContainsKey("withdraw_id")))) ? "withdrawal" : "deposit";
         string? networkId = this.safeString(transaction, "chain");
         string? feeCost = this.safeString(transaction, "tx_fee");
         string? transferMethod = this.safeStringLower2(transaction, "withdraw_method", "deposit_method");

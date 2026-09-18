@@ -1269,7 +1269,7 @@ public partial class bitso : Exchange
         // the don't support fetching trades starting from a date yet
         // use the `marker` extra param for that
         // this is not a typo, the variable name is 'marker' (don't confuse with 'market')
-        bool markerInParams = (inOp(parameters, "marker"));
+        bool markerInParams = (((IDictionary<string, object>)parameters).ContainsKey("marker"));
         // warn the user with an exception if the user wants to filter
         // starting from since timestamp, but does not set the trade id with an extra 'marker' param
         if ((!isEqual(since, null)) && !markerInParams)
@@ -1523,7 +1523,7 @@ public partial class bitso : Exchange
         // the don't support fetching trades starting from a date yet
         // use the `marker` extra param for that
         // this is not a typo, the variable name is 'marker' (don't confuse with 'market')
-        bool markerInParams = (inOp(parameters, "marker"));
+        bool markerInParams = (((IDictionary<string, object>)parameters).ContainsKey("marker"));
         // warn the user with an exception if the user wants to filter
         // starting from since timestamp, but does not set the trade id with an extra 'marker' param
         if ((!isEqual(since, null)) && !markerInParams)

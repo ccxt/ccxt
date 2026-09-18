@@ -2299,7 +2299,7 @@ public partial class coinbase : Exchange
         {
             string? currencyId = ((string)getValue(ratesIds, i));
             string? code = this.safeCurrencyCode(currencyId);
-            if (((code == null)) || !(inOp(result, code)))
+            if (((code == null)) || !(result.ContainsKey(code)))
             {
                 if ((code != null))
                 {
@@ -2666,7 +2666,7 @@ public partial class coinbase : Exchange
         double? ask = this.safeNumber(ticker, "ask");
         double? bidVolume = null;
         double? askVolume = null;
-        if ((inOp(ticker, "bids")))
+        if (((ticker != null && ((IDictionary<string, object>)ticker).ContainsKey("bids"))))
         {
             List<object> bids = this.safeList(ticker, "bids", new List<object>() {});
             List<object> asks = this.safeList(ticker, "asks", new List<object>() {});

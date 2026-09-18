@@ -1047,7 +1047,7 @@ public partial class poloniex : Exchange
 
     public override Dictionary<string, object> parseMarket(object market)
     {
-        if (inOp(market, "ctType"))
+        if ((market != null && ((IDictionary<string, object>)market).ContainsKey("ctType")))
         {
             return ccxt.BaseExchange.ToDict(this.parseSwapMarket(market));
         } else
@@ -2390,7 +2390,7 @@ public partial class poloniex : Exchange
                 {
                     throw new ArgumentsRequired ((string)(this.id + " createOrder() requires a marginMode parameter \"cross\" or \"isolated\" for hedged orders")) ;
                 }
-                if (!(inOp(parameters, "posSide")))
+                if (!(((IDictionary<string, object>)parameters).ContainsKey("posSide")))
                 {
                     throw new ArgumentsRequired ((string)(this.id + " createOrder() requires a posSide parameter \"LONG\" or \"SHORT\" for hedged orders")) ;
                 }
@@ -3644,7 +3644,7 @@ public partial class poloniex : Exchange
         //     }
         //
         // if it's being parsed from "withdraw()" method, get the original response
-        if (inOp(transaction, "withdrawNetworkEntry"))
+        if ((transaction != null && ((IDictionary<string, object>)transaction).ContainsKey("withdrawNetworkEntry")))
         {
             transaction = getValue(transaction, "response");
         }
@@ -3726,7 +3726,7 @@ public partial class poloniex : Exchange
         parameters = ((IList<object>)hedgedparametersVariable)[1];
         if (isEqual(hedged, true))
         {
-            if (!(inOp(parameters, "posSide")))
+            if (!(((IDictionary<string, object>)parameters).ContainsKey("posSide")))
             {
                 throw new ArgumentsRequired ((string)(this.id + " setLeverage() requires a posSide parameter for hedged mode: \"LONG\" or \"SHORT\"")) ;
             }
@@ -4040,7 +4040,7 @@ public partial class poloniex : Exchange
             { "type", ((string)type).ToUpper() },
         };
         // todo: hedged handling, tricky
-        if (!(inOp(parameters, "posMode")))
+        if (!(((IDictionary<string, object>)parameters).ContainsKey("posMode")))
         {
             ((IDictionary<string,object>)request)["posMode"] = "BOTH";
         }
@@ -4131,7 +4131,7 @@ public partial class poloniex : Exchange
         {
             url = getValue(getValue(this.urls, "api"), "swap");
         }
-        if (isEqual(method, "GET") && (inOp(parameters, "symbol")))
+        if (isEqual(method, "GET") && (((IDictionary<string, object>)parameters).ContainsKey("symbol")))
         {
             ((IDictionary<string,object>)parameters)["symbol"] = this.encodeURIComponent(((IDictionary<string,object>)parameters)["symbol"]); // handle symbols like 索拉拉/USDT'
         }

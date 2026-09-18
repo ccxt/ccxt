@@ -7213,7 +7213,7 @@ public partial class kucoin : Exchange
         string? tradeType = this.safeString(order, "tradeType");
         List<object> utaTradeTypes = new List<object>() {"SPOT", "CROSS", "ISOLATED", "FUTURES"}; // tradeType specific for uta endpoint
         bool isUtaOrder = this.inArray(tradeType, utaTradeTypes);
-        if (inOp(order, "sizeUnit"))
+        if ((order != null && ((IDictionary<string, object>)order).ContainsKey("sizeUnit")))
         {
             isUtaOrder = true;
         }
@@ -8260,7 +8260,7 @@ public partial class kucoin : Exchange
 
     public override Dictionary<string, object> parseTrade(object trade, object market = null)
     {
-        if (inOp(trade, "liquidityRole"))
+        if ((trade != null && ((IDictionary<string, object>)trade).ContainsKey("liquidityRole")))
         {
             return ((Dictionary<string, object>)((object)(this.parseMyUtaTrade(trade, market))));
         }
@@ -8377,7 +8377,7 @@ public partial class kucoin : Exchange
         {
             timestamp = this.safeInteger(trade, "createdAt");
             // if it's a historical v1 trade, the exchange returns timestamp in seconds
-            if ((inOp(trade, "dealValue")) && (!isEqual(timestamp, null)))
+            if (((trade != null && ((IDictionary<string, object>)trade).ContainsKey("dealValue"))) && (!isEqual(timestamp, null)))
             {
                 timestamp = multiply(timestamp, 1000);
             }
@@ -8514,7 +8514,7 @@ public partial class kucoin : Exchange
         {
             timestamp = this.safeInteger(trade, "createdAt");
             // if it's a historical v1 trade, the exchange returns timestamp in seconds
-            if ((inOp(trade, "dealValue")) && (!isEqual(timestamp, null)))
+            if (((trade != null && ((IDictionary<string, object>)trade).ContainsKey("dealValue"))) && (!isEqual(timestamp, null)))
             {
                 timestamp = multiply(timestamp, 1000);
             }
@@ -8879,11 +8879,11 @@ public partial class kucoin : Exchange
         }
         object timestamp = this.safeInteger2(transaction, "createdAt", "createAt");
         object updated = this.safeInteger(transaction, "updatedAt");
-        bool isV1 = !(inOp(transaction, "createdAt"));
+        bool isV1 = !((transaction != null && ((IDictionary<string, object>)transaction).ContainsKey("createdAt")));
         // if it's a v1 structure
         if (isV1)
         {
-            type = ((bool) (inOp(transaction, "address"))) ? "withdrawal" : "deposit";
+            type = ((bool) ((transaction != null && ((IDictionary<string, object>)transaction).ContainsKey("address")))) ? "withdrawal" : "deposit";
             if (!isEqual(timestamp, null))
             {
                 timestamp = multiply(timestamp, 1000);
@@ -9901,18 +9901,18 @@ public partial class kucoin : Exchange
         parameters = ((IList<object>)transferTypeparametersVariable)[1];
         if (isEqual(transferType, "PARENT_TO_SUB"))
         {
-            if (!(inOp(parameters, "toUserId")))
+            if (!(((IDictionary<string, object>)parameters).ContainsKey("toUserId")))
             {
                 throw new ExchangeError ((string)(this.id + " transfer() requires a toUserId param for PARENT_TO_SUB transfers")) ;
             }
         } else if (isEqual(transferType, "SUB_TO_PARENT"))
         {
-            if (!(inOp(parameters, "fromUserId")))
+            if (!(((IDictionary<string, object>)parameters).ContainsKey("fromUserId")))
             {
                 throw new ExchangeError ((string)(this.id + " transfer() requires a fromUserId param for SUB_TO_PARENT transfers")) ;
             }
         }
-        if (!(inOp(parameters, "clientOid")))
+        if (!(((IDictionary<string, object>)parameters).ContainsKey("clientOid")))
         {
             ((IDictionary<string,object>)request)["clientOid"] = this.uuid();
         }
@@ -10504,13 +10504,13 @@ public partial class kucoin : Exchange
         IDictionary<string, object> methodVersions = this.safeDict(apiVersions, method, new Dictionary<string, object>() {});
         string? defaultVersion = this.safeString(methodVersions, path, getValue(this.options, "version"));
         string? version = this.safeString(parameters, "version", defaultVersion);
-        if ((version == "v3") && (inOp(config, "v3")))
+        if ((version == "v3") && (((IDictionary<string, object>)config).ContainsKey("v3")))
         {
             return ((IDictionary<string,object>)config)["v3"];
-        } else if ((version == "v2") && (inOp(config, "v2")))
+        } else if ((version == "v2") && (((IDictionary<string, object>)config).ContainsKey("v2")))
         {
             return ((IDictionary<string,object>)config)["v2"];
-        } else if ((version == "v1") && (inOp(config, "v1")))
+        } else if ((version == "v1") && (((IDictionary<string, object>)config).ContainsKey("v1")))
         {
             return ((IDictionary<string,object>)config)["v1"];
         }
@@ -10914,7 +10914,7 @@ public partial class kucoin : Exchange
             string? code = this.safeCurrencyCode(this.safeString(item, "currency"));
             if (((code != null)) && ((codes == null) || this.inArray(code, codes)))
             {
-                if (!(inOp(borrowRateHistories, code)))
+                if (!(borrowRateHistories.ContainsKey(code)))
                 {
                     ((IDictionary<string,object>)borrowRateHistories)[(string)code] = new List<object>() {};
                 }
@@ -12296,10 +12296,10 @@ public partial class kucoin : Exchange
         Int64? lastUpdateTimestamp = this.safeInteger(position, "closeTime");
         if (isEqual(lastUpdateTimestamp, null))
         {
-            if (inOp(position, "closingTime"))
+            if ((position != null && ((IDictionary<string, object>)position).ContainsKey("closingTime")))
             {
                 lastUpdateTimestamp = this.safeIntegerProduct(position, "closingTime", 0.000001);
-            } else if (inOp(position, "updateTime"))
+            } else if ((position != null && ((IDictionary<string, object>)position).ContainsKey("updateTime")))
             {
                 lastUpdateTimestamp = this.safeIntegerProduct(position, "updateTime", 0.000001);
             }
@@ -13019,7 +13019,7 @@ public partial class kucoin : Exchange
             string? symbol = this.safeString(tier, "symbol");
             if ((symbol != null))
             {
-                if (!(inOp(result, symbol)))
+                if (!(result.ContainsKey(symbol)))
                 {
                     ((IDictionary<string,object>)result)[(string)symbol] = new List<object>() {};
                 }

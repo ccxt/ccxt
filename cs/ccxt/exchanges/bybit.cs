@@ -4274,7 +4274,7 @@ public partial class bybit : Exchange
         //
         string? id = this.safeStringN(trade, new List<object>() {"execId", "id", "tradeId"});
         string? marketId = this.safeString(trade, "symbol");
-        object marketType = ((bool) (inOp(trade, "createType"))) ? "contract" : "spot";
+        object marketType = ((bool) ((trade != null && ((IDictionary<string, object>)trade).ContainsKey("createType")))) ? "contract" : "spot";
         string? category = this.safeString(trade, "category");
         if ((category != null))
         {
@@ -5061,7 +5061,7 @@ public partial class bybit : Exchange
             }
         }
         string? marketId = this.safeString(order, "symbol");
-        bool isContract = (inOp(order, "tpslMode"));
+        bool isContract = ((order != null && ((IDictionary<string, object>)order).ContainsKey("tpslMode")));
         object marketType = null;
         if ((market != null))
         {
@@ -7600,7 +7600,7 @@ public partial class bybit : Exchange
         Int64? updated = this.safeInteger(transaction, "updateTime");
         string? status = this.parseTransactionStatus(this.safeString(transaction, "status"));
         double? feeCost = this.safeNumber2(transaction, "depositFee", "withdrawFee");
-        string type = ((bool) (inOp(transaction, "depositFee"))) ? "deposit" : "withdrawal";
+        string type = ((bool) ((transaction != null && ((IDictionary<string, object>)transaction).ContainsKey("depositFee")))) ? "deposit" : "withdrawal";
         Dictionary<string, object> fee = null;
         if (!isEqual(feeCost, null))
         {

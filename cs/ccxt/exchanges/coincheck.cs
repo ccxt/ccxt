@@ -670,7 +670,7 @@ public partial class coincheck : Exchange
         string? side = null;
         Dictionary<string, object> fee = null;
         string? orderId = null;
-        if (inOp(trade, "liquidity"))
+        if ((trade != null && ((IDictionary<string, object>)trade).ContainsKey("liquidity")))
         {
             if ((this.safeString(trade, "liquidity") == "T"))
             {

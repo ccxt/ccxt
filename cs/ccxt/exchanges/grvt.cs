@@ -1981,7 +1981,7 @@ public partial class grvt : Exchange
         string? addressTo = this.safeString(transaction, "to_account_id");
         string? currencyId = this.safeString(transaction, "currency");
         string? code = this.safeCurrencyCode(currencyId, currency);
-        if (inOp(transaction, "transfer_metadata"))
+        if ((transaction != null && ((IDictionary<string, object>)transaction).ContainsKey("transfer_metadata")))
         {
             string? metaData = ((string)this.omitZero(this.safeString(transaction, "transfer_metadata")));
             if ((metaData != null))
@@ -3464,7 +3464,7 @@ public partial class grvt : Exchange
         //        "ack": true
         //    }
         //
-        if (inOp(order, "ack"))
+        if ((order != null && ((IDictionary<string, object>)order).ContainsKey("ack")))
         {
             return this.safeOrder(new Dictionary<string, object>() {
                 { "info", order },

@@ -3253,7 +3253,7 @@ public partial class btse : Exchange
         {
             object entry = getValue(rawRows, i);
             string? type = this.safeString(entry, "type", "");
-            if (inOp(allowed, type))
+            if (allowed.ContainsKey(type))
             {
                 ((IList<object>)rows).Add(entry);
             }
@@ -3919,14 +3919,14 @@ public partial class btse : Exchange
         bool? hedged = this.safeBool(parameters, "hedged");
         if (isEqual(marginModeVar, "cross"))
         {
-            if (!(inOp(parameters, "hedged")))
+            if (!(((IDictionary<string, object>)parameters).ContainsKey("hedged")))
             {
                 throw new ArgumentsRequired ((string)(this.id + " setMarginMode() requires a hedged parameter for cross margin mode")) ;
             } else if ((hedged == true))
             {
                 positionMode = "HEDGE";
             }
-        } else if ((inOp(parameters, "hedged")) && ((hedged != true)))
+        } else if ((((IDictionary<string, object>)parameters).ContainsKey("hedged")) && ((hedged != true)))
         {
             throw new BadRequest ((string)(this.id + " setMarginMode() hedged parameter cannot be false for isolated margin mode")) ;
         } else

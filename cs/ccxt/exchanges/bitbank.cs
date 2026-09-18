@@ -1110,7 +1110,7 @@ public partial class bitbank : Exchange
         IList<object> tagparametersVariable = (IList<object>)this.handleWithdrawTagAndParams(tagVar, parameters);
         tagVar = ((IList<object>)tagparametersVariable)[0];
         parameters = ((IList<object>)tagparametersVariable)[1];
-        if (!(inOp(parameters, "uuid")))
+        if (!(((IDictionary<string, object>)parameters).ContainsKey("uuid")))
         {
             throw new ExchangeError ((string)(this.id + " uuid is required for withdrawal")) ;
         }

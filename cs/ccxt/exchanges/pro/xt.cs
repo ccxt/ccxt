@@ -1409,7 +1409,7 @@ public partial class xt : ccxt.xt
         //    }
         //
         string? marketId = this.safeString(trade, "s");
-        string tradeType = ((bool) (inOp(trade, "symbol"))) ? "contract" : "spot";
+        string tradeType = ((bool) ((trade != null && ((IDictionary<string, object>)trade).ContainsKey("symbol")))) ? "contract" : "spot";
         market = this.safeMarket(marketId, market, null, tradeType);
         string? timestamp = this.safeString(trade, "t");
         return this.safeTrade(new Dictionary<string, object>() {
@@ -1478,7 +1478,7 @@ public partial class xt : ccxt.xt
         //    }
         //
         string? marketId = this.safeString2(order, "s", "symbol");
-        string tradeType = ((bool) (inOp(order, "symbol"))) ? "contract" : "spot";
+        string tradeType = ((bool) ((order != null && ((IDictionary<string, object>)order).ContainsKey("symbol")))) ? "contract" : "spot";
         market = this.safeMarket(marketId, market, null, tradeType);
         Int64? timestamp = this.safeInteger2(order, "ct", "createTime");
         return this.safeOrder(new Dictionary<string, object>() {
