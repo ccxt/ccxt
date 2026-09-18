@@ -1879,7 +1879,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
         } else if (java.util.Objects.equals(reason, "filled"))
         {
             status = "open";
-            if ((!java.util.Objects.equals(amountString, null)) && Helpers.isTrue(Precise.stringEq(amountString, "0")))
+            if ((!java.util.Objects.equals(amountString, null)) && Precise.stringEq(amountString, "0"))
             {
                 status = "closed";
             }
@@ -1958,16 +1958,16 @@ public class Nado extends io.github.ccxt.exchanges.Nado
         Object entryPrice = null;
         if (!java.util.Objects.equals(amountString, null))
         {
-            if (Helpers.isTrue(Precise.stringGt(amountString, "0")))
+            if (Precise.stringGt(amountString, "0"))
             {
                 side = "long";
-            } else if (Helpers.isTrue(Precise.stringLt(amountString, "0")))
+            } else if (Precise.stringLt(amountString, "0"))
             {
                 side = "short";
             }
             String absoluteAmount = Precise.stringAbs(amountString);
             contracts = this.parseX18(absoluteAmount);
-            if ((!java.util.Objects.equals(vQuoteAmount, null)) && !Helpers.isTrue(Precise.stringEquals(absoluteAmount, "0")))
+            if ((!java.util.Objects.equals(vQuoteAmount, null)) && !Precise.stringEquals(absoluteAmount, "0"))
             {
                 entryPrice = this.parseNumber(Precise.stringDiv(Precise.stringAbs(vQuoteAmount), absoluteAmount));
             }
@@ -2107,7 +2107,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
             String bid = this.safeString(bbo, "bid");
             String ask = this.safeString(bbo, "ask");
             String maxPrice = "170141183460469231731687303715884105727";
-            if (Helpers.isTrue(Precise.stringGt(bid, "0")) && Helpers.isTrue(Precise.stringGt(ask, "0")) && !Helpers.isTrue(Precise.stringEquals(bid, maxPrice)) && !Helpers.isTrue(Precise.stringEquals(ask, maxPrice)))
+            if (Precise.stringGt(bid, "0") && Precise.stringGt(ask, "0") && !Precise.stringEquals(bid, maxPrice) && !Precise.stringEquals(ask, maxPrice))
             {
                 Object ticker = this.safeTicker(new HashMap<String, Object>() {{
                     put( "symbol", ((Map<String, Object>)market).get("symbol") );

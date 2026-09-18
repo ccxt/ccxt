@@ -2134,10 +2134,10 @@ public class Delta extends DeltaApi
         String side = null;
         if (!java.util.Objects.equals(sizeString, null))
         {
-            if (Helpers.isTrue(Precise.stringGt(sizeString, "0")))
+            if (Precise.stringGt(sizeString, "0"))
             {
                 side = "buy";
-            } else if (Helpers.isTrue(Precise.stringLt(sizeString, "0")))
+            } else if (Precise.stringLt(sizeString, "0"))
             {
                 side = "sell";
             }

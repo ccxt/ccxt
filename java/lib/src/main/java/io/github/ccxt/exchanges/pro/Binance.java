@@ -2066,7 +2066,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             List<Object> timezoneparametersVariable = (List<Object>) this.handleParamString(parameters, "timezone");
             timezone = (String) ((List<Object>) timezoneparametersVariable).get(0);
             parameters = ((List<Object>) timezoneparametersVariable).get(1);
-            Boolean isUtc8 = (!java.util.Objects.equals(timezone, null)) && ((java.util.Objects.equals(timezone, "+08:00")) || Helpers.isTrue(Precise.stringEq(timezone, "8")));
+            Boolean isUtc8 = (!java.util.Objects.equals(timezone, null)) && ((java.util.Objects.equals(timezone, "+08:00")) || Precise.stringEq(timezone, "8"));
             List<Object> rawHashes = new ArrayList<Object>(Arrays.asList());
             List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)symbolsAndTimeframes).size(); i++)
@@ -2163,7 +2163,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             List<Object> timezoneparametersVariable = (List<Object>) this.handleParamString(parameters, "timezone");
             timezone = (String) ((List<Object>) timezoneparametersVariable).get(0);
             parameters = ((List<Object>) timezoneparametersVariable).get(1);
-            Boolean isUtc8 = (!java.util.Objects.equals(timezone, null)) && ((java.util.Objects.equals(timezone, "+08:00")) || Helpers.isTrue(Precise.stringEq(timezone, "8")));
+            Boolean isUtc8 = (!java.util.Objects.equals(timezone, null)) && ((java.util.Objects.equals(timezone, "+08:00")) || Precise.stringEq(timezone, "8"));
             List<Object> rawHashes = new ArrayList<Object>(Arrays.asList());
             List<Object> subMessageHashes = new ArrayList<Object>(Arrays.asList());
             List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
@@ -5656,7 +5656,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         Object lastUpdateTimestamp = T;
         Object fee = null;
         String feeCost = this.safeString(order, "n");
-        if ((!java.util.Objects.equals(feeCost, null)) && Helpers.isTrue((Precise.stringGt(feeCost, "0"))))
+        if ((!java.util.Objects.equals(feeCost, null)) && (Precise.stringGt(feeCost, "0")))
         {
             String feeCurrencyId = this.safeString(order, "N");
             String feeCurrency = this.safeCurrencyCode(feeCurrencyId);
@@ -5967,7 +5967,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             Object fills = this.safeList(order, "fi", new ArrayList<Object>(Arrays.asList()));
             String rawQty = this.safeString(order, "q", "0");
             String side = "BUY";
-            if (Helpers.isTrue(Precise.stringLt(rawQty, "0")))
+            if (Precise.stringLt(rawQty, "0"))
             {
                 side = "SELL";
             }
@@ -6285,9 +6285,9 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         if (java.util.Objects.equals(positionSide, "both"))
         {
             hedged = false;
-            if (!Helpers.isTrue(Precise.stringEq(contracts, "0")))
+            if (!Precise.stringEq(contracts, "0"))
             {
-                if (Helpers.isTrue(Precise.stringLt(contracts, "0")))
+                if (Precise.stringLt(contracts, "0"))
                 {
                     positionSide = "short";
                 } else
@@ -6343,10 +6343,10 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         String side = null;
         if (!java.util.Objects.equals(contracts, null))
         {
-            if (Helpers.isTrue(Precise.stringLt(contracts, "0")))
+            if (Precise.stringLt(contracts, "0"))
             {
                 side = "short";
-            } else if (Helpers.isTrue(Precise.stringGt(contracts, "0")))
+            } else if (Precise.stringGt(contracts, "0"))
             {
                 side = "long";
             }

@@ -870,7 +870,7 @@ public class Latoken extends LatokenApi
             {
                 Object askEntry = Helpers.GetValue(rawAsks, i);
                 String askQuantity = this.safeString(askEntry, "quantity");
-                if (Helpers.isTrue(Precise.stringGt(askQuantity, "0")))
+                if (Precise.stringGt(askQuantity, "0"))
                 {
                     ((List<Object>)asks).add(askEntry);
                 }
@@ -879,7 +879,7 @@ public class Latoken extends LatokenApi
             {
                 Object bidEntry = Helpers.GetValue(rawBids, i);
                 String bidQuantity = this.safeString(bidEntry, "quantity");
-                if (Helpers.isTrue(Precise.stringGt(bidQuantity, "0")))
+                if (Precise.stringGt(bidQuantity, "0"))
                 {
                     ((List<Object>)bids).add(bidEntry);
                 }

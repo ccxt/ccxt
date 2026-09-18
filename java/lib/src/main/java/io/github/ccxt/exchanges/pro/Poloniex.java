@@ -1115,7 +1115,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
                         totalCost = Precise.stringAdd(totalCost, cost);
                         totalAmount = Precise.stringAdd(totalAmount, amount);
                     }
-                    if (Helpers.isTrue(Precise.stringGt(totalAmount, "0")))
+                    if (Precise.stringGt(totalAmount, "0"))
                     {
                         Helpers.addElementToObject(previousOrder, "average", this.parseNumber(Precise.stringDiv(totalCost, totalAmount)));
                     }
@@ -1205,7 +1205,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
         String filledAmount = this.safeString(order, "filledAmount");
         String status = this.safeString(order, "state");
         List<Object> trades = null;
-        if (!Helpers.isTrue(Precise.stringEq(filledAmount, "0")))
+        if (!Precise.stringEq(filledAmount, "0"))
         {
             trades = new ArrayList<Object>(Arrays.asList());
             Object trade = this.parseWsOrderTrade(order);

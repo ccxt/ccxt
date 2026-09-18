@@ -8113,10 +8113,10 @@ public class Okx extends OkxApi
             {
                 if (java.util.Objects.equals(side, "net"))
                 {
-                    if (Helpers.isTrue(Precise.stringGt(pos, "0")))
+                    if (Precise.stringGt(pos, "0"))
                     {
                         side = "long";
-                    } else if (Helpers.isTrue(Precise.stringLt(pos, "0")))
+                    } else if (Precise.stringLt(pos, "0"))
                     {
                         side = "short";
                     } else
@@ -8905,7 +8905,7 @@ public class Okx extends OkxApi
                 String balanceChange = this.safeString(entry, "balChg");
                 String positionBalanceChange = this.safeString(entry, "posBalChg");
                 String amount = null;
-                if ((!java.util.Objects.equals(balanceChange, null)) && Helpers.isTrue((!Helpers.isTrue(Precise.stringEq(balanceChange, "0")))))
+                if ((!java.util.Objects.equals(balanceChange, null)) && Helpers.isTrue((!Precise.stringEq(balanceChange, "0"))))
                 {
                     amount = balanceChange;
                 } else
@@ -9537,7 +9537,7 @@ public class Okx extends OkxApi
         String type = null;
         if (java.util.Objects.equals(typeRaw, "6"))
         {
-            type = ((Helpers.isTrue(Precise.stringGt(amountRaw, "0")))) ? "add" : "reduce";
+            type = ((Precise.stringGt(amountRaw, "0"))) ? "add" : "reduce";
         } else
         {
             type = typeRaw;

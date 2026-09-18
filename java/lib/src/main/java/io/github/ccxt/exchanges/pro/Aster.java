@@ -2078,9 +2078,9 @@ public class Aster extends io.github.ccxt.exchanges.Aster
         if (java.util.Objects.equals(positionSide, "both"))
         {
             hedged = false;
-            if (!Helpers.isTrue(Precise.stringEq(contracts, "0")))
+            if (!Precise.stringEq(contracts, "0"))
             {
-                if (Helpers.isTrue(Precise.stringLt(contracts, "0")))
+                if (Precise.stringLt(contracts, "0"))
                 {
                     positionSide = "short";
                 } else
@@ -2444,7 +2444,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
         Object lastUpdateTimestamp = T;
         Object fee = null;
         String feeCost = this.safeString(order, "n");
-        if ((!java.util.Objects.equals(feeCost, null)) && Helpers.isTrue((Precise.stringGt(feeCost, "0"))))
+        if ((!java.util.Objects.equals(feeCost, null)) && (Precise.stringGt(feeCost, "0")))
         {
             String feeCurrencyId = this.safeString(order, "N");
             String feeCurrency = this.safeCurrencyCode(feeCurrencyId);

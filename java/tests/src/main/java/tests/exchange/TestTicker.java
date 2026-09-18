@@ -121,7 +121,7 @@ public class TestTicker extends BaseTest {
         //
         String lastString = exchange.safeString(entry, "last");
         String closeString = exchange.safeString(entry, "close");
-        Assert(((java.util.Objects.equals(closeString, null)) && (java.util.Objects.equals(lastString, null))) || Helpers.isTrue(Precise.stringEq(lastString, closeString)), ("`last` != `close`" + logText));
+        Assert(((java.util.Objects.equals(closeString, null)) && (java.util.Objects.equals(lastString, null))) || Precise.stringEq(lastString, closeString), ("`last` != `close`" + logText));
         String openPrice = exchange.safeString(entry, "open");
         //
         // base & quote volumes
@@ -246,7 +246,7 @@ public class TestTicker extends BaseTest {
             // Assert (low !== undefined, 'vwap is defined, but low is not' + logText);
             // Assert (vwap >= low && vwap <= high)
             // todo: calc compare
-            Assert(!Helpers.isTrue(valuesShouldBePositive) || Helpers.isTrue(Precise.stringGe(vwap, "0")), ("vwap is not greater than zero" + logText));
+            Assert(!Helpers.isTrue(valuesShouldBePositive) || Precise.stringGe(vwap, "0"), ("vwap is not greater than zero" + logText));
             if (!java.util.Objects.equals(baseVolume, null))
             {
                 Assert(!java.util.Objects.equals(quoteVolume, null), ("baseVolume & vwap is defined, but quoteVolume is not" + logText));
@@ -270,7 +270,7 @@ public class TestTicker extends BaseTest {
             String medianPrice = Precise.stringDiv(Precise.stringAdd(bidString, askString), "2");
             String medianLow = Precise.stringMul(medianPrice, Precise.stringSub("1", allowedPercentageVariation));
             String medianHigh = Precise.stringMul(medianPrice, Precise.stringAdd("1", allowedPercentageVariation));
-            Assert(Helpers.isTrue(Precise.stringGe(lastString, medianLow)) && Helpers.isTrue(Precise.stringLe(lastString, medianHigh)), ("last price should be within 1% of the bid/ask median price" + logText));
+            Assert(Precise.stringGe(lastString, medianLow) && Precise.stringLe(lastString, medianHigh), ("last price should be within 1% of the bid/ask median price" + logText));
         }
         String percentage = exchange.safeString(entry, "percentage");
         String change = exchange.safeString(entry, "change");

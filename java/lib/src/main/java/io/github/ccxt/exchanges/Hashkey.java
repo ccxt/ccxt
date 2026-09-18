@@ -1246,7 +1246,7 @@ public class Hashkey extends HashkeyApi
                 Object last = this.safeDict(riskLimits, Helpers.subtract(arrayLength, 1));
                 Object minInitialMargin = this.safeString(first, "initialMargin");
                 Object maxInitialMargin = this.safeString(last, "initialMargin");
-                if (Helpers.isTrue(Precise.stringGt(minInitialMargin, maxInitialMargin)))
+                if (Precise.stringGt(minInitialMargin, maxInitialMargin))
                 {
                     var minInitialMarginmaxInitialMarginVariable = new ArrayList<Object>(Arrays.asList(maxInitialMargin, minInitialMargin));
                     minInitialMargin = ((List<Object>) minInitialMarginmaxInitialMarginVariable).get(0);

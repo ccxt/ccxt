@@ -895,7 +895,7 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
         String filled = this.safeString(order, "amount_traded");
         String eventVar = this.safeString(order, "event");
         String status = null;
-        if (Helpers.isTrue(Precise.stringEq(filled, amount)))
+        if (Precise.stringEq(filled, amount))
         {
             status = "closed";
         } else if (java.util.Objects.equals(eventVar, "order_deleted"))

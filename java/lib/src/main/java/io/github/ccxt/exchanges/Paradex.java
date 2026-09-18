@@ -1525,7 +1525,7 @@ public class Paradex extends ParadexApi
         String hours = this.safeString(this.safeDict(market, "info", new HashMap<String, Object>() {{}}), "funding_period_hours");
         // zero hours is not an interval, and a caller annualising a rate divides by it
         Object interval = null;
-        if ((!java.util.Objects.equals(hours, null)) && Helpers.isTrue(Precise.stringGt(hours, "0")))
+        if ((!java.util.Objects.equals(hours, null)) && Precise.stringGt(hours, "0"))
         {
             interval = (hours + "h");
         }

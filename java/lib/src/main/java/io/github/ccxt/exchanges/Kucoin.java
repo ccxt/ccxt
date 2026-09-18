@@ -7757,7 +7757,7 @@ public class Kucoin extends KucoinApi
         String filled = this.safeString(order, "filledSize");
         String cost = this.safeString(order, "filledValue");
         String average = this.safeString(order, "avgDealPrice");
-        if ((java.util.Objects.equals(average, null)) && Helpers.isTrue(Precise.stringGt(filled, "0")))
+        if ((java.util.Objects.equals(average, null)) && Precise.stringGt(filled, "0"))
         {
             String contractSize = this.safeString(market, "contractSize");
             if (java.util.Objects.equals(((Map<String, Object>)market).get("linear"), true))
@@ -13043,10 +13043,10 @@ public class Kucoin extends KucoinApi
         {
             if (!java.util.Objects.equals(size, null))
             {
-                if (Helpers.isTrue(Precise.stringGt(size, "0")))
+                if (Precise.stringGt(size, "0"))
                 {
                     side = "long";
-                } else if (Helpers.isTrue(Precise.stringLt(size, "0")))
+                } else if (Precise.stringLt(size, "0"))
                 {
                     side = "short";
                 }

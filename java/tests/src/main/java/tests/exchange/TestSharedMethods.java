@@ -378,7 +378,7 @@ public class TestSharedMethods extends BaseTest {
         Assert(!java.util.Objects.equals(value, null) || Helpers.isTrue(allowNull), ("value is null" + logText));
         if (!java.util.Objects.equals(value, null))
         {
-            Assert(!Helpers.isTrue(Precise.stringEq(value, compareTo)), Helpers.add(Helpers.add((Helpers.add(Helpers.add(stringValue(key), " key (with a value of "), stringValue(value)) + ") was expected not to be equal to "), stringValue(compareTo)), logText));
+            Assert(!Precise.stringEq(value, compareTo), Helpers.add(Helpers.add((Helpers.add(Helpers.add(stringValue(key), " key (with a value of "), stringValue(value)) + ") was expected not to be equal to "), stringValue(compareTo)), logText));
         }
     }
     public static void AssertInArray(BaseExchange exchange, Object skippedProperties, Object method, Object entry, Object key, Object expectedArray, Object... optionalArgs)
@@ -621,7 +621,7 @@ public class TestSharedMethods extends BaseTest {
         // if strict check, then 'status' must be 'open' and filled amount should be less then whole order amount
         Object strictOpen = Helpers.isTrue(statusOpen) && (Helpers.isTrue(filledDefined) && Helpers.isTrue(amountDefined) && Helpers.isLessThan(filled, amount));
         // if non-strict check, then accept & ignore undefined values
-        Object nonstrictOpen = (Helpers.isTrue(statusOpen) || Helpers.isTrue(statusUndefined)) && ((!Helpers.isTrue(filledDefined) || !Helpers.isTrue(amountDefined)) || Helpers.isTrue(Precise.stringLt(filled, amount)));
+        Object nonstrictOpen = (Helpers.isTrue(statusOpen) || Helpers.isTrue(statusUndefined)) && ((!Helpers.isTrue(filledDefined) || !Helpers.isTrue(amountDefined)) || Precise.stringLt(filled, amount));
         // check
         if (java.util.Objects.equals(AssertedStatus, "open"))
         {
@@ -633,9 +633,9 @@ public class TestSharedMethods extends BaseTest {
         // ### CLOSED STATUS
         //
         // if strict check, then 'status' must be 'closed' and filled amount should be equal to the whole order amount
-        Object closedStrict = Helpers.isTrue(statusClosed) && (Helpers.isTrue(filledDefined) && Helpers.isTrue(amountDefined) && Helpers.isTrue(Precise.stringEq(filled, amount)));
+        Object closedStrict = Helpers.isTrue(statusClosed) && (Helpers.isTrue(filledDefined) && Helpers.isTrue(amountDefined) && Precise.stringEq(filled, amount));
         // if non-strict check, then accept & ignore undefined values
-        Object closedNonStrict = (Helpers.isTrue(statusClosed) || Helpers.isTrue(statusUndefined)) && ((!Helpers.isTrue(filledDefined) || !Helpers.isTrue(amountDefined)) || Helpers.isTrue(Precise.stringEq(filled, amount)));
+        Object closedNonStrict = (Helpers.isTrue(statusClosed) || Helpers.isTrue(statusUndefined)) && ((!Helpers.isTrue(filledDefined) || !Helpers.isTrue(amountDefined)) || Precise.stringEq(filled, amount));
         // check
         if (java.util.Objects.equals(AssertedStatus, "closed"))
         {
@@ -647,9 +647,9 @@ public class TestSharedMethods extends BaseTest {
         // ### CANCELED STATUS
         //
         // if strict check, then 'status' must be 'canceled' and filled amount should be less then whole order amount
-        Object canceledStrict = Helpers.isTrue(statusClanceled) && (Helpers.isTrue(filledDefined) && Helpers.isTrue(amountDefined) && Helpers.isTrue(Precise.stringLt(filled, amount)));
+        Object canceledStrict = Helpers.isTrue(statusClanceled) && (Helpers.isTrue(filledDefined) && Helpers.isTrue(amountDefined) && Precise.stringLt(filled, amount));
         // if non-strict check, then accept & ignore undefined values
-        Object canceledNonStrict = (Helpers.isTrue(statusClanceled) || Helpers.isTrue(statusUndefined)) && ((!Helpers.isTrue(filledDefined) || !Helpers.isTrue(amountDefined)) || Helpers.isTrue(Precise.stringLt(filled, amount)));
+        Object canceledNonStrict = (Helpers.isTrue(statusClanceled) || Helpers.isTrue(statusUndefined)) && ((!Helpers.isTrue(filledDefined) || !Helpers.isTrue(amountDefined)) || Precise.stringLt(filled, amount));
         // check
         if (java.util.Objects.equals(AssertedStatus, "canceled"))
         {

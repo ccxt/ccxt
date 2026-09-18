@@ -5149,7 +5149,7 @@ public class Woo extends WooApi
         market = this.safeMarket(contract, market);
         String size = this.safeString(position, "holding");
         String side = null;
-        if (Helpers.isTrue(Precise.stringGt(size, "0")))
+        if (Precise.stringGt(size, "0"))
         {
             side = "long";
         } else

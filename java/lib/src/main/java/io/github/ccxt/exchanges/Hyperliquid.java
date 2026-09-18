@@ -880,7 +880,7 @@ public class Hyperliquid extends HyperliquidApi
             return 0;
         }
         Object priceSplitted = Helpers.split(priceStr, ".");
-        if (Helpers.isTrue(Precise.stringEq(priceStr, "0")))
+        if (Precise.stringEq(priceStr, "0"))
         {
             // Significant digits is always 5 in this case
             Integer significantDigits = 5;
@@ -888,7 +888,7 @@ public class Hyperliquid extends HyperliquidApi
             Integer integerDigits = 0;
             // Calculate the price precision
             pricePrecision = Helpers.mathMin(Helpers.subtract(maxDecimals, amountPrecision), Helpers.subtract(significantDigits, integerDigits));
-        } else if (Helpers.isTrue(Precise.stringGt(priceStr, "0")) && Helpers.isTrue(Precise.stringLt(priceStr, "1")))
+        } else if (Precise.stringGt(priceStr, "0") && Precise.stringLt(priceStr, "1"))
         {
             // Significant digits, always 5 in this case
             Integer significantDigits = 5;
@@ -1867,7 +1867,7 @@ public class Hyperliquid extends HyperliquidApi
         // a size of zero is meaningful to hyperliquid, a whole position tp/sl order is sent
         // with grouping positionTpsl and size 0, so only reject a positive amount that
         // became zero after rounding, never an explicitly requested zero
-        if (Helpers.isTrue(Precise.stringEq(result, "0")) && Helpers.isTrue(Precise.stringGt(this.numberToString(amount), "0")))
+        if (Precise.stringEq(result, "0") && Precise.stringGt(this.numberToString(amount), "0"))
         {
             throw new InvalidOrder(Helpers.add((((this.id + " amount of ") + ((Map<String, Object>)market).get("symbol")) + " must be greater than minimum amount precision of "), this.numberToString(((Map<String, Object>)((Map<String, Object>)market).get("precision")).get("amount")))) ;
         }
@@ -4661,7 +4661,7 @@ final Object finalClientOrderId = clientOrderId;
         String side = null;
         if (!java.util.Objects.equals(size, null))
         {
-            side = ((Helpers.isTrue(Precise.stringGt(rawSize, "0")))) ? "long" : "short";
+            side = ((Precise.stringGt(rawSize, "0"))) ? "long" : "short";
             size = Precise.stringAbs(size);
         }
         String rawUnrealizedPnl = this.safeString(entry, "unrealizedPnl");

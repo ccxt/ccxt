@@ -3184,7 +3184,7 @@ public class Tokocrypto extends TokocryptoApi
         {
             // https://github.com/ccxt/ccxt/issues/6501
             // https://github.com/ccxt/ccxt/issues/7742
-            if ((java.util.Objects.equals(error, "200")) || Helpers.isTrue(Precise.stringEquals(error, "0")))
+            if ((java.util.Objects.equals(error, "200")) || Precise.stringEquals(error, "0"))
             {
                 return null;
             }

@@ -664,7 +664,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
         String side = null;
         if (!java.util.Objects.equals(amount, null))
         {
-            side = ((Helpers.isTrue(Precise.stringGt(amountString, "0")))) ? "buy" : "sell";
+            side = ((Precise.stringGt(amountString, "0"))) ? "buy" : "sell";
         }
         String symbol = this.safeSymbol(marketId, market);
         String feeValue = this.safeString(trade, 9);
@@ -918,7 +918,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
                 Object side = (((Helpers.isLessThan(deltas2, 0)))) ? "asks" : "bids";
                 Object bookside = Helpers.GetValue(orderbookItem, side);
                 // price = 0 means that you have to remove the order from your book
-                Object amount = ((Helpers.isTrue(Precise.stringGt(price, "0")))) ? size : "0";
+                Object amount = ((Precise.stringGt(price, "0"))) ? size : "0";
                 String idString = this.safeString(deltas, 0);
                 Helpers.callDynamically(bookside, "storeArray", new Object[]{new ArrayList<Object>(Arrays.asList(this.parseNumber(price), this.parseNumber(amount), idString))});
             } else
@@ -926,8 +926,8 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
                 String amount = this.safeString(deltas, 2);
                 String counter = this.safeString(deltas, 1);
                 String price = this.safeString(deltas, 0);
-                Object size = ((Helpers.isTrue(Precise.stringLt(amount, "0")))) ? Precise.stringNeg(amount) : amount;
-                Object side = ((Helpers.isTrue(Precise.stringLt(amount, "0")))) ? "asks" : "bids";
+                Object size = ((Precise.stringLt(amount, "0"))) ? Precise.stringNeg(amount) : amount;
+                Object side = ((Precise.stringLt(amount, "0"))) ? "asks" : "bids";
                 Object bookside = Helpers.GetValue(orderbookItem, side);
                 Helpers.callDynamically(bookside, "storeArray", new Object[]{new ArrayList<Object>(Arrays.asList(this.parseNumber(price), this.parseNumber(size), this.parseNumber(counter)))});
             }
@@ -1461,7 +1461,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
         market = this.safeMarket(symbol);
         String amount = this.safeString(order, 7);
         String side = "buy";
-        if (Helpers.isTrue(Precise.stringLt(amount, "0")))
+        if (Precise.stringLt(amount, "0"))
         {
             amount = Precise.stringAbs(amount);
             side = "sell";

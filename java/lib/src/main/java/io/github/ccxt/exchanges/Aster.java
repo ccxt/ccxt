@@ -4284,7 +4284,7 @@ public class Aster extends AsterApi
         Object currency = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String amount = this.safeString(item, "income");
         String direction = null;
-        if (Helpers.isTrue(Precise.stringLe(amount, "0")))
+        if (Precise.stringLe(amount, "0"))
         {
             direction = "out";
             amount = Precise.stringMul("-1", amount);
@@ -4426,7 +4426,7 @@ public class Aster extends AsterApi
         for (var i = 0; i < ((List<?>)leverageBracket).size(); i++)
         {
             Object bracket = Helpers.GetValue(leverageBracket, i);
-            if (Helpers.isTrue(Precise.stringLt(notionalStringAbs, Helpers.GetValue(bracket, 0))))
+            if (Precise.stringLt(notionalStringAbs, Helpers.GetValue(bracket, 0)))
             {
                 break;
             }
@@ -4443,13 +4443,13 @@ public class Aster extends AsterApi
         String marginMode = this.safeString(position, "marginType");
         if (java.util.Objects.equals(marginMode, null) && !java.util.Objects.equals(isolatedMarginString, null))
         {
-            marginMode = ((Helpers.isTrue(Precise.stringEq(isolatedMarginString, "0")))) ? "cross" : "isolated";
+            marginMode = ((Precise.stringEq(isolatedMarginString, "0"))) ? "cross" : "isolated";
         }
         String side = null;
-        if (Helpers.isTrue(Precise.stringGt(notionalString, "0")))
+        if (Precise.stringGt(notionalString, "0"))
         {
             side = "long";
-        } else if (Helpers.isTrue(Precise.stringLt(notionalString, "0")))
+        } else if (Precise.stringLt(notionalString, "0"))
         {
             side = "short";
         }
@@ -4552,7 +4552,7 @@ public class Aster extends AsterApi
         }
         Object marginRatio = null;
         Object percentage = null;
-        if (!Helpers.isTrue(Precise.stringEquals(collateralString, "0")))
+        if (!Precise.stringEquals(collateralString, "0"))
         {
             marginRatio = this.parseNumber(Precise.stringDiv(Precise.stringAdd(Precise.stringDiv(maintenanceMarginString, collateralString), "5e-5"), "1", 4));
             percentage = this.parseNumber(Precise.stringMul(Precise.stringDiv(unrealizedPnlString, initialMarginString, 4), "100"));
@@ -4648,7 +4648,7 @@ public class Aster extends AsterApi
             {
                 Object rawPosition = Helpers.GetValue(rawPositions, i);
                 String entryPriceString = this.safeString(rawPosition, "entryPrice");
-                if (Helpers.isTrue(Precise.stringGt(entryPriceString, "0")))
+                if (Precise.stringGt(entryPriceString, "0"))
                 {
                     ((List<Object>)result).add(this.parsePositionRisk(rawPosition));
                 }
@@ -4802,7 +4802,7 @@ public class Aster extends AsterApi
         for (var i = 0; i < ((List<?>)leverageBracket).size(); i++)
         {
             Object bracket = Helpers.GetValue(leverageBracket, i);
-            if (Helpers.isTrue(Precise.stringLt(notionalStringAbs, Helpers.GetValue(bracket, 0))))
+            if (Precise.stringLt(notionalStringAbs, Helpers.GetValue(bracket, 0)))
             {
                 break;
             }
@@ -4820,7 +4820,7 @@ public class Aster extends AsterApi
         if (java.util.Objects.equals(isolated, null))
         {
             String isolatedMarginRaw = this.safeString(position, "isolatedMargin");
-            isolated = !Helpers.isTrue(Precise.stringEq(isolatedMarginRaw, "0"));
+            isolated = !Precise.stringEq(isolatedMarginRaw, "0");
         }
         String marginMode = null;
         String collateralString = null;
@@ -4844,12 +4844,12 @@ public class Aster extends AsterApi
         Object liquidationPrice = null;
         Object contractSize = this.safeValue(market, "contractSize");
         Object contractSizeString = this.numberToString(contractSize);
-        if (Helpers.isTrue(Precise.stringEquals(notionalString, "0")))
+        if (Precise.stringEquals(notionalString, "0"))
         {
             entryPrice = null;
         } else
         {
-            side = ((Helpers.isTrue(Precise.stringLt(notionalString, "0")))) ? "short" : "long";
+            side = ((Precise.stringLt(notionalString, "0"))) ? "short" : "long";
             marginRatio = this.parseNumber(Precise.stringDiv(Precise.stringAdd(Precise.stringDiv(maintenanceMarginString, collateralString), "5e-5"), "1", 4));
             percentage = this.parseNumber(Precise.stringMul(Precise.stringDiv(unrealizedPnlString, initialMarginString, 4), "100"));
             if (Helpers.isTrue(usdm))

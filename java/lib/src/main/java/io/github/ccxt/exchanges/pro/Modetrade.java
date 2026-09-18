@@ -999,7 +999,7 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
         String priceString = this.safeString(order, "price");
         Object price = this.safeNumber(order, "price");
         Double avgPrice = this.safeNumber(order, "avgPrice");
-        if (Helpers.isTrue(Precise.stringEq(priceString, "0")) && (!java.util.Objects.equals(avgPrice, null)))
+        if (Precise.stringEq(priceString, "0") && (!java.util.Objects.equals(avgPrice, null)))
         {
             price = avgPrice;
         }
@@ -1009,7 +1009,7 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
         Double filled = this.safeNumber(order, "totalExecutedQuantity");
         String totalExecQuantity = this.safeString(order, "totalExecutedQuantity");
         String remaining = amount;
-        if (Helpers.isTrue(Precise.stringGe(amount, totalExecQuantity)))
+        if (Precise.stringGe(amount, totalExecQuantity))
         {
             remaining = Precise.stringSub(remaining, totalExecQuantity);
         }
@@ -1282,7 +1282,7 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
             {
                 Object position = Helpers.GetValue(positions, i);
                 String contracts = this.safeString(position, "contracts", "0");
-                if (Helpers.isTrue(Precise.stringGt(contracts, "0")))
+                if (Precise.stringGt(contracts, "0"))
                 {
                     Helpers.callDynamically(cache, "append", new Object[]{position});
                 }
@@ -1386,7 +1386,7 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
         market = this.safeMarket(contract, market);
         String size = this.safeString(position, "positionQty");
         String side = null;
-        if (Helpers.isTrue(Precise.stringGt(size, "0")))
+        if (Precise.stringGt(size, "0"))
         {
             side = "long";
         } else

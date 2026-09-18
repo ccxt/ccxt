@@ -1852,7 +1852,7 @@ public class Cryptocom extends CryptocomApi
             {
                 if (java.util.Objects.equals(side, "buy"))
                 {
-                    if (Helpers.isTrue(Precise.stringLt(priceString, triggerPrice)))
+                    if (Precise.stringLt(priceString, triggerPrice))
                     {
                         ((Map<String, Object>)request).put("type", "TAKE_PROFIT_LIMIT");
                     } else
@@ -1861,7 +1861,7 @@ public class Cryptocom extends CryptocomApi
                     }
                 } else
                 {
-                    if (Helpers.isTrue(Precise.stringLt(priceString, triggerPrice)))
+                    if (Precise.stringLt(priceString, triggerPrice))
                     {
                         ((Map<String, Object>)request).put("type", "STOP_LIMIT");
                     } else
@@ -1873,7 +1873,7 @@ public class Cryptocom extends CryptocomApi
             {
                 if (java.util.Objects.equals(side, "buy"))
                 {
-                    if (Helpers.isTrue(Precise.stringLt(priceString, triggerPrice)))
+                    if (Precise.stringLt(priceString, triggerPrice))
                     {
                         ((Map<String, Object>)request).put("type", "TAKE_PROFIT");
                     } else
@@ -1882,7 +1882,7 @@ public class Cryptocom extends CryptocomApi
                     }
                 } else
                 {
-                    if (Helpers.isTrue(Precise.stringLt(priceString, triggerPrice)))
+                    if (Precise.stringLt(priceString, triggerPrice))
                     {
                         ((Map<String, Object>)request).put("type", "STOP_LOSS");
                     } else
@@ -2128,7 +2128,7 @@ public class Cryptocom extends CryptocomApi
             {
                 if (java.util.Objects.equals(side, "buy"))
                 {
-                    if (Helpers.isTrue(Precise.stringLt(priceString, triggerPrice)))
+                    if (Precise.stringLt(priceString, triggerPrice))
                     {
                         ((Map<String, Object>)request).put("type", "TAKE_PROFIT_LIMIT");
                     } else
@@ -2137,7 +2137,7 @@ public class Cryptocom extends CryptocomApi
                     }
                 } else
                 {
-                    if (Helpers.isTrue(Precise.stringLt(priceString, triggerPrice)))
+                    if (Precise.stringLt(priceString, triggerPrice))
                     {
                         ((Map<String, Object>)request).put("type", "STOP_LIMIT");
                     } else
@@ -2149,7 +2149,7 @@ public class Cryptocom extends CryptocomApi
             {
                 if (java.util.Objects.equals(side, "buy"))
                 {
-                    if (Helpers.isTrue(Precise.stringLt(priceString, triggerPrice)))
+                    if (Precise.stringLt(priceString, triggerPrice))
                     {
                         ((Map<String, Object>)request).put("type", "TAKE_PROFIT");
                     } else
@@ -2158,7 +2158,7 @@ public class Cryptocom extends CryptocomApi
                     }
                 } else
                 {
-                    if (Helpers.isTrue(Precise.stringLt(priceString, triggerPrice)))
+                    if (Precise.stringLt(priceString, triggerPrice))
                     {
                         ((Map<String, Object>)request).put("type", "STOP_LOSS");
                     } else
@@ -3618,7 +3618,7 @@ public class Cryptocom extends CryptocomApi
         currency = this.safeCurrency(currencyId, currency);
         String amount = this.safeString(item, "transaction_qty");
         String direction = null;
-        if (Helpers.isTrue(Precise.stringLt(amount, "0")))
+        if (Precise.stringLt(amount, "0"))
         {
             direction = "out";
             amount = Precise.stringAbs(amount);
@@ -4237,7 +4237,7 @@ public class Cryptocom extends CryptocomApi
             put( "timestamp", timestamp );
             put( "datetime", Cryptocom.this.iso8601(timestamp) );
             put( "hedged", null );
-            put( "side", ((Helpers.isTrue(Precise.stringGt(amount, "0")))) ? "long" : "short" );
+            put( "side", ((Precise.stringGt(amount, "0"))) ? "long" : "short" );
             put( "contracts", Cryptocom.this.parseNumber(Precise.stringAbs(amount)) );
             put( "contractSize", ((Map<String, Object>)finalMarket).get("contractSize") );
             put( "entryPrice", null );

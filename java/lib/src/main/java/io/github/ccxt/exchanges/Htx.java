@@ -2826,7 +2826,7 @@ public class Htx extends HtxApi
                 }
                 String leverageRatio = this.safeString(market, "leverage-ratio", "1");
                 String superLeverageRatio = this.safeString(market, "super-margin-leverage-ratio", "1");
-                Boolean hasLeverage = Helpers.isTrue(Precise.stringGt(leverageRatio, "1")) || Helpers.isTrue(Precise.stringGt(superLeverageRatio, "1"));
+                Boolean hasLeverage = Precise.stringGt(leverageRatio, "1") || Precise.stringGt(superLeverageRatio, "1");
                 // 0 Delisting
                 // 1 Listing
                 // 2 Pending Listing
@@ -3644,7 +3644,7 @@ public class Htx extends HtxApi
         String filledPoints = this.safeString(trade, "filled-points");
         if (!java.util.Objects.equals(filledPoints, null))
         {
-            if ((java.util.Objects.equals(feeCost, null)) || Helpers.isTrue(Precise.stringEquals(feeCost, "0")))
+            if ((java.util.Objects.equals(feeCost, null)) || Precise.stringEquals(feeCost, "0"))
             {
                 String feeDeductCurrency = this.safeString(trade, "fee-deduct-currency");
                 if (!java.util.Objects.equals(feeDeductCurrency, null))

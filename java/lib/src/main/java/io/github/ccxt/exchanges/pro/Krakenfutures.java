@@ -529,10 +529,10 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
         String hedged = "both";
         String balanceString = this.safeString(position, "balance");
         String side = null;
-        if (Helpers.isTrue(Precise.stringGt(balanceString, "0")))
+        if (Precise.stringGt(balanceString, "0"))
         {
             side = "long";
-        } else if (Helpers.isTrue(Precise.stringLt(balanceString, "0")))
+        } else if (Precise.stringLt(balanceString, "0"))
         {
             side = "short";
         }
@@ -1002,7 +1002,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
                     totalCost = Precise.stringAdd(totalCost, this.numberToString(Helpers.GetValue(currentTrade, "cost")));
                     totalAmount = Precise.stringAdd(totalAmount, this.numberToString(Helpers.GetValue(currentTrade, "amount")));
                 }
-                if (Helpers.isTrue(Precise.stringGt(totalAmount, "0")))
+                if (Precise.stringGt(totalAmount, "0"))
                 {
                     Helpers.addElementToObject(previousOrder, "average", Precise.stringDiv(totalCost, totalAmount));
                 }

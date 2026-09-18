@@ -862,7 +862,7 @@ public class Blofin extends BlofinApi
         String maxLeverage = this.safeString(market, "maxLeverage", "100");
         maxLeverage = Precise.stringMax(maxLeverage, "1");
         Boolean isActive = (java.util.Objects.equals(this.safeString(market, "state"), "live"));
-        Boolean isMargin = Helpers.isTrue(spot) && Helpers.isTrue((Precise.stringGt(maxLeverage, "1")));
+        Boolean isMargin = Helpers.isTrue(spot) && (Precise.stringGt(maxLeverage, "1"));
         String contractType = this.safeString(market, "contractType");
         Double maxLimitAmount = this.safeNumber(market, "maxLimitSize");
         Object maxSpotCost = this.safeNumber(market, "maxMarketSize"); // for spot, market-buy size is denominated in the quote currency, i.e. cost
@@ -3274,10 +3274,10 @@ public class Blofin extends BlofinApi
         {
             if (java.util.Objects.equals(side, "net"))
             {
-                if (Helpers.isTrue(Precise.stringGt(pos, "0")))
+                if (Precise.stringGt(pos, "0"))
                 {
                     side = "long";
-                } else if (Helpers.isTrue(Precise.stringLt(pos, "0")))
+                } else if (Precise.stringLt(pos, "0"))
                 {
                     side = "short";
                 } else

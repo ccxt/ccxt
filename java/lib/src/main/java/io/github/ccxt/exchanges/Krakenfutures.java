@@ -1063,7 +1063,7 @@ public class Krakenfutures extends KrakenfuturesApi
         {
             Object tier = Helpers.GetValue(tiers, i);
             String tierVolume = this.safeString(tier, "usdVolume");
-            if ((java.util.Objects.equals(volume, null)) || Helpers.isTrue(Precise.stringGe(volume, tierVolume)))
+            if ((java.util.Objects.equals(volume, null)) || Precise.stringGe(volume, tierVolume))
             {
                 makerFee = this.safeString(tier, "makerFee");
                 takerFee = this.safeString(tier, "takerFee");
@@ -2867,7 +2867,7 @@ public class Krakenfutures extends KrakenfuturesApi
                 vwapSum = ((String)Precise.stringAdd(vwapSum, Precise.stringMul(tradeAmount, tradePrice)));
             }
             average = Precise.stringDiv(vwapSum, filled2);
-            if ((!java.util.Objects.equals(amount, null)) && Helpers.isTrue((!Helpers.isTrue(isClosed))) && Helpers.isTrue(isPrior) && Helpers.isTrue(Precise.stringGe(filled2, amount)))
+            if ((!java.util.Objects.equals(amount, null)) && Helpers.isTrue((!Helpers.isTrue(isClosed))) && Helpers.isTrue(isPrior) && Precise.stringGe(filled2, amount))
             {
                 status = "closed";
                 isClosed = true;
@@ -3313,7 +3313,7 @@ public class Krakenfutures extends KrakenfuturesApi
                 // unified ledger contract: after = before +/- amount - fee
                 amount = Precise.stringAdd(amount, feeCost);
             }
-            if (Helpers.isTrue(Precise.stringLt(amount, "0")))
+            if (Precise.stringLt(amount, "0"))
             {
                 direction = "out";
                 amount = Precise.stringAbs(amount);
@@ -3681,17 +3681,17 @@ public class Krakenfutures extends KrakenfuturesApi
         String fundingRateResult = Precise.stringDiv(fundingRateString, markPriceString);
         String nextFundingRateString = this.safeString(ticker, "fundingRatePrediction");
         String nextFundingRateResult = Precise.stringDiv(nextFundingRateString, markPriceString);
-        if (Helpers.isTrue(Precise.stringGt(fundingRateResult, "0.25")))
+        if (Precise.stringGt(fundingRateResult, "0.25"))
         {
             fundingRateResult = "0.25";
-        } else if (Helpers.isTrue(Precise.stringLt(fundingRateResult, "-0.25")))
+        } else if (Precise.stringLt(fundingRateResult, "-0.25"))
         {
             fundingRateResult = "-0.25";
         }
-        if (Helpers.isTrue(Precise.stringGt(nextFundingRateResult, "0.25")))
+        if (Precise.stringGt(nextFundingRateResult, "0.25"))
         {
             nextFundingRateResult = "0.25";
-        } else if (Helpers.isTrue(Precise.stringLt(nextFundingRateResult, "-0.25")))
+        } else if (Precise.stringLt(nextFundingRateResult, "-0.25"))
         {
             nextFundingRateResult = "-0.25";
         }

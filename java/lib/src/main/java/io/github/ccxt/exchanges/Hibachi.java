@@ -2295,7 +2295,7 @@ public class Hibachi extends HibachiApi
             timestamp = this.safeIntegerProduct(item, "timestamp", 1000);
             type = "trade";
             String amountStr = this.safeString(item, "realizedPnl");
-            if (Helpers.isTrue(Precise.stringLt(amountStr, "0")))
+            if (Precise.stringLt(amountStr, "0"))
             {
                 direction = "out";
                 amountStr = Precise.stringNeg(amountStr);

@@ -1723,7 +1723,7 @@ public class Bigone extends BigoneApi
             side = "sell";
         }
         String triggerPrice = this.safeString(order, "stop_price");
-        if (Helpers.isTrue(Precise.stringEq(triggerPrice, "0")))
+        if (Precise.stringEq(triggerPrice, "0"))
         {
             triggerPrice = null;
         }

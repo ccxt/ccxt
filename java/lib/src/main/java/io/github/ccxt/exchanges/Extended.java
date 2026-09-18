@@ -2104,7 +2104,7 @@ public class Extended extends ExtendedApi
         String direction = null;
         if (!java.util.Objects.equals(amountString, null))
         {
-            direction = ((Helpers.isTrue(Precise.stringLt(amountString, "0")))) ? "out" : "in";
+            direction = ((Precise.stringLt(amountString, "0"))) ? "out" : "in";
         }
         Object fee = null;
         String feeCost = this.safeString(item, "fee");
@@ -2523,7 +2523,7 @@ public class Extended extends ExtendedApi
         String counterpartyAccountId = this.safeString(transfer, "counterpartyAccountId");
         String fromAccount = accountId;
         String toAccount = counterpartyAccountId;
-        if ((!java.util.Objects.equals(amountString, null)) && !Helpers.isTrue(Precise.stringLt(amountString, "0")))
+        if ((!java.util.Objects.equals(amountString, null)) && !Precise.stringLt(amountString, "0"))
         {
             fromAccount = counterpartyAccountId;
             toAccount = accountId;
@@ -3119,7 +3119,7 @@ public class Extended extends ExtendedApi
         Object resolutionString = this.numberToString(resolution);
         String precise = Precise.stringMul(amount, resolutionString);
         Object result = this.decimalToPrecision(precise, TRUNCATE, 0, DECIMAL_PLACES, NO_PADDING);
-        if (Helpers.isTrue(roundUp) && Helpers.isTrue(Precise.stringGt(precise, result)))
+        if (Helpers.isTrue(roundUp) && Precise.stringGt(precise, result))
         {
             result = ((String)Precise.stringAdd(result, "1"));
         }
@@ -4278,7 +4278,7 @@ public class Extended extends ExtendedApi
         // Cairo prime offset for i64 negative encoding.
         String prime = "3618502788666131213697322783095070105623107215331596699973092056135872020481";
         Object valueString = this.numberToString(value);
-        if (Helpers.isTrue(Precise.stringLt(valueString, "0")))
+        if (Precise.stringLt(valueString, "0"))
         {
             return Precise.stringAdd(prime, valueString);
         }

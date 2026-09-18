@@ -3314,13 +3314,13 @@ public class Bitstamp extends BitstampApi
             if (((Map<?, ?>)item).containsKey("amount"))
             {
                 String amount = this.safeString(item, "amount");
-                direction = ((Helpers.isTrue(Precise.stringGt(amount, "0")))) ? "in" : "out";
+                direction = ((Precise.stringGt(amount, "0"))) ? "in" : "out";
             } else if ((((Map<?, ?>)parsedTransaction).containsKey("currency")) && !java.util.Objects.equals(((Map<String, Object>)parsedTransaction).get("currency"), null))
             {
                 String currencyCode = this.safeString(parsedTransaction, "currency");
                 currency = this.currency(currencyCode);
                 String amount = this.safeString(item, ((Map<String, Object>)currency).get("id"));
-                direction = ((Helpers.isTrue(Precise.stringGt(amount, "0")))) ? "in" : "out";
+                direction = ((Precise.stringGt(amount, "0"))) ? "in" : "out";
             }
             final Object finalDirection = direction;
             final Object finalType_2 = type;

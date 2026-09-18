@@ -1758,11 +1758,11 @@ public class Ndax extends NdaxApi
         String debit = this.safeString(item, "DR");
         String amount = null;
         String direction = null;
-        if (Helpers.isTrue(Precise.stringLt(credit, "0")))
+        if (Precise.stringLt(credit, "0"))
         {
             amount = credit;
             direction = "in";
-        } else if (Helpers.isTrue(Precise.stringLt(debit, "0")))
+        } else if (Precise.stringLt(debit, "0"))
         {
             amount = debit;
             direction = "out";

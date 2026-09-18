@@ -1443,7 +1443,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
         String quantity = this.safeString(position, "net_size");
         market = this.safeMarket(marketId, market, "-");
         String side = "long";
-        if (Helpers.isTrue(Precise.stringLe(quantity, "0")))
+        if (Precise.stringLe(quantity, "0"))
         {
             side = "short";
             quantity = Precise.stringMul("-1", quantity);

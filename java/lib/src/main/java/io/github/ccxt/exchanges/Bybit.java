@@ -4509,7 +4509,7 @@ public class Bybit extends BybitApi
             Object feeCurrencyCode = null;
             if (java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true))
             {
-                if (Helpers.isTrue(Precise.stringGt(feeCostString, "0")))
+                if (Precise.stringGt(feeCostString, "0"))
                 {
                     if (java.util.Objects.equals(side, "buy"))
                     {
@@ -5610,7 +5610,7 @@ public class Bybit extends BybitApi
             throw new ArgumentsRequired((this.id + " createOrder requires a price argument for limit orders")) ;
         }
         // workaround, bcz for some langs we have to allow 0.0 as input (bcz of type)
-        if (!Helpers.isTrue(Precise.stringGt(this.numberToString(amount), "0")))
+        if (!Precise.stringGt(this.numberToString(amount), "0"))
         {
             amount = null;
         }
@@ -8266,7 +8266,7 @@ public class Bybit extends BybitApi
         currency = this.safeCurrency(currencyId, currency);
         String amountString = this.safeString2(item, "amount", "change");
         String afterString = this.safeString2(item, "wallet_balance", "cashBalance");
-        String direction = ((Helpers.isTrue(Precise.stringLt(amountString, "0")))) ? "out" : "in";
+        String direction = ((Precise.stringLt(amountString, "0"))) ? "out" : "in";
         Object before = null;
         Object after = null;
         Object amount = null;

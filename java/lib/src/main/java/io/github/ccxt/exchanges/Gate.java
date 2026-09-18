@@ -5356,7 +5356,7 @@ public class Gate extends GateApi
         market = this.safeMarket(marketId, market, "_", marketType);
         String amountString = this.safeString2(trade, "amount", "size");
         String priceString = this.safeString(trade, "price");
-        String contractSide = ((Helpers.isTrue(Precise.stringLt(amountString, "0")))) ? "sell" : "buy";
+        String contractSide = ((Precise.stringLt(amountString, "0"))) ? "sell" : "buy";
         amountString = Precise.stringAbs(amountString);
         String side = this.safeString2(trade, "side", "type", contractSide);
         String orderId = this.safeString(trade, "order_id");
@@ -5697,7 +5697,7 @@ final Object finalPointFee = pointFee;
             if (java.util.Objects.equals(Helpers.GetValue(id, 0), "b"))
             {
                 // GateCode handling
-                type = ((Helpers.isTrue(Precise.stringGt(amountString, "0")))) ? "deposit" : "withdrawal";
+                type = ((Precise.stringGt(amountString, "0"))) ? "deposit" : "withdrawal";
                 amountString = Precise.stringAbs(amountString);
             } else
             {
@@ -6737,9 +6737,9 @@ final Object finalPointFee = pointFee;
         }
         if ((!java.util.Objects.equals(contract, null)) && (!java.util.Objects.equals(contract, "")))
         {
-            Boolean isMarketOrder = Helpers.isTrue(Precise.stringEquals(price, "0")) && (java.util.Objects.equals(timeInForce, "IOC"));
+            Boolean isMarketOrder = Precise.stringEquals(price, "0") && (java.util.Objects.equals(timeInForce, "IOC"));
             type = ((Helpers.isTrue(isMarketOrder))) ? "market" : "limit";
-            side = ((Helpers.isTrue(Precise.stringGt(amount, "0")))) ? "buy" : "sell";
+            side = ((Precise.stringGt(amount, "0"))) ? "buy" : "sell";
         }
         String rawStatus = this.safeStringN(order, new ArrayList<Object>(Arrays.asList("finish_as", "status", "open")));
         String timestampStr = this.safeString(order, "create_time_ms");
@@ -8085,10 +8085,10 @@ final Object finalRebate = rebate;
         String side = this.safeString(position, "side");
         if (java.util.Objects.equals(side, null))
         {
-            if (Helpers.isTrue(Precise.stringGt(size, "0")))
+            if (Precise.stringGt(size, "0"))
             {
                 side = "long";
-            } else if (Helpers.isTrue(Precise.stringLt(size, "0")))
+            } else if (Precise.stringLt(size, "0"))
             {
                 side = "short";
             }
@@ -9864,7 +9864,7 @@ final Object finalI = i;
         Object currency = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String direction = null;
         String amount = this.safeString(item, "change");
-        if (Helpers.isTrue(Precise.stringLt(amount, "0")))
+        if (Precise.stringLt(amount, "0"))
         {
             direction = "out";
             amount = Precise.stringAbs(amount);
@@ -10270,10 +10270,10 @@ final Object finalI = i;
         {
             if (!java.util.Objects.equals(size, null))
             {
-                if (Helpers.isTrue(Precise.stringGt(size, "0")))
+                if (Precise.stringGt(size, "0"))
                 {
                     side = "buy";
-                } else if (Helpers.isTrue(Precise.stringLt(size, "0")))
+                } else if (Precise.stringLt(size, "0"))
                 {
                     side = "sell";
                 }
