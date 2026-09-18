@@ -3651,12 +3651,13 @@ export function csharpLocalIsSafeToRetype (csharp, scope, declaration, varName, 
                     // RHS may be another already-typed local / a ternary over such locals (context)
                     const written = csharpTypeOfValue (csharp, parent.right, context);
                     if (!assignable (csharpType, written)) {
-                        // `x = x + r` / `x = this.omit (x, keys)`: the value reads this very
-                        // local, so its type can only be proven against the declaration being
-                        // checked (see the self-concat / self-omit sections).
+                        // `x = x + r` / `x = this.omit (x, keys)` / `x = cond ? 'lit' : x`:
+                        // the value reads this very local, so its type can only be proven
+                        // against the declaration being checked (see the self-write sections).
                         const selfConcat = (csharpType === 'string') && (selfConcatWriteType (csharp, context, declaration, parent.right) === 'string');
                         const selfOmit = (csharpType === 'Dictionary<string, object>') && (selfOmitWriteType (csharp, context, declaration, parent.right) === 'Dictionary<string, object>');
-                        if (!selfConcat && !selfOmit) {
+                        const selfTernary = (csharpType === 'string?') && safeStringFamilyLocal (declaration) && (selfTernaryStringWriteType (csharp, context, declaration, parent.right) === 'string');
+                        if (!selfConcat && !selfOmit && !selfTernary) {
                             return false;
                         }
                     }
@@ -3882,6 +3883,39 @@ function selfConcatWriteType (csharp, context, declaration, value) {
     const state = { selfRead: false };
     const type = selfConcatNodeType (csharp, context, declaration, node, state);
     return (type === 'string' && state.selfRead) ? 'string' : undefined;
+}
+
+// `marginType = (marginType === 'crossed') ? 'cross' : marginType` — a conditional write
+// whose one arm reads the local being classified (safeString* family only). The self arm
+// has no C# type until this declaration decides one, but it can only hold what the
+// declaration already holds, and the other arm is proven a string here, so the write
+// stores a string or null — exactly the box the `string?` spelling already names. The
+// printed write is unchanged (the ternary prints the same text for both spellings), so
+// the join may keep the running type.
+function selfTernaryStringWriteType (csharp, context, declaration, value) {
+    let node = value;
+    while (node?.kind === ts.SyntaxKind.ParenthesizedExpression) {
+        node = node.expression;
+    }
+    if (node?.kind !== ts.SyntaxKind.ConditionalExpression) {
+        return undefined;
+    }
+    const armOf = (arm) => {
+        let current = arm;
+        while (current?.kind === ts.SyntaxKind.ParenthesizedExpression) {
+            current = current.expression;
+        }
+        return current;
+    };
+    const whenTrue = armOf (node.whenTrue);
+    const whenFalse = armOf (node.whenFalse);
+    const selfTrue = isSelfRead (csharp, whenTrue, declaration);
+    const selfFalse = isSelfRead (csharp, whenFalse, declaration);
+    if (selfTrue === selfFalse) {
+        return undefined; // neither arm, or both arms, read this local
+    }
+    const other = selfTrue ? whenFalse : whenTrue;
+    return isProvablyStringOperand (csharp, other) ? 'string' : undefined;
 }
 
 // is `value` (already unwrapped of `(x)` parentheses) a non-nullable `string` local used
@@ -4720,6 +4754,22 @@ const NON_NULL_DEFAULT_SAFE_STRING_ARITY = {
     'safeStringUpper': 3, 'safeStringUpper2': 4, 'safeStringUpperN': 3,
 };
 
+// the same nine names as a set: the safeString* family this module declares `string?`
+// (see CSHARP_LOCAL_THIS_RETURN_TYPES). Only a local whose OWN initializer is one of
+// these calls uses the self-ternary write proof below — the shape is family-scoped, so no
+// other typed-local family's decisions move with it.
+const CSHARP_SAFE_STRING_METHODS_TYPED = new Set (Object.keys (NON_NULL_DEFAULT_SAFE_STRING_ARITY));
+
+function safeStringFamilyLocal (declaration) {
+    const initializer = declaration?.initializer;
+    if (initializer?.kind !== ts.SyntaxKind.CallExpression) {
+        return false;
+    }
+    const callee = initializer.expression;
+    const isThisCall = callee?.kind === ts.SyntaxKind.PropertyAccessExpression && callee.expression?.kind === ts.SyntaxKind.ThisKeyword;
+    return isThisCall && CSHARP_SAFE_STRING_METHODS_TYPED.has (callee.name?.escapedText);
+}
+
 function nonNullStringDefaultCall (csharp, node, context) {
     let initializer = node;
     while (initializer?.kind === ts.SyntaxKind.ParenthesizedExpression) {
@@ -5199,6 +5249,11 @@ function typeFromValueOrWrites (csharp, scope, declaration, varName, initial, co
             // `x = this.omit (x, keys)` accumulator write: same self-read shape, proven
             // against the running Dictionary type (see selfOmitWriteType).
             written = selfOmitWriteType (csharp, context, declaration, parent.right);
+        }
+        if (written === undefined && type === 'string?' && !sawNull && safeStringFamilyLocal (declaration)) {
+            // `x = cond ? 'lit' : x` over a safeString* local: the value reads x, so it has
+            // no type until this declaration decides one (see selfTernaryStringWriteType).
+            written = selfTernaryStringWriteType (csharp, context, declaration, parent.right);
         }
         if (written === undefined) {
             return undefined;
