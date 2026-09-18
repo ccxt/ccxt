@@ -1061,8 +1061,8 @@ impl LatokenCore {
             }
             let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
             let mut account: Value = self.account();
-            add_element_to_object(&mut account, &Value::Str("free".to_string()), self.safe_string_k(balance.clone(), "available", &[]));
-            add_element_to_object(&mut account, &Value::Str("used".to_string()), self.safe_string_k(balance.clone(), "blocked", &[]));
+            if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("free".to_string(), self.safe_string_k(balance.clone(), "available", &[])); }
+            if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("used".to_string(), self.safe_string_k(balance.clone(), "blocked", &[])); }
             if (code != Value::Null) {
                 add_element_to_object(&mut result, &code, account.clone());
             }
@@ -2118,8 +2118,8 @@ impl LatokenCore {
         });
         let mut feeCost: Value = self.safe_number_k(transaction.clone(), "transactionFee", &[]);
         if (feeCost != Value::Null) {
-            add_element_to_object(&mut fee, &Value::Str("cost".to_string()), feeCost.clone());
-            add_element_to_object(&mut fee, &Value::Str("currency".to_string()), code.clone());
+            if let Value::Dict(__d) = &mut fee { std::sync::Arc::make_mut(__d).insert("cost".to_string(), feeCost.clone()); }
+            if let Value::Dict(__d) = &mut fee { std::sync::Arc::make_mut(__d).insert("currency".to_string(), code.clone()); }
         }
         let mut type_var: Value = self.parse_transaction_type(self.safe_string_k(transaction.clone(), "type", &[]));
         return Value::Map({

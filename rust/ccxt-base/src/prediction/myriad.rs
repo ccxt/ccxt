@@ -2872,8 +2872,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             m
         });
         let mut account: Value = self.account();
-        add_element_to_object(&mut account, &Value::Str("free".to_string()), balanceString.clone());
-        add_element_to_object(&mut account, &Value::Str("total".to_string()), balanceString.clone());
+        if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("free".to_string(), balanceString.clone()); }
+        if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("total".to_string(), balanceString.clone()); }
         add_element_to_object(&mut result, &currency, account.clone());
         return self.safe_balance(result.clone());
 
@@ -4302,7 +4302,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     pub fn request_id(&self, mut url: Value) -> Value {
         let mut existing: Value = self.safe_value_k(self.options.clone(), "requestId", &[]);
         if (existing == Value::Null) {
-            { let __be_tmp = self.create_safe_dictionary(&[]); add_element_to_object(&mut self.options.clone(), &Value::Str("requestId".to_string()), __be_tmp); };
+            { let __be_tmp = self.create_safe_dictionary(&[]); if let Value::Dict(__d) = &mut self.options.clone() { std::sync::Arc::make_mut(__d).insert("requestId".to_string(), __be_tmp); } }
         }
         let mut options: Value = self.options.as_map().and_then(|__m| __m.get("requestId")).cloned().unwrap_or(Value::Null);
         let mut previousValue: Value = self.safe_integer(options.clone(), url.clone(), &[Value::Int(0)]);
@@ -4343,7 +4343,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut client: Value = self.client(&[url.clone()]);
         let mut connectSent: Value = self.safe_value(get_value(&client, &Value::Str("subscriptions".to_string())), Value::Str("connect".to_string()), &[]);
         if (connectSent == Value::Null) {
-            add_element_to_object(&mut self.options, &Value::Str("wsConnected".to_string()), Value::Bool(false));
+            if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("wsConnected".to_string(), Value::Bool(false)); }
             let mut requestId: Value = self.request_id(url.clone());
             // give the anonymous connect a name so the params object is non-empty (PHP serialises an
             // empty array as a JSON array, which Centrifugo rejects)
@@ -4432,7 +4432,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut connectReply: Value = self.safe_dict_k(msg.clone(), "connect", &[]);
         if (connectReply != Value::Null) {
             // connect acknowledged — unblock connectCentrifugo so channel subscribes can be sent
-            add_element_to_object(&mut self.options.clone(), &Value::Str("wsConnected".to_string()), Value::Bool(true));
+            if let Value::Dict(__d) = &mut self.options.clone() { std::sync::Arc::make_mut(__d).insert("wsConnected".to_string(), Value::Bool(true)); }
             client.resolve(&[Value::Bool(true), Value::Str("centrifugoConnected".to_string())]);
             return;
         }
@@ -5158,7 +5158,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             }
         }
         }
-        add_element_to_object(&mut self.options, &Value::Str("positionBalances".to_string()), balances.clone());
+        if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("positionBalances".to_string(), balances.clone()); }
 
     Value::Null
 }
@@ -5195,7 +5195,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             if (posId != Value::Null) {
                 add_element_to_object(&mut balances, &posId, updated.clone());
             }
-            add_element_to_object(&mut self.options.clone(), &Value::Str("positionBalances".to_string()), balances.clone());
+            if let Value::Dict(__d) = &mut self.options.clone() { std::sync::Arc::make_mut(__d).insert("positionBalances".to_string(), balances.clone()); }
             contracts = self.parse_number(updated.clone(), &[]);
         }
         let mut parsed: Value = self.safe_prediction_position(Value::Map({

@@ -2410,7 +2410,7 @@ impl ParadexCore {
         //     "liquidation_fee": "0.2"
         // }
         //
-        add_element_to_object(&mut self.options, &Value::Str("systemConfig".to_string()), response.clone());
+        if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("systemConfig".to_string(), response.clone()); }
         return self.safe_dict_k(self.options.clone(), "systemConfig", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -2470,7 +2470,7 @@ impl ParadexCore {
         let mut msg: Value = self.eth_encode_structured_data(domain.clone(), messageTypes.clone(), message.clone());
         let mut signature: Value = self.sign_message(msg.clone(), self.privateKey.clone());
         let mut account: Value = self.retrieve_stark_account(signature.clone(), systemConfig.as_map().and_then(|__m| __m.get("paraclear_account_hash")).cloned().unwrap_or(Value::Null), systemConfig.as_map().and_then(|__m| __m.get("paraclear_account_proxy_hash")).cloned().unwrap_or(Value::Null));
-        add_element_to_object(&mut self.options, &Value::Str("paradexAccount".to_string()), account.clone());
+        if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("paradexAccount".to_string(), account.clone()); }
         return account;
 
     Value::Null
@@ -2500,9 +2500,9 @@ impl ParadexCore {
         });
         let mut msg: Value = self.starknet_encode_structured_data(domain.clone(), messageTypes.clone(), req.clone(), crate::value::get_value_k(&account, "address"));
         let mut signature: Value = self.starknet_sign(msg.clone(), crate::value::get_value_k(&account, "privateKey"));
-        add_element_to_object(&mut params, &Value::Str("signature".to_string()), signature.clone());
-        add_element_to_object(&mut params, &Value::Str("account".to_string()), crate::value::get_value_k(&account, "address"));
-        add_element_to_object(&mut params, &Value::Str("public_key".to_string()), crate::value::get_value_k(&account, "publicKey"));
+        if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("signature".to_string(), signature.clone()); }
+        if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("account".to_string(), crate::value::get_value_k(&account, "address")); }
+        if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("public_key".to_string(), crate::value::get_value_k(&account, "publicKey")); }
         let mut response: Value = self.private_post_onboarding(&[params.clone()]).await;
         return response;
 
@@ -2570,10 +2570,10 @@ impl ParadexCore {
         });
         let mut msg: Value = self.starknet_encode_structured_data(domain.clone(), messageTypes.clone(), req.clone(), crate::value::get_value_k(&account, "address"));
         let mut signature: Value = self.starknet_sign(msg.clone(), crate::value::get_value_k(&account, "privateKey"));
-        add_element_to_object(&mut params, &Value::Str("signature".to_string()), signature.clone());
-        add_element_to_object(&mut params, &Value::Str("account".to_string()), crate::value::get_value_k(&account, "address"));
+        if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("signature".to_string(), signature.clone()); }
+        if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("account".to_string(), crate::value::get_value_k(&account, "address")); }
         add_element_to_object(&mut params, &Value::Str("timestamp".to_string()), req.as_map().and_then(|__m| __m.get("timestamp")).cloned().unwrap_or(Value::Null));
-        add_element_to_object(&mut params, &Value::Str("expiration".to_string()), req.as_map().and_then(|__m| __m.get("expiration")).cloned().unwrap_or(Value::Null));
+        if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("expiration".to_string(), req.as_map().and_then(|__m| __m.get("expiration")).cloned().unwrap_or(Value::Null)); }
         let mut response: Value = self.private_post_auth(&[params.clone()]).await;
         //
         // {
@@ -2581,8 +2581,8 @@ impl ParadexCore {
         // }
         //
         let mut token: Value = self.safe_string_k(response.clone(), "jwt_token", &[]);
-        add_element_to_object(&mut self.options, &Value::Str("authToken".to_string()), token.clone());
-        add_element_to_object(&mut self.options, &Value::Str("expires".to_string()), expires.clone());
+        if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("authToken".to_string(), token.clone()); }
+        if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("expires".to_string(), expires.clone()); }
         return token;
 
     Value::Null
@@ -3555,7 +3555,7 @@ impl ParadexCore {
             let mut currencyId: Value = self.safe_string_k(balance.clone(), "token", &[]);
             let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
             let mut account: Value = self.account();
-            add_element_to_object(&mut account, &Value::Str("total".to_string()), self.safe_string_k(balance.clone(), "size", &[]));
+            if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("total".to_string(), self.safe_string_k(balance.clone(), "size", &[])); }
             if (code != Value::Null) {
                 add_element_to_object(&mut result, &code, account.clone());
             }

@@ -1482,8 +1482,8 @@ impl HollaexCore {
             let mut currencyId: Value = get_value(&currencyIds, &i);
             let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
             let mut account: Value = self.account();
-            add_element_to_object(&mut account, &Value::Str("free".to_string()), self.safe_string(response.clone(), Value::Str(format!("{}{}", currencyId, Value::Str("_available".to_string()))), &[]));
-            add_element_to_object(&mut account, &Value::Str("total".to_string()), self.safe_string(response.clone(), Value::Str(format!("{}{}", currencyId, Value::Str("_balance".to_string()))), &[]));
+            if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("free".to_string(), self.safe_string(response.clone(), Value::Str(format!("{}{}", currencyId, Value::Str("_available".to_string()))), &[])); }
+            if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("total".to_string(), self.safe_string(response.clone(), Value::Str(format!("{}{}", currencyId, Value::Str("_balance".to_string()))), &[])); }
             if (code != Value::Null) {
                 add_element_to_object(&mut result, &code, account.clone());
             }
@@ -2531,12 +2531,12 @@ impl HollaexCore {
         });
         let mut allowWithdrawal: Value = self.safe_value_k(fee.clone(), "allow_withdrawal", &[]);
         if is_equal(&allowWithdrawal, &Value::Bool(true)) {
-            add_element_to_object(&mut result, &Value::Str("withdraw".to_string()), Value::Map({
+            if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert("withdraw".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("fee".to_string(), self.safe_number_k(fee.clone(), "withdrawal_fee", &[]));
         m.insert("percentage".to_string(), Value::Bool(false));
     m
-}));
+})); }
         }
         let mut withdrawalFees: Value = self.safe_value_k(fee.clone(), "withdrawal_fees", &[]);
         if (withdrawalFees != Value::Null) {

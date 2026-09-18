@@ -1615,9 +1615,9 @@ impl DigifinexCore {
             let mut account: Value = self.account();
             let mut free: Value = self.safe_string2(balance.clone(), Value::Str("free".to_string()), Value::Str("avail_balance".to_string()), &[]);
             let mut total: Value = self.safe_string2(balance.clone(), Value::Str("total".to_string()), Value::Str("equity".to_string()), &[]);
-            add_element_to_object(&mut account, &Value::Str("free".to_string()), free.clone());
-            add_element_to_object(&mut account, &Value::Str("used".to_string()), crate::precise::Precise::stringSub(&total, &free));
-            add_element_to_object(&mut account, &Value::Str("total".to_string()), total.clone());
+            if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("free".to_string(), free.clone()); }
+            if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("used".to_string(), crate::precise::Precise::stringSub(&total, &free)); }
+            if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("total".to_string(), total.clone()); }
             if (code != Value::Null) {
                 add_element_to_object(&mut result, &code, account.clone());
             }
@@ -2871,7 +2871,7 @@ impl DigifinexCore {
         if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() != Some(true)) {
             panic!("{}", crate::exchange_errors::not_supported(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createMarketBuyOrderWithCost() supports spot orders only".to_string())))));
         }
-        add_element_to_object(&mut params, &Value::Str("createMarketBuyOrderRequiresPrice".to_string()), Value::Bool(false));
+        if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("createMarketBuyOrderRequiresPrice".to_string(), Value::Bool(false)); }
         return self.create_order(symbol.clone(), Value::Str("market".to_string()), Value::Str("buy".to_string()), cost.clone(), &[Value::Null, params.clone()]).await;
 
     Value::Null

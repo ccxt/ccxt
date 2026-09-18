@@ -1222,7 +1222,7 @@ impl DeriveCore {
 
     pub fn set_sandbox_mode(&mut self, mut enable: Value) {
         self.super_set_sandbox_mode(enable.clone());
-        add_element_to_object(&mut self.options, &Value::Str("sandboxMode".to_string()), enable.clone());
+        if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("sandboxMode".to_string(), enable.clone()); }
 }
 
 /*
@@ -3668,10 +3668,10 @@ impl DeriveCore {
                 let mut account: Value = self.safe_dict(result.clone(), code.clone(), &[]);
                 if (account == Value::Null) {
                     account = self.account();
-                    add_element_to_object(&mut account, &Value::Str("total".to_string()), self.safe_string_k(balance.clone(), "amount", &[]));
+                    if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("total".to_string(), self.safe_string_k(balance.clone(), "amount", &[])); }
                 }  else {
                     let mut amount: Value = self.safe_string_k(balance.clone(), "amount", &[]);
-                    { let __be_tmp = crate::precise::Precise::stringAdd(&crate::value::get_value_k(&account, "total"), &amount); add_element_to_object(&mut account, &Value::Str("total".to_string()), __be_tmp); };
+                    { let __be_tmp = crate::precise::Precise::stringAdd(&crate::value::get_value_k(&account, "total"), &amount); if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("total".to_string(), __be_tmp); } }
                 }
                 if (code != Value::Null) {
                     add_element_to_object(&mut result, &code, account.clone());
@@ -3876,7 +3876,7 @@ impl DeriveCore {
         let mut derivesubAccountId: Value = Value::Null;
         { let __destr_tmp = self.handle_option_and_params(params.clone(), methodName.clone(), Value::Str("subaccount_id".to_string()), &[]); derivesubAccountId = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         if is_true(&(Value::Bool(derivesubAccountId != Value::Null))) && is_true(&(Value::Bool(derivesubAccountId.as_str() != Some("")))) {
-            add_element_to_object(&mut self.options.clone(), &Value::Str("subaccount_id".to_string()), derivesubAccountId.clone()); // saving in options
+            if let Value::Dict(__d) = &mut self.options.clone() { std::sync::Arc::make_mut(__d).insert("subaccount_id".to_string(), derivesubAccountId.clone()); }; // saving in options
             return Value::List(vec![derivesubAccountId.clone(), params.clone()]);
         }
         let mut optionsWallet: Value = self.safe_string_k(self.options.clone(), "subaccount_id", &[]);
@@ -3892,7 +3892,7 @@ impl DeriveCore {
         let mut deriveWalletAddress: Value = Value::Null;
         { let __destr_tmp = self.handle_option_and_params(params.clone(), methodName.clone(), Value::Str("deriveWalletAddress".to_string()), &[]); deriveWalletAddress = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         if is_true(&(Value::Bool(deriveWalletAddress != Value::Null))) && is_true(&(Value::Bool(deriveWalletAddress.as_str() != Some("")))) {
-            add_element_to_object(&mut self.options.clone(), &Value::Str("deriveWalletAddress".to_string()), deriveWalletAddress.clone()); // saving in options
+            if let Value::Dict(__d) = &mut self.options.clone() { std::sync::Arc::make_mut(__d).insert("deriveWalletAddress".to_string(), deriveWalletAddress.clone()); }; // saving in options
             return Value::List(vec![deriveWalletAddress.clone(), params.clone()]);
         }
         let mut optionsWallet: Value = self.safe_string_k(self.options.clone(), "deriveWalletAddress", &[]);

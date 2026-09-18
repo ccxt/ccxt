@@ -2471,9 +2471,9 @@ impl HashkeyCore {
             let mut currencyId: Value = self.safe_string_k(balanceEntry.clone(), "asset", &[]);
             let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
             let mut account: Value = self.account();
-            add_element_to_object(&mut account, &Value::Str("total".to_string()), self.safe_string_k(balanceEntry.clone(), "total", &[]));
-            add_element_to_object(&mut account, &Value::Str("free".to_string()), self.safe_string_k(balanceEntry.clone(), "free", &[]));
-            add_element_to_object(&mut account, &Value::Str("used".to_string()), self.safe_string_k(balanceEntry.clone(), "locked", &[]));
+            if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("total".to_string(), self.safe_string_k(balanceEntry.clone(), "total", &[])); }
+            if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("free".to_string(), self.safe_string_k(balanceEntry.clone(), "free", &[])); }
+            if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("used".to_string(), self.safe_string_k(balanceEntry.clone(), "locked", &[])); }
             if (code != Value::Null) {
                 add_element_to_object(&mut result, &code, account.clone());
             }
@@ -2498,10 +2498,10 @@ impl HashkeyCore {
         let mut currencyId: Value = self.safe_string_k(balance.clone(), "asset", &[]);
         let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
         let mut account: Value = self.account();
-        add_element_to_object(&mut account, &Value::Str("total".to_string()), self.safe_string_k(balance.clone(), "balance", &[]));
+        if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("total".to_string(), self.safe_string_k(balance.clone(), "balance", &[])); }
         let mut positionMargin: Value = self.safe_string_k(balance.clone(), "positionMargin", &[]);
         let mut orderMargin: Value = self.safe_string_k(balance.clone(), "orderMargin", &[]);
-        add_element_to_object(&mut account, &Value::Str("used".to_string()), crate::precise::Precise::stringAdd(&positionMargin, &orderMargin));
+        if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("used".to_string(), crate::precise::Precise::stringAdd(&positionMargin, &orderMargin)); }
         let mut result: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("info".to_string(), balance.clone());
@@ -3375,7 +3375,7 @@ impl HashkeyCore {
         let mut clientOrderId: Value = Value::Null;
         { let __destr_tmp = self.handle_param_string(params.clone(), Value::Str("clientOrderId".to_string()), &[]); clientOrderId = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         if (clientOrderId != Value::Null) {
-            add_element_to_object(&mut params, &Value::Str("newClientOrderId".to_string()), clientOrderId.clone());
+            if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("newClientOrderId".to_string(), clientOrderId.clone()); }
         }
         return self.extend(request.clone(), &[params.clone()]);
 

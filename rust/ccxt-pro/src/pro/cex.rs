@@ -342,7 +342,7 @@ impl CexCore {
     pub fn request_id(&mut self) -> Value {
         self.lock_id(&[]);
         let mut requestId: Value = self.sum(&[self.safe_integer_k(self.options.clone(), "requestId", &[Value::Int(0)]), Value::Int(1)]);
-        add_element_to_object(&mut self.options, &Value::Str("requestId".to_string()), requestId.clone());
+        if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("requestId".to_string(), requestId.clone()); }
         self.unlock_id(&[]);
         return to_string_val(&requestId);
 
@@ -427,8 +427,8 @@ impl CexCore {
             let mut currencyId: Value = get_value(&currencyIds, &i);
             let mut currencyId: Value = get_value(&currencyIds, &i);
             let mut account: Value = self.account();
-            add_element_to_object(&mut account, &Value::Str("free".to_string()), self.safe_string(freeBalance.clone(), currencyId.clone(), &[]));
-            add_element_to_object(&mut account, &Value::Str("used".to_string()), self.safe_string(usedBalance.clone(), currencyId.clone(), &[]));
+            if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("free".to_string(), self.safe_string(freeBalance.clone(), currencyId.clone(), &[])); }
+            if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("used".to_string(), self.safe_string(usedBalance.clone(), currencyId.clone(), &[])); }
             let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
             if (code != Value::Null) {
                 add_element_to_object(&mut result, &code, account.clone());

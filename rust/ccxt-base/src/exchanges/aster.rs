@@ -3090,9 +3090,9 @@ impl AsterCore {
             let mut currencyId: Value = self.safe_string_k(balance.clone(), "asset", &[]);
             let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
             let mut account: Value = self.account();
-            add_element_to_object(&mut account, &Value::Str("free".to_string()), self.safe_string2(balance.clone(), Value::Str("free".to_string()), Value::Str("availableBalance".to_string()), &[]));
-            add_element_to_object(&mut account, &Value::Str("used".to_string()), self.safe_string_k(balance.clone(), "locked", &[]));
-            add_element_to_object(&mut account, &Value::Str("total".to_string()), self.safe_string_k(balance.clone(), "balance", &[]));
+            if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("free".to_string(), self.safe_string2(balance.clone(), Value::Str("free".to_string()), Value::Str("availableBalance".to_string()), &[])); }
+            if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("used".to_string(), self.safe_string_k(balance.clone(), "locked", &[])); }
+            if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("total".to_string(), self.safe_string_k(balance.clone(), "balance", &[])); }
             if (code != Value::Null) {
                 add_element_to_object(&mut result, &code, account.clone());
             }
@@ -5132,7 +5132,7 @@ impl AsterCore {
             //                },
             //                ...
             //
-            { let __be_tmp = self.create_safe_dictionary(&[]); add_element_to_object(&mut self.options, &Value::Str("leverageBrackets".to_string()), __be_tmp); };
+            { let __be_tmp = self.create_safe_dictionary(&[]); if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("leverageBrackets".to_string(), __be_tmp); } }
             let mut entries: Value = self.to_array(response.clone());
             {
                                 let mut i: Value = Value::Int(0);
@@ -5478,8 +5478,8 @@ impl AsterCore {
             let mut cachedPrivateKeyHash: Value = self.safe_string_k(self.options.clone(), "privateKeyHashForCachedWalletAddress", &[]);
             if is_true(&(Value::Bool(walletAddress == Value::Null))) || (!is_equal(&cachedPrivateKeyHash, &privateKeyHash)) {
                 walletAddress = self.eth_get_address_from_private_key(self.privateKey.clone(), &[]);
-                add_element_to_object(&mut self.options.clone(), &Value::Str("cachedWalletAddress".to_string()), walletAddress.clone());
-                add_element_to_object(&mut self.options.clone(), &Value::Str("privateKeyHashForCachedWalletAddress".to_string()), privateKeyHash.clone());
+                if let Value::Dict(__d) = &mut self.options.clone() { std::sync::Arc::make_mut(__d).insert("cachedWalletAddress".to_string(), walletAddress.clone()); }
+                if let Value::Dict(__d) = &mut self.options.clone() { std::sync::Arc::make_mut(__d).insert("privateKeyHashForCachedWalletAddress".to_string(), privateKeyHash.clone()); }
             }
             let mut signerAddress: Value = self.safe_string_k(self.options.clone(), "signerAddress", &[walletAddress.clone()]); // default to user's wallet
             if (signerAddress == Value::Null) {
@@ -5711,7 +5711,7 @@ impl AsterCore {
         }
         }
         if !found {
-            add_element_to_object(&mut self.options, &Value::Str("approvedBuilderFee".to_string()), Value::Bool(true));
+            if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("approvedBuilderFee".to_string(), Value::Bool(true)); }
             let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
                 let mut request: Value = Value::Map({
                     let mut m = indexmap::IndexMap::new();
@@ -5733,8 +5733,8 @@ impl AsterCore {
                 }
              #[allow(unreachable_code)] { Value::Null }})).await;
 if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
-                add_element_to_object(&mut self.options, &Value::Str("approvedBuilderFee".to_string()), Value::Bool(false));
-                add_element_to_object(&mut self.options, &Value::Str("builderFee".to_string()), Value::Bool(false)); // disable if err
+                if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("approvedBuilderFee".to_string(), Value::Bool(false)); }
+                if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("builderFee".to_string(), Value::Bool(false)); }; // disable if err
             }
         }
         return Value::Null;

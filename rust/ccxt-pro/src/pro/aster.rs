@@ -431,7 +431,7 @@ impl AsterCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        add_element_to_object(&mut params, &Value::Str("callerMethodName".to_string()), Value::Str("watchTicker".to_string()));
+        if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("callerMethodName".to_string(), Value::Str("watchTicker".to_string())); }
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
@@ -463,7 +463,7 @@ impl AsterCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        add_element_to_object(&mut params, &Value::Str("callerMethodName".to_string()), Value::Str("unWatchTicker".to_string()));
+        if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("callerMethodName".to_string(), Value::Str("unWatchTicker".to_string())); }
         return self.un_watch_tickers(&[Value::List(vec![symbol.clone()]), params.clone()]).await;
 
     Value::Null
@@ -616,7 +616,7 @@ impl AsterCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        add_element_to_object(&mut params, &Value::Str("callerMethodName".to_string()), Value::Str("watchMarkPrice".to_string()));
+        if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("callerMethodName".to_string(), Value::Str("watchMarkPrice".to_string())); }
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
@@ -643,7 +643,7 @@ impl AsterCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        add_element_to_object(&mut params, &Value::Str("callerMethodName".to_string()), Value::Str("unWatchMarkPrice".to_string()));
+        if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("callerMethodName".to_string(), Value::Str("unWatchMarkPrice".to_string())); }
         return self.un_watch_mark_prices(&[Value::List(vec![symbol.clone()]), params.clone()]).await;
 
     Value::Null
@@ -1064,7 +1064,7 @@ impl AsterCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        add_element_to_object(&mut params, &Value::Str("callerMethodName".to_string()), Value::Str("watchTrades".to_string()));
+        if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("callerMethodName".to_string(), Value::Str("watchTrades".to_string())); }
         return self.watch_trades_for_symbols(Value::List(vec![symbol.clone()]), &[since.clone(), limit.clone(), params.clone()]).await;
 
     Value::Null
@@ -1086,7 +1086,7 @@ impl AsterCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        add_element_to_object(&mut params, &Value::Str("callerMethodName".to_string()), Value::Str("unWatchTrades".to_string()));
+        if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("callerMethodName".to_string(), Value::Str("unWatchTrades".to_string())); }
         return self.un_watch_trades_for_symbols(Value::List(vec![symbol.clone()]), &[params.clone()]).await;
 
     Value::Null
@@ -1423,7 +1423,7 @@ impl AsterCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        add_element_to_object(&mut params, &Value::Str("callerMethodName".to_string()), Value::Str("watchOrderBook".to_string()));
+        if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("callerMethodName".to_string(), Value::Str("watchOrderBook".to_string())); }
         return self.watch_order_book_for_symbols(Value::List(vec![symbol.clone()]), &[limit.clone(), params.clone()]).await;
 
     Value::Null
@@ -1447,7 +1447,7 @@ impl AsterCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        add_element_to_object(&mut params, &Value::Str("callerMethodName".to_string()), Value::Str("unWatchOrderBook".to_string()));
+        if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("callerMethodName".to_string(), Value::Str("unWatchOrderBook".to_string())); }
         return self.un_watch_order_book_for_symbols(Value::List(vec![symbol.clone()]), &[params.clone()]).await;
 
     Value::Null
@@ -1641,7 +1641,7 @@ impl AsterCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        add_element_to_object(&mut params, &Value::Str("callerMethodName".to_string()), Value::Str("watchOHLCV".to_string()));
+        if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("callerMethodName".to_string(), Value::Str("watchOHLCV".to_string())); }
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
@@ -1669,7 +1669,7 @@ impl AsterCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        add_element_to_object(&mut params, &Value::Str("callerMethodName".to_string()), Value::Str("unWatchOHLCV".to_string()));
+        if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("callerMethodName".to_string(), Value::Str("unWatchOHLCV".to_string())); }
         return self.un_watch_ohlcv_for_symbols(Value::List(vec![Value::List(vec![symbol.clone(), timeframe.clone()])]), &[params.clone()]).await;
 
     Value::Null
@@ -2170,9 +2170,9 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
             let mut currencyId: Value = self.safe_string_k(entry.clone(), "a", &[]);
             let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
             let mut account: Value = self.account();
-            add_element_to_object(&mut account, &Value::Str("free".to_string()), self.safe_string_k(entry.clone(), "f", &[]));
-            add_element_to_object(&mut account, &Value::Str("used".to_string()), self.safe_string_k(entry.clone(), "l", &[]));
-            add_element_to_object(&mut account, &Value::Str("total".to_string()), self.safe_string(entry.clone(), wallet.clone(), &[]));
+            if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("free".to_string(), self.safe_string_k(entry.clone(), "f", &[])); }
+            if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("used".to_string(), self.safe_string_k(entry.clone(), "l", &[])); }
+            if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("total".to_string(), self.safe_string(entry.clone(), wallet.clone(), &[])); }
             if is_true(&(Value::Bool(accountType != Value::Null))) && is_true(&(Value::Bool(code != Value::Null))) {
                 add_element_to_object(get_value_mut(unsafe { crate::runtime::coerce_value_to_mut(&self.balance) }, &accountType), &code, account.clone());
             }

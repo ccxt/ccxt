@@ -2298,8 +2298,8 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
             let mut hashedChallenge: Value = self.hash(self.encode(challenge.clone()), Value::Str("sha256".to_string()), &[Value::Str("binary".to_string())]);
             let mut base64Secret: Value = self.base64_to_binary(self.secret.clone(), &[]);
             let mut signature: Value = self.hmac(hashedChallenge.clone(), base64Secret.clone(), Value::Str("sha512".to_string()), &[Value::Str("base64".to_string())]);
-            add_element_to_object(&mut self.options, &Value::Str("challenge".to_string()), challenge.clone());
-            add_element_to_object(&mut self.options, &Value::Str("signedChallenge".to_string()), signature.clone());
+            if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("challenge".to_string(), challenge.clone()); }
+            if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("signedChallenge".to_string(), signature.clone()); }
             let mut future: Value = self.safe_value(get_value(&client, &Value::Str("futures".to_string())), messageHash.clone(), &[]);
             future.resolve(&[Value::Bool(true)]);
         }  else {

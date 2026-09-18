@@ -4046,7 +4046,7 @@ impl KucoinCore {
         let mut force = get_arg(optional_args, 0, Value::Bool(false));
         if !is_true(&(Value::Bool(in_op(&self.options, &Value::Str("hf".to_string()))))) || is_true(&(Value::Bool(self.options.as_map().and_then(|__m| __m.get("hf")).cloned().unwrap_or(Value::Null) == Value::Null))) || is_true(&force) {
             let mut result: Value = self.private_get_hf_accounts_opened(&[]).await;
-            { let __be_tmp = self.safe_bool_k(result.clone(), "data", &[]); add_element_to_object(&mut self.options, &Value::Str("hf".to_string()), __be_tmp); };
+            { let __be_tmp = self.safe_bool_k(result.clone(), "data", &[]); if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("hf".to_string(), __be_tmp); } }
         }
         return Value::Bool(true);
 
@@ -10810,12 +10810,12 @@ impl KucoinCore {
 
     pub fn parse_balance_helper(&self, mut entry: Value) -> Value {
         let mut account: Value = self.account();
-        add_element_to_object(&mut account, &Value::Str("used".to_string()), self.safe_string2(entry.clone(), Value::Str("holdBalance".to_string()), Value::Str("hold".to_string()), &[]));
-        add_element_to_object(&mut account, &Value::Str("free".to_string()), self.safe_string2(entry.clone(), Value::Str("availableBalance".to_string()), Value::Str("available".to_string()), &[]));
-        add_element_to_object(&mut account, &Value::Str("total".to_string()), self.safe_string2(entry.clone(), Value::Str("totalBalance".to_string()), Value::Str("total".to_string()), &[]));
+        if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("used".to_string(), self.safe_string2(entry.clone(), Value::Str("holdBalance".to_string()), Value::Str("hold".to_string()), &[])); }
+        if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("free".to_string(), self.safe_string2(entry.clone(), Value::Str("availableBalance".to_string()), Value::Str("available".to_string()), &[])); }
+        if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("total".to_string(), self.safe_string2(entry.clone(), Value::Str("totalBalance".to_string()), Value::Str("total".to_string()), &[])); }
         let mut debt: Value = self.safe_string_k(entry.clone(), "liability", &[]);
         let mut interest: Value = self.safe_string_k(entry.clone(), "interest", &[]);
-        add_element_to_object(&mut account, &Value::Str("debt".to_string()), crate::precise::Precise::stringAdd(&debt, &interest));
+        if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("debt".to_string(), crate::precise::Precise::stringAdd(&debt, &interest)); }
         return account;
 
     Value::Null
@@ -11044,9 +11044,9 @@ impl KucoinCore {
                     let mut currencyId: Value = self.safe_string_k(balance.clone(), "currency", &[]);
                     let mut codeInner2: Value = self.safe_currency_code(currencyId.clone(), &[]);
                     let mut account: Value = self.account();
-                    add_element_to_object(&mut account, &Value::Str("total".to_string()), self.safe_string_k(balance.clone(), "balance", &[]));
-                    add_element_to_object(&mut account, &Value::Str("free".to_string()), self.safe_string_k(balance.clone(), "available", &[]));
-                    add_element_to_object(&mut account, &Value::Str("used".to_string()), self.safe_string_k(balance.clone(), "holds", &[]));
+                    if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("total".to_string(), self.safe_string_k(balance.clone(), "balance", &[])); }
+                    if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("free".to_string(), self.safe_string_k(balance.clone(), "available", &[])); }
+                    if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("used".to_string(), self.safe_string_k(balance.clone(), "holds", &[])); }
                     if (codeInner2 != Value::Null) {
                         add_element_to_object(&mut result, &codeInner2, account.clone());
                     }
@@ -11121,8 +11121,8 @@ impl KucoinCore {
         let mut currencyId: Value = self.safe_string_k(data.clone(), "currency", &[]);
         let mut currencyCode: Value = self.safe_currency_code(currencyId.clone(), &[currency.clone()]);
         let mut account: Value = self.account();
-        add_element_to_object(&mut account, &Value::Str("free".to_string()), self.safe_string_k(data.clone(), "availableBalance", &[]));
-        add_element_to_object(&mut account, &Value::Str("total".to_string()), self.safe_string_k(data.clone(), "accountEquity", &[]));
+        if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("free".to_string(), self.safe_string_k(data.clone(), "availableBalance", &[])); }
+        if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("total".to_string(), self.safe_string_k(data.clone(), "accountEquity", &[])); }
         if (currencyCode != Value::Null) {
             add_element_to_object(&mut result, &currencyCode, account.clone());
         }
@@ -15008,7 +15008,7 @@ if let Err(_try_err) = _try_result { let exc: Value = panic_to_value(_try_err);
 })]);
             let mut accountMode: Value = self.safe_string_k(data.clone(), "selfAccountMode", &[]);
             uta = (Value::Bool(accountMode.as_str() == Some("UNIFIED")));
-            add_element_to_object(&mut self.options, &Value::Str("uta".to_string()), uta.clone());
+            if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("uta".to_string(), uta.clone()); }
         }
         return uta;
 

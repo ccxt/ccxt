@@ -2192,8 +2192,8 @@ impl BackpackCore {
             let mut locked: Value = self.safe_string_k(balance.clone(), "locked", &[]);
             let mut staked: Value = self.safe_string_k(balance.clone(), "staked", &[]);
             let mut used: Value = crate::precise::Precise::stringAdd(&locked, &staked);
-            add_element_to_object(&mut account, &Value::Str("free".to_string()), self.safe_string_k(balance.clone(), "available", &[]));
-            add_element_to_object(&mut account, &Value::Str("used".to_string()), used.clone());
+            if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("free".to_string(), self.safe_string_k(balance.clone(), "available", &[])); }
+            if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("used".to_string(), used.clone()); }
             if (code != Value::Null) {
                 add_element_to_object(&mut result, &code, account.clone());
             }

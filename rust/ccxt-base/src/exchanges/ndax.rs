@@ -1099,7 +1099,7 @@ impl NdaxCore {
         //
         let mut sessionToken: Value = self.safe_string_k(response.clone(), "SessionToken", &[]);
         if (sessionToken != Value::Null) {
-            add_element_to_object(&mut self.options, &Value::Str("sessionToken".to_string()), sessionToken.clone());
+            if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("sessionToken".to_string(), sessionToken.clone()); }
             return response;
         }
         let mut pending2faToken: Value = self.safe_string_k(response.clone(), "Pending2FaToken", &[]);
@@ -1107,7 +1107,7 @@ impl NdaxCore {
             if (self.twofa.clone() == Value::Null) {
                 panic!("{}", crate::exchange_errors::authentication_error(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" signIn() requires exchange.twofa credentials".to_string())))));
             }
-            add_element_to_object(&mut self.options, &Value::Str("pending2faToken".to_string()), pending2faToken.clone());
+            if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("pending2faToken".to_string(), pending2faToken.clone()); }
             request = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("Code".to_string(), totp(self.twofa.clone()));
@@ -1123,7 +1123,7 @@ impl NdaxCore {
             //     }
             //
             sessionToken = self.safe_string_k(responseInner.clone(), "SessionToken", &[]);
-            add_element_to_object(&mut self.options, &Value::Str("sessionToken".to_string()), sessionToken.clone());
+            if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("sessionToken".to_string(), sessionToken.clone()); }
             return responseInner;
         }
         return response;
@@ -1354,8 +1354,8 @@ impl NdaxCore {
             crate::runtime::append_to_object_array(&mut result, &side, bidask.clone());
         }
         }
-        { let __be_tmp = self.sort_by(crate::value::get_value_k(&result, "bids"), Value::Int(0), &[Value::Bool(true)]); add_element_to_object(&mut result, &Value::Str("bids".to_string()), __be_tmp); };
-        { let __be_tmp = self.sort_by(crate::value::get_value_k(&result, "asks"), Value::Int(0), &[]); add_element_to_object(&mut result, &Value::Str("asks".to_string()), __be_tmp); };
+        { let __be_tmp = self.sort_by(crate::value::get_value_k(&result, "bids"), Value::Int(0), &[Value::Bool(true)]); if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert("bids".to_string(), __be_tmp); } }
+        { let __be_tmp = self.sort_by(crate::value::get_value_k(&result, "asks"), Value::Int(0), &[]); if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert("asks".to_string(), __be_tmp); } }
         add_element_to_object(&mut result, &Value::Str("timestamp".to_string()), timestamp.clone());
         add_element_to_object(&mut result, &Value::Str("datetime".to_string()), self.iso8601(timestamp.clone()));
         add_element_to_object(&mut result, &Value::Str("nonce".to_string()), nonce.clone());
@@ -1923,8 +1923,8 @@ impl NdaxCore {
             if is_true(&(Value::Bool(currencyId != Value::Null))) && is_true(&(Value::Bool(self.currencies_by_id.clone() != Value::Null))) && is_true(&(Value::Bool(in_op(&self.currencies_by_id, &currencyId)))) {
                 let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
                 let mut account: Value = self.account();
-                add_element_to_object(&mut account, &Value::Str("total".to_string()), self.safe_string_k(balance.clone(), "Amount", &[]));
-                add_element_to_object(&mut account, &Value::Str("used".to_string()), self.safe_string_k(balance.clone(), "Hold", &[]));
+                if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("total".to_string(), self.safe_string_k(balance.clone(), "Amount", &[])); }
+                if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("used".to_string(), self.safe_string_k(balance.clone(), "Hold", &[])); }
                 if (code != Value::Null) {
                     add_element_to_object(&mut result, &code, account.clone());
                 }

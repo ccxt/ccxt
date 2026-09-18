@@ -1834,8 +1834,8 @@ impl CexCore {
         if (feeAmount != Value::Null) {
             let mut currencyId: Value = self.safe_string_k(order.clone(), "feeCurrency", &[]);
             let mut feeCode: Value = self.safe_currency_code(currencyId.clone(), &[]);
-            add_element_to_object(&mut fee, &Value::Str("currency".to_string()), feeCode.clone());
-            add_element_to_object(&mut fee, &Value::Str("cost".to_string()), feeAmount.clone());
+            if let Value::Dict(__d) = &mut fee { std::sync::Arc::make_mut(__d).insert("currency".to_string(), feeCode.clone()); }
+            if let Value::Dict(__d) = &mut fee { std::sync::Arc::make_mut(__d).insert("cost".to_string(), feeAmount.clone()); }
         }
         let mut timestamp: Value = self.safe_integer_k(order.clone(), "serverCreateTimestamp", &[]);
         let mut requestedBase: Value = self.safe_number_k(order.clone(), "requestedAmountCcy1", &[]);

@@ -1341,7 +1341,7 @@ impl OpinionCore {
             }
         }
         }
-        add_element_to_object(&mut self.options, &Value::Str("quoteTokens".to_string()), quoteTokens.clone());
+        if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("quoteTokens".to_string(), quoteTokens.clone()); }
         let mut quoteToken: Value = self.safe_dict(quoteTokens.clone(), cacheKey.clone(), &[]);
         if (quoteToken == Value::Null) {
             panic!("{}", crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" loadQuoteToken() could not find quote token ".to_string()))), quoteTokenAddress))));
@@ -1376,7 +1376,7 @@ impl OpinionCore {
     m
 })]);
         let mut multiSignAddress: Value = self.safe_string_k(walletUsers.clone(), "56", &[self.walletAddress.clone()]);
-        add_element_to_object(&mut self.options, &Value::Str("multiSignAddress".to_string()), multiSignAddress.clone());
+        if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("multiSignAddress".to_string(), multiSignAddress.clone()); }
         return multiSignAddress;
 
     Value::Null
@@ -2407,7 +2407,7 @@ impl OpinionCore {
     m
 }));
         let mut response: Value = self.opinion_private_delete_auth_api_key(&[params.clone()]).await;
-        add_element_to_object(&mut self.options, &Value::Str("apiKey".to_string()), Value::Null);
+        if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("apiKey".to_string(), Value::Null); }
         // sign() prefers this.apiKey over options['apiKey'] - clear it too, or a directly-set
         // exchange.apiKey would keep being used for private calls after the key is revoked.
         // an empty string, not undefined: the strict base types the credential as string, and
@@ -2463,7 +2463,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("walletAddress".to_string(), self.safe_string_k(response.clone(), "walletAddress", &[]));
             m
         });
-        add_element_to_object(&mut self.options.clone(), &Value::Str("apiKey".to_string()), creds.as_map().and_then(|__m| __m.get("apiKey")).cloned().unwrap_or(Value::Null));
+        if let Value::Dict(__d) = &mut self.options.clone() { std::sync::Arc::make_mut(__d).insert("apiKey".to_string(), creds.as_map().and_then(|__m| __m.get("apiKey")).cloned().unwrap_or(Value::Null)); }
         // checkRequiredCredentials() (called by createOrder()) checks this.apiKey, not
         // options['apiKey'] - keep both in sync, same as deleteApiKey() clearing both
         self.apiKey = creds.as_map().and_then(|__m| __m.get("apiKey")).cloned().unwrap_or(Value::Null);

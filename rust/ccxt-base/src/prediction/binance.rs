@@ -1386,8 +1386,8 @@ impl BinanceCore {
             if (accountType.as_str() == type_var.as_str()) {
                 let mut free: Value = self.safe_string_k(balance.clone(), "availableBalanceDisplay", &[]);
                 let mut account: Value = self.account();
-                add_element_to_object(&mut account, &Value::Str("free".to_string()), free.clone());
-                add_element_to_object(&mut result, &Value::Str("USDT".to_string()), account.clone());
+                if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("free".to_string(), free.clone()); }
+                if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert("USDT".to_string(), account.clone()); }
             }
         }
         }
@@ -2143,7 +2143,7 @@ impl BinanceCore {
         let mut wallets: Value = self.safe_list_k(response.clone(), "wallets", &[Value::List(vec![])]);
         if (walletAddress == Value::Null) {
             cachedWallet = self.safe_dict(wallets.clone(), Value::Int(0), &[]);
-            add_element_to_object(&mut self.options, &Value::Str("wallet".to_string()), cachedWallet.clone());
+            if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("wallet".to_string(), cachedWallet.clone()); }
             return cachedWallet;
         }
         let mut walletLength: Value = Value::Int(wallets.len() as i64);
@@ -2161,7 +2161,7 @@ impl BinanceCore {
         if (cachedWallet == Value::Null) {
             panic!("{}", crate::exchange_errors::not_supported(Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str("fetchWallet could'n find wallet ".to_string()))), walletAddress))));
         }
-        add_element_to_object(&mut self.options, &Value::Str("wallet".to_string()), cachedWallet.clone());
+        if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("wallet".to_string(), cachedWallet.clone()); }
         return cachedWallet;
 
     Value::Null

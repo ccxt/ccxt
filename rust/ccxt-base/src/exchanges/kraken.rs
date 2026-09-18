@@ -1257,7 +1257,7 @@ impl KrakenCore {
             }));
         }
         }
-        { let __be_tmp = self.index_by(result.clone(), Value::Str("altname".to_string())); add_element_to_object(&mut self.options, &Value::Str("marketsByAltname".to_string()), __be_tmp); };
+        { let __be_tmp = self.index_by(result.clone(), Value::Str("altname".to_string())); if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("marketsByAltname".to_string(), __be_tmp); } }
         return result;
 
     Value::Null
@@ -2358,8 +2358,8 @@ impl KrakenCore {
                 m
             })]);
             let mut account: Value = self.account();
-            add_element_to_object(&mut account, &Value::Str("used".to_string()), self.safe_string_k(balance.clone(), "hold_trade", &[]));
-            add_element_to_object(&mut account, &Value::Str("total".to_string()), self.safe_string_k(balance.clone(), "balance", &[]));
+            if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("used".to_string(), self.safe_string_k(balance.clone(), "hold_trade", &[])); }
+            if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("total".to_string(), self.safe_string_k(balance.clone(), "balance", &[])); }
             if (code != Value::Null) {
                 add_element_to_object(&mut result, &code, account.clone());
             }
@@ -2505,7 +2505,7 @@ impl KrakenCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        add_element_to_object(&mut result, &Value::Str("usingCost".to_string()), isUsingCost.clone());
+        if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert("usingCost".to_string(), isUsingCost.clone()); }
         return self.parse_order(result.clone(), &[]);
 
     Value::Null
@@ -2880,9 +2880,9 @@ impl KrakenCore {
                     m
                 });
                 if get_index_of(&flags, &Value::Str("fciq".to_string())).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN) {
-                    add_element_to_object(&mut fee, &Value::Str("currency".to_string()), market.as_map().and_then(|__m| __m.get("quote")).cloned().unwrap_or(Value::Null));
+                    if let Value::Dict(__d) = &mut fee { std::sync::Arc::make_mut(__d).insert("currency".to_string(), market.as_map().and_then(|__m| __m.get("quote")).cloned().unwrap_or(Value::Null)); }
                 }  else if get_index_of(&flags, &Value::Str("fcib".to_string())).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN) {
-                    add_element_to_object(&mut fee, &Value::Str("currency".to_string()), market.as_map().and_then(|__m| __m.get("base")).cloned().unwrap_or(Value::Null));
+                    if let Value::Dict(__d) = &mut fee { std::sync::Arc::make_mut(__d).insert("currency".to_string(), market.as_map().and_then(|__m| __m.get("base")).cloned().unwrap_or(Value::Null)); }
                 }
             }
         }

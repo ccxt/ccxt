@@ -811,7 +811,7 @@ impl HollaexCore {
             expires = to_string_val(&expires);
             // we need to memoize these values to avoid generating a new url on each method execution
             // that would trigger a new connection on each received message
-            add_element_to_object(&mut self.options, &Value::Str("ws-expires".to_string()), expires.clone());
+            if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("ws-expires".to_string(), expires.clone()); }
         }
         let mut url: Value = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null);
         let mut auth: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("CONNECT".to_string()), Value::Str("/stream".to_string()))), expires));
@@ -986,12 +986,12 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 }
 
     pub fn on_error(&mut self, mut client: Value, mut error: Value) {
-        add_element_to_object(&mut self.options, &Value::Str("ws-expires".to_string()), Value::Null);
+        if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("ws-expires".to_string(), Value::Null); }
         self.parent.on_error(&[client.clone(), error.clone()]);
 }
 
     pub fn on_close(&mut self, mut client: Value, mut error: Value) {
-        add_element_to_object(&mut self.options, &Value::Str("ws-expires".to_string()), Value::Null);
+        if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("ws-expires".to_string(), Value::Null); }
         self.parent.on_close(&[client.clone(), error.clone()]);
 }
 }

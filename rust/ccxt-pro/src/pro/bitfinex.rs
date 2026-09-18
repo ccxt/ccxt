@@ -1368,9 +1368,9 @@ impl BitfinexCore {
         let mut availableBalance: Value = self.safe_string(balance.clone(), Value::Int(4), &[]);
         let mut account: Value = self.account();
         if (availableBalance != Value::Null) {
-            add_element_to_object(&mut account, &Value::Str("free".to_string()), availableBalance.clone());
+            if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("free".to_string(), availableBalance.clone()); }
         }
-        add_element_to_object(&mut account, &Value::Str("total".to_string()), totalBalance.clone());
+        if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("total".to_string(), totalBalance.clone()); }
         return account;
 
     Value::Null

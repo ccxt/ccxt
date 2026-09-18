@@ -1673,8 +1673,8 @@ impl BitmexCore {
             let mut account: Value = self.account();
             let mut free: Value = self.safe_string_k(balance.clone(), "availableMargin", &[]);
             let mut total: Value = self.safe_string_k(balance.clone(), "marginBalance", &[]);
-            add_element_to_object(&mut account, &Value::Str("free".to_string()), self.convert_to_real_amount(code.clone(), free.clone()));
-            add_element_to_object(&mut account, &Value::Str("total".to_string()), self.convert_to_real_amount(code.clone(), total.clone()));
+            if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("free".to_string(), self.convert_to_real_amount(code.clone(), free.clone())); }
+            if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("total".to_string(), self.convert_to_real_amount(code.clone(), total.clone())); }
             if (code != Value::Null) {
                 add_element_to_object(&mut result, &code, account.clone());
             }
@@ -1771,8 +1771,8 @@ impl BitmexCore {
             }
         }
         }
-        { let __be_tmp = self.sort_by(crate::value::get_value_k(&result, "bids"), Value::Int(0), &[Value::Bool(true)]); add_element_to_object(&mut result, &Value::Str("bids".to_string()), __be_tmp); };
-        { let __be_tmp = self.sort_by(crate::value::get_value_k(&result, "asks"), Value::Int(0), &[]); add_element_to_object(&mut result, &Value::Str("asks".to_string()), __be_tmp); };
+        { let __be_tmp = self.sort_by(crate::value::get_value_k(&result, "bids"), Value::Int(0), &[Value::Bool(true)]); if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert("bids".to_string(), __be_tmp); } }
+        { let __be_tmp = self.sort_by(crate::value::get_value_k(&result, "asks"), Value::Int(0), &[]); if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert("asks".to_string(), __be_tmp); } }
         return result;
 
     Value::Null

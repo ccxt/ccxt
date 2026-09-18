@@ -1159,7 +1159,7 @@ impl GeminiCore {
         //        ]
         //    }
         //
-        { let __be_tmp = self.safe_list_k(data.clone(), "tradingPairs", &[]); add_element_to_object(&mut self.options, &Value::Str("tradingPairs".to_string()), __be_tmp); };
+        { let __be_tmp = self.safe_list_k(data.clone(), "tradingPairs", &[]); if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("tradingPairs".to_string(), __be_tmp); } }
         let mut currenciesArray: Value = self.safe_value_k(data.clone(), "currencies", &[Value::List(vec![])]);
         return self.parse_currencies(currenciesArray.clone());
 
@@ -2121,8 +2121,8 @@ impl GeminiCore {
             let mut currencyId: Value = self.safe_string_k(balance.clone(), "currency", &[]);
             let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
             let mut account: Value = self.account();
-            add_element_to_object(&mut account, &Value::Str("free".to_string()), self.safe_string_k(balance.clone(), "available", &[]));
-            add_element_to_object(&mut account, &Value::Str("total".to_string()), self.safe_string_k(balance.clone(), "amount", &[]));
+            if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("free".to_string(), self.safe_string_k(balance.clone(), "available", &[])); }
+            if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("total".to_string(), self.safe_string_k(balance.clone(), "amount", &[])); }
             if (code != Value::Null) {
                 add_element_to_object(&mut result, &code, account.clone());
             }

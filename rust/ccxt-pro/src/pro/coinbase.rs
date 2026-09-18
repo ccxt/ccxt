@@ -386,7 +386,7 @@ impl CoinbaseCore {
         if is_true(&self.safe_bool_k(self.options.clone(), "unSubscriptionPending", &[Value::Bool(false)])) {
             panic!("{}", crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" another unSubscription is pending, coinbase does not support concurrent unSubscriptions".to_string())))));
         }
-        add_element_to_object(&mut self.options, &Value::Str("unSubscriptionPending".to_string()), Value::Bool(true));
+        if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("unSubscriptionPending".to_string(), Value::Bool(true)); }
         let mut market: Value = Value::Null;
         let mut watchMessageHash: Value = name.clone();
         let mut unWatchMessageHash: Value = Value::Str(format!("{}{}", Value::Str("unsubscribe:".to_string()), name));
@@ -429,10 +429,10 @@ impl CoinbaseCore {
             let __ws_arg_1 = self.create_ws_auth(name.clone(), productIds.clone());
             message = self.extend(message.clone(), &[__ws_arg_1]);
         }
-        add_element_to_object(&mut self.options, &Value::Str("unSubscription".to_string()), subscription.clone());
+        if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("unSubscription".to_string(), subscription.clone()); }
         let mut res: Value = self.watch(url.clone(), unWatchMessageHash.clone(), &[message.clone(), unWatchMessageHash.clone(), subscription.clone()]).await;
-        add_element_to_object(&mut self.options, &Value::Str("unSubscriptionPending".to_string()), Value::Bool(false));
-        add_element_to_object(&mut self.options, &Value::Str("unSubscription".to_string()), Value::Null);
+        if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("unSubscriptionPending".to_string(), Value::Bool(false)); }
+        if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("unSubscription".to_string(), Value::Null); }
         return res;
 
     Value::Null
@@ -511,7 +511,7 @@ impl CoinbaseCore {
         if is_true(&self.safe_bool_k(self.options.clone(), "unSubscriptionPending", &[Value::Bool(false)])) {
             panic!("{}", crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" another unSubscription is pending, coinbase does not support concurrent unSubscriptions".to_string())))));
         }
-        add_element_to_object(&mut self.options, &Value::Str("unSubscriptionPending".to_string()), Value::Bool(true));
+        if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("unSubscriptionPending".to_string(), Value::Bool(true)); }
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
@@ -553,10 +553,10 @@ impl CoinbaseCore {
                 m.insert("symbols".to_string(), symbols.clone());
             m
         });
-        add_element_to_object(&mut self.options, &Value::Str("unSubscription".to_string()), subscription.clone());
+        if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("unSubscription".to_string(), subscription.clone()); }
         let mut res: Value = self.watch_multiple(url.clone(), unWatchMessageHashes.clone(), &[message.clone(), unWatchMessageHashes.clone(), subscription.clone()]).await;
-        add_element_to_object(&mut self.options, &Value::Str("unSubscriptionPending".to_string()), Value::Bool(false));
-        add_element_to_object(&mut self.options, &Value::Str("unSubscription".to_string()), Value::Null);
+        if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("unSubscriptionPending".to_string(), Value::Bool(false)); }
+        if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("unSubscription".to_string(), Value::Null); }
         return res;
 
     Value::Null
@@ -585,8 +585,8 @@ impl CoinbaseCore {
             if (currentToken == Value::Null) || (match (&(tokenTimestamp), &(Value::Int(120))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }).as_f64().unwrap_or(f64::NAN) < seconds.as_f64().unwrap_or(f64::NAN) {
                 // we should generate new token
                 let mut token: Value = self.parent.create_auth_token(seconds.clone(), &[]);
-                add_element_to_object(&mut self.options, &Value::Str("wsToken".to_string()), token.clone());
-                add_element_to_object(&mut self.options, &Value::Str("wsTokenTimestamp".to_string()), seconds.clone());
+                if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("wsToken".to_string(), token.clone()); }
+                if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("wsTokenTimestamp".to_string(), seconds.clone()); }
             }
             add_element_to_object(&mut subscribe, &Value::Str("jwt".to_string()), self.safe_string_k(self.options.clone(), "wsToken", &[]));
         }

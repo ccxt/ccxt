@@ -475,7 +475,7 @@ impl KucoinCore {
         // so that multiple calls don't asynchronously
         // fetch different urls and overwrite each other
         add_element_to_object(&mut urls, &connectId, self.call_dynamic("negotiate_helper", vec![privateChannel.clone(), connectId.clone(), params.clone()]).await);
-        add_element_to_object(&mut self.options, &Value::Str("urls".to_string()), urls.clone());
+        if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("urls".to_string(), urls.clone()); }
         future = get_value(&urls, &connectId);
         return future;
 
@@ -531,7 +531,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     pub fn request_id(&mut self) -> Value {
         self.lock_id(&[]);
         let mut requestId: Value = self.sum(&[self.safe_integer_k(self.options.clone(), "requestId", &[Value::Int(0)]), Value::Int(1)]);
-        add_element_to_object(&mut self.options, &Value::Str("requestId".to_string()), requestId.clone());
+        if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("requestId".to_string(), requestId.clone()); }
         self.unlock_id(&[]);
         return requestId;
 
@@ -670,12 +670,12 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                         m
                     })]);
                     let mut utaTokenString: Value = self.safe_string_k(data.clone(), "token", &[]);
-                    add_element_to_object(&mut self.options, &Value::Str("utaTokenLastUpdate".to_string()), now.clone());
-                    add_element_to_object(&mut self.options, &Value::Str("utaToken".to_string()), utaTokenString.clone());
+                    if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("utaTokenLastUpdate".to_string(), now.clone()); }
+                    if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("utaToken".to_string(), utaTokenString.clone()); }
                     client.resolve(&[utaTokenString.clone(), messageHash.clone()]);
                  #[allow(unreachable_code)] { Value::Null }})).await;
 if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
-                    add_element_to_object(&mut self.options, &Value::Str("utaToken".to_string()), Value::Null);
+                    if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("utaToken".to_string(), Value::Null); }
                     client.reject(&[e.clone(), messageHash.clone()]);
                 }
             }
@@ -3586,9 +3586,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (isolatedPosMargin != Value::Null) {
             used = crate::precise::Precise::stringAdd(&used, &isolatedPosMargin);
         }
-        add_element_to_object(&mut account, &Value::Str("free".to_string()), self.safe_string2(data.clone(), Value::Str("available".to_string()), Value::Str("availableBalance".to_string()), &[]));
-        add_element_to_object(&mut account, &Value::Str("used".to_string()), used.clone());
-        add_element_to_object(&mut account, &Value::Str("total".to_string()), self.safe_string_k(data.clone(), "total", &[]));
+        if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("free".to_string(), self.safe_string2(data.clone(), Value::Str("available".to_string()), Value::Str("availableBalance".to_string()), &[])); }
+        if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("used".to_string(), used.clone()); }
+        if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("total".to_string(), self.safe_string_k(data.clone(), "total", &[])); }
         if is_true(&(Value::Bool(uniformType != Value::Null))) && is_true(&(Value::Bool(code != Value::Null))) {
             add_element_to_object(get_value_mut(unsafe { crate::runtime::coerce_value_to_mut(&self.balance) }, &uniformType), &code, account.clone());
         }
@@ -3631,9 +3631,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         add_element_to_object(get_value_mut(unsafe { crate::runtime::coerce_value_to_mut(&self.balance) }, &type_var), &Value::Str("timestamp".to_string()), timestamp.clone());
         { let __be_tmp = self.iso8601(timestamp.clone()); add_element_to_object(get_value_mut(unsafe { crate::runtime::coerce_value_to_mut(&self.balance) }, &type_var), &Value::Str("datetime".to_string()), __be_tmp); };
         let mut account: Value = self.account();
-        add_element_to_object(&mut account, &Value::Str("free".to_string()), self.safe_string_k(data.clone(), "a", &[]));
-        add_element_to_object(&mut account, &Value::Str("used".to_string()), self.safe_string_k(data.clone(), "h", &[]));
-        add_element_to_object(&mut account, &Value::Str("total".to_string()), self.safe_string_k(data.clone(), "b", &[]));
+        if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("free".to_string(), self.safe_string_k(data.clone(), "a", &[])); }
+        if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("used".to_string(), self.safe_string_k(data.clone(), "h", &[])); }
+        if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("total".to_string(), self.safe_string_k(data.clone(), "b", &[])); }
         if is_true(&(Value::Bool(type_var != Value::Null))) && is_true(&(Value::Bool(code != Value::Null))) {
             add_element_to_object(get_value_mut(unsafe { crate::runtime::coerce_value_to_mut(&self.balance) }, &type_var), &code, account.clone());
         }

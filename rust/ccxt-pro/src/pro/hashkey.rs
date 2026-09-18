@@ -1190,8 +1190,8 @@ impl HashkeyCore {
         let mut currencyId: Value = self.safe_string_k(balanceUpdate.clone(), "a", &[]);
         let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
         let mut account: Value = self.account();
-        add_element_to_object(&mut account, &Value::Str("free".to_string()), self.safe_string_k(balanceUpdate.clone(), "f", &[]));
-        add_element_to_object(&mut account, &Value::Str("used".to_string()), self.safe_string_k(balanceUpdate.clone(), "l", &[]));
+        if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("free".to_string(), self.safe_string_k(balanceUpdate.clone(), "f", &[])); }
+        if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("used".to_string(), self.safe_string_k(balanceUpdate.clone(), "l", &[])); }
         if is_true(&(Value::Bool(type_var != Value::Null))) && is_true(&(Value::Bool(code != Value::Null))) {
             add_element_to_object(get_value_mut(unsafe { crate::runtime::coerce_value_to_mut(&self.balance) }, &type_var), &code, account.clone());
         }
@@ -1240,7 +1240,7 @@ impl HashkeyCore {
             if (listenKey == Value::Null) {
                 panic!("{}", crate::exchange_errors::authentication_error(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" authenticate() received an empty listenKey".to_string())))));
             }
-            add_element_to_object(&mut self.options, &Value::Str("listenKey".to_string()), listenKey.clone());
+            if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("listenKey".to_string(), listenKey.clone()); }
             let mut listenKeyRefreshRate: Value = self.safe_integer_k(self.options.clone(), "listenKeyRefreshRate", &[Value::Int(3600000)]);
             self.delay(listenKeyRefreshRate.clone(), &[Value::Str("keep_alive_listen_key".to_string()).clone(), listenKey.clone(), params.clone()]).await;
             // settle the flight: client.resolve () wakes every waiter and
@@ -1282,7 +1282,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err);
             let mut url: Value = self.get_private_url(listenKey.clone());
             let mut client: Value = self.client(&[url.clone()]);
-            add_element_to_object(&mut self.options, &Value::Str("listenKey".to_string()), Value::Null);
+            if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("listenKey".to_string(), Value::Null); }
             client.reject(&[Value::from(error.clone())]);
             remove(&mut self.clients, &url);
         }

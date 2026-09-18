@@ -1031,7 +1031,7 @@ impl KrakenCore {
         // their support said that reqid must be an int32, not documented
         self.lock_id(&[]);
         let mut reqid: Value = self.sum(&[self.safe_integer_k(self.options.clone(), "reqid", &[Value::Int(0)]), Value::Int(1)]);
-        add_element_to_object(&mut self.options, &Value::Str("reqid".to_string()), reqid.clone());
+        if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("reqid".to_string(), reqid.clone()); }
         self.unlock_id(&[]);
         return reqid;
 
@@ -1108,7 +1108,7 @@ impl KrakenCore {
 }));
         self.load_markets(&[]).await;
         symbols = self.market_symbols(&[symbols.clone(), Value::Null, Value::Bool(false)]);
-        add_element_to_object(&mut params, &Value::Str("event_trigger".to_string()), Value::Str("bbo".to_string()));
+        if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("event_trigger".to_string(), Value::Str("bbo".to_string())); }
         let mut ticker: Value = self.watch_multi_helper(Value::Str("bidask".to_string()), Value::Str("ticker".to_string()), &[symbols.clone(), Value::Null, params.clone()]).await;
         if is_true(&self.newUpdates) {
             let mut result: Value = Value::Map({
@@ -1314,7 +1314,7 @@ impl KrakenCore {
                 }
                 }
             }
-            add_element_to_object(&mut self.options, &Value::Str("marketsByWsName".to_string()), marketsByWsName.clone());
+            if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("marketsByWsName".to_string(), marketsByWsName.clone()); }
         }
         return markets;
 
@@ -1689,7 +1689,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        add_element_to_object(&mut params, &Value::Str("snap_trades".to_string()), Value::Bool(true));
+        if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("snap_trades".to_string(), Value::Bool(true)); }
         return self.watch_private(Value::Str("myTrades".to_string()), &[symbol.clone(), since.clone(), limit.clone(), params.clone()]).await;
 
     Value::Null
@@ -2151,7 +2151,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
             let mut account: Value = self.account();
             let mut eq: Value = self.safe_string_k(get_value(&data, &i), "balance", &[]);
-            add_element_to_object(&mut account, &Value::Str("total".to_string()), eq.clone());
+            if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("total".to_string(), eq.clone()); }
             add_element_to_object(&mut result, &code, account.clone());
         }
         }

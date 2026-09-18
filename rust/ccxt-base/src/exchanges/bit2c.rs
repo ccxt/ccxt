@@ -587,8 +587,8 @@ impl Bit2cCore {
             let mut currency: Value = self.currency(code.clone());
             let mut uppercase: Value = to_upper(&get_value(&currency, &Value::Str("id".to_string())));
             if is_true(&Value::Bool(in_op(&response, &uppercase))) {
-                add_element_to_object(&mut account, &Value::Str("free".to_string()), self.safe_string(response.clone(), Value::Str(format!("{}{}", Value::Str("AVAILABLE_".to_string()), uppercase)), &[]));
-                add_element_to_object(&mut account, &Value::Str("total".to_string()), self.safe_string(response.clone(), uppercase.clone(), &[]));
+                if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("free".to_string(), self.safe_string(response.clone(), Value::Str(format!("{}{}", Value::Str("AVAILABLE_".to_string()), uppercase)), &[])); }
+                if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("total".to_string(), self.safe_string(response.clone(), uppercase.clone(), &[])); }
             }
             add_element_to_object(&mut result, &code, account.clone());
         }

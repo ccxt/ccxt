@@ -901,8 +901,8 @@ impl BitbnsCore {
                 let mut currencyId: Value = self.safe_string(parts.clone(), Value::Int(1), &[]);
                 // note that "Money" stands for INR - the only fiat in bitbns
                 let mut account: Value = self.account();
-                add_element_to_object(&mut account, &Value::Str("free".to_string()), self.safe_string(data.clone(), key.clone(), &[]));
-                add_element_to_object(&mut account, &Value::Str("used".to_string()), self.safe_string(data.clone(), add(&Value::Str("inorder".to_string()), &currencyId), &[]));
+                if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("free".to_string(), self.safe_string(data.clone(), key.clone(), &[])); }
+                if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("used".to_string(), self.safe_string(data.clone(), add(&Value::Str("inorder".to_string()), &currencyId), &[])); }
                 if (currencyId.as_str() == Some("Money")) {
                     currencyId = Value::Str("INR".to_string());
                 }

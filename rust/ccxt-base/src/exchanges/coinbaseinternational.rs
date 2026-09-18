@@ -848,7 +848,7 @@ impl CoinbaseinternationalCore {
 })]);
             if (self.safe_bool_k(info.clone(), "is_default", &[]).as_bool() == Some(true)) {
                 let mut portfolioId: Value = self.safe_string_k(info.clone(), "portfolio_id", &[]);
-                add_element_to_object(&mut self.options, &Value::Str("portfolio".to_string()), portfolioId.clone());
+                if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("portfolio".to_string(), portfolioId.clone()); }
                 return Value::List(vec![portfolioId.clone(), params.clone()]);
             }
         }
@@ -1835,7 +1835,7 @@ impl CoinbaseinternationalCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        add_element_to_object(&mut params, &Value::Str("type".to_string()), Value::Str("WITHDRAW".to_string()));
+        if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("type".to_string(), Value::Str("WITHDRAW".to_string())); }
         return self.fetch_deposits_withdrawals(&[code.clone(), since.clone(), limit.clone(), params.clone()]).await;
 
     Value::Null
@@ -1867,7 +1867,7 @@ impl CoinbaseinternationalCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        add_element_to_object(&mut params, &Value::Str("type".to_string()), Value::Str("DEPOSIT".to_string()));
+        if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("type".to_string(), Value::Str("DEPOSIT".to_string())); }
         return self.fetch_deposits_withdrawals(&[code.clone(), since.clone(), limit.clone(), params.clone()]).await;
 
     Value::Null
@@ -2395,8 +2395,8 @@ impl CoinbaseinternationalCore {
             let mut currencyId: Value = self.safe_string_k(rawBalance.clone(), "asset_name", &[]);
             let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
             let mut account: Value = self.account();
-            add_element_to_object(&mut account, &Value::Str("total".to_string()), self.safe_string_k(rawBalance.clone(), "quantity", &[]));
-            add_element_to_object(&mut account, &Value::Str("used".to_string()), self.safe_string_k(rawBalance.clone(), "hold", &[]));
+            if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("total".to_string(), self.safe_string_k(rawBalance.clone(), "quantity", &[])); }
+            if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("used".to_string(), self.safe_string_k(rawBalance.clone(), "hold", &[])); }
             if (code != Value::Null) {
                 add_element_to_object(&mut result, &code, account.clone());
             }

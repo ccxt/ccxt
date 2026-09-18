@@ -1748,7 +1748,7 @@ impl BigoneCore {
             let mut makerCode: Value = makerCurrencyCode.clone();
             if (takerFeeCost != Value::Null) {
                 let mut takerCode: Value = takerCurrencyCode.clone();
-                add_element_to_object(&mut result, &Value::Str("fees".to_string()), Value::List(vec![Value::Map({
+                if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert("fees".to_string(), Value::List(vec![Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), makerFeeCost.clone());
         m.insert("currency".to_string(), makerCode.clone());
@@ -1758,25 +1758,25 @@ impl BigoneCore {
         m.insert("cost".to_string(), takerFeeCost.clone());
         m.insert("currency".to_string(), takerCode.clone());
     m
-})]));
+})])); }
             }  else {
-                add_element_to_object(&mut result, &Value::Str("fee".to_string()), Value::Map({
+                if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert("fee".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), makerFeeCost.clone());
         m.insert("currency".to_string(), makerCode.clone());
     m
-}));
+})); }
             }
         }  else if (takerFeeCost != Value::Null) {
             let mut takerCode2: Value = takerCurrencyCode.clone();
-            add_element_to_object(&mut result, &Value::Str("fee".to_string()), Value::Map({
+            if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert("fee".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), takerFeeCost.clone());
         m.insert("currency".to_string(), takerCode2.clone());
     m
-}));
+})); }
         }  else {
-            add_element_to_object(&mut result, &Value::Str("fee".to_string()), Value::Null);
+            if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert("fee".to_string(), Value::Null); }
         }
         return self.safe_trade(result.clone(), &[market.clone()]);
 
@@ -1952,8 +1952,8 @@ impl BigoneCore {
             let mut symbol: Value = self.safe_string_k(balance.clone(), "asset_symbol", &[]);
             let mut code: Value = self.safe_currency_code(symbol.clone(), &[]);
             let mut account: Value = self.account();
-            add_element_to_object(&mut account, &Value::Str("total".to_string()), self.safe_string_k(balance.clone(), "balance", &[]));
-            add_element_to_object(&mut account, &Value::Str("used".to_string()), self.safe_string_k(balance.clone(), "locked_balance", &[]));
+            if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("total".to_string(), self.safe_string_k(balance.clone(), "balance", &[])); }
+            if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("used".to_string(), self.safe_string_k(balance.clone(), "locked_balance", &[])); }
             if (code != Value::Null) {
                 add_element_to_object(&mut result, &code, account.clone());
             }
@@ -2110,7 +2110,7 @@ impl BigoneCore {
         if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() != Some(true)) {
             panic!("{}", crate::exchange_errors::not_supported(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createMarketBuyOrderWithCost() supports spot orders only".to_string())))));
         }
-        add_element_to_object(&mut params, &Value::Str("createMarketBuyOrderRequiresPrice".to_string()), Value::Bool(false));
+        if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("createMarketBuyOrderRequiresPrice".to_string(), Value::Bool(false)); }
         return self.create_order(symbol.clone(), Value::Str("market".to_string()), Value::Str("buy".to_string()), cost.clone(), &[Value::Null, params.clone()]).await;
 
     Value::Null

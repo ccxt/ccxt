@@ -934,8 +934,8 @@ impl BitsoCore {
                 append_to_array(&mut takerFees, Value::List(vec![volume.clone(), takerFee.clone()]));
                 append_to_array(&mut makerFees, Value::List(vec![volume.clone(), makerFee.clone()]));
                 if (j.as_f64() == Some(0.0)) {
-                    add_element_to_object(&mut fee, &Value::Str("taker".to_string()), takerFee.clone());
-                    add_element_to_object(&mut fee, &Value::Str("maker".to_string()), makerFee.clone());
+                    if let Value::Dict(__d) = &mut fee { std::sync::Arc::make_mut(__d).insert("taker".to_string(), takerFee.clone()); }
+                    if let Value::Dict(__d) = &mut fee { std::sync::Arc::make_mut(__d).insert("maker".to_string(), makerFee.clone()); }
                 }
             }
             }
@@ -945,7 +945,7 @@ impl BitsoCore {
                     m.insert("maker".to_string(), makerFees.clone());
                 m
             });
-            add_element_to_object(&mut fee, &Value::Str("tiers".to_string()), tiers.clone());
+            if let Value::Dict(__d) = &mut fee { std::sync::Arc::make_mut(__d).insert("tiers".to_string(), tiers.clone()); }
             let mut baseCurrency: Value = self.safe_dict(currencies.clone(), base.clone(), &[]);
             let __ws_arg_1 = self.extend(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1131,9 +1131,9 @@ impl BitsoCore {
             let mut currencyId: Value = self.safe_string_k(balance.clone(), "currency", &[]);
             let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
             let mut account: Value = self.account();
-            add_element_to_object(&mut account, &Value::Str("free".to_string()), self.safe_string_k(balance.clone(), "available", &[]));
-            add_element_to_object(&mut account, &Value::Str("used".to_string()), self.safe_string_k(balance.clone(), "locked", &[]));
-            add_element_to_object(&mut account, &Value::Str("total".to_string()), self.safe_string_k(balance.clone(), "total", &[]));
+            if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("free".to_string(), self.safe_string_k(balance.clone(), "available", &[])); }
+            if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("used".to_string(), self.safe_string_k(balance.clone(), "locked", &[])); }
+            if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("total".to_string(), self.safe_string_k(balance.clone(), "total", &[])); }
             if (code != Value::Null) {
                 add_element_to_object(&mut result, &code, account.clone());
             }

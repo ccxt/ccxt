@@ -1874,7 +1874,7 @@ impl DydxCore {
         credentials = self.retrieve_dydx_credentials(privateKey.clone());
         { let __be_tmp = self.binary_to_base16(crate::value::get_value_k(&credentials, "privateKey"), &[]); add_element_to_object(&mut credentials, &Value::Str("privateKey".to_string()), __be_tmp); };
         { let __be_tmp = self.binary_to_base16(crate::value::get_value_k(&credentials, "publicKey"), &[]); add_element_to_object(&mut credentials, &Value::Str("publicKey".to_string()), __be_tmp); };
-        add_element_to_object(&mut self.options.clone(), &Value::Str("dydxCredentials".to_string()), credentials.clone());
+        if let Value::Dict(__d) = &mut self.options.clone() { std::sync::Arc::make_mut(__d).insert("dydxCredentials".to_string(), credentials.clone()); }
         return credentials;
 
     Value::Null
@@ -1920,8 +1920,8 @@ impl DydxCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("key".to_string(), crate::value::get_value_k(&crate::value::get_value_k(&account, "pub_key"), "key"));
     m
-}); add_element_to_object(&mut account, &Value::Str("pub_key".to_string()), __be_tmp); };
-        add_element_to_object(&mut self.options, &Value::Str("dydxAccount".to_string()), account.clone());
+}); if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("pub_key".to_string(), __be_tmp); } }
+        if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("dydxAccount".to_string(), account.clone()); }
         return account;
 
     Value::Null
@@ -3320,7 +3320,7 @@ impl DydxCore {
 
     pub fn parse_balance(&self, mut response: Value) -> Value {
         let mut account: Value = self.account();
-        add_element_to_object(&mut account, &Value::Str("free".to_string()), self.safe_string_k(response.clone(), "freeCollateral", &[]));
+        if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("free".to_string(), self.safe_string_k(response.clone(), "freeCollateral", &[])); }
         let mut result: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("info".to_string(), response.clone());
@@ -3426,8 +3426,8 @@ impl DydxCore {
     pub fn set_sandbox_mode(&mut self, mut enable: Value) {
         self.super_set_sandbox_mode(enable.clone());
         // rewrite testnet parameters
-        add_element_to_object(&mut self.options, &Value::Str("chainName".to_string()), Value::Str("dydx-testnet-4".to_string()));
-        add_element_to_object(&mut self.options, &Value::Str("chainId".to_string()), Value::Int(11155111));
+        if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("chainName".to_string(), Value::Str("dydx-testnet-4".to_string())); }
+        if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("chainId".to_string(), Value::Int(11155111)); }
         add_element_to_object(get_value_mut(&mut self.options, &Value::Str("feeDenom".to_string())), &Value::Str("CHAINTOKEN_DENOM".to_string()), Value::Str("adv4tnt".to_string()));
 }
 }

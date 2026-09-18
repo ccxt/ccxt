@@ -661,11 +661,11 @@ impl ZaifCore {
             let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
             let mut balance: Value = self.safe_string(funds.clone(), currencyId.clone(), &[]);
             let mut account: Value = self.account();
-            add_element_to_object(&mut account, &Value::Str("free".to_string()), balance.clone());
-            add_element_to_object(&mut account, &Value::Str("total".to_string()), balance.clone());
+            if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("free".to_string(), balance.clone()); }
+            if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("total".to_string(), balance.clone()); }
             if (deposit != Value::Null) {
                 if is_true(&Value::Bool(in_op(&deposit, &currencyId))) {
-                    add_element_to_object(&mut account, &Value::Str("total".to_string()), self.safe_string(deposit.clone(), currencyId.clone(), &[]));
+                    if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("total".to_string(), self.safe_string(deposit.clone(), currencyId.clone(), &[])); }
                 }
             }
             if (code != Value::Null) {

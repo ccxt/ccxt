@@ -3934,15 +3934,15 @@ impl KrakenfuturesCore {
             }
             let mut account: Value = self.account();
             if isFlex {
-                add_element_to_object(&mut account, &Value::Str("total".to_string()), self.safe_string_k(balance.clone(), "quantity", &[]));
-                add_element_to_object(&mut account, &Value::Str("free".to_string()), self.safe_string_k(balance.clone(), "available", &[]));
+                if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("total".to_string(), self.safe_string_k(balance.clone(), "quantity", &[])); }
+                if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("free".to_string(), self.safe_string_k(balance.clone(), "available", &[])); }
             }  else if isCash {
-                add_element_to_object(&mut account, &Value::Str("used".to_string()), Value::Str("0.0".to_string()));
-                add_element_to_object(&mut account, &Value::Str("total".to_string()), balance.clone());
+                if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("used".to_string(), Value::Str("0.0".to_string())); }
+                if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("total".to_string(), balance.clone()); }
             }  else {
                 let mut auxiliary: Value = self.safe_value_k(response.clone(), "auxiliary", &[]);
-                add_element_to_object(&mut account, &Value::Str("free".to_string()), self.safe_string_k(auxiliary.clone(), "af", &[]));
-                add_element_to_object(&mut account, &Value::Str("total".to_string()), self.safe_string_k(auxiliary.clone(), "pv", &[]));
+                if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("free".to_string(), self.safe_string_k(auxiliary.clone(), "af", &[])); }
+                if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("total".to_string(), self.safe_string_k(auxiliary.clone(), "pv", &[])); }
             }
             if (code != Value::Null) {
                 add_element_to_object(&mut result, &code, account.clone());

@@ -2553,7 +2553,7 @@ impl BithumbCore {
         if (generation.as_f64() != Some(2.0)) {
             panic!("{}", crate::exchange_errors::bad_request(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createMarketBuyOrderWithCost() is only supported for the generation 2 API".to_string())))));
         }
-        add_element_to_object(&mut params, &Value::Str("createMarketBuyOrderRequiresPrice".to_string()), Value::Bool(false));
+        if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("createMarketBuyOrderRequiresPrice".to_string(), Value::Bool(false)); }
         return self.create_order(symbol.clone(), Value::Str("market".to_string()), Value::Str("buy".to_string()), cost.clone(), &[Value::Null, params.clone()]).await;
 
     Value::Null
@@ -3062,9 +3062,9 @@ impl BithumbCore {
         if (generation.as_f64() == Some(2.0)) {
             let mut twap: Value = self.safe_bool_k(params.clone(), "twap", &[Value::Bool(false)]);
             if is_true(&twap) {
-                add_element_to_object(&mut params, &Value::Str("state".to_string()), Value::Str("progress".to_string()));
+                if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("state".to_string(), Value::Str("progress".to_string())); }
             }  else {
-                add_element_to_object(&mut params, &Value::Str("state".to_string()), Value::Str("wait".to_string()));
+                if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("state".to_string(), Value::Str("wait".to_string())); }
             }
             let mut orders: Value = self.fetch_orders(&[symbol.clone(), since.clone(), limit.clone(), params.clone()]).await;
             return self.filter_by_since_limit(orders.clone(), &[since.clone(), limit.clone()]);
@@ -3230,7 +3230,7 @@ impl BithumbCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        add_element_to_object(&mut params, &Value::Str("state".to_string()), Value::Str("done".to_string()));
+        if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("state".to_string(), Value::Str("done".to_string())); }
         let mut orders: Value = self.fetch_orders(&[symbol.clone(), since.clone(), limit.clone(), params.clone()]).await;
         return self.filter_by_since_limit(orders.clone(), &[since.clone(), limit.clone()]);
 
@@ -3260,7 +3260,7 @@ impl BithumbCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        add_element_to_object(&mut params, &Value::Str("state".to_string()), Value::Str("cancel".to_string()));
+        if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("state".to_string(), Value::Str("cancel".to_string())); }
         let mut orders: Value = self.fetch_orders(&[symbol.clone(), since.clone(), limit.clone(), params.clone()]).await;
         return self.filter_by_since_limit(orders.clone(), &[since.clone(), limit.clone()]);
 

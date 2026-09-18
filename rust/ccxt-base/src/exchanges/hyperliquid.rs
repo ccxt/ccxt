@@ -687,7 +687,7 @@ impl HyperliquidCore {
 
     pub fn set_sandbox_mode(&mut self, mut enabled: Value) {
         self.super_set_sandbox_mode(enabled.clone());
-        add_element_to_object(&mut self.options, &Value::Str("sandboxMode".to_string()), enabled.clone());
+        if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("sandboxMode".to_string(), enabled.clone()); }
 }
 
     pub fn market(&self, mut symbol: Value) -> Value {
@@ -820,10 +820,10 @@ impl HyperliquidCore {
         // const spotMeta = await this.publicPostInfo ({ 'type': 'spotMeta' });
         let mut tokens: Value = self.safe_list_k(response.clone(), "tokens", &[Value::List(vec![])]);
         // const meta = this.safeList (response, 'universe', []);
-        add_element_to_object(&mut self.options, &Value::Str("cachedCurrenciesById".to_string()), Value::Map({
+        if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("cachedCurrenciesById".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})); // used to map hip3 markets
+})); }; // used to map hip3 markets
         return self.parse_currencies(tokens.clone());
 
     Value::Null
@@ -1054,10 +1054,10 @@ impl HyperliquidCore {
         }
         }
         let mut promises: Value = promise_all(&rawPromises).await;
-        add_element_to_object(&mut self.options, &Value::Str("hip3TokensByName".to_string()), Value::Map({
+        if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("hip3TokensByName".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-}));
+})); }
         let mut markets: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
@@ -1703,8 +1703,8 @@ impl HyperliquidCore {
                 let mut account: Value = self.account();
                 let mut total: Value = self.safe_string_k(balance.clone(), "total", &[]);
                 let mut used: Value = self.safe_string_k(balance.clone(), "hold", &[]);
-                add_element_to_object(&mut account, &Value::Str("total".to_string()), total.clone());
-                add_element_to_object(&mut account, &Value::Str("used".to_string()), used.clone());
+                if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("total".to_string(), total.clone()); }
+                if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("used".to_string(), used.clone()); }
                 if (code != Value::Null) {
                     add_element_to_object(&mut spotBalances, &code, account.clone());
                 }
@@ -2596,7 +2596,7 @@ impl HyperliquidCore {
         if is_true(&self.safe_bool_k(self.options.clone(), "refSet", &[Value::Bool(false)])) {
             return Value::Bool(true);
         }
-        add_element_to_object(&mut self.options, &Value::Str("refSet".to_string()), Value::Bool(true));
+        if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("refSet".to_string(), Value::Bool(true)); }
         let mut action: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), Value::Str("setReferrer".to_string()));
@@ -2690,10 +2690,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 maxFeeRate = Value::Str("0%".to_string());
             }
             self.approve_builder_fee(builder.clone(), maxFeeRate.clone()).await;
-            add_element_to_object(&mut self.options, &Value::Str("approvedBuilderFee".to_string()), Value::Bool(true));
+            if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("approvedBuilderFee".to_string(), Value::Bool(true)); }
          #[allow(unreachable_code)] { Value::Null }})).await;
 if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
-            add_element_to_object(&mut self.options, &Value::Str("builderFee".to_string()), Value::Bool(false)); // disable builder fee if an error occurs
+            if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("builderFee".to_string(), Value::Bool(false)); }; // disable builder fee if an error occurs
         }
         return Value::Bool(true);
 
@@ -2756,7 +2756,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 enableUnifiedMargin = Value::Bool(response.as_str() == Some("unifiedAccount"));
             }
             // don't cache this result if this is a different addresss
-            add_element_to_object(&mut self.options, &Value::Str("enableUnifiedMargin".to_string()), enableUnifiedMargin.clone()); // cache this for future calls
+            if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("enableUnifiedMargin".to_string(), enableUnifiedMargin.clone()); }; // cache this for future calls
         }
         return Value::List(vec![enableUnifiedMargin.clone(), params.clone()]);
 

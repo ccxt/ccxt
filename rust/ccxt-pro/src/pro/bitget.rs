@@ -1296,7 +1296,7 @@ impl BitgetCore {
         }
         }
         if is_true(&uta) {
-            add_element_to_object(&mut params, &Value::Str("uta".to_string()), Value::Bool(true));
+            if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("uta".to_string(), Value::Bool(true)); }
         }
         let mut orderbook: Value = self.watch_public_multiple(uta.clone(), messageHashes.clone(), topics.clone(), &[params.clone()]).await;
         if incrementalFeed {

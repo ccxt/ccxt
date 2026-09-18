@@ -315,7 +315,7 @@ impl LbankCore {
         self.lock_id(&[]);
         let mut previousValue: Value = self.safe_integer_k(self.options.clone(), "requestId", &[Value::Int(0)]);
         let mut newValue: Value = self.sum(&[previousValue.clone(), Value::Int(1)]);
-        add_element_to_object(&mut self.options, &Value::Str("requestId".to_string()), newValue.clone());
+        if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("requestId".to_string(), newValue.clone()); }
         self.unlock_id(&[]);
         return newValue;
 
@@ -1143,9 +1143,9 @@ impl LbankCore {
         let mut currencyId: Value = self.safe_string_k(data.clone(), "assetCode", &[]);
         let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
         let mut account: Value = self.account();
-        add_element_to_object(&mut account, &Value::Str("free".to_string()), self.safe_string_k(data.clone(), "free", &[]));
-        add_element_to_object(&mut account, &Value::Str("used".to_string()), self.safe_string_k(data.clone(), "freeze", &[]));
-        add_element_to_object(&mut account, &Value::Str("total".to_string()), self.safe_string_k(data.clone(), "asset", &[]));
+        if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("free".to_string(), self.safe_string_k(data.clone(), "free", &[])); }
+        if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("used".to_string(), self.safe_string_k(data.clone(), "freeze", &[])); }
+        if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("total".to_string(), self.safe_string_k(data.clone(), "asset", &[])); }
         if (code != Value::Null) {
             add_element_to_object(&mut self.balance, &code, account.clone());
         }

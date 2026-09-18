@@ -702,8 +702,8 @@ impl ApexCore {
         });
         let mut code: Value = Value::Str("USDT".to_string());
         let mut account: Value = self.account();
-        add_element_to_object(&mut account, &Value::Str("free".to_string()), self.safe_string_k(response.clone(), "availableBalance", &[]));
-        add_element_to_object(&mut account, &Value::Str("total".to_string()), self.safe_string_k(response.clone(), "totalEquityValue", &[]));
+        if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("free".to_string(), self.safe_string_k(response.clone(), "availableBalance", &[])); }
+        if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("total".to_string(), self.safe_string_k(response.clone(), "totalEquityValue", &[])); }
         add_element_to_object(&mut result, &code, account.clone());
         return self.safe_balance(result.clone());
 
@@ -893,7 +893,7 @@ impl ApexCore {
         // }
         let mut rows: Value = self.safe_list_k(spotConfig.clone(), "assets", &[Value::List(vec![])]);
         let mut chains: Value = self.safe_list_k(multiChain.clone(), "chains", &[Value::List(vec![])]);
-        add_element_to_object(&mut self.options, &Value::Str("_temp_currencies_chains".to_string()), chains.clone());
+        if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("_temp_currencies_chains".to_string(), chains.clone()); }
         let mut result: Value = self.parse_currencies(rows.clone());
         remove(&mut self.options, &Value::Str("_temp_currencies_chains".to_string()));
         return result;
@@ -1859,7 +1859,7 @@ impl ApexCore {
         let mut accountId: Value = self.safe_string_k(self.options.clone(), "accountId", &[Value::Str("0".to_string())]);
         if (accountId.as_str() == Some("0")) {
             let mut accountData: Value = self.fetch_account(&[]).await;
-            { let __be_tmp = self.safe_string_k(accountData.clone(), "id", &[Value::Str("0".to_string())]); add_element_to_object(&mut self.options, &Value::Str("accountId".to_string()), __be_tmp); };
+            { let __be_tmp = self.safe_string_k(accountData.clone(), "id", &[Value::Str("0".to_string())]); if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("accountId".to_string(), __be_tmp); } }
         }
         return self.options.as_map().and_then(|__m| __m.get("accountId")).cloned().unwrap_or(Value::Null);
 

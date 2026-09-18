@@ -304,7 +304,7 @@ impl BullishCore {
 
     pub fn request_id(&mut self) -> Value {
         let mut requestId: Value = self.sum(&[self.safe_integer_k(self.options.clone(), "requestId", &[Value::Int(0)]), Value::Int(1)]);
-        add_element_to_object(&mut self.options, &Value::Str("requestId".to_string()), requestId.clone());
+        if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("requestId".to_string(), requestId.clone()); }
         return requestId;
 
     Value::Null
@@ -1083,8 +1083,8 @@ impl BullishCore {
             })]);
             let mut assetId: Value = self.safe_string_k(data.clone(), "assetSymbol", &[]);
             let mut account: Value = self.account();
-            add_element_to_object(&mut account, &Value::Str("total".to_string()), self.safe_string_k(data.clone(), "availableQuantity", &[]));
-            add_element_to_object(&mut account, &Value::Str("used".to_string()), self.safe_string_k(data.clone(), "lockedQuantity", &[]));
+            if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("total".to_string(), self.safe_string_k(data.clone(), "availableQuantity", &[])); }
+            if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("used".to_string(), self.safe_string_k(data.clone(), "lockedQuantity", &[])); }
             let mut code: Value = self.safe_currency_code(assetId.clone(), &[]);
             if is_true(&(Value::Bool(tradingAccountId != Value::Null))) && is_true(&(Value::Bool(code != Value::Null))) {
                 add_element_to_object(get_value_mut(unsafe { crate::runtime::coerce_value_to_mut(&self.balance) }, &tradingAccountId), &code, account.clone());

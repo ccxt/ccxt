@@ -3335,9 +3335,9 @@ impl NadoCore {
 })]);
             let mut amount: Value = crate::precise::Precise::stringDiv(&self.safe_string_k(balance.clone(), "amount", &[]), &Value::Str("1000000000000000000".to_string()));
             let mut account: Value = self.account();
-            add_element_to_object(&mut account, &Value::Str("total".to_string()), amount.clone());
+            if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("total".to_string(), amount.clone()); }
             // the subaccount balance carries no locked/reserved breakdown, the whole amount is spendable
-            add_element_to_object(&mut account, &Value::Str("free".to_string()), amount.clone());
+            if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("free".to_string(), amount.clone()); }
             if (code != Value::Null) {
                 add_element_to_object(&mut result, &code, account.clone());
             }
@@ -3874,7 +3874,7 @@ impl NadoCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        add_element_to_object(&mut self.options, &Value::Str("gatewayContracts".to_string()), data.clone());
+        if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("gatewayContracts".to_string(), data.clone()); }
         return data;
 
     Value::Null

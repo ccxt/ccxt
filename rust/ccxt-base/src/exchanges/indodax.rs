@@ -751,8 +751,8 @@ impl IndodaxCore {
             let mut currencyId: Value = get_value(&currencyIds, &i);
             let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
             let mut account: Value = self.account();
-            add_element_to_object(&mut account, &Value::Str("free".to_string()), self.safe_string(free.clone(), currencyId.clone(), &[]));
-            add_element_to_object(&mut account, &Value::Str("used".to_string()), self.safe_string(used.clone(), currencyId.clone(), &[]));
+            if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("free".to_string(), self.safe_string(free.clone(), currencyId.clone(), &[])); }
+            if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("used".to_string(), self.safe_string(used.clone(), currencyId.clone(), &[])); }
             if (code != Value::Null) {
                 add_element_to_object(&mut result, &code, account.clone());
             }

@@ -616,7 +616,7 @@ impl ApexCore {
         if (url == Value::Null) {
             let mut timeStamp: Value = to_string_val(&self.milliseconds());
             url = Value::Str(format!("{}{}", add(&crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "public"), &Value::Str("&timestamp=".to_string())), timeStamp));
-            add_element_to_object(&mut self.options, &Value::Str("wsPublicUrl".to_string()), url.clone());
+            if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("wsPublicUrl".to_string(), url.clone()); }
         }
         return url;
 
@@ -628,7 +628,7 @@ impl ApexCore {
         if (url == Value::Null) {
             let mut timeStamp: Value = to_string_val(&self.milliseconds());
             url = Value::Str(format!("{}{}", add(&crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "private"), &Value::Str("&timestamp=".to_string())), timeStamp));
-            add_element_to_object(&mut self.options, &Value::Str("wsPrivateUrl".to_string()), url.clone());
+            if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("wsPrivateUrl".to_string(), url.clone()); }
         }
         return url;
 
@@ -869,7 +869,7 @@ impl ApexCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        add_element_to_object(&mut params, &Value::Str("callerMethodName".to_string()), Value::Str("watchOHLCV".to_string()));
+        if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("callerMethodName".to_string(), Value::Str("watchOHLCV".to_string())); }
         let mut result: Value = self.watch_ohlcv_for_symbols(Value::List(vec![Value::List(vec![symbol.clone(), timeframe.clone()])]), &[since.clone(), limit.clone(), params.clone()]).await;
         return get_value(&get_value(&result, &symbol), &timeframe);
 

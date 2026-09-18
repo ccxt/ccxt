@@ -1686,9 +1686,9 @@ impl BtseCore {
             let mut code: Value = get_value(&codes, &i);
             let mut code: Value = get_value(&codes, &i);
             let mut account: Value = self.account();
-            add_element_to_object(&mut account, &Value::Str("total".to_string()), self.safe_string(totals.clone(), code.clone(), &[]));
-            add_element_to_object(&mut account, &Value::Str("free".to_string()), self.safe_string(frees.clone(), code.clone(), &[]));
-            add_element_to_object(&mut account, &Value::Str("used".to_string()), self.safe_string(useds.clone(), code.clone(), &[]));
+            if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("total".to_string(), self.safe_string(totals.clone(), code.clone(), &[])); }
+            if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("free".to_string(), self.safe_string(frees.clone(), code.clone(), &[])); }
+            if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("used".to_string(), self.safe_string(useds.clone(), code.clone(), &[])); }
             add_element_to_object(&mut result, &code, account.clone());
         }
         }
@@ -4756,9 +4756,9 @@ impl BtseCore {
             }
         }
         }
-        add_element_to_object(&mut result, &Value::Str("marginMode".to_string()), marginMode.clone());
-        add_element_to_object(&mut result, &Value::Str("longLeverage".to_string()), longLeverage.clone());
-        add_element_to_object(&mut result, &Value::Str("shortLeverage".to_string()), shortLeverage.clone());
+        if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert("marginMode".to_string(), marginMode.clone()); }
+        if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert("longLeverage".to_string(), longLeverage.clone()); }
+        if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert("shortLeverage".to_string(), shortLeverage.clone()); }
         return result;
 
     Value::Null

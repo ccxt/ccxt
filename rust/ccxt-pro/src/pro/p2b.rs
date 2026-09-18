@@ -875,12 +875,12 @@ impl P2bCore {
 }
 
     pub fn on_error(&mut self, mut client: Value, mut error: Value) {
-        { let __be_tmp = self.create_safe_dictionary(&[]); add_element_to_object(&mut self.options, &Value::Str("tickerSubs".to_string()), __be_tmp); };
+        { let __be_tmp = self.create_safe_dictionary(&[]); if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("tickerSubs".to_string(), __be_tmp); } }
         self.parent.on_error(&[client.clone(), error.clone()]);
 }
 
     pub fn on_close(&mut self, mut client: Value, mut error: Value) {
-        { let __be_tmp = self.create_safe_dictionary(&[]); add_element_to_object(&mut self.options, &Value::Str("tickerSubs".to_string()), __be_tmp); };
+        { let __be_tmp = self.create_safe_dictionary(&[]); if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("tickerSubs".to_string(), __be_tmp); } }
         self.parent.on_close(&[client.clone(), error.clone()]);
 }
 }

@@ -1429,8 +1429,8 @@ impl OnetradingCore {
         let mut currencyId: Value = self.safe_string_k(balance.clone(), "currency_code", &[]);
         let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
         let mut account: Value = self.account();
-        add_element_to_object(&mut account, &Value::Str("free".to_string()), self.safe_string_k(balance.clone(), "new_available", &[]));
-        add_element_to_object(&mut account, &Value::Str("used".to_string()), self.safe_string_k(balance.clone(), "new_locked", &[]));
+        if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("free".to_string(), self.safe_string_k(balance.clone(), "new_available", &[])); }
+        if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("used".to_string(), self.safe_string_k(balance.clone(), "new_locked", &[])); }
         if (code != Value::Null) {
             add_element_to_object(&mut self.balance, &code, account.clone());
         }

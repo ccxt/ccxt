@@ -1426,9 +1426,9 @@ impl BitstampCore {
                 }
                 let mut userId: Value = self.safe_string_k(response.clone(), "user_id", &[]);
                 let mut validity: Value = self.safe_integer_product(response.clone(), Value::Str("valid_sec".to_string()), Value::Int(1000), &[]);
-                { let __be_tmp = self.sum(&[time.clone(), validity.clone()]); add_element_to_object(&mut self.options, &Value::Str("expiresIn".to_string()), __be_tmp); };
-                add_element_to_object(&mut self.options, &Value::Str("userId".to_string()), userId.clone());
-                add_element_to_object(&mut self.options, &Value::Str("wsSessionToken".to_string()), sessionToken.clone());
+                { let __be_tmp = self.sum(&[time.clone(), validity.clone()]); if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("expiresIn".to_string(), __be_tmp); } }
+                if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("userId".to_string(), userId.clone()); }
+                if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("wsSessionToken".to_string(), sessionToken.clone()); }
                 // settle the flight: client.resolve deletes the future from
                 // client.futures and wakes every waiter parked on it
                 client.resolve(&[sessionToken.clone(), messageHash.clone()]);

@@ -3059,8 +3059,8 @@ impl PhemexCore {
             let mut used: Value = crate::precise::Precise::stringAdd(&lockedTradingBalance, &lockedWithdraw);
             let mut lastUpdateTimeNs: Value = self.safe_integer_product(balance.clone(), Value::Str("lastUpdateTimeNs".to_string()), Value::Float(0.000001), &[]);
             timestamp = (if is_true(&(Value::Bool(timestamp == Value::Null))) { lastUpdateTimeNs.clone() } else { crate::runtime::Math::max(&timestamp, &lastUpdateTimeNs) });
-            add_element_to_object(&mut account, &Value::Str("total".to_string()), total.clone());
-            add_element_to_object(&mut account, &Value::Str("used".to_string()), used.clone());
+            if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("total".to_string(), total.clone()); }
+            if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("used".to_string(), used.clone()); }
             add_element_to_object(&mut result, &code, account.clone());
         }
         }
@@ -3123,8 +3123,8 @@ impl PhemexCore {
         let mut accountBalanceEv: Value = self.safe_string2(balance.clone(), Value::Str("accountBalanceEv".to_string()), Value::Str("accountBalanceRv".to_string()), &[]);
         let mut totalUsedBalanceEv: Value = self.safe_string2(balance.clone(), Value::Str("totalUsedBalanceEv".to_string()), Value::Str("totalUsedBalanceRv".to_string()), &[]);
         let mut needsConversion: bool = code.as_str() != Some("USDT");
-        add_element_to_object(&mut account, &Value::Str("total".to_string()), (if needsConversion { self.from_en(accountBalanceEv.clone(), valueScale.clone()) } else { accountBalanceEv.clone() }));
-        add_element_to_object(&mut account, &Value::Str("used".to_string()), (if needsConversion { self.from_en(totalUsedBalanceEv.clone(), valueScale.clone()) } else { totalUsedBalanceEv.clone() }));
+        if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("total".to_string(), (if needsConversion { self.from_en(accountBalanceEv.clone(), valueScale.clone()) } else { accountBalanceEv.clone() })); }
+        if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("used".to_string(), (if needsConversion { self.from_en(totalUsedBalanceEv.clone(), valueScale.clone()) } else { totalUsedBalanceEv.clone() })); }
         add_element_to_object(&mut result, &code, account.clone());
         return self.safe_balance(result.clone());
 
@@ -6104,7 +6104,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 if isOrderPlacement {
                     if (self.safe_string_k(params.clone(), "clOrdID", &[]) == Value::Null) {
                         let mut id: Value = self.safe_string_k(self.options.clone(), "brokerId", &[Value::Str("CCXT123456".to_string())]);
-                        add_element_to_object(&mut params, &Value::Str("clOrdID".to_string()), Value::Str(format!("{}{}", id, self.uuid16(&[]))));
+                        if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("clOrdID".to_string(), Value::Str(format!("{}{}", id, self.uuid16(&[])))); }
                     }
                 }
                 payload = self.json(params.clone());

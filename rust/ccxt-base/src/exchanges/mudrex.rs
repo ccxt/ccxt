@@ -1049,12 +1049,12 @@ impl MudrexCore {
         let mut futuresBalance: Value = self.safe_string_k(data.clone(), "balance", &[]);
         if (futuresBalance != Value::Null) {
             // futures wallet: balance is the free/available margin, locked_amount is used, safeBalance derives total
-            add_element_to_object(&mut account, &Value::Str("free".to_string()), futuresBalance.clone());
-            add_element_to_object(&mut account, &Value::Str("used".to_string()), self.safe_string_k(data.clone(), "locked_amount", &[]));
+            if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("free".to_string(), futuresBalance.clone()); }
+            if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("used".to_string(), self.safe_string_k(data.clone(), "locked_amount", &[])); }
         }  else {
             // spot wallet: total is the total, withdrawable is free, safeBalance derives used
-            add_element_to_object(&mut account, &Value::Str("total".to_string()), self.safe_string_k(data.clone(), "total", &[]));
-            add_element_to_object(&mut account, &Value::Str("free".to_string()), self.safe_string_k(data.clone(), "withdrawable", &[]));
+            if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("total".to_string(), self.safe_string_k(data.clone(), "total", &[])); }
+            if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("free".to_string(), self.safe_string_k(data.clone(), "withdrawable", &[])); }
         }
         add_element_to_object(&mut result, &currency, account.clone());
         return self.safe_balance(result.clone());
