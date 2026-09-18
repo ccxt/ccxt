@@ -4340,7 +4340,7 @@ public class Binance extends BinanceApi
         Object optionParts = Helpers.split(symbol, "-");
         Object symbolBase = Helpers.split(symbol, "/");
         String base = null;
-        if (Helpers.isGreaterThan(Helpers.getIndexOf(symbol, "/"), Helpers.opNeg(1)))
+        if (Helpers.isGreaterThan(((String)symbol).indexOf("/"), Helpers.opNeg(1)))
         {
             base = this.safeString(symbolBase, 0);
         } else
@@ -4459,7 +4459,7 @@ public class Binance extends BinanceApi
                     }
                 }
                 return Helpers.GetValue(markets, 0);
-            } else if ((Helpers.isGreaterThan(Helpers.getIndexOf(symbol, "/"), Helpers.opNeg(1))) && (Helpers.isLessThan(Helpers.getIndexOf(symbol, ":"), 0)))
+            } else if ((Helpers.isGreaterThan(((String)symbol).indexOf("/"), Helpers.opNeg(1))) && (Helpers.isLessThan(((String)symbol).indexOf(":"), 0)))
             {
                 if ((!java.util.Objects.equals(defaultType, null)) && (!java.util.Objects.equals(defaultType, "spot")))
                 {
@@ -4474,7 +4474,7 @@ public class Binance extends BinanceApi
                         return Helpers.GetValue(this.markets, futuresSymbol);
                     }
                 }
-            } else if ((Helpers.isGreaterThan(Helpers.getIndexOf(symbol, "-C"), Helpers.opNeg(1))) || (Helpers.isGreaterThan(Helpers.getIndexOf(symbol, "-P"), Helpers.opNeg(1))))
+            } else if ((Helpers.isGreaterThan(((String)symbol).indexOf("-C"), Helpers.opNeg(1))) || (Helpers.isGreaterThan(((String)symbol).indexOf("-P"), Helpers.opNeg(1))))
             {
                 return this.createExpiredOptionMarket(symbol);
             }
@@ -4488,7 +4488,7 @@ public class Binance extends BinanceApi
         Object market = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
         Object delimiter = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
         Object marketType = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : null;
-        Boolean isOption = (!java.util.Objects.equals(marketId, null)) && ((Helpers.isGreaterThan(Helpers.getIndexOf(marketId, "-C"), Helpers.opNeg(1))) || (Helpers.isGreaterThan(Helpers.getIndexOf(marketId, "-P"), Helpers.opNeg(1))));
+        Boolean isOption = (!java.util.Objects.equals(marketId, null)) && ((Helpers.isGreaterThan(((String)marketId).indexOf("-C"), Helpers.opNeg(1))) || (Helpers.isGreaterThan(((String)marketId).indexOf("-P"), Helpers.opNeg(1))));
         if (Helpers.isTrue(isOption) && ((java.util.Objects.equals(this.markets_by_id, null)) || !(((Map<?, ?>)this.markets_by_id).containsKey(marketId))))
         {
             // handle expired option contracts
@@ -7516,7 +7516,7 @@ public class Binance extends BinanceApi
             if (!java.util.Objects.equals(limit, null))
             {
                 Boolean isFutureOrSwap = (java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true)) || (java.util.Objects.equals(((Map<String, Object>)market).get("future"), true));
-                Boolean isHistoricalEndpoint = (!java.util.Objects.equals(method, null)) && (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(method, "GetHistoricalTrades"), 0));
+                Boolean isHistoricalEndpoint = (!java.util.Objects.equals(method, null)) && (Helpers.isGreaterThanOrEqual(((String)method).indexOf("GetHistoricalTrades"), 0));
                 Object maxLimitForContractHistorical = ((Helpers.isTrue(isHistoricalEndpoint))) ? 500 : 1000;
                 ((Map<String, Object>)request).put("limit", (((java.util.Objects.equals(isFutureOrSwap, true)))) ? Helpers.mathMin(limit, maxLimitForContractHistorical) : limit); // default = 500, maximum = 1000
             }
@@ -12206,7 +12206,7 @@ public class Binance extends BinanceApi
             }
         }
         String txid = this.safeString(transaction, "txId");
-        if ((!java.util.Objects.equals(txid, null)) && (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(txid, "Internal transfer "), 0)))
+        if ((!java.util.Objects.equals(txid, null)) && (Helpers.isGreaterThanOrEqual(((String)txid).indexOf("Internal transfer "), 0)))
         {
             txid = Helpers.slice(txid, 18, null);
         }
@@ -16282,7 +16282,7 @@ final Object finalMarket = market;
                 query = this.urlencode(extendedParams);
             }
             Object signature = null;
-            if (Helpers.isGreaterThan(Helpers.getIndexOf(this.secret, "PRIVATE KEY"), Helpers.opNeg(1)))
+            if (Helpers.isGreaterThan(((String)this.secret).indexOf("PRIVATE KEY"), Helpers.opNeg(1)))
             {
                 if (this.secret.length() > 120)
                 {
@@ -16369,15 +16369,15 @@ final Object finalMarket = market;
         // will switch "code" checks eventually, when we know all of them
         if ((Helpers.isGreaterThanOrEqual(code, 400)) && (!java.util.Objects.equals(body, null)))
         {
-            if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(body, "Price * QTY is zero or less"), 0))
+            if (Helpers.isGreaterThanOrEqual(((String)body).indexOf("Price * QTY is zero or less"), 0))
             {
                 throw new InvalidOrder(((this.id + " order cost = amount * price is zero or less ") + body)) ;
             }
-            if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(body, "LOT_SIZE"), 0))
+            if (Helpers.isGreaterThanOrEqual(((String)body).indexOf("LOT_SIZE"), 0))
             {
                 throw new InvalidOrder(((this.id + " order amount should be evenly divisible by lot size ") + body)) ;
             }
-            if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(body, "PRICE_FILTER"), 0))
+            if (Helpers.isGreaterThanOrEqual(((String)body).indexOf("PRICE_FILTER"), 0))
             {
                 throw new InvalidOrder(((this.id + " order price is invalid, i.e. exceeds allowed price precision, exceeds min price or max price limits or is invalid value in general, use this.priceToPrecision (symbol, amount) ") + body)) ;
             }

@@ -10733,7 +10733,7 @@ final Object finalMinNotional = minNotional;
         String amountRaw = this.safeString2(item, "size", "amount", "");
         Object amount = this.parseNumber(Precise.stringAbs(amountRaw));
         String direction = "in";
-        if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(amountRaw, "-"), 0))
+        if (Helpers.isGreaterThanOrEqual(((String)amountRaw).indexOf("-"), 0))
         {
             direction = "out";
         }
@@ -14756,7 +14756,7 @@ final Object finalMinNotional = minNotional;
                     Map<String, Object> sortedParams = this.keysort(parameters);
                     Object queryInner = ("?" + this.urlencode(sortedParams, true));
                     // check #21169 pr
-                    if (Helpers.isGreaterThan(Helpers.getIndexOf(queryInner, "%24"), Helpers.opNeg(1)))
+                    if (Helpers.isGreaterThan(((String)queryInner).indexOf("%24"), Helpers.opNeg(1)))
                     {
                         queryInner = Helpers.replace(((String)queryInner), "%24", "$");
                     }

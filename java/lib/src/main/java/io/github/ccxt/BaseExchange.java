@@ -4556,7 +4556,7 @@ public Object describe()
     public Object urlEncoderForProxyUrl(Object targetUrl)
     {
         // to be overriden
-        Boolean includesQuery = Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(targetUrl, "?"), 0);
+        Boolean includesQuery = Helpers.isGreaterThanOrEqual(((String)targetUrl).indexOf("?"), 0);
         Object finalUrl = ((Helpers.isTrue(includesQuery))) ? this.encodeURIComponent(targetUrl) : targetUrl;
         return finalUrl;
     }
@@ -4686,7 +4686,7 @@ public Object describe()
         // check the address is not the same letter like 'aaaaa' nor too short nor has a space
         Object uniqChars = (this.unique(this.stringToCharsArray(address)));
         Object length = ((List<?>)uniqChars).size(); // py transpiler trick
-        if (Helpers.isEqual(length, 1) || Helpers.isLessThan(((String)address).length(), this.minFundingAddressLength) || Helpers.isGreaterThan(Helpers.getIndexOf(address, " "), Helpers.opNeg(1)))
+        if (Helpers.isEqual(length, 1) || Helpers.isLessThan(((String)address).length(), this.minFundingAddressLength) || Helpers.isGreaterThan(((String)address).indexOf(" "), Helpers.opNeg(1)))
         {
             throw new InvalidAddress((((((this.id + " address is invalid or has less than ") + String.valueOf(this.minFundingAddressLength)) + " characters: \"") + String.valueOf(address)) + "\"")) ;
         }
@@ -4700,7 +4700,7 @@ public Object describe()
         for (var i = 0; i < ((List<?>)messageHashes).size(); i++)
         {
             Object messageHash = Helpers.GetValue(messageHashes, i);
-            if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(messageHash, element), 0))
+            if (Helpers.isGreaterThanOrEqual(((String)messageHash).indexOf(((String)element)), 0))
             {
                 ((List<Object>)result).add(messageHash);
             }
@@ -5676,7 +5676,7 @@ public Object describe()
         // in JS:     1 === 1.0 is true
         // in Python: 1 == 1.0 is true
         // in PHP:    1 == 1.0 is true, but 1 === 1.0 is false.
-        if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(stringVersion, "."), 0))
+        if (Helpers.isGreaterThanOrEqual(((String)stringVersion).indexOf("."), 0))
         {
             return Helpers.parseFloat(stringVersion);
         }
