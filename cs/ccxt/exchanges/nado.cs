@@ -3138,7 +3138,7 @@ public partial class nado : Exchange
         // the exchange defines the nonce to be the recv time moved left by 20 bits
         // plus a random value on the low bits, otherwise two orders created
         // during the same millisecond would collide on the same nonce and get rejected
-        object entropy = this.randNumber(6);
+        int entropy = this.randNumber(6);
         return Precise.stringAdd(highBits, this.numberToString(entropy));
     }
 
@@ -3361,7 +3361,7 @@ public partial class nado : Exchange
         return this.signHash(hash, this.privateKey);
     }
 
-    public virtual object signHash(object hash, object privateKey)
+    public virtual string signHash(object hash, object privateKey)
     {
         if (isEqual(privateKey, null))
         {

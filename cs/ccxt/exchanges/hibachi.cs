@@ -960,7 +960,7 @@ public partial class hibachi : Exchange
         string feeRateInternal16 = this.intToBase16(this.parseToInt(feeRateInternal));
         object feeRatePadded = (feeRateInternal16 as String).PadLeft(Convert.ToInt32(16), Convert.ToChar("0"));
         byte[] encodedFeeRate = this.base16ToBinary(feeRatePadded);
-        object encodedPrice = this.binaryConcat();
+        byte[] encodedPrice = this.binaryConcat();
         if (isEqual(type, "limit"))
         {
             string? priceStr = this.priceToPrecision(this.safeString(market, "symbol"), price);
@@ -970,7 +970,7 @@ public partial class hibachi : Exchange
             // @ts-expect-error
             encodedPrice = this.base16ToBinary(pricePadded);
         }
-        object message = this.binaryConcat(encodedNonce, encodedMarketId, encodedQuantity, encodedSide, encodedPrice, encodedFeeRate);
+        byte[] message = this.binaryConcat(encodedNonce, encodedMarketId, encodedQuantity, encodedSide, encodedPrice, encodedFeeRate);
         return message;
     }
 
@@ -1005,7 +1005,7 @@ public partial class hibachi : Exchange
             priceInternal = this.priceToPrecision(symbol, price);
         }
         object message = this.orderMessage(market, nonce, feeRate, type, side, amount, price);
-        object signature = this.signMessage(message, this.privateKey);
+        string signature = this.signMessage(message, this.privateKey);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", this.safeString(market, "id") },
             { "nonce", nonce },
@@ -1141,7 +1141,7 @@ public partial class hibachi : Exchange
         double? makerFeeValue = (isEqual(makerFee, null)) ? 0 : makerFee;
         object feeRate = mathMax(takerFeeValue, makerFeeValue);
         object message = this.orderMessage(market, nonce, feeRate, type, side, amount, price);
-        object signature = this.signMessage(message, this.privateKey);
+        string signature = this.signMessage(message, this.privateKey);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "orderId", id },
             { "nonce", nonce },
@@ -1245,7 +1245,7 @@ public partial class hibachi : Exchange
         string idbase16 = this.intToBase16(bigid);
         object idPadded = (idbase16 as String).PadLeft(Convert.ToInt32(16), Convert.ToChar("0"));
         byte[] message = this.base16ToBinary(idPadded);
-        object signature = this.signMessage(message, this.privateKey);
+        string signature = this.signMessage(message, this.privateKey);
         return new Dictionary<string, object>() {
             { "orderId", id },
             { "signature", signature },
@@ -1337,7 +1337,7 @@ public partial class hibachi : Exchange
         string nonce16 = this.intToBase16(nonce);
         object noncePadded = (nonce16 as String).PadLeft(Convert.ToInt32(16), Convert.ToChar("0"));
         byte[] message = this.base16ToBinary(noncePadded);
-        object signature = this.signMessage(message, this.privateKey);
+        string signature = this.signMessage(message, this.privateKey);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "accountId", this.getAccountId() },
             { "nonce", nonce },
@@ -1380,7 +1380,7 @@ public partial class hibachi : Exchange
         object maxFeesPadded = (maxFees16 as String).PadLeft(Convert.ToInt32(16), Convert.ToChar("0"));
         byte[] encodedMaxFees = this.base16ToBinary(maxFeesPadded);
         byte[] encodedAddress = this.base16ToBinary(address);
-        object message = this.binaryConcat(encodedAssetId, encodedQuantity, encodedMaxFees, encodedAddress);
+        byte[] message = this.binaryConcat(encodedAssetId, encodedQuantity, encodedMaxFees, encodedAddress);
         return message;
     }
 
@@ -1415,7 +1415,7 @@ public partial class hibachi : Exchange
         double? maxFees = this.safeNumber(feeConfig, "withdrawalFees");
         // Generate the signature
         object message = this.encodeWithdrawMessage(amount, maxFees, withdrawAddress);
-        object signature = this.signMessage(message, this.privateKey);
+        string signature = this.signMessage(message, this.privateKey);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "accountId", this.getAccountId() },
             { "coin", "USDT" },
@@ -1439,7 +1439,7 @@ public partial class hibachi : Exchange
         return this.milliseconds();
     }
 
-    public virtual object signMessage(object message, object privateKey)
+    public virtual string signMessage(object message, object privateKey)
     {
         if ((getArrayLength(privateKey) == 44))
         {
@@ -1448,7 +1448,7 @@ public partial class hibachi : Exchange
         } else
         {
             // For Trustless account, the key length is 66 including '0x' and we use ECDSA to sign the message
-            object hash = this.hash(message, sha256, "hex");
+            string hash = ((string)this.hash(message, sha256, "hex"));
             Dictionary<string, object> signature = ecdsa(slice(hash, -64, null), slice(privateKey, -64, null), secp256k1, null);
             object r = GetValue(signature, "r");
             object s = GetValue(signature, "s");

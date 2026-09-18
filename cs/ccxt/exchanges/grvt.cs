@@ -793,7 +793,7 @@ public partial class grvt : Exchange
         {
             return new Dictionary<string, object>() {};
         }
-        object walletAddress = this.ethGetAddressFromPrivateKey(this.privateKey);
+        string walletAddress = this.ethGetAddressFromPrivateKey(this.privateKey);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "address", walletAddress },
             { "signature", this.defaultSignature() },

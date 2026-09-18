@@ -1194,7 +1194,7 @@ public partial class btcturk : Exchange
         {
             this.checkRequiredCredentials();
             string nonce = this.nonce().ToString();
-            object secret = this.base64ToBinary(this.secret);
+            byte[] secret = this.base64ToBinary(this.secret);
             object auth = add(this.apiKey, nonce);
             headers = new Dictionary<string, object>() {
                 { "X-PCK", this.apiKey },

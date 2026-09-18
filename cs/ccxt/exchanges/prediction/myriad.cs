@@ -852,7 +852,7 @@ public partial class myriad : PredictionExchange
         string? accessList = this.rlpEncodeList(new List<object>() {});
         List<object> fields = new List<object> {this.rlpEncodeBytes(this.intToRlpHex(this.safeInteger(tx, "chainId"))), this.rlpEncodeBytes(this.hexToRlpBytes(this.safeString(tx, "nonce"))), this.rlpEncodeBytes(this.hexToRlpBytes(this.safeString(tx, "maxPriorityFeePerGas"))), this.rlpEncodeBytes(this.hexToRlpBytes(this.safeString(tx, "maxFeePerGas"))), this.rlpEncodeBytes(this.hexToRlpBytes(this.safeString(tx, "gasLimit"))), this.rlpEncodeBytes(this.remove0xPrefix(this.safeString(tx, "to"))), this.rlpEncodeBytes(this.hexToRlpBytes(this.safeString(tx, "value", "0x0"))), this.rlpEncodeBytes(this.remove0xPrefix(this.safeString(tx, "data", "0x"))), accessList};
         string payload = add("02", this.rlpEncodeList(fields));
-        object hashHex = this.hash(this.base16ToBinary(payload), keccak, "hex");
+        string hashHex = ((string)this.hash(this.base16ToBinary(payload), keccak, "hex"));
         Dictionary<string, object> signature = ecdsa(hashHex, this.remove0xPrefix(privateKey), secp256k1, null);
         string? rHex = this.safeString(signature, "r");
         string? sHex = this.safeString(signature, "s");
@@ -1070,7 +1070,7 @@ public partial class myriad : PredictionExchange
         string? networkId = this.safeString(info, "networkId", this.safeString(this.options, "defaultNetworkId", "56"));
         string? marketId = this.safeString(info, "marketId");
         Int64? outcomeId = this.safeInteger(info, "outcomeId", 0);
-        object trader = this.ethGetAddressFromPrivateKey(this.privateKey);
+        string trader = this.ethGetAddressFromPrivateKey(this.privateKey);
         string typeStr = (isEqual(type, null)) ? "limit" : ((string)type).ToLower();
         string sideStr = ((string)((string)side)).ToLower();
         int sideInt = (sideStr == "buy") ? 0 : 1;
@@ -1253,7 +1253,7 @@ public partial class myriad : PredictionExchange
         {
             throw new BadRequest (add(this.id, " createAmmOrder is missing calldata from fetchTradeQuote")) ;
         }
-        object fromAddress = this.ethGetAddressFromPrivateKey(this.privateKey);
+        string fromAddress = this.ethGetAddressFromPrivateKey(this.privateKey);
         string? txHashParam = this.safeString2(parameters, "transactionHash", "txHash");
         bool hasPreBroadcastTxHash = ((txHashParam != null));
         bool? skipAllowance = this.safeBool(parameters, "skipAllowance", hasPreBroadcastTxHash);
@@ -1321,7 +1321,7 @@ public partial class myriad : PredictionExchange
             { "verifyingContract", exchangeAddress },
         };
         byte[] encoded = this.ethEncodeStructuredData(domain, types, message);
-        object digest = this.hash(encoded, keccak, "hex");
+        string digest = ((string)this.hash(encoded, keccak, "hex"));
         Dictionary<string, object> signature = ecdsa(digest, this.remove0xPrefix(this.privateKey), secp256k1, null);
         object rRaw = GetValue(signature, "r");
         object sRaw = GetValue(signature, "s");
@@ -1407,7 +1407,7 @@ public partial class myriad : PredictionExchange
      */
     public virtual Dictionary<string, object> clobOrderMessage(object rawOrder)
     {
-        object signer = this.safeString2(rawOrder, "trader", "user");
+        string? signer = this.safeString2(rawOrder, "trader", "user");
         if (!isEqual(this.privateKey, null))
         {
             signer = this.ethGetAddressFromPrivateKey(this.privateKey);
@@ -1859,7 +1859,7 @@ public partial class myriad : PredictionExchange
         {
             throw new ArgumentsRequired (add(this.id, " cancelAllOrders() requires a privateKey to sign the cancellation")) ;
         }
-        object trader = this.ethGetAddressFromPrivateKey(this.privateKey);
+        string trader = this.ethGetAddressFromPrivateKey(this.privateKey);
         string? marketId = this.safeString(parameters, "market_id", "0");
         string? networkId = this.safeString(parameters, "network_id", this.safeString(this.options, "defaultNetworkId", "56"));
         if (!isEqual(outcome, null))
@@ -2299,8 +2299,8 @@ public partial class myriad : PredictionExchange
         {
             return null;
         }
-        object chars = this.stringToCharsArray(((string)stripped).ToLower());
-        int n = getArrayLength(chars);
+        List<object> chars = this.stringToCharsArray(((string)stripped).ToLower());
+        int n = chars?.Count ?? 0;
         string digits = "0123456789abcdef";
         string? result = "0";
         for (int i = 0; isLessThan(i, n); postFixIncrement(ref i))

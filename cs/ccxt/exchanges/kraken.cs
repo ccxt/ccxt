@@ -4106,10 +4106,10 @@ public partial class kraken : Exchange
                 }, parameters));
             }
             string? auth = this.encode(add(nonce, body));
-            object hash = this.hash(auth, sha256, "binary");
+            byte[] hash = ((byte[])this.hash(auth, sha256, "binary"));
             string? binary = this.encode(url);
-            object binhash = this.binaryConcat(binary, hash);
-            object secret = this.base64ToBinary(this.secret);
+            byte[] binhash = this.binaryConcat(binary, hash);
+            byte[] secret = this.base64ToBinary(this.secret);
             string signature = this.hmac(binhash, secret, sha512, "base64");
             headers = new Dictionary<string, object>() {
                 { "API-Key", this.apiKey },

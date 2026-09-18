@@ -1712,7 +1712,7 @@ public partial class paradex : Exchange
         return add("0x", this.hash(message, keccak, "hex"));
     }
 
-    public virtual object signHash(object hash, object privateKey)
+    public virtual string signHash(object hash, object privateKey)
     {
         Dictionary<string, object> signature = ecdsa(slice(hash, -64, null), slice(privateKey, -64, null), secp256k1, null);
         object r = GetValue(signature, "r");
@@ -1721,7 +1721,7 @@ public partial class paradex : Exchange
         return add(add(add("0x", (r as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0"))), (s as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0"))), v);
     }
 
-    public virtual object signMessage(object message, object privateKey)
+    public virtual string signMessage(object message, object privateKey)
     {
         return this.signHash(this.hashMessage(message), slice(privateKey, -64, null));
     }
@@ -1807,7 +1807,7 @@ public partial class paradex : Exchange
             { "action", "STARK Key" },
         };
         byte[] msg = this.ethEncodeStructuredData(domain, messageTypes, message);
-        object signature = this.signMessage(msg, this.privateKey);
+        string signature = this.signMessage(msg, this.privateKey);
         object account = this.retrieveStarkAccount(signature, GetValue(systemConfig, "paraclear_account_hash"), GetValue(systemConfig, "paraclear_account_proxy_hash"));
         ((IDictionary<string,object>)this.options)["paradexAccount"] = account;
         return account;

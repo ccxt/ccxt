@@ -3423,8 +3423,8 @@ public partial class lbank : Exchange
                 { "timestamp", timestamp },
             }, query)));
             string? encoded = this.encode(auth);
-            object hash = this.hash(encoded, md5);
-            string uppercaseHash = ((string)hash).ToUpper();
+            string hash = ((string)this.hash(encoded, md5));
+            string uppercaseHash = hash.ToUpper();
             string? sign = null;
             if (signatureMethod == "RSA")
             {

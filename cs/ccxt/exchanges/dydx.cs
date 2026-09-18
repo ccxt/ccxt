@@ -1625,7 +1625,7 @@ public partial class dydx : Exchange
             goodTillBlockTime = add(this.seconds(), goodTillBlockTimeInSeconds);
         }
         int sideNumber = (orderSide == "BUY") ? 1 : 2;
-        object defaultClientOrderId = this.randNumber(9); // 2**32 - 1 is 10 digits, but it may overflow with 10
+        int defaultClientOrderId = this.randNumber(9); // 2**32 - 1 is 10 digits, but it may overflow with 10
         Int64? clientOrderId = this.safeInteger(parameters, "clientOrderId", defaultClientOrderId);
         Dictionary<string, object> orderPayload = new Dictionary<string, object>() {
             { "order", new Dictionary<string, object>() {

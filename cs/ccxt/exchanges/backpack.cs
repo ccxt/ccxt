@@ -2690,7 +2690,7 @@ public partial class backpack : Exchange
                 }
                 payload = add(add(add(add(add(add(add("instruction=", instruction), "&"), queryString), "timestamp="), ts), "&window="), recvWindow);
             }
-            object secretBytes = this.base64ToBinary(this.secret);
+            byte[] secretBytes = this.base64ToBinary(this.secret);
             object seed = this.arraySlice(secretBytes, 0, 32);
             string signature = eddsa(this.encode(payload), seed, ed25519);
             headers = new Dictionary<string, object>() {

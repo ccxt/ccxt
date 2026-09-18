@@ -1361,7 +1361,7 @@ public partial class bitvavo : ccxt.bitvavo
     public virtual object requestId()
     {
         string ts = this.milliseconds().ToString();
-        object randomNumber = this.randNumber(4);
+        int randomNumber = this.randNumber(4);
         string randomPart = randomNumber.ToString();
         return parseInt(add(ts, randomPart));
     }

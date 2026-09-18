@@ -517,7 +517,7 @@ public partial class derive : ccxt.derive
         {
             Int64 requestId = ((Int64)this.requestId(url));
             string now = this.milliseconds().ToString();
-            object signature = this.signMessage(now, this.privateKey);
+            string signature = this.signMessage(now, this.privateKey);
             string? deriveWalletAddress = this.safeString(this.options, "deriveWalletAddress");
             Dictionary<string, object> request = new Dictionary<string, object>() {
                 { "id", requestId },

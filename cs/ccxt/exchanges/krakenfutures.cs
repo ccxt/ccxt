@@ -4104,8 +4104,8 @@ public partial class krakenfutures : Exchange
                 auth = add(auth, add(api, "/"));
             }
             auth = add(auth, endpoint); // 1
-            object hash = this.hash(this.encode(auth), sha256, "binary"); // 2
-            object secret = this.base64ToBinary(this.secret); // 3
+            byte[] hash = ((byte[])this.hash(this.encode(auth), sha256, "binary")); // 2
+            byte[] secret = this.base64ToBinary(this.secret); // 3
             string signature = this.hmac(hash, secret, sha512, "base64"); // 4-5
             headers = new Dictionary<string, object>() {
                 { "Content-Type", "application/x-www-form-urlencoded" },

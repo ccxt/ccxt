@@ -1294,10 +1294,10 @@ public partial class hyperliquid : PredictionExchange
             ((IList<object>)candidates).Add(add("#", slice(outcomeInput, 1, null)));
         }
         string digitChars = "0123456789";
-        object inputChars = this.stringToCharsArray(outcomeInput);
-        int inputCharsLength = getArrayLength(inputChars);
+        List<object> inputChars = this.stringToCharsArray(outcomeInput);
+        int inputCharsLength = inputChars?.Count ?? 0;
         bool isNumericInput = isGreaterThan(inputCharsLength, 0);
-        for (int di = 0; isLessThan(di, getArrayLength(inputChars)); postFixIncrement(ref di))
+        for (int di = 0; isLessThan(di, inputChars?.Count ?? 0); postFixIncrement(ref di))
         {
             if (getIndexOf(digitChars, getValue(inputChars, di)) < 0)
             {

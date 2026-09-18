@@ -2745,7 +2745,7 @@ public partial class htx : Exchange
             object createdDate = this.safeString(market, "create_date"); // i.e 20230101
             if ((createdDate != null))
             {
-                object createdArray = this.stringToCharsArray(createdDate);
+                List<object> createdArray = this.stringToCharsArray(createdDate);
                 createdDate = add(add(add(add(add(add(add(add(add(add(getValue(createdArray, 0), getValue(createdArray, 1)), getValue(createdArray, 2)), getValue(createdArray, 3)), "-"), getValue(createdArray, 4)), getValue(createdArray, 5)), "-"), getValue(createdArray, 6)), getValue(createdArray, 7)), " 00:00:00");
                 created = this.parse8601(createdDate);
             }

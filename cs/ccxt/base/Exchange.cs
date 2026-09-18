@@ -952,10 +952,12 @@ public partial class BaseExchange
         }
     }
 
-    public object stringToCharsArray(object str)
+    // every path returns the one-char string list built below; List<object> is the box the
+    // generated consumers already read (getValue / getArrayLength / `(string)` element casts)
+    public List<object> stringToCharsArray(object str)
     {
         var step = str.ToString().ToCharArray();
-        var res = new List<string>();
+        var res = new List<object>();
         foreach (var item in step)
         {
             res.Add(item.ToString());

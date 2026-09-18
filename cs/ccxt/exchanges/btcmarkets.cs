@@ -1597,7 +1597,7 @@ public partial class btcmarkets : Exchange
         {
             this.checkRequiredCredentials();
             string nonce = this.nonce().ToString();
-            object secret = this.base64ToBinary(this.secret);
+            byte[] secret = this.base64ToBinary(this.secret);
             object auth = add(add(method, request), nonce);
             if ((isEqual(method, "GET")) || (isEqual(method, "DELETE")))
             {

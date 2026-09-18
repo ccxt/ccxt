@@ -89,7 +89,7 @@ public partial class backpack : ccxt.backpack
         string method = isTrue(unwatch) ? "UNSUBSCRIBE" : "SUBSCRIBE";
         string? recvWindow = this.safeString2(this.options, "recvWindow", "X-Window", "5000");
         string payload = add(add(add(add(add(add("instruction=", instruction), "&"), "timestamp="), ts), "&window="), recvWindow);
-        object secretBytes = this.base64ToBinary(this.secret);
+        byte[] secretBytes = this.base64ToBinary(this.secret);
         object seed = this.arraySlice(secretBytes, 0, 32);
         string signature = eddsa(this.encode(payload), seed, ed25519);
         Dictionary<string, object> request = new Dictionary<string, object>() {

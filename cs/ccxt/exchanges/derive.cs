@@ -1528,7 +1528,7 @@ public partial class derive : Exchange
 
     public virtual object hashOrderMessage(object order)
     {
-        object accountHash = this.hash(this.ethAbiEncode(new List<object>() {"bytes32", "uint256", "uint256", "address", "bytes32", "uint256", "address", "address"}, order), keccak, "binary");
+        byte[] accountHash = ((byte[])this.hash(this.ethAbiEncode(new List<object>() {"bytes32", "uint256", "uint256", "address", "bytes32", "uint256", "address", "address"}, order), keccak, "binary"));
         bool? sandboxMode = this.safeBool(this.options, "sandboxMode", false);
         string DOMAIN_SEPARATOR = ((sandboxMode == true)) ? "9bcf4dc06df5d8bf23af818d5716491b995020f377d3b7b64c29ed14e3dd1105" : "d96e5f90797da7ec8dc4e276260c7f3f87fedf68775fbe1ef116e996fc60441b";
         byte[] binaryDomainSeparator = this.base16ToBinary(DOMAIN_SEPARATOR);
@@ -1548,11 +1548,11 @@ public partial class derive : Exchange
         object binaryMessageLength = this.binaryLength(binaryMessage);
         byte[] x19 = this.base16ToBinary("19");
         byte[] newline = this.base16ToBinary("0a");
-        object prefix = this.binaryConcat(x19, this.encode("Ethereum Signed Message:"), newline, this.encode(this.numberToString(binaryMessageLength)));
+        byte[] prefix = this.binaryConcat(x19, this.encode("Ethereum Signed Message:"), newline, this.encode(this.numberToString(binaryMessageLength)));
         return add("0x", this.hash(this.binaryConcat(prefix, binaryMessage), keccak, "hex"));
     }
 
-    public virtual object signHash(object hash, object privateKey)
+    public virtual string signHash(object hash, object privateKey)
     {
         this.checkRequiredCredentials();
         Dictionary<string, object> signature = ecdsa(slice(hash, -64, null), slice(privateKey, -64, null), secp256k1, null);
@@ -1562,7 +1562,7 @@ public partial class derive : Exchange
         return add(add(add("0x", (r as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0"))), (s as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0"))), v);
     }
 
-    public virtual object signMessage(object message, object privateKey)
+    public virtual string signMessage(object message, object privateKey)
     {
         return this.signHash(this.hashMessage(message), slice(privateKey, -64, null));
     }
@@ -1633,7 +1633,7 @@ public partial class derive : Exchange
         }
         string? maxFeeString = this.numberToString(maxFee);
         string? amountString = this.numberToString(amount);
-        object tradeModuleDataHash = this.hash(this.ethAbiEncode(new List<object>() {"address", "uint", "int", "int", "uint", "uint", "bool"}, new List<object>() {getValue(GetValue(market, "info"), "base_asset_address"), this.parseToNumeric(getValue(GetValue(market, "info"), "base_asset_sub_id")), this.convertToBigInt(((string)this.parseUnits(priceString))), this.convertToBigInt(((string)this.parseUnits(((string)this.amountToPrecision(symbol, amountString))))), this.convertToBigInt(((string)this.parseUnits(maxFeeString))), subaccountId, orderSideIsBuy}), keccak, "binary");
+        byte[] tradeModuleDataHash = ((byte[])this.hash(this.ethAbiEncode(new List<object>() {"address", "uint", "int", "int", "uint", "uint", "bool"}, new List<object>() {getValue(GetValue(market, "info"), "base_asset_address"), this.parseToNumeric(getValue(GetValue(market, "info"), "base_asset_sub_id")), this.convertToBigInt(((string)this.parseUnits(priceString))), this.convertToBigInt(((string)this.parseUnits(((string)this.amountToPrecision(symbol, amountString))))), this.convertToBigInt(((string)this.parseUnits(maxFeeString))), subaccountId, orderSideIsBuy}), keccak, "binary"));
         object deriveWalletAddress = null;
         IList<object> deriveWalletAddressparametersVariable = (IList<object>)this.handleDeriveWalletAddress("createOrder", parameters);
         deriveWalletAddress = deriveWalletAddressparametersVariable[0];
@@ -1818,7 +1818,7 @@ public partial class derive : Exchange
         string priceString = this.numberToString(price);
         string? maxFeeString = this.safeString(parameters, "max_fee", "0");
         string? amountString = this.numberToString(amount);
-        object tradeModuleDataHash = this.hash(this.ethAbiEncode(new List<object>() {"address", "uint", "int", "int", "uint", "uint", "bool"}, new List<object>() {getValue(GetValue(market, "info"), "base_asset_address"), this.parseToNumeric(getValue(GetValue(market, "info"), "base_asset_sub_id")), this.convertToBigInt(((string)this.parseUnits(priceString))), this.convertToBigInt(((string)this.parseUnits(((string)this.amountToPrecision(symbol, amountString))))), this.convertToBigInt(((string)this.parseUnits(maxFeeString))), subaccountId, orderSideIsBuy}), keccak, "binary");
+        byte[] tradeModuleDataHash = ((byte[])this.hash(this.ethAbiEncode(new List<object>() {"address", "uint", "int", "int", "uint", "uint", "bool"}, new List<object>() {getValue(GetValue(market, "info"), "base_asset_address"), this.parseToNumeric(getValue(GetValue(market, "info"), "base_asset_sub_id")), this.convertToBigInt(((string)this.parseUnits(priceString))), this.convertToBigInt(((string)this.parseUnits(((string)this.amountToPrecision(symbol, amountString))))), this.convertToBigInt(((string)this.parseUnits(maxFeeString))), subaccountId, orderSideIsBuy}), keccak, "binary"));
         object deriveWalletAddress = null;
         IList<object> deriveWalletAddressparametersVariable = (IList<object>)this.handleDeriveWalletAddress("editOrder", parameters);
         deriveWalletAddress = deriveWalletAddressparametersVariable[0];
@@ -3251,7 +3251,7 @@ public partial class derive : Exchange
             if (isEqual(api, "private"))
             {
                 string now = this.milliseconds().ToString();
-                object signature = this.signMessage(now, this.privateKey);
+                string signature = this.signMessage(now, this.privateKey);
                 ((IDictionary<string,object>)headers)["X-LyraWallet"] = this.safeString(this.options, "deriveWalletAddress");
                 ((IDictionary<string,object>)headers)["X-LyraTimestamp"] = now;
                 ((IDictionary<string,object>)headers)["X-LyraSignature"] = signature;

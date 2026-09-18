@@ -4690,7 +4690,7 @@ public partial class aster : Exchange
         return add("0x", this.hash(message, keccak, "hex"));
     }
 
-    public virtual object signMessage(object message, object privateKey)
+    public virtual string signMessage(object message, object privateKey)
     {
         return this.signHash(this.keccakMessage(message), slice(privateKey, -64, null));
     }
@@ -4742,7 +4742,7 @@ public partial class aster : Exchange
             { "aster chain", "Mainnet" },
         };
         byte[] msg = this.ethEncodeStructuredData(domain, messageTypes, request);
-        object signature = this.signMessage(msg, this.privateKey);
+        string signature = this.signMessage(msg, this.privateKey);
         return signature;
     }
 
@@ -4918,11 +4918,11 @@ public partial class aster : Exchange
         object binaryMessageLength = this.binaryLength(binaryMessage);
         byte[] x19 = this.base16ToBinary("19");
         byte[] newline = this.base16ToBinary("0a");
-        object prefix = this.binaryConcat(x19, this.encode("Ethereum Signed Message:"), newline, this.encode(this.numberToString(binaryMessageLength)));
+        byte[] prefix = this.binaryConcat(x19, this.encode("Ethereum Signed Message:"), newline, this.encode(this.numberToString(binaryMessageLength)));
         return add("0x", this.hash(this.binaryConcat(prefix, binaryMessage), keccak, "hex"));
     }
 
-    public virtual object signHash(object hash, object privateKey)
+    public virtual string signHash(object hash, object privateKey)
     {
         this.checkRequiredCredentials();
         Dictionary<string, object> signature = ecdsa(slice(hash, -64, null), slice(privateKey, -64, null), secp256k1, null);
@@ -4951,8 +4951,8 @@ public partial class aster : Exchange
             // Sign using EIP-712 typed data per the AsterSignTransaction spec
             string? zeroAddress = this.safeString(this.options, "zeroAddress", "0x0000000000000000000000000000000000000000");
             Int64? v3ChainId = this.safeInteger(this.options, "v3ChainId", 1666);
-            object walletAddress = this.safeString(this.options, "cachedWalletAddress");
-            object privateKeyHash = this.hash(this.encode(this.privateKey), keccak, "hex");
+            string? walletAddress = this.safeString(this.options, "cachedWalletAddress");
+            string privateKeyHash = ((string)this.hash(this.encode(this.privateKey), keccak, "hex"));
             string? cachedPrivateKeyHash = this.safeString(this.options, "privateKeyHashForCachedWalletAddress");
             if (((walletAddress == null)) || (!isEqual(cachedPrivateKeyHash, privateKeyHash)))
             {
@@ -5022,7 +5022,7 @@ public partial class aster : Exchange
                 };
             }
             byte[] encodedMessage = this.ethEncodeStructuredData(domain, messageTypes, paramsToEncode);
-            object signature = this.signMessage(encodedMessage, this.privateKey);
+            string signature = this.signMessage(encodedMessage, this.privateKey);
             object queryString = add(add(add(paramString, "&"), "signature="), signature);
             if (isEqual(method, "GET"))
             {

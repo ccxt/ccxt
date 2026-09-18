@@ -750,10 +750,10 @@ public partial class polymarket : PredictionExchange
     {
         string lower = ((string)tag).ToLower();
         string allowed = "abcdefghijklmnopqrstuvwxyz0123456789";
-        object chars = this.stringToCharsArray(lower);
+        List<object> chars = this.stringToCharsArray(lower);
         object slug = "";
         bool pendingSep = false;
-        for (int i = 0; isLessThan(i, getArrayLength(chars)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, chars?.Count ?? 0); postFixIncrement(ref i))
         {
             string? ch = ((string)getValue(chars, i));
             if (getIndexOf(allowed, ch) >= 0)
@@ -2800,12 +2800,12 @@ public partial class polymarket : PredictionExchange
         // POLY_1271 — ERC-7739 wrapped signature validated on-chain by the deposit wallet.
         // ethAbiEncode needs portable value types: bytes32 as binary, uint256 as bigint
         // raw hex/decimal strings encode in ethers/JS but throw in the python/php codecs
-        object orderTypeHash = this.hash(this.encode(orderTypeString), keccak, "binary");
+        byte[] orderTypeHash = ((byte[])this.hash(this.encode(orderTypeString), keccak, "binary"));
         object contentsData = this.ethAbiEncode(new List<object>() {"bytes32", "uint256", "address", "address", "uint256", "uint256", "uint256", "uint8", "uint8", "uint256", "bytes32", "bytes32"}, new List<object>() {orderTypeHash, this.convertToBigInt(getValue(message, "salt")), getValue(message, "maker"), getValue(message, "signer"), this.convertToBigInt(getValue(message, "tokenId")), this.convertToBigInt(getValue(message, "makerAmount")), this.convertToBigInt(getValue(message, "takerAmount")), getValue(message, "side"), getValue(message, "signatureType"), this.convertToBigInt(getValue(message, "timestamp")), this.base16ToBinary(this.remove0xPrefix(getValue(message, "metadata"))), this.base16ToBinary(this.remove0xPrefix(getValue(message, "builder")))});
         string contentsHash = add("0x", this.hash(contentsData, keccak, "hex"));
-        object domainTypeHash = this.hash(this.encode("EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)"), keccak, "binary");
-        object nameHash = this.hash(this.encode(domainName), keccak, "binary");
-        object versionHash = this.hash(this.encode(domainVersion), keccak, "binary");
+        byte[] domainTypeHash = ((byte[])this.hash(this.encode("EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)"), keccak, "binary"));
+        byte[] nameHash = ((byte[])this.hash(this.encode(domainName), keccak, "binary"));
+        byte[] versionHash = ((byte[])this.hash(this.encode(domainVersion), keccak, "binary"));
         object appDomainData = this.ethAbiEncode(new List<object>() {"bytes32", "bytes32", "bytes32", "uint256", "address"}, new List<object>() {domainTypeHash, nameHash, versionHash, this.convertToBigInt(this.numberToString(chainIdValue)), exchangeAddress});
         string appDomainSep = add("0x", this.hash(appDomainData, keccak, "hex"));
         List<object> typedDataSignStruct = new List<object>() {new Dictionary<string, object>() {
@@ -3388,7 +3388,7 @@ public partial class polymarket : PredictionExchange
                 string normalizedSecret = ((string)secret);
                 normalizedSecret = normalizedSecret.Replace((string)"-", (string)"+");
                 normalizedSecret = normalizedSecret.Replace((string)"_", (string)"/");
-                object secretBytes = this.base64ToBinary(normalizedSecret);
+                byte[] secretBytes = this.base64ToBinary(normalizedSecret);
                 string signature = this.hmac(this.encode(auth), secretBytes, sha256, "base64");
                 // url-safe base64, preserving '=' padding (matches the reference client)
                 signature = signature.Replace((string)"+", (string)"-");
@@ -3420,12 +3420,12 @@ public partial class polymarket : PredictionExchange
         // EIP-55 mixed-case checksum; the CLOB compares the order signer to the api-key owner
         // case-sensitively and stores addresses checksummed, so every address we send must be checksummed
         string cleaned = ((string)this.remove0xPrefix(address)).ToLower();
-        object hashHex = this.hash(this.encode(cleaned), keccak, "hex");
-        object addrChars = this.stringToCharsArray(cleaned);
-        object hashChars = this.stringToCharsArray(hashHex);
+        string hashHex = ((string)this.hash(this.encode(cleaned), keccak, "hex"));
+        List<object> addrChars = this.stringToCharsArray(cleaned);
+        List<object> hashChars = this.stringToCharsArray(hashHex);
         string upperNibbles = "89abcdef";
         object result = "";
-        for (int i = 0; isLessThan(i, getArrayLength(addrChars)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, addrChars?.Count ?? 0); postFixIncrement(ref i))
         {
             string? ch = ((string)getValue(addrChars, i));
             if (getIndexOf(upperNibbles, getValue(hashChars, i)) >= 0)
@@ -3590,7 +3590,7 @@ public partial class polymarket : PredictionExchange
             return;
         }
         object apiKey = (!isEqual(this.apiKey, null)) ? this.apiKey : this.safeString(this.options, "l2ApiKey");
-        object secret = (!isEqual(this.secret, null)) ? this.secret : this.safeString(this.options, "l2Secret");
+        string? secret = (!isEqual(this.secret, null)) ? this.secret : this.safeString(this.options, "l2Secret");
         object passphrase = (!isEqual(this.password, null)) ? this.password : this.safeString(this.options, "l2Passphrase");
         bool hasL2 = ((apiKey != null)) && ((secret != null)) && ((passphrase != null));
         if (hasL2)
@@ -3970,7 +3970,7 @@ public partial class polymarket : PredictionExchange
         // the user channel authenticates inside the subscribe frame, not via HMAC headers
         parameters ??= new Dictionary<string, object>();
         object apiKey = (!isEqual(this.apiKey, null)) ? this.apiKey : this.safeString(this.options, "l2ApiKey");
-        object secret = (!isEqual(this.secret, null)) ? this.secret : this.safeString(this.options, "l2Secret");
+        string? secret = (!isEqual(this.secret, null)) ? this.secret : this.safeString(this.options, "l2Secret");
         object passphrase = (!isEqual(this.password, null)) ? this.password : this.safeString(this.options, "l2Passphrase");
         Dictionary<string, object> auth = new Dictionary<string, object>() {
             { "apiKey", apiKey },

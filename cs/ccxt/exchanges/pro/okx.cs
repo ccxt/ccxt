@@ -2476,7 +2476,7 @@ public partial class okx : ccxt.okx
     public virtual object requestId()
     {
         string ts = this.milliseconds().ToString();
-        object randomNumber = this.randNumber(4);
+        int randomNumber = this.randNumber(4);
         string randomPart = randomNumber.ToString();
         return add(ts, randomPart);
     }

@@ -288,10 +288,10 @@ public partial class PredictionExchange : BaseExchange
         // plain concatenation would create ("us open" vs "household")
         string lower = ((string)tag).ToLower();
         string allowed = "abcdefghijklmnopqrstuvwxyz0123456789";
-        object chars = this.stringToCharsArray(lower);
+        List<object> chars = this.stringToCharsArray(lower);
         object s = "";
         bool pendingSep = false;
-        for (int i = 0; isLessThan(i, getArrayLength(chars)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, chars?.Count ?? 0); postFixIncrement(ref i))
         {
             string? ch = ((string)getValue(chars, i));
             if (getIndexOf(allowed, ch) >= 0)
@@ -587,10 +587,10 @@ public partial class PredictionExchange : BaseExchange
         List<object> stopWords = new List<object>() {"will", "the", "a", "an", "after", "before", "in", "at", "by", "of", "there", "be", "to", "or", "and", "for", "on", "its", "that", "this", "from", "with", "as", "is", "are", "was", "were", "?", "how", "many", "who", "what", "when", "where", "which", "much"};
         string lower = (isEqual(slug, null)) ? "" : ((string)slug).ToLower();
         string allowed = "abcdefghijklmnopqrstuvwxyz0123456789";
-        object chars = this.stringToCharsArray(lower);
+        List<object> chars = this.stringToCharsArray(lower);
         object s = "";
         bool lastDash = true; // start true to drop leading separators
-        for (int i = 0; isLessThan(i, getArrayLength(chars)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, chars?.Count ?? 0); postFixIncrement(ref i))
         {
             string? ch = ((string)getValue(chars, i));
             if (getIndexOf(allowed, ch) >= 0)
@@ -661,10 +661,10 @@ public partial class PredictionExchange : BaseExchange
         }
         string upper = ((string)outcome).ToUpper();
         string allowed = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-        object chars = this.stringToCharsArray(upper);
+        List<object> chars = this.stringToCharsArray(upper);
         object label = "";
         bool pendingSep = false;
-        for (int i = 0; isLessThan(i, getArrayLength(chars)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, chars?.Count ?? 0); postFixIncrement(ref i))
         {
             string? ch = ((string)getValue(chars, i));
             if (getIndexOf(allowed, ch) >= 0)
@@ -976,8 +976,8 @@ public partial class PredictionExchange : BaseExchange
                 continue;
             }
             bool wordHasLetters = false;
-            object chars = this.stringToCharsArray(word);
-            for (int ci = 0; isLessThan(ci, getArrayLength(chars)); postFixIncrement(ref ci))
+            List<object> chars = this.stringToCharsArray(word);
+            for (int ci = 0; isLessThan(ci, chars?.Count ?? 0); postFixIncrement(ref ci))
             {
                 if (getIndexOf(letters, getValue(chars, ci)) >= 0)
                 {
