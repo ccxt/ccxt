@@ -1157,6 +1157,14 @@ const CORE_ARG_SHADOW_OWNED_SOURCES = [ 'symbol', 'timeframe', 'since', 'currenc
 const CORE_ARG_SHADOW_MARKET_ROW_READ_RE = /^(?:this\.)?(?:GetValue|getValue)\s*\(\s*([A-Za-z_]\w*)\s*,\s*"([^"]+)"\s*\)$/;
 const CORE_ARG_SHADOW_MARKET_ROW_BIND_RE = /^\s*(?:I?Dictionary<string, object>\s+)?([A-Za-z_]\w*)\s*=\s*(?:this\.)?(?:market|safeMarket|safeMarketStructure)\s*\(/;
 const CORE_ARG_SHADOW_ELEMENT0_READ_RE = /^([A-Za-z_]\w*)\[\s*0\s*\]$/;
+// Tuple helpers whose element 0 is a string-or-null box at every call site in cs/**. Each is
+// declared once (`Exchange.BaseMethods.cs`: `object tag, object parameters` -> `List<object>`,
+// no venue or pro override) and called only from the generated `Withdraw`/`WithdrawWs` bodies,
+// which pass the copy of their own `string tag = null` parameter: slot 0 is that box, or
+// `safeString(parameters, "tag")` after the dictionary branch nulled it. Both are string-or-null,
+// so the `(string)` element cast the destructured write gets names the box the slot already
+// holds -- null passes a reference cast unchanged.
+// (cs90 U24 added this table for its own tag element-0 rule; U25 owns the alias fence.)
 const CORE_ARG_SHADOW_STRING_ELEMENT0_HELPERS = [ 'handleWithdrawTagAndParams' ];
 const CORE_ARG_SHADOW_STRING_ELEMENT0_BIND_RE = /^\s*IList<object>\s+([A-Za-z_]\w*)\s*=\s*\(IList<object>\)\s*(?:this\.)?(?:handleWithdrawTagAndParams)\s*\(/;
 
@@ -1167,14 +1175,6 @@ const CORE_ARG_SHADOW_STRING_ELEMENT0_BIND_RE = /^\s*IList<object>\s+([A-Za-z_]\
 // limit -- U23/U24) keep the base behaviour.
 const CORE_ARG_SHADOW_TAG_ALIASES = [ 'tagVar' ];
 
-// Tuple helpers whose element 0 is a string-or-null box at every call site in cs/**. Each is
-// declared once (`Exchange.BaseMethods.cs`: `object tag, object parameters` -> `List<object>`,
-// no venue or pro override) and called only from the generated `Withdraw`/`WithdrawWs` bodies,
-// which pass the copy of their own `string tag = null` parameter: slot 0 is that box, or
-// `safeString(parameters, "tag")` after the dictionary branch nulled it. Both are string-or-null,
-// so the `(string)` element cast the destructured write gets names the box the slot already
-// holds -- null passes a reference cast unchanged.
-const CORE_ARG_SHADOW_STRING_ELEMENT0_HELPERS = [ 'handleWithdrawTagAndParams' ];
 
 // Declarations the scanned body carries for the family above: element-0 holders of the audited
 // helpers, dictionary locals and plain `object` locals.
