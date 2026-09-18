@@ -79,7 +79,7 @@ public class TestWatchPositions extends BaseTest {
             }
             if (java.util.Objects.equals(success2, true))
             {
-                Assert(Helpers.isArray(positionsForSymbols), ((((exchange.id + " ") + method) + " must return an array, returned ") + exchange.json(positionsForSymbols)));
+                Assert((positionsForSymbols instanceof List), ((((exchange.id + " ") + method) + " must return an array, returned ") + exchange.json(positionsForSymbols)));
                 // max theoretical 4 positions: two for one-way-mode and two for two-way mode
                 Assert(((List<?>)positionsForSymbols).size() <= 4, ((((exchange.id + " ") + method) + " positions length for particular symbol should be less than 4, returned ") + exchange.json(positionsForSymbols)));
                 now = exchange.milliseconds();

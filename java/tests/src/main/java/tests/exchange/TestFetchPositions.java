@@ -32,7 +32,7 @@ public class TestFetchPositions extends BaseTest {
         // TestSharedMethods.AssertTimestampOrder (exchange, method, undefined, positions); // currently order of positions does not make sense
         // with symbol
         Object positionsForSymbol = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchPositions", new Object[]{new ArrayList<Object>(Arrays.asList(symbol))})).join();
-        Assert(Helpers.isArray(positionsForSymbol), ((((exchange.id + " ") + method) + " must return an array, returned ") + exchange.json(positionsForSymbol)));
+        Assert((positionsForSymbol instanceof List), ((((exchange.id + " ") + method) + " must return an array, returned ") + exchange.json(positionsForSymbol)));
         Object positionsForSymbolLength = ((List<?>)positionsForSymbol).size();
         Assert(Helpers.isLessThanOrEqual(positionsForSymbolLength, 4), ((((exchange.id + " ") + method) + " positions length for particular symbol should be less than 4, returned ") + exchange.json(positionsForSymbol)));
         for (var i = 0; i < ((List<?>)positionsForSymbol).size(); i++)

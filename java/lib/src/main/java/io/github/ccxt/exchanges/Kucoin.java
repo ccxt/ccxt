@@ -7418,7 +7418,7 @@ public class Kucoin extends KucoinApi
                 }
             }
             Object responseData = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isArray(responseData)))
+            if (Helpers.isTrue((responseData instanceof List)))
             {
                 responseData = this.safeValue(responseData, 0);
             }

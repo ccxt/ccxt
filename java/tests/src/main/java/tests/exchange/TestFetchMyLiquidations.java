@@ -25,7 +25,7 @@ public class TestFetchMyLiquidations extends BaseTest {
             return true;
         }
         Object items = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchMyLiquidations", new Object[]{code})).join();
-        Assert(Helpers.isArray(items), ((((((exchange.id + " ") + method) + " ") + code) + " must return an array. ") + exchange.json(items)));
+        Assert((items instanceof List), ((((((exchange.id + " ") + method) + " ") + code) + " must return an array. ") + exchange.json(items)));
         // const now = exchange.milliseconds ();
         for (var i = 0; i < ((List<?>)items).size(); i++)
         {

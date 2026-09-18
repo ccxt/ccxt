@@ -68,7 +68,7 @@ public class TestWatchOHLCVForSymbols extends BaseTest {
                 Assert(exchange.isDictionary(symbolObj), ("Response.Symbol should be a dictionary. " + AssertionMessage));
                 Assert(Helpers.inOp(symbolObj, chosenTimeframeKey), ("Response.symbol should contain the timeframe key. " + AssertionMessage));
                 Object ohlcvs = Helpers.GetValue(symbolObj, chosenTimeframeKey);
-                Assert(Helpers.isArray(ohlcvs), ("Response.symbol.timeframe should be an array. " + AssertionMessage));
+                Assert((ohlcvs instanceof List), ("Response.symbol.timeframe should be an array. " + AssertionMessage));
                 for (var i = 0; i < ((List<?>)ohlcvs).size(); i++)
                 {
                     TestOHLCV.testOHLCV(exchange, skippedProperties, method, Helpers.GetValue(ohlcvs, i), symbol, now);

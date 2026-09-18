@@ -1637,7 +1637,7 @@ public class Lbank extends LbankApi
             return this.safeBalance(result);
         }
         // from spotPrivatePostSupplementUserInfo
-        Object isArray = Helpers.isArray(data);
+        Object isArray = (data instanceof List);
         if (java.util.Objects.equals(isArray, true))
         {
             for (var i = 0; i < ((List<?>)data).size(); i++)

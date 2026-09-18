@@ -5101,7 +5101,7 @@ public class Binance extends BinanceApi
             for (var i = 0; i < ((List<?>)results).size(); i++)
             {
                 Object res = this.safeValue(results, i);
-                if ((java.util.Objects.equals(fetchMargins, true)) && Helpers.isTrue(Helpers.isArray(res)))
+                if ((java.util.Objects.equals(fetchMargins, true)) && Helpers.isTrue((res instanceof List)))
                 {
                     Object keysList = Helpers.objectKeys(this.indexBy(res, "symbol"));
                     Object length = Helpers.getArrayLength(((Map<String, Object>)this.options).get("crossMarginPairsData"));
@@ -5763,7 +5763,7 @@ public class Binance extends BinanceApi
         } else
         {
             Object balances = response;
-            if (!Helpers.isTrue(Helpers.isArray(response)))
+            if (!Helpers.isTrue((response instanceof List)))
             {
                 balances = this.safeList(response, "assets", new ArrayList<Object>(Arrays.asList()));
             }
@@ -5878,7 +5878,7 @@ public class Binance extends BinanceApi
                 if (!java.util.Objects.equals(paramSymbols, null))
                 {
                     Object symbols = "";
-                    if (Helpers.isTrue(Helpers.isArray(paramSymbols)))
+                    if (Helpers.isTrue((paramSymbols instanceof List)))
                     {
                         Object mid = this.marketId((paramSymbols == null || 0 >= ((List<?>)paramSymbols).size() ? null : ((List<?>)paramSymbols).get(0)));
                         if (!java.util.Objects.equals(mid, null))
@@ -6501,7 +6501,7 @@ public class Binance extends BinanceApi
                     }
                 }
             }
-            if (Helpers.isTrue(Helpers.isArray(response)))
+            if (Helpers.isTrue((response instanceof List)))
             {
                 Map<String, Object> firstTicker = (Map<String, Object>) this.safeDict(response, 0, new HashMap<String, Object>() {{}});
                 return this.parseTicker(firstTicker, market);
@@ -6597,7 +6597,7 @@ public class Binance extends BinanceApi
             {
                 throw new NotSupported((((this.id + " fetchBidsAsks() does not support ") + type) + " markets yet")) ;
             }
-            if (!Helpers.isTrue(Helpers.isArray(response)))
+            if (!Helpers.isTrue((response instanceof List)))
             {
                 response = new ArrayList<Object>(Arrays.asList(response));
             }
@@ -6843,7 +6843,7 @@ public class Binance extends BinanceApi
             {
                 throw new NotSupported((((this.id + " fetchMarkPrice() does not support ") + type) + " markets yet")) ;
             }
-            if (Helpers.isTrue(Helpers.isArray(response)))
+            if (Helpers.isTrue((response instanceof List)))
             {
                 return this.parseTicker(this.safeDict(response, 0, new HashMap<String, Object>() {{}}), market);
             }
@@ -11219,7 +11219,7 @@ public class Binance extends BinanceApi
             {
                 response = (this.privateDeleteOpenOrders(this.extend(request, parameters))).join();
             }
-            if (Helpers.isTrue(Helpers.isArray(response)))
+            if (Helpers.isTrue((response instanceof List)))
             {
                 return this.parseOrders(response, market);
             } else
@@ -13194,7 +13194,7 @@ public class Binance extends BinanceApi
             //     }
             //
             Object data = response;
-            if (Helpers.isTrue(Helpers.isArray(data)))
+            if (Helpers.isTrue((data instanceof List)))
             {
                 data = this.safeDict(data, 0, new HashMap<String, Object>() {{}});
             }
@@ -14667,7 +14667,7 @@ final Object finalMarket = market;
             if (!java.util.Objects.equals(symbols, null))
             {
                 Object symbol = null;
-                if (Helpers.isTrue(Helpers.isArray(symbols)))
+                if (Helpers.isTrue((symbols instanceof List)))
                 {
                     Object symbolsLength = ((List<?>)symbols).size();
                     if (Helpers.isGreaterThan(symbolsLength, 1))
@@ -14865,7 +14865,7 @@ final Object finalMarket = market;
             Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
             if (!java.util.Objects.equals(symbols, null))
             {
-                if (!Helpers.isTrue(Helpers.isArray(symbols)))
+                if (!Helpers.isTrue((symbols instanceof List)))
                 {
                     throw new ArgumentsRequired((this.id + " fetchPositions() requires an array argument for symbols")) ;
                 }
@@ -14956,7 +14956,7 @@ final Object finalMarket = market;
             Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
             if (!java.util.Objects.equals(symbols, null))
             {
-                if (!Helpers.isTrue(Helpers.isArray(symbols)))
+                if (!Helpers.isTrue((symbols instanceof List)))
                 {
                     throw new ArgumentsRequired((this.id + " fetchPositionsRisk() requires an array argument for symbols")) ;
                 }
@@ -15531,7 +15531,7 @@ final Object finalMarket = market;
                 throw new NotSupported((this.id + " fetchLeverages() supports linear and inverse contracts only")) ;
             }
             Object leverages = this.safeList(response, "positions", new ArrayList<Object>(Arrays.asList()));
-            if (Helpers.isTrue(Helpers.isArray(response)))
+            if (Helpers.isTrue((response instanceof List)))
             {
                 leverages = response;
             }
@@ -16446,7 +16446,7 @@ final Object finalMarket = market;
         {
             throw new ExchangeError(((this.id + " ") + body)) ;
         }
-        if (Helpers.isTrue(Helpers.isArray(response)))
+        if (Helpers.isTrue((response instanceof List)))
         {
             // cancelOrders returns an array like this: [{"code":-2011,"msg":"Unknown order sent."}]
             Object arrayLength = ((List<?>)response).size();
@@ -17805,7 +17805,7 @@ final Object finalMarket = market;
             if (!java.util.Objects.equals(rows, null))
             {
                 liquidationsList = rows;
-            } else if (Helpers.isTrue(Helpers.isArray(response)))
+            } else if (Helpers.isTrue((response instanceof List)))
             {
                 // linear and inverse return the bare array, margin wraps it in 'rows'
                 liquidationsList = response;
@@ -18174,7 +18174,7 @@ final Object finalMarket = market;
                 throw new BadRequest((this.id + " fetchMarginModes () supports linear and inverse subTypes only")) ;
             }
             Object assets = this.safeList(response, "positions", new ArrayList<Object>(Arrays.asList()));
-            if (Helpers.isTrue(Helpers.isArray(response)))
+            if (Helpers.isTrue((response instanceof List)))
             {
                 assets = response;
             }

@@ -972,7 +972,7 @@ public class Poloniex extends PoloniexApi
             //     ]
             //
             List<Object> candles = new ArrayList<Object>(Arrays.asList());
-            if (Helpers.isTrue(Helpers.isArray(response)))
+            if (Helpers.isTrue((response instanceof List)))
             {
                 candles = response;
             }
@@ -2121,7 +2121,7 @@ public class Poloniex extends PoloniexApi
         Object resultingTrades = this.safeValue(order, "resultingTrades");
         if (!java.util.Objects.equals(resultingTrades, null))
         {
-            if (!Helpers.isTrue(Helpers.isArray(resultingTrades)))
+            if (!Helpers.isTrue((resultingTrades instanceof List)))
             {
                 resultingTrades = this.safeValue(resultingTrades, this.safeString(market, "id", marketId));
             }
@@ -2982,7 +2982,7 @@ public class Poloniex extends PoloniexApi
             put( "datetime", null );
         }};
         // for swap
-        if (!Helpers.isTrue(Helpers.isArray(response)))
+        if (!Helpers.isTrue((response instanceof List)))
         {
             Long ts = this.safeInteger(response, "uTime");
             ((Map<String, Object>)result).put("timestamp", ts);
@@ -3712,7 +3712,7 @@ public class Poloniex extends PoloniexApi
             //
             Map<String, Object> data = new HashMap<String, Object>() {{}};
             List<Object> entries = new ArrayList<Object>(Arrays.asList());
-            if (Helpers.isTrue(Helpers.isArray(response)))
+            if (Helpers.isTrue((response instanceof List)))
             {
                 entries = response;
             }

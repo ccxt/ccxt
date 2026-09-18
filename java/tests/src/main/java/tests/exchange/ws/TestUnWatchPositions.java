@@ -7,6 +7,7 @@ import io.github.ccxt.errors.*;
 import tests.exchange.*;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 
@@ -53,7 +54,7 @@ public class TestUnWatchPositions extends BaseTest {
             return false;
         }
         // Verify that we have a subscription
-        Assert(Helpers.isArray(positionsSubscription), (((exchange.id + " ") + method) + " requires a valid positions subscription to test unsubscribe"));
+        Assert((positionsSubscription instanceof List), (((exchange.id + " ") + method) + " requires a valid positions subscription to test unsubscribe"));
         // Assert unWatchPositions for one symbol is not supported
         Object errorResponse = null;
         try
@@ -95,7 +96,7 @@ public class TestUnWatchPositions extends BaseTest {
             throw new RuntimeException((String)(((exchange.id + " ") + method) + " failed to resubscribe after unwatch, indicating potential cleanup issues")) ;
         }
         // Verify resubscription works
-        Assert(Helpers.isArray(resubscribeResponse), ((((exchange.id + " ") + method) + " must allow resubscription after unwatch, returned ") + exchange.json(resubscribeResponse)));
+        Assert((resubscribeResponse instanceof List), ((((exchange.id + " ") + method) + " must allow resubscription after unwatch, returned ") + exchange.json(resubscribeResponse)));
         return true;
         });
 

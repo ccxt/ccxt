@@ -8518,7 +8518,7 @@ public class Okx extends OkxApi
         Object parameters = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}};
         Object headers = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : null;
         Object body = optionalArgs != null && optionalArgs.length > 4 ? optionalArgs[4] : null;
-        Object isArray = Helpers.isArray(parameters);
+        Object isArray = (parameters instanceof List);
         Object request = ((Helpers.add("/api/", this.version) + "/") + this.implodeParams(path, parameters));
         Object query = this.omit(parameters, this.extractParams(path));
         Object url = Helpers.add(this.implodeHostname(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("rest")), request);
@@ -8536,7 +8536,7 @@ public class Okx extends OkxApi
             if (java.util.Objects.equals(method, "POST") && (java.util.Objects.equals(path, "trade/batch-orders") || java.util.Objects.equals(path, "trade/order-algo") || java.util.Objects.equals(path, "trade/order")))
             {
                 String brokerId = this.safeString(this.options, "brokerId", "6b9ad766b55dBCDE");
-                if (Helpers.isTrue(Helpers.isArray(parameters)))
+                if (Helpers.isTrue((parameters instanceof List)))
                 {
                     for (var i = 0; i < ((List<?>)parameters).size(); i++)
                     {
@@ -10230,7 +10230,7 @@ public class Okx extends OkxApi
         Object openInterestAmount = null;
         Object openInterestValue = null;
         String type = this.safeString(this.options, "defaultType");
-        if (Helpers.isTrue(Helpers.isArray(interest)))
+        if (Helpers.isTrue((interest instanceof List)))
         {
             if (java.util.Objects.equals(type, "option"))
             {
