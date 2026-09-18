@@ -44,7 +44,7 @@ check ('float box in a numeric compare loses the accessor',
 check ('int literal box loses the accessor',
     'collapseNumericBoxAccessors',
     'if length.as_f64().unwrap_or(f64::NAN) > Value::Int(1).as_f64().unwrap_or(f64::NAN) {',
-    '> ((1) as f64) {',
+    '> ((1i64) as f64) {',
     '.as_f64().unwrap_or(f64::NAN) > Value::Int(1)');
 
 // A box that does not span the whole receiver is not the chain's operand.
@@ -59,6 +59,12 @@ check ('qualified Value::Int keeps the accessor',
     'if crate::Value::Int(1).as_f64().unwrap_or(f64::NAN) > 0.0 {',
     'crate::Value::Int(1).as_f64().unwrap_or(f64::NAN)');
 
+// An unknown payload shape is not a box the printer emits — keep the accessor.
+check ('an unclassifiable box payload keeps the accessor',
+    'collapseNumericBoxAccessors',
+    'if a.as_f64().unwrap_or(f64::NAN) < Value::Int(b + c).as_f64().unwrap_or(f64::NAN) {',
+    'Value::Int(b + c).as_f64().unwrap_or(f64::NAN)');
+
 // The cast must be parenthesised as a whole: `as f64 <` would parse as the
 // start of a generic argument list (rustc: "`<` is interpreted as a start of
 // generic arguments for `f64`").
@@ -67,6 +73,14 @@ check ('the cast is parenthesised before a comparison',
     'if a.as_f64().unwrap_or(f64::NAN) < Value::Int(x.len() as i64).as_f64().unwrap_or(f64::NAN) {',
     '< ((x.len() as i64) as f64) {',
     ') as f64 <');
+
+// A bare literal takes the box's `i64` type: `(1000000000000) as f64` alone
+// would infer `i32` and be denied by `overflowing_literals`.
+check ('a bare i64 literal keeps its i64 type',
+    'collapseNumericBoxAccessors',
+    'if pointTs.as_f64().unwrap_or(f64::NAN) < Value::Int(1000000000000).as_f64().unwrap_or(f64::NAN) {',
+    '((1000000000000i64) as f64)',
+    '1000000000000) as f64');
 
 check ('box without the chain is untouched',
     'collapseNumericBoxAccessors',

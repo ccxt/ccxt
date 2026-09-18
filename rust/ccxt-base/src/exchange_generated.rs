@@ -783,7 +783,7 @@ pub trait ExchangeBase:
             }
         }
         let mut length: f64 = ((usedProxies.len() as i64) as f64);
-        if length > ((1) as f64) {
+        if length > ((1i64) as f64) {
             let mut joinedProxyNames: Value = join(&usedProxies, &Value::Str(",".to_string()));
             panic!("{}", crate::exchange_errors::invalid_proxy_settings(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" you have multiple conflicting proxy settings (".to_string()))), joinedProxyNames)), Value::Str("), please use only one from : proxyUrl, proxy_url, proxyUrlCallback, proxy_url_callback".to_string())))));
         }
@@ -794,7 +794,7 @@ pub trait ExchangeBase:
 
     fn url_encoder_for_proxy_url(&self, mut targetUrl: Value) -> Value {
         // to be overriden
-        let mut includesQuery: bool = get_index_of(&targetUrl, &Value::Str("?".to_string())).as_f64().unwrap_or(f64::NAN) >= ((0) as f64);
+        let mut includesQuery: bool = get_index_of(&targetUrl, &Value::Str("?".to_string())).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64);
         let mut finalUrl: Value = (if includesQuery { self.encode_uri_component(targetUrl.clone()) } else { targetUrl.clone() });
         return finalUrl;
 
@@ -851,7 +851,7 @@ pub trait ExchangeBase:
         }
         // check
         let mut length: f64 = ((usedProxies.len() as i64) as f64);
-        if length > ((1) as f64) {
+        if length > ((1i64) as f64) {
             let mut joinedProxyNames: Value = join(&usedProxies, &Value::Str(",".to_string()));
             panic!("{}", crate::exchange_errors::invalid_proxy_settings(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" you have multiple conflicting proxy settings (".to_string()))), joinedProxyNames)), Value::Str("), please use only one from: httpProxy, httpsProxy, httpProxyCallback, httpsProxyCallback, socksProxy, socksProxyCallback".to_string())))));
         }
@@ -888,7 +888,7 @@ pub trait ExchangeBase:
         }
         // check
         let mut length: f64 = ((usedProxies.len() as i64) as f64);
-        if length > ((1) as f64) {
+        if length > ((1i64) as f64) {
             let mut joinedProxyNames: Value = join(&usedProxies, &Value::Str(",".to_string()));
             panic!("{}", crate::exchange_errors::invalid_proxy_settings(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" you have multiple conflicting proxy settings (".to_string()))), joinedProxyNames)), Value::Str("), please use only one from: wsProxy, wssProxy, wsSocksProxy".to_string())))));
         }
@@ -913,7 +913,7 @@ pub trait ExchangeBase:
         // check the address is not the same letter like 'aaaaa' nor too short nor has a space
         let mut uniqChars: Value = (self.unique(self.string_to_chars_array(address.clone())));
         let mut length: f64 = ((uniqChars.len() as i64) as f64); // py transpiler trick
-        if (length == 1.0) || ((address.len() as i64) as f64) < self.minFundingAddressLength.as_f64().unwrap_or(f64::NAN) || get_index_of(&address, &Value::Str(" ".to_string())).as_f64().unwrap_or(f64::NAN) > ((-1) as f64) {
+        if (length == 1.0) || ((address.len() as i64) as f64) < self.minFundingAddressLength.as_f64().unwrap_or(f64::NAN) || get_index_of(&address, &Value::Str(" ".to_string())).as_f64().unwrap_or(f64::NAN) > ((-1i64) as f64) {
             panic!("{}", crate::exchange_errors::invalid_address(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" address is invalid or has less than ".to_string()))), to_string_val(&self.minFundingAddressLength))), Value::Str(" characters: \"".to_string()))), to_string_val(&address))), Value::Str("\"".to_string())))));
         }
         return address;
@@ -930,7 +930,7 @@ pub trait ExchangeBase:
             while { if !__for_first_75 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_75 = false; i.as_f64().unwrap_or(f64::NAN) < ((messageHashes.len() as i64) as f64) } {
             let mut messageHash: Value = get_value(&messageHashes, &i);
             let mut messageHash: Value = get_value(&messageHashes, &i);
-            if get_index_of(&messageHash, &element).as_f64().unwrap_or(f64::NAN) >= ((0) as f64) {
+            if get_index_of(&messageHash, &element).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
                 append_to_array(&mut result, messageHash.clone());
             }
         }
@@ -946,7 +946,7 @@ pub trait ExchangeBase:
         let mut fromStart = get_arg(optional_args, 2, Value::Bool(false));
         if is_true(&self.value_is_defined(limit.clone())) {
             let mut arrayLength: Value = Value::Int(array.len() as i64);
-            if arrayLength.as_f64().unwrap_or(f64::NAN) > ((0) as f64) {
+            if arrayLength.as_f64().unwrap_or(f64::NAN) > ((0i64) as f64) {
                 let mut ascending: bool = true;
                 if is_true(&(Value::Bool(in_op(&array.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null), &key)))) {
                     let mut first: Value = get_value(&array.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null), &key);
@@ -2007,7 +2007,7 @@ pub trait ExchangeBase:
         // in JS:     1 === 1.0 is true
         // in Python: 1 == 1.0 is true
         // in PHP:    1 == 1.0 is true, but 1 === 1.0 is false.
-        if get_index_of(&stringVersion, &Value::Str(".".to_string())).as_f64().unwrap_or(f64::NAN) >= ((0) as f64) {
+        if get_index_of(&stringVersion, &Value::Str(".".to_string())).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
             return crate::runtime::parse_float(&stringVersion);
         }
         return crate::runtime::parse_int(&stringVersion);
@@ -2072,7 +2072,7 @@ pub trait ExchangeBase:
             panic!("{}", crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", self.id.clone(), Value::Str(".rateLimit property is not configured".to_string())))));
         }
         let mut refillRate: Value = self.MAX_VALUE.clone();
-        if self.rateLimit.as_f64().unwrap_or(f64::NAN) > ((0) as f64) {
+        if self.rateLimit.as_f64().unwrap_or(f64::NAN) > ((0i64) as f64) {
             refillRate = (match ((Value::Int(1)).as_f64(), (self.rateLimit.clone()).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null });
         }
         let mut useLeaky: bool = is_true(&(Value::Bool(self.rollingWindowSize.as_f64() == Some(0.0)))) || is_true(&(Value::Bool(self.rateLimiterAlgorithm.as_str() == Some("leakyBucket"))));
@@ -2745,7 +2745,7 @@ pub trait ExchangeBase:
             let mut keys: Value = object_keys(&currencies);
             numCurrencies = Value::Int(keys.len() as i64);
         }
-        if numCurrencies.as_f64().unwrap_or(f64::NAN) > ((0) as f64) {
+        if numCurrencies.as_f64().unwrap_or(f64::NAN) > ((0i64) as f64) {
             // currencies is always undefined when called in constructor but not when called from loadMarkets
             { let __t = self.map_to_safe_map(self.deep_extend(self.currencies.clone(), &[currencies.clone()])); self.currencies = __t; }
         }  else {
@@ -2989,7 +2989,7 @@ pub trait ExchangeBase:
             if isArray {
                 tradesLength = Value::Int(trades.len() as i64);
             }
-            if isArray && is_true(&(tradesLength.as_f64().unwrap_or(f64::NAN) > ((0) as f64))) {
+            if isArray && is_true(&(tradesLength.as_f64().unwrap_or(f64::NAN) > ((0i64) as f64))) {
                 // move properties that are defined in trades up into the order
                 if (order.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null) == Value::Null) {
                     add_element_to_object(&mut order, &Value::Str("symbol".to_string()), crate::value::get_value_k(&trades.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null), "symbol"));
@@ -5296,7 +5296,7 @@ pub trait ExchangeBase:
         { let __destr_tmp = self.handle_option_and_params(params.clone(), path.clone(), Value::Str("maxRetriesOnFailure".to_string()), &[retries.clone()]); retries = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         let mut retryDelay: Value = Value::Int(0);
         { let __destr_tmp = self.handle_option_and_params(params.clone(), path.clone(), Value::Str("maxRetriesOnFailureDelay".to_string()), &[retryDelay.clone()]); retryDelay = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
-        let mut fetchDataCacheEnabled: bool = self.fetchHistoryCacheSize.as_f64().unwrap_or(f64::NAN) > ((0) as f64);
+        let mut fetchDataCacheEnabled: bool = self.fetchHistoryCacheSize.as_f64().unwrap_or(f64::NAN) > ((0i64) as f64);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_130: bool = true;
@@ -5444,7 +5444,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             if (price == Value::Null) {
                 panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" buildOHLCVC() requires a price argument".to_string())))));
             }
-            if is_true(&(Value::Bool(skipZeroPrices.as_bool() == Some(true)))) && !is_true(&(price.as_f64().unwrap_or(f64::NAN) > ((0) as f64))) && !is_true(&(price.as_f64().unwrap_or(f64::NAN) < ((0) as f64))) {
+            if is_true(&(Value::Bool(skipZeroPrices.as_bool() == Some(true)))) && !is_true(&(price.as_f64().unwrap_or(f64::NAN) > ((0i64) as f64))) && !is_true(&(price.as_f64().unwrap_or(f64::NAN) < ((0i64) as f64))) {
                 continue;
             }
             let mut isFirstCandle: bool = candle.as_f64() == Value::Int(-1).as_f64();
@@ -6998,7 +6998,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         if (precisionNumber.as_f64() == Some(0.0)) {
             return Value::Str("1".to_string());
         }
-        if precisionNumber.as_f64().unwrap_or(f64::NAN) > ((0) as f64) {
+        if precisionNumber.as_f64().unwrap_or(f64::NAN) > ((0i64) as f64) {
             let mut parsedPrecision: Value = Value::Str("0.".to_string());
             {
                                 let mut i: Value = Value::Int(0);
@@ -7939,7 +7939,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
          * @returns {undefined}
          */
         let mut optionsLength: f64 = ((options.len() as i64) as f64);
-        if is_true(&(Value::Bool(argument == Value::Null))) || (is_true(&(optionsLength > ((0) as f64))) && (!is_true(&(self.in_array(argument.clone(), options.clone()))))) {
+        if is_true(&(Value::Bool(argument == Value::Null))) || (is_true(&(optionsLength > ((0i64) as f64))) && (!is_true(&(self.in_array(argument.clone(), options.clone()))))) {
             let mut messageOptions: Value = join(&options, &Value::Str(", ".to_string()));
             let mut message: Value = Value::Str(format!("{}{}", add(&Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), methodName)), Value::Str("() requires a ".to_string()))), &argumentName), Value::Str(" argument".to_string())));
             if (messageOptions.as_str() != Some("")) {
@@ -8636,7 +8636,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         }
         }
         let mut valuesLength: f64 = ((uniqueResult.len() as i64) as f64);
-        if valuesLength > ((0) as f64) {
+        if valuesLength > ((0i64) as f64) {
             return uniqueResult;
         }
         return input;
@@ -9291,7 +9291,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 }
             }
             }
-        }  else if symbolsLength.as_f64().unwrap_or(f64::NAN) > ((0) as f64) {
+        }  else if symbolsLength.as_f64().unwrap_or(f64::NAN) > ((0i64) as f64) {
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_175: bool = true;
@@ -9368,7 +9368,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
 }
 
     fn timeframe_from_milliseconds(&self, mut ms: Value) -> Value {
-        if ms.as_f64().unwrap_or(f64::NAN) <= ((0) as f64) {
+        if ms.as_f64().unwrap_or(f64::NAN) <= ((0i64) as f64) {
             return Value::Str("".to_string());
         }
         let mut second: Value = Value::Int(1000);

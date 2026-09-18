@@ -12287,7 +12287,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut amountRaw: Value = self.safe_string2(item.clone(), Value::Str("size".to_string()), Value::Str("amount".to_string()), &[Value::Str("".to_string())]);
         let mut amount: Value = self.parse_number(crate::precise::Precise::stringAbs(&amountRaw), &[]);
         let mut direction: Value = Value::Str("in".to_string());
-        if get_index_of(&amountRaw, &Value::Str("-".to_string())).as_f64().unwrap_or(f64::NAN) >= ((0) as f64) {
+        if get_index_of(&amountRaw, &Value::Str("-".to_string())).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
             direction = Value::Str("out".to_string());
         }
         return self.safe_ledger_entry(Value::Map({
@@ -13819,7 +13819,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if amount.as_f64().unwrap_or(f64::NAN) > ((0) as f64) {
+        if amount.as_f64().unwrap_or(f64::NAN) > ((0i64) as f64) {
             panic!("{}", crate::exchange_errors::bad_request(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" reduceMargin() amount parameter must be a negative value".to_string())))));
         }
         let mut holdSide: Value = self.safe_string_k(params.clone(), "holdSide", &[]);
@@ -15679,7 +15679,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut response: Value = Value::Null;
         if (symbols != Value::Null) {
             let mut symbolsLength: f64 = ((symbols.len() as i64) as f64);
-            if symbolsLength > ((0) as f64) {
+            if symbolsLength > ((0i64) as f64) {
                 market = self.market(symbols.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null));
                 add_element_to_object(&mut request, &Value::Str("symbol".to_string()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             }
@@ -16257,7 +16257,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if !signed && is_true(&(Value::Bool(method.as_str() == Some("GET")))) {
             let mut keys: Value = object_keys(&query);
             let mut keysLength: f64 = ((keys.len() as i64) as f64);
-            if keysLength > ((0) as f64) {
+            if keysLength > ((0i64) as f64) {
                 url = Value::Str(format!("{}{}", Value::Str(format!("{}{}", url, Value::Str("?".to_string()))), self.urlencode(query.clone(), &[])));
             }
         }
@@ -16269,11 +16269,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 body = self.json(params.clone());
                 auth = add(&auth, &body);
             }  else {
-                if ((object_keys(&params).len() as i64) as f64) > ((0) as f64) {
+                if ((object_keys(&params).len() as i64) as f64) > ((0i64) as f64) {
                     let mut sortedParams: Value = self.keysort(params.clone(), &[]);
                     let mut queryInner: Value = Value::Str(format!("{}{}", Value::Str("?".to_string()), self.urlencode(sortedParams.clone(), &[Value::Bool(true)])));
                     // check #21169 pr
-                    if get_index_of(&queryInner, &Value::Str("%24".to_string())).as_f64().unwrap_or(f64::NAN) > ((-1) as f64) {
+                    if get_index_of(&queryInner, &Value::Str("%24".to_string())).as_f64().unwrap_or(f64::NAN) > ((-1i64) as f64) {
                         queryInner = replace_str(&queryInner, &Value::Str("%24".to_string()), &Value::Str("$".to_string()));
                     }
                     url = Value::Str(format!("{}{}", url, queryInner));

@@ -4016,17 +4016,41 @@ export class RustTranspilerBuilder {
     }
 
     /**
-     * `Value::Int(<expr>).as_f64().unwrap_or(f64::NAN)` -> `((<expr>) as f64)`,
-     * and the `Value::Float` twin -> `(<expr>)`.
+     * Native `f64` text for the payload of a numeric `Value` box, or undefined
+     * when the box is not a shape the printer emits (`printNumericLiteral` /
+     * `printArrayLength`): a bare integer literal or an expression already cast
+     * to an integer type. Anything else keeps the accessor chain.
+     *
+     * `Value::Int` holds an `i64`, so the payload is never a float, and a bare
+     * literal must name its type — `(1000000000000) as f64` alone would default
+     * to `i32` and be denied by `overflowing_literals`.
+     */
+    private numericBoxF64Text(box: string, inner: string): string | undefined {
+        if (box === 'Value::Float') {
+            return `(${inner})`;
+        }
+        if (/^-?[0-9][0-9_]*$/.test(inner)) {
+            return `((${inner}i64) as f64)`;
+        }
+        if (/(?:^|[^A-Za-z0-9_])as\s+(?:i8|i16|i32|i64|i128|isize|u8|u16|u32|u64|u128|usize)$/.test(inner)) {
+            return `((${inner}) as f64)`;
+        }
+        return undefined;
+    }
+
+    /**
+     * `Value::Int(<expr>).as_f64().unwrap_or(f64::NAN)` -> `((<expr>) as i64) as f64`,
      *
      * `Value::Int` holds an `i64` and `Value::Float` an `f64` (`value.rs`), so
      * `as_f64()` is always `Some(payload)`: the `unwrap_or(f64::NAN)` fallback
      * is unreachable and the box only wraps a number the compare can use as is.
      * The box must span the whole receiver (bracket-balanced) — a
      * `Value::Int(a) + b` receiver keeps the accessor. The receiver is never
-     * re-evaluated: both forms evaluate `<expr>` exactly once. The cast is
-     * parenthesised as a whole: an `as f64` followed by `<` would parse as the
-     * start of a generic argument list.
+     * re-evaluated: both forms evaluate `<expr>` exactly once. Two cast
+     * details: the whole cast is parenthesised (`as f64 <` would parse as the
+     * start of a generic argument list), and the inner cast names `i64` so a
+     * bare literal takes the box's `i64` type instead of the default `i32`
+     * (which would overflow for epoch-millis literals).
      */
     collapseNumericBoxAccessors(content: string): string {
         const boxRe = /(?<![A-Za-z0-9_:])(Value::(?:Int|Float))\(/g;
@@ -4039,7 +4063,8 @@ export class RustTranspilerBuilder {
                 continue;
             }
             const inner = content.slice(open + 1, close - 1);
-            const text = m[1] === 'Value::Int' ? `((${inner}) as f64)` : `(${inner})`;
+            const text = this.numericBoxF64Text(m[1], inner);
+            if (text === undefined) continue;
             rewrites.push({ start: m.index, end: close + RUST_FLOAT_NAN_UNWRAP.length, text });
         }
         return this.applyRewrites(content, rewrites);
@@ -4072,7 +4097,8 @@ export class RustTranspilerBuilder {
             const tail = /^\)?;/.exec(content.slice(close, close + 2));
             if (tail === null) continue;
             const inner = content.slice(open + 1, close - 1);
-            const init = m[3] === 'Value::Int' ? `((${inner}) as f64)` : `(${inner})`;
+            const init = this.numericBoxF64Text(m[3], inner);
+            if (init === undefined) continue;
             const stmtEnd = close + tail[0].length;
             const end = this.scopeEndOf(content, stmtEnd);
             const masked = this.maskStrings(content.slice(stmtEnd, end));
